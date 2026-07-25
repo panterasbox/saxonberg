@@ -279,8 +279,7 @@ async function resolveCastImpl(
   // never reaches here). Overchanneling = completing past empty: the
   // pool floors at 0 and strain lands, staged by the deficit.
   const reserved = caster as unknown as Reserved & Caster & Vitals;
-  reserved.reconcileFaculty();
-  const pool = reserved.getReserve(MANA_RESERVE_KEY);
+  const pool = reserved.getMana(); // reconciled read (the contract surface)
   const cost = spell.cost || dial(AppSettingKeys.magicCostDefault, 15);
   const current = pool?.current.rawValue() ?? 0;
   let overchanneled = false;

@@ -43,7 +43,13 @@ import type Species from '../species/Species';
 import type { ActiveCondition } from '../vitals/Condition';
 import { Faculty, type FacultyBand, type FacultyProfile } from './Faculty';
 
-/** The engine reserve key for the arcane pool ("mana" is its content theme). */
+/**
+ * The arcane pool's reserve key — **magic-internal plumbing** (this
+ * mixin + `MagicLogic`'s spend leg + white-box tests). Everyone else
+ * reads the pool via {@link Caster.getMana} / `getManaFraction()`,
+ * which bundle the recovery reconcile a raw keyed read skips. See the
+ * reserve landscape table in `lib/reserve.ts`.
+ */
 export const MANA_RESERVE_KEY = 'mana';
 
 /** The overchannel-strain condition seed's templatePath. */
@@ -98,6 +104,14 @@ export interface Caster {
   installArcaneReserve(): void;
   /** Reconcile-on-read: serenity-rate recovery + strain hysteresis-clear. */
   reconcileFaculty(): void;
+  /**
+   * The mana pool, freshly reconciled — the convenience reader that
+   * spares callers the reserve key (the `Combustible.getFuelRemaining`
+   * pattern: each substrate fronts its own reserve behind a domain
+   * method; the raw keyed surface is this mixin's internal plumbing).
+   * `null` for a non-caster (no pool ever installs).
+   */
+  getMana(): Reserve | null;
   /** current/capacity in [0,1]; 1 when no pool (non-caster neutral). */
   getManaFraction(): number;
   /** The live mental-resist substrate factor (works for non-casters). */
@@ -270,6 +284,13 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!pool) return 1;
       const cap = pool.capacity.rawValue();
       return cap > 0 ? pool.current.rawValue() / cap : 1;
+    }
+
+    public getMana(): Reserve | null {
+      this.reconcileFaculty();
+      return (
+        (this as unknown as Reserved).getReserve(MANA_RESERVE_KEY) ?? null
+      );
     }
 
     public getManaFraction(): number {

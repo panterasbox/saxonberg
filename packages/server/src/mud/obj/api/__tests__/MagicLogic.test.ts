@@ -128,7 +128,7 @@ function installDreadSeed(): void {
 }
 
 function mana(c: TestCharacter): number {
-  return c.getReserve(MANA_RESERVE_KEY)!.current.rawValue();
+  return c.getMana()!.current.rawValue();
 }
 
 describe("MagicLogic — the cast pipeline", () => {

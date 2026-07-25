@@ -107,6 +107,23 @@ describe("CasterMixin — the anatomical faculty", () => {
     expect(beast.hasReserve(MANA_RESERVE_KEY)).toBe(false);
   });
 
+  it("getMana() is the contract read — reconciled, key-free, null for a non-caster", () => {
+    const c = makeActor({ depth: "mid", serenity: "high", composure: "mid" });
+    // no explicit install — the reconciled read installs on first touch
+    const pool = c.getMana()!;
+    expect(pool.capacity.unit).toBe("pt");
+    expect(pool.capacity.rawValue()).toBe(Faculty.capacityFor("mid"));
+    c.adjustReserve(MANA_RESERVE_KEY, Quantity.of(-40, "pt"));
+    c.reconcileFaculty(); // seed the stamp
+    // the read itself carries the recovery reconcile — no stale pool
+    advance(c, 1800);
+    expect(c.getMana()!.current.rawValue()).toBeGreaterThan(
+      Faculty.capacityFor("mid") - 40,
+    );
+    const beast = makeActor(null, false);
+    expect(beast.getMana()).toBeNull();
+  });
+
   it("recovers at the serenity-banded rate over game-time", () => {
     const serene = makeActor({ depth: "mid", serenity: "high", composure: "mid" });
     const restless = makeActor({ depth: "mid", serenity: "low", composure: "mid" });

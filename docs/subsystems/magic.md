@@ -80,7 +80,12 @@ sits above the spell's floor (`magic.potency.competenceFactor`).
   avail/max**: capacity derives from **depth**
   (`magic.depthCapacity.<band>`), costs are absolute points, % is
   derived where a fraction is wanted. Never a forked mechanism, never a
-  stored CON-style scalar.
+  stored CON-style scalar. **Read it via `getMana()` /
+  `getManaFraction()`** — the contract surface, bundling the recovery
+  reconcile a raw keyed `getReserve('mana')` skips (the
+  `Combustible.getFuelRemaining` pattern; `MANA_RESERVE_KEY` is
+  magic-internal plumbing — see the reserve landscape table in
+  `lib/reserve.ts`).
 - **recovery** — reconcile-on-read at the **serenity**-banded rate
   (`magic.recoveryPerMinBase` × `magic.serenityFactor.<band>`), scaled
   by the same rest inputs metabolism uses (posture base ×

@@ -22,6 +22,27 @@
  * Parking note: this lives at `lib/` root until the RPG layer reveals a
  * better organizing principle (game systems consuming a common physics
  * substrate). It is NOT biology and NOT a game system — keep it neutral.
+ *
+ * ## The reserve landscape (the index — one place to find them)
+ *
+ * Every known instance, its owner, and the **contract surface** to read
+ * it. The keyed `getReserve`/`adjustReserve` calls are each owner's
+ * internal plumbing — consumers use the owner's domain method (the
+ * inter-Stuff methods-are-the-contract rule), which bundles the
+ * owner's reconcile-on-read where one exists:
+ *
+ * | key | unit | owner (installs/drives) | read it via |
+ * |---|---|---|---|
+ * | `endurance` | `%` | Creature + `MetabolicMixin` (recovery) | keyed reads auto-reconcile (Metabolic hooks them); drained by Vitals (limp), LoadBearing (traversal), combat (tempo) |
+ * | `satiation` | `%` | Creature + `MetabolicMixin` | as above; spent by ThermalRegulation (setpoint defense) |
+ * | `hydration` | `%` | Creature + `MetabolicMixin` | as above (the tighter recovery leash) |
+ * | `fuel` | `%` | `CombustibleMixin` / `FurnaceMixin` (theme `combustion`) | `getFuelRemaining()` |
+ * | `air` | `%` | an enclosed scope's Location (fire chemistry) | `FireLogic`-internal (no external reader) |
+ * | `mana` | `pt` | `CasterMixin` (theme `arcane`; capacity from the depth band) | `getMana()` / `getManaFraction()` — raw keyed reads SKIP the recovery reconcile, never use them outside `lib/magic` |
+ *
+ * New instances (a guild's "charge", a tradition's "essence") follow the
+ * same shape: the owning mixin installs the reserve, fronts it with a
+ * domain method, and adds a row here.
  */
 
 import type { MixinConstructor } from './mixin';

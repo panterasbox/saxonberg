@@ -37,7 +37,6 @@ import SpellCatalogue from "../../../SpellCatalogue";
 import Spell from "../../../../lib/magic/Spell";
 import GlowlightOrb from "../../../../lib/magic/GlowlightOrb";
 import { Template } from "../../../../lib/stuff/Template";
-import { MANA_RESERVE_KEY } from "../../../../lib/magic/Caster";
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -116,7 +115,7 @@ function ctx(actor: Stuff, room: Room): CommandContext {
 }
 
 function mana(c: TestCaster): number {
-  return c.getReserve(MANA_RESERVE_KEY)!.current.rawValue();
+  return c.getMana()!.current.rawValue();
 }
 
 describe("CastController + CastActivity", () => {
