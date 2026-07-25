@@ -687,8 +687,8 @@ async function execConjure(
     return result.status === 'declined'
       ? 'It will not pour there.'
       : target && MixinApi.isBulkable(target)
-        ? `Clear ${material.getPresentation()} wells up inside.`
-        : `Clear ${material.getPresentation()} spatters onto the ground.`;
+        ? `Clear ${material.getName()} wells up inside.`
+        : `Clear ${material.getName()} spatters onto the ground.`;
   } finally {
     StuffApi.destruct(source);
   }

@@ -14,6 +14,7 @@ import type {
   OutcomeBand,
 } from '../../api/material';
 import { StuffApi } from '../../api/stuff';
+import { Template } from '../../lib/stuff/Template';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Channels } from '../../lib/material/Channel';
@@ -57,6 +58,12 @@ const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialAp
  */
 @Unshadowable
 export class MaterialLogic extends ApiLogic {
+  /** See {@link MaterialApi.boot}. */
+  @CallSecurity(MaterialApiCallers)
+  public boot(): Promise<number> {
+    return bootImpl();
+  }
+
   /** See {@link MaterialApi.compositionOf}. */
   @CallSecurity(MaterialApiCallers)
   public compositionOf(material: Material): MaterialComposition {
@@ -636,4 +643,42 @@ function expandInto(
     if (!child) continue;
     expandInto(child, weight * entry.fraction, acc, visited);
   }
+}
+
+// ─────────────────── the boot roster warm (bootImpl) ───────────────────
+
+/**
+ * Stand up every authored Material as a live singleton so the sync
+ * resolve-on-read seams (`Tangible.getMaterial`, the bulk slots'
+ * material reads, `Combustible`'s autoignition read, composition
+ * expansion) hit from the first frame of live play.
+ *
+ * The gap this closes: those readers use the SYNC
+ * `StuffApi.findByTemplatePath`, which returns only already-live
+ * instances — and nothing else ever stood materials up in a running
+ * server (tests hand-construct theirs), so every live material read
+ * was null: nothing could ignite, melt, or resolve a composition.
+ * The `SpeciesApi.preloadAnatomy` tolerant-ensure precedent, made
+ * total: the roster is small, reference-data, and read hot, so warm
+ * it whole at boot rather than chasing every async seam that would
+ * need a per-site ensure.
+ *
+ * Filters to rows whose backing `class` lives under `/lib/material/`
+ * (Material + subclasses) — the tree's folder rows are `FolderZone`s
+ * owned by the zone substrate, not ours to stand up.
+ */
+async function bootImpl(): Promise<number> {
+  const templates = await Template.findDescendants('/lib/material/');
+  let stood = 0;
+  for (const tpl of templates) {
+    if (!tpl.class.startsWith('/lib/material/')) continue;
+    try {
+      await StuffApi.singleton(tpl.path);
+      stood++;
+    } catch (err) {
+      console.warn(`MaterialApi.boot: '${tpl.path}' failed to stand up:`, err);
+    }
+  }
+  console.info(`MaterialApi.boot: ${stood} material singleton(s) live`);
+  return stood;
 }
