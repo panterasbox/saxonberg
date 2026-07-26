@@ -2123,3 +2123,36 @@ module-private, not exported) closing over plain values, never over the
 controller. Found live by the magic build's browser drive
 (`CastController`, fixed); `SearchController`'s completion has the
 same latent shape.
+
+## Per-dynamic branches in the combat engine
+
+**Don't:**
+
+```typescript
+// inside CombatLogic's exchange resolution
+if (weapon && MixinApi.isEnergized(weapon)) {
+  ElectricityApi.shockContact(weapon, target); // the engine knows this dynamic
+}
+```
+
+**Do:**
+
+```typescript
+// on the dynamic's own class — EnergizedMixin composes CombatReactiveMixin
+public override augmentInflict(spec: InflictSpec, ctx: CombatHookContext) {
+  ctx.deliverShock(this);
+  return super.augmentInflict(spec, ctx);
+}
+```
+
+The combat engine branches on **physics** (`isSlotted`, `isConstructed`,
+`isVitals`, …), never on **dynamics**. A special weapon, reactive armor,
+species quirk, or venue response implements the `CombatReactiveMixin` /
+`CombatantMixin` / `CombatVenue` hook for its seam and queues
+consequences through the `CombatHookContext` — the engine's dispatch
+choreography never grows a new `MixinApi.isX` branch. Enforced by
+`pnpm -C packages/server lint:combat-dynamics` (a 21-predicate physics
+allowlist; when the lint fires, the answer is "implement a hook," not
+"grow the allowlist"). The deleted `isEnergized` branch above was the
+first barnacle and the migration is the worked example. See
+[combat-hooks.md](./subsystems/combat-hooks.md).
