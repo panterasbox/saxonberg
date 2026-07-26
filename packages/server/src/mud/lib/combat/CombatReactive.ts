@@ -28,7 +28,7 @@
  * temporary-enchantment substrate (attach a shadow, the dynamic lives;
  * detach, baseline returns byte-identically).
  *
- * See docs/subsystems/combat.md (the hook grammar).
+ * See docs/subsystems/combat-hooks.md (the hook grammar).
  */
 
 import type { MixinConstructor } from "../mixin";
@@ -37,14 +37,97 @@ import type { Slotted } from "../slot/Slotted";
 import type { InflictSpec } from "../../api/condition";
 import type { CombatHookContext } from "./CombatHookContext";
 
-/** Public hook surface added by CombatReactiveMixin. */
+/**
+ * Public hook surface added by CombatReactiveMixin.
+ *
+ * The interface members carry the projected `@hook` contracts (an
+ * interface reflects into the author surface; a mixin factory's
+ * returned class does not) — the mixin's method TSDoc below is the
+ * in-editor twin with the full composition mechanics.
+ */
 export interface CombatReactive {
+  /**
+   * Determinism contract: synchronous, deterministic, cheap — no
+   * `await`, no wall-clock, no randomness. Shadowable by design.
+   *
+   * @hook Invoked by `Slotted.occupy` (the arming chokepoint — wield,
+   * combat grip swap, persistence restore), after the successful slot
+   * add, **per claimed slot**. Override to react to being armed;
+   * compose via `super.onWielded(host, slotName)`. Bodies must be
+   * cheap and idempotent (restore re-arms through the same path).
+   */
   onWielded(host: Stuff & Slotted, slotName: string): void;
+  /**
+   * Determinism contract: synchronous, deterministic, cheap — no
+   * `await`, no wall-clock, no randomness. Shadowable by design.
+   *
+   * @hook Invoked by `Slotted.vacate`/`vacateSole` (the release
+   * chokepoint, `cleanupOnDestruct` included), per slot, after the
+   * generic `onSlotReleased` witness. Override to react to being
+   * disarmed; compose via `super.onUnwielded(host, slotName)`.
+   */
   onUnwielded(host: Stuff & Slotted, slotName: string): void;
+  /**
+   * The **compute** hook: reshape (or pass through) the strike's
+   * `InflictSpec` (any non-`shock` `InsultKind`) and queue riders /
+   * side-consequences through `ctx` — never call gated Apis from this
+   * frame. Determinism contract: synchronous, deterministic, cheap.
+   * Shadowable by design — a temporary enchantment is a shadow over
+   * this method (continue via `Shadow.callDown`).
+   *
+   * @hook Invoked by the combat engine at `commitInflict`, on the
+   * strike's augment carrier (the wielded weapon, else the bare
+   * CombatReactive attacker — exactly one), before
+   * `ConditionApi.inflict`. A malformed return falls back to the
+   * pre-augment spec. Compose via
+   * `return super.augmentInflict(reshaped, ctx)`.
+   */
   augmentInflict(spec: InflictSpec, ctx: CombatHookContext): InflictSpec;
+  /**
+   * The carrier hears its own exchange outcome (`ctx.outcome` set —
+   * combo/momentum dynamics), once per exchange, riposte included in
+   * its parent's dispatch. Determinism contract: synchronous,
+   * deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine (`witnessExchange`) on the
+   * actor's augment carrier after the exchange fully resolves,
+   * following the participants' `onExchangeResolved`. Compose via
+   * `super.onStrikeResolved(ctx)`.
+   */
   onStrikeResolved(ctx: CombatHookContext): void;
+  /**
+   * This item, in the struck site's covering stack (worn armor /
+   * facing shield), took an exchange's consequence — landed or fully
+   * attenuated (`ctx.deflected` says which). Determinism contract:
+   * synchronous, deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine at `commitInflict`, on each
+   * CombatReactive item in the covering stack at the struck site,
+   * outside-in, after the primary inflict + drain. Compose via
+   * `super.onStruck(ctx)`.
+   */
   onStruck(ctx: CombatHookContext): void;
+  /**
+   * This item, as the guarding instrument, turned an attacker's blow.
+   * Determinism contract: synchronous, deterministic, cheap.
+   * Shadowable by design.
+   *
+   * @hook Invoked by the combat engine in `resolveExchange`,
+   * immediately after `decideOutcome` returns `parried`, on the
+   * defender's guarding instrument. Compose via `super.onParry(ctx)`.
+   */
   onParry(ctx: CombatHookContext): void;
+  /**
+   * This item, as the defender's instrument, could not guard — an
+   * offensive outcome landed past a steady but guardless defender
+   * (`control-resisted` excluded). Determinism contract: synchronous,
+   * deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine in `resolveExchange`, after
+   * `decideOutcome` returns `land`/`exploit` against a steady,
+   * guardless defender, on the defender's resolved instrument.
+   * Compose via `super.onBypassed(ctx)`.
+   */
   onBypassed(ctx: CombatHookContext): void;
 }
 

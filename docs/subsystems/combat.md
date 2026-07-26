@@ -108,14 +108,38 @@ the defender is an NPC with no session to consent — **imposes** the terms
 `CombatLogic.commitInflict` builds an `InflictSpec {mechanism: Channel,
 site, energy}` and calls `ConditionApi.inflict` ([harm](./harm.md)). Combat
 picks the **channel** (from the resolved instrument — a wielded weapon's
-delivery channel, or a species' innate attack), the **site** (torso by
-default; a called shot to the head on an open window), and an **energy**
-derived from the target's **poise band** at the moment of the blow (an open
-window earns the hardest hit — a `combat.energy.*` dial). It computes **no
-damage**; `inflict` resolves the covering stack outside-in and returns the
-trauma type + severity, or `null` (deflected). Armor coverage measurably
-changes the outcome (a plated torso turns an edge a bare one wouldn't) —
-that is entirely materials-response, not combat.
+delivery channel, or a species' innate attack; an innate now rides the
+**same delivery split** as a weapon, so a `heat` innate builds a heat spec
+and a **`shock` innate delivers through the instrument seam's drain** with
+no mechanical primary at all — see
+[combat-hooks.md](./combat-hooks.md) § the species vocabulary), the
+**site** (torso by default; a called shot to the head on an open window),
+and an **energy** derived from the target's **poise band** at the moment of
+the blow (an open window earns the hardest hit — a `combat.energy.*` dial).
+It computes **no damage**; `inflict` resolves the covering stack outside-in
+and returns the trauma type + severity, or `null` (deflected). Armor
+coverage measurably changes the outcome (a plated torso turns an edge a
+bare one wouldn't) — that is entirely materials-response, not combat.
+
+## Extension hooks — the combat-hooks grammar
+
+Combat carries a declared **wizard-facing extension tier** (the
+combat-hooks build): `@hook` seams across three surfaces — **instrument**
+(`CombatReactiveMixin`, the one marker mixin the engine scans for:
+`onWielded`/`onUnwielded`, the `augmentInflict` compute hook, the
+strike/struck/parry/bypass witnesses), **participant** (`CombatantMixin`
+no-op terminals — session entered, exchange resolved, band changed,
+downed, defeated, defeated-foe, coup begun), and **venue** (optional
+`CombatVenue` Location hooks — opened, blood drawn, resolved) — at fixed
+points of the beat lifecycle, with consequences funneled through the
+engine-drained `CombatHookContext` queue and the whole engine lint-locked
+against per-dynamic carve-outs (`check-combat-dynamics`). The gated
+**`CombatApi.influence`** bridge (stagger/expose/steady) is the external
+state-instruction surface. The seams exist here; the **choreography, the
+determinism contract, the enchantment-via-shadows boundary, and the
+species combat vocabulary live in
+[combat-hooks.md](./combat-hooks.md)** — read that before writing any
+combat dynamic.
 
 The outcome is **deterministic given information** (poker, not slots): the
 exchange result is a function of poise + instruments, never a die roll. An
@@ -132,7 +156,12 @@ bespoke registry: a gambit asserts a `{capability, band}` requirement
 (channels-not-nouns) and whether it routes through `inflict`. Instruments =
 body parts + a wielded weapon; a strike needs a **usable melee instrument**
 (a wielded weapon in a functional, non-`disarmed` grip, or a
-species-declared innate attack via `Combatant.getNaturalAttackChannel`).
+species-declared innate attack — `Species.naturalAttacks[]`, a
+**multi-attack list rotated deterministically by beat**, with the legacy
+single `Combatant.naturalAttackChannel` kept as a byte-preserving
+fallback; the natural profile derives from the body, and a species can
+afford existing gambits bodily — see
+[combat-hooks.md](./combat-hooks.md) § the species vocabulary).
 
 **Attempt-time cross-gating** (`CombatApi.eligibilityFor`): a gambit needing
 an impaired slot is *rejected when attempted* (`Vitals.isSlotImpairedByTrauma`
@@ -229,7 +258,9 @@ initial seven per MR review — see [§ History](#history)):
 Both verbs are contributed by **`CombatantMixin`** (`lib/combat/Combatant.ts`,
 composed on `Character`) as static `self` affordances; the gambit
 subcommands reject at attempt-time. `CombatantMixin` also carries the
-species-declared `naturalAttackChannel` (innate-attack hook) and a banded,
+`naturalAttackChannel` field (now the **legacy single-attack fallback**
+under `Species.naturalAttacks[]` — see
+[combat-hooks.md](./combat-hooks.md)) and a banded,
 perception-safe `look` augmenter (the combat-state line while a fight is
 live). The `wield`/`unwield` affordance — shipped as verbs with the
 "Weapon is holdable" build but deferred at the affordance layer — is wired
@@ -767,3 +798,17 @@ Named at their sites; nothing inherited:
   A follow-on added the `whip` delivery form (guardless, long-reach extreme)
   + its `entangle` gambit. The generic arms/armor/gear/clothes/items seeds
   were relocated out of `domain/eternal/` into `/obj/` in the same branch.
+- **Combat hooks** (`feature/combat-hooks`) — the extension grammar (see
+  [§ Extension hooks](#extension-hooks--the-combat-hooks-grammar) and
+  [combat-hooks.md](./combat-hooks.md)): `CombatReactiveMixin` +
+  `CombatHookContext` + the `CombatVenue` interface; every engine dispatch
+  site wired byte-parity-gated; the **Energized migration** (the
+  `isEnergized` branch deleted from `commitInflict` — the stun baton now
+  shocks through its own `augmentInflict`, pinned byte-identical); the
+  `check-combat-dynamics` lint; **`CombatApi.influence`** +
+  `Poise.exposeWindow`; **non-mechanical innates** (`commitShockInflict`,
+  the electric eel armed); the **species combat vocabulary**
+  (`Species.naturalAttacks[]`/`affordedGambits`, beat-keyed rotation, the
+  body-derived natural profile replacing the five unarmed fallback
+  literals); and the gym's hooked determinism cell. Four new dials
+  (`combat.influence.*` ×3, `combat.natural.largeBodyMassKg`).

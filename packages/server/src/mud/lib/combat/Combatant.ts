@@ -52,13 +52,86 @@ export interface Combatant {
   getStandingStopCondition(): string;
 
   // The participant hook terminals (the combat hook grammar — every
-  // combatant, player or NPC, hears the same lifecycle moments).
+  // combatant, player or NPC, hears the same lifecycle moments). The
+  // interface members carry the projected `@hook` contracts (an
+  // interface reflects into the author surface; a mixin factory's
+  // returned class does not) — the mixin's method TSDoc below is the
+  // in-editor twin. Every body: synchronous, deterministic, cheap;
+  // consequences through the ctx queue; shadowable by design.
+
+  /**
+   * This combatant entered a combat session — at open (initiator then
+   * defender, before the venue's `onCombatOpened`) or at join (the
+   * joiner). Determinism contract: synchronous, deterministic, cheap.
+   * Shadowable by design.
+   *
+   * @hook Invoked by the combat engine at `openSessionImpl`'s and
+   * `joinImpl`'s success tails. Compose via
+   * `super.onSessionEntered(ctx)`.
+   */
   onSessionEntered(ctx: CombatHookContext): void;
+  /**
+   * One of this combatant's exchanges fully resolved (`ctx.outcome`
+   * set; once per exchange, actor-first then target, riposte included
+   * in its parent's dispatch). Determinism contract: synchronous,
+   * deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine (`witnessExchange`) at the tail
+   * of every outcome case in `resolveExchange`. Compose via
+   * `super.onExchangeResolved(ctx)`.
+   */
   onExchangeResolved(ctx: CombatHookContext): void;
+  /**
+   * This combatant's poise band changed over a beat — the per-beat
+   * **net** transition, fired in roster order. Determinism contract:
+   * synchronous, deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine at the tail of `advanceImpl`,
+   * after the poise tick loop. Compose via
+   * `super.onPoiseBandChanged(ctx)`.
+   */
   onPoiseBandChanged(ctx: CombatHookContext): void;
+  /**
+   * This combatant went down — the poise-contest loss OR the attrition
+   * stamp. Determinism contract: synchronous, deterministic, cheap.
+   * Shadowable by design.
+   *
+   * @hook Invoked by the combat engine at both `down = true` sites
+   * (`handleDown`; `checkVitalsResolution`'s unconscious path), after
+   * the stamp. Compose via `super.onDowned(ctx)`.
+   */
   onDowned(ctx: CombatHookContext): void;
+  /**
+   * This combatant is the named victim of a resolving fight
+   * (`ctx.resolution` says how). States still live. Determinism
+   * contract: synchronous, deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine in `endWith`, after
+   * `narrateResolution` and before `session.resolve`. Compose via
+   * `super.onDefeated(ctx)`.
+   */
   onDefeated(ctx: CombatHookContext): void;
+  /**
+   * The victor-side twin: this combatant is the named killer/winner
+   * (contest, or `lastStruckBy` for an attrition death; a draw fires
+   * nothing). Determinism contract: synchronous, deterministic, cheap.
+   * Shadowable by design.
+   *
+   * @hook Invoked by the combat engine in `endWith`, immediately after
+   * the victim's `onDefeated`, before `session.resolve`. Compose via
+   * `super.onDefeatedFoe(ctx)`.
+   */
   onDefeatedFoe(ctx: CombatHookContext): void;
+  /**
+   * A coup this combatant is party to (executioner or victim) has
+   * begun — the telegraph moment. The session's states have dissolved:
+   * `ctx.actorState`/`targetState` are null here. Determinism
+   * contract: synchronous, deterministic, cheap. Shadowable by design.
+   *
+   * @hook Invoked by the combat engine in `startCoup`, only after a
+   * successful scheduler start — executioner first, then victim.
+   * Compose via `super.onCoupBegun(ctx)`.
+   */
   onCoupBegun(ctx: CombatHookContext): void;
 }
 

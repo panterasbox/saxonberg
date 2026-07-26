@@ -37,7 +37,7 @@
  * any further queueing throws (closing the stashed-context determinism
  * hole).
  *
- * See docs/subsystems/combat.md (the hook grammar).
+ * See docs/subsystems/combat-hooks.md (the hook grammar).
  */
 
 import type { Stuff } from "../stuff/Stuff";
