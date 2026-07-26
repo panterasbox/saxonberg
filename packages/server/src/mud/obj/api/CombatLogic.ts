@@ -72,6 +72,13 @@ import {
   WeaponProfile,
   type WeaponProfileConfig,
 } from "../../lib/combat/WeaponProfile";
+import {
+  NaturalAttack,
+  NEUTRAL_NATURAL_PROFILE,
+  type NaturalAttackSpec,
+  type NaturalProfile,
+  type NaturalProfileConfig,
+} from "../../lib/combat/NaturalAttack";
 import { WeaponSwitch } from "../../lib/combat/WeaponSwitch";
 import { CombatFog, type FogConfig } from "../../lib/combat/CombatFog";
 import {
@@ -353,6 +360,92 @@ function actorWeaponProfile(
   return weapon ? weaponProfileOfImpl(weapon) : null;
 }
 
+function naturalProfileConfig(): NaturalProfileConfig {
+  return {
+    weapon: weaponProfileConfig(),
+    largeBodyMassKg: dial(AppSettingKeys.combatNaturalLargeBodyMassKg, 150),
+  };
+}
+
+/**
+ * The actor's natural-attack list (DECISION L): the species'
+ * `naturalAttacks` when non-empty, else the legacy
+ * `CombatantMixin.naturalAttackChannel` synthesized as a one-entry
+ * `{key: 'natural'}` list (the byte-preserving fallback), else empty.
+ */
+function naturalAttacksFor(actor: Stuff): readonly NaturalAttackSpec[] {
+  if (MixinApi.isOrganism(actor)) {
+    const attacks = actor.getSpecies()?.getNaturalAttacks();
+    if (attacks && attacks.length > 0) return attacks;
+  }
+  if (MixinApi.isCombatant(actor)) {
+    const ch = actor.getNaturalAttackChannel();
+    if (ch) return [{ key: "natural", channel: ch }];
+  }
+  return [];
+}
+
+/**
+ * The beat-keyed natural-attack rotation index (DECISION L): the index
+ * reads the SESSION BEAT, nowhere else — a per-state counter would drift
+ * under tempo variance and break two-run transcript equality. Two strikes
+ * in one beat (tempo carry) use the same attack; a single-entry list (and
+ * the legacy fallback) reduce to entry 0 on every beat.
+ */
+function rotationIndex(session: CombatSession, count: number): number {
+  if (count <= 1) return 0;
+  return (Math.max(1, session.getBeat()) - 1) % count;
+}
+
+/**
+ * The actor's **strike profile** — the four numbers the poise/tempo/reach
+ * seams multiply in: the wielded weapon's {@link WeaponProfile} getters
+ * when armed (identical values to the pre-vocabulary reads), else the
+ * body-derived natural profile of the *current* natural attack
+ * ({@link NaturalAttack.deriveProfile} — exactly the old `?? 1` / `: 0`
+ * literals for every hint-less sub-threshold body), else neutral. The
+ * `session` selects the beat-rotated attack (a beat-anchored strike
+ * read); without one — the un-beat-anchored presence reads (reach sort,
+ * tempo, eligibility) — entry 0 is used.
+ */
+function actorStrikeProfile(
+  actor: Stuff,
+  state?: CombatantState,
+  session?: CombatSession,
+): NaturalProfile {
+  const wp = actorWeaponProfile(actor, state);
+  if (wp) {
+    return {
+      tempoFactor: wp.tempoFactor(),
+      poiseDamageFactor: wp.poiseDamageFactor(),
+      overextendFactor: wp.overextendFactor(),
+      reachRank: wp.reachRank(),
+    };
+  }
+  const attacks = naturalAttacksFor(actor);
+  const spec = attacks[session ? rotationIndex(session, attacks.length) : 0];
+  if (!spec) return { ...NEUTRAL_NATURAL_PROFILE };
+  const bodyPlan = MixinApi.isOrganism(actor)
+    ? (actor.getSpecies()?.getBodyPlan() ?? null)
+    : null;
+  return NaturalAttack.deriveProfile(spec, bodyPlan, naturalProfileConfig());
+}
+
+/**
+ * Whether the actor's SPECIES affords a gambit bodily (a tailed species
+ * sweeps without a hafted weapon) — the Organism-contract species read
+ * (the `speciesKeyOf` precedent). Short-circuits ONLY the two equipment
+ * gates in `eligibilityImpl` (`affordedByForm` / `affordedByShield`);
+ * the instrument gate still stands (satisfied by a natural attack), and
+ * an unknown key is inert (no gambit ever asks for it).
+ */
+function speciesAffords(actor: Stuff, gambitKey: string): boolean {
+  if (!MixinApi.isOrganism(actor)) return false;
+  return (
+    actor.getSpecies()?.getAffordedGambits().includes(gambitKey) ?? false
+  );
+}
+
 /** A natural-attack defender (a beast's claws — no weapon profile) keeps the
  * build-1 nominal guard, so a wolf still parries as it always did. */
 const NOMINAL_NATURAL_GUARD = 1;
@@ -469,10 +562,11 @@ function shieldFacesAttacker(
 const REACH_OUT_OF_RANGE_GAP = 2;
 
 /** A combatant's reach rank (short 0 … long 2) — their wielded weapon's
- * reach, or 0 (shortest) when unarmed/bare-handed. */
+ * reach, else the natural profile's (entry 0 — an un-beat-anchored
+ * presence read; 0 for every sub-threshold body, 1 for a large-body
+ * innate: an ogre punches at ogre reach). */
 function reachRankOf(combatant: Stuff): number {
-  const profile = actorWeaponProfile(combatant);
-  return profile ? profile.reachRank() : 0;
+  return actorStrikeProfile(combatant).reachRank;
 }
 
 /**
@@ -1214,11 +1308,11 @@ function enduranceRatio(combatant: Stuff): number {
  * from the wielded weapon's {@link WeaponProfile} (`tempoFactor`: light →
  * fast, heavy → slow), not the inert stored `balanceFactor`. `Tempo.rateFor`
  * is untouched; only what feeds its `balanceFactor` input changed. Unarmed →
- * neutral 1.0.
+ * the natural profile's tempo (entry 0 — an un-beat-anchored read; exactly
+ * 1.0 for every sub-threshold body, slower for a large-body innate).
  */
 function balanceFactorOf(combatant: Stuff): number {
-  const profile = actorWeaponProfile(combatant);
-  return profile ? profile.tempoFactor() : 1;
+  return actorStrikeProfile(combatant).tempoFactor;
 }
 
 /* ───────────────────────── the beat ───────────────────────── */
@@ -1364,14 +1458,16 @@ function resolveExchange(
     return;
   }
 
-  // The actor's weapon playstyle scales the poise economy (balance → the
+  // The actor's strike playstyle scales the poise economy (balance → the
   // guard-breaker↔exploiter axis): a heavy guard-breaker erodes the target's
   // poise faster and lands harder (`poiseDamageFactor`) but pays more to
   // commit (`overextendFactor`); a light exploiter is the mirror. Unarmed →
-  // neutral 1.0. Complementary — the gym proves neither sweeps.
-  const actorProfile = actorWeaponProfile(actorState.combatant, actorState);
-  const poiseDamage = actorProfile?.poiseDamageFactor() ?? 1;
-  const overextendScale = actorProfile?.overextendFactor() ?? 1;
+  // the current natural attack's body-derived profile (neutral 1.0 for
+  // every sub-threshold hint-less body). Complementary — the gym proves
+  // neither sweeps.
+  const strike = actorStrikeProfile(actorState.combatant, actorState, session);
+  const poiseDamage = strike.poiseDamageFactor;
+  const overextendScale = strike.overextendFactor;
   // Reach term (the signature): the reach advantage the actor's strike
   // carries right now — at `reach` a longer weapon is advantaged, at `close`
   // it reverses (the dagger owns the clinch). A too-short attacker is simply
@@ -1621,11 +1717,16 @@ function reactiveDispatch(
       continue;
     }
     // The riposte is an offensive counter against the attacker, scaled by
-    // the defender's own weapon playstyle (a heavy riposte lands harder).
-    const dProfile = actorWeaponProfile(defenderState.combatant, defenderState);
+    // the defender's own strike playstyle (a heavy riposte lands harder;
+    // unarmed → the current natural attack's body-derived profile).
+    const dStrike = actorStrikeProfile(
+      defenderState.combatant,
+      defenderState,
+      session,
+    );
     const overextend =
       dial(AppSettingKeys.combatPoiseOverextendCost, 0.2) *
-      (dProfile?.overextendFactor() ?? 1);
+      dStrike.overextendFactor;
     defenderState.poise.spend(overextend, beat);
     const band = attackerState.poise.band();
     const report = commitInflict(
@@ -1633,7 +1734,7 @@ function reactiveDispatch(
       defenderState,
       attackerState,
       band,
-      dProfile?.poiseDamageFactor() ?? 1,
+      dStrike.poiseDamageFactor,
       shieldFacesAttacker(session, attackerState.combatant, defenderState.combatant),
     );
     const landed = !report.deflected;
@@ -1685,13 +1786,24 @@ function commitInflict(
   const attacker = actorState.combatant;
   const target = targetState.combatant;
   const instrument = resolveInstrument(actorState);
-  const channel: Channel = instrument?.channel ?? "blunt";
+  const weapon = instrument?.weapon ?? null;
+  let channel: Channel = instrument?.channel ?? "blunt";
+  // The species rotation (DECISION L): an innate striker cycles its
+  // natural attacks by SESSION BEAT (`rotationIndex` — deterministic;
+  // two strikes in one beat use the same attack). A single-entry list
+  // and the legacy fallback reduce to entry 0 — byte-identical to the
+  // pre-vocabulary channel. Selected BEFORE the shock split so a shock
+  // entry in a rotation routes through `commitShockInflict` on its beat.
+  if (instrument && !weapon) {
+    const attacks = naturalAttacksFor(attacker);
+    const rotated = attacks[rotationIndex(session, attacks.length)];
+    if (rotated) channel = rotated.channel;
+  }
   const site = siteFor(target, bandForEnergy === "open");
 
   // The augment carrier — exactly one, never both (the double-fire
   // guard): the wielded weapon when armed, else the bare CombatReactive
   // attacker (a venomous bite and a poison blade are one abstraction).
-  const weapon = instrument?.weapon ?? null;
   const carrier = augmentCarrierOf(attacker, weapon);
 
   // DECISION K — a shock primary builds NO mechanical spec and never
@@ -2826,17 +2938,26 @@ function eligibilityImpl(actor: Stuff, gambitKey: string): GambitEligibility {
   }
   // "The weapon edits the menu": a form-afforded gambit (a hafted sweep) needs
   // the right weapon; a shield-afforded one (bash) needs a wielded shield.
+  // A species-afforded gambit (DECISION L — a tailed species sweeps
+  // bodily) short-circuits ONLY these two equipment gates; the
+  // instrument gate above still stands (satisfied by a natural attack).
   if (spec.affordedByForm && spec.affordedByForm.length > 0) {
-    const weapon = wieldedWeapon(actor, state);
-    const form =
-      weapon && MixinApi.isConstructed(weapon)
-        ? weapon.getConstruction()?.getForm()
-        : undefined;
-    if (!form || !spec.affordedByForm.includes(form as never)) {
-      return { ok: false, reason: "wrong-weapon" };
+    if (!speciesAffords(actor, spec.key)) {
+      const weapon = wieldedWeapon(actor, state);
+      const form =
+        weapon && MixinApi.isConstructed(weapon)
+          ? weapon.getConstruction()?.getForm()
+          : undefined;
+      if (!form || !spec.affordedByForm.includes(form as never)) {
+        return { ok: false, reason: "wrong-weapon" };
+      }
     }
   }
-  if (spec.affordedByShield && !wieldedShield(actor)) {
+  if (
+    spec.affordedByShield &&
+    !speciesAffords(actor, spec.key) &&
+    !wieldedShield(actor)
+  ) {
     return { ok: false, reason: "no-shield" };
   }
   return { ok: true };
@@ -2890,16 +3011,18 @@ function resolveInstrument(
     }
   }
   if (weaponOnly) return null;
-  if (MixinApi.isCombatant(actor)) {
-    const ch = actor.getNaturalAttackChannel();
-    // Any authored innate channel arms this path (DECISION K): a
-    // mechanical bite rides the energy fold as ever, a heat innate
-    // builds a `{mechanism:'heat'}` spec, and the electric-eel jolt is
-    // armed too — `commitInflict` skips the primary and the instrument
-    // seam's drain delivers the shock (`EnergizedMixin.augmentInflict`
-    // → `shockContact`).
-    if (ch) return { channel: ch };
-  }
+  // Any authored innate arms this path (DECISION K): a mechanical bite
+  // rides the energy fold as ever, a heat innate builds a
+  // `{mechanism:'heat'}` spec, and the electric-eel jolt is armed too —
+  // `commitInflict` skips the primary and the instrument seam's drain
+  // delivers the shock (`EnergizedMixin.augmentInflict` → `shockContact`).
+  // The list is the species vocabulary (DECISION L) — species
+  // `naturalAttacks` first, the legacy channel as its one-entry fallback.
+  // This is a PRESENCE-ONLY read (attempt-time eligibility, guard): it
+  // reports entry 0; the beat-keyed rotation is applied in
+  // `commitInflict`, the only beat-anchored consumer.
+  const first = naturalAttacksFor(actor)[0];
+  if (first) return { channel: first.channel };
   return null;
 }
 

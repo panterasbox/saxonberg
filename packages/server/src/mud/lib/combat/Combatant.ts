@@ -38,8 +38,10 @@ import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
 
 /** Public method surface for CombatantMixin. */
 export interface Combatant {
-  /** The species-declared innate attack channel, or null (no natural
-   * weapon — disarm/impair removes `strike`). */
+  /** The legacy single-attack innate channel, or null (no natural
+   * weapon — disarm/impair removes `strike`). The engine prefers the
+   * species-level `Species.naturalAttacks[]` vocabulary when that list
+   * is non-empty; this is its byte-preserving one-entry fallback. */
   getNaturalAttackChannel(): Channel | null;
   /** The authored standing lethality posture (`''` = none authored). The
    * consent handshake reads this so an NPC can declare it fights to the
@@ -70,8 +72,14 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     /**
-     * The species' innate attack channel — `edge` (claws), `point`
-     * (bite/horn), `blunt` (hooves/fists). Empty = no natural weapon.
+     * The **legacy single-attack fallback** — the innate attack channel:
+     * `edge` (claws), `point` (bite/horn), `blunt` (hooves/fists). Empty
+     * = no natural weapon. The richer authoring surface is the
+     * species-level `Species.naturalAttacks[]` vocabulary (multi-attack
+     * beat-keyed rotation + profile hints); when THAT list is empty the
+     * engine synthesizes this channel as a one-entry `{key: 'natural'}`
+     * list, byte-preserving pre-vocabulary behavior. Kept as the simple
+     * one-channel surface (field and behavior unchanged).
      *
      * @authorable
      */

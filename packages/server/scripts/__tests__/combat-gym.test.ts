@@ -483,6 +483,65 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
   });
 });
 
+describe("combat-gym — the species vocabulary (combat-hooks Phase 7)", () => {
+  /** An unarmed fighter whose SPECIES carries the natural attack (the
+   * `naturalAttacks[]` surface) instead of the legacy channel. */
+  function speciesSide(label: string, bodyMassKg?: number): GymSide {
+    return {
+      label,
+      policy: Policies.brain,
+      band: "competent",
+      make: () => {
+        const f = makeFighter(
+          makeStuff(() => new TestRoom()),
+          Loadouts.unarmed!,
+        );
+        const species = (f as unknown as Character).getSpecies()!;
+        species.setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+        if (bodyMassKg !== undefined) {
+          species.getBodyPlan()!.setBaseMass(bodyMassKg);
+        }
+        return f;
+      },
+    };
+  }
+
+  it("a single-entry species is byte-identical to the legacy fallback (the 7a pin)", () => {
+    // The species list takes precedence over the legacy channel, and a
+    // single hint-less entry must reduce to the exact pre-vocabulary
+    // behavior — the same winner + beats as the pinned
+    // unarmed-vs-unarmed@competent cell (A in 2 beats).
+    const r = runMatchup(
+      speciesSide("fists-a"),
+      speciesSide("fists-b"),
+      400,
+      resetState,
+    );
+    expect(r.winner).toBe("A");
+    expect(r.beats).toBe(2);
+  });
+
+  it("the ogre-reach cell: a large hint-less body is reproducible and departs from the neutral cell", () => {
+    // A 400 kg body derives one reach rank + heavy balance from the SAME
+    // hint-less spec — the fight opens at `reach` (the unit suite pins
+    // that read) and plays out differently from the all-neutral pin.
+    const cell = () =>
+      runMatchup(
+        speciesSide("ogre", 400),
+        speciesSide("human"),
+        400,
+        resetState,
+      );
+    const r1 = cell();
+    const r2 = cell();
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.beats).toBe(r2.beats);
+    // The body-scale term is real: the cell departs from the neutral
+    // unarmed pin (A in 2 beats).
+    expect([r1.winner, r1.beats]).not.toEqual(["A", 2]);
+  });
+});
+
 describe("combat-gym — the influence bridge (fixed-beat injection)", () => {
   it("a fixed-beat CombatApi.influence stagger is reproducible and differs from the uninfluenced pin", () => {
     // The pinned brain-vs-brain@competent cell (A in 21 beats), with one

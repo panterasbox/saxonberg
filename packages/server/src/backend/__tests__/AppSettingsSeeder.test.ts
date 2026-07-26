@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(250); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 3 combat-hooks influence
+    expect(added).toBe(251); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -343,6 +343,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatInfluenceStaggerLightErode]: "0.12",
           [AppSettingKeys.combatInfluenceStaggerHeavyErode]: "0.3",
           [AppSettingKeys.combatInfluenceSteadyRestore]: "0.15",
+          [AppSettingKeys.combatNaturalLargeBodyMassKg]: "150",
         },
       },
     ]);
@@ -388,8 +389,8 @@ describe("AppSettingsSeeder", () => {
     // + 20 magic (cast + faculty + composure + potency + overchannel + effects)
     // + 3 combat formations
     // + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*)
-    // + 3 combat-hooks influence (stagger light/heavy + steady).
-    expect(added).toBe(249); // 250 total − 1 operator-preset key
+    // + 4 combat-hooks (stagger light/heavy + steady + natural.largeBodyMassKg).
+    expect(added).toBe(250); // 251 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

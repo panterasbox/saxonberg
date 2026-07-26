@@ -700,6 +700,13 @@ export const AppSettingKeys = {
   /** Combat hooks — `CombatApi.influence` `steady`: poise restored
    * (endurance-capped; suppressed under the focus-fire recovery pin). */
   combatInfluenceSteadyRestore: "combat.influence.steadyRestore",
+  /** The species combat vocabulary — body mass (kg) at/above which a
+   * HINT-LESS natural attack derives large-body reach (one rank) +
+   * heavy balance ("an ogre punches at ogre reach"). Below it the
+   * derivation is exactly the neutral `(1, 1, 1, 0)` — the byte-parity
+   * band every currently-seeded body sits in; a body seed crossing this
+   * changes its combat feel by design. */
+  combatNaturalLargeBodyMassKg: "combat.natural.largeBodyMassKg",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**
