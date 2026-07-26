@@ -66,3 +66,52 @@ describe("Poise — banded gauge", () => {
     expect(p.isOpen()).toBe(false);
   });
 });
+
+describe("Poise — exposeWindow (the external window)", () => {
+  it("arms the window without moving the gauge", () => {
+    const p = new Poise();
+    p.exposeWindow(0);
+    expect(p.isOpen()).toBe(true);
+    expect(p.band()).toBe("open");
+    expect(p.isBroken()).toBe(false); // gauge untouched — still at full
+    // Consuming the window reveals the unmoved gauge: steady, not broken.
+    expect(p.consumeOpening()).toBe(true);
+    expect(p.band()).toBe("steady");
+  });
+
+  it("lapses through tick at openingTicks like any window", () => {
+    const p = new Poise();
+    p.exposeWindow(0);
+    p.tick(1);
+    expect(p.isOpen()).toBe(true);
+    p.tick(DEFAULT_POISE_CONFIG.openingTicks);
+    expect(p.isOpen()).toBe(false);
+    expect(p.band()).toBe("steady"); // lapsed, gauge never moved
+  });
+
+  it("single-consumes via consumeOpening", () => {
+    const p = new Poise();
+    p.exposeWindow(0);
+    expect(p.consumeOpening()).toBe(true);
+    expect(p.consumeOpening()).toBe(false);
+    expect(p.isOpen()).toBe(false);
+  });
+
+  it("is disarmed by recovery above the break floor", () => {
+    const p = new Poise();
+    p.erode(0.6, 0); // 0.4 — reeling, no crossing
+    p.exposeWindow(0);
+    expect(p.isOpen()).toBe(true);
+    p.restore(0.2, 1); // climbs to 0.6 > brokenAt → disarms
+    expect(p.isOpen()).toBe(false);
+    expect(p.band()).toBe("pressed");
+  });
+
+  it("is idempotent while open — the live deadline is NOT extended", () => {
+    const p = new Poise();
+    p.exposeWindow(0); // deadline = openingTicks
+    p.exposeWindow(5); // re-arm attempt while open: no-op
+    p.tick(DEFAULT_POISE_CONFIG.openingTicks);
+    expect(p.isOpen()).toBe(false); // the ORIGINAL deadline lapsed it
+  });
+});

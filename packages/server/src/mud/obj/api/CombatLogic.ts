@@ -55,6 +55,10 @@ import {
   type ExchangeOutcomeKind,
 } from "../../lib/combat/CombatHookContext";
 import type { CombatReactive } from "../../lib/combat/CombatReactive";
+import type {
+  CombatInfluence,
+  InfluenceResult,
+} from "../../lib/combat/CombatInfluence";
 import type { CombatTerms } from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
@@ -246,6 +250,14 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
     return drawSidearmImpl(actor);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public influence(
+    combatant: Stuff,
+    instruction: CombatInfluence,
+  ): InfluenceResult {
+    return influenceImpl(combatant, instruction);
   }
 }
 
@@ -816,6 +828,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     lastStruckBy: null,
     deliberateTarget: null,
     openingArmedBy: null,
+    bandSeen: null,
   };
 }
 
@@ -1212,9 +1225,16 @@ function advanceImpl(session: CombatSession): void {
   if (!session.isActive()) return;
   const beat = session.advanceBeat();
   const states = session.getStates();
-  // Hook grammar (DECISION F): beat-top poise-band snapshot — the per-beat
-  // net transition is compared after the tick loop, in roster order.
-  const bandsAtTop = states.map((s) => s.poise.band());
+  // Hook grammar (DECISION F): the per-beat net transition baseline —
+  // the band as of the LAST dispatch (stamped by `dispatchBandChanges`,
+  // i.e. the end of the previous beat), falling back to a top-of-beat
+  // read on a state's first beat. Carrying the baseline across beats is
+  // what lets a **between-beat** external mutation (`CombatApi.
+  // influence`) surface on the following beat; for everything that
+  // mutates poise mid-beat it is byte-identical to a beat-top snapshot
+  // (nothing else moves poise between beats). Compared after the tick
+  // loop, in roster order.
+  const bandsAtTop = states.map((s) => s.bandSeen ?? s.poise.band());
 
   const maxBeats = Math.round(dial(AppSettingKeys.combatMaxBeats, 200));
   if (beat > maxBeats) {
@@ -1929,15 +1949,15 @@ function applyConsequence(ctx: CombatHookContext, c: CombatConsequence): void {
       if (weapon && MixinApi.isDurable(weapon)) weapon.wear(c.amount);
       return;
     }
-    case "influence":
-      // The drain arm activates in Phase 5 with `influenceImpl` (the
-      // external bridge's economy); until then a queued influence is a
-      // documented no-op — warn so no consumer silently relies on it.
-      console.warn(
-        "CombatLogic: 'influence' consequence queued before the influence " +
-          "bridge landed (Phase 5) — ignored",
-      );
+    case "influence": {
+      // One economy for hooks and the external bridge (DECISION J): a
+      // queued influence drains through the same `influenceImpl` as
+      // `CombatApi.influence` — pure state mutation on the recipient's
+      // poise, never a re-entry into `resolveExchange`.
+      const recipient = recipientOf(ctx, c.on);
+      if (recipient) influenceImpl(recipient, c.instruction);
       return;
+    }
     case "shock":
       // The stun-baton seam's drain arm: the `effectiveVoltage ≤ 0` guard
       // inside the conduction walk still applies, so a dead/switched-off
@@ -1959,6 +1979,71 @@ function recipientOf(
   on: "attacker" | "defender",
 ): Stuff | null {
   return on === "attacker" ? ctx.actor : ctx.target;
+}
+
+/**
+ * Apply one {@link CombatInfluence} state instruction to a live
+ * combatant (DECISION J) — the shared economy behind BOTH influence
+ * surfaces (`CombatApi.influence` and the hook-side ctx queue's drain).
+ * Pure state mutation over the existing poise/opening machinery: never
+ * dispatches an exchange, never sets `down` (only an exchange
+ * exploiting the contest does), and every magnitude is a
+ * `combat.influence.*` dial. Band changes it causes surface through
+ * the existing `onPoiseBandChanged` per-beat net comparison on the
+ * following beat — no new hook.
+ */
+function influenceImpl(
+  combatant: Stuff,
+  instruction: CombatInfluence,
+): InfluenceResult {
+  const session = sessionForImpl(combatant);
+  if (!session) return { ok: false, reason: "not-in-combat" };
+  const state = session.getState(combatant);
+  if (!state) return { ok: false, reason: "not-in-combat" };
+  if (state.down) return { ok: false, reason: "downed" };
+  const beat = session.getBeat();
+  switch (instruction.kind) {
+    case "stagger": {
+      const amount =
+        instruction.intensity === "heavy"
+          ? dial(AppSettingKeys.combatInfluenceStaggerHeavyErode, 0.3)
+          : dial(AppSettingKeys.combatInfluenceStaggerLightErode, 0.12);
+      // The SAME focus-fire multiplier `resolveExchange` applies to a
+      // pressed target's erosion — an already-ganged-up target staggers
+      // harder (the engine's own economy, not a parallel one).
+      const attackers = session.getGraph().edgeCount(state.combatant);
+      const focusMult =
+        1 +
+        Math.max(0, attackers - 1) *
+          dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5);
+      // A crossing into `broken` arms the normal opening via `lower()`;
+      // the window stays ownerless (`openingArmedBy` untouched here —
+      // an external stagger mints no command deed).
+      state.poise.erode(amount * focusMult, beat);
+      return { ok: true };
+    }
+    case "expose": {
+      // Arm the window without moving the gauge; ownerless — any
+      // attacker cashes it, no command deed (`openingArmedBy` null).
+      state.poise.exposeWindow(beat);
+      return { ok: true };
+    }
+    case "steady": {
+      // Suppressed under focus-fire exactly like the defend-pin
+      // (`resolveExchange`'s recover beat): influence can't out-recover
+      // a gang-up the verb can't.
+      const incoming = session.getGraph().edgeCount(state.combatant);
+      const suppressAt = Math.round(
+        dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
+      );
+      if (incoming >= suppressAt) return { ok: false, reason: "suppressed" };
+      state.poise.restore(
+        dial(AppSettingKeys.combatInfluenceSteadyRestore, 0.15),
+        enduranceRatio(state.combatant),
+      );
+      return { ok: true };
+    }
+  }
 }
 
 /**
@@ -2195,7 +2280,12 @@ function dispatchBandChanges(
 ): void {
   for (let i = 0; i < states.length; i++) {
     const s = states[i]!;
-    if (s.poise.band() === before[i]) continue;
+    // Re-stamp the cross-beat baseline whether or not a transition
+    // fired — the next beat compares against this beat's closing band.
+    const band = s.poise.band();
+    const changed = band !== before[i];
+    s.bandSeen = band;
+    if (!changed) continue;
     const combatant = s.combatant;
     if (!MixinApi.isCombatant(combatant)) continue;
     const ctx = new CombatHookContext({

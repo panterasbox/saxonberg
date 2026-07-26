@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(247); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*)
+    expect(added).toBe(250); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 3 combat-hooks influence
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -340,6 +340,9 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatFormationInterceptMaxIncoming]: "2",
           [AppSettingKeys.combatFormationHighThreatEdges]: "2",
           [AppSettingKeys.combatFormationCoupDirectiveWindowSeconds]: "12",
+          [AppSettingKeys.combatInfluenceStaggerLightErode]: "0.12",
+          [AppSettingKeys.combatInfluenceStaggerHeavyErode]: "0.3",
+          [AppSettingKeys.combatInfluenceSteadyRestore]: "0.15",
         },
       },
     ]);
@@ -384,8 +387,9 @@ describe("AppSettingsSeeder", () => {
     // + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry)
     // + 20 magic (cast + faculty + composure + potency + overchannel + effects)
     // + 3 combat formations
-    // + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*).
-    expect(added).toBe(246); // 247 total − 1 operator-preset key
+    // + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*)
+    // + 3 combat-hooks influence (stagger light/heavy + steady).
+    expect(added).toBe(249); // 250 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

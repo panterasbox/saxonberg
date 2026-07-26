@@ -43,9 +43,11 @@ import {
   runMatrix,
   runPartyMatchup,
   Policies,
+  type GymPolicy,
   type GymSide,
   type GymPartyFighter,
 } from "../combat-gym";
+import { CombatApi } from "../../src/mud/api/combat";
 import { PartyMemberMixin } from "../../src/mud/lib/party/PartyMember";
 import { Party } from "../../src/mud/lib/party/Party";
 import { CombatFormation } from "../../src/mud/lib/combat/CombatFormation";
@@ -449,6 +451,42 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
             c.mechanism === "shock",
         ),
     ).toBe(true);
+  });
+});
+
+describe("combat-gym — the influence bridge (fixed-beat injection)", () => {
+  it("a fixed-beat CombatApi.influence stagger is reproducible and differs from the uninfluenced pin", () => {
+    // The pinned brain-vs-brain@competent cell (A in 21 beats), with one
+    // deterministic variation: at beat 5 the A side ALSO issues a heavy
+    // stagger at its foe through the external bridge. Zero randomness —
+    // two runs are identical — and the instruction is real: the cell's
+    // outcome departs from the uninfluenced pin.
+    const influencedBrain: GymPolicy = (session, self) => {
+      if (session.getBeat() === 5) {
+        for (const s of session.getStates()) {
+          if ((s.combatant as unknown) !== (self as unknown) && !s.down) {
+            CombatApi.influence(s.combatant, {
+              kind: "stagger",
+              intensity: "heavy",
+            });
+            break;
+          }
+        }
+      }
+      return null; // defer to the engine's brain — the pin's own policy
+    };
+    const cell = () =>
+      runMatchup(
+        side("influencer", influencedBrain, "competent"),
+        side("brain", Policies.brain, "competent"),
+        400,
+        resetState,
+      );
+    const r1 = cell();
+    const r2 = cell();
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.beats).toBe(r2.beats);
+    expect([r1.winner, r1.beats]).not.toEqual(["A", 21]);
   });
 });
 

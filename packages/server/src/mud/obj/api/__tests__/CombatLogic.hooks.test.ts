@@ -1066,6 +1066,205 @@ describe("CombatLogic hooks — venue dispatch", () => {
   });
 });
 
+/* ───────────────── the influence bridge (Phase 5) ───────────────── */
+
+describe("CombatLogic — CombatApi.influence (the external-instruction bridge)", () => {
+  it("stagger erodes with the focus-fire multiplier — two attackers stagger harder than one", () => {
+    // 1v1: two heavy staggers erode 0.6 → reeling.
+    const room1 = makeStuff(() => new TestRoom());
+    const a1 = makeFighter(room1, { weaponForm: "bladed" });
+    const b1 = makeFighter(room1, { weaponForm: "bladed" });
+    const s1 = open(a1, b1, nonLethal);
+    expect(
+      CombatApi.influence(b1, { kind: "stagger", intensity: "heavy" }).ok,
+    ).toBe(true);
+    CombatApi.influence(b1, { kind: "stagger", intensity: "heavy" });
+    expect(s1.getState(b1)!.poise.band()).toBe("reeling");
+
+    // 2v1 (two incoming edges): the SAME two staggers, focus-fire-scaled,
+    // cross the floor and arm the window — strictly more erosion.
+    const room2 = makeStuff(() => new TestRoom());
+    const a2 = makeFighter(room2, { weaponForm: "bladed" });
+    const b2 = makeFighter(room2, { weaponForm: "bladed" });
+    const c2 = makeFighter(room2, { weaponForm: "bladed" });
+    const s2 = open(a2, b2, nonLethal);
+    expect(CombatApi.join(c2 as never, b2 as never, s2.getTerms()).ok).toBe(
+      true,
+    );
+    CombatApi.influence(b2, { kind: "stagger", intensity: "heavy" });
+    CombatApi.influence(b2, { kind: "stagger", intensity: "heavy" });
+    expect(s2.getState(b2)!.poise.band()).toBe("open");
+  });
+
+  it("a heavy stagger crossing arms a normal ownerless opening; the next exploit downs — influence alone never does", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    const bState = session.getState(b)!;
+    bState.poise.erode(0.6, 0); // 0.4 — reeling, above the floor
+
+    CombatApi.influence(b, { kind: "stagger", intensity: "heavy" });
+    // The crossing armed the normal opening via lower() — ownerless.
+    expect(bState.poise.band()).toBe("open");
+    expect(bState.openingArmedBy).toBeNull();
+    expect(bState.down).toBe(false);
+    // More influence while broken: still never sets down.
+    expect(
+      CombatApi.influence(b, { kind: "stagger", intensity: "heavy" }).ok,
+    ).toBe(true);
+    expect(bState.down).toBe(false);
+
+    // Only an exchange exploiting the contest downs.
+    strikeBeat(session, a, b);
+    expect(bState.down).toBe(true);
+  });
+
+  it("expose: the next exchange exploits, consumeOpening fires, openingArmedBy stays null (no command deed)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", label: "a" });
+    const b = makeFighter(room, {
+      weaponForm: "bladed",
+      label: "b",
+    }) as HookedFighter;
+    const session = open(a, b, nonLethal);
+    const bState = session.getState(b)!;
+
+    expect(CombatApi.influence(b, { kind: "expose" }).ok).toBe(true);
+    // Armed without moving the gauge — open, not broken, ownerless.
+    expect(bState.poise.band()).toBe("open");
+    expect(bState.poise.isBroken()).toBe(false);
+    expect(bState.openingArmedBy).toBeNull();
+
+    strikeBeat(session, a, b);
+    // The very next eligible exchange cashed the window.
+    expect(b.hookLog).toContain("exchange:exploit:target");
+    expect(bState.poise.isOpen()).toBe(false); // consumed, single-spend
+    expect(bState.openingArmedBy).toBeNull(); // still no armer → no deed
+    expect(bState.down).toBe(true); // the exploit downs, as ever
+  });
+
+  it("steady restores endurance-capped — a gassed fighter buys nothing back", () => {
+    // Gassed: zero endurance → the restore ceiling is 0.
+    const room1 = makeStuff(() => new TestRoom());
+    const a1 = makeFighter(room1, { weaponForm: "bladed" });
+    const b1 = makeFighter(room1, { weaponForm: "bladed" });
+    const s1 = open(a1, b1, nonLethal);
+    (b1 as unknown as { adjustReserve(k: string, d: unknown): void })
+      .adjustReserve("endurance", Quantity.of(-100, "%"));
+    s1.getState(b1)!.poise.erode(0.6, 0); // reeling
+    expect(CombatApi.influence(b1, { kind: "steady" }).ok).toBe(true);
+    expect(s1.getState(b1)!.poise.band()).toBe("reeling"); // nothing back
+
+    // Fresh: the same instruction climbs a band.
+    const room2 = makeStuff(() => new TestRoom());
+    const a2 = makeFighter(room2, { weaponForm: "bladed" });
+    const b2 = makeFighter(room2, { weaponForm: "bladed" });
+    const s2 = open(a2, b2, nonLethal);
+    s2.getState(b2)!.poise.erode(0.6, 0);
+    expect(CombatApi.influence(b2, { kind: "steady" }).ok).toBe(true);
+    expect(s2.getState(b2)!.poise.band()).toBe("pressed");
+  });
+
+  it("steady is suppressed under the focus-fire pin, exactly like the defend beat", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const victim = makeFighter(room, { weaponForm: "bladed" });
+    const c = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, victim, nonLethal);
+    expect(
+      CombatApi.join(c as never, victim as never, session.getTerms()).ok,
+    ).toBe(true);
+    const vState = session.getState(victim)!;
+    vState.poise.erode(0.6, 0);
+
+    const res = CombatApi.influence(victim, { kind: "steady" });
+    expect(res).toEqual({ ok: false, reason: "suppressed" });
+    expect(vState.poise.band()).toBe("reeling"); // nothing restored
+  });
+
+  it("refuses out-of-combat and downed targets with the named reasons", () => {
+    const room = makeStuff(() => new TestRoom());
+    const loner = makeFighter(room, { weaponForm: "bladed" });
+    expect(CombatApi.influence(loner, { kind: "expose" })).toEqual({
+      ok: false,
+      reason: "not-in-combat",
+    });
+
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(b)!.down = true;
+    expect(CombatApi.influence(b, { kind: "steady" })).toEqual({
+      ok: false,
+      reason: "downed",
+    });
+  });
+
+  it("a band change from a between-beat influence surfaces through onPoiseBandChanged on the following beat", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", label: "a" });
+    const b = makeFighter(room, {
+      weaponForm: "bladed",
+      label: "b",
+    }) as HookedFighter;
+    const session = open(a, b, nonLethal);
+    // Gas b so its defend beat can't restore the staggered poise away.
+    (b as unknown as { adjustReserve(k: string, d: unknown): void })
+      .adjustReserve("endurance", Quantity.of(-100, "%"));
+
+    // A quiet first beat — no band events, the baseline stamped.
+    CombatApi.queueGambit(a, "defend");
+    CombatApi.queueGambit(b, "defend");
+    CombatApi.advance(session);
+    expect(b.hookLog.filter((e) => e.startsWith("band:"))).toHaveLength(0);
+
+    // The between-beat external stagger: steady → pressed.
+    CombatApi.influence(b, { kind: "stagger", intensity: "heavy" });
+    expect(session.getState(b)!.poise.band()).toBe("pressed");
+
+    // The following (otherwise quiet) beat witnesses it — no new hook.
+    CombatApi.queueGambit(a, "defend");
+    CombatApi.queueGambit(b, "defend");
+    CombatApi.advance(session);
+    expect(b.hookLog).toContain("band:pressed");
+  });
+
+  it("concussive maul: a hook-queued influence drains through influenceImpl — same result as the external call", () => {
+    const runCell = (mode: "maul" | "external" | "plain"): string => {
+      const room = makeStuff(() => new TestRoom());
+      const blade = reactiveBlade("bladed", steel());
+      if (mode === "maul") {
+        blade.onAugment = (spec, ctx) => {
+          ctx.influence({ kind: "stagger", intensity: "heavy" });
+          return spec;
+        };
+      }
+      const a = makeFighter(room, { weapon: blade });
+      const b = makeFighter(room, { weaponForm: "bladed" });
+      const session = open(a, b, nonLethal);
+      const bState = session.getState(b)!;
+      bState.poise.erode(0.6, 0); // reeling → the strike lands
+      strikeBeat(session, a, b);
+      if (mode === "external") {
+        expect(
+          CombatApi.influence(b, { kind: "stagger", intensity: "heavy" }).ok,
+        ).toBe(true);
+      }
+      expect(bState.down).toBe(false); // influence never downs
+      return bState.poise.band();
+    };
+
+    const maul = runCell("maul");
+    const external = runCell("external");
+    const plain = runCell("plain");
+    // One economy: the hook-side drain and the external bridge land the
+    // identical banded result — and both differ from the uninfluenced hit.
+    expect(maul).toBe(external);
+    expect(maul).not.toBe(plain);
+  });
+});
+
 /* ───────────────────────── NPC ≈ PC parity ───────────────────────── */
 
 describe("CombatLogic hooks — NPC ≈ PC parity", () => {

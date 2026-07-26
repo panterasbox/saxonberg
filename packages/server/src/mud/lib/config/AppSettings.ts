@@ -691,6 +691,15 @@ export const AppSettingKeys = {
    * `fight finish` before the fallen is spared (mercy by default). */
   combatFormationCoupDirectiveWindowSeconds:
     "combat.formation.coup.directiveWindowSeconds",
+  /** Combat hooks — `CombatApi.influence` `stagger`: poise eroded by a
+   * `light` instruction (focus-fire-scaled like exchange erosion). */
+  combatInfluenceStaggerLightErode: "combat.influence.staggerLightErode",
+  /** Combat hooks — `CombatApi.influence` `stagger`: poise eroded by a
+   * `heavy` instruction (a crossing arms the normal ownerless opening). */
+  combatInfluenceStaggerHeavyErode: "combat.influence.staggerHeavyErode",
+  /** Combat hooks — `CombatApi.influence` `steady`: poise restored
+   * (endurance-capped; suppressed under the focus-fire recovery pin). */
+  combatInfluenceSteadyRestore: "combat.influence.steadyRestore",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**
