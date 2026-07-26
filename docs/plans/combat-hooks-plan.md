@@ -422,7 +422,19 @@ uses the file's existing quote style — match each file).
   lights up while attached, goes dark on detach). The determinism contract
   binds shadow bodies exactly as it binds overrides. No new module; the
   build ships the verification tests (Phase 2) and the doc section
-  (Phase 9).
+  (Phase 9). **BUILD DEVIATION (Phase 2, empirical):** the
+  mundane-weapon conferral is **dispatch-limited** — instance-`hasMixin`
+  shadow-walking lights `isCombatReactive` on a mundane host, but the
+  proxy get-trap returns `undefined` for a method the host itself
+  doesn't define, so a shadow **reshapes** existing hooks (chain +
+  `callDown`) and cannot **add** one. The engine guards hook presence
+  (skip-silently), the shadow suite pins both the boundary and the
+  working shape (a shadow over a `CombatReactive`-composing host whose
+  no-op terminals are the base), and Phase 9's § 6b must state this
+  boundary: full enchant-a-mundane-weapon requires the host to compose
+  the mixin (no-op terminals are cheap — a future sweep may compose
+  `CombatReactiveMixin` into the base `Weapon` if enchant-anything is
+  wanted).
 - **DECISION J — `CombatApi.influence` + the closed `CombatInfluence`
   vocabulary.** The bridge for external systems (magic, scripts) to issue
   state-instructions into a live session — "Effect iff gated Api" made real
