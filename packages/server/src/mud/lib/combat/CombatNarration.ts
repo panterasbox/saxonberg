@@ -358,6 +358,30 @@ export class CombatNarration {
     return commandId;
   }
 
+  /**
+   * A hook-queued **flavor line** (an item that whispers / taunts /
+   * flares — `CombatHookContext.attachFlavor`) — emitted through the same
+   * witness loop as an exchange, AFTER the exchange's own narration beat,
+   * in queue order. One identical line per witness; never reactable
+   * (flavor is garnish, not a beat).
+   */
+  static narrateFlavor(anchor: Stuff, line: string): string {
+    const commandId = SecurityApi.uuid();
+    const body = Mml.fromMarkup(Mml.escape(line));
+    for (const viewer of CombatNarration.witnesses(anchor)) {
+      try {
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
   /** The per-viewer resolution line (self/target/bystander voice), naming
    * the cause of the fall when there is one (no bare "cut down"). */
   private static resolutionBody(

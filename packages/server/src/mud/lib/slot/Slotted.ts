@@ -313,6 +313,19 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       }
       set.add(candidate);
       this.slots.set(slot, set);
+      // Arming witness (combat's instrument seam): a CombatReactive
+      // occupant hears its slot claim land, once per slot — through ALL
+      // three arming paths (SlotApi.occupyAll, combat's grip swap,
+      // persistence restore). Canonical @hook contract lives on
+      // CombatReactiveMixin.onWielded. The typeof guard: the marker
+      // narrowing walks attached shadows, but only a host-defined
+      // method is dispatchable (a shadow reshapes hooks, never adds).
+      if (
+        MixinApi.isCombatReactive(candidate) &&
+        typeof candidate.onWielded === 'function'
+      ) {
+        candidate.onWielded(this as unknown as Stuff & Slotted, slot);
+      }
     }
 
     public vacate(
@@ -334,6 +347,14 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       // its conveyance (rider dismounting, driver leaving a cart).
       if (candidate.onSlotReleased) {
         candidate.onSlotReleased(this as unknown as Stuff & Slotted, slot);
+      }
+      // Combat witness second (generic witness first — the documented
+      // order). Canonical @hook contract on CombatReactiveMixin.onUnwielded.
+      if (
+        MixinApi.isCombatReactive(candidate) &&
+        typeof candidate.onUnwielded === 'function'
+      ) {
+        candidate.onUnwielded(this as unknown as Stuff & Slotted, slot);
       }
       return candidate;
     }
@@ -358,6 +379,14 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       // Same witness fires from the single-occupant convenience path.
       if (sole.onSlotReleased) {
         sole.onSlotReleased(this as unknown as Stuff & Slotted, slot);
+      }
+      // Combat witness second (generic witness first — the documented
+      // order). Canonical @hook contract on CombatReactiveMixin.onUnwielded.
+      if (
+        MixinApi.isCombatReactive(sole) &&
+        typeof sole.onUnwielded === 'function'
+      ) {
+        sole.onUnwielded(this as unknown as Stuff & Slotted, slot);
       }
       return sole;
     }

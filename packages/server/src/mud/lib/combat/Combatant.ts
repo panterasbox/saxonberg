@@ -27,6 +27,7 @@ import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
 import type { Channel } from "../material/Channel";
+import type { CombatHookContext } from "./CombatHookContext";
 import { CHANNELS } from "../material/Channel";
 import { CombatApi } from "../../api/combat";
 import {
@@ -47,6 +48,16 @@ export interface Combatant {
   getStandingLethality(): string;
   /** The authored standing stop-condition posture (`''` = none). */
   getStandingStopCondition(): string;
+
+  // The participant hook terminals (the combat hook grammar — every
+  // combatant, player or NPC, hears the same lifecycle moments).
+  onSessionEntered(ctx: CombatHookContext): void;
+  onExchangeResolved(ctx: CombatHookContext): void;
+  onPoiseBandChanged(ctx: CombatHookContext): void;
+  onDowned(ctx: CombatHookContext): void;
+  onDefeated(ctx: CombatHookContext): void;
+  onDefeatedFoe(ctx: CombatHookContext): void;
+  onCoupBegun(ctx: CombatHookContext): void;
 }
 
 export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -93,6 +104,135 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       return c && (CHANNELS as readonly string[]).includes(c)
         ? (c as Channel)
         : null;
+    }
+
+    /* ── the participant hook terminals (the combat hook grammar) ──
+     *
+     * Every hook body is bound by the determinism contract: synchronous,
+     * deterministic, cheap — no `await`, no wall-clock, no randomness,
+     * bounded work per beat. Consequences on others go through the
+     * {@link CombatHookContext} queue (never a gated Api from the hook
+     * frame); self-state mutation is sanctioned. All hooks are
+     * **shadowable by design** — a temporary effect attaches a shadow
+     * over the method; detach ends the effect. Never `@Final` /
+     * `@Unshadowable` here.
+     */
+
+    /**
+     * This combatant entered a combat session — at open (initiator then
+     * defender, before the venue's `onCombatOpened`) or at join (the
+     * joiner). `ctx.target` pairs the entrant with the foe its
+     * participation began against.
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine at `openSessionImpl`'s success
+     * tail and `joinImpl`'s success tail. Override to react (a fear aura
+     * afflicts through the ctx); compose via
+     * `super.onSessionEntered(ctx)`. No-op terminal. Shadowable by
+     * design.
+     */
+    onSessionEntered(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
+    }
+
+    /**
+     * One of this combatant's exchanges fully resolved (`ctx.outcome`
+     * set; riposte included in its parent exchange's dispatch — the
+     * witness fires once per exchange, actor-first then target).
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine (`witnessExchange`) at the tail
+     * of every outcome case in `resolveExchange`. Override to react;
+     * compose via `super.onExchangeResolved(ctx)`. No-op terminal.
+     * Shadowable by design.
+     */
+    onExchangeResolved(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
+    }
+
+    /**
+     * This combatant's poise band changed over a beat — the **per-beat
+     * net transition** (beat-top snapshot vs post-tick band; one
+     * comparison per combatant per beat, fired in roster order, never
+     * the reach sort).
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine at the tail of `advanceImpl`,
+     * after the poise tick loop. Override to react; compose via
+     * `super.onPoiseBandChanged(ctx)`. No-op terminal. Shadowable by
+     * design.
+     */
+    onPoiseBandChanged(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
+    }
+
+    /**
+     * This combatant went down — the poise-contest loss OR the attrition
+     * (bled-to-unconscious) stamp, right after `down = true`.
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine at both `down = true` sites
+     * (`handleDown` before the terms branch; the `checkVitalsResolution`
+     * unconscious path). Override to react; compose via
+     * `super.onDowned(ctx)`. No-op terminal. Shadowable by design.
+     */
+    onDowned(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
+    }
+
+    /**
+     * This combatant is the named victim of a resolving fight
+     * (`ctx.resolution` carries how it ended). Fires while the session's
+     * states are still live — before `session.resolve` dissolves them.
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine in `endWith`, after
+     * `narrateResolution` and before `session.resolve`. Override to
+     * react; compose via `super.onDefeated(ctx)`. No-op terminal.
+     * Shadowable by design.
+     */
+    onDefeated(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
+    }
+
+    /**
+     * The victor-side twin: this combatant is the named killer/winner of
+     * a resolving fight (named by the contest or, for an attrition
+     * death, by the `lastStruckBy` killing edge — a draw names none and
+     * fires nothing). On-kill dynamics (heal-on-fell,
+     * chronicle-adjacent gear) live here.
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine in `endWith`, immediately after
+     * the victim's `onDefeated` and before `session.resolve` (states
+     * still live). Override to react; compose via
+     * `super.onDefeatedFoe(ctx)`. No-op terminal. Shadowable by design.
+     */
+    onDefeatedFoe(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
+    }
+
+    /**
+     * A coup this combatant is party to (executioner or victim) has
+     * begun — the telegraph moment, after the coup activity started.
+     * The resolved session's states have already dissolved:
+     * `ctx.actorState`/`ctx.targetState` are null here.
+     *
+     * Determinism contract: synchronous, deterministic, cheap.
+     *
+     * @hook Invoked by the combat engine in `startCoup`, only after a
+     * successful scheduler start, alongside `narrateCoupTelegraph` —
+     * executioner first, then victim. Override to react; compose via
+     * `super.onCoupBegun(ctx)`. No-op terminal. Shadowable by design.
+     */
+    onCoupBegun(_ctx: CombatHookContext): void {
+      // no-op terminal — overriders compose via super
     }
 
     /**

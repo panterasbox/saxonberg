@@ -32,7 +32,8 @@ import type {
   Outcome,
 } from "../../lib/advancement/ActSignature";
 import type { Channel, MechanicalChannel } from "../../lib/material/Channel";
-import { Channels } from "../../lib/material/Channel";
+import { Channels, CHANNELS } from "../../lib/material/Channel";
+import type { EnergyInflictSpec } from "../../api/condition";
 import Weapon from "../../lib/equipment/Weapon";
 import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
@@ -47,6 +48,13 @@ import {
   CombatFormation,
   type FormationPolicy,
 } from "../../lib/combat/CombatFormation";
+import {
+  CombatHookContext,
+  type CombatConsequence,
+  type CombatVenue,
+  type ExchangeOutcomeKind,
+} from "../../lib/combat/CombatHookContext";
+import type { CombatReactive } from "../../lib/combat/CombatReactive";
 import type { CombatTerms } from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
@@ -695,6 +703,26 @@ function openSessionImpl(
   // standalone `violated` marker at initiation (the append-only ledger is
   // the system of record; culpability is derived on read).
   recordOpening(session, initiator, defender, terms);
+  // Hook grammar (DECISIONS F/G): each participant hears its own entry
+  // (initiator then defender), then the venue hears the open — once;
+  // `join` never re-fires it.
+  dispatchSessionEntered(session, aState, bState);
+  dispatchSessionEntered(session, bState, aState);
+  const room = venueOf(initiator);
+  if (room) {
+    const ctx = new CombatHookContext({
+      session,
+      beat: session.getBeat(),
+      actor: initiator,
+      target: defender,
+      actorState: aState,
+      targetState: bState,
+      venue: room,
+    });
+    callVenueHook(room, "onCombatOpened", ctx);
+    applyConsequences(ctx);
+  }
+  flushFlavor();
   return { ok: true, session };
 }
 
@@ -733,6 +761,10 @@ function joinImpl(
   // Blame ledger: a fresh engagement opened inside the melee (a lethal,
   // non-consented join onto a sentient is the interloper crime path).
   recordOpening(session, joiner, target, terms);
+  // Hook grammar (DECISION F): the joiner hears its own entry; the venue
+  // open never re-fires (DECISION G).
+  dispatchSessionEntered(session, state, session.getState(target));
+  flushFlavor();
   return { ok: true };
 }
 
@@ -1180,6 +1212,9 @@ function advanceImpl(session: CombatSession): void {
   if (!session.isActive()) return;
   const beat = session.advanceBeat();
   const states = session.getStates();
+  // Hook grammar (DECISION F): beat-top poise-band snapshot — the per-beat
+  // net transition is compared after the tick loop, in roster order.
+  const bandsAtTop = states.map((s) => s.poise.band());
 
   const maxBeats = Math.round(dial(AppSettingKeys.combatMaxBeats, 200));
   if (beat > maxBeats) {
@@ -1243,6 +1278,10 @@ function advanceImpl(session: CombatSession): void {
   }
 
   for (const s of states) s.poise.tick(beat);
+
+  // The per-beat net band transitions — fired in roster (`getStates()`)
+  // order, NOT the reach sort (DECISION F).
+  dispatchBandChanges(session, states, bandsAtTop, beat);
 
   if (session.isActive()) checkVitalsResolution(session);
 }
@@ -1373,6 +1412,18 @@ function resolveExchange(
     ? "whiff"
     : decideOutcome(actorState, targetState, spec, targetCanParry);
 
+  // Hook grammar (DECISION E): the defender-instrument outcome witnesses
+  // fire here, never inside the pure decideOutcome.
+  dispatchGuardWitness(
+    session,
+    actorState,
+    targetState,
+    spec,
+    outcome,
+    targetCanParry,
+    beat,
+  );
+
   // Advancement: the actor earns credit for the exchange (self-credit
   // only). Minted for the player-driven side; a brain-driven beast needs
   // no transcript. Fire-and-forget — never blocks the beat.
@@ -1383,6 +1434,7 @@ function resolveExchange(
       actorState.poise.spend(whiffPenalty, beat); // self-open
       narrate(actorState, targetState, spec, "whiff", null, false, beat);
       reactiveDispatch(session, targetState, actorState, "whiff", beat);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "parried": {
@@ -1391,17 +1443,20 @@ function resolveExchange(
       // The reactive-affordance dispatch (X): a parry arms the defender's
       // riposte against the attacker.
       reactiveDispatch(session, targetState, actorState, "parried", beat);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "control-resisted": {
       actorState.poise.spend(overextend, beat);
       narrate(actorState, targetState, spec, "parried", null, false, beat);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "control-land": {
       actorState.poise.spend(overextend, beat);
       if (spec.flagOnLand) targetState.flags.add(spec.flagOnLand);
       narrate(actorState, targetState, spec, "control", null, true, beat);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "exploit": {
@@ -1421,6 +1476,7 @@ function resolveExchange(
       targetState.poise.consumeOpening();
       actorState.poise.spend(overextend, beat);
       const report = commitInflict(
+        session,
         actorState,
         targetState,
         "open",
@@ -1429,15 +1485,18 @@ function resolveExchange(
       );
       const firstBlood = !report.deflected && session.markBloodDrawn();
       narrate(actorState, targetState, spec, "land", report, true, beat, true, firstBlood);
+      if (firstBlood) dispatchBloodDrawn(session, actorState, targetState, beat);
       // Winning the poise contest downs the target (the incapacitation
       // waypoint; a lethal finish follows under lethal terms).
       handleDown(session, actorState, targetState);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "land": {
       actorState.poise.spend(overextend, beat);
       const targetBand = targetState.poise.band();
       const report = commitInflict(
+        session,
         actorState,
         targetState,
         targetBand,
@@ -1447,7 +1506,9 @@ function resolveExchange(
       const landed = !report.deflected;
       const firstBlood = landed && session.markBloodDrawn();
       narrate(actorState, targetState, spec, report.deflected ? "deflected" : "land", report, landed, beat, false, firstBlood);
+      if (firstBlood) dispatchBloodDrawn(session, actorState, targetState, beat);
       if (landed) checkFirstBlood(session, report);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "feint-bit": {
@@ -1460,6 +1521,7 @@ function resolveExchange(
       actorState.poise.spend(feintCost, beat);
       targetState.poise.spend(bitPenalty, beat); // arms the opening on crossing
       narrate(actorState, targetState, spec, "feinted", null, true, beat);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
     case "feint-read": {
@@ -1469,20 +1531,15 @@ function resolveExchange(
       const feintCost = dial(AppSettingKeys.combatPoiseFeintCost, 0.08);
       actorState.poise.spend(feintCost, beat);
       narrate(actorState, targetState, spec, "feint-read", null, false, beat);
+      witnessExchange(session, actorState, targetState, spec, outcome, beat);
       return;
     }
   }
 }
 
-type OutcomeKind =
-  | "whiff"
-  | "parried"
-  | "control-resisted"
-  | "control-land"
-  | "exploit"
-  | "land"
-  | "feint-bit"
-  | "feint-read";
+/** The local alias over the canonical vocabulary (the union moved to
+ * `CombatHookContext` — the ctx read surface speaks it). */
+type OutcomeKind = ExchangeOutcomeKind;
 
 /** Deterministic outcome from the tactical state. */
 function decideOutcome(
@@ -1550,6 +1607,7 @@ function reactiveDispatch(
     defenderState.poise.spend(overextend, beat);
     const band = attackerState.poise.band();
     const report = commitInflict(
+      session,
       defenderState,
       attackerState,
       band,
@@ -1559,6 +1617,7 @@ function reactiveDispatch(
     const landed = !report.deflected;
     const firstBlood = landed && session.markBloodDrawn();
     narrate(defenderState, attackerState, g, report.deflected ? "deflected" : "land", report, landed, beat, false, firstBlood);
+    if (firstBlood) dispatchBloodDrawn(session, defenderState, attackerState, beat);
     if (landed) checkFirstBlood(session, report);
     return; // one reactive per trigger
   }
@@ -1582,9 +1641,14 @@ interface InflictReport {
  * Route a landed offensive gambit through the materials-response covering
  * stack. Combat picks the channel (instrument) + site + energy (from the
  * target's poise band); `ConditionApi.inflict` returns trauma type +
- * severity.
+ * severity. The **instrument hook seam** wraps the funnel (DECISION D):
+ * carrier `augmentInflict` (validated, fallback-on-malformed) → inflict +
+ * the `lastStruckBy` stamp (byte-identical) → the consequence drain → the
+ * `onStruck` walk over the CombatReactive covering gear at the struck
+ * site.
  */
 function commitInflict(
+  session: CombatSession,
   actorState: CombatantState,
   targetState: CombatantState,
   bandForEnergy: string,
@@ -1598,14 +1662,37 @@ function commitInflict(
   const site = siteFor(target, bandForEnergy === "open");
   const energy = energyFor(bandForEnergy) * (energyScale > 0 ? energyScale : 1);
 
-  const outcome = ConditionApi.inflict(target, {
+  // The augment carrier — exactly one, never both (the double-fire
+  // guard): the wielded weapon when armed, else the bare CombatReactive
+  // attacker (a venomous bite and a poison blade are one abstraction).
+  const weapon = instrument?.weapon ?? null;
+  const carrier = augmentCarrierOf(attacker, weapon);
+  let spec: EnergyInflictSpec = {
     mechanism: channel,
     site,
     energy,
     // The target's wielded shield fronts a faced attacker; a flanking blow
     // under focus-fire bypasses it (directional coverage).
     shieldFacing,
-  });
+  };
+  let augmentCtx: CombatHookContext | null = null;
+  if (carrier) {
+    augmentCtx = new CombatHookContext({
+      session,
+      beat: session.getBeat(),
+      actor: attacker,
+      target,
+      actorState,
+      targetState,
+      channel,
+      site,
+      instrument: weapon,
+      venue: venueOf(attacker),
+    });
+    spec = augmentSpec(carrier, spec, augmentCtx);
+  }
+
+  const outcome = ConditionApi.inflict(target, spec);
   // Name the killing edge for an attrition/bleed-out death that has no
   // single striker at resolution time (the per-edge blame foundation).
   if (outcome.afflicted) {
@@ -1615,14 +1702,18 @@ function commitInflict(
   // a direct two-terminal circuit through the target, routed via
   // ElectricityApi.shockContact → ConditionApi.inflict({mechanism:'shock'}),
   // never the mechanical fold. The mechanical blow above is untouched.
-  const weapon = instrument?.weapon;
+  // (Phase 3 folds this branch onto the instrument seam's drain below.)
   if (weapon && MixinApi.isEnergized(weapon)) {
     ElectricityApi.shockContact(weapon, target);
   }
+  // Drain the augment ctx's queued consequences — the same sequence
+  // position as the stun-baton branch above, so the Energized migration
+  // is order-identical (DECISION D-4).
+  if (augmentCtx) applyConsequences(augmentCtx);
   const band = outcome.afflicted
     ? MaterialApi.severityToBand(outcome.trauma.severity)
     : ("turned" as OutcomeBand);
-  return {
+  const report: InflictReport = {
     attacker,
     target,
     channel,
@@ -1633,6 +1724,19 @@ function commitInflict(
     attackerSpeciesKey: speciesKeyOf(attacker),
     traumaType: outcome.afflicted ? outcome.trauma.type : undefined,
   };
+  // The struck side: every CombatReactive item in the covering stack at
+  // the struck site hears the blow — landed through or fully attenuated
+  // (`ctx.deflected` says which; "the shield took the blow" is the point).
+  dispatchOnStruck(
+    session,
+    actorState,
+    targetState,
+    spec.site,
+    shieldFacing,
+    weapon,
+    report,
+  );
+  return report;
 }
 
 /** The struck site — torso by default, a called shot to the head when the
@@ -1642,6 +1746,561 @@ function siteFor(target: Stuff, open: boolean): string {
     return "body.head";
   }
   return "body.torso";
+}
+
+/* ────────── the hook grammar (instrument / participant / venue) ────────── */
+
+/**
+ * DECISION D-1: the strike's augment carrier — exactly one, never both
+ * (the double-fire guard): the wielded weapon when armed, else the bare
+ * CombatReactive attacker (the innate path), else none.
+ */
+function augmentCarrierOf(
+  attacker: Stuff,
+  weapon: Stuff | null,
+): (Stuff & CombatReactive) | null {
+  if (weapon) return MixinApi.isCombatReactive(weapon) ? weapon : null;
+  return MixinApi.isCombatReactive(attacker) ? attacker : null;
+}
+
+/**
+ * Resolve a hook method on a CombatReactive carrier for dispatch, or
+ * null when absent. `MixinApi.isCombatReactive` walks ATTACHED SHADOWS
+ * too (the instance-`hasMixin` Witness pattern), but the proxy
+ * dispatches only methods the host itself defines — a shadow RESHAPES
+ * an existing hook (the chain replaces the base call; `Shadow.callDown`
+ * reaches it) and cannot ADD one to a host that lacks it. A
+ * shadow-conferred marker with no host method is skipped silently,
+ * never thrown on mid-beat.
+ */
+function hookFn(
+  host: Stuff,
+  name: keyof CombatReactive,
+): ((...args: unknown[]) => unknown) | null {
+  const fn = (host as unknown as Record<string, unknown>)[name];
+  return typeof fn === "function"
+    ? (fn as (...args: unknown[]) => unknown)
+    : null;
+}
+
+/**
+ * Fire the carrier's `augmentInflict` and validate the return: an energy
+ * spec — `mechanism` any non-`shock` `InsultKind` (heat/tearing legal — a
+ * flaming blade may re-channel its primary), a string `site`, a finite
+ * `energy`. A malformed return (or a throwing hook body) falls back to
+ * the pre-augment spec with a warn — never a throw mid-beat.
+ */
+function augmentSpec(
+  carrier: Stuff & CombatReactive,
+  spec: EnergyInflictSpec,
+  ctx: CombatHookContext,
+): EnergyInflictSpec {
+  const fn = hookFn(carrier, "augmentInflict");
+  if (!fn) return spec;
+  let augmented: unknown;
+  try {
+    augmented = fn.call(carrier, spec, ctx);
+  } catch (err) {
+    console.warn(
+      "CombatLogic: augmentInflict threw — using the pre-augment spec",
+      err,
+    );
+    return spec;
+  }
+  if (isValidEnergySpec(augmented)) return augmented;
+  console.warn(
+    "CombatLogic: malformed augmentInflict return — using the pre-augment spec",
+  );
+  return spec;
+}
+
+/** The augment-return validator (DECISION D-2). */
+function isValidEnergySpec(spec: unknown): spec is EnergyInflictSpec {
+  if (spec === null || typeof spec !== "object") return false;
+  const s = spec as { mechanism?: unknown; site?: unknown; energy?: unknown };
+  const mech = s.mechanism;
+  const mechOk =
+    typeof mech === "string" &&
+    mech !== "shock" &&
+    (mech === "tearing" || (CHANNELS as readonly string[]).includes(mech));
+  return (
+    mechOk &&
+    typeof s.site === "string" &&
+    typeof s.energy === "number" &&
+    Number.isFinite(s.energy)
+  );
+}
+
+/** The venue (the anchor's room), or null when unplaced. Hook presence
+ * decides dispatch — a hook-less gym `ContainerMixin(Idea)` room resolves
+ * here but is skipped by `callVenueHook`. */
+function venueOf(anchor: Stuff | null | undefined): Stuff | null {
+  if (!anchor || !MixinApi.isContainable(anchor)) return null;
+  const room = anchor.getContainer();
+  return room && MixinApi.isContainer(room) ? (room as Stuff) : null;
+}
+
+/**
+ * Presence-dispatch an optional venue hook (DECISION G — the
+ * `callTraverseHook` shape: present → called, absent → skipped; the base
+ * `Location` is untouched; a shadow defining the hook participates).
+ */
+function callVenueHook(
+  room: Stuff,
+  name: keyof CombatVenue,
+  ctx: CombatHookContext,
+): void {
+  const fn = (room as unknown as Record<string, unknown>)[name];
+  if (typeof fn !== "function") return;
+  (fn as (c: CombatHookContext) => void).apply(room, [ctx]);
+}
+
+/** Flavor lines queued by hooks (`ctx.attachFlavor`), buffered so they
+ * emit AFTER the exchange's own narration beat, in queue order. */
+const pendingFlavor: Array<{ anchor: Stuff; line: string }> = [];
+
+/** The module-private `narrateFlavor` flush — emits the buffered lines
+ * through `CombatNarration`'s witness loop, in queue order. */
+function flushFlavor(): void {
+  for (const f of pendingFlavor.splice(0)) {
+    CombatNarration.narrateFlavor(f.anchor, f.line);
+  }
+}
+
+/**
+ * Apply a drained hook context's queued consequences from the ENGINE's
+ * frame, in queue order (DECISION B — the uniform drain rule: every
+ * dispatched ctx is drained exactly once; the drain seals it). Provenance
+ * is identical to the engine's own calls — a hook never reaches a gated
+ * Api from its own frame.
+ */
+function applyConsequences(ctx: CombatHookContext): void {
+  for (const c of ctx._drain()) applyConsequence(ctx, c);
+}
+
+function applyConsequence(ctx: CombatHookContext, c: CombatConsequence): void {
+  switch (c.kind) {
+    case "rider": {
+      const recipient = recipientOf(ctx, c.on);
+      if (!recipient) return;
+      const outcome = ConditionApi.inflict(recipient, c.spec);
+      // The engine's own stamp: a rider landing on the exchange target
+      // names the ctx's actor as the striking edge (a thorn-mail rider on
+      // the ATTACKER deliberately does not stamp).
+      if (
+        outcome.afflicted &&
+        ctx.targetState &&
+        recipient === ctx.targetState.combatant &&
+        ctx.actorState
+      ) {
+        ctx.targetState.lastStruckBy = ctx.actorState.combatant;
+      }
+      return;
+    }
+    case "afflict": {
+      const recipient = recipientOf(ctx, c.on);
+      if (recipient && MixinApi.isVitals(recipient)) {
+        recipient.afflict(c.condition);
+      }
+      return;
+    }
+    case "toxin": {
+      const recipient = recipientOf(ctx, c.on);
+      if (recipient && MixinApi.isMetabolic(recipient)) {
+        recipient.introduceToxin(c.type, c.amount);
+      }
+      return;
+    }
+    case "reserve": {
+      const recipient = recipientOf(ctx, c.on);
+      if (recipient && MixinApi.isReserved(recipient)) {
+        recipient.adjustReserve(c.key, c.delta);
+      }
+      return;
+    }
+    case "wear": {
+      const recipient = recipientOf(ctx, c.on);
+      if (!recipient) return;
+      const state =
+        ctx.actorState && recipient === ctx.actorState.combatant
+          ? ctx.actorState
+          : ctx.targetState && recipient === ctx.targetState.combatant
+            ? ctx.targetState
+            : null;
+      const weapon = state
+        ? (resolveInstrument(state, true)?.weapon ?? null)
+        : wieldedWeapon(recipient);
+      // No wielded instrument → the consequence is inert (bare hands give
+      // the rust monster nothing to eat).
+      if (weapon && MixinApi.isDurable(weapon)) weapon.wear(c.amount);
+      return;
+    }
+    case "influence":
+      // The drain arm activates in Phase 5 with `influenceImpl` (the
+      // external bridge's economy); until then a queued influence is a
+      // documented no-op — warn so no consumer silently relies on it.
+      console.warn(
+        "CombatLogic: 'influence' consequence queued before the influence " +
+          "bridge landed (Phase 5) — ignored",
+      );
+      return;
+    case "shock":
+      // The stun-baton seam's drain arm: the `effectiveVoltage ≤ 0` guard
+      // inside the conduction walk still applies, so a dead/switched-off
+      // source truthfully delivers nothing.
+      if (ctx.target) ElectricityApi.shockContact(c.source, ctx.target);
+      return;
+    case "flavor": {
+      // Buffered: flavor emits AFTER the exchange's own narration beat,
+      // in queue order (`flushFlavor` at the witness tail).
+      const anchor = ctx.actor ?? ctx.target;
+      if (anchor) pendingFlavor.push({ anchor, line: c.line });
+      return;
+    }
+  }
+}
+
+function recipientOf(
+  ctx: CombatHookContext,
+  on: "attacker" | "defender",
+): Stuff | null {
+  return on === "attacker" ? ctx.actor : ctx.target;
+}
+
+/**
+ * The CombatReactive covering gear over a struck site — mirrors
+ * `ConditionLogic.resolveCoveringStack`'s ITEM SELECTION only (worn
+ * `Constructed`+`Wearable` armor on `getSlotsCovering(site)` slots, plus
+ * any wielded armor-construction item when `shieldFacing`), outside-in by
+ * layer depth. Never mirrors the attenuation math.
+ */
+function coveringGearAt(
+  target: Stuff,
+  site: string,
+  shieldFacing: boolean,
+): Stuff[] {
+  if (!MixinApi.isOrganism(target) || !MixinApi.isSlotted(target)) return [];
+  const items: Array<{ item: Stuff; depth: number }> = [];
+  const covering = target.getSpecies()?.getBodyPlan()?.getSlotsCovering(site);
+  for (const spec of covering ?? []) {
+    for (const occ of target.getOccupants(spec.name)) {
+      if (!MixinApi.isConstructed(occ) || !MixinApi.isWearable(occ)) continue;
+      const construction = occ.getConstruction();
+      if (!construction || !construction.isArmor()) continue;
+      items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
+    }
+  }
+  if (shieldFacing) {
+    for (const [, occupants] of target.getAllOccupants()) {
+      for (const occ of occupants) {
+        if (!MixinApi.isWieldable(occ) || !MixinApi.isConstructed(occ)) {
+          continue;
+        }
+        const construction = occ.getConstruction();
+        if (!construction || !construction.isArmor()) continue;
+        items.push({ item: occ as Stuff, depth: construction.getLayerDepth() });
+      }
+    }
+  }
+  items.sort((a, b) => b.depth - a.depth);
+  return items.map((i) => i.item);
+}
+
+/**
+ * The struck-side witness walk (DECISION D-5): every CombatReactive item
+ * in the covering stack at the struck site hears the exchange. Each item
+ * gets its own context, drained after dispatch.
+ */
+function dispatchOnStruck(
+  session: CombatSession,
+  actorState: CombatantState,
+  targetState: CombatantState,
+  site: string,
+  shieldFacing: boolean,
+  strikerWeapon: Stuff | null,
+  report: InflictReport,
+): void {
+  const target = targetState.combatant;
+  for (const gear of coveringGearAt(target, site, shieldFacing)) {
+    if (!MixinApi.isCombatReactive(gear)) continue;
+    const fn = hookFn(gear, "onStruck");
+    if (!fn) continue;
+    const ctx = new CombatHookContext({
+      session,
+      beat: session.getBeat(),
+      actor: actorState.combatant,
+      target,
+      actorState,
+      targetState,
+      channel: report.channel,
+      site,
+      deflected: report.deflected,
+      instrument: strikerWeapon,
+      venue: venueOf(target),
+    });
+    fn.call(gear, ctx);
+    applyConsequences(ctx);
+  }
+}
+
+/**
+ * DECISION E: the defender-instrument outcome witnesses — `onParry` on
+ * the guarding instrument for a `parried` outcome (`control-resisted` is
+ * not a parry: nothing turned a blow); `onBypassed` on the defender's
+ * wielded instrument when an offensive outcome landed past a steady but
+ * guardless defender (the flail that couldn't guard). Fired from
+ * `resolveExchange`, never inside the pure `decideOutcome`.
+ */
+function dispatchGuardWitness(
+  session: CombatSession,
+  actorState: CombatantState,
+  targetState: CombatantState,
+  spec: GambitSpec,
+  outcome: OutcomeKind,
+  targetCanParry: boolean,
+  beat: number,
+): void {
+  const mk = (guarding: Stuff | null) =>
+    new CombatHookContext({
+      session,
+      beat,
+      actor: actorState.combatant,
+      target: targetState.combatant,
+      actorState,
+      targetState,
+      gambit: spec,
+      outcome,
+      instrument: guarding,
+      venue: venueOf(targetState.combatant),
+    });
+  if (outcome === "parried") {
+    const guard =
+      resolveInstrument(targetState)?.weapon ??
+      wieldedShield(targetState.combatant);
+    const fn =
+      guard && MixinApi.isCombatReactive(guard)
+        ? hookFn(guard, "onParry")
+        : null;
+    if (guard && fn) {
+      const ctx = mk(guard);
+      fn.call(guard, ctx);
+      applyConsequences(ctx);
+    }
+    return;
+  }
+  if (
+    (outcome === "land" || outcome === "exploit") &&
+    targetState.poise.band() === "steady" &&
+    !targetCanParry
+  ) {
+    const inst = resolveInstrument(targetState)?.weapon ?? null;
+    const fn =
+      inst && MixinApi.isCombatReactive(inst)
+        ? hookFn(inst, "onBypassed")
+        : null;
+    if (inst && fn) {
+      const ctx = mk(inst);
+      fn.call(inst, ctx);
+      applyConsequences(ctx);
+    }
+  }
+}
+
+/**
+ * DECISION E: the once-per-exchange resolution witness — fired at the
+ * tail of every outcome case (after `reactiveDispatch` in the
+ * whiff/parried cases, so the witness sees the fully-resolved exchange,
+ * riposte included; the riposte itself never re-fires it). Dispatch
+ * order: participant `onExchangeResolved` actor-first then target, then
+ * the instrument `onStrikeResolved` on the actor's augment carrier. Ends
+ * by flushing the buffered flavor lines (they emit after the exchange's
+ * own narration, in queue order).
+ */
+function witnessExchange(
+  session: CombatSession,
+  actorState: CombatantState,
+  targetState: CombatantState,
+  spec: GambitSpec,
+  outcome: OutcomeKind,
+  beat: number,
+): void {
+  const actor = actorState.combatant;
+  const target = targetState.combatant;
+  const instrument = resolveInstrument(actorState);
+  const weapon = instrument?.weapon ?? null;
+  const mk = () =>
+    new CombatHookContext({
+      session,
+      beat,
+      actor,
+      target,
+      actorState,
+      targetState,
+      gambit: spec,
+      outcome,
+      channel: instrument?.channel ?? null,
+      instrument: weapon,
+      venue: venueOf(actor),
+    });
+  if (MixinApi.isCombatant(actor)) {
+    const ctx = mk();
+    actor.onExchangeResolved(ctx);
+    applyConsequences(ctx);
+  }
+  if (MixinApi.isCombatant(target)) {
+    const ctx = mk();
+    target.onExchangeResolved(ctx);
+    applyConsequences(ctx);
+  }
+  const carrier = augmentCarrierOf(actor, weapon);
+  const carrierFn = carrier ? hookFn(carrier, "onStrikeResolved") : null;
+  if (carrier && carrierFn) {
+    const ctx = mk();
+    carrierFn.call(carrier, ctx);
+    applyConsequences(ctx);
+  }
+  flushFlavor();
+}
+
+/**
+ * DECISION G: the venue's first-blood witness — fired at the three
+ * `markBloodDrawn() === true` sites, after the narrate call (the roar
+ * precedes the witness — the documented order).
+ */
+function dispatchBloodDrawn(
+  session: CombatSession,
+  actorState: CombatantState,
+  targetState: CombatantState,
+  beat: number,
+): void {
+  const room = venueOf(actorState.combatant);
+  if (!room) return;
+  const ctx = new CombatHookContext({
+    session,
+    beat,
+    actor: actorState.combatant,
+    target: targetState.combatant,
+    actorState,
+    targetState,
+    venue: room,
+  });
+  callVenueHook(room, "onBloodDrawn", ctx);
+  applyConsequences(ctx);
+}
+
+/**
+ * DECISION F: the per-beat net band transition — beat-top snapshot,
+ * post-tick compare, fired in roster (`getStates()`) order, NOT the reach
+ * sort.
+ */
+function dispatchBandChanges(
+  session: CombatSession,
+  states: readonly CombatantState[],
+  before: readonly string[],
+  beat: number,
+): void {
+  for (let i = 0; i < states.length; i++) {
+    const s = states[i]!;
+    if (s.poise.band() === before[i]) continue;
+    const combatant = s.combatant;
+    if (!MixinApi.isCombatant(combatant)) continue;
+    const ctx = new CombatHookContext({
+      session,
+      beat,
+      actor: combatant,
+      actorState: s,
+      venue: venueOf(combatant),
+    });
+    combatant.onPoiseBandChanged(ctx);
+    applyConsequences(ctx);
+  }
+  flushFlavor();
+}
+
+/**
+ * DECISION F: the downed participant hears its own fall — at both
+ * `down = true` sites (the poise-contest loss and the attrition
+ * unconsciousness), after the stamp.
+ */
+function dispatchDowned(
+  session: CombatSession,
+  attackerState: CombatantState | null,
+  targetState: CombatantState,
+): void {
+  const victim = targetState.combatant;
+  if (!MixinApi.isCombatant(victim)) return;
+  const ctx = new CombatHookContext({
+    session,
+    beat: session.getBeat(),
+    actor: attackerState?.combatant ?? null,
+    target: victim,
+    actorState: attackerState,
+    targetState,
+    venue: venueOf(victim),
+  });
+  victim.onDowned(ctx);
+  applyConsequences(ctx);
+  flushFlavor();
+}
+
+/**
+ * DECISION F: a combatant hears its own session entry — at open
+ * (initiator then defender) and at join (the joiner). The ctx pairs the
+ * entrant with the foe its participation began against.
+ */
+function dispatchSessionEntered(
+  session: CombatSession,
+  state: CombatantState,
+  opposing: CombatantState | null,
+): void {
+  const combatant = state.combatant;
+  if (!MixinApi.isCombatant(combatant)) return;
+  const ctx = new CombatHookContext({
+    session,
+    beat: session.getBeat(),
+    actor: combatant,
+    target: opposing?.combatant ?? null,
+    actorState: state,
+    targetState: opposing,
+    venue: venueOf(combatant),
+  });
+  combatant.onSessionEntered(ctx);
+  applyConsequences(ctx);
+}
+
+/**
+ * DECISION F: the coup telegraph moment — fired on the executioner then
+ * the victim, only after a successful scheduler start. The resolved
+ * session's states have already dissolved, so the ctx tolerates null
+ * `actorState`/`targetState` (documented on the @hook).
+ */
+function dispatchCoupBegun(
+  session: CombatSession,
+  executioner: Stuff,
+  victim: Stuff,
+): void {
+  const mk = () =>
+    new CombatHookContext({
+      session,
+      beat: session.getBeat(),
+      actor: executioner,
+      target: victim,
+      actorState: session.getState(executioner),
+      targetState: session.getState(victim),
+      resolution: session.getResolution(),
+      venue: venueOf(executioner),
+    });
+  if (MixinApi.isCombatant(executioner)) {
+    const ctx = mk();
+    executioner.onCoupBegun(ctx);
+    applyConsequences(ctx);
+  }
+  if (MixinApi.isCombatant(victim)) {
+    const ctx = mk();
+    victim.onCoupBegun(ctx);
+    applyConsequences(ctx);
+  }
+  flushFlavor();
 }
 
 /* ───────────────────────── resolution ───────────────────────── */
@@ -1666,6 +2325,41 @@ function endWith(
     victim,
     killer,
   });
+  // Hook grammar (DECISIONS F/G): the defeat witnesses + the venue
+  // resolution fire BEFORE `session.resolve` — the states are still live
+  // here; after resolve they dissolve (the coup-time null-states case).
+  const victimState = victim ? session.getState(victim) : null;
+  const killerState = killer ? session.getState(killer) : null;
+  const anchor = victim ?? combatants[0] ?? null;
+  const mk = () =>
+    new CombatHookContext({
+      session,
+      beat: session.getBeat(),
+      actor: killer ?? null,
+      target: victim ?? null,
+      actorState: killerState,
+      targetState: victimState,
+      resolution: outcome,
+      venue: venueOf(anchor),
+    });
+  if (victim && MixinApi.isCombatant(victim)) {
+    const ctx = mk();
+    victim.onDefeated(ctx);
+    applyConsequences(ctx);
+  }
+  // The victor-side twin — only when a killer is named (a draw names none).
+  if (killer && MixinApi.isCombatant(killer)) {
+    const ctx = mk();
+    killer.onDefeatedFoe(ctx);
+    applyConsequences(ctx);
+  }
+  const room = venueOf(anchor);
+  if (room) {
+    const ctx = mk();
+    callVenueHook(room, "onCombatResolved", ctx);
+    applyConsequences(ctx);
+  }
+  flushFlavor();
   session.resolve(outcome);
 }
 
@@ -1704,6 +2398,9 @@ function handleDown(
   }
 
   targetState.down = true;
+  // Hook grammar (DECISION F): the downed participant hears it — after
+  // the stamp, before the terms branch.
+  dispatchDowned(session, attackerState, targetState);
   const attacker = attackerState.combatant;
   const victim = targetState.combatant;
   const terms = termsFor(session, attacker, victim);
@@ -1769,6 +2466,8 @@ function checkVitalsResolution(session: CombatSession): void {
     }
     if (c === "unconscious" && !s.down) {
       s.down = true;
+      // The attrition down (DECISION F) — same witness as the contest loss.
+      dispatchDowned(session, killer ? session.getState(killer) : null, s);
       endWith(session, "incapacitation", s.combatant, killer ?? undefined);
       // The two-stage death follows **incapacitation**, however it was
       // reached: under lethal terms a downed sentient can still be
@@ -2429,6 +3128,9 @@ function startCoup(
   const started = SchedulerApi.start(coup);
   if (!started.ok) return;
   CombatNarration.narrateCoupTelegraph(executioner, victim);
+  // Hook grammar (DECISION F): the telegraph moment — the resolved
+  // session's states have already dissolved; the ctx carries null states.
+  dispatchCoupBegun(session, executioner, victim);
 }
 
 function completeCoup(
