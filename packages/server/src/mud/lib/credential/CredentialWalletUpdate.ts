@@ -41,7 +41,15 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
    * `self` bucket (a hosted update confers its `self` verbs to the host).
    */
   static commandContributions: CommandContributions = {
-    self: ["banking/pay.yaml", "banking/wallet.yaml"],
+    // `work/fulfill.yaml` rides the wallet because the capture beat must
+    // travel with the courier, away from any board — diegetically the
+    // implant logs the delivery.
+    self: [
+      "banking/pay.yaml",
+      "banking/wallet.yaml",
+      "banking/draw.yaml",
+      "work/fulfill.yaml",
+    ],
     environment: [],
     inventory: [],
     peers: [],

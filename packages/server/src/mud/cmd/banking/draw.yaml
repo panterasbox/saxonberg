@@ -1,0 +1,20 @@
+verbs: [draw]
+controller: /obj/command/banking/DrawController
+description: "Draw money from your business into your own account"
+help: |
+  The proprietor's draw — move money from your business's account to your
+  personal one: `draw 100`. The owner's take-home is its own named
+  movement, distinct from a wage (that distinction is what a future tax
+  table will read). Solvency-checked: an insolvent business pays no draw.
+
+  Only a proprietor can draw, and only from their own business — the
+  business is resolved from who you are, not from anything you type.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: amount
+    type: number
+    required: true
+    validators:
+      - /lib/command/validators/mustBeNumber

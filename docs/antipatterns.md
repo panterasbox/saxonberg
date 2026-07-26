@@ -2022,6 +2022,43 @@ the whole design around one overloaded English word, and don't generalize a
 respond" is a *responder*, not an object type — and the responder, if you
 ever need it, hangs off `use`, not a new gesture-verb layer.
 
+## Custody Is a Relationship, Never a Default
+
+Every bank account names a real custodian **institution** — and *which*
+institution derives from who the account is FOR, never from a call-site
+constant.
+
+```typescript
+// WRONG — a call-site default silently makes one bank the custodian of
+// the whole economy (and hides an authoring decision inside code):
+const account = await BankingApi.ensureVenueAccount(
+  business.getAccountPath(),
+  BankingApi.defaultCustodianBank(),   // ← not yours to decide here
+  "",
+);
+
+// RIGHT — the business's authored custody term, through the one seam:
+const account = await EmploymentApi.operatingAccountOf(business);
+// (banksAt on the Business seed; missing = refused loudly)
+```
+
+The relationship table:
+
+| Account | Custodian derives from |
+|---|---|
+| A business's operating account | its authored `banksAt` (a term on the Business seed) |
+| An NPC worker/payee with no account | the **payer's** bank (employer's `banksAt`; a contract payout, the escrow's custodian) |
+| A **player** with no account | nobody — refuse; players open their own accounts (never silently signed up) |
+| Contract escrow | the **issuer's** funding account's bank |
+| The `treasury` (the one state account) | the CB (`Account.CENTRAL_BANK_INSTITUTION`) |
+
+`banking.defaultCustodianBank` exists for exactly one consumer: the boot
+restamp's last resort over legacy rows where no relationship is
+derivable. It is an AppSetting with **no code fallback** — unwarmed
+means *no default custodian*, and consumers refuse rather than invent a
+bank. See [banking.md](./subsystems/banking.md) § Every account names a
+real custodian.
+
 ## Raw keyed reserve reads outside the owning substrate
 
 **Don't:**

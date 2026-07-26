@@ -93,7 +93,7 @@ describe("Reconciliation invariant", () => {
 
     // 2. open an account + deposit the whole stack → coin into the vault
     const aliceAcct = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK, "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin")
     );
     await asOwner(alice, () => BankingApi.deposit(bank, cash));
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(500);
@@ -113,7 +113,7 @@ describe("Reconciliation invariant", () => {
     await asOwner(alice, () =>
       BankingApi.transfer(aliceAcct, "merchant", Money.of(100))
     );
-    await asOwner(worker, () => BankingApi.openAccount(BANK, "goodkin"));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
     await BankingApi.payWage("merchant", "/obj/Avatar/wenna", Money.of(50));
     expectBalanced(1500);
 

@@ -56,6 +56,7 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.proprietorPath = DAVE;
+  b.banksAt = 'goodkin';
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];
@@ -91,7 +92,7 @@ describe('employment shift-wage settlement', () => {
   it('pays rate × shift-hours once, at the boundary', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Person(), MARA);
-    await asOwner(mara, () => BankingApi.openAccount(BANK, ''));
+    await asOwner(mara, () => BankingApi.openAccount('goodkin', ''));
 
     // onShiftSince = 0, now = 8h  →  8 game-hours × 12 = 96
     await EmploymentApi.settleShiftWage(biz, MARA, shift(0));
@@ -105,7 +106,7 @@ describe('employment shift-wage settlement', () => {
   it('pays the partial for an early clock-out', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Person(), MARA);
-    await asOwner(mara, () => BankingApi.openAccount(BANK, ''));
+    await asOwner(mara, () => BankingApi.openAccount('goodkin', ''));
 
     // onShiftSince = 5h, now = 8h  →  3 game-hours × 12 = 36
     await EmploymentApi.settleShiftWage(biz, MARA, shift(5 * HOUR));
@@ -115,7 +116,7 @@ describe('employment shift-wage settlement', () => {
   it('pays a proprietor-held cover nothing (no self-wage)', async () => {
     const biz = seedBusiness();
     const dave = makeStuffAtPath(() => new Person(), DAVE);
-    await asOwner(dave, () => BankingApi.openAccount(BANK, ''));
+    await asOwner(dave, () => BankingApi.openAccount('goodkin', ''));
 
     await EmploymentApi.settleShiftWage(biz, DAVE, shift(0));
     expect(await balanceOf(DAVE)).toBe(0);
@@ -124,7 +125,7 @@ describe('employment shift-wage settlement', () => {
   it('pays nothing for a zero-length (paused-clock) shift', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Person(), MARA);
-    await asOwner(mara, () => BankingApi.openAccount(BANK, ''));
+    await asOwner(mara, () => BankingApi.openAccount('goodkin', ''));
 
     // onShiftSince == now → zero hours
     await EmploymentApi.settleShiftWage(biz, MARA, shift(8 * HOUR));

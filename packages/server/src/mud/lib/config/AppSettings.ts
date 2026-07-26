@@ -268,6 +268,35 @@ export const AppSettingKeys = {
    * customer cash deposits accumulate. `0` disables. See docs/subsystems/banking.md.
    */
   bankingOpeningFloat: "banking.openingFloat",
+  /**
+   * Banking — the **default custodian bank** (an institution key, e.g.
+   * `goodkin`) — the boot restamp's LAST RESORT for legacy rows with no
+   * derivable custodian relationship (a business banks at its authored
+   * `banksAt`; a worker at the payer's bank; escrow at the issuer's).
+   * Only the state (`treasury`) banks at the CB. See
+   * docs/subsystems/banking.md.
+   */
+  bankingDefaultCustodianBank: "banking.defaultCustodianBank",
+
+  /**
+   * Contracts — how long an exclusive claim holds before it lapses back to
+   * open (game-hours). Squatting cannot block a board; enforcement is lazy
+   * (derive-on-read at every touchpoint — no sweep, no counter).
+   */
+  contractClaimExpiryGameHours: "contract.claimExpiryGameHours",
+  /**
+   * Contracts — the default posting lifetime (game-hours) when a post
+   * names none. `0` = postings never lapse unless the post specifies.
+   */
+  contractPostingExpiryDefaultGameHours:
+    "contract.postingExpiryDefaultGameHours",
+  /**
+   * Contracts — the issuer-side regard drop applied to a breaching
+   * claimant (abandon / claim expiry): breach must be felt, cheaply — a
+   * real per-viewer social consequence via the shipped `RegardApi`, no
+   * global reputation write.
+   */
+  contractBreachRegardPenalty: "contract.breachRegardPenalty",
 
   /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
@@ -304,10 +333,13 @@ export const AppSettingKeys = {
    */
   fasttravelNetworkFeeBase: "fasttravel.networkFeeBase",
   /**
-   * Fast-travel — the TPA operating-budget account id (the well-known
-   * account the network fee accrues to), named like `banking.treasuryAccount`.
+   * Fast-travel — the Teleport Authority **Business** (templatePath): the
+   * network operator the per-ride network fee accrues to, resolved as a
+   * Business (its operating account, custodied at its authored `banksAt`)
+   * — never a bare well-known account id (every account names a real
+   * custodian, and the TPA is a business, not the state).
    */
-  fasttravelTpaAccount: "fasttravel.tpaAccount",
+  fasttravelTpaBusinessPath: "fasttravel.tpaBusinessPath",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify

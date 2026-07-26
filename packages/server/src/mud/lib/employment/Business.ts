@@ -71,6 +71,8 @@ export interface Business {
   getOperatingLocations(): readonly string[];
   /** The account key for this Business — its own durable path. */
   getAccountPath(): string;
+  /** The bank branch custodying the operating account ('' = unauthored). */
+  getBanksAt(): string;
 
   /** Hire `actor` into `positionKey` (employed, off-shift). */
   hire(
@@ -108,6 +110,7 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
       'positions',
       'rosterSlots',
       'operatingLocations',
+      'banksAt',
     ];
 
     /**
@@ -134,8 +137,24 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public operatingLocations: string[] = [];
 
+    /**
+     * The bank branch (templatePath) custodying this business's operating
+     * account — **where the business banks is an authored fact about the
+     * business** (a term of its arrangement: the branch's Terms price its
+     * fees, and fees route a royalty to that bank's corpo), never a code
+     * default. Empty = not authored — the business cannot open an
+     * operating account (an authoring error, refused loudly at
+     * `EmploymentApi.operatingAccountOf`).
+     * @authorable ref:Template
+     */
+    public banksAt: string = '';
+
     public getProprietor(): string | undefined {
       return this.proprietorPath || undefined;
+    }
+
+    public getBanksAt(): string {
+      return this.banksAt;
     }
 
     public getPositions(): readonly Position[] {

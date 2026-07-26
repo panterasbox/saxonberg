@@ -1,0 +1,20 @@
+# The Teleport Authority — the network operator, as a Business (everything
+# is a business): the entity that owns the network-fee income every paid
+# ride splits off (`fasttravel.tpaBusinessPath` points here; the fee lands
+# on this Business's operating account). Minimal v1: no proprietor (a
+# public-infrastructure operator, the municipal shape), no positions, no
+# roster — staff/appointments are the terminus-banking / employment
+# follow-ons. `operatingLocations` is deliberately EMPTY: the per-terminal
+# fare operators (the city budgets) claim the terminal fixtures; the TPA is
+# resolved by path, never by `ensureOperatorAt` (no collision).
+#
+# `banksAt` is the authored custody fact — the TPA is NOT the state (the
+# CB banks only the treasury), so it banks commercially: Goodkin, v1's one
+# real branch, until the corpo banks land.
+class: /lib/employment/Business
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  proprietorPath: ''
+  positions: []
+  operatingLocations: []
+  banksAt: goodkin

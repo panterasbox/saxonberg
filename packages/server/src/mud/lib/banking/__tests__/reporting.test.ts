@@ -31,7 +31,6 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK = "/domain/test/goodkin";
 
 function avatar(path: string): TestAvatar {
   return makeStuffAtPath(() => new TestAvatar(), path);
@@ -61,7 +60,7 @@ async function barWith(funds: number): Promise<{
   const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
   ContainmentApi.move(card, operator as never);
   const barAcct = await asOwner(operator, () =>
-    BankingApi.openAccount(BANK, "goodkin")
+    BankingApi.openAccount("goodkin", "goodkin")
   );
   if (funds > 0) await BankingApi.mint(barAcct, Money.of(funds), "float", "subsidy");
   return { operator, barAcct };
@@ -75,7 +74,7 @@ describe("Wages", () => {
     const { barAcct } = await barWith(1000);
     const worker = avatar("/obj/Avatar/wenna");
     const workerAcct = await asOwner(worker, () =>
-      BankingApi.openAccount(BANK, "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin")
     );
 
     await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(80));
@@ -130,12 +129,12 @@ describe("Deficit-as-target P&L", () => {
     // The bar starts with a small float; a supplier + a worker + a patron.
     const { operator, barAcct } = await barWith(0);
     const worker = avatar("/obj/Avatar/wenna");
-    await asOwner(worker, () => BankingApi.openAccount(BANK, "goodkin"));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
     const patron = avatar("/obj/Avatar/patron");
     const patronCard = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
     ContainmentApi.move(patronCard, patron as never);
     const patronAcct = await asOwner(patron, () =>
-      BankingApi.openAccount(BANK, "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin")
     );
     await BankingApi.mint(patronAcct, Money.of(1000));
 

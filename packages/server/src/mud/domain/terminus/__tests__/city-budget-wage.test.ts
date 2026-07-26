@@ -40,6 +40,7 @@ function setGameClock(gameSeconds: number): void {
 function seedBudget(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUDGET);
   b.proprietorPath = ""; // municipal
+  b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [{ key: "clerk", label: "staffing the ticket office", wageRate: 4, confers: [] }];
   // Fixture-keyed: the budget operates the departure TERMINAL, not the room.
   b.operatingLocations = ["/domain/terminus/terminal/departure-terminal-a"];
@@ -74,7 +75,11 @@ describe("Terminus city-budget wage loop", () => {
     makeStuffAtPath(() => new Person(), CLERK);
 
     // Fund the city-budget account as a run of fares would (a CB seed here).
-    const cityAccount = await BankingApi.ensureVenueAccount(BUDGET, BUDGET, "");
+    const cityAccount = await BankingApi.ensureVenueAccount(
+      BUDGET,
+      BankingApi.defaultCustodianBank(),
+      "",
+    );
     await BankingApi.mint(cityAccount, Money.of(1000), "fare income (seed)", "fare");
 
     const supplyBefore = BankingApi.moneySupply().minor;

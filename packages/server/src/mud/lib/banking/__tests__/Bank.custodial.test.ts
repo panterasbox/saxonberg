@@ -102,7 +102,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const bank = makeBank();
     const alice = makeAvatar(ALICE);
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBankPath(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
     );
     // The affiliation edge is recorded on the account — the key CorpoApi
     // resolves (the corpo catalogue is warmed at boot, covered by corpo's
@@ -116,7 +116,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const coins = makeCoinsIn(alice, 100);
 
     const accountId = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBankPath(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
       await BankingApi.deposit(bank, coins);
       return id;
     });
@@ -147,7 +147,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const coins = makeCoinsIn(alice, 100);
 
     const accountId = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBankPath(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
       await BankingApi.deposit(bank, coins);
       await BankingApi.withdraw(bank, Money.of(30));
       return id;

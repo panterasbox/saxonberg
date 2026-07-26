@@ -10,6 +10,7 @@ import type {
   PnlCategory,
   ProfitAndLoss,
   ReconcileResult,
+  EscrowHoldResult,
 } from "../../lib/banking/LedgerEntry";
 import AccountBalance from "../../lib/banking/AccountBalance";
 import SupplyAggregate from "../../lib/banking/SupplyAggregate";
@@ -104,15 +105,15 @@ async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
   return AccountBalance.find<AccountBalance>({ owner: ownerKey });
 }
 
-/** The `ownerKey`'s account at `bankPath`, or null. */
+/** The `ownerKey`'s account at the `bank` institution, or null. */
 async function accountAtImpl(
   ownerKey: string,
-  bankPath: string,
+  bank: string,
 ): Promise<AccountBalance | null> {
   if (!active()) return null;
   const [row] = await AccountBalance.find<AccountBalance>({
     owner: ownerKey,
-    bankPath,
+    bank,
   });
   return row ?? null;
 }
@@ -134,7 +135,7 @@ async function accountByIdImpl(
  * substrate). The actor is the context-derived author, never a parameter.
  */
 async function openAccountImpl(
-  bankPath: string,
+  bank: string,
   corpoKey: string,
 ): Promise<string> {
   if (!active()) {
@@ -142,13 +143,19 @@ async function openAccountImpl(
   }
   const owner = actingActorKey();
   const owned = await accountsOfImpl(owner);
-  const already = owned.find((a) => a.bankPath === bankPath);
-  if (already) return already.accountId;
+  const already = owned.find((a) => a.bank === bank);
+  if (already) {
+    // Re-open by an existing holder: the wallet credential is
+    // session-durable, so a returning player's implant carries an
+    // unlinked payment record — `bank open` doubles as the re-link.
+    autoLinkToWallet(actingPrincipal(), already.accountId);
+    return already.accountId;
+  }
 
   const row = new AccountBalance();
   row.accountId = Account.newId();
   row.owner = owner;
-  row.bankPath = bankPath;
+  row.bank = bank;
   row.corpoKey = corpoKey;
   row.isPrimary = owned.length === 0;
   row.isActive = true;
@@ -163,8 +170,9 @@ async function openAccountImpl(
   // customer is standing at it), which a boot-time seed can't guarantee. A
   // no-op in tests (the float AppSetting is unwarmed → 0).
   const floatMinor = openingFloatMinor();
-  if (floatMinor > 0) {
-    await seedFloatImpl(bankPath, Money.of(floatMinor)).catch(() => {
+  const branch = findBranchOf(bank);
+  if (floatMinor > 0 && branch) {
+    await seedFloatImpl(branch, Money.of(floatMinor)).catch(() => {
       /* best-effort — a float failure never blocks opening an account */
     });
   }
@@ -172,26 +180,84 @@ async function openAccountImpl(
 }
 
 /**
+ * The default custodian bank (an institution key) — read from the
+ * `banking.defaultCustodianBank` AppSetting **only** (the yaml is the
+ * single source of the value; no code default, per the AppSettings
+ * doctrine). Empty when unwarmed/unseeded — every custodian consumer
+ * then refuses rather than inventing a bank; the shared banking test
+ * harness supplies the real seeded value.
+ */
+function defaultCustodianBankImpl(): string {
+  try {
+    return AppApi.setting(AppSettingKeys.bankingDefaultCustodianBank) || "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * The first live branch of `bank` (an institution key) — the MQL
+ * system-mode enumeration (viewer-blind, the EmploymentLogic
+ * allBusinesses precedent). Null when no branch of that bank is live.
+ */
+function findBranchOf(bank: string): (Stuff & Bank) | null {
+  if (!bank) return null;
+  const matches = MqlApi.resolveMany("world:[mixin.BankMixin]", {
+    commandGiver: null,
+    scope: "world",
+  });
+  return (
+    matches.stuff.find(
+      (s): s is Stuff & Bank => MixinApi.isBank(s) && s.getBank() === bank,
+    ) ?? null
+  );
+}
+
+/**
+ * The every-account-names-a-real-custodian rule: a `bank` (institution
+ * key) is a valid custodian iff it is the central bank (state accounts
+ * only), the default custodian bank, or an institution with a live
+ * branch. Rejects `""` (an account held *nowhere*) and any string that
+ * names no real institution — a non-bank "custodian" is no custodian: no
+ * Terms, no cash ops, nobody accountable if the books are disputed.
+ */
+function isRealCustodian(bank: string): boolean {
+  if (!bank) return false;
+  if (bank === Account.CENTRAL_BANK_INSTITUTION) return true;
+  if (bank === defaultCustodianBankImpl()) return true;
+  return findBranchOf(bank) !== null;
+}
+
+/**
  * Ensure a **venue** account exists (owner = the venue's durable path, not
  * an acting principal — a resource identity), creating a primary one if
  * absent. The bar's P&L account: lazily created on first banking interaction
  * at the venue (order / pnl / payroll), so no boot seeder is needed.
+ * `bank` (an institution key) must name a real custodian
+ * ({@link isRealCustodian}) — an account is never held nowhere.
  */
 async function ensureVenueAccountImpl(
   ownerPath: string,
-  bankPath: string,
+  bank: string,
   corpoKey: string,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
   }
+  if (!isRealCustodian(bank)) {
+    throw new Error(
+      `BankingLogic.ensureVenueAccount: '${bank}' is not a real ` +
+        `custodian (the CB, the default custodian bank, or an institution ` +
+        `with a live branch)`,
+    );
+  }
   const owned = await accountsOfImpl(ownerPath);
-  const existing = owned.find((a) => a.bankPath === bankPath) ?? owned[0];
+  const existing = owned.find((a) => a.bank === bank) ?? owned[0];
   if (existing) return existing.accountId;
   const row = new AccountBalance();
   row.accountId = Account.newId();
   row.owner = ownerPath;
-  row.bankPath = bankPath;
+  row.bank = bank;
   row.corpoKey = corpoKey;
   row.isPrimary = true;
   row.isActive = true;
@@ -319,6 +385,7 @@ async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
   const bankPath = bank.getBankPath();
   const corpoKey = bank.getCorpoKey();
   let ownerPath = bankPath;
+  const institution = bank.getBank();
   try {
     const { EmploymentApi } = await import("../../api/employment");
     // `ensureOperatorAt` stands the branch Business up lazily (off its
@@ -329,20 +396,20 @@ async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
   } catch {
     // No employment engine available (unit tests / pre-boot) → branch-keyed.
   }
-  return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
+  return ensureVenueAccountImpl(ownerPath, institution, corpoKey);
 }
 
 /**
  * The corpo's own treasury — a well-known account keyed on `corpoKey`, held at
- * `bankPath` (the corpo's own bank; intra-bank, 1:1 clean). The mirror of
+ * `bank` (the corpo's own bank; intra-bank, 1:1 clean). The mirror of
  * {@link ensureVenueAccountImpl}; created lazily so the corpo has income from
  * the first fee. The corpo `Idea` stays pure data — this is an account it owns.
  */
 async function ensureCorpoTreasuryImpl(
   corpoKey: string,
-  bankPath: string,
+  bank: string,
 ): Promise<string> {
-  return ensureVenueAccountImpl(`corpo:${corpoKey}`, bankPath, corpoKey);
+  return ensureVenueAccountImpl(`corpo:${corpoKey}`, bank, corpoKey);
 }
 
 /**
@@ -351,10 +418,11 @@ async function ensureCorpoTreasuryImpl(
  * → conservation holds). Best-effort + idempotent (a no-op if the branch isn't
  * live or already has a balance). Returns whether it seeded.
  */
-async function seedFloatImpl(bankPath: string, amount: Money): Promise<boolean> {
+async function seedFloatImpl(
+  bank: Stuff & Bank,
+  amount: Money,
+): Promise<boolean> {
   if (amount.minor <= 0) return false;
-  const bank = StuffApi.findByTemplatePath<Stuff & Bank>(bankPath);
-  if (!bank || !MixinApi.isBank(bank)) return false;
   const branchAccount = await resolveBranchAccountImpl(bank);
   if (AccountBalance.cachedBalance(branchAccount) > 0) return false;
   await issueCashImpl(bank as unknown as Stuff & Container, amount, "float");
@@ -404,7 +472,7 @@ async function chargeFeeImpl(
   if (corpoKey && rate > 0) {
     royalty = Math.floor(feeMinor * rate);
     if (royalty > 0) {
-      treasury = await ensureCorpoTreasuryImpl(corpoKey, bank.getBankPath());
+      treasury = await ensureCorpoTreasuryImpl(corpoKey, bank.getBank());
       // A treasury that resolves to the branch itself (or the customer) can't
       // take a distinct royalty leg — fold it back into the branch share.
       if (treasury === branchAccount || treasury === customerAccountId) {
@@ -499,9 +567,9 @@ async function transferFeeFor(
   from: AccountBalance,
   to: AccountBalance | null,
 ): Promise<number> {
-  if (!to || from.bankPath === to.bankPath) return 0;
-  const sourceBank = StuffApi.findByTemplatePath<Stuff & Bank>(from.bankPath);
-  if (!sourceBank || !MixinApi.isBank(sourceBank)) return 0;
+  if (!to || from.bank === to.bank) return 0;
+  const sourceBank = findBranchOf(from.bank);
+  if (!sourceBank) return 0;
   const terms = sourceBank.getTerms();
   const crossCorpo = (from.corpoKey || "") !== (to.corpoKey || "");
   return crossCorpo ? terms.getCrossCorpoFee() : terms.getWireFee();
@@ -617,8 +685,8 @@ async function settleImpl(
   if (!cred)
     throw new Error("BankingLogic.settle: you have no payment credential");
   let routingAccount: string | null;
-  if (method.fromBankPath) {
-    const acct = await accountAtImpl(actingActorKey(), method.fromBankPath);
+  if (method.fromBank) {
+    const acct = await accountAtImpl(actingActorKey(), method.fromBank);
     routingAccount = acct?.accountId ?? null;
     if (!routingAccount) {
       throw new Error("BankingLogic.settle: no account at the override bank");
@@ -680,6 +748,8 @@ async function payWageImpl(
   employerAccountId: string,
   workerKey: string,
   amount: Money,
+  category: PnlCategory = "wages",
+  memo = "wage",
 ): Promise<void> {
   const owned = await accountsOfImpl(workerKey);
   const workerAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
@@ -695,10 +765,245 @@ async function payWageImpl(
       from: employerAccountId,
       to: workerAccount,
       amount: amount.minor,
-      category: "wages",
-      memo: "wage",
+      category,
+      memo,
     },
   ]);
+}
+
+/* ─────────────────── escrow · draw · custodian restamp ─────────────────── */
+
+/**
+ * Hold `amount` for a contract: issuer account → the per-contract escrow
+ * account (a REAL row — `reconcile` counts held funds throughout). Refuses
+ * (a value, not a throw) on a short issuer balance: no credit, anywhere.
+ * The escrow row is created with registry fields (owner =
+ * `contract:<contractId>`, custodian = the default commercial bank) — never
+ * `applyDelta`'s bare auto-create.
+ */
+async function escrowHoldImpl(
+  fromAccountId: string,
+  contractId: string,
+  amount: Money,
+): Promise<EscrowHoldResult> {
+  if (!active()) {
+    throw new Error("BankingLogic.escrowHold: no persistence connection");
+  }
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.escrowHold: amount must be positive");
+  }
+  if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+    return { ok: false, reason: "insufficient-funds" };
+  }
+  const escrowId = Account.escrowAccountFor(contractId);
+  const existing = await accountByIdImpl(escrowId);
+  if (!existing) {
+    // Custody follows the issuer: the escrow account lives at the bank
+    // custodying the FUNDING account — *your* bank holds *your* stake (and
+    // is pre-positioned as a party for the future escrow-as-a-bank-product
+    // seam on Terms). The default is the last resort for a legacy funding
+    // row with no recorded custodian.
+    const funding = await accountByIdImpl(fromAccountId);
+    const custodian =
+      funding?.bank && isRealCustodian(funding.bank)
+        ? funding.bank
+        : defaultCustodianBankImpl();
+    if (!custodian) {
+      throw new Error(
+        "BankingLogic.escrowHold: no custodian resolvable for the escrow " +
+          "account (the funding account names no bank and no default is " +
+          "seeded)",
+      );
+    }
+    const row = new AccountBalance();
+    row.accountId = escrowId;
+    row.owner = `contract:${contractId}`;
+    row.bank = custodian;
+    row.corpoKey = "";
+    row.isPrimary = false;
+    row.isActive = true;
+    row.balance = 0;
+    await row.save();
+    AccountBalance.putCached(escrowId, 0);
+  }
+  const txId = await postTransaction("escrow-hold", [
+    {
+      from: fromAccountId,
+      to: escrowId,
+      amount: amount.minor,
+      category: "escrow",
+      memo: `escrow hold ${contractId}`,
+    },
+  ]);
+  return { ok: true, txId };
+}
+
+/**
+ * Move held funds out of a contract's escrow account (`escrow-release` →
+ * the contractor / `escrow-revert` → the issuer). Throws when the escrow
+ * balance is short — an over-release is a programmatic invariant breach
+ * (the contract logic must never release more than it held), and the
+ * per-contract account makes it throw instead of silently robbing another
+ * contract's stake (why escrow is not pooled).
+ */
+async function escrowMoveImpl(
+  kind: "escrow-release" | "escrow-revert",
+  contractId: string,
+  toAccountId: string,
+  amount: Money,
+): Promise<string> {
+  const escrowId = Account.escrowAccountFor(contractId);
+  if (active() && AccountBalance.cachedBalance(escrowId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.${kind}: escrow for ${contractId} holds less than ` +
+        `${amount.render()} (over-release)`,
+    );
+  }
+  return postTransaction(kind, [
+    {
+      from: escrowId,
+      to: toAccountId,
+      amount: amount.minor,
+      category: "escrow",
+      memo: `${kind} ${contractId}`,
+    },
+  ]);
+}
+
+/**
+ * Close a contract's escrow account: assert the balance is zero (every
+ * terminal transition released or reverted the full stake first), then
+ * delete the `bank_accounts` row + warm-cache entry. The append-only ledger
+ * legs remain the permanent record — the row is a rebuildable cache, and
+ * live escrow rows scale with *open* contracts only. Idempotent (a missing
+ * row is a no-op).
+ */
+async function escrowCloseImpl(contractId: string): Promise<void> {
+  if (!active()) return;
+  const escrowId = Account.escrowAccountFor(contractId);
+  const row = await accountByIdImpl(escrowId);
+  if (!row) return;
+  if (row.balance !== 0) {
+    throw new Error(
+      `BankingLogic.escrowClose: escrow for ${contractId} still holds ` +
+        `${row.balance} minor units`,
+    );
+  }
+  await row.delete();
+  AccountBalance.removeCached(escrowId);
+}
+
+/**
+ * Pay the proprietor's **draw** — business account → the proprietor's
+ * primary, kind `draw` (take-home is not a wage; the leg kind is the tax
+ * wedge's future hook). Unlike `payWage` (red-by-design — the deficit
+ * model), the draw is **solvency-checked**: a proprietor pocketing from an
+ * insolvent business is exactly what the distinct kind exists to expose.
+ */
+async function payDrawImpl(
+  businessAccountId: string,
+  proprietorKey: string,
+  amount: Money,
+): Promise<void> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.payDraw: amount must be positive");
+  }
+  if (
+    active() &&
+    AccountBalance.cachedBalance(businessAccountId) < amount.minor
+  ) {
+    throw new Error(
+      `BankingLogic.payDraw: the business holds less than ${amount.render()}`,
+    );
+  }
+  const owned = await accountsOfImpl(proprietorKey);
+  const drawAccount = (owned.find((a) => a.isPrimary) ?? owned[0])?.accountId;
+  if (!drawAccount) {
+    throw new Error("BankingLogic.payDraw: the proprietor has no account");
+  }
+  await postTransaction("draw", [
+    {
+      from: businessAccountId,
+      to: drawAccount,
+      amount: amount.minor,
+      category: "draw",
+      memo: "proprietor draw",
+    },
+  ]);
+}
+
+/**
+ * The idempotent boot restamp (the custodian rule, applied to legacy
+ * rows): a cache-field fill, never a money movement — balances and
+ * conservation are untouched. Migrates pre-institution rows (`bankPath`
+ * branch paths → `bank` institution keys), moves the `treasury` (the
+ * legislature's fisc, the sole state account) to the CB, re-owns the
+ * legacy raw `tpa` accumulator to the TPA Business, and sends anything
+ * still custodied nowhere to the default custodian — the last resort
+ * where no relationship is derivable.
+ */
+async function restampCustodiansImpl(): Promise<void> {
+  if (!active()) return;
+  const treasuryId = demoTaxConfig().treasury;
+  const custodian = defaultCustodianBankImpl();
+  // The Teleport Authority Business path (for the legacy `tpa` row
+  // migration) — a string read, no content import.
+  let tpaBusinessPath = "";
+  try {
+    tpaBusinessPath =
+      AppApi.setting(AppSettingKeys.fasttravelTpaBusinessPath) || "";
+  } catch {
+    /* unwarmed — the row falls through to the generic rules */
+  }
+  for (const row of await AccountBalance.find<AccountBalance>({})) {
+    if (Account.isEscrowAccount(row.accountId)) continue;
+    let dirty = false;
+    // Legacy migration (pre-institution-keying): a row that recorded the
+    // branch counter's templatePath in `bankPath` maps to the institution
+    // — the CB path → the CB; a live branch at that path → its bank key;
+    // else the default (v1 has one commercial bank, so every legacy
+    // commercial row is its). A cache-field fill, never a money movement.
+    if (!row.bank && row.bankPath) {
+      if (row.bankPath === "/obj/CentralBank") {
+        row.bank = Account.CENTRAL_BANK_INSTITUTION;
+      } else {
+        const branch = StuffApi.findByTemplatePath<Stuff & Bank>(row.bankPath);
+        row.bank =
+          branch && MixinApi.isBank(branch) ? branch.getBank() : custodian;
+      }
+      row.bankPath = "";
+      dirty = true;
+    }
+    // The treasury (the legislature's fisc, the sole state account) banks
+    // at the CB.
+    if (row.accountId === treasuryId) {
+      if (row.bank !== Account.CENTRAL_BANK_INSTITUTION) {
+        row.bank = Account.CENTRAL_BANK_INSTITUTION;
+        dirty = true;
+      }
+      if (dirty) await row.save();
+      continue;
+    }
+    // The legacy raw `tpa` accumulator (pre-TPA-Business): re-own it to
+    // the Teleport Authority Business so its account resolution finds the
+    // accumulated network fees instead of minting a fresh row.
+    if (row.accountId === "tpa" && !row.owner && tpaBusinessPath) {
+      row.owner = tpaBusinessPath;
+      row.bank = custodian;
+      row.isPrimary = true;
+      await row.save();
+      continue;
+    }
+    // Anything still custodied nowhere goes to the default — the last
+    // resort where no relationship is derivable. An unseeded default
+    // (no `banking.defaultCustodianBank`) leaves the row for a later
+    // boot rather than inventing a bank.
+    if (!row.bank && custodian) {
+      row.bank = custodian;
+      dirty = true;
+    }
+    if (dirty) await row.save();
+  }
 }
 
 /** The authored/inert demo tax rate + treasury account, or rate 0 if absent. */
@@ -858,16 +1163,20 @@ async function issueCardImpl(
  * which the call-security gate would deny (the caller would be
  * `BankingLogic`, not the `BankingApi` the gate allows) — the `RenownLogic`
  * pattern.
+ *
+ * Returns the minted `txId` (empty when offline — no rows written) so a
+ * consumer's own event chain can reference its money legs (the contract
+ * events' `txId` link).
  */
 async function postTransaction(
   kind: LedgerKind,
   legs: LedgerLeg[],
   opts: { locality?: string | null } = {},
-): Promise<void> {
+): Promise<string> {
   // Conservation is asserted FIRST — a malformed posting throws with or
   // without a DB connection (the contract violation is the same offline).
   BankTransaction.assertConserving(kind, legs);
-  if (!active()) return;
+  if (!active()) return "";
 
   const at = WorldClockApi.getNow().rawValue();
   const realAt = Date.now();
@@ -896,6 +1205,7 @@ async function postTransaction(
 
   const { minted, drained } = BankTransaction.supplyDelta(kind, legs);
   if (minted !== 0 || drained !== 0) await bumpSupply(minted, drained);
+  return txId;
 }
 
 /** The default P&L category for a kind when a leg doesn't override it. */
@@ -911,6 +1221,12 @@ function defaultCategory(kind: LedgerKind): PnlCategory {
       return "wages";
     case "tax":
       return "tax";
+    case "escrow-hold":
+    case "escrow-release":
+    case "escrow-revert":
+      return "escrow";
+    case "draw":
+      return "draw";
     default:
       return "other";
   }
@@ -994,12 +1310,15 @@ async function recomputeSupplyImpl(): Promise<void> {
  */
 @Unshadowable
 export class BankingLogic extends ApiLogic {
-  /** See {@link BankingApi.boot}. Idempotent; reserved for future taps. */
+  /**
+   * See {@link BankingApi.boot}. Idempotent. Runs the custodian restamp
+   * pass (a cache-field fill over legacy `bank_accounts` rows — no money
+   * moves); the warm caches are loaded by AppBootstrap
+   * (AccountBalance.warm / SupplyAggregate.warm) before this.
+   */
   @CallSecurity(BankingApiCallers)
-  public boot(): void {
-    // No event taps in this phase; the warm caches are loaded by
-    // AppBootstrap (AccountBalance.warm / SupplyAggregate.warm). Kept as the
-    // stable activation seam so later phases install taps here.
+  public async boot(): Promise<void> {
+    await restampCustodiansImpl();
   }
 
   /** See {@link BankingApi.mint}. */
@@ -1089,17 +1408,14 @@ export class BankingLogic extends ApiLogic {
 
   /** See {@link BankingApi.openAccount}. */
   @CallSecurity(BankingApiCallers)
-  public async openAccount(
-    bankPath: string,
-    corpoKey: string,
-  ): Promise<string> {
-    return openAccountImpl(bankPath, corpoKey);
+  public async openAccount(bank: string, corpoKey: string): Promise<string> {
+    return openAccountImpl(bank, corpoKey);
   }
 
-  /** See {@link BankingApi.myAccountAt}. The actor's account id at a branch. */
+  /** See {@link BankingApi.myAccountAt}. The actor's account at a bank. */
   @CallSecurity(BankingApiCallers)
-  public async myAccountAt(bankPath: string): Promise<string | null> {
-    const account = await accountAtImpl(actingActorKey(), bankPath);
+  public async myAccountAt(bank: string): Promise<string | null> {
+    const account = await accountAtImpl(actingActorKey(), bank);
     return account?.accountId ?? null;
   }
 
@@ -1134,7 +1450,7 @@ export class BankingLogic extends ApiLogic {
       throw new Error("BankingLogic.deposit: that isn't cash");
     }
     const owner = actingActorKey();
-    const account = await accountAtImpl(owner, bank.getBankPath());
+    const account = await accountAtImpl(owner, bank.getBank());
     if (!account) {
       throw new Error("BankingLogic.deposit: no account here — open one first");
     }
@@ -1160,7 +1476,7 @@ export class BankingLogic extends ApiLogic {
   @CallSecurity(BankingApiCallers)
   public async withdraw(bank: Stuff & Bank, amount: Money): Promise<void> {
     const owner = actingActorKey();
-    const account = await accountAtImpl(owner, bank.getBankPath());
+    const account = await accountAtImpl(owner, bank.getBank());
     if (!account) {
       throw new Error("BankingLogic.withdraw: no account here");
     }
@@ -1271,10 +1587,8 @@ export class BankingLogic extends ApiLogic {
       { from: fromAccountId, to: toAccountId, amount: amount.minor, memo },
     ]);
     if (wireFee > 0) {
-      const sourceBank = StuffApi.findByTemplatePath<Stuff & Bank>(
-        from.bankPath,
-      );
-      if (sourceBank && MixinApi.isBank(sourceBank)) {
+      const sourceBank = findBranchOf(from.bank);
+      if (sourceBank) {
         await chargeFeeImpl(sourceBank, fromAccountId, wireFee, "wire fee");
       }
     }
@@ -1315,8 +1629,79 @@ export class BankingLogic extends ApiLogic {
     employerAccountId: string,
     workerKey: string,
     amount: Money,
+    category: PnlCategory = "wages",
+    memo = "wage",
   ): Promise<void> {
-    return payWageImpl(employerAccountId, workerKey, amount);
+    return payWageImpl(employerAccountId, workerKey, amount, category, memo);
+  }
+
+  /** See {@link BankingApi.payDraw}. Business → proprietor, solvency-checked. */
+  @CallSecurity(BankingApiCallers)
+  public async payDraw(
+    businessAccountId: string,
+    proprietorKey: string,
+    amount: Money,
+  ): Promise<void> {
+    return payDrawImpl(businessAccountId, proprietorKey, amount);
+  }
+
+  /* ──────────────── escrow (the contract system's agent) ──────────────── */
+
+  /** See {@link BankingApi.escrowHold}. Issuer → the per-contract escrow. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowHold(
+    fromAccountId: string,
+    contractId: string,
+    amount: Money,
+  ): Promise<EscrowHoldResult> {
+    return escrowHoldImpl(fromAccountId, contractId, amount);
+  }
+
+  /** See {@link BankingApi.escrowRelease}. Escrow → the contractor. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowRelease(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return escrowMoveImpl("escrow-release", contractId, toAccountId, amount);
+  }
+
+  /** See {@link BankingApi.escrowRevert}. Escrow → the issuer. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowRevert(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return escrowMoveImpl("escrow-revert", contractId, toAccountId, amount);
+  }
+
+  /** See {@link BankingApi.escrowBalanceOf}. The legibility read (sync). */
+  @CallSecurity(BankingApiCallers)
+  public escrowBalanceOf(contractId: string): Money {
+    return Money.of(
+      AccountBalance.cachedBalance(Account.escrowAccountFor(contractId)),
+    );
+  }
+
+  /** See {@link BankingApi.escrowClose}. Assert zero, delete the row. */
+  @CallSecurity(BankingApiCallers)
+  public async escrowClose(contractId: string): Promise<void> {
+    return escrowCloseImpl(contractId);
+  }
+
+  /** See {@link BankingApi.defaultCustodianBank}. The custodian default. */
+  @CallSecurity(BankingApiCallers)
+  public defaultCustodianBank(): string {
+    return defaultCustodianBankImpl();
+  }
+
+  /** See {@link BankingApi.custodianOf}. An account's custodian bank. */
+  @CallSecurity(BankingApiCallers)
+  public async custodianOf(accountId: string): Promise<string | null> {
+    const row = await accountByIdImpl(accountId);
+    return row?.bank || null;
   }
 
   /** See {@link BankingApi.profitAndLoss}. Categorized ledger read. */
@@ -1354,19 +1739,19 @@ export class BankingLogic extends ApiLogic {
   @CallSecurity(BankingApiCallers)
   public async ensureVenueAccount(
     ownerPath: string,
-    bankPath: string,
+    bank: string,
     corpoKey: string,
   ): Promise<string> {
-    return ensureVenueAccountImpl(ownerPath, bankPath, corpoKey);
+    return ensureVenueAccountImpl(ownerPath, bank, corpoKey);
   }
 
   /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */
   @CallSecurity(BankingApiCallers)
   public async ensureCorpoTreasury(
     corpoKey: string,
-    bankPath: string,
+    bank: string,
   ): Promise<string> {
-    return ensureCorpoTreasuryImpl(corpoKey, bankPath);
+    return ensureCorpoTreasuryImpl(corpoKey, bank);
   }
 
   // The opening float (seedFloatImpl) and the withdrawal-quota reader

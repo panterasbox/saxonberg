@@ -69,8 +69,15 @@ export class BankTransaction {
       case "payment":
       case "wage":
       case "tax":
+      case "escrow-hold":
+      case "escrow-release":
+      case "escrow-revert":
+      case "draw":
         // Pure on-ledger movement — both sides must be real accounts, or
         // the posting would create/destroy money outside a logged mint.
+        // The escrow family moves through a per-contract REAL account
+        // (never a sentinel — a sentinel has no balance row, which would
+        // take held funds out of the reconcile audit while in flight).
         if (fromSentinel || toSentinel) {
           throw new Error(
             `BankTransaction: a '${kind}' leg must move between real ` +
@@ -126,6 +133,15 @@ export class BankTransaction {
           );
         }
         break;
+      default: {
+        // Exhaustiveness backstop — a kind this switch doesn't name would
+        // otherwise fall through *unchecked* (the audit's one genuine hole).
+        // The `never` binding makes a new LedgerKind a compile error here.
+        const unhandled: never = kind;
+        throw new Error(
+          `BankTransaction: no counterparty rule for kind '${String(unhandled)}'`
+        );
+      }
     }
   }
 
