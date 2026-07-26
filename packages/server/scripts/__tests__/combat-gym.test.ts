@@ -53,9 +53,55 @@ import { Party } from "../../src/mud/lib/party/Party";
 import { CombatFormation } from "../../src/mud/lib/combat/CombatFormation";
 import { ProxyApi } from "../../src/mud/api/proxy";
 import StunBaton from "../../src/mud/lib/electricity/StunBaton";
+import { CombatReactiveMixin } from "../../src/mud/lib/combat/CombatReactive";
+import type { CombatHookContext } from "../../src/mud/lib/combat/CombatHookContext";
+import type { InflictSpec } from "../../src/mud/api/condition";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class GymFighter extends Character {}
+
+/** Hook-fire tally for the hooked determinism cell — reset per run, and
+ * part of the compared transcript (two runs must count identically). */
+const hookFires = { augment: 0, strikeResolved: 0, parry: 0, bypassed: 0 };
+function resetHookFires(): void {
+  hookFires.augment = 0;
+  hookFires.strikeResolved = 0;
+  hookFires.parry = 0;
+  hookFires.bypassed = 0;
+}
+
+/**
+ * The hooked determinism cell's instrument (combat-hooks Phase 8): a
+ * test-scoped reactive blade whose `augmentInflict` attaches a small
+ * fixed-energy `tearing` rider (magnitude-only, no new vocab) and whose
+ * witnesses count fires. Deterministic by construction — no RNG, no
+ * clock; the counters are module state the cell snapshots per run.
+ */
+class GymReactiveBlade extends CombatReactiveMixin(Weapon) {
+  override augmentInflict(
+    spec: InflictSpec,
+    ctx: CombatHookContext,
+  ): InflictSpec {
+    hookFires.augment++;
+    ctx.attachRider({ mechanism: "tearing", site: spec.site, energy: 25 });
+    return super.augmentInflict(spec, ctx);
+  }
+
+  override onStrikeResolved(ctx: CombatHookContext): void {
+    hookFires.strikeResolved++;
+    super.onStrikeResolved(ctx);
+  }
+
+  override onParry(ctx: CombatHookContext): void {
+    hookFires.parry++;
+    super.onParry(ctx);
+  }
+
+  override onBypassed(ctx: CombatHookContext): void {
+    hookFires.bypassed++;
+    super.onBypassed(ctx);
+  }
+}
 
 let seq = 0;
 
@@ -84,6 +130,11 @@ export interface GymLoadout {
    * single-attack surface) — the combat-hooks Phase-7a species-vocabulary
    * pin (`form`/`mass`/`length` are ignored). */
   natural?: string;
+  /** Build the weapon as a `GymReactiveBlade` — a test-scoped
+   * `CombatReactiveMixin(Weapon)` whose `augmentInflict` attaches a
+   * fixed-energy `tearing` rider (the combat-hooks Phase-8 hooked
+   * determinism cell). */
+  reactive?: boolean;
 }
 
 /** The canonical loadouts the weapon matrix is built from. */
@@ -104,6 +155,9 @@ export const Loadouts: Record<string, GymLoadout> = {
   // surface, a blunt fist) — the combat-hooks Phase-7a pin fixture for
   // both the `naturalAttacks[]` fallback and the neutral-band derivation.
   unarmed: { form: "", mass: 0, length: 0, natural: "blunt" },
+  // The hooked determinism cell's blade — sword geometry, so the ONLY
+  // variable against the plain sword is the reactive dynamic itself.
+  reactiveBlade: { form: "bladed", mass: 1.0, length: 0.9, reactive: true },
 };
 
 /** A headless fighter in a shared room, armed per `loadout` (default sword). */
@@ -161,7 +215,11 @@ function makeFighter(
   }
 
   const w = makeStuff(() =>
-    loadout.energized ? new StunBaton() : new Weapon(),
+    loadout.reactive
+      ? new GymReactiveBlade()
+      : loadout.energized
+        ? new StunBaton()
+        : new Weapon(),
   );
   w.setMaterial(steel());
   w.setConstruction(Construction.of(loadout.form));
@@ -575,6 +633,82 @@ describe("combat-gym — the influence bridge (fixed-beat injection)", () => {
     expect(r1.winner).toBe(r2.winner);
     expect(r1.beats).toBe(r2.beats);
     expect([r1.winner, r1.beats]).not.toEqual(["A", 21]);
+  });
+});
+
+describe("combat-gym — the hooked determinism cell (combat-hooks Phase 8)", () => {
+  /** One run of the hooked cell: a reactive blade (sword geometry + the
+   * `tearing` rider) against a plain sword, both on the engine brain at
+   * competent — the pinned brain-vs-brain cell with exactly one variable
+   * added: the hook. The transcript compared across runs includes the
+   * hook-fire tally. */
+  function hookedCell(): {
+    winner: "A" | "B" | "draw";
+    beats: number;
+    fires: typeof hookFires;
+    swordConditions: ReturnType<Character["getConditions"]>;
+  } {
+    resetHookFires();
+    let sword: Character | null = null;
+    const a = side(
+      "reactive",
+      Policies.brain,
+      "competent",
+      Loadouts.reactiveBlade!,
+    );
+    const b: GymSide = {
+      label: "sword",
+      policy: Policies.brain,
+      band: "competent",
+      make: () => {
+        const f = makeFighter(makeStuff(() => new TestRoom()), Loadouts.sword!);
+        sword = f as unknown as Character;
+        return f;
+      },
+    };
+    const r = runMatchup(a, b, 400, resetState);
+    return {
+      winner: r.winner,
+      beats: r.beats,
+      fires: { ...hookFires },
+      swordConditions: sword!.getConditions(),
+    };
+  }
+
+  it("a hooked session is bit-for-bit reproducible — winner, beats, AND hook-fire counts", () => {
+    const r1 = hookedCell();
+    const r2 = hookedCell();
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.beats).toBe(r2.beats);
+    expect(r1.fires).toEqual(r2.fires);
+    // The hook is live, not vacuously equal: the blade's augment fired.
+    expect(r1.fires.augment).toBeGreaterThan(0);
+    expect(r1.fires.strikeResolved).toBeGreaterThan(0);
+  });
+
+  it("the rider is real: the hooked cell differs from the bare cell on the roster while the mechanical trace stays pinned", () => {
+    // The pinned brain-vs-brain@competent cell is A in 21 beats; the ONLY
+    // change here is the A side's blade composing CombatReactiveMixin with
+    // a `tearing` rider. The rider is damage-side, not contest-side — like
+    // the stun-baton's shock, it does NOT perturb the poise contest, so
+    // the mechanical trace stays byte-identical to the bare pin (the
+    // byte-parity default holding alongside a live hooked cell, with the
+    // full no-hook PINS table re-asserted in this same suite run)...
+    const r = hookedCell();
+    expect(r.winner).toBe("A");
+    expect(r.beats).toBe(21);
+    // ...while the cells genuinely DIFFER where the rider lives: the
+    // sword side wears its mark — an avulsion trauma with the raw
+    // `tearing` mechanism (never the mechanical fold) — which the bare
+    // pinned cell's sword never carries. The stun-baton condition-roster
+    // sibling, on the hook path.
+    const riderLanded = r.swordConditions.some(
+      (c) =>
+        c.kind === "trauma" &&
+        c.type === "avulsion" &&
+        c.mechanism === "tearing",
+    );
+    expect(riderLanded).toBe(true);
   });
 });
 
