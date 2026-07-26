@@ -79,6 +79,11 @@ export interface GymLoadout {
    * Energized contact weapon that ALSO shocks on every blow (the
    * combat-hooks Phase-3 migration pin). */
   energized?: boolean;
+  /** An UNARMED innate fighter: no weapon is built at all; this channel
+   * is authored as `CombatantMixin.naturalAttackChannel` (the legacy
+   * single-attack surface) — the combat-hooks Phase-7a species-vocabulary
+   * pin (`form`/`mass`/`length` are ignored). */
+  natural?: string;
 }
 
 /** The canonical loadouts the weapon matrix is built from. */
@@ -95,6 +100,10 @@ export const Loadouts: Record<string, GymLoadout> = {
   // sword guard — the fight draws and the contact burn heals away
   // before the roster is read).
   stunBaton: { form: "hafted", mass: 1.6, length: 0.7, energized: true },
+  // A bare-handed innate fighter (the legacy `naturalAttackChannel`
+  // surface, a blunt fist) — the combat-hooks Phase-7a pin fixture for
+  // both the `naturalAttacks[]` fallback and the neutral-band derivation.
+  unarmed: { form: "", mass: 0, length: 0, natural: "blunt" },
 };
 
 /** A headless fighter in a shared room, armed per `loadout` (default sword). */
@@ -143,6 +152,13 @@ function makeFighter(
 
   const occupy = (x: unknown, s: string) =>
     (f as unknown as { occupy(x: unknown, s: string): void }).occupy(x, s);
+
+  if (loadout.natural) {
+    // Bare-handed: the innate attack is the instrument — no weapon built.
+    (f as unknown as { naturalAttackChannel: string }).naturalAttackChannel =
+      loadout.natural;
+    return f as unknown as Stuff & Engaged;
+  }
 
   const w = makeStuff(() =>
     loadout.energized ? new StunBaton() : new Weapon(),
@@ -403,6 +419,19 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
       b: () => side("sword", Policies.brain, "competent", Loadouts.sword!),
       winner: "A",
       beats: 21,
+    },
+    {
+      // The combat-hooks Phase-7a species-vocabulary pin: the unarmed
+      // innate matchup — two bare-handed fighters whose legacy
+      // `CombatantMixin.naturalAttackChannel` is `blunt` — captured
+      // against the PRE-vocabulary engine. Phase 7b's `naturalAttacks[]`
+      // legacy fallback and the hint-less neutral-band natural profile
+      // `(1, 1, 1, 0)` must byte-preserve it.
+      label: "unarmed-vs-unarmed@competent",
+      a: () => side("fists-a", Policies.brain, "competent", Loadouts.unarmed!),
+      b: () => side("fists-b", Policies.brain, "competent", Loadouts.unarmed!),
+      winner: "A",
+      beats: 2,
     },
   ];
 
