@@ -94,7 +94,7 @@ describe("CombatHookContext", () => {
     ctx.afflict(DREAD, "attacker");
     ctx.introduceToxin("test-venom", 2);
     ctx.adjustReserve("endurance", delta, "attacker");
-    ctx.wearInstrument("attacker", 0.1);
+    ctx.wearInstrument(0.1, "attacker");
     ctx.influence({ kind: "stagger", intensity: "light" });
     ctx.deliverShock(source);
     ctx.attachFlavor("The blade hums.");
@@ -158,10 +158,17 @@ describe("CombatHookContext", () => {
     expect(() => noTarget.attachRider(RIDER_SPEC, "attacker")).not.toThrow();
 
     const noActor = makeCtx({ actor: null }).ctx;
-    expect(() => noActor.wearInstrument("attacker", 0.1)).toThrow(
+    expect(() => noActor.wearInstrument(0.1, "attacker")).toThrow(
       /no attacker/,
     );
     expect(() => noActor.afflict(DREAD)).not.toThrow();
+
+    // deliverShock is target-fixed: a null-target context throws at
+    // queue time (the same shape as the other methods), never a silent
+    // no-op at the drain.
+    const source = makeStuff(() => new TestSource()) as Stuff & Energized;
+    const noTarget2 = makeCtx({ target: null }).ctx;
+    expect(() => noTarget2.deliverShock(source)).toThrow(/no defender/);
   });
 
   it("_drain seals the context — every later queue call throws", () => {
@@ -176,10 +183,49 @@ describe("CombatHookContext", () => {
     expect(() => ctx.adjustReserve("endurance", Quantity.of(1, "s"))).toThrow(
       /sealed/,
     );
-    expect(() => ctx.wearInstrument("defender", 0.1)).toThrow(/sealed/);
+    expect(() => ctx.wearInstrument(0.1, "defender")).toThrow(/sealed/);
     expect(() => ctx.influence({ kind: "expose" })).toThrow(/sealed/);
     expect(() => ctx.deliverShock(source)).toThrow(/sealed/);
     expect(() => ctx.attachFlavor("too late")).toThrow(/sealed/);
+  });
+
+  it("attachRider validates the spec fail-fast at attach (never from the drain)", () => {
+    const { ctx } = makeCtx();
+    // Not an object at all.
+    expect(() => ctx.attachRider(null as never)).toThrow(TypeError);
+    expect(() => ctx.attachRider("edge" as never)).toThrow(TypeError);
+    // Energy spec: a 'shock'-free string mechanism, string site, finite
+    // energy — each missing/malformed leg throws.
+    expect(() =>
+      ctx.attachRider({ site: "body.torso", energy: 3 } as never),
+    ).toThrow(/mechanism/);
+    expect(() =>
+      ctx.attachRider({ mechanism: "edge", energy: 3 } as never),
+    ).toThrow(/site/);
+    expect(() =>
+      ctx.attachRider({ mechanism: "edge", site: "body.torso" } as never),
+    ).toThrow(/energy/);
+    expect(() =>
+      ctx.attachRider({
+        mechanism: "edge",
+        site: "body.torso",
+        energy: Number.NaN,
+      }),
+    ).toThrow(/finite/);
+    // Shock spec: mechanism 'shock' needs a current present.
+    expect(() =>
+      ctx.attachRider({ mechanism: "shock", site: "body.torso" } as never),
+    ).toThrow(/current/);
+    expect(() =>
+      ctx.attachRider({
+        mechanism: "shock",
+        site: "body.torso",
+        current: Quantity.of(0.05, "A"),
+      }),
+    ).not.toThrow();
+    // A well-formed energy spec still queues.
+    expect(() => ctx.attachRider(RIDER_SPEC)).not.toThrow();
+    expect(ctx._drain().map((c) => c.kind)).toEqual(["rider", "rider"]);
   });
 
   it("attachFlavor accepts a non-empty string only", () => {

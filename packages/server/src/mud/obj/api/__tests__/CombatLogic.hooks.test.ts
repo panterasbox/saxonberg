@@ -715,7 +715,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     rust.naturalAttackChannel = "blunt";
     rust.exchangeEffect = (ctx) => {
       if (ctx.target === (rust as unknown as Stuff)) {
-        ctx.wearInstrument("attacker", 0.25);
+        ctx.wearInstrument(0.25, "attacker");
       }
     };
     const weapon = (a as unknown as { getOccupant(s: string): Stuff }).getOccupant(
@@ -734,7 +734,7 @@ describe("CombatLogic hooks — the consequence drain", () => {
     rust2.naturalAttackChannel = "blunt";
     rust2.exchangeEffect = (ctx) => {
       if (ctx.target === (rust2 as unknown as Stuff)) {
-        ctx.wearInstrument("attacker", 0.25);
+        ctx.wearInstrument(0.25, "attacker");
       }
     };
     const session2 = open(bare, rust2, nonLethal);
@@ -903,6 +903,36 @@ describe("CombatLogic hooks — participant terminals", () => {
     const exchange = HookSeq.filter((e) => e.includes(":exchange:"));
     expect(exchange[0]).toBe("a:exchange:land:actor");
     expect(exchange[1]).toBe("b:exchange:land:target");
+  });
+
+  it("a throwing witness is guarded: warn-and-skip, the beat completes, the other participant still fires", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", label: "a" }) as HookedFighter;
+    const b = makeFighter(room, { weaponForm: "bladed", label: "b" }) as HookedFighter;
+    // The broken author hook: the ACTOR's onExchangeResolved throws
+    // mid-body (after the note, so its fire is still observable).
+    a.exchangeEffect = () => {
+      throw new Error("author bug");
+    };
+    const session = open(a, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+    HookSeq.length = 0;
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    // The beat completes — the throw never escapes the dispatch loop…
+    expect(() => strikeBeat(session, a, b)).not.toThrow();
+    // …the target's witness (dispatched AFTER the throwing actor's)
+    // still fires…
+    const exchange = HookSeq.filter((e) => e.includes(":exchange:"));
+    expect(exchange[0]).toBe("a:exchange:land:actor");
+    expect(exchange[1]).toBe("b:exchange:land:target");
+    expect(session.isActive()).toBe(true);
+    // …and the guard warned with the seam's label.
+    expect(
+      warnSpy.mock.calls.some(
+        (c) => typeof c[0] === "string" && c[0].includes("onExchangeResolved threw"),
+      ),
+    ).toBe(true);
   });
 
   it("onPoiseBandChanged is the per-beat NET transition (roster order, no repeats)", () => {

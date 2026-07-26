@@ -40,7 +40,7 @@ beat order:
 | `augmentInflict(spec, ctx)` | instrument (the **carrier**) | compute | `commitInflict`, on the strike's augment carrier, before `ConditionApi.inflict`. Returns the (possibly reshaped) spec — any non-`shock` `InsultKind` (a flaming blade re-channels to `heat`); a malformed return falls back to the pre-augment spec with a warn, never a throw mid-beat. |
 | *drain* | — | — | The engine applies the ctx's queued consequences from its own frame, in queue order, right after the primary inflict — the exact sequence position the deleted `isEnergized` branch occupied. |
 | `onStruck(ctx)` | instrument (covering gear) | witness | `commitInflict`, on each CombatReactive item in the covering stack at the struck site (worn Constructed+Wearable armor on covering slots, the wielded shield when facing), outside-in, after primary + drain — whether the blow landed or was fully attenuated (`ctx.deflected` says which; "the shield took the blow" is the point). |
-| `onParry(ctx)` / `onBypassed(ctx)` | instrument (defender) | witness | `resolveExchange`, immediately after `decideOutcome`: `parried` → the guarding instrument; `land`/`exploit` past a **steady but guardless** defender (the flail) → the defender's resolved instrument. `control-resisted` is not a parry — excluded. |
+| `onParry(ctx)` / `onBypassed(ctx)` | instrument (defender) | witness | `resolveExchange`, immediately after `decideOutcome`: `parried` → the guarding instrument; `land` past a **steady but guardless** defender (the flail) → the defender's resolved instrument. `control-resisted` is not a parry — excluded; `exploit` is too (it needs the target's window open, never `steady` — bypass-at-steady is a land-only phenomenon). |
 | `onExchangeResolved(ctx)` → `onStrikeResolved(ctx)` | participants, then the actor's carrier | witness | `witnessExchange`, once per exchange at each outcome-case tail — after any riposte (`reactiveDispatch`), so the witness sees the fully-resolved exchange; the riposte itself does not re-fire it. Participants actor-first, then the carrier hears its own land/whiff/parried (`ctx.outcome` set — combo/momentum dynamics). |
 | `onPoiseBandChanged(ctx)` | participant | witness | `advanceImpl`, a **per-beat net transition**: compared after the tick loop against the cross-beat `bandSeen` baseline, fired in roster order (see § External influence for why the baseline is carried across beats). |
 | `onBloodDrawn(ctx)` | venue | witness | The three `markBloodDrawn() === true` sites, via the shared `dispatchBloodDrawn`, after the narration roar. Exactly once per session. |
@@ -97,11 +97,15 @@ evolves. Two faces:
   freely** — any participant surface (material, species, poise band) is
   directly readable; the silver-edge-vs-lycanthrope dynamic is a plain
   read plus a queued rider. Only *consequences* are mediated.
-- **The consequence queue** — eight methods: `attachRider(spec, on?)`,
-  `afflict(condition, on?)`, `introduceToxin(type, amount, on?)`,
-  `adjustReserve(key, delta, on?)`, `wearInstrument(on, amount)`,
+- **The consequence queue** — eight methods: `attachRider(spec, on?)`
+  (the spec validated fail-fast at attach — a malformed hook-authored
+  rider throws `TypeError` from the hook's own frame, never from the
+  engine's drain), `afflict(condition, on?)`,
+  `introduceToxin(type, amount, on?)`,
+  `adjustReserve(key, delta, on?)`, `wearInstrument(amount, on?)`,
   `influence(instruction, on?)` (the § External influence vocabulary —
-  hooks and the external bridge speak one economy), `deliverShock(source)`,
+  hooks and the external bridge speak one economy), `deliverShock(source)`
+  (target-fixed — a no-target ctx throws at queue time),
   `attachFlavor(line)`. The `on?: 'attacker' | 'defender'` recipient
   (default `'defender'`) resolves against the ctx's own exchange pair —
   recipient-constrained, never arbitrary targeting; queueing against a
@@ -144,6 +148,10 @@ consequences too (a fear aura afflicts at `onSessionEntered`).
 Binds **every** hook body — override or shadow: **synchronous,
 deterministic, cheap** — no `await`, no wall-clock, no randomness,
 bounded work per beat (hooks run inside the real-time session tick).
+Witness-hook throws are guarded (warn-and-continue — an author's broken
+witness never kills the beat for everyone; the compute hook falls back
+to the pre-augment spec). Routing hook-author failures through
+`DiagnosticApi.record` so they reach the author is a named deferral.
 Stated in every `@hook` TSDoc; enforced by the gym, not a runtime guard:
 
 - **Byte-parity default** (the standing gate, not a one-time check):

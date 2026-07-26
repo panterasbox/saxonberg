@@ -224,10 +224,14 @@ export class CombatHookContext {
    * Queue a secondary {@link InflictSpec} (a rider — the flaming
    * blade's heat, the venom blade's edge). Drained through
    * `ConditionApi.inflict(recipient, spec)` after the primary, stamping
-   * `lastStruckBy` when the recipient is the exchange target.
+   * `lastStruckBy` when the recipient is the exchange target. Validated
+   * fail-fast at attach (the `attachFlavor` posture) — a malformed
+   * hook-authored spec throws HERE, from the hook's own frame, never
+   * from the engine's drain.
    */
   attachRider(spec: InflictSpec, on: ConsequenceRecipient = "defender"): void {
     this.assertOpen("attachRider");
+    this.validateRider(spec);
     this.queue.push({ kind: "rider", spec, on: this.resolveOn("attachRider", on) });
   }
 
@@ -292,7 +296,7 @@ export class CombatHookContext {
    * play; `MixinApi.isDurable` narrowing). No wielded instrument →
    * the consequence is inert.
    */
-  wearInstrument(on: ConsequenceRecipient, amount: number): void {
+  wearInstrument(amount: number, on: ConsequenceRecipient = "defender"): void {
     this.assertOpen("wearInstrument");
     this.queue.push({
       kind: "wear",
@@ -325,9 +329,13 @@ export class CombatHookContext {
    * `ElectricityApi.shockContact(source, target)` — the
    * `effectiveVoltage ≤ 0` guard inside the conduction walk still
    * applies, so a dead/switched-off source truthfully delivers nothing.
+   * A context with no target throws (the same null-recipient rule the
+   * other queue methods enforce — the shock always lands on the
+   * exchange target).
    */
   deliverShock(source: Stuff & Energized): void {
     this.assertOpen("deliverShock");
+    this.resolveOn("deliverShock", "defender");
     this.queue.push({ kind: "shock", source });
   }
 
@@ -366,6 +374,52 @@ export class CombatHookContext {
     if (this.drained) {
       throw new Error(
         `CombatHookContext.${method}: context is sealed (already drained)`,
+      );
+    }
+  }
+
+  /**
+   * Fail-fast structural validation for a hook-authored rider spec —
+   * a malformed spec must throw from the hook's own frame at attach,
+   * never from the engine's drain mid-beat. An energy spec needs a
+   * non-`shock` string mechanism, a string site, and a finite energy;
+   * a shock spec needs a `current` present.
+   */
+  private validateRider(spec: InflictSpec): void {
+    if (spec === null || typeof spec !== "object") {
+      throw new TypeError(
+        "CombatHookContext.attachRider: spec must be an InflictSpec object",
+      );
+    }
+    const s = spec as {
+      mechanism?: unknown;
+      site?: unknown;
+      energy?: unknown;
+      current?: unknown;
+    };
+    if (s.mechanism === "shock") {
+      if (s.current === null || s.current === undefined) {
+        throw new TypeError(
+          "CombatHookContext.attachRider: a shock rider needs a current",
+        );
+      }
+      return;
+    }
+    if (typeof s.mechanism !== "string") {
+      throw new TypeError(
+        "CombatHookContext.attachRider: an energy rider needs a string " +
+          "mechanism (a non-'shock' InsultKind)",
+      );
+    }
+    if (typeof s.site !== "string") {
+      throw new TypeError(
+        "CombatHookContext.attachRider: an energy rider needs a string site",
+      );
+    }
+    if (typeof s.energy !== "number" || !Number.isFinite(s.energy)) {
+      throw new TypeError(
+        "CombatHookContext.attachRider: an energy rider needs a finite " +
+          "number energy",
       );
     }
   }

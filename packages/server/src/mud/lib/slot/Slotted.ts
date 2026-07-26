@@ -324,7 +324,14 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         MixinApi.isCombatReactive(candidate) &&
         typeof candidate.onWielded === 'function'
       ) {
-        candidate.onWielded(this as unknown as Stuff & Slotted, slot);
+        // Guarded (the combat engine's guardedHook posture, kept local —
+        // Slotted stays free of combat imports): a throwing witness body
+        // warns and is skipped, never aborts the slot claim.
+        try {
+          candidate.onWielded(this as unknown as Stuff & Slotted, slot);
+        } catch (err) {
+          console.warn('Slotted: onWielded threw — skipped', err);
+        }
       }
     }
 
@@ -354,7 +361,12 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         MixinApi.isCombatReactive(candidate) &&
         typeof candidate.onUnwielded === 'function'
       ) {
-        candidate.onUnwielded(this as unknown as Stuff & Slotted, slot);
+        // Guarded — a throwing witness never aborts the slot release.
+        try {
+          candidate.onUnwielded(this as unknown as Stuff & Slotted, slot);
+        } catch (err) {
+          console.warn('Slotted: onUnwielded threw — skipped', err);
+        }
       }
       return candidate;
     }
@@ -386,7 +398,12 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         MixinApi.isCombatReactive(sole) &&
         typeof sole.onUnwielded === 'function'
       ) {
-        sole.onUnwielded(this as unknown as Stuff & Slotted, slot);
+        // Guarded — a throwing witness never aborts the slot release.
+        try {
+          sole.onUnwielded(this as unknown as Stuff & Slotted, slot);
+        } catch (err) {
+          console.warn('Slotted: onUnwielded threw — skipped', err);
+        }
       }
       return sole;
     }

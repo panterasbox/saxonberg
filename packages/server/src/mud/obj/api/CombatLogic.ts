@@ -1403,6 +1403,34 @@ function advanceImpl(session: CombatSession): void {
 }
 
 /**
+ * The shared focus-fire erosion multiplier — `1 + max(0, edges − 1) ×
+ * erosionPerEdge` over the combatant's incoming edge count. ONE math at
+ * all three consumers (the exchange's target erosion, the influence
+ * bridge's stagger); the gym pins are the byte-parity proof.
+ */
+function focusMultiplierFor(session: CombatSession, combatant: Stuff): number {
+  const attackers = session.getGraph().edgeCount(combatant);
+  return (
+    1 +
+    Math.max(0, attackers - 1) *
+      dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5)
+  );
+}
+
+/**
+ * The shared focus-fire recovery pin — an incoming attacker count
+ * at/above the suppress threshold blocks a recovery beat. ONE threshold
+ * read at all three consumers (the defend beat, the influence bridge's
+ * `steady`, the flee gate).
+ */
+function recoverySuppressed(incoming: number): boolean {
+  const suppressAt = Math.round(
+    dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
+  );
+  return incoming >= suppressAt;
+}
+
+/**
  * One exchange: base erosion on both sides, then the actor's gambit
  * resolved deterministically against the tactical state (poker, not
  * slots — the outcome is a function of poise + instruments, never a die
@@ -1429,10 +1457,7 @@ function resolveExchange(
     // beat recovering (the turtle who beats one but loses to two). The
     // beat is still forgone — they're too busy covering to counter.
     const incoming = session.getGraph().edgeCount(actorState.combatant);
-    const suppressAt = Math.round(
-      dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
-    );
-    if (incoming >= suppressAt) return;
+    if (recoverySuppressed(incoming)) return;
     // Defensive/reactive play restores poise, capped by endurance and
     // scaled by sharpness — a sharper fighter recovers footing better per
     // defensive beat (the composure seam rides this scalar too, later).
@@ -1498,11 +1523,7 @@ function resolveExchange(
   // guard-breaker's `poiseDamage` + the reach advantage scale it further. An
   // out-of-range actor pressures nobody (only self-erodes on the whiff).
   const erode = dial(AppSettingKeys.combatPoiseErodePerExchange, 0.12);
-  const attackers = session.getGraph().edgeCount(targetState.combatant);
-  const focusMult =
-    1 +
-    Math.max(0, attackers - 1) *
-      dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5);
+  const focusMult = focusMultiplierFor(session, targetState.combatant);
   actorState.poise.erode(erode, beat);
   if (!outOfRange) {
     targetState.poise.erode(erode * focusMult * effectiveDamage, beat);
@@ -2026,6 +2047,21 @@ function hookFn(
 }
 
 /**
+ * Guarded witness dispatch: a throwing hook body warns and is skipped —
+ * an author's broken witness never aborts the beat mid-loop for every
+ * other participant (the `augmentSpec` warn posture, generalized). The
+ * queued consequences of a hook that threw mid-body still drain — the
+ * drain is engine code, not hook code.
+ */
+function guardedHook(label: string, fn: () => void): void {
+  try {
+    fn();
+  } catch (err) {
+    console.warn(`CombatLogic: ${label} threw — skipped`, err);
+  }
+}
+
+/**
  * Fire the carrier's `augmentInflict` and validate the return: an energy
  * spec — `mechanism` any non-`shock` `InsultKind` (heat/tearing legal — a
  * flaming blade may re-channel its primary), a string `site`, a finite
@@ -2094,7 +2130,9 @@ function callVenueHook(
 ): void {
   const fn = (room as unknown as Record<string, unknown>)[name];
   if (typeof fn !== "function") return;
-  (fn as (c: CombatHookContext) => void).apply(room, [ctx]);
+  guardedHook(name, () =>
+    (fn as (c: CombatHookContext) => void).apply(room, [ctx]),
+  );
 }
 
 /** Flavor lines queued by hooks (`ctx.attachFlavor`), buffered so they
@@ -2261,11 +2299,7 @@ function influenceImpl(
       // The SAME focus-fire multiplier `resolveExchange` applies to a
       // pressed target's erosion — an already-ganged-up target staggers
       // harder (the engine's own economy, not a parallel one).
-      const attackers = session.getGraph().edgeCount(state.combatant);
-      const focusMult =
-        1 +
-        Math.max(0, attackers - 1) *
-          dial(AppSettingKeys.combatFocusFireErosionPerEdge, 0.5);
+      const focusMult = focusMultiplierFor(session, state.combatant);
       // A crossing into `broken` arms the normal opening via `lower()`;
       // the window stays ownerless (`openingArmedBy` untouched here —
       // an external stagger mints no command deed).
@@ -2283,10 +2317,9 @@ function influenceImpl(
       // (`resolveExchange`'s recover beat): influence can't out-recover
       // a gang-up the verb can't.
       const incoming = session.getGraph().edgeCount(state.combatant);
-      const suppressAt = Math.round(
-        dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
-      );
-      if (incoming >= suppressAt) return { ok: false, reason: "suppressed" };
+      if (recoverySuppressed(incoming)) {
+        return { ok: false, reason: "suppressed" };
+      }
       state.poise.restore(
         dial(AppSettingKeys.combatInfluenceSteadyRestore, 0.15),
         enduranceRatio(state.combatant),
@@ -2367,7 +2400,7 @@ function dispatchOnStruck(
       instrument: strikerWeapon,
       venue: venueOf(target),
     });
-    fn.call(gear, ctx);
+    guardedHook("onStruck", () => fn.call(gear, ctx));
     applyConsequences(ctx);
   }
 }
@@ -2412,13 +2445,16 @@ function dispatchGuardWitness(
         : null;
     if (guard && fn) {
       const ctx = mk(guard);
-      fn.call(guard, ctx);
+      guardedHook("onParry", () => fn.call(guard, ctx));
       applyConsequences(ctx);
     }
     return;
   }
+  // 'exploit' is deliberately absent: it requires the target's window
+  // open (band 'open'), never the 'steady' this condition demands —
+  // bypass-at-steady is a land-only phenomenon.
   if (
-    (outcome === "land" || outcome === "exploit") &&
+    outcome === "land" &&
     targetState.poise.band() === "steady" &&
     !targetCanParry
   ) {
@@ -2429,7 +2465,7 @@ function dispatchGuardWitness(
         : null;
     if (inst && fn) {
       const ctx = mk(inst);
-      fn.call(inst, ctx);
+      guardedHook("onBypassed", () => fn.call(inst, ctx));
       applyConsequences(ctx);
     }
   }
@@ -2473,19 +2509,19 @@ function witnessExchange(
     });
   if (MixinApi.isCombatant(actor)) {
     const ctx = mk();
-    actor.onExchangeResolved(ctx);
+    guardedHook("onExchangeResolved", () => actor.onExchangeResolved(ctx));
     applyConsequences(ctx);
   }
   if (MixinApi.isCombatant(target)) {
     const ctx = mk();
-    target.onExchangeResolved(ctx);
+    guardedHook("onExchangeResolved", () => target.onExchangeResolved(ctx));
     applyConsequences(ctx);
   }
   const carrier = augmentCarrierOf(actor, weapon);
   const carrierFn = carrier ? hookFn(carrier, "onStrikeResolved") : null;
   if (carrier && carrierFn) {
     const ctx = mk();
-    carrierFn.call(carrier, ctx);
+    guardedHook("onStrikeResolved", () => carrierFn.call(carrier, ctx));
     applyConsequences(ctx);
   }
   flushFlavor();
@@ -2545,7 +2581,7 @@ function dispatchBandChanges(
       actorState: s,
       venue: venueOf(combatant),
     });
-    combatant.onPoiseBandChanged(ctx);
+    guardedHook("onPoiseBandChanged", () => combatant.onPoiseBandChanged(ctx));
     applyConsequences(ctx);
   }
   flushFlavor();
@@ -2572,7 +2608,7 @@ function dispatchDowned(
     targetState,
     venue: venueOf(victim),
   });
-  victim.onDowned(ctx);
+  guardedHook("onDowned", () => victim.onDowned(ctx));
   applyConsequences(ctx);
   flushFlavor();
 }
@@ -2598,7 +2634,7 @@ function dispatchSessionEntered(
     targetState: opposing,
     venue: venueOf(combatant),
   });
-  combatant.onSessionEntered(ctx);
+  guardedHook("onSessionEntered", () => combatant.onSessionEntered(ctx));
   applyConsequences(ctx);
 }
 
@@ -2626,12 +2662,12 @@ function dispatchCoupBegun(
     });
   if (MixinApi.isCombatant(executioner)) {
     const ctx = mk();
-    executioner.onCoupBegun(ctx);
+    guardedHook("onCoupBegun", () => executioner.onCoupBegun(ctx));
     applyConsequences(ctx);
   }
   if (MixinApi.isCombatant(victim)) {
     const ctx = mk();
-    victim.onCoupBegun(ctx);
+    guardedHook("onCoupBegun", () => victim.onCoupBegun(ctx));
     applyConsequences(ctx);
   }
   flushFlavor();
@@ -2678,13 +2714,13 @@ function endWith(
     });
   if (victim && MixinApi.isCombatant(victim)) {
     const ctx = mk();
-    victim.onDefeated(ctx);
+    guardedHook("onDefeated", () => victim.onDefeated(ctx));
     applyConsequences(ctx);
   }
   // The victor-side twin — only when a killer is named (a draw names none).
   if (killer && MixinApi.isCombatant(killer)) {
     const ctx = mk();
-    killer.onDefeatedFoe(ctx);
+    guardedHook("onDefeatedFoe", () => killer.onDefeatedFoe(ctx));
     applyConsequences(ctx);
   }
   const room = venueOf(anchor);
@@ -3625,10 +3661,7 @@ function disengageImpl(actor: Stuff): { ok: boolean; message?: string } {
     .incomingEdges(actor)
     .filter((e) => !session.getState(e.attacker)?.down);
 
-  const suppressAt = Math.round(
-    dial(AppSettingKeys.combatFocusFireSuppressRecoveryAt, 2),
-  );
-  if (incoming.length >= suppressAt) {
+  if (recoverySuppressed(incoming.length)) {
     return { ok: false, message: "You're too hard-pressed to break away!" };
   }
 
