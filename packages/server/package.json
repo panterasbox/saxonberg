@@ -18,7 +18,8 @@
     "lint:thin-forwarder": "tsx scripts/check-thin-forwarder.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",
-    "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts"
+    "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
+    "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts"
   },
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
