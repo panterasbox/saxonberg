@@ -141,6 +141,25 @@ export class Poise {
   }
 
   /**
+   * Arm the exploitable opening window WITHOUT moving the gauge — the
+   * **external window** (`CombatApi.influence` `expose`: a spell or a
+   * script exposes the combatant). The armed window then lives entirely
+   * inside the existing opening economy: it reads `open` via
+   * {@link band}, lapses through {@link tick} after
+   * `config.openingTicks`, is single-spent by {@link consumeOpening},
+   * and is disarmed by a {@link restore} that climbs above the break
+   * floor. Idempotent while a window is already open — the live
+   * deadline is NOT extended (one window, one earned exploit).
+   */
+  exposeWindow(currentTick: number): void {
+    if (this.opening.open) return;
+    this.opening = {
+      open: true,
+      expiresAtTick: currentTick + this.config.openingTicks,
+    };
+  }
+
+  /**
    * Advance the opening clock. Called once per tick by the session; an
    * unexploited window past its deadline lapses (and the combatant is no
    * longer `open`, though still `broken` until it recovers).

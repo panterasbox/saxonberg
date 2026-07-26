@@ -43,16 +43,65 @@ import {
   runMatrix,
   runPartyMatchup,
   Policies,
+  type GymPolicy,
   type GymSide,
   type GymPartyFighter,
 } from "../combat-gym";
+import { CombatApi } from "../../src/mud/api/combat";
 import { PartyMemberMixin } from "../../src/mud/lib/party/PartyMember";
 import { Party } from "../../src/mud/lib/party/Party";
 import { CombatFormation } from "../../src/mud/lib/combat/CombatFormation";
 import { ProxyApi } from "../../src/mud/api/proxy";
+import StunBaton from "../../src/mud/lib/electricity/StunBaton";
+import { CombatReactiveMixin } from "../../src/mud/lib/combat/CombatReactive";
+import type { CombatHookContext } from "../../src/mud/lib/combat/CombatHookContext";
+import type { InflictSpec } from "../../src/mud/api/condition";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class GymFighter extends Character {}
+
+/** Hook-fire tally for the hooked determinism cell — reset per run, and
+ * part of the compared transcript (two runs must count identically). */
+const hookFires = { augment: 0, strikeResolved: 0, parry: 0, bypassed: 0 };
+function resetHookFires(): void {
+  hookFires.augment = 0;
+  hookFires.strikeResolved = 0;
+  hookFires.parry = 0;
+  hookFires.bypassed = 0;
+}
+
+/**
+ * The hooked determinism cell's instrument (combat-hooks Phase 8): a
+ * test-scoped reactive blade whose `augmentInflict` attaches a small
+ * fixed-energy `tearing` rider (magnitude-only, no new vocab) and whose
+ * witnesses count fires. Deterministic by construction — no RNG, no
+ * clock; the counters are module state the cell snapshots per run.
+ */
+class GymReactiveBlade extends CombatReactiveMixin(Weapon) {
+  override augmentInflict(
+    spec: InflictSpec,
+    ctx: CombatHookContext,
+  ): InflictSpec {
+    hookFires.augment++;
+    ctx.attachRider({ mechanism: "tearing", site: spec.site, energy: 25 });
+    return super.augmentInflict(spec, ctx);
+  }
+
+  override onStrikeResolved(ctx: CombatHookContext): void {
+    hookFires.strikeResolved++;
+    super.onStrikeResolved(ctx);
+  }
+
+  override onParry(ctx: CombatHookContext): void {
+    hookFires.parry++;
+    super.onParry(ctx);
+  }
+
+  override onBypassed(ctx: CombatHookContext): void {
+    hookFires.bypassed++;
+    super.onBypassed(ctx);
+  }
+}
 
 let seq = 0;
 
@@ -72,6 +121,20 @@ export interface GymLoadout {
   length: number;
   /** Add a wielded shield in the off-hand. */
   shield?: boolean;
+  /** Build the weapon as an armed (switched-on) `StunBaton` — an
+   * Energized contact weapon that ALSO shocks on every blow (the
+   * combat-hooks Phase-3 migration pin). */
+  energized?: boolean;
+  /** An UNARMED innate fighter: no weapon is built at all; this channel
+   * is authored as `CombatantMixin.naturalAttackChannel` (the legacy
+   * single-attack surface) — the combat-hooks Phase-7a species-vocabulary
+   * pin (`form`/`mass`/`length` are ignored). */
+  natural?: string;
+  /** Build the weapon as a `GymReactiveBlade` — a test-scoped
+   * `CombatReactiveMixin(Weapon)` whose `augmentInflict` attaches a
+   * fixed-energy `tearing` rider (the combat-hooks Phase-8 hooked
+   * determinism cell). */
+  reactive?: boolean;
 }
 
 /** The canonical loadouts the weapon matrix is built from. */
@@ -82,6 +145,19 @@ export const Loadouts: Record<string, GymLoadout> = {
   mace: { form: "hafted", mass: 1.6, length: 0.7 },
   warhammer: { form: "hafted", mass: 3.2, length: 1.1 },
   swordShield: { form: "bladed", mass: 1.0, length: 0.9, shield: true },
+  // An armed StunBaton at the authored ~5 kV contact-stun potential
+  // (seeds/domain/substation/stun-baton.yaml), on mace-class geometry so
+  // the pinned cell lands blows (the authored 0.6 kg club can't crack a
+  // sword guard — the fight draws and the contact burn heals away
+  // before the roster is read).
+  stunBaton: { form: "hafted", mass: 1.6, length: 0.7, energized: true },
+  // A bare-handed innate fighter (the legacy `naturalAttackChannel`
+  // surface, a blunt fist) — the combat-hooks Phase-7a pin fixture for
+  // both the `naturalAttacks[]` fallback and the neutral-band derivation.
+  unarmed: { form: "", mass: 0, length: 0, natural: "blunt" },
+  // The hooked determinism cell's blade — sword geometry, so the ONLY
+  // variable against the plain sword is the reactive dynamic itself.
+  reactiveBlade: { form: "bladed", mass: 1.0, length: 0.9, reactive: true },
 };
 
 /** A headless fighter in a shared room, armed per `loadout` (default sword). */
@@ -131,12 +207,30 @@ function makeFighter(
   const occupy = (x: unknown, s: string) =>
     (f as unknown as { occupy(x: unknown, s: string): void }).occupy(x, s);
 
-  const w = makeStuff(() => new Weapon());
+  if (loadout.natural) {
+    // Bare-handed: the innate attack is the instrument — no weapon built.
+    (f as unknown as { naturalAttackChannel: string }).naturalAttackChannel =
+      loadout.natural;
+    return f as unknown as Stuff & Engaged;
+  }
+
+  const w = makeStuff(() =>
+    loadout.reactive
+      ? new GymReactiveBlade()
+      : loadout.energized
+        ? new StunBaton()
+        : new Weapon(),
+  );
   w.setMaterial(steel());
   w.setConstruction(Construction.of(loadout.form));
   w.setMass(Quantity.of(loadout.mass, "kg"));
   w.setLength(Quantity.of(loadout.length, "m"));
   w.setSlotClaim(plan.getTemplatePath()!, ["grip"]);
+  if (loadout.energized) {
+    const baton = w as StunBaton;
+    baton.setVoltage(Quantity.of(5000, "V"));
+    baton.switchOn();
+  }
   occupy(w, "grip");
 
   if (loadout.shield) {
@@ -371,6 +465,32 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
       winner: "A",
       beats: 21,
     },
+    {
+      // The combat-hooks Phase-3 migration pin: captured against the
+      // PRE-migration engine (the `isEnergized` branch in
+      // `commitInflict`); the Energized→instrument-seam flip must
+      // byte-preserve it. The "same shock" half of the pin is the
+      // sibling condition-roster test below.
+      label: "stunbaton-vs-sword@competent",
+      a: () =>
+        side("stunbaton", Policies.brain, "competent", Loadouts.stunBaton!),
+      b: () => side("sword", Policies.brain, "competent", Loadouts.sword!),
+      winner: "A",
+      beats: 21,
+    },
+    {
+      // The combat-hooks Phase-7a species-vocabulary pin: the unarmed
+      // innate matchup — two bare-handed fighters whose legacy
+      // `CombatantMixin.naturalAttackChannel` is `blunt` — captured
+      // against the PRE-vocabulary engine. Phase 7b's `naturalAttacks[]`
+      // legacy fallback and the hint-less neutral-band natural profile
+      // `(1, 1, 1, 0)` must byte-preserve it.
+      label: "unarmed-vs-unarmed@competent",
+      a: () => side("fists-a", Policies.brain, "competent", Loadouts.unarmed!),
+      b: () => side("fists-b", Policies.brain, "competent", Loadouts.unarmed!),
+      winner: "A",
+      beats: 2,
+    },
   ];
 
   for (const pin of PINS) {
@@ -380,6 +500,216 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
       expect(r.beats).toBe(pin.beats);
     });
   }
+
+  it("pinned: the stun-baton bout's sword side carries the shock contact burn", () => {
+    // Winner/beats alone wouldn't notice a dropped shock (the mechanical
+    // exchange decides the poise contest) — so the pin's other half is
+    // the sword side's post-fight condition roster: every landed baton
+    // blow ALSO routed `ElectricityApi.shockContact` → a `burn` trauma
+    // with `mechanism: 'shock'` (never the mechanical fold).
+    const pin = PINS.find((p) => p.label === "stunbaton-vs-sword@competent")!;
+    let sword: Character | null = null;
+    const a = side(
+      "stunbaton",
+      Policies.brain,
+      "competent",
+      Loadouts.stunBaton!,
+    );
+    const b: GymSide = {
+      label: "sword",
+      policy: Policies.brain,
+      band: "competent",
+      make: () => {
+        const f = makeFighter(makeStuff(() => new TestRoom()), Loadouts.sword!);
+        sword = f as unknown as Character;
+        return f;
+      },
+    };
+    const r = runMatchup(a, b, 400, resetState);
+    expect(r.winner).toBe(pin.winner);
+    expect(r.beats).toBe(pin.beats);
+    expect(
+      sword!
+        .getConditions()
+        .some(
+          (c) =>
+            c.kind === "trauma" &&
+            c.type === "burn" &&
+            c.mechanism === "shock",
+        ),
+    ).toBe(true);
+  });
+});
+
+describe("combat-gym — the species vocabulary (combat-hooks Phase 7)", () => {
+  /** An unarmed fighter whose SPECIES carries the natural attack (the
+   * `naturalAttacks[]` surface) instead of the legacy channel. */
+  function speciesSide(label: string, bodyMassKg?: number): GymSide {
+    return {
+      label,
+      policy: Policies.brain,
+      band: "competent",
+      make: () => {
+        const f = makeFighter(
+          makeStuff(() => new TestRoom()),
+          Loadouts.unarmed!,
+        );
+        const species = (f as unknown as Character).getSpecies()!;
+        species.setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
+        if (bodyMassKg !== undefined) {
+          species.getBodyPlan()!.setBaseMass(bodyMassKg);
+        }
+        return f;
+      },
+    };
+  }
+
+  it("a single-entry species is byte-identical to the legacy fallback (the 7a pin)", () => {
+    // The species list takes precedence over the legacy channel, and a
+    // single hint-less entry must reduce to the exact pre-vocabulary
+    // behavior — the same winner + beats as the pinned
+    // unarmed-vs-unarmed@competent cell (A in 2 beats).
+    const r = runMatchup(
+      speciesSide("fists-a"),
+      speciesSide("fists-b"),
+      400,
+      resetState,
+    );
+    expect(r.winner).toBe("A");
+    expect(r.beats).toBe(2);
+  });
+
+  it("the ogre-reach cell: a large hint-less body is reproducible and departs from the neutral cell", () => {
+    // A 400 kg body derives one reach rank + heavy balance from the SAME
+    // hint-less spec — the fight opens at `reach` (the unit suite pins
+    // that read) and plays out differently from the all-neutral pin.
+    const cell = () =>
+      runMatchup(
+        speciesSide("ogre", 400),
+        speciesSide("human"),
+        400,
+        resetState,
+      );
+    const r1 = cell();
+    const r2 = cell();
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.beats).toBe(r2.beats);
+    // The body-scale term is real: the cell departs from the neutral
+    // unarmed pin (A in 2 beats).
+    expect([r1.winner, r1.beats]).not.toEqual(["A", 2]);
+  });
+});
+
+describe("combat-gym — the influence bridge (fixed-beat injection)", () => {
+  it("a fixed-beat CombatApi.influence stagger is reproducible and differs from the uninfluenced pin", () => {
+    // The pinned brain-vs-brain@competent cell (A in 21 beats), with one
+    // deterministic variation: at beat 5 the A side ALSO issues a heavy
+    // stagger at its foe through the external bridge. Zero randomness —
+    // two runs are identical — and the instruction is real: the cell's
+    // outcome departs from the uninfluenced pin.
+    const influencedBrain: GymPolicy = (session, self) => {
+      if (session.getBeat() === 5) {
+        for (const s of session.getStates()) {
+          if ((s.combatant as unknown) !== (self as unknown) && !s.down) {
+            CombatApi.influence(s.combatant, {
+              kind: "stagger",
+              intensity: "heavy",
+            });
+            break;
+          }
+        }
+      }
+      return null; // defer to the engine's brain — the pin's own policy
+    };
+    const cell = () =>
+      runMatchup(
+        side("influencer", influencedBrain, "competent"),
+        side("brain", Policies.brain, "competent"),
+        400,
+        resetState,
+      );
+    const r1 = cell();
+    const r2 = cell();
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.beats).toBe(r2.beats);
+    expect([r1.winner, r1.beats]).not.toEqual(["A", 21]);
+  });
+});
+
+describe("combat-gym — the hooked determinism cell (combat-hooks Phase 8)", () => {
+  /** One run of the hooked cell: a reactive blade (sword geometry + the
+   * `tearing` rider) against a plain sword, both on the engine brain at
+   * competent — the pinned brain-vs-brain cell with exactly one variable
+   * added: the hook. The transcript compared across runs includes the
+   * hook-fire tally. */
+  function hookedCell(): {
+    winner: "A" | "B" | "draw";
+    beats: number;
+    fires: typeof hookFires;
+    swordConditions: ReturnType<Character["getConditions"]>;
+  } {
+    resetHookFires();
+    let sword: Character | null = null;
+    const a = side(
+      "reactive",
+      Policies.brain,
+      "competent",
+      Loadouts.reactiveBlade!,
+    );
+    const b: GymSide = {
+      label: "sword",
+      policy: Policies.brain,
+      band: "competent",
+      make: () => {
+        const f = makeFighter(makeStuff(() => new TestRoom()), Loadouts.sword!);
+        sword = f as unknown as Character;
+        return f;
+      },
+    };
+    const r = runMatchup(a, b, 400, resetState);
+    return {
+      winner: r.winner,
+      beats: r.beats,
+      fires: { ...hookFires },
+      swordConditions: sword!.getConditions(),
+    };
+  }
+
+  it("a hooked session is bit-for-bit reproducible — winner, beats, AND hook-fire counts", () => {
+    const r1 = hookedCell();
+    const r2 = hookedCell();
+    expect(r1.winner).toBe(r2.winner);
+    expect(r1.beats).toBe(r2.beats);
+    expect(r1.fires).toEqual(r2.fires);
+    // The hook is live, not vacuously equal: the blade's augment fired.
+    expect(r1.fires.augment).toBeGreaterThan(0);
+    expect(r1.fires.strikeResolved).toBeGreaterThan(0);
+  });
+
+  it("the rider is real: the hooked cell differs from the bare cell on the roster while the mechanical trace stays pinned", () => {
+    // The pinned brain-vs-brain@competent cell is A in 21 beats; the ONLY
+    // change here is the A side's blade composing CombatReactiveMixin with
+    // a `tearing` rider. The rider is damage-side, not contest-side — like
+    // the stun-baton's shock, it does NOT perturb the poise contest, so
+    // the mechanical trace stays byte-identical to the bare pin (the
+    // byte-parity default holding alongside a live hooked cell, with the
+    // full no-hook PINS table re-asserted in this same suite run)...
+    const r = hookedCell();
+    expect(r.winner).toBe("A");
+    expect(r.beats).toBe(21);
+    // ...while the cells genuinely DIFFER where the rider lives: the
+    // sword side wears its mark — an avulsion trauma with the raw
+    // `tearing` mechanism (never the mechanical fold) — which the bare
+    // pinned cell's sword never carries. The stun-baton condition-roster
+    // sibling, on the hook path.
+    const riderLanded = r.swordConditions.some(
+      (c) =>
+        c.kind === "trauma" &&
+        c.type === "avulsion" &&
+        c.mechanism === "tearing",
+    );
+    expect(riderLanded).toBe(true);
+  });
 });
 
 /* ─────────────── the formations matrix (combat-formations build) ─────────────── */

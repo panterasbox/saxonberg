@@ -691,6 +691,22 @@ export const AppSettingKeys = {
    * `fight finish` before the fallen is spared (mercy by default). */
   combatFormationCoupDirectiveWindowSeconds:
     "combat.formation.coup.directiveWindowSeconds",
+  /** Combat hooks — `CombatApi.influence` `stagger`: poise eroded by a
+   * `light` instruction (focus-fire-scaled like exchange erosion). */
+  combatInfluenceStaggerLightErode: "combat.influence.staggerLightErode",
+  /** Combat hooks — `CombatApi.influence` `stagger`: poise eroded by a
+   * `heavy` instruction (a crossing arms the normal ownerless opening). */
+  combatInfluenceStaggerHeavyErode: "combat.influence.staggerHeavyErode",
+  /** Combat hooks — `CombatApi.influence` `steady`: poise restored
+   * (endurance-capped; suppressed under the focus-fire recovery pin). */
+  combatInfluenceSteadyRestore: "combat.influence.steadyRestore",
+  /** The species combat vocabulary — body mass (kg) at/above which a
+   * HINT-LESS natural attack derives large-body reach (one rank) +
+   * heavy balance ("an ogre punches at ogre reach"). Below it the
+   * derivation is exactly the neutral `(1, 1, 1, 0)` — the byte-parity
+   * band every currently-seeded body sits in; a body seed crossing this
+   * changes its combat feel by design. */
+  combatNaturalLargeBodyMassKg: "combat.natural.largeBodyMassKg",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**
