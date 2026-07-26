@@ -800,6 +800,33 @@ describe("CombatLogic hooks — the consequence drain", () => {
     );
   });
 
+  it("a switched-OFF baton lands only the mechanical blow (the effectiveVoltage guard, unmoved)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const baton = makeStuff(() => new StunBaton());
+    baton.setMaterial(steel());
+    baton.setConstruction(Construction.of("hafted"));
+    baton.setVoltage(Quantity.of(5000, "V"));
+    // NOT switched on — safed. The queued delivery still reaches the
+    // conduction walk, which no-ops on a dead source.
+    const a = makeFighter(room, { weapon: baton });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+
+    const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    strikeBeat(session, a, b);
+
+    const mechanisms = inflictSpy.mock.calls.map(
+      (c) => (c[1] as InflictSpec).mechanism,
+    );
+    expect(mechanisms).toEqual(["blunt"]); // the mechanical blow only
+    expect(
+      b.getConditions().some(
+        (c) => c.kind === "trauma" && c.mechanism === "shock",
+      ),
+    ).toBe(false);
+  });
+
   it("a drained context is sealed — late attach* throws", () => {
     const room = makeStuff(() => new TestRoom());
     const blade = reactiveBlade("bladed", steel());

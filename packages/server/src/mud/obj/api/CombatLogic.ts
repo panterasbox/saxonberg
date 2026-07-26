@@ -1698,17 +1698,11 @@ function commitInflict(
   if (outcome.afflicted) {
     targetState.lastStruckBy = actorState.combatant;
   }
-  // An energized weapon (a stun baton) ALSO delivers a shock on contact —
-  // a direct two-terminal circuit through the target, routed via
-  // ElectricityApi.shockContact → ConditionApi.inflict({mechanism:'shock'}),
-  // never the mechanical fold. The mechanical blow above is untouched.
-  // (Phase 3 folds this branch onto the instrument seam's drain below.)
-  if (weapon && MixinApi.isEnergized(weapon)) {
-    ElectricityApi.shockContact(weapon, target);
-  }
-  // Drain the augment ctx's queued consequences — the same sequence
-  // position as the stun-baton branch above, so the Energized migration
-  // is order-identical (DECISION D-4).
+  // Drain the augment ctx's queued consequences — the sequence position
+  // the old energized stun-baton branch held (Phase 3 folded it onto the
+  // instrument seam: `EnergizedMixin.augmentInflict` queues the shock,
+  // the drain delivers it via `ElectricityApi.shockContact` — DECISION
+  // D-4, order-identical).
   if (augmentCtx) applyConsequences(augmentCtx);
   const band = outcome.afflicted
     ? MaterialApi.severityToBand(outcome.trauma.severity)
