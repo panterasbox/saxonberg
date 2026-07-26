@@ -32,6 +32,8 @@ import { SchedulerApi } from "../../../api/scheduler";
 import { ConditionApi } from "../../../api/condition";
 import type { EnergyInflictSpec, InflictSpec } from "../../../api/condition";
 import { ElectricityApi } from "../../../api/electricity";
+import type { ConductionOutcome } from "../../../api/electricity";
+import { MaterialApi } from "../../../api/material";
 import { Quantity } from "../../../lib/quantity";
 import { CombatApi } from "../../../api/combat";
 import {
@@ -185,6 +187,12 @@ class ReactiveBeastBase extends CombatReactiveMixin(HookedFighter) {
 
 /** An energized source for the deliverShock drain arm. */
 class TestShocker extends EnergizedMixin(Weapon) {}
+
+/** The electric eel (DECISION K's acceptance shape) — an Energized
+ * creature with a `shock` natural attack. Composes `EnergizedMixin`
+ * DIRECTLY: `Species.innateMixins` conferral is activation-gated, not
+ * composition, and is the documented trap for this narrowing. */
+class ElectricEel extends EnergizedMixin(HookedFighter) {}
 
 let seq = 0;
 
@@ -1304,5 +1312,124 @@ describe("CombatLogic hooks — NPC ≈ PC parity", () => {
     SchedulerApi._clearAllForTesting();
     const pcLogs = runOnce(true);
     expect(pcLogs).toEqual(npcLogs);
+  });
+});
+
+/* ─────────── non-mechanical innates — the delivery split (Phase 6) ─────────── */
+
+describe("CombatLogic — non-mechanical innates (DECISION K)", () => {
+  it("the electric eel: exactly ONE shockContact, no mechanical primary, a landed shock-derived report", () => {
+    const room = makeStuff(() => new TestRoom());
+    const eel = makeFighter(room, {
+      ctor: ElectricEel as unknown as new () => Character,
+      natural: "shock",
+      label: "eel",
+    }) as unknown as ElectricEel;
+    eel.setVoltage(Quantity.of(5000, "V"));
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(eel as unknown as Character, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+
+    const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
+    const narrateSpy = vi.spyOn(CombatNarration, "narrate");
+    strikeBeat(session, eel as unknown as Character, b);
+
+    // The single-fire proof: the drain is the ONE deliverer — the split
+    // never also calls shockContact directly (the forbidden double-fire).
+    expect(shockSpy).toHaveBeenCalledTimes(1);
+    expect(shockSpy.mock.calls[0]![0]).toBe(eel);
+    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    // No mechanical primary: every inflict that fired is the shock
+    // door's own (inside shockContactImpl), never an energy spec.
+    const mechanisms = inflictSpy.mock.calls.map(
+      (c) => (c[1] as InflictSpec).mechanism,
+    );
+    expect(mechanisms).toEqual(["shock"]);
+    // The target carries the contact burn.
+    expect(
+      b.getConditions().some(
+        (c) => c.kind === "trauma" && c.mechanism === "shock",
+      ),
+    ).toBe(true);
+    // The report read LANDED with the shock-derived band: the same
+    // severity→band the engine derives from the drained current.
+    const delivered = shockSpy.mock.results[0]!.value as ConductionOutcome[];
+    expect(delivered).toHaveLength(1);
+    const expectedBand = MaterialApi.severityToBand(
+      MaterialApi.resolveShock(delivered[0]!.currentThrough)?.severity ?? null,
+    );
+    const landCall = narrateSpy.mock.calls.find((c) => c[0].outcome === "land");
+    expect(landCall).toBeDefined();
+    expect(landCall![0].channel).toBe("shock");
+    expect(landCall![0].band).toBe(expectedBand);
+    // First-blood and lastStruckBy behave like any landed blow.
+    expect(session.hasDrawnBlood()).toBe(true);
+    expect(session.getState(b)!.lastStruckBy).toBe(eel);
+  });
+
+  it("a heat innate builds {mechanism:'heat'} and wounds through the insulation fold", () => {
+    const room = makeStuff(() => new TestRoom());
+    const salamander = makeFighter(room, { natural: "heat", label: "sal" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(salamander, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+
+    const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    strikeBeat(session, salamander, b);
+
+    expect(inflictSpy).toHaveBeenCalledTimes(1);
+    const primary = inflictSpy.mock.calls[0]![1] as EnergyInflictSpec;
+    expect(primary.mechanism).toBe("heat");
+    // Bare tissue under the insulation fold → the burn lands.
+    expect(
+      b.getConditions().some((c) => c.kind === "trauma" && c.type === "burn"),
+    ).toBe(true);
+  });
+
+  it("a shock innate on an Energized-less creature truthfully deflects (the documented authoring error)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const sparkless = makeFighter(room, {
+      natural: "shock",
+      label: "sparkless",
+    }) as HookedFighter;
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(sparkless, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+
+    const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
+    const narrateSpy = vi.spyOn(CombatNarration, "narrate");
+    strikeBeat(session, sparkless, b);
+
+    // Nothing delivered: no carrier → no shock, no primary, no blood.
+    expect(shockSpy).not.toHaveBeenCalled();
+    expect(inflictSpy).not.toHaveBeenCalled();
+    expect(session.hasDrawnBlood()).toBe(false);
+    expect(session.getState(b)!.lastStruckBy ?? null).toBeNull();
+    // Narrated as a deflected blow, never a landed one.
+    expect(
+      narrateSpy.mock.calls.some((c) => c[0].outcome === "deflected"),
+    ).toBe(true);
+    expect(
+      narrateSpy.mock.calls.some((c) => c[0].outcome === "land"),
+    ).toBe(false);
+  });
+
+  it("a mechanical innate still rides the energy fold (the wolf shape, unmoved)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const wolf = makeFighter(room, { natural: "point", label: "wolf" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(wolf, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+
+    const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    const shockSpy = vi.spyOn(ElectricityApi, "shockContact");
+    strikeBeat(session, wolf, b);
+
+    expect(shockSpy).not.toHaveBeenCalled();
+    expect(inflictSpy).toHaveBeenCalledTimes(1);
+    const primary = inflictSpy.mock.calls[0]![1] as EnergyInflictSpec;
+    expect(primary.mechanism).toBe("point");
   });
 });

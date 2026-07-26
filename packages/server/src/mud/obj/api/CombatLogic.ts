@@ -31,9 +31,11 @@ import type {
   Difficulty,
   Outcome,
 } from "../../lib/advancement/ActSignature";
-import type { Channel, MechanicalChannel } from "../../lib/material/Channel";
-import { Channels, CHANNELS } from "../../lib/material/Channel";
-import type { EnergyInflictSpec } from "../../api/condition";
+import type { Channel } from "../../lib/material/Channel";
+import { CHANNELS } from "../../lib/material/Channel";
+import type { EnergyInflictSpec, ShockInflictSpec } from "../../api/condition";
+import type { ConductionOutcome } from "../../api/electricity";
+import { Quantity } from "../../lib/quantity";
 import Weapon from "../../lib/equipment/Weapon";
 import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
@@ -1666,6 +1668,11 @@ interface InflictReport {
  * the `lastStruckBy` stamp (byte-identical) → the consequence drain → the
  * `onStruck` walk over the CombatReactive covering gear at the struck
  * site.
+ *
+ * **The delivery split** (DECISION K): a mechanical or heat innate rides
+ * the energy path (`inflict`'s mechanical fold / insulation fold); a
+ * **shock** primary skips it entirely — `commitShockInflict` fires the
+ * carrier's `augmentInflict` and lets the drain deliver the one shock.
  */
 function commitInflict(
   session: CombatSession,
@@ -1678,15 +1685,32 @@ function commitInflict(
   const attacker = actorState.combatant;
   const target = targetState.combatant;
   const instrument = resolveInstrument(actorState);
-  const channel: MechanicalChannel = instrument?.channel ?? "blunt";
+  const channel: Channel = instrument?.channel ?? "blunt";
   const site = siteFor(target, bandForEnergy === "open");
-  const energy = energyFor(bandForEnergy) * (energyScale > 0 ? energyScale : 1);
 
   // The augment carrier — exactly one, never both (the double-fire
   // guard): the wielded weapon when armed, else the bare CombatReactive
   // attacker (a venomous bite and a poison blade are one abstraction).
   const weapon = instrument?.weapon ?? null;
   const carrier = augmentCarrierOf(attacker, weapon);
+
+  // DECISION K — a shock primary builds NO mechanical spec and never
+  // reaches `ConditionApi.inflict` here: the instrument seam's drain is
+  // the ONE deliverer (calling `shockContact` directly from this split
+  // would be the forbidden double-fire).
+  if (channel === "shock") {
+    return commitShockInflict(
+      session,
+      actorState,
+      targetState,
+      site,
+      weapon,
+      carrier,
+      shieldFacing,
+    );
+  }
+
+  const energy = energyFor(bandForEnergy) * (energyScale > 0 ? energyScale : 1);
   let spec: EnergyInflictSpec = {
     mechanism: channel,
     site,
@@ -1746,6 +1770,98 @@ function commitInflict(
     actorState,
     targetState,
     spec.site,
+    shieldFacing,
+    weapon,
+    report,
+  );
+  return report;
+}
+
+/**
+ * DECISION K — the shock-primary delivery: a shock innate (the electric
+ * eel) IS the instrument seam. No mechanical spec is built and the engine
+ * never calls `ConditionApi.inflict` for the primary — the carrier's
+ * `augmentInflict` fires (an Energized creature's override queues
+ * `ctx.deliverShock(this)`) and the **drain** delivers the one shock via
+ * `ElectricityApi.shockContact` — single-fire by construction. The report
+ * is built from the drained outcome: no conduction outcomes = truthfully
+ * `deflected` (an `Energized`-less shock innate is the documented
+ * authoring error — a blow that never lands); landed = the band over
+ * `MaterialApi.resolveShock`'s contact-burn severity, `lastStruckBy`
+ * stamped like any landed blow.
+ */
+function commitShockInflict(
+  session: CombatSession,
+  actorState: CombatantState,
+  targetState: CombatantState,
+  site: string,
+  weapon: Stuff | null,
+  carrier: (Stuff & CombatReactive) | null,
+  shieldFacing: boolean,
+): InflictReport {
+  const attacker = actorState.combatant;
+  const target = targetState.combatant;
+  let delivered: ConductionOutcome[] = [];
+  if (carrier) {
+    const ctx = new CombatHookContext({
+      session,
+      beat: session.getBeat(),
+      actor: attacker,
+      target,
+      actorState,
+      targetState,
+      channel: "shock",
+      site,
+      instrument: weapon,
+      venue: venueOf(attacker),
+    });
+    const fn = hookFn(carrier, "augmentInflict");
+    if (fn) {
+      // The spec is descriptive only (mechanism + site): the current is
+      // unknowable until the drain's `shockContact` resolves the contact,
+      // and the hook's return is discarded — there is no primary spec to
+      // reshape.
+      const spec: ShockInflictSpec = {
+        mechanism: "shock",
+        site,
+        current: Quantity.of(0, "A"),
+      };
+      try {
+        fn.call(carrier, spec, ctx);
+      } catch (err) {
+        console.warn(
+          "CombatLogic: augmentInflict threw on the shock path — skipped",
+          err,
+        );
+      }
+    }
+    delivered = applyConsequences(ctx).flatMap((r) => r.shock ?? []);
+  }
+  const landed = delivered.length > 0;
+  // Name the killing edge exactly as the energy path does.
+  if (landed) targetState.lastStruckBy = actorState.combatant;
+  const contact = delivered[0];
+  const trauma = contact
+    ? MaterialApi.resolveShock(contact.currentThrough)
+    : null;
+  const band: OutcomeBand = landed
+    ? MaterialApi.severityToBand(trauma?.severity ?? null)
+    : ("turned" as OutcomeBand);
+  const report: InflictReport = {
+    attacker,
+    target,
+    channel: "shock",
+    site,
+    band,
+    deflected: !landed,
+    attackerSpeciesKey: speciesKeyOf(attacker),
+    traumaType: trauma?.type,
+  };
+  dispatchOnStruck(
+    session,
+    actorState,
+    targetState,
+    site,
     shieldFacing,
     weapon,
     report,
@@ -1882,21 +1998,38 @@ function flushFlavor(): void {
 }
 
 /**
+ * The per-consequence application result the drain reports back to the
+ * engine (DECISION K): the `shock` arm carries `shockContact`'s conduction
+ * outcomes so a shock-primary strike can build an honest `InflictReport`;
+ * every other arm reports only that it ran.
+ */
+interface ConsequenceResult {
+  consequence: CombatConsequence;
+  /** `shock` arm only: the outcomes the contact delivered (empty = a
+   * dead/switched-off source delivered nothing). */
+  shock?: ConductionOutcome[];
+}
+
+/**
  * Apply a drained hook context's queued consequences from the ENGINE's
  * frame, in queue order (DECISION B — the uniform drain rule: every
  * dispatched ctx is drained exactly once; the drain seals it). Provenance
  * is identical to the engine's own calls — a hook never reaches a gated
- * Api from its own frame.
+ * Api from its own frame. Returns one {@link ConsequenceResult} per
+ * consequence, in queue order.
  */
-function applyConsequences(ctx: CombatHookContext): void {
-  for (const c of ctx._drain()) applyConsequence(ctx, c);
+function applyConsequences(ctx: CombatHookContext): ConsequenceResult[] {
+  return ctx._drain().map((c) => applyConsequence(ctx, c));
 }
 
-function applyConsequence(ctx: CombatHookContext, c: CombatConsequence): void {
+function applyConsequence(
+  ctx: CombatHookContext,
+  c: CombatConsequence,
+): ConsequenceResult {
   switch (c.kind) {
     case "rider": {
       const recipient = recipientOf(ctx, c.on);
-      if (!recipient) return;
+      if (!recipient) return { consequence: c };
       const outcome = ConditionApi.inflict(recipient, c.spec);
       // The engine's own stamp: a rider landing on the exchange target
       // names the ctx's actor as the striking edge (a thorn-mail rider on
@@ -1909,32 +2042,32 @@ function applyConsequence(ctx: CombatHookContext, c: CombatConsequence): void {
       ) {
         ctx.targetState.lastStruckBy = ctx.actorState.combatant;
       }
-      return;
+      return { consequence: c };
     }
     case "afflict": {
       const recipient = recipientOf(ctx, c.on);
       if (recipient && MixinApi.isVitals(recipient)) {
         recipient.afflict(c.condition);
       }
-      return;
+      return { consequence: c };
     }
     case "toxin": {
       const recipient = recipientOf(ctx, c.on);
       if (recipient && MixinApi.isMetabolic(recipient)) {
         recipient.introduceToxin(c.type, c.amount);
       }
-      return;
+      return { consequence: c };
     }
     case "reserve": {
       const recipient = recipientOf(ctx, c.on);
       if (recipient && MixinApi.isReserved(recipient)) {
         recipient.adjustReserve(c.key, c.delta);
       }
-      return;
+      return { consequence: c };
     }
     case "wear": {
       const recipient = recipientOf(ctx, c.on);
-      if (!recipient) return;
+      if (!recipient) return { consequence: c };
       const state =
         ctx.actorState && recipient === ctx.actorState.combatant
           ? ctx.actorState
@@ -1947,7 +2080,7 @@ function applyConsequence(ctx: CombatHookContext, c: CombatConsequence): void {
       // No wielded instrument → the consequence is inert (bare hands give
       // the rust monster nothing to eat).
       if (weapon && MixinApi.isDurable(weapon)) weapon.wear(c.amount);
-      return;
+      return { consequence: c };
     }
     case "influence": {
       // One economy for hooks and the external bridge (DECISION J): a
@@ -1956,20 +2089,25 @@ function applyConsequence(ctx: CombatHookContext, c: CombatConsequence): void {
       // poise, never a re-entry into `resolveExchange`.
       const recipient = recipientOf(ctx, c.on);
       if (recipient) influenceImpl(recipient, c.instruction);
-      return;
+      return { consequence: c };
     }
     case "shock":
       // The stun-baton seam's drain arm: the `effectiveVoltage ≤ 0` guard
       // inside the conduction walk still applies, so a dead/switched-off
-      // source truthfully delivers nothing.
-      if (ctx.target) ElectricityApi.shockContact(c.source, ctx.target);
-      return;
+      // source truthfully delivers nothing. The outcomes ride the result —
+      // a shock-primary strike (DECISION K) reads them for its report.
+      return {
+        consequence: c,
+        shock: ctx.target
+          ? ElectricityApi.shockContact(c.source, ctx.target)
+          : [],
+      };
     case "flavor": {
       // Buffered: flavor emits AFTER the exchange's own narration beat,
       // in queue order (`flushFlavor` at the witness tail).
       const anchor = ctx.actor ?? ctx.target;
       if (anchor) pendingFlavor.push({ anchor, line: c.line });
-      return;
+      return { consequence: c };
     }
   }
 }
@@ -2705,10 +2843,12 @@ function eligibilityImpl(actor: Stuff, gambitKey: string): GambitEligibility {
 }
 
 interface ResolvedInstrument {
-  // Combat delivers only mechanical channels; a shock is delivered by a
-  // source into the conduction graph (ElectricityApi.conduct), never routed
-  // as a combat blow through this covering-fold inflict.
-  channel: MechanicalChannel;
+  // A wielded weapon delivers a mechanical channel (the Construction
+  // delivery grids are mechanical); a species INNATE may carry any
+  // channel — `commitInflict`'s delivery split (DECISION K) routes heat
+  // through the insulation fold and a shock primary through the
+  // instrument seam's drain (`shockContact`), never the covering fold.
+  channel: Channel;
   materialKey?: string;
   weapon?: Stuff;
 }
@@ -2752,10 +2892,13 @@ function resolveInstrument(
   if (weaponOnly) return null;
   if (MixinApi.isCombatant(actor)) {
     const ch = actor.getNaturalAttackChannel();
-    // Only a mechanical innate attack arms this combat path; a (future)
-    // non-mechanical innate channel (an electric-eel jolt) would deliver
-    // through ElectricityApi.conduct, not here.
-    if (ch && Channels.isMechanicalChannel(ch)) return { channel: ch };
+    // Any authored innate channel arms this path (DECISION K): a
+    // mechanical bite rides the energy fold as ever, a heat innate
+    // builds a `{mechanism:'heat'}` spec, and the electric-eel jolt is
+    // armed too — `commitInflict` skips the primary and the instrument
+    // seam's drain delivers the shock (`EnergizedMixin.augmentInflict`
+    // → `shockContact`).
+    if (ch) return { channel: ch };
   }
   return null;
 }
@@ -3387,7 +3530,11 @@ function partingShot(
   energy: number,
 ): void {
   const instrument = resolveInstrument(attackerState);
-  const channel: MechanicalChannel = instrument?.channel ?? "blunt";
+  const channel: Channel = instrument?.channel ?? "blunt";
+  // A shock innate has no parting jolt — its delivery is the contact
+  // drain (DECISION K), not an energy spec, and the fleer is breaking
+  // contact. A parting shock is a deferred seam.
+  if (channel === "shock") return;
   const site = siteFor(fleerState.combatant, false);
   ConditionApi.inflict(fleerState.combatant, {
     mechanism: channel,

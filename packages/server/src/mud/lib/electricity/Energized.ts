@@ -102,6 +102,15 @@ export function EnergizedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `commitInflict` branch held). No switch check here: the
      * `effectiveVoltage ≤ 0` guard inside the conduction walk already
      * no-ops a dead/switched-off source, unmoved.
+     *
+     * The **innate shock** (combat-hooks DECISION K) rides this same
+     * override: an Energized *creature* with a `shock` natural attack
+     * striking bare is its own augment carrier — the engine skips the
+     * mechanical primary entirely and the queued `deliverShock` is the
+     * whole delivery (single-fire by construction). The creature class
+     * composes `EnergizedMixin` directly — `Species.innateMixins`
+     * conferral is activation-gated, not composition, and is not relied
+     * on for this narrowing.
      */
     augmentInflict(spec: InflictSpec, ctx: CombatHookContext): InflictSpec {
       ctx.deliverShock(this as unknown as Stuff & Energized);
