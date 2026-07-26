@@ -44,6 +44,7 @@ import { CombatHookContext } from "../../../lib/combat/CombatHookContext";
 import { CombatReactiveMixin } from "../../../lib/combat/CombatReactive";
 import type { Slotted } from "../../../lib/slot/Slotted";
 import { EnergizedMixin } from "../../../lib/electricity/Energized";
+import StunBaton from "../../../lib/electricity/StunBaton";
 import type { Channel } from "../../../lib/material/Channel";
 import EventRegistry from "../../../obj/EventRegistry";
 import { EventApi } from "../../../api/event";
@@ -756,6 +757,43 @@ describe("CombatLogic hooks — the consequence drain", () => {
 
     expect(shockSpy).toHaveBeenCalledTimes(1);
     expect(shockSpy.mock.calls[0]![0]).toBe(shocker);
+    expect(shockSpy.mock.calls[0]![1]).toBe(b);
+    expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
+      inflictSpy.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it("a landed energized hit: the mechanical inflict precedes shockContact, once each (the stun-baton ordering)", () => {
+    // The Phase-3 migration's ordering fixture: a real armed StunBaton
+    // lands a blow — the mechanical `ConditionApi.inflict` fires first,
+    // then `ElectricityApi.shockContact(baton, target)`, exactly once
+    // each. Green against the pre-migration `isEnergized` branch AND
+    // the instrument-seam drain that replaces it (same sequence
+    // position — DECISION D-4).
+    const room = makeStuff(() => new TestRoom());
+    const baton = makeStuff(() => new StunBaton());
+    baton.setMaterial(steel());
+    baton.setConstruction(Construction.of("hafted"));
+    baton.setVoltage(Quantity.of(5000, "V"));
+    baton.switchOn();
+    const a = makeFighter(room, { weapon: baton });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(b)!.poise.erode(0.6, 0);
+
+    const inflictSpy = vi.spyOn(ConditionApi, "inflict");
+    const shockSpy = vi
+      .spyOn(ElectricityApi, "shockContact")
+      .mockImplementation(() => []);
+    strikeBeat(session, a, b);
+
+    // Once each: the mechanical blow through the covering fold…
+    expect(inflictSpy).toHaveBeenCalledTimes(1);
+    const primary = inflictSpy.mock.calls[0]![1] as EnergyInflictSpec;
+    expect(primary.mechanism).toBe("blunt");
+    // …then the two-terminal shock, after it.
+    expect(shockSpy).toHaveBeenCalledTimes(1);
+    expect(shockSpy.mock.calls[0]![0]).toBe(baton);
     expect(shockSpy.mock.calls[0]![1]).toBe(b);
     expect(shockSpy.mock.invocationCallOrder[0]!).toBeGreaterThan(
       inflictSpy.mock.invocationCallOrder[0]!,

@@ -50,6 +50,7 @@ import { PartyMemberMixin } from "../../src/mud/lib/party/PartyMember";
 import { Party } from "../../src/mud/lib/party/Party";
 import { CombatFormation } from "../../src/mud/lib/combat/CombatFormation";
 import { ProxyApi } from "../../src/mud/api/proxy";
+import StunBaton from "../../src/mud/lib/electricity/StunBaton";
 
 class TestRoom extends ContainerMixin(Idea) {}
 class GymFighter extends Character {}
@@ -72,6 +73,10 @@ export interface GymLoadout {
   length: number;
   /** Add a wielded shield in the off-hand. */
   shield?: boolean;
+  /** Build the weapon as an armed (switched-on) `StunBaton` — an
+   * Energized contact weapon that ALSO shocks on every blow (the
+   * combat-hooks Phase-3 migration pin). */
+  energized?: boolean;
 }
 
 /** The canonical loadouts the weapon matrix is built from. */
@@ -82,6 +87,12 @@ export const Loadouts: Record<string, GymLoadout> = {
   mace: { form: "hafted", mass: 1.6, length: 0.7 },
   warhammer: { form: "hafted", mass: 3.2, length: 1.1 },
   swordShield: { form: "bladed", mass: 1.0, length: 0.9, shield: true },
+  // An armed StunBaton at the authored ~5 kV contact-stun potential
+  // (seeds/domain/substation/stun-baton.yaml), on mace-class geometry so
+  // the pinned cell lands blows (the authored 0.6 kg club can't crack a
+  // sword guard — the fight draws and the contact burn heals away
+  // before the roster is read).
+  stunBaton: { form: "hafted", mass: 1.6, length: 0.7, energized: true },
 };
 
 /** A headless fighter in a shared room, armed per `loadout` (default sword). */
@@ -131,12 +142,19 @@ function makeFighter(
   const occupy = (x: unknown, s: string) =>
     (f as unknown as { occupy(x: unknown, s: string): void }).occupy(x, s);
 
-  const w = makeStuff(() => new Weapon());
+  const w = makeStuff(() =>
+    loadout.energized ? new StunBaton() : new Weapon(),
+  );
   w.setMaterial(steel());
   w.setConstruction(Construction.of(loadout.form));
   w.setMass(Quantity.of(loadout.mass, "kg"));
   w.setLength(Quantity.of(loadout.length, "m"));
   w.setSlotClaim(plan.getTemplatePath()!, ["grip"]);
+  if (loadout.energized) {
+    const baton = w as StunBaton;
+    baton.setVoltage(Quantity.of(5000, "V"));
+    baton.switchOn();
+  }
   occupy(w, "grip");
 
   if (loadout.shield) {
@@ -371,6 +389,19 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
       winner: "A",
       beats: 21,
     },
+    {
+      // The combat-hooks Phase-3 migration pin: captured against the
+      // PRE-migration engine (the `isEnergized` branch in
+      // `commitInflict`); the Energized→instrument-seam flip must
+      // byte-preserve it. The "same shock" half of the pin is the
+      // sibling condition-roster test below.
+      label: "stunbaton-vs-sword@competent",
+      a: () =>
+        side("stunbaton", Policies.brain, "competent", Loadouts.stunBaton!),
+      b: () => side("sword", Policies.brain, "competent", Loadouts.sword!),
+      winner: "A",
+      beats: 21,
+    },
   ];
 
   for (const pin of PINS) {
@@ -380,6 +411,45 @@ describe("combat-gym — the pinned regression (canonical outcomes)", () => {
       expect(r.beats).toBe(pin.beats);
     });
   }
+
+  it("pinned: the stun-baton bout's sword side carries the shock contact burn", () => {
+    // Winner/beats alone wouldn't notice a dropped shock (the mechanical
+    // exchange decides the poise contest) — so the pin's other half is
+    // the sword side's post-fight condition roster: every landed baton
+    // blow ALSO routed `ElectricityApi.shockContact` → a `burn` trauma
+    // with `mechanism: 'shock'` (never the mechanical fold).
+    const pin = PINS.find((p) => p.label === "stunbaton-vs-sword@competent")!;
+    let sword: Character | null = null;
+    const a = side(
+      "stunbaton",
+      Policies.brain,
+      "competent",
+      Loadouts.stunBaton!,
+    );
+    const b: GymSide = {
+      label: "sword",
+      policy: Policies.brain,
+      band: "competent",
+      make: () => {
+        const f = makeFighter(makeStuff(() => new TestRoom()), Loadouts.sword!);
+        sword = f as unknown as Character;
+        return f;
+      },
+    };
+    const r = runMatchup(a, b, 400, resetState);
+    expect(r.winner).toBe(pin.winner);
+    expect(r.beats).toBe(pin.beats);
+    expect(
+      sword!
+        .getConditions()
+        .some(
+          (c) =>
+            c.kind === "trauma" &&
+            c.type === "burn" &&
+            c.mechanism === "shock",
+        ),
+    ).toBe(true);
+  });
 });
 
 /* ─────────────── the formations matrix (combat-formations build) ─────────────── */
