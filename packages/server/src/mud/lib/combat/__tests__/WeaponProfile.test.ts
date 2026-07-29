@@ -52,6 +52,13 @@ const WHIP: WeaponProfileInputs = {
   lengthM: 2.5,
   handSlots: 1,
 };
+/** A waster — the arming sword's shape in the blunted delivery form. */
+const WASTER: WeaponProfileInputs = {
+  deliveryForm: "blunted",
+  massKg: 1.0,
+  lengthM: 0.9,
+  handSlots: 1,
+};
 
 describe("WeaponProfile — reach derives from length", () => {
   it("short / medium / long track the authored length", () => {
@@ -130,6 +137,32 @@ describe("WeaponProfile — guard derives from form", () => {
     // The flail's own guard is still 'none', but the assist gives it a
     // non-zero factor (a dual-wield off-hand covers the guardless main).
     expect(flailWithOffhand.guardFactor()).toBeGreaterThan(0);
+  });
+});
+
+describe("WeaponProfile — the blunted form (the waster)", () => {
+  it("trains the sword's playstyle: same reach/balance/tempo/guard, blunt delivery", () => {
+    const sword = WeaponProfile.derive(SWORD);
+    const waster = WeaponProfile.derive(WASTER);
+    // Playstyle parity — the trainer couples into every system the real
+    // sword does, identically (mass + length drive these, not the form).
+    expect(waster.reach()).toBe(sword.reach());
+    expect(waster.balance()).toBe(sword.balance());
+    expect(waster.tempoFactor()).toBe(sword.tempoFactor());
+    expect(waster.guard()).toBe(sword.guard());
+    expect(waster.canParry()).toBe(true);
+    // The one divergence IS the point of the form: no edge presented.
+    expect(waster.delivery()).toBe("blunted");
+    expect(waster.isInert()).toBe(false);
+  });
+
+  it("soft material still costs the waster a guard tier (wood binds worse)", () => {
+    const hardwood = WeaponProfile.derive({
+      ...WASTER,
+      materialHardnessMpa: 40,
+    });
+    expect(hardwood.guard()).toBe("fair");
+    expect(hardwood.canParry()).toBe(true);
   });
 });
 

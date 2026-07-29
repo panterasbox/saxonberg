@@ -46,6 +46,12 @@ export type ArmorForm = (typeof ARMOR_FORMS)[number];
  * - `flail` shares `hafted`'s blunt delivery (a chained head).
  * - `whip` delivers a cutting lash (edge-primary, a blunt welt secondary) and
  *   is the long-reach extreme — it controls at range and is helpless inside.
+ * - `blunted` is a *sword-shaped implement presenting no edge* — the waster /
+ *   practice-sword form. It delivers blunt like `hafted` but keeps a blade's
+ *   self-guard (`WeaponProfile` keys `good` on it), so a trainer with a real
+ *   sword's mass and length derives a real sword's playstyle while its blows
+ *   resolve as contusions through the tissue fold. Harmlessness lives HERE,
+ *   in the delivery shape — the live fold never reads a weapon's material.
  */
 export const WEAPON_DELIVERY_FORMS = [
   'bladed',
@@ -53,6 +59,7 @@ export const WEAPON_DELIVERY_FORMS = [
   'hafted',
   'flail',
   'whip',
+  'blunted',
 ] as const;
 /** A weapon-delivery form — one of {@link WEAPON_DELIVERY_FORMS}. */
 export type DeliveryForm = (typeof WEAPON_DELIVERY_FORMS)[number];
@@ -138,6 +145,7 @@ const DELIVERY_PROFILES: Record<
     hafted: { blunt: 'primary', edge: 'none', point: 'none' },
     flail: { blunt: 'primary', edge: 'none', point: 'none' },
     whip: { edge: 'primary', blunt: 'secondary', point: 'none' },
+    blunted: { blunt: 'primary', edge: 'none', point: 'none' },
   };
 
 /**

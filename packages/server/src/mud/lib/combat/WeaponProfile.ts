@@ -133,6 +133,9 @@ const FORM_GUARD: Record<DeliveryForm, GuardClass> = {
   hafted: "fair",
   flail: "none",
   whip: "none",
+  // Sword-shaped, no edge (the waster): it parries like the blade it
+  // apes, not like the club it hits like.
+  blunted: "good",
 };
 
 /** Numeric guard factor per guard class (the reactive-parry multiplier). */
@@ -155,8 +158,8 @@ function defaultLengthFor(form: DeliveryForm | null, massKg: number): number {
         ? 1.6
         : form === "hafted" || form === "flail"
           ? 0.9
-          : form === "bladed"
-            ? 0.55
+          : form === "bladed" || form === "blunted"
+            ? 0.55 // blunted apes a blade's shape, so it defaults like one
             : 0.4;
   return base + Math.min(3, Math.max(0, massKg)) * 0.12;
 }
