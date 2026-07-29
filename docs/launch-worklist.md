@@ -135,6 +135,29 @@ precedents):
 - **Ranching deep pass** [stub] — the Grange's herd wing; scheduled to
   ride the farming session; shares the breeding substrate (and
   aquaculture is fishing's ranching sibling — design them together).
+- **The procgen doctrine capture** — due when the first extraction
+  vertical builds its generation grammar (mining/fishing). The
+  scattered instincts to write down as one doctrine: procgen for
+  **worldspace** (Warren grammars, weather) and **distributions**
+  (catch tables, spawn weights), always seeded/deterministic-from-
+  state; **never for loot** (constitutional); item generation =
+  **enumeration over real response axes** (form × material ×
+  construction — performance derived, not stamped, so generated forms
+  are automatically meaningful), entering the world as
+  templates/recipes via the authoring gate now and inquiry-style
+  discovery later — never as drops; and the undrawn **creature/person
+  line** (spawn-distribution's procgen-NPC generator vs the
+  NPCs-are-expensive-carves doctrine).
+- **The respawn-provisioning leak** — NPC gear is the gear economy's
+  back-door faucet: corpse-loot of *placed* matter is conservation-
+  honest (kill→reward severed means no *minted* reward, not vanishing
+  swords), but a re-armed respawn mints matter each cycle. V1 bounds:
+  munitions-grade + worn-condition authored kit, chattel traceability
+  (looted gear is provably not yours — fencing prices it down, the
+  accountability row records the how), salvage lossiness on the way
+  out. End-state: **provisioning as a real economy leg** (the issuer
+  buys replacement kit — NPC gear demand becomes a customer of the
+  smiths). Due with the first combat-NPC-dense area at economy scale.
 - **Guild-slate open questions** — chapters, revocation, one-Order-or-
   two, the Ironwrights' name, rank-on-presence-line, the first-hour
   fantasy (guild-slate § Open questions).
