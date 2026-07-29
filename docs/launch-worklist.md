@@ -89,6 +89,13 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
   Phase 2] — endowment mechanics inside institutions.
 - **Inquiry's teachable-goods market** [T3] — commissioned research
   with teeth.
+- **The odometer** [T2 slate; **deliberately LAST — a capstone**] —
+  honest number-go-up over the ledgers. Built after the spine + skill
+  seam are live and beta play has shown which counters are resonant;
+  deferral loses nothing (derive-on-read → retroactively complete).
+  Governed by the **load-inert rule** (odometer-slate): no system's
+  felt-progression may depend on it — a standing review question for
+  every build until then.
 
 ## 4. The guild layer itself — deferrable past launch
 
