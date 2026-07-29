@@ -101,6 +101,13 @@ See [docs/architecture.md](./architecture.md) for layout and
 
 ## What's next — two parallel tracks
 
+> **Near-term priority now lives in
+> [launch-worklist.md](./launch-worklist.md)** — the guild-derived
+> economy gap list (2026-07-28): the extraction faucets, the transform
+> chain, the polity-paper demand floor, and the sinks that must exist
+> before a persistent beta, readiness-tagged. The track structure
+> below remains the substrate map.
+
 The substrate is deep enough that work now splits cleanly into two
 tracks that run **in parallel**, distinguished by whether a client
 dependency gates the work:

@@ -17,6 +17,10 @@ is one click away in the by-area reference, [slates/README.md](./slates/README.m
 this file is just the menu. Cross items off as they ship; add new ones at
 the tier that fits. Sizes are rough — move anything that feels mis-tiered.
 
+For the *priority* axis this menu deliberately isn't: the
+**[launch-worklist](./launch-worklist.md)** (the guild-derived
+economy gap list — what must exist before launch, readiness-tagged).
+
 ---
 
 ## 🌙 Nightcap — an evening, design settled, mostly mechanical

@@ -540,7 +540,7 @@ law**; harm to *people* is **meta-state** (moderation) — the membrane.
 | **The Factors** | retail S3–S4 (producer pricing, player shops, multi-market trade) | appraisal, brokerage, audit. **Demoted by the audit**: the engine is the notary (engine-verified contracts) and the ledger the auditor; brokerage is thin at one-city scale. Reopens when trade outgrows the engine's automation |
 | **The Carriers** | retail S3 closes the mine→ore→shop loop | carting, draft-beasts, routes. The reset-sweep **self-restock currently erases their paymaster**; real logistics opens the hall |
 | **The Delvers' Union** | the mines open (Ferrow Delving) | mining, prospecting, shoring/hazard; *earth*; the safety code is the oath. Opening **ends the metal-import era** — an economic event |
-| **The Watermen** | the waterways/fishing loop | fishing (protein to the Victuallers — metabolism again), pilotage, diving; *water* |
+| **The Watermen** | the waterways/fishing loop (design captured at mining/farming grade in `fishing-slate.md` — currently stranded in unpushed commit `19f9c474` on the local master worktree, pending rescue) | fishing (protein to the Victuallers — metabolism again), pilotage, diving; *water*; the `angling` Discipline is pre-specified; the net wave's overfishing→quota lever = more polity paper; the **salt-cod interlock** ties their reopening to the Delvers' (two dormant halls opening into one trade route) |
 | **The Advocates** | the courts convene | what survives the honest engine: **interpretation and persuasion** — blame/terms disputes, sortition-jury advocacy, the argument-map organizer as their instrument. Engine-verifiable contract work is precisely what they *don't* do |
 | **The Warding Order** | the evil-realm content | the service-army fantasy homed in alignment: frontier warding against the hollow; exclusive-loyalty, faith + polity frontier contracts |
 | **A contemplative Order** | the alignment layer | composure, serenity — the faculty axes magic reads live, trained for their own sake. *Possibly one Order with warding + contemplative faces — decide when alignment lands* |
@@ -627,7 +627,10 @@ Three practical payoffs beyond the fiction:
 
 1. **It is the employment-content worklist.** Each demand-anchor cell
    is exactly the venue + job-contract authoring the economy build
-   needs next — enumerate guilds, derive the backlog.
+   needs next — enumerate guilds, derive the backlog. The derived
+   backlog is maintained as **[launch-worklist.md](../../launch-worklist.md)**
+   (economy-essential first; guilds themselves deferrable past
+   launch).
 2. **It teaches the axes by contrast** — public/exclusive (Muster) vs
    private/plural (Wardens) vs union (Delvers) vs public-contract
    (Landwrights) vs open-door (Victuallers, Chorus) vs examined
