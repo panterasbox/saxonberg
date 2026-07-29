@@ -79,11 +79,10 @@ export class ThermalApi {
    * hottest lit furnace in its scope (the crafting emergent-reachability
    * principle applied to heat). Returns 0 when nothing hot is in reach.
    *
-   * **The inert heat-as-crafting-control seam.** Built + tested, consumed by
-   * NO recipe this build: the future smithing branch will gate on it as its
-   * temperature `control` (a recipe needs `reachableHeatFor(maker) >=
-   * material.meltingPoint`) with zero retrofit. Homed in thermal (heat, not
-   * fire).
+   * **The heat-as-crafting-control seam — consumed.** `CraftingLogic`'s
+   * heat gate declines any recipe whose `requiresHeatK` exceeds
+   * `reachableHeatFor(maker)` (the crafting-branches build closed the D9
+   * deferral). Homed in thermal (heat, not fire).
    */
   public static reachableHeatFor(position: Stuff): number {
     return logic().reachableHeatFor(position);

@@ -31,16 +31,38 @@ import { Grade } from './Grade';
 
 /**
  * One input slot, by constraint. `category` is a Material classification tag
- * the chosen input must carry ("gin"); `minGrade` is the floor band word;
- * `measureL` is the consumed volume in litres (the v1 bulk-only amount —
- * mass/count amounts arrive with cooking/smithing).
+ * the chosen input must carry ("gin" / "ferrous"); `minGrade` is the floor
+ * band word. The slot's amount is discriminated by `kind`:
+ *
+ *   - `kind` absent or `'bulk'` — the bar's slot, byte-identical: `measureL`
+ *     is the consumed volume in litres.
+ *   - `kind: 'item'` — a discrete/glob slot: `count` units of a reachable
+ *     Tangible whose Material carries the category tag (an ingot, a root
+ *     vegetable). An ungraded item derives at `fair`.
  */
 export interface RecipeInputSlot {
   slot: string;
   category: string;
   minGrade: string;
-  measureL: number;
+  kind?: 'bulk' | 'item';
+  /** Consumed volume in litres — bulk slots only. */
+  measureL?: number;
+  /** Units consumed — item slots only (default 1). */
+  count?: number;
 }
+
+/**
+ * How a recipe's output receives its substance — the branch discriminator
+ * `CraftingLogic` dispatches its output/consume seams on:
+ *
+ *   - `'bulk'` (the default) — fill the output's bulk slot with the authored
+ *     `outputMaterial` at the summed input volume (the bar's mixture case).
+ *   - `'tangible'` — flow the primary matched item input's Material + the
+ *     summed consumed mass onto the cloned Tangible (smithing's transform).
+ *   - `'edible'` — fill the output's bulk slot with the authored *food*
+ *     `outputMaterial` at `outputPortionL` (cooking's plated dish).
+ */
+export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
 export class Recipe extends Document {
   static collectionName = 'recipes';
@@ -53,6 +75,11 @@ export class Recipe extends Document {
     'outputTemplate',
     'outputMaterial',
     'baseGradeBand',
+    'requiresHeatK',
+    'outputApplication',
+    'outputPortionL',
+    'difficulty',
+    'discipline',
   ];
 
   /** Canonical id; unique-indexed at the collection level. */
@@ -79,6 +106,25 @@ export class Recipe extends Document {
   /** Optional floor band word; empty = no floor. */
   baseGradeBand: string = '';
 
+  /** Minimum reachable heat (K) to resolve; 0 = no heat gate. */
+  requiresHeatK: number = 0;
+
+  /** Output-application kind word; empty = `'bulk'` (the bar's default). */
+  outputApplication: string = '';
+
+  /** Edible portion volume in litres (`'edible'` outputs only). */
+  outputPortionL: number = 0;
+
+  /**
+   * Authored ladder placement — a `Difficulty` word the craft-resolve
+   * `ActSignature` records. Empty ⇒ no advancement row (bar rows stay
+   * unrecorded exactly as today).
+   */
+  difficulty: string = '';
+
+  /** The Discipline id the deed records against; empty ⇒ no advancement. */
+  discipline: string = '';
+
   getRecipeId(): string {
     return this.recipeId;
   }
@@ -99,6 +145,30 @@ export class Recipe extends Document {
   }
   getOutputMaterial(): string {
     return this.outputMaterial;
+  }
+  getRequiresHeatK(): number {
+    return this.requiresHeatK;
+  }
+  /** The output-application kind (empty stored value ⇒ `'bulk'`). */
+  getOutputApplication(): OutputApplication {
+    return this.outputApplication === 'tangible' ||
+      this.outputApplication === 'edible'
+      ? this.outputApplication
+      : 'bulk';
+  }
+  getOutputPortionL(): number {
+    return this.outputPortionL;
+  }
+  getDifficulty(): string {
+    return this.difficulty;
+  }
+  getDiscipline(): string {
+    return this.discipline;
+  }
+
+  /** Whether `slot` is a discrete/glob item slot (vs the bulk default). */
+  static isItemSlot(slot: RecipeInputSlot): boolean {
+    return slot.kind === 'item';
   }
 
   /** The optional floor grade as a value-object, or null. */

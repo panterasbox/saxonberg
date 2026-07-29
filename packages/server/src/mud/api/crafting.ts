@@ -56,6 +56,7 @@ export type CraftDeclineReason =
   | 'no-maker'
   | 'missing-tool'
   | 'insufficient-input'
+  | 'insufficient-heat'
   | 'no-output';
 
 export interface CraftSuccess {

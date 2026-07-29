@@ -33,6 +33,11 @@ interface RecipeSeedEntry {
   outputTemplate: string;
   outputMaterial: string;
   baseGradeBand?: string;
+  requiresHeatK?: number;
+  outputApplication?: string;
+  outputPortionL?: number;
+  difficulty?: string;
+  discipline?: string;
 }
 
 interface RecipeSeedOptions {
@@ -73,6 +78,11 @@ export class RecipeSeeder {
       r.outputTemplate = entry.outputTemplate;
       r.outputMaterial = entry.outputMaterial;
       r.baseGradeBand = entry.baseGradeBand ?? '';
+      r.requiresHeatK = entry.requiresHeatK ?? 0;
+      r.outputApplication = entry.outputApplication ?? '';
+      r.outputPortionL = entry.outputPortionL ?? 0;
+      r.difficulty = entry.difficulty ?? '';
+      r.discipline = entry.discipline ?? '';
       await r.save();
       inserted++;
     }

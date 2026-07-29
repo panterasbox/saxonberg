@@ -66,9 +66,9 @@ export class ThermalLogic extends ApiLogic {
  * The maximum sustained temperature (K) reachable from `position` — the hottest
  * lit `Furnace` in its scope (the crafting emergent-reachability principle
  * applied to heat: a smith's control gate is "what's the hottest thing I can
- * reach?"). Returns 0 when nothing hot is in reach. **Inert this build** — the
- * future smithing branch reads it as its temperature-control gate; no recipe
- * calls it today.
+ * reach?"). Returns 0 when nothing hot is in reach. Consumed by
+ * `CraftingLogic`'s heat gate (`recipe.requiresHeatK`) — the smithing/cooking
+ * temperature-control read.
  */
 function reachableHeatForImpl(position: Stuff): number {
   const scope = (position as unknown as { getContainer(): Stuff | null })

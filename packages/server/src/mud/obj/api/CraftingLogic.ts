@@ -8,12 +8,13 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { BulkableApi } from '../../api/bulk';
+import { ThermalApi } from '../../api/thermal';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
 import { Grade } from '../../lib/craft/Grade';
 import type Material from '../../lib/material/Material';
-import type { Recipe, RecipeInputSlot } from '../../lib/craft/Recipe';
+import { Recipe, type RecipeInputSlot } from '../../lib/craft/Recipe';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot } from '../../lib/bulk/Bulkable';
 import type { Tooled } from '../../lib/craft/Tooled';
@@ -47,6 +48,28 @@ interface BottleCandidate {
 interface MatchedInput {
   slot: BulkSlot;
   measureL: number;
+}
+
+/** A reachable discrete/glob item input candidate. */
+interface ItemCandidate {
+  stuff: Stuff;
+  material: Material;
+  /** Graded band, or the `fair` fallback for ungraded stock (an Ingot). */
+  grade: Grade;
+  /** Glob stack size; 1 for a plain discrete Tangible. */
+  quantity: number;
+}
+
+/** A matched item input: the source Stuff + units to consume from it. */
+interface MatchedItemInput {
+  stuff: Stuff;
+  count: number;
+  /** True ⇒ quantity debit (glob); false ⇒ destruct the whole Tangible. */
+  glob: boolean;
+  /** The source's grade (joins the weakest-link derivation). */
+  grade: Grade;
+  /** The source's Material (flows onto a tangible output's primary). */
+  material: Material;
 }
 
 /** Cached catalogue handle (a fallback; the live registered one wins). */
@@ -91,10 +114,68 @@ function resolveMaker(mode: MakerMode): Stuff | null {
   return null;
 }
 
+/** The gather walk's yield: bulk bottles, tools, and discrete/glob items. */
+interface GatheredMatter {
+  bottles: BottleCandidate[];
+  tools: (Stuff & Tooled)[];
+  items: ItemCandidate[];
+}
+
 /**
- * Gather the reachable graded bulk inputs + tools in the room. Items resting
- * on a surface (the back-bar) have `container = the room`, so the room's
- * direct contents already include them — no descent needed.
+ * Whether `c` qualifies as a discrete/glob item-input candidate: a
+ * Material-bearing Tangible that is raw *matter*, not capital or a made
+ * form — not a tool (the anvil never feeds the forge), not crafted gear,
+ * not a graded bottle (those are bulk candidates), not a container (the
+ * pantry chest is reached *into*, never consumed), and not something
+ * living.
+ */
+function isItemCandidate(c: Stuff): boolean {
+  return (
+    MixinApi.isTangible(c) &&
+    c.getMaterial() !== null &&
+    !MixinApi.isTool(c) &&
+    !MixinApi.isCrafted(c) &&
+    !MixinApi.isContainer(c) &&
+    !MixinApi.isBulkable(c) &&
+    !MixinApi.isOrganism(c) &&
+    !MixinApi.isMaker(c)
+  );
+}
+
+/** Sort/partition one reachable Stuff into the gathered pools. */
+async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
+  if (MixinApi.isTool(c)) into.tools.push(c);
+  if (MixinApi.isBulkable(c) && MixinApi.isGraded(c)) {
+    const slot = BulkableApi.slotFor(c, undefined);
+    if (slot) {
+      const mpath = slot.getMaterialPath();
+      const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
+      into.bottles.push({ stuff: c, slot, material, grade: c.getGrade() });
+      return;
+    }
+  }
+  if (isItemCandidate(c) && MixinApi.isTangible(c)) {
+    const material = c.getMaterial();
+    if (!material) return;
+    into.items.push({
+      stuff: c,
+      material,
+      // An ungraded item (an Ingot) derives at `fair` — the
+      // deriveAtFixedControl fallback made explicit per candidate.
+      grade: MixinApi.isGraded(c) ? c.getGrade() : Grade.of('fair'),
+      quantity: MixinApi.isGlobbable(c) ? c.getQuantity() : 1,
+    });
+  }
+}
+
+/**
+ * Gather the reachable inputs + tools: the room's direct contents (items
+ * resting on a surface already have `container = the room`), the maker's
+ * own inventory, and one-level descent into **open** containers in the
+ * room. A Sealable-closed (or locked) container never feeds a craft —
+ * open-ness is the switch; a non-Sealable room container counts as
+ * always-open. Containers carried *by other agents* are never descended
+ * into (the maker's own inventory is the only carried rung).
  *
  * Each bottle's bulk Material is **ensure-loaded** via `StuffApi.singleton`
  * (not the sync `slot.getMaterial()`): a Material singleton is created
@@ -102,26 +183,35 @@ function resolveMaker(mode: MakerMode): Stuff | null {
  * material consumer, so the registry may not hold it yet. Loading it here
  * also makes the later sync reads (the drinker's `drink`) resolve.
  */
-async function gatherMatter(location: Stuff): Promise<{
-  bottles: BottleCandidate[];
-  tools: (Stuff & Tooled)[];
-}> {
-  const bottles: BottleCandidate[] = [];
-  const tools: (Stuff & Tooled)[] = [];
-  if (!MixinApi.isContainer(location)) return { bottles, tools };
+async function gatherMatter(
+  location: Stuff,
+  maker: Stuff,
+): Promise<GatheredMatter> {
+  const gathered: GatheredMatter = { bottles: [], tools: [], items: [] };
+  if (!MixinApi.isContainer(location)) return gathered;
   for (const c of location.getContents()) {
-    if (MixinApi.isTool(c)) tools.push(c);
-    if (MixinApi.isBulkable(c) && MixinApi.isGraded(c)) {
-      const slot = BulkableApi.slotFor(c, undefined);
-      if (!slot) continue;
-      const mpath = slot.getMaterialPath();
-      const material = mpath
-        ? await StuffApi.singleton<Material>(mpath)
-        : null;
-      bottles.push({ stuff: c, slot, material, grade: c.getGrade() });
+    if (c === maker) continue;
+    await collectCandidate(c, gathered);
+    // Open-container descent (one level). Skip agents (a maker NPC's or
+    // bystander's inventory is theirs) — only inanimate room containers.
+    if (
+      MixinApi.isContainer(c) &&
+      !MixinApi.isOrganism(c) &&
+      !MixinApi.isMaker(c) &&
+      (!MixinApi.isSealable(c) || c.isOpen())
+    ) {
+      for (const inner of c.getContents()) {
+        await collectCandidate(inner, gathered);
+      }
     }
   }
-  return { bottles, tools };
+  // The maker's own inventory — held kit and carried stock are reachable.
+  if (MixinApi.isContainer(maker)) {
+    for (const c of maker.getContents()) {
+      await collectCandidate(c, gathered);
+    }
+  }
+  return gathered;
 }
 
 function materialMatchesBrand(material: Material | null, brand: string): boolean {
@@ -143,12 +233,13 @@ function pickCandidate(
   brand: string | undefined,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
+  const need = inSlot.measureL ?? 0;
   const eligible = bottles.filter(
     (b) =>
       b.material !== null &&
       b.material.hasTag(inSlot.category) &&
       b.grade.compareTo(minGrade) >= 0 &&
-      b.slot.available() - (claimed.get(b.stuff) ?? 0) >= inSlot.measureL - EPS,
+      b.slot.available() - (claimed.get(b.stuff) ?? 0) >= need - EPS,
   );
   if (eligible.length === 0) return null;
   eligible.sort((x, y) => {
@@ -160,6 +251,58 @@ function pickCandidate(
     return y.grade.compareTo(x.grade);
   });
   return eligible[0]!;
+}
+
+/**
+ * Pick the item inputs for one discrete/glob slot: category tag on the
+ * Material + min grade (ungraded stock counts `fair`) + enough un-claimed
+ * units across the reachable candidates. Honors a `with <brand>`
+ * preference, then highest grade; greedy across sources until the slot's
+ * `count` is covered (a glob covers many units, a discrete Tangible one).
+ * `claimedUnits` tracks per-source draw so two slots never double-claim.
+ * Returns the matched draws, or null when the slot cannot be covered.
+ */
+function pickItemInputs(
+  inSlot: RecipeInputSlot,
+  items: ItemCandidate[],
+  claimedUnits: Map<Stuff, number>,
+  brand: string | undefined,
+): MatchedItemInput[] | null {
+  const minGrade = Grade.of(inSlot.minGrade);
+  const need = inSlot.count ?? 1;
+  const eligible = items.filter(
+    (i) =>
+      i.material.hasTag(inSlot.category) &&
+      i.grade.compareTo(minGrade) >= 0 &&
+      i.quantity - (claimedUnits.get(i.stuff) ?? 0) > 0,
+  );
+  if (eligible.length === 0) return null;
+  eligible.sort((x, y) => {
+    if (brand) {
+      const bx = materialMatchesBrand(x.material, brand) ? 1 : 0;
+      const by = materialMatchesBrand(y.material, brand) ? 1 : 0;
+      if (bx !== by) return by - bx;
+    }
+    return y.grade.compareTo(x.grade);
+  });
+  const picked: MatchedItemInput[] = [];
+  let remaining = need;
+  for (const cand of eligible) {
+    if (remaining <= 0) break;
+    const avail = cand.quantity - (claimedUnits.get(cand.stuff) ?? 0);
+    if (avail <= 0) continue;
+    const take = Math.min(avail, remaining);
+    claimedUnits.set(cand.stuff, (claimedUnits.get(cand.stuff) ?? 0) + take);
+    picked.push({
+      stuff: cand.stuff,
+      count: take,
+      glob: MixinApi.isGlobbable(cand.stuff),
+      grade: cand.grade,
+      material: cand.material,
+    });
+    remaining -= take;
+  }
+  return remaining <= 0 ? picked : null;
 }
 
 /**
@@ -185,6 +328,105 @@ async function applyBulkOutput(
   const totalL = matched.reduce((sum, m) => sum + m.measureL, 0);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(totalL, 'L'));
+}
+
+/**
+ * Domain seam — apply a **tangible** output (smithing's transform): flow
+ * the *primary* matched item input's Material + the summed consumed mass
+ * onto the cloned output (the `ThermalLogic` casting-stamp surface).
+ * Mass-conserving: the output weighs what the consumed matter weighed.
+ */
+function applyTangibleOutput(
+  output: Stuff,
+  recipe: Recipe,
+  matchedItems: MatchedItemInput[],
+): void {
+  const primary = matchedItems[0];
+  if (!primary) {
+    throw new Error(
+      `CraftingLogic: tangible output '${recipe.getOutputTemplate()}' ` +
+        `resolved with no matched item input`,
+    );
+  }
+  if (!MixinApi.isTangible(output)) {
+    throw new Error(
+      `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Tangible`,
+    );
+  }
+  let totalKg = 0;
+  for (const m of matchedItems) {
+    if (!MixinApi.isTangible(m.stuff)) continue;
+    const unitKg = m.stuff.getMass().rawValue();
+    // A glob's mass is per-unit (the stack is `quantity` instances).
+    totalKg += m.glob ? unitKg * m.count : unitKg;
+  }
+  output.setMaterial(primary.material);
+  if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
+}
+
+/**
+ * Domain seam — apply an **edible** output (cooking's plated dish): fill
+ * the output's bulk slot with the recipe's authored food Material at the
+ * authored portion. The material must be edible — a recipe authoring an
+ * inedible `outputMaterial` under `outputApplication: edible` is a content
+ * bug, caught loudly.
+ */
+async function applyEdibleOutput(output: Stuff, recipe: Recipe): Promise<void> {
+  const outSlot = BulkableApi.slotFor(output, undefined);
+  if (!outSlot) {
+    throw new Error(
+      `CraftingLogic: edible output '${recipe.getOutputTemplate()}' is not ` +
+        `Bulkable`,
+    );
+  }
+  const material = await StuffApi.singleton<Material>(
+    recipe.getOutputMaterial(),
+  );
+  if (!material.getEdibility()) {
+    throw new Error(
+      `CraftingLogic: edible output material '${recipe.getOutputMaterial()}' ` +
+        `is not edible`,
+    );
+  }
+  outSlot.setMaterial(material);
+  outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
+}
+
+/**
+ * Domain seam — consume the matched **item** inputs (conservation), the
+ * discrete sibling of {@link consumeBulkInputs}: a glob is debited by
+ * exactly the matched units (destructed when fully drawn); a discrete
+ * Tangible is destructed whole — its chattel id released by the shipped
+ * `onDestruct` path. Mismatches are programmatic conservation breaches →
+ * throw (feasibility was already checked).
+ */
+function consumeItemInputs(matched: MatchedItemInput[]): void {
+  for (const m of matched) {
+    if (m.glob) {
+      if (!MixinApi.isGlobbable(m.stuff)) {
+        throw new Error(
+          'CraftingLogic: conservation breach — a glob input lost its stack',
+        );
+      }
+      const q = m.stuff.getQuantity();
+      if (q < m.count) {
+        throw new Error(
+          `CraftingLogic: conservation breach — debiting ${m.count} of ` +
+            `${q} units`,
+        );
+      }
+      if (q === m.count) StuffApi.destruct(m.stuff);
+      else m.stuff.setQuantity(q - m.count);
+    } else {
+      if (m.count !== 1) {
+        throw new Error(
+          `CraftingLogic: conservation breach — a discrete input is ` +
+            `consumed whole (count ${m.count})`,
+        );
+      }
+      StuffApi.destruct(m.stuff);
+    }
+  }
 }
 
 /**
@@ -226,6 +468,9 @@ function matchBuild(
   for (const recipe of recipes) {
     const slots = recipe.getInputSlots();
     if (slots.length !== contributions.length) continue; // no leftovers/shortfall
+    // Item-slot recipes reverse-match in the manual paths build (Phase 4 of
+    // the branches plan); the bulk matcher never claims one.
+    if (slots.some((s) => Recipe.isItemSlot(s))) continue;
     const used = new Set<number>();
     let allCovered = true;
     for (const slot of slots) {
@@ -236,7 +481,7 @@ function matchBuild(
         const c = contributions[i]!;
         if (
           c.category === slot.category &&
-          c.measureL >= slot.measureL - EPS &&
+          c.measureL >= (slot.measureL ?? 0) - EPS &&
           Grade.of(c.gradeBand).compareTo(minGrade) >= 0
         ) {
           found = i;
@@ -331,19 +576,32 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   }
 
-  const { bottles, tools } = await gatherMatter(location);
+  const { bottles, tools, items } = await gatherMatter(location, maker);
 
-  // Match input slots (per-bottle no-double-claim).
+  // Match input slots (per-source no-double-claim), dispatching each slot
+  // on its kind: bulk → bottle draw, item → discrete/glob units.
   const claimed = new Map<Stuff, number>();
+  const claimedUnits = new Map<Stuff, number>();
   const matched: MatchedInput[] = [];
+  const matchedItems: MatchedItemInput[] = [];
   const grades: Grade[] = [];
   for (const inSlot of recipe.getInputSlots()) {
+    if (Recipe.isItemSlot(inSlot)) {
+      const picks = pickItemInputs(inSlot, items, claimedUnits, req.brand);
+      if (!picks) {
+        return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
+      }
+      matchedItems.push(...picks);
+      for (const p of picks) grades.push(p.grade);
+      continue;
+    }
     const cand = pickCandidate(inSlot, bottles, claimed, req.brand);
     if (!cand) {
       return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
     }
-    claimed.set(cand.stuff, (claimed.get(cand.stuff) ?? 0) + inSlot.measureL);
-    matched.push({ slot: cand.slot, measureL: inSlot.measureL });
+    const need = inSlot.measureL ?? 0;
+    claimed.set(cand.stuff, (claimed.get(cand.stuff) ?? 0) + need);
+    matched.push({ slot: cand.slot, measureL: need });
     grades.push(cand.grade);
   }
 
@@ -355,14 +613,34 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     if (!usedTools.includes(tool)) usedTools.push(tool);
   }
 
+  // The heat gate (the reachable-heat crafting-control seam consumed): a
+  // recipe requiring heat declines when the hottest reachable furnace
+  // doesn't clear it — a cold forge is a diegetic decline, not a flag.
+  const requiresHeatK = recipe.getRequiresHeatK();
+  if (requiresHeatK > 0 && ThermalApi.reachableHeatFor(maker) < requiresHeatK) {
+    return {
+      ok: false,
+      reason: 'insufficient-heat',
+      detail: `${requiresHeatK}`,
+    };
+  }
+
   // Derive grade (weakest-link, floored at the recipe base if any).
   let grade = Grade.deriveAtFixedControl(grades);
   const base = recipe.getBaseGrade();
   if (base) grade = grade.max(base);
 
-  // Clone the output form, apply its properties, stamp, consume, wear.
+  // Clone the output form, apply its properties (dispatched on the
+  // recipe's output-application kind), stamp, consume, wear.
   const output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
-  await applyBulkOutput(output, recipe, matched);
+  const application = recipe.getOutputApplication();
+  if (application === 'tangible') {
+    applyTangibleOutput(output, recipe, matchedItems);
+  } else if (application === 'edible') {
+    await applyEdibleOutput(output, recipe);
+  } else {
+    await applyBulkOutput(output, recipe, matched);
+  }
 
   if (!MixinApi.isCrafted(output)) {
     throw new Error(
@@ -378,6 +656,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   });
 
   consumeBulkInputs(matched);
+  consumeItemInputs(matchedItems);
   // Tools wear on use — the durable-good half (a ToolItem composes
   // DurableMixin alongside ToolMixin).
   for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
