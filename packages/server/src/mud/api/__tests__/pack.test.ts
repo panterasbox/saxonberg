@@ -142,7 +142,7 @@ describe('PackApi.discoverPacks', () => {
     const manifests = await PackApi.discoverPacks();
     const base = manifests.find((m) => m.id === 'base-library');
     expect(base).toBeDefined();
-    expect(base!.version).toBe('0.1.0');
+    expect(base!.version).toBe('0.2.0');
     expect(base!.dependsOn).toEqual([]);
   });
 });

@@ -23,7 +23,6 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { CombatApi } from "../../../api/combat";
-import { MaterialApi } from "../../../api/material";
 import { MixinApi } from "../../../api/mixin";
 import { Gambit } from "../../../lib/combat/Gambit";
 
