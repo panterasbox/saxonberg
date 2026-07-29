@@ -1259,11 +1259,13 @@ export interface User {
   /**
    * Associated Google profile ID. Optional: a Twitch-origin account may
    * carry only `twitchProfileId`. An at-least-one-provider invariant
-   * holds across the two FK fields.
+   * holds across the provider FK fields.
    */
   googleProfileId?: string;
   /** Associated Twitch profile ID (the credential-bearing provider). */
   twitchProfileId?: string;
+  /** Associated Kick profile ID (the third co-equal provider FK). */
+  kickProfileId?: string;
   /** Account creation timestamp */
   createdAt: Date;
   /** Last updated timestamp */
@@ -1346,16 +1348,55 @@ export interface TwitchProfile {
   updatedAt: Date;
 }
 
+/**
+ * Kick OAuth profile data (persistent), credential-bearing. The
+ * {@link TwitchProfile} shape on the third provider: identity + the OAuth
+ * tokens (encrypted at rest), plus the owner's channel (`slug` +
+ * `broadcasterUserId`) that character-form `tune` and the reverse
+ * speaker-link resolve through. A user with no Kick channel links fine
+ * with an empty `slug`.
+ */
+export interface KickProfile {
+  /** MongoDB ObjectId */
+  _id?: string;
+  /** Kick user id (unique, stable identifier). */
+  kickUserId: string;
+  /** Kick channel slug (lowercased; empty when the user has no channel). */
+  slug: string;
+  /** Display name from Kick. */
+  displayName: string;
+  /** Email address (when granted). */
+  email?: string;
+  /** Kick broadcaster user id (empty when the user has no channel). */
+  broadcasterUserId: string;
+  /** Raw identity payload (for future use). */
+  rawProfile: Record<string, unknown>;
+  /** OAuth access token (encrypted at rest). */
+  accessToken: string;
+  /** OAuth refresh token (encrypted at rest). */
+  refreshToken: string;
+  /** Access-token expiry as epoch ms. */
+  expiresAt: number;
+  /** Granted OAuth scopes. */
+  scopes: string[];
+  /** Created timestamp */
+  createdAt: Date;
+  /** Last updated timestamp */
+  updatedAt: Date;
+}
+
 // ============================================================================
 // Authentication Types
 // ============================================================================
 
 /**
- * The login providers the auth spine is parameterized over. Adding a
- * provider is a procedure argument, not a code fork. YouTube grows
- * `GoogleProfile` (it's Google OAuth), not a third value.
+ * The login providers the auth spine is parameterized over — co-equal:
+ * every provider gets the full login + link flow (one unified interface,
+ * never a link-only tier). Adding a provider is a procedure argument, not
+ * a code fork. YouTube grows `GoogleProfile` (it's Google OAuth), not a
+ * fourth value.
  */
-export type AuthProvider = 'google' | 'twitch';
+export type AuthProvider = 'google' | 'twitch' | 'kick';
 
 /**
  * Session user data stored in express-session.
@@ -1390,6 +1431,33 @@ export interface PassportTwitchProfile {
  * persist into a `TwitchProfile`.
  */
 export interface PassportTwitchProfileWithTokens extends PassportTwitchProfile {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  scopes: string[];
+}
+
+/**
+ * Normalized Kick identity the verify callback produces from the
+ * `/public/v1/users` (+ owner-channel) fetch, parallel to
+ * {@link PassportTwitchProfile}. `slug`/`broadcasterUserId` are empty
+ * when the account has no channel.
+ */
+export interface PassportKickProfile {
+  id: string;
+  slug: string;
+  displayName: string;
+  email?: string;
+  broadcasterUserId: string;
+  _json: Record<string, unknown>;
+}
+
+/**
+ * {@link PassportKickProfile} plus the OAuth credentials harvested in
+ * the verify callback — what the find-or-create / link paths persist
+ * into a `KickProfile`.
+ */
+export interface PassportKickProfileWithTokens extends PassportKickProfile {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;

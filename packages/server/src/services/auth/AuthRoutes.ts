@@ -17,6 +17,7 @@ import type {
   AuthStatusResponse,
   PassportGoogleProfile,
   PassportTwitchProfileWithTokens,
+  PassportKickProfileWithTokens,
 } from '@saxonberg/types';
 import { Backend } from '../../backend/Backend';
 import { CmsSession } from '../../backend/CmsSession';
@@ -24,7 +25,10 @@ import { AccessApi } from '../../mud/api/access';
 import { ExecutionContextApi } from '../../mud/api/execution-context';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import { AuthMiddleware } from './AuthMiddleware';
-import { TWITCH_IDENTITY_SCOPE } from './PassportConfig';
+import {
+  TWITCH_IDENTITY_SCOPE,
+  KICK_IDENTITY_SCOPE,
+} from './PassportConfig';
 import { User } from '../../mud/lib/identity/User';
 import { TwitchProfile } from '../../mud/lib/identity/TwitchProfile';
 import {
@@ -82,10 +86,34 @@ export class AuthRoutes {
       }
     );
 
+    // Initiate Kick OAuth flow (minimal identity scope; PKCE via the
+    // strategy). Skip-if-absent tolerance rides the strategy: when
+    // KICK_* env is unset the strategy isn't registered and this route
+    // 500s only if actually hit.
+    app.get(
+      '/auth/kick',
+      passport.authenticate('kick', {
+        scope: KICK_IDENTITY_SCOPE,
+      })
+    );
+
+    // Kick OAuth callback
+    app.get(
+      '/auth/kick/callback',
+      passport.authenticate('kick', {
+        failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
+      }),
+      (req: Request, res: Response) => {
+        console.info('AuthRoutes: Kick OAuth callback success');
+        res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+      }
+    );
+
     // ---- Linking (authenticated OAuth round-trips) ------------------
 
     AuthRoutes.setupLinkRoutes(app, 'google', 'google-link');
     AuthRoutes.setupLinkRoutes(app, 'twitch', 'twitch-link');
+    AuthRoutes.setupLinkRoutes(app, 'kick', 'kick-link');
 
     // ---- Re-auth (authenticated; broaden Twitch chat scopes) --------
 
@@ -95,6 +123,7 @@ export class AuthRoutes {
 
     AuthRoutes.setupUnlinkRoute(app, 'google');
     AuthRoutes.setupUnlinkRoute(app, 'twitch');
+    AuthRoutes.setupUnlinkRoute(app, 'kick');
 
     // Check authentication status
     app.get('/auth/status', async (req: Request, res: Response) => {
@@ -171,16 +200,15 @@ export class AuthRoutes {
     provider: AuthProvider,
     strategyName: string
   ): void {
-    const initiate =
-      provider === 'twitch'
-        ? passport.authenticate(strategyName, {
-            scope: TWITCH_IDENTITY_SCOPE,
-            session: false,
-          })
-        : passport.authenticate(strategyName, {
-            scope: ['profile', 'email'],
-            session: false,
-          });
+    const scopeFor: Record<AuthProvider, string[]> = {
+      google: ['profile', 'email'],
+      twitch: TWITCH_IDENTITY_SCOPE,
+      kick: KICK_IDENTITY_SCOPE,
+    };
+    const initiate = passport.authenticate(strategyName, {
+      scope: scopeFor[provider],
+      session: false,
+    });
 
     app.get(`/auth/${provider}/link`, AuthMiddleware.requireAuth, initiate);
 
@@ -201,6 +229,7 @@ export class AuthRoutes {
         const profile = req.user as
           | PassportGoogleProfile
           | PassportTwitchProfileWithTokens
+          | PassportKickProfileWithTokens
           | undefined;
         if (!userId || !profile) {
           res.redirect(`${process.env.CLIENT_URL}/?link=failure`);

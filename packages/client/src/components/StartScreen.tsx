@@ -87,9 +87,9 @@ const Divider = styled.div`
   }
 `;
 
-/** Sign-in providers. Google and Twitch are co-equal login providers
- *  (the auth-providers build wired Twitch). The list stays data-shaped so
- *  a future provider is one more entry. */
+/** Sign-in providers. Google, Twitch, and Kick are co-equal login
+ *  providers (one unified provider interface). The list stays
+ *  data-shaped so a future provider is one more entry. */
 const PROVIDERS: ReadonlyArray<{
   key: string;
   label: string;
@@ -106,6 +106,12 @@ const PROVIDERS: ReadonlyArray<{
     key: "twitch",
     label: "Sign in with Twitch",
     href: "/auth/twitch",
+    enabled: true,
+  },
+  {
+    key: "kick",
+    label: "Sign in with Kick",
+    href: "/auth/kick",
     enabled: true,
   },
 ];
