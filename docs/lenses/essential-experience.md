@@ -2,213 +2,218 @@
 
 > Part of the [design lenses](./README.md) set. Lens named from Jesse
 > Schell's *A Book of Lenses*; questions paraphrased, analysis our own.
+>
+> **Fresh pass, entry 2 (2026-07-28), revised in place.** Re-read from
+> the book and re-run against the game as it now stands — a
+> near-fully-designed whole, nothing playtested. The two ratified
+> essence sentences (2026-06-09) are **carried forward and re-tested
+> below**; the original ratification record is in git history.
 
 ## The lens
 
-Decide what experience you want the player to *have* — not the
-mechanics, not the setting, the felt experience — then ask what is
-truly essential to it, and whether every part serves that essence. The
-mechanics, story, and world are not the experience; they are the means.
-If an element doesn't feed the essential experience, it is either dead
-weight or it's quietly making a *different* game.
+Stop thinking about your game and start thinking about the experience
+of the player. Three questions: **what experience do I want the player
+to have? What is essential to that experience? How can my game capture
+that essence?** The mechanics, story, and world are not the experience
+— they are the means. Say the essence in a sentence, and point at any
+feature and say how it serves that sentence, or admit that it doesn't.
 
-The lens is ruthless about one thing: you must be able to say the
-essence in a sentence, and point at any feature and say how it serves
-that sentence — or admit that it doesn't.
-
-> **From the book.** Schell's discipline is to "stop thinking about your
-> game and start thinking about the experience of the player." The lens
-> is three questions: "What experience do I want the player to have?
-> What is essential to that experience? How can my game capture that
-> essence?" His snowball-fight example is the whole point in miniature:
-> to deliver "it was so cold," you don't need real snow — you can use art
-> (little puffs of breath), sound (a whistling wind), *or a rule*
-> (snowballs pack better bare-handed, but cold hands force gloves on).
-> "That might not have really happened, but that game rule helps deliver
-> an experience of coldness." The game is only the means; the essence
-> comes first, and you chase it by whatever captures it — even routes
-> that don't look like the obvious feature. That's why this is the lens
-> you reach for before mechanics, story, or world.[^aogd-ee]
+> **From the book.** The snowball-fight example is the method in
+> miniature: to deliver "it was so cold," you don't need real snow —
+> art (puffs of breath), sound (a whistling wind), *or a rule*
+> (snowballs pack better bare-handed, but freezing hands force gloves
+> on) can each carry the essence, even if "that might not have really
+> happened." Two worked examples follow the lens box. **Wii Sports
+> baseball**: the team couldn't simulate all of baseball in time, so
+> they cut the non-essential (nine innings, stealing bases) and spent
+> everything on the one unique thing — swinging the controller.
+> **James Bond 007 (Chris Klug)**: prior spy RPGs felt like war games;
+> Klug invented Hero Points — a spendable budget that *alters dice
+> rolls* — deliberately bending probability to deliver the essence of
+> a Bond film. And the closing warning: separating the experience from
+> the game tells you "which elements of the game you can safely change
+> and which ones you cannot"; without a named essence "you are just
+> wandering in the dark."[^aogd-ee]
 
 ## Why our design prompts it
 
 Because we are building **two things at once**, each with its own
 essential experience, and it is dangerously easy to ask the lens about
-one while answering for the other. (An earlier draft of this very entry
-did exactly that — see Tensions.)
+one while answering for the other. The two things — the third is
+downstream — are:
 
-The two things — the third is downstream — are:
-
-1. **The platform.** An abstract gamification engine. Vertical-
-   agnostic by design: "the vertical is content; the framework is
-   constant" ([standard-model.md](../standard-model.md)). It is what
-   `standard-model.md` and the two philosophy docs speak for.
-2. **The game (Saxonberg).** The first thing built *on* the platform —
-   educational **at its core**, not merely education-themed. It is what
-   [vision.md](../vision.md) speaks for: "Learning as Adventure," a
-   university world where "academic achievement and engaging gameplay
-   fuel one another."
+1. **The platform.** An abstract gamification engine, vertical-
+   agnostic by design ([standard-model.md](../standard-model.md), the
+   two philosophy docs).
+2. **The game (Saxonberg).** The first thing built on the platform —
+   educational at its core ([vision.md](../vision.md)): "learning as
+   adventure."
 3. **A vertical's product (future).** What an adopter ships when they
-   point the platform at *their* domain — which may not be educational
-   at all (a fitness brand, a codebase, a calendar). Out of scope here,
-   but it's why the platform's essence must stay abstract.
+   point the platform at their domain. Out of scope here, but it's why
+   the platform's essence must stay abstract.
 
-These do not compete. The game's essence is the platform's essence
-**wearing a skin**: take the abstract engine and aim it at the theme of
-education — a campus, majors, a learning loop — and you get this game.
-The platform doesn't know it's about school; the game is entirely about
-school. The lens's job here is not to pick a winner but to **keep the
-two essences from contaminating each other** — to stop game-specific
-truths from leaking into the platform substrate, and to stop the
-platform's vertical-agnosticism from talking the game out of being
+The lens's job is to keep the two essences from contaminating each
+other — game truths must not harden into platform substrate, and the
+platform's vertical-agnosticism must not talk the game out of being
 wholeheartedly educational.
 
 ## What the design answers
 
-> **Status: both essence sentences below are ratified (2026-06-09).**
-> The orienting docs carry layer labels pointing here; new lens entries
-> must state which layer they interrogate before asking "does this
-> serve the essence."
-
-Run the lens at each layer.
+> **Status: both essence sentences ratified 2026-06-09; re-tested
+> 2026-07-28 against the designed game. Verdict: both hold — the
+> systems grew *into* the sentences. The re-test surfaced one strain,
+> resolved by ratifying a fifth platform clause (2026-07-28, below).**
 
 ### The platform's essence
 
-Strip the university skin and ask what experience the engine delivers,
-in any vertical:
-
 > **Real effort, recognized — your doing is seen, what you become is
-> earned, what you make persists, and you do it among others who
-> remember you.**
+> earned, what you make persists, you do it among others who remember
+> you, and the world itself honors what you understand.**
+>
+> *(Fifth clause ratified 2026-07-28; the four-clause original was
+> ratified 2026-06-09.)*
 
-Every cross-cutting subsystem feeds that sentence with no reference to
-school:
+The 2026-07 re-test, clause by clause, against systems that mostly
+did not exist when the sentence was ratified:
 
-- **"Seen / persists."** [recognition](../slates/tails/recognition-slate.md)
-  tracks you as a stranger and upgrades you to a known name once
-  introduced — symmetric, per-viewer, persistent. What you author (the
-  dorm room) stays authored.
-- **"Earned, not given."** The gamification root: real engagement in,
-  recognition out. The adaptive-learning hook is just the *first
-  sensor* (`standard-model.md`); generalize it and any tracked act
-  feeds the same loop.
-- **"Consistent."** The [design-philosophy](../design-philosophy.md)
-  honesty discipline exists so the world is internally consistent —
-  which `interaction-philosophy.md`, citing Schell, names as the exact
-  property that "fills the guest's imagination." Consistency is the
-  immersion engine, and it's a substrate property, not a feature.
-- **"Among others."** "Text-first is social-first"; conversation is the
-  backbone; the lounge seats you with your people first.
+- **"Your doing is seen."** Now literal machinery: the witness loop,
+  reactions keyed to acts, the accountability ledger (who harmed
+  whom, on what terms), renown's reception signal (being heard),
+  provenance's authoring ledger. Seen — and *recorded, attributably*.
+- **"What you become is earned."** Advancement's derive-on-read
+  competence over evidenced acts; the chronicle's claim/deed
+  provenance split; conferral gating capability on demonstration;
+  traits accreting from what you actually did. There is no bought or
+  granted becoming anywhere in the design.
+- **"What you make persists."** Ratified as a sentence about dorm
+  rooms; the design made it property law — the persistence spine,
+  chattel ownership with chain-of-title, parcel title, the maker's
+  mark on crafted goods, consignment surviving relogs. The clause
+  held so well it became an economy.
+- **"Among others who remember you."** Belief/recognition (per-viewer
+  identity memory), regard, the social graph, parties, the
+  accountability ledger again — memory of you is a *substrate
+  property* now, not a community hope.
+- **"The world itself honors what you understand"** (the ratified
+  fifth clause). The honesty discipline felt as play: `analyze`
+  reveals the real model; the wet-firewood problem is derivable from
+  latent heat; metal armor genuinely worsens shock; the sky can be
+  read because the weather grammar is real. Recognition by reality,
+  not by others — the clause the first four only gestured at.
 
-This is the essence the platform must protect, because the *next*
-vertical inherits it and nothing else.
+**Verdict: holds.** The sentence predicted the buildout.
 
 ### The game's essence
 
-Now put the skin back on. Saxonberg's essence — education made epic,
-the framing `vision.md` carries:
-
-> **Learning as adventure — you grow into who you become by mastering a
-> field, in a university world that makes that growth feel like a
+> **Learning as adventure — you grow into who you become by mastering
+> a field, in a university world that makes that growth feel like a
 > story worth being in.**
 
-This is a *concrete instantiation* of the platform essence, not a
-contradiction of it. "What you become is earned" (platform) becomes
-"you specialize by mastering a subject and that specialization is your
-in-game power" (game). The Guilds, the dual-progression loop, the
-campus, the major pick are the education-specific expression of the
-abstract engine underneath.
+Re-test: the University content (campus, char-gen, dorm residence,
+Duncan Hall), the advancement Catalog as the game's own internal
+taxonomy, the credential seam as the *external enrichment* — the
+internal/external split stands exactly as ratified: the game is
+educational with zero vertical inputs; external mastery raises only
+the ceiling. **Verdict: holds.**
 
-Crucially, the game is **self-contained** at this layer. The standing
-"game stands alone" principle has an internal/external split that
-resolves the apparent paradox of "educational at its core" *and* "works
-with zero vertical inputs":
+### The strain, and its resolution (ratified 2026-07-28)
 
-- **Internal (baked into the game):** the campus, the majors, the
-  game's own subject taxonomy. The char-gen major is "a freestanding
-  closed-choice pick into the game's own subject taxonomy." So the game
-  is *about learning* even with no external platform wired in.
-- **External (the optional enrichment):** real study.com / institutional
-  signals feeding the loop. This is what turns the standalone demo into
-  a vertical *product*; the game doesn't need it to be a complete
-  educational game.
+The 2026-07 re-test found one experience the designed game delivers
+everywhere that the four-clause sentence carried only implicitly:
+**the world yields to understanding** — the Andy Weir experience,
+the honesty discipline *felt as play*, the experience the
+[infinite-inspiration](./infinite-inspiration.md) entry named as the
+one we most want to share. "What you become is earned" gestures at
+it, but that clause is about recognition of effort by *others*; this
+is *reality complying with comprehension*.
 
-So "educational at its core" and "stands alone" aren't in tension: the
-education is internal content, and what's optional is the external data
-feed, not the educational nature.
+**Resolution: the fifth clause was ratified** — *"and the world
+itself honors what you understand"* — making the honesty-experience
+explicit platform essence. Consequence for the next vertical: the
+clause is only satisfiable by a vertical whose models are honest
+(reality-shaped or rigorously self-consistent). A vertical that
+can't honor understanding can ride the first four clauses, but it
+gets a lesser product — the fifth clause is now the stated bar.
 
-### The nesting, made visible
+### The Bond problem, and our answer
 
-The clean illustration is the onboarding arc itself. Welcomed →
-oriented → given a voice → authoring your own space is the **platform
-essence rendered as a 20-minute sequence** — pure gamification-of-
-becoming, no subject content required. And it happens on a **campus,
-with a registrar, an academic hall, a deferred major pick** — the
-**game essence** supplying the skin. Same sequence, both essences,
-stacked: abstract spine, educational surface. Any new player-facing
-sequence can be checked the same way — does the spine serve "effort
-recognized," and does the skin serve "learning as adventure"?
+Klug's Hero Points are the lens's sharpest challenge to us: he
+delivered essence by *bending the simulation* — the exact move our
+honesty discipline forbids. If essence and honesty ever conflict,
+which wins?
+
+The design's answer, visible now across many shipped systems, is that
+we split the stack: **the model stays honest; the presentation is
+where we spend the Bond move.** Combat computes deterministic physics
+underneath and narrates an *arc* on top (beat-rotated phrasing,
+escalation, the earned "crit" that is really an opening); vitals are
+real liters surfaced as felt bands, never numbers; competence is a
+Bayesian estimate surfaced as words. Layered presentation is Hero
+Points without the lie — the experience-shaping happens in the
+rendering, and `analyze` will still tell you the truth. This also
+answers Schell's "what can you safely change": prose, narration,
+bands, pacing — freely; the honest model — never. That partition *is*
+our essence, stated operationally.
+
+### The Wii Sports check
+
+Their move — cut the non-essential (nine innings) to perfect the
+unique thing (the swing) — is our Principle 1 (smallest fidelity
+content needs) seen from the essence side. Our "swing the controller"
+is the honest model revealed through play; bag-of-stuff rooms, banded
+displays, and deferred sub-room geometry are our nine innings. The
+check for any new slate: is this fidelity spend on our swing, or on
+somebody's ninth inning?
 
 ## Tensions & risks
 
-- **The conflation is the default failure, and it's seductive.** This
-  entry's first draft read `vision.md` (education-centric) against the
-  philosophy docs (vertical-agnostic), called it a *disagreement*, and
-  proposed "resolving" it toward the abstract essence — which would
-  have quietly talked the game out of being educational. They were
-  never fighting; they speak for different layers. The lens's first
-  job here is to refuse that conflation every time it recurs, because
-  it will.
-- **The docs don't label which layer they speak for.** `vision.md`
-  reads as *the* essence doc; the philosophy docs read as *the* essence
-  docs; neither says "I am describing the game" or "I am describing the
-  platform." That silence is what let the conflation happen. The
-  layers are clear once stated and invisible until then.
-- **Leakage in both directions.** Game-specific truths (Guilds, a
-  campus, an academic calendar) must not harden into platform
-  substrate — that's the existing substrate-vs-content discipline ("no
-  Api classes for content"; "substrate has no content hooks") pointed
-  at the essence question. And the reverse: the platform's
-  vertical-agnosticism must not leak *into the game* as
-  wishy-washiness. The game should be unapologetically about school;
-  vertical-neutrality is the platform's virtue, not the game's.
-- **An essence about *recognition of effort* is one keystroke from a
-  dark pattern** — at *both* layers. "A world that rewards your effort"
-  is also the design brief for a Skinner box, and it's sharper when the
-  effort being shaped is a student's real study habit.
-  `standard-model.md` already owns this (behavior engineering;
-  surveillance). The [Transformation](./transformation.md) lens is a
-  required companion to this one, not an optional extra.
+- **The conflation is the default failure, and it recurs.** The
+  original entry caught itself reading vision.md against the
+  philosophy docs as a *disagreement*; they speak for different
+  layers. Every lens entry must state which layer it interrogates.
+  (Discipline carried forward; the orienting docs remain
+  layer-labeled and point here.)
+- **Leakage in both directions.** Game truths (guilds, campus,
+  calendar) must not harden into platform substrate; platform
+  agnosticism must not make the game wishy-washy about school. The
+  substrate-vs-content discipline is this lens's enforcement arm.
+- **An essence about recognition of effort is one keystroke from a
+  dark pattern** — at both layers, and sharper when the effort being
+  shaped is a student's real study habit. The
+  [Transformation](./transformation.md) lens remains this one's
+  mandatory companion; the education-track work restates it as the
+  high-stakes guardrail (no manufactured urgency; the avatar borrows
+  its stakes).
+- **A ratified essence can calcify.** This re-test passed; the next
+  one might not, and the sentence must lose if the lived game
+  contradicts it. Playtesting — which nothing has had — is where the
+  essence meets its first real evidence.
 
 ## Implications
 
-1. **The two-essence framing is ratified** (2026-06-09). Every other
-   lens entry must state *which layer* it's interrogating before it
-   asks "does this serve the essence." Most will have a platform answer
-   and a game answer, and the two may pull differently — that's
-   expected, not a defect.
-2. **The orienting docs are layer-labeled** (done 2026-06-09):
-   `vision.md` declares it speaks for the game; `design-philosophy.md`,
-   `interaction-philosophy.md`, and `standard-model.md` declare they
-   speak for the platform. Each points back here. This closes the gap
-   that caused the original conflation.
-3. **Make "platform feature or game content?" a standing test.** It
-   already exists as the substrate-vs-content discipline; tie it to the
-   essence explicitly — a feature earns a place in the platform only if
-   it serves the *abstract* essence, not just the educational one.
-4. **Keep the onboarding arc as the nesting exemplar.** It's the
-   cleanest proof that the two essences stack rather than fight, and a
-   reusable check for any new player-facing sequence.
-5. **Pair this lens permanently with [Transformation](./transformation.md).**
-   Because both essences are recognition-of-effort, "is this good for the
-   player" is a property of the essence itself, not a late ethics review.
+1. **Both essence sentences re-affirmed against the designed game,
+   and the platform sentence extended** (2026-07-28): the fifth
+   clause — *the world itself honors what you understand* — is
+   ratified. Docs that quote the platform essence should carry the
+   five-clause form from here on.
+2. **The layer discipline stands**: every lens entry states its
+   layer; the orienting docs stay labeled and point here.
+3. **The presentation/model split is the standing answer to
+   essence-vs-honesty conflicts** — spend Bond moves in rendering,
+   never in the model. New systems inherit this partition by default.
+4. **The Wii Sports question joins the slate checklist** alongside
+   Infinite Inspiration's audit question: *name the essence this
+   fidelity spend serves; if it's a ninth inning, defer it.*
+5. **Pair permanently with [Transformation](./transformation.md)** —
+   unchanged, and now load-bearing for the education vertical.
 
 ---
 
 [^aogd-ee]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
     3rd ed. (CRC Press, 2020) — **Lens #2, the Lens of Essential
-    Experience** (p. 23), from Chapter 2, "The Designer Creates an
-    Experience" (section "Essential Experience," pp. 21–23). The three
-    questions and the snowball-fight "it was so cold" example — including
-    delivering the essence through a *rule* — are Schell's. 3rd-edition
-    print pagination; lens number stable across editions.
+    Experience**, Chapter 2, "The Designer Creates an Experience"
+    (re-read from the author's Google Play edition, 2026-07). The
+    three questions, snowball-fight routes, Wii Sports baseball and
+    James Bond 007 Hero Points examples, and the "safely change /
+    wandering in the dark" framing are Schell's; both essence
+    sentences and all analysis are ours.

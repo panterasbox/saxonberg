@@ -3,138 +3,193 @@
 > Part of the [design lenses](./README.md) set. Lens named from Jesse
 > Schell's *A Book of Lenses*; questions paraphrased, analysis our own.
 >
-> **Layer interrogated: the game** (with platform substrate underneath).
-> This is the operational test of "the game stands alone" — and a
-> harder test than that, because it strips away not just the vertical
-> but *all goals*.
+> **Fresh pass, entry 3 (2026-07-28), revised in place.** Re-read from
+> the book and re-run against the game as it now stands — the prior
+> entry's "latent toy" tensions have largely been *built* since it was
+> written; this revision re-tests. Original in git history.
+>
+> **Layer interrogated: the game**, with a platform-layer coda — the
+> authoring stack is a toy *factory*, which is a platform property.
 
 ## The lens
 
-Two questions, both deceptively simple. **If the game had no goal at
-all, would it still be fun just to mess with?** A great game is built on
-a great toy — something enjoyable to manipulate before any objective is
-attached (a ball is fun before anyone invents a sport). And: **when
-people first encounter it, do they want to start playing with it before
-they even know what they're supposed to do?** A good toy *invites* its
-own handling. If the answer to either is no, the goals are doing all the
-work, and goals are a thin thing to stand on.
+Stop thinking about whether your game is fun to play, and start
+thinking about whether it is fun to play *with*. Two questions: **if
+the game had no goal, would it be fun at all?** And: **when people see
+it, do they want to start interacting with it before they even know
+what to do?** A ball is a toy; baseball is the game built on it. If
+the thing isn't fun before the goals go on, the goals are propping up
+something hollow.
 
-> **From the book.** Schell's heuristic is **build the toy first**:
-> "make sure your toy is fun to play with before you design a game around
-> it." His litmus is a one-word shift — "stop thinking about whether your
-> game is fun to play, and start thinking about whether it is fun to play
-> *with*." A ball is a toy; baseball is the game built on it. His
-> examples are *Lemmings* and *Grand Theft Auto*, both of which began as
-> toys: designer David Jones says GTA "was designed as a medium … a
-> living, breathing city that was fun to play," and only then was the
-> game (borrowed from Pac-Man) built on top. The humbling corollary: if
-> your thing isn't fun *before* the goals go on, the goals are propping
-> up something hollow.[^aogd-toy]
+> **From the book.** The lens sits among the prototyping tips ("build
+> the toy first"): make sure your toy is fun to play with before you
+> design a game around it — you may be surprised by what makes it fun,
+> and whole new games become apparent. *Lemmings* began as "a little
+> world with lots of little creatures walking around doing different
+> things" — the game came after the toy proved fun. David Jones, on
+> *Grand Theft Auto*: it "was not designed as Grand Theft Auto. It was
+> designed as a medium … a living, breathing city that was fun to
+> play" — then they borrowed the game from Pac-Man ("the dots are the
+> little people … the ghosts are policemen"). Build toy first and the
+> game is "fun on two levels," each supporting the other. Schell names
+> **two ways to use the lens**: retrofit toylike qualities onto an
+> existing game, or — "the braver way" — invent toys before knowing
+> what games will be played with them, as a "divining rod" for games
+> you'd never otherwise find.[^aogd-toy]
 
 ## Why our design prompts it
 
-Because "the game stands alone" is a ratified principle, and the Toy is
-the sharper version of it. Stands-alone asks whether the game works
-without the *vertical*; the Toy asks whether it works without *goals*.
-Pass the Toy and you've over-delivered on stands-alone — the world is
-fun to inhabit even with nothing to achieve, which is the deepest
-possible insurance for intrinsic motivation (see
-[Motivation](./motivation.md)). And the design has bet heavily on a
-*sandbox* — bag-of-stuff rooms, honest physics you can poke,
-first-class authoring — so the question "is the sandbox actually a good
-toy?" is squarely earned.
+Because the GTA quote is nearly a description of this project. A
+living, breathing city that is fun to play — Terminus, the campus, the
+wilds — built as a *medium*, with the games discovered on top rather
+than scripted in. "The game stands alone" asks whether the game works
+without the vertical; the Toy asks the sharper question — whether the
+world works without *goals*. Saxonberg has real skin in that
+question: between authored arcs, the goals are the players' own, and
+the world must be fun to inhabit with nothing assigned. (Quests
+exist and are wanted in quantity — authored narrative arcs are how
+the diegesis tells the world's story — but the toy test is about
+the hours *between* them, and a world that's only fun mid-quest
+fails it.)
 
 ## What the design answers
 
-The game has at least three strong toys, none of which needs a goal:
+### Q1 — strip the goals: is it fun to mess with?
 
-- **Authoring is a toy.** The dorm room
-  ([eternal-university](../slates/builds/eternal-university-slate.md)) is "here,
-  play with making your space" — and it's the onboarding *climax*, not a
-  power-user afterthought. Making things is the oldest toy there is, and
-  the design hands it to every player in the first session.
-- **The honest-physics sandbox is a toy.** Because the substrate models
-  honestly ([design-philosophy.md](../design-philosophy.md)), you can
-  *experiment*: `analyze` and `measure` reveal real values, instruments
-  read real fields, reactions are real. Invented sciences (magic as an
-  honest physics channel) are explicitly "the scientific method in a
-  sandbox engineered to be learnable." Poking at how the world works,
-  with no quest attached, is a toy — and a pedagogically loaded one.
-- **The social layer is a toy.** ~35 starter emotes
-  ([emotes](../slates/tails/emotes-slate.md)), the lounge, Dave's bar with
-  drinks you can order and nurse, NPCs with idle routines you can poke
-  and watch react ([npc-behavior](../slates/builds/npc-behavior-slate.md)).
-  Hanging out and messing with people — human or NPC — is fun before any
-  objective exists. "Text-first is social-first" is also "the social
-  fabric is a toy."
+The prior entry named three toys and worried they were latent. The
+built game answers louder:
 
-And the world *invites* poking: the un-genred campus and the
-fast-travel route map are built to land "you're in for anything" — an
-explicit invitation to go see what's out there with no goal but
-curiosity.
+- **The physics went from latent to pokeable.** Fire you can light,
+  smother, or let burn through a door left open; brine pools that
+  electrocute; the thermos and the campfire; weather that fills
+  puddles that conduct; liquids you pour, mix, spill, and drink;
+  wet firewood that genuinely won't light. The toy loop — *poke it,
+  see, form a theory, poke again* — is now the shipped behavior of
+  half a dozen interlocking channels, and the emergent interactions
+  (metal armor worsens shock; a closed door is a firebreak) are
+  exactly the "surprised by what makes it fun" payoffs Schell
+  predicts.
+- **The legibility surfaces made the toy handleable.** The old fear —
+  "the sandbox is a great toy only if you know `analyze` exists" —
+  produced a discipline in the meantime: the *mandatory legibility
+  surface* (analyze previews that match outcomes, pips on items, the
+  check-does-nothing lint). The toy now ships with its own handles.
+- **By-hand crafting is a toy inside a game.** The manual build —
+  pour, stir, shake, strain, garnish — is fun to *do* regardless of
+  the order ticket; off-spec experiments mint generic results instead
+  of failing. Bartending is a fidget toy with an economy attached.
+- **Scripting is the purest toy in the design.** Commands compose
+  into programs; the prompt is an interpreter; demonstration capture
+  turns *doing* into *automation*. It has no goal at all — it is
+  entirely "fun to play with," and it converts players into makers,
+  which feeds the next section.
+- **The social fabric got autonomous.** NPC brains (idlers,
+  wanderers, patrollers, greeters, reactors, dialogue trees, brains
+  that visibly express traits), reactions, emotes — the world is
+  worth poking when no other player is on. The prior entry's
+  "NPC liveliness is toy-critical" implication was *built*.
+
+**Verdict: Q1 passes on design** — with the honest caveat that
+*nothing has been playtested*, and toy-ness is precisely the property
+you cannot verify from architecture.
+
+### Q1's inversion — where are the games?
+
+Schell's warning runs one way (games hollow without a toy under
+them); Saxonberg's risk runs the *other* way: a magnificent toy with
+the games left as an exercise. The design's answer is that the games
+are **player-authored and world-supplied, not scripted**: livelihood
+(a job, a business, a craft), mastery (Disciplines and bands),
+property (the dorm → apartment ladder), standing (renown, influence,
+office), combat consented into. And for the education vertical, the
+**curriculum is the game built on the toy** — coursework and
+credentials are the goal-structure, the world is the ball. That is
+"fun on two levels" restated as the whole product thesis: the toy
+must be fun *so that* the vertical's game has something true to
+stand on.
+
+### Q2 — does it invite interaction on sight?
+
+Still the structural fight of the medium, and the prior entry was
+right to call it the biggest threat. What's shipped since: every
+clickable previews the command it will type (the ghost command line),
+the inspection pane surfaces what's around you, prompt wheels make
+choices tangible, the cockpit's affordances are the "pick me up" that
+a bare prompt can't say. What hasn't happened: a single stranger
+sitting down in front of it. **Q2 is unproven and unprovable until
+playtest.**
 
 ## Tensions & risks
 
-- **Text has a brutal toy-discoverability problem.** Schell's second
-  question — does it invite play *on sight*? — is where text fights its
-  own medium. A physical toy says "pick me up" by existing; a blank
-  command prompt says nothing. The honest-physics sandbox is a
-  wonderful toy *only if you know `analyze` exists*. The mitigations are
-  real — the cockpit's clickable affordances, the inspection pane
-  surfacing what's around you, the learnability gradient where a form
-  echoes the command it produced
-  ([interaction-philosophy.md](../interaction-philosophy.md)) — but they
-  are *mitigations for a medium that does not invite manipulation by
-  default*. This is the single biggest threat to the game's toy-ness,
-  and it's structural.
-- **Much of the toy value is latent in unsurfaced substrate.** Honest
-  physics is a great toy in principle; whether it's a great toy in
-  practice depends on whether the verbs to play with it are
-  *discoverable and delightful* rather than clinical. `analyze sound
-  here` is powerful; is it *fun*? The substrate exists; the playful
-  surfacing of it largely doesn't yet.
-- **Goal-free fun leans hard on presence.** A toy world with no other
-  players and inert NPCs is a bad toy — the "mess around" loop needs
-  something to mess around *with*. The lounge-seating design fights
-  cold-start emptiness for players; NPC idle-autonomy fights it for the
-  world. Both are load-bearing for toy-ness, and an empty server with
-  frozen NPCs fails the lens regardless of how good the substrate is.
+- **Toy-ness is the one claim architecture can't settle.** Every
+  system above *should* be fun to poke; none has been poked by a
+  person who didn't build it. The lens converts directly into a
+  playtest protocol (below) — until then, Q1's "pass" is a design
+  verdict, not an experience verdict.
+- **Q2 remains structural.** Text does not invite manipulation by
+  existing. The mitigations are real and shipped; whether they fire
+  in the first 30 seconds of a stranger's attention is the single
+  most important unknown in the project.
+- **A toy without playmates is a bad toy.** Goal-free fun leans on
+  presence — other players, live NPCs. Brains and the lounge fight
+  the cold start, but server-emptiness still fails the lens no
+  matter how good the substrate is.
 
 ## Implications
 
-1. **Add the Toy as an explicit design check, above "stands alone."**
-   For any system, ask: strip the goals — is the moment-to-moment
-   manipulation fun? Apply it hardest to the physics sandbox, where the
-   toy is most latent and most pedagogically valuable.
-2. **Treat text-toy discoverability as a first-class problem, not an
-   onboarding detail.** The cockpit affordances and the
-   command-echo gradient are the answer to "invites play on sight";
-   they should be designed *as toy-invitation*, not just as a
-   beginner ramp. "What makes a player reach out and touch something in
-   the first 30 seconds?" is a real, answerable design question.
-3. **Surface the three existing toys deliberately and delightfully.**
-   Authoring, social/emote play, and the physics sandbox are the
-   game's real toys. Each deserves a surface that's discoverable and
-   *fun to handle*, not merely functional. The dorm-authoring climax is
-   the bar; the physics sandbox is furthest from it.
-4. **Make NPC liveliness a toy requirement, not just an immersion
-   nicety.** Idle routines, reactions, recognition — these are what
-   make the world a thing worth poking when no player is around. That
-   reframes the NPC-autonomy work as toy-critical, which raises its
-   priority.
-5. **A passed Toy is the best ethical insurance there is.** The more
-   genuinely fun the game is with no goals and no rewards, the less it
-   needs manipulative extrinsic hooks to hold players — see
-   [Motivation](./motivation.md) and
-   [Transformation](./transformation.md).
+1. **"Build the toy first" becomes "playtest the toy first."** The
+   first playtest protocol should be goal-free: hand a stranger the
+   world with no instructions and *watch what they touch* — Q2
+   measured directly, and Schell's "surprised by what makes it fun"
+   harvested deliberately. What testers poke unprompted is data no
+   design review can produce; it should steer which toys get surfaced
+   hardest.
+2. **The authoring stack is the "braver way" institutionalized**
+   (platform-layer coda): scripts, blueprints, the CMS, dorm
+   personalization are toys players build before anyone knows what
+   games they enable — Schell's divining rod, running continuously
+   inside the product. The platform's bet is that player-built toys
+   become the games we didn't design.
+
+   **The NetHack accretion thesis** (named 2026-07-28): NetHack is
+   what it is because years upon years of different devs each coded
+   one unique experience in — "the DevTeam thinks of everything" is
+   accreted human ingenuity, not a content budget. Dissolving the
+   player/maker line aims at the same accretion **over much shorter
+   timespans** — but by a different method, because our discipline
+   forbids NetHack's (hand-coded pairwise special cases). The honest
+   models are the base chemistry set; the community/polity adds
+   **nouns** (items, materials, rooms, brains, scripts, recipes) and
+   the physics supplies the **verbs** for free — a player-authored
+   brass lantern participates in fire, shock, thermal mass, and
+   wetness without its author writing any of it. NetHack accreted
+   *rules*; we accrete *content over fixed honest rules* — so
+   contributions compose instead of colliding — with governed
+   rule-growth reserved for the wizard tier, and the trust ladder +
+   producer standing making the accretion safe *and paid*.
+3. **The GTA anecdote is the education-vertical pitch in miniature.**
+   A world built as a medium, proven fun, then given its game — ours
+   is the curriculum. When explaining the product to education
+   stakeholders, this is the lens to reach for: the toy is why the
+   game part works ([study-com-strategy.md](../study-com-strategy.md):
+   fun is the carrier).
+4. **Keep the legibility discipline as toy policy.** Analyze-preview
+   parity, pips, does-nothing lints — these are what make an honest
+   model *handleable*. Any new channel ships with its handles or it
+   isn't a toy, it's plumbing.
+5. **A passed Toy is still the best ethical insurance there is** —
+   the more fun with no goals and no rewards, the less temptation
+   toward manufactured urgency. Unchanged, and now co-stated with the
+   high-stakes guardrail: the game's stakes stay borrowed, its fun
+   stays its own. See [Transformation](./transformation.md).
 
 ---
 
 [^aogd-toy]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
-    3rd ed. (CRC Press, 2020) — **Lens #17, the Lens of the Toy**
-    (p. 113), from "Prototyping Tip #9: Build the Toy First" (the
-    prototyping chapter). The "fun to play with" framing and the
-    *Lemmings* / *Grand Theft Auto* examples (via designer David Jones)
-    are Schell's. (Related: the Lens of Curiosity — see
-    [curiosity](./curiosity.md).) 3rd-edition print pagination; lens
-    number stable across editions.
+    3rd ed. (CRC Press, 2020) — **Lens #17, the Lens of the Toy**,
+    from the prototyping-tips chapter ("Build the Toy First"; the
+    toys-vs-games distinction is Chapter 4's). Re-read from the
+    author's Google Play edition, 2026-07. The two questions, the two
+    ways to use the lens, and the *Lemmings* / *Grand Theft Auto*
+    accounts (David Jones: "designed as a medium … a living, breathing
+    city"; "GTA came from Pac-Man") are Schell's; all analysis ours.

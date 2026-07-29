@@ -3,9 +3,16 @@
 > Part of the [design lenses](./README.md) set. Lens named from Jesse
 > Schell's *A Book of Lenses*; questions paraphrased, analysis our own.
 >
+> **Fresh pass, entry 18 (2026-07-28), revised in place** — read at
+> the user's instruction *before any video scripting*; § The script
+> gate below is the operative output. The original entry's analysis
+> holds and is kept; this revision adds the ethics apparatus the
+> fresh pass built, the 3rd edition's transformational-games
+> material, and the gate.
+>
 > **Layers interrogated: both** — behavior engineering and surveillance
-> are inherent to the platform; intentionally transforming minors is the
-> game's duty of care.
+> are inherent to the platform; intentionally transforming learners is
+> the game's duty of care.
 
 ## The lens
 
@@ -24,7 +31,23 @@ for them."
 > trash-talk anymore" and was unnerved that "a simple game for children
 > had manipulated his thought patterns so easily." Schell's charge is to
 > wield that power deliberately, using games "not just as an amusement,
-> but as a valuable tool for improving the human condition."[^aogd-tf]
+> but as a valuable tool for improving the human condition."
+>
+> Two additions from the full-chapter re-read (2026-07): the violence
+> discussion lands on an insight that generalizes — graphic content is
+> an *aesthetic* choice players see through, and real-world violence
+> "is seldom a means toward an end; instead, it is a form of
+> communication … a desperate way of saying 'I'm going to show you how
+> much you are hurting me.'" (Relevant to our consent-and-terms combat:
+> the design already treats violence as negotiated communication, not
+> content.) And the chapter's resource list is a curriculum for exactly
+> our product category — foremost **Sabrina Culyba's *The
+> Transformational Framework*** (Schell Games' process tool for
+> designing games that intend change; free ETC Press download —
+> **required reading at requirements-time for the vertical**), plus
+> Gee (*What Videogames Have to Teach Us About Learning and
+> Literacy*), van Merriënboer & Kirschner (*Ten Steps to Complex
+> Learning*), and Whitton (*Digital Games and Learning*).[^aogd-tf]
 
 ## Why our design prompts it
 
@@ -64,6 +87,61 @@ Ethical instincts are wired into specific decisions, not just principles:
 
 Minor individually; together they show a design that *defaults toward
 not-collecting* — the right default for this lens.
+
+### The 2026-07 re-run: the pass built this lens an apparatus
+
+The fresh pass repeatedly deferred ethics questions "to
+Transformation." Consolidating what actually accrued — the design
+now has *named, written commitments* this lens can audit against,
+where the original entry had instincts:
+
+- **The high-stakes reconciliation** (strategy doc): the avatar
+  borrows its stakes and has none that compete; no manufactured
+  urgency — stated as a sayable guardrail, not a vibe.
+- **The chosen-hafta rule** (motivation): every obligation
+  consensual and exitable; no ambient hafta; decay confined to
+  standing, never competence.
+- **No badges, no leaderboards** (endogenous value): the
+  detachment-prone layer stayed unbuilt; bands-and-ledgers instead.
+- **The two formal predicates** (griefing, cheatability):
+  non-consented harm and falsified provenance — misconduct defined
+  in the model, adjudicable, not moderator vibes.
+- **Fantasy stays earned** (fantasy): wish fulfillment for strivers
+  must never hand out the competent-one feeling — honest difficulty
+  is part of the wish.
+- **Quests are invitations** (curiosity, corrected): an arc may
+  make you care; it may not reduce the learning to a checklist.
+  vision.md's "targeted motivation" quests — arcs aimed at avoided
+  material — are legitimate *and* are exactly the dream/nightmare
+  mechanism, so they inherit the scaffolding-with-a-fade-plan rule.
+
+This lens's job going forward is auditing new work against that
+list — the commitments exist; drift is now detectable.
+
+### The script gate (why this entry was re-read now)
+
+The videos claim things about learners on camera. Before any script
+locks, it passes these checks:
+
+1. **Describe design, not build-state, inaccurately never** — the
+   standing rule, now an ethics rule too: an exec who greenlights a
+   pilot on an overstated demo is a betrayed champion later.
+2. **The video-4 claim is bounded.** "The character is honest
+   evidence about the human" holds only under alignment (honest
+   modeling, anti-Sybil, the evidence guards) — say it with its
+   conditions, or the strongest claim in the deck becomes the
+   easiest to puncture.
+3. **No engagement-for-engagement's-sake framing anywhere** — the
+   metric story is completion of the real thing; if a cut sells
+   time-on-site, it fails the gate.
+4. **The stakes language stays honest**: rigor as an unlock,
+   urgency belongs to the real goal, the game never competes with
+   the learner's obligations — the reconciliation, verbatim, in
+   whatever words the script uses.
+5. **Footage duty of care**: real course names and real assessment
+   claims stay accurate to the partner's actual products
+   (identity-verified, not "proctored"); no minors implied in
+   scenarios aimed at adult verticals.
 
 ## Tensions & risks
 

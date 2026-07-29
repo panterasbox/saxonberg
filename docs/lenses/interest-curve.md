@@ -1,112 +1,143 @@
 # Lens: The Interest Curve
 
-> Part of the [design lenses](./README.md) set. Built on Schell's Lens
-> of the Interest Curve (the "hook" is one of its questions, not a
-> separate lens). Lens named from *A Book of Lenses*; questions
-> paraphrased, analysis our own.
+> Part of the [design lenses](./README.md) set. Lens named from Jesse
+> Schell's *A Book of Lenses*; questions paraphrased, analysis our own.
 >
-> **Layer interrogated: the game** (the authored first-session arc).
+> **Fresh pass, entry 15 (2026-07-28), revised in place** — third of
+> the videos quartet; corrected same day (an earlier draft assumed a
+> "no-quests" design — false; quests are a primary arc tool here).
+> The original entry read this lens at the onboarding arc; this
+> revision adds the two consumers that matter now: the five-minute
+> video and the ordinary session. Original in git history.
+>
+> **Layer interrogated: the game** (arcs are authored or
+> system-emitted), plus the videos as experiences in their own right.
 
 ## The lens
 
-Plot the player's interest against time and you get a curve. A good one
-opens with a *hook* — a spike that grabs attention before the player is
-invested — settles a little, then rises through a series of ups and
-downs to a peak near the end. The questions: what's my hook? Does
-interest rise overall, or sag in the middle? Where are the peaks and
-valleys, and are they where I want them?
+Draw the player's interest against time. Seven questions: **what
+shape is the curve? Does it have a hook? Gradually rising interest,
+punctuated by rest? A grand finale more interesting than everything
+else? What changes would improve the curve? Is the structure fractal
+— should it be? And do playtesters' drawn curves match my
+intuition?**
 
-> **From the book.** Schell's claim is that "the most pleasurable
-> patterns of … captivation are remarkably similar for everyone" — almost
-> any well-shaped experience traces the same curve, one you can literally
-> *draw* and critique. The lens asks the shape directly: "Does it have a
-> hook? Does it have gradually rising interest, punctuated by periods of
-> rest? Is there a grand finale, more interesting than everything else?"
-> He adds that the curve is *fractal* — the same shape recurs across the
-> whole game, each level, and each challenge — and recommends having
-> playtesters draw their own curve to check your intuition against what
-> players actually felt.[^aogd-icv]
+> **From the book.** "The most pleasurable patterns of captivation
+> are remarkably similar for everyone" — hook, rising action with
+> rests, grand finale. The structure is **fractal**: videogames run
+> it at three levels at once (overall game / each level / each
+> challenge), and each challenge deserves its own well-shaped curve.
+> The empirical check is literal: ask playtesters to draw the curve
+> they felt.[^aogd-icv]
 
 ## Why our design prompts it
 
-Because the onboarding sequence is, almost literally, an authored
-interest curve — and we have it beat-by-beat. The
-[onboarding](../slates/builds/onboarding-slate.md) /
-[lounge](../slates/builds/lounge-slate.md) /
-[eternal-university](../slates/builds/eternal-university-slate.md) arc is a
-deliberate escalation, which means it can be plotted, critiqued, and
-tuned exactly as this lens intends.
+Three arcs need the lens now. The **videos**: a five-minute video is
+an interest curve, full stop — hook in the first fifteen seconds,
+rising demonstration, a finale that lands the moment. The
+**session**: an evening of play draws its curve from three sources —
+an active quest arc (authored curve), the world's rhythm (systemic),
+and the player's own goals — and the mix deserves checking. And the
+**onboarding arc** (the original entry's subject): the exemplar
+authored curve, and structurally the game's first quest.
 
 ## What the design answers
 
-Plotting the first-session curve:
+### The fractal map
 
-- **Hook** — char-gen is fast and welcoming, then you spawn into the
-  **lounge with people already there** and can talk immediately. The
-  hook is *social presence*, not spectacle — you're somewhere, with
-  others, instantly.
-- **Rise to an early peak** — campus arrival lands **"you're in for
-  anything"**: an unmistakable campus that announces it's "nowhere
-  real." This is the awe spike, the world revealing its strangeness.
-- **Sustained middle with variation** — the guided walk (signs, the
-  greeter, Dr. Limen's voice), then a concrete novelty beat: installing
-  a **demo augment** at the Health Center. Learn-by-doing keeps the
-  middle from sagging.
-- **Climax** — the **dorm room you author**, "the first thing you make
-  that's yours." The session ends on agency and ownership.
+- **Challenge tier — covered, once.** Combat is the worked example:
+  the narration adapter's escalation (poise bands as rising action,
+  beat intensity swelling, the coup as designed climax) is a
+  Schell-shaped curve emitted by rules. The moments entry's
+  narration-adapter category is this tier's build list: each
+  dramatic domain earns its curve.
+- **Session tier — quests are the designed answer.** An evening in
+  the world has systemic rhythm (shifts, weather segments,
+  departures, the bar's social hours), the player's own goals, and
+  — this is what authored arcs are *for* — whatever quest is
+  currently carrying them: a chunk of narrative with a beginning,
+  middle, and end is precisely a session-scale interest curve,
+  installed by an author. Quest density and pacing are therefore
+  the primary session-curve tool; world-rhythm dials are the
+  secondary one; and the playtest should check what sessions look
+  like both mid-arc and between arcs.
+- **Career tier — strong by construction.** The long arc (arrive
+  nobody → livelihood → mastery → property → standing) is a rising
+  curve with built-in rests; the essence re-test showed the systems
+  grew into it. The finale question is open on purpose (the
+  mortal-vessel arc is the designed "grand finale" candidate).
+- **Onboarding — the authored exemplar, unchanged**: welcomed →
+  oriented → voiced → authoring your own space, with the dorm as
+  the first-session finale. Still plottable beat-by-beat; still the
+  bar other authored sequences must clear.
 
-The design also handles the lens's subtler demand well:
-**first-login-only**. Returning players skip the scripted curve — you
-don't replay a hook, and the lounge provides their (social) re-entry
-beat instead.
+### The video curve, made explicit
+
+Applying the seven questions to the five-minute reference-doc form:
+
+- **Hook** — the moment, teased cold: the wall the player can't
+  pass, the prose that's about to become physics. Fifteen seconds,
+  no logos, no thesis statement.
+- **Rising** — the demonstration compounds (the systemic-curiosity
+  chain: each answer plants the next question on screen).
+- **Rests** — the reference-doc register *is* the rest: a calm
+  sentence of real figures between beats. Tone discipline doubles
+  as curve discipline.
+- **Finale** — the moment, paid off whole (the conferral fires; the
+  firewood lights). The exec read rides the descent after the
+  peak, never displaces it.
+- **Fractal** — the series itself needs a curve: which video hooks
+  the series, which is its finale. (Series-order is an interest-
+  curve decision, not a stakeholder-priority decision — the two
+  orderings may differ, and that's fine.)
+
+### The playtest check joins the protocol
+
+The goal-free first session (the Toy's protocol) gains one
+instrument: **ask testers to draw their session's interest curve.**
+Cheap, Schell-canonical, and it answers the session-tier question
+above with data instead of worry.
 
 ## Tensions & risks
 
-- **Two different peaks, and the big one comes early.** The *awe* peak
-  (campus arrival) is front-loaded; the *agency* peak (dorm authoring)
-  is the quieter, more personal close. That's a defensible inversion of
-  the classic rise-to-biggest-spectacle curve — ending on ownership is
-  emotionally right for a game about becoming — but it should be a
-  *chosen* shape, not an accident, and the stretch between the two peaks
-  has to not sag.
-- **The handoff cliff.** This lens is about the *whole* experience;
-  onboarding is one arc. What's the interest beat immediately *after*
-  the dorm? If a beautifully-curved 20-minute onboarding drops into an
-  undesigned "now what?", the curve cliffs at the worst moment — right
-  after you've maximized investment. The post-onboarding curve (the
-  ongoing game loop) is largely undesigned and is the real risk here.
-- **Skippable means curve-less for the informed.** An informed player
-  blows through the scripted beats, getting no authored curve. That's
-  fine *if* the lounge hook works without the scripted spectacle — but
-  it means the hook for veterans rests entirely on social presence, so
-  that beat has to carry real weight.
+- **Between-arc sessions have no authored safety net.** Mid-quest,
+  the curve is the author's job; between quests it rides world
+  rhythm and player goals alone. If playtests draw between-arc
+  flatlines, the fixes are more/better-paced arcs, rhythm, and
+  witnessability together — with the prescripting law as the
+  balance check (arcs over live systems add stories; arcs that
+  script events away subtract them).
+- **The reference-doc register caps the video hook's flash.** Our
+  hooks must be *interesting claims shown*, not trailers — which is
+  harder and slower than a sting. The vitals script's cold open is
+  the standing proof it can work; hold that bar.
+- **Curves drawn by the designer lie.** Every tier above is my
+  intuition of a shape; Schell's last question outranks the other
+  six. Until testers draw, all curves here are hypotheses.
 
 ## Implications
 
-1. **Name the two peaks and design the span between them.** Awe at
-   arrival, agency at the dorm — make the inversion deliberate, and
-   ensure the guided-walk middle has enough variation (the demo augment
-   is one beat; check there are enough) to hold interest across the
-   stretch.
-2. **Design the handoff, explicitly.** The single highest-leverage gap
-   this lens exposes: the beat *after* dorm authoring. Onboarding must
-   hand off to the game's ongoing interest curve, or it cliffs at peak
-   investment. This is a real design task, not a detail.
-3. **Validate the veteran hook.** Confirm the lounge social landing
-   hooks returning players without the scripted beats — for them it's
-   the *only* hook there is.
-4. **Plot it for real.** This is the rare lens you can literally draw.
-   Sketch the curve, mark the beats, and use it to find the sag — the
-   doc has the beats; the curve is one diagram away.
+1. **Every video script ships with its curve drawn** — hook beat,
+   rising beats, rest beats, finale — checked against the seven
+   questions before recording. Series order gets its own curve
+   pass, separate from stakeholder priority.
+2. **Playtesters draw curves** — added to the goal-free session
+   protocol alongside "freedom or errands?" and Perry's triad
+   probe. The session-tier verdict (shape or flatline) is the
+   single most valuable unknown this lens can settle.
+3. **Narration adapters are the challenge-tier curve budget**
+   (shared implication with moments/story-machine): each new
+   adapter is a curve where there was a flatline.
+4. **Keep the career finale question open but named** — the
+   mortal-vessel arc is the candidate grand finale; nothing else
+   in the design competes, and someday the lens will ask.
 
 ---
 
-[^aogd-icv]: Jesse Schell, *The Art of Game Design: A Book of Lenses*,
-    3rd ed. (CRC Press, 2020) — **Lens #69, the Lens of the Interest
-    Curve** (p. 305), from the chapter "Experiences Can Be Judged by
-    Their Interest Curves." The "hook" is one of *this* lens's own
-    questions, not a separate "Lens of the Hook" (an earlier version of
-    this note invented one); the neighboring lens in the chapter is
-    **#70, the Lens of Inherent Interest**. The fractal-curve idea is
-    Schell's. 3rd-edition print pagination; lens numbers stable across
-    editions.
+[^aogd-icv]: Jesse Schell, *The Art of Game Design: A Book of
+    Lenses*, 3rd ed. (CRC Press, 2020) — **Lens #69, the Lens of
+    the Interest Curve**, from the interest-curve chapter (re-read
+    from the author's Google Play edition, 2026-07). The seven
+    questions, the hook/rise/finale pattern, the three-level
+    fractal observation, and the playtester-drawn-curve method are
+    Schell's; all analysis ours.

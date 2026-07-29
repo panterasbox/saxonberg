@@ -21,6 +21,10 @@ the tier that fits. Sizes are rough — move anything that feels mis-tiered.
 
 ## 🌙 Nightcap — an evening, design settled, mostly mechanical
 
+- **Fountain + acoustic profile** — one authored object with honest dB/Hz emission + the textbook-checkable fact (video 4's prop). *(demo-slate)*
+- **Mobile-floor check** — frame a phone session (a fight + a forum) against the chat-app minimal core; outcome = shootable or a punch-list. *(demo-slate)*
+- **Conferral ceremony beat** — the threshold-ceremony micro-build, first of three (key/wage/conferral); diegetic, Katie-grade. *(demo-slate)*
+
 - **GFM table sugar** — accept `| a | b |` table input in the MML renderer. Pure parser. *(message-rendering)*
 - **`whois` / `locate` verb** — surface the already-captured country (+ city/region) as a verb; data's already on `Interactive`. *(connection-origin)*
 - **Player nicknames** — `name X as Y` writing into the existing belief store; recognition reads it. *(recognition)*
@@ -37,7 +41,16 @@ the tier that fits. Sizes are rough — move anything that feels mis-tiered.
 - **Host-slot activities** — Mount/Sit/Lie/Drive as real engaged activities (sketched with code already). *(host-slot-activities)*
 - **Smoke / contaminant breathing** — light the already-laid `contaminant` column → toxin-via-lungs (couples to metabolism). *(respiration)*
 
+## ☕ Half-day (continued — demo cluster)
+
+- **Mock issuer adapter** — signed lesson-completed/exam-passed fixture → claim/deed evidence → conferral fires. Unblocks videos 1+3 AND is the pitch demo. *(demo-slate — highest leverage on that list)*
+- **Aid-post content** — the delving's aid post: room, dressings, patients via shipped harm/hazard (video 2's stage + the clinical daily loop). *(demo-slate)*
+- **Linkdead-body audit + guest ceiling** — enumerate every verb that can target a disconnected character; define the anonymous-guest capability ceiling. *(griefing lens)*
+
 ## 🌞 Day story — a full day+, real design decisions to make
+
+- **The demo world** — a curated, seeded, deliberately *aged* world-state as a permanent production asset (chronicle depth, title history, named regulars, patients, a stranger). Serves all five videos + demos + playtests; needs its own small design pass. *(demo-slate)*
+- **Economy gym** — agent-based earn/spend sim hunting dominance/inflation/collusion (the combat-gym precedent). *(economy lens)*
 
 - **Weather Wave 2** — fog→visibility, rain→wetness (feeds the thermal wet-collapse), snow depth, hazards. *(weather)*
 - **Thermal Wave 2** — phase-change/ice (latent-heat reserve) + frostbite + per-region coverage + sauna. *(thermal)*

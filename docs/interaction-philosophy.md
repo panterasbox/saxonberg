@@ -162,6 +162,22 @@ against a legible protocol. Not *all* of it is text (binary assets,
 structured metadata payloads, and the transport/auth framing aren't),
 but the load-bearing core is.
 
+**Playing is writing practice.** (Added 2026-07-28.) A fourth
+property, and the one that makes the medium itself pedagogical: in a
+text world, *participation exercises literacy*. Reading the world is
+reading comprehension; speaking, emoting, posting to a board, and
+describing a room you built are composition — and writing is the one
+skill essentially every discipline demands (the essay, the lab note,
+the incident report, the argument). Other media consume attention;
+this one rehearses the universal skill as a side effect of play. The
+LLM caveat cuts both ways and is owned honestly: AI assistance
+lowers the authoring floor (above), and a player who delegates all
+their prose gets less of this benefit — but conversation, the social
+backbone, resists full delegation, so the practice persists where it
+matters most. This argument is platform-layer (any vertical benefits
+from literate participants) with obvious extra force in the
+education vertical.
+
 **The minimal core is a real product, not a fallback.** Strip every
 rich-presentation layer and the game still runs: a streamable conduit of
 message frames whose MML renders down to plain ANSI/VT100 would let you
@@ -172,6 +188,21 @@ that minimal core** — a message stream like a chat app, a command bar,
 and maybe a button bar. Designing text-first means mobile, low-end
 devices, and bad connections come nearly free, because the smallest
 surface is the *real* one, not a degraded port.
+
+Two sharpenings of that point (added 2026-07-28). First,
+**familiarity**: a text stream with a button bar is not merely
+feasible on a phone — it is the *most familiar* mobile interface
+shape in existence, a chat app. The minimal surface needs no
+learning; people already live in it. Second — and stronger — **the
+floor is per-activity, not just per-device.** Some of the richer
+cockpit surfaces (the inspection pane, the builder, an argument
+map) may genuinely be unwieldy on a small screen. But because every
+activity reduces to the stream and the command — exploring, combat,
+chatting, reading forums, personalizing your home, creating content
+— the reliable floor sits under *whatever a session is about*, not
+under some designated "mobile-friendly" subset of the game. There
+is no session type that is desktop-only; there are only session
+types whose decoration you'll enjoy more at a desk.
 
 ---
 
