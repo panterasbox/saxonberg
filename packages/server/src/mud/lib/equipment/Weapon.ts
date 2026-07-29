@@ -32,6 +32,7 @@ import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
 import { DurableMixin } from '../material/Durable';
+import { KeenMixin } from '../material/Keen';
 import { CraftedMixin } from '../craft/Crafted';
 import { SlottableMixin } from '../slot/Slottable';
 import { WieldableMixin } from '../slot/Wieldable';
@@ -51,9 +52,14 @@ import type { Stuff } from '../stuff/Stuff';
 // a weapon can be a recipe output — its persisted `gradeBand` + grade
 // surface ride the inner GradedMixin unchanged, and `maker`/`recipe`/
 // `craftedAt` default empty on store-bought gear.
+// KeenMixin adds the fast-cycling working-surface (edge) axis alongside
+// Durable's structural condition — read only on edge/point delivery, so
+// it's inert for hafted/blunt forms.
 const WeaponBase = WieldableMixin(
   SlottableMixin(
-    CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    KeenMixin(
+      CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    ),
   ),
 );
 

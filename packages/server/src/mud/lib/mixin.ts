@@ -166,6 +166,8 @@ export const Mixins = {
   // A physical thing that wears out with use (the condition/wear gauge).
   // Composed by tools, weapons, and armor alike — durability is not "tool".
   Durable: 'DurableMixin',
+  // The working-surface (edge) wear axis — Durable's fast-cycling sibling.
+  Keen: 'KeenMixin',
   Tool: 'ToolMixin',
   Crafted: 'CraftedMixin',
   Maker: 'MakerMixin',

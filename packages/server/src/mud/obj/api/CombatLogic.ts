@@ -1807,7 +1807,7 @@ interface InflictReport {
  */
 function instrumentDeliveryScale(
   weapon: Stuff | null,
-  _channel: Channel,
+  channel: Channel,
 ): number {
   if (!weapon) return 1;
   const grade = MixinApi.isGraded(weapon) ? weapon.getGrade() : undefined;
@@ -1815,6 +1815,13 @@ function instrumentDeliveryScale(
     ? weapon.getCondition()
     : undefined;
   let scale = MaterialApi.gradeConditionScale(grade, condition);
+  // The working-surface factor — the edge only matters on the edge.
+  if (
+    (channel === "edge" || channel === "point") &&
+    MixinApi.isKeen(weapon)
+  ) {
+    scale *= weapon.keennessDeliveryFactor();
+  }
   if (MixinApi.isDurable(weapon) && weapon.isBroken()) {
     scale = Math.min(
       scale,
@@ -1826,13 +1833,20 @@ function instrumentDeliveryScale(
 
 /**
  * Wear-on-use for a landed weapon strike (Law 2: use, never the clock):
- * the weapon's structural condition wears per strike. (The edge/point
- * keenness dull joins with the `Keen` axis.)
+ * the weapon's structural condition wears per strike, and an edge/point
+ * delivery also dulls the working surface (the fast-cycling keenness
+ * axis `sharpen` restores).
  */
-function wearWeaponOnStrike(weapon: Stuff | null, _channel: Channel): void {
+function wearWeaponOnStrike(weapon: Stuff | null, channel: Channel): void {
   if (!weapon) return;
   if (MixinApi.isDurable(weapon)) {
     weapon.wear(dial(AppSettingKeys.craftingWearWeaponPerStrike, 0.004));
+  }
+  if (
+    (channel === "edge" || channel === "point") &&
+    MixinApi.isKeen(weapon)
+  ) {
+    weapon.dull(dial(AppSettingKeys.craftingKeennessWearPerUse, 0.08));
   }
 }
 

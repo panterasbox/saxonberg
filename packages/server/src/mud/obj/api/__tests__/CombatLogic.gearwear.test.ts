@@ -215,6 +215,40 @@ describe("CombatLogic — gear wear on use", () => {
     expect(plate.getCondition()).toBeLessThan(1);
   });
 
+  it("a landed edge strike dulls the blade; a dulled blade lands less; sharpen restores; the two axes are independent", () => {
+    // A dulled-but-sound blade vs a keen one — same fight twice.
+    const room1 = makeStuff(() => new TestRoom());
+    const atkr1 = makeFighter(room1);
+    const keenBlade = armWith(atkr1, 1);
+    const bare1 = makeFighter(room1);
+    const s1 = open(atkr1, bare1);
+    landStrike(s1, atkr1, bare1);
+    const keenSeverity = worstSeverity(bare1);
+    expect(keenSeverity).toBeGreaterThan(0);
+    // The landed edge strike dulled the working surface AND wore the
+    // structure — two axes, both moved by use.
+    expect(MixinApi.isKeen(keenBlade) && keenBlade.getKeenness()).toBeLessThan(1);
+    expect(keenBlade.getCondition()).toBeLessThan(1);
+
+    const room2 = makeStuff(() => new TestRoom());
+    const atkr2 = makeFighter(room2);
+    const dulledBlade = armWith(atkr2, 1);
+    if (MixinApi.isKeen(dulledBlade)) dulledBlade.setKeenness(0); // blunted, sound
+    const bare2 = makeFighter(room2);
+    const s2 = open(atkr2, bare2);
+    landStrike(s2, atkr2, bare2);
+    const dulledSeverity = worstSeverity(bare2);
+    // Measurably less on the edge channel — and no repair needed:
+    // sharpen alone restores the delivery.
+    expect(dulledSeverity).toBeLessThan(keenSeverity);
+    if (MixinApi.isKeen(dulledBlade)) {
+      dulledBlade.hone();
+      expect(dulledBlade.getKeenness()).toBe(1);
+    }
+    // Sharpening never touched the structural axis.
+    expect(dulledBlade.getCondition()).toBeLessThan(1); // worn by its strike
+  });
+
   it("a wrecked blade's delivered energy is floored down (broken floor)", () => {
     // Same fight twice — a pristine blade vs a near-zero-condition one.
     const room1 = makeStuff(() => new TestRoom());

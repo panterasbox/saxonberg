@@ -82,6 +82,13 @@ export default class AnalyzeWeaponController extends CommandController<AnalyzeWe
     if (MixinApi.isDurable(stuff) && stuff.isBroken()) {
       lines.push(`  broken — it will barely bite until repaired`);
     }
+    // The edge band (bands only — raw keenness stays off every surface).
+    if (
+      MixinApi.isKeen(stuff) &&
+      channels.some((c) => c === 'edge' || c === 'point')
+    ) {
+      lines.push(`  edge ${stuff.getKeennessBand()}`);
+    }
     lines.push(
       `  reach ${profile.reach()} ${pipBar(profile.reachRank(), 2)}`,
     );
