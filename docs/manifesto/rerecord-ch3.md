@@ -52,11 +52,10 @@ full of different people, it's the same crowd measured by what they contribute. 
 decision, read three ways, passing only when two of the readings agree.
 
 **[3 — money, and where it stops]**
-Money is the case everyone watches, so here's the exact line. Capital earns a real voice —
-it's how the lights stay on — but the counts are separate, so it stops at its own. Money
-can make you the loudest funder in the room; it can't make you a maker, a player, or a
-winner. That's a narrow claim, not a grand one: nothing stops you investing or profiting —
-money just moves the funders' count and stops there.
+Money is the case everyone watches, so here's the line. Funding the place earns a real voice
+— it's how the lights stay on — but only in capital's own chamber, and because the counts
+are separate, that's where it stops: never a vote among the makers or players, never an edge
+out in the world. And as the law stands today, that voice is just stake, not equity, so there's nothing to cash out.
 
 **[4 — standing: a product of quantity and quality, given by others]**
 So what is a "voice" actually made of? It's called standing — and standing is a
@@ -97,6 +96,8 @@ That's next.
 until now" · "the tie falls toward the people the thing is *for*" · "a chamber isn't a
 room of different people — it's the same crowd measured by what they contribute" ·
 "money can make you the loudest funder in the room; it can't make you a winner" ·
+"as the law stands today, a voice — not an investment: no shares, no dividends, nothing to
+cash out" ·
 "standing is a product of quantity and quality — zero of either, and it's zero" ·
 "earned and spent, never owned."
 
@@ -116,6 +117,26 @@ room of different people — it's the same crowd measured by what they contribut
   - **"Firewall" survives as a NAME**, not as a built object — it's still the handle for the
     floor guarantee in Ch 7 Beat 2. Don't purge the word there; just don't build prose or
     pictures that treat it as an installed wall.
+  - **⚠⚠ Funding is a voice, not an investment — TODAY, by law (revised 2026-07-26; two
+    rails).** Capital-chamber standing gives you a **say in capital's chamber**, not shares,
+    dividends, ownership, or profit. But there are **two rails, not one**:
+    1. **(present, legal — non-optional)** Under *today's* securities law this cannot be an
+       investment (Howey: money in a common enterprise expecting profit from others' efforts
+       = a security). So never describe it as one *now* — an earlier draft's "nothing stops
+       you investing or profiting" implied exactly the equity stake this can't currently be.
+    2. **(don't foreclose the future)** Frame the limit as **the law as it stands, not the
+       nature of the design** — the user wants the door left open to hooking into real
+       capital markets someday *if* securities law were changed to allow a new corporate
+       structure. So DON'T write permanent-impossibility language ("can never be," "isn't an
+       investment and never will be"). Say **"as the law stands today, a voice — not an
+       investment."** Present-tense locates the constraint in the law and quietly keeps the
+       door open.
+    - **The trap between the rails:** keeping the door open must NOT tip into *promising or
+      hinting a future return* ("someday this could pay off / get you in early") — marketing
+      a future profit is itself the securities risk. Keep the future *unforeclosed*, never
+      *promised*. Words to keep OUT of public copy: *invest, investor, profit, return,
+      dividend (except to negate), equity, shares (except to negate), get-in-early.* This is
+      the outline's promised **"not a security"** line. See [[capital-standing-not-a-security]].
 - **Forward hand-off to Ch 4 added (2026-07-17 coherence pass).** Ch 3's close ("only
   earned, and only given") handed nowhere, and Ch 4 opened cold — the most abrupt seam in
   the series (worsened by the deep-dive order doing chambers/Ch 3 before argument/Ch 4).

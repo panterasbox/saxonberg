@@ -14,11 +14,13 @@
 ## Narration (draft — plain explainer)
 
 **[1 — origin, then the problem]**
-It begins with something ordinary: online, people already govern themselves. From the
-early internet's text worlds to today's livestreams and Discord servers, they make their
-own rules and keep their own order with nothing but each other. Self-organizing isn't rare
-online — it's constant. Where it breaks down is turning it into real self-government:
-getting people to take part in the deciding, not just the hanging out.
+Start with a puzzle. Online, people organize themselves all the time — a livestream's chat
+polices itself, a subreddit writes its own rules, a Discord grows a whole culture of mods
+and roles and norms nobody handed down. Running a community, informally, is something people
+already do everywhere. So why is *real* self-government — a group deliberately setting its
+own rules, together — still the exception? Not for lack of tools. What's scarce is
+participation: enough people willing to do the actual work of deciding, not just enjoy a
+place that someone else runs.
 
 **[2 — a game makes you care: investment]**
 A game is the rare thing that pulls people in without being asked — through **investment.**
@@ -74,6 +76,15 @@ keeps taking in more."
 
 ## Notes
 
+- **⚠ Beat 1 must NOT echo Ch 1's Beat 0 verbatim (revised 2026-07-26).** When Ch 1's opener
+  was rewritten to lead on *participation*, it lifted this beat's exact phrasing
+  ("self-organizing is constant" / "make their own rules and keep their own order" / "take
+  part in the deciding, not just the hanging out") — so across the playlist Ch 2 opened as a
+  word-for-word repeat of Ch 1. Ch 1 is the **canonical** phrasing; this beat carries the
+  **same substance in different language** and from Ch 2's own angle (a *puzzle* — informal
+  self-organizing is everywhere, yet real self-government is rare; the scarce thing is
+  participation → hands into Beat 2's "a game makes you care"). Keep them worded distinctly;
+  don't re-sync.
 - **Forward hand-off to Ch 3 added (2026-07-17 coherence pass).** Ch 2 used to end on the
   laboratory line with no pointer forward — the old forward CTA lived in the now-cut Outro,
   so the seam was orphaned. Added one bridge sentence after "try it, watch it break, and

@@ -34,8 +34,7 @@ so a law can be enforced by the machine directly — written into the world so t
 simply holds.
 You can't walk through a wall; you can't spend money you don't have. Nothing catches you
 after the fact — it just can't happen. And in a world made of code, the people who can
-*write* it hold a power the rest don't: they can reach in and make a rule part of
-reality. It makes them **wizards** — and that ability is the force behind everything the
+*write* it hold a power the rest don't: they can reach in and make that rule a function of the world's physical reality. It makes them not just executives but makes them **wizards** — and that ability is the force behind everything the
 machine enforces here.
 
 **[3 — the maxim, and the human half]**
