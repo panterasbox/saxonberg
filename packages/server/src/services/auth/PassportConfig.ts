@@ -8,6 +8,11 @@
  *     endpoints, with the Helix `/users` identity fetch done in the
  *     verify callback — mirrors the `GoogleStrategy` shape rather than
  *     taking a lightly-maintained `passport-twitch-*` wrapper.
+ *   - Kick OAuth 2.1 (login + link), gated on `KICK_*` env. The Twitch
+ *     transcription with `pkce: true` (Kick mandates S256; the installed
+ *     `passport-oauth2` supports it natively, session-backed state
+ *     store) and the identity fetch against `/public/v1/users` (+ a
+ *     best-effort owner-channel fetch for slug/broadcasterUserId).
  *
  * Login strategies mint a session via `Backend.handleProviderAuth`; the
  * `*-link` strategies attach to the *current* user via
@@ -27,11 +32,18 @@ import type {
   PassportGoogleProfile,
   PassportTwitchProfile,
   PassportTwitchProfileWithTokens,
+  PassportKickProfile,
+  PassportKickProfileWithTokens,
 } from '@saxonberg/types';
 
 const TWITCH_AUTHORIZE_URL = 'https://id.twitch.tv/oauth2/authorize';
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token';
 const TWITCH_HELIX_USERS_URL = 'https://api.twitch.tv/helix/users';
+
+const KICK_AUTHORIZE_URL = 'https://id.kick.com/oauth/authorize';
+const KICK_TOKEN_URL = 'https://id.kick.com/oauth/token';
+const KICK_USERS_URL = 'https://api.kick.com/public/v1/users';
+const KICK_CHANNELS_URL = 'https://api.kick.com/public/v1/channels';
 
 /**
  * Minimal identity scope only — `user:read:email` covers the email; the
@@ -39,6 +51,16 @@ const TWITCH_HELIX_USERS_URL = 'https://api.twitch.tv/helix/users';
  * (deferred to the relay's incremental re-consent flow per non-goals).
  */
 export const TWITCH_IDENTITY_SCOPE = ['user:read:email'];
+
+/**
+ * The Kick identity scope set both login and link flows request:
+ * `user:read` (identity) + `channel:read` (the owner-channel fetch in
+ * `buildKickProfile` — slug/broadcasterUserId, which power the relay's
+ * character-form `tune` and the linked-speaker hover; the token-owner
+ * `GET /channels` requires it). The posting scope (`chat:write`) is the
+ * deferred phase-2 incremental re-consent seam.
+ */
+export const KICK_IDENTITY_SCOPE = ['user:read', 'channel:read'];
 
 /**
  * PassportConfig - Configures Passport authentication.
@@ -53,6 +75,39 @@ export class PassportConfig {
    */
   constructor(backend: Backend) {
     this.backend = backend;
+  }
+
+  /**
+   * The providers whose strategies WILL register on this server — the
+   * same env gates `configure*` applies, exposed so `/auth/status` can
+   * drive start-screen button enablement and the OAuth routes can
+   * guard-and-redirect instead of throwing "Unknown authentication
+   * strategy" on an unconfigured provider.
+   */
+  public static configuredProviders(): AuthProvider[] {
+    const out: AuthProvider[] = [];
+    if (
+      process.env.GOOGLE_CLIENT_ID &&
+      process.env.GOOGLE_CLIENT_SECRET &&
+      process.env.GOOGLE_CALLBACK_URL
+    ) {
+      out.push('google');
+    }
+    if (
+      process.env.TWITCH_CLIENT_ID &&
+      process.env.TWITCH_CLIENT_SECRET &&
+      process.env.TWITCH_CALLBACK_URL
+    ) {
+      out.push('twitch');
+    }
+    if (
+      process.env.KICK_CLIENT_ID &&
+      process.env.KICK_CLIENT_SECRET &&
+      process.env.KICK_CALLBACK_URL
+    ) {
+      out.push('kick');
+    }
+    return out;
   }
 
   /**
@@ -74,6 +129,7 @@ export class PassportConfig {
 
     this.configureGoogle();
     this.configureTwitch();
+    this.configureKick();
   }
 
   /**
@@ -293,6 +349,191 @@ export class PassportConfig {
   }
 
   /**
+   * Kick OAuth 2.1 (login + link). The Twitch transcription, with the
+   * one mechanical delta: `pkce: true` (Kick mandates S256; requires
+   * `state: true`, which the session-backed store provides). Gated on
+   * `KICK_*` presence (same skip-if-absent tolerance). No `kick-reauth`
+   * this cycle — that's the phase-2 posting seam.
+   */
+  private configureKick(): void {
+    const clientID = process.env.KICK_CLIENT_ID;
+    const clientSecret = process.env.KICK_CLIENT_SECRET;
+    const callbackURL = process.env.KICK_CALLBACK_URL;
+
+    if (!clientID || !clientSecret || !callbackURL) {
+      console.warn(
+        'PassportConfig: KICK_* not configured — Kick OAuth strategy ' +
+          'skipped.'
+      );
+      return;
+    }
+
+    // Login strategy → mints a session.
+    passport.use(
+      'kick',
+      new OAuth2Strategy(
+        {
+          authorizationURL: KICK_AUTHORIZE_URL,
+          tokenURL: KICK_TOKEN_URL,
+          clientID,
+          clientSecret,
+          callbackURL,
+          state: true,
+          pkce: true,
+        },
+        async (
+          accessToken: string,
+          refreshToken: string,
+          params: TwitchTokenParams,
+          _profile: unknown,
+          done: (
+            error: unknown,
+            user?: { id: string; authProvider: AuthProvider }
+          ) => void
+        ) => {
+          try {
+            const withTokens = await this.buildKickProfile(
+              accessToken,
+              refreshToken,
+              params
+            );
+            await this.backend.handleProviderAuth('kick', withTokens, done);
+          } catch (error) {
+            done(error);
+          }
+        }
+      )
+    );
+
+    // Link strategy → attaches to the current user (different callback
+    // URL). The route owns the current-user binding.
+    const linkCallbackURL = callbackURL.replace(
+      '/auth/kick/callback',
+      '/auth/kick/link/callback'
+    );
+    passport.use(
+      'kick-link',
+      new OAuth2Strategy(
+        {
+          authorizationURL: KICK_AUTHORIZE_URL,
+          tokenURL: KICK_TOKEN_URL,
+          clientID,
+          clientSecret,
+          callbackURL: linkCallbackURL,
+          state: true,
+          pkce: true,
+        },
+        async (
+          accessToken: string,
+          refreshToken: string,
+          params: TwitchTokenParams,
+          _profile: unknown,
+          done: (
+            error: unknown,
+            profile?: PassportKickProfileWithTokens
+          ) => void
+        ) => {
+          try {
+            const withTokens = await this.buildKickProfile(
+              accessToken,
+              refreshToken,
+              params
+            );
+            done(null, withTokens);
+          } catch (error) {
+            done(error);
+          }
+        }
+      )
+    );
+
+    console.info('PassportConfig: Configured Kick OAuth2 strategies');
+  }
+
+  /**
+   * Fetch the Kick identity (`/public/v1/users`, the token owner) and —
+   * best-effort — the owner's channel (`/public/v1/channels`, token-owner
+   * form) for `slug` + `broadcasterUserId`, then assemble the
+   * profile-plus-tokens the spine persists. A user with no channel gets
+   * empty slug/broadcasterUserId (links fine; character-form `tune`
+   * rejects `unlinked`). Tokens are never logged.
+   */
+  private async buildKickProfile(
+    accessToken: string,
+    refreshToken: string,
+    params: TwitchTokenParams
+  ): Promise<PassportKickProfileWithTokens> {
+    const res = await fetch(KICK_USERS_URL, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) {
+      throw new Error(
+        `PassportConfig: Kick /public/v1/users failed (${res.status})`
+      );
+    }
+    const json = (await res.json()) as {
+      data?: Array<Record<string, unknown>>;
+    };
+    const user = json.data?.[0];
+    const rawId = user?.user_id ?? user?.id;
+    if (
+      !user ||
+      (typeof rawId !== 'string' && typeof rawId !== 'number')
+    ) {
+      throw new Error(
+        'PassportConfig: Kick /public/v1/users returned no user'
+      );
+    }
+
+    // Best-effort owner-channel fetch — slug + broadcaster id for the
+    // character-form tune / reverse speaker-link. Tolerate failure.
+    let slug = '';
+    let broadcasterUserId = '';
+    try {
+      const chRes = await fetch(KICK_CHANNELS_URL, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (chRes.ok) {
+        const chJson = (await chRes.json()) as {
+          data?: Array<Record<string, unknown>>;
+        };
+        const ch = chJson.data?.[0];
+        if (ch) {
+          slug = typeof ch.slug === 'string' ? ch.slug.toLowerCase() : '';
+          const bId = ch.broadcaster_user_id;
+          broadcasterUserId =
+            typeof bId === 'string' || typeof bId === 'number'
+              ? String(bId)
+              : '';
+        }
+      }
+    } catch {
+      // Channel-less accounts (or a transient failure) link fine.
+    }
+
+    const identity: PassportKickProfile = {
+      id: String(rawId),
+      slug,
+      displayName: typeof user.name === 'string' ? user.name : '',
+      email: typeof user.email === 'string' ? user.email : undefined,
+      broadcasterUserId,
+      _json: user,
+    };
+
+    const expiresIn =
+      typeof params.expires_in === 'number' ? params.expires_in : 0;
+    const scopes = this.normalizeScopes(params.scope);
+
+    return {
+      ...identity,
+      accessToken,
+      refreshToken,
+      expiresAt: Date.now() + expiresIn * 1000,
+      scopes,
+    };
+  }
+
+  /**
    * Fetch the Twitch identity from Helix and assemble the
    * profile-plus-tokens the spine persists. `expiresAt` is computed from
    * the token grant's `expires_in`; `scopes` from the granted `scope`.
@@ -361,7 +602,8 @@ export class PassportConfig {
 
 /**
  * The extra token-grant parameters `passport-oauth2` passes to the
- * verify callback (Twitch returns `expires_in` + `scope` here).
+ * verify callback (Twitch and Kick both return `expires_in` + `scope`
+ * here).
  */
 interface TwitchTokenParams {
   expires_in?: number;

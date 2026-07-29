@@ -87,9 +87,9 @@ const Divider = styled.div`
   }
 `;
 
-/** Sign-in providers. Google and Twitch are co-equal login providers
- *  (the auth-providers build wired Twitch). The list stays data-shaped so
- *  a future provider is one more entry. */
+/** Sign-in providers. Google, Twitch, and Kick are co-equal login
+ *  providers (one unified provider interface). The list stays
+ *  data-shaped so a future provider is one more entry. */
 const PROVIDERS: ReadonlyArray<{
   key: string;
   label: string;
@@ -106,6 +106,12 @@ const PROVIDERS: ReadonlyArray<{
     key: "twitch",
     label: "Sign in with Twitch",
     href: "/auth/twitch",
+    enabled: true,
+  },
+  {
+    key: "kick",
+    label: "Sign in with Kick",
+    href: "/auth/kick",
     enabled: true,
   },
 ];
@@ -208,17 +214,33 @@ export const StartScreen: React.FC = () => {
     }
   };
 
+  // Providers the server reports as configured (`/auth/status`). Until
+  // the fetch lands (null) every entry renders enabled; once known, a
+  // provider the server can't honor renders disabled instead of
+  // dead-ending into an OAuth error.
+  const configured = useStore((s) => s.configuredProviders);
+  const serverEnabled = (key: string): boolean =>
+    configured === null || configured.includes(key);
+
   return (
     <Screen>
       <Panel>
         <Title>Saxonberg 2.0</Title>
         {PROVIDERS.map((p) =>
-          p.enabled && p.href ? (
+          p.enabled && p.href && serverEnabled(p.key) ? (
             <Action key={p.key} as="a" href={`${SERVER_URL}${p.href}`} $primary>
               {p.label}
             </Action>
           ) : (
-            <Action key={p.key} disabled title="Coming soon">
+            <Action
+              key={p.key}
+              disabled
+              title={
+                p.enabled
+                  ? "Not configured on this server"
+                  : "Coming soon"
+              }
+            >
               {p.label}
             </Action>
           ),

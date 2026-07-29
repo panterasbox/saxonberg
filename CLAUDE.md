@@ -85,7 +85,7 @@ behavior. Read the relevant doc before editing in its area.
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
-  - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports; overlay chat forwarding
+  - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports (Twitch/YouTube/Kick — Kick = webhook-inbound + the KickProfile provider); overlay chat forwarding
   - [twitch-relay.md](./docs/subsystems/twitch-relay.md) — [superseded → streaming.md] the Twitch transport: EventSub reader, reauth flow, RelaySpeaker
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, masks
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution, async override
@@ -718,7 +718,7 @@ multiplexing, disconnect): see
 One line per collection; the owning subsystem doc holds the schema,
 indexes, and write-path rules — this list is for orientation only.
 
-- `users` / `google_profiles` — auth records + OAuth profile data (Document)
+- `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
 - `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `name_banks` — char-gen name pools, installed by the species-and-names pack

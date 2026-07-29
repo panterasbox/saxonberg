@@ -48,6 +48,7 @@ const REGISTRATIONS: Registration[] = [
   { prefix: 'world.expression', template: emoteTemplate },
   { prefix: 'world.twitch', template: relayTemplate },
   { prefix: 'world.youtube', template: relayTemplate },
+  { prefix: 'world.kick', template: relayTemplate },
 ];
 
 /**

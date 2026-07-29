@@ -2,7 +2,8 @@
  * StreamerTarget.parse — the pure, total target-grammar classifier. Covers
  * all three accepted forms (URL / bare-handle+opt / character) plus the
  * typed rejections (empty, ambiguous bare handle, URL⊕opt conflict,
- * character-on-YouTube), and the YouTube identifier sub-classifier.
+ * character-on-YouTube), the Kick URL/opt forms, and the YouTube
+ * identifier sub-classifier.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -63,6 +64,55 @@ describe('StreamerTarget.parse — URL form', () => {
   });
 });
 
+
+describe('StreamerTarget.parse — Kick URL form', () => {
+  it('parses a Kick URL to a lowercased slug (scheme/www/query tolerated)', () => {
+    expect(StreamerTarget.parse('kick.com/xqc', {})).toEqual({
+      form: 'url',
+      platform: 'kick',
+      identifier: 'xqc',
+    });
+    expect(StreamerTarget.parse('https://www.kick.com/XQC', {})).toEqual({
+      form: 'url',
+      platform: 'kick',
+      identifier: 'xqc',
+    });
+    expect(StreamerTarget.parse('kick.com/xqc?x=1#frag', {})).toEqual({
+      form: 'url',
+      platform: 'kick',
+      identifier: 'xqc',
+    });
+  });
+
+  it('rejects a Kick URL with a conflicting opt (either direction)', () => {
+    expect(StreamerTarget.parse('kick.com/xqc', { twitch: true })).toEqual({
+      form: 'reject',
+      reason: 'url-opt-conflict',
+    });
+    expect(
+      StreamerTarget.parse('twitch.tv/shroud', { kick: true }),
+    ).toEqual({ form: 'reject', reason: 'url-opt-conflict' });
+    expect(
+      StreamerTarget.parse('youtu.be/dQw4w9WgXcQ', { kick: true }),
+    ).toEqual({ form: 'reject', reason: 'url-opt-conflict' });
+  });
+
+  it('allows a Kick URL with a redundant matching opt', () => {
+    expect(StreamerTarget.parse('kick.com/xqc', { kick: true })).toEqual({
+      form: 'url',
+      platform: 'kick',
+      identifier: 'xqc',
+    });
+  });
+
+  it('a pathless kick.com is not a URL match (falls to character)', () => {
+    expect(StreamerTarget.parse('kick.com', {})).toEqual({
+      form: 'character',
+      identifier: 'kick.com',
+    });
+  });
+});
+
 describe('StreamerTarget.parse — bare handle + opt', () => {
   it('resolves a Twitch bare handle with --twitch', () => {
     expect(StreamerTarget.parse('shroud', { twitch: true })).toEqual({
@@ -77,6 +127,19 @@ describe('StreamerTarget.parse — bare handle + opt', () => {
       form: 'handle',
       platform: 'youtube',
       identifier: 'mkbhd',
+    });
+  });
+
+  it('resolves a Kick bare handle with --kick (lowercased, @ stripped)', () => {
+    expect(StreamerTarget.parse('XQC', { kick: true })).toEqual({
+      form: 'handle',
+      platform: 'kick',
+      identifier: 'xqc',
+    });
+    expect(StreamerTarget.parse('@xqc', { kick: true })).toEqual({
+      form: 'handle',
+      platform: 'kick',
+      identifier: 'xqc',
     });
   });
 });
@@ -106,9 +169,15 @@ describe('StreamerTarget.parse — rejections', () => {
     });
   });
 
-  it('rejects an ambiguous bare handle (both opts set)', () => {
+  it('rejects an ambiguous bare handle (multiple opts set)', () => {
     expect(
       StreamerTarget.parse('shroud', { twitch: true, youtube: true }),
+    ).toEqual({ form: 'reject', reason: 'ambiguous-handle' });
+    expect(
+      StreamerTarget.parse('shroud', { twitch: true, kick: true }),
+    ).toEqual({ form: 'reject', reason: 'ambiguous-handle' });
+    expect(
+      StreamerTarget.parse('shroud', { youtube: true, kick: true }),
     ).toEqual({ form: 'reject', reason: 'ambiguous-handle' });
   });
 

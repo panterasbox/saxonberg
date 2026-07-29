@@ -58,6 +58,7 @@ interface WatchModel extends ModelData {
   target?: string;
   twitch?: boolean;
   youtube?: boolean;
+  kick?: boolean;
 }
 
 function watched(actor: TestActor): WatchTarget | null {
@@ -116,6 +117,20 @@ describe('WatchController', () => {
     const uc = 'UC' + 'x'.repeat(22);
     await run({ target: `youtube.com/channel/${uc}` });
     expect(watched(actor)).toEqual({ platform: 'youtube', channelId: uc });
+  });
+
+  it('watch <handle> --kick sets the kick embed + pushes (no resolve)', async () => {
+    await run({ target: 'XQC', kick: true });
+    expect(watched(actor)).toEqual({ platform: 'kick', channel: 'xqc' });
+    expect(pushSpy).toHaveBeenCalledWith('cockpit.watch', {
+      platform: 'kick',
+      channel: 'xqc',
+    });
+  });
+
+  it('watch <kick URL> sets the kick embed', async () => {
+    await run({ target: 'https://kick.com/xqc' });
+    expect(watched(actor)).toEqual({ platform: 'kick', channel: 'xqc' });
   });
 
   it('watch off clears the embed', async () => {

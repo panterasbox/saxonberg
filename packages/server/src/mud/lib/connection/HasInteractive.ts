@@ -293,7 +293,10 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             return 'must be null or a { platform, … } object';
           }
           const o = v as Record<string, unknown>;
-          if (o.platform === 'twitch' && typeof o.channel === 'string') {
+          if (
+            (o.platform === 'twitch' || o.platform === 'kick') &&
+            typeof o.channel === 'string'
+          ) {
             return true;
           }
           if (

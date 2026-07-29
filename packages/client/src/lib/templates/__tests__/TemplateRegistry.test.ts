@@ -13,6 +13,7 @@ import { chatTemplate } from '../chatTemplate';
 import { sayTemplate } from '../sayTemplate';
 import { tellTemplate } from '../tellTemplate';
 import { emoteTemplate } from '../emoteTemplate';
+import { relayTemplate } from '../relayTemplate';
 
 describe('TemplateRegistry — pickTemplate', () => {
   it('world.chat.* picks chatTemplate', () => {
@@ -30,6 +31,12 @@ describe('TemplateRegistry — pickTemplate', () => {
 
   it('world.expression.emote picks emoteTemplate', () => {
     expect(pickTemplate('world.expression.emote')).toBe(emoteTemplate);
+  });
+
+  it('relay topics (twitch/youtube/kick) pick relayTemplate', () => {
+    expect(pickTemplate('world.twitch.message')).toBe(relayTemplate);
+    expect(pickTemplate('world.youtube.message')).toBe(relayTemplate);
+    expect(pickTemplate('world.kick.message')).toBe(relayTemplate);
   });
 
   it('system.* falls through to defaultTemplate (acceptance #5, #6)', () => {

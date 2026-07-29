@@ -24,6 +24,7 @@ import type {
   MessageFrame,
   PassportGoogleProfile,
   PassportTwitchProfileWithTokens,
+  PassportKickProfileWithTokens,
 } from '@saxonberg/types';
 import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
@@ -35,6 +36,7 @@ import { ReactionApi } from '../mud/api/reaction';
 import { ConnectionApi } from '../mud/api/connection';
 import { User } from '../mud/lib/identity/User';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
+import { KickProfile } from '../mud/lib/identity/KickProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { StuffApi } from '../mud/api/stuff';
 import { AppApi } from '../mud/api/app';
@@ -57,7 +59,8 @@ import {
  */
 export type ProviderProfile =
   | PassportGoogleProfile
-  | PassportTwitchProfileWithTokens;
+  | PassportTwitchProfileWithTokens
+  | PassportKickProfileWithTokens;
 
 /**
  * Outcome of {@link Application.linkProvider}. `collision` carries the
@@ -397,9 +400,9 @@ export class Application {
 
   /**
    * Upsert the provider profile and return its id. Google goes through
-   * raw PM saves (login-only, no secrets). Twitch routes through the
-   * `TwitchProfile` Document so the `EncryptedStringMarshaller` runs and
-   * the OAuth tokens never reach Mongo in plaintext.
+   * raw PM saves (login-only, no secrets). Twitch and Kick route through
+   * their Documents so the `EncryptedStringMarshaller` runs and the
+   * OAuth tokens never reach Mongo in plaintext.
    */
   private async findOrCreateProfile(
     provider: AuthProvider,
@@ -408,6 +411,11 @@ export class Application {
     if (provider === 'twitch') {
       return this.findOrCreateTwitchProfile(
         profile as PassportTwitchProfileWithTokens
+      );
+    }
+    if (provider === 'kick') {
+      return this.findOrCreateKickProfile(
+        profile as PassportKickProfileWithTokens
       );
     }
     return this.findOrCreateGoogleProfile(profile as PassportGoogleProfile);
@@ -482,6 +490,37 @@ export class Application {
     return doc._id!;
   }
 
+  /**
+   * Upsert a `KickProfile`. The `findOrCreateTwitchProfile` transcription:
+   * routes through the Document (not a raw PM save) so the token fields
+   * run through `EncryptedStringMarshaller` — ciphertext-at-rest.
+   */
+  private async findOrCreateKickProfile(
+    profile: PassportKickProfileWithTokens
+  ): Promise<string> {
+    const existing = await KickProfile.findByKickUserId(profile.id);
+    const doc = existing ?? new KickProfile();
+
+    doc.kickUserId = profile.id;
+    doc.slug = profile.slug.toLowerCase();
+    doc.displayName = profile.displayName;
+    doc.email = profile.email;
+    doc.broadcasterUserId = profile.broadcasterUserId;
+    doc.rawProfile = profile._json;
+    doc.accessToken = profile.accessToken;
+    doc.refreshToken = profile.refreshToken;
+    doc.expiresAt = profile.expiresAt;
+    doc.scopes = profile.scopes;
+
+    await doc.save();
+    if (existing) {
+      console.debug(`Application: Updated KickProfile ${doc._id}`);
+    } else {
+      console.info(`Application: Created new KickProfile ${doc._id}`);
+    }
+    return doc._id!;
+  }
+
   private async findOrCreateUser(
     provider: AuthProvider,
     profileId: string
@@ -511,9 +550,9 @@ export class Application {
 
   /**
    * Provider-agnostic default avatar name read at account creation. A
-   * throwaway (char-gen overwrites it), but a Twitch-origin user must
-   * not fall to `'Unnamed'`. Google: `givenName ?? displayName`;
-   * Twitch: `displayName ?? login`.
+   * throwaway (char-gen overwrites it), but a non-Google-origin user
+   * must not fall to `'Unnamed'`. Google: `givenName ?? displayName`;
+   * Twitch: `displayName ?? login`; Kick: `displayName ?? slug`.
    */
   public static defaultAvatarNameFor(
     provider: AuthProvider,
@@ -522,6 +561,10 @@ export class Application {
     if (provider === 'twitch') {
       const t = profile as PassportTwitchProfileWithTokens;
       return t.displayName || t.login || 'Unnamed';
+    }
+    if (provider === 'kick') {
+      const k = profile as PassportKickProfileWithTokens;
+      return k.displayName || k.slug || 'Unnamed';
     }
     const g = profile as PassportGoogleProfile;
     return g.name?.givenName || g.displayName || 'Unnamed';
@@ -540,6 +583,12 @@ export class Application {
     if (provider === 'twitch') {
       const existing = await TwitchProfile.findByTwitchUserId(
         (profile as PassportTwitchProfileWithTokens).id
+      );
+      return existing?._id ?? null;
+    }
+    if (provider === 'kick') {
+      const existing = await KickProfile.findByKickUserId(
+        (profile as PassportKickProfileWithTokens).id
       );
       return existing?._id ?? null;
     }
@@ -626,10 +675,15 @@ export class Application {
       return { status: 'not-linked' };
     }
 
-    // At-least-one invariant: refuse to remove the sole provider.
-    const otherField =
-      field === 'googleProfileId' ? 'twitchProfileId' : 'googleProfileId';
-    if (!user[otherField]) {
+    // At-least-one invariant: refuse to remove the sole provider (all
+    // provider FKs counted — every provider is a co-equal login vector).
+    const providerFields = [
+      'googleProfileId',
+      'twitchProfileId',
+      'kickProfileId',
+    ] as const;
+    const others = providerFields.filter((f) => f !== field);
+    if (!others.some((f) => user[f])) {
       return {
         status: 'only-provider',
         message:
@@ -643,6 +697,9 @@ export class Application {
     // Delete the orphaned Profile Document (removes the stored tokens).
     if (provider === 'twitch') {
       const doc = await TwitchProfile.findById(profileId);
+      if (doc) await doc.delete();
+    } else if (provider === 'kick') {
+      const doc = await KickProfile.findById(profileId);
       if (doc) await doc.delete();
     } else {
       const doc = await GoogleProfile.findById(profileId);

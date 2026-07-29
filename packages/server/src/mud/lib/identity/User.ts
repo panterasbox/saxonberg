@@ -32,6 +32,7 @@ export class User extends Document implements IUser {
   static persistentFields = [
     'googleProfileId',
     'twitchProfileId',
+    'kickProfileId',
     'playerIds',
   ];
 
@@ -39,13 +40,20 @@ export class User extends Document implements IUser {
    * Map a provider to its FK field name — the single source of truth
    * for the computed-key access the provider-parameterized spine uses
    * (`User.find({ [User.profileFieldFor(provider)]: id })`) and the
-   * at-least-one invariant. Two explicit fields, not a generic
-   * `identities[]` map (premature at N=2).
+   * at-least-one invariant. Explicit fields, not a generic
+   * `identities[]` map (premature at N=3).
    */
   public static profileFieldFor(
     provider: AuthProvider
-  ): 'googleProfileId' | 'twitchProfileId' {
-    return provider === 'google' ? 'googleProfileId' : 'twitchProfileId';
+  ): 'googleProfileId' | 'twitchProfileId' | 'kickProfileId' {
+    switch (provider) {
+      case 'google':
+        return 'googleProfileId';
+      case 'twitch':
+        return 'twitchProfileId';
+      case 'kick':
+        return 'kickProfileId';
+    }
   }
 
   /**
@@ -70,6 +78,12 @@ export class User extends Document implements IUser {
   twitchProfileId?: string;
 
   /**
+   * Associated Kick profile ID (MongoDB _id of the KickProfile doc).
+   * Optional — the third co-equal provider FK.
+   */
+  kickProfileId?: string;
+
+  /**
    * IDs of this user's character slots. Each corresponds to an Avatar
    * template at `/obj/Avatar/<playerId>` in the `domain` collection.
    *
@@ -85,6 +99,10 @@ export class User extends Document implements IUser {
    * checking it.
    */
   public hasAnyProvider(): boolean {
-    return !!(this.googleProfileId || this.twitchProfileId);
+    return !!(
+      this.googleProfileId ||
+      this.twitchProfileId ||
+      this.kickProfileId
+    );
   }
 }
