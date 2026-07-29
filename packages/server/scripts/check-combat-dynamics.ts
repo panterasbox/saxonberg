@@ -42,6 +42,12 @@ const MUD_ROOT = join(SERVER_ROOT, "src", "mud");
  * item selection). Adding a predicate here is a deliberate edit with a
  * one-line reason in review — a *dynamic* predicate (isEnergized,
  * isVenomous, …) is never physics; it belongs behind a hook.
+ *
+ * `isGraded`/`isKeen` joined with the crafting-branches build: the
+ * instrument-delivery scale + wear-on-use read the weapon's *quality
+ * axes* (grade × condition × edge — `isDurable`'s siblings, the same
+ * substrate the covering stack already folds), not a capability — the
+ * materials-response quality model, not a dynamic.
  */
 export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   "isCombatReactive",
@@ -50,6 +56,8 @@ export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   "isContainable",
   "isContainer",
   "isDurable",
+  "isGraded",
+  "isKeen",
   "isEngaged",
   "isHasInteractive",
   "isLoadBearing",

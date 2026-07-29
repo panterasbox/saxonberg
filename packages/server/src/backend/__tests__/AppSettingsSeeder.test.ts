@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(251); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg)
+    expect(added).toBe(262); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -344,6 +344,17 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.combatInfluenceStaggerHeavyErode]: "0.3",
           [AppSettingKeys.combatInfluenceSteadyRestore]: "0.15",
           [AppSettingKeys.combatNaturalLargeBodyMassKg]: "150",
+          [AppSettingKeys.craftingBrokenThreshold]: "0.1",
+          [AppSettingKeys.craftingBrokenDeliveryFloor]: "0.35",
+          [AppSettingKeys.craftingWearWeaponPerStrike]: "0.004",
+          [AppSettingKeys.craftingWearArmorPerBlow]: "0.004",
+          [AppSettingKeys.craftingKeennessWearPerUse]: "0.08",
+          [AppSettingKeys.craftingKeennessDeliveryFloor]: "0.7",
+          [AppSettingKeys.craftingKeennessSharpenDurationMs]: "12000",
+          [AppSettingKeys.craftingSalvageRate]: "0.5",
+          [AppSettingKeys.craftingRepairCostFactor]: "0.6",
+          [AppSettingKeys.craftingRepairBrokenFactor]: "2",
+          [AppSettingKeys.craftingRepairMetalHeatK]: "900",
         },
       },
     ]);
@@ -390,7 +401,7 @@ describe("AppSettingsSeeder", () => {
     // + 3 combat formations
     // + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*)
     // + 4 combat-hooks (stagger light/heavy + steady + natural.largeBodyMassKg).
-    expect(added).toBe(250); // 251 total − 1 operator-preset key
+    expect(added).toBe(261); // 262 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded
