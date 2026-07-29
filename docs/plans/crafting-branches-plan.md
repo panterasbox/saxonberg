@@ -14,6 +14,36 @@ implements, not reopens. Subsystem grounding: [crafting.md](../subsystems/crafti
 
 All paths below are relative to `packages/server/src/mud/` unless prefixed.
 
+## Scope at a glance
+
+**Delivered by this build** (fixing phase in parentheses):
+
+- The three branch seams + additive recipe schema + the heat gate + the
+  grown gather walk (1)
+- **Equipment made craftable** — the `CraftedMixin` composition swap on
+  `Weapon`/`Armor`/`ToolItem` (2)
+- **The combat coupling — IN SCOPE, not optional**: weapons wear per
+  landed strike, armor wears per attenuated blow, grade × condition
+  scales delivered energy with a broken floor (2), keenness joins the
+  scale (5). The end-to-end acceptance run walks it.
+- `forge`/`cook` one-shots, the Menu split, both venues, the nine-recipe
+  difficulty ladder, store stock, Discipline seeds (3)
+- The by-hand smithing + cooking paths, the generalized knowledge ladder
+  (incl. the new watch = claim rung), advancement evidence at resolve (4)
+- Keenness + `sharpen` (5) · repair + salvage (6) · acceptance sweep +
+  doc updates (7)
+
+**The Findings below are NOT exclusions** — each is a gap between the
+requirements' assumptions and the real source, resolved in-plan:
+F1 → Phase 1 · F2 → Phase 2 · F3 → Phases 2+5 · F4 → Phase 4 ·
+F5/F6 → Phase 3 · F7 → docs only · F8 → accepted default.
+
+**Out of scope** (per the requirements' non-goals; attach points listed
+under *Deferred seams* at the bottom): skill-as-control scatter,
+assembly recipes, the tailoring branch, batching, workshop lockers, DIY
+stock-pricing, environmental decay, recipe-spread vectors beyond
+watching.
+
 ## Grounding (facts established by reading the real source)
 
 - **The craft skeleton** (`obj/api/CraftingLogic.ts`): `craftImpl` = resolve
