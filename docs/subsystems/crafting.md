@@ -1,18 +1,22 @@
-# Crafting (v1 — the served path)
+# Crafting — the three branches & the repair economy
 
 Crafting is the **transformation** stage of the economy: where raw
-inputs become valued goods — the point at which value is minted. This
-build ships the first concrete slice, the **served path** at Dave's
-Bar: a bartender turns the bar's spirits + tools + a known recipe into
-a real, stamped cocktail, hands it to a patron, who drinks it and feels
-it (metabolism is already shipped). It is the first end-to-end economic
-loop (matter in → transformed → consumed) that runs with **zero RPG**.
+inputs become valued goods — the point at which value is minted. The
+first build shipped the **served path** at Dave's Bar (the bulk
+cocktail branch); the crafting-branches build grew it to **three
+branches over the one skeleton** — the bar's bulk drinks, **smithing**
+(discrete metal stock + heat → formed gear), and **cooking** (discrete
+food stock + low heat → stamped edible meals) — plus the full
+**lifecycle**: crafted → used → worn → sharpened/repaired → broken →
+salvaged. Crafted gear is real gear: a forged blade's material, grade,
+and condition are consumed by the shipped readers (`analyze weapon` /
+`analyze response`, combat's instrument-delivery scale, the covering
+stack).
 
 The substrate (`lib/craft/`, `api/crafting.ts`, `CraftingLogic`,
-`RecipeCatalogue`) is **general and reusable**; Dave's Bar is authored
-*content* over it (templates + recipe Documents), never a bar-specific
-class. Seeded by `docs/slates/builds/crafting-slate.md` with the
-integrating exemplar `docs/slates/builds/daves-bar-slate.md`.
+`RecipeCatalogue`) is **general and reusable**; Dave's Bar, the
+Hearthworks smithy, and the cookhouse are authored *content* over it
+(templates + recipe Documents), never venue-specific classes.
 
 ## The model: crafting is location-agnostic
 
@@ -59,12 +63,19 @@ with a diegetic reason, not a flag flip.
   is the deferred skill seam (ignored in v1). A plain value-object, **not**
   a `Quantity` (grade is ordinal-categorical, not a measured scalar).
 - **`ToolCapability`** (`ToolCapability.ts`) — the capability vocabulary
-  (`shaker`/`strainer`/`muddler`/`mixing-glass`) + `ToolCapabilities.isCapability`.
+  (`shaker`/`strainer`/`muddler`/`mixing-glass` + the branches'
+  `striking`/`anvil`/`whetstone`/`mending`/`pot`) +
+  `ToolCapabilities.isCapability`. There is **no workbench concept** —
+  "workbench" is just the word for capabilities too heavy to carry: the
+  pot and whetstone are portable capital, the anvil (60 kg — a fixture
+  by encumbrance, not by flag) and forge are not, so camp-stew is
+  possible in the wilds and a blade is venue-bound, diegetically.
 
 ## Mixins (`lib/craft/`)
 
-All five are registered in `lib/mixin.ts` (`Mixins.Graded`/`Tool`/
-`Crafted`/`Maker`/`ManualBuild`) with a `MixinApi.isX` predicate. No
+All are registered in `lib/mixin.ts` (`Mixins.Graded`/`Tool`/
+`Crafted`/`Maker`/`ManualBuild`, plus the material-axis
+`Durable`/`Keen`) with a `MixinApi.isX` predicate. No
 `#`-private instance state (proxy trap); persisted fields are public for
 the Hydrator; per-field invariants ride accessor pairs.
 
@@ -78,10 +89,11 @@ the Hydrator; per-field invariants ride accessor pairs.
   physical object, sibling of `Tangible`/`Constructed`; **not** a crafting
   mixin) — the durable-good substrate: a `condition` (0..1, private
   `_condition` accessor pair clamping) that `wear()`s on **use, not the
-  clock** (economy Law 2). Repair deferred — the wear field establishes the
-  sink shape without pulling in service mechanics. Composed by tools,
-  **weapons, and armor alike** (durability is not "tool"); narrow via
-  `MixinApi.isDurable`.
+  clock** (economy Law 2), plus `isBroken()` (the capability-loss
+  threshold — see the lifecycle section; `repair` is its restore).
+  Composed by tools, **weapons, and armor alike** (durability is not
+  "tool"); narrow via `MixinApi.isDurable`. Its fast-cycling sibling is
+  **`KeenMixin`** (`lib/material/Keen.ts`) — the edge axis, on `Weapon`.
 - **`ToolMixin`** (`Tooled.ts`) — the crafting **capabilities** layer:
   `capabilities: string[]` a recipe requires by kind. A `ToolItem` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers
@@ -121,12 +133,37 @@ a **`Document`** managed by a catalogue singleton — the
 
 - **`Recipe`** (`lib/craft/Recipe.ts`, `recipes` collection, unique
   index on `recipeId`) — typed accessors over `name`, `keywords`,
-  `inputSlots: RecipeInputSlot[]` (`{slot, category, minGrade, measureL}`),
-  `toolCapabilities: string[]`, `outputTemplate` (a **real** cloneable
-  glass template), `outputMaterial` (the cocktail `Material` the glass
-  holds), `baseGradeBand?`. The boundary stays honest — `outputTemplate`
-  is a Stuff cloned by the pipeline; only the recipe-as-knowledge is a
-  Document. `Recipe ≠ template` (a form can have several recipes).
+  `inputSlots: RecipeInputSlot[]`, `toolCapabilities: string[]`,
+  `outputTemplate` (a **real** cloneable template), `outputMaterial`,
+  `baseGradeBand?`, and the branch fields below. The boundary stays
+  honest — `outputTemplate` is a Stuff cloned by the pipeline; only the
+  recipe-as-knowledge is a Document. `Recipe ≠ template` (a form can
+  have several recipes).
+
+  **The schema grew without forking — one Document, additive fields**
+  (old rows parse byte-identically; `Recipe.schema.test.ts` is the
+  round-trip guard):
+
+  - `RecipeInputSlot` is discriminated by `kind`: absent/`'bulk'` is
+    the bar's slot (`measureL` litres); `kind: 'item'` is a
+    discrete/glob slot (`count` units of a reachable Tangible whose
+    Material carries the `category` tag — an ingot, a root vegetable;
+    ungraded stock derives at `fair`).
+  - `requiresHeatK?` — the **heat gate**: craft-resolve declines
+    (`insufficient-heat`, diegetic) unless
+    `ThermalApi.reachableHeatFor(maker) ≥ requiresHeatK` — the fire
+    build's D9 seam, consumed. The forge holds 1300 K (2080 K with the
+    bellows worked), the oven 500 K — so the belt-knife's 1400 K
+    genuinely requires the bellows and the whole cooking ladder runs at
+    a lit hearth. Heat is a *reachability* fact like tools: camp-stew
+    works at any campfire.
+  - `outputApplication?: 'bulk' | 'tangible' | 'edible'` (absent =
+    `'bulk'`) — the branch discriminator the output/consume seams
+    dispatch on.
+  - `outputPortionL?` — the edible portion the dish is filled to.
+  - `difficulty?` / `discipline?` — the authored **ladder placement**
+    the craft-resolve evidence records (see the knowledge ladder below);
+    absent ⇒ no advancement row (every bar row).
 - **`RecipeCatalogue`** (`obj/RecipeCatalogue.ts`, singleton
   `PostRegistrationMixin(Idea)` at `/obj/RecipeCatalogue`) — caches the
   collection, resolves by id + keyword (`order martini` → one recipe),
@@ -167,61 +204,107 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    for `serve`/`mix`); `'fulfilling-bartender'` → the giver is the
    *patron*, so find the present `MixinApi.isMaker(...)` agent in the
    patron's location. Never off the wire.
-3. **Gather reachable matter** — room contents (incl. back-bar surface
-   contents) + maker inventory; partition into present tools / graded
-   bulk bottles.
-4. **Match input slots** — per slot: a bottle whose `Material` carries
-   the slot's `category` tag, `grade ≥ minGrade`, with available litres
-   ≥ `measureL`; honor `brand`, else auto-pick highest grade. **Per-bottle
-   claimed litres are tracked** so two slots don't double-claim →
-   decline `insufficient-input`.
+3. **Gather reachable matter** (`gatherMatter`) — the walk's real
+   shape: the room's direct contents (surface-resting items already
+   have `container = the room`), **the maker's own inventory** (held
+   kit + carried stock), and **one-level descent into open room
+   containers** — a Sealable-closed (or locked) container never feeds
+   a craft; open-ness is the switch (the pantry-chest pull, honestly);
+   a non-Sealable room container counts always-open; containers
+   carried by *other* agents are never descended into. Partition into
+   tools / graded bulk bottles / **item candidates** (Material-bearing
+   Tangibles that are raw matter — never a tool, crafted gear, a
+   container, a bottle, or anything living: the anvil never feeds the
+   forge).
+4. **Match input slots** — dispatched per slot on `kind`. Bulk: a
+   bottle whose `Material` carries the `category` tag, `grade ≥
+   minGrade`, available litres ≥ `measureL`, per-bottle claims
+   tracked. Item: `count` units drawn greedily across candidates by
+   the same tag rule (a glob covers many units, a discrete Tangible
+   one; ungraded stock counts `fair`); per-source claimed units
+   tracked. Honor `brand`, else highest grade → decline
+   `insufficient-input`.
 5. **Match tools** — per required capability, a present tool with
-   `hasCapability` → decline `missing-tool`.
-6. **Derive grade** — `Grade.deriveAtFixedControl(matched)`, floored at
-   `baseGrade`.
-7. **Clone output** — `StuffApi.clone(outputTemplate)` → decline
+   `hasCapability` → decline `missing-tool`. (A **broken** tool offers
+   no capabilities — see the lifecycle below.)
+6. **The heat gate** — `requiresHeatK > 0` and
+   `ThermalApi.reachableHeatFor(maker) < requiresHeatK` → decline
+   `insufficient-heat` ("the forge is cold").
+7. **Derive grade** — `Grade.deriveAtFixedControl(matched)` (bulk +
+   item grades together), floored at `baseGrade`.
+8. **Clone output** — `StuffApi.clone(outputTemplate)` → decline
    `no-output`.
-8. **Apply output properties** — `applyBulkOutput` (**domain seam #1**):
-   fill the output's bulk slot with the recipe's `outputMaterial` at
-   `Σ measureL`.
-9. **Stamp** — assert `isCrafted(output)` (else throw — output template
-   misauthored), `output.stamp({maker, grade, recipe, craftedAt})`.
-10. **Consume inputs** — `consumeBulkInputs` (**domain seam #2**): per
-    matched slot `BulkableApi.transfer(...)` in strict mode; **assert
-    `applied === measureL`** else throw (conservation breach).
-11. **Wear tools** — each matched tool `.wear()`.
+9. **Apply output properties** — dispatched on `outputApplication`:
+   - `'bulk'` — `applyBulkOutput`: fill the output's bulk slot with
+     the authored `outputMaterial` at `Σ measureL` (the bar,
+     byte-identical).
+   - `'tangible'` — `applyTangibleOutput`: flow the **primary matched
+     item input's Material** + the summed consumed mass onto the
+     cloned Tangible (an iron ingot makes an iron knife —
+     mass-conserving; the `ThermalLogic` casting-stamp surface).
+   - `'edible'` — `applyEdibleOutput`: fill the output's bulk slot
+     with the authored *food* `outputMaterial` at `outputPortionL`
+     (asserts edibility — an inedible edible recipe is a content bug).
+10. **Stamp** — assert `isCrafted(output)` (else throw — output
+    template misauthored), `output.stamp({maker, grade, recipe,
+    craftedAt})`.
+11. **Consume inputs** — `consumeBulkInputs` (strict `BulkableApi`
+    debits) + `consumeItemInputs` (a glob debited by exactly the
+    matched units, destructed when fully drawn; a discrete Tangible
+    destructed whole — its chattel id released by the shipped
+    `onDestruct` path). Short debits throw (conservation breach).
+12. **Wear tools** — each matched tool `.wear()` (Law 2).
+13. **The evidence tail** — `recordCraftEvidence` (see the knowledge
+    ladder): an advancement deed for the maker + the known-of claim
+    for watching agents, iff the recipe authors a `discipline`.
 
 Placement is the verb's job, not craft's (`craft` returns the output).
 
-### The two domain seams
+### The domain seams (the branch architecture)
 
-Steps 8 and 10 are the **only** bulk/cocktail-specific steps, isolated
-behind named module-private fns so other domains arrive as **new
-branches, not a rewrite**: smithing adds `applyTangibleOutput` (flow the
-input material onto a Tangible) + `consumeItemInputs`; cooking adds glob
-variants. The recipe *skeleton* (slots-by-constraint,
-tools-by-capability, weakest-link grade, provenance, the fixed-control
-seam) is domain-neutral. v1 ships **transform** recipes only; **assembly**
-(output properties emerge from components) is a genuinely different model,
-deferred — not faked.
+The apply/consume steps are the **only** domain-specific steps,
+isolated behind named module-private fns — the promise "other domains
+arrive as new branches, not a rewrite," kept: smithing arrived as
+`applyTangibleOutput` + `consumeItemInputs`, cooking as
+`applyEdibleOutput` over the same item consume; `craftImpl` dispatches
+on the recipe's `outputApplication` and the skeleton
+(slots-by-constraint, tools-by-capability, the heat gate, weakest-link
+grade, provenance, the fixed-control seam) is domain-neutral.
+**Physics forms state, recipes form shape**: smelting/casting stays the
+phase engine (Forge + `MeltableMixin` + `Casting` — see
+[fire.md](./fire.md)/[thermal.md](./thermal.md)); recipes own the
+*forming* physics can't express (ingot → blade). **Assembly** (output
+properties emerge from components) is a genuinely different model,
+still deferred — not faked.
 
-## The offer: `Menu` (`domain/lounge/Menu.ts`)
+## The offer: `CommerceMenu` + the venue subclasses
 
-A standalone `PricedOfferMixin(DetailedMixin(Thing))` object (a `Tangible`
-you `read`/`order` from), **not** a place capability and **not** a mixin.
-Holds `offeredRecipes: string[]` (recipeIds); `resolveOrder(keyword)` maps
-an order to an offered recipe (gates on the **offer**, not craftability).
-Its `prices` map + `priceFor(recipeId)` are inherited from the shared
-**`PricedOfferMixin`** (`lib/commerce/`, Law 1: worth on the offer) — the
-same abstraction the general store's `Stock` composes, so the bar and the
-store price offers one way (see [retail.md](./retail.md); bar parity was
-the extraction's hard constraint).
-Its `getLong()` appends the offered list. Its presence is what **lights
-up the crafting verb surface** — `static commandContributions`
-contributes `menu`/`order`/`serve`/`mix` to the `environment` (and
-`inventory`) bucket, so the verbs appear because the menu is there, not
-because the room is flagged. (It lives in `domain/lounge/` because v1's
-only Menu is the bar's; it's content, not substrate.)
+The venue-neutral base is **`lib/commerce/Menu.ts`** (`CommerceMenu`, a
+`PricedOfferMixin(DetailedMixin(Thing))` object — a `Tangible` you
+`read`/`order` from, **not** a place capability and **not** a mixin).
+It owns the offer machinery: `offeredRecipes: string[]`,
+`resolveOrder(keyword)` (gates on the **offer**, not craftability),
+`resolveIn(context)` (the affording menu or the reachable one — the
+`instanceof CommerceMenu` filter matches any venue subclass), the
+inherited `prices`/`priceFor` (Law 1: worth on the offer — the same
+`PricedOfferMixin` the store's `Stock` composes), and the offer-listing
+`getLong()`.
+
+What it deliberately does **not** own is `commandContributions` — the
+*verb set* is per-venue, so each venue subclasses it with its own
+affordances (the menu's presence lights the verbs up; the room is never
+flagged):
+
+- **`domain/lounge/Menu`** — the bar's, at its original template path
+  (bar parity untouched): `menu`/`order`/`serve`/`mix` + the vessel
+  build verbs.
+- **`domain/hearthworks/SmithyMenu`** — `menu`/`order`/`forge` + the
+  smithing steps (`heat`/`hammer`/`quench`) + `repair`/`salvage`/`make`.
+- **`domain/hearthworks/KitchenMenu`** — `menu`/`order`/`cook` + the
+  cooking steps (`pour`-as-`add`/`stir`/`heat`/`plate`) + `make`.
+
+`MenuController`/`OrderController` import the lib base, so `order` is
+venue-generic: a smithy with a menu and an on-shift maker just works.
 
 ## Verbs (the `crafting` command category)
 
@@ -229,19 +312,25 @@ only Menu is the bar's; it's content, not substrate.)
 A `CraftController` base centralizes decline rendering; all controllers
 return `void`, emitting via `ctx.note` + `MessageApi.scene`.
 
-- **`menu`** — render the present Menu's offered cocktails.
-- **`order <item> [with <brand>]`** — maker = **fulfilling bartender**;
-  resolve the Menu, `resolveOrder`, `craft(...,'fulfilling-bartender')`,
-  hand the drink to the patron (the giver).
+- **`menu`** — render the present Menu's offer.
+- **`order <item> [with <brand>]`** — maker = **fulfilling maker**
+  (`'fulfilling-bartender'` — the historical name for "present active
+  maker", reused unchanged across venues); resolve the Menu,
+  `resolveOrder`, craft, hand the output to the patron (the giver).
+  **Never knowledge-gated.**
 - **`serve <patron> a <item> [with <brand>]`** — maker = **giver**
   (`'self'`); craft and move to the patron.
 - **`mix <item> [with <brand>]`** — maker = **giver**; craft and hold.
+- **`forge <item> [with <metal>]`** / **`cook <dish>`** — the branch
+  one-shots: maker = **giver**, **deed-gated** on the knowledge ladder
+  (below); `with` steers the stock pick exactly as the bar's brand.
+- **`sharpen <blade>`** / **`repair <item>`** / **`salvage <item>`** —
+  the maintenance acts (see the lifecycle below). Standalone diegetic
+  verbs per the subcommand sieve; any future introspective growth
+  (inspect/estimate/quote) grows as subcommands, not verb sprawl.
 
-`serve`/`mix` are general agent verbs (any agent at a bar can use them);
-`order` routes to the bartender. This is the slate's "vending-machine
-floor" — the bartender NPC is a **static authored Character with no
-`Behaved` mixin**; the serve-on-order reflex is a verb, not behavior, so
-there is zero file collision with the npc-behavior lane.
+`serve`/`mix`/`forge`/`cook` are general agent verbs; `order` routes to
+the present on-shift maker.
 
 ## The manual build (the by-hand path)
 
@@ -265,13 +354,50 @@ The vessel is a `ManualBuildMixin` build vessel (`CocktailShaker` backs
 both the shaker and the mixing glass — `capabilities` decide which recipe
 tool it satisfies). At `strain`, **`CraftingApi.mintFromBuild`**
 reverse-matches the accumulated contributions to a recipe (`matchBuild`:
-exact slot set, category + measure-at-or-above + min-grade, **no
+heat gate ≤ the build's latched heat, bulk slots each covered by a
+distinct contribution, item slots' counts covered by the tag rule, **no
 leftovers** — a faithful build is exactly the recipe) and mints the
 graded, maker's-marked drink into the glass, **reusing the one quality
 model** (weakest-link `Grade`, the `applyBulkOutput` fill). An off-spec
 build still yields *a* drink — the generic mint — but matches no recipe
 (`recipeId === ''`), the discriminator the knowledge ladder rides. The
 maker is derived from `getActingAuthor`, never a parameter.
+
+### The by-hand paths, per branch (the uniform ladder shape)
+
+The bar's shape — a build buffer, 3–4 engaged step verbs, a terminal
+mint that reverse-matches — is the **universal learning route**; the
+buffer grew `kind: 'item'` contributions (category + tags + count +
+grade) and a max-latching **`heatedToK`** (`noteHeat` — the `heat` step
+records the reachable heat; a recipe's `requiresHeatK` is checked
+against it at the mint; reset by `clearBuild`).
+
+- **Smithing** — the **workpiece IS the buffer** (`Ingot` composes
+  `ManualBuildMixin`): `heat [<workpiece>]` (engaged; requires
+  reachable heat > 0; latches the reached K at completion — re-read, so
+  a fire that dies mid-step latches nothing) → `hammer [<workpiece>]`
+  (engaged; requires a reachable `striking` tool + `anvil` capability +
+  a workpiece that has taken heat; **banks the workpiece's own
+  item-contribution once** — the forming work turns matter into a
+  build; the hammer wears) → `quench [<workpiece>]` (the terminal
+  mint — `mintFromBuild` with `workpiece`: a matched tangible recipe
+  clones its output and the workpiece's Material + mass flow onto it,
+  the workpiece consumed; an off-spec build mints a **generic worked
+  lump** — a re-meltable `/obj/Casting`, `recipeId ''`, no mark).
+- **Cooking** — the pot is the vessel (`CookPot` — `ManualBuild` +
+  `Tool(pot)` + `Crafted`, itself a smithing recipe output): the
+  existing `pour`/`add` verb grew a **discrete-ingredient branch** (a
+  Material-bearing Tangible added to a build vessel is consumed at
+  completion and banked as an item-contribution) → `stir` (unchanged)
+  → `heat [<pot>]` (the same HeatController) → `plate [<pot>] into
+  <dish>` (the terminal mint — a matched edible recipe fills the dish
+  with the authored food Material at the portion; off-spec mints the
+  generic **pot-luck** fill).
+
+`quench`/`plate` replicate `strain`'s capture tail
+(`ScriptApi.captureManualBuild`) — the first faithful hand build mints
+the can-make **deed** + transcribes the personal recipe-script, the
+same act.
 
 ## Drink → metabolism (honest alcohol)
 
@@ -327,16 +453,135 @@ runtime matter (persisted nowhere; reset on restart).
 | Recipe knowledge | **`Document`** (`recipes` collection) | persisted reference data |
 | Crafted drinks | transient runtime matter | reset on restart |
 
+## The knowledge ladder, generalized (open canon, earned shorthand)
+
+Recipes are open information — readable in-world, wiki-equivalent by
+design. What is *earned* is the shorthand (`lib/script/RecipeKnowledge`
+— chronicle-derived, see [scripting.md](./scripting.md) /
+[chronicle.md](./chronicle.md)):
+
+- **Claim (known-of)** — minted by *reading* a recipe source (the
+  menu), **or by watching a maker perform**: `recordCraftEvidence` (the
+  craft-resolve tail, both one-shot and by-hand mint) grants every
+  other present command-giving agent with a durable identity the
+  known-of claim, idempotently.
+- **Deed (can-make)** — only your own first faithful by-hand
+  performance (the reverse-match verified it; the same act transcribes
+  the personal recipe-script). The book isn't enough — the hands learn.
+- **The gates**: `make`/`forge`/`cook` decline without the deed
+  ("work it by hand first"); `order` is never gated. A spoiler wiki
+  yields exactly what an in-world recipe card yields — information buys
+  optimization, never competence (the wiki-parity test:
+  `knowledge-ladder.test.ts`).
+
+**Advancement evidence** rides the same tail: a matched recipe that
+authors a `discipline` appends a Transcript deed
+(`AdvancementApi.recordDeed`) at its authored `difficulty` — the seeded
+`smithing` (ISCED-F 0715) / `cooking` (1013) Disciplines, the
+`mixology` shape. Control stays **fixed** this build (the skill seam is
+the declared next crafting wave); the evidence simply accrues honestly,
+and the BKT difficulty coupling already makes trivial-recipe grinding
+worthless. The seeded rosters span a deliberate difficulty ladder per
+branch (trivial → hard rungs in `config/recipes.yaml` — the ZPD
+obligation: the recipe tiers ARE the ladder a learner climbs).
+
+## The lifecycle: two wear axes, repair, broken, salvage
+
+**Keenness vs condition — two axes, two cadences** (collapsing them was
+the named antipattern):
+
+- **`condition`** (`DurableMixin`, `lib/material/`) — structural; decays
+  slowly (combat: a landed weapon strike wears the weapon
+  `crafting.wear.weaponPerStrike`; each covering layer that attenuates
+  a mechanical blow wears `crafting.wear.armorPerBlow` — see
+  [combat.md](./combat.md) / [materials-response.md](./materials-response.md));
+  scales the response height as shipped; restored by **`repair`**.
+- **`keenness`** (`KeenMixin`, `lib/material/Keen.ts` — `Mixins.Keen`,
+  `MixinApi.isKeen`; composed on `Weapon`, blades only this build) —
+  the working surface; decays fast (landed edge/point strikes `dull()`)
+  and modestly scales edge/point *delivery*
+  (`keennessDeliveryFactor()` = lerp from
+  `crafting.keenness.deliveryFloor`); fully restored by **`sharpen`** —
+  a carried-whetstone engaged ritual (interruptible, hands slot,
+  `crafting.keenness.sharpenDurationMs`, the rasp emitted as an
+  `Audible` so the room hears it; the stone wears). Afforded by
+  *carrying* the whetstone — personal capital, works anywhere. Bands
+  only (`keen/serviceable/dulled/blunted`) everywhere but `analyze`.
+  Sharpen never touches condition; repair never touches keenness —
+  independently observable via `analyze`.
+
+**Broken is capability loss, not a state machine**:
+`DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`; a
+broken tool's `hasCapability` goes dark (it fails recipe tool-matching
+until repaired); a broken weapon's delivery is clamped to
+`crafting.brokenDeliveryFloor` (combat's bounded
+`instrumentDeliveryScale` — the shared
+`MaterialApi.gradeConditionScale` × the keenness factor, broken-floored,
+folded into strike energy; material *height* stays analyze-only, a
+deliberate combat-balance asymmetry).
+
+**`repair <item>`** (`CraftingApi.repair` — deficit-priced
+reverse-craft): cost mass = `item mass × (1 − condition) ×
+crafting.repair.costFactor`, **doubled broken**
+(`crafting.repair.brokenFactor`); domain-gated by matter — `metal`
+wants reachable heat ≥ `crafting.repair.metalHeatK` (the forge),
+soft goods a reachable `mending` tool (the sewing kit — the whetstone
+is *sharpening's* tool, never repair's); stock drawn by the same
+gather walk (a glob debits partially; a discrete donor is consumed
+whole only when its mass ≤ 2× the need). Restores to full —
+**ceiling-free** (the maintenance-relationship thesis: gear never
+obsoletes, it asks for care; scarcity is the material cost, not decay
+ratchets).
+
+**`salvage <item>`** (`CraftingApi.salvage` — the one generic lossy
+melt-down, the entropy sink): flatten the item's Material composition;
+each constituent above the dust floor yields `mass × fraction ×
+crafting.salvageRate` in its natural raw form — `metal` → a
+re-meltable `/obj/Casting`, anything else → an `/obj/Scrap` stack (a
+`GlobbableMixin(Thing)`, material-stamped, **quantity by mass** at
+0.1 kg units). Conservation asserted (Σ output ≤ input × rate, throw
+on breach); provenance, grade, and the chattel id die with the form
+(the shipped destruct release). Salvaging the forged knife yields less
+iron than the ingot that made it — lossless would break conservation;
+losing the value-add makes it self-limiting.
+
+## The venues (content over existing patterns, wholesale)
+
+The Hearthworks smithy grew into a working venue (anvil + smith's
+hammer + workbench + ingot/hide stock + `SmithyMenu` + Berta), and a
+**cookhouse** joined the zone (a 500 K clay hearth + `CookPot` + the
+open pantry chest — `/obj/Chest`, `Sealable + Container + Populates`,
+the honest chest-pull — + `KitchenMenu` + Odo). Both paths at each:
+order it (served) or make it yourself with their tools (the DIY floor,
+unpriced — the teaching venue). The general store sells the personal
+kit: whetstone, iron ingots, sewing kit.
+
+**The Business wiring is load-bearing, not decoration** (learned in
+this build): `order` resolves its maker through the augment-gated
+`MakerMixin`, so a venue with no rostered on-shift position has **no
+active maker** — `seeds/domain/hearthworks/business.yaml` rosters the
+smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
+verbatim; see [employment.md](./employment.md)). New graded-stock
+form: `/obj/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the
+discrete sibling of the graded bottle; a *fine* prime cut is what the
+fine-roast's `minGrade: fine` slot demands (the grade spread on solid
+stock).
+
 ## Deferred (non-goals)
 
-Skill/advancement control (v1 resolves at **fixed** control — no
-scatter/mastery/defects); recipe knowledge as a learnable/gated thing
-(the make-once-to-bank-it loop; v1's verbs are built **script-shaped** so
-it rebuilds nothing); corpos/brands/maker's-marks at corporate scale
-(drinks are unbranded; `with <brand>` only selects among present
-spirits); the DIY / rent-the-means path + payments/tabs/wages;
-deconstruction; the glassware cycling pool + shift choreography;
-viewer-relative appraisal + congener→hangover; **assembly** recipes.
+**Skill-as-control** — the declared **next crafting wave**
+(`deriveAtFixedControl`'s `_control`: tightness / reachable envelope /
+defect rate; every Transcript row from this build already counts when
+it lands); **assembly** recipes; the **tailoring branch** (the jerkin
+recipe + `mending` are its attach points; waits on a fiber source);
+recipe-spread vectors beyond watching (taught curricula, discovery,
+tradeable recipe-items); workshop lockers; batching
+(`forge nails --count 5`); DIY stock-pricing; skill-scaled salvage
+yield; working-surface maintenance beyond edges (seasoning/tuning —
+`KeenMixin` is deliberately edge-only); environmental decay (rust/rot
+at rest); glassmaking/brewing/alchemy (later branch consumers of the
+same seams); corpos/brands at corporate scale; viewer-relative
+appraisal + congener→hangover.
 
 ## Cross-references
 

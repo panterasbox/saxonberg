@@ -22,11 +22,14 @@ The conserved economy needs real **faucets** (extraction), a real
 retail), a **demand floor** that doesn't depend on DAU (polity paper),
 and real **sinks** (rent, tax, wear). Ordered by leverage:
 
-1. **Crafting recipe branches + the repair lifecycle** [T2] — smithing
-   / cooking / tailoring branches over the shipped crafting substrate
-   (the fire build's named deferral); wear→repair→scrap→reforge from
-   the materials-response slate. The transform stage of the whole
-   goods economy, and the wear economy is a universal money sink.
+1. ~~**Crafting recipe branches + the repair lifecycle** [T2]~~ —
+   **BUILT** (the crafting-branches build): smithing + cooking branches
+   over the one skeleton, the heat gate (D9 consumed), the generalized
+   knowledge ladder, combat wear-on-use, keenness + `sharpen`,
+   `repair`/`salvage`, both Hearthworks venues. The **tailoring branch
+   stays deferred** per the requirements (the jerkin recipe + `mending`
+   capability are its attach points; waits on a fiber faucet). See
+   [crafting.md](./subsystems/crafting.md).
    *Serves: Ironwrights, Victuallers; everything downstream.*
 2. **Employment / venue / job-contract content pass** [T1 — the
    substrate is shipped; this is authoring] — venues and contracts per

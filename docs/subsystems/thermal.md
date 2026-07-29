@@ -194,5 +194,6 @@ to a cast `Thing` below its melting point. Bidirectional — **ice → water →
 falls out of the shipped water material**. The **furnace family** (`FurnaceMixin`,
 generalizing the `Campfire` pin — see [fire.md](./fire.md)) heats the Meltables
 in its scope toward its held temperature; `ThermalApi.reachableHeatFor` reads the
-hottest reachable furnace (the inert crafting-control seam). See
+hottest reachable furnace — the crafting-control read `CraftingLogic`'s heat
+gate consumes (`recipe.requiresHeatK`; see [crafting.md](./crafting.md)). See
 [fire.md](./fire.md) for the combustion driver + the full high-heat physics.

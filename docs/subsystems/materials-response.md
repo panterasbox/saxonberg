@@ -110,7 +110,17 @@ normalized against a reference (steel) magnitude and lifted by a structural
 modulates within `[floor, 1]` (a hide boot still turns a shallow cut, a
 soft absorber still absorbs). `grade × condition` scales *height only*
 (Settled-4), tuned so a masterwork at ~50% condition ≈ a common piece
-pristine.
+pristine. The scalar is exposed as **`MaterialApi.gradeConditionScale`**
+so combat's instrument-delivery fold reads the SAME formula (the
+crafting-branches coupling — see [combat.md](./combat.md)); combat's
+delivery deliberately folds quality only, leaving material *height*
+analyze-only (the documented asymmetry).
+
+**Wear-on-use joins the fold** (the repair economy): inside
+`ConditionLogic`'s outside-in walk, each covering layer that attenuates a
+**mechanical** blow wears `crafting.wear.armorPerBlow` — armor degrades by
+taking hits, never by the clock; `repair` restores it (see
+[crafting.md](./crafting.md) § the lifecycle).
 
 ### The shape-vs-magnitude split
 
