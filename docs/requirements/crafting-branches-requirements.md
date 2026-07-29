@@ -127,10 +127,17 @@ fire deferral in [fire.md](../subsystems/fire.md) § Deferred and
 
 ## Non-goals
 
-- **Skill scatter / defects / mastery.** Resolution stays at fixed
-  control (`Grade.deriveAtFixedControl`'s `_control` stays ignored).
-  The advancement wiring of crafting is its own later build; this one
-  must not leak into the seam beyond passing through what exists.
+- **Skill scatter / defects / mastery — declared the next wave, not a
+  someday.** Resolution stays at fixed control
+  (`Grade.deriveAtFixedControl`'s `_control` stays ignored), which
+  leaves a stated, accepted gap: this build's bands don't yet move
+  outputs, so crafting's between-band progression feel rests on the
+  dense knowledge ladder (per-recipe unlocks) while the Transcript
+  accrues. The skill seam (`control = f(skill, tools)` → tightness /
+  reachable envelope / defect rate) is **the declared next crafting
+  wave** — it turns on the strand where mastery is felt in the work
+  itself, and everyone's evidence from this build already counts when
+  it lands (immutable, prospective).
 - **Assembly recipes** (blade + hilt + guard → sword; properties
   emerging from components). Still a genuinely different model —
   still deferred, not faked with a transform recipe.
@@ -298,6 +305,13 @@ hide form), plus ingot stock. Cooking: 3–5 dishes over
 existing/authored food materials (incl. one using the store's ration
 tier and one "fine meal" showing the grade spread). Every output
 backed by shipped readers — the retail rule: never decorative props.
+**Each branch's roster spans a deliberate difficulty ladder** (a
+trivial rung, a middle, and an edge rung at least) — the ZPD content
+obligation: felt progression is exactly as fine as the world's
+difficulty gradient, so the recipe tiers ARE the ladder a learner
+climbs and the estimator pays out against. Ladder placement is
+authored data (recipe difficulty is a world-measurement the
+`ActSignature` records).
 
 ## Constraints
 
@@ -352,6 +366,10 @@ backed by shipped readers — the retail rule: never decorative props.
 - Craft-resolve appends Transcript deeds against the seeded
   `smithing`/`cooking` leaves; `competence` shows the bands moving
   with real practice.
+- The seeded recipe rosters demonstrably span a difficulty ladder per
+  branch (trivial / middle / edge rungs present in the shipped
+  `recipes.yaml`, with distinct recorded difficulties) — checkable by
+  reading the seeds, felt as a climbable gradient in play.
 - A craft draws inputs from an open chest in the room and refuses the
   same chest closed.
 - All bar-branch tests pass unmodified; new branch tests cover the
