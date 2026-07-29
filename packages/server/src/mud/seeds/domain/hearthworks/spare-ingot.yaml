@@ -1,0 +1,9 @@
+# A second iron ingot — forge stock (the first is the melt demonstrator's;
+# this one feeds the recipe ladder). More at the general store.
+class: /obj/Ingot
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: an iron ingot
+  keywords: [ingot, iron, bar, billet]
+  _materialPath: /lib/material/element/iron
+  mass: 0.5

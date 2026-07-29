@@ -1,0 +1,19 @@
+# A toasted ration — trail food warmed over a fire until it's almost a
+# meal. The cooking ladder's trivial rung: same keeping food, honestly
+# improved by heat.
+class: /lib/material/Material
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: toasted ration
+  appearance: toasted biscuit and crisped sausage, still steaming
+  keywords: [ration, toasted, food]
+  density: 800
+  thermalConductivity: 0.3
+  specificHeat: 2500
+  edibility: true
+  nutrients: [carb]
+  nutrientAmounts:
+    carb: 40000
+  tags: [food, cooked]
+  composition: []
+  biologicalSource: null

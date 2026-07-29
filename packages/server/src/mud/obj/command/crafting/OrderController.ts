@@ -14,7 +14,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import Menu from '../../../domain/lounge/Menu';
+import Menu from '../../../lib/commerce/Menu';
 import { BankingApi, Money } from '../../../api/banking';
 import type { Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';

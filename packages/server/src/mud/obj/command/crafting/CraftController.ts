@@ -49,6 +49,8 @@ function declineMessage(failure: CraftFailure): string {
       return detail === 'no-location'
         ? "You can't make that here."
         : `There isn't enough ${detail || 'stock'} to make that.`;
+    case 'insufficient-heat':
+      return 'Nothing here runs hot enough for that — the forge is cold, or there is no fire at all.';
     case 'no-recipe':
       return "That can't be made here.";
     case 'no-output':

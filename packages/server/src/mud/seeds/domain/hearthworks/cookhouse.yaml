@@ -1,0 +1,22 @@
+# The cookhouse — the Hearthworks' cooking venue: a hearth (an Oven-class
+# furnace at gentle cooking heat), a cook pot, a pantry chest (the
+# open-container gather path — flip the lid, cook), the kitchen board,
+# and the cook. Order a meal, or make it yourself with their tools — the
+# DIY floor.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a cookhouse
+  primaryKeyword: cookhouse
+  longDescription: |
+    A low cookhouse warm with woodsmoke, a clay hearth glowing along one wall and a scrubbed table down the middle. A pantry chest stands against the wall, and the smell of stew never quite leaves the rafters.
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  populates:
+    - /obj/Oven
+    - /obj/CookPot
+    - /domain/hearthworks/kitchen-menu
+    - /domain/hearthworks/pantry-chest
+    - /domain/hearthworks/npc/cook

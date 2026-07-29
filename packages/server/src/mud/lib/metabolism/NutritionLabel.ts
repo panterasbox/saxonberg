@@ -59,11 +59,24 @@ function nutritionLabelAugmenter(
   host: Stuff,
   _viewer: Stuff,
 ): string {
-  if (!MixinApi.isTangible(host)) return text;
-  const material = host.getMaterial();
+  const material = labelMaterialOf(host);
   if (!material) return text;
   const label = renderNutritionLabel(material);
   return label ? `${text}\n${label}` : text;
+}
+
+/**
+ * The Material a host's label describes: a served vessel labels what it
+ * *holds* (the plated dish, the labelled bottle — its bulk-slot food),
+ * falling back to the host's own Tangible material (the bare ration).
+ */
+function labelMaterialOf(host: Stuff): Material | null {
+  if (MixinApi.isBulkable(host)) {
+    const aff = host.hasInteriorBulk() ? 'interior' : 'surface';
+    const held = host.getBulkMaterial(aff);
+    if (held && held.getEdibility() === true) return held;
+  }
+  return MixinApi.isTangible(host) ? host.getMaterial() : null;
 }
 
 /** Marker surface — the mixin adds no methods, only the augmenter. */

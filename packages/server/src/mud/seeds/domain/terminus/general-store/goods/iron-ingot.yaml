@@ -1,0 +1,10 @@
+# An iron ingot — own-stock forge work (the store sells inputs; the
+# Hearthworks is a teaching venue). The smithing branch's staple stock.
+class: /obj/Ingot
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: an iron ingot
+  primaryKeyword: ingot
+  keywords: [ingot, iron, bar, billet]
+  _materialPath: /lib/material/element/iron
+  mass: 0.5
