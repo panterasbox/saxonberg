@@ -34,7 +34,7 @@ import type {
   YoutubeChannelResult,
 } from '../../api/stream';
 
-type Service = 'twitch' | 'youtube';
+type Service = 'twitch' | 'youtube' | 'kick';
 
 const RELAY_PATH = '/obj/StreamRelay';
 const StreamApiCallers = SecurityPolicies.FromModule('/api/stream#StreamApi');
@@ -68,6 +68,9 @@ export class StreamLogic extends ApiLogic {
     if (parsed.platform === 'youtube') {
       return this.resolveYoutube(parsed.identifier);
     }
+    if (parsed.platform === 'kick') {
+      return { ok: false, reason: 'no-relay' }; // Phase 4 wires the resolve.
+    }
     // Twitch: the identifier is a channel login.
     return this.resolveTwitchLogin(parsed.identifier);
   }
@@ -89,9 +92,10 @@ export class StreamLogic extends ApiLogic {
     if (opened) {
       if (target.platform === 'twitch') {
         TwitchRelayReader.get().subscribe(target.key);
-      } else {
+      } else if (target.platform === 'youtube') {
         await YoutubeRelayReader.get().subscribe(target.key);
       }
+      // kick: Phase 4 wires KickRelayReader.subscribe on this edge.
     }
     return { ok: true, service: target.platform, handle: target.handle };
   }
@@ -371,7 +375,8 @@ export class StreamLogic extends ApiLogic {
 /** Unsubscribe a channel on its transport's backend reader. */
 function unsubscribeReader(service: Service, key: string): void {
   if (service === 'twitch') TwitchRelayReader.get().unsubscribe(key);
-  else YoutubeRelayReader.get().unsubscribe(key);
+  else if (service === 'youtube') YoutubeRelayReader.get().unsubscribe(key);
+  // kick: Phase 4 wires KickRelayReader.unsubscribe here.
 }
 
 // ---- overlay-owner reading -----------------------------------------------

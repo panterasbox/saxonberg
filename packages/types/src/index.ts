@@ -1178,7 +1178,7 @@ export interface StreamStateEnvelope {
 export interface RelayChatEnvelope {
   type: 'relay-chat';
   frameId: number;
-  service: 'twitch' | 'youtube';
+  service: 'twitch' | 'youtube' | 'kick';
   channelHandle: string;
   speaker: RelaySpeaker;
   text: string;
@@ -1506,15 +1506,18 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
  * The per-viewer focal-embed target held as server-authoritative
  * `cockpit.watch` clientState (set by the `watch` verb, pushed to the
  * client, which renders the platform's public-player iframe). Embed-shaped:
- * a Twitch channel, a YouTube videoId, or a YouTube channelId (the
- * `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`
- * so it tracks the channel's live status across streams). `null` = nothing
- * watched. Replaces the retired operator-curated broadcast-source list.
+ * a Twitch channel, a YouTube videoId or channelId (the `@handle`/`UC…`
+ * durable form, rendered `live_stream?channel=<channelId>` so it tracks
+ * the channel's live status across streams), or a Kick channel slug
+ * (`player.kick.com/<slug>`, which renders offline channels gracefully).
+ * `null` = nothing watched. Replaces the retired operator-curated
+ * broadcast-source list.
  */
 export type WatchTarget =
   | { platform: "twitch"; channel: string }
   | { platform: "youtube"; videoId: string }
-  | { platform: "youtube"; channelId: string };
+  | { platform: "youtube"; channelId: string }
+  | { platform: "kick"; channel: string };
 
 /**
  * Payload of the `system.connection.established` MessageFrame.
@@ -2678,38 +2681,47 @@ export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
 export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
 
 /**
+ * Kick OAuth scope the provider spends: the minimal identity scope both
+ * the login and link flows request. The posting scope (`chat:write`) is
+ * the deferred phase-2 seam.
+ */
+export const KICK_SCOPE_USER_READ = 'user:read';
+
+/**
  * The speaker on a relay frame. Honest-to-origin: an external line carries an
  * `external` (or `external-linked`) speaker; an outbound mirror of a local
  * player's post carries `in-game`. `external-linked` carries BOTH the
  * external handle and a {@link StuffRef} to the linked Avatar, so the client
  * can show the handle by default and reveal the MUD persona on hover. The
- * `service` axis spans both relay transports (`'twitch' | 'youtube'`);
- * `external-linked` is Twitch-only this cycle (no YouTube reverse link).
+ * `service` axis spans the relay transports
+ * (`'twitch' | 'youtube' | 'kick'`); `external-linked` spans twitch + kick
+ * (no YouTube reverse link).
  */
 export type RelaySpeaker =
   | { kind: 'in-game'; ref: StuffRef }
   | {
       kind: 'external';
-      service: 'twitch' | 'youtube';
+      service: 'twitch' | 'youtube' | 'kick';
       externalName: string;
     }
   | {
       kind: 'external-linked';
-      service: 'twitch' | 'youtube';
+      service: 'twitch' | 'youtube' | 'kick';
       externalName: string;
       ref: StuffRef;
     };
 
 /**
  * Payload of a relay chat frame (`world.twitch.message` /
- * `world.youtube.message`). Platform-agnostic: `service` names the
- * transport, `channelKey` is the transport's stable channel key (Twitch
- * broadcasterId / YouTube liveChatId), `channelHandle` the display handle.
- * `egress` marks the outbound mirror of a local player's post (rendered
- * with the `⊳ …→` marker; Twitch-only this cycle).
+ * `world.youtube.message` / `world.kick.message`). Platform-agnostic:
+ * `service` names the transport, `channelKey` is the transport's stable
+ * channel key (Twitch broadcasterId / YouTube liveChatId / Kick
+ * broadcasterId), `channelHandle` the display handle. `egress` marks the
+ * outbound mirror of a local player's post (rendered with the `⊳ …→`
+ * marker; Twitch-only this cycle).
  */
 export interface RelayMessagePayload {
-  service: 'twitch' | 'youtube';
+  service: 'twitch' | 'youtube' | 'kick';
   channelKey: string;
   channelHandle: string;
   speaker: RelaySpeaker;

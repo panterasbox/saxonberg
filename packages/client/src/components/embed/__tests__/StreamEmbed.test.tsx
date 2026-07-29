@@ -40,6 +40,19 @@ describe("StreamEmbed", () => {
     );
   });
 
+  it("renders a Kick player embed (muted autoplay)", () => {
+    const { container } = render(
+      <StreamEmbed target={{ platform: "kick", channel: "xqc" }} />,
+    );
+    const frames = container.querySelectorAll("iframe");
+    expect(frames).toHaveLength(1);
+    const src = frames[0]!.getAttribute("src") ?? "";
+    expect(src).toContain("player.kick.com/xqc");
+    expect(src).toContain("autoplay=true");
+    expect(src).toContain("muted=true");
+    expect(frames[0]!.getAttribute("sandbox")).toBeTruthy();
+  });
+
   it("renders a YouTube channelId live_stream embed", () => {
     const uc = "UC" + "x".repeat(22);
     const { container } = render(

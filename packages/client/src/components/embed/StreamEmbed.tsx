@@ -91,6 +91,20 @@ function iframeFor(target: WatchTarget): JSX.Element {
       />
     );
   }
+  if (target.platform === "kick") {
+    // Muted autoplay so the embed starts under every browser autoplay
+    // policy; the Kick player renders offline channels gracefully.
+    return (
+      <iframe
+        title="Kick stream"
+        src={`https://player.kick.com/${encodeURIComponent(
+          target.channel,
+        )}?autoplay=true&muted=true`}
+        sandbox={IFRAME_SANDBOX}
+        allow="autoplay; fullscreen"
+      />
+    );
+  }
   const src =
     "videoId" in target
       ? `https://www.youtube.com/embed/${encodeURIComponent(target.videoId)}`

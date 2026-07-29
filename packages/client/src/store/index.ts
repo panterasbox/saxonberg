@@ -227,7 +227,7 @@ export interface Frame {
    * when present (Twitch only this cycle).
    */
   relay?: {
-    service: "twitch" | "youtube";
+    service: "twitch" | "youtube" | "kick";
     channelHandle: string;
     speaker: string;
     persona?: string;

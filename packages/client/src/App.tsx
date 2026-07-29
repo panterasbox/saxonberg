@@ -35,10 +35,11 @@ import type {
   RelayMessagePayload,
 } from "@saxonberg/types";
 
-/** Relay-chat topics that carry a `RelayMessagePayload` (both transports). */
+/** Relay-chat topics that carry a `RelayMessagePayload` (all transports). */
 const RELAY_TOPICS = new Set([
   "world.twitch.message",
   "world.youtube.message",
+  "world.kick.message",
 ]);
 
 /**
