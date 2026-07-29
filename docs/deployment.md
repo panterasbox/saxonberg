@@ -395,6 +395,17 @@ TOKEN_ENC_KEY            # 32-byte key for encrypting OAuth tokens at rest
 TWITCH_CLIENT_ID         # not needed when the Twitch strategy is unused
 TWITCH_CLIENT_SECRET     #   (strategy skipped if any TWITCH_* is absent)
 TWITCH_CALLBACK_URL      #   e.g. https://mud.panterasbox.com/auth/twitch/callback
+KICK_CLIENT_ID           # Kick provider + relay (strategy + transport
+KICK_CLIENT_SECRET       #   skipped/dormant if any KICK_* is absent)
+KICK_CALLBACK_URL        #   e.g. https://mud.panterasbox.com/auth/kick/callback
+KICK_WEBHOOK_URL         # the public webhook URL for Kick chat delivery —
+                         #   https://mud.panterasbox.com/webhooks/kick.
+                         #   Must be registered in the Kick developer app
+                         #   (Caddy already terminates TLS for it). Local
+                         #   dev: leave unset → transport-dormant, no
+                         #   tunnel needed.
+OVERLAY_KICK_CHANNEL     # optional: the owner's own Kick slug for the
+                         #   broadcast-overlay chat forwarding
 ```
 
 Test/E2E-only (never set in production):
