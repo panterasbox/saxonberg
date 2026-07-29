@@ -9,12 +9,19 @@
 
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
-import type { CraftFailure } from '../../../api/crafting';
+import type {
+  CraftFailure,
+  RepairFailure,
+  SalvageFailure,
+} from '../../../api/crafting';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
 const TOPIC = 'world.narration.action';
+
+/** Any crafting-family decline (craft / repair / salvage) — one renderer. */
+type CraftingFailure = CraftFailure | RepairFailure | SalvageFailure;
 
 export abstract class CraftController<
   M extends CommandModel,
@@ -22,7 +29,7 @@ export abstract class CraftController<
   /** Render a craft decline as a diegetic scene + a rejection note. */
   protected declineToScene(
     giver: Stuff,
-    failure: CraftFailure,
+    failure: CraftingFailure,
     context: CommandContext,
   ): void {
     MessageApi.scene(giver)
@@ -38,7 +45,7 @@ export abstract class CraftController<
 }
 
 /** Map a decline reason to its diegetic line. */
-function declineMessage(failure: CraftFailure): string {
+function declineMessage(failure: CraftingFailure): string {
   const detail = failure.detail;
   switch (failure.reason) {
     case 'no-maker':

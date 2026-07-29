@@ -20,6 +20,8 @@ export default class SmithyMenu extends CommerceMenu {
       'crafting/heat.yaml',
       'crafting/hammer.yaml',
       'crafting/quench.yaml',
+      'crafting/repair.yaml',
+      'crafting/salvage.yaml',
       'crafting/make.yaml',
     ],
     inventory: [
@@ -29,6 +31,8 @@ export default class SmithyMenu extends CommerceMenu {
       'crafting/heat.yaml',
       'crafting/hammer.yaml',
       'crafting/quench.yaml',
+      'crafting/repair.yaml',
+      'crafting/salvage.yaml',
       'crafting/make.yaml',
     ],
     peers: [],

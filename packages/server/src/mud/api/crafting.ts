@@ -133,6 +133,67 @@ export interface BuildMintRequest {
   makerPath?: string;
 }
 
+/**
+ * The repair request — the item to service. The maker is derived from
+ * the execution context, never the wire (as with {@link CraftRequest}).
+ */
+export interface RepairRequest {
+  /** The durable good to restore (already resolved held/reachable). */
+  item: Stuff;
+}
+
+/** Why a repair was infeasible (rendered diegetically). */
+export type RepairDeclineReason =
+  | 'no-maker'
+  | 'missing-tool'
+  | 'insufficient-heat'
+  | 'insufficient-input';
+
+export interface RepairSuccess {
+  ok: true;
+  item: Stuff;
+  /** The condition the repair started from (it ends at 1). */
+  conditionBefore: number;
+  /** The material mass (kg) the repair consumed. */
+  costKg: number;
+}
+
+export interface RepairFailure {
+  ok: false;
+  reason: RepairDeclineReason;
+  detail?: string;
+}
+
+/** The outcome of a repair — declines are data, breaches throw. */
+export type RepairOutcome = RepairSuccess | RepairFailure;
+
+/** The salvage request — the form to break down for its matter. */
+export interface SalvageRequest {
+  /** The Tangible to break down (already resolved held/reachable). */
+  item: Stuff;
+}
+
+/** Why a salvage was refused (rendered diegetically). */
+export type SalvageDeclineReason = 'no-maker' | 'insufficient-input';
+
+export interface SalvageSuccess {
+  ok: true;
+  /** The recovered raw forms (castings / scrap stacks), unplaced — the
+   * controller lands them in the actor's location. */
+  outputs: Stuff[];
+  /** Total recovered mass (kg) — always ≤ input mass × salvageRate. */
+  recoveredKg: number;
+}
+
+export interface SalvageFailure {
+  ok: false;
+  reason: SalvageDeclineReason;
+  detail?: string;
+}
+
+/** The outcome of a salvage — declines are data, breaches throw. */
+export type SalvageOutcome = SalvageSuccess | SalvageFailure;
+
 const LOGIC_PATH = '/obj/api/crafting';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../obj/api/CraftingLogic', import.meta.url),
@@ -174,6 +235,31 @@ export class CraftingApi {
     request: BuildMintRequest,
   ): Promise<CraftOutcome> {
     return logic().mintFromBuild(request);
+  }
+
+  /**
+   * Repair a durable good — the deficit-priced reverse-craft: material
+   * (same category as the item's matter) × the condition deficit × the
+   * `crafting.repair.*` dials, doubled when broken; metal wants forge
+   * heat, soft goods a `mending` tool. Restores toward full — no
+   * permanent-degradation ceiling. The maker is derived from context.
+   * See {@link CraftingLogic.repair}.
+   */
+  public static async repair(request: RepairRequest): Promise<RepairOutcome> {
+    return logic().repair(request);
+  }
+
+  /**
+   * Salvage a Tangible — the one generic lossy melt-down: each
+   * constituent material returns `mass × fraction × crafting.salvageRate`
+   * in its natural raw form (metal → a re-meltable casting, organics → a
+   * scrap stack); the rest is dross. Provenance, grade, and the chattel
+   * stamp die with the form. See {@link CraftingLogic.salvage}.
+   */
+  public static async salvage(
+    request: SalvageRequest,
+  ): Promise<SalvageOutcome> {
+    return logic().salvage(request);
   }
 
   /** Resolve a recipe id/keyword to a display view, or null. */

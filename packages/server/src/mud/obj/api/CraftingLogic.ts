@@ -30,7 +30,15 @@ import type {
   RecipeView,
   MakerMode,
   BuildMintRequest,
+  RepairRequest,
+  RepairOutcome,
+  SalvageRequest,
+  SalvageOutcome,
 } from '../../api/crafting';
+import { MaterialApi } from '../../api/material';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
+import Scrap from '../Scrap';
 import type { BuildContribution } from '../../lib/craft/ManualBuild';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
@@ -50,6 +58,25 @@ const GENERIC_POTLUCK_PORTION_L = 0.3;
 
 /** The template an off-spec workpiece mint clones (a re-meltable lump). */
 const WORKED_LUMP_TEMPLATE = '/obj/Casting';
+
+/** The template salvage's non-metal yields clone (the fungible stack). */
+const SCRAP_TEMPLATE = '/obj/Scrap';
+
+/** Below this recovered mass (kg) a salvage constituent is dust (lost). */
+const SALVAGE_DUST_FLOOR_KG = 0.01;
+
+/** Numeric AppSetting read, falling back to the seeded literal (the
+ * `Combustible` dial pattern — pre-warm / test safe). */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /** A reachable, graded bulk input candidate. */
 interface BottleCandidate {
@@ -854,6 +881,216 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
 }
 
+/**
+ * Repair (DECISION K) — the deficit-priced reverse-craft. Maker from
+ * context; the deficit `1 − condition` prices the material cost
+ * (`item mass × deficit × crafting.repair.costFactor`, doubled broken);
+ * the domain gates by matter — `metal` wants forge-grade reachable heat,
+ * soft goods a reachable `mending` tool; stock is drawn from the same
+ * gather walk a craft uses (a glob debits partially; a discrete donor is
+ * consumed whole only when its mass ≤ 2× the need). On success the
+ * condition is restored to full — ceiling-free (gear never obsoletes, it
+ * asks for care). Repair never touches keenness; `sharpen` never touches
+ * condition.
+ */
+async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
+  const maker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  if (!maker || !MixinApi.isContainable(maker)) {
+    return { ok: false, reason: 'no-maker' };
+  }
+  const location = maker.getContainer();
+  if (!location) {
+    return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
+  }
+  const item = req.item;
+  if (!MixinApi.isDurable(item)) {
+    return { ok: false, reason: 'insufficient-input', detail: 'not-durable' };
+  }
+  const conditionBefore = item.getCondition();
+  const deficit = 1 - conditionBefore;
+  if (deficit <= EPS) {
+    return {
+      ok: false,
+      reason: 'insufficient-input',
+      detail: 'nothing-to-repair',
+    };
+  }
+  const broken = item.isBroken();
+  const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
+  const metal = material?.hasTag('metal') ?? false;
+
+  const { tools, items } = await gatherMatter(location, maker);
+
+  // The domain gate: forge heat for metal restoration, `mending` for the
+  // soft goods. The whetstone is *sharpening's* tool, never repair's.
+  if (metal) {
+    const heatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
+    if (ThermalApi.reachableHeatFor(maker) < heatK) {
+      return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
+    }
+  } else {
+    const mender = tools.find((t) => t.hasCapability('mending'));
+    if (!mender) {
+      return { ok: false, reason: 'missing-tool', detail: 'mending' };
+    }
+  }
+
+  // The deficit-priced material cost.
+  const massKg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+  let needKg =
+    massKg * deficit * dial(AppSettingKeys.craftingRepairCostFactor, 0.6);
+  if (broken) needKg *= dial(AppSettingKeys.craftingRepairBrokenFactor, 2);
+
+  const draws: MatchedItemInput[] = [];
+  if (needKg > EPS) {
+    // Same-category stock: `metal` for metal; for soft goods, anything
+    // sharing a tag with the item's own matter (hide mends hide).
+    const wantTags = metal ? ['metal'] : [...(material?.getTags() ?? [])];
+    const donors = items.filter(
+      (i) => i.stuff !== item && wantTags.some((t) => i.material.hasTag(t)),
+    );
+    // Globs first (partial-mass debits waste nothing).
+    donors.sort((a, b) => Number(b.quantity > 1) - Number(a.quantity > 1));
+    let remaining = needKg;
+    for (const donor of donors) {
+      if (remaining <= EPS) break;
+      if (!MixinApi.isTangible(donor.stuff)) continue;
+      const unitKg = donor.stuff.getMass().rawValue();
+      if (unitKg <= 0) continue;
+      if (MixinApi.isGlobbable(donor.stuff)) {
+        const take = Math.min(donor.quantity, Math.ceil(remaining / unitKg));
+        draws.push({
+          stuff: donor.stuff,
+          count: take,
+          glob: true,
+          grade: donor.grade,
+          material: donor.material,
+        });
+        remaining -= take * unitKg;
+      } else if (unitKg <= 2 * remaining) {
+        // A discrete donor is sacrificed whole — only when the overshoot
+        // is tolerable (≤ 2× the need); else it's not a repair, it's
+        // waste.
+        draws.push({
+          stuff: donor.stuff,
+          count: 1,
+          glob: false,
+          grade: donor.grade,
+          material: donor.material,
+        });
+        remaining -= unitKg;
+      }
+    }
+    if (remaining > EPS) {
+      return {
+        ok: false,
+        reason: 'insufficient-input',
+        detail: metal ? 'metal' : 'stock',
+      };
+    }
+  }
+
+  consumeItemInputs(draws);
+  item.setCondition(1); // ceiling-free — the maintenance relationship
+  return { ok: true, item, conditionBefore, costKg: needKg };
+}
+
+/**
+ * Salvage (DECISION L) — the one generic lossy melt-down. Flatten the
+ * item's Material composition; each constituent above the dust floor
+ * yields `item mass × fraction × crafting.salvageRate` in its natural
+ * raw form — `metal` → a re-meltable Casting, anything else → a Scrap
+ * stack (quantity by mass). The rest is dross (the entropy sink).
+ * Conservation asserted (Σ output ≤ input × rate + ε, throw on breach);
+ * the destruct releases provenance, grade, and the chattel id with the
+ * form. Outputs are returned unplaced — landing them is the
+ * controller's job.
+ */
+async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
+  const maker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  if (!maker) return { ok: false, reason: 'no-maker' };
+  const item = req.item;
+  if (!MixinApi.isTangible(item) || MixinApi.isOrganism(item)) {
+    return {
+      ok: false,
+      reason: 'insufficient-input',
+      detail: 'not-salvageable',
+    };
+  }
+  if (MixinApi.isBuildVessel(item) && !item.isBuildEmpty()) {
+    return { ok: false, reason: 'insufficient-input', detail: 'build-in-use' };
+  }
+  const material = item.getMaterial();
+  if (!material) {
+    return { ok: false, reason: 'insufficient-input', detail: 'no-material' };
+  }
+  const massKg = item.getMass().rawValue();
+  if (massKg <= 0) {
+    return { ok: false, reason: 'insufficient-input', detail: 'no-matter' };
+  }
+  const rate = dial(AppSettingKeys.craftingSalvageRate, 0.5);
+
+  // The flattened constituents — a pure material is its own whole.
+  const comp = MaterialApi.compositionOf(material);
+  const constituents: { material: Material; fraction: number }[] = [];
+  if (comp.direct.length === 0) {
+    constituents.push({ material, fraction: 1 });
+  } else {
+    for (const entry of comp.direct) {
+      const m = await StuffApi.singleton<Material>(entry.materialPath);
+      constituents.push({ material: m, fraction: entry.fraction });
+    }
+  }
+
+  const outputs: Stuff[] = [];
+  let recoveredKg = 0;
+  for (const c of constituents) {
+    const yieldKg = massKg * c.fraction * rate;
+    if (yieldKg < SALVAGE_DUST_FLOOR_KG) continue; // dust — lost
+    if (c.material.hasTag('metal')) {
+      const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
+      const lump = cast as unknown as Stuff & {
+        setShortDescription(s: string): void;
+        setMaterial(m: Material): void;
+        setMass(q: Quantity<'kg'>): void;
+      };
+      lump.setShortDescription(`a salvaged lump of ${c.material.getName()}`);
+      lump.setMaterial(c.material);
+      lump.setMass(Quantity.of(yieldKg, 'kg'));
+      outputs.push(cast);
+      recoveredKg += yieldKg;
+    } else {
+      // Scrap: quantity by mass, floor-rounded to whole units (rounding
+      // up would counterfeit matter).
+      const units = Math.floor(yieldKg / Scrap.UNIT_KG);
+      if (units < 1) continue; // sub-unit — dust
+      const scrap = await StuffApi.clone<Stuff>(SCRAP_TEMPLATE);
+      const s = scrap as unknown as Stuff & {
+        setShortDescription(s: string): void;
+        setMaterial(m: Material): void;
+        setMass(q: Quantity<'kg'>): void;
+        setQuantity(n: number): void;
+      };
+      s.setShortDescription(`a heap of ${c.material.getName()} scrap`);
+      s.setMaterial(c.material);
+      s.setMass(Quantity.of(Scrap.UNIT_KG, 'kg'));
+      s.setQuantity(units);
+      outputs.push(scrap);
+      recoveredKg += units * Scrap.UNIT_KG;
+    }
+  }
+
+  if (recoveredKg > massKg * rate + EPS) {
+    throw new Error(
+      `CraftingLogic: conservation breach — salvage recovered ` +
+        `${recoveredKg} kg from ${massKg} kg at rate ${rate}`,
+    );
+  }
+
+  StuffApi.destruct(item); // provenance, grade, chattel die with the form
+  return { ok: true, outputs, recoveredKg };
+}
+
 async function lookupImpl(ref: string): Promise<RecipeView | null> {
   const catalogue = await requireCatalogue();
   const recipe = catalogue.findByKeyword(ref) ?? catalogue.getRecipe(ref);
@@ -900,6 +1137,18 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async mintFromBuild(request: BuildMintRequest): Promise<CraftOutcome> {
     return mintFromBuildImpl(request);
+  }
+
+  /** See {@link CraftingApi.repair}. */
+  @CallSecurity(CraftingApiCallers)
+  public async repair(request: RepairRequest): Promise<RepairOutcome> {
+    return repairImpl(request);
+  }
+
+  /** See {@link CraftingApi.salvage}. */
+  @CallSecurity(CraftingApiCallers)
+  public async salvage(request: SalvageRequest): Promise<SalvageOutcome> {
+    return salvageImpl(request);
   }
 
   /** See {@link CraftingApi.lookupRecipe}. */
