@@ -73,6 +73,19 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
   the ~18 career-grain regions fall out coherent, with the
   mystery-tier `synergizes` edges honored in data. Also the asset the
   education video wants.
+- **The vanilla recipe pack** [T1 — pure data once the crafting-
+  branches build ships] — the comprehensive launch recipe set, authored
+  as a content pack (sibling of the discipline pack, done **together**
+  with it: recipe tiers are the crafting disciplines' ZPD rungs, so the
+  tree and the ladders must agree). Width is enumeration over the real
+  response axes (form × material × construction — gear width is
+  template *data*, not new classes), governed by the **admission
+  test**: a recipe ships only if a live system reads its output
+  (weapons/armor/tools/vessels/lights/dressings/trap-kits/food today;
+  jewelry, instruments, furniture-beyond-readers, locksmithing wait for
+  their readers — locksmithing additionally a security design
+  conversation, not just a reader). The build itself stays narrow
+  (~6+5 laddered seeds proving the seams).
 - **Alignment spine content** [T1 — alignment-slate is SETTLED] — the
   evil-realm demo the alignment thesis needs; also what the Warding /
   contemplative Orders eventually open on.
