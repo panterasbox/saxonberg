@@ -42,7 +42,7 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
    - **Mining / Ferrow Delving** [T2] — the materials faucet; ends the
      metal-import era (a world event); salt as the preservation
      staple. *Serves: Delvers, Ironwrights.*
-   - **Fishing v1** [T2 — see the rescue note in §5] — the accessible
+   - **Fishing v1** [T2 — [fishing-slate](./slates/builds/fishing-slate.md)] — the accessible
      income floor (the body's rest); first real gameplay consumer of
      weather; drives perishability; the salt-cod interlock with
      mining; the net wave's commons/quota = more polity paper.
@@ -114,12 +114,15 @@ precedents):
 
 ## 5. Design debt & housekeeping
 
-- **Rescue the fishing slate** — `fishing-slate.md` (design captured,
-  mining/farming-grade depth) lives in unpushed commit `19f9c474` on
-  the **diverged local `master`** in the `master` worktree, alongside
-  a multi-currency slate that may overlap the
-  `docs/currency-market-decision` branch. Push or cherry-pick before
-  it's lost; reconcile the divergence.
+- **Fishing slate rescued** (2026-07-28) — commit `19f9c474`
+  cherry-picked onto `docs/guild-slate` (fishing-slate + the
+  multi-currency tail + their README lines). **Residual**: the local
+  `master` in the `master` worktree remains **diverged from origin**
+  with other unpushed commits (manifesto/rerecord work, the WizWar
+  reference PDF) plus a dirty tree of modified lenses/manifesto files —
+  still needs reconciling; and the multi-currency tail should be
+  read against the `docs/currency-market-decision` branch when that
+  merges.
 - **Marshal-credential issuance** [T4, small] — Office or court?
   Waits on the courts design.
 - **Ranching deep pass** [stub] — the Grange's herd wing; scheduled to
