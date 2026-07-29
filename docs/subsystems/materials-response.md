@@ -45,11 +45,17 @@ picks its *shape*:
   shape: **armor forms** (`plate`/`mail`/`padded`/`hide`) with a *resist*
   profile, and **weapon-delivery forms** (`bladed`/`pointed`/`hafted`, plus
   the guardless `flail` (blunt) and `whip` (a cutting `edge` lash) added by
-  the weapon-playstyle build — the guardless/reach distinctions are a
-  *playstyle* concern keyed on the form in `WeaponProfile`, see
-  [combat.md](./combat.md), not a delivery-shape one) with a *deliver*
-  profile. Persisted by hosts as the form word, reconstructed via
-  `Construction.of`.
+  the weapon-playstyle build, and `blunted` — a sword-shaped implement
+  presenting no edge, the waster/practice-sword form: blunt-primary
+  delivery like `hafted` but a blade's `good` self-guard in
+  `WeaponProfile`, so a trainer with a real sword's mass/length derives a
+  real sword's playstyle while its blows resolve as contusions.
+  Harmlessness lives in the delivery *shape* — the live fold never reads a
+  weapon's material, so a "wooden sword" authored `bladed` still cuts. The
+  guardless/reach distinctions are a *playstyle* concern keyed on the form
+  in `WeaponProfile`, see [combat.md](./combat.md), not a delivery-shape
+  one) with a *deliver* profile. Persisted by hosts as the form word,
+  reconstructed via `Construction.of`.
 
 ### The taxonomy grid (shape, in code)
 
@@ -68,6 +74,9 @@ the curve, transcribed verbatim from the slate:
 | bladed | edge | point |
 | pointed | point | edge |
 | hafted | blunt | — |
+| flail | blunt | — |
+| whip | edge | blunt |
+| blunted | blunt | — |
 
 Armor forms also carry a canonical outside-in **`LAYER_DEPTH`** (padded 0 …
 plate 3) so a covering stack orders itself with no authored number.
@@ -112,6 +121,20 @@ plus the reference magnitudes, the grade/condition bounds, the tissue-tail
 thresholds, and the outcome-band cutoffs. **No magic balance number ships
 as a code invariant** — every magnitude is a dial read with a seeded-literal
 fallback (safe pre-warm/test).
+
+### The boot roster warm (`MaterialApi.boot`)
+
+Every material read the engine performs (`Tangible.getMaterial`, a bulk
+slot's material, `Combustible`'s autoignition, composition expansion)
+is a **sync** `findByTemplatePath` against the live index — and nothing
+else ever stood Materials up in a running server (tests hand-construct
+theirs), so every live read was null and nothing could ignite or melt.
+`MaterialApi.boot()` (called from `AppBootstrap` after the seeders)
+stands the whole `/lib/material/**` roster up as live singletons — the
+`SpeciesApi.preloadAnatomy` tolerant-ensure made total over a small,
+hot, reference-data roster. Folder rows (`FolderZone`s) are the zone
+substrate's and are skipped. `Material.canEvict` vetoes the residency
+sweep: a culled material would be a null read until the next process.
 
 ## Armor mitigation — emergent, layered, outside-in
 

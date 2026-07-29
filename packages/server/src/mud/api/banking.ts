@@ -28,6 +28,7 @@ import type {
   LedgerEntryFields,
   ProfitAndLoss,
   ReconcileResult,
+  EscrowHoldResult,
 } from "../lib/banking/LedgerEntry";
 import type { Container } from "../lib/spatial/Container";
 import type { LedgerLeg } from "../lib/banking/Transaction";
@@ -57,6 +58,7 @@ export type {
   LedgerEntryFields,
   ProfitAndLoss,
   ReconcileResult,
+  EscrowHoldResult,
   LedgerLeg,
   Charge,
   SettlementMethod,
@@ -85,12 +87,14 @@ function logic(): BankingLogic {
 
 export class BankingApi {
   /**
-   * Boot seam (idempotent). The warm caches are loaded separately by
-   * `AccountBalance.warm()` / `SupplyAggregate.warm()` (awaited in
-   * `AppBootstrap` before this). Activation = the singleton's presence.
+   * Boot seam (idempotent). Runs the custodian restamp pass over legacy
+   * `bank_accounts` rows (the every-account-names-a-real-custodian rule —
+   * a cache-field fill, no money moves). The warm caches are loaded
+   * separately by `AccountBalance.warm()` / `SupplyAggregate.warm()`
+   * (awaited in `AppBootstrap` before this).
    */
-  public static boot(): void {
-    logic().boot();
+  public static async boot(): Promise<void> {
+    return logic().boot();
   }
 
   /**
@@ -158,22 +162,24 @@ export class BankingApi {
   /* ───────────────────────── custodial bank ops ───────────────────────── */
 
   /**
-   * Open the acting owner's account at a branch (idempotent). The first
-   * account an owner opens becomes their primary (receive-by-identity
-   * default); the bank's `corpoKey` affiliation is recorded on the row. The
-   * owner is the context-derived author, never a parameter. Returns the
-   * durable account id.
+   * Open the acting owner's account at a **bank** (an institution key,
+   * e.g. `goodkin` — your account exists at the bank and is serviceable
+   * at every branch of it; the verb layer passes the branch's
+   * `getBank()`). Idempotent; the first account an owner opens becomes
+   * their primary (receive-by-identity default); the bank's `corpoKey`
+   * affiliation is recorded on the row. The owner is the context-derived
+   * author, never a parameter. Returns the durable account id.
    */
   public static async openAccount(
-    bankPath: string,
+    bank: string,
     corpoKey: string,
   ): Promise<string> {
-    return logic().openAccount(bankPath, corpoKey);
+    return logic().openAccount(bank, corpoKey);
   }
 
-  /** The acting owner's account id at `bankPath` (no number typed). */
-  public static async myAccountAt(bankPath: string): Promise<string | null> {
-    return logic().myAccountAt(bankPath);
+  /** The acting owner's account id at the `bank` institution. */
+  public static async myAccountAt(bank: string): Promise<string | null> {
+    return logic().myAccountAt(bank);
   }
 
   /** Every account the acting owner holds (the multi-account read). */
@@ -264,8 +270,109 @@ export class BankingApi {
     employerAccountId: string,
     workerKey: string,
     amount: Money,
+    category: PnlCategory = "wages",
+    memo = "wage",
   ): Promise<void> {
-    return logic().payWage(employerAccountId, workerKey, amount);
+    return logic().payWage(employerAccountId, workerKey, amount, category, memo);
+  }
+
+  /**
+   * Pay the proprietor's **draw** — business account → the proprietor's
+   * primary account, kind `draw` (owner take-home is not a wage; the
+   * distinct leg kind is the future tax wedge). Solvency-checked: refuses
+   * when the business balance is short (unlike `payWage`, which pays red by
+   * design — the deficit model). The verb layer resolves the business from
+   * the acting proprietor (participant contract), never a spoofable param.
+   */
+  public static async payDraw(
+    businessAccountId: string,
+    proprietorKey: string,
+    amount: Money,
+  ): Promise<void> {
+    return logic().payDraw(businessAccountId, proprietorKey, amount);
+  }
+
+  /* ──────────────── escrow (the contract system's agent) ──────────────── */
+
+  /**
+   * Hold `amount` for a contract: issuer account → the per-contract escrow
+   * account (`escrow:contract:<id>` — a REAL row owned by the contract,
+   * custodied at the default commercial bank, so `reconcile` counts held
+   * funds throughout). Returns a refusal value on a short issuer balance
+   * (no credit); a successful hold carries the ledger `txId` the contract
+   * event chain references.
+   */
+  public static async escrowHold(
+    fromAccountId: string,
+    contractId: string,
+    amount: Money,
+  ): Promise<EscrowHoldResult> {
+    return logic().escrowHold(fromAccountId, contractId, amount);
+  }
+
+  /**
+   * Release held funds to the contractor (`escrow-release`). Throws on an
+   * over-release — the per-contract account makes the invariant breach
+   * loud instead of silently commingling another contract's stake.
+   */
+  public static async escrowRelease(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return logic().escrowRelease(contractId, toAccountId, amount);
+  }
+
+  /** Revert held funds to the issuer (`escrow-revert`; breach/expiry). */
+  public static async escrowRevert(
+    contractId: string,
+    toAccountId: string,
+    amount: Money,
+  ): Promise<string> {
+    return logic().escrowRevert(contractId, toAccountId, amount);
+  }
+
+  /**
+   * The in-flight escrow balance for a contract (sync warm read) — the
+   * legibility surface: the stakes are real because the money is locked
+   * and visible.
+   */
+  public static escrowBalanceOf(contractId: string): Money {
+    return logic().escrowBalanceOf(contractId);
+  }
+
+  /**
+   * Close a contract's escrow account at a terminal transition: asserts the
+   * balance is zero, then deletes the `bank_accounts` row (the ledger legs
+   * remain the permanent record). Idempotent; live escrow rows scale with
+   * open contracts only.
+   */
+  public static async escrowClose(contractId: string): Promise<void> {
+    return logic().escrowClose(contractId);
+  }
+
+  /**
+   * The default custodian bank (`banking.defaultCustodianBank`, an
+   * institution key — `goodkin`). **The legacy-restamp last resort, not a
+   * default to build on**: custody is a relationship — a business banks
+   * where its authored `banksAt` says, a worker's first account opens at
+   * the payer's bank, escrow at the issuer's bank. This value exists for
+   * the boot restamp of orphaned legacy rows (no relationship derivable)
+   * and as a person-tier retail anchor in tests. Never pass it as a
+   * business's custodian.
+   */
+  public static defaultCustodianBank(): string {
+    return logic().defaultCustodianBank();
+  }
+
+  /**
+   * The custodian bank (an institution key) recorded on an account, or
+   * null for an unknown/uncustodied row — the relationship read a payer
+   * derives a payee's new account from (e.g. a contract payout opens
+   * where the escrow is custodied).
+   */
+  public static async custodianOf(accountId: string): Promise<string | null> {
+    return logic().custodianOf(accountId);
   }
 
   /**
@@ -315,16 +422,17 @@ export class BankingApi {
   }
 
   /**
-   * Ensure a venue's P&L account exists (owner = the venue's durable path),
-   * creating a primary one if absent — lazily, on first banking interaction
-   * at the venue. The bar's account the order/pnl/payroll flows resolve.
+   * Ensure a venue's P&L account exists (owner = the venue's durable
+   * path, custodied at the `bank` institution), creating a primary one if
+   * absent — lazily, on first banking interaction at the venue. The bar's
+   * account the order/pnl/payroll flows resolve.
    */
   public static async ensureVenueAccount(
     ownerPath: string,
-    bankPath: string,
+    bank: string,
     corpoKey: string,
   ): Promise<string> {
-    return logic().ensureVenueAccount(ownerPath, bankPath, corpoKey);
+    return logic().ensureVenueAccount(ownerPath, bank, corpoKey);
   }
 
   /**
@@ -334,9 +442,9 @@ export class BankingApi {
    */
   public static async ensureCorpoTreasury(
     corpoKey: string,
-    bankPath: string,
+    bank: string,
   ): Promise<string> {
-    return logic().ensureCorpoTreasury(corpoKey, bankPath);
+    return logic().ensureCorpoTreasury(corpoKey, bank);
   }
 
   /**

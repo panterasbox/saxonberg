@@ -2021,3 +2021,138 @@ the whole design around one overloaded English word, and don't generalize a
 `Blowable`-style per-gesture capability: "anything can be blown, only some
 respond" is a *responder*, not an object type — and the responder, if you
 ever need it, hangs off `use`, not a new gesture-verb layer.
+
+## Custody Is a Relationship, Never a Default
+
+Every bank account names a real custodian **institution** — and *which*
+institution derives from who the account is FOR, never from a call-site
+constant.
+
+```typescript
+// WRONG — a call-site default silently makes one bank the custodian of
+// the whole economy (and hides an authoring decision inside code):
+const account = await BankingApi.ensureVenueAccount(
+  business.getAccountPath(),
+  BankingApi.defaultCustodianBank(),   // ← not yours to decide here
+  "",
+);
+
+// RIGHT — the business's authored custody term, through the one seam:
+const account = await EmploymentApi.operatingAccountOf(business);
+// (banksAt on the Business seed; missing = refused loudly)
+```
+
+The relationship table:
+
+| Account | Custodian derives from |
+|---|---|
+| A business's operating account | its authored `banksAt` (a term on the Business seed) |
+| An NPC worker/payee with no account | the **payer's** bank (employer's `banksAt`; a contract payout, the escrow's custodian) |
+| A **player** with no account | nobody — refuse; players open their own accounts (never silently signed up) |
+| Contract escrow | the **issuer's** funding account's bank |
+| The `treasury` (the one state account) | the CB (`Account.CENTRAL_BANK_INSTITUTION`) |
+
+`banking.defaultCustodianBank` exists for exactly one consumer: the boot
+restamp's last resort over legacy rows where no relationship is
+derivable. It is an AppSetting with **no code fallback** — unwarmed
+means *no default custodian*, and consumers refuse rather than invent a
+bank. See [banking.md](./subsystems/banking.md) § Every account names a
+real custodian.
+
+## Raw keyed reserve reads outside the owning substrate
+
+**Don't:**
+
+```typescript
+// another subsystem / authored content reading a body's pool
+const pool = target.getReserve('mana');       // stale — skips the recovery reconcile
+const tired = actor.getReserve('endurance');  // key + unit are tribal knowledge
+```
+
+**Do:**
+
+```typescript
+const pool = target.getMana();          // CasterMixin — reconciled, key-free, null for a non-caster
+const tired = actor.getEndurance();     // Creature — the biological trio (satiation/hydration too)
+const fuel = log.getFuelRemaining();    // Combustible — the original exemplar
+```
+
+The keyed `Reserved` surface (`getReserve`/`adjustReserve`) is each
+owning substrate's **internal plumbing** — some owners hook it with
+their reconcile (metabolism), some don't (magic), so an outside caller
+can't know whether a raw read is fresh. The **contract surface** is the
+owner's domain reader, which bundles whatever reconcile-on-read the
+owner needs and is what the author-facing docs surface
+(`callable == visible`). The full instance → owner → reader index lives
+in the reserve landscape table at the top of `lib/reserve.ts`; a new
+authored reserve ("charge", "essence") installs in its owning mixin,
+fronts itself with a reader, and adds a row there. Same-host sibling
+drains (Vitals' limp cost, LoadBearing's traversal drain spending
+`endurance`) are the body's own internal economy and stay keyed.
+
+## Activity-completion closures that call controller instance methods
+
+**Don't:**
+
+```typescript
+// in a CommandController.execute
+const activity = new CastActivity({
+  onComplete: () => void this.resolveAndRender(actor, spellId), // [inert]!
+});
+SchedulerApi.start(activity);
+```
+
+**Do:**
+
+```typescript
+// module-private free function in the controller file — no `this`
+const activity = new CastActivity({
+  onComplete: () => void resolveAndRender(actor, spellId),
+});
+```
+
+A command controller instance is a **per-dispatch clone destructed when
+`execute` returns** — but a durative activity completes *later*. An
+`onComplete`/`onAbort` closure that calls `this.<method>()` dispatches
+through the proxy of a destroyed Stuff and silently no-ops as
+`[inert] <method>() called on destroyed Stuff` in the log; the player
+sees the begin-line and then nothing, and every unit test passes
+(tests hold the controller alive). Completion bodies must be
+**module-private free functions** (fine inside the controller module —
+module-private, not exported) closing over plain values, never over the
+controller. Found live by the magic build's browser drive
+(`CastController`, fixed); `SearchController`'s completion has the
+same latent shape.
+
+## Per-dynamic branches in the combat engine
+
+**Don't:**
+
+```typescript
+// inside CombatLogic's exchange resolution
+if (weapon && MixinApi.isEnergized(weapon)) {
+  ElectricityApi.shockContact(weapon, target); // the engine knows this dynamic
+}
+```
+
+**Do:**
+
+```typescript
+// on the dynamic's own class — EnergizedMixin composes CombatReactiveMixin
+public override augmentInflict(spec: InflictSpec, ctx: CombatHookContext) {
+  ctx.deliverShock(this);
+  return super.augmentInflict(spec, ctx);
+}
+```
+
+The combat engine branches on **physics** (`isSlotted`, `isConstructed`,
+`isVitals`, …), never on **dynamics**. A special weapon, reactive armor,
+species quirk, or venue response implements the `CombatReactiveMixin` /
+`CombatantMixin` / `CombatVenue` hook for its seam and queues
+consequences through the `CombatHookContext` — the engine's dispatch
+choreography never grows a new `MixinApi.isX` branch. Enforced by
+`pnpm -C packages/server lint:combat-dynamics` (a 21-predicate physics
+allowlist; when the lint fires, the answer is "implement a hook," not
+"grow the allowlist"). The deleted `isEnergized` branch above was the
+first barnacle and the migration is the worked example. See
+[combat-hooks.md](./subsystems/combat-hooks.md).

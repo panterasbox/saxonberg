@@ -51,8 +51,8 @@ Four value objects + two mixins + the concrete entity:
   name differs from the `Business` **interface** + `BusinessMixin` on purpose
   (the `Bank`→`BankCounter` convention — a same-named class+interface+mixin
   triad recurses as a base type). Persistent fields `['proprietorPath',
-  'positions', 'rosterSlots', 'operatingLocations']` are stored as the raw
-  seed shapes; the accessors (`getPositions`/`getRoster`/…) wrap them in the
+  'positions', 'rosterSlots', 'operatingLocations', 'banksAt']` are stored
+  as the raw seed shapes; the accessors (`getPositions`/`getRoster`/…) wrap them in the
   value objects on read (the `Biome` field-plus-getter precedent).
   `canDestruct()` refuses (seeded singleton-style).
 - **`EmployedMixin`** — on `Character` (actor-agnostic; sparse null-default
@@ -261,6 +261,65 @@ The Business seed (`/domain/lounge/business`) authors the `bartender`
 Position (`confers: [MakerMixin]`, `wageRate` a tuning placeholder), the
 roster, and `operatingLocations: [/domain/lounge/bar]`.
 
+## Compensation bases (the arrangement generalization)
+
+A `Position` now carries an optional **compensation term** —
+`PositionData.compensation?: { basis, rate?, share? }`
+(`lib/employment/Compensation.ts`, `COMP_BASES`) — the work-contracts
+build's arrangement schema landing: every business model is authored as
+**terms on the arrangement, never a new subsystem**. The four-basis
+model:
+
+1. **time** — pay for *holding a maintain clause* (the shipped wage:
+   `wageRate × shift-hours` at the on→off boundary; the employer bears
+   demand risk). **The default reading of an absent `compensation`** —
+   `Position.fromData` never materializes a default, so legacy seed
+   blobs round-trip byte-identically and the shipped time-wage path is
+   untouched except one guard: a non-time basis accrues **no** shift
+   wage (pinned by `employment-wages` / `bar-loop` /
+   `city-budget-wage` and the in-file `comp-bases` regression).
+2. **per-settlement** (piece-rate — the miner's basis; the worker bears
+   demand risk): `EmploymentApi.settlePiecework(business, employeeKey,
+   units)` verifies the participant relationship (a live Employment at
+   the business whose Position basis is `per-settlement`) and pays
+   `units × rate` as a **`wage`/`piecework`** posting from the Business
+   account (payer-derived payability: an NPC's account opens at the
+   employer's `banksAt`; an unbanked player is refused — see below). No shipped venue consumes
+   it yet — the mine is the named future consumer; it is exercised
+   against a test Business (the systems-over-content stance: no fake
+   venue authored to demo it).
+3. **share-of-flow** (commission/royalty — the consignment/corpo-royalty
+   split, now nameable on an employment arrangement):
+   `EmploymentApi.flowSplitsFor(business, amount)` yields one
+   remittance split per live share-of-flow Employment
+   (`floor(share × amount)`, category **`commission`**, Σ capped below
+   the flow), wired live at the one revenue seam —
+   `OrderController` appends them to the drink `Charge` before
+   `BankingApi.settle`. Empty for all shipped content (no authored
+   Position carries the basis) — byte-identical today, the same trick
+   the consignment split proved.
+4. **residual** — **not a clause at all**: ownership, the P&L
+   remainder — the proprietor's **draw** (`BankingApi.payDraw`, the
+   wallet-afforded `draw <amount>` verb; the business resolves *from*
+   the acting proprietor via `businessOfProprietor`, nothing to spoof).
+   A distinct, **solvency-checked** `draw` leg kind — never silently a
+   wage; see [banking.md](./banking.md) § The leg-kind vocabulary.
+
+**Custody is authored + derived, never defaulted.** A Business carries
+`banksAt` (where it banks — a term of its arrangement; missing =
+refused), and every account touchpoint routes through
+`EmploymentApi.operatingAccountOf(business)`. Worker payability is
+**payer-derived** (`ensurePayableWorker`): an NPC with no account gets
+one opened at the employer's bank ("your first account opens where
+your first money comes from"); a **player is never silently signed
+up** — an unbanked player's shift wage is skipped with a warning, a
+piecework settle refuses, a flow-split doesn't fire, until they open
+their own account at a branch. See [banking.md](./banking.md) § Every
+account names a real custodian.
+
+The gig half of the work system (clauses, escrow, the job board, the
+two-beat turn-in) lives in [contract.md](./contract.md).
+
 ## Deferred seams (named, not placeholders)
 
 - **Player tending** — blocked only by build-time `MakerMixin` composition on
@@ -294,3 +353,11 @@ plan. Notable design→implementation shifts:
   `postRegister` clone, and fixture resolution moved to MQL `peers` + type
   filter (both from MR review; the lazy standup finalized in the Terminus
   build).
+
+> **Work-contracts build (`3969a34e..d8389518`).** Added the
+> compensation-bases section above (the `compensation` term on
+> `Position`, `settlePiecework`/`flowSplitsFor`, the draw), the authored
+> **`banksAt`** custody term + `operatingAccountOf` seam, and the
+> payer-derived `ensurePayableWorker` rule (NPCs open at the employer's
+> bank; players are never silently signed up). The gig half lives in
+> [contract.md](./contract.md).

@@ -12,6 +12,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
     heartRate: { baseline: 72, survivableMin: 30, survivableMax: 220 }
@@ -39,3 +40,4 @@ data:
     carrying an easy, appetite-forward warmth that pulls a room toward the
     nearest cup.
   nameBankKeys: ["sylvan"]
+  facultyProfile: { depth: mid, serenity: high, composure: low }

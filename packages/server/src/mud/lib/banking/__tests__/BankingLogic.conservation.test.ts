@@ -11,6 +11,8 @@ import { BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import { BankTransaction } from "../Transaction";
+import type { LedgerLeg } from "../Transaction";
+import { LEDGER_KINDS } from "../LedgerEntry";
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -83,6 +85,64 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
   });
 });
 
+describe("the escrow/draw kinds — real accounts only (the audit's new rows)", () => {
+  it.each(["escrow-hold", "escrow-release", "escrow-revert", "draw"] as const)(
+    "'%s' rejects a sentinel counterparty on either side",
+    (kind) => {
+      expect(() =>
+        BankTransaction.assertConserving(kind, [
+          { from: Account.ISSUANCE, to: "acct-a", amount: 100 },
+        ])
+      ).toThrow(/move between real accounts/);
+      expect(() =>
+        BankTransaction.assertConserving(kind, [
+          { from: "acct-a", to: Account.CASH_BRIDGE, amount: 100 },
+        ])
+      ).toThrow(/move between real accounts/);
+      expect(() =>
+        BankTransaction.assertConserving(kind, [
+          { from: "acct-a", to: "acct-b", amount: 100 },
+        ])
+      ).not.toThrow();
+    }
+  );
+});
+
+describe("the leg-kind vocabulary — no untyped legs", () => {
+  it("every LEDGER_KINDS member is handled by assertLegKind (nothing falls through)", () => {
+    // The switch's default throws on an unhandled kind; a handled kind
+    // either accepts a well-formed leg or refuses it with its own rule —
+    // never the fall-through error. Drive each kind with its correct shape.
+    const wellFormed: Record<(typeof LEDGER_KINDS)[number], LedgerLeg> = {
+      mint: { from: Account.ISSUANCE, to: "a", amount: 1 },
+      drain: { from: "a", to: Account.ISSUANCE, amount: 1 },
+      deposit: { from: Account.CASH_BRIDGE, to: "a", amount: 1 },
+      withdraw: { from: "a", to: Account.CASH_BRIDGE, amount: 1 },
+      transfer: { from: "a", to: "b", amount: 1 },
+      payment: { from: "a", to: "b", amount: 1 },
+      wage: { from: "a", to: "b", amount: 1 },
+      tax: { from: "a", to: "b", amount: 1 },
+      "escrow-hold": { from: "a", to: "b", amount: 1 },
+      "escrow-release": { from: "a", to: "b", amount: 1 },
+      "escrow-revert": { from: "a", to: "b", amount: 1 },
+      draw: { from: "a", to: "b", amount: 1 },
+    };
+    for (const kind of LEDGER_KINDS) {
+      expect(() =>
+        BankTransaction.assertConserving(kind, [wellFormed[kind]])
+      ).not.toThrow();
+    }
+  });
+
+  it("an out-of-vocabulary kind is refused outright (the backstop)", () => {
+    expect(() =>
+      BankTransaction.assertConserving("bribe" as never, [
+        { from: "a", to: "b", amount: 1 },
+      ])
+    ).toThrow(/no counterparty rule/);
+  });
+});
+
 describe("BankTransaction.supplyDelta — only mint/drain change supply", () => {
   it("mint adds, drain removes, everything else is neutral", () => {
     const legs = [{ from: "a", to: "b", amount: 100 }];
@@ -101,6 +161,10 @@ describe("BankTransaction.supplyDelta — only mint/drain change supply", () => 
       "tax",
       "deposit",
       "withdraw",
+      "escrow-hold",
+      "escrow-release",
+      "escrow-revert",
+      "draw",
     ] as const) {
       expect(BankTransaction.supplyDelta(kind, legs)).toEqual({
         minted: 0,

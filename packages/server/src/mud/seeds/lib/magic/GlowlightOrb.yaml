@@ -1,0 +1,10 @@
+# The glowlight spell's bound emitter — cloned per cast, flux driven by
+# the caster's SustainedEffect (0 while suppressed), destructed on
+# dispel/expiry. Light without heat, by design.
+class: /lib/magic/GlowlightOrb
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a mote of cold light
+  longDescription: >-
+    A palm-sized mote of steady, heatless light, hanging where its maker
+    willed it. It flickers only when the magic holding it does.

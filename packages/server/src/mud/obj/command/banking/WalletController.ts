@@ -68,7 +68,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     }
     const corpo = model.corpo;
     const mine = await BankingApi.accountsOf();
-    const match = mine.find((a) => a.corpoKey === corpo || a.bankPath.includes(corpo ?? "\0"));
+    const match = mine.find((a) => a.corpoKey === corpo || a.bank === corpo);
     if (!corpo || !match) {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You have no '${corpo ?? ""}' account.`).send();
       context.note({ kind: "controller-rejected", reason: "no-such-account", detail: corpo ?? "" });

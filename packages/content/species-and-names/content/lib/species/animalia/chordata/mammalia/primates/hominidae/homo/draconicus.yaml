@@ -11,6 +11,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 312, survivableMin: 303, survivableMax: 318 }
     heartRate: { baseline: 72, survivableMin: 30, survivableMax: 225 }
@@ -37,3 +38,4 @@ data:
     blunt-muzzled and ridge-browed, bearing themselves with the slow,
     proud composure of an elder wyrm taking the measure of lesser things.
   nameBankKeys: ["draconic"]
+  facultyProfile: { depth: high, serenity: low, composure: high }

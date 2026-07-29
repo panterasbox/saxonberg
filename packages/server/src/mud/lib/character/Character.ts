@@ -44,6 +44,7 @@ import { SoulMixin } from '../social/Soul';
 import { CommandGiverMixin } from '../command/CommandGiver';
 import { AdvancementMixin } from '../advancement/Advancement';
 import { EngagedMixin } from '../activity/Engaged';
+import { CasterMixin } from '../magic/Caster';
 import { BeliefStoreMixin } from '../belief/BeliefStore';
 import { StatusMixin } from '../status/Status';
 import { EmployedMixin } from '../employment/Employed';
@@ -87,6 +88,7 @@ const CharacterBase = AdvancementMixin(
   MobileMixin(
     HaulerMixin(
     EngagedMixin(
+      CasterMixin(
       SoulMixin(
         VocalMixin(
           PerceptionMixin(
@@ -103,6 +105,7 @@ const CharacterBase = AdvancementMixin(
             )
           )
         )
+      )
       )
     )
     )

@@ -25,20 +25,40 @@ import { Document } from "../persistence/Document";
 import { Collections } from "../../../backend/PersistenceManager";
 
 /**
- * The transaction kind — the open ledger vocabulary. `mint`/`drain` change
- * total supply (the central bank faucet/sink); `deposit`/`withdraw` bridge
- * coin↔balance (supply-neutral); the rest move money between real accounts
- * (zero-sum).
+ * The transaction kind — the closed ledger vocabulary, runtime-validated
+ * (every posted leg's kind must be a member; the "no untyped legs" audit).
+ * `mint`/`drain` change total supply (the central bank faucet/sink);
+ * `deposit`/`withdraw` bridge coin↔balance (supply-neutral); the rest move
+ * money between real accounts (zero-sum) — including the escrow family
+ * (`escrow-hold` issuer → escrow account, `escrow-release` escrow →
+ * contractor, `escrow-revert` escrow → issuer) and the proprietor `draw`
+ * (business → proprietor take-home, distinct from `wage`).
+ *
+ * **The two-layer discipline** (kind vs {@link PnlCategory}): `kind` is the
+ * conservation/counterparty class `assertLegKind` enforces; `category` is
+ * the economic line reports partition on. A **standalone movement gets its
+ * own kind**; a **rider split inside a multi-leg transaction gets its own
+ * category** (forced by postTransaction's one-kind-per-transaction shape —
+ * the consignment split is the shipped precedent, the share-of-flow
+ * `commission` split its sibling). This vocabulary is the future tax-policy
+ * hook: a governance rate table keys on kinds/categories with no rework.
  */
-export type LedgerKind =
-  | "mint"
-  | "drain"
-  | "deposit"
-  | "withdraw"
-  | "transfer"
-  | "payment"
-  | "wage"
-  | "tax";
+export const LEDGER_KINDS = [
+  "mint",
+  "drain",
+  "deposit",
+  "withdraw",
+  "transfer",
+  "payment",
+  "wage",
+  "tax",
+  "escrow-hold",
+  "escrow-release",
+  "escrow-revert",
+  "draw",
+] as const;
+
+export type LedgerKind = (typeof LEDGER_KINDS)[number];
 
 /**
  * The P&L line a row rolls up into — the categorized-flow tag the bar's
@@ -60,6 +80,10 @@ export type PnlCategory =
   | "fee"
   | "onboarding"
   | "consignment"
+  | "escrow"
+  | "draw"
+  | "commission"
+  | "piecework"
   | "other";
 
 /**
@@ -101,6 +125,16 @@ export interface ReconcileResult {
   /** Whether `supply === accountTotal + circulatingCoin`. */
   balanced: boolean;
 }
+
+/**
+ * The result of an escrow hold — a **refusal is a value, not a throw** (a
+ * short issuer balance is an expected outcome the contract lifecycle folds
+ * into prose; no credit, anywhere). A successful hold carries the minted
+ * ledger `txId` so the contract event chain can reference its money legs.
+ */
+export type EscrowHoldResult =
+  | { ok: true; txId: string }
+  | { ok: false; reason: "insufficient-funds" };
 
 export interface LedgerEntryFields {
   kind: LedgerKind;

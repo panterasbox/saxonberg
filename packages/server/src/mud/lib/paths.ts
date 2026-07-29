@@ -106,6 +106,10 @@ export const TemplatePathPrefixes = {
   // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
   metabolismCondition: "/lib/metabolism/conditions/",
+  // Magic — authored condition seeds (dread, overchannel-strain) and the
+  // spell roster the SpellCatalogue scans at boot.
+  magicCondition: "/lib/magic/conditions/",
+  spell: "/lib/magic/Spell/",
 } as const;
 
 /**

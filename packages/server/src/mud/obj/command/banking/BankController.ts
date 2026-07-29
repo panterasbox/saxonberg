@@ -71,7 +71,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
 
   private async open(bank: Stuff & Bank, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    await BankingApi.openAccount(bank.getBankPath(), bank.getCorpoKey());
+    await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
     const corpo = CorpoApi.getCorpo(bank.getCorpoKey());
     const house = corpo ? corpo.label : "the bank";
     MessageApi.scene(giver)
@@ -83,7 +83,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
 
   private async balance(bank: Stuff & Bank, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const accountId = await BankingApi.myAccountAt(bank.getBankPath());
+    const accountId = await BankingApi.myAccountAt(bank.getBank());
     if (!accountId) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -112,7 +112,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
     context: CommandContext
   ): Promise<void> {
     const giver = context.commandGiver;
-    const accountId = await BankingApi.myAccountAt(bank.getBankPath());
+    const accountId = await BankingApi.myAccountAt(bank.getBank());
     if (!accountId) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -232,7 +232,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
       context.note({ kind: "empty-result", field: "recipient", query: model.recipient?.raw ?? "" });
       return;
     }
-    const fromAccount = await BankingApi.myAccountAt(bank.getBankPath());
+    const fromAccount = await BankingApi.myAccountAt(bank.getBank());
     const toAccount = await BankingApi.primaryAccountIdOf(payeeKey);
     if (!fromAccount) {
       MessageApi.scene(giver)

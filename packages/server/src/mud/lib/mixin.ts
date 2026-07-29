@@ -187,6 +187,9 @@ export const Mixins = {
   // Combat — "I can fight": combat verb affordances + the innate-attack
   // hook. All fight state is session-scoped, never on the Creature.
   Combatant: 'CombatantMixin',
+  // Combat-reactive — the instrument dynamics seam: the marker the combat
+  // engine scans for, whose hooks fire at fixed beat-lifecycle points.
+  CombatReactive: 'CombatReactiveMixin',
   // Party — "I can belong to a party": the sparse active-party pointer on
   // Avatars + the hireable Mercenary NPC. Combat's friend/foe seam reads it.
   PartyMember: 'PartyMemberMixin',
@@ -207,6 +210,11 @@ export const Mixins = {
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
   Furnace: 'FurnaceMixin',
+  // Magic — the anatomical casting faculty (mana reserve + serenity
+  // recovery + composure read + overchannel strain). Composed on
+  // Character, gated: active only when the Species intrinsically confers
+  // it (innateMixins) or an augment does. See docs/subsystems/magic.md.
+  Caster: 'CasterMixin',
 } as const;
 
 /**

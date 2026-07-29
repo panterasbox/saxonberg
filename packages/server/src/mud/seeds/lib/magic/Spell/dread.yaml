@@ -1,0 +1,23 @@
+# Dread — destroy·mind, the mental-axis proof: an Afflict carrying a
+# mental resist. Mitigators (none in v1 — wards later) subtract; the
+# target's live Composure gates (profile × current reserve), so a
+# drained mage stages worse than a rested one. The landed condition is
+# an IMPULSE — it decays on its own clock, suppression never touches it.
+class: /lib/magic/Spell
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  spellId: dread
+  name: Dread
+  verb: destroy
+  noun: mind
+  requiredBand: novice
+  cost: 18
+  castSeconds: 3
+  targeting: creature
+  effects:
+    - kind: afflict
+      conditionPath: /lib/magic/conditions/dread
+      resist: { axis: mental, intensity: 20 }
+  description: >-
+    A cold whisper under the thoughts. The steady shrug it off; the
+    frayed find their hands shaking and the doorway suddenly far away.

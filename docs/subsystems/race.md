@@ -420,6 +420,20 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `circadianBand`
 - `diet` (DietApi-deferred)
 - `visionProfile` — flat 3-scalar record consumed by `VisionModality`
+- **the combat vocabulary** (`@authorable`, the combat-hooks build):
+  `naturalAttacks` — a `NaturalAttackSpec[]` list (bite/claw/tail; per-
+  attack delivery channel + optional mass/length/reach profile hints,
+  rotated deterministically by beat; hint-less profiles derive from
+  `BodyPlan.baseMass`, exactly neutral below
+  `combat.natural.largeBodyMassKg` so seeded bodies are byte-preserved,
+  "an ogre punches at ogre reach" above it) — and `affordedGambits` —
+  existing gambit keys a species affords bodily (a tail affords `sweep`;
+  bogus keys inert). See
+  [combat-hooks.md](./combat-hooks.md) § the species vocabulary. (The
+  legacy single `CombatantMixin.naturalAttackChannel` remains as the
+  byte-preserving fallback. A `shock`-innate species' creature class
+  composes `EnergizedMixin` **directly** — `innateMixins` conferral is
+  activation-gated and not a reliable carrier for the narrowing.)
 
 The roster (`/lib/species/...`). The char-gen Wave 1 build expanded the
 `homo` genus to seven playable humanoid species; the species-expansion

@@ -12,6 +12,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
     heartRate: { baseline: 70, survivableMin: 30, survivableMax: 220 }
@@ -39,3 +40,4 @@ data:
     of the elves and the restless drive of the people who raised them —
     quite at home in both rooms and wholly settled in neither.
   nameBankKeys: ["elvish", "common"]
+  facultyProfile: { depth: mid, serenity: high, composure: mid }

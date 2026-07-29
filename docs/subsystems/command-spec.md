@@ -19,7 +19,11 @@ A command lives in five places:
 Commands are grouped into **category subdirs** mirroring the subsystem
 taxonomy. The ten categories: `perception`, `social`, `movement`,
 `posture`, `inventory`, `boundary`, `shell`, `author`, `system`,
-`charactergen`. The category prefix is **load-bearing and uniform** — it
+`charactergen`. (Later builds added more — see CLAUDE.md's category
+roster; the magic build added `magic` for `cast`/`spells`, the casting
+core's verb surface, and the work-contracts build added `work` for the
+labor market — the board-afforded `job` + the travelling `fulfill`, see
+[contract.md](./contract.md).) The category prefix is **load-bearing and uniform** — it
 appears in the YAML `controller:` field (`perception/LookController`),
 the seed `class:` path (`/obj/command/perception/LookController`), and
 every `commandContributions` entry (`'perception/look.yaml'`). The

@@ -776,6 +776,21 @@ game with real players to measure:
   the **denomination ceiling** (the cash-disincentive dial); and whether to
   lean into an off-books **grey market** as gameplay (smuggling/tax-dodging)
   or leave it inert friction.
+- **Multiple currencies — considered and dismissed (2026-07).** The
+  exchange-rate/arbitrage lesson is real (corpo-treasury scrips as
+  independent fiats, inventory-pressure money changers, mass-limited
+  robbable arbitrage runs — the design sketch survives in this row), but
+  standing multi-currency was judged **too hard to balance**: every paper
+  needs a living demand-ecosystem to be worth holding, and the tuning
+  surface multiplies against an economy still being balanced in one
+  money. One seam stays live: **the currency reset as the CB's measure of
+  last resort** — abandoning a debased currency and issuing a second (the
+  Rentenmark / Plano Real move). Deliberately an *event, not a system*:
+  demonetize the old paper (or let it float as collector confetti), issue
+  new with a conversion window — needs only the shipped mint/drain +
+  conserved supply + a governance act, no FX market. It is the ultimate
+  consequence of "inflation is an accountable policy choice," and the
+  cheapest honest form of the multi-currency lesson.
 - **Capital markets — securities, the corpo stock exchange, monetary policy
   as a lever.** Explored and **deliberately deferred behind a working retail
   economy.** A capital market is a **derivative** — it prices claims on an

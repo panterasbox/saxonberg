@@ -101,6 +101,14 @@ describe('Construction', () => {
     expect(hafted.deliveredChannels()).toEqual(['blunt']);
     expect(hafted.deliversPrimary()).toBe(true);
     expect(hafted.deliversAny()).toBe(true);
+
+    // The waster: sword-shaped, no edge presented — blunt is all it has.
+    const blunted = Construction.of('blunted');
+    expect(blunted.deliveryFor('blunt')).toBe('primary');
+    expect(blunted.deliveryFor('edge')).toBe('none');
+    expect(blunted.deliveryFor('point')).toBe('none');
+    expect(blunted.primaryChannel()).toBe('blunt');
+    expect(blunted.deliveredChannels()).toEqual(['blunt']);
   });
 
   it('domain-guards responseFor / deliveryFor / getLayerDepth', () => {

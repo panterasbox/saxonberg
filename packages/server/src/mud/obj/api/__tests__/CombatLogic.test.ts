@@ -1994,3 +1994,164 @@ describe("CombatLogic — command mints (the teaching payoff)", () => {
     }
   });
 });
+
+describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
+  /** The defenceless target: no weapon, no natural attack — it can't
+   * parry (no instrument → no guard) and never inflicts, so every
+   * `ConditionApi.inflict` call in the fight is the actor's strike. */
+  function punchingBag(room: TestRoom): TestFighter {
+    return makeFighter(room);
+  }
+
+  /** Advance one beat and return the inflict mechanisms it produced. */
+  function beatMechanisms(
+    session: CombatSession,
+    spy: { mock: { calls: unknown[][] } },
+  ): string[] {
+    const before = spy.mock.calls.length;
+    CombatApi.advance(session);
+    return spy.mock.calls
+      .slice(before)
+      .map((c) => (c[1] as { mechanism: string }).mechanism);
+  }
+
+  it("a two-attack species rotates channels by session beat (bite, tail, bite…)", () => {
+    const run = (): string[][] => {
+      const room = makeStuff(() => new TestRoom());
+      const biter = makeFighter(room);
+      biter.getSpecies()!.setNaturalAttacks([
+        { key: "bite", channel: "point" },
+        { key: "tail", channel: "blunt" },
+      ]);
+      const bag = punchingBag(room);
+      const spy = vi.spyOn(ConditionApi, "inflict");
+      try {
+        const session = open(biter, bag, nonLethal);
+        const bagState = session.getState(bag)!;
+        const perBeat: string[][] = [];
+        for (let i = 0; i < 6 && session.isActive() && !bagState.down; i++) {
+          perBeat.push(beatMechanisms(session, spy));
+        }
+        return perBeat;
+      } finally {
+        spy.mockRestore();
+      }
+    };
+
+    const r1 = run();
+    // The rotation index reads the SESSION BEAT: every strike within a
+    // beat carries that beat's attack, beat 1 = entry 0 (the bite),
+    // beat 2 = entry 1 (the tail), alternating.
+    const expectedFor = (beat: number): string =>
+      beat % 2 === 1 ? "point" : "blunt";
+    let landedBeats = 0;
+    r1.forEach((mechs, i) => {
+      if (mechs.length === 0) return;
+      landedBeats++;
+      for (const m of mechs) expect(m).toBe(expectedFor(i + 1));
+    });
+    // Both entries of the rotation actually landed (bite AND tail beats).
+    expect(landedBeats).toBeGreaterThanOrEqual(2);
+
+    // Two identical runs — the identical per-beat channel transcript.
+    const r2 = run();
+    expect(r2).toEqual(r1);
+  });
+
+  it("a single-entry species and the legacy channel fallback are byte-identical", () => {
+    const run = (wire: (f: TestFighter) => void): string[][] => {
+      const room = makeStuff(() => new TestRoom());
+      const striker = makeFighter(room);
+      wire(striker);
+      const bag = punchingBag(room);
+      const spy = vi.spyOn(ConditionApi, "inflict");
+      try {
+        const session = open(striker, bag, nonLethal);
+        const bagState = session.getState(bag)!;
+        const perBeat: string[][] = [];
+        for (let i = 0; i < 6 && session.isActive() && !bagState.down; i++) {
+          perBeat.push(beatMechanisms(session, spy));
+        }
+        return perBeat;
+      } finally {
+        spy.mockRestore();
+      }
+    };
+
+    const viaSpecies = run((f) =>
+      f.getSpecies()!.setNaturalAttacks([{ key: "fist", channel: "blunt" }]),
+    );
+    const viaLegacy = run((f) => {
+      f.naturalAttackChannel = "blunt";
+    });
+    expect(viaSpecies.length).toBeGreaterThan(0);
+    expect(viaSpecies.flat().length).toBeGreaterThan(0);
+    expect(viaSpecies).toEqual(viaLegacy);
+  });
+
+  it("a large hint-less body opens at `reach` against a neutral body", () => {
+    // The hint-less body-scale band: a 400 kg body derives one reach rank
+    // ("an ogre punches at ogre reach") while the neutral body stays at
+    // rank 0 — differing ranks open the pair at `reach` (the reach-holder
+    // then resolves first via the reach-sorted exchange loop, the same
+    // tier the spear-vs-dagger suite pins).
+    const room = makeStuff(() => new TestRoom());
+    const ogre = makeFighter(room, { natural: "blunt" });
+    ogre.getSpecies()!.getBodyPlan()!.setBaseMass(400);
+    const human = makeFighter(room, { natural: "blunt" });
+    const session = open(ogre, human, nonLethal);
+    expect(session.getGraph().rangeBetween(ogre, human)).toBe("reach");
+
+    // A neutral pair (both sub-threshold hint-less bodies) opens `close` —
+    // the byte-parity band.
+    const room2 = makeStuff(() => new TestRoom());
+    const h1 = makeFighter(room2, { natural: "blunt" });
+    const h2 = makeFighter(room2, { natural: "blunt" });
+    const s2 = open(h1, h2, nonLethal);
+    expect(s2.getGraph().rangeBetween(h1, h2)).toBe("close");
+  });
+
+  it("species-afforded gambits: a tailed species sweeps bodily, unarmed", () => {
+    const room = makeStuff(() => new TestRoom());
+    const tailed = makeFighter(room);
+    tailed.getSpecies()!.setNaturalAttacks([{ key: "tail", channel: "blunt" }]);
+    tailed.getSpecies()!.setAffordedGambits(["sweep"]);
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    open(tailed, foe, nonLethal);
+    // The species affordance short-circuits the equipment gate; the
+    // instrument gate is satisfied by the natural attack.
+    expect(CombatApi.eligibilityFor(tailed, "sweep").ok).toBe(true);
+  });
+
+  it("without the species entry an unarmed natural attacker still rejects `wrong-weapon`", () => {
+    const room = makeStuff(() => new TestRoom());
+    const beast = makeFighter(room, { natural: "blunt" });
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    open(beast, foe, nonLethal);
+    const elig = CombatApi.eligibilityFor(beast, "sweep");
+    expect(elig.ok).toBe(false);
+    expect(elig.reason).toBe("wrong-weapon");
+  });
+
+  it("`needsInstrument` still stands: species affordance without a natural attack rejects", () => {
+    const room = makeStuff(() => new TestRoom());
+    const limbless = makeFighter(room);
+    limbless.getSpecies()!.setAffordedGambits(["sweep"]);
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    open(limbless, foe, nonLethal);
+    const elig = CombatApi.eligibilityFor(limbless, "sweep");
+    expect(elig.ok).toBe(false);
+    expect(elig.reason).toBe("no-instrument");
+  });
+
+  it("a bogus affordedGambits key is inert", () => {
+    const room = makeStuff(() => new TestRoom());
+    const beast = makeFighter(room, { natural: "blunt" });
+    beast.getSpecies()!.setAffordedGambits(["flying-dropkick"]);
+    const foe = makeFighter(room, { weaponForm: "bladed" });
+    open(beast, foe, nonLethal);
+    const elig = CombatApi.eligibilityFor(beast, "sweep");
+    expect(elig.ok).toBe(false);
+    expect(elig.reason).toBe("wrong-weapon");
+  });
+});

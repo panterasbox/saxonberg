@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EmploymentApi } from '../../../api/employment';
+import { BankingApi } from '../../../api/banking';
 import { AccessApi } from '../../../api/access';
 import BusinessEntity from '../../../lib/employment/Business';
 import { EmployedMixin } from '../../../lib/employment/Employed';
@@ -25,6 +26,7 @@ class Worker extends EmployedMixin(Idea) {
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.proprietorPath = DAVE;
+  b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];

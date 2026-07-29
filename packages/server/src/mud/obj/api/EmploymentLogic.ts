@@ -9,7 +9,9 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import { AccessApi } from '../../api/access';
+import { PlayerApi } from '../../api/player';
 import { BankingApi, Money } from '../../api/banking';
+import type { RemittanceSplit } from '../../api/banking';
 import { WorldClockApi } from '../../api/worldclock';
 import type { ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
@@ -125,6 +127,53 @@ function tipRecipientForImpl(patron: Stuff): Stuff | null {
 }
 
 /**
+ * The one resolution seam for a Business's operating account: custody is
+ * the business's **authored** `banksAt` — where a business banks is a fact
+ * about the business (a term of its arrangement), never a call-site
+ * default. A business that authors no `banksAt` cannot open an operating
+ * account: an authoring error, refused loudly (the
+ * no-operator-to-collect-the-fare precedent).
+ */
+async function operatingAccountOfImpl(
+  business: BusinessStuff,
+): Promise<string> {
+  const banksAt = business.getBanksAt();
+  if (!banksAt) {
+    throw new Error(
+      `EmploymentLogic.operatingAccountOf: ${business.getTemplatePath()} ` +
+        `authors no banksAt — a business must name the bank that custodies ` +
+        `its operating account`,
+    );
+  }
+  return BankingApi.ensureVenueAccount(
+    business.getAccountPath(),
+    banksAt,
+    '',
+  );
+}
+
+/**
+ * Ensure a worker can be paid into an account, **payer-derived**: an NPC
+ * with no account gets one opened at the *employer's* bank (your first
+ * account opens where your first money comes from — the business's
+ * authored `banksAt`). A **player** is never silently signed up for a
+ * bank: no primary account → not payable (false); they open their own at
+ * a branch.
+ */
+async function ensurePayableWorker(
+  employeeKey: string,
+  business: BusinessStuff,
+): Promise<boolean> {
+  if ((await BankingApi.primaryAccountIdOf(employeeKey)) != null) return true;
+  const live = StuffApi.findByTemplatePath(employeeKey);
+  if (live && PlayerApi.isAvatarStuff(live)) return false;
+  const banksAt = business.getBanksAt();
+  if (!banksAt) return false;
+  await BankingApi.ensureVenueAccount(employeeKey, banksAt, '');
+  return true;
+}
+
+/**
  * Settle the wage for a completed shift — the shift-end (on→off transition)
  * is the pay milestone: a **lump of `rate × shift-hours`, once, at the
  * boundary** (not a continuous sweep). `employment` carries the
@@ -151,26 +200,130 @@ async function settleShiftWageImpl(
 
   const position = business.getPosition(employment.positionKey);
   if (!position || position.wageRate <= 0) return;
+  // A non-time basis accrues no shift wage (piecework pays per attributed
+  // settlement, share-of-flow at the revenue split). With no authored
+  // non-time Position, behavior is byte-identical to before.
+  if (position.basis() !== 'time') return;
 
   const gameHours = (offTimeRaw - onSince) / ONE_GAME_HOUR_S;
   if (gameHours <= 0) return;
   const amount = Math.round(position.wageRate * gameHours);
   if (amount <= 0) return;
 
-  const accountPath = business.getAccountPath();
-  const account = await BankingApi.ensureVenueAccount(
-    accountPath,
-    accountPath,
-    '',
-  );
-  // Ensure the worker has an account to be paid into — `payWage` throws
-  // otherwise. NPC workers (the terminal clerk, the bar cast) never opened
-  // one, so provision a resource-identity account keyed on their own path.
-  // Additive + general; also closes the same gap in the bar wage loop.
-  if ((await BankingApi.primaryAccountIdOf(employeeKey)) == null) {
-    await BankingApi.ensureVenueAccount(employeeKey, employeeKey, '');
+  const account = await operatingAccountOfImpl(business);
+  // Payer-derived payability: an NPC worker (the terminal clerk, the bar
+  // cast) gets an account opened at the employer's own bank; a player who
+  // hasn't opened one forfeits until they do (never silently signed up).
+  if (!(await ensurePayableWorker(employeeKey, business))) {
+    console.warn(
+      `EmploymentLogic: ${employeeKey} has no account to be paid into ` +
+        `(players open their own at a branch) — shift wage skipped`,
+    );
+    return;
   }
   await BankingApi.payWage(account, employeeKey, Money.of(amount));
+}
+
+/**
+ * Pay a per-settlement (piece-rate) employee for `units` attributed
+ * settlements: `units × rate` as a `wage`-kind posting, category
+ * `piecework` (labor income — the wage-vs-draw tax wedge stays a *kind*
+ * distinction; the P&L line is the piece-rate's own). Verifies the
+ * participant relationship first: a stored, non-terminal Employment at
+ * this business whose Position basis is `per-settlement`.
+ */
+async function settlePieceworkImpl(
+  business: BusinessStuff,
+  employeeKey: string,
+  units: number,
+): Promise<void> {
+  if (!Number.isInteger(units) || units <= 0) {
+    throw new Error('EmploymentLogic.settlePiecework: units must be positive');
+  }
+  const businessPath = business.getTemplatePath() ?? '';
+  const actor = StuffApi.findByTemplatePath(employeeKey);
+  if (!actor || !MixinApi.isEmployed(actor)) {
+    throw new Error('EmploymentLogic.settlePiecework: no such employee');
+  }
+  const employment = (actor as EmployedActor).getEmployment(businessPath);
+  if (!employment || TERMINAL.includes(employment.status)) {
+    throw new Error(
+      'EmploymentLogic.settlePiecework: no live employment at this business',
+    );
+  }
+  const position = business.getPosition(employment.positionKey);
+  if (!position || position.basis() !== 'per-settlement') {
+    throw new Error(
+      'EmploymentLogic.settlePiecework: the position is not piece-rate',
+    );
+  }
+  const rate = position.compensation?.rate ?? 0;
+  const amount = units * rate;
+  if (amount <= 0) return;
+  const account = await operatingAccountOfImpl(business);
+  if (!(await ensurePayableWorker(employeeKey, business))) {
+    throw new Error(
+      'EmploymentLogic.settlePiecework: the employee has no account to be ' +
+        'paid into (players open their own at a branch)',
+    );
+  }
+  await BankingApi.payWage(
+    account,
+    employeeKey,
+    Money.of(amount),
+    'piecework',
+    'piecework',
+  );
+}
+
+/**
+ * The share-of-flow splits for a revenue moment at `business`: one
+ * remittance split per non-terminal Employment whose Position basis is
+ * `share-of-flow` (`floor(share × amount)`, category `commission`, to the
+ * holder's primary account), capped so Σ splits < amount. Empty for all
+ * shipped content (no authored Position carries the basis) — the
+ * consignment-split trick, now nameable on an employment arrangement.
+ * Holders are enumerated viewer-blind (MQL system mode over the Employed
+ * marker — share-of-flow needs no roster slot, so the roster can't serve
+ * as the index).
+ */
+async function flowSplitsForImpl(
+  business: BusinessStuff,
+  amountMinor: number,
+): Promise<RemittanceSplit[]> {
+  if (amountMinor <= 0) return [];
+  const businessPath = business.getTemplatePath() ?? '';
+  const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
+  const splits: RemittanceSplit[] = [];
+  let total = 0;
+  for (const holder of holders) {
+    const employment = holder.getEmployment(businessPath);
+    if (!employment || TERMINAL.includes(employment.status)) continue;
+    const position = business.getPosition(employment.positionKey);
+    if (!position || position.basis() !== 'share-of-flow') continue;
+    const share = position.compensation?.share ?? 0;
+    const cut = Math.floor(amountMinor * share);
+    if (cut <= 0) continue;
+    if (total + cut >= amountMinor) break; // Σ splits stays below the flow
+    const holderKey = holder.getTemplatePath() ?? '';
+    if (!holderKey) continue;
+    // Payer-derived: an NPC holder gets an account at the business's own
+    // bank; a player with none is skipped (never silently signed up — the
+    // split simply doesn't fire until they open an account).
+    if (!(await ensurePayableWorker(holderKey, business))) continue;
+    const account = await BankingApi.primaryAccountIdOf(holderKey);
+    if (!account) continue;
+    splits.push({
+      accountId: account,
+      amount: Money.of(cut),
+      category: 'commission',
+    });
+    total += cut;
+  }
+  return splits;
 }
 
 /**
@@ -426,6 +579,31 @@ export class EmploymentLogic extends ApiLogic {
       (actor as EmployedActor).isOnShift()
       ? 'on-shift'
       : 'off-shift';
+  }
+
+  /** See {@link EmploymentApi.operatingAccountOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public operatingAccountOf(business: BusinessStuff): Promise<string> {
+    return operatingAccountOfImpl(business);
+  }
+
+  /** See {@link EmploymentApi.settlePiecework}. */
+  @CallSecurity(EmploymentApiCallers)
+  public settlePiecework(
+    business: BusinessStuff,
+    employeeKey: string,
+    units = 1,
+  ): Promise<void> {
+    return settlePieceworkImpl(business, employeeKey, units);
+  }
+
+  /** See {@link EmploymentApi.flowSplitsFor}. */
+  @CallSecurity(EmploymentApiCallers)
+  public flowSplitsFor(
+    business: BusinessStuff,
+    amountMinor: number,
+  ): Promise<RemittanceSplit[]> {
+    return flowSplitsForImpl(business, amountMinor);
   }
 
   /** See {@link EmploymentApi.settleShiftWage}. */

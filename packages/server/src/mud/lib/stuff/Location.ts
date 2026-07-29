@@ -25,6 +25,7 @@ import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 import { AddressableMixin } from '../address/Addressable';
+import { Suppressions, type MagicSuppression } from '../magic/Suppression';
 
 // A Location represents *space*, not *matter* — so it is NOT `Tangible`
 // (rooms have no material or mass; nothing ever read them). "Made of matter"
@@ -35,7 +36,26 @@ const LocationBase = AddressableMixin(
 );
 
 export default class Location extends LocationBase {
-  static persistentFields: string[] = [];
+  static persistentFields: string[] = ['suppressesMagic'];
+
+  /**
+   * The anti-magic field this place carries, or `null` (the overwhelming
+   * default). Authored in room seeds (`suppressesMagic: { all: true }` /
+   * a `verbs`/`nouns` grid filter); resolved at a position by the sync
+   * outward containment walk (`Suppressions.fieldAt` — the biome-chain
+   * precedent), so a field on a building covers its rooms. Read at
+   * cast time (veto) and by the sustained-effect reconcile (a modifier
+   * goes dormant inside it). See docs/subsystems/magic.md.
+   */
+  protected suppressesMagic: MagicSuppression | null = null;
+
+  public getSuppressesMagic(): MagicSuppression | null {
+    return this.suppressesMagic;
+  }
+  public setSuppressesMagic(value: MagicSuppression | null): void {
+    // Per-field invariant: Suppressions.validate throws on bad filters.
+    this.suppressesMagic = Suppressions.validate(value);
+  }
 
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed
   // above) so Vessels — which also have meaningful interior volume —

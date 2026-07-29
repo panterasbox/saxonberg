@@ -192,6 +192,25 @@ settings:
   # 0 disables.
   - key: banking.openingFloat
     value: "500"
+  # Banking — the default custodian bank (an INSTITUTION key: your account
+  # exists at the bank; branches are service points). The boot restamp's
+  # last resort for legacy rows with no derivable relationship — a business
+  # banks at its authored banksAt, a worker at the payer's bank, escrow at
+  # the issuer's. Only the state (treasury) banks at the CB. v1: goodkin
+  # (the bank that wants the newcomer).
+  - key: banking.defaultCustodianBank
+    value: goodkin
+  # Contracts (the work/gig substrate) — claim expiry: how long an exclusive
+  # claim holds before it lapses back to open (game-hours; lazy enforcement,
+  # no sweep). Posting expiry default: 0 = a posting never lapses unless the
+  # post names a lifetime. Breach penalty: the issuer-side regard drop
+  # against a breaching claimant (breach must be felt, cheaply).
+  - key: contract.claimExpiryGameHours
+    value: "48"
+  - key: contract.postingExpiryDefaultGameHours
+    value: "0"
+  - key: contract.breachRegardPenalty
+    value: "15"
   # Attendant — the anti-grief lease sweep (real-time). Griefing is a real-time
   # act, so the watchdog is real-time (the residency pattern), not game-time.
   # The idle threshold is the venue's generosity dial: a service act resets it,
@@ -212,10 +231,10 @@ settings:
     value: "0.15"
   - key: fasttravel.networkFeeBase
     value: "1"
-  # Fast-travel — the TPA operating-budget account id (the network fee
-  # accrues here), named like banking.treasuryAccount.
-  - key: fasttravel.tpaAccount
-    value: tpa
+  # Fast-travel — the Teleport Authority Business (the network fee accrues
+  # to its operating account, custodied at its authored banksAt).
+  - key: fasttravel.tpaBusinessPath
+    value: /domain/terminus/terminal/tpa
   # YouTube relay (read-only) dials — operator knobs for the second chat
   # transport. pollIntervalMs: the `list`-poll read cadence + overlay
   # live-status poll floor (the API's pollingIntervalMillis wins when
@@ -565,6 +584,25 @@ settings:
   # `fight finish` before the fallen is spared (mercy by default).
   - key: combat.formation.coup.directiveWindowSeconds
     value: "12"
+  # Combat hooks — the CombatApi.influence external-instruction bridge
+  # (stagger/expose/steady). Stagger erosion is banded light/heavy and
+  # focus-fire-scaled like exchange erosion (light = the exchange-erosion
+  # literal, heavy = 2.5x); steady restores like a defensive beat
+  # (endurance-capped, suppressed under the focus-fire recovery pin).
+  # `expose` carries no magnitude — it arms the binary opening window.
+  - key: combat.influence.staggerLightErode
+    value: "0.12"
+  - key: combat.influence.staggerHeavyErode
+    value: "0.3"
+  - key: combat.influence.steadyRestore
+    value: "0.15"
+  # The species combat vocabulary — body mass (kg) at/above which a
+  # hint-less natural attack derives large-body reach (one rank) + heavy
+  # balance ("an ogre punches at ogre reach"); below it the derivation is
+  # exactly neutral (1,1,1,0), which byte-preserves every seeded body
+  # (wolves ~40 kg, humanoids ~70-90 kg — the unarmed gym pin proves it).
+  - key: combat.natural.largeBodyMassKg
+    value: "150"
   # Concealment — effective-perception a viewer needs to notice a thing at
   # each concealed band (obvious = 0, no key). Monotone increasing. The band
   # names + ordering are code (lib/concealment/ConcealmentLevel.ts); these
@@ -738,3 +776,47 @@ settings:
     value: "40"
   - key: respiration.contaminantBurdenPerBreath
     value: "5"
+
+  # Magic (casting core) — see docs/subsystems/magic.md. SHAPE (the effect
+  # union, the impulse/modifier line, the fold) is code; these are the
+  # magnitudes. Mana is an absolute avail/max pool in `pt`.
+  - key: magic.castSecondsDefault
+    value: "3"
+  - key: magic.costDefault
+    value: "15"
+  - key: magic.abortCostFraction
+    value: "0"
+  - key: magic.depthCapacity.low
+    value: "80"
+  - key: magic.depthCapacity.mid
+    value: "120"
+  - key: magic.depthCapacity.high
+    value: "180"
+  - key: magic.recoveryPerMinBase
+    value: "1.5"
+  - key: magic.serenityFactor.low
+    value: "0.6"
+  - key: magic.serenityFactor.mid
+    value: "1"
+  - key: magic.serenityFactor.high
+    value: "1.6"
+  - key: magic.composureBase.low
+    value: "0.7"
+  - key: magic.composureBase.mid
+    value: "1"
+  - key: magic.composureBase.high
+    value: "1.4"
+  - key: magic.composure.floorFactor
+    value: "0.4"
+  - key: magic.potency.competenceFactor
+    value: "0.25"
+  - key: magic.overchannel.severityPerDeficit
+    value: "0.1"
+  - key: magic.overchannel.clearThreshold
+    value: "0.5"
+  - key: magic.dread.decayPerSec
+    value: "0.005"
+  - key: magic.glowlight.lumens
+    value: "500"
+  - key: magic.conjure.waterLitres
+    value: "1"

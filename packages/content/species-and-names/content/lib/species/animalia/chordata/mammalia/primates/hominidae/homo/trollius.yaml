@@ -15,6 +15,7 @@ data:
   _bodyPlanPath: /lib/body-plans/biped
   _parentCladePath: /lib/species/animalia
   _defaultMaterialPath: /lib/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
   vitalProfile:
     coreTemperature: { baseline: 310, survivableMin: 299, survivableMax: 317 }
     heartRate: { baseline: 60, survivableMin: 26, survivableMax: 200 }
@@ -42,3 +43,4 @@ data:
     and means to stay; immovable, deliberate, with a steady, watchful
     gaze that reads as a dull brute only to those who never look twice.
   nameBankKeys: ["common"]
+  facultyProfile: { depth: mid, serenity: low, composure: low }

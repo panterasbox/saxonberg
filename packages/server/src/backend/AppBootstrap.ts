@@ -14,6 +14,7 @@
 
 import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
+import { MaterialApi } from '../mud/api/material';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
@@ -202,6 +203,11 @@ export class AppBootstrap {
     // a clonable template.)
     await WorldClockApi.boot();
 
+    // Materials — stand the authored roster up as live singletons so the
+    // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
+    // hit from the first frame (nothing else stands materials up live).
+    await MaterialApi.boot();
+
     // Renown — warm the standing read-cache from the materialized
     // aggregate, then install the reaction ingestion tap + self-register
     // the real-time recompute schedule. Warm before boot so the first
@@ -241,7 +247,7 @@ export class AppBootstrap {
     // CentralBank singleton is cloned by the bootstrap manifest above.
     await AccountBalance.warm();
     await SupplyAggregate.warm();
-    BankingApi.boot();
+    await BankingApi.boot();
 
     // Employment engine — run one immediate roster pass (so on-shift state
     // is correct at boot) then self-register the recurring game-time tick

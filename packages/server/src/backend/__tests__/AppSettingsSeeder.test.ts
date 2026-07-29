@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(223); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 3 combat formations
+    expect(added).toBe(251); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -109,7 +109,8 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.bankingOnboardingStipend]: "20",
           [AppSettingKeys.fasttravelNetworkFeeRate]: "0.15",
           [AppSettingKeys.fasttravelNetworkFeeBase]: "1",
-          [AppSettingKeys.fasttravelTpaAccount]: "tpa",
+          [AppSettingKeys.fasttravelTpaBusinessPath]:
+            "/domain/terminus/terminal/tpa",
           // The two social-graph baseline keys (Phase 1 additions).
           [AppSettingKeys.socialBaselineRules]: "{}",
           [AppSettingKeys.socialDefaultColor]: "neutral",
@@ -312,9 +313,37 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.fireAirReplenishPerTick]: "30",
           [AppSettingKeys.fireAirCompleteThresholdPct]: "40",
           [AppSettingKeys.respirationContaminantBurdenPerBreath]: "5",
+          [AppSettingKeys.bankingDefaultCustodianBank]: "goodkin",
+          [AppSettingKeys.contractClaimExpiryGameHours]: "48",
+          [AppSettingKeys.contractPostingExpiryDefaultGameHours]: "0",
+          [AppSettingKeys.contractBreachRegardPenalty]: "15",
+          [AppSettingKeys.magicCastSecondsDefault]: "3",
+          [AppSettingKeys.magicCostDefault]: "15",
+          [AppSettingKeys.magicAbortCostFraction]: "0",
+          [AppSettingKeys.magicDepthCapacityLow]: "80",
+          [AppSettingKeys.magicDepthCapacityMid]: "120",
+          [AppSettingKeys.magicDepthCapacityHigh]: "180",
+          [AppSettingKeys.magicRecoveryPerMinBase]: "1.5",
+          [AppSettingKeys.magicSerenityFactorLow]: "0.6",
+          [AppSettingKeys.magicSerenityFactorMid]: "1",
+          [AppSettingKeys.magicSerenityFactorHigh]: "1.6",
+          [AppSettingKeys.magicComposureBaseLow]: "0.7",
+          [AppSettingKeys.magicComposureBaseMid]: "1",
+          [AppSettingKeys.magicComposureBaseHigh]: "1.4",
+          [AppSettingKeys.magicComposureFloorFactor]: "0.4",
+          [AppSettingKeys.magicPotencyCompetenceFactor]: "0.25",
+          [AppSettingKeys.magicOverchannelSeverityPerDeficit]: "0.1",
+          [AppSettingKeys.magicOverchannelClearThreshold]: "0.5",
+          [AppSettingKeys.magicDreadDecayPerSec]: "0.005",
+          [AppSettingKeys.magicGlowlightLumens]: "500",
+          [AppSettingKeys.magicConjureWaterLitres]: "1",
           [AppSettingKeys.combatFormationInterceptMaxIncoming]: "2",
           [AppSettingKeys.combatFormationHighThreatEdges]: "2",
           [AppSettingKeys.combatFormationCoupDirectiveWindowSeconds]: "12",
+          [AppSettingKeys.combatInfluenceStaggerLightErode]: "0.12",
+          [AppSettingKeys.combatInfluenceStaggerHeavyErode]: "0.3",
+          [AppSettingKeys.combatInfluenceSteadyRestore]: "0.15",
+          [AppSettingKeys.combatNaturalLargeBodyMassKg]: "150",
         },
       },
     ]);
@@ -356,8 +385,12 @@ describe("AppSettingsSeeder", () => {
     // + 12 stealth-deployables (8 stealth.hide + 3 movement.concealment + 1 combat.ambush)
     // + 2 residency reset (mode + intervalS)
     // + 2 retail consignment (listingCap + commissionRate)
-    // + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry).
-    expect(added).toBe(222); // 223 total − 1 operator-preset key
+    // + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry)
+    // + 20 magic (cast + faculty + composure + potency + overchannel + effects)
+    // + 3 combat formations
+    // + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*)
+    // + 4 combat-hooks (stagger light/heavy + steady + natural.largeBodyMassKg).
+    expect(added).toBe(250); // 251 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

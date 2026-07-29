@@ -268,6 +268,35 @@ export const AppSettingKeys = {
    * customer cash deposits accumulate. `0` disables. See docs/subsystems/banking.md.
    */
   bankingOpeningFloat: "banking.openingFloat",
+  /**
+   * Banking — the **default custodian bank** (an institution key, e.g.
+   * `goodkin`) — the boot restamp's LAST RESORT for legacy rows with no
+   * derivable custodian relationship (a business banks at its authored
+   * `banksAt`; a worker at the payer's bank; escrow at the issuer's).
+   * Only the state (`treasury`) banks at the CB. See
+   * docs/subsystems/banking.md.
+   */
+  bankingDefaultCustodianBank: "banking.defaultCustodianBank",
+
+  /**
+   * Contracts — how long an exclusive claim holds before it lapses back to
+   * open (game-hours). Squatting cannot block a board; enforcement is lazy
+   * (derive-on-read at every touchpoint — no sweep, no counter).
+   */
+  contractClaimExpiryGameHours: "contract.claimExpiryGameHours",
+  /**
+   * Contracts — the default posting lifetime (game-hours) when a post
+   * names none. `0` = postings never lapse unless the post specifies.
+   */
+  contractPostingExpiryDefaultGameHours:
+    "contract.postingExpiryDefaultGameHours",
+  /**
+   * Contracts — the issuer-side regard drop applied to a breaching
+   * claimant (abandon / claim expiry): breach must be felt, cheaply — a
+   * real per-viewer social consequence via the shipped `RegardApi`, no
+   * global reputation write.
+   */
+  contractBreachRegardPenalty: "contract.breachRegardPenalty",
 
   /**
    * Attendant — the lease anti-grief sweep cadence (real-time ms). Griefing
@@ -304,10 +333,13 @@ export const AppSettingKeys = {
    */
   fasttravelNetworkFeeBase: "fasttravel.networkFeeBase",
   /**
-   * Fast-travel — the TPA operating-budget account id (the well-known
-   * account the network fee accrues to), named like `banking.treasuryAccount`.
+   * Fast-travel — the Teleport Authority **Business** (templatePath): the
+   * network operator the per-ride network fee accrues to, resolved as a
+   * Business (its operating account, custodied at its authored `banksAt`)
+   * — never a bare well-known account id (every account names a real
+   * custodian, and the TPA is a business, not the state).
    */
-  fasttravelTpaAccount: "fasttravel.tpaAccount",
+  fasttravelTpaBusinessPath: "fasttravel.tpaBusinessPath",
 
   /**
    * Social-graph (attention management) — the reserved-baseline notify
@@ -659,6 +691,22 @@ export const AppSettingKeys = {
    * `fight finish` before the fallen is spared (mercy by default). */
   combatFormationCoupDirectiveWindowSeconds:
     "combat.formation.coup.directiveWindowSeconds",
+  /** Combat hooks — `CombatApi.influence` `stagger`: poise eroded by a
+   * `light` instruction (focus-fire-scaled like exchange erosion). */
+  combatInfluenceStaggerLightErode: "combat.influence.staggerLightErode",
+  /** Combat hooks — `CombatApi.influence` `stagger`: poise eroded by a
+   * `heavy` instruction (a crossing arms the normal ownerless opening). */
+  combatInfluenceStaggerHeavyErode: "combat.influence.staggerHeavyErode",
+  /** Combat hooks — `CombatApi.influence` `steady`: poise restored
+   * (endurance-capped; suppressed under the focus-fire recovery pin). */
+  combatInfluenceSteadyRestore: "combat.influence.steadyRestore",
+  /** The species combat vocabulary — body mass (kg) at/above which a
+   * HINT-LESS natural attack derives large-body reach (one rank) +
+   * heavy balance ("an ogre punches at ogre reach"). Below it the
+   * derivation is exactly the neutral `(1, 1, 1, 0)` — the byte-parity
+   * band every currently-seeded body sits in; a body seed crossing this
+   * changes its combat feel by design. */
+  combatNaturalLargeBodyMassKg: "combat.natural.largeBodyMassKg",
 
   /* ───────────────────────── concealment ───────────────────────── */
   /**
@@ -916,6 +964,56 @@ export const AppSettingKeys = {
   /** Respiration — carbon-monoxide (contaminant) toxin burden a breather
    * takes on per reassess while in a contaminated (smoke) medium. */
   respirationContaminantBurdenPerBreath: "respiration.contaminantBurdenPerBreath",
+
+  /* ────────────────────────── magic (casting core) ────────────────────────── */
+  /** Magic — default cast time (game-seconds) when a spell seed omits one. */
+  magicCastSecondsDefault: "magic.castSecondsDefault",
+  /** Magic — default mana cost (pt) when a spell seed omits one. */
+  magicCostDefault: "magic.costDefault",
+  /** Magic — fraction of a spell's cost spent on an aborted cast (0 =
+   * abort is free; the tuning seam if cast-cancel spam needs teeth). */
+  magicAbortCostFraction: "magic.abortCostFraction",
+  /** Magic — mana pool capacity (pt) a `low`-depth faculty derives. */
+  magicDepthCapacityLow: "magic.depthCapacity.low",
+  /** Magic — mana pool capacity (pt) a `mid`-depth faculty derives. */
+  magicDepthCapacityMid: "magic.depthCapacity.mid",
+  /** Magic — mana pool capacity (pt) a `high`-depth faculty derives. */
+  magicDepthCapacityHigh: "magic.depthCapacity.high",
+  /** Magic — base mana recovery (pt per game-minute) at rest, before the
+   * serenity factor and the metabolism-shaped rest-quality scaling. */
+  magicRecoveryPerMinBase: "magic.recoveryPerMinBase",
+  /** Magic — recovery multiplier for a `low`-serenity faculty. */
+  magicSerenityFactorLow: "magic.serenityFactor.low",
+  /** Magic — recovery multiplier for a `mid`-serenity faculty. */
+  magicSerenityFactorMid: "magic.serenityFactor.mid",
+  /** Magic — recovery multiplier for a `high`-serenity faculty. */
+  magicSerenityFactorHigh: "magic.serenityFactor.high",
+  /** Magic — the mental-resist substrate base for a `low` composure band. */
+  magicComposureBaseLow: "magic.composureBase.low",
+  /** Magic — the mental-resist substrate base for a `mid` composure band. */
+  magicComposureBaseMid: "magic.composureBase.mid",
+  /** Magic — the mental-resist substrate base for a `high` composure band. */
+  magicComposureBaseHigh: "magic.composureBase.high",
+  /** Magic — the floor of the live composure read: factor = base ×
+   * (floor + (1−floor) × manaFraction), so a fully drained mage keeps
+   * this fraction of their composure base. */
+  magicComposureFloorFactor: "magic.composure.floorFactor",
+  /** Magic — per-competence-band potency multiplier step (how much a
+   * higher casting band scales an effect's authored intensity). */
+  magicPotencyCompetenceFactor: "magic.potency.competenceFactor",
+  /** Magic — overchannel-strain stages per pt of mana deficit when a
+   * cast completes past empty. */
+  magicOverchannelSeverityPerDeficit: "magic.overchannel.severityPerDeficit",
+  /** Magic — mana fraction (0..1) recovery must clear to relieve
+   * overchannel strain (the metabolism hysteresis-clear precedent). */
+  magicOverchannelClearThreshold: "magic.overchannel.clearThreshold",
+  /** Magic — dread's timed decay: stages lost per game-second. */
+  magicDreadDecayPerSec: "magic.dread.decayPerSec",
+  /** Magic — emitted flux (lumens) of the glowlight bound orb. */
+  magicGlowlightLumens: "magic.glowlight.lumens",
+  /** Magic — litres of water the conjure-water effect transfers when the
+   * spell seed omits an amount. */
+  magicConjureWaterLitres: "magic.conjure.waterLitres",
 } as const;
 
 export type AppSettingKey =

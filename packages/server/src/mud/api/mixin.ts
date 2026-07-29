@@ -135,12 +135,14 @@ import type { Durable } from '../lib/material/Durable';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
+import type { Caster } from '../lib/magic/Caster';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../lib/employment/Business';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
+import type { CombatReactive } from '../lib/combat/CombatReactive';
 import type { PartyMember } from '../lib/party/PartyMember';
 import { ShadowApi } from './shadow';
 import { SecurityApi } from './security';
@@ -1062,6 +1064,18 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.ManualBuild);
   }
 
+  /**
+   * An actor whose **casting faculty is active** — composed AND conferred
+   * (the actor's `Species.innateMixins` or an augment names `CasterMixin`;
+   * the `isMaker` activation precedent). Every `Character` composes the
+   * mixin; only a casting species' members pass this predicate, so the
+   * `cast` pipeline and the verb affordance key on *activation*, not
+   * composition.
+   */
+  public static isCaster(obj: Stuff): obj is Stuff & Caster {
+    return this.isActive(obj, Mixins.Caster);
+  }
+
   public static isBank(obj: Stuff): obj is Stuff & Bank {
     return this.hasMixin(obj, Mixins.Bank);
   }
@@ -1084,6 +1098,12 @@ export class MixinApi {
   /** An actor that can fight (`CombatantMixin`). */
   public static isCombatant(obj: Stuff): obj is Stuff & Combatant {
     return this.hasMixin(obj, Mixins.Combatant);
+  }
+
+  /** A combat-reactive instrument/carrier (`CombatReactiveMixin`) — the
+   * instrument dynamics seam the combat engine scans for. */
+  public static isCombatReactive(obj: Stuff): obj is Stuff & CombatReactive {
+    return this.hasMixin(obj, Mixins.CombatReactive);
   }
 
   /** An actor that can belong to a party (`PartyMemberMixin`). */

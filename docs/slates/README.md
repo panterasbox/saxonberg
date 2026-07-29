@@ -143,6 +143,7 @@ continues with the content + navigation layers on top:
 - [lounge-slate](./builds/lounge-slate.md) — the full spawn lounge content (locked slate); the rudimentary lounge that shipped with the substrate is the seed.
 - [fast-travel-slate](./tails/fast-travel-slate.md) — **shipped (v1)** → [fasttravel.md](../subsystems/fasttravel.md); the Teleport Authority network (terminals + scan-to-register credential + dual-mode `teleport`). Slate now a tail holding the living-infrastructure wave.
 - [eternal-university-slate](./builds/eternal-university-slate.md) — campus content area; built after char-gen + lounge.
+- [inquiry-slate](./builds/inquiry-slate.md) — the **learn-by-discovery substrate**: how *sim-native* knowledge is discovered (observe→measure→hypothesize→**predict**→verify), banked (Competence), published (teachable goods), and corrupted (the **wrong-paper** mechanic — self-defending, so misinformation is a *social/temporal* exploit gated by verification cost; the insidious case is the evidential-range **overreach** paper). Truth is **demonstrated, not argued** (the deduction-slate spine). Spun out of capability-magic Part IV (2026-07-15); magic is its first consumer, combat/medicine/crafting/farming are peers. The gamification-mirror "teach *how to know*" engine. **Loose now, tight-seam reserved** on real-course credit.
 - [onboarding-slate](./builds/onboarding-slate.md) — new-player onboarding; starts at campus arrival.
 - [map-slate](./builds/map-slate.md) — spatial-visualization client pane; an enhancement built when earned.
 
@@ -207,7 +208,7 @@ physics is buildable now.
 - [economy-slate](./builds/economy-slate.md) — currency, value, crafting inputs, trade. Reads the shipped [glob](../subsystems/glob.md) fungible-stack substrate (coins and raw materials are already modeled). **Currency slice buildable now; macro balance — faucet/sink, inflation, population-scale loops — parked until there's a running game to tune against.**
 - [crafting-slate](./builds/crafting-slate.md) — the economy's **transformation** stage (where value is minted), the piece economy-slate deferred. The **venue model** (Dave's Bar four-tuple: inputs + tools + recipes + labor; place-based crafting; buy-vs-DIY; NPC floor / player apex) is settled enough for a first venue slice; the core mechanics (recipes, the skill seam's far side, the quality verdict) are open design space, advancement-adjacent and largely deferred. Crystallized in the economy slate's employment/venue section.
 - [corpos-slate](./builds/corpos-slate.md) — the fictional megacorps that own the private sector: a cross-cutting **affiliation/competition fault line** + a **mark** on the goods of the world. **Phase 1 (marks + booze portfolios) shipped** → [corpo.md](../subsystems/corpo.md) — the five corpos + their brands as authored reference-identities, brand→corpo resolution, the per-product `Branded` mark. Kept in `builds/` for the deferred phase 2: the player-facing **faction gameplay** (the multipolar approval vector, competition, sponsorship, portfolios beyond booze) — a build's worth of design, not a tail.
-- [livelihood-slate](./builds/livelihood-slate.md) — the *livelihood & consequence* spine: **violence has no payday; livelihood comes from work; the world's money is conserved with authors running their own budgets; consequence is recorded, not mechanized.** §5 (the **employment model**) **shipped** → [employment.md](../subsystems/employment.md) — jobs/shifts/wages/tips at Dave's Bar. Kept in `builds/` for the mostly-unbuilt rest: death-as-cascade-terminus (§1, sibling to the deferred-rpg combat slate), the unified **Contract** abstraction + adjudication (§2), the wider **labor market** / job board (§3), and the **conserved-economy** big model (§4 — no NPC faucet, one economy, CB the only mint, authors run budget accounts).
+- [livelihood-slate](./builds/livelihood-slate.md) — the *livelihood & consequence* spine: **violence has no payday; livelihood comes from work; the world's money is conserved with authors running their own budgets; consequence is recorded, not mechanized.** §5 (the **employment model**) **shipped** → [employment.md](../subsystems/employment.md), and the **work-contracts build shipped the §5 gig kernel + §6 arrangement generalization** → [contract.md](../subsystems/contract.md) (clauses/escrowed gigs/the job board) + compensation bases + the draw. Kept in `builds/` for the unbuilt rest: death-as-cascade-terminus (§1), the adjudication stack (§2), the systemic gig generator + NPC claiming (§3/§5.3 tail), the **conserved-economy** big model (§4), §6.3–§6.5 terms, the constituency walks (§7), and the Circulation-Reserve public-works program (§8).
 - [retail-slate](./builds/retail-slate.md) — the **retailer** business archetype (the shop, after the shipped bar/maker-seller and bank/service) and its **four-build arc**, framed as *one small shop build plus two economy substrates it grows into* — complete-at-tier at every stage. The load-bearing split: a **sell** price is a transfer (can't mint → a feel knob, safe to author freely, calibrated to stipend/wages/coinage as *stance* per Law 1), while a **buy-from-player** price is the vendor-trash faucet (deferred behind the reserve). **S1 — the general store** (retail counter: buy from bounded stock + P2P consignment; heavy reuse of `Business`/Attendant/banking/containment + the bar's `Menu` offer pattern) is **SHIPPED (MR!143)** → [retail.md](../subsystems/retail.md) + [chattel.md](../subsystems/chattel.md) (built property-first over the chattel possession core; `PricedOfferMixin` extracted from the bar's `Menu`; the reset sweep graduated). **S2 references the [city-economy](../staging/terminus-city.md) build** (the Circulation Reserve = the welfare-floor buy; welfare is monetary policy, not a shop feature — not owned here). **S3** = the producer/mine + cost/supply-derived pricing (closes the mine→ore→shop→player loop). **S4** = player-owned shops + franchising + the corpo market arena (the apex; corpo Phase-2 pointed at retail).
 - [property-slate](./builds/property-slate.md) — the **possession / real-estate / compute-scarcity** substrate — the foundation under pets, ranching, farming, and the economy + governance tiers. Governing insight: **two separate conserved scarcities — money (prices *land*: parcel tax, market) and compute-allowance (prices *liveness*: parcel-bound, governance-allocated, non-transferable, total = the box)** — never collapsed, coupled only at the parcel (*land is the container of a compute allowance*). Property = **the right to run a subdivision** ("pay to run, not to visit"); the dorm is `HomeZone` un-grown, real estate is it grown up (starter sandbox home). Net-new: the **parcel** (the join of the already-built boundary trees + a **title**), **un-fusing author from owner** (fused today: owner = immutable earliest author; the deferred provenance "ownership hierarchy" + CMS "lease model" are its two halves), a **two-layer compute model** (predicted heartbeat-budget at CMS-save + runtime degradation-ordered-by-deficit; *tolerant of bad prediction by design*), measured via the **call-security Proxy** (CPU) + a **registry sweep counting shallow-once** (memory), enforced as **dormancy** (freeze → evict). Four-phase spine: possession core → compute economy → governance allocation → tenancy. Consolidates the scattered tenure/ownership deferrals. **Phase 0a (real-property *title*) SHIPPED** — the parcel primitive + gated `parcels` registry + `ownerOf` chain + `subdivide`/`transfer`, ownership un-fused from authorship and moved out of the editable `domain` collection; see [parcel.md](../subsystems/parcel.md). **Phase 0b's serialization-boundary half SHIPPED** as the **self-persistence spine** (§I–K: `PersistableHolder`/the serialization boundary/seed-then-persist — property, inventory, room contents now survive eviction/logout/reload; Avatar migrated on) — see [persistence.md § The self-persistence spine](../subsystems/persistence.md). Chattel/possession (the 0b ownership half), compute economy (Phase 1), governance allocation + tenancy remain.
 - [ranching-slate](./builds/ranching-slate.md) *(STUB)* — the **animal economy**: raising **livestock** (managed as herds, not befriended) for renewable yield — milk/eggs/wool/meat/hide/draft/breeding stock. The **economic sibling of [pets](./builds/pets-slate.md)** (the relationship half) and of the **farming** work (the plant half); all three sit on a shared **husbandry / possession** base. The Creature/Character split *is* the livestock/pet split (thin resource vs rich relationship); **domesticability is one axis spanning wild→pet→livestock**. Divergent layer (net-new): **yield/production cycle**, **breeding** (`SexedMixin` exists; a reproduction driver likely doesn't), butchering→crafting, herd management + predation. Integration seam with farming: the conserved **crops → feed → livestock → products → crafting** loop + land tenure. Heavy customer of the possession + maturation gaps named in the pets slate. Deep pass deferred to the farming session.
@@ -341,9 +342,46 @@ education-vertical sensor bridge, estimator tuning). The hard constraint:
   (SDT). **First vertical slice buildable now** (one combat + one craft
   path, two seed guilds); the learning-platform sensor bridge + merge/balance
   of player-authored trees deferred.
+- [guild-slate](./builds/guild-slate.md) — the **vocation institutions**
+  (supersedes + extends advancement-slate § Guilds / § Declared focus):
+  guilds as **chartered, authored institutions** over the Catalog whose
+  spine is **mysteries / calls / marks** (wish fulfillment, not a skill
+  channel). The formation rule (**vocation = discipline × livelihood**;
+  career grain; clubs are free chat groups), the four layers
+  (vocations liberal / institutions population-scarce / corpo **wings
+  never forks** / clubs), **no magic guild** (a guild's synergized
+  magic = its mystery tier), the divergence axes (public/private/
+  sponsored/religious charter, loyalty, selectivity incl. **tapped**;
+  the military = a guild at extreme public settings), three membership
+  tiers (associate / member / master; friction inverts; teaching-gated
+  mastery), the **chartered uniform training budget** (coarse
+  primary/secondary tiers; points weight training, never mint;
+  conservation: total advantage bounded by practice-hours × clamp), the
+  guild **job board** as clearinghouse (claim gates — the contract
+  seam's consumer), the balance ledger (one global dial-set + an
+  advancement gym; the rest structural, market, or firewall), wizards
+  (clearance ≠ expertise; the Worldwrights; credential = evidence never
+  clearance), the charter schema + lifecycle (schism, dormancy by
+  rent, merger), and the **audited launch roster** — 10 day-one
+  institutions + 8 **standing charters** (authored-but-dormant halls
+  that open when their vocation's economy activates — a reopening is a
+  world event), each entry passing the three-question audit (*who
+  pays · which law layer · world-native fantasy or genre import*):
+  **no standing military** (one administered realm → the Marshalcy is
+  a credential + writ-contract stream, posse comitatus = the calls
+  mechanism, the army-fantasy homes in an alignment-flavored Warding
+  Order), the Factors/Carriers demoted (**the engine automates the
+  middlemen** — trust-work is engine-work, labor-work is player-work),
+  metabolism + the wear economy as bedrock paymasters, polity paper
+  for DAU-independence, and the **Landwrights** real-estate deep-dive
+  (survey / valuation / conveyancing / development / tenancy over the
+  parcel-title + apartment-ladder substrate, anchored DAU-independent
+  by the polity's assessment contract). The roster doubles as the
+  employment/venue content worklist.
 
 **Phases:** first slice (two paths, two guilds, the loadout) → guild
-institution model → player-extensible content-graph + governed canonization
+institution model ([guild-slate](./builds/guild-slate.md)) →
+player-extensible content-graph + governed canonization
 → (the education-vertical sensor bridge deferred).
 
 ---
