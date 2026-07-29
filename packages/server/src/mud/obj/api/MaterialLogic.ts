@@ -90,6 +90,12 @@ export class MaterialLogic extends ApiLogic {
 
   // ---------- materials-response ----------
 
+  /** See {@link MaterialApi.gradeConditionScale}. */
+  @CallSecurity(MaterialApiCallers)
+  public gradeConditionScale(grade?: Grade, condition?: number): number {
+    return gradeConditionScale(grade, condition);
+  }
+
   /** See {@link MaterialApi.attenuate}. */
   @CallSecurity(MaterialApiCallers)
   public attenuate(

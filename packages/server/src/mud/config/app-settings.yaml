@@ -820,3 +820,28 @@ settings:
     value: "500"
   - key: magic.conjure.waterLitres
     value: "1"
+  # ── crafting: the repair economy's dials (broken gate, wear-on-use,
+  # keenness, repair pricing, salvage loss). Bands render everywhere;
+  # these raw magnitudes surface on `analyze` only.
+  - key: crafting.brokenThreshold
+    value: "0.1"
+  - key: crafting.brokenDeliveryFloor
+    value: "0.35"
+  - key: crafting.wear.weaponPerStrike
+    value: "0.004"
+  - key: crafting.wear.armorPerBlow
+    value: "0.004"
+  - key: crafting.keenness.wearPerUse
+    value: "0.08"
+  - key: crafting.keenness.deliveryFloor
+    value: "0.7"
+  - key: crafting.keenness.sharpenDurationMs
+    value: "12000"
+  - key: crafting.salvageRate
+    value: "0.5"
+  - key: crafting.repair.costFactor
+    value: "0.6"
+  - key: crafting.repair.brokenFactor
+    value: "2"
+  - key: crafting.repair.metalHeatK
+    value: "900"

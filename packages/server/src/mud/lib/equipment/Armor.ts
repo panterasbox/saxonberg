@@ -26,13 +26,16 @@ import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
 import { DurableMixin } from '../material/Durable';
-import { GradedMixin } from '../craft/Graded';
+import { CraftedMixin } from '../craft/Crafted';
 import { SlottableMixin } from '../slot/Slottable';
 import { WearableMixin } from '../slot/Wearable';
 
+// CraftedMixin (which composes GradedMixin) replaces the bare GradedMixin:
+// armor can be a recipe output — the grade surface + persisted `gradeBand`
+// are unchanged; the maker's mark defaults empty on store-bought pieces.
 const ArmorBase = WearableMixin(
   SlottableMixin(
-    GradedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
   ),
 );
 

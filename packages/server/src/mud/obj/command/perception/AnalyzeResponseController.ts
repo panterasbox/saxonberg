@@ -86,6 +86,11 @@ export default class AnalyzeResponseController extends CommandController<Analyze
     lines.push(
       Mml.compose`Response of ${Mml.name(stuff)} (${construction.getForm()}) — how it ${verb} each channel:`,
     );
+    if (MixinApi.isDurable(stuff) && stuff.isBroken()) {
+      lines.push(
+        Mml.compose`  It is broken — ruined until repaired; what follows is all it has left.`,
+      );
+    }
     for (const channel of MECHANICAL_CHANNELS) {
       if (!armor && construction.deliveryFor(channel) === 'none') {
         lines.push(Mml.compose`  ${channel}: — (not delivered)`);

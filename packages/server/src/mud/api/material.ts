@@ -171,6 +171,17 @@ export class MaterialApi {
    * construction passes the energy through unchanged. The per-layer half of
    * the outside-in covering-stack fold.
    */
+  /**
+   * The `grade × condition` height scalar (Settled-4: quality scales
+   * height, never shape) — the ONE formula both the covering-stack fold
+   * and combat's instrument-delivery scale consume. Grade lerps within
+   * the `response.grade.*` bounds across the five bands; condition lerps
+   * within `[response.condition.min, 1]`.
+   */
+  public static gradeConditionScale(grade?: Grade, condition?: number): number {
+    return logic().gradeConditionScale(grade, condition);
+  }
+
   public static attenuate(
     channel: Channel,
     energy: number,

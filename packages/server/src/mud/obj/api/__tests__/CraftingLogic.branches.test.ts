@@ -134,7 +134,7 @@ async function craftAs(
   return ExecutionContextApi.runRoot(null, 'test', () => {
     if (principal) ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft(req);
-  }) as Awaited<ReturnType<typeof CraftingApi.craft>>;
+  }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
 }
 
 beforeEach(async () => {
@@ -290,6 +290,27 @@ describe('the tangible (smithing) branch', () => {
       makerMode: 'self',
     });
     expect(hot.ok).toBe(true);
+  });
+});
+
+describe('broken tools', () => {
+  it("a broken hammer fails the tool match (missing-tool)", async () => {
+    ContainmentApi.move(makeForge(true), room);
+    ContainmentApi.move(makeIngot(), room);
+    const hammer = makeStuff(() => new ToolItem());
+    hammer.setCapabilities(['striking']);
+    hammer.setCondition(0.05); // broken — offers nothing until repaired
+    ContainmentApi.move(hammer, room);
+
+    const outcome = await craftAs(smith, {
+      recipeRef: 'belt-knife',
+      makerMode: 'self',
+    });
+    expect(outcome).toMatchObject({
+      ok: false,
+      reason: 'missing-tool',
+      detail: 'striking',
+    });
   });
 });
 

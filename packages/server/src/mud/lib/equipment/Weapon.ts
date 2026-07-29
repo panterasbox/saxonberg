@@ -32,7 +32,7 @@ import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ConstructedMixin } from '../material/Constructed';
 import { DurableMixin } from '../material/Durable';
-import { GradedMixin } from '../craft/Graded';
+import { CraftedMixin } from '../craft/Crafted';
 import { SlottableMixin } from '../slot/Slottable';
 import { WieldableMixin } from '../slot/Wieldable';
 import { MixinApi } from '../../api/mixin';
@@ -47,9 +47,13 @@ import type { DeliveryForm } from '../material/Construction';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 
+// CraftedMixin (which composes GradedMixin) replaces the bare GradedMixin:
+// a weapon can be a recipe output — its persisted `gradeBand` + grade
+// surface ride the inner GradedMixin unchanged, and `maker`/`recipe`/
+// `craftedAt` default empty on store-bought gear.
 const WeaponBase = WieldableMixin(
   SlottableMixin(
-    GradedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
   ),
 );
 

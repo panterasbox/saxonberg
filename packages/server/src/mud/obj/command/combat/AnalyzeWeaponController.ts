@@ -79,6 +79,9 @@ export default class AnalyzeWeaponController extends CommandController<AnalyzeWe
 
     const lines: string[] = [];
     lines.push(`Playstyle of ${stuff.getPresentation()}:`);
+    if (MixinApi.isDurable(stuff) && stuff.isBroken()) {
+      lines.push(`  broken — it will barely bite until repaired`);
+    }
     lines.push(
       `  reach ${profile.reach()} ${pipBar(profile.reachRank(), 2)}`,
     );
