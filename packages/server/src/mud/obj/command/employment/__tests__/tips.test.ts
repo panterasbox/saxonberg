@@ -39,7 +39,6 @@ import {
   teardownBankingHarness,
 } from '../../../../lib/banking/__tests__/banking-test-harness';
 
-const BANK = '/domain/terminus/counting-houses/bank-counter';
 const PATRON = '/obj/Avatar/patron';
 const MARA = '/domain/lounge/npc/mara';
 
@@ -227,9 +226,9 @@ describe('tips — the tip jar', () => {
     const { loc, patron, bartender } = scene();
     // Both hold accounts; the patron funds theirs with cash.
     const patronAcct = await asGiver(patron, () =>
-      BankingApi.openAccount(BANK, ''),
+      BankingApi.openAccount('goodkin', ''),
     );
-    await asGiver(bartender, () => BankingApi.openAccount(BANK, ''));
+    await asGiver(bartender, () => BankingApi.openAccount('goodkin', ''));
     giveCoin(patron, 50);
     // Deposit isn't wired here; float the patron's account directly.
     await BankingApi.float(patronAcct, Money.of(50));

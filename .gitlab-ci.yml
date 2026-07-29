@@ -99,6 +99,8 @@ lint:
     - pnpm -C packages/server lint:world-scan
     # No thin Api wrapper around a single object method.
     - pnpm -C packages/server lint:thin-forwarder
+    # The combat engine branches on physics; dynamics come through hooks.
+    - pnpm -C packages/server lint:combat-dynamics
 
 test:
   extends: [.node, .mr-only]

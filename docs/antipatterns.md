@@ -2022,6 +2022,43 @@ the whole design around one overloaded English word, and don't generalize a
 respond" is a *responder*, not an object type — and the responder, if you
 ever need it, hangs off `use`, not a new gesture-verb layer.
 
+## Custody Is a Relationship, Never a Default
+
+Every bank account names a real custodian **institution** — and *which*
+institution derives from who the account is FOR, never from a call-site
+constant.
+
+```typescript
+// WRONG — a call-site default silently makes one bank the custodian of
+// the whole economy (and hides an authoring decision inside code):
+const account = await BankingApi.ensureVenueAccount(
+  business.getAccountPath(),
+  BankingApi.defaultCustodianBank(),   // ← not yours to decide here
+  "",
+);
+
+// RIGHT — the business's authored custody term, through the one seam:
+const account = await EmploymentApi.operatingAccountOf(business);
+// (banksAt on the Business seed; missing = refused loudly)
+```
+
+The relationship table:
+
+| Account | Custodian derives from |
+|---|---|
+| A business's operating account | its authored `banksAt` (a term on the Business seed) |
+| An NPC worker/payee with no account | the **payer's** bank (employer's `banksAt`; a contract payout, the escrow's custodian) |
+| A **player** with no account | nobody — refuse; players open their own accounts (never silently signed up) |
+| Contract escrow | the **issuer's** funding account's bank |
+| The `treasury` (the one state account) | the CB (`Account.CENTRAL_BANK_INSTITUTION`) |
+
+`banking.defaultCustodianBank` exists for exactly one consumer: the boot
+restamp's last resort over legacy rows where no relationship is
+derivable. It is an AppSetting with **no code fallback** — unwarmed
+means *no default custodian*, and consumers refuse rather than invent a
+bank. See [banking.md](./subsystems/banking.md) § Every account names a
+real custodian.
+
 ## Raw keyed reserve reads outside the owning substrate
 
 **Don't:**
@@ -2086,3 +2123,36 @@ module-private, not exported) closing over plain values, never over the
 controller. Found live by the magic build's browser drive
 (`CastController`, fixed); `SearchController`'s completion has the
 same latent shape.
+
+## Per-dynamic branches in the combat engine
+
+**Don't:**
+
+```typescript
+// inside CombatLogic's exchange resolution
+if (weapon && MixinApi.isEnergized(weapon)) {
+  ElectricityApi.shockContact(weapon, target); // the engine knows this dynamic
+}
+```
+
+**Do:**
+
+```typescript
+// on the dynamic's own class — EnergizedMixin composes CombatReactiveMixin
+public override augmentInflict(spec: InflictSpec, ctx: CombatHookContext) {
+  ctx.deliverShock(this);
+  return super.augmentInflict(spec, ctx);
+}
+```
+
+The combat engine branches on **physics** (`isSlotted`, `isConstructed`,
+`isVitals`, …), never on **dynamics**. A special weapon, reactive armor,
+species quirk, or venue response implements the `CombatReactiveMixin` /
+`CombatantMixin` / `CombatVenue` hook for its seam and queues
+consequences through the `CombatHookContext` — the engine's dispatch
+choreography never grows a new `MixinApi.isX` branch. Enforced by
+`pnpm -C packages/server lint:combat-dynamics` (a 21-predicate physics
+allowlist; when the lint fires, the answer is "implement a hook," not
+"grow the allowlist"). The deleted `isEnergized` branch above was the
+first barnacle and the migration is the worked example. See
+[combat-hooks.md](./subsystems/combat-hooks.md).

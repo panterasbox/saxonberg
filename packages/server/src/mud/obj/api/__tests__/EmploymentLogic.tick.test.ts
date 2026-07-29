@@ -8,6 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EmploymentApi } from '../../../api/employment';
+import { BankingApi } from '../../../api/banking';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import BusinessEntity from '../../../lib/employment/Business';
@@ -36,6 +37,7 @@ function atClock(weekday: number, hour: number): number {
 
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
+  b.banksAt = BankingApi.defaultCustodianBank();
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];

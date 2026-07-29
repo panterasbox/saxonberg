@@ -61,7 +61,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBankPath(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
     );
     // Credit the balance WITHOUT backing cash (a CB mint to the account) —
     // the account is solvent, but the till holds no coin.
@@ -81,7 +81,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBankPath(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
     );
     // Float the branch with 50 physical coins (the till) ...
     const float = makeStuffAtPath(() => new Coin(), "/obj/Coin");

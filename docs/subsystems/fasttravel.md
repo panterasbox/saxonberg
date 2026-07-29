@@ -199,12 +199,24 @@ the CB mints:
   (see [employment.md](./employment.md); no manifest entry, no standup hook).
   Its account collects `fee − networkFee`; a paid route with no operator is an
   authoring error → refuse.
-- **The TPA's operating budget** — a **network fee** into the well-known
-  `fasttravel.tpaAccount` (default `"tpa"`). The fee is a **flat base + a
-  percentage** — `min(fee, base + floor(fee × rate))`, tunable via
+- **The TPA's operating budget** — a **network fee** to the **Teleport
+  Authority Business** (`fasttravel.tpaBusinessPath`, a minimal
+  Business seed at `/domain/terminus/terminal/tpa`: proprietor-absent
+  public-infrastructure operator, empty `operatingLocations` so it never
+  collides with the per-terminal fare operators, resolved by path). The
+  fee lands on its operating account at its authored `banksAt` (the TPA
+  is **not the state** — only the treasury banks at the CB, so it banks
+  commercially; every account names a real custodian, see
+  [banking.md](./banking.md)). The legacy raw `tpa` accumulator row is
+  re-owned to this Business by the banking boot restamp. Staff /
+  appointments (a governed TPA) are the everything-is-a-business
+  follow-on. The fee is a **flat base + a percentage** —
+  `min(fee, base + floor(fee × rate))`, tunable via
   `fasttravel.networkFeeBase` / `fasttravel.networkFeeRate` — the
   payment-processor shape, so the TPA **collects a non-zero fee on every
-  paid ride** (a pure percentage floors to zero on micro-fares).
+  paid ride** (a pure percentage floors to zero on micro-fares). An
+  unseeded world (no TPA Business resolvable) waives the levy with a
+  warning rather than blocking the ride.
 
 **Arrival surcharge (destination-imposed).** On top of the route's `fee`, a
 **destination node** can impose its own **`surcharge`** (`FastTravel.surcharge`,

@@ -203,10 +203,11 @@ export default class BuyController extends CommandController<BuyModel> {
   ): Promise<string | null> {
     if (!venuePath) return null;
     const business = await EmploymentApi.ensureOperatorAt(venuePath);
-    const ownerPath = business?.getAccountPath() ?? venuePath;
+    if (!business) return null;
     let account: string;
     try {
-      account = await BankingApi.ensureVenueAccount(ownerPath, ownerPath, "");
+      // Custody is the business's authored banksAt (never a default).
+      account = await EmploymentApi.operatingAccountOf(business);
     } catch {
       return null;
     }

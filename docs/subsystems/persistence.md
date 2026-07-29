@@ -588,10 +588,20 @@ Avatar persists through the universal spine — the per-player-template
 outermost; its record carries its declared fields, its carried inventory
 (`Container` slice), its worn gear (`Slotted` slice — new; gear was lost on
 logout before), and its **own spawn/recall location** (`place`). `Avatar.save`
-→ `PersistableApi.capture`, `Avatar.restore` → `materialize`, and
-`postRegister` drives materialize-on-return / capture-on-signup after the
-born-with loadout settles (the loadout's cranial implant + aether-hosted
-updates aren't in inventory, so they don't double against restored contents).
+→ `PersistableApi.capture`, `Avatar.restore` → `materialize`. `postRegister`
+orders the two paths differently: a **fresh signup** runs the born-with
+loadout first, then `capture`; a **returning login** runs `materialize`
+first, then re-runs the loadout **on top** — the snapshot carries the worn
+cranial implant (Container + Slotted slices), so loadout-first would
+double-occupy the slot, while the aether-hosted apps (comms / forums / the
+credential wallet) are deliberately session-scoped and *not* in the
+snapshot, so they must re-provision every login (the loadout's own
+occupancy + hosted-update guards make the re-run idempotent). Two restore
+subtleties the ordering implies: `materialize` preloads the organism's
+anatomy between field hydrate and Slotted occupancy (the slots are defined
+by the just-restored species' body plan, and no loadout has run yet), and
+`restorePlacement` materializes (`singletonOrClone`) a captured container
+that isn't live yet — rooms are lazy after a restart.
 
 Three generic substrate capabilities support it:
 

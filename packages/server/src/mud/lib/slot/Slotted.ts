@@ -313,6 +313,26 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       }
       set.add(candidate);
       this.slots.set(slot, set);
+      // Arming witness (combat's instrument seam): a CombatReactive
+      // occupant hears its slot claim land, once per slot — through ALL
+      // three arming paths (SlotApi.occupyAll, combat's grip swap,
+      // persistence restore). Canonical @hook contract lives on
+      // CombatReactiveMixin.onWielded. The typeof guard: the marker
+      // narrowing walks attached shadows, but only a host-defined
+      // method is dispatchable (a shadow reshapes hooks, never adds).
+      if (
+        MixinApi.isCombatReactive(candidate) &&
+        typeof candidate.onWielded === 'function'
+      ) {
+        // Guarded (the combat engine's guardedHook posture, kept local —
+        // Slotted stays free of combat imports): a throwing witness body
+        // warns and is skipped, never aborts the slot claim.
+        try {
+          candidate.onWielded(this as unknown as Stuff & Slotted, slot);
+        } catch (err) {
+          console.warn('Slotted: onWielded threw — skipped', err);
+        }
+      }
     }
 
     public vacate(
@@ -334,6 +354,19 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       // its conveyance (rider dismounting, driver leaving a cart).
       if (candidate.onSlotReleased) {
         candidate.onSlotReleased(this as unknown as Stuff & Slotted, slot);
+      }
+      // Combat witness second (generic witness first — the documented
+      // order). Canonical @hook contract on CombatReactiveMixin.onUnwielded.
+      if (
+        MixinApi.isCombatReactive(candidate) &&
+        typeof candidate.onUnwielded === 'function'
+      ) {
+        // Guarded — a throwing witness never aborts the slot release.
+        try {
+          candidate.onUnwielded(this as unknown as Stuff & Slotted, slot);
+        } catch (err) {
+          console.warn('Slotted: onUnwielded threw — skipped', err);
+        }
       }
       return candidate;
     }
@@ -358,6 +391,19 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       // Same witness fires from the single-occupant convenience path.
       if (sole.onSlotReleased) {
         sole.onSlotReleased(this as unknown as Stuff & Slotted, slot);
+      }
+      // Combat witness second (generic witness first — the documented
+      // order). Canonical @hook contract on CombatReactiveMixin.onUnwielded.
+      if (
+        MixinApi.isCombatReactive(sole) &&
+        typeof sole.onUnwielded === 'function'
+      ) {
+        // Guarded — a throwing witness never aborts the slot release.
+        try {
+          sole.onUnwielded(this as unknown as Stuff & Slotted, slot);
+        } catch (err) {
+          console.warn('Slotted: onUnwielded threw — skipped', err);
+        }
       }
       return sole;
     }

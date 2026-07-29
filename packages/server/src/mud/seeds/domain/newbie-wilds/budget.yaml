@@ -17,5 +17,8 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   positions: []
+  # Where this budget banks (authored custody; city governance is
+  # content, not the state).
+  banksAt: goodkin
   operatingLocations:
     - /domain/newbie-wilds/crossroads/terminal

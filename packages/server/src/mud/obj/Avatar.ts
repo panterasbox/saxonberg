@@ -290,7 +290,23 @@ export default class Avatar extends AvatarBase {
       PlayerApi.registerAvatar(this);
     }
 
-    await this.installDefaultLoadout();
+    // Born-with loadout BEFORE the spine only on a FIRST mint. A returning
+    // avatar's snapshot carries its worn gear (incl. the cranial implant),
+    // and the spine restore below re-occupies the slots — installing the
+    // default first would collide (`Slotted.occupy: slot 'cranial' is
+    // full`) and brick every relog-after-restart. The returning path runs
+    // the loadout AFTER materialize instead (below): the cranial guard
+    // sees the restored implant and skips the hardware, while the
+    // session-scoped aether apps (comms / forums / the credential wallet)
+    // are re-provisioned onto it — they are deliberately not in the
+    // snapshot.
+    const spineKey = this.shouldPersist() ? this.getTemplatePath() : null;
+    const hasSnapshot = spineKey
+      ? await PersistableApi.hasRecord(spineKey, spineKey)
+      : false;
+    if (!hasSnapshot) {
+      await this.installDefaultLoadout();
+    }
 
     // Preserve the PostRegistration chain (the spine no longer auto-drives
     // here — D1).
@@ -306,14 +322,18 @@ export default class Avatar extends AvatarBase {
     // location, overriding the clone-time template defaults); a fresh signup
     // captures the first record. A guest's `shouldPersist()` is false, so
     // this is a no-op for guests.
-    if (this.shouldPersist()) {
-      const key = this.getTemplatePath();
-      if (key) {
-        if (await PersistableApi.hasRecord(key, key)) {
-          await PersistableApi.materialize(this, key);
-        } else {
-          await PersistableApi.capture(this, key);
-        }
+    if (spineKey) {
+      if (hasSnapshot) {
+        await PersistableApi.materialize(this, spineKey);
+        // Re-provision the session-scoped born-with floor on top of the
+        // restored gear. Idempotent: the restored implant keeps the
+        // cranial slot (the loadout's occupancy guard skips the
+        // hardware); only the hosted aether apps re-clone, restoring the
+        // comms / forums / credential-wallet surfaces a snapshot never
+        // carries.
+        await this.installDefaultLoadout();
+      } else {
+        await PersistableApi.capture(this, spineKey);
       }
     }
   }

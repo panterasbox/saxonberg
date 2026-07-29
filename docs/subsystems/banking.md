@@ -51,6 +51,8 @@ Conservation is *structural*, validated per leg by `BankTransaction`
 | `deposit` | cash bridge → real account | neutral (coin → vault) |
 | `withdraw` | real account → cash bridge | neutral (vault → coin) |
 | `transfer`/`payment`/`wage`/`tax` | real account → real account | neutral |
+| `escrow-hold`/`escrow-release`/`escrow-revert` | real account → real account (via the per-contract escrow account) | neutral |
+| `draw` | real account → real account (business → proprietor) | neutral |
 
 A leg of a non-mint/drain kind that names the **issuance sentinel** (money
 from nowhere) **throws** — a programmatic conservation breach (the
@@ -83,12 +85,22 @@ feed the `environment` bucket; the `Menu` precedent). The counter's contents
 - **Affiliation** rides a plain `corpoKey` resolved on read via `CorpoApi`
   (a bank is *affiliated to* a corpo, not a branded product). `openAccount`
   records that key on the account row — the readable affiliation edge.
-- **Resolution by identity** — accounts key on `{owner, bankPath}` (owner =
-  the context-derived `templatePath`, bankPath = the counter's templatePath).
-  No number is ever typed: `myAccountAt(bankPath)` resolves "your account
-  here"; `primaryAccountIdOf(ownerKey)` is the receive-by-identity target;
-  the first account an owner opens is their **primary**. Multi-account is
-  native (per `{owner, bankPath}`); per-branch context selects.
+- **Resolution by identity** — accounts key on `{owner, bank}` (owner =
+  the context-derived `templatePath`, bank = the **institution key**).
+  **The bank is an institution; a branch is a service point of it**: the
+  five corpo banks are their corpos' finance arms, so a branch's key
+  defaults to its `corpoKey` (`goodkin`/`hollis`/`vionne`/`aevex`/
+  `veshko`; `BankMixin.getBank()`), and an independent bank authors its
+  own key (a key with no corpo behind it — the `Brand.owner === ''`
+  precedent). Your account **exists at the bank and is serviceable at
+  every branch of it** — deposit/withdraw resolve the account by the
+  branch's institution, while the **till stays per-branch** (the vault is
+  physically here; liquidity≠solvency is a branch fact). No number is
+  ever typed: `myAccountAt(bank)` resolves "your account at this bank";
+  `primaryAccountIdOf(ownerKey)` is the receive-by-identity target; the
+  first account an owner opens is their **primary**. Multi-account is
+  native (per `{owner, bank}` — one account per institution, an account
+  at each bank if you want).
 - **deposit** moves the coin into the vault and credits the balance 1:1
   (`deposit` row, supply-neutral cash bridge). **withdraw** debits and hands
   out coin (split from the vault), bounded by **both** the balance (solvency)
@@ -102,7 +114,11 @@ feed the `environment` bucket; the `Menu` precedent). The counter's contents
 The branch ops ride **one `bank` verb** with subcommands (the
 `chat`/`alias` dispatch-on-`subcommand` precedent, not a verb-per-action):
 bare `bank` → balance; `bank open` / `deposit <coins>` / `withdraw <amount>`
-/ `transfer <amount> to <who>` / `balance`. One `BankController` dispatcher
+/ `transfer <amount> to <who>` / `balance`. `bank open` is idempotent, and
+for an existing holder it **doubles as the wallet re-link**: the payment
+credential is session-durable (a returning login's implant is
+re-provisioned bare — see [credential.md](./credential.md)), so re-opening
+re-links the held account onto the fresh credential instead of refusing. One `BankController` dispatcher
 extends `BankingControllerBase` (`resolveBank` — the affording counter, else
 the room scan; the crafting "agent performs, venue owns state" resolution).
 The branch is authored as **city content**:
@@ -296,7 +312,7 @@ sealed `postTransaction` chokepoint lives here as a module-private fn.
 
 Collections (`backend/PersistenceManager.ts`): `bank_ledger` (indexed
 `fromAccount`/`toAccount`/`kind`/`at`), `bank_accounts` (unique `accountId`,
-indexed `owner`/`bankPath`), `bank_supply` (single row). Warm wiring in
+indexed `owner`/`bank`), `bank_supply` (single row). Warm wiring in
 `AppBootstrap` (`AccountBalance.warm` + `SupplyAggregate.warm` +
 `BankingApi.boot`); the `/obj/CentralBank` singleton is in the bootstrap
 manifest.
@@ -425,3 +441,151 @@ Goodkin bank runs.
   never imports banking; see [npc-dialogue.md](./npc-dialogue.md)). The old
   university-avenue seeds are retired (a live-DB reseed is delete-and-restart;
   fresh DBs correct automatically).
+
+## The leg-kind vocabulary (work-contracts build)
+
+The `LedgerKind` vocabulary is now **closed and runtime-validated**:
+`LEDGER_KINDS` (`lib/banking/LedgerEntry.ts`) is the source array the
+type derives from, and `assertLegKind`'s switch carries an
+exhaustiveness backstop — a kind the switch doesn't name **throws**
+instead of falling through unchecked (the audit's one former hole; a
+new kind is a compile error until its counterparty rule exists). The
+"no untyped legs" acceptance is a pinned test.
+
+The twelve kinds and their counterparty rules are the table in
+[Conservation](#conservation) above. The four added by this build:
+
+- **`escrow-hold` / `escrow-release` / `escrow-revert`** — the contract
+  stake family (issuer → escrow, escrow → contractor, escrow → issuer).
+  Escrow is an **agent's account at a commercial bank**: the contract
+  system holds the stake in a **per-contract REAL account**
+  (`Account.escrowAccountFor(id)` → `escrow:contract:<id>`, owner =
+  `contract:<id>`, custodied at the default bank). Deliberately NOT a
+  sentinel — a sentinel has no balance row and would take held funds
+  *out of* the reconcile audit while in flight; a real row keeps
+  `reconcile` green with **zero** changes to the audit. And deliberately
+  not pooled: per-contract, an over-release **throws** on insufficient
+  balance instead of silently robbing another contract's stake, and the
+  per-contract conservation read (`escrowBalanceOf`) is the legibility
+  surface ("the stakes are real because the money is locked and
+  visible"). `escrowClose` asserts zero and deletes the row at every
+  contract terminal — live escrow rows scale with *open* contracts; the
+  ledger legs are the permanent record. See
+  [contract.md](./contract.md).
+- **`draw`** — the proprietor's take-home (business → proprietor's
+  primary), `BankingApi.payDraw`. **Solvency-checked** — refuses when
+  the business balance is short — where `payWage` deliberately pays red
+  (the deficit model): a worker's wage is owed regardless; an owner
+  pocketing from an insolvent business is exactly the wedge the
+  distinct kind exists to expose. Surfaced as the wallet-afforded
+  `draw <amount>` verb (business resolved *from* the acting proprietor
+  via `EmploymentApi.businessOfProprietor` — no parameter to spoof).
+
+**The two-layer discipline (kind vs category).** `kind` is the
+**conservation/counterparty class** `assertLegKind` enforces;
+`category` (`PnlCategory`) is the **economic line** reports partition
+on. The rule: **a standalone movement gets its own kind; a rider split
+inside a multi-leg transaction gets its own category** — forced by
+`postTransaction`'s one-kind-per-transaction shape. The consignment
+sale split (kind `payment`, category `consignment`) is the shipped
+precedent; the share-of-flow compensation split (kind `payment`,
+category `commission`) and piece-rate pay (kind `wage`, category
+`piecework` — labor income; the wage-vs-draw tax wedge stays a *kind*
+distinction) follow it. New categories this build: `escrow`, `draw`,
+`commission`, `piecework`.
+
+**This vocabulary is the future tax-policy hook**: a governance rate
+table over kinds/categories (wage vs draw vs commission taxed
+differently) reads these rows with no rework — the reason every
+economically distinct movement must carry a distinct, named leg.
+
+`postTransaction` now returns the minted `txId` (empty offline), so a
+consumer's own event chain can reference its money legs — the contract
+events' `txId` link.
+
+## Every account names a real custodian
+
+No account is held *nowhere*. Before this build, venue/city/worker
+accounts were self-custodied (`bankPath` = the owner's own non-bank
+path) and the sales-tax `treasury` row had an empty one — a recorded
+owner with **no accountable custodian institution** (no Terms, no cash
+ops, nobody answerable if the books are disputed). The rule, aligned
+with the constitutional line:
+
+- **Only the state banks at the CB** (`Account.CENTRAL_BANK_PATH`). A
+  CB account belongs solely to an organ of the polity; the sole current
+  occupant is the `treasury` (the legislature's fisc — the account the
+  future appropriation build draws from).
+- **Everything else is private and banks at a commercial bank** — the
+  `banking.defaultCustodianBankPath` AppSetting, seeded to the Goodkin
+  branch (v1's one real commercial bank; diegetically the bank that
+  wants the newcomer, apt for the worker wage-fallback). City
+  governance inside the diegesis is *content, not the state* — Terminus
+  is group-owned land, so the city budget is a private account like any
+  other. Corpo treasuries already bank at their corpo's own branch.
+- **Escrow follows the real model** — the contract system's
+  per-contract accounts are custodied at the default commercial bank (a
+  future seam: escrow custody as a competitive bank product on Terms).
+
+**WHICH custodian is a relationship, never a code default.** The
+custodian of each account class is derived from who the account is for:
+
+- **A business banks where its authored `banksAt` says** — an
+  **institution key** (`banksAt: goodkin`) on the Business seed (next to
+  `proprietorPath`/`positions`), resolved through the ONE seam
+  `EmploymentApi.operatingAccountOf(business)`. A business with no
+  `banksAt` cannot open an operating account (an authoring error,
+  refused loudly — the no-operator-to-collect-the-fare precedent). This
+  is what makes the custodian choice *matter* when the other corpo
+  banks land: your bank's Terms price your fees, and every fee routes a
+  royalty to your bank's corpo. All seven former call-site defaults
+  (bar/store income, the TPA fare operators, wage + piecework payers,
+  the draw, `job post --business`) route through this seam. The six
+  shipped Business seeds author `banksAt: goodkin` (one edit each to
+  defect); the counting-houses Business banks at Goodkin — itself (the
+  legitimate self-custody: the custodian IS a bank).
+- **A worker's first account opens at the payer's bank** — the
+  employer's `banksAt` (`ensurePayableWorker`): an **NPC** with no
+  account is set up where its money first comes from. A **player is
+  never silently signed up for a bank**: no primary account → the wage
+  is skipped with a warning / the piecework settle refuses / the
+  flow-split doesn't fire — they open their own at a branch.
+- **Escrow is custodied at the ISSUER'S bank** — the per-contract
+  account opens wherever the funding account is custodied (*your* bank
+  holds *your* stake), pre-positioning escrow-as-a-bank-product on
+  Terms. The default is only the last resort for a legacy funding row
+  with no recorded custodian.
+- **The Teleport Authority banks as a Business** — see the TPA note in
+  [fasttravel.md](./fasttravel.md): a minimal TPA Business
+  (`fasttravel.tpaBusinessPath`) owns the network-fee income at its
+  authored `banksAt`; the legacy raw `tpa` accumulator row is re-owned
+  to it at boot.
+
+Mechanically: `ensureVenueAccount` **refuses** a custodian that names
+no real institution (accepted: `central-bank`
+(`Account.CENTRAL_BANK_INSTITUTION`), the default-custodian setting, or
+an institution with a live `BankMixin` branch), and an idempotent
+**boot restamp** (`BankingApi.boot`) migrates legacy rows — the
+pre-institution `bankPath` branch paths map to institution keys (a live
+branch's path → its `getBank()`, the CB path → `central-bank`, else the
+default), the `treasury` row → the CB, the bare `tpa` row → the TPA
+Business, anything still custodied nowhere → the default — a
+**cache-field fill, never a money movement** (balances and conservation
+untouched). `banking.defaultCustodianBank` (`goodkin`) is therefore
+**the restamp's last resort, not a default to build on** — nothing else
+should pass it. Behavior-preserving: these accounts move money by
+transfer only (never the till), and liquidity≠solvency is already the
+shipped branch-book property, so Goodkin's cash physics are unchanged.
+
+> **History (work-contracts build, `3969a34e..d8389518`).** This build
+> added the closed `LEDGER_KINDS` vocabulary + the escrow family +
+> `draw` (the leg-kind sections above), then two review rounds reshaped
+> custody: **custody is a relationship, never a default** (`banksAt` /
+> payer-derived / escrow-at-the-issuer's-bank; the default became the
+> restamp's last resort, read from `banking.defaultCustodianBank` with
+> NO code fallback), and **the bank became an institution** — accounts
+> re-keyed from `{owner, bankPath}` (a branch counter's templatePath) to
+> `{owner, bank}` (an institution key; `BankMixin.getBank() = authored
+> ?? corpoKey`). `AccountBalance.bankPath` survives only as a legacy
+> hydration carrier the boot restamp migrates and clears — remove with
+> the terminus-banking build.

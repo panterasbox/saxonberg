@@ -98,7 +98,7 @@ describe("Wallet routing", () => {
 
     // --from override routes ONE payment from A without disturbing active (B)
     receipt = await asOwner(alice, () =>
-      BankingApi.settle(charge(50), { kind: "credential", fromBankPath: BANK_A })
+      BankingApi.settle(charge(50), { kind: "credential", fromBank: BANK_A })
     );
     expect(receipt.accountId).toBe(acctA);
     expect(BankingApi.balanceOf(acctA).minor).toBe(850);

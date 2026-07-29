@@ -5,13 +5,18 @@
  * electrodes are held at a taser-ish potential) and {@link SwitchableMixin}
  * (armed / safe).
  *
- * On a landed hit combat routes the shock through
- * `ElectricityApi.shockContact(baton, target)` — a **direct two-terminal
- * contact** (the device completes its own circuit, no ground path needed),
- * inflicting through the shipped `ConditionApi.inflict({mechanism:'shock'})`
- * door, NOT the mechanical covering fold. Low-lethal: a taser-ish high
- * voltage at a body-limited current sits in the tetany band (a disarm), not
- * fibrillation.
+ * The shock rides the **instrument seam** (the combat hook grammar):
+ * `EnergizedMixin` composes `CombatReactiveMixin`, and its
+ * `augmentInflict` queues `ctx.deliverShock(this)` — the combat engine
+ * drains the queue right after the mechanical inflict, delivering a
+ * **direct two-terminal contact** through
+ * `ElectricityApi.shockContact(baton, target)` (the device completes its
+ * own circuit, no ground path needed), inflicting through the shipped
+ * `ConditionApi.inflict({mechanism:'shock'})` door, NOT the mechanical
+ * covering fold. A switched-off baton truthfully delivers nothing (the
+ * `effectiveVoltage ≤ 0` guard in the conduction walk). Low-lethal: a
+ * taser-ish high voltage at a body-limited current sits in the tetany
+ * band (a disarm), not fibrillation.
  *
  * See docs/subsystems/electricity.md + docs/subsystems/combat.md.
  */

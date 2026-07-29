@@ -247,7 +247,7 @@ export class AppBootstrap {
     // CentralBank singleton is cloned by the bootstrap manifest above.
     await AccountBalance.warm();
     await SupplyAggregate.warm();
-    BankingApi.boot();
+    await BankingApi.boot();
 
     // Employment engine — run one immediate roster pass (so on-shift state
     // is correct at boot) then self-register the recurring game-time tick

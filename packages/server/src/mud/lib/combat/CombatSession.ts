@@ -138,6 +138,17 @@ export interface CombatantState {
    * fresh crossing, cleared on consumption.
    */
   openingArmedBy: (Stuff & Engaged) | null;
+  /**
+   * The poise band as of the last `onPoiseBandChanged` comparison (the
+   * cross-beat baseline). Null until the first beat's dispatch stamps
+   * it (that beat falls back to its own top-of-beat read — byte-
+   * identical to the snapshot-only shape for anything that mutates
+   * poise mid-beat). Persisting the baseline across beats is what lets
+   * a **between-beat** external mutation (`CombatApi.influence`)
+   * surface through the existing per-beat net comparison on the
+   * following beat — no new hook.
+   */
+  bandSeen: string | null;
 }
 
 export class CombatSession {

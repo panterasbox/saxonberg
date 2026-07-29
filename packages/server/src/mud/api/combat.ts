@@ -23,8 +23,16 @@ import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
+import type {
+  CombatInfluence,
+  InfluenceResult,
+} from "../lib/combat/CombatInfluence";
 
 export type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
+export type {
+  CombatInfluence,
+  InfluenceResult,
+} from "../lib/combat/CombatInfluence";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CombatLogic } from "../obj/api/CombatLogic";
@@ -320,6 +328,26 @@ export class CombatApi {
    */
   public static drawSidearm(actor: Stuff): { ok: boolean; reason?: string } {
     return logic().drawSidearm(actor);
+  }
+
+  /**
+   * The external state-instruction bridge — "Effect iff gated Api" made
+   * real for combat state. An external system (magic, the script
+   * interpreter) issues one {@link CombatInfluence} instruction into the
+   * combatant's live session: `stagger` (banded, focus-fire-scaled poise
+   * erosion — a crossing arms the normal ownerless opening, and influence
+   * never sets `down`), `expose` (arm the opening window without moving
+   * the gauge — any attacker cashes it, no command deed), or `steady`
+   * (endurance-capped recovery, suppressed under the focus-fire pin like
+   * the defend beat). Deterministic; magnitudes from the
+   * `combat.influence.*` dials. Callers route through their **own** gated
+   * logic — no spell ships here (the magic build's job).
+   */
+  public static influence(
+    combatant: Stuff,
+    instruction: CombatInfluence,
+  ): InfluenceResult {
+    return logic().influence(combatant, instruction);
   }
 }
 

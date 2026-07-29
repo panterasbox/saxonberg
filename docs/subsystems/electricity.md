@@ -68,7 +68,13 @@ mixin — a source is never a bespoke special case. That is the
 **generalizable seam** the unified-physics bar demands: the grid plugs in
 additively because a fixture-held-at-potential is just another `Energized`
 node in the same graph. Composing `SwitchableMixin` gates it live/dead (a
-switched-off wire imposes 0 V). `MixinApi.isEnergized` narrows it.
+switched-off wire imposes 0 V). `MixinApi.isEnergized` narrows it. Since
+the combat-hooks build, `EnergizedMixin` also composes
+`CombatReactiveMixin` — an energized wielded weapon (or shock-innate
+creature) delivers its shock through the combat instrument seam's
+`augmentInflict`, not an engine branch (see
+[combat-hooks.md](./combat-hooks.md); harmless for a non-instrument
+source like a `LiveWire`, which is never resolved as an instrument).
 
 ## The graph — grounding, insulation, potential difference
 
@@ -181,8 +187,18 @@ metal armor does NOT protect against a shock).
   contact** (a taser/baton completes its own circuit through its electrodes,
   so it needs no ground path and no conductive medium) into the same
   `ConditionApi.inflict({mechanism:'shock'})` door, never the mechanical fold.
-  Wired in `CombatLogic.commitInflict`: an energized weapon adds a shock on
-  contact, the mechanical blow untouched. Ships **safed** (`on: false`) — it
+  The shock rides the **combat instrument seam** (the combat-hooks build —
+  see [combat-hooks.md](./combat-hooks.md)): `EnergizedMixin` composes
+  `CombatReactiveMixin`, and its `augmentInflict` queues
+  `ctx.deliverShock(this)` — the engine drains it right after the mechanical
+  inflict (the former hard-coded `isEnergized` branch in
+  `CombatLogic.commitInflict` is deleted, the migration pinned
+  byte-identical; a switched-off baton still truthfully delivers nothing via
+  the `effectiveVoltage ≤ 0` guard, unmoved). The same override serves the
+  **shock innate**: an `Energized`-composing creature with a `shock` natural
+  attack (the electric eel case, formerly a code comment — now **shipped**
+  through `commitShockInflict`'s delivery split, no mechanical primary,
+  single-fire by construction). Ships **safed** (`on: false`) — it
   only becomes a source when armed (an armed baton dropped in the pool would
   electrify it — correct physics; safe because it ships off).
 

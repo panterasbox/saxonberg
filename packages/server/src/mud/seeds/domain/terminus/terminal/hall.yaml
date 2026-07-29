@@ -23,6 +23,12 @@ data:
     x: 0
     y: 0
     z: 0
+  # The one realized fixture in a prose-first room (functional, not
+  # decorative): the public noticeboard — the labor market's discovery
+  # surface (affords `job`; see docs/subsystems/contract.md). The
+  # departures board stays a described detail.
+  populates:
+    - /domain/terminus/terminal/job-board
   exits:
     north:
       destination: /domain/terminus/terminal/arrival-gate

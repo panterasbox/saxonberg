@@ -37,6 +37,7 @@ export type { Business } from '../lib/employment/Business';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
+import type { RemittanceSplit } from './banking';
 import { SecurityApi } from './security';
 
 const LOGIC_PATH = '/obj/api/employment';
@@ -154,6 +155,49 @@ export class EmploymentApi {
   /** Sync shift-state read for `actor` — the `shifts` brain's input. */
   public static shiftStateOf(actor: Stuff): 'on-shift' | 'off-shift' {
     return logic().shiftStateOf(actor);
+  }
+
+  /**
+   * The one resolution seam for a Business's operating account — custody
+   * is the business's **authored `banksAt`** (where a business banks is a
+   * fact about the business, a term of its arrangement: the branch's Terms
+   * price its fees, the fees route a royalty to that bank's corpo — never
+   * a call-site default). Throws when the Business authors no `banksAt`
+   * (an authoring error, loud). Idempotent (finds the existing account).
+   */
+  public static operatingAccountOf(business: BusinessStuff): Promise<string> {
+    return logic().operatingAccountOf(business);
+  }
+
+  /**
+   * Pay a per-settlement (piece-rate) employee for `units` attributed
+   * settlements — `units × rate` from the Business account as a
+   * `wage`/`piecework` posting. Verifies the participant relationship (a
+   * live Employment at this business whose Position basis is
+   * `per-settlement`); throws otherwise. The piece-rate venue calls this
+   * at each attributed settlement (no shipped venue yet — the mine is the
+   * named future consumer).
+   */
+  public static settlePiecework(
+    business: BusinessStuff,
+    employeeKey: string,
+    units = 1,
+  ): Promise<void> {
+    return logic().settlePiecework(business, employeeKey, units);
+  }
+
+  /**
+   * The share-of-flow remittance splits for a revenue moment at
+   * `business` — one split per live Employment whose Position basis is
+   * `share-of-flow` (`floor(share × amount)`, category `commission`),
+   * capped below the flow. The revenue seam appends these to its Charge
+   * before `BankingApi.settle`; empty for all shipped content.
+   */
+  public static flowSplitsFor(
+    business: BusinessStuff,
+    amountMinor: number,
+  ): Promise<RemittanceSplit[]> {
+    return logic().flowSplitsFor(business, amountMinor);
   }
 
   /**

@@ -31,6 +31,8 @@ import type Material from '../material/Material';
 import type { VisionProfile } from '../perception/Light';
 import type { FacultyProfile } from '../magic/Faculty';
 import { Faculty } from '../magic/Faculty';
+import type { NaturalAttackSpec } from '../combat/NaturalAttack';
+import { NaturalAttack } from '../combat/NaturalAttack';
 import { NameBank } from './NameBank';
 
 /** A suggested character name (given + optional surname). */
@@ -259,6 +261,36 @@ export default class Species extends SingletonMixin(
    */
   protected sentient: boolean = false;
 
+  /**
+   * The species' **natural attacks** — its innate combat vocabulary
+   * (bite / claw / tail…), each a `NaturalAttackSpec`
+   * `{key, channel, reach?, massKg?, lengthM?}`. Multiple attacks rotate
+   * deterministically by session beat in the combat engine; optional
+   * hints ride the weapon-profile curves, hint-less attacks derive their
+   * strike profile from `BodyPlan.baseMass` (neutral below
+   * `combat.natural.largeBodyMassKg`, ogre-reach at/above — see
+   * {@link NaturalAttack.deriveProfile}). Empty = the engine falls back
+   * to the legacy single-attack `CombatantMixin.naturalAttackChannel`.
+   * See docs/subsystems/combat-hooks.md § the species vocabulary and
+   * docs/subsystems/race.md.
+   *
+   * @authorable
+   */
+  protected naturalAttacks: NaturalAttackSpec[] = [];
+
+  /**
+   * Gambit keys this species affords **bodily** (existing gambit kinds
+   * only — a tailed species affords `sweep` without a hafted weapon).
+   * Read by combat's eligibility gate, where a listed key short-circuits
+   * only the two *equipment* gates (`affordedByForm` /
+   * `affordedByShield`); the instrument gate still stands (satisfied by
+   * a natural attack), and unknown keys are inert. See
+   * docs/subsystems/combat-hooks.md § the species vocabulary.
+   *
+   * @authorable
+   */
+  protected affordedGambits: string[] = [];
+
   static persistentFields = [
     'binomial',
     'commonNames',
@@ -279,6 +311,8 @@ export default class Species extends SingletonMixin(
     'nameBankKeys',
     'innateMixins',
     'sentient',
+    'naturalAttacks',
+    'affordedGambits',
   ];
   // `shortDescription` / `longDescription` (the species' generic
   // appearance) come from VisibleMixin's own persistentFields. The
@@ -451,6 +485,30 @@ export default class Species extends SingletonMixin(
       .map((s) => (typeof s === 'string' ? s.trim() : ''))
       .filter((s) => s.length > 0);
     this.innateMixins = [...new Set(cleaned)];
+  }
+
+  public getNaturalAttacks(): readonly NaturalAttackSpec[] {
+    return this.naturalAttacks;
+  }
+  public setNaturalAttacks(value: NaturalAttackSpec[]): void {
+    // Per-field invariant: NaturalAttack.validateSpecs throws on a
+    // malformed list (the Faculty.validateProfile precedent).
+    this.naturalAttacks = NaturalAttack.validateSpecs(value);
+  }
+
+  public getAffordedGambits(): readonly string[] {
+    return this.affordedGambits;
+  }
+  public setAffordedGambits(value: string[]): void {
+    if (!Array.isArray(value)) {
+      throw new TypeError('Species.setAffordedGambits: must be a string array');
+    }
+    // Per-field invariant: dedup + drop empties (unknown keys are inert
+    // by design — no gambit-roster coupling here).
+    const cleaned = value
+      .map((s) => (typeof s === 'string' ? s.trim() : ''))
+      .filter((s) => s.length > 0);
+    this.affordedGambits = [...new Set(cleaned)];
   }
 
   /**
