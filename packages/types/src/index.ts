@@ -2756,11 +2756,13 @@ export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
 export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
 
 /**
- * Kick OAuth scope the provider spends: the minimal identity scope both
- * the login and link flows request. The posting scope (`chat:write`) is
- * the deferred phase-2 seam.
+ * Kick OAuth scopes the provider spends: both the login and link flows
+ * request identity + own-channel read (the owner-channel fetch needs
+ * `channel:read`; it feeds the relay's character-form resolve). The
+ * posting scope (`chat:write`) is the deferred phase-2 seam.
  */
 export const KICK_SCOPE_USER_READ = 'user:read';
+export const KICK_SCOPE_CHANNEL_READ = 'channel:read';
 
 /**
  * The speaker on a relay frame. Honest-to-origin: an external line carries an

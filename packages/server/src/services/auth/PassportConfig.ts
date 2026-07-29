@@ -53,11 +53,14 @@ const KICK_CHANNELS_URL = 'https://api.kick.com/public/v1/channels';
 export const TWITCH_IDENTITY_SCOPE = ['user:read:email'];
 
 /**
- * Minimal Kick identity scope — both login and link flows request only
- * `user:read`. The posting scope (`chat:write`) is the deferred phase-2
- * incremental re-consent seam.
+ * The Kick identity scope set both login and link flows request:
+ * `user:read` (identity) + `channel:read` (the owner-channel fetch in
+ * `buildKickProfile` — slug/broadcasterUserId, which power the relay's
+ * character-form `tune` and the linked-speaker hover; the token-owner
+ * `GET /channels` requires it). The posting scope (`chat:write`) is the
+ * deferred phase-2 incremental re-consent seam.
  */
-export const KICK_IDENTITY_SCOPE = ['user:read'];
+export const KICK_IDENTITY_SCOPE = ['user:read', 'channel:read'];
 
 /**
  * PassportConfig - Configures Passport authentication.

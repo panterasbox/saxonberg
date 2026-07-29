@@ -57,7 +57,8 @@ feed).
   `/auth/kick/callback` routes, a start-screen provider entry) and a
   `kick-link` strategy (`/auth/kick/link` + unlink) — both on the
   generic `passport-oauth2` `OAuth2Strategy` with PKCE (the Twitch
-  transcription), minimal `user:read` scope. `hasAnyProvider` and the
+  transcription), the `user:read` + `channel:read` scope set (identity
+  + the owner-channel fetch). `hasAnyProvider` and the
   unlink only-provider invariant count all three providers. A linked
   Kick identity lights up: `tune <character>` character-form
   resolution to the linked Kick slug (today Twitch-only), and the
@@ -113,7 +114,9 @@ any public channel's chat. Consequence: the relay works for players
 with no Kick account at all; the `KickProfile` provider exists for
 sign-in and the two identity features (character-form resolution +
 linked-persona rendering) — not as transport plumbing. The
-login/link-time scope set is therefore minimal (`user:read`).
+login/link-time scope set is therefore small (`user:read` +
+`channel:read` — the latter because the token-owner `GET /channels`
+fetch that captures the slug requires it).
 
 ### Signature verification (webhook security)
 
