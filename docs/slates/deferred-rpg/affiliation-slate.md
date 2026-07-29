@@ -81,8 +81,13 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 ## Guild — the class system (deferred)
 
 > **The guild design now lives in
+> [guild-slate](../builds/guild-slate.md)** (2026-07-28 — the full
+> institution design: chartered-not-derived domains, mysteries/calls/
+> marks, vocation = discipline × livelihood, tiers, the chartered
+> uniform training budget, boards, the balance ledger, the charter
+> schema), which supersedes + extends
 > [advancement-slate § Guilds](../builds/advancement-slate.md) + § Declared
-> focus** — reframed as an **institution *over* the Discipline Catalog** (map
+> focus — reframed as an **institution *over* the Discipline Catalog** (map
 > vs institution; no hardcoded class — guilds *are* the class system,
 > emergent from membership + earned disciplines) whose core mechanic is
 > **declared focus = deliberate practice** (joining declares a focus that

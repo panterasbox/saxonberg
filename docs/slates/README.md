@@ -341,9 +341,46 @@ education-vertical sensor bridge, estimator tuning). The hard constraint:
   (SDT). **First vertical slice buildable now** (one combat + one craft
   path, two seed guilds); the learning-platform sensor bridge + merge/balance
   of player-authored trees deferred.
+- [guild-slate](./builds/guild-slate.md) — the **vocation institutions**
+  (supersedes + extends advancement-slate § Guilds / § Declared focus):
+  guilds as **chartered, authored institutions** over the Catalog whose
+  spine is **mysteries / calls / marks** (wish fulfillment, not a skill
+  channel). The formation rule (**vocation = discipline × livelihood**;
+  career grain; clubs are free chat groups), the four layers
+  (vocations liberal / institutions population-scarce / corpo **wings
+  never forks** / clubs), **no magic guild** (a guild's synergized
+  magic = its mystery tier), the divergence axes (public/private/
+  sponsored/religious charter, loyalty, selectivity incl. **tapped**;
+  the military = a guild at extreme public settings), three membership
+  tiers (associate / member / master; friction inverts; teaching-gated
+  mastery), the **chartered uniform training budget** (coarse
+  primary/secondary tiers; points weight training, never mint;
+  conservation: total advantage bounded by practice-hours × clamp), the
+  guild **job board** as clearinghouse (claim gates — the contract
+  seam's consumer), the balance ledger (one global dial-set + an
+  advancement gym; the rest structural, market, or firewall), wizards
+  (clearance ≠ expertise; the Worldwrights; credential = evidence never
+  clearance), the charter schema + lifecycle (schism, dormancy by
+  rent, merger), and the **audited launch roster** — 10 day-one
+  institutions + 8 **standing charters** (authored-but-dormant halls
+  that open when their vocation's economy activates — a reopening is a
+  world event), each entry passing the three-question audit (*who
+  pays · which law layer · world-native fantasy or genre import*):
+  **no standing military** (one administered realm → the Marshalcy is
+  a credential + writ-contract stream, posse comitatus = the calls
+  mechanism, the army-fantasy homes in an alignment-flavored Warding
+  Order), the Factors/Carriers demoted (**the engine automates the
+  middlemen** — trust-work is engine-work, labor-work is player-work),
+  metabolism + the wear economy as bedrock paymasters, polity paper
+  for DAU-independence, and the **Landwrights** real-estate deep-dive
+  (survey / valuation / conveyancing / development / tenancy over the
+  parcel-title + apartment-ladder substrate, anchored DAU-independent
+  by the polity's assessment contract). The roster doubles as the
+  employment/venue content worklist.
 
 **Phases:** first slice (two paths, two guilds, the loadout) → guild
-institution model → player-extensible content-graph + governed canonization
+institution model ([guild-slate](./builds/guild-slate.md)) →
+player-extensible content-graph + governed canonization
 → (the education-vertical sensor bridge deferred).
 
 ---

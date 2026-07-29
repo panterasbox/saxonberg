@@ -325,6 +325,17 @@ whoever breaks the fiction, priced by the room.
 
 ## Guilds — institutions *over* the taxonomy, not the taxonomy itself
 
+> **Superseded + extended by [guild-slate](./guild-slate.md)**
+> (2026-07-28) — the full institution design: chartered-not-derived
+> domains, mysteries/calls/marks, the formation rule (vocation =
+> discipline × livelihood), the four layers + corpo wings, no magic
+> guild, tiers (associate/member/master), the **chartered uniform
+> training budget** (which replaces this section's uniform-flat focus
+> with charter-allocated primary/secondary weights — the § Declared
+> focus *substrate* below still stands verbatim), boards, the balance
+> ledger, wizards, the charter schema, and lifecycle. This section and
+> § Declared focus remain as the mechanic's rationale.
+
 The old MUD fused two things; split them and the guild snaps into focus in
 a model where you learn by doing:
 
