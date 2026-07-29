@@ -100,7 +100,7 @@ Provider OAuth ──▶ /auth/{provider}/callback
                           │   (runRoot frame)
                           ▼
               Application.findOrCreateUserFromProvider(provider, …)
-                  ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles)
+                  ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles | kick_profiles)
                   └─ findOrCreateUser(provider, …)  (users)
                        └─ first time? → createDefaultAvatarTemplate
                                          (forks /obj/Avatar/seed →
@@ -213,9 +213,10 @@ upserts:
 
 1. **`findOrCreateProfile(provider, profile)`** — upserts the right
    collection by provider (`google_profiles` keyed on `googleId` /
-   `twitch_profiles` keyed on `twitchUserId`). The Twitch path routes
-   through `TwitchProfile.save()` so the `EncryptedStringMarshaller`
-   encrypts the token fields — plaintext tokens never reach Mongo.
+   `twitch_profiles` keyed on `twitchUserId` / `kick_profiles` keyed on
+   `kickUserId`). The Twitch and Kick paths route through the Document's
+   `save()` so the `EncryptedStringMarshaller` encrypts the token
+   fields — plaintext tokens never reach Mongo.
 
 2. **`findOrCreateUser(provider, profileId)`** — resolves via the
    computed key `User.find({ [User.profileFieldFor(provider)]: id })`.

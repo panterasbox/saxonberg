@@ -1,15 +1,18 @@
 # Kick Stream Relay — Scope
 
-> **Status (2026-07-28): design captured, not built.** The third
-> transport under the shipped **unified streaming surface**
-> ([streaming.md](../../subsystems/streaming.md)) — Kick joins Twitch
-> (two-way) and YouTube (read-only) behind `watch`/`tune`. The primary
-> goal is **tune-in parity**: pull up a Kick stream in the cockpit and
-> read its chat, exactly like the other two platforms. **Account
-> linking is in scope from day one** (it lights up `tune <character>`
-> resolution + the `RelaySpeaker` linked-persona case); **posting is a
-> deliberately-cheap phase 2** — a small increment once linking exists,
-> shippable whenever, skippable indefinitely.
+> **Status (2026-07-28): SHIPPED** (`feature/kick-relay`, MR !152) →
+> [streaming.md](../../subsystems/streaming.md) § the Kick transport +
+> [connection.md](../../subsystems/connection.md) (the third co-equal
+> auth provider) are the live reference. Everything below landed as
+> designed — the webhook transport, the `watch` embed, Kick as a full
+> login+link provider (`user:read` + `channel:read`), overlay
+> forwarding, graceful dormancy — with one addition beyond the slate:
+> unconfigured providers now guard-and-redirect and the start screen
+> disables their buttons (a latent Twitch hole fixed alongside). This
+> slate is **retained as the tail** for the deferred surface: **phase-2
+> posting** (`kick-reauth` + `chat:write` through the existing
+> throttle/echo-suppress), boot-time webhook-subscription
+> reconciliation, and `kick.com/video/…` URL forms.
 
 **Lineage:** sibling of
 [youtube-relay-slate.md](./youtube-relay-slate.md) (and Wave N of

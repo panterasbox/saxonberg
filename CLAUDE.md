@@ -718,7 +718,7 @@ multiplexing, disconnect): see
 One line per collection; the owning subsystem doc holds the schema,
 indexes, and write-path rules — this list is for orientation only.
 
-- `users` / `google_profiles` — auth records + OAuth profile data (Document)
+- `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
 - `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `name_banks` — char-gen name pools, installed by the species-and-names pack
