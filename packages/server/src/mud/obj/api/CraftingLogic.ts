@@ -9,10 +9,16 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { BulkableApi } from '../../api/bulk';
 import { ThermalApi } from '../../api/thermal';
+import { AdvancementApi } from '../../api/advancement';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
 import { Grade } from '../../lib/craft/Grade';
+import { RecipeKnowledge } from '../../lib/script/RecipeKnowledge';
+import {
+  DIFFICULTIES,
+  type Difficulty,
+} from '../../lib/advancement/ActSignature';
 import type Material from '../../lib/material/Material';
 import { Recipe, type RecipeInputSlot } from '../../lib/craft/Recipe';
 import type RecipeCatalogue from '../RecipeCatalogue';
@@ -35,6 +41,15 @@ const EPS = 1e-9;
 
 /** The generic substance an off-spec (recipe-unmatched) build mints. */
 const GENERIC_MIXED_MATERIAL = '/lib/material/cocktail/mixed';
+
+/** The generic food an off-spec (item-bearing) vessel build mints. */
+const GENERIC_POTLUCK_MATERIAL = '/lib/material/food/pot-luck';
+
+/** The portion an off-spec pot-luck fill lands in the dish (L). */
+const GENERIC_POTLUCK_PORTION_L = 0.3;
+
+/** The template an off-spec workpiece mint clones (a re-meltable lump). */
+const WORKED_LUMP_TEMPLATE = '/obj/Casting';
 
 /** A reachable, graded bulk input candidate. */
 interface BottleCandidate {
@@ -454,31 +469,59 @@ function consumeBulkInputs(matched: MatchedInput[]): void {
 
 /**
  * Reverse-match a manual-build buffer to a recipe: a recipe is satisfied
- * when each of its input slots is covered by a **distinct** contribution
- * (same category, measure at/above the slot, grade at/above the floor)
- * AND no contribution is left over — a faithful build is exactly the
- * recipe, not a superset. Returns the first satisfied recipe, or null
- * (an off-spec build → the generic mint). The knowledge/deed gate (P9)
- * rides on top of this match.
+ * when its heat gate is at/under the build's latched heat, each **bulk**
+ * slot is covered by a distinct bulk contribution (same category, measure
+ * at/above the slot, grade at/above the floor), each **item** slot's
+ * count is covered by item contributions (category by the same tag rule
+ * `craftImpl` matches with, grade at/above the floor), AND no
+ * contribution is left over — a faithful build is exactly the recipe,
+ * not a superset. Returns the first satisfied recipe, or null (an
+ * off-spec build → the generic mint). The knowledge/deed gate rides on
+ * top of this match.
  */
 function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
+  heatedToK = 0,
 ): Recipe | null {
   for (const recipe of recipes) {
-    const slots = recipe.getInputSlots();
-    if (slots.length !== contributions.length) continue; // no leftovers/shortfall
-    // Item-slot recipes reverse-match in the manual paths build (Phase 4 of
-    // the branches plan); the bulk matcher never claims one.
-    if (slots.some((s) => Recipe.isItemSlot(s))) continue;
-    const used = new Set<number>();
-    let allCovered = true;
-    for (const slot of slots) {
-      const minGrade = Grade.of(slot.minGrade);
+    if (recipe.getRequiresHeatK() > heatedToK) continue; // never worked hot enough
+    if (buildSatisfies(recipe, contributions)) return recipe;
+  }
+  return null;
+}
+
+/** Whether `contributions` exactly cover `recipe`'s slots (no leftovers). */
+function buildSatisfies(
+  recipe: Recipe,
+  contributions: readonly BuildContribution[],
+): boolean {
+  const used = new Set<number>();
+  for (const slot of recipe.getInputSlots()) {
+    const minGrade = Grade.of(slot.minGrade);
+    if (Recipe.isItemSlot(slot)) {
+      let need = slot.count ?? 1;
+      for (let i = 0; i < contributions.length && need > 0; i++) {
+        if (used.has(i)) continue;
+        const c = contributions[i]!;
+        if (c.kind !== 'item') continue;
+        if (
+          c.category !== slot.category &&
+          !(c.tags ?? []).includes(slot.category)
+        ) {
+          continue;
+        }
+        if (Grade.of(c.gradeBand).compareTo(minGrade) < 0) continue;
+        used.add(i);
+        need -= c.count ?? 1;
+      }
+      if (need > 0) return false;
+    } else {
       let found = -1;
       for (let i = 0; i < contributions.length; i++) {
         if (used.has(i)) continue;
         const c = contributions[i]!;
+        if ((c.kind ?? 'bulk') !== 'bulk') continue;
         if (
           c.category === slot.category &&
           c.measureL >= (slot.measureL ?? 0) - EPS &&
@@ -488,29 +531,177 @@ function matchBuild(
           break;
         }
       }
-      if (found < 0) {
-        allCovered = false;
-        break;
-      }
+      if (found < 0) return false;
       used.add(found);
     }
-    if (allCovered) return recipe;
   }
-  return null;
+  return used.size === contributions.length; // a faithful build, exactly
 }
 
 /**
- * Mint a drink from a completed manual build. See
+ * The evidence tail of a successful, recipe-matched craft-resolve
+ * (DECISION J) — one place for both `craftImpl` and `mintFromBuildImpl`:
+ *
+ *  1. **Advancement**: append a Transcript deed against the recipe's
+ *     authored `discipline` at its authored `difficulty` (default
+ *     `easy`). A recipe authoring NO discipline records nothing — the
+ *     bar's rows stay unrecorded exactly as today.
+ *  2. **Watch = claim**: every *other* present command-giving agent in
+ *     the maker's location with a durable identity gains the known-of
+ *     claim (idempotent) — watching a maker demonstrate teaches you *of*
+ *     the recipe; your own first execution is always the deed.
+ */
+async function recordCraftEvidence(
+  maker: Stuff | null,
+  recipe: Recipe,
+): Promise<void> {
+  const discipline = recipe.getDiscipline();
+  if (!discipline || !maker) return;
+  const difficulty: Difficulty = (DIFFICULTIES as readonly string[]).includes(
+    recipe.getDifficulty(),
+  )
+    ? (recipe.getDifficulty() as Difficulty)
+    : 'easy';
+  await AdvancementApi.recordDeed(maker, {
+    discipline,
+    difficulty,
+    outcome: 'success',
+  });
+  if (!MixinApi.isContainable(maker)) return;
+  const location = maker.getContainer();
+  if (!location || !MixinApi.isContainer(location)) return;
+  for (const witness of location.getContents()) {
+    if (witness === maker) continue;
+    if (!MixinApi.isCommandGiver(witness)) continue;
+    if (!witness.getTemplatePath()) continue;
+    await RecipeKnowledge.noteKnown(
+      witness,
+      recipe.getRecipeId(),
+      recipe.getName(),
+    );
+  }
+}
+
+/**
+ * Mint from a completed manual build. See
  * {@link CraftingApi.mintFromBuild}. Reuses the craft quality model —
- * weakest-link `Grade`, the `applyBulkOutput` fill shape, and
- * `CraftedMixin.stamp` — but draws its inputs from the already-debited
- * build buffer (no re-consume) and fills the player's destination glass
- * rather than cloning a fresh output.
+ * weakest-link `Grade`, the output seams' apply shapes, and
+ * `CraftedMixin.stamp` — but draws its inputs from the already-banked
+ * build buffer (no re-consume). Dispatches on the request: a `workpiece`
+ * mints the tangible path (clone the matched recipe's output / the
+ * generic worked lump, consuming the workpiece); a `glass` vessel is
+ * filled (the bar's drink, a matched recipe's edible portion, or the
+ * generic pot-luck for an off-spec item build).
  */
 async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
-  const glass = req.glass;
   if (req.contributions.length === 0) {
     return { ok: false, reason: 'insufficient-input', detail: 'empty-build' };
+  }
+  const catalogue = await requireCatalogue();
+  const recipe = matchBuild(
+    catalogue.allRecipes(),
+    req.contributions,
+    req.heatedToK ?? 0,
+  );
+
+  // Weakest-link grade over the buffer, floored at a matched recipe's base.
+  let grade = Grade.deriveAtFixedControl(
+    req.contributions.map((c) => Grade.of(c.gradeBand)),
+  );
+  if (recipe) {
+    const base = recipe.getBaseGrade();
+    if (base) grade = grade.max(base);
+  }
+
+  // Resolve the maker. Prefer a live acting author (completed-sync /
+  // tests); fall back to the dispatch-captured `makerPath` for the normal
+  // engaged-completion case, where the command frame is already gone.
+  // Both are context-derived, never a wire value.
+  const liveMaker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  const makerPath = liveMaker?.getTemplatePath() ?? req.makerPath ?? '';
+  const makerStuff =
+    liveMaker ??
+    (makerPath ? (StuffApi.findByTemplatePath<Stuff>(makerPath) ?? null) : null);
+
+  if (req.workpiece) {
+    return mintWorkpiece(req.workpiece, recipe, grade, makerPath, makerStuff);
+  }
+  return mintVessel(req, recipe, grade, makerPath, makerStuff);
+}
+
+/** The smithing terminal mint: the workpiece's matter becomes the form. */
+async function mintWorkpiece(
+  workpiece: Stuff,
+  recipe: Recipe | null,
+  grade: Grade,
+  makerPath: string,
+  makerStuff: Stuff | null,
+): Promise<CraftOutcome> {
+  if (!MixinApi.isTangible(workpiece)) {
+    return {
+      ok: false,
+      reason: 'insufficient-input',
+      detail: 'workpiece-not-tangible',
+    };
+  }
+  const material = workpiece.getMaterial();
+  const massKg = workpiece.getMass().rawValue();
+
+  if (recipe && recipe.getOutputApplication() === 'tangible') {
+    const output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
+    if (!MixinApi.isTangible(output)) {
+      throw new Error(
+        `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Tangible`,
+      );
+    }
+    if (material) output.setMaterial(material);
+    if (massKg > 0) output.setMass(Quantity.of(massKg, 'kg'));
+    if (!MixinApi.isCrafted(output)) {
+      throw new Error(
+        `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
+          `compose CraftedMixin`,
+      );
+    }
+    output.stamp({
+      maker: makerPath,
+      grade,
+      recipe: recipe.getRecipeId(),
+      craftedAt: WorldClockApi.getNow().rawValue(),
+    });
+    StuffApi.destruct(workpiece);
+    await recordCraftEvidence(makerStuff, recipe);
+    return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
+  }
+
+  // The generic worked lump (an off-spec build still yields *a* thing):
+  // a re-meltable Casting stamped with the workpiece's material + mass —
+  // the ThermalLogic freeze-stamp surface. No recipe, no mark.
+  const lump = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
+  const l = lump as unknown as Stuff & {
+    setShortDescription(s: string): void;
+    setMaterial(m: Material): void;
+    setMass(q: Quantity<'kg'>): void;
+  };
+  l.setShortDescription(
+    `a worked lump of ${material?.getName() ?? 'metal'}`,
+  );
+  if (material) l.setMaterial(material);
+  if (massKg > 0) l.setMass(Quantity.of(massKg, 'kg'));
+  StuffApi.destruct(workpiece);
+  return { ok: true, output: lump, grade, recipeId: '' };
+}
+
+/** The vessel terminal mint: fill the destination glass/dish + stamp. */
+async function mintVessel(
+  req: BuildMintRequest,
+  recipe: Recipe | null,
+  grade: Grade,
+  makerPath: string,
+  makerStuff: Stuff | null,
+): Promise<CraftOutcome> {
+  const glass = req.glass;
+  if (!glass) {
+    return { ok: false, reason: 'no-output', detail: 'no-destination' };
   }
   if (!MixinApi.isBulkable(glass)) {
     return { ok: false, reason: 'no-output', detail: 'glass-not-bulkable' };
@@ -523,34 +714,28 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'no-output', detail: 'glass-no-slot' };
   }
 
-  const catalogue = await requireCatalogue();
-  const recipe = matchBuild(catalogue.allRecipes(), req.contributions);
-
-  // Weakest-link grade over the buffer, floored at a matched recipe's base.
-  let grade = Grade.deriveAtFixedControl(
-    req.contributions.map((c) => Grade.of(c.gradeBand)),
-  );
-  let outputMaterialPath = GENERIC_MIXED_MATERIAL;
+  const hasItems = req.contributions.some((c) => c.kind === 'item');
+  let outputMaterialPath = hasItems
+    ? GENERIC_POTLUCK_MATERIAL
+    : GENERIC_MIXED_MATERIAL;
   let recipeId = '';
+  // Conservation for a bulk build: Σ buffer measures → the vessel volume.
+  // An edible recipe fills its authored portion; an off-spec item build
+  // lands the generic pot-luck portion.
+  let amountL = req.contributions.reduce((sum, c) => sum + c.measureL, 0);
   if (recipe) {
-    const base = recipe.getBaseGrade();
-    if (base) grade = grade.max(base);
     outputMaterialPath = recipe.getOutputMaterial();
     recipeId = recipe.getRecipeId();
+    if (recipe.getOutputApplication() === 'edible') {
+      amountL = recipe.getOutputPortionL();
+    }
+  } else if (hasItems) {
+    amountL = Math.max(amountL, GENERIC_POTLUCK_PORTION_L);
   }
-
-  // Fill the glass (conservation: Σ buffer measures → glass volume).
   const material = await StuffApi.singleton<Material>(outputMaterialPath);
-  const totalL = req.contributions.reduce((sum, c) => sum + c.measureL, 0);
   outSlot.setMaterial(material);
-  outSlot.setAmount(Quantity.of(totalL, 'L'));
+  outSlot.setAmount(Quantity.of(amountL, 'L'));
 
-  // Stamp the maker's mark. Prefer a live acting author (completed-sync /
-  // tests); fall back to the dispatch-captured `makerPath` for the normal
-  // engaged-completion case, where the command frame is already gone.
-  // Both are context-derived, never a wire value.
-  const liveMaker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
-  const makerPath = liveMaker?.getTemplatePath() ?? req.makerPath ?? '';
   glass.stamp({
     maker: makerPath,
     grade,
@@ -558,6 +743,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     craftedAt: WorldClockApi.getNow().rawValue(),
   });
 
+  if (recipe) await recordCraftEvidence(makerStuff, recipe);
   return { ok: true, output: glass, grade, recipeId };
 }
 
@@ -660,6 +846,10 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // Tools wear on use — the durable-good half (a ToolItem composes
   // DurableMixin alongside ToolMixin).
   for (const t of usedTools) if (MixinApi.isDurable(t)) t.wear();
+
+  // The evidence tail: advancement deed + watch-=-claim for witnesses
+  // (a no-op for recipes authoring no discipline — every bar row).
+  await recordCraftEvidence(maker, recipe);
 
   return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
 }

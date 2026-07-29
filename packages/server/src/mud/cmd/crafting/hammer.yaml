@@ -1,0 +1,15 @@
+verbs: [hammer]
+controller: /obj/command/crafting/HammerController
+description: "Hammer a heated workpiece at the anvil (the forming step)"
+help: |
+  Do the forming work — `hammer ingot` (or bare `hammer`). Needs a
+  striking hammer and an anvil in reach, and a workpiece that has taken
+  some heat. Finish with `quench`. Takes a moment and rings the yard.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"

@@ -177,6 +177,17 @@ beforeEach(async () => {
         Object.entries(query).every(([k, v]) => d[k] === v),
       ) as never,
   );
+  // The craft-resolve evidence tail (advancement + watch-=-claim) writes
+  // through the PM; capture it in the same store.
+  let idCounter = 0;
+  vi.spyOn(pm, 'save').mockImplementation(
+    async (col: string, doc: Record<string, unknown>) => {
+      const rows = (store[col] ??= []);
+      const id = (doc._id as string | undefined) ?? `id-${idCounter++}`;
+      rows.push({ ...doc, _id: id });
+      return id as never;
+    },
+  );
 
   // The REAL authored roster — a drifted recipes.yaml fails here.
   const parsed = YAML.parse(readFileSync(RECIPES_YAML, 'utf-8')) as {

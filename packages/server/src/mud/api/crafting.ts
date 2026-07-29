@@ -103,10 +103,22 @@ export interface RecipeView {
  * at pour-time, so the mint does not re-consume.
  */
 export interface BuildMintRequest {
-  /** The destination glass — a Crafted + Bulkable empty cocktail glass. */
-  glass: Stuff;
+  /**
+   * The destination vessel for a bulk/edible mint — a Crafted + Bulkable
+   * glass or dish. Absent for a smithing (workpiece) mint.
+   */
+  glass?: Stuff;
+  /**
+   * The smithing workpiece (the heated, hammered stock — itself the
+   * build buffer). A tangible mint consumes it: its Material + mass flow
+   * onto the recipe's cloned output (or the generic worked lump).
+   */
+  workpiece?: Stuff;
   /** The accumulated build buffer (banked contributions). */
   contributions: BuildContribution[];
+  /** The highest heat (K) the build was worked at (the vessel's latch);
+   * a recipe with `requiresHeatK` above it never reverse-matches. */
+  heatedToK?: number;
   /** How the build was worked (recorded; not yet quality-affecting in v1). */
   method?: BuildMethod | null;
   /**

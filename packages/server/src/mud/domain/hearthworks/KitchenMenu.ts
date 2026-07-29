@@ -19,6 +19,8 @@ export default class KitchenMenu extends CommerceMenu {
       'crafting/cook.yaml',
       'crafting/pour.yaml',
       'crafting/stir.yaml',
+      'crafting/heat.yaml',
+      'crafting/plate.yaml',
       'crafting/make.yaml',
     ],
     inventory: [
@@ -27,6 +29,8 @@ export default class KitchenMenu extends CommerceMenu {
       'crafting/cook.yaml',
       'crafting/pour.yaml',
       'crafting/stir.yaml',
+      'crafting/heat.yaml',
+      'crafting/plate.yaml',
       'crafting/make.yaml',
     ],
     peers: [],

@@ -36,10 +36,20 @@ export type BuildMethod = "stirred" | "shaken";
 export interface BuildContribution {
   /** The Material category tag (e.g. `gin`) — matched against recipe slots. */
   category: string;
-  /** Volume contributed, in litres. */
+  /** Volume contributed, in litres (0 for a discrete item contribution). */
   measureL: number;
-  /** The source bottle's grade band word, for weakest-link derivation. */
+  /** The source's grade band word, for weakest-link derivation. */
   gradeBand: string;
+  /** Contribution kind — absent = `'bulk'` (the bar's, byte-identical);
+   * `'item'` = a banked discrete ingredient / workpiece. */
+  kind?: 'bulk' | 'item';
+  /** Units banked — item contributions only (default 1). */
+  count?: number;
+  /** The source Material's full tag set — item contributions only. A
+   * recipe's item slot matches when its category appears here (the same
+   * by-tag rule `craftImpl`'s gather matching uses), since a discrete
+   * ingredient can't know which of its tags a recipe will ask for. */
+  tags?: string[];
 }
 
 /** Public method surface contributed by {@link ManualBuildMixin}. */
@@ -58,6 +68,15 @@ export interface Builds {
   getBuildGrade(): Grade;
   /** True iff nothing has been banked yet. */
   isBuildEmpty(): boolean;
+  /**
+   * Latch the highest heat (K) this build has been worked at — the
+   * `heat` step records the reachable heat here; a recipe with
+   * `requiresHeatK` above the latch never reverse-matches. Max-latching
+   * (a later, cooler heat never lowers it); reset by `clearBuild`.
+   */
+  noteHeat(kelvin: number): void;
+  /** The highest heat (K) this build reached; 0 = never heated. */
+  getHeatedToK(): number;
   /**
    * Record the verbatim command source of a completed manual step (the
    * demonstration-capture trail). A *scripted* build records nothing (its
@@ -84,6 +103,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _contributions: BuildContribution[] = [];
     private _method: BuildMethod | null = null;
     private _commandSources: string[] = [];
+    private _heatedToK: number = 0;
 
     addContribution(contribution: BuildContribution): void {
       this._contributions.push({ ...contribution });
@@ -115,6 +135,16 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this._contributions.length === 0;
     }
 
+    noteHeat(kelvin: number): void {
+      if (Number.isFinite(kelvin) && kelvin > this._heatedToK) {
+        this._heatedToK = kelvin;
+      }
+    }
+
+    getHeatedToK(): number {
+      return this._heatedToK;
+    }
+
     recordCommand(source: string): void {
       const trimmed = source.trim();
       if (trimmed.length > 0) this._commandSources.push(trimmed);
@@ -128,6 +158,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._contributions = [];
       this._method = null;
       this._commandSources = [];
+      this._heatedToK = 0;
     }
   };
 }

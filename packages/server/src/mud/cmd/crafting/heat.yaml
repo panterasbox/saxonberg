@@ -1,0 +1,16 @@
+verbs: [heat]
+controller: /obj/command/crafting/HeatController
+description: "Work a build in the fire (a manual step, both branches)"
+help: |
+  Bring the work to the fire — `heat ingot` at the forge, `heat pot` at
+  the hearth (or bare `heat` for the build you're working). Latches the
+  hottest heat the build has taken; recipes that need heat check it at
+  the finish. Needs a lit fire in reach. Takes a moment.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"
