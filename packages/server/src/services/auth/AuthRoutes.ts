@@ -26,6 +26,7 @@ import { ExecutionContextApi } from '../../mud/api/execution-context';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import { AuthMiddleware } from './AuthMiddleware';
 import {
+  PassportConfig,
   TWITCH_IDENTITY_SCOPE,
   KICK_IDENTITY_SCOPE,
 } from './PassportConfig';
@@ -49,6 +50,7 @@ export class AuthRoutes {
     // Initiate Google OAuth flow
     app.get(
       '/auth/google',
+      AuthRoutes.requireConfigured('google', 'auth'),
       passport.authenticate('google', {
         scope: ['profile', 'email'],
       })
@@ -57,6 +59,7 @@ export class AuthRoutes {
     // Google OAuth callback
     app.get(
       '/auth/google/callback',
+      AuthRoutes.requireConfigured('google', 'auth'),
       passport.authenticate('google', {
         failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
       }),
@@ -69,6 +72,7 @@ export class AuthRoutes {
     // Initiate Twitch OAuth flow (minimal identity scope; no chat scopes)
     app.get(
       '/auth/twitch',
+      AuthRoutes.requireConfigured('twitch', 'auth'),
       passport.authenticate('twitch', {
         scope: TWITCH_IDENTITY_SCOPE,
       })
@@ -77,6 +81,7 @@ export class AuthRoutes {
     // Twitch OAuth callback
     app.get(
       '/auth/twitch/callback',
+      AuthRoutes.requireConfigured('twitch', 'auth'),
       passport.authenticate('twitch', {
         failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
       }),
@@ -92,6 +97,7 @@ export class AuthRoutes {
     // 500s only if actually hit.
     app.get(
       '/auth/kick',
+      AuthRoutes.requireConfigured('kick', 'auth'),
       passport.authenticate('kick', {
         scope: KICK_IDENTITY_SCOPE,
       })
@@ -100,6 +106,7 @@ export class AuthRoutes {
     // Kick OAuth callback
     app.get(
       '/auth/kick/callback',
+      AuthRoutes.requireConfigured('kick', 'auth'),
       passport.authenticate('kick', {
         failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
       }),
@@ -129,6 +136,9 @@ export class AuthRoutes {
     app.get('/auth/status', async (req: Request, res: Response) => {
       const response: AuthStatusResponse = {
         isAuthenticated: req.isAuthenticated(),
+        // Which providers this server registered (env-gated) — drives
+        // start-screen button enablement; routes guard independently.
+        providers: PassportConfig.configuredProviders(),
       };
 
       if (req.isAuthenticated() && req.user) {
@@ -187,6 +197,32 @@ export class AuthRoutes {
   }
 
   /**
+   * Guard an OAuth route against an UNCONFIGURED provider: when the env
+   * gate skipped strategy registration, redirect back to the client with
+   * a result code instead of letting passport throw "Unknown
+   * authentication strategy" (a 500). UX-level — configured-provider
+   * authorization is untouched.
+   */
+  private static requireConfigured(
+    provider: AuthProvider,
+    resultParam: 'auth' | 'link'
+  ) {
+    return (req: Request, res: Response, next: () => void): void => {
+      if (PassportConfig.configuredProviders().includes(provider)) {
+        next();
+        return;
+      }
+      console.warn(
+        `AuthRoutes: /${resultParam} hit for unconfigured provider ` +
+          `'${provider}' — redirecting (strategy not registered)`
+      );
+      res.redirect(
+        `${process.env.CLIENT_URL}/?${resultParam}=unavailable`
+      );
+    };
+  }
+
+  /**
    * Wire `/auth/{provider}/link` + `/link/callback` for one provider.
    * Both are authenticated (the session must already be a real user).
    * The link strategy's verify callback authenticates the OAuth profile
@@ -210,10 +246,16 @@ export class AuthRoutes {
       session: false,
     });
 
-    app.get(`/auth/${provider}/link`, AuthMiddleware.requireAuth, initiate);
+    app.get(
+      `/auth/${provider}/link`,
+      AuthRoutes.requireConfigured(provider, 'link'),
+      AuthMiddleware.requireAuth,
+      initiate
+    );
 
     app.get(
       `/auth/${provider}/link/callback`,
+      AuthRoutes.requireConfigured(provider, 'link'),
       AuthMiddleware.requireAuth,
       // `session: false` so the link OAuth does not replace the current
       // session principal; the resolved profile lands on `req.user`.

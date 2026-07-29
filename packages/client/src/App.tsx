@@ -377,6 +377,14 @@ function App() {
 
       const data = await response.json();
 
+      // Which providers the server has configured — drives start-screen
+      // button enablement (stored regardless of auth state).
+      useStore
+        .getState()
+        .setConfiguredProviders(
+          Array.isArray(data.providers) ? data.providers : null,
+        );
+
       if (data.isAuthenticated) {
         useStore.getState().setAuth({
           isAuthenticated: true,

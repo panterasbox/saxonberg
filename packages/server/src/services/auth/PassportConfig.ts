@@ -75,6 +75,39 @@ export class PassportConfig {
   }
 
   /**
+   * The providers whose strategies WILL register on this server — the
+   * same env gates `configure*` applies, exposed so `/auth/status` can
+   * drive start-screen button enablement and the OAuth routes can
+   * guard-and-redirect instead of throwing "Unknown authentication
+   * strategy" on an unconfigured provider.
+   */
+  public static configuredProviders(): AuthProvider[] {
+    const out: AuthProvider[] = [];
+    if (
+      process.env.GOOGLE_CLIENT_ID &&
+      process.env.GOOGLE_CLIENT_SECRET &&
+      process.env.GOOGLE_CALLBACK_URL
+    ) {
+      out.push('google');
+    }
+    if (
+      process.env.TWITCH_CLIENT_ID &&
+      process.env.TWITCH_CLIENT_SECRET &&
+      process.env.TWITCH_CALLBACK_URL
+    ) {
+      out.push('twitch');
+    }
+    if (
+      process.env.KICK_CLIENT_ID &&
+      process.env.KICK_CLIENT_SECRET &&
+      process.env.KICK_CALLBACK_URL
+    ) {
+      out.push('kick');
+    }
+    return out;
+  }
+
+  /**
    * Configure Passport strategies and session serialization.
    */
   public configure(): void {

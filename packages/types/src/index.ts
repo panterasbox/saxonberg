@@ -1877,6 +1877,13 @@ export interface ApiResponse<T = unknown> {
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
   /**
+   * The login providers this server has configured (env-gated strategy
+   * registration). Drives start-screen button *enablement* only — the
+   * OAuth routes independently guard-and-redirect when a provider is
+   * unconfigured, so this is UX, never authorization.
+   */
+  providers?: AuthProvider[];
+  /**
    * Non-authoritative wizard-tier hint: true iff the session's loaded
    * Avatar is a wizard (`AccessApi.isWizard`). The client uses it
    * only to hide the CMS launcher for non-wizards; the REST CMS gates
