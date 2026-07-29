@@ -24,6 +24,7 @@ import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
+import { KickRelayReader } from './KickRelayReader';
 import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
@@ -294,6 +295,10 @@ export class AppBootstrap {
     // until a player tunes a live YouTube channel (and the env reader
     // account is configured); safe to boot unconditionally.
     YoutubeRelayReader.get().boot();
+    // Kick read-only relay reader — webhook-subscription presence-gated.
+    // Inert until a player tunes a Kick channel (and KICK_* env is
+    // configured); safe to boot unconditionally.
+    KickRelayReader.get().boot();
 
     // Author diagnostics — register the single idempotent author-push
     // listener (a runtime diagnostic notifies the content's author). Safe

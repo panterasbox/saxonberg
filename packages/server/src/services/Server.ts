@@ -24,6 +24,7 @@ import { GitRoutes } from '../backend/GitRoutes';
 import { StudioRoutes } from '../backend/StudioRoutes';
 import { HelpRoutes } from '../backend/HelpRoutes';
 import { BulletinRoutes } from '../backend/BulletinRoutes';
+import { KickWebhookRoutes } from '../backend/KickWebhookRoutes';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
 import { TestAuthRoutes } from './auth/TestAuthRoutes';
@@ -85,6 +86,12 @@ export class Server {
         credentials: true,
       })
     );
+
+    // Kick webhook receiver — raw-body + signature-verified, sessionless.
+    // Mounted before body parsing (verification needs the byte-exact
+    // body; express.json() consumes the stream) and before session/
+    // passport (the route must touch no auth middleware).
+    KickWebhookRoutes.setup(this.app);
 
     // Body parsing
     this.app.use(express.json());
