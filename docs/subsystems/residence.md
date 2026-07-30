@@ -309,6 +309,13 @@ the floor corridor first (best-effort).
 
 ## Deferred seams
 
+- **The domicile stamp lives here** (the civics residency seam,
+  [civics.md](./civics.md)): `ProvisionController` stamps the tenant's
+  `Character._domicileAddress` with `DormRoom.ADDRESS` at lease-grant
+  (best-effort; persists-until-replaced, so unprovision leaves it).
+  Known gap: no admit-time self-heal for pre-build tenants (the Warren
+  has no clean view of the mover) — a re-provision stamps them.
+
 - **The `open <door>` verb + auto-close-behind door tightening** — v1 folds
   the lock into the `DormDoor` `Exit` gate (a follower could tail a
   holder through an opened door); a `SealableMixin(Boundary)` fixture + the

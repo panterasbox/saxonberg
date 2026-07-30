@@ -1,5 +1,13 @@
 # Diegetic government — polities, jurisdiction, citizenship (staging)
 
+> **BUILT 2026-07-30**: requirements →
+> `docs/requirements/civics-requirements.md`; substrate →
+> [docs/subsystems/civics.md](../subsystems/civics.md) (the Government
+> Idea, jurisdiction, residency, seats, the `government` + `committee`
+> verbs, CompactApi committee reads). This capture remains the design
+> rationale; its §5 sketch predates the jargon standard (Polity→
+> `Government`, citizenOf→`residentOf`).
+>
 > **Status: exploration, 2026-07-30. NOT canon, NOT specced.** Design
 > conversation capture: what a government *inside the fiction* is, how it
 > relates to the real metagovernment, and what (little) new substrate it

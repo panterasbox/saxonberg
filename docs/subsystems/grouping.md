@@ -332,6 +332,12 @@ lensing per viewer, recognition state — stays in
 supplies membership and the coarse role; recognition layers
 viewer-dependent semantics on top.
 
+A group can additionally BE a **committee** — the meta-layer role a
+managed group plays when it holds parcel title over a subdivision
+(derived, never flagged: [access.md](./access.md) § The committee;
+reads on `CompactApi`). Committee chat channels bind the committee
+group's ref like any bound channel — the substrate is unchanged.
+
 ## Related
 
 - [chat.md](./chat.md) — grouping's first multi-shape consumer;

@@ -7,6 +7,10 @@
 class: /lib/address/Locality
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  name: City of Terminus
+  # Display name "Terminus", same as the realm root — the Rome-metonymy
+  # made literal. The departures board names a destination by its
+  # COVERING Locality, which for the arrival gate is now this city tier;
+  # the D13 board label must stay "Terminus".
+  name: Terminus
   _address: terminus/city
   _governmentKey: terminus-city

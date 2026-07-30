@@ -169,7 +169,12 @@ gated `FromModule('/api/address#AddressApi')`) → `AddressRegistry`
 - **Locality is the home for future tier-level fields.** This unit
   ships the node and the walk; it ships **no** tier field. Weather hangs
   its per-locality field (seed / overrides) on the Locality later; the
-  delivery build hangs provider-coverage refs there.
+  delivery build hangs provider-coverage refs there. **Realized since:**
+  the weather pin + climate lean (weather Wave 2), and the civics
+  build's `_governmentKey` (the sparse diegetic-jurisdiction
+  declaration — [civics.md](./civics.md)), which also exposed the
+  registry's `coverageChainOf` as `AddressApi.coverageChainOf` (the
+  sync chain sibling of `coveringLocalityOf`).
 
 ## Roster
 
