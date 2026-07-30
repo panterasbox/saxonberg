@@ -25,7 +25,7 @@ See also:
   **precedent integrating vertical.** Farming is its sibling and its
   **upstream supplier**: crops are the primary production that feeds the
   bar's kitchen and the reagent economy.
-- [docs/slates/builds/crafting-slate.md](./crafting-slate.md) — the
+- [docs/slates/tails/crafting-slate.md](../tails/crafting-slate.md) — the
   **transformation stage** the harvest flows into. Brewing/synthesis is
   a *new transform branch* of the same craft engine; the maker's-mark,
   quality-as-verdict, tools, and conservation rules all carry over.

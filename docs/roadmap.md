@@ -540,8 +540,13 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 >   seam (terminals break down, need upkeep); illustrative in
 >   fast-travel, not built.
 > - **Crafting** — player-set *functional* stats within a balanced
->   envelope; a separate, deferred system (scoped authoring touches no
->   functional stats — those come from vetted catalogs).
+>   envelope; scoped authoring touches no functional stats — those
+>   come from vetted catalogs. (**The crafting substrate now ships** —
+>   recipes, Grade quality, the knowledge ladder, repair/salvage, three
+>   branches over one skeleton, see
+>   [crafting.md](./subsystems/crafting.md) — with functional stats
+>   derived from Material physics, never player-set; the player-set
+>   sense stays deferred.)
 > - **Assessment integrity** — server-side grading + don't-publish-
 >   answers + assessment design; owned by the future education-vertical
 >   /assessment system, *not* the spoiler slate (which is best-effort

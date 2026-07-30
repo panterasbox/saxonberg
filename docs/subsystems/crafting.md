@@ -626,7 +626,7 @@ appraisal + congener→hangover.
   sits beside), [command-routing](./command-routing.md) /
   [command-spec](./command-spec.md), [mixins](./mixins.md),
   [call-security](./call-security.md).
-- **Seeding slates:** `docs/slates/builds/crafting-slate.md`,
+- **Seeding slates:** `docs/slates/tails/crafting-slate.md`,
   `docs/slates/builds/daves-bar-slate.md`; parent
   `docs/slates/builds/economy-slate.md`.
 - **Future builds grafting on:** corpos(marks) extends `CraftedMixin`;

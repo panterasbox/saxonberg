@@ -39,6 +39,7 @@ import { MaterialApi } from '../../api/material';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import Scrap from '../Scrap';
+import CommerceMenu from '../../lib/commerce/Menu';
 import type { BuildContribution } from '../../lib/craft/ManualBuild';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
@@ -1216,11 +1217,7 @@ async function lookupImpl(ref: string): Promise<RecipeView | null> {
 
 async function offeredImpl(menu: Stuff): Promise<RecipeView[]> {
   const catalogue = await requireCatalogue();
-  const m = menu as unknown as {
-    getOfferedRecipeIds?: () => readonly string[];
-  };
-  const ids =
-    typeof m.getOfferedRecipeIds === 'function' ? m.getOfferedRecipeIds() : [];
+  const ids = menu instanceof CommerceMenu ? menu.getOfferedRecipeIds() : [];
   const out: RecipeView[] = [];
   for (const id of ids) {
     const recipe = catalogue.getRecipe(id);
