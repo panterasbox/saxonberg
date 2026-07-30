@@ -15,6 +15,7 @@ import type { ScheduleHandle } from '../../api/schedule';
 import StreamRelayClass from '../StreamRelay';
 import { User } from '../../lib/identity/User';
 import { TwitchProfile } from '../../lib/identity/TwitchProfile';
+import { KickProfile } from '../../lib/identity/KickProfile';
 import { StreamerTarget } from '../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../lib/streaming/StreamerTarget';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -25,6 +26,7 @@ import type { MessageFrame, RelaySpeaker } from '@saxonberg/types';
 import { TWITCH_SCOPE_WRITE_CHAT } from '@saxonberg/types';
 import { TwitchRelayReader } from '../../../backend/TwitchRelayReader';
 import { YoutubeRelayReader } from '../../../backend/YoutubeRelayReader';
+import { KickRelayReader } from '../../../backend/KickRelayReader';
 import type {
   PostResult,
   ResolveResult,
@@ -34,7 +36,7 @@ import type {
   YoutubeChannelResult,
 } from '../../api/stream';
 
-type Service = 'twitch' | 'youtube';
+type Service = 'twitch' | 'youtube' | 'kick';
 
 const RELAY_PATH = '/obj/StreamRelay';
 const StreamApiCallers = SecurityPolicies.FromModule('/api/stream#StreamApi');
@@ -68,6 +70,9 @@ export class StreamLogic extends ApiLogic {
     if (parsed.platform === 'youtube') {
       return this.resolveYoutube(parsed.identifier);
     }
+    if (parsed.platform === 'kick') {
+      return this.resolveKickSlug(parsed.identifier);
+    }
     // Twitch: the identifier is a channel login.
     return this.resolveTwitchLogin(parsed.identifier);
   }
@@ -89,8 +94,10 @@ export class StreamLogic extends ApiLogic {
     if (opened) {
       if (target.platform === 'twitch') {
         TwitchRelayReader.get().subscribe(target.key);
-      } else {
+      } else if (target.platform === 'youtube') {
         await YoutubeRelayReader.get().subscribe(target.key);
+      } else {
+        await KickRelayReader.get().subscribe(target.key);
       }
     }
     return { ok: true, service: target.platform, handle: target.handle };
@@ -276,9 +283,10 @@ export class StreamLogic extends ApiLogic {
    * See {@link StreamApi.setOverlayReading}. Open (`on=true`) / close the
    * overlay owner's OWN-channel reads by sentinel-tuning the `OVERLAY_*`
    * channels — reusing the presence edge so the reader opens, independent of
-   * any player `tune`. Twitch resolves the login; YouTube resolves the
-   * current live broadcast + starts a light live-status poll to catch a
-   * stream restart. Idempotent on the current on/off state.
+   * any player `tune`. Twitch resolves the login; Kick resolves the slug
+   * (persistent bind, no poll); YouTube resolves the current live
+   * broadcast + starts a light live-status poll to catch a stream
+   * restart. Idempotent on the current on/off state.
    */
   @CallSecurity(StreamApiCallers)
   public async setOverlayReading(on: boolean): Promise<void> {
@@ -287,11 +295,13 @@ export class StreamLogic extends ApiLogic {
     const relay = await requireRelay();
     if (on) {
       await openOverlayTwitch(relay);
+      await openOverlayKick(relay);
       await openOverlayYoutube(relay);
       startOverlayYoutubePoll();
     } else {
       stopOverlayYoutubePoll();
       closeOverlayTwitch(relay);
+      closeOverlayKick(relay);
       closeOverlayYoutube(relay);
     }
   }
@@ -336,9 +346,36 @@ export class StreamLogic extends ApiLogic {
   }
 
   /**
-   * Resolve a character/MQL identifier to its linked Twitch channel. v1:
-   * match an online Avatar by name, then walk User→TwitchProfile.login.
-   * (Character→YouTube is a non-goal — GoogleProfile stores no channel.)
+   * Resolve a Kick channel slug (cache-first) to a channel target. The
+   * key is the broadcaster id — a durable, persistent bind (the Twitch
+   * model; no live-only bind, no auto-untune).
+   */
+  private async resolveKickSlug(slug: string): Promise<ResolveResult> {
+    const relay = await requireRelay();
+    const lower = slug.trim().toLowerCase();
+    const cached = relay.resolveByHandle('kick', lower);
+    if (cached) {
+      return {
+        ok: true,
+        target: new StreamerTarget('kick', cached.key, cached.handle),
+      };
+    }
+    const reader = KickRelayReader.get();
+    if (!reader.isConfigured()) return { ok: false, reason: 'no-relay' };
+    const r = await reader.resolveSlug(lower);
+    if (r === 'unknown') return { ok: false, reason: 'unknown-target' };
+    return {
+      ok: true,
+      target: new StreamerTarget('kick', r.broadcasterId, r.slug),
+    };
+  }
+
+  /**
+   * Resolve a character/MQL identifier to its linked channel — Twitch
+   * first, Kick fallback (a character linked to both resolves Twitch,
+   * the two-way platform; deterministic). `unlinked` only when neither
+   * provider resolves. (Character→YouTube is a non-goal — GoogleProfile
+   * stores no channel.)
    */
   private async resolveCharacter(identifier: string): Promise<ResolveResult> {
     const name = identifier.replace(/^@/, '').trim().toLowerCase();
@@ -349,29 +386,54 @@ export class StreamLogic extends ApiLogic {
     });
     if (!avatar) return { ok: false, reason: 'unknown-character' };
     const user = avatar.getUser();
-    if (!user?.twitchProfileId) return { ok: false, reason: 'unlinked' };
-    const profile = await TwitchProfile.findById<TwitchProfile>(
-      user.twitchProfileId,
-    );
-    if (!profile?.login) return { ok: false, reason: 'unlinked' };
-    const resolved = await this.resolveTwitchLogin(profile.login);
-    if (!resolved.ok) return resolved;
-    return {
-      ok: true,
-      target: new StreamerTarget(
-        'twitch',
-        resolved.target.key,
-        resolved.target.handle,
-        MessageApi.refOf(avatar),
-      ),
-    };
+
+    if (user?.twitchProfileId) {
+      const profile = await TwitchProfile.findById<TwitchProfile>(
+        user.twitchProfileId,
+      );
+      if (profile?.login) {
+        const resolved = await this.resolveTwitchLogin(profile.login);
+        if (!resolved.ok) return resolved;
+        return {
+          ok: true,
+          target: new StreamerTarget(
+            'twitch',
+            resolved.target.key,
+            resolved.target.handle,
+            MessageApi.refOf(avatar),
+          ),
+        };
+      }
+    }
+
+    if (user?.kickProfileId) {
+      const profile = await KickProfile.findById<KickProfile>(
+        user.kickProfileId,
+      );
+      if (profile?.slug) {
+        const resolved = await this.resolveKickSlug(profile.slug);
+        if (!resolved.ok) return resolved;
+        return {
+          ok: true,
+          target: new StreamerTarget(
+            'kick',
+            resolved.target.key,
+            resolved.target.handle,
+            MessageApi.refOf(avatar),
+          ),
+        };
+      }
+    }
+
+    return { ok: false, reason: 'unlinked' };
   }
 }
 
 /** Unsubscribe a channel on its transport's backend reader. */
 function unsubscribeReader(service: Service, key: string): void {
   if (service === 'twitch') TwitchRelayReader.get().unsubscribe(key);
-  else YoutubeRelayReader.get().unsubscribe(key);
+  else if (service === 'youtube') YoutubeRelayReader.get().unsubscribe(key);
+  else KickRelayReader.get().unsubscribe(key);
 }
 
 // ---- overlay-owner reading -----------------------------------------------
@@ -394,6 +456,10 @@ function overlayTwitchLogin(): string {
 
 function overlayYoutubeChannel(): string {
   return (process.env.OVERLAY_YOUTUBE_CHANNEL ?? '').trim();
+}
+
+function overlayKickChannel(): string {
+  return (process.env.OVERLAY_KICK_CHANNEL ?? '').trim().toLowerCase();
 }
 
 const OVERLAY_SENTINEL = StreamRelayClass.OVERLAY_SENTINEL;
@@ -419,6 +485,29 @@ function closeOverlayTwitch(relay: StreamRelay): void {
   if (!login) return;
   const res = relay.removeTuned(OVERLAY_SENTINEL, 'twitch', login);
   if (res.emptied && res.key) TwitchRelayReader.get().unsubscribe(res.key);
+}
+
+async function openOverlayKick(relay: StreamRelay): Promise<void> {
+  const slug = overlayKickChannel();
+  if (!slug) return;
+  const reader = KickRelayReader.get();
+  if (!reader.isConfigured()) return;
+  let key = relay.resolveByHandle('kick', slug)?.key;
+  if (!key) {
+    const r = await reader.resolveSlug(slug);
+    if (r === 'unknown') return;
+    key = r.broadcasterId;
+  }
+  if (relay.addTuned(OVERLAY_SENTINEL, 'kick', key, slug)) {
+    await reader.subscribe(key);
+  }
+}
+
+function closeOverlayKick(relay: StreamRelay): void {
+  const slug = overlayKickChannel();
+  if (!slug) return;
+  const res = relay.removeTuned(OVERLAY_SENTINEL, 'kick', slug);
+  if (res.emptied && res.key) KickRelayReader.get().unsubscribe(res.key);
 }
 
 async function openOverlayYoutube(relay: StreamRelay): Promise<void> {
@@ -509,10 +598,10 @@ async function requireRelay(): Promise<StreamRelay> {
 }
 
 /**
- * Resolve the relay speaker for an inbound line. Twitch: a linked player
- * with an online Avatar → `external-linked` (carries the Avatar ref);
- * otherwise → `external`. YouTube: always `external` (no channel stored →
- * no reverse link this cycle). Honest-to-origin either way.
+ * Resolve the relay speaker for an inbound line. Twitch/Kick: a linked
+ * player with an online Avatar → `external-linked` (carries the Avatar
+ * ref); otherwise → `external`. YouTube: always `external` (no channel
+ * stored → no reverse link this cycle). Honest-to-origin either way.
  */
 async function resolveSpeaker(
   service: Service,
@@ -523,21 +612,40 @@ async function resolveSpeaker(
     const profile = await TwitchProfile.findByTwitchUserId(senderUserId);
     if (profile?._id) {
       const users = await User.find({ twitchProfileId: profile._id });
-      const user = users[0];
-      if (user?._id) {
-        const avatar = PlayerApi.getAllAvatars().find(
-          (a) => a.getUser()?._id === user._id,
-        );
-        if (avatar) {
-          return {
-            kind: 'external-linked',
-            service: 'twitch',
-            externalName: display,
-            ref: MessageApi.refOf(avatar),
-          };
-        }
+      const linked = linkedOnlineAvatar(users[0]?._id);
+      if (linked) {
+        return {
+          kind: 'external-linked',
+          service: 'twitch',
+          externalName: display,
+          ref: linked,
+        };
+      }
+    }
+  }
+  if (service === 'kick') {
+    const profile = await KickProfile.findByKickUserId(senderUserId);
+    if (profile?._id) {
+      const users = await User.find({ kickProfileId: profile._id });
+      const linked = linkedOnlineAvatar(users[0]?._id);
+      if (linked) {
+        return {
+          kind: 'external-linked',
+          service: 'kick',
+          externalName: display,
+          ref: linked,
+        };
       }
     }
   }
   return { kind: 'external', service, externalName: display };
+}
+
+/** The online Avatar ref for a user id, or null. */
+function linkedOnlineAvatar(userId: string | undefined) {
+  if (!userId) return null;
+  const avatar = PlayerApi.getAllAvatars().find(
+    (a) => a.getUser()?._id === userId,
+  );
+  return avatar ? MessageApi.refOf(avatar) : null;
 }

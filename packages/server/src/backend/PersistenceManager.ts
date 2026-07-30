@@ -32,6 +32,7 @@ export enum Collections {
   Users = 'users',
   GoogleProfiles = 'google_profiles',
   TwitchProfiles = 'twitch_profiles',
+  KickProfiles = 'kick_profiles',
   Domain = 'domain',
   Emotes = 'emotes',
   NameBanks = 'name_banks',
@@ -617,10 +618,22 @@ export class PersistenceManager {
         { twitchProfileId: 1 }
       );
 
+      // Users: index on kickProfileId (the third provider FK).
+      await this.getCollection(Collections.Users).createIndex(
+        { kickProfileId: 1 }
+      );
+
       // Twitch Profiles: unique index on twitchUserId (the stable Helix
       // identifier the returning-login resolve keys on).
       await this.getCollection(Collections.TwitchProfiles).createIndex(
         { twitchUserId: 1 },
+        { unique: true }
+      );
+
+      // Kick Profiles: unique index on kickUserId (the stable identifier
+      // the returning-login resolve keys on).
+      await this.getCollection(Collections.KickProfiles).createIndex(
+        { kickUserId: 1 },
         { unique: true }
       );
 

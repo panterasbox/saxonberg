@@ -35,10 +35,11 @@ import type {
   RelayMessagePayload,
 } from "@saxonberg/types";
 
-/** Relay-chat topics that carry a `RelayMessagePayload` (both transports). */
+/** Relay-chat topics that carry a `RelayMessagePayload` (all transports). */
 const RELAY_TOPICS = new Set([
   "world.twitch.message",
   "world.youtube.message",
+  "world.kick.message",
 ]);
 
 /**
@@ -375,6 +376,14 @@ function App() {
       });
 
       const data = await response.json();
+
+      // Which providers the server has configured — drives start-screen
+      // button enablement (stored regardless of auth state).
+      useStore
+        .getState()
+        .setConfiguredProviders(
+          Array.isArray(data.providers) ? data.providers : null,
+        );
 
       if (data.isAuthenticated) {
         useStore.getState().setAuth({

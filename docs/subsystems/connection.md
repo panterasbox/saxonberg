@@ -28,6 +28,7 @@ this is the operational summary.
 | `User` | auth identity | yes (`users` collection) | account |
 | `GoogleProfile` | OAuth cache (identity only) | yes (`google_profiles`) | account |
 | `TwitchProfile` | OAuth cache + **credentials** | yes (`twitch_profiles`) | per provider link |
+| `KickProfile` | OAuth cache + **credentials** (+ the owner's channel slug/broadcaster id) | yes (`kick_profiles`) | per provider link |
 | `Avatar` | game-world character | minted identity path (`/obj/Avatar/<playerId>`), snapshot-backed — no per-player template row | from first connection until explicit destruct |
 | `Interactive` | live connection | **no** | one WebSocket session |
 | `Login` | entry-procedure scratch object | **no** | one entry — destructed when `enter()` finishes |
@@ -37,20 +38,30 @@ characters does this user own?" list (`User.ts`). Each id is a
 character slot; the matching identity path is `/obj/Avatar/<playerId>`
 (minted, snapshot-backed — no per-player template row).
 
-**Providers are co-equal.** `User` carries two optional FK fields —
-`googleProfileId?` and `twitchProfileId?` — with an **at-least-one**
-invariant (`User.hasAnyProvider()`). A login through either provider
-resolves to the same `User`; an authenticated user can **link** the
-other and **unlink** either (but not their last one). The spine is
+**Providers are co-equal** — every provider gets the full login + link
+flow (one unified interface, never a link-only tier). `User` carries
+three optional FK fields — `googleProfileId?`, `twitchProfileId?`, and
+`kickProfileId?` — with an **at-least-one** invariant
+(`User.hasAnyProvider()`, all three counted). A login through any
+provider resolves to the same `User`; an authenticated user can **link**
+the others and **unlink** any (but not their last one). The spine is
 provider-parameterized — `User.profileFieldFor(provider)` is the single
 source of truth for the FK field name — rather than a generic
-`identities[]` map (premature at N=2). `GoogleProfile` stores **identity
+`identities[]` map (premature at N=3). `GoogleProfile` stores **identity
 only** (login mints a session and discards the token); `TwitchProfile`
-additionally persists OAuth **access/refresh tokens** because the game
-calls Twitch *as the user* for the life of the link — those two token
-fields are **encrypted at rest** via the `EncryptedStringMarshaller` (see
+and `KickProfile` additionally persist OAuth **access/refresh tokens**
+because the game calls the platform *as the user* for the life of the
+link — those token fields are **encrypted at rest** via the
+`EncryptedStringMarshaller` (see
 [§ Phase 1](#phase-1-http-auth--user-creation) and
-[persistence.md](./persistence.md)).
+[persistence.md](./persistence.md)). `KickProfile` also captures the
+owner's **channel** (`slug` + `broadcasterUserId`, best-effort at
+auth/link time) — the fields the streaming relay's character-form
+resolve and reverse speaker-link read (see
+[streaming.md](./streaming.md)). The Kick strategies are the Twitch
+transcription with one mechanical delta: **PKCE S256** (`{ state: true,
+pkce: true }` on the generic `passport-oauth2` strategy; names `'kick'`
+/ `'kick-link'`, routes `/auth/kick[/link]`).
 
 **`Avatar`** is what walks around the world. Composes
 `HasInteractiveMixin` so it can carry zero, one, or many connected
@@ -89,7 +100,7 @@ Provider OAuth ──▶ /auth/{provider}/callback
                           │   (runRoot frame)
                           ▼
               Application.findOrCreateUserFromProvider(provider, …)
-                  ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles)
+                  ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles | kick_profiles)
                   └─ findOrCreateUser(provider, …)  (users)
                        └─ first time? → createDefaultAvatarTemplate
                                          (forks /obj/Avatar/seed →
@@ -202,9 +213,10 @@ upserts:
 
 1. **`findOrCreateProfile(provider, profile)`** — upserts the right
    collection by provider (`google_profiles` keyed on `googleId` /
-   `twitch_profiles` keyed on `twitchUserId`). The Twitch path routes
-   through `TwitchProfile.save()` so the `EncryptedStringMarshaller`
-   encrypts the token fields — plaintext tokens never reach Mongo.
+   `twitch_profiles` keyed on `twitchUserId` / `kick_profiles` keyed on
+   `kickUserId`). The Twitch and Kick paths route through the Document's
+   `save()` so the `EncryptedStringMarshaller` encrypts the token
+   fields — plaintext tokens never reach Mongo.
 
 2. **`findOrCreateUser(provider, profileId)`** — resolves via the
    computed key `User.find({ [User.profileFieldFor(provider)]: id })`.

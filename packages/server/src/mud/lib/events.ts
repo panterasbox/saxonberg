@@ -142,7 +142,7 @@ export interface EventPayloads {
 
 /** Payload of {@link Events.RelayMessage}. */
 export interface RelayMessageEvent {
-  service: 'twitch' | 'youtube';
+  service: 'twitch' | 'youtube' | 'kick';
   /** Transport channel key (broadcasterId / liveChatId). */
   channelKey: string;
   /** Display handle for the channel. */

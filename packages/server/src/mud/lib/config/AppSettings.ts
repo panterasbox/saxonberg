@@ -424,6 +424,18 @@ export const AppSettingKeys = {
   youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
 
   /**
+   * Kick relay (read-only, webhook transport) dials. `replayWindowSec` is
+   * the accept window around a webhook delivery's signed timestamp;
+   * `dedupTtlSec`/`dedupMaxSize` bound the message-id idempotency ring
+   * (Kick delivers at-least-once); `resolveCacheTtlMs` is the slug →
+   * broadcaster-id resolution cache. See docs/subsystems/streaming.md.
+   */
+  kickReplayWindowSec: "kick.replayWindowSec",
+  kickDedupTtlSec: "kick.dedupTtlSec",
+  kickDedupMaxSize: "kick.dedupMaxSize",
+  kickResolveCacheTtlMs: "kick.resolveCacheTtlMs",
+
+  /**
    * Materials-response — the response function's tuning coefficients (the
    * "magnitude" half of the shape-vs-magnitude split). The engine ships the
    * qualitative per-channel grid on `Construction` (the *shape* of the

@@ -22,8 +22,8 @@
 
 import type { StuffRef } from '@saxonberg/types';
 
-/** The two relay transports. */
-export type Platform = 'twitch' | 'youtube';
+/** The three relay transports. */
+export type Platform = 'twitch' | 'youtube' | 'kick';
 
 /**
  * The outcome of parsing an argument string. Three accepted forms carry the
@@ -47,6 +47,7 @@ export type ParsedTarget =
 export interface TargetOpts {
   twitch?: boolean;
   youtube?: boolean;
+  kick?: boolean;
 }
 
 /** The sub-kind of a YouTube identifier (drives embed + resolve branching). */
@@ -55,9 +56,11 @@ export type YoutubeRefKind = 'videoId' | 'channelId' | 'handle';
 export class StreamerTarget {
   constructor(
     public readonly platform: Platform,
-    /** The transport's stable channel key (broadcasterId / liveChatId). */
+    /** The transport's stable channel key (Twitch/Kick broadcasterId /
+     *  YouTube liveChatId). */
     public readonly key: string,
-    /** The display handle (Twitch login / YouTube channel handle or id). */
+    /** The display handle (Twitch login / YouTube channel handle or id /
+     *  Kick slug). */
     public readonly handle: string,
     /** The linked Avatar ref when resolved through a character. */
     public readonly character?: StuffRef,
@@ -73,22 +76,35 @@ export class StreamerTarget {
 
     const wantTwitch = opts.twitch === true;
     const wantYoutube = opts.youtube === true;
+    const wantKick = opts.kick === true;
+    const optCount = [wantTwitch, wantYoutube, wantKick].filter(
+      Boolean,
+    ).length;
 
     const url = StreamerTarget.parseUrl(raw);
     if (url) {
-      // The URL already carries the platform; an opt naming the OTHER
-      // platform is a conflict (so is passing both opts).
+      // The URL already carries the platform; an opt naming ANOTHER
+      // platform is a conflict (so is passing multiple opts).
       const conflict =
-        (url.platform === 'twitch' && wantYoutube) ||
-        (url.platform === 'youtube' && wantTwitch);
+        (wantTwitch && url.platform !== 'twitch') ||
+        (wantYoutube && url.platform !== 'youtube') ||
+        (wantKick && url.platform !== 'kick');
       if (conflict) return { form: 'reject', reason: 'url-opt-conflict' };
       return { form: 'url', platform: url.platform, identifier: url.identifier };
     }
 
     // Not a URL — a bare handle or a character/MQL seed.
-    if (wantTwitch && wantYoutube) {
+    if (optCount > 1) {
       // Mutually-exclusive opts: nothing disambiguates the platform.
       return { form: 'reject', reason: 'ambiguous-handle' };
+    }
+    if (wantKick) {
+      // Kick slugs are case-insensitive; normalize like the Twitch login.
+      return {
+        form: 'handle',
+        platform: 'kick',
+        identifier: StreamerTarget.stripAt(raw).toLowerCase(),
+      };
     }
     if (wantYoutube) {
       // An `@`-prefixed / MQL-seed token with `--youtube` is a character
@@ -142,7 +158,8 @@ export class StreamerTarget {
     const looksLikeUrl =
       lower.includes('twitch.tv') ||
       lower.includes('youtube.com') ||
-      lower.includes('youtu.be');
+      lower.includes('youtu.be') ||
+      lower.includes('kick.com');
     if (!looksLikeUrl) return null;
 
     // Normalize to a parseable URL (default the scheme so `URL` accepts a
@@ -159,6 +176,15 @@ export class StreamerTarget {
     if (host === 'twitch.tv') {
       const channel = segments[0];
       return channel ? { platform: 'twitch', identifier: channel } : null;
+    }
+
+    if (host === 'kick.com') {
+      // Slug-only: the first path segment is the channel. Video/clip URL
+      // forms are out of scope this cycle.
+      const slug = segments[0];
+      return slug
+        ? { platform: 'kick', identifier: slug.toLowerCase() }
+        : null;
     }
 
     if (host === 'youtu.be') {

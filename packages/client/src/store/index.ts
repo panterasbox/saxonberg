@@ -227,7 +227,7 @@ export interface Frame {
    * when present (Twitch only this cycle).
    */
   relay?: {
-    service: "twitch" | "youtube";
+    service: "twitch" | "youtube" | "kick";
     channelHandle: string;
     speaker: string;
     persona?: string;
@@ -245,6 +245,14 @@ interface StoreState extends CmsSlice, StudioSlice {
   auth: AuthState;
   setAuth: (auth: Partial<AuthState>) => void;
   clearAuth: () => void;
+  /**
+   * The login providers the server reports as configured (from
+   * `/auth/status`). `null` = not yet known (render all buttons
+   * enabled); a list = disable start-screen buttons for providers the
+   * server can't honor. UX only — the routes guard server-side.
+   */
+  configuredProviders: string[] | null;
+  setConfiguredProviders: (providers: string[] | null) => void;
 
   // Connection state
   connection: ConnectionState;
@@ -952,6 +960,10 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Auth state
   auth: initialAuthState,
+
+  configuredProviders: null,
+  setConfiguredProviders: (providers) =>
+    set({ configuredProviders: providers }),
 
   setAuth: (auth) =>
     set((state) => {

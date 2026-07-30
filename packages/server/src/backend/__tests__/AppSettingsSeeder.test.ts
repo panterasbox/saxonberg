@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(262); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate)
+    expect(added).toBe(266); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 4 kick relay (replayWindowSec + dedupTtlSec + dedupMaxSize + resolveCacheTtlMs) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -119,6 +119,10 @@ describe("AppSettingsSeeder", () => {
           // The two YouTube-relay (read-only) dials.
           [AppSettingKeys.youtubePollIntervalMs]: "5000",
           [AppSettingKeys.youtubeOverlayPollIntervalMs]: "900000",
+          [AppSettingKeys.kickReplayWindowSec]: "300",
+          [AppSettingKeys.kickDedupTtlSec]: "900",
+          [AppSettingKeys.kickDedupMaxSize]: "4096",
+          [AppSettingKeys.kickResolveCacheTtlMs]: "3600000",
           // The four news-ticker (bulletin) keys.
           [AppSettingKeys.bulletinTickerWindow]: "30",
           [AppSettingKeys.bulletinMaxPins]: "3",
@@ -400,8 +404,12 @@ describe("AppSettingsSeeder", () => {
     // + 20 magic (cast + faculty + composure + potency + overchannel + effects)
     // + 3 combat formations
     // + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*)
-    // + 4 combat-hooks (stagger light/heavy + steady + natural.largeBodyMassKg).
-    expect(added).toBe(261); // 262 total − 1 operator-preset key
+    // + 4 combat-hooks (stagger light/heavy + steady + natural.largeBodyMassKg)
+    // + 4 kick relay (replayWindowSec + dedupTtlSec + dedupMaxSize
+    //   + resolveCacheTtlMs)
+    // + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness,
+    //   repair pricing/heat, salvageRate).
+    expect(added).toBe(265); // 266 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

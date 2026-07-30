@@ -1,8 +1,8 @@
 # Streaming — the unified livestream tuning surface
 
 One platform-agnostic surface for **tuning into a livestream** — any live
-broadcast on **Twitch or YouTube** — and consuming it inside the cockpit:
-**watch** its video in the focal embed, **follow** its chat in the
+broadcast on **Twitch, YouTube, or Kick** — and consuming it inside the
+cockpit: **watch** its video in the focal embed, **follow** its chat in the
 aggregated chat pane, and (Twitch this cycle) **post** to that chat under
 your own linked identity. The streamer is named by an argument string (a
 URL, a handle + a platform opt, or an in-game character), resolved lazily
@@ -15,7 +15,11 @@ This subsystem unifies three formerly-separate surfaces: the shipped
 [cockpit-layouts.md](./cockpit-layouts.md)), and **YouTube chat** (new,
 read-only). The **player-facing surface is one code path**; only the
 backend *transports* stay per-platform because the protocols genuinely
-differ.
+differ. **Kick** (read-only) joined as the third transport — the first
+**inbound-webhook** transport (Kick pushes signed HTTP POSTs; there is no
+outbound socket or poll) — alongside Kick becoming a co-equal **auth
+provider** (`KickProfile`, login + link; see
+[connection.md](./connection.md)).
 
 It also extends the [broadcast overlay](./livestream.md): the single overlay
 owner's OWN active-stream chat (both platforms) is forwarded onto the
@@ -44,20 +48,26 @@ one `StreamApi`.
 
 `StreamerTarget.parse` (`lib/streaming/StreamerTarget.ts`) is **pure, total,
 and unit-tested** — no network / DB. It classifies `arg` + the mutually-
-exclusive `--twitch` / `--youtube` boolean opts into a `ParsedTarget`:
+exclusive `--twitch` / `--youtube` / `--kick` boolean opts into a
+`ParsedTarget`:
 
 1. **URL** — `twitch.tv/shroud`, `youtu.be/…`, `youtube.com/@handle` /
-   `watch?v=…` / `live/…` / `channel/UC…`. Platform + identifier parsed from
-   the URL; a **conflicting** platform opt → `url-opt-conflict` reject.
-2. **Bare handle + opt** — `shroud --twitch`, `mkbhd --youtube`. A bare
-   handle with **no** opt and **both** opts are rejects
-   (`ambiguous-handle`). No `platform:handle` prefixed strings — the
-   platform rides in the URL or the opt, never smuggled into the arg.
+   `watch?v=…` / `live/…` / `channel/UC…`, `kick.com/<slug>` (slug-only —
+   video/clip URL forms are out of scope). Platform + identifier parsed
+   from the URL; a **conflicting** platform opt → `url-opt-conflict`
+   reject.
+2. **Bare handle + opt** — `shroud --twitch`, `mkbhd --youtube`,
+   `xqc --kick` (slugs lowercased). A bare handle with **no** opt and
+   **multiple** opts are rejects (`ambiguous-handle`). No
+   `platform:handle` prefixed strings — the platform rides in the URL or
+   the opt, never smuggled into the arg.
 3. **Character / MQL** — `tune alice`, `tune @alice` (no opt). Resolved
-   through the character's `Avatar → User → TwitchProfile.login`. A `@`-seed
-   with `--youtube` is a `character-youtube` reject (deferred non-goal —
-   `GoogleProfile` stores no channel; character resolution is **Twitch-only**
-   this cycle).
+   **Twitch-first, Kick-fallback**: `Avatar → User → TwitchProfile.login`,
+   else `User → KickProfile.slug` (a character linked to both resolves
+   Twitch — the two-way platform; deterministic). `unlinked` only when
+   neither link exists. A `@`-seed with `--youtube` is a
+   `character-youtube` reject (deferred non-goal — `GoogleProfile` stores
+   no channel).
 
 `StreamerTarget.classifyYoutubeRef` (also pure) sub-classifies a YouTube
 identifier into `videoId` / `channelId` / `handle` — the shared branch point
@@ -65,7 +75,7 @@ for both the `watch` embed shape and the chat resolve.
 
 The **resolved** `StreamerTarget` value (`{platform, key, handle,
 character?}`) is produced by `StreamLogic` (the async resolver — the network
-/ DB half); `key` is the transport's stable channel key (Twitch
+/ DB half); `key` is the transport's stable channel key (Twitch/Kick
 broadcasterId / YouTube liveChatId).
 
 ## Module layout (CLAUDE.md taxonomy)
@@ -78,16 +88,19 @@ broadcasterId / YouTube liveChatId).
 | `StreamApi` | `api/stream.ts` | Thin forwarding facade + the call-shape types. `decorateApiClass`. |
 | `TwitchClient` / `TwitchRelayReader` | `backend/` | Twitch transport (EventSub multiplex + Helix). |
 | `YoutubeClient` / `YoutubeRelayReader` | `backend/` | YouTube transport (per-`liveChatId` read). |
+| `KickClient` / `KickRelayReader` | `backend/` | Kick transport (app-token subscriptions; inbound via the webhook). |
+| `KickWebhookVerifier` / `KickWebhookRoutes` | `backend/` | The signed-inbound receiver (see below). |
 | `tune` / `watch` | `mud/cmd/stream/*.yaml` + `obj/command/stream/*Controller.ts` | The verbs. |
 
-There is **no** `mud/api/youtube.ts` / `YoutubeLogic` — the surface is
-unified on `StreamApi`; only the *transport* is per-platform.
+There is **no** `mud/api/youtube.ts` / `YoutubeLogic` (nor a kick
+sibling) — the surface is unified on `StreamApi`; only the *transport* is
+per-platform.
 
 ## The relay state — `StreamRelay`
 
 Player-initiated, memory-resident, lazy (no registry collection; evaporates
 on reboot). The channel table is keyed by a composite
-`channelKey(service, key)` so Twitch + YouTube channels coexist in one table
+`channelKey(service, key)` so Twitch + YouTube + Kick channels coexist in one table
 read by the platform-agnostic `list`/`who`/`history`. Each entry carries its
 `service` + display `handle`. Mutators (`addTuned` / `removeTuned` /
 `dropPlayer` / `dropChannel`) return the presence **edges** (0→1 / 1→0); the
@@ -150,13 +163,62 @@ and notices the tuned players ("the stream ended").
 - **Dials are `youtube.*` AppSettings** (historyCap, reconnectBackoffMs,
   pollIntervalMs, overlayPollIntervalMs) — not hardcoded constants.
 
+### Kick (read-only, the webhook transport)
+
+The third transport inverts the shape: Kick's official API delivers chat
+as **event subscriptions pushed to a registered public HTTPS webhook** —
+the first inbound receiver in the streaming stack. Pieces:
+
+- **`KickClient`** (`backend/`) — the outbound half: the **app access
+  token** (client-credentials grant, cached; Kick allows app-token
+  subscriptions with an explicit `broadcaster_user_id`, so the read path
+  needs **no user token at all**), slug → broadcaster-id resolve
+  (`GET /channels?slug=`, TTL-cached via `kick.resolveCacheTtlMs`),
+  `chat.message.sent` subscription create/delete, and the webhook
+  public-key fetch.
+- **`KickWebhookRoutes`** (`POST /webhooks/kick`) — mounts in
+  `Server.setupMiddleware` **before the global body parser and before
+  session/passport**: signature verification needs the byte-exact raw
+  body (`express.json()` consumes the stream irrecoverably), and the
+  early mount makes the route structurally session-free. Route-local
+  `express.raw`; 404 when the transport is unconfigured (dormant, no
+  info leak).
+- **`KickWebhookVerifier`** — verification precedes ALL parsing:
+  header presence → **RSA-PKCS1v15/SHA256** over the period-joined
+  `messageId.timestamp.rawBody` against Kick's published public key
+  (`GET /public-key`, cached, ONE re-fetch-and-retry on failure — the
+  key-rotation hedge) → replay window (`kick.replayWindowSec`, both
+  skews) → **ULID dedup ring** (`kick.dedupTtlSec` / `kick.dedupMaxSize`
+  — Kick delivers at-least-once). `duplicate` is acked 200 (acking stops
+  retries) but never re-dispatched; everything else non-ok → 401 + a
+  warn carrying only the reason + messageId (never the body or
+  signature).
+- **`KickRelayReader`** — the presence-gated subscription worker:
+  create on the relay's 0→1 tuned-player edge, delete on 1→0, over a
+  memory-only `broadcasterId → subscriptionId` map (a crashed process
+  can orphan a subscription on Kick's side — harmless, deliveries for
+  un-tuned channels drop at the relay's channel-key miss; a boot-time
+  reconciliation sweep is a named deferred seam). Verified inbound is
+  normalized → `StreamApi.dispatchInbound('kick', …)`.
+
+**Binding is persistent, Twitch-style** — no live-only bind, no
+stream-end auto-untune (Kick chatrooms outlive broadcasts; the embed
+renders offline channels). Kick boundaries this cycle: **read-only**
+(`tune … --kick <message>` → `read-only` reject; posting = the phase-2
+`kick-reauth` + `chat:write` seam), and local dev runs
+**transport-dormant** (`isConfigured` gates on `KICK_CLIENT_ID` /
+`KICK_CLIENT_SECRET` / `KICK_WEBHOOK_URL`; the verifier + route are
+keypair-unit-tested, so no dev tunnel is needed).
+
 ## The `watch` embed
 
 `watch` writes `cockpit.watch` (`WatchTarget | null`, transient clientState)
 and pushes it; the client mirrors it and renders **one** sandboxed iframe (no
 picker — the verb is the control). Most forms resolve with **no external
-call** (Twitch handle, YouTube URL / videoId / `UC…` channelId), so watching
-works even when the chat relay is unconfigured. A bare YouTube **`@handle`**
+call** (Twitch handle, Kick slug — `player.kick.com/<slug>`, muted
+autoplay, renders offline channels gracefully — YouTube URL / videoId /
+`UC…` channelId), so watching works even when the chat relay is
+unconfigured. A bare YouTube **`@handle`**
 resolves to a durable `{platform:'youtube', channelId}` via
 `StreamApi.resolveYoutubeChannelId` (reusing the reader credential, memoized;
 reader-unconfigured → reject-and-point at a URL) — rendered
@@ -167,19 +229,22 @@ YouTube implied chat-tune resolves live-or-not through the same path). See
 
 ## Identity / rendering
 
-`RelaySpeaker.service` spans `'twitch' | 'youtube'`. Twitch lines from a
-linked streamer render `external-linked` (handle default, persona-on-hover
-via reverse `login → User`); YouTube lines are `external`-only (no channel
-stored → no reverse link this cycle). The client `relayTemplate`
-(parameterized by service — Twitch-purple / YouTube-red glyph) renders both
-`world.twitch.message` / `world.youtube.message`; message text is escaped
-plain text, never MML (untrusted external input).
+`RelaySpeaker.service` spans `'twitch' | 'youtube' | 'kick'`. Twitch and
+Kick lines from a linked speaker render `external-linked` (handle default,
+persona-on-hover via the reverse `TwitchProfile`/`KickProfile → User`
+walk); YouTube lines are `external`-only (no channel stored → no reverse
+link this cycle). The client `relayTemplate` (parameterized by service —
+Twitch-purple / YouTube-red / Kick-green glyph) renders
+`world.twitch.message` / `world.youtube.message` / `world.kick.message`;
+message text is escaped plain text, never MML (untrusted external
+input).
 
 ## Overlay chat forwarding (the owner's own chat)
 
 The single overlay owner's OWN external channels are env config
-(`OVERLAY_TWITCH_LOGIN` / `OVERLAY_YOUTUBE_CHANNEL`, beside `BROADCAST_TOKEN`
-/ `STREAMER_PLAYER_IDS`). While ≥1 `service:broadcast` overlay is connected,
+(`OVERLAY_TWITCH_LOGIN` / `OVERLAY_YOUTUBE_CHANNEL` /
+`OVERLAY_KICK_CHANNEL`, beside `BROADCAST_TOKEN` /
+`STREAMER_PLAYER_IDS`). While ≥1 `service:broadcast` overlay is connected,
 `BroadcastFeed` drives `StreamApi.setOverlayReading(true/false)` on the
 0→1 / 1→0 presence edge, which **sentinel-tunes** the owner's channels
 through the readers (reusing the presence edge). The relay emits
@@ -194,10 +259,10 @@ feed / one owner is preserved. Full seam in [livestream.md](./livestream.md).
 
 - A channel's backend read exists only while ≥1 player (or the overlay
   sentinel) is tuned (0→1 opens, 1→0 closes; Twitch debounced; YouTube per
-  `liveChatId`). `PlayerLoggedOut` drops a player from every channel; the
-  drop + per-transport unsubscribe is **centralized in
-  `StreamLogic.dropPlayer`** (so one observer — the Twitch reader — covers
-  both readers).
+  `liveChatId`; Kick per webhook subscription, undebounced). `PlayerLoggedOut`
+  drops a player from every channel; the drop + per-transport unsubscribe is
+  **centralized in `StreamLogic.dropPlayer`** (so one observer — the Twitch
+  reader — covers all three readers).
 - **Actor from context** — the posting player is `context.commandGiver` /
   `getActingAuthor`, never a parameter.
 - **No hardcoded streamer list** anywhere except the single overlay-owner
@@ -205,7 +270,10 @@ feed / one owner is preserved. Full seam in [livestream.md](./livestream.md).
 
 ## Deferred / non-goals
 
-YouTube outbound (posting); character→YouTube; the outbound platform-action
+YouTube + Kick outbound (posting — Kick's is the `kick-reauth` +
+`chat:write` phase-2 seam through the existing throttle/echo-suppress);
+character→YouTube; Kick boot-time subscription reconciliation;
+`kick.com/video/…` URL forms; the outbound platform-action
 family (`follow`/`sub`/`cheer`/`gift`) + monetization; go-live notifications
 & follow-groups; persisted tunes / discoverability; multi-streamer overlay
 scoping; YouTube stream-start auto-rebind while tuned. See the requirements
@@ -220,7 +288,7 @@ for the full non-goal list.
 - [cockpit-layouts.md](./cockpit-layouts.md) — the `watch`-driven
   `cockpit.watch` embed
 - [connection.md](./connection.md) — the OAuth spine + `TwitchProfile` /
-  `GoogleProfile`
+  `GoogleProfile` / `KickProfile`
 - [messaging.md](./messaging.md) — the `sendMessage` chokepoint
 - [belief.md](./belief.md) — the persona the external-linked speaker reveals
 
@@ -230,4 +298,7 @@ Built in six phases on `feature/stream-tuning` (P0 shared seams → P1 unify
 chat + retire `twitch` → P2 `watch` + retire `broadcastSources` → P3
 read-only YouTube → P4 overlay chat forwarding → P5 docs). Requirements +
 plan: `docs/requirements/stream-tuning-requirements.md`,
-`docs/plans/stream-tuning-plan.md`.
+`docs/plans/stream-tuning-plan.md`. The **Kick transport + the Kick auth
+provider** landed on `feature/kick-relay` (vocabulary → provider →
+client/verifier → relay wiring → docs; the first webhook-inbound
+transport).

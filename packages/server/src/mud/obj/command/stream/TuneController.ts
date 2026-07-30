@@ -22,13 +22,14 @@ import { PlayerApi } from '../../../api/player';
 import { StreamerTarget } from '../../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../../lib/streaming/StreamerTarget';
 
-type Service = 'twitch' | 'youtube';
+type Service = 'twitch' | 'youtube' | 'kick';
 
 interface TuneModel extends CommandModel {
   target?: string;
   message?: string;
   twitch?: boolean;
   youtube?: boolean;
+  kick?: boolean;
 }
 
 /** A service+handle derived from a parsed target (or a typed rejection). */
@@ -74,6 +75,7 @@ export default class TuneController extends CommandController<TuneModel> {
     return StreamerTarget.parse((model.target ?? '').trim(), {
       twitch: model.twitch,
       youtube: model.youtube,
+      kick: model.kick,
     });
   }
 
@@ -118,7 +120,10 @@ export default class TuneController extends CommandController<TuneModel> {
       case 'read-only':
         return this.fail(
           context,
-          'YouTube posting isn’t available — YouTube chat is read-only.',
+          sh.service === 'kick'
+            ? 'Kick chat is read-only for now — posting arrives with ' +
+              'Kick phase 2.'
+            : 'YouTube posting isn’t available — YouTube chat is read-only.',
           'read-only',
         );
       case 'no-channel':
@@ -194,7 +199,8 @@ export default class TuneController extends CommandController<TuneModel> {
         context,
         Mml.fromMarkup(
           "\nYou aren't following any stream chat. Follow one with " +
-            '`tune <handle> --twitch` / `--youtube`, a URL, or a character.\n',
+            '`tune <handle> --twitch` / `--youtube` / `--kick`, a URL, ' +
+            'or a character.\n',
         ),
       );
       return;
@@ -276,19 +282,22 @@ export default class TuneController extends CommandController<TuneModel> {
       case 'empty':
         return this.fail(
           context,
-          'Name a stream: a handle + --twitch/--youtube, a URL, or a character.',
+          'Name a stream: a handle + --twitch/--youtube/--kick, a URL, ' +
+            'or a character.',
           'empty',
         );
       case 'ambiguous-handle':
         return this.fail(
           context,
-          "which platform? add --twitch or --youtube (or give a full URL).",
+          'which platform? add --twitch, --youtube, or --kick (or give ' +
+            'a full URL).',
           'ambiguous-handle',
         );
       case 'url-opt-conflict':
         return this.fail(
           context,
-          'that URL already names its platform — drop the --twitch/--youtube.',
+          'that URL already names its platform — drop the ' +
+            '--twitch/--youtube/--kick.',
           'url-opt-conflict',
         );
       case 'character-youtube':
@@ -315,7 +324,9 @@ export default class TuneController extends CommandController<TuneModel> {
           context,
           platform === 'youtube'
             ? "YouTube chat relay isn't configured."
-            : "Twitch relay isn't configured.",
+            : platform === 'kick'
+              ? "Kick relay isn't configured."
+              : "Twitch relay isn't configured.",
           'no-relay',
         );
       case 'not-live':
@@ -330,13 +341,13 @@ export default class TuneController extends CommandController<TuneModel> {
         return this.fail(
           context,
           'No online character by that name — for a stream handle ' +
-            'add --twitch or --youtube (or give a URL).',
+            'add --twitch, --youtube, or --kick (or give a URL).',
           'unknown-character',
         );
       case 'unlinked':
         return this.fail(
           context,
-          "that character hasn't linked a Twitch account.",
+          "that character hasn't linked a Twitch or Kick account.",
           'unlinked',
         );
       default:

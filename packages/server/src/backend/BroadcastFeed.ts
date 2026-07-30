@@ -49,6 +49,11 @@ function overlayYoutubeChannel(): string {
   return (process.env.OVERLAY_YOUTUBE_CHANNEL ?? '').trim().toLowerCase();
 }
 
+/** The overlay owner's configured Kick channel slug (env). */
+function overlayKickChannel(): string {
+  return (process.env.OVERLAY_KICK_CHANNEL ?? '').trim().toLowerCase();
+}
+
 /**
  * Whether a relayed line belongs to the overlay owner's OWN configured
  * channel — the filter that keeps a viewer's unrelated tune off the feed.
@@ -60,6 +65,10 @@ function isOverlayOwnChannel(payload: RelayMessageEvent): boolean {
   if (payload.service === 'twitch') {
     const login = overlayTwitchLogin();
     return login !== '' && handle === login;
+  }
+  if (payload.service === 'kick') {
+    const slug = overlayKickChannel();
+    return slug !== '' && handle === slug;
   }
   const chan = overlayYoutubeChannel();
   return chan !== '' && handle === chan;

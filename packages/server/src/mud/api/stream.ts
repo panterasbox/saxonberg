@@ -65,7 +65,7 @@ export type ResolveResult =
 
 /** Outcome of a tune (add + subscribe). */
 export type TuneResult =
-  | { ok: true; service: 'twitch' | 'youtube'; handle: string }
+  | { ok: true; service: 'twitch' | 'youtube' | 'kick'; handle: string }
   | { ok: false; reason: TuneReason };
 
 /** Outcome of resolving a YouTube `@handle`/`UC…` to its channelId (watch). */
@@ -76,7 +76,7 @@ export type YoutubeChannelResult =
 /** Outcome of an untune. */
 export type UntuneResult = {
   ok: boolean;
-  service?: 'twitch' | 'youtube';
+  service?: 'twitch' | 'youtube' | 'kick';
   handle?: string;
   reason?: TuneReason;
 };
@@ -128,7 +128,7 @@ export class StreamApi {
   /** Tune a player out by service + handle (1→0 edge). */
   static untune(
     avatar: Avatar,
-    service: 'twitch' | 'youtube',
+    service: 'twitch' | 'youtube' | 'kick',
     handle: string,
   ): Promise<UntuneResult> {
     return logic().untune(avatar, service, handle);
@@ -141,7 +141,7 @@ export class StreamApi {
 
   /** Online Avatars tuned in to a channel (by service + handle). */
   static whoTuned(
-    service: 'twitch' | 'youtube',
+    service: 'twitch' | 'youtube' | 'kick',
     handle: string,
   ): Promise<Avatar[]> {
     return logic().whoTuned(service, handle);
@@ -149,7 +149,7 @@ export class StreamApi {
 
   /** The history ring for a channel (by service + handle). */
   static historyFor(
-    service: 'twitch' | 'youtube',
+    service: 'twitch' | 'youtube' | 'kick',
     handle: string,
   ): Promise<readonly MessageFrame[]> {
     return logic().historyFor(service, handle);
@@ -158,7 +158,7 @@ export class StreamApi {
   /** Post outbound to a tuned channel as the speaker (Twitch only). */
   static post(
     speaker: Stuff,
-    service: 'twitch' | 'youtube',
+    service: 'twitch' | 'youtube' | 'kick',
     handle: string,
     text: string,
   ): Promise<PostResult> {
@@ -167,7 +167,7 @@ export class StreamApi {
 
   /** Inbound entry point — a backend reader's down-call. */
   static dispatchInbound(
-    service: 'twitch' | 'youtube',
+    service: 'twitch' | 'youtube' | 'kick',
     n: NormalizedInbound,
   ): Promise<void> {
     return logic().dispatchInbound(service, n);
@@ -186,7 +186,7 @@ export class StreamApi {
    * players. The backend reader calls this from its stream-end detection.
    */
   static dropChannel(
-    service: 'twitch' | 'youtube',
+    service: 'twitch' | 'youtube' | 'kick',
     key: string,
   ): Promise<void> {
     return logic().dropChannel(service, key);

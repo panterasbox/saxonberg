@@ -69,6 +69,30 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
   read and city/region (the `whois`/`profile` verb that surfaces country
   is now homed in
   [social-inspection-slate](./tails/social-inspection-slate.md)).
+- [distance-perception-slate](./tails/distance-perception-slate.md) *(tail)* —
+  things seen at a distance: vista references (resolve-on-read
+  landmark details, generalizing the crossing's clock-tower
+  live-read), bounded one-hop peek through exits (aperture + light +
+  concealment-gated), privileged reach beyond (scry territory), and
+  the danger-sense-before-traverse baseline (push what the shipped
+  walks already compute). Interim durable-facts-only vista rule
+  adopted by the demo-content build.
+- [acquisition-slate](./builds/acquisition-slate.md) — capability
+  onboarding doctrine + rulings (2026-07-28): floor=reachability
+  (attunement/comms/wallet-capacity only, forums leaves the bundle),
+  seeking=discovery, updates-vs-credentials sorting rule, the
+  need-fired credential itinerary (hiring requires payment cred;
+  dorm-key digitizes), hardware=healthcare (Aevex elective vs care
+  venues), first-login journey v2 over the built campus (Gus=greeter,
+  Health Center off the route, Limen post-Gus). Supersedes the
+  onboarding slate's Health Center/TPA-update beat.
+- [power-utility-slate](./builds/power-utility-slate.md) —
+  electricity as municipal infrastructure: the supply-reference
+  middle tier (source gates dependents; outages mint honest work
+  orders), then the municipal fork (governance office vs corpo
+  concession vs cooperative), conservation-economy billing,
+  utility labor; water as the sibling. Captured from the
+  demo-content lamppost decision; nothing built.
 - [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,
@@ -397,6 +421,7 @@ extends; none is a fresh build.
 | [argument-map](./tails/argument-map-slate.md) | forums.md | **v1 shipped 2026-06** (the `organizer: 'argument'` claim-graph + neutral lens + open-objection + circle highlight + mature seam + client mode → forums.md); deferred: claim dedup/canonicalization, integrity-grade summarization, automated convergence, proposal version-control, the vote consumer, the plural-lens explorer |
 | [auth-providers](./tails/auth-providers-slate.md) | connection.md | **Waves 1+2 shipped 2026-06** (multi-provider spine + Twitch login + account link/unlink + token encryption → connection.md); deferred: chat scopes, account merge, provider-side revocation, name-refraction, YouTube |
 | [external-chat-relay](./tails/external-chat-relay-slate.md) / [youtube-relay](./tails/youtube-relay-slate.md) | streaming.md | **Twitch (two-way) + YouTube (read-only) SHIPPED** → streaming.md (unified `watch`/`tune` surface over a `StreamerTarget`; superseded the parallel-mirror + full-two-way plan); slates retained for the deferred **YouTube outbound** (insert + quota accountant + per-player `force-ssl` OAuth + `GoogleProfile` token extension) |
+| [kick-relay](./tails/kick-relay-slate.md) | streaming.md / connection.md | **SHIPPED (MR !152)** — the third transport (webhook-inbound Kick chat relay + `watch` embed) and Kick as a **co-equal auth provider** (`KickProfile`, login + link, PKCE) → streaming.md + connection.md; retained for the tail: **phase-2 posting** (`kick-reauth` + `chat:write`), boot-time subscription reconciliation, `kick.com/video/…` URL forms |
 | [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
 | [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
 | [async-commands](./tails/async-commands-slate.md) | command-routing.md | **shipped (MR !122)** → command-routing.md § Async dispatch + command-spec.md: opt-in `async` override (spec field + reserved `--async`/`--sync` flags, accept-time detach in `_executeOne`, sync stays per-giver/never-global) + the `script` verb. Deferred tail: a line-level prefix for bare typed multi-statement scripts, a per-actor async cap, a generic cancel verb |

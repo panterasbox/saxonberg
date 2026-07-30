@@ -17,6 +17,7 @@ import type {
   AuthStatusResponse,
   PassportGoogleProfile,
   PassportTwitchProfileWithTokens,
+  PassportKickProfileWithTokens,
 } from '@saxonberg/types';
 import { Backend } from '../../backend/Backend';
 import { CmsSession } from '../../backend/CmsSession';
@@ -24,7 +25,11 @@ import { AccessApi } from '../../mud/api/access';
 import { ExecutionContextApi } from '../../mud/api/execution-context';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import { AuthMiddleware } from './AuthMiddleware';
-import { TWITCH_IDENTITY_SCOPE } from './PassportConfig';
+import {
+  PassportConfig,
+  TWITCH_IDENTITY_SCOPE,
+  KICK_IDENTITY_SCOPE,
+} from './PassportConfig';
 import { User } from '../../mud/lib/identity/User';
 import { TwitchProfile } from '../../mud/lib/identity/TwitchProfile';
 import {
@@ -45,6 +50,7 @@ export class AuthRoutes {
     // Initiate Google OAuth flow
     app.get(
       '/auth/google',
+      AuthRoutes.requireConfigured('google', 'auth'),
       passport.authenticate('google', {
         scope: ['profile', 'email'],
       })
@@ -53,6 +59,7 @@ export class AuthRoutes {
     // Google OAuth callback
     app.get(
       '/auth/google/callback',
+      AuthRoutes.requireConfigured('google', 'auth'),
       passport.authenticate('google', {
         failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
       }),
@@ -65,6 +72,7 @@ export class AuthRoutes {
     // Initiate Twitch OAuth flow (minimal identity scope; no chat scopes)
     app.get(
       '/auth/twitch',
+      AuthRoutes.requireConfigured('twitch', 'auth'),
       passport.authenticate('twitch', {
         scope: TWITCH_IDENTITY_SCOPE,
       })
@@ -73,6 +81,7 @@ export class AuthRoutes {
     // Twitch OAuth callback
     app.get(
       '/auth/twitch/callback',
+      AuthRoutes.requireConfigured('twitch', 'auth'),
       passport.authenticate('twitch', {
         failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
       }),
@@ -82,10 +91,36 @@ export class AuthRoutes {
       }
     );
 
+    // Initiate Kick OAuth flow (minimal identity scope; PKCE via the
+    // strategy). Skip-if-absent tolerance rides the strategy: when
+    // KICK_* env is unset the strategy isn't registered and this route
+    // 500s only if actually hit.
+    app.get(
+      '/auth/kick',
+      AuthRoutes.requireConfigured('kick', 'auth'),
+      passport.authenticate('kick', {
+        scope: KICK_IDENTITY_SCOPE,
+      })
+    );
+
+    // Kick OAuth callback
+    app.get(
+      '/auth/kick/callback',
+      AuthRoutes.requireConfigured('kick', 'auth'),
+      passport.authenticate('kick', {
+        failureRedirect: `${process.env.CLIENT_URL}/?auth=failure`,
+      }),
+      (req: Request, res: Response) => {
+        console.info('AuthRoutes: Kick OAuth callback success');
+        res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+      }
+    );
+
     // ---- Linking (authenticated OAuth round-trips) ------------------
 
     AuthRoutes.setupLinkRoutes(app, 'google', 'google-link');
     AuthRoutes.setupLinkRoutes(app, 'twitch', 'twitch-link');
+    AuthRoutes.setupLinkRoutes(app, 'kick', 'kick-link');
 
     // ---- Re-auth (authenticated; broaden Twitch chat scopes) --------
 
@@ -95,11 +130,15 @@ export class AuthRoutes {
 
     AuthRoutes.setupUnlinkRoute(app, 'google');
     AuthRoutes.setupUnlinkRoute(app, 'twitch');
+    AuthRoutes.setupUnlinkRoute(app, 'kick');
 
     // Check authentication status
     app.get('/auth/status', async (req: Request, res: Response) => {
       const response: AuthStatusResponse = {
         isAuthenticated: req.isAuthenticated(),
+        // Which providers this server registered (env-gated) — drives
+        // start-screen button enablement; routes guard independently.
+        providers: PassportConfig.configuredProviders(),
       };
 
       if (req.isAuthenticated() && req.user) {
@@ -158,6 +197,32 @@ export class AuthRoutes {
   }
 
   /**
+   * Guard an OAuth route against an UNCONFIGURED provider: when the env
+   * gate skipped strategy registration, redirect back to the client with
+   * a result code instead of letting passport throw "Unknown
+   * authentication strategy" (a 500). UX-level — configured-provider
+   * authorization is untouched.
+   */
+  private static requireConfigured(
+    provider: AuthProvider,
+    resultParam: 'auth' | 'link'
+  ) {
+    return (req: Request, res: Response, next: () => void): void => {
+      if (PassportConfig.configuredProviders().includes(provider)) {
+        next();
+        return;
+      }
+      console.warn(
+        `AuthRoutes: /${resultParam} hit for unconfigured provider ` +
+          `'${provider}' — redirecting (strategy not registered)`
+      );
+      res.redirect(
+        `${process.env.CLIENT_URL}/?${resultParam}=unavailable`
+      );
+    };
+  }
+
+  /**
    * Wire `/auth/{provider}/link` + `/link/callback` for one provider.
    * Both are authenticated (the session must already be a real user).
    * The link strategy's verify callback authenticates the OAuth profile
@@ -171,21 +236,26 @@ export class AuthRoutes {
     provider: AuthProvider,
     strategyName: string
   ): void {
-    const initiate =
-      provider === 'twitch'
-        ? passport.authenticate(strategyName, {
-            scope: TWITCH_IDENTITY_SCOPE,
-            session: false,
-          })
-        : passport.authenticate(strategyName, {
-            scope: ['profile', 'email'],
-            session: false,
-          });
+    const scopeFor: Record<AuthProvider, string[]> = {
+      google: ['profile', 'email'],
+      twitch: TWITCH_IDENTITY_SCOPE,
+      kick: KICK_IDENTITY_SCOPE,
+    };
+    const initiate = passport.authenticate(strategyName, {
+      scope: scopeFor[provider],
+      session: false,
+    });
 
-    app.get(`/auth/${provider}/link`, AuthMiddleware.requireAuth, initiate);
+    app.get(
+      `/auth/${provider}/link`,
+      AuthRoutes.requireConfigured(provider, 'link'),
+      AuthMiddleware.requireAuth,
+      initiate
+    );
 
     app.get(
       `/auth/${provider}/link/callback`,
+      AuthRoutes.requireConfigured(provider, 'link'),
       AuthMiddleware.requireAuth,
       // `session: false` so the link OAuth does not replace the current
       // session principal; the resolved profile lands on `req.user`.
@@ -201,6 +271,7 @@ export class AuthRoutes {
         const profile = req.user as
           | PassportGoogleProfile
           | PassportTwitchProfileWithTokens
+          | PassportKickProfileWithTokens
           | undefined;
         if (!userId || !profile) {
           res.redirect(`${process.env.CLIENT_URL}/?link=failure`);

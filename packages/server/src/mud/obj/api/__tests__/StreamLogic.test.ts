@@ -12,6 +12,7 @@ import { StreamApi } from '../../../api/stream';
 import { PlayerApi } from '../../../api/player';
 import { TwitchRelayReader } from '../../../../backend/TwitchRelayReader';
 import { YoutubeRelayReader } from '../../../../backend/YoutubeRelayReader';
+import { KickRelayReader } from '../../../../backend/KickRelayReader';
 import StreamRelay from '../../StreamRelay';
 import { StreamerTarget } from '../../../lib/streaming/StreamerTarget';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -44,6 +45,35 @@ function mockYoutubeReader(over: Partial<{
     subscribe: async () => undefined,
     unsubscribe: () => undefined,
   } as unknown as YoutubeRelayReader);
+}
+
+function mockKickReader(over: Partial<{
+  isConfigured: boolean;
+  resolveSlug: (
+    s: string,
+  ) => Promise<{ broadcasterId: string; slug: string } | 'unknown'>;
+  subscribe: (key: string) => Promise<void>;
+  unsubscribe: (key: string) => void;
+}>): { subscribed: string[]; unsubscribed: string[] } {
+  const subscribed: string[] = [];
+  const unsubscribed: string[] = [];
+  vi.spyOn(KickRelayReader, 'get').mockReturnValue({
+    isConfigured: () => over.isConfigured ?? true,
+    resolveSlug:
+      over.resolveSlug ??
+      (async (slug: string) => ({ broadcasterId: `k-${slug}`, slug })),
+    subscribe:
+      over.subscribe ??
+      (async (key: string) => {
+        subscribed.push(key);
+      }),
+    unsubscribe:
+      over.unsubscribe ??
+      ((key: string) => {
+        unsubscribed.push(key);
+      }),
+  } as unknown as KickRelayReader);
+  return { subscribed, unsubscribed };
 }
 
 describe('StreamLogic.resolveTarget (via StreamApi)', () => {
@@ -133,6 +163,35 @@ describe('StreamLogic.resolveTarget (via StreamApi)', () => {
     );
     expect(res).toEqual({ ok: false, reason: 'unknown-character' });
   });
+
+  it('resolves a kick slug via the reader (cache-miss, then cached)', async () => {
+    mockKickReader({});
+    const res = await StreamApi.resolveTarget(
+      StreamerTarget.parse('xqc', { kick: true }),
+    );
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.target.platform).toBe('kick');
+      expect(res.target.key).toBe('k-xqc');
+      expect(res.target.handle).toBe('xqc');
+    }
+  });
+
+  it('rejects no-relay when the kick reader is unconfigured', async () => {
+    mockKickReader({ isConfigured: false });
+    const res = await StreamApi.resolveTarget(
+      StreamerTarget.parse('dormant-slug', { kick: true }),
+    );
+    expect(res).toEqual({ ok: false, reason: 'no-relay' });
+  });
+
+  it('rejects unknown-target when the slug does not resolve', async () => {
+    mockKickReader({ resolveSlug: async () => 'unknown' });
+    const res = await StreamApi.resolveTarget(
+      StreamerTarget.parse('ghost-slug', { kick: true }),
+    );
+    expect(res).toEqual({ ok: false, reason: 'unknown-target' });
+  });
 });
 
 describe('StreamLogic.post (via StreamApi)', () => {
@@ -146,6 +205,12 @@ describe('StreamLogic.post (via StreamApi)', () => {
   it('YouTube posting is read-only (rejected before any relay work)', async () => {
     const speaker = {} as Stuff;
     const res = await StreamApi.post(speaker, 'youtube', 'mkbhd', 'hi');
+    expect(res).toEqual({ ok: false, reason: 'read-only' });
+  });
+
+  it('Kick posting is read-only (phase 2)', async () => {
+    const speaker = {} as Stuff;
+    const res = await StreamApi.post(speaker, 'kick', 'xqc', 'hi');
     expect(res).toEqual({ ok: false, reason: 'read-only' });
   });
 });

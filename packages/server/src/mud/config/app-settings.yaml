@@ -245,6 +245,18 @@ settings:
   # quota units, so keep it slow; it only catches the owner's stream restart).
   - key: youtube.overlayPollIntervalMs
     value: "900000"
+  # Kick relay (read-only, webhook transport) dials. replayWindowSec: the
+  # accept window around a delivery's signed timestamp; the dedup ring
+  # bounds at-least-once redelivery; resolveCacheTtlMs: slug →
+  # broadcaster-id cache. See docs/subsystems/streaming.md.
+  - key: kick.replayWindowSec
+    value: "300"
+  - key: kick.dedupTtlSec
+    value: "900"
+  - key: kick.dedupMaxSize
+    value: "4096"
+  - key: kick.resolveCacheTtlMs
+    value: "3600000"
 
   # Social-graph (attention management) — the reserved-baseline notify
   # rules' default fields (deployment defaults, NOT code constants). A

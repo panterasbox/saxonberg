@@ -1,13 +1,15 @@
 verbs: [tune]
 controller: /obj/command/stream/TuneController
-description: "Follow a livestream's chat (Twitch / YouTube) in your console; post (Twitch)"
+description: "Follow a livestream's chat (Twitch / YouTube / Kick) in your console; post (Twitch)"
 help: |
   Follow a livestream's chat into your console and read it alongside the
   game. Name the streamer three ways:
 
-    - a URL:      `tune twitch.tv/shroud`, `tune youtu.be/<id>`
-    - a handle:   `tune shroud --twitch`, `tune mkbhd --youtube`
-    - a character: `tune alice` (their linked Twitch chat)
+    - a URL:      `tune twitch.tv/shroud`, `tune youtu.be/<id>`,
+                  `tune kick.com/xqc`
+    - a handle:   `tune shroud --twitch`, `tune mkbhd --youtube`,
+                  `tune xqc --kick`
+    - a character: `tune alice` (their linked Twitch or Kick chat)
 
   Follow as many as you like; they interleave in the chat pane with a
   per-line platform tag. `tune off <target>` stops following one; bare
@@ -17,7 +19,7 @@ help: |
   "hello" to that channel's chat as your own linked Twitch identity (and
   mirrors it here). Posting needs a linked Twitch account with chat
   authorized; you'll be pointed to the authorize flow the first time.
-  YouTube chat is read-only this cycle.
+  YouTube and Kick chat are read-only this cycle.
 
   `watch <target>` is the sibling verb for the focal video embed (and it
   follows the chat too).
@@ -33,6 +35,10 @@ options:
     type: boolean
     field: youtube
     description: "The target is a YouTube handle"
+  kick:
+    type: boolean
+    field: kick
+    description: "The target is a Kick channel slug"
 subcommands:
   off:
     description: "Stop following a channel's chat"

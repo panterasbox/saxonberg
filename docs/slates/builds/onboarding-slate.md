@@ -8,6 +8,19 @@
 > **Orientation guide** (Dr. Limen — an implant-reachable guide NPC + a
 > few onboarding-progress flags + a model-backed brain).
 
+> **Reconciliation note (2026-07-28):** the acquisition deep-drill
+> ([acquisition-slate.md](./acquisition-slate.md)) **supersedes this
+> slate's route details**: the Health Center / "TPA as software
+> update" beat is extinct (travel migrated to a wallet credential
+> record; digitization is the TPA bureau's optional act), the
+> journey now runs over the **built campus** (crossing → open gate →
+> Eternal Way → Quad → Limbo Lane → Duncan), **Gus absorbs the
+> greeter role**, Limen's first contact moves to campus entry
+> (post-Gus; replying must work), and Katie's key handover — now
+> registering a `dorm-key` wallet record — carries the acquisition
+> lesson. The principles below (learn-by-doing, lounge as social
+> landing, first-login-only, authoring climax) stand unchanged.
+
 Working slate for **onboarding** — getting a freshly-enrolled player from
 the intake into the world and competent in it, *diegetically and by
 doing*, ending with the on-ramp to content authoring (your dorm).
