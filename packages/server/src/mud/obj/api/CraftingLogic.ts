@@ -713,7 +713,7 @@ async function recordCraftEvidence(
  * `CraftedMixin.stamp` — but draws its inputs from the already-banked
  * build buffer (no re-consume). Dispatches on the request: a `workpiece`
  * mints the tangible path (clone the matched recipe's output / the
- * generic worked lump, consuming the workpiece); a `glass` vessel is
+ * generic worked lump, consuming the workpiece); a `vessel` is
  * filled (the bar's drink, a matched recipe's edible portion, or the
  * generic pot-luck for an off-spec item build).
  */
@@ -823,19 +823,19 @@ async function mintVessel(
   makerPath: string,
   makerStuff: Stuff | null,
 ): Promise<CraftOutcome> {
-  const glass = req.glass;
-  if (!glass) {
+  const vessel = req.vessel;
+  if (!vessel) {
     return { ok: false, reason: 'no-output', detail: 'no-destination' };
   }
-  if (!MixinApi.isBulkable(glass)) {
-    return { ok: false, reason: 'no-output', detail: 'glass-not-bulkable' };
+  if (!MixinApi.isBulkable(vessel)) {
+    return { ok: false, reason: 'no-output', detail: 'vessel-not-bulkable' };
   }
-  if (!MixinApi.isCrafted(glass)) {
-    return { ok: false, reason: 'no-output', detail: 'glass-not-crafted' };
+  if (!MixinApi.isCrafted(vessel)) {
+    return { ok: false, reason: 'no-output', detail: 'vessel-not-crafted' };
   }
-  const outSlot = BulkableApi.slotFor(glass, undefined);
+  const outSlot = BulkableApi.slotFor(vessel, undefined);
   if (!outSlot) {
-    return { ok: false, reason: 'no-output', detail: 'glass-no-slot' };
+    return { ok: false, reason: 'no-output', detail: 'vessel-no-slot' };
   }
 
   const hasItems = req.contributions.some((c) => c.kind === 'item');
@@ -880,7 +880,7 @@ async function mintVessel(
     );
   }
 
-  glass.stamp({
+  vessel.stamp({
     maker: makerPath,
     grade,
     recipe: recipeId,
@@ -888,7 +888,7 @@ async function mintVessel(
   });
 
   if (recipe) await recordCraftEvidence(makerStuff, recipe);
-  return { ok: true, output: glass, grade, recipeId };
+  return { ok: true, output: vessel, grade, recipeId };
 }
 
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */

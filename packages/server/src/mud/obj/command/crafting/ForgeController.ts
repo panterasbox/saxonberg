@@ -14,7 +14,6 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { CraftingApi } from '../../../api/crafting';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
-import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
@@ -31,21 +30,7 @@ export default class ForgeController extends CraftController<ForgeModel> {
 
     // The knowledge gate: the one-shot is earned by the hands, not the
     // book — a catalogue recipe declines until the can-make deed exists.
-    const view = await CraftingApi.lookupRecipe(model.item);
-    if (view && !(await RecipeKnowledge.canMake(giver, view.recipeId))) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`You've heard of ${view.name}, but you haven't learned to forge it — work it by hand first.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'not-learned',
-        detail: model.item,
-      });
-      return;
-    }
+    if (!(await this.requireDeed(context, model.item, 'forge'))) return;
 
     const outcome = await CraftingApi.craft({
       recipeRef: model.item,

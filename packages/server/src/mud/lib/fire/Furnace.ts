@@ -81,9 +81,11 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     /**
      * The fire-appliance verbs are **afforded by the appliance** (the
      * Bulkable holder-carries-the-verbs pattern): a room with a furnace
-     * affords lighting it, dousing it, and working its bellows. The
-     * fire build shipped the ignite/douse verbs with no affording
-     * source — the live-drive gap this closes.
+     * affords lighting it, dousing it, working its bellows, and bringing
+     * a workpiece to its fire (`heat` — the manual-build step; the
+     * furnace is the heat instrument the way the anvil is the hammer
+     * surface). The fire build shipped the ignite/douse verbs with no
+     * affording source — the live-drive gap this closes.
      */
     static commandContributions: CommandContributions = {
       self: [],
@@ -91,6 +93,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
         'device/ignite.yaml',
         'device/douse.yaml',
         'device/pump.yaml',
+        'crafting/heat.yaml',
       ],
       inventory: [],
       peers: [],

@@ -13,6 +13,7 @@ import { DurableMixin } from '../lib/material/Durable';
 import { ToolMixin } from '../lib/craft/Tooled';
 import { ManualBuildMixin } from '../lib/craft/ManualBuild';
 import { CraftedMixin } from '../lib/craft/Crafted';
+import type { CommandContributions } from '../api/command';
 
 const CookPotBase = CraftedMixin(
   ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
@@ -21,4 +22,28 @@ const CookPotBase = CraftedMixin(
 export default class CookPot extends CookPotBase {
   /** The defining capability default — authored seeds may extend it. */
   public override capabilities: string[] = ['pot'];
+
+  /**
+   * Reachable heat + a pot IS a kitchen: the cooking verbs ride the pot
+   * (carried or present), not the venue — the step path (`pour`/`stir`/
+   * `heat`/`plate`) and the earned one-shot (`cook`).
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    environment: [
+      'crafting/pour.yaml',
+      'crafting/stir.yaml',
+      'crafting/heat.yaml',
+      'crafting/plate.yaml',
+      'crafting/cook.yaml',
+    ],
+    inventory: [
+      'crafting/pour.yaml',
+      'crafting/stir.yaml',
+      'crafting/heat.yaml',
+      'crafting/plate.yaml',
+      'crafting/cook.yaml',
+    ],
+    peers: [],
+  };
 }

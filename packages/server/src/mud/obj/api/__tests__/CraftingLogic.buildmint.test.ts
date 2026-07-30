@@ -121,7 +121,7 @@ describe("CraftingApi.mintFromBuild", () => {
     const maker = makeStuffAtPath(() => new TestMaker(), DAVE);
     const glass = makeGlass();
     const outcome = await mintAs(maker, {
-      glass,
+      vessel: glass,
       contributions: martiniBuild,
     });
     expect(outcome.ok).toBe(true);
@@ -143,7 +143,7 @@ describe("CraftingApi.mintFromBuild", () => {
   it("derives the weakest-link grade across the buffer", async () => {
     const glass = makeGlass();
     const outcome = await mintAs(makeStuffAtPath(() => new TestMaker(), DAVE), {
-      glass,
+      vessel: glass,
       contributions: [
         { category: "gin", measureL: 0.06, gradeBand: "fine" },
         { category: "vermouth", measureL: 0.06, gradeBand: "poor" },
@@ -155,7 +155,7 @@ describe("CraftingApi.mintFromBuild", () => {
   it("mints a generic 'mixed drink' for an off-spec build (no recipe match)", async () => {
     const glass = makeGlass();
     const outcome = await mintAs(makeStuffAtPath(() => new TestMaker(), DAVE), {
-      glass,
+      vessel: glass,
       contributions: [{ category: "gin", measureL: 0.06, gradeBand: "fine" }],
     });
     expect(outcome.ok).toBe(true);
@@ -173,7 +173,7 @@ describe("CraftingApi.mintFromBuild", () => {
     // No tagActingAuthor → getActingAuthor is null; makerPath carries it.
     const outcome = await ExecutionContextApi.runRoot(null, "test", () =>
       CraftingApi.mintFromBuild({
-        glass,
+        vessel: glass,
         contributions: martiniBuild,
         makerPath: DAVE,
       }),
@@ -186,7 +186,7 @@ describe("CraftingApi.mintFromBuild", () => {
   });
 
   it("declines an empty build", async () => {
-    const outcome = await mintAs(null, { glass: makeGlass(), contributions: [] });
+    const outcome = await mintAs(null, { vessel: makeGlass(), contributions: [] });
     expect(outcome).toMatchObject({ ok: false, reason: "insufficient-input" });
   });
 });

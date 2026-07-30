@@ -79,21 +79,9 @@ export default class HammerController extends ManualBuildController<HammerModel>
       beginSelf: Mml.compose`You set ${Mml.item(target)} on the anvil and begin to hammer.`,
       beginPeers: Mml.compose`${Mml.name(giver)} hammers at ${Mml.item(target)}, ringing the anvil.`,
       onComplete: () => {
-        // Bank the workpiece's matter once — the forming work.
-        if (!build.getContributions().some((c) => c.kind === 'item')) {
-          const material = build.getMaterial()!;
-          build.addContribution({
-            category: material.getName().toLowerCase(),
-            measureL: 0,
-            gradeBand: MixinApi.isGraded(build)
-              ? build.getGradeBand()
-              : 'fair',
-            kind: 'item',
-            count: 1,
-            tags: [...material.getTags()],
-            materialPath: material.getTemplatePath() ?? undefined,
-          });
-        }
+        // Bank the workpiece's matter — the forming work. The once-rule
+        // is the substrate's (`bankWorkpiece` is idempotent per build).
+        build.bankWorkpiece();
         build.recordCommand(commandText);
         // The hammer wears with the work (Law 2).
         if (MixinApi.isDurable(striker)) striker.wear();

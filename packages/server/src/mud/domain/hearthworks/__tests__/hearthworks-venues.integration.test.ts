@@ -34,6 +34,7 @@ import CookPot from '../../../obj/CookPot';
 import Dish from '../../../obj/Dish';
 import Weapon from '../../../lib/equipment/Weapon';
 import ToolItem from '../../../lib/craft/ToolItem';
+import Anvil from '../../../lib/craft/Anvil';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import LoungeMenu from '../../../domain/lounge/Menu';
 import SmithyMenu from '../SmithyMenu';
@@ -239,20 +240,31 @@ afterEach(() => {
 });
 
 describe('the venue menus', () => {
-  it('each venue menu affords its own verb set off the one commerce base', () => {
-    const smithy = SmithyMenu.commandContributions.environment;
-    expect(smithy).toContain('crafting/forge.yaml');
-    expect(smithy).toContain('crafting/order.yaml');
-    expect(smithy).not.toContain('crafting/mix.yaml');
+  it('every menu affords commerce only; instruments carry the working verbs', () => {
+    // Menus = menu/order, any venue (inherited off the commerce base).
+    const commerce = ['crafting/menu.yaml', 'crafting/order.yaml'];
+    for (const cls of [SmithyMenu, KitchenMenu, LoungeMenu]) {
+      expect(cls.commandContributions.environment).toEqual(commerce);
+      expect(cls.commandContributions.inventory).toEqual(commerce);
+    }
 
-    const kitchen = KitchenMenu.commandContributions.environment;
-    expect(kitchen).toContain('crafting/cook.yaml');
-    expect(kitchen).toContain('crafting/pour.yaml');
-    expect(kitchen).not.toContain('crafting/forge.yaml');
+    // The working verbs ride the instruments.
+    const anvil = Anvil.commandContributions.environment;
+    expect(anvil).toContain('crafting/hammer.yaml');
+    expect(anvil).toContain('crafting/forge.yaml');
+    expect(anvil).toContain('crafting/repair.yaml');
+    expect(anvil).not.toContain('crafting/mix.yaml');
 
-    const bar = LoungeMenu.commandContributions.environment;
-    expect(bar).toContain('crafting/mix.yaml');
-    expect(bar).not.toContain('crafting/forge.yaml');
+    const pot = CookPot.commandContributions.environment;
+    expect(pot).toContain('crafting/cook.yaml');
+    expect(pot).toContain('crafting/pour.yaml');
+    expect(pot).not.toContain('crafting/forge.yaml');
+
+    // `heat` is the furnace's (the fire is the instrument) + the pot's.
+    expect(Forge.commandContributions.environment).toContain(
+      'crafting/heat.yaml',
+    );
+    expect(pot).toContain('crafting/heat.yaml');
 
     // All three ARE commerce menus (resolveIn's instanceof filter).
     expect(makeStuff(() => new SmithyMenu())).toBeInstanceOf(CommerceMenu);

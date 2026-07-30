@@ -13,7 +13,6 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { CraftingApi } from '../../../api/crafting';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
-import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
@@ -27,21 +26,9 @@ export default class CookController extends CraftController<CookModel> {
   async execute(model: CookModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    const view = await CraftingApi.lookupRecipe(model.dish);
-    if (view && !(await RecipeKnowledge.canMake(giver, view.recipeId))) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`You've heard of ${view.name}, but you haven't learned to cook it — work it by hand first.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'not-learned',
-        detail: model.dish,
-      });
-      return;
-    }
+    // The knowledge gate: the book/menu gives the claim, the hands earn
+    // the shorthand (the shared `requireDeed` gate).
+    if (!(await this.requireDeed(context, model.dish, 'cook'))) return;
 
     const outcome = await CraftingApi.craft({
       recipeRef: model.dish,

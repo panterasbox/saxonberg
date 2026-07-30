@@ -6,11 +6,12 @@
  * tied to the maker or the kitchen. The offer is a distinct concept from
  * craftability (a place can offer what it doesn't make) and from where the
  * crafting happens (order at the table, made in the back) — so the menu is
- * a `Thing` that merely references recipe ids. Its presence in a room is
- * what lights up a venue's crafting verb surface — but the *verb set* is
- * per-venue (a smithy menu affords `forge`, the bar's affords `mix`), so
- * `commandContributions` lives on the venue subclasses
- * (`domain/lounge/Menu`, `domain/hearthworks/SmithyMenu`, …), never here.
+ * a `Thing` that merely references recipe ids. A menu affords **commerce
+ * only** — `menu` (read the offer) and `order` (buy off it). The working
+ * verbs (`pour`/`hammer`/`cook`/…) are conferred by the *instruments*
+ * that do the work (the shaker, the pot, the anvil — see
+ * `CocktailShaker`, `CookPot`, `lib/craft/Anvil`): the menu is for
+ * ordering, not making.
  *
  * Composes `Thing` (Tangible + Perceptible + Containable + Visible) +
  * `Detailed` + `PricedOffer`, so it sits in the room, resolves by
@@ -21,7 +22,7 @@ import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { PricedOfferMixin } from './PricedOffer';
 import { MqlApi } from '../../api/mql';
-import type { CommandContext } from '../../api/command';
+import type { CommandContext, CommandContributions } from '../../api/command';
 import { CraftingApi } from '../../api/crafting';
 
 // Thing already composes Visible + Perceptible + Tangible + Containable;
@@ -31,6 +32,17 @@ const CommerceMenuBase = PricedOfferMixin(DetailedMixin(Thing));
 export default class CommerceMenu extends CommerceMenuBase {
   // `prices` rides in via PricedOfferMixin; only the offer list is local.
   static persistentFields = ['offeredRecipes'];
+
+  /**
+   * The commerce surface — every menu, any venue: read the offer, order
+   * off it. Working verbs are instrument-conferred, never menu-conferred.
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    environment: ['crafting/menu.yaml', 'crafting/order.yaml'],
+    inventory: ['crafting/menu.yaml', 'crafting/order.yaml'],
+    peers: [],
+  };
 
   /**
    * Resolve the menu an `order` / `menu` command works off: the affording

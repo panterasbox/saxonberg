@@ -27,6 +27,8 @@
  */
 
 import type { MixinConstructor } from "../mixin";
+import type { Stuff } from "../stuff/Stuff";
+import { MixinApi } from "../../api/mixin";
 import { Grade } from "./Grade";
 
 /** How the build was worked — recorded by `stir` / `shake`. */
@@ -59,6 +61,17 @@ export interface BuildContribution {
 export interface Builds {
   /** Bank a completed pour/add into the build buffer. */
   addContribution(contribution: BuildContribution): void;
+  /**
+   * Bank the host's **own matter** as the build's item contribution —
+   * the forming work (`hammer`) is what turns the workpiece itself into
+   * a build. **Idempotent per build**: the first call banks, later calls
+   * no-op until `clearBuild` (hammering more shapes the metal, it
+   * doesn't multiply it) — the once-rule lives here, in the substrate,
+   * so no verb (core or authored) can double-bank. Returns true when a
+   * contribution was banked; false when one was already banked or the
+   * host carries no material to bank.
+   */
+  bankWorkpiece(): boolean;
   /** The contributions banked so far (snapshot-safe). */
   getContributions(): readonly BuildContribution[];
   /** Record how the build was worked. */
@@ -110,6 +123,24 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     addContribution(contribution: BuildContribution): void {
       this._contributions.push({ ...contribution });
+    }
+
+    bankWorkpiece(): boolean {
+      if (this._contributions.some((c) => c.kind === "item")) return false;
+      const host = this as unknown as Stuff;
+      if (!MixinApi.isTangible(host)) return false;
+      const material = host.getMaterial();
+      if (!material) return false;
+      this.addContribution({
+        category: material.getName().toLowerCase(),
+        measureL: 0,
+        gradeBand: MixinApi.isGraded(host) ? host.getGradeBand() : "fair",
+        kind: "item",
+        count: 1,
+        tags: [...material.getTags()],
+        materialPath: material.getTemplatePath() ?? undefined,
+      });
+      return true;
     }
 
     getContributions(): readonly BuildContribution[] {

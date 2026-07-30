@@ -118,6 +118,7 @@ export default class Avatar extends AvatarBase {
       "shell/script.yaml",
       "stream/watch.yaml",
       "stream/tune.yaml",
+      "crafting/make.yaml",
     ],
     environment: [],
     inventory: [],

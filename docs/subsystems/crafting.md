@@ -300,18 +300,34 @@ inherited `prices`/`priceFor` (Law 1: worth on the offer — the same
 `PricedOfferMixin` the store's `Stock` composes), and the offer-listing
 `getLong()`.
 
-What it deliberately does **not** own is `commandContributions` — the
-*verb set* is per-venue, so each venue subclasses it with its own
-affordances (the menu's presence lights the verbs up; the room is never
-flagged):
+A menu affords **commerce only** — the base's `commandContributions` is
+`menu`/`order`, any venue, and the venue subclasses
+(`domain/lounge/Menu`, `SmithyMenu`, `KitchenMenu`) are now empty
+template-path anchors (seed `class:` refs + bar parity untouched). The
+*working* verbs are **instrument-conferred** — the tool that does the
+work carries its verb family, so the surface follows capital, not
+venue flags (the menu is for ordering, not making; camp cooking works
+because reachable heat + a pot IS a kitchen):
 
-- **`domain/lounge/Menu`** — the bar's, at its original template path
-  (bar parity untouched): `menu`/`order`/`serve`/`mix` + the vessel
-  build verbs.
-- **`domain/hearthworks/SmithyMenu`** — `menu`/`order`/`forge` + the
-  smithing steps (`heat`/`hammer`/`quench`) + `repair`/`salvage`/`make`.
-- **`domain/hearthworks/KitchenMenu`** — `menu`/`order`/`cook` + the
-  cooking steps (`pour`-as-`add`/`stir`/`heat`/`plate`) + `make`.
+- **`CocktailShaker`** (shaker / mixing glass) —
+  `pour`/`stir`/`strain`/`garnish` + the atomic `serve`/`mix`.
+- **`CookPot`** — `pour`/`stir`/`heat`/`plate` + the earned `cook`.
+- **`lib/craft/Anvil`** — `hammer`/`quench` + the earned `forge` +
+  `repair`/`salvage`.
+- **`lib/craft/SewingKit`** (the `mending` capability) —
+  `repair`/`salvage` for soft goods.
+- **`lib/craft/Whetstone`** — `sharpen` (carried-only — personal
+  capital).
+- **`FurnaceMixin`** — `heat` (with `ignite`/`douse`/`pump`): the fire
+  is the heat instrument.
+- **`make`** — innate on `Avatar` (`self` bucket): knowledge-driven,
+  no instrument.
+
+The end state is a **capability-keyed affordance table** (capability →
+verb family read from instance data, so `capabilities: [pot]` in a seed
+confers the family with zero code) — that needs the affordance walk to
+consult instances, its own follow-up build; per-class statics are the
+interim.
 
 `MenuController`/`OrderController` import the lib base, so `order` is
 venue-generic: a smithy with a menu and an on-shift maker just works.
@@ -319,8 +335,11 @@ venue-generic: a smithy with a menu and an on-shift maker just works.
 ## Verbs (the `crafting` command category)
 
 `mud/cmd/crafting/*.yaml` views + `mud/obj/command/crafting/*Controller.ts`.
-A `CraftController` base centralizes decline rendering; all controllers
-return `void`, emitting via `ctx.note` + `MessageApi.scene`.
+A `CraftController` base centralizes decline rendering
+(`declineToScene`) **and the can-make deed gate** (`requireDeed` — the
+one gate `forge`/`cook`/`make` share; a non-catalogue ref passes
+ungated, `order` never calls it); all controllers return `void`,
+emitting via `ctx.note` + `MessageApi.scene`.
 
 - **`menu`** — render the present Menu's offer.
 - **`order <item> [with <brand>]`** — maker = **fulfilling maker**
@@ -390,8 +409,10 @@ against it at the mint; reset by `clearBuild`).
   a fire that dies mid-step latches nothing) → `hammer [<workpiece>]`
   (engaged; requires a reachable `striking` tool + `anvil` capability +
   a workpiece that has taken heat; **banks the workpiece's own
-  item-contribution once** — the forming work turns matter into a
-  build; the hammer wears) → `quench [<workpiece>]` (the terminal
+  item-contribution once** via the substrate's idempotent
+  `Builds.bankWorkpiece()` — the once-rule lives on the mixin, not in
+  the verb, so no authored verb can double-bank; the hammer wears) →
+  `quench [<workpiece>]` (the terminal
   mint — `mintFromBuild` with `workpiece`: a matched tangible recipe
   clones its output and the workpiece's Material + mass flow onto it,
   the workpiece consumed; an off-spec build mints a **generic worked

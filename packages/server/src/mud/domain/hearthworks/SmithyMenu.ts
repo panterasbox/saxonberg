@@ -1,40 +1,13 @@
 /**
  * SmithyMenu — the Hearthworks smithy's offer: the venue subclass of
- * {@link CommerceMenu} carrying the smithing verb surface. `order` routes
- * to the on-shift smith (the served path); `forge` is the earned one-shot
- * (deed-gated); the by-hand step verbs (`heat`/`hammer`/`quench`) and the
- * maintenance verbs (`repair`/`salvage`) join the surface with their
- * phases of the crafting-branches build.
+ * {@link CommerceMenu} (which owns the commerce affordances —
+ * `menu`/`order`). The smithing *working* verbs ride the instruments,
+ * not the menu: the anvil (`lib/craft/Anvil`) confers `hammer`/`quench`/
+ * `forge` + `repair`/`salvage`, the furnace confers `heat` (with
+ * `ignite`/`douse`/`pump`), the carried whetstone confers `sharpen`.
+ * Stays at this template path for the smithy seed's `class:` reference.
  */
 
 import CommerceMenu from '../../lib/commerce/Menu';
-import type { CommandContributions } from '../../api/command';
 
-export default class SmithyMenu extends CommerceMenu {
-  static commandContributions: CommandContributions = {
-    self: [],
-    environment: [
-      'crafting/menu.yaml',
-      'crafting/order.yaml',
-      'crafting/forge.yaml',
-      'crafting/heat.yaml',
-      'crafting/hammer.yaml',
-      'crafting/quench.yaml',
-      'crafting/repair.yaml',
-      'crafting/salvage.yaml',
-      'crafting/make.yaml',
-    ],
-    inventory: [
-      'crafting/menu.yaml',
-      'crafting/order.yaml',
-      'crafting/forge.yaml',
-      'crafting/heat.yaml',
-      'crafting/hammer.yaml',
-      'crafting/quench.yaml',
-      'crafting/repair.yaml',
-      'crafting/salvage.yaml',
-      'crafting/make.yaml',
-    ],
-    peers: [],
-  };
-}
+export default class SmithyMenu extends CommerceMenu {}

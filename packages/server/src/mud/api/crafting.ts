@@ -97,7 +97,7 @@ export interface RecipeView {
 /**
  * The manual-build terminal-mint request. The shaker's accumulated
  * buffer is reverse-matched to a recipe (for the output material + grade
- * floor + recipe id) and the destination glass is filled + stamped. The
+ * floor + recipe id) and the destination vessel is filled + stamped. The
  * maker is derived from execution context, never the wire (as with
  * {@link CraftRequest}); the inputs were already debited off the bottles
  * at pour-time, so the mint does not re-consume.
@@ -107,7 +107,7 @@ export interface BuildMintRequest {
    * The destination vessel for a bulk/edible mint — a Crafted + Bulkable
    * glass or dish. Absent for a smithing (workpiece) mint.
    */
-  glass?: Stuff;
+  vessel?: Stuff;
   /**
    * The smithing workpiece (the heated, hammered stock — itself the
    * build buffer). A tangible mint consumes it: its Material + mass flow
@@ -226,7 +226,7 @@ export class CraftingApi {
    * Mint a drink from a completed manual build — the terminal-step
    * sibling of {@link craft}. Reverse-matches the accumulated buffer to a
    * recipe (generic `mixed drink` if none), derives the weakest-link
-   * grade, fills the destination glass, and stamps it with the maker's
+   * grade, fills the destination vessel, and stamps it with the maker's
    * mark — reusing the **one** quality model (`Grade` +
    * `CraftedMixin.stamp`). The inputs were debited at pour-time, so this
    * does not re-consume. See {@link CraftingLogic.mintFromBuild}.

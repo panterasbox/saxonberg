@@ -79,7 +79,7 @@ export default class PlateController extends ManualBuildController<PlateModel> {
           built.recordCommand(commandText);
           const sources = built.getCommandSources();
           const outcome = await CraftingApi.mintFromBuild({
-            glass: into,
+            vessel: into,
             contributions: [...built.getContributions()],
             heatedToK: built.getHeatedToK(),
             makerPath,
