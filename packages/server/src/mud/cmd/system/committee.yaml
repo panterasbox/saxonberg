@@ -10,7 +10,7 @@ help: |
 
   `committee` shows the committee over where you stand: the group, its
   subdivision, its members, and its chat channel if one exists.
-  `committee <path>` asks about an explicit content path.
+  `committee show <path>` asks about an explicit content path.
 
   `committee channel` ensures the committee's chat channel exists and
   names it — committees get their own frequencies; the audience is the
@@ -18,13 +18,21 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
+  show:
+    description: "Show the committee here (or over an explicit path)"
+    help: |
+      The committee of record — the title-holding group — over where
+      you stand, or over an explicit content path when one is given.
+    examples:
+      - cmd: committee show /domain/lounge
+        note: Who administers the lounge?
+    args:
+      - name: path
+        type: string
+        required: false
   channel:
     description: "Ensure + show this committee's chat channel"
     help: |
       Resolve the committee over where you stand and ensure its chat
       channel exists (idempotent — an existing channel is simply named).
       The channel's audience is the committee group.
-args:
-  - name: path
-    type: string
-    required: false
