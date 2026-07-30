@@ -10,7 +10,7 @@ import type {
   RenownScope,
 } from '../../lib/standing/RenownEvent';
 import RenownStanding, {
-  COOPERATIVE_WIDE,
+  COMPACT_WIDE,
 } from '../../lib/standing/RenownStanding';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -90,7 +90,7 @@ async function appendImpl(fields: RenownEventFields): Promise<void> {
 
 /**
  * Scope containment — does this event count toward `scope`? `null` =
- * cooperative-wide (every event); a `Group` ref matches the `groups`
+ * Compact-wide (every event); a `Group` ref matches the `groups`
  * axis; a locality prefix matches the exact or any nested `locality`.
  * The single definition the raw reader and (later) the recompute share.
  */
@@ -362,9 +362,9 @@ function scoreEvents(
   return (reactionTotal + reception) * vf.qualityWeight;
 }
 
-/** Map a query scope to its stored key (`null` → cooperative-wide sentinel). */
+/** Map a query scope to its stored key (`null` → Compact-wide sentinel). */
 function scopeKey(scope: RenownScope): string {
-  return scope ?? COOPERATIVE_WIDE;
+  return scope ?? COMPACT_WIDE;
 }
 
 /** Upsert one materialized standing row (find-or-insert by {subject, scope}). */
@@ -390,7 +390,7 @@ async function upsertStanding(
  * event log through the current value-function into the materialized
  * aggregate. Reads ONLY the renown log + AppSettings — never the belief
  * store. The materialized scope set per subject is derived from that
- * subject's own events: {cooperative-wide} ∪ its groups ∪ its localities.
+ * subject's own events: {Compact-wide} ∪ its groups ∪ its localities.
  */
 async function recomputeImpl(): Promise<void> {
   if (!active()) return;
@@ -566,7 +566,7 @@ export class RenownLogic extends ApiLogic {
 
   /**
    * Raw, scope-filtered log reader. Returns the subject's signal rows that
-   * fall within `scope` (default: cooperative-wide). The unscored
+   * fall within `scope` (default: Compact-wide). The unscored
    * substrate read — the recompute scores; consumers read the aggregate.
    * See {@link RenownApi.eventsFor}.
    */

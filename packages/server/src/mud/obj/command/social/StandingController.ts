@@ -56,10 +56,10 @@ export default class StandingController extends CommandController<CommandModel> 
         : 'You show up and take part.';
     const regard =
       renown > 0
-        ? 'The cooperative regards you well.'
+        ? 'The Compact regards you well.'
         : renown < 0
-          ? 'The cooperative regards you poorly.'
-          : 'The cooperative has yet to form a view of you.';
+          ? 'The Compact regards you poorly.'
+          : 'The Compact has yet to form a view of you.';
 
     const blocks: string[] = [
       Mml.strong('Your standing').toString(),

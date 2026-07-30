@@ -11,7 +11,7 @@
  * never awaits.
  *
  * Participation has no scope partition (it is not scope-tagged the way
- * reactions are) — every standing is cooperative-wide, the sentinel `'*'`.
+ * reactions are) — every standing is Compact-wide, the sentinel `'*'`.
  * The `scope` field + `{subject, scope}` shape are retained for parity
  * with `RenownStanding` (and so the read key composes the same way).
  * `value` is the recency-decayed active-bucket count.
@@ -21,7 +21,7 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 import { SecurityApi } from '../../api/security';
 
-/** The stored `scope` sentinel — participation is cooperative-wide only. */
+/** The stored `scope` sentinel — participation is Compact-wide only. */
 export const PARTICIPATION_WIDE = '*';
 
 export default class ParticipationStanding extends Document {
@@ -36,7 +36,7 @@ export default class ParticipationStanding extends Document {
 
   /** Durable subject id the standing is about. */
   subject = '';
-  /** Scope key — always `'*'` (cooperative-wide) in v1. */
+  /** Scope key — always `'*'` (Compact-wide) in v1. */
   scope = PARTICIPATION_WIDE;
   /** The recency-decayed active-bucket count (always ≥ 0). */
   value = 0;

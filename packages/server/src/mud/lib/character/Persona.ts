@@ -71,6 +71,10 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // universal: the jurisdiction chain over where you stand and your
         // residency are public reads.
         'civics/government.yaml',
+        // The `committee` verb (system — META administration: the group
+        // holding title over a subdivision) — a public read like the two
+        // above; the one mutation (channel ensure) is idempotent.
+        'system/committee.yaml',
       ],
       environment: [],
       inventory: [],

@@ -9,7 +9,7 @@
  * in-memory `_cache` warmed at boot (mirroring `ParticipationStanding` /
  * `RenownStanding`), so the read surface never awaits.
  *
- * Producer has no scope partition — every standing is cooperative-wide, the
+ * Producer has no scope partition — every standing is Compact-wide, the
  * sentinel `'*'`. The `scope` field + `{subject, scope}` shape are retained
  * for parity with its siblings (and so the read key composes the same way).
  * `subject` is the author's durable `templatePath`; `value` is the
@@ -23,7 +23,7 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 import { SecurityApi } from '../../api/security';
 
-/** The stored `scope` sentinel — producer is cooperative-wide only. */
+/** The stored `scope` sentinel — producer is Compact-wide only. */
 export const PRODUCER_WIDE = '*';
 
 export default class ProducerStanding extends Document {
@@ -38,7 +38,7 @@ export default class ProducerStanding extends Document {
 
   /** Durable author id the standing is about. */
   subject = '';
-  /** Scope key — always `'*'` (cooperative-wide) in v1. */
+  /** Scope key — always `'*'` (Compact-wide) in v1. */
   scope = PRODUCER_WIDE;
   /** The recency-decayed, weighted attributed-engagement count (always ≥ 0). */
   value = 0;

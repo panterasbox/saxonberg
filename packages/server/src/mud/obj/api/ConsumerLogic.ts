@@ -186,7 +186,7 @@ async function upsertStanding(
 /**
  * The batch recompute: re-score every subject's participation from the raw
  * bucket log into the materialized aggregate. Reads ONLY the participation
- * log + AppSettings. Cooperative-wide only — no scope partition.
+ * log + AppSettings. Compact-wide only — no scope partition.
  */
 async function recomputeImpl(): Promise<void> {
   if (!active()) return;

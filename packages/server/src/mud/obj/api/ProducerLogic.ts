@@ -195,7 +195,7 @@ async function upsertStanding(
 /**
  * The batch recompute: re-score every author's production from the raw
  * attributed-engagement log into the materialized aggregate. Reads ONLY the
- * producer log + AppSettings. Cooperative-wide only — no scope partition.
+ * producer log + AppSettings. Compact-wide only — no scope partition.
  * Groups by `author` (the routing key).
  */
 async function recomputeImpl(): Promise<void> {
