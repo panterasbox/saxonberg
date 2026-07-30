@@ -24,11 +24,13 @@ import Ingot from '../../../Ingot';
 import Casting from '../../../Casting';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import RecipeCatalogue from '../../../RecipeCatalogue';
 import {
   TestActor,
   TestKnife,
   IRON,
   standUpBranchHarness,
+  type BranchHarness,
   makeContext,
   ref,
   completeStep,
@@ -52,6 +54,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 
 let seq = 0;
+let harness: BranchHarness;
 let room: TestActor;
 let actor: TestActor;
 
@@ -65,7 +68,7 @@ function makeIngot(massKg = 0.5): Ingot {
 }
 
 beforeEach(async () => {
-  await standUpBranchHarness();
+  harness = await standUpBranchHarness();
   room = makeStuff(() => new TestActor());
   actor = makeStuffAtPath(() => new TestActor(), `/obj/Avatar/smith-${seq++}`);
   ContainmentApi.move(actor, room);
@@ -212,6 +215,84 @@ describe('the by-hand smithing path', () => {
     expect(lump.getMass().rawValue()).toBeCloseTo(0.5, 9);
     expect(MixinApi.isCrafted(lump)).toBe(false); // no mark on a lump
     expect(ingot.isDestroyed()).toBe(true);
+  });
+
+  it('the work determines the form: the hottest satisfied recipe wins', async () => {
+    // The smithing ladder's ambiguity: poker (700 K) and knife (1400 K)
+    // are both one ferrous item — only the heat gates differ.
+    harness.store['recipes']!.push({
+      recipeId: 'fire-poker',
+      name: 'Fire Poker',
+      keywords: ['poker'],
+      inputSlots: [
+        { slot: 'stock', category: 'ferrous', minGrade: 'poor', kind: 'item', count: 1 },
+      ],
+      toolCapabilities: ['striking', 'anvil'],
+      outputTemplate: '/obj/arms/fire-poker',
+      outputMaterial: '',
+      baseGradeBand: '',
+      requiresHeatK: 700,
+      outputApplication: 'tangible',
+      difficulty: 'trivial',
+      discipline: 'smithing',
+    });
+    await StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/obj/RecipeCatalogue',
+    )!.warm();
+
+    ContainmentApi.move(makeTool('striking'), room);
+    ContainmentApi.move(makeTool('anvil'), room);
+
+    // Worked at knife heat (bellowsed, 2080 K) → the knife, not the poker.
+    ContainmentApi.move(makeLitForge(true), room);
+    const hot = makeIngot();
+    ContainmentApi.move(hot, room);
+    for (const [Ctor, ms] of [
+      [HeatController, 4000],
+      [HammerController, 5000],
+      [QuenchController, 2500],
+    ] as const) {
+      await executeAs(actor, () =>
+        makeStuff(() => new Ctor()).execute(
+          { target: ref(hot, 'ingot') } as never,
+          makeContext(actor, room, 'step'),
+        ),
+      );
+      await completeStep(ms);
+    }
+    const first = actor
+      .getContents()
+      .find((c) => c instanceof TestKnife) as TestKnife;
+    expect(
+      (first as unknown as { getRecipe(): string }).getRecipe(),
+    ).toBe('belt-knife');
+
+    // Worked at banked heat only (1300 K < the knife's 1400) → the poker.
+    const room2 = makeStuff(() => new TestActor());
+    ContainmentApi.move(actor, room2);
+    ContainmentApi.move(makeLitForge(false), room2);
+    ContainmentApi.move(makeTool('striking'), room2);
+    ContainmentApi.move(makeTool('anvil'), room2);
+    const cool = makeIngot();
+    ContainmentApi.move(cool, room2);
+    for (const [Ctor, ms] of [
+      [HeatController, 4000],
+      [HammerController, 5000],
+      [QuenchController, 2500],
+    ] as const) {
+      await executeAs(actor, () =>
+        makeStuff(() => new Ctor()).execute(
+          { target: ref(cool, 'ingot') } as never,
+          makeContext(actor, room2, 'step'),
+        ),
+      );
+      await completeStep(ms);
+    }
+    const minted = actor
+      .getContents()
+      .filter((c) => c instanceof TestKnife)
+      .map((c) => (c as unknown as { getRecipe(): string }).getRecipe());
+    expect(minted).toContain('fire-poker');
   });
 
   it('a barge-in mid-step leaves the buffer partial', async () => {

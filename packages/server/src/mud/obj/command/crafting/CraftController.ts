@@ -53,9 +53,21 @@ function declineMessage(failure: CraftingFailure): string {
     case 'missing-tool':
       return `There's no ${detail || 'tool'} here to make that with.`;
     case 'insufficient-input':
-      return detail === 'no-location'
-        ? "You can't make that here."
-        : `There isn't enough ${detail || 'stock'} to make that.`;
+      // The service acts' details read as states, not stock.
+      if (detail === 'no-location') return "You can't make that here.";
+      if (detail === 'nothing-to-repair') {
+        return "It's already sound — there's nothing to repair.";
+      }
+      if (detail === 'not-durable' || detail === 'not-salvageable') {
+        return "That isn't something this kind of work applies to.";
+      }
+      if (detail === 'build-in-use') {
+        return "There's a build still working in it — finish or empty it first.";
+      }
+      if (detail === 'no-material' || detail === 'no-matter') {
+        return "There's no honest matter in it to recover.";
+      }
+      return `There isn't enough ${detail || 'stock'} to make that.`;
     case 'insufficient-heat':
       return 'Nothing here runs hot enough for that — the forge is cold, or there is no fire at all.';
     case 'no-recipe':

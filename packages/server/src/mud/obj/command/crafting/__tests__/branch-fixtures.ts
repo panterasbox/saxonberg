@@ -282,7 +282,7 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
   });
 
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
-    if (path === KNIFE_T) {
+    if (path === KNIFE_T || path === '/obj/arms/fire-poker') {
       return makeStuff(() => new TestKnife()) as never;
     }
     if (path === DISH_T) {

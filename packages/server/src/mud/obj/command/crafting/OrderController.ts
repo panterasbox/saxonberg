@@ -79,6 +79,16 @@ export default class OrderController extends CraftController<OrderModel> {
       return;
     }
 
+    // Stand the venue's operator up BEFORE resolving the maker: the
+    // Business is derived + stood up lazily (no standup hook), and its
+    // on-shift conferral is what makes the present crafter an active
+    // `MakerMixin` — a cold venue's first customer must find the roster
+    // already on shift, not a no-maker decline.
+    const venuePathForMaker = context.location?.getTemplatePath();
+    if (venuePathForMaker) {
+      await EmploymentApi.ensureOperatorAt(venuePathForMaker);
+    }
+
     const outcome = await CraftingApi.craft({
       recipeRef: recipeId,
       makerMode: 'fulfilling-bartender',

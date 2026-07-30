@@ -106,7 +106,13 @@ export class RecipeSeeder {
         `RecipeSeeder: recipe '${entry.recipeId}' missing 'outputTemplate'`,
       );
     }
-    if (typeof entry.outputMaterial !== 'string' || !entry.outputMaterial) {
+    // A tangible (transform) recipe authors NO outputMaterial — the
+    // chosen input's Material flows onto the output. Bulk/edible recipes
+    // still must name the substance they mint.
+    if (
+      entry.outputApplication !== 'tangible' &&
+      (typeof entry.outputMaterial !== 'string' || !entry.outputMaterial)
+    ) {
       throw new Error(
         `RecipeSeeder: recipe '${entry.recipeId}' missing 'outputMaterial'`,
       );

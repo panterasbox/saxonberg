@@ -4,6 +4,6 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a wrapped cut of stew meat
   primaryKeyword: meat
-  keywords: [meat, cut, cuts]
+  keywords: [meat, stew-meat, stew, cut, cuts]
   _materialPath: /lib/material/food/stew-meat
   mass: 0.4

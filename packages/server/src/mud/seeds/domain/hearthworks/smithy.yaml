@@ -26,5 +26,6 @@ data:
     - /domain/hearthworks/workbench
     - /obj/gear/smiths-hammer
     - /domain/hearthworks/hide-stock
+    - /domain/hearthworks/whetstone
     - /domain/hearthworks/smithy-menu
     - /domain/hearthworks/npc/smith

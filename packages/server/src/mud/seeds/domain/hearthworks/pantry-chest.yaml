@@ -10,9 +10,9 @@ data:
   longDescription: |
     A broad pantry chest, lid thrown back, packed with roots and wrapped cuts.
   open: true
+  # A fixture by encumbrance (the anvil rule): nobody walks off with
+  # the pantry.
+  mass: 90
   populates:
-    - /domain/hearthworks/root-vegetables
-    - /domain/hearthworks/root-vegetables-2
-    - /domain/hearthworks/stew-meat
     - /domain/hearthworks/prime-cut
     - /domain/hearthworks/ration-stock

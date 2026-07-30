@@ -502,20 +502,28 @@ function consumeBulkInputs(matched: MatchedInput[]): void {
  * count is covered by item contributions (category by the same tag rule
  * `craftImpl` matches with, grade at/above the floor), AND no
  * contribution is left over — a faithful build is exactly the recipe,
- * not a superset. Returns the first satisfied recipe, or null (an
- * off-spec build → the generic mint). The knowledge/deed gate rides on
- * top of this match.
+ * not a superset. When several recipes are satisfied by the same buffer
+ * (the smithing ladder: poker and knife are both one ferrous item —
+ * only their heat gates differ), **the work determines the form**: the
+ * most heat-demanding satisfied recipe wins (you worked it at knife
+ * heat, you drew a knife; ease off the bellows to make the poker).
+ * Ties fall to catalogue order. Returns null for an off-spec build
+ * (→ the generic mint). The knowledge/deed gate rides on top.
  */
 function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
 ): Recipe | null {
+  let best: Recipe | null = null;
   for (const recipe of recipes) {
     if (recipe.getRequiresHeatK() > heatedToK) continue; // never worked hot enough
-    if (buildSatisfies(recipe, contributions)) return recipe;
+    if (!buildSatisfies(recipe, contributions)) continue;
+    if (!best || recipe.getRequiresHeatK() > best.getRequiresHeatK()) {
+      best = recipe;
+    }
   }
-  return null;
+  return best;
 }
 
 /** Whether `contributions` exactly cover `recipe`'s slots (no leftovers). */
