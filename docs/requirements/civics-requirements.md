@@ -67,19 +67,33 @@ doctrine, not deferral.
   where you stand plus each government's roster (seats, departments,
   charter pointer); a `residency` subcommand shows your
   domicile-derived chain. Read-only in v1.
-- The **first real Saxonberg address roster** is authored: a
-  `terminus` root Locality and a `terminus/campus` (name flexible)
-  Locality covering the existing campus/Warren content, wired so that
-  dorm rooms resolve to a real address (via zone-level address or
-  declared `_address`, whichever the content shape wants). The
-  demonstrative `narnia/*` roster stays for tests.
-- The **flagship instance**: a Terminus `Government` (the young
-  retrofit administration, per the staging fiction), declared on the
-  `terminus` Locality; **one department** — the Registry — as a
-  Business on an authored venue room with one clerk NPC employed on
-  its roster; **one seat** (the Magistrate) defined over a Registry
-  position, with `holdsSeat` provable. The office-build precedent:
-  substrate + exactly one wired consumer.
+- The **first real Saxonberg address roster** is authored as the
+  three-tier chain locked in terminus-city.md §8: `terminus` (the
+  realm root — the existing Locality, re-purposed to the realm tier),
+  `terminus/city` (new city Locality), and `terminus/city/campus`
+  (new campus Locality). Existing `terminus/*` content addresses
+  (terminal, etc.) re-root under `terminus/city/…`; dorm rooms
+  resolve `terminus/city/campus/duncan-hall` via declared `_address`.
+  The demonstrative `narnia/*` roster stays for tests.
+- The **flagship is the three-government stack** (the state-capital
+  model — realm seat colocated in the city, jurisdictions never
+  fused):
+  - **The Realm of Terminus** — thin: identity + jurisdiction on the
+    `terminus` root; no departments or seats in v1.
+  - **The City of Terminus** — the wired consumer (the office-build
+    precedent): declared on `terminus/city`; **one department** — the
+    Registry — as a Business on an authored venue room with one clerk
+    NPC on its roster; **one seat** (the Magistrate) over a Registry
+    position, `holdsSeat` provable; treasury = the shipped municipal
+    budget account. The full commission-form structure (Administrator,
+    Treasurer, Watch, Works, Almonry) is charter *text* per
+    terminus-city.md §8 — named now, built later.
+  - **The Eternal University** — thin: identity + jurisdiction on
+    `terminus/city/campus` (the town-gown layer).
+  A dorm room's chain therefore resolves **[university, city, realm]**
+  most-local first — real content proving three-deep nesting from day
+  one; sparse inheritance is proven by city-tier locations with no
+  campus key (and the narnia tests).
 - A **`civics.md` subsystem doc** and the one-line CLAUDE.md map entry.
 - **The committee is realized as a code concept** (the meta-layer
   half of this build's jargon). A committee is **the group holding
@@ -244,14 +258,19 @@ remains the owner of nothing new — the committee group pre-exists, so
 this is the promotion-path shape, not the `chat make` backing-group
 shape.
 
-### v1 flagship is thin by design
+### v1 flagship is the three-tier stack, thin at every tier
 
-One real government (Terminus), one department (the Registry), one
-seat (Magistrate), one clerk NPC, two real Localities. Chosen over
-substrate-only (no real consumer proves nothing; the address roster
-has to start sometime) and over the fuller civic slice (gaol + Watch
-belong with city content, and arrest behavior deserves its own design
-pass against the consent substrate).
+Three real governments (realm / city / university — the state-capital
+model from terminus-city.md §8: distinct jurisdictions, colocated
+seats, no tier being the Compact's face), but only the **city** is
+wired (Registry + Magistrate + clerk); realm and university are
+identity + jurisdiction only. Chosen over the single-government
+flagship (which would bake in the city-state conflation and prove
+nesting only with narnia fixtures) and over the fuller civic slice
+(gaol + Watch belong with city content, and arrest behavior deserves
+its own design pass against the consent substrate). The functional-
+first principle governs the city's authored form: commission under
+charter, corpos hold no structural seats.
 
 ## Constraints
 
@@ -297,14 +316,18 @@ pass against the consent substrate).
   contract is asserted (or documented as structurally true while the
   dorm is irrevocable — stated explicitly in civics.md either way).
 - Flagship observable in-game: standing in the Warren, `government`
-  shows the Terminus government with its Magistrate seat and Registry
-  department; `government residency` shows the same chain via
-  domicile; the Registry room exists with its clerk NPC on shift-less
-  roster (employment's minimum), and the venue's Business account
-  exists.
-- The two real Localities resolve: a dorm room's
-  `analyze address` shows a `terminus/...` address with a covering
-  Locality; `narnia/*` tests untouched.
+  shows the **three-tier chain** — the Eternal University, the City of
+  Terminus (with its Magistrate seat and Registry department), the
+  Realm of Terminus — most-local first; `government residency` shows
+  the same chain via domicile; the Registry room exists with its clerk
+  NPC on shift-less roster (employment's minimum), and the venue's
+  Business account exists.
+- The three-tier roster resolves: a dorm room's `analyze address`
+  shows `terminus/city/campus/…` covered by the campus Locality with
+  coverage chain [campus, city, terminus]; a city-tier location
+  (the terminal) resolves chain [city, realm] (sparse inheritance —
+  no campus key); re-rooted content addresses regress clean;
+  `narnia/*` tests untouched.
 - Committee: `committeeOf` resolves the title-holding group for a
   group-owned subdivision and `null` for a player-held one (tests
   cover both + the `'core'` state default); `isCommitteeMember` true

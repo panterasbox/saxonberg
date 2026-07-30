@@ -27,10 +27,15 @@ government is the metagovernment's diegetic face / projection." It
 cannot be, because diegetic governments are mintable — a new city can
 stand up its *own* government with its own identity, laws, and flavor
 (or join an existing one, §6), which no singleton-projection model
-survives. The bible's liberal-diegesis language applies to the
-realm-level Charter framing, not to city government; do not extend it
-downward. (Related lore-hygiene rule recorded the same session: the
-aether is a metaphor for the internet, nothing more.)
+survives. **Extended 2026-07-30: this holds at EVERY tier — the realm
+included.** The realm is just another layer of the jurisdiction
+hierarchy, plural like everything else ("we could and will have
+multiple realms"); the realm's chartered order is ordinary fiction, not
+the Compact's face; what it shares with the Compact is thesis only
+(accountable office), never institutional identity. The bible's
+projection-stack passage was corrected accordingly. (Related
+lore-hygiene rule recorded the same session: the aether is a metaphor
+for the internet, nothing more.)
 
 Plurality is a feature: legal diversity between cities is travel
 texture, jurisdiction shopping, and refuge-for-outlaws play. Terminus's

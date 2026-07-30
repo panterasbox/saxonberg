@@ -26,12 +26,15 @@ fabricated; it dresses that honesty as theology.
 
 **The projection stack.** Deeper than the coat: the game is a **literary
 projection of the metaverse** — the plane above the diegesis, the platform the
-**Compact** actually governs. The *governance spine* is a faithful shadow of
-the real form: the **aether** projects **the internet** (a metaphor, nothing
-more), the **realm's chartered order** projects the Compact (the realm tier
-only — city governments are plural authored fiction, never the Compact's
-face), and the **corpos** project the incumbent **board-of-directors /
-market model** the Compact is built to outperform. So the corpos are written
+**Compact** actually governs. The *governance spine* is a **thematic**
+shadow, never an institutional one: the **aether** projects **the
+internet** (a metaphor, nothing more), and the **corpos** project the
+incumbent **board-of-directors / market model** the Compact is built to
+outperform. **No tier of the fiction's own government hierarchy —
+realm, city, campus — is the Compact's face**: every diegetic
+government, the realm's included, is plural authored fiction (there can
+be many realms), and what the chartered order shares with the Compact
+is only the *thesis* — accountable office over inherited power. So the corpos are written
 as the **steelman of a working form** — effective, often genuinely good at what
 they do, extractive by *structure*, not villainy (you earn nothing beating a
 strawman). The shadow falls on the **governance spine only**; the rest — gods,

@@ -274,6 +274,89 @@ global mint). Default-safe: an ungoverned server holds the band on `τ` alone.
 4. **One global reserve to start** (single CB); regionalize only if districts ever
    need independent monetary conditions.
 
+## 8. The government stack — locked fundamentals (2026-07-30)
+
+The institutional skeleton, locked ahead of content so offices, NPCs,
+and venues can fill in later. Substrate: the civics build
+(`docs/requirements/civics-requirements.md`) — each tier below is a
+`Government` instance on the jurisdiction chain. **Governing
+principle: a functional city beats adherence to legacy narrative** —
+the corpo-carved-patchwork lore stays as flavor and informal politics,
+but the corpos hold NO structural seats: a corpo-run government would
+be dysfunctional, or claiming it isn't would itself be a statement
+about the world. The locked statement is the opposite one: *the city
+works.*
+
+### Terminus is a city AND a realm — two governments, one name, one seat
+
+- **Not a city-state.** The realm and the city are distinct
+  governments in a nested chain; "Terminus" naming both is Rome-style
+  metonymy. The realm is **just another hierarchy tier** — plural like
+  every diegetic government (more realms can and will exist) — and is
+  **not** the Compact's face (no tier is; the bible's projection stack
+  was corrected to thesis-rhyme only).
+- **The state-capital model.** The realm government's *seat* is
+  Terminus city — a capitol presence in the Civic Quarter alongside
+  the municipal hall (Sacramento: city hall and the statehouse share a
+  locality, never a jurisdiction). Colocation is physical (venues),
+  never institutional.
+- **Three tiers, three instances, one address chain**:
+  `terminus` (the Realm of Terminus) → `terminus/city` (the City of
+  Terminus) → `terminus/city/campus` (the Eternal University — the
+  third layer, its own government: town-gown jurisdiction inside the
+  city inside the realm). A dorm room's chain resolves
+  [university, city, realm], most-local first.
+
+### The Realm of Terminus (thin lock — detail deferred)
+
+Exists as a `Government` instance claiming the realm root; seat in the
+city (capitol venue = future content). It charters the city
+corporation and the University, runs the assizes above the city
+magistracy, and fronts the frontier war. Institutional detail
+(ministries, the steward's diegetic dressing) deliberately unlocked —
+later design, its own pass.
+
+### The City of Terminus — a chartered municipal corporation
+
+- **Form: commission under charter** — realm-chartered municipal
+  corporation run by an appointed professional **City Administrator**
+  with department heads. No elections yet (nobody in this city ever
+  voted for anything; the administration was imposed on a patchwork
+  that wanted no governing) — a representative council and elections
+  are a *future story the polity can dramatize*, not a retcon.
+- **Departments** (each a Business): the **Registry** (civics-build
+  flagship), the **Watch** (public safety), **Works** (streets,
+  drains, the wire — the city-tier echo of, never the same office as,
+  the realm's lands administration), the **Almonry** (welfare — the
+  shelter's eventual department).
+- **Seats** (each a department position): **Administrator**,
+  **Magistrate** (flagship — city law, the gaol, market disputes;
+  grave matters escalate to realm assizes), **Treasurer** (the
+  pre-planned landing seat for the Circulation-Reserve lever now held
+  by the meta CB Governor), **Registrar**, **Captain of the Watch**.
+  Named now, filled later; the charter Document names the full
+  structure while the Government template grows entries as departments
+  get built.
+- **Treasury**: the municipal budget (the shipped
+  `/domain/terminus/budget` Business account).
+- **Corpos**: informal power only — lobbying, quarter identity, the
+  fault-line map as *politics*, never as seats.
+
+### The Eternal University (thin lock)
+
+Its own `Government` instance claiming the campus subtree — the
+town-gown layer. Institutional detail (a Chancellor seat, college
+structure) deferred; v1 is identity + jurisdiction so the three-deep
+chain is real from day one.
+
+### Boundary calls
+
+- Quarters get **no sub-governments** — if a ward ever wants home
+  rule, that's a story (a jurisdiction repoint), not a default.
+- Sibling address roots (`counting-houses`, `university-avenue`,
+  `lounge`) remain outside every government until re-rooted by city
+  content work — deliberate, not a bug.
+
 ## Open forks / next
 
 - The **business-landscape model** (what's real vs Atmosphere) is now settled and

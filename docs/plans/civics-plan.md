@@ -366,7 +366,47 @@ cross-references.
   controller must not assume an Interactive (no prompts — read-only
   output only).
 
-## Amendment — committee realization + code-level jargon install
+## Amendment 2 — the three-tier government stack (state-capital model)
+
+Requirements + terminus-city.md §8 (2026-07-30) replace the single
+Terminus government flagship with **three thin instances on one
+re-rooted address chain**. Doctrine driving it: the realm is just
+another hierarchy tier (plural — multiple realms will exist), no tier
+is the Compact's face, and the realm's seat is *in* the city without
+jurisdictional fusion.
+
+- **Address re-root**: `terminus` = the REALM root (existing Locality,
+  re-purposed); new `terminus/city` Locality; the campus Locality's
+  claim becomes `terminus/city/campus`. Every existing `terminus/…`
+  content address re-prefixes to `terminus/city/…`
+  (`seeds/domain/terminus/terminal/*` and this build's registry
+  seeds); the dorm/duncan-hall declarations and the plan's
+  `DUNCAN_HALL_ADDRESS` constant become
+  `terminus/city/campus/duncan-hall`. Grep `_address: terminus/` and
+  `address: terminus/` across `seeds/` for the full re-prefix list —
+  miss one and it silently resolves to the realm tier only.
+- **Three Government templates** under `/lib/civics/Government/`:
+  `terminus-realm` ("the Realm of Terminus" — identity only, empty
+  departments/seats), `terminus-city` ("the City of Terminus" — the
+  full wired flagship: Registry department, Magistrate seat, treasury
+  = the municipal budget path), `eternal-university` ("the Eternal
+  University" — identity only). Locality keys: `terminus` →
+  `terminus-realm`, `terminus/city` → `terminus-city`,
+  `terminus/city/campus` → `eternal-university`.
+- **Registry venue address** becomes `terminus/city/civic/registry`;
+  the clerk's `_domicileAddress` matches.
+- **Tests update**: the flagship assertions become the three-deep
+  chain — dorm chain `[eternal-university, terminus-city,
+  terminus-realm]`; terminal chain `[terminus-city, terminus-realm]`
+  (sparse — proves inheritance on real content); the `government`
+  verb renders all three tiers most-local first. The narnia two-deep
+  fixture tests stay as the seed-clean unit proof.
+- **civics.md**: the flagship section documents the stack + the
+  charter-text-vs-template-data split (the commission-form structure
+  is charter prose in terminus-city.md §8; the Government template
+  only carries built departments/seats).
+
+## Amendment 1 — committee realization + code-level jargon install
 
 Scope added after the initial plan (requirements §Goals last two
 bullets, §Surface decisions "Committee is derived from parcel title" +
