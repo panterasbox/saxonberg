@@ -9,9 +9,8 @@
  * a `Thing` that merely references recipe ids. A menu affords **commerce
  * only** — `menu` (read the offer) and `order` (buy off it). The working
  * verbs (`pour`/`hammer`/`cook`/…) are conferred by the *instruments*
- * that do the work (the shaker, the pot, the anvil — see
- * `CocktailShaker`, `CookPot`, `lib/craft/Anvil`): the menu is for
- * ordering, not making.
+ * that do the work (the capability table over `ToolMixin` — see
+ * `lib/craft/ToolCapability.ts`): the menu is for ordering, not making.
  *
  * Composes `Thing` (Tangible + Perceptible + Containable + Visible) +
  * `Detailed` + `PricedOffer`, so it sits in the room, resolves by

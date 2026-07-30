@@ -31,6 +31,7 @@ data:
     - { itemTemplatePath: /domain/terminus/general-store/goods/whetstone, par: 2 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/iron-ingot, par: 3 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/sewing-kit, par: 2 }
+    - { itemTemplatePath: /domain/terminus/general-store/goods/sewing-machine, par: 1 }
   prices:
     /domain/terminus/general-store/goods/torch: 2
     /domain/terminus/general-store/goods/rations: 3
@@ -40,3 +41,4 @@ data:
     /domain/terminus/general-store/goods/whetstone: 3
     /domain/terminus/general-store/goods/iron-ingot: 5
     /domain/terminus/general-store/goods/sewing-kit: 5
+    /domain/terminus/general-store/goods/sewing-machine: 18
