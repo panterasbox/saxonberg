@@ -4,7 +4,7 @@
 # into the ethanol burden over time (the vomit window), and `getBAC()`
 # derives the BAC the `intoxicated` condition reads. Rate params live on
 # the alcohol Condition seed, not here.
-class: /lib/material/Material
+class: /lib/material/ConsumableMaterial
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: ale

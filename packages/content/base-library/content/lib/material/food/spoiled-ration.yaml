@@ -4,7 +4,7 @@
 # seed. Eating it routes the carbs to satiation AND the ptomaine dose
 # into the digestion pool, which absorbs into the burden over time —
 # leaving a window to `vomit` it before it absorbs.
-class: /lib/material/Material
+class: /lib/material/ConsumableMaterial
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: spoiled ration

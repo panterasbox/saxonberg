@@ -150,7 +150,9 @@ spawn default with the evac fallback and pointed evac at the (destructible)
 lobby.
 
 > Later builds added their own keys (reactions, forums anti-snowball,
-> renown/participation/producer/influence/conviction); each is documented in
+> renown/participation/producer/influence/conviction, the `crafting.*`
+> family — broken threshold + delivery floor, wear-per-use rates, the
+> keenness dials, repair pricing, the salvage rate); each is documented in
 > its own subsystem doc. The table above is the original v1 exemplar pair,
 > not a live registry — `AppSettingKeys` is.
 

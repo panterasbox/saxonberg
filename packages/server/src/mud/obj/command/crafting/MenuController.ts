@@ -14,7 +14,7 @@ import { CraftingApi } from '../../../api/crafting';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
-import Menu from '../../../domain/lounge/Menu';
+import Menu from '../../../lib/commerce/Menu';
 
 const TOPIC = 'world.narration.action';
 

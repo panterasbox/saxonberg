@@ -12,7 +12,11 @@ import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { ToolMixin } from './Tooled';
 import { DurableMixin } from '../material/Durable';
+import { CraftedMixin } from './Crafted';
 
-const ToolItemBase = ToolMixin(DurableMixin(DetailedMixin(Thing)));
+// CraftedMixin closes the tools-make-tools loop: a ToolItem can be a
+// recipe output (smithing makes the hammer smithing needs); the mark
+// defaults empty on store-bought kit.
+const ToolItemBase = CraftedMixin(ToolMixin(DurableMixin(DetailedMixin(Thing))));
 
 export default class ToolItem extends ToolItemBase {}

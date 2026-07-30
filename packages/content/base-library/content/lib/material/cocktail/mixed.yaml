@@ -1,8 +1,10 @@
-# Mixed drink — the generic cocktail substance a manual build mints when its
-# accumulated buffer matches no known recipe (an off-spec build still yields
-# *a* drink — honest matter — just not a named one). The recipe reverse-match
-# in CraftingLogic.mintFromBuild falls back to this material.
-class: /lib/material/Material
+# Mixed drink — the ONE generic substance every derived drink blend
+# points at (the off-spec shaker mint and every reverse-matched
+# cocktail): generic liquid physics + the drinkable routing home. The
+# blend's actual identity + toxins ride the holder's per-instance
+# BulkPayload (macros in = macros out) — per-cocktail material rows are
+# the retired anti-pattern (the fixed-vocabulary rule).
+class: /lib/material/ConsumableMaterial
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: mixed drink

@@ -1026,6 +1026,38 @@ export const AppSettingKeys = {
   /** Magic — litres of water the conjure-water effect transfers when the
    * spell seed omits an amount. */
   magicConjureWaterLitres: "magic.conjure.waterLitres",
+
+  /* ────────────────────────── crafting ────────────────────────── */
+  /** Crafting — condition at/below which a durable good is broken (a
+   * broken tool offers no capabilities; a broken weapon's delivery is
+   * floored). */
+  craftingBrokenThreshold: "crafting.brokenThreshold",
+  /** Crafting — the delivery-scale floor a broken weapon is clamped to. */
+  craftingBrokenDeliveryFloor: "crafting.brokenDeliveryFloor",
+  /** Crafting — condition worn off a weapon per landed strike (Law 2:
+   * wear on use, never the clock). */
+  craftingWearWeaponPerStrike: "crafting.wear.weaponPerStrike",
+  /** Crafting — condition worn off each covering layer that attenuates a
+   * mechanical blow. */
+  craftingWearArmorPerBlow: "crafting.wear.armorPerBlow",
+  /** Crafting — keenness lost by an edge/point weapon per landed strike
+   * (the fast-cycling working-surface axis; sharpen restores). */
+  craftingKeennessWearPerUse: "crafting.keenness.wearPerUse",
+  /** Crafting — the delivery-factor floor a fully blunted edge lerps to
+   * (factor = lerp(floor, 1, keenness) on edge/point delivery). */
+  craftingKeennessDeliveryFloor: "crafting.keenness.deliveryFloor",
+  /** Crafting — duration (ms) of the engaged sharpen activity. */
+  craftingKeennessSharpenDurationMs: "crafting.keenness.sharpenDurationMs",
+  /** Crafting — the lossy salvage fraction: each constituent material
+   * returns `mass × fraction × salvageRate`; the rest is dross. */
+  craftingSalvageRate: "crafting.salvageRate",
+  /** Crafting — repair material cost factor: cost mass = item mass ×
+   * (1 − condition) × costFactor. */
+  craftingRepairCostFactor: "crafting.repair.costFactor",
+  /** Crafting — the material-cost multiplier when repairing a broken good. */
+  craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
+  /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
+  craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
 } as const;
 
 export type AppSettingKey =

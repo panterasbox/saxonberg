@@ -17,6 +17,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { ToolCapabilities } from './ToolCapability';
 
 export interface Tooled {
@@ -57,6 +59,11 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     hasCapability(cap: string): boolean {
+      // Broken is capability loss: a broken tool (the two mixins compose
+      // at the use site — ToolMixin(DurableMixin(…))) offers nothing
+      // until repaired.
+      const self = this as unknown as Stuff;
+      if (MixinApi.isDurable(self) && self.isBroken()) return false;
       return this.capabilities.includes(cap);
     }
   };

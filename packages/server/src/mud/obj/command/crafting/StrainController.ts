@@ -85,7 +85,7 @@ export default class StrainController extends ManualBuildController<StrainModel>
           built.recordCommand(commandText);
           const sources = built.getCommandSources();
           const outcome = await CraftingApi.mintFromBuild({
-            glass: into,
+            vessel: into,
             contributions: [...built.getContributions()],
             method: built.getBuildMethod(),
             makerPath,

@@ -35,6 +35,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type {
   BulkSlot,
   BulkAffordance,
+  BulkPayload,
   ClosureLevel,
 } from '../lib/bulk/Bulkable';
 import type Material from '../lib/material/Material';
@@ -146,8 +147,13 @@ export class BulkableApi {
    * no-op. The bridge lives in the Api layer so both verbs route
    * through one place.
    */
-  static ingest(actor: Stuff, material: Material | null, litres: number): void {
-    logic().ingest(actor, material, litres);
+  static ingest(
+    actor: Stuff,
+    material: Material | null,
+    litres: number,
+    payload: BulkPayload | null = null,
+  ): void {
+    logic().ingest(actor, material, litres, payload);
   }
 
   /**
@@ -163,8 +169,9 @@ export class BulkableApi {
     actor: Stuff,
     material: Material | null,
     litres: number,
+    payload: BulkPayload | null = null,
   ): number {
-    return logic().ingestSolid(actor, material, litres);
+    return logic().ingestSolid(actor, material, litres, payload);
   }
 
   /**

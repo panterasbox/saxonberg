@@ -7,15 +7,14 @@
  * the coroutine (its engaged steps trickle out); this controller just
  * dispatches it and declines diegetically when the recipe is unknown.
  *
- * The knowledge/deed gate (`make` declines a recipe you haven't learned)
- * lands in P9; v1 gates only on "is there a script of that name".
+ * Deed-gated via the shared `CraftController.requireDeed` (a catalogue
+ * recipe declines until the can-make deed exists; a player's own `def`
+ * passes ungated).
  */
 
-import { CommandController } from "../../../lib/command/CommandController";
+import { CraftController } from "./CraftController";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import { ScriptApi } from "../../../api/script";
-import { CraftingApi } from "../../../api/crafting";
-import { RecipeKnowledge } from "../../../lib/script/RecipeKnowledge";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 
@@ -26,7 +25,7 @@ interface MakeModel extends CommandModel {
   brand?: string;
 }
 
-export default class MakeController extends CommandController<MakeModel> {
+export default class MakeController extends CraftController<MakeModel> {
   async execute(model: MakeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
@@ -34,21 +33,7 @@ export default class MakeController extends CommandController<MakeModel> {
     // you've *learned* it (the can-make deed — the first faithful hand
     // build). A player's own non-catalogue `def` resolves to no recipe
     // view, so it's ungated (you wrote it). The book isn't enough.
-    const view = await CraftingApi.lookupRecipe(model.recipe);
-    if (view && !(await RecipeKnowledge.canMake(giver, view.recipeId))) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`You've heard of ${view.name}, but you haven't learned to make it — try building it by hand first.`,
-        )
-        .send();
-      context.note({
-        kind: "controller-rejected",
-        reason: "not-learned",
-        detail: model.recipe,
-      });
-      return;
-    }
+    if (!(await this.requireDeed(context, model.recipe, "make"))) return;
 
     const args = model.brand ? [model.brand] : [];
     const invoked = await ScriptApi.invoke(model.recipe, args);

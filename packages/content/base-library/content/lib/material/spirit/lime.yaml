@@ -1,5 +1,5 @@
 # Lime juice — a non-alcoholic mixer input. Category tag `lime`.
-class: /lib/material/Material
+class: /lib/material/ConsumableMaterial
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: lime juice

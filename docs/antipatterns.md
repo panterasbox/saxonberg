@@ -2156,3 +2156,29 @@ allowlist; when the lint fires, the answer is "implement a hook," not
 "grow the allowlist"). The deleted `isEnergized` branch above was the
 first barnacle and the migration is the worked example. See
 [combat-hooks.md](./subsystems/combat-hooks.md).
+
+## Working verbs conferred by a venue or commerce object
+
+```typescript
+// WRONG — the kitchen menu lights up the cooking verbs
+export default class KitchenMenu extends CommerceMenu {
+  static commandContributions = {
+    environment: ['crafting/cook.yaml', 'crafting/stir.yaml', …],
+  };
+}
+```
+
+A menu (or any commerce/offer object) affords only its **commerce**
+verbs — `menu`/`order` on the `CommerceMenu` base. The *working* verbs
+ride the **instrument** that does the work: the pot confers
+`pour`/`stir`/`heat`/`plate`/`cook`, the anvil
+`hammer`/`quench`/`forge`/`repair`/`salvage`, the whetstone `sharpen`,
+the furnace `heat`/`ignite`/`douse`/`pump`. The surface then follows
+capital wherever it physically sits (reachable heat + a pot IS a
+kitchen — no venue flag, no menu required), and a knowledge-driven verb
+with no instrument (`make`) is innate on `Avatar`. Patient-side marker
+interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
+side: eligibility is matter (Material tags + edibility) + instrument
+capabilities, and interfaces exist only for real state or behavior. See
+[command-spec.md § who affords a verb](./subsystems/command-spec.md) and
+[crafting.md § The offer](./subsystems/crafting.md).

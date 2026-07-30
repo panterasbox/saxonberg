@@ -136,13 +136,16 @@ Dials: `response.heat.*`.
   so the wholesale `Meltable` melt is unsuitable; a gradual candle-specific drip
   is the follow-on.)*
 
-### The inert crafting seam (D9)
+### The crafting seam (D9) — **consumed**
 
 **`ThermalApi.reachableHeatFor(position)`** — the maximum sustained temperature
 (the hottest lit furnace) reachable from a position, the crafting
-emergent-reachability principle applied to heat. Built + tested + **grep-verified
-consumed by no recipe** this build; the future smithing branch gates on it
-(`reachableHeatFor(maker) >= material.meltingPoint`) with zero retrofit.
+emergent-reachability principle applied to heat. Built inert by this build;
+**consumed by the crafting-branches build with zero retrofit**, exactly as
+designed: `CraftingLogic`'s heat gate declines any recipe whose
+`requiresHeatK` exceeds it (`insufficient-heat`, diegetic — "the forge is
+cold"), and the by-hand `heat` step latches it onto the build buffer. See
+[crafting.md](./crafting.md).
 
 ## Constraints honored
 

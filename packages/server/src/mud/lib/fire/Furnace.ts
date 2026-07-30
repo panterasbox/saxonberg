@@ -18,6 +18,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
 import type { Reserved } from '../reserve';
@@ -55,6 +56,8 @@ export interface Furnace {
   /** Is the bellows working (boosting the held temperature)? */
   isBellowsActive(): boolean;
   setBellowsActive(active: boolean): void;
+  /** The bellows boost factor (1 = no bellows fitted). */
+  getBellowsMultiplier(): number;
   /** Reconcile the fuel drain over elapsed game-time (reconcile-on-read). */
   reconcileFurnaceFuel(): void;
   /** Heat the Meltables in the furnace's scope toward the held temperature and
@@ -74,6 +77,27 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   class FurnaceMixin extends Base implements Furnace {
     static _mixinName = 'FurnaceMixin';
+
+    /**
+     * The fire-appliance verbs are **afforded by the appliance** (the
+     * Bulkable holder-carries-the-verbs pattern): a room with a furnace
+     * affords lighting it, dousing it, working its bellows, and bringing
+     * a workpiece to its fire (`heat` — the manual-build step; the
+     * furnace is the heat instrument the way the anvil is the hammer
+     * surface). The fire build shipped the ignite/douse verbs with no
+     * affording source — the live-drive gap this closes.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      environment: [
+        'device/ignite.yaml',
+        'device/douse.yaml',
+        'device/pump.yaml',
+        'crafting/heat.yaml',
+      ],
+      inventory: [],
+      peers: [],
+    };
 
     static persistentFields = [
       'burnTemperatureK',
@@ -116,6 +140,11 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
 
     public isBellowsActive(): boolean {
       return this.bellowsActive;
+    }
+
+    /** The bellows boost factor (1 = no bellows fitted). */
+    public getBellowsMultiplier(): number {
+      return this.bellowsMultiplier;
     }
 
     public setBellowsActive(active: boolean): void {

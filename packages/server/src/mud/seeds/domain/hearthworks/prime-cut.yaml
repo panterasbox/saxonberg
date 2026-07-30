@@ -1,0 +1,11 @@
+# A prime cut — FINE-grade meat (a graded Provision): what the fine roast
+# demands. The grade spread on solid stock, felt at the pot.
+class: /obj/Provision
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a prime cut of meat
+  primaryKeyword: prime-cut
+  keywords: [cut, prime, meat, prime-cut]
+  _materialPath: /lib/material/food/stew-meat
+  gradeBand: fine
+  mass: 0.5

@@ -22,7 +22,10 @@ recipes:
         measureL: 0.01
     toolCapabilities: [mixing-glass]
     outputTemplate: /domain/lounge/cocktail-glass
-    outputMaterial: /lib/material/cocktail/martini
+    # Derived blend (no authored substance): identity + prose ride the
+    # recipe; toxins/macros sum from the drawn inputs (gin 19 + vermouth
+    # 7 = the martini's 26 mg — what the retired hand-authored row said).
+    outputAppearance: a crystal-clear martini, beaded with cold
 
   - recipeId: daiquiri
     name: Daiquiri
@@ -38,4 +41,177 @@ recipes:
         measureL: 0.02
     toolCapabilities: [shaker]
     outputTemplate: /domain/lounge/cocktail-glass
-    outputMaterial: /lib/material/cocktail/daiquiri
+    outputAppearance: a pale, frothy daiquiri
+
+  # ── the smithing branch (crafting-branches build). Transform recipes
+  # over discrete stock + heat: the input metal's Material flows onto the
+  # output (an iron ingot makes an iron knife). requiresHeatK is checked
+  # against the hottest reachable lit furnace: the forge holds 1300 K,
+  # 2080 K with the bellows worked — so the knife (1400 K) REQUIRES the
+  # bellows and the poker (700 K) doesn't. Difficulty/discipline are the
+  # authored ladder placement the craft-resolve deed records.
+  - recipeId: fire-poker
+    name: Fire Poker
+    keywords: [poker, fire-poker]
+    inputSlots:
+      - slot: stock
+        category: ferrous
+        minGrade: poor
+        kind: item
+        count: 1
+    toolCapabilities: [striking, anvil]
+    outputTemplate: /obj/arms/fire-poker
+    outputMaterial: ""
+    outputApplication: tangible
+    requiresHeatK: 700
+    difficulty: trivial
+    discipline: smithing
+
+  - recipeId: cook-pot
+    name: Cook Pot
+    keywords: [cook-pot, pot]
+    inputSlots:
+      - slot: stock
+        category: ferrous
+        minGrade: poor
+        kind: item
+        count: 1
+    toolCapabilities: [striking, anvil]
+    outputTemplate: /obj/CookPot
+    outputMaterial: ""
+    outputApplication: tangible
+    requiresHeatK: 800
+    difficulty: easy
+    discipline: smithing
+
+  - recipeId: smiths-hammer
+    name: Smith's Hammer
+    keywords: [hammer, smiths-hammer]
+    inputSlots:
+      - slot: stock
+        category: ferrous
+        minGrade: fair
+        kind: item
+        count: 1
+    toolCapabilities: [striking, anvil]
+    outputTemplate: /obj/gear/smiths-hammer
+    outputMaterial: ""
+    outputApplication: tangible
+    requiresHeatK: 800
+    difficulty: standard
+    discipline: smithing
+
+  - recipeId: belt-knife
+    name: Belt Knife
+    keywords: [knife, belt-knife]
+    inputSlots:
+      - slot: stock
+        category: ferrous
+        minGrade: fair
+        kind: item
+        count: 1
+    toolCapabilities: [striking, anvil]
+    outputTemplate: /obj/arms/belt-knife
+    outputMaterial: ""
+    outputApplication: tangible
+    requiresHeatK: 1400
+    difficulty: standard
+    discipline: smithing
+
+  - recipeId: leather-jerkin
+    name: Leather Jerkin
+    keywords: [jerkin, leather-jerkin]
+    inputSlots:
+      - slot: hide
+        category: hide
+        minGrade: fair
+        kind: item
+        count: 1
+    toolCapabilities: [mending]
+    outputTemplate: /obj/armor/hide-jerkin
+    outputMaterial: ""
+    outputApplication: tangible
+    difficulty: hard
+    discipline: smithing
+
+  # ── the cooking branch. Recipes over discrete/glob food inputs + low
+  # heat (oven/hearth/campfire via the same gate) → a stamped, graded,
+  # edible output whose authored food Material routes macros through
+  # metabolism. The oven holds 500 K, so the whole ladder cooks at a lit
+  # hearth.
+  - recipeId: toasted-ration
+    name: Toasted Ration
+    keywords: [toasted-ration, toast]
+    inputSlots:
+      - slot: ration
+        category: preserved
+        minGrade: poor
+        kind: item
+        count: 1
+    toolCapabilities: []
+    outputTemplate: /obj/items/plated-dish
+    outputAppearance: toasted biscuit and crisped sausage, still steaming
+    outputApplication: edible
+    outputPortionL: 0.3
+    requiresHeatK: 450
+    difficulty: trivial
+    discipline: cooking
+
+  - recipeId: root-mash
+    name: Root Mash
+    keywords: [mash, root-mash]
+    inputSlots:
+      - slot: roots
+        category: vegetable
+        minGrade: poor
+        kind: item
+        count: 1
+    toolCapabilities: [pot]
+    outputTemplate: /obj/items/plated-dish
+    outputAppearance: a pale steaming mash
+    outputApplication: edible
+    outputPortionL: 0.35
+    requiresHeatK: 373
+    difficulty: easy
+    discipline: cooking
+
+  - recipeId: hearty-stew
+    name: Hearty Stew
+    keywords: [stew, hearty-stew]
+    inputSlots:
+      - slot: roots
+        category: vegetable
+        minGrade: fair
+        kind: item
+        count: 2
+      - slot: meat
+        category: meat
+        minGrade: fair
+        kind: item
+        count: 1
+    toolCapabilities: [pot]
+    outputTemplate: /obj/items/plated-dish
+    outputAppearance: a thick brown stew, roots and meat in a dark gravy
+    outputApplication: edible
+    outputPortionL: 0.4
+    requiresHeatK: 373
+    difficulty: standard
+    discipline: cooking
+
+  - recipeId: fine-roast
+    name: Fine Roast
+    keywords: [roast, fine-roast]
+    inputSlots:
+      - slot: meat
+        category: meat
+        minGrade: fine
+        kind: item
+        count: 1
+    toolCapabilities: [pot]
+    outputTemplate: /obj/items/plated-dish
+    outputAppearance: a burnished roast, crackling and rich
+    outputApplication: edible
+    outputPortionL: 0.4
+    requiresHeatK: 500
+    difficulty: hard
+    discipline: cooking

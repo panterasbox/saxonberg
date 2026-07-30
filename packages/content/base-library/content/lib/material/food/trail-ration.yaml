@@ -3,7 +3,7 @@
 # burden. Eating a ration routes its carbs to satiation via the digestion
 # pool. The per-serving amount is declared here; the metabolism rates live on
 # the driver, not the food.
-class: /lib/material/Material
+class: /lib/material/ConsumableMaterial
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: trail ration

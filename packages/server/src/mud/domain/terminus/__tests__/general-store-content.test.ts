@@ -70,6 +70,13 @@ describe("general-store content integrity", () => {
     "/lib/equipment/PortableLight",
     "/lib/equipment/Weapon",
     "/obj/Receptacle",
+    // The crafting-branches goods: the whetstone + sewing kit are
+    // ToolItems (thin subclasses carrying their verb affordances), the
+    // ingot a Meltable Thing — all discrete, none Globbable.
+    "/lib/craft/Whetstone",
+    "/lib/craft/SewingKit",
+    "/lib/craft/ToolItem",
+    "/obj/Ingot",
   ]);
 
   it("every priced/stocked good is a real, discrete item (never Globbable)", () => {

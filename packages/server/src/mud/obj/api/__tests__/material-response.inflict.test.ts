@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { MaterialApi } from '../../../api/material';
+import { MixinApi } from '../../../api/mixin';
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../../lib/species/Species';
 import BodyPlan from '../../../lib/species/BodyPlan';
@@ -264,6 +265,7 @@ describe('materials-response — inflict through the covering stack', () => {
       });
       const w = trauma(body);
       const inflictBand = MaterialApi.severityToBand(w ? w.severity : null);
+      if (!MixinApi.isGraded(a)) throw new Error('graded');
       const preview = MaterialApi.previewBand(
         channel,
         steelMat,

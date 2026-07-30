@@ -132,6 +132,7 @@ import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
+import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
@@ -1035,6 +1036,12 @@ export class MixinApi {
    * armor). A `Tool` is also `Durable`; the reverse does not hold. */
   public static isDurable(obj: Stuff): obj is Stuff & Durable {
     return this.hasMixin(obj, Mixins.Durable);
+  }
+
+  /** An edged/pointed good with the fast-cycling keenness (edge) gauge —
+   * Durable's working-surface sibling. See KeenMixin. */
+  public static isKeen(obj: Stuff): obj is Stuff & Keen {
+    return this.hasMixin(obj, Mixins.Keen);
   }
 
   /** A first-aid dressing item (bandage / gauze / rag). See DressingMixin. */

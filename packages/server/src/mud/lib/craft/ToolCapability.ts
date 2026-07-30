@@ -20,6 +20,11 @@ export const TOOL_CAPABILITIES = [
   'strainer',
   'muddler',
   'mixing-glass',
+  'striking',
+  'anvil',
+  'whetstone',
+  'mending',
+  'pot',
 ] as const;
 
 /** A tool capability — one of {@link TOOL_CAPABILITIES}. */

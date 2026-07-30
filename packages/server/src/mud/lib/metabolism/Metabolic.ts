@@ -42,6 +42,7 @@ import type { Tangible } from "../material/Tangible";
 import type { AfflictionRecord } from "../vitals/Condition";
 import type Condition from "../vitals/Condition";
 import type Material from "../material/Material";
+import type { BulkPayload } from "../bulk/Bulkable";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
@@ -289,8 +290,16 @@ export interface Metabolic {
   setMetabolicClockStamp(value: number): void;
   setLastMealLabel(value: string | null): void;
 
-  /** Make intake real — route consumed material into the buffer. */
-  ingest(material: Material, amount: Quantity<"L">, phase?: IngestPhase): number;
+  /** Make intake real — route consumed material into the buffer. A
+   * blend's {@link BulkPayload} overrides the material's identity +
+   * macro face (derived mixtures — the material row is the generic
+   * substance, the payload the actual meal). */
+  ingest(
+    material: Material,
+    amount: Quantity<"L">,
+    phase?: IngestPhase,
+    payload?: BulkPayload | null,
+  ): number;
   /** Lazy reconcile — integrate elapsed in-session game-time. */
   reconcileMetabolism(): void;
   /** Derived blood-alcohol concentration (Widmark) from the ethanol burden. */
@@ -826,6 +835,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       material: Material,
       amount: Quantity<"L">,
       phase: IngestPhase = "liquid",
+      payload: BulkPayload | null = null,
     ): number {
       // Reconcile first so the cap reflects current drained volume.
       this.reconcileMetabolism();
@@ -842,8 +852,8 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (phase === "solid") this.solidVolume = current + accepted;
       else this.liquidVolume = current + accepted;
 
-      this.routeIntake(material, accepted);
-      this.lastMealLabel = material.getName();
+      this.routeIntake(material, accepted, payload);
+      this.lastMealLabel = payload?.name ?? material.getName();
       return accepted;
     }
 
@@ -854,10 +864,15 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the curated vocabulary, NOT a registry — unknown tags are a
      * no-op so authoring a novel tag never crashes intake.
      */
-    protected routeIntake(material: Material, litres: number): void {
+    protected routeIntake(
+      material: Material,
+      litres: number,
+      payload: BulkPayload | null = null,
+    ): void {
       const pools = this.digestionPools;
-      // Nutrient tags scale by accepted volume.
-      for (const tag of material.getNutrients()) {
+      // Nutrient tags scale by accepted volume. A blend payload speaks
+      // for the actual meal; the material row is its generic base.
+      for (const tag of payload?.nutrients ?? material.getNutrients()) {
         const route = this.routeTag(tag);
         if (!route) continue;
         pools[tag] = (pools[tag] ?? 0) + route.yieldPerLitre * litres;
@@ -865,7 +880,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Toxin tags add their per-serving dose to the pool (each ingest
       // is one serving). The dose absorbs into the burden over time — so
       // the un-absorbed dose is what `vomit` can still dump.
-      for (const tox of material.getToxicity()) {
+      for (const tox of payload?.toxicity ?? material.getToxicity()) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }

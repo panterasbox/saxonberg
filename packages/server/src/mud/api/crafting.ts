@@ -56,6 +56,7 @@ export type CraftDeclineReason =
   | 'no-maker'
   | 'missing-tool'
   | 'insufficient-input'
+  | 'insufficient-heat'
   | 'no-output';
 
 export interface CraftSuccess {
@@ -96,16 +97,28 @@ export interface RecipeView {
 /**
  * The manual-build terminal-mint request. The shaker's accumulated
  * buffer is reverse-matched to a recipe (for the output material + grade
- * floor + recipe id) and the destination glass is filled + stamped. The
+ * floor + recipe id) and the destination vessel is filled + stamped. The
  * maker is derived from execution context, never the wire (as with
  * {@link CraftRequest}); the inputs were already debited off the bottles
  * at pour-time, so the mint does not re-consume.
  */
 export interface BuildMintRequest {
-  /** The destination glass — a Crafted + Bulkable empty cocktail glass. */
-  glass: Stuff;
+  /**
+   * The destination vessel for a bulk/edible mint — a Crafted + Bulkable
+   * glass or dish. Absent for a smithing (workpiece) mint.
+   */
+  vessel?: Stuff;
+  /**
+   * The smithing workpiece (the heated, hammered stock — itself the
+   * build buffer). A tangible mint consumes it: its Material + mass flow
+   * onto the recipe's cloned output (or the generic worked lump).
+   */
+  workpiece?: Stuff;
   /** The accumulated build buffer (banked contributions). */
   contributions: BuildContribution[];
+  /** The highest heat (K) the build was worked at (the vessel's latch);
+   * a recipe with `requiresHeatK` above it never reverse-matches. */
+  heatedToK?: number;
   /** How the build was worked (recorded; not yet quality-affecting in v1). */
   method?: BuildMethod | null;
   /**
@@ -119,6 +132,67 @@ export interface BuildMintRequest {
    */
   makerPath?: string;
 }
+
+/**
+ * The repair request — the item to service. The maker is derived from
+ * the execution context, never the wire (as with {@link CraftRequest}).
+ */
+export interface RepairRequest {
+  /** The durable good to restore (already resolved held/reachable). */
+  item: Stuff;
+}
+
+/** Why a repair was infeasible (rendered diegetically). */
+export type RepairDeclineReason =
+  | 'no-maker'
+  | 'missing-tool'
+  | 'insufficient-heat'
+  | 'insufficient-input';
+
+export interface RepairSuccess {
+  ok: true;
+  item: Stuff;
+  /** The condition the repair started from (it ends at 1). */
+  conditionBefore: number;
+  /** The material mass (kg) the repair consumed. */
+  costKg: number;
+}
+
+export interface RepairFailure {
+  ok: false;
+  reason: RepairDeclineReason;
+  detail?: string;
+}
+
+/** The outcome of a repair — declines are data, breaches throw. */
+export type RepairOutcome = RepairSuccess | RepairFailure;
+
+/** The salvage request — the form to break down for its matter. */
+export interface SalvageRequest {
+  /** The Tangible to break down (already resolved held/reachable). */
+  item: Stuff;
+}
+
+/** Why a salvage was refused (rendered diegetically). */
+export type SalvageDeclineReason = 'no-maker' | 'insufficient-input';
+
+export interface SalvageSuccess {
+  ok: true;
+  /** The recovered raw forms (castings / scrap stacks), unplaced — the
+   * controller lands them in the actor's location. */
+  outputs: Stuff[];
+  /** Total recovered mass (kg) — always ≤ input mass × salvageRate. */
+  recoveredKg: number;
+}
+
+export interface SalvageFailure {
+  ok: false;
+  reason: SalvageDeclineReason;
+  detail?: string;
+}
+
+/** The outcome of a salvage — declines are data, breaches throw. */
+export type SalvageOutcome = SalvageSuccess | SalvageFailure;
 
 const LOGIC_PATH = '/obj/api/crafting';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -152,7 +226,7 @@ export class CraftingApi {
    * Mint a drink from a completed manual build — the terminal-step
    * sibling of {@link craft}. Reverse-matches the accumulated buffer to a
    * recipe (generic `mixed drink` if none), derives the weakest-link
-   * grade, fills the destination glass, and stamps it with the maker's
+   * grade, fills the destination vessel, and stamps it with the maker's
    * mark — reusing the **one** quality model (`Grade` +
    * `CraftedMixin.stamp`). The inputs were debited at pour-time, so this
    * does not re-consume. See {@link CraftingLogic.mintFromBuild}.
@@ -161,6 +235,31 @@ export class CraftingApi {
     request: BuildMintRequest,
   ): Promise<CraftOutcome> {
     return logic().mintFromBuild(request);
+  }
+
+  /**
+   * Repair a durable good — the deficit-priced reverse-craft: material
+   * (same category as the item's matter) × the condition deficit × the
+   * `crafting.repair.*` dials, doubled when broken; metal wants forge
+   * heat, soft goods a `mending` tool. Restores toward full — no
+   * permanent-degradation ceiling. The maker is derived from context.
+   * See {@link CraftingLogic.repair}.
+   */
+  public static async repair(request: RepairRequest): Promise<RepairOutcome> {
+    return logic().repair(request);
+  }
+
+  /**
+   * Salvage a Tangible — the one generic lossy melt-down: each
+   * constituent material returns `mass × fraction × crafting.salvageRate`
+   * in its natural raw form (metal → a re-meltable casting, organics → a
+   * scrap stack); the rest is dross. Provenance, grade, and the chattel
+   * stamp die with the form. See {@link CraftingLogic.salvage}.
+   */
+  public static async salvage(
+    request: SalvageRequest,
+  ): Promise<SalvageOutcome> {
+    return logic().salvage(request);
   }
 
   /** Resolve a recipe id/keyword to a display view, or null. */

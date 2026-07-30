@@ -115,11 +115,28 @@ no mechanical primary at all — see
 [combat-hooks.md](./combat-hooks.md) § the species vocabulary), the
 **site** (torso by default; a called shot to the head on an open window),
 and an **energy** derived from the target's **poise band** at the moment of
-the blow (an open window earns the hardest hit — a `combat.energy.*` dial).
-It computes **no damage**; `inflict` resolves the covering stack outside-in
+the blow (an open window earns the hardest hit — a `combat.energy.*` dial),
+scaled by the **bounded instrument-delivery scale** (the crafting-branches
+coupling): a weapon strike's energy is multiplied by
+`MaterialApi.gradeConditionScale(grade, condition)` (the ONE quality
+formula the covering stack already folds — Settled-4: quality scales
+height, never shape), × the weapon's `keennessDeliveryFactor()` on
+edge/point channels (the working-surface axis — see
+[crafting.md](./crafting.md)), clamped down to
+`crafting.brokenDeliveryFloor` when the weapon `isBroken()`. Material
+*height* is deliberately left analyze-only (a combat-balance question —
+the delivery fold reads quality, not hardness). It computes **no damage**;
+`inflict` resolves the covering stack outside-in
 and returns the trauma type + severity, or `null` (deflected). Armor
 coverage measurably changes the outcome (a plated torso turns an edge a
 bare one wouldn't) — that is entirely materials-response, not combat.
+
+**Wear-on-use** (Law 2, the repair economy's producers): a landed weapon
+strike wears its weapon (`crafting.wear.weaponPerStrike`) and dulls an
+edge/point working surface (`crafting.keenness.wearPerUse`); on the
+struck side, each covering layer that attenuates a mechanical blow wears
+(`crafting.wear.armorPerBlow`, in `ConditionLogic`'s fold). `repair`
+restores condition, `sharpen` restores keenness — two independent axes.
 
 ## Extension hooks — the combat-hooks grammar
 

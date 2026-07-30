@@ -20,6 +20,8 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 
 export interface Durable {
   /** Wear gauge, 0 (worn out) .. 1 (pristine). */
@@ -27,10 +29,33 @@ export interface Durable {
   setCondition(value: number): void;
   /** Decrement condition by `amount` (clamped at 0). The wear-on-use seam. */
   wear(amount?: number): void;
+  /**
+   * Whether the good is **broken** — condition at/below the
+   * `crafting.brokenThreshold` dial. Broken is capability loss, not a
+   * state machine: a broken tool offers no capabilities, a broken
+   * weapon's delivery is floored; repair (at a steeper cost) reverses it.
+   */
+  isBroken(): boolean;
 }
 
 /** Default per-use wear when a consumer doesn't specify. */
 export const WEAR_PER_USE = 0.01;
+
+/** Fallback broken threshold when the AppSettings dial isn't seeded. */
+const BROKEN_THRESHOLD_FALLBACK = 0.1;
+
+/** Numeric AppSetting read, falling back to the seeded literal (the
+ * `Combustible` dial pattern — pre-warm / test safe). */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class DurableMixin extends Base implements Durable {
@@ -64,6 +89,13 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     wear(amount: number = WEAR_PER_USE): void {
       if (!Number.isFinite(amount) || amount < 0) return;
       this.condition = this._condition - amount;
+    }
+
+    isBroken(): boolean {
+      return (
+        this._condition <=
+        dial(AppSettingKeys.craftingBrokenThreshold, BROKEN_THRESHOLD_FALLBACK)
+      );
     }
   };
 }

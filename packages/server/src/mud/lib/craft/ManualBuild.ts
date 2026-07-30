@@ -27,6 +27,8 @@
  */
 
 import type { MixinConstructor } from "../mixin";
+import type { Stuff } from "../stuff/Stuff";
+import { MixinApi } from "../../api/mixin";
 import { Grade } from "./Grade";
 
 /** How the build was worked — recorded by `stir` / `shake`. */
@@ -36,16 +38,40 @@ export type BuildMethod = "stirred" | "shaken";
 export interface BuildContribution {
   /** The Material category tag (e.g. `gin`) — matched against recipe slots. */
   category: string;
-  /** Volume contributed, in litres. */
+  /** Volume contributed, in litres (0 for a discrete item contribution). */
   measureL: number;
-  /** The source bottle's grade band word, for weakest-link derivation. */
+  /** The source's grade band word, for weakest-link derivation. */
   gradeBand: string;
+  /** Contribution kind — absent = `'bulk'` (the bar's, byte-identical);
+   * `'item'` = a banked discrete ingredient / workpiece. */
+  kind?: 'bulk' | 'item';
+  /** Units banked — item contributions only (default 1). */
+  count?: number;
+  /** The source Material's full tag set — item contributions only. A
+   * recipe's item slot matches when its category appears here (the same
+   * by-tag rule `craftImpl`'s gather matching uses), since a discrete
+   * ingredient can't know which of its tags a recipe will ask for. */
+  tags?: string[];
+  /** The source Material's template path — feeds the terminal mint's
+   * derived blend payload (macros in = macros out). */
+  materialPath?: string;
 }
 
 /** Public method surface contributed by {@link ManualBuildMixin}. */
 export interface Builds {
   /** Bank a completed pour/add into the build buffer. */
   addContribution(contribution: BuildContribution): void;
+  /**
+   * Bank the host's **own matter** as the build's item contribution —
+   * the forming work (`hammer`) is what turns the workpiece itself into
+   * a build. **Idempotent per build**: the first call banks, later calls
+   * no-op until `clearBuild` (hammering more shapes the metal, it
+   * doesn't multiply it) — the once-rule lives here, in the substrate,
+   * so no verb (core or authored) can double-bank. Returns true when a
+   * contribution was banked; false when one was already banked or the
+   * host carries no material to bank.
+   */
+  bankWorkpiece(): boolean;
   /** The contributions banked so far (snapshot-safe). */
   getContributions(): readonly BuildContribution[];
   /** Record how the build was worked. */
@@ -58,6 +84,15 @@ export interface Builds {
   getBuildGrade(): Grade;
   /** True iff nothing has been banked yet. */
   isBuildEmpty(): boolean;
+  /**
+   * Latch the highest heat (K) this build has been worked at — the
+   * `heat` step records the reachable heat here; a recipe with
+   * `requiresHeatK` above the latch never reverse-matches. Max-latching
+   * (a later, cooler heat never lowers it); reset by `clearBuild`.
+   */
+  noteHeat(kelvin: number): void;
+  /** The highest heat (K) this build reached; 0 = never heated. */
+  getHeatedToK(): number;
   /**
    * Record the verbatim command source of a completed manual step (the
    * demonstration-capture trail). A *scripted* build records nothing (its
@@ -84,9 +119,28 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _contributions: BuildContribution[] = [];
     private _method: BuildMethod | null = null;
     private _commandSources: string[] = [];
+    private _heatedToK: number = 0;
 
     addContribution(contribution: BuildContribution): void {
       this._contributions.push({ ...contribution });
+    }
+
+    bankWorkpiece(): boolean {
+      if (this._contributions.some((c) => c.kind === "item")) return false;
+      const host = this as unknown as Stuff;
+      if (!MixinApi.isTangible(host)) return false;
+      const material = host.getMaterial();
+      if (!material) return false;
+      this.addContribution({
+        category: material.getName().toLowerCase(),
+        measureL: 0,
+        gradeBand: MixinApi.isGraded(host) ? host.getGradeBand() : "fair",
+        kind: "item",
+        count: 1,
+        tags: [...material.getTags()],
+        materialPath: material.getTemplatePath() ?? undefined,
+      });
+      return true;
     }
 
     getContributions(): readonly BuildContribution[] {
@@ -115,6 +169,16 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this._contributions.length === 0;
     }
 
+    noteHeat(kelvin: number): void {
+      if (Number.isFinite(kelvin) && kelvin > this._heatedToK) {
+        this._heatedToK = kelvin;
+      }
+    }
+
+    getHeatedToK(): number {
+      return this._heatedToK;
+    }
+
     recordCommand(source: string): void {
       const trimmed = source.trim();
       if (trimmed.length > 0) this._commandSources.push(trimmed);
@@ -128,6 +192,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._contributions = [];
       this._method = null;
       this._commandSources = [];
+      this._heatedToK = 0;
     }
   };
 }

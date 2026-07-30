@@ -85,6 +85,21 @@ object, so spec, controller, and seed all live under
 `mud/domain/eternal/university-avenue/` (`cmd/` + `command/`) beside
 `Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
+**Who affords a verb is a separate question from where its spec
+lives — and the answer is the *instrument***. The tool/fixture that
+does the work carries the working verbs in its
+`commandContributions` (the whetstone → `sharpen`, the cook pot →
+`pour`/`stir`/`heat`/`plate`/`cook`, the anvil →
+`hammer`/`quench`/`forge`/`repair`/`salvage`, the furnace →
+`heat`/`ignite`/`douse`/`pump`), so the surface follows capital,
+wherever it physically is. A commerce object (a `CommerceMenu`)
+affords only its commerce verbs (`menu`/`order`) — the menu is for
+ordering, not making. Knowledge-driven verbs with no instrument
+(`make`) are innate on `Avatar`. See
+[crafting.md § The offer](./crafting.md) for the worked example, and
+the planned capability-keyed affordance table (verb families conferred
+from instance `capabilities` data) as the end state.
+
 ### Aside: spec, parser, and the model
 
 Today's parser is **`msh`** — the framework's tokenizer-driven shell

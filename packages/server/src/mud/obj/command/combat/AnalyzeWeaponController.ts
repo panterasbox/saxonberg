@@ -23,7 +23,6 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { CombatApi } from "../../../api/combat";
-import { MaterialApi } from "../../../api/material";
 import { MixinApi } from "../../../api/mixin";
 import { Gambit } from "../../../lib/combat/Gambit";
 
@@ -79,6 +78,16 @@ export default class AnalyzeWeaponController extends CommandController<AnalyzeWe
 
     const lines: string[] = [];
     lines.push(`Playstyle of ${stuff.getPresentation()}:`);
+    if (MixinApi.isDurable(stuff) && stuff.isBroken()) {
+      lines.push(`  broken — it will barely bite until repaired`);
+    }
+    // The edge band (bands only — raw keenness stays off every surface).
+    if (
+      MixinApi.isKeen(stuff) &&
+      channels.some((c) => c === 'edge' || c === 'point')
+    ) {
+      lines.push(`  edge ${stuff.getKeennessBand()}`);
+    }
     lines.push(
       `  reach ${profile.reach()} ${pipBar(profile.reachRank(), 2)}`,
     );

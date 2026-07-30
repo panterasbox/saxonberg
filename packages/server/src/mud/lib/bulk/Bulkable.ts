@@ -80,6 +80,47 @@ export type BulkAffordance = 'interior' | 'surface';
  */
 export const BULK_VOLUME_UNIT = 'L' as const;
 
+/**
+ * A **per-instance blend payload** — the identity + metabolism face of
+ * a *derived mixture* held in a bulk slot (a plated stew, a mixed
+ * drink): what an anonymous per-blend `Material` row would have said,
+ * carried on the holding instance instead. This is what keeps the
+ * material library a **fixed, curated vocabulary**: a blend's slot
+ * points at one generic substance Material (physics + routing home)
+ * while the payload carries the *derived* name/prose/macros — macros in
+ * = macros out, computed by `CraftingLogic` from the consumed inputs,
+ * never authored per dish.
+ *
+ * Semantics mirror a Material row exactly (per-serving amounts, tag
+ * routing, per-ingest toxin doses), so every reader treats `payload ??
+ * material` uniformly: the MQL bulk candidate (`look stew`), the
+ * contents augmenter ("It holds …"), the NutritionLabel, and
+ * metabolism's `ingest`. A slot with no payload behaves byte-identically
+ * to before. Cleared whenever the slot empties; a transfer into an
+ * empty slot carries a copy (blend-merging into a non-empty slot is out
+ * of scope — the material-mismatch guard already declines cross-material
+ * pours, and same-material pours keep the destination's payload).
+ *
+ * Plain JSON-able record (the `reserves` precedent) — round-trips
+ * through the default Hydrator with no marshaller.
+ */
+export interface BulkPayload {
+  /** Display name ("hearty stew") — the blend's `Material.name`. */
+  name: string;
+  /** Optional appearance prose — the blend's `Material.appearance`. */
+  appearance?: string;
+  /** Resolution keywords (`look stew`) — the blend's keywords. */
+  keywords?: string[];
+  /** Nutrient routing tags (metabolism's per-litre routes). */
+  nutrients: string[];
+  /** Label amounts (tag → mg per serving) — display, like Material's. */
+  nutrientAmounts: Record<string, number>;
+  /** Per-serving toxin doses (each ingest is one serving). */
+  toxicity: { type: string; amount: number }[];
+  /** Whether the blend is edible (the label + eat gates read this). */
+  edible: boolean;
+}
+
 
 // `via.bulk` facet — declaration-merged onto MqlMatchVia, colocated
 // with the owning subsystem (mirrors `via.detailPath` / `via.exit`).
@@ -175,6 +216,16 @@ export class BulkSlot {
     return Math.max(0, cap.rawValue() - this.getAmount().rawValue());
   }
 
+  /** The slot's blend payload, or `null` (an un-blended substance). */
+  getPayload(): BulkPayload | null {
+    return this.host.getBulkPayload(this.affordance);
+  }
+
+  /** Set / clear the slot's blend payload (a copy is stored). */
+  setPayload(payload: BulkPayload | null): void {
+    this.host.setBulkPayload(this.affordance, payload);
+  }
+
   /** Assign / clear the slot's material (writes the path on the host). */
   setMaterial(material: Material | null): void {
     this.host.setBulkMaterial(this.affordance, material);
@@ -202,6 +253,8 @@ export interface Bulkable {
   getBulkMaterialPath(affordance: BulkAffordance): string | null;
   getBulkMaterial(affordance: BulkAffordance): Material | null;
   setBulkMaterial(affordance: BulkAffordance, material: Material | null): void;
+  getBulkPayload(affordance: BulkAffordance): BulkPayload | null;
+  setBulkPayload(affordance: BulkAffordance, payload: BulkPayload | null): void;
   getBulkAmount(affordance: BulkAffordance): Quantity<'L'>;
   setBulkAmount(affordance: BulkAffordance, amount: Quantity<'L'>): void;
   getBulkCapacity(affordance: BulkAffordance): Quantity<'L'> | null;
@@ -300,6 +353,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * @authorable ref:Material
      */
     public interiorMaterial: string | null = null;
+    /**
+     * Interior blend payload (a derived mixture's identity + macros);
+     * `null` ⇒ the held substance is exactly its Material row.
+     *
+     * @runtimeState
+     */
+    public interiorPayload: BulkPayload | null = null;
     /** @runtimeState */
     private _interiorAmount: Quantity<'L'> = Quantity.of(0, BULK_VOLUME_UNIT);
     /** @authorable */
@@ -312,6 +372,12 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * @authorable ref:Material
      */
     public surfaceMaterial: string | null = null;
+    /**
+     * Surface blend payload — the interior's sibling.
+     *
+     * @runtimeState
+     */
+    public surfacePayload: BulkPayload | null = null;
     /** @runtimeState */
     private _surfaceAmount: Quantity<'L'> = Quantity.of(0, BULK_VOLUME_UNIT);
     /** @authorable */
@@ -329,9 +395,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       'interiorBulk',
       'surfaceBulk',
       'interiorMaterial',
+      'interiorPayload',
       'interiorAmount',
       'interiorCapacity',
       'surfaceMaterial',
+      'surfacePayload',
       'surfaceAmount',
       'surfaceCapacity',
       'closure',
@@ -464,8 +532,29 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       const path = material ? (material.getTemplatePath() ?? null) : null;
       if (affordance === 'interior') {
         this.interiorMaterial = path;
+        // The payload describes the held matter; no matter, no payload.
+        if (path === null) this.interiorPayload = null;
       } else {
         this.surfaceMaterial = path;
+        if (path === null) this.surfacePayload = null;
+      }
+    }
+
+    public getBulkPayload(affordance: BulkAffordance): BulkPayload | null {
+      return affordance === 'interior'
+        ? this.interiorPayload
+        : this.surfacePayload;
+    }
+
+    public setBulkPayload(
+      affordance: BulkAffordance,
+      payload: BulkPayload | null,
+    ): void {
+      const copy = payload === null ? null : structuredClone(payload);
+      if (affordance === 'interior') {
+        this.interiorPayload = copy;
+      } else {
+        this.surfacePayload = copy;
       }
     }
 
@@ -536,7 +625,9 @@ function bulkContentsAugmenter(
     if (!present) continue;
     const slot = host.getBulk(affordance);
     if (slot.isEmpty()) continue;
-    const appearance = slot.getMaterial()?.getAppearance();
+    // A blend's payload prose wins over its generic base material's.
+    const appearance =
+      slot.getPayload()?.appearance ?? slot.getMaterial()?.getAppearance();
     if (!appearance) continue;
     lines.push(
       affordance === 'surface'

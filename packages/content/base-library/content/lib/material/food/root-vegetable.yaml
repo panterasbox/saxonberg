@@ -1,0 +1,19 @@
+# A root vegetable — raw cooking stock (turnip, carrot, whatever the
+# pantry has). Edible raw in a pinch; its worth is what a pot makes of
+# it. The cooking branch's staple input, matched by the `vegetable` tag.
+class: /lib/material/ConsumableMaterial
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: root vegetable
+  appearance: knobbly root vegetables, earth still on them
+  keywords: [vegetable, root, roots, turnip, veg]
+  density: 700
+  thermalConductivity: 0.5
+  specificHeat: 3500
+  edibility: true
+  nutrients: [carb]
+  nutrientAmounts:
+    carb: 17000
+  tags: [food, vegetable, raw]
+  composition: []
+  biologicalSource: null

@@ -1796,6 +1796,60 @@ interface InflictReport {
  * **shock** primary skips it entirely — `commitShockInflict` fires the
  * carrier's `augmentInflict` and lets the drain deliver the one shock.
  */
+/**
+ * The bounded instrument-delivery scale (crafting-branches DECISION F): a
+ * weapon's `grade × condition` scalar (the ONE `MaterialApi` formula the
+ * covering stack already uses — quality scales height, never shape),
+ * clamped down to the broken floor when the weapon is broken. The keenness
+ * factor joins on edge/point channels for `Keen` hosts. Neutral (1) for
+ * unarmed/innate strikes. Material *height* stays analyze-only — a
+ * deliberate asymmetry (combat balance), documented in combat.md.
+ */
+function instrumentDeliveryScale(
+  weapon: Stuff | null,
+  channel: Channel,
+): number {
+  if (!weapon) return 1;
+  const grade = MixinApi.isGraded(weapon) ? weapon.getGrade() : undefined;
+  const condition = MixinApi.isDurable(weapon)
+    ? weapon.getCondition()
+    : undefined;
+  let scale = MaterialApi.gradeConditionScale(grade, condition);
+  // The working-surface factor — the edge only matters on the edge.
+  if (
+    (channel === "edge" || channel === "point") &&
+    MixinApi.isKeen(weapon)
+  ) {
+    scale *= weapon.keennessDeliveryFactor();
+  }
+  if (MixinApi.isDurable(weapon) && weapon.isBroken()) {
+    scale = Math.min(
+      scale,
+      dial(AppSettingKeys.craftingBrokenDeliveryFloor, 0.35),
+    );
+  }
+  return scale;
+}
+
+/**
+ * Wear-on-use for a landed weapon strike (Law 2: use, never the clock):
+ * the weapon's structural condition wears per strike, and an edge/point
+ * delivery also dulls the working surface (the fast-cycling keenness
+ * axis `sharpen` restores).
+ */
+function wearWeaponOnStrike(weapon: Stuff | null, channel: Channel): void {
+  if (!weapon) return;
+  if (MixinApi.isDurable(weapon)) {
+    weapon.wear(dial(AppSettingKeys.craftingWearWeaponPerStrike, 0.004));
+  }
+  if (
+    (channel === "edge" || channel === "point") &&
+    MixinApi.isKeen(weapon)
+  ) {
+    weapon.dull(dial(AppSettingKeys.craftingKeennessWearPerUse, 0.08));
+  }
+}
+
 function commitInflict(
   session: CombatSession,
   actorState: CombatantState,
@@ -1843,7 +1897,10 @@ function commitInflict(
     );
   }
 
-  const energy = energyFor(bandForEnergy) * (energyScale > 0 ? energyScale : 1);
+  const energy =
+    energyFor(bandForEnergy) *
+    (energyScale > 0 ? energyScale : 1) *
+    instrumentDeliveryScale(weapon, channel);
   let spec: EnergyInflictSpec = {
     mechanism: channel,
     site,
@@ -1870,6 +1927,9 @@ function commitInflict(
   }
 
   const outcome = ConditionApi.inflict(target, spec);
+  // A landed weapon strike wears its instrument (whether or not the blow
+  // got through the armor — the steel still met resistance).
+  wearWeaponOnStrike(weapon, channel);
   // Name the killing edge for an attrition/bleed-out death that has no
   // single striker at resolution time (the per-edge blame foundation).
   if (outcome.afflicted) {

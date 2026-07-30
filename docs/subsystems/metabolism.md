@@ -76,6 +76,12 @@ march" (intake arrives gradually) fall out for free. Toxin tags
 
 `BulkableApi.ingest` (liquid) and `BulkableApi.ingestSolid` (solid) are
 the two Api bridges; `eat`/`vomit` ride `cmd/bulk/` like `drink`/`sip`.
+Both accept an optional **`BulkPayload`** (a derived blend's
+per-instance face — see [bulk.md](./bulk.md)): when present, its
+`nutrients`/`toxicity`/`name` speak for the meal and the slot's generic
+base material only supplies physics — so a derived stew nourishes as
+the sum of what actually went into the pot (macros in = macros out),
+with zero per-dish Material rows.
 
 ## Coupled recovery — the keystone
 

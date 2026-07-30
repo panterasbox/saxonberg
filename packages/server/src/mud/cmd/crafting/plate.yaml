@@ -1,0 +1,21 @@
+verbs: [plate]
+controller: /obj/command/crafting/PlateController
+description: "Plate a finished build onto a dish (the cooking finish)"
+help: |
+  Finish the cooking — `plate into dish` (or `plate pot into dish`). The
+  build is matched to a recipe and the meal is plated, maker's-marked;
+  an off-spec build still yields pot luck. Your first faithful by-hand
+  cooking of a recipe teaches you it (then `cook <dish>` works).
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: vessel
+    type: object
+    required: false
+    scope: "reachable"
+  - name: dish
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [into, in, onto, on]

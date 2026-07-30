@@ -1,0 +1,18 @@
+verbs: [pump, work]
+controller: /obj/command/device/PumpController
+description: "Work a furnace's bellows"
+help: |
+  Work a furnace's bellows — `pump forge` (or `work bellows`). A worked
+  bellows drives the fire far past its banked heat; smelting and the
+  hottest smithing work need it. Pump again to ease off. A cold or
+  unfuelled furnace just wheezes.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/canReach

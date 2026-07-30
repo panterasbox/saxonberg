@@ -11,6 +11,8 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { WorldClockApi } from '../../api/worldclock';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePaths } from '../../lib/paths';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../lib/vitals/Condition';
 import { Channels } from '../../lib/material/Channel';
 import type { Channel } from '../../lib/material/Channel';
@@ -68,10 +70,25 @@ function severityFromEnergy(energy: number): number {
 
 /** One armor layer over a struck part — the materials-response inputs. */
 interface CoveringLayer {
+  /** The armor/shield Stuff itself (the wear-on-use target). */
+  occ: Stuff;
   material: Material | null;
   construction: Construction;
   grade: Grade | undefined;
   condition: number;
+}
+
+/** Numeric AppSetting read, falling back to the seeded literal (the
+ * `Combustible` dial pattern — pre-warm / test safe). */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 /**
@@ -124,6 +141,7 @@ function resolveCoveringStack(
 /** Build a covering layer from an armor/shield occupant. */
 function layerOf(occ: Stuff, construction: Construction): CoveringLayer {
   return {
+    occ,
     material: MixinApi.isTangible(occ) ? occ.getMaterial() : null,
     construction,
     grade: MixinApi.isGraded(occ) ? occ.getGrade() : undefined,
@@ -242,6 +260,7 @@ function inflictThroughStack(
       spec.site,
       spec.shieldFacing ?? true
     )) {
+      const incident = residual;
       residual = MaterialApi.attenuate(
         channel,
         residual,
@@ -250,6 +269,16 @@ function inflictThroughStack(
         layer.grade,
         layer.condition,
       ).residualEnergy;
+      // Wear-on-use (Law 2): a covering layer that attenuated a
+      // mechanical blow wears — armor degrades by taking hits, never by
+      // the clock. Heat/shock leave no structural wear here.
+      if (
+        Channels.isMechanicalChannel(channel) &&
+        residual < incident &&
+        MixinApi.isDurable(layer.occ)
+      ) {
+        layer.occ.wear(dial(AppSettingKeys.craftingWearArmorPerBlow, 0.004));
+      }
     }
     const part = target.getPart(spec.site);
     if (part) {

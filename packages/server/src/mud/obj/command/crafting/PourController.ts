@@ -56,15 +56,6 @@ export default class PourController extends ManualBuildController<PourModel> {
       );
       return;
     }
-    if (!MixinApi.isBulkable(bottle) || !MixinApi.isGraded(bottle)) {
-      this.declineStep(
-        context,
-        Mml.compose`You can't pour a measure from ${Mml.item(bottle)}.`,
-        "not-a-holder",
-      );
-      return;
-    }
-
     const vessel: Stuff | null =
       model.vessel?.stuff ?? this.findBuildVessel(giver);
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
@@ -72,6 +63,27 @@ export default class PourController extends ManualBuildController<PourModel> {
         context,
         Mml.compose`Pour it into what? You need a shaker or mixing glass.`,
         "no-vessel",
+      );
+      return;
+    }
+
+    // The discrete-ingredient branch (the cooking `add`): a Tangible
+    // ingredient — not a graded bottle — dropped into the pot whole. The
+    // item is consumed at completion and banked as an item-contribution.
+    if (!MixinApi.isBulkable(bottle) || !MixinApi.isGraded(bottle)) {
+      if (
+        MixinApi.isTangible(bottle) &&
+        bottle.getMaterial() !== null &&
+        !MixinApi.isTool(bottle) &&
+        !MixinApi.isCrafted(bottle)
+      ) {
+        this.addIngredient(context, bottle, vessel);
+        return;
+      }
+      this.declineStep(
+        context,
+        Mml.compose`You can't pour a measure from ${Mml.item(bottle)}.`,
+        "not-a-holder",
       );
       return;
     }
@@ -117,6 +129,7 @@ export default class PourController extends ManualBuildController<PourModel> {
           category,
           measureL: result.applied,
           gradeBand,
+          materialPath: material?.getTemplatePath() ?? undefined,
         });
         vessel.recordCommand(commandText);
         MessageApi.scene(giver)
@@ -124,6 +137,53 @@ export default class PourController extends ManualBuildController<PourModel> {
           .toSelf(Mml.compose`You pour ${Mml.item(bottle)} into ${Mml.item(vessel)}.`)
           .toPeers(Mml.compose`${Mml.name(giver)} pours ${Mml.item(bottle)} into ${Mml.item(vessel)}.`)
           .send();
+      },
+    });
+  }
+
+  /**
+   * The discrete-ingredient step: an engaged `add` that — at completion —
+   * consumes the ingredient whole (`StuffApi.destruct`, chattel released
+   * by the shipped path) and banks an item-contribution (category by
+   * tags, grade or `fair`, a glob's stack as its count).
+   */
+  private addIngredient(
+    context: CommandContext,
+    ingredient: Stuff,
+    vessel: Stuff,
+  ): void {
+    if (!MixinApi.isBuildVessel(vessel) || !MixinApi.isTangible(ingredient)) {
+      return;
+    }
+    const giver = context.commandGiver;
+    const material = ingredient.getMaterial()!;
+    const build = vessel;
+    const commandText = context.commandText;
+    this.engageStep(context, {
+      durationMs: POUR_MS,
+      beginSelf: Mml.compose`You start adding ${Mml.item(ingredient)} to ${Mml.item(vessel)}.`,
+      beginPeers: Mml.compose`${Mml.name(giver)} adds ${Mml.item(ingredient)} to ${Mml.item(vessel)}.`,
+      onComplete: () => {
+        if (ingredient.isDestroyed()) return; // gone mid-step — nothing to add
+        build.addContribution({
+          category: primaryCategory(material),
+          measureL: 0,
+          gradeBand: MixinApi.isGraded(ingredient)
+            ? ingredient.getGradeBand()
+            : "fair",
+          kind: "item",
+          count: MixinApi.isGlobbable(ingredient)
+            ? ingredient.getQuantity()
+            : 1,
+          tags: [...material.getTags()],
+          materialPath: material.getTemplatePath() ?? undefined,
+        });
+        build.recordCommand(commandText);
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You add ${Mml.item(ingredient)} to ${Mml.item(vessel)}.`)
+          .send();
+        StuffApi.destruct(ingredient);
       },
     });
   }

@@ -466,8 +466,8 @@ reason.
   medical, combat, magic (`cast`/`spells` — the casting core), work (the
   labor market — `job`/`fulfill`), device
   ("operating a built object or mechanism" —
-  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`; `lock`/`unlock` stay
-  under `boundary`). The concealment build added `search` (perception),
+  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
+  stay under `boundary`). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
   `look` alias, not its own verb.
 - **Command controllers**: in `mud/obj/command/<category>/`, e.g.

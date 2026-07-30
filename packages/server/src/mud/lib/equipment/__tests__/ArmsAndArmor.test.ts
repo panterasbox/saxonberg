@@ -45,6 +45,7 @@ describe('Armor — emergent composition', () => {
   it('carries material, construction, grade, and a wearing condition', () => {
     const a = makeStuff(() => new Armor());
     if (!MixinApi.isTangible(a)) throw new Error('tangible');
+    if (!MixinApi.isGraded(a)) throw new Error('graded');
     a.setMaterial(steel());
     a.setConstruction(Construction.of('plate'));
     a.setGrade(Grade.of('fine'));

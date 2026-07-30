@@ -14,7 +14,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import Menu from '../../../domain/lounge/Menu';
+import Menu from '../../../lib/commerce/Menu';
 import { BankingApi, Money } from '../../../api/banking';
 import type { Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
@@ -77,6 +77,16 @@ export default class OrderController extends CraftController<OrderModel> {
         detail: model.cocktail,
       });
       return;
+    }
+
+    // Stand the venue's operator up BEFORE resolving the maker: the
+    // Business is derived + stood up lazily (no standup hook), and its
+    // on-shift conferral is what makes the present crafter an active
+    // `MakerMixin` — a cold venue's first customer must find the roster
+    // already on shift, not a no-maker decline.
+    const venuePathForMaker = context.location?.getTemplatePath();
+    if (venuePathForMaker) {
+      await EmploymentApi.ensureOperatorAt(venuePathForMaker);
     }
 
     const outcome = await CraftingApi.craft({

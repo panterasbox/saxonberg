@@ -555,7 +555,16 @@ export class EmploymentLogic extends ApiLogic {
     if (!tplPath) return null;
     const inst = await StuffApi.singletonOrClone<Stuff>(tplPath);
     this.businessCache = null; // the live scan must re-see the new instance
-    return MixinApi.isBusiness(inst) ? inst : null;
+    if (MixinApi.isBusiness(inst)) {
+      // A lazily stood-up business arrives with CORRECT on-shift state —
+      // the same immediate roster pass `boot()` runs for boot-time
+      // businesses. Without it, a cold venue's first customer finds the
+      // roster hired but nobody conferred (`order` → no-maker) until the
+      // next scheduled tick.
+      this.runTick();
+      return inst;
+    }
+    return null;
   }
 
   /** See {@link EmploymentApi.businessOfProprietor}. */

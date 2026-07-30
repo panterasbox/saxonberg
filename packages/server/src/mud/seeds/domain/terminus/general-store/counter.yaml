@@ -28,9 +28,15 @@ data:
     - { itemTemplatePath: /domain/terminus/general-store/goods/waterskin, par: 3 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/clasp-knife, par: 2 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/lantern, par: 2 }
+    - { itemTemplatePath: /domain/terminus/general-store/goods/whetstone, par: 2 }
+    - { itemTemplatePath: /domain/terminus/general-store/goods/iron-ingot, par: 3 }
+    - { itemTemplatePath: /domain/terminus/general-store/goods/sewing-kit, par: 2 }
   prices:
     /domain/terminus/general-store/goods/torch: 2
     /domain/terminus/general-store/goods/rations: 3
     /domain/terminus/general-store/goods/waterskin: 4
     /domain/terminus/general-store/goods/clasp-knife: 6
     /domain/terminus/general-store/goods/lantern: 10
+    /domain/terminus/general-store/goods/whetstone: 3
+    /domain/terminus/general-store/goods/iron-ingot: 5
+    /domain/terminus/general-store/goods/sewing-kit: 5
