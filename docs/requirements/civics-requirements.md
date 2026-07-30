@@ -81,6 +81,34 @@ doctrine, not deferral.
   position, with `holdsSeat` provable. The office-build precedent:
   substrate + exactly one wired consumer.
 - A **`civics.md` subsystem doc** and the one-line CLAUDE.md map entry.
+- **The committee is realized as a code concept** (the meta-layer
+  half of this build's jargon). A committee is **the group holding
+  parcel title over a subdivision** — derived on read from
+  `ParcelApi.ownerOf`, never stored as a new kind: "all committees
+  are groups" and "not all groups are committees" are both structural
+  consequences. Deliverables:
+  - A **`CommitteeApi`** facade (thin, derive-on-read over
+    ParcelApi + GroupApi + ChatApi): `committeeOf(path)` (the
+    title-holding group, `null` for player-held subdivisions),
+    `isCommitteeMember(player, path)`, and the chat seam —
+    `channelOf(path)` / an ensure-channel path so **committees get
+    their own chat channels** (a Channel whose Subject binds the
+    committee group's `GroupRef`; the group-DM→channel promotion
+    path is the precedent).
+  - A small public **`committee` verb** (read-only): the committee
+    over where you stand (or a given path) — group, members, channel.
+  - **The Terminus committee exists**: a seeded well-known managed
+    Group (founder-membered, the AccessRegistry well-known-group
+    precedent) holding title over the terminus subdivision, with the
+    transfer recorded in chain-of-title, and its committee channel
+    reachable.
+- **The jargon is installed in code, not just docs**: the exported
+  `COOPERATIVE_WIDE` scope sentinel becomes `COMPACT_WIDE` (the
+  stored `'*'` value unchanged — no data migration) across
+  renown/participation/producer standings and all importers; the
+  `standing` verb's player-facing prose ("The cooperative regards
+  you…") becomes "The Compact regards you…"; touched-file comments
+  referencing "the cooperative build" follow.
 
 ## Non-goals
 
@@ -111,6 +139,15 @@ doctrine, not deferral.
   commonality is extracted only if real duplication appears then.
 - **Real-judiciary interaction** (outlawry case types, escalation
   workflows) — the courts build's concern.
+- **Committee governance machinery** — voting, charters, formal
+  procedures for committees. A committee's membership is managed
+  through the existing `group` verb suite (it IS a managed Group);
+  its authority is exactly parcel title (the access substrate,
+  unchanged). This build adds only the derived identity, the reads,
+  the verb, and the chat seam.
+- **Renaming stored data** — the `'*'` scope sentinel value, slate
+  filenames, and historical chain-of-title rows keep their bytes;
+  only code identifiers, comments, and player-facing prose move.
 
 ## Surface decisions
 
@@ -170,6 +207,37 @@ reference to a department position; authority checks are
 `holdsSeat(...)`. The two staffs never merge: the **meta staff**
 (committee: parcel owners + wizards) rides the property/code-trust
 axes untouched; the **diegetic staff** (seat-holders) rides positions.
+
+### Committee is derived from parcel title, not minted as a new kind
+
+The committee concept ("the group administering a code subdivision" —
+the jargon standard's replacement for cabal/content-group) could have
+been a new Document kind, a Group flag, or a fifth GroupProvider.
+Decided: **a committee is a relationship, not a thing** — the group
+that `ParcelApi.ownerOf` resolves for a subdivision IS its committee.
+Reasoning: (1) administration in this system *is* title (the property
+bridge — access already dispatches on the title-holding owner), so a
+separate committee designation would either duplicate or contradict
+`ownerOf`; (2) derive-on-read is the house style and needs zero new
+storage; (3) the subject/predicate constraints the user stated ("all
+committees are groups, not all groups are committees") hold
+structurally — a player-held subdivision simply has no committee.
+Membership management is the existing `group` verb suite; authority is
+the existing access substrate; the new surface is identity + reads +
+the chat seam only. The meta/fiction split is preserved: committee is
+a **meta** concept (it lives with access/grouping, documented there —
+NOT in the diegetic Government substrate), and the `committee` verb is
+filed accordingly, never under the fiction's civics category.
+
+### Committee channels ride the existing chat substrate
+
+"Committees get their own chat channels" adds no channel kind: a
+committee channel is a persistent Channel whose Subject's `groupRef`
+binds the committee's managed Group (the audience walk already routes
+`GroupApi.membersOf`). The facade ensures the channel lazily; chat
+remains the owner of nothing new — the committee group pre-exists, so
+this is the promotion-path shape, not the `chat make` backing-group
+shape.
 
 ### v1 flagship is thin by design
 
@@ -232,9 +300,23 @@ pass against the consent substrate).
 - The two real Localities resolve: a dorm room's
   `analyze address` shows a `terminus/...` address with a covering
   Locality; `narnia/*` tests untouched.
+- Committee: `committeeOf` resolves the title-holding group for a
+  group-owned subdivision and `null` for a player-held one (tests
+  cover both + the `'core'` state default); `isCommitteeMember` true
+  for a member of the title-holding group; the **Terminus committee**
+  group exists, holds the terminus subdivision title (chain-of-title
+  row present), and `committee` in the Registry office shows it; the
+  committee channel resolves/ensures and a committee member can post
+  to it (audience = the group).
+- Jargon install: `COMPACT_WIDE` compiles everywhere (`grep
+  COOPERATIVE_WIDE` returns nothing), the stored `'*'` sentinel and
+  existing standings rows read back unchanged (regression), and
+  `standing` renders "The Compact regards you…".
 - `docs/subsystems/civics.md` exists (substrate, doctrine pointers to
   the staging capture, deferred list); CLAUDE.md map gains its
-  one-liner; the staging doc gains a "requirements landed" pointer.
+  one-liner; the staging doc gains a "requirements landed" pointer;
+  the committee concept is documented on the meta side (access.md
+  and/or grouping.md) with a jargon-standard pointer.
 - `pnpm lint`, `lint:gates`, `lint:module-scope`, and the full Vitest
   suite green.
 

@@ -366,6 +366,129 @@ cross-references.
   controller must not assume an Interactive (no prompts — read-only
   output only).
 
+## Amendment — committee realization + code-level jargon install
+
+Scope added after the initial plan (requirements §Goals last two
+bullets, §Surface decisions "Committee is derived from parcel title" +
+"Committee channels ride the existing chat substrate"). Grounding:
+`ParcelApi.ownerOf(path)` is **total** and returns
+`{ kind: 'group', name?, ref? } | { kind: 'player', templatePath }`
+with the state default `{kind:'group', name:'core'}`;
+`ParcelApi.resolveOwnerRef` maps a group owner → `GroupRef`; since
+forums cycle-1 a `Channel` binds audience via its **Subject**'s
+`groupRef` (`Channel.subject` → Subject `_id`), and the
+group-DM→channel promotion path is the bind-an-existing-group
+precedent. The committee is therefore **pure derive-on-read**: the
+title-holding group IS the committee; a player-held subdivision has
+none.
+
+### Additional design decisions
+
+11. **`CommitteeApi` is a meta-layer facade** — `api/committee.ts` +
+    `obj/api/CommitteeLogic.ts` (`/obj/api/committee`, gate
+    `FromModule('/api/committee#CommitteeApi')`). It composes
+    ParcelApi + GroupApi + the chat surface; it owns **no storage**.
+    Surface:
+    ```ts
+    committeeOf(path: string): Promise<CommitteeView | null>
+    // CommitteeView = { name, groupRef, subdivisionPath } — null for
+    // player-held subdivisions (a committee is a group, structurally)
+    isCommitteeMember(player: Stuff, path: string): Promise<boolean>
+    membersOf(path: string): Promise<Stuff[]>          // via GroupApi
+    channelOf(path: string): Promise<ChannelInfo | null>
+    ensureChannel(path: string): Promise<ChannelInfo>  // idempotent
+    ```
+    `ensureChannel` reuses the promotion-path internals to mint a
+    persistent Channel whose Subject binds the committee's existing
+    `GroupRef` — if no ChatApi method exposes bind-existing-group,
+    add ONE narrow gated method on the chat logic rather than writing
+    Channel/Subject Documents from committee code.
+12. **The `committee` verb is filed under `system`** (`cmd/system/
+    committee.yaml`, `obj/command/system/CommitteeController.ts` +
+    seed) — a meta-administrative read, NEVER under `civics` (the
+    fiction's category; the jargon standard's layer split). Bare form:
+    resolve the covering parcel of the giver's location →
+    `committeeOf` → group name, members, channel handle; `committee
+    <path>` for an explicit path; `committee channel` ensures + shows
+    the channel. Public, read-only except the idempotent ensure.
+    Afforded via `Persona.commandContributions.self`. Grep the verb
+    roster for a `committee` collision first.
+13. **The Terminus committee is seeded real**: a well-known managed
+    Group `terminus` (founder-membered — mirror the AccessRegistry
+    bootstrap seeding of `core`/`lounge`/`wizards`, whatever that
+    exact mechanism is) + a **title transfer** of the terminus
+    subdivision from `core` to the `terminus` group, recorded through
+    the ordinary `ParcelApi` mutation path so chain-of-title carries
+    it (find how the existing terminus parcel row is provisioned —
+    seed row vs boot reconcile — and mirror; never hand-write a
+    `parcels` row without its event). Access consequence is
+    intended: terminus-committee members become content-authors over
+    the terminus subdivision — that is what a committee IS; seed
+    membership = founder only.
+14. **`COOPERATIVE_WIDE` → `COMPACT_WIDE`** in
+    `lib/standing/RenownStanding.ts` and every importer
+    (`RenownLogic`, `ConsumerLogic`, `ProducerLogic`, tests,
+    `PersistenceManager`/`RenownEvent` comments). The stored `'*'`
+    value is untouched — no migration; a regression test reads a
+    pre-existing standing back. `StandingController` prose: "The
+    Compact regards you well/poorly / has yet to form a view of you."
+    Touched-file comments saying "the cooperative build" → "the
+    Compact-governance build". `chat.md`'s "content-team-created" →
+    "committee-created".
+
+### Amendment file inventory
+
+New: `api/committee.ts` (Api), `obj/api/CommitteeLogic.ts` (Api logic
+singleton), `cmd/system/committee.yaml` (Command YAML),
+`obj/command/system/CommitteeController.ts` (Controller) + its seed
+YAML, the `terminus` group seeding + title-transfer wiring (home per
+decision 13), `obj/api/__tests__/CommitteeLogic.test.ts`,
+`obj/command/system/__tests__/CommitteeController.test.ts`.
+
+Modified: `lib/standing/RenownStanding.ts` + importers (decision 14),
+`obj/command/social/StandingController.ts`, the well-known-group
+seeder, `lib/character/Persona.ts` (committee affordance),
+`docs/subsystems/access.md` (the committee section — its doc home:
+"the committee = the title-holding group; the jargon standard's
+cabal/content-group replacement, realized"), `docs/subsystems/grouping.md`
+(pointer line), `docs/subsystems/chat.md` (committee channels = the
+promotion shape + the jargon line), `lib/paths.ts` if a committee
+logic template key is needed.
+
+### Wave insertion
+
+The amendment lands as **Wave 5 — committee + jargon install**
+(after content, before docs; the docs sweep becomes Wave 6 and adds
+the access/grouping/chat doc edits):
+`COMPACT_WIDE` rename + prose (mechanical, first — keeps the tree
+green) → `CommitteeLogic`/`CommitteeApi` → verb → terminus group seed
++ title transfer → committee channel ensure. *Verifiable*:
+`grep -r COOPERATIVE_WIDE` empty; renown/participation regression
+green; `committeeOf` over a group-owned, a player-held, and an
+unparceled (→ `core`) path; `ensureChannel` idempotent (two calls,
+one channel); flagship — `committee` in the Registry office names the
+terminus group, founder `isCommitteeMember` true, a member posts to
+the committee channel and the audience resolves through
+`GroupApi.membersOf`; chain-of-title shows core → terminus.
+
+### Amendment risks
+
+- **The title transfer is live access policy** — after it, `core`'s
+  non-founder members (if any) lose author rights over terminus and
+  terminus-committee members gain them. Intended; verify the access
+  test fixtures don't assume core-owns-terminus.
+- **Chat mint seam**: the promotion path may be controller-embedded
+  rather than Api-exposed; budget for the one narrow gated method on
+  chat's logic (per decision 11) and gate it
+  `FromModule('/api/committee#CommitteeApi')`-plus-existing-callers
+  only if chat's conventions demand.
+- **Well-known-group name** `terminus` may collide with an existing
+  groups row on long-lived dev DBs — the seeder must be
+  reconcile-not-clobber (the AccessRegistry seeding already is;
+  mirror it).
+- **`standing` snapshot tests** may pin the old prose — update
+  alongside the controller.
+
 ## Cross-references
 
 - `docs/requirements/civics-requirements.md` — the closed contract.
