@@ -26,14 +26,19 @@ describe('User', () => {
       expect(User.persistentFields).toContain('twitchProfileId');
     });
 
+    it('should include kickProfileId (the third provider FK)', () => {
+      expect(User.persistentFields).toContain('kickProfileId');
+    });
+
     it('should include playerIds (authoritative character-ownership list)', () => {
       expect(User.persistentFields).toContain('playerIds');
     });
 
-    it('should be exactly [googleProfileId, twitchProfileId, playerIds]', () => {
+    it('should be exactly the provider FKs + playerIds', () => {
       expect(User.persistentFields).toEqual([
         'googleProfileId',
         'twitchProfileId',
+        'kickProfileId',
         'playerIds',
       ]);
     });
@@ -54,11 +59,16 @@ describe('User', () => {
       user.googleProfileId = undefined;
       user.twitchProfileId = 'tp-1';
       expect(user.hasAnyProvider()).toBe(true);
+
+      const kickOnly = new User();
+      kickOnly.kickProfileId = 'kp-1';
+      expect(kickOnly.hasAnyProvider()).toBe(true);
     });
 
     it('profileFieldFor maps providers to FK field names', () => {
       expect(User.profileFieldFor('google')).toBe('googleProfileId');
       expect(User.profileFieldFor('twitch')).toBe('twitchProfileId');
+      expect(User.profileFieldFor('kick')).toBe('kickProfileId');
     });
 
     it('should initialize playerIds to an empty array', () => {

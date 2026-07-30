@@ -234,4 +234,56 @@ describe('TuneController', () => {
     await run(giver, { target: 'shroud', twitch: true } as CommandModel, ctx);
     expect(rejected(ctx, 'no-relay')).toBe(true);
   });
+
+  it('tune <handle> --kick resolves + tunes, no rejection', async () => {
+    const target = new StreamerTarget('kick', '123', 'xqc');
+    vi.spyOn(StreamApi, 'resolveTarget').mockResolvedValue({ ok: true, target });
+    const tune = vi
+      .spyOn(StreamApi, 'tune')
+      .mockResolvedValue({ ok: true, service: 'kick', handle: 'xqc' });
+
+    const giver = makeAvatar('p1');
+    const ctx = makeContext(giver);
+    await run(giver, { target: 'xqc', kick: true } as CommandModel, ctx);
+
+    expect(tune).toHaveBeenCalledWith(giver, target);
+    expect(noRejection(ctx)).toBe(true);
+  });
+
+  it('post to kick reject-and-points read-only', async () => {
+    vi.spyOn(StreamApi, 'post').mockResolvedValue({
+      ok: false,
+      reason: 'read-only',
+    });
+    const giver = makeAvatar('p1');
+    const ctx = makeContext(giver);
+    await run(
+      giver,
+      { target: 'xqc', kick: true, message: 'hi' } as CommandModel,
+      ctx,
+    );
+    expect(rejected(ctx, 'read-only')).toBe(true);
+  });
+
+  it('--kick with --twitch reject-and-points ambiguous-handle', async () => {
+    const giver = makeAvatar('p1');
+    const ctx = makeContext(giver);
+    await run(
+      giver,
+      { target: 'xqc', kick: true, twitch: true } as CommandModel,
+      ctx,
+    );
+    expect(rejected(ctx, 'ambiguous-handle')).toBe(true);
+  });
+
+  it('kick resolve failure (no-relay) reject-and-points', async () => {
+    vi.spyOn(StreamApi, 'resolveTarget').mockResolvedValue({
+      ok: false,
+      reason: 'no-relay',
+    });
+    const giver = makeAvatar('p1');
+    const ctx = makeContext(giver);
+    await run(giver, { target: 'xqc', kick: true } as CommandModel, ctx);
+    expect(rejected(ctx, 'no-relay')).toBe(true);
+  });
 });

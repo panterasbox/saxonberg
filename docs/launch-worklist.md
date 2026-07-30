@@ -73,6 +73,19 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
   the ~18 career-grain regions fall out coherent, with the
   mystery-tier `synergizes` edges honored in data. Also the asset the
   education video wants.
+- **The vanilla recipe pack** [T1 — pure data once the crafting-
+  branches build ships] — the comprehensive launch recipe set, authored
+  as a content pack (sibling of the discipline pack, done **together**
+  with it: recipe tiers are the crafting disciplines' ZPD rungs, so the
+  tree and the ladders must agree). Width is enumeration over the real
+  response axes (form × material × construction — gear width is
+  template *data*, not new classes), governed by the **admission
+  test**: a recipe ships only if a live system reads its output
+  (weapons/armor/tools/vessels/lights/dressings/trap-kits/food today;
+  jewelry, instruments, furniture-beyond-readers, locksmithing wait for
+  their readers — locksmithing additionally a security design
+  conversation, not just a reader). The build itself stays narrow
+  (~6+5 laddered seeds proving the seams).
 - **Alignment spine content** [T1 — alignment-slate is SETTLED] — the
   evil-realm demo the alignment thesis needs; also what the Warding /
   contemplative Orders eventually open on.
@@ -89,6 +102,13 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
   Phase 2] — endowment mechanics inside institutions.
 - **Inquiry's teachable-goods market** [T3] — commissioned research
   with teeth.
+- **The odometer** [T2 slate; **deliberately LAST — a capstone**] —
+  honest number-go-up over the ledgers. Built after the spine + skill
+  seam are live and beta play has shown which counters are resonant;
+  deferral loses nothing (derive-on-read → retroactively complete).
+  Governed by the **load-inert rule** (odometer-slate): no system's
+  felt-progression may depend on it — a standing review question for
+  every build until then.
 
 ## 4. The guild layer itself — deferrable past launch
 
@@ -128,6 +148,29 @@ precedents):
 - **Ranching deep pass** [stub] — the Grange's herd wing; scheduled to
   ride the farming session; shares the breeding substrate (and
   aquaculture is fishing's ranching sibling — design them together).
+- **The procgen doctrine capture** — due when the first extraction
+  vertical builds its generation grammar (mining/fishing). The
+  scattered instincts to write down as one doctrine: procgen for
+  **worldspace** (Warren grammars, weather) and **distributions**
+  (catch tables, spawn weights), always seeded/deterministic-from-
+  state; **never for loot** (constitutional); item generation =
+  **enumeration over real response axes** (form × material ×
+  construction — performance derived, not stamped, so generated forms
+  are automatically meaningful), entering the world as
+  templates/recipes via the authoring gate now and inquiry-style
+  discovery later — never as drops; and the undrawn **creature/person
+  line** (spawn-distribution's procgen-NPC generator vs the
+  NPCs-are-expensive-carves doctrine).
+- **The respawn-provisioning leak** — NPC gear is the gear economy's
+  back-door faucet: corpse-loot of *placed* matter is conservation-
+  honest (kill→reward severed means no *minted* reward, not vanishing
+  swords), but a re-armed respawn mints matter each cycle. V1 bounds:
+  munitions-grade + worn-condition authored kit, chattel traceability
+  (looted gear is provably not yours — fencing prices it down, the
+  accountability row records the how), salvage lossiness on the way
+  out. End-state: **provisioning as a real economy leg** (the issuer
+  buys replacement kit — NPC gear demand becomes a customer of the
+  smiths). Due with the first combat-NPC-dense area at economy scale.
 - **Guild-slate open questions** — chapters, revocation, one-Order-or-
   two, the Ironwrights' name, rank-on-presence-line, the first-hour
   fantasy (guild-slate § Open questions).

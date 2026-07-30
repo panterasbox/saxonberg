@@ -43,7 +43,7 @@ import type {
   RelayMessagePayload,
 } from '@saxonberg/types';
 
-type Service = 'twitch' | 'youtube';
+type Service = 'twitch' | 'youtube' | 'kick';
 
 // Dials - the unified relay's shared constants (candidates for `stream.*`
 // AppSettings; the YouTube reader reads `youtube.*` instead).

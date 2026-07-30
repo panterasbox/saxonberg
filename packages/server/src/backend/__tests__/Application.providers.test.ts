@@ -14,10 +14,12 @@ import { Application } from '../Application';
 import { PersistenceManager } from '../PersistenceManager';
 import { User } from '../../mud/lib/identity/User';
 import { TwitchProfile } from '../../mud/lib/identity/TwitchProfile';
+import { KickProfile } from '../../mud/lib/identity/KickProfile';
 import { GoogleProfile } from '../../mud/lib/identity/GoogleProfile';
 import type {
   PassportGoogleProfile,
   PassportTwitchProfileWithTokens,
+  PassportKickProfileWithTokens,
 } from '@saxonberg/types';
 
 function googleProfile(id = 'g-1'): PassportGoogleProfile {
@@ -30,6 +32,21 @@ function googleProfile(id = 'g-1'): PassportGoogleProfile {
     _json: { id },
     provider: 'google',
   } as unknown as PassportGoogleProfile;
+}
+
+function kickProfile(id = 'k-1'): PassportKickProfileWithTokens {
+  return {
+    id,
+    slug: 'streamer',
+    displayName: 'Streamer',
+    email: 'streamer@example.com',
+    broadcasterUserId: '123',
+    _json: { id },
+    accessToken: 'at',
+    refreshToken: 'rt',
+    expiresAt: 1000,
+    scopes: ['user:read'],
+  };
 }
 
 function twitchProfile(id = 't-1'): PassportTwitchProfileWithTokens {
@@ -114,6 +131,15 @@ describe('Application provider spine', () => {
       );
       const noDisplay = { ...twitchProfile(), displayName: '' };
       expect(Application.defaultAvatarNameFor('twitch', noDisplay)).toBe(
+        'streamer'
+      );
+    });
+    it('Kick: displayName ?? slug (never Unnamed)', () => {
+      expect(Application.defaultAvatarNameFor('kick', kickProfile())).toBe(
+        'Streamer'
+      );
+      const noDisplay = { ...kickProfile(), displayName: '' };
+      expect(Application.defaultAvatarNameFor('kick', noDisplay)).toBe(
         'streamer'
       );
     });
@@ -296,6 +322,121 @@ describe('Application provider spine', () => {
 
       const result = await app.unlinkProvider('u-1', 'google');
       expect(result.status).toBe('unlinked');
+      expect(del).toHaveBeenCalledTimes(1);
+    });
+  });
+
+
+  describe('kick — the third co-equal provider', () => {
+    it('Kick login creates User + KickProfile; returning login → same User', async () => {
+      const store = fakeUserStore();
+      const saved: KickProfile[] = [];
+      let existing: KickProfile | null = null;
+      vi.spyOn(KickProfile, 'findByKickUserId').mockImplementation(
+        async () => existing
+      );
+      vi.spyOn(KickProfile.prototype, 'save').mockImplementation(
+        async function (this: KickProfile) {
+          if (!this._id) this._id = 'kp-1';
+          saved.push(this);
+          existing = saved[saved.length - 1] ?? null;
+        }
+      );
+      const createdIds: string[] = [];
+      vi.spyOn(User.prototype, 'save').mockImplementation(async function (
+        this: User
+      ) {
+        if (!this._id) this._id = store.nextId();
+        createdIds.push(this._id);
+        store.users.set(this._id, this as never);
+      });
+
+      const first = await app.findOrCreateUserFromProvider(
+        'kick',
+        kickProfile()
+      );
+      const second = await app.findOrCreateUserFromProvider(
+        'kick',
+        kickProfile()
+      );
+
+      expect(first).toBe(second);
+      expect(createdIds).toHaveLength(1);
+      const user = store.users.get(first)!;
+      expect((user as Record<string, unknown>).kickProfileId).toBe('kp-1');
+      // The profile captured slug + broadcaster id (lowercased slug).
+      expect(saved[0]!.slug).toBe('streamer');
+      expect(saved[0]!.broadcasterUserId).toBe('123');
+    });
+
+    it('linkProvider attaches a kick profile; collision refused', async () => {
+      const store = fakeUserStore();
+      store.addUser({ _id: 'u-1', googleProfileId: 'gp-1' });
+      store.addUser({ _id: 'u-2', kickProfileId: 'kp-1' });
+      vi.spyOn(KickProfile, 'findByKickUserId').mockResolvedValue({
+        _id: 'kp-1',
+      } as unknown as KickProfile);
+
+      // kp-1 belongs to u-2 → linking it to u-1 collides, no write.
+      const collision = await app.linkProvider('u-1', 'kick', kickProfile());
+      expect(collision.status).toBe('collision');
+      expect(
+        (store.users.get('u-1') as Record<string, unknown>).kickProfileId
+      ).toBeUndefined();
+    });
+
+    it('unlinking kick on a multi-provider user clears FK + deletes doc', async () => {
+      const store = fakeUserStore();
+      const user = store.addUser({
+        _id: 'u-1',
+        googleProfileId: 'gp-1',
+        kickProfileId: 'kp-1',
+      });
+      const del = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(KickProfile, 'findById').mockResolvedValue({
+        _id: 'kp-1',
+        delete: del,
+      } as unknown as KickProfile);
+
+      const result = await app.unlinkProvider('u-1', 'kick');
+      expect(result.status).toBe('unlinked');
+      expect((user as Record<string, unknown>).kickProfileId).toBeUndefined();
+      expect(del).toHaveBeenCalledTimes(1);
+    });
+
+    it('a kick-only user unlinking kick → only-provider (all FKs counted)', async () => {
+      const store = fakeUserStore();
+      const user = store.addUser({ _id: 'u-1', kickProfileId: 'kp-1' });
+      const del = vi.fn();
+      vi.spyOn(KickProfile, 'findById').mockResolvedValue({
+        _id: 'kp-1',
+        delete: del,
+      } as unknown as KickProfile);
+
+      const result = await app.unlinkProvider('u-1', 'kick');
+      expect(result.status).toBe('only-provider');
+      expect((user as Record<string, unknown>).kickProfileId).toBe('kp-1');
+      expect(del).not.toHaveBeenCalled();
+    });
+
+    it('a google-only user with a kick link may unlink google (kick counts)', async () => {
+      const store = fakeUserStore();
+      const user = store.addUser({
+        _id: 'u-1',
+        googleProfileId: 'gp-1',
+        kickProfileId: 'kp-1',
+      });
+      const del = vi.fn().mockResolvedValue(undefined);
+      vi.spyOn(GoogleProfile, 'findById').mockResolvedValue({
+        _id: 'gp-1',
+        delete: del,
+      } as unknown as GoogleProfile);
+
+      const result = await app.unlinkProvider('u-1', 'google');
+      expect(result.status).toBe('unlinked');
+      expect(
+        (user as Record<string, unknown>).googleProfileId
+      ).toBeUndefined();
       expect(del).toHaveBeenCalledTimes(1);
     });
   });

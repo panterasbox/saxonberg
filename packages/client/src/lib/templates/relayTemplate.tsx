@@ -31,6 +31,7 @@ import { renderTree } from "./renderHelpers";
 const SERVICE_COLOR: Record<string, string> = {
   twitch: "#9146ff",
   youtube: "#ff0000",
+  kick: "#53fc18",
 };
 
 const Row = styled.div`

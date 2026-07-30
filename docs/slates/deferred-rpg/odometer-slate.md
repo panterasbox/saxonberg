@@ -10,6 +10,27 @@
 > Not party-specific — it's a general **subject-scoped** primitive (a
 > character, a party, later maybe a guild/corp). Homed standalone because
 > several systems consume it.
+>
+> **Sequencing decision (2026-07-28): the odometer is a CAPSTONE — built
+> deliberately LAST**, after the economy spine + the crafting skill seam
+> are live and a beta population has generated ledger density worth
+> summarizing. Two reasons make late-build strictly better here: (1)
+> deferral loses nothing — it derives over ledgers already kept, so a
+> launch-week build shows every player's *complete* journey
+> retroactively; (2) counter *selection* is editorial and can only be
+> done well against observed play (which acts players actually care
+> about). Guessing counters early is the only way to build it badly.
+>
+> **The load-inert rule** (extends downstream-inert): *no system's
+> felt-progression story may DEPEND on the odometer.* It garnishes
+> journeys other systems already make felt; if removing it would break a
+> system's progression feel, that system is underbaked — fix the system,
+> don't lean on the tally. This is a standing review question for every
+> build. Accumulated promissory mentions to honor (and audit against
+> this rule) when the build comes: the advancement slate's
+> focus-concentration feel, the party slate's fast-timescale strand, the
+> crafting conversation's tally strand (2026-07 — crafting's
+> requirements deliberately do NOT depend on it).
 
 See also:
 

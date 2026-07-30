@@ -36,6 +36,7 @@ interface WatchModel extends CommandModel {
   target?: string;
   twitch?: boolean;
   youtube?: boolean;
+  kick?: boolean;
 }
 
 export default class WatchController extends CommandController<WatchModel> {
@@ -56,8 +57,8 @@ export default class WatchController extends CommandController<WatchModel> {
       return this.send(
         context,
         Mml.fromMarkup(
-          '\nWatch a stream: `watch <handle> --twitch` / `--youtube`, a ' +
-            'URL, or a character. `watch off` clears it.\n',
+          '\nWatch a stream: `watch <handle> --twitch` / `--youtube` / ' +
+            '`--kick`, a URL, or a character. `watch off` clears it.\n',
         ),
       );
     }
@@ -78,6 +79,7 @@ export default class WatchController extends CommandController<WatchModel> {
     const parsed = StreamerTarget.parse((model.target ?? '').trim(), {
       twitch: model.twitch,
       youtube: model.youtube,
+      kick: model.kick,
     });
     if (parsed.form === 'reject') return this.rejectParse(context, parsed);
 
@@ -90,15 +92,17 @@ export default class WatchController extends CommandController<WatchModel> {
         // flags rather than a character-specific dead end.
         const detail =
           resolved.reason === 'unlinked'
-            ? "that character hasn't linked a Twitch account."
+            ? "that character hasn't linked a Twitch or Kick account."
             : resolved.reason === 'no-relay'
-              ? "Twitch relay isn't configured."
+              ? "The stream relay isn't configured."
               : 'No online character by that name — for a stream handle ' +
-                'add --twitch or --youtube (or give a URL).';
+                'add --twitch, --youtube, or --kick (or give a URL).';
         return this.fail(context, detail, resolved.reason);
       }
+      // A character resolves to twitch or kick (never youtube) — both
+      // embed by channel handle/slug.
       this.setWatch(host, context, {
-        platform: 'twitch',
+        platform: resolved.target.platform === 'kick' ? 'kick' : 'twitch',
         channel: resolved.target.handle,
       });
       const actor = context.commandGiver;
@@ -148,6 +152,11 @@ export default class WatchController extends CommandController<WatchModel> {
     if (parsed.platform === 'twitch') {
       return { platform: 'twitch', channel: parsed.identifier };
     }
+    if (parsed.platform === 'kick') {
+      // Kick needs no resolve — the slug is the embed key, and the player
+      // renders an offline channel gracefully (persistent binding).
+      return { platform: 'kick', channel: parsed.identifier };
+    }
     const kind = StreamerTarget.classifyYoutubeRef(parsed.identifier);
     if (kind === 'videoId') {
       return { platform: 'youtube', videoId: parsed.identifier };
@@ -168,9 +177,11 @@ export default class WatchController extends CommandController<WatchModel> {
     const label =
       target.platform === 'twitch'
         ? `Twitch #${target.channel}`
-        : 'videoId' in target
-          ? `YouTube ${target.videoId}`
-          : `YouTube ${target.channelId}`;
+        : target.platform === 'kick'
+          ? `Kick #${target.channel}`
+          : 'videoId' in target
+            ? `YouTube ${target.videoId}`
+            : `YouTube ${target.channelId}`;
     this.send(context, Mml.fromMarkup(`\nWatching ${label}.\n`));
   }
 
@@ -182,19 +193,22 @@ export default class WatchController extends CommandController<WatchModel> {
       case 'empty':
         return this.fail(
           context,
-          'Name a stream: a handle + --twitch/--youtube, a URL, or a character.',
+          'Name a stream: a handle + --twitch/--youtube/--kick, a URL, ' +
+            'or a character.',
           'empty',
         );
       case 'ambiguous-handle':
         return this.fail(
           context,
-          'which platform? add --twitch or --youtube (or give a full URL).',
+          'which platform? add --twitch, --youtube, or --kick (or give ' +
+            'a full URL).',
           'ambiguous-handle',
         );
       case 'url-opt-conflict':
         return this.fail(
           context,
-          'that URL already names its platform — drop the --twitch/--youtube.',
+          'that URL already names its platform — drop the ' +
+            '--twitch/--youtube/--kick.',
           'url-opt-conflict',
         );
       case 'character-youtube':

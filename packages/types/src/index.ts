@@ -1178,7 +1178,7 @@ export interface StreamStateEnvelope {
 export interface RelayChatEnvelope {
   type: 'relay-chat';
   frameId: number;
-  service: 'twitch' | 'youtube';
+  service: 'twitch' | 'youtube' | 'kick';
   channelHandle: string;
   speaker: RelaySpeaker;
   text: string;
@@ -1259,11 +1259,13 @@ export interface User {
   /**
    * Associated Google profile ID. Optional: a Twitch-origin account may
    * carry only `twitchProfileId`. An at-least-one-provider invariant
-   * holds across the two FK fields.
+   * holds across the provider FK fields.
    */
   googleProfileId?: string;
   /** Associated Twitch profile ID (the credential-bearing provider). */
   twitchProfileId?: string;
+  /** Associated Kick profile ID (the third co-equal provider FK). */
+  kickProfileId?: string;
   /** Account creation timestamp */
   createdAt: Date;
   /** Last updated timestamp */
@@ -1346,16 +1348,55 @@ export interface TwitchProfile {
   updatedAt: Date;
 }
 
+/**
+ * Kick OAuth profile data (persistent), credential-bearing. The
+ * {@link TwitchProfile} shape on the third provider: identity + the OAuth
+ * tokens (encrypted at rest), plus the owner's channel (`slug` +
+ * `broadcasterUserId`) that character-form `tune` and the reverse
+ * speaker-link resolve through. A user with no Kick channel links fine
+ * with an empty `slug`.
+ */
+export interface KickProfile {
+  /** MongoDB ObjectId */
+  _id?: string;
+  /** Kick user id (unique, stable identifier). */
+  kickUserId: string;
+  /** Kick channel slug (lowercased; empty when the user has no channel). */
+  slug: string;
+  /** Display name from Kick. */
+  displayName: string;
+  /** Email address (when granted). */
+  email?: string;
+  /** Kick broadcaster user id (empty when the user has no channel). */
+  broadcasterUserId: string;
+  /** Raw identity payload (for future use). */
+  rawProfile: Record<string, unknown>;
+  /** OAuth access token (encrypted at rest). */
+  accessToken: string;
+  /** OAuth refresh token (encrypted at rest). */
+  refreshToken: string;
+  /** Access-token expiry as epoch ms. */
+  expiresAt: number;
+  /** Granted OAuth scopes. */
+  scopes: string[];
+  /** Created timestamp */
+  createdAt: Date;
+  /** Last updated timestamp */
+  updatedAt: Date;
+}
+
 // ============================================================================
 // Authentication Types
 // ============================================================================
 
 /**
- * The login providers the auth spine is parameterized over. Adding a
- * provider is a procedure argument, not a code fork. YouTube grows
- * `GoogleProfile` (it's Google OAuth), not a third value.
+ * The login providers the auth spine is parameterized over — co-equal:
+ * every provider gets the full login + link flow (one unified interface,
+ * never a link-only tier). Adding a provider is a procedure argument, not
+ * a code fork. YouTube grows `GoogleProfile` (it's Google OAuth), not a
+ * fourth value.
  */
-export type AuthProvider = 'google' | 'twitch';
+export type AuthProvider = 'google' | 'twitch' | 'kick';
 
 /**
  * Session user data stored in express-session.
@@ -1390,6 +1431,33 @@ export interface PassportTwitchProfile {
  * persist into a `TwitchProfile`.
  */
 export interface PassportTwitchProfileWithTokens extends PassportTwitchProfile {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  scopes: string[];
+}
+
+/**
+ * Normalized Kick identity the verify callback produces from the
+ * `/public/v1/users` (+ owner-channel) fetch, parallel to
+ * {@link PassportTwitchProfile}. `slug`/`broadcasterUserId` are empty
+ * when the account has no channel.
+ */
+export interface PassportKickProfile {
+  id: string;
+  slug: string;
+  displayName: string;
+  email?: string;
+  broadcasterUserId: string;
+  _json: Record<string, unknown>;
+}
+
+/**
+ * {@link PassportKickProfile} plus the OAuth credentials harvested in
+ * the verify callback — what the find-or-create / link paths persist
+ * into a `KickProfile`.
+ */
+export interface PassportKickProfileWithTokens extends PassportKickProfile {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
@@ -1506,15 +1574,18 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
  * The per-viewer focal-embed target held as server-authoritative
  * `cockpit.watch` clientState (set by the `watch` verb, pushed to the
  * client, which renders the platform's public-player iframe). Embed-shaped:
- * a Twitch channel, a YouTube videoId, or a YouTube channelId (the
- * `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`
- * so it tracks the channel's live status across streams). `null` = nothing
- * watched. Replaces the retired operator-curated broadcast-source list.
+ * a Twitch channel, a YouTube videoId or channelId (the `@handle`/`UC…`
+ * durable form, rendered `live_stream?channel=<channelId>` so it tracks
+ * the channel's live status across streams), or a Kick channel slug
+ * (`player.kick.com/<slug>`, which renders offline channels gracefully).
+ * `null` = nothing watched. Replaces the retired operator-curated
+ * broadcast-source list.
  */
 export type WatchTarget =
   | { platform: "twitch"; channel: string }
   | { platform: "youtube"; videoId: string }
-  | { platform: "youtube"; channelId: string };
+  | { platform: "youtube"; channelId: string }
+  | { platform: "kick"; channel: string };
 
 /**
  * Payload of the `system.connection.established` MessageFrame.
@@ -1805,6 +1876,13 @@ export interface ApiResponse<T = unknown> {
  */
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
+  /**
+   * The login providers this server has configured (env-gated strategy
+   * registration). Drives start-screen button *enablement* only — the
+   * OAuth routes independently guard-and-redirect when a provider is
+   * unconfigured, so this is UX, never authorization.
+   */
+  providers?: AuthProvider[];
   /**
    * Non-authoritative wizard-tier hint: true iff the session's loaded
    * Avatar is a wizard (`AccessApi.isWizard`). The client uses it
@@ -2678,38 +2756,49 @@ export const TWITCH_SCOPE_READ_CHAT = 'user:read:chat';
 export const TWITCH_SCOPE_WRITE_CHAT = 'user:write:chat';
 
 /**
+ * Kick OAuth scopes the provider spends: both the login and link flows
+ * request identity + own-channel read (the owner-channel fetch needs
+ * `channel:read`; it feeds the relay's character-form resolve). The
+ * posting scope (`chat:write`) is the deferred phase-2 seam.
+ */
+export const KICK_SCOPE_USER_READ = 'user:read';
+export const KICK_SCOPE_CHANNEL_READ = 'channel:read';
+
+/**
  * The speaker on a relay frame. Honest-to-origin: an external line carries an
  * `external` (or `external-linked`) speaker; an outbound mirror of a local
  * player's post carries `in-game`. `external-linked` carries BOTH the
  * external handle and a {@link StuffRef} to the linked Avatar, so the client
  * can show the handle by default and reveal the MUD persona on hover. The
- * `service` axis spans both relay transports (`'twitch' | 'youtube'`);
- * `external-linked` is Twitch-only this cycle (no YouTube reverse link).
+ * `service` axis spans the relay transports
+ * (`'twitch' | 'youtube' | 'kick'`); `external-linked` spans twitch + kick
+ * (no YouTube reverse link).
  */
 export type RelaySpeaker =
   | { kind: 'in-game'; ref: StuffRef }
   | {
       kind: 'external';
-      service: 'twitch' | 'youtube';
+      service: 'twitch' | 'youtube' | 'kick';
       externalName: string;
     }
   | {
       kind: 'external-linked';
-      service: 'twitch' | 'youtube';
+      service: 'twitch' | 'youtube' | 'kick';
       externalName: string;
       ref: StuffRef;
     };
 
 /**
  * Payload of a relay chat frame (`world.twitch.message` /
- * `world.youtube.message`). Platform-agnostic: `service` names the
- * transport, `channelKey` is the transport's stable channel key (Twitch
- * broadcasterId / YouTube liveChatId), `channelHandle` the display handle.
- * `egress` marks the outbound mirror of a local player's post (rendered
- * with the `⊳ …→` marker; Twitch-only this cycle).
+ * `world.youtube.message` / `world.kick.message`). Platform-agnostic:
+ * `service` names the transport, `channelKey` is the transport's stable
+ * channel key (Twitch broadcasterId / YouTube liveChatId / Kick
+ * broadcasterId), `channelHandle` the display handle. `egress` marks the
+ * outbound mirror of a local player's post (rendered with the `⊳ …→`
+ * marker; Twitch-only this cycle).
  */
 export interface RelayMessagePayload {
-  service: 'twitch' | 'youtube';
+  service: 'twitch' | 'youtube' | 'kick';
   channelKey: string;
   channelHandle: string;
   speaker: RelaySpeaker;

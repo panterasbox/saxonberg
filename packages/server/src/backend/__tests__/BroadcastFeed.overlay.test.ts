@@ -1,7 +1,7 @@
 /**
  * BroadcastFeed — the overlay-owner chat forwarding (P4). With a broadcast
  * overlay connected and the owner's `OVERLAY_*` channels configured, the
- * owner's OWN relay-chat lines (Twitch + YouTube, unified) are forwarded as
+ * owner's OWN relay-chat lines (Twitch + YouTube + Kick, unified) are forwarded as
  * `relay-chat` envelopes; a viewer tuning some OTHER channel does not leak;
  * and the owner read is gated on overlay presence (0→1 opens, 1→0 closes).
  * Mocked Backend socket + a mocked `StreamApi.setOverlayReading`.
@@ -54,6 +54,7 @@ describe('BroadcastFeed overlay chat forwarding', () => {
   let overlaySpy: MockInstance<typeof StreamApi.setOverlayReading>;
   let prevTwitch: string | undefined;
   let prevYoutube: string | undefined;
+  let prevKick: string | undefined;
 
   beforeEach(async () => {
     StuffApi.clearAll();
@@ -63,8 +64,10 @@ describe('BroadcastFeed overlay chat forwarding', () => {
     BroadcastFeed._resetForTesting();
     prevTwitch = process.env.OVERLAY_TWITCH_LOGIN;
     prevYoutube = process.env.OVERLAY_YOUTUBE_CHANNEL;
+    prevKick = process.env.OVERLAY_KICK_CHANNEL;
     process.env.OVERLAY_TWITCH_LOGIN = 'owner';
     process.env.OVERLAY_YOUTUBE_CHANNEL = '@ownerchan';
+    process.env.OVERLAY_KICK_CHANNEL = 'ownerslug';
     sent = [];
     vi.spyOn(Backend, 'get').mockReturnValue({
       sendEnvelopeToSocket: (socketId: string, envelope: Envelope) =>
@@ -80,6 +83,8 @@ describe('BroadcastFeed overlay chat forwarding', () => {
     else process.env.OVERLAY_TWITCH_LOGIN = prevTwitch;
     if (prevYoutube === undefined) delete process.env.OVERLAY_YOUTUBE_CHANNEL;
     else process.env.OVERLAY_YOUTUBE_CHANNEL = prevYoutube;
+    if (prevKick === undefined) delete process.env.OVERLAY_KICK_CHANNEL;
+    else process.env.OVERLAY_KICK_CHANNEL = prevKick;
     vi.restoreAllMocks();
   });
 
@@ -138,6 +143,41 @@ describe('BroadcastFeed overlay chat forwarding', () => {
       service: 'youtube',
       text: 'hi from yt',
     });
+  });
+
+  it("forwards the owner's own Kick chat as a relay-chat envelope", async () => {
+    const feed = BroadcastFeed.get();
+    feed.addConnection('s1');
+    EventApi.emit(Events.RelayMessage, {
+      service: 'kick',
+      channelKey: '123',
+      channelHandle: 'ownerslug',
+      speaker: { kind: 'external', service: 'kick', externalName: 'fan' },
+      text: 'hi from kick',
+    });
+    await flush();
+    const chats = relayChat();
+    expect(chats).toHaveLength(1);
+    expect(chats[0]!.envelope).toMatchObject({
+      type: 'relay-chat',
+      service: 'kick',
+      channelHandle: 'ownerslug',
+      text: 'hi from kick',
+    });
+  });
+
+  it('does NOT forward a different Kick channel (filter proof)', async () => {
+    const feed = BroadcastFeed.get();
+    feed.addConnection('s1');
+    EventApi.emit(Events.RelayMessage, {
+      service: 'kick',
+      channelKey: '999',
+      channelHandle: 'someone-else',
+      speaker: { kind: 'external', service: 'kick', externalName: 'fan' },
+      text: 'not on the overlay',
+    });
+    await flush();
+    expect(relayChat()).toHaveLength(0);
   });
 
   it('does NOT forward a viewer tuning a DIFFERENT channel (filter proof)', async () => {
