@@ -72,7 +72,7 @@ export default class PlateController extends ManualBuildController<PlateModel> {
     const commandText = context.commandText;
 
     this.engageStep(context, {
-      durationMs: PLATE_MS,
+      durationMs: this.paceMs(PLATE_MS, vessel, ['pot']),
       beginSelf: Mml.compose`You begin plating ${Mml.item(vessel)} onto ${Mml.item(dish)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {

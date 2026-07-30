@@ -754,6 +754,45 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   return mintVessel(req, recipe, grade, makerPath, makerStuff);
 }
 
+/**
+ * Fold the control floor: skill embedded in the capital raises the
+ * floor — the outcome grade never lands below a used control-bearing
+ * instrument's band (and never lowers; `max` only). The ceiling stays
+ * the skill seam's business.
+ */
+function applyControlFloor(
+  grade: Grade,
+  tools: readonly (Stuff & Tooled)[],
+  kinds: readonly string[],
+): Grade {
+  let out = grade;
+  for (const tool of tools) {
+    for (const kind of kinds) {
+      if (!tool.hasCapability(kind)) continue;
+      const band = tool.capabilityControl(kind);
+      if (band && Grade.isBand(band)) out = out.max(Grade.of(band));
+    }
+  }
+  return out;
+}
+
+/**
+ * The maker's reachable tools (held + the room — the two-leg walk the
+ * step controllers use), for the workpiece mint's control resolve; the
+ * mint runs at engaged-completion, so no request field carries this
+ * (a context-derivable fact never rides the wire).
+ */
+function reachableTools(maker: Stuff | null): (Stuff & Tooled)[] {
+  if (!maker) return [];
+  const candidates: Stuff[] = [];
+  if (MixinApi.isContainer(maker)) candidates.push(...maker.getContents());
+  if (MixinApi.isContainable(maker)) {
+    const loc = maker.getContainer();
+    if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
+  }
+  return candidates.filter((c): c is Stuff & Tooled => MixinApi.isTool(c));
+}
+
 /** The smithing terminal mint: the workpiece's matter becomes the form. */
 async function mintWorkpiece(
   workpiece: Stuff,
@@ -769,6 +808,10 @@ async function mintWorkpiece(
       detail: 'workpiece-not-tangible',
     };
   }
+  // The anvil is the minting verb's conferring kind — a control-bearing
+  // one floors the stamped grade (a masterwork anvil never lets sloppy
+  // stock leave below its band).
+  grade = applyControlFloor(grade, reachableTools(makerStuff), ['anvil']);
   const material = workpiece.getMaterial();
   const massKg = workpiece.getMass().rawValue();
 
@@ -838,6 +881,15 @@ async function mintVessel(
   if (!outSlot) {
     return { ok: false, reason: 'no-output', detail: 'vessel-no-slot' };
   }
+  // The build vessel (shaker / mixing glass / pot) is the conferring
+  // instrument; it doesn't ride the mint request (only its banked
+  // contributions do), so resolve it from the maker's reach — the same
+  // resolve the workpiece path uses for the anvil.
+  grade = applyControlFloor(grade, reachableTools(makerStuff), [
+    'shaker',
+    'mixing-glass',
+    'pot',
+  ]);
 
   const hasItems = req.contributions.some((c) => c.kind === 'item');
   const recipeId = recipe ? recipe.getRecipeId() : '';
@@ -956,10 +1008,13 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     };
   }
 
-  // Derive grade (weakest-link, floored at the recipe base if any).
+  // Derive grade (weakest-link, floored at the recipe base if any,
+  // then at any used control-bearing instrument's band — skill embedded
+  // in the capital raises the floor; the ceiling stays the skill seam's).
   let grade = Grade.deriveAtFixedControl(grades);
   const base = recipe.getBaseGrade();
   if (base) grade = grade.max(base);
+  grade = applyControlFloor(grade, usedTools, recipe.getToolCapabilities());
 
   // Clone the output form, apply its properties (dispatched on the
   // recipe's output-application kind), stamp, consume, wear.
@@ -1012,7 +1067,14 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
  * condition.
  */
 async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
-  const maker = (ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null;
+  // The engaged repair completes outside the command frame — prefer the
+  // live acting author, fall back to the dispatch-captured makerPath
+  // (the BuildMintRequest.makerPath pattern).
+  const maker =
+    ((ExecutionContextApi.getActingAuthor() ?? null) as Stuff | null) ??
+    (req.makerPath
+      ? (StuffApi.findByTemplatePath<Stuff>(req.makerPath) ?? null)
+      : null);
   if (!maker || !MixinApi.isContainable(maker)) {
     return { ok: false, reason: 'no-maker' };
   }
@@ -1041,16 +1103,21 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
 
   // The domain gate: forge heat for metal restoration, `mending` for the
   // soft goods. The whetstone is *sharpening's* tool, never repair's.
+  // The domain instrument (the mender; the anvil for metal — the kinds
+  // whose families confer `repair`) also carries any control floor.
+  let instrument: (Stuff & Tooled) | null = null;
   if (metal) {
     const heatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
     if (ThermalApi.reachableHeatFor(maker) < heatK) {
       return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
     }
+    instrument = tools.find((t) => t.hasCapability('anvil')) ?? null;
   } else {
     const mender = tools.find((t) => t.hasCapability('mending'));
     if (!mender) {
       return { ok: false, reason: 'missing-tool', detail: 'mending' };
     }
+    instrument = mender;
   }
 
   // The deficit-priced material cost.
@@ -1110,6 +1177,16 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
 
   consumeItemInputs(draws);
   item.setCondition(1); // ceiling-free — the maintenance relationship
+  // The control floor: work done on a control-bearing instrument never
+  // comes out below its band (floor only — a masterful piece is never
+  // lowered by a fine machine).
+  if (instrument && MixinApi.isGraded(item)) {
+    item.setGrade(
+      applyControlFloor(item.getGrade(), [instrument], [
+        metal ? 'anvil' : 'mending',
+      ]),
+    );
+  }
   return { ok: true, item, conditionBefore, costKg: needKg };
 }
 

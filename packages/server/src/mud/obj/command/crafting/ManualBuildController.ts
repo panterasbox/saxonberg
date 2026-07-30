@@ -8,15 +8,21 @@
  * timer), and renders the begin / busy / rejected scenes — the per-step
  * effect (debit + bank, record method, mint) is the `onComplete` closure
  * the verb controller supplies, applied **at completion** so a barge-in
- * leaves partial matter standing. Not referenced by any YAML — a base
- * class only.
+ * leaves partial matter standing. Extends {@link CraftController} so the
+ * step verbs share the family's decline rendering (and `repair` — an
+ * engaged act since the capability-table build — its deed-free gates).
+ * Also holds the shared capability-instrument helpers: `findCapability`
+ * (reachable tool by kind, held first) and `paceMs` (the conferring
+ * kind's work-rate divides the step's base duration). Not referenced by
+ * any YAML — a base class only.
  */
 
-import { CommandController } from "../../../lib/command/CommandController";
+import { CraftController } from "./CraftController";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Builds } from "../../../lib/craft/ManualBuild";
+import type { Tooled } from "../../../lib/craft/Tooled";
 import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
@@ -42,7 +48,7 @@ export interface BuildStepOptions {
 
 export abstract class ManualBuildController<
   M extends CommandModel,
-> extends CommandController<M> {
+> extends CraftController<M> {
   /**
    * Start `opts`'s step as an engaged activity on the giver's `hands`
    * slot. On `started`, narrates the begin scene and rides the
@@ -120,6 +126,51 @@ export abstract class ManualBuildController<
       if (MixinApi.isBuildVessel(c)) return c;
     }
     return null;
+  }
+
+  /**
+   * A reachable tool offering `cap` — held kit first, then the room
+   * (the emergent-reachability model; mirrors the craft gather walk's
+   * two legs, deliberately NOT the opened-container descent).
+   */
+  protected findCapability(
+    giver: Stuff,
+    cap: string,
+  ): (Stuff & Tooled) | null {
+    const candidates: Stuff[] = [];
+    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
+    if (MixinApi.isContainable(giver)) {
+      const loc = giver.getContainer();
+      if (loc && MixinApi.isContainer(loc)) {
+        candidates.push(...loc.getContents());
+      }
+    }
+    for (const c of candidates) {
+      if (MixinApi.isTool(c) && c.hasCapability(cap)) return c;
+    }
+    return null;
+  }
+
+  /**
+   * The conferring kind paces the step: `baseMs` divided by the best
+   * work-rate the instrument offers across `kinds` (a masterwork anvil
+   * paces `hammer`; the `striking` hammer is a requirement, not a
+   * pacer). Rate 1 — base duration — when no instrument resolves or it
+   * isn't a tool; `capabilityRate` is clamped, so data can't zero it.
+   */
+  protected paceMs(
+    baseMs: number,
+    instrument: Stuff | null,
+    kinds: string[],
+  ): number {
+    if (!instrument || !MixinApi.isTool(instrument)) return baseMs;
+    let best: number | null = null;
+    for (const kind of kinds) {
+      if (!instrument.hasCapability(kind)) continue;
+      const rate = instrument.capabilityRate(kind);
+      best = best === null ? rate : Math.max(best, rate);
+    }
+    return Math.round(baseMs / (best ?? 1));
   }
 
   /** Decline diegetically with a one-line scene + a rejection note. */

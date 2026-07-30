@@ -14,7 +14,6 @@ import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Tooled } from '../../../lib/craft/Tooled';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
@@ -55,7 +54,8 @@ export default class HammerController extends ManualBuildController<HammerModel>
       );
       return;
     }
-    if (!this.findCapability(giver, 'anvil')) {
+    const anvil = this.findCapability(giver, 'anvil');
+    if (!anvil) {
       this.declineStep(
         context,
         Mml.compose`You need an anvil to work against.`,
@@ -75,7 +75,9 @@ export default class HammerController extends ManualBuildController<HammerModel>
     const build = target;
     const commandText = context.commandText;
     this.engageStep(context, {
-      durationMs: HAMMER_MS,
+      // The anvil paces the forming work (the conferring kind's rate);
+      // the striking hammer is a requirement, never a pacer.
+      durationMs: this.paceMs(HAMMER_MS, anvil, ['anvil']),
       beginSelf: Mml.compose`You set ${Mml.item(target)} on the anvil and begin to hammer.`,
       beginPeers: Mml.compose`${Mml.name(giver)} hammers at ${Mml.item(target)}, ringing the anvil.`,
       onComplete: () => {
@@ -92,24 +94,5 @@ export default class HammerController extends ManualBuildController<HammerModel>
           .send();
       },
     });
-  }
-
-  /** A reachable tool offering `cap` — held kit first, then the room. */
-  private findCapability(
-    giver: Stuff,
-    cap: string,
-  ): (Stuff & Tooled) | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...loc.getContents());
-      }
-    }
-    for (const c of candidates) {
-      if (MixinApi.isTool(c) && c.hasCapability(cap)) return c;
-    }
-    return null;
   }
 }

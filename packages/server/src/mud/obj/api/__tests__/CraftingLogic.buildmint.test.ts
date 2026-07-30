@@ -23,6 +23,9 @@ import RecipeCatalogue from "../../RecipeCatalogue";
 import { Idea } from "../../../lib/stuff/Idea";
 import { NamedMixin } from "../../../lib/description/Named";
 import { ContainableMixin } from "../../../lib/spatial/Containable";
+import { ContainerMixin } from "../../../lib/spatial/Container";
+import { ContainmentApi } from "../../../api/containment";
+import ToolItem from "../../../lib/craft/ToolItem";
 import { Stuff } from "../../../lib/stuff/Stuff";
 import type { BuildContribution } from "../../../lib/craft/ManualBuild";
 import {
@@ -38,6 +41,9 @@ const DAVE = "/domain/lounge/dave-buildmint";
 
 class TestMaker extends NamedMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestMaker";
+}
+class TestRoom extends ContainerMixin(Idea) {
+  static _mixinName = "TestRoomBuildMint";
 }
 
 let store: Record<string, Record<string, unknown>[]>;
@@ -188,5 +194,22 @@ describe("CraftingApi.mintFromBuild", () => {
   it("declines an empty build", async () => {
     const outcome = await mintAs(null, { vessel: makeGlass(), contributions: [] });
     expect(outcome).toMatchObject({ ok: false, reason: "insufficient-input" });
+  });
+
+  it("a control-bearing build vessel in the maker's reach floors the minted grade", async () => {
+    const maker = makeStuffAtPath(() => new TestMaker(), DAVE);
+    const room = makeStuff(() => new TestRoom());
+    ContainmentApi.move(maker, room);
+    const rig = makeStuff(() => new ToolItem());
+    rig.setCapabilities([{ kind: "shaker", control: "exceptional" }]);
+    ContainmentApi.move(rig, room);
+
+    const outcome = await mintAs(maker, {
+      vessel: makeGlass(),
+      contributions: martiniBuild, // weakest-link would be `fair`
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.grade.getBand()).toBe("exceptional"); // the floor
   });
 });

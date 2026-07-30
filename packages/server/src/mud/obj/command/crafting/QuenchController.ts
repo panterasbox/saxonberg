@@ -61,8 +61,11 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     const builder = giver;
     const commandText = context.commandText;
 
+    // The anvil paces the terminal quench too (F3: quench is not
+    // GATED on an anvil — pacing must not add a gate; rate 1 absent).
+    const anvil = this.findCapability(giver, 'anvil');
     this.engageStep(context, {
-      durationMs: QUENCH_MS,
+      durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
       beginSelf: Mml.compose`You plunge ${Mml.item(workpiece)} into the slack tub with a hiss of steam.`,
       beginPeers: Mml.compose`${Mml.name(giver)} quenches ${Mml.item(workpiece)} in a burst of steam.`,
       onComplete: () => {

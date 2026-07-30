@@ -54,7 +54,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
     const build = target;
     const commandText = context.commandText;
     this.engageStep(context, {
-      durationMs: HEAT_MS,
+      durationMs: this.paceMs(HEAT_MS, target, ["pot"]),
       beginSelf: Mml.compose`You bring ${Mml.item(target)} to the fire and let it take the heat.`,
       beginPeers: Mml.compose`${Mml.name(giver)} brings ${Mml.item(target)} to the fire.`,
       onComplete: () => {

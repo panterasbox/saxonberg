@@ -82,7 +82,8 @@ export default class SharpenController extends ManualBuildController<SharpenMode
 
     const keenBlade = blade;
     this.engageStep(context, {
-      durationMs: sharpenDurationMs(),
+      // The stone paces its own ritual (a grinding wheel is faster).
+      durationMs: this.paceMs(sharpenDurationMs(), stone, ['whetstone']),
       beginSelf: Mml.compose`You set to work on ${Mml.item(blade)} with ${Mml.item(stone)}, long slow strokes.`,
       beginPeers: Mml.compose`${Mml.name(giver)} sets to sharpening ${Mml.item(blade)}.`,
       onComplete: () => {

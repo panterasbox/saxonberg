@@ -94,6 +94,11 @@ function makeKnife(condition: number): Weapon {
   return w;
 }
 
+/** The graded face of a composed host (the mixin surface via cast). */
+function graded(x: Stuff): { setGradeBand(b: string): void; getGradeBand(): string } {
+  return x as unknown as { setGradeBand(b: string): void; getGradeBand(): string };
+}
+
 async function repairAs(item: Stuff): Promise<RepairOutcome> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(smith);
@@ -178,6 +183,58 @@ describe('CraftingLogic.repair', () => {
     // Need = 4 × 0.5 × 0.6 = 1.2 kg; the 2 kg hide is within 2× — consumed whole.
     expect(hide.isDestroyed()).toBe(true);
     expect(jerkin.getCondition()).toBe(1);
+  });
+
+  it('a control-bearing mender floors the repaired grade; never lowers it', async () => {
+    const machine = makeStuff(() => new ToolItem());
+    machine.setCapabilities([{ kind: 'mending', rate: 3, control: 'fine' }]);
+    ContainmentApi.move(machine, room);
+    const hide = makeStuff(() => new Thing());
+    hide.setMaterial(mat(LEATHER));
+    hide.setMass(Quantity.of(2, 'kg'));
+    ContainmentApi.move(hide, room);
+
+    // A shabby jerkin comes out floored at the machine's band.
+    const jerkin = makeStuff(() => new Armor());
+    jerkin.setMaterial(mat(LEATHER));
+    jerkin.setMass(Quantity.of(4, 'kg'));
+    jerkin.setCondition(0.5);
+    graded(jerkin).setGradeBand('poor');
+    ContainmentApi.move(jerkin, room);
+    expect((await repairAs(jerkin)).ok).toBe(true);
+    expect(graded(jerkin).getGradeBand()).toBe('fine');
+
+    // A masterful piece is never lowered by a fine machine.
+    const heirloom = makeStuff(() => new Armor());
+    heirloom.setMaterial(mat(LEATHER));
+    heirloom.setMass(Quantity.of(4, 'kg'));
+    heirloom.setCondition(0.5);
+    graded(heirloom).setGradeBand('masterful');
+    ContainmentApi.move(heirloom, room);
+    const hide2 = makeStuff(() => new Thing());
+    hide2.setMaterial(mat(LEATHER));
+    hide2.setMass(Quantity.of(2, 'kg'));
+    ContainmentApi.move(hide2, room);
+    expect((await repairAs(heirloom)).ok).toBe(true);
+    expect(graded(heirloom).getGradeBand()).toBe('masterful');
+  });
+
+  it('a plain (control-less) mender leaves the grade untouched', async () => {
+    const kit = makeStuff(() => new ToolItem());
+    kit.setCapabilities(['mending']);
+    ContainmentApi.move(kit, room);
+    const hide = makeStuff(() => new Thing());
+    hide.setMaterial(mat(LEATHER));
+    hide.setMass(Quantity.of(2, 'kg'));
+    ContainmentApi.move(hide, room);
+    const jerkin = makeStuff(() => new Armor());
+    jerkin.setMaterial(mat(LEATHER));
+    jerkin.setMass(Quantity.of(4, 'kg'));
+    jerkin.setCondition(0.5);
+    graded(jerkin).setGradeBand('poor');
+    ContainmentApi.move(jerkin, room);
+    expect((await repairAs(jerkin)).ok).toBe(true);
+    expect(graded(jerkin).getGradeBand()).toBe('poor');
   });
 
   it('broken doubles the material term', async () => {

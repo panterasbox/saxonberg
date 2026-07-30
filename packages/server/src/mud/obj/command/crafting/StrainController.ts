@@ -77,7 +77,7 @@ export default class StrainController extends ManualBuildController<StrainModel>
     const commandText = context.commandText;
 
     this.engageStep(context, {
-      durationMs: STRAIN_MS,
+      durationMs: this.paceMs(STRAIN_MS, vessel, ["shaker", "mixing-glass"]),
       beginSelf: Mml.compose`You begin straining ${Mml.item(vessel)} into ${Mml.item(glass)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {
