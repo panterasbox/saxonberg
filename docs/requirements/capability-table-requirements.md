@@ -95,6 +95,10 @@ hammer/quench/forge/repair/salvage; `mending` → repair/salvage
 personal-capital rule survives as a placement value); `striking`/
 `strainer`/`muddler` → no verbs (recipe-side kinds). `reachable` maps
 to the environment + inventory buckets, `carried` to inventory only.
+Placement is a **kind default with a per-entry override** — the pocket
+whetstone stays carried-only while a 40 kg grinding wheel declares
+`placement: reachable` on its entry (kind-level placement alone would
+leave a never-carried wheel affording nothing).
 
 ### ToolMixin implements InstanceContributor
 
@@ -115,13 +119,17 @@ broken-gated), `capabilityRate(kind)`, `capabilityControl(kind)`.
 Recipes' `toolCapabilities` matching is untouched — kinds are still
 kinds.
 
-### Rate divides the step you already resolve
+### The conferring kind paces the step
 
 Each engaged crafting step divides its base duration by the rate of
-the instrument it already resolves (the striker for `hammer`, the
-whetstone for `sharpen`, the mending tool/anvil path for `repair`,
-the build vessel for the vessel steps). Clamped to a sane band
-(0.25–10) so data can't zero a duration.
+the instrument whose **kind confers the verb** — the anvil paces
+`hammer`/`quench`, the whetstone paces `sharpen`, the `mending`
+instrument paces `repair`, the build vessel paces the vessel steps.
+Secondary requirements (the `striking` hammer in a `hammer` step) are
+requirements, not pacers — otherwise a masterwork anvil's rate would
+be dead data. Clamped to a sane band (0.25–10) so data can't zero a
+duration, and honest in both directions (a flimsy travel kit at
+`rate: 0.5` is slower than the good kit).
 
 ### Control floors the Grade, floor only
 
@@ -129,6 +137,17 @@ Where a craft/repair resolves a control-bearing instrument, the
 outcome grade gains `.max(Grade.of(control))` — the same composition
 the recipe base-grade floor already uses. No ceiling effects; `analyze`
 surfaces the band on the tool.
+
+### Zero new classes means behavior-free tools
+
+A variant of a **behavior-free** tool (kit → machine, whetstone →
+grinding wheel) is pure seed data on `ToolItem`. A variant of a
+**behavior-carrying** instrument (a carbonation rig as a shaker
+variant) reuses that behavior's class (`CocktailShaker` — the
+`ManualBuildMixin` buffer is real behavior, not affordance
+scaffolding) and still adds no *new* class: class = behavior lineage,
+data = identity + parameters (the identity doctrine,
+[ref-shapes.md](../ref-shapes.md)).
 
 ### The sewing machine is the acceptance content
 
