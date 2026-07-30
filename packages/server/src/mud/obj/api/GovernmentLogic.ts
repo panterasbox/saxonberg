@@ -80,7 +80,14 @@ async function rosterAssignmentsOf(
   if (live && MixinApi.isBusiness(live)) {
     return live.getRosterAssignments();
   }
-  const tpl = await Template.findByPath(department);
+  // Cold-state posture: no store (or no such row) degrades to an empty
+  // roster — the whole read surface never throws.
+  let tpl: Template | null = null;
+  try {
+    tpl = await Template.findByPath(department);
+  } catch {
+    return [];
+  }
   const raw = (tpl?.data as Record<string, unknown> | undefined)?.rosterSlots;
   if (!Array.isArray(raw)) return [];
   const out: RosterAssignment[] = [];
