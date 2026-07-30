@@ -69,7 +69,24 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    */
   protected _climateLean: ClimateLean | null = null;
 
-  static persistentFields = ['name', '_address', '_weatherPin', '_climateLean'];
+  /**
+   * The third realized tier-level field (weather pin / climate lean
+   * siblings): the durable `key` of the diegetic `Government` claiming
+   * this Locality's subtree, or `null` (the common sparse case — the
+   * chain inherits from shorter prefixes). Declared here — on the land
+   * side, by the landowner-authored seed — never as a claims list on the
+   * Government (consent-by-construction). Resolution is
+   * `GovernmentApi`'s job.
+   */
+  protected _governmentKey: string | null = null;
+
+  static persistentFields = [
+    'name',
+    '_address',
+    '_weatherPin',
+    '_climateLean',
+    '_governmentKey',
+  ];
 
   // ---------- name ----------
 
@@ -105,6 +122,19 @@ export default class Locality extends PostRegistrationMixin(Idea) {
   }
   public setClimateLean(value: ClimateLean | null): void {
     this._climateLean = value;
+  }
+
+  // ---------- government key (Locality tier) ----------
+
+  public getGovernmentKey(): string | null {
+    return this._governmentKey;
+  }
+  public setGovernmentKey(value: string | null): void {
+    if (value !== null && typeof value !== 'string') {
+      throw new TypeError('Locality._governmentKey must be a string or null');
+    }
+    const trimmed = value?.trim() ?? '';
+    this._governmentKey = trimmed.length > 0 ? trimmed : null;
   }
 
   // ---------- coverage-index lifecycle ----------

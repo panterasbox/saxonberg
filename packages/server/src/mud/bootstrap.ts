@@ -64,6 +64,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // as the discipline catalogue). Resolvable via `CorpoApi` after this
   // entry's postRegister fires.
   { templatePath: '/obj/CorpoCatalogue' },
+  // GovernmentCatalogue singleton — the roster of diegetic governments
+  // (plural authored content — never the Compact's face). Warms its
+  // descriptor cache in postRegister from the per-Government leaf templates
+  // under `/lib/civics/Government/` in the `domain` collection (the corpo
+  // pattern). Resolvable via `GovernmentApi` after this entry's
+  // postRegister fires.
+  { templatePath: '/obj/GovernmentCatalogue' },
   // SpellCatalogue singleton — the authored spell roster. Warms in
   // postRegister from the per-Spell leaf templates under `/lib/magic/Spell/`
   // (the discipline-catalogue pattern), validating every authored effect
