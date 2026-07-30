@@ -232,7 +232,7 @@ flagged for the polity to revisit.
 
 - **Decision.** Governance influence clamps at zero:
   `max(0, renown) × engagement`. A net-unfun member loses voice but never
-  casts negative weight. The cooperative-wide rollup nets the outlaw out:
+  casts negative weight. The Compact-wide rollup nets the outlaw out:
   antisocial-but-entertaining (net positive) keeps full voice;
   antisocial-and-unfun (net negative) falls to zero.
 - **Rationale (evidence).** Signed renown feeding *negative* votes would

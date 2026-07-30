@@ -19,7 +19,7 @@
 **Both quests were designed before most of the god/alignment/history lore
 settled — so the lore is fully alive in the *mechanics* but almost entirely
 *unnamed in the fiction*.** The recognition substrate, the aether's
-identity-blindness, the cooperative's stocks are load-bearing and integrated.
+identity-blindness, the Compact's stocks are load-bearing and integrated.
 What's missing is the mythic/historical layer the recent bible work added:
 the gods, the five ages, the founding, the coin, the Museum. That layer *is*
 the "feel real and lived-in" layer, and it's sitting unused.

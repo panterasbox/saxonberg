@@ -304,7 +304,7 @@ Ordered by leverage + dependency:
    [belief.md](./subsystems/belief.md). The **`regard` facet** (the third
    belief realm — per-viewer signed attitude, `RegardApi`/`RegardLogic`,
    the reverse `{realm,referent}` index) then **shipped 2026-06** as the
-   first brick toward reputation / the cooperative-polity Sybil keystone.
+   first brick toward reputation / the Compact's Sybil keystone.
    The **renown aggregation substrate** then **shipped 2026-06**
    ([renown.md](./subsystems/renown.md): per-scope signed standing, decay,
    the reaction + reception signal generators, log-saturation). The

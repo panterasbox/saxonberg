@@ -81,7 +81,7 @@ A surface manifests at the subject's grain:
 
 Cycle 1 exercises both grains. Promoted thread-subjects are **standing**
 (manually disbanded); the ephemeral lifecycle + archive cascade (bills)
-and the governance trigger remain deferred to the cooperative build.
+and the governance trigger remain deferred to the Compact-governance build.
 
 ### SubjectCatalogue — the runtime view
 
@@ -661,7 +661,7 @@ the nav target) and click-driven; the player stays in
   `chat.subscription.<channelId>` keys to the per-subject store
   lazy-on-read (idempotent) — safer than a one-shot-at-warm write storm.
 - **Ephemeral-subject lifecycle + archive cascade** (bills) and the
-  **governance trigger** — deferred to the cooperative build (the substrate
+  **governance trigger** — deferred to the Compact-governance build (the substrate
   exposes mint / light-up / archive; *who calls it* is out of scope).
 - **The rules-of-order chat procedure** (`procedure: 'rules-of-order'`) +
   chat `logged` retention / `chat_log` — declarable in the taxonomy, parked.

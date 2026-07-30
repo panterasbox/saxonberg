@@ -68,6 +68,6 @@ economy gap list — what must exist before launch, readiness-tagged).
 - **Vitals application wave** — live condition progression + the death-transition driver + assessment/treatment/forensics. *(vitals)*
 - **Language substrate** — `Language` Idea + `read`/`Readable` + proficiency + species native tongues + partial comprehension. *(language)*
 - **Advancement game-layer** — guilds-as-institutions + player-extensible skill content-graph + the loadout economy (atop the shipped measurement core). *(advancement)*
-- **Cooperative governance** — the three chambers / parliamentary executive / sortition judiciary (atop the stake-ledger). *(cooperative)*
+- **Compact governance** — the three chambers / parliamentary executive / sortition judiciary (atop the stake-ledger). *(cooperative slate)*
 - **Help + wiki** — the systems rulebook (HelpTopic index) + community wiki, with the spoiler-dial model. *(help + wiki)*
 - **Eternal University + deduction** — the campus content area + the forensics quest spine. *(eternal-university)*

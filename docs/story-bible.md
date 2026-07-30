@@ -26,18 +26,19 @@ fabricated; it dresses that honesty as theology.
 
 **The projection stack.** Deeper than the coat: the game is a **literary
 projection of the metaverse** — the plane above the diegesis, the platform the
-**cooperative** actually governs. The *governance spine* is a faithful shadow of
-the real form: **aether** projects **compute**, **Terminus's polity** projects
-the cooperative, and the **corpos** project the incumbent **board-of-directors /
-market model** the cooperative is built to outperform. So the corpos are written
+**Compact** actually governs. The *governance spine* is a faithful shadow of
+the real form: the **aether** projects **the internet** (a metaphor, nothing
+more), the **realm's chartered order** projects the Compact (the realm tier
+only — city governments are plural authored fiction, never the Compact's
+face), and the **corpos** project the incumbent **board-of-directors /
+market model** the Compact is built to outperform. So the corpos are written
 as the **steelman of a working form** — effective, often genuinely good at what
 they do, extractive by *structure*, not villainy (you earn nothing beating a
 strawman). The shadow falls on the **governance spine only**; the rest — gods,
 attuned, ages — is free myth with no meta-referent. And the myth dramatizes the
 **wager played out**, not a scoreboard: up on the real plane the experiment is
 legally deferred (capital, not markets — securities law, not the form), not
-yet won. *(Aether is not compute one-for-one — a projection, not an identity;
-both are scarcities a political body governs, which is the whole rhyme.)*
+yet won.
 
 ### Scale & scope — the local stage, the multiverse backdrop **[settled]**
 
@@ -203,7 +204,7 @@ administrative husk is reused.
 
 So: **moral identity is fixed (Good); political identity is free.** The
 live conflict is *among good people about how to live together* — which
-is the cooperative's whole thesis — while Evil stays the shared external
+is the Compact's whole thesis — while Evil stays the shared external
 thing even political enemies are kin against.
 
 ### Good / Neutral / Evil = orientation toward experience **[settled]**
@@ -366,12 +367,12 @@ hollowing*).
 
 **The thesis: the same machine, without the consent.** To live under the
 Ordinance is to be **governed by a machine** — impartial, consistent, data-driven
-law: *exactly what the cooperative also is.* The whole wager is that **building
+law: *exactly what the Compact also is.* The whole wager is that **building
 the machine democratically** is what makes it legitimate — consent is the hinge
 that turns "governed by a machine" from a nightmare into a commons. The Ordinance
 is that machine **with the consent struck out:** the same efficiency, the same
 tireless impartial law, and *you never agreed, cannot leave, and cannot change
-it.* **The horror is the sameness.** It is the cooperative's exact dark twin —
+it.* **The horror is the sameness.** It is the Compact's exact dark twin —
 the cautionary proof of what the founding becomes the day it drops the word
 *democratically* — a mirror that keeps *us* honest, not a foreign evil to feel
 superior to.
@@ -652,7 +653,7 @@ present advance and the founding genuinely approach as people play.
 ### I. The Age of Myth *[mythic — the true beginning]*
 No throne yet — and at the very first, **no hollowing either.** The oldest
 thing is **paradise:** the ancient attuned, creatures of presence, naturally
-networked, living the cooperative *by nature* — a gift economy of mutual
+networked, living the Compact *by nature* — a gift economy of mutual
 attention, presence freely flowing, uncapturable not by any wall but by
 **innocence** (no one had yet discovered taking). Then **the first fall:** a
 being — unnamed, it could have been anyone — looks at the freely-given gift and
@@ -684,7 +685,7 @@ under the Wright and the Warden into something steadier and more glorious than
 the chaos had yet made. We follow *that* thread because it leads to our story,
 not because it was the center; the rest stays fog, as deep myth should. *(The
 spine of the whole history is creation itself: natural gift → fallen artifice →
-captured glory → diminished dark → the cooperative's redemption of making.)*
+captured glory → diminished dark → the Compact's redemption of making.)*
 
 ### II. The Eternal Age — *Eternal City*
 Authority descends **from above.** Born of a union and ruled by a **founding
@@ -702,7 +703,7 @@ worlds into one — **absent in complementary ways**:
   chose, on principle, never to be one** — the Warden who would not ward.
 
 Between them **no one governs** — one will not rule, one only builds — and *that
-vacuum is the flaw*, the photographic negative the cooperative is built from. The
+vacuum is the flaw*, the photographic negative the Compact is built from. The
 Warden's **two laws** are the whole constitution of the age, and they carry its
 poison and its glory at once:
 
@@ -737,7 +738,7 @@ Grounded Age reads off the ruins:
    impossible architecture of pure will, wonders raised for their own sake, make
    and rule and worship all one bright machine. This is the **glory every later
    age measures itself against and finds wanting:** the houses chase it, the
-   corpos tap the aether to climb back to it, the cooperative's dream of redeemed
+   corpos tap the aether to climb back to it, the Compact's dream of redeemed
    making reaches *backward* to it. And it was **real**, not a sham — which is
    exactly why its fall is tragedy, not comeuppance. But the **poison was already
    in the wine:** the First Law sanctifying the strong, the meritocratic mask,
@@ -848,7 +849,7 @@ the Sanctuary, **Oldtown** (the original mission-settlement), the Chapel,
 and the clergy — **still holding in trust** (they recede to mere echoes
 only *after* the founding).
 
-### V. The Grounded Age — *the cooperative* *(the awaited future — not yet begun)*
+### V. The Grounded Age — *the Compact* *(the awaited future — not yet begun)*
 Authority rises **from the people** — when they finally **ratify the Charter
 (the Recognition)** and elect the first PM, the new politick *secularizes
 past the steward*, severs **make** from **rule**, and makes the guardrails
@@ -858,7 +859,7 @@ will *enact* live, at critical mass. Which is why its **political cast is no
 one we author**: the first PM and the chambers are the real founding players
 (see *the political void*, below). *Alts: the Commons, the Terminus Age.*
 
-*Religion coda:* the chartered order — and the cooperative it will become —
+*Religion coda:* the chartered order — and the Compact it will become —
 is secular in politics but, without quite knowing it, the latest front of
 the cult-of-presence against the New Gods. The clergy's sacred function
 persists beneath it; the honest count is, in mythic terms, a **rite.**
@@ -980,7 +981,7 @@ between them is the hinge of the whole founding.
 - **The ancient — field-creatures, individuated but in unbroken communion.**
   Distinct selves, *not* a hive — but **wireless by nature**, living *on the
   field* (see *The aether*), presence flowing freely between them, present to
-  each other always. They lived the cooperative **by innocence:** sharing
+  each other always. They lived the Compact **by innocence:** sharing
   presence was as involuntary as breathing, because no one had discovered
   taking. (Strange and old exactly as legend likes — *because they are safely
   gone.*) The connection was never the flaw; it was the paradise.
@@ -1007,7 +1008,7 @@ between them is the hinge of the whole founding.
   who came back are as fallen as the rest of us. So paradise can only be
   **rebuilt by structure** — the fallen *constructing* what the unfallen simply
   *were.* That is Holt's doubt at full strength, and the cosmological reason the
-  cooperative leans on **structure, not a special people:** there is no special
+  Compact leans on **structure, not a special people:** there is no special
   people anymore.
 - **The dispossession (the allegory).** They return as a *miracle*, are briefly
   revered — and then, within a generation, the University learns their gift,
@@ -1139,7 +1140,7 @@ guardrails are **structural, never discretionary.**
 ### Event timeline (oldest → newest)
 
 - **Age of Myth** — *aether: the wild medium; creation by presence, then by
-  will.* **Paradise** (the attuned live the cooperative by nature) → the
+  will.* **Paradise** (the attuned live the Compact by nature) → the
   **first fall** (a being *takes* the gift, hollows himself, wakes the latent
   Hollow; the one polity shatters into the first hierarchy) → the
   **Proliferation** (creation reinvented as artifice — wizardry; worlds beyond
@@ -1189,7 +1190,7 @@ guardrails are **structural, never discretionary.**
   imminent.
 - **The Grounded Age** *(the awaited future)* — the **Recognition** (the
   people ratify the Charter and elect the first PM; the steward abdicates)
-  → the cooperative goes live → the history the players write forward (the
+  → the Compact goes live → the history the players write forward (the
   contested instrument: presence's governance and the hollowing's capture
   both ride the same network).
 
@@ -1231,7 +1232,7 @@ brief caretaker interim, the world modern and the founding imminent.
 ### Factions & institutions
 
 - **The five corpos** — Veshko · Goodkin · Vionne · Hollis · Aevex (+ the **Independents**). Faceless by design (a wordmark, not a figure). *[corpos-slate]*
-- **The cooperative** — the *awaited* polity (not yet founded): five seats — court, executive, and the producer/capital/consumer legislative houses; parliamentary executive, conviction voting. Held provisionally by the steward (four empty, the consumer house live). *[cooperative-slate; bible: the seats]*
+- **The Compact** — the *awaited* polity (not yet founded): five seats — court, executive, and the producer/capital/consumer legislative houses; parliamentary executive, conviction voting. Held provisionally by the steward (four empty, the consumer house live). *[cooperative-slate; bible: the seats]*
 - **The University** — the Mission's living heir; the clergy persist only as **echoes**.
 - **The attuned** — the returned sensitives (`homo/sensitivus`); a people; **Amos the Attuned** (the herald) is the one named, long dead — see *The herald*.
 
@@ -1364,7 +1365,7 @@ having designed against concentration, they designed against their *own*
 collective hold too, and put **one dying man (Solvan)** in the seat, then
 stepped back. The founders who built the throne and wouldn't sit it.
 
-**They seed the polity's pluralism.** The cooperative doesn't begin
+**They seed the Compact's pluralism.** The Compact doesn't begin
 monolithic: it inherits the framers' split, so a **loyal opposition** is
 already standing at the founding, a faction with a real good-faith case. The
 framers supply the *sides*; the players fill the *seats* — so people walk
@@ -1396,7 +1397,7 @@ collective.*
 ## The lost paradise — the prophecy's root *[settled]*
 
 The deepest layer, the one that turns the design into a myth: **the ancient
-attuned already lived the cooperative.** Creatures of presence, naturally
+attuned already lived the Compact.** Creatures of presence, naturally
 networked, born uncapturable — a presence-based, distributed polity *by
 nature*, the cult-of-presence as a society with no hollowing in it. **That
 was paradise.**
@@ -1430,7 +1431,7 @@ was paradise.**
 - **The loss & the rediscovery.** The knowledge died with the attuned (the
   Fallow). The framers, digging in the aether, did not *invent* the better
   way — they **rediscovered** it and built a human, technological version of
-  something that *was real once.* The cooperative is a **restoration**, not a
+  something that *was real once.* The Compact is a **restoration**, not a
   novel experiment; the framers are restorers, not utopians.
 - **The prophecy.** Carried by the old faith — not arbitrary foretelling but
   **ancestral memory of paradise plus the promise it returns:** that one day
@@ -1493,7 +1494,7 @@ after it.
   the herald foretold the **congregation**, and Solvan is only the steward who
   holds the door until they arrive and then dies. Neither Solus nor Solvan is
   what John promised. **What he promised is the polity** — salvation as a
-  people, not a prince, the cooperative thesis stated as scripture.
+  people, not a prince, the Compact thesis stated as scripture.
 - **The scale truth — why a minority is only an omen.** Attunement is *cheap*;
   the system needs it **at scale.** A returned minority can't rebuild the
   polity — a handful of telepaths isn't a networked people — so the returned
@@ -1550,7 +1551,7 @@ never a third Sol- surname — capture needs no bloodline.)*
   **Knowledge as inoculation:** understanding Solus convinces him he's immune —
   the academy bred its own nemesis, the scholar who learned the lesson and drew
   the wrong conclusion. And he's a **sincere rescuer**, not a throne-grabber: he
-  believes the cooperative is too weak to survive the corpos and the Feed, that
+  believes the Compact is too weak to survive the corpos and the Feed, that
   the distributed experiment is a beautiful suicide, and that a competent hand
   must take the wheel before the hollowing wins. He isn't lying when he wears
   salvation's face — **he believes it's his face.** He may even be *right about
@@ -1583,7 +1584,7 @@ never a third Sol- surname — capture needs no bloodline.)*
   to *make* him a symbol; it cannot stop others from *choosing* him as one.
   Leaving Vane free is **accepting the risk that he gets deified** — and some
   will. This is the world's own wager turned on its shadow: you cannot suppress
-  the False Dawn without picking up Moloch's tools, so the cooperative
+  the False Dawn without picking up Moloch's tools, so the Compact
   **permits the danger** as the price of not becoming the thing it fears. We
   author the **conditions** — Vane, the embers, the lore — never the
   **outcome**: whether a real False-Dawn cult forms is **emergent,
@@ -1605,7 +1606,7 @@ never a third Sol- surname — capture needs no bloodline.)*
 *The present Vane — neither raving nor empty.* A sincere man, even spent,
 **still believes he was right** — so the husk-vs-demagogue dial collapses into
 something better: he doesn't court followers and he isn't hollow; he **waits**,
-serenely certain the cooperative will fail and vindicate him, and that patient,
+serenely certain the Compact will fail and vindicate him, and that patient,
 unrepentant certainty is its own gravity — the thing that draws the faithful
 without his lifting a finger. *Open (the one real gap): an **heir** to the False
 Dawn — Vaneism with a young face — is the uncarved present-day antagonist slot,
@@ -1614,7 +1615,7 @@ there whenever a live adversary is wanted.*
 ## The corpos — the steelman of the incumbent *[settled; founders uncarved]*
 
 The corpos are the diegetic projection of the **board-of-directors / market
-model** the cooperative is built to outperform (see *the projection stack*). So
+model** the Compact is built to outperform (see *the projection stack*). So
 they are written as a **steelman, never a strawman:** genuinely effective, often
 genuinely good at what they make, extractive by *structure*, not malice. The
 villainy is in the **incentive**, never the mustache. (Roster + ethos live in
@@ -1657,7 +1658,7 @@ Independents; this is the *rise and meaning.*)
   elevate them back to the glory their wizard-ancestors held** — the exact
   projection of real wizards (devs) elevated by **compute** — reaching for
   restoration the only way they know, by *owning the substrate* (the old
-  fusion-impulse), never the cooperative's distributed making. So the hollowing
+  fusion-impulse), never the Compact's distributed making. So the hollowing
   keeps **two clocks:** the **acute** demagogue who flares and burns out
   (first-faller → Solus → Vane), and the **chronic** house that *never dies
   because it is inherited.* The corpo is the **fallen wizard in a corporate
@@ -1678,7 +1679,7 @@ Independents; this is the *rise and meaning.*)
 - **The two faces of capture.** From the one Widening came two reaches for the
   vacuum: **Vane** — the *acute, personal, political* attempt (seize the seats) —
   and **the corpos** — the *standing, institutional, economic* one (own the
-  field). The cooperative is the structural answer to both: **the honest count
+  field). The Compact is the structural answer to both: **the honest count
   against the Metric, consent against extraction.** Balancing the corpos is, in
   large part, *why the polity must exist.*
 - **Why the steelman is mandatory.** The real wager is *the three-house model
@@ -1691,7 +1692,7 @@ Independents; this is the *rise and meaning.*)
 
 ## The administered realm — land, home, and office **[settled]**
 
-The realm has one throughline, and it is the cooperative's whole thesis written
+The realm has one throughline, and it is the Compact's whole thesis written
 in **real estate**: *who holds the land, and who decides what gets built on it.*
 Under the peerage that power sat in **blood**; in the Grounded Age it sits in
 **accountable office.** Property is not adjacent to governance here — it **is**
@@ -1730,7 +1731,7 @@ in the fiction for the property system to answer.
 the **mining folk**: when a house walked away from its Delving, the miners whose
 whole life was the deep *kept it running*, and over generations built their own
 deep-law, market, and governance to hold a commons no lord administered — an
-**accidental proto-cooperative, the founding's thesis rehearsed in miniature and
+**accidental proto-Compact, the founding's thesis rehearsed in miniature and
 generations early.** They are an **occupational culture, not a race** (a
 mixed-species community of the deep — no "mining race"); their town-below worships
 **Goibniu**, patron of honest work, and holds a wary stance toward the coming
@@ -1863,9 +1864,9 @@ and the visitor assembles the history from the things:
   are told **true** — impressive *and* damning): the cabals→houses→corpos arc; a
   house's gilt **genealogy** beside the record that dates it to the Fallow (*the
   claim older than the truth*); the **Enclosure**; the **marks** ("a product of
-  Veshko"). The placard's thesis: **the corpos and the cooperative are rival
+  Veshko"). The placard's thesis: **the corpos and the Compact are rival
   heirs of the lost glory** — both reach back toward Eternal City's golden age,
-  the corpos by owning the substrate, the cooperative by redeemed making; not
+  the corpos by owning the substrate, the Compact by redeemed making; not
   villains, the *other* answer to the same longing.
 - **The peoples** — prejudice-as-projection, *present tense*: a reverent **cast
   of the first returned-attuned child** beside an **implant retail box** — *the
