@@ -352,17 +352,23 @@ every host that contributes it.
 interface InstanceContributor { getInstanceContributions(): CommandContributions; }
 ```
 
-At the `environment`/`peers` containment-delta push sites,
+At the `inventory`/`environment`/`peers` containment-delta push sites,
 `CommandLogic.collectBucketDefsForInstance` merges a contributor's
-per-instance result with its class/mixin statics. Because it rides the
-ordinary push/pop/reset movement machinery, late-arrival, departure, and
-mover relocation are all handled with no extra hooks (the hook must be
-cheap and total — a throw is swallowed to no contribution). First
-consumer: `BehavedMixin.getInstanceContributions` affords `social/
+per-instance result with its class/mixin statics (the inventory site
+joined with the capability-table build). Because it rides the ordinary
+push/pop/reset movement machinery, late-arrival, departure, and mover
+relocation are all handled with no extra hooks (the hook must be cheap
+and total — a throw is swallowed to no contribution). Two shipped
+consumers: `BehavedMixin.getInstanceContributions` affords `social/
 talk.yaml` exactly when the host carries a dialogue tree (an `engage`
-spec) — so a conversational NPC is discoverable and a silent one is not,
-with no subclass and no manual push/pop. See
-[npc-dialogue.md](./npc-dialogue.md).
+spec) — so a conversational NPC is discoverable and a silent one is
+not, with no subclass and no manual push/pop (see
+[npc-dialogue.md](./npc-dialogue.md)) — and
+`ToolMixin.getInstanceContributions` derives a tool's verb families
+from the capability table over its authored `capabilities`, so a tool
+variant is pure seed data (see [crafting.md](./crafting.md)). A
+shadowing implementation must merge the inner contributor's buckets
+(both consumers show the pattern).
 
 ## Recency stack
 

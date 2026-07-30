@@ -2179,6 +2179,11 @@ kitchen — no venue flag, no menu required), and a knowledge-driven verb
 with no instrument (`make`) is innate on `Avatar`. Patient-side marker
 interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
 side: eligibility is matter (Material tags + edibility) + instrument
-capabilities, and interfaces exist only for real state or behavior. See
+capabilities, and interfaces exist only for real state or behavior.
+The fix's final form is the **capability table**
+(`lib/craft/ToolCapability.ts` + `ToolMixin`'s `InstanceContributor`):
+a tool's verb families derive from its seed row's `capabilities` list —
+zero code, zero statics — so a tool variant (kit → machine) is pure
+data. See
 [command-spec.md § who affords a verb](./subsystems/command-spec.md) and
 [crafting.md § The offer](./subsystems/crafting.md).
