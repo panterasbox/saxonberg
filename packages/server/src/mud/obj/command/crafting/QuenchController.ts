@@ -61,8 +61,8 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     const builder = giver;
     const commandText = context.commandText;
 
-    // The anvil paces the terminal quench too (F3: quench is not
-    // GATED on an anvil — pacing must not add a gate; rate 1 absent).
+    // The anvil paces the terminal quench too. Quench is deliberately
+    // not GATED on an anvil — pacing must not add a gate; rate 1 absent.
     const anvil = this.findCapability(giver, 'anvil');
     this.engageStep(context, {
       durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),

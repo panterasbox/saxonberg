@@ -428,7 +428,7 @@ extends; none is a fresh build.
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
 | [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
 | [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |
-| [crafting](./tails/crafting-slate.md) | crafting.md | skill-as-control (`_control` scatter), assembly recipes, tailoring branch, batching, workshop lockers, DIY stock-pricing, skill-scaled salvage yield, seasoning/tuning beyond edges, environmental decay, recipe-spread beyond watching |
+| [crafting](./tails/crafting-slate.md) | crafting.md | skill-as-control (`_control` scatter), assembly recipes, tailoring branch, batching, workshop lockers, DIY stock-pricing, skill-scaled salvage yield, seasoning/tuning beyond edges, environmental decay, recipe-spread beyond watching; post-capability-table: runtime affordance recompute, powered variants/supply gate, per-capability wear + machine-vs-hand advancement asymmetry |
 | [encumbrance](./tails/encumbrance-slate.md) | encumbrance.md | **cart/conveyance handoff shipped** (the haulage build → conveyance.md/encumbrance.md § Haulage); deferred: per-item placement refinement (a frame pack beating the worn floor), augment-conferred capacity, environmental (gravity) margins, tissue-derived mass, numeric tuning |
 | [metabolism](./tails/metabolism-slate.md) | metabolism.md | wired nutrient deficiencies (scurvy), hangover, chronic-toxin exposure content, spoilage / perishability, magic ingestion, fuller-stomach-slows-absorption, bulk-food eating, per-individual rates, recovery-on-relogin, numeric tuning |
 | [message-rendering](./tails/message-rendering-slate.md) | message-rendering.md | GFM table input-sugar |

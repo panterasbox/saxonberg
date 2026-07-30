@@ -153,7 +153,7 @@ describe('rate paces the conferring kind', () => {
   });
 });
 
-describe('the engaged repair (Q1/Q2)', () => {
+describe('the engaged repair', () => {
   const LEATHER = '/lib/material/_test/pace-leather';
 
   function registerLeather(): void {
