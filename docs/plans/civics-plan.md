@@ -384,9 +384,14 @@ none.
 
 ### Additional design decisions
 
-11. **`CommitteeApi` is a meta-layer facade** — `api/committee.ts` +
-    `obj/api/CommitteeLogic.ts` (`/obj/api/committee`, gate
-    `FromModule('/api/committee#CommitteeApi')`). It composes
+11. **`CompactApi` is THE meta-institution facade** — `api/compact.ts`
+    + `obj/api/CompactLogic.ts` (`/obj/api/compact`, gate
+    `FromModule('/api/compact#CompactApi')`). Named for the
+    institution; the single designated home for all future meta
+    surface (membership, franchise) — per-feature meta Apis are not
+    minted (a rejected `CommitteeApi` was the trigger). Pre-existing
+    meta Apis (OfficeApi/InfluenceApi/AccessApi) are untouched. It
+    composes
     ParcelApi + GroupApi + the chat surface; it owns **no storage**.
     Surface:
     ```ts
@@ -438,11 +443,11 @@ none.
 
 ### Amendment file inventory
 
-New: `api/committee.ts` (Api), `obj/api/CommitteeLogic.ts` (Api logic
+New: `api/compact.ts` (Api), `obj/api/CompactLogic.ts` (Api logic
 singleton), `cmd/system/committee.yaml` (Command YAML),
 `obj/command/system/CommitteeController.ts` (Controller) + its seed
 YAML, the `terminus` group seeding + title-transfer wiring (home per
-decision 13), `obj/api/__tests__/CommitteeLogic.test.ts`,
+decision 13), `obj/api/__tests__/CompactLogic.test.ts`,
 `obj/command/system/__tests__/CommitteeController.test.ts`.
 
 Modified: `lib/standing/RenownStanding.ts` + importers (decision 14),
@@ -461,7 +466,7 @@ The amendment lands as **Wave 5 — committee + jargon install**
 (after content, before docs; the docs sweep becomes Wave 6 and adds
 the access/grouping/chat doc edits):
 `COMPACT_WIDE` rename + prose (mechanical, first — keeps the tree
-green) → `CommitteeLogic`/`CommitteeApi` → verb → terminus group seed
+green) → `CompactLogic`/`CompactApi` → verb → terminus group seed
 + title transfer → committee channel ensure. *Verifiable*:
 `grep -r COOPERATIVE_WIDE` empty; renown/participation regression
 green; `committeeOf` over a group-owned, a player-held, and an
@@ -480,7 +485,7 @@ the committee channel and the audience resolves through
 - **Chat mint seam**: the promotion path may be controller-embedded
   rather than Api-exposed; budget for the one narrow gated method on
   chat's logic (per decision 11) and gate it
-  `FromModule('/api/committee#CommitteeApi')`-plus-existing-callers
+  `FromModule('/api/compact#CompactApi')`-plus-existing-callers
   only if chat's conventions demand.
 - **Well-known-group name** `terminus` may collide with an existing
   groups row on long-lived dev DBs — the seeder must be

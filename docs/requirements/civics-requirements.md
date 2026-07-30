@@ -87,14 +87,19 @@ doctrine, not deferral.
   `ParcelApi.ownerOf`, never stored as a new kind: "all committees
   are groups" and "not all groups are committees" are both structural
   consequences. Deliverables:
-  - A **`CommitteeApi`** facade (thin, derive-on-read over
-    ParcelApi + GroupApi + ChatApi): `committeeOf(path)` (the
+  - Committee reads on **`CompactApi`** — the **single
+    meta-institution facade**, new this build and the designated home
+    for ALL future meta surface (membership, franchise checks), so
+    per-feature meta Apis stop being minted. Thin, derive-on-read
+    over ParcelApi + GroupApi + ChatApi: `committeeOf(path)` (the
     title-holding group, `null` for player-held subdivisions),
     `isCommitteeMember(player, path)`, and the chat seam —
-    `channelOf(path)` / an ensure-channel path so **committees get
-    their own chat channels** (a Channel whose Subject binds the
-    committee group's `GroupRef`; the group-DM→channel promotion
-    path is the precedent).
+    `committeeChannelOf(path)` / an ensure-channel path so
+    **committees get their own chat channels** (a Channel whose
+    Subject binds the committee group's `GroupRef`; the
+    group-DM→channel promotion path is the precedent). Pre-existing
+    meta Apis (OfficeApi, InfluenceApi, AccessApi) are untouched — no
+    consolidation churn; the rule is forward-looking.
   - A small public **`committee` verb** (read-only): the committee
     over where you stand (or a given path) — group, members, channel.
   - **The Terminus committee exists**: a seeded well-known managed
