@@ -26,7 +26,9 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: the Terminus arrival gate
   primaryKeyword: arrival-gate
-  _address: terminus/arrival-gate
+  # Under the CITY tier of the three-tier address chain (realm terminus /
+  # city terminus/city / campus terminus/city/campus — the civics build).
+  _address: terminus/city/arrival-gate
   longDescription: |
     A shallow alcove off the north end of the hall, floored in a slightly newer stone than the rest, where inbound travellers resolve out of the between. A frosted-glass arch frames the concourse to the south; a wide doorway to the north opens straight onto University Avenue, and across the street the pale gates of Eternal University stand shut behind their wall.
 
@@ -40,6 +42,11 @@ data:
       destination: /domain/terminus/terminal/hall
     north:
       destination: /domain/eternal/university-avenue/crossing
+    # The city Registry — the young administration's rented annex off the
+    # station frontage (cross-zone, declared on both sides; the registry
+    # office lists its own `west` back here).
+    east:
+      destination: /domain/terminus/registry/office
   details:
     plate:
       keywords: [plate, arrival, matting, mat]

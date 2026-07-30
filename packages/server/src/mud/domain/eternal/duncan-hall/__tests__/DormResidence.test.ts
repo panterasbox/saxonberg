@@ -459,6 +459,40 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     const reborn = await w.admit(k1);
     expect(shortDesc(reborn)).toBe('a dorm room');
   });
+
+  it('provision stamps the domicile; unprovision leaves it standing', async () => {
+    await bootRegistries();
+    await warren();
+    const op = makeAvatar('op');
+    const tenant = makeAvatar('tenant');
+    expect(tenant.getDomicileAddress()).toBeNull();
+
+    // Provision → the lease grant stamps the tenant's domicile (the
+    // civics residency substrate).
+    const provCtx = ctxFor(op, 'provision');
+    await run(
+      makeStuff(() => new ProvisionController()),
+      op,
+      { player: { stuff: tenant } } as unknown as CommandModel,
+      provCtx,
+    );
+    expect(rejectionReason(provCtx)).toBeNull();
+    expect(tenant.getDomicileAddress()).toBe(DormRoom.ADDRESS);
+
+    // Unprovision → the dwelling goes; the domicile STANDS
+    // (persists-until-replaced is structural — homelessness is no
+    // dwelling, not no civic identity).
+    const unprovCtx = ctxFor(op, 'unprovision');
+    await run(
+      makeStuff(() => new UnprovisionController()),
+      op,
+      { player: { stuff: tenant } } as unknown as CommandModel,
+      unprovCtx,
+    );
+    expect(rejectionReason(unprovCtx)).toBeNull();
+    expect(await ParcelApi.heldUnitOf(tenant.getTemplatePath()!)).toBeNull();
+    expect(tenant.getDomicileAddress()).toBe(DormRoom.ADDRESS);
+  });
 });
 
 /* ─────────────────── Phase 7: corridor reap correctness ────────────────── */

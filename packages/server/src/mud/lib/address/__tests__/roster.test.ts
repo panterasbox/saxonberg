@@ -119,6 +119,11 @@ describe('Address roster — slim demonstrative inventory', () => {
       // The Weeping Moor — the storms-and-wetness demonstrator (weather
       // Wave 2): a Locality carrying an authored alive-storm weather pin.
       'moor.yaml',
+      // The three-tier government chain (the civics build): terminus is
+      // the realm ROOT (re-purposed, still the board label); the city and
+      // campus tiers nest under it and each declares its government.
+      'terminus-city.yaml',
+      'eternal-campus.yaml',
     ]);
     const actual = new Set(listYamlsRelative(SEEDS_DIR));
     expect(actual).toEqual(expected);

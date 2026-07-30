@@ -39,6 +39,13 @@ parcels:
   - extent: /domain/terminus/general-store
     owner: { kind: group, name: terminus }
 
+  # The city Registry annex (the civics flagship) — the administration's
+  # own rented rooms, held like everything municipal by the managed
+  # `terminus` group (the Terminus committee, in the jargon standard's
+  # terms: the group holding title IS the committee).
+  - extent: /domain/terminus/registry
+    owner: { kind: group, name: terminus }
+
   # Duncan Hall's dorms wing — the parent parcel the leased unit parcels
   # subdivide under (…/dorms/f<n>-r<p>). Owned by the managed `duncan-hall`
   # group (the landlord). NO unit rows here: they're minted at provisioning.

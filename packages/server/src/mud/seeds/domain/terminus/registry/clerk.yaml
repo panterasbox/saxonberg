@@ -1,0 +1,52 @@
+# Odile — registrar of the City of Terminus and, by the thin
+# administration's necessity, its acting Magistrate (the double-hat that
+# makes `holdsSeat` live-provable: she sits both Registry positions on a
+# shift-less roster — employment's minimum; wages come later with real
+# shifts). The city's whole civil service in one person: precise,
+# unhurried, quietly amused by the gap between the city's paperwork and
+# the city. Domiciled at the registry (the NPC residency exemplar — her
+# chain reads [city, realm]). Human (canon).
+class: /lib/npc/NPC
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Odile
+  pronouns: she
+  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: registrar
+  alternateNames:
+    - odile
+    - clerk
+    - magistrate
+  shortDescription: Odile, the city registrar
+  _domicileAddress: terminus/city/civic/registry
+  longDescription: |
+    A precise woman in ink-cuffed sleeves at the long counter, a ledger
+    open before her and three more within reach. She writes in a small,
+    upright hand, and when she looks up it is with the calm of someone who
+    is the entire staff of two municipal departments and has decided not
+    to be hurried about either. The magistrate's desk behind her is hers
+    too; she turns her chair around to sit it, and the change in her face
+    when she does is its own gavel.
+  dispositions:
+    - { disposition: diligence, valence: 75 }
+    - { disposition: patience, valence: 50 }
+    - { disposition: ambition, valence: -30 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Odile looks up from her ledger. \"Registry. If it's a record, I keep it; if it's a dispute, I judge it. State which.\""
+          - "\"Mind the wet ink,\" Odile says, not looking up."
+          - "Odile marks her place with one finger. \"The city's listening. Briefly.\""
+    - brain: /lib/behavior/idles
+      trigger: cadence:23s
+      config:
+        pool:
+          - { kind: free, value: "rules a fresh line in the ledger with a small steel straightedge." }
+          - { kind: free, value: "blots a signature and holds the page up to the window light." }
+          - { kind: free, value: "glances at the magistrate's desk behind her, and decides today's docket can wait." }
+          - { kind: say, value: "A city is what it writes down. Everything else is weather." }

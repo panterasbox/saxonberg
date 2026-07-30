@@ -20,6 +20,7 @@
 class: /lib/location/CartesianLocation
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall lobby
   primaryKeyword: lobby
   illustration: location/duncan-hall-lobby.png
