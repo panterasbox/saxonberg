@@ -18,6 +18,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { ToolCapabilities } from './ToolCapability';
 
@@ -65,6 +66,44 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (MixinApi.isDurable(self) && self.isBroken()) return false;
       return this.capabilities.includes(cap);
+    }
+
+    /**
+     * Per-instance dynamic command contributions (the
+     * `InstanceContributor` seam): the union of the capability table's
+     * verb families over this instance's **authored** capabilities —
+     * the tool that does the work carries its working verbs, so a tool
+     * variant is pure seed data. Placement per the kind's table entry
+     * (`reachable` → environment + inventory, `carried` → inventory
+     * only). Deliberately NOT broken-gated: a broken anvil keeps
+     * *affording* `hammer` and the controller's `hasCapability` check
+     * declines diegetically (a vanishing verb would also go stale —
+     * breakage doesn't move the tool, so no containment delta fires).
+     */
+    public getInstanceContributions(): CommandContributions {
+      // Merge any inner contributor's buckets (the Behaved pattern) —
+      // a shadowing implementation must not drop a sibling seam.
+      const inner =
+        (
+          Base.prototype as {
+            getInstanceContributions?: () => CommandContributions;
+          }
+        ).getInstanceContributions?.call(this) ?? {};
+      const environment: string[] = [...(inner.environment ?? [])];
+      const inventory: string[] = [...(inner.inventory ?? [])];
+      for (const cap of this.capabilities) {
+        const def = ToolCapabilities.definitionOf(cap);
+        if (!def || def.verbs.length === 0) continue;
+        inventory.push(...def.verbs);
+        if (def.placement === 'reachable') environment.push(...def.verbs);
+      }
+      if (
+        environment.length === (inner.environment?.length ?? 0) &&
+        inventory.length === (inner.inventory?.length ?? 0)
+      ) {
+        return inner;
+      }
+      return { ...inner, environment, inventory };
     }
   };
 }

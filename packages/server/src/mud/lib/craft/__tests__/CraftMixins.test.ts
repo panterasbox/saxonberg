@@ -58,6 +58,47 @@ describe('ToolMixin', () => {
     t.setCondition(2); // clamp at 1
     expect(t.getCondition()).toBe(1);
   });
+
+  describe('the capability table (getInstanceContributions)', () => {
+    it('derives buckets from the table over authored kinds', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['mending']);
+      const c = t.getInstanceContributions();
+      expect(c.environment).toEqual([
+        'crafting/repair.yaml',
+        'crafting/salvage.yaml',
+      ]);
+      expect(c.inventory).toEqual([
+        'crafting/repair.yaml',
+        'crafting/salvage.yaml',
+      ]);
+    });
+
+    it('a carried-placement kind yields inventory only (the whetstone)', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['whetstone']);
+      const c = t.getInstanceContributions();
+      expect(c.inventory).toEqual(['crafting/sharpen.yaml']);
+      expect(c.environment ?? []).toEqual([]);
+    });
+
+    it('recipe-side kinds and empty capabilities confer nothing', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['striking', 'strainer', 'muddler']);
+      expect(t.getInstanceContributions()).toEqual({});
+      t.setCapabilities([]);
+      expect(t.getInstanceContributions()).toEqual({});
+    });
+
+    it('a broken tool still contributes (the verb declines, not vanishes)', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['anvil']);
+      t.setCondition(0);
+      expect(t.hasCapability('anvil')).toBe(false); // capability lost
+      const c = t.getInstanceContributions(); // affordance kept
+      expect(c.environment).toContain('crafting/hammer.yaml');
+    });
+  });
 });
 
 describe('CraftedMixin', () => {
