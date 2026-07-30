@@ -5,8 +5,12 @@ content — the pure-data `Government` Idea (the Corpo recipe verbatim),
 jurisdiction declared as a sparse tier-field on `Locality` and derived
 by the existing longest-prefix machinery, derive-on-read residency over
 a new domicile seam, seats as employment positions, the read-only
-`government` verb, and the thin Terminus flagship (one government, one
-Registry department, one Magistrate seat, one clerk). Read
+`government` verb, and the **three-government flagship stack**
+(terminus-city.md §8: the Realm of Terminus / the City of Terminus /
+the Eternal University on one re-rooted address chain — only the city
+wired: one Registry department, one Magistrate seat, one clerk).
+Wave 5 adds the committee realization + the code-level jargon install
+(its own section below). Read
 `docs/requirements/civics-requirements.md` in full before starting —
 scope is CLOSED; this plan implements exactly it.
 
@@ -52,10 +56,15 @@ appears in new code or docs except when naming the meta contrast.
 - **A `terminus` Locality already exists** —
   `seeds/lib/address/terminus.yaml` claims `terminus` (fasttravel
   build), and `seeds/domain/terminus/terminal/arrival-gate.yaml` etc.
-  already declare `terminus/...` addresses. `counting-houses` and
-  `university-avenue` claim **sibling roots** (not under `terminus`) —
-  out of scope, noted in Risks. The demonstrative `narnia/*` roster
-  (`narnia`, `narnia/castle`, `narnia/wild`) stays untouched.
+  already declare `terminus/...` addresses. **This build re-purposes
+  `terminus` as the REALM root** and re-prefixes every existing
+  `terminus/…` content address to `terminus/city/…` — grep
+  `_address: terminus/` AND `address: terminus/` across `seeds/` for
+  the full list; a missed one silently resolves to the realm tier
+  only. `counting-houses` and `university-avenue` claim **sibling
+  roots** (not under `terminus`) — out of scope, noted in Risks. The
+  demonstrative `narnia/*` roster (`narnia`, `narnia/castle`,
+  `narnia/wild`) stays untouched.
 - **Residence/dorm**: `DormRoom.SCOPE = '/domain/eternal/duncan-hall/dormroom'`
   (shared template, D1-keyed by unit parcel extent);
   `ParcelApi.heldUnitOf(holderPath)` → the tenant's unit
@@ -175,8 +184,9 @@ appears in new code or docs except when naming the meta contrast.
    (document-store path — pointer only in v1; no StoredDocument is
    seeded, there is no document seeder and nothing reads the charter
    yet — recorded in civics.md's deferred list), `treasury` (bank
-   account key — the flagship points at `/domain/terminus/budget`, the
-   already-shipped municipal budget Business's account path),
+   account key — the CITY government points at `/domain/terminus/budget`,
+   the already-shipped municipal budget Business's account path; the
+   realm and university templates leave it empty),
    `departments` (Business templatePaths — Pattern-A strings; a
    Business's path *is* its durable key in the employment substrate),
    `seats` (list of `{ key, label, department, positionKey }`).
@@ -214,11 +224,14 @@ appears in new code or docs except when naming the meta contrast.
 | `seeds/obj/command/civics/GovernmentController.yaml` | Controller seed | `class: /obj/command/civics/GovernmentController`, `data: {}` (mirror the governance controller seed's exact filename convention in that tree). |
 | `seeds/obj/GovernmentCatalogue.yaml` | Seed | `class: /obj/GovernmentCatalogue`, `data: {}`. |
 | `seeds/lib/civics.yaml` | Seed (folder) | FolderZone admin root for `/lib/civics` — mirror `seeds/lib/address.yaml`'s shape; also mirror whatever folder rows `seeds/lib/corpo*` ships for the `Government/` segment (check `seeds/lib/corpo.yaml` / `seeds/lib/corpo/Corpo.yaml` existence and copy the exact pattern — the folder/leaf invariant per templates.md). |
-| `seeds/lib/civics/Government/terminus.yaml` | Content seed | the flagship (data below). |
-| `seeds/lib/address/eternal-campus.yaml` | Content seed | Locality `name: Eternal University Campus`, `_address: terminus/campus`, **no** `_governmentKey` (inherits Terminus via the chain — deliberately proves the sparse case). |
+| `seeds/lib/civics/Government/terminus-realm.yaml` | Content seed | "the Realm of Terminus" — identity only (key/displayName/description); empty departments/seats/treasury (thin per terminus-city.md §8). |
+| `seeds/lib/civics/Government/terminus-city.yaml` | Content seed | "the City of Terminus" — the wired flagship (data below: Registry department, Magistrate seat, treasury = the municipal budget path). |
+| `seeds/lib/civics/Government/eternal-university.yaml` | Content seed | "the Eternal University" — identity only (the town-gown layer, thin). |
+| `seeds/lib/address/terminus-city.yaml` | Content seed | the CITY Locality: `_address: terminus/city`, `_governmentKey: terminus-city`. |
+| `seeds/lib/address/eternal-campus.yaml` | Content seed | the campus Locality: `name: Eternal University Campus`, `_address: terminus/city/campus`, `_governmentKey: eternal-university` (the third tier; sparse inheritance is proven by city-tier locations with no campus key + the narnia tests). |
 | `seeds/domain/terminus/registry.yaml` | Content seed | small `CartesianZone` "Terminus Registry" (mirror `terminal.yaml`). |
-| `seeds/domain/terminus/registry/office.yaml` | Content seed | the venue room (`CartesianLocation`): the Registry public counter; `_address: terminus/civic/registry`; explicit cross-zone exit pair to the terminal hall (declared on both sides — the arrival-gate precedent); `details` flavor per the staging fiction (the young retrofit administration). |
-| `seeds/domain/terminus/registry/clerk.yaml` | Content seed | the clerk NPC — mirror `seeds/domain/terminus/terminal/clerk.yaml`'s class/behavior shape (no `shifts` brain, no schedule); `_domicileAddress: terminus/civic/registry` (the NPC residency exemplar). |
+| `seeds/domain/terminus/registry/office.yaml` | Content seed | the venue room (`CartesianLocation`): the Registry public counter; `_address: terminus/city/civic/registry`; explicit cross-zone exit pair to the terminal hall (declared on both sides — the arrival-gate precedent); `details` flavor per the staging fiction (the young retrofit administration). |
+| `seeds/domain/terminus/registry/clerk.yaml` | Content seed | the clerk NPC — mirror `seeds/domain/terminus/terminal/clerk.yaml`'s class/behavior shape (no `shifts` brain, no schedule); `_domicileAddress: terminus/city/civic/registry` (the NPC residency exemplar — chain resolves [city, realm]). |
 | `seeds/domain/terminus/registry/business.yaml` | Content seed | the Registry department Business (municipal shape, `proprietorPath: ''`): `positions: [{ key: clerk, label: staffing the registry counter, wageRate: 4, confers: [] }, { key: magistrate, label: sitting as Magistrate, wageRate: 6, confers: [] }]`; `rosterSlots`: clerk NPC on **both** positions with `schedule: []` (shift-less — employment's minimum; the thin administration double-hats its registrar as acting Magistrate, which makes `holdsSeat` live-provable in-game); `banksAt: goodkin`; `operatingLocations: [/domain/terminus/registry/office]`. |
 | `docs/subsystems/civics.md` | Doc | outline below. |
 | Tests (7 files) | `__tests__/` siblings | listed in the Test plan. |
@@ -231,14 +244,14 @@ appears in new code or docs except when naming the meta contrast.
 | `api/address.ts` + `obj/api/AddressLogic.ts` | additive `coverageChainOf(address: string): Locality[]` — Api static → gated logic method → existing `AddressRegistry.coverageChainOf`. Sync; `[]` when unregistered/uncovered. |
 | `lib/character/Character.ts` | sparse `_domicileAddress: string | null` + accessors + `persistentFields` entry (decision 4). |
 | `lib/character/Persona.ts` | `commandContributions.self` gains `'civics/government.yaml'` (beside `'governance/office.yaml'`). |
-| `domain/eternal/duncan-hall/command/ProvisionController.ts` (verify exact path/name) | after `grantUse`, stamp `tenant.setDomicileAddress(DUNCAN_HALL_ADDRESS)` — a content constant `'terminus/campus/duncan-hall'` kept beside `DormRoom.SCOPE` (content knows its own address). Best-effort: a stamp failure never voids the lease. |
+| `domain/eternal/duncan-hall/command/ProvisionController.ts` (verify exact path/name) | after `grantUse`, stamp `tenant.setDomicileAddress(DUNCAN_HALL_ADDRESS)` — a content constant `'terminus/city/campus/duncan-hall'` kept beside `DormRoom.SCOPE` (content knows its own address). Best-effort: a stamp failure never voids the lease. |
 | `domain/eternal/duncan-hall/DormWarren.ts` | in `admit`-driven entry (or the door-traverse witness — pick the narrowest seam that sees the mover): when the entering tenant's `getDomicileAddress()` is unset and they hold this unit's lease, stamp from the room's `getAddress()` (the self-heal for pre-build tenants). Keep it a few lines; if no clean mover seam exists, restrict the self-heal to `ProvisionController` + note the migration gap in civics.md. |
 | `bootstrap.ts` | manifest entry `{ templatePath: '/obj/GovernmentCatalogue' }` after the CorpoCatalogue entry, with the standard warm-comment. |
 | `lib/paths.ts` | `TemplatePaths.governmentCatalogue: '/obj/GovernmentCatalogue'`; `TemplatePathPrefixes.government: '/lib/civics/Government/'`. |
-| `seeds/lib/address/terminus.yaml` | `data` gains `_governmentKey: terminus` (the jurisdiction declaration — consent-by-construction: this seed is landowner-authored content). |
-| `seeds/domain/eternal/duncan-hall/dormroom.yaml` | `data` gains `_address: terminus/campus/duncan-hall` (declared on the shared template; every clone hydrates it — decision in Grounding re the zone trap). |
-| `seeds/domain/eternal/duncan-hall/lobby.yaml`, `steps.yaml`, `corridor.yaml` | same `_address: terminus/campus/duncan-hall` (the lobby is where fresh sessions land — the "standing in the Warren" acceptance). |
-| `seeds/domain/terminus/terminal/hall.yaml` | the return leg of the registry exit pair. |
+| `seeds/lib/address/terminus.yaml` | `data` gains `_governmentKey: terminus-realm` — the Locality is re-purposed as the REALM root (consent-by-construction: this seed is landowner-authored content). |
+| `seeds/domain/terminus/terminal/*.yaml` | **re-prefix every declared address** `terminus/…` → `terminus/city/…` (arrival-gate etc. — grep per the Grounding note); `hall.yaml` additionally gains the return leg of the registry exit pair. |
+| `seeds/domain/eternal/duncan-hall/dormroom.yaml` | `data` gains `_address: terminus/city/campus/duncan-hall` (declared on the shared template; every clone hydrates it — decision in Grounding re the zone trap). |
+| `seeds/domain/eternal/duncan-hall/lobby.yaml`, `steps.yaml`, `corridor.yaml` | same `_address: terminus/city/campus/duncan-hall` (the lobby is where fresh sessions land — the "standing in the Warren" acceptance). |
 | `CLAUDE.md` | (1) docs-map one-liner: `- [civics.md](./docs/subsystems/civics.md) — diegetic government substrate: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the government verb`; (2) the category roster sentence in File Naming Conventions gains `civics` (`government` — the diegetic-government read surface). |
 | `docs/subsystems/address.md` | one short paragraph in "Locality is the home for future tier-level fields": the civics build realized `_governmentKey` + exposed `coverageChainOf`. |
 | `docs/subsystems/residence.md` | one line under Deferred/seams: the domicile stamp (provision-time + admit self-heal) now lives here; pointer to civics.md. |
@@ -283,21 +296,33 @@ holdsSeat; `lint:gates` resolves the new `FromModule` string.
 `government` dispatches for a fixture giver; unknown subcommand
 rejected by the framework (no controller default case).
 
-**Wave 4 — the content (flagship + roster).** Campus Locality seed;
-`terminus.yaml` `_governmentKey`; the Government template; duncan-hall
+**Wave 4 — the content (the three-tier flagship).** The address
+re-root FIRST (terminal re-prefixes + the grep sweep), then: the city
++ campus Locality seeds; `terminus.yaml` `_governmentKey:
+terminus-realm`; the three Government templates; duncan-hall
 `_address` declarations; the provision/admit domicile stamps; the
 registry zone/room/business/clerk + the hall exit pair. *Verifiable*:
-flagship integration test — clerk `holdsSeat('terminus','magistrate')`
-true (roster path); `residentOf(clerk)` = `[terminus]`; a provisioned
-test player's `residentOf` resolves `[terminus]` through the stamped
-domicile and survives `unprovision` (persists-until-replaced); a dorm
-room clone's `traceResolveFor` shows `terminus/campus/duncan-hall`
-covered by the campus Locality with chain `[campus, terminus]`;
+flagship integration test — clerk
+`holdsSeat('terminus-city','magistrate')` true (roster path);
+`residentOf(clerk)` = `[terminus-city, terminus-realm]`; a provisioned
+test player's `residentOf` resolves `[eternal-university,
+terminus-city, terminus-realm]` through the stamped domicile and
+survives `unprovision` (persists-until-replaced); a dorm room clone's
+`traceResolveFor` shows `terminus/city/campus/duncan-hall` covered by
+the campus Locality with coverage chain [campus, city, realm-root]; a
+terminal room's chain = `[terminus-city, terminus-realm]` (sparse
+inheritance on real content);
 `EmploymentApi.operatingAccountOf(registryBusiness)` provisions/returns
 the Business account (the "account exists" acceptance).
 
-**Wave 5 — docs + sweep.** `civics.md`; CLAUDE.md two edits;
-address.md/residence.md notes; staging pointer; full
+**Wave 5 — committee + jargon install.** The separately-sectioned
+scope below ("Wave 5 scope — committee realization + code-level
+jargon install").
+
+**Wave 6 — docs + sweep.** `civics.md`; CLAUDE.md two edits;
+address.md/residence.md notes; access.md committee section +
+grouping.md/chat.md lines (per Wave 5's inventory); staging pointer;
+full
 `pnpm lint && pnpm lint:gates && pnpm lint:module-scope && pnpm test`.
 
 ### `civics.md` outline
@@ -310,7 +335,10 @@ the domicile seam (the stamp decision, persists-until-replaced as
 structural, the derive-preference deviation and why, the self-heal,
 NPC authored homes) · seats-as-positions (the two-staffs contrast with
 governance.md; the deferred generic `holdsSeat` validator as the
-`requiresGovernor` twin) · the verb · the flagship inventory · the
+`requiresGovernor` twin) · the verb · the three-tier flagship
+inventory + the charter-text-vs-template-data split (the commission
+form is terminus-city.md §8 prose; templates carry only built
+departments/seats) · the
 doctrine absences (no legal machinery — the six powers; the full
 Non-goals list carried over as the deferred/never ledger) ·
 cross-references.
@@ -325,11 +353,16 @@ cross-references.
 | `lib/address/__tests__/Location.address.test.ts` (extend) or sibling `Locality.government.test.ts` | `_governmentKey` defaults `null`; a government-less Locality resolves **exactly as today** (assert an existing resolve trace unchanged); setter null/trim behavior; `AddressApi.coverageChainOf` passthrough shape. |
 | `obj/command/civics/__tests__/GovernmentController.test.ts` | integration via `giver.executeCommand`: bare `government` in an addressed room renders the chain + seats + departments + charter pointer; empty chain prose + note; `government residency` renders domicile line + chain; undomiciled prose. |
 | `domain/eternal/duncan-hall/__tests__/` (extend the provisioning test) | provision stamps `_domicileAddress`; **unprovision leaves it** (persists-until-replaced asserted); admit self-heal stamps an unset pre-existing tenant. |
-| new `obj/api/__tests__/GovernmentLogic.flagship.test.ts` (or fold into the logic test) | the seeded flagship end-to-end: campus Locality covers a dorm-room clone (`terminus/campus/...`, chain `[campus, terminus]`); `governmentAt` from the dorm room = terminus descriptor; clerk `holdsSeat` magistrate true; `operatingAccountOf` provisions the Registry account; `narnia/*` roster untouched. |
+| new `obj/api/__tests__/GovernmentLogic.flagship.test.ts` (or fold into the logic test) | the seeded flagship end-to-end: dorm-room clone resolves `terminus/city/campus/…` with government chain `[eternal-university, terminus-city, terminus-realm]`; a terminal room resolves `[terminus-city, terminus-realm]` (sparse); `governmentAt` from the dorm room = the university descriptor; clerk `holdsSeat('terminus-city','magistrate')` true; `operatingAccountOf` provisions the Registry account; `narnia/*` roster untouched. |
 | Regression | full suite — address, weather, employment, residence/dorm, seeds-integrity (`controller-seeds.integrity` picks up the new controller seed) all green. |
 
 ## Risks / open implementation questions
 
+- **The address re-root must be complete** — every existing
+  `terminus/…` declared address re-prefixes to `terminus/city/…`;
+  grep both `_address: terminus/` and `address: terminus/` across
+  `seeds/`. A missed seed silently resolves to the realm tier only
+  (wrong chain, no error).
 - **Zone-level `address` does not hydrate** (`Zone.persistentFields`
   is empty) — do NOT reach for the zone fallthrough for campus
   coverage; every address in this build is a declared Location
@@ -366,49 +399,9 @@ cross-references.
   controller must not assume an Interactive (no prompts — read-only
   output only).
 
-## Amendment 2 — the three-tier government stack (state-capital model)
+## Wave 5 scope — committee realization + code-level jargon install
 
-Requirements + terminus-city.md §8 (2026-07-30) replace the single
-Terminus government flagship with **three thin instances on one
-re-rooted address chain**. Doctrine driving it: the realm is just
-another hierarchy tier (plural — multiple realms will exist), no tier
-is the Compact's face, and the realm's seat is *in* the city without
-jurisdictional fusion.
-
-- **Address re-root**: `terminus` = the REALM root (existing Locality,
-  re-purposed); new `terminus/city` Locality; the campus Locality's
-  claim becomes `terminus/city/campus`. Every existing `terminus/…`
-  content address re-prefixes to `terminus/city/…`
-  (`seeds/domain/terminus/terminal/*` and this build's registry
-  seeds); the dorm/duncan-hall declarations and the plan's
-  `DUNCAN_HALL_ADDRESS` constant become
-  `terminus/city/campus/duncan-hall`. Grep `_address: terminus/` and
-  `address: terminus/` across `seeds/` for the full re-prefix list —
-  miss one and it silently resolves to the realm tier only.
-- **Three Government templates** under `/lib/civics/Government/`:
-  `terminus-realm` ("the Realm of Terminus" — identity only, empty
-  departments/seats), `terminus-city` ("the City of Terminus" — the
-  full wired flagship: Registry department, Magistrate seat, treasury
-  = the municipal budget path), `eternal-university` ("the Eternal
-  University" — identity only). Locality keys: `terminus` →
-  `terminus-realm`, `terminus/city` → `terminus-city`,
-  `terminus/city/campus` → `eternal-university`.
-- **Registry venue address** becomes `terminus/city/civic/registry`;
-  the clerk's `_domicileAddress` matches.
-- **Tests update**: the flagship assertions become the three-deep
-  chain — dorm chain `[eternal-university, terminus-city,
-  terminus-realm]`; terminal chain `[terminus-city, terminus-realm]`
-  (sparse — proves inheritance on real content); the `government`
-  verb renders all three tiers most-local first. The narnia two-deep
-  fixture tests stay as the seed-clean unit proof.
-- **civics.md**: the flagship section documents the stack + the
-  charter-text-vs-template-data split (the commission-form structure
-  is charter prose in terminus-city.md §8; the Government template
-  only carries built departments/seats).
-
-## Amendment 1 — committee realization + code-level jargon install
-
-Scope added after the initial plan (requirements §Goals last two
+Scope from the requirements (§Goals committee + jargon bullets, §Surface decisions below; added after the initial plan — requirements §Goals last two
 bullets, §Surface decisions "Committee is derived from parcel title" +
 "Committee channels ride the existing chat substrate"). Grounding:
 `ParcelApi.ownerOf(path)` is **total** and returns
@@ -481,7 +474,7 @@ none.
     Compact-governance build". `chat.md`'s "content-team-created" →
     "committee-created".
 
-### Amendment file inventory
+### Wave 5 file inventory
 
 New: `api/compact.ts` (Api), `obj/api/CompactLogic.ts` (Api logic
 singleton), `cmd/system/committee.yaml` (Command YAML),
@@ -500,11 +493,9 @@ cabal/content-group replacement, realized"), `docs/subsystems/grouping.md`
 promotion shape + the jargon line), `lib/paths.ts` if a committee
 logic template key is needed.
 
-### Wave insertion
+### Wave 5 build order
 
-The amendment lands as **Wave 5 — committee + jargon install**
-(after content, before docs; the docs sweep becomes Wave 6 and adds
-the access/grouping/chat doc edits):
+Within the wave (the docs edits it lists land in Wave 6):
 `COMPACT_WIDE` rename + prose (mechanical, first — keeps the tree
 green) → `CompactLogic`/`CompactApi` → verb → terminus group seed
 + title transfer → committee channel ensure. *Verifiable*:
@@ -516,7 +507,7 @@ terminus group, founder `isCommitteeMember` true, a member posts to
 the committee channel and the audience resolves through
 `GroupApi.membersOf`; chain-of-title shows core → terminus.
 
-### Amendment risks
+### Wave 5 risks
 
 - **The title transfer is live access policy** — after it, `core`'s
   non-founder members (if any) lose author rights over terminus and
@@ -538,6 +529,9 @@ the committee channel and the audience resolves through
 
 - `docs/requirements/civics-requirements.md` — the closed contract.
 - `docs/staging/diegetic-government.md` — premise, six powers, jargon.
+- `docs/staging/terminus-city.md` §8 — the locked government stack
+  (realm/city/university, commission form, seat/department roster as
+  charter text).
 - `docs/subsystems/address.md` / `corpo.md` / `employment.md` /
   `residence.md` / `governance.md` / `command-spec.md` /
   `content-packs.md` — the load-bearing precedents cited throughout.
