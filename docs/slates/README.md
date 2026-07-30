@@ -69,6 +69,30 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
   read and city/region (the `whois`/`profile` verb that surfaces country
   is now homed in
   [social-inspection-slate](./tails/social-inspection-slate.md)).
+- [distance-perception-slate](./tails/distance-perception-slate.md) *(tail)* —
+  things seen at a distance: vista references (resolve-on-read
+  landmark details, generalizing the crossing's clock-tower
+  live-read), bounded one-hop peek through exits (aperture + light +
+  concealment-gated), privileged reach beyond (scry territory), and
+  the danger-sense-before-traverse baseline (push what the shipped
+  walks already compute). Interim durable-facts-only vista rule
+  adopted by the demo-content build.
+- [acquisition-slate](./builds/acquisition-slate.md) — capability
+  onboarding doctrine + rulings (2026-07-28): floor=reachability
+  (attunement/comms/wallet-capacity only, forums leaves the bundle),
+  seeking=discovery, updates-vs-credentials sorting rule, the
+  need-fired credential itinerary (hiring requires payment cred;
+  dorm-key digitizes), hardware=healthcare (Aevex elective vs care
+  venues), first-login journey v2 over the built campus (Gus=greeter,
+  Health Center off the route, Limen post-Gus). Supersedes the
+  onboarding slate's Health Center/TPA-update beat.
+- [power-utility-slate](./builds/power-utility-slate.md) —
+  electricity as municipal infrastructure: the supply-reference
+  middle tier (source gates dependents; outages mint honest work
+  orders), then the municipal fork (governance office vs corpo
+  concession vs cooperative), conservation-economy billing,
+  utility labor; water as the sibling. Captured from the
+  demo-content lamppost decision; nothing built.
 - [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
   (regard / renown / susceptibility), notoriety as the signed twin that
   pierces disguise, per-circle scoping. The platform's "value as physics,
