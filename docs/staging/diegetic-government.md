@@ -329,3 +329,15 @@ exceptional frame, so it carries the marked register.
   holding a fiction-economy lever. Long-term that lever probably
   migrates to a Terminus government seat (a Treasurer), with the meta
   CB keeping only the mint.
+- **Future: the Compact's capital district (the DC model).** A
+  possible later content area giving the Compact physical presence —
+  NOT Terminus, a wholly separate diegetic dimension reachable only by
+  TPA. Doctrinally a *venue for the real thing, never a fiction
+  claiming to be it* (the rejected premise stays intact): architecture
+  hosting windows onto the actual apparatus (offices roster, forums,
+  ballot, courts). Everything already supports it: plural address
+  roots, TPA junctions, and — the deep DC rhyme — its localities
+  declare NO Government key (extraterritorial, under no realm; the
+  `government` verb's "no government claims this ground" is the
+  correct answer there), with parcels `core`-held so
+  `committeeOf(district)` = the Compact's own committee by default.
