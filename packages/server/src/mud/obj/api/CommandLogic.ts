@@ -2239,9 +2239,11 @@ function collectBucketDefs(
 /**
  * The named bucket's contributions off a live **instance** — its
  * class/mixin statics PLUS any per-instance {@link InstanceContributor}
- * contributions. Used at the `environment`/`peers` containment-delta
- * push sites so a contribution can depend on per-instance state and
- * still ride the ordinary movement push/pop/reset lifecycle.
+ * contributions. Used at the `inventory`/`environment`/`peers`
+ * containment-delta push sites so a contribution can depend on
+ * per-instance state (a tool's authored `capabilities`, a Behaved
+ * host's dialogue tree) and still ride the ordinary movement
+ * push/pop/reset lifecycle.
  */
 function collectBucketDefsForInstance(
   instance: Stuff,
@@ -2274,7 +2276,7 @@ function applyContainmentDeltaImpl(
   // Dest side: push to anyone whose stack now carries item.
   if (to) {
     if (MixinApi.isCommandGiver(to)) {
-      const defs = collectBucketDefs(item.constructor, 'inventory');
+      const defs = collectBucketDefsForInstance(item, 'inventory');
       if (defs.length > 0) {
         (to as Stuff & CommandGiver).pushCommandSource(item, 'inventory', defs);
       }

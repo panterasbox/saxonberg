@@ -6,6 +6,7 @@ import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { MakerMixin } from '../Maker';
 import { Grade } from '../Grade';
+import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class GradedHost extends GradedMixin(Idea) {
@@ -57,6 +58,133 @@ describe('ToolMixin', () => {
     expect(t.getCondition()).toBe(0);
     t.setCondition(2); // clamp at 1
     expect(t.getCondition()).toBe(1);
+  });
+
+  describe('the capability table (getInstanceContributions)', () => {
+    it('derives buckets from the table over authored kinds', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['mending']);
+      const c = t.getInstanceContributions();
+      expect(c.environment).toEqual([
+        'crafting/repair.yaml',
+        'crafting/salvage.yaml',
+      ]);
+      expect(c.inventory).toEqual([
+        'crafting/repair.yaml',
+        'crafting/salvage.yaml',
+      ]);
+    });
+
+    it('a carried-placement kind yields inventory only (the whetstone)', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['whetstone']);
+      const c = t.getInstanceContributions();
+      expect(c.inventory).toEqual(['crafting/sharpen.yaml']);
+      expect(c.environment ?? []).toEqual([]);
+    });
+
+    it('recipe-side kinds and empty capabilities confer nothing', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['striking', 'strainer', 'muddler']);
+      expect(t.getInstanceContributions()).toEqual({});
+      t.setCapabilities([]);
+      expect(t.getInstanceContributions()).toEqual({});
+    });
+
+    it('a broken tool still contributes (the verb declines, not vanishes)', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['anvil']);
+      t.setCondition(0);
+      expect(t.hasCapability('anvil')).toBe(false); // capability lost
+      const c = t.getInstanceContributions(); // affordance kept
+      expect(c.environment).toContain('crafting/hammer.yaml');
+    });
+  });
+
+  describe('parameterized capability specs', () => {
+    it('string shorthand ≡ the defaulted spec', () => {
+      const short = makeStuff(() => new ToolHost());
+      short.setCapabilities(['mending']);
+      const spec = makeStuff(() => new ToolHost());
+      spec.setCapabilities([{ kind: 'mending' }]);
+      for (const t of [short, spec]) {
+        expect(t.hasCapability('mending')).toBe(true);
+        expect(t.capabilityRate('mending')).toBe(1);
+        expect(t.capabilityControl('mending')).toBeNull();
+      }
+      expect(short.getInstanceContributions()).toEqual(
+        spec.getInstanceContributions(),
+      );
+    });
+
+    it('validates both entry forms on set', () => {
+      const t = makeStuff(() => new ToolHost());
+      expect(() => t.setCapabilities(['blender'])).toThrow(/blender/);
+      expect(() => t.setCapabilities([{ kind: 'blender' }])).toThrow();
+      expect(() =>
+        t.setCapabilities([{ kind: 'mending', rate: 0 }]),
+      ).toThrow(/rate/);
+      expect(() =>
+        t.setCapabilities([{ kind: 'mending', rate: -2 }]),
+      ).toThrow(/rate/);
+      expect(() =>
+        t.setCapabilities([{ kind: 'mending', rate: NaN }]),
+      ).toThrow(/rate/);
+      expect(() =>
+        t.setCapabilities([{ kind: 'mending', control: 'legendary' }]),
+      ).toThrow(/control/);
+      expect(() =>
+        t.setCapabilities([
+          { kind: 'mending', placement: 'orbital' as never },
+        ]),
+      ).toThrow(/placement/);
+    });
+
+    it('clamps the read rate to the band', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities([{ kind: 'mending', rate: 0.3 }]);
+      expect(t.capabilityRate('mending')).toBeCloseTo(0.3, 6);
+      t.setCapabilities([{ kind: 'mending', rate: 0.1 }]);
+      expect(t.capabilityRate('mending')).toBe(0.25);
+      t.setCapabilities([{ kind: 'mending', rate: 50 }]);
+      expect(t.capabilityRate('mending')).toBe(10);
+      expect(t.capabilityRate('anvil')).toBe(1); // absent kind → 1
+    });
+
+    it('per-entry placement overrides the kind default', () => {
+      const wheel = makeStuff(() => new ToolHost());
+      wheel.setCapabilities([
+        { kind: 'whetstone', placement: 'reachable', rate: 4 },
+      ]);
+      const c = wheel.getInstanceContributions();
+      expect(c.environment).toEqual(['crafting/sharpen.yaml']); // the grinding wheel
+      expect(c.inventory).toEqual(['crafting/sharpen.yaml']);
+
+      const strapped = makeStuff(() => new ToolHost());
+      strapped.setCapabilities([{ kind: 'mending', placement: 'carried' }]);
+      const c2 = strapped.getInstanceContributions();
+      expect(c2.inventory).toEqual([
+        'crafting/repair.yaml',
+        'crafting/salvage.yaml',
+      ]);
+      expect(c2.environment ?? []).toEqual([]);
+    });
+
+    it('a mixed authored array round-trips the Hydrator behavior-identically', async () => {
+      const t = makeStuff(() => new ToolHost());
+      const authored = [
+        'whetstone',
+        { kind: 'mending', rate: 3, control: 'fine' },
+      ];
+      await makeStuff(() => new PersistentHydrator()).hydrate(t, {
+        capabilities: authored,
+      });
+      expect(t.hasCapability('whetstone')).toBe(true);
+      expect(t.capabilityRate('mending')).toBe(3);
+      expect(t.capabilityControl('mending')).toBe('fine');
+      // Persisted field stays the authored plain-record shape.
+      expect(t.capabilities).toEqual(authored);
+    });
   });
 });
 

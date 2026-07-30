@@ -179,6 +179,7 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
       ),
     );
     expect(rejected(repairCtx)).toBe(false);
+    await completeStep(6000); // repair is an engaged act (REPAIR_MS)
     expect(knife.getCondition()).toBe(1); // sound again
     expect(scrap.getQuantity()).toBeLessThan(10); // the material cost
 

@@ -44,6 +44,24 @@ export default class AnalyzeResponseController extends CommandController<Analyze
 
     const stuff = target.stuff as Stuff;
     if (!MixinApi.isConstructed(stuff)) {
+      // A control-bearing instrument still reads: the band is the one
+      // response a plain tool carries (skill embedded in the capital —
+      // work done with it never lands below the band).
+      if (MixinApi.isTool(stuff)) {
+        const bands = stuff
+          .getCapabilities()
+          .map((k) => stuff.capabilityControl(k))
+          .filter((b): b is string => b !== null);
+        if (bands.length > 0) {
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(
+              Mml.compose`Control of ${Mml.name(stuff)}: ${bands[0]!} — work done with it never lands below that band.`,
+            )
+            .send();
+          return;
+        }
+      }
       const detail = `${stuff.getPresentation()} isn't a made thing you can read for a response.`;
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -96,6 +114,17 @@ export default class AnalyzeResponseController extends CommandController<Analyze
     if (!armor && MixinApi.isKeen(stuff)) {
       const kb = stuff.getKeennessBand();
       lines.push(Mml.compose`  edge: ${kb}`);
+    }
+    // A control-bearing instrument (bands only): skill embedded in the
+    // capital — work done with it never lands below this band.
+    if (MixinApi.isTool(stuff)) {
+      const bands = stuff
+        .getCapabilities()
+        .map((k) => stuff.capabilityControl(k))
+        .filter((b): b is string => b !== null);
+      if (bands.length > 0) {
+        lines.push(Mml.compose`  control: ${bands[0]!}`);
+      }
     }
     for (const channel of MECHANICAL_CHANNELS) {
       if (!armor && construction.deliveryFor(channel) === 'none') {

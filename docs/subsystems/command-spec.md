@@ -87,18 +87,20 @@ object, so spec, controller, and seed all live under
 
 **Who affords a verb is a separate question from where its spec
 lives — and the answer is the *instrument***. The tool/fixture that
-does the work carries the working verbs in its
-`commandContributions` (the whetstone → `sharpen`, the cook pot →
-`pour`/`stir`/`heat`/`plate`/`cook`, the anvil →
-`hammer`/`quench`/`forge`/`repair`/`salvage`, the furnace →
-`heat`/`ignite`/`douse`/`pump`), so the surface follows capital,
-wherever it physically is. A commerce object (a `CommerceMenu`)
-affords only its commerce verbs (`menu`/`order`) — the menu is for
-ordering, not making. Knowledge-driven verbs with no instrument
-(`make`) are innate on `Avatar`. See
-[crafting.md § The offer](./crafting.md) for the worked example, and
-the planned capability-keyed affordance table (verb families conferred
-from instance `capabilities` data) as the end state.
+does the work carries the working verbs — for tools, **derived from
+instance data**: the capability table (`lib/craft/ToolCapability.ts`)
+maps each kind to its verb family + placement, and `ToolMixin`
+implements the `InstanceContributor` seam over the instance's authored
+`capabilities` (the whetstone entry → `sharpen` carried-only, `pot` →
+the cooking steps, `anvil` → the smithing family, `mending` →
+repair/salvage), so a tool variant is pure seed data — no class, no
+statics. Appliance mixins with real behavior (the furnace →
+`heat`/`ignite`/`douse`/`pump`) still declare statics. A commerce
+object (a `CommerceMenu`) affords only its commerce verbs
+(`menu`/`order`) — the menu is for ordering, not making.
+Knowledge-driven verbs with no instrument (`make`) are innate on
+`Avatar`. See [crafting.md § The offer](./crafting.md) for the table
+and the parameterized specs (rate / control / placement).
 
 ### Aside: spec, parser, and the model
 

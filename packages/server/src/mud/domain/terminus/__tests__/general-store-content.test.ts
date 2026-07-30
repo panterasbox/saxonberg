@@ -70,12 +70,13 @@ describe("general-store content integrity", () => {
     "/lib/equipment/PortableLight",
     "/lib/equipment/Weapon",
     "/obj/Receptacle",
-    // The crafting-branches goods: the whetstone + sewing kit are
-    // ToolItems (thin subclasses carrying their verb affordances), the
-    // ingot a Meltable Thing — all discrete, none Globbable.
-    "/lib/craft/Whetstone",
-    "/lib/craft/SewingKit",
+    // The crafting goods: the sewing kit + the sewing MACHINE (the
+    // capability table's data-only variant) are plain ToolItems; the
+    // whetstone keeps its class for the Audible rasp (behavior, not
+    // affordances); the ingot a Meltable Thing — all discrete, none
+    // Globbable.
     "/lib/craft/ToolItem",
+    "/lib/craft/Whetstone",
     "/obj/Ingot",
   ]);
 

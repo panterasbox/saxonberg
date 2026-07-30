@@ -140,6 +140,15 @@ export interface BuildMintRequest {
 export interface RepairRequest {
   /** The durable good to restore (already resolved held/reachable). */
   item: Stuff;
+  /**
+   * The maker's `templatePath`, captured from `getActingAuthor` at the
+   * repair command's dispatch and carried because the engaged repair
+   * completes *outside* that frame — the same capture-at-dispatch /
+   * use-at-completion pattern {@link BuildMintRequest.makerPath} uses.
+   * A live `getActingAuthor` is always preferred; this is the
+   * fallback, never a wire value.
+   */
+  makerPath?: string;
 }
 
 /** Why a repair was infeasible (rendered diegetically). */

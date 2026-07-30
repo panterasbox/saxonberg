@@ -335,10 +335,12 @@ export interface CommandContributions {
  * Per-instance dynamic command contributions — the runtime sibling of
  * the static `commandContributions`. A Stuff that composes this seam is
  * consulted **by instance** at containment-delta time (in addition to
- * its class/mixin statics) when the `environment`/`peers` slices are
- * pushed onto nearby givers' stacks, so a contribution can depend on
- * per-instance state (e.g. a Behaved NPC affords `talk` only when it
- * carries a dialogue tree). Because it rides the ordinary
+ * its class/mixin statics) when the `inventory`/`environment`/`peers`
+ * slices are pushed onto nearby givers' stacks, so a contribution can
+ * depend on per-instance state (a Behaved NPC affords `talk` only when
+ * it carries a dialogue tree; a `Tooled` host derives its verb families
+ * from its authored `capabilities` via the capability table). Because
+ * it rides the ordinary
  * push/pop/reset movement machinery, late-arrival, departure, and
  * mover relocation are all handled with no extra hooks. The hook must
  * be cheap and total (it runs on the containment hot path; a throw is

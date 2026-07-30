@@ -65,7 +65,11 @@ with a diegetic reason, not a flag flip.
 - **`ToolCapability`** (`ToolCapability.ts`) — the capability vocabulary
   (`shaker`/`strainer`/`muddler`/`mixing-glass` + the branches'
   `striking`/`anvil`/`whetstone`/`mending`/`pot`) +
-  `ToolCapabilities.isCapability`. There is **no workbench concept** —
+  `ToolCapabilities.isCapability`/`definitionOf`/`validateEntry` and the
+  **capability table** (each kind's conferred verb family + placement —
+  see § The offer) with the `CapabilitySpec` parameterized-entry shape
+  (`rate`/`control`/`placement`, `RATE_MIN`/`RATE_MAX`). There is **no
+  workbench concept** —
   "workbench" is just the word for capabilities too heavy to carry: the
   pot and whetstone are portable capital, the anvil (60 kg — a fixture
   by encumbrance, not by flag) and forge are not, so camp-stew is
@@ -302,32 +306,49 @@ inherited `prices`/`priceFor` (Law 1: worth on the offer — the same
 
 A menu affords **commerce only** — the base's `commandContributions` is
 `menu`/`order`, any venue, and the venue subclasses
-(`domain/lounge/Menu`, `SmithyMenu`, `KitchenMenu`) are now empty
+(`domain/lounge/Menu`, `SmithyMenu`, `KitchenMenu`) are empty
 template-path anchors (seed `class:` refs + bar parity untouched). The
-*working* verbs are **instrument-conferred** — the tool that does the
-work carries its verb family, so the surface follows capital, not
-venue flags (the menu is for ordering, not making; camp cooking works
-because reachable heat + a pot IS a kitchen):
+*working* verbs are **instrument-conferred through the capability
+table** (`lib/craft/ToolCapability.ts`): each kind's definition names
+the verb family it confers and its placement, and `ToolMixin` derives
+its per-instance contributions from the table over the instance's
+authored `capabilities` (the `InstanceContributor` seam — see
+[command-routing.md](./command-routing.md)). The surface follows
+capital, not venue flags (the menu is for ordering, not making; camp
+cooking works because reachable heat + a pot IS a kitchen), and **a
+tool variant is pure seed data** — the sewing machine is
+`class: /lib/craft/ToolItem` + one spec entry, no code:
 
-- **`CocktailShaker`** (shaker / mixing glass) —
-  `pour`/`stir`/`strain`/`garnish` + the atomic `serve`/`mix`.
-- **`CookPot`** — `pour`/`stir`/`heat`/`plate` + the earned `cook`.
-- **`lib/craft/Anvil`** — `hammer`/`quench` + the earned `forge` +
-  `repair`/`salvage`.
-- **`lib/craft/SewingKit`** (the `mending` capability) —
-  `repair`/`salvage` for soft goods.
-- **`lib/craft/Whetstone`** — `sharpen` (carried-only — personal
-  capital).
-- **`FurnaceMixin`** — `heat` (with `ignite`/`douse`/`pump`): the fire
-  is the heat instrument.
-- **`make`** — innate on `Avatar` (`self` bucket): knowledge-driven,
-  no instrument.
+| kind | confers | placement |
+|---|---|---|
+| `shaker` / `mixing-glass` | pour, stir, strain, garnish, serve, mix | reachable |
+| `pot` | pour, stir, heat, plate, cook | reachable |
+| `anvil` | hammer, quench, forge, repair, salvage | reachable |
+| `mending` | repair, salvage | reachable |
+| `whetstone` | sharpen | **carried** (personal capital) |
+| `striking` / `strainer` / `muddler` | — (recipe-side kinds) | — |
 
-The end state is a **capability-keyed affordance table** (capability →
-verb family read from instance data, so `capabilities: [pot]` in a seed
-confers the family with zero code) — that needs the affordance walk to
-consult instances, its own follow-up build; per-class statics are the
-interim.
+Placement is a kind default with a **per-entry override** (a 40 kg
+grinding wheel authors `placement: reachable` on its `whetstone`
+entry). `FurnaceMixin` still statically confers `heat` (with
+`ignite`/`douse`/`pump`) — an appliance mixin, not a `Tooled` host —
+and `make` is innate on `Avatar` (knowledge-driven, no instrument).
+Capability entries are **parameterized**:
+`{ kind, rate?, control?, placement? }` (a bare string = the defaulted
+spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
+that divides the engaged duration of the steps the kind confers (the
+**conferring kind paces the step**: the anvil paces `hammer`/`quench`,
+the `mending` instrument the now-engaged `repair`; the `striking`
+hammer is a requirement, never a pacer), and `control` is a Grade band
+embedded in the capital that **floors** the outcome grade of work done
+with the instrument (craft, mint, repair — floor only; the ceiling
+stays the skill seam's). `analyze` reads a control-bearing tool's
+band. Class-carried behavior is orthogonal: `CookPot`/`CocktailShaker`
+keep their classes for the build-vessel buffer, `Whetstone` for its
+Audible rasp — none carry affordance statics. Affordance surfaces
+refresh on the next containment delta (the documented
+`InstanceContributor` limitation — a `setCapabilities` edit or a
+break/repair doesn't re-push mid-placement).
 
 `MenuController`/`OrderController` import the lib base, so `order` is
 venue-generic: a smithy with a menu and an on-shift maker just works.
@@ -608,7 +629,13 @@ defect rate; every Transcript row from this build already counts when
 it lands); **assembly** recipes; the **tailoring branch** (the jerkin
 recipe + `mending` are its attach points; waits on a fiber source);
 recipe-spread vectors beyond watching (taught curricula, discovery,
-tradeable recipe-items); workshop lockers; batching
+tradeable recipe-items); runtime affordance recompute on
+`setCapabilities`/break-repair (surfaces refresh on the next
+containment delta — the documented `InstanceContributor` limitation);
+powered tool variants / the electric machine's supply gate (the
+forge's `requiresHeatK` shape is the socket — the electricity consumer
+build); per-capability wear differentiation + machine-vs-hand
+advancement-evidence asymmetry; workshop lockers; batching
 (`forge nails --count 5`); DIY stock-pricing; skill-scaled salvage
 yield; working-surface maintenance beyond edges (seasoning/tuning —
 `KeenMixin` is deliberately edge-only); environmental decay (rust/rot
