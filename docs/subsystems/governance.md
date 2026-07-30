@@ -127,15 +127,21 @@ absence of a row = the founder default holds the seat.**
 
 `OfficeRegistry` (`/obj/OfficeRegistry`, `Idea` + `PostRegistrationMixin`,
 manifest-warmed) holds the durable state, mirroring `AccessRegistry` minus
-all seeding. The gated `OfficeApi` (`api/office.ts`) facade is the
-non-HMR surface; it forwards to the hot-reloadable `OfficeLogic` singleton
-(`/obj/api/office`), which owns registry resolution + the playerId
-short-circuit + the fail-closed policy. The Registry's methods carry
-`@CallSecurity` admitting the logic singleton
-(`FromTemplate('/obj/api/office')`) and the Api module (the narrow-entry
-pattern — one state home, one calling surface, one structurally-enforced
-path). (The Jul-2026 sweep briefly collapsed this tier and it was
-reverted — the Api↔Logic split is the hot-reload boundary.)
+all seeding. The caller surface is **the office face of `CompactApi`**
+(`api/compact.ts` — the single meta-institution facade; the standalone
+`OfficeApi`/`OfficeLogic` pair was folded into it in the civics build,
+with office-flavored method names: `holdsOffice` / `officesOf` /
+`isFounder` / `officeHolderOf` / `officeRoster` / `founderLabel` /
+`assignOffice` / `vacateOffice`). The facade forwards to the
+hot-reloadable `CompactLogic` singleton (`/obj/api/compact`), which owns
+registry resolution + the playerId short-circuit + the fail-closed
+policy. The Registry's methods carry `@CallSecurity` admitting the logic
+singleton (`FromTemplate('/obj/api/compact')`) and the Api module (the
+narrow-entry pattern — one state home, one calling surface, one
+structurally-enforced path). (The Jul-2026 sweep briefly collapsed the
+Api↔Logic tier and it was reverted — the split is the hot-reload
+boundary; the fold moved the office surface BETWEEN facades, it did not
+collapse the tier.)
 
 - **Public (ungated) reads** — `holderOf` / `holdsOffice` / `officesOf` /
   `isFounder` / `roster` / `founderLabel`. The roster (offices, branch,
@@ -186,7 +192,7 @@ hide the public roster from non-authors):
   *above* the office system is the power to constitute the government
   itself — to seat and unseat officeholders — which at founding is the
   founder's pool-of-one authority (Art. XI). That, and only that, is what
-  this validator guards; its `preload` reads `OfficeApi.isFounder(
+  this validator guards; its `preload` reads `CompactApi.isFounder(
   context.commandGiver)`, the actor derived from execution context (the
   `gated-api-actor-from-context` rule).
 
@@ -207,7 +213,7 @@ wrong axis: minting money is a monetary-authority act, not a
 code-authoring one; `CentralBank.ts` / [banking.md](./banking.md) noted
 its governance was left unbuilt). It is now re-gated to **holding the
 `central-bank-governor` office** via the `requiresGovernor` validator
-(`OfficeApi.holdsOffice(giver, 'central-bank-governor')`). The Governor —
+(`CompactApi.holdsOffice(giver, 'central-bank-governor')`). The Governor —
 the founder by default, or a handed-off holder — controls the mint; a
 wizard who is not the Governor can no longer mint. This is the office
 substrate's first real consumer, the proof it works. Only `reserve`

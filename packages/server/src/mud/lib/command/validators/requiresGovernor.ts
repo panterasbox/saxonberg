@@ -10,16 +10,16 @@
  * no stricter than before; once the seat is handed off, the holder — not
  * an arbitrary wizard — controls the mint, which is the correct axis.
  *
- * The async preload returns `OfficeApi.holdsOffice(giver,
+ * The async preload returns `CompactApi.holdsOffice(giver,
  * 'central-bank-governor')`; the dispatcher threads it back to the sync
  * body via `allowed`. `context.commandGiver` is framework-stamped (the
- * `gated-api-actor-from-context` rule). Imports `OfficeApi` from
- * `api/office.ts` — no cycle (validator → OfficeApi →
+ * `gated-api-actor-from-context` rule). Imports `CompactApi` from
+ * `api/compact.ts` — no cycle (validator → CompactApi →
  * registry; banking is untouched).
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { OfficeApi } from '../../../api/office';
+import { CompactApi } from '../../../api/compact';
 
 const GOVERNOR_OFFICE = 'central-bank-governor';
 
@@ -37,7 +37,7 @@ const body: CommandValidator<boolean> = (context, allowed) => {
 };
 const preload: NonNullable<CommandValidator<boolean>['preload']> =
   (context) =>
-  OfficeApi.holdsOffice(context.commandGiver, GOVERNOR_OFFICE);
+  CompactApi.holdsOffice(context.commandGiver, GOVERNOR_OFFICE);
 const validator: CommandValidator<boolean> = Object.assign(body, {
   preload,
 });

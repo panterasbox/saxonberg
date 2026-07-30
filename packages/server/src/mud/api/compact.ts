@@ -5,7 +5,10 @@
  * membership, franchise, and their kin as they build — instead of
  * minting per-feature Apis.
  *
- * First residents: the **committee** reads. A committee is *the group
+ * Two faces today: the **office face** (the Compact's seats — absorbed
+ * from the retired `OfficeApi`; durable state on `/obj/OfficeRegistry`,
+ * the founder default, the narrow-entry assign/vacate) and the
+ * **committee** reads. A committee is *the group
  * holding parcel title over a subdivision* — a relationship derived on
  * read from `ParcelApi.ownerOf`, never a stored kind: all committees
  * are groups structurally, not all groups are committees, and a
@@ -23,11 +26,20 @@
 
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { GroupRef } from "../lib/social/GroupProvider";
+import type {
+  OfficeHolderResult,
+  OfficeRosterRow,
+  OfficeAssignResult,
+} from "../lib/governance/Office";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
+import { CallSecurity } from "../lib/security/decorators";
+import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { CompactLogic } from "../obj/api/CompactLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
+
+export type { OfficeHolderResult, OfficeRosterRow, OfficeAssignResult };
 
 /** A committee resolved from title: the administering group. */
 export interface CommitteeView {
@@ -62,6 +74,109 @@ function logic(): CompactLogic {
 }
 
 export class CompactApi {
+  // ───────────────── the office face (the Compact's seats) ─────────────────
+  // Absorbed from the retired OfficeApi: the government-office substrate's
+  // caller surface. Public reads are ungated (governance is transparent by
+  // constitutional design, Art. VII); the two mutations keep their
+  // narrow-entry OfficeController gate. Subject-taking predicates accept
+  // `Stuff | null` and fail closed; the appointer is never a parameter
+  // (the `requiresFoundingAuthority` validator derives it from context).
+
+  /**
+   * Who holds an office — the explicit handed-off holder if one is
+   * stored, else the founder (presented by handle even while offline).
+   * Public read.
+   */
+  public static async officeHolderOf(
+    officeKey: string
+  ): Promise<OfficeHolderResult> {
+    return logic().officeHolderOf(officeKey);
+  }
+
+  /**
+   * Does `subject` (an Avatar) hold `officeKey`? Explicit-holder match,
+   * OR (no explicit holder AND the subject is the founder). Public
+   * read; non-Avatar / null subjects fail closed.
+   */
+  public static async holdsOffice(
+    subject: Stuff | null,
+    officeKey: string
+  ): Promise<boolean> {
+    return logic().holdsOffice(subject, officeKey);
+  }
+
+  /**
+   * Every office `subject` holds — the founder's full set when no
+   * handoffs exist, a single seat for a handed-off holder, none for
+   * anyone else. Public read.
+   */
+  public static async officesOf(subject: Stuff | null): Promise<string[]> {
+    return logic().officesOf(subject);
+  }
+
+  /**
+   * Is `subject` the founder? Resolves the Avatar → its `User` → the
+   * configured `FOUNDER_GOOGLE_EMAIL`/`FOUNDER_TWITCH_HANDLE`
+   * credential. False until the founder has logged in. Public read.
+   */
+  public static async isFounder(subject: Stuff | null): Promise<boolean> {
+    return logic().isFounder(subject);
+  }
+
+  /**
+   * The public transparency roster — every office with its branch,
+   * origin, and current holder (explicit playerId or the founder
+   * default). Publicly readable (Art. VII).
+   */
+  public static async officeRoster(): Promise<OfficeRosterRow[]> {
+    return logic().officeRoster();
+  }
+
+  /** The configured founder display handle (offline presentation). */
+  public static founderLabel(): string {
+    return logic().founderLabel();
+  }
+
+  /**
+   * Narrow-entry mutation: set the explicit holder of an office
+   * (replacing any prior — auditable). Gated to the `OfficeController`
+   * (the `office assign` verb) via the string-keyed `FromModule` policy;
+   * the *authority* is the `requiresFoundingAuthority` subcommand
+   * validator's job. Structurally the single entry to the handoff write.
+   */
+  @CallSecurity(
+    SecurityPolicies.FromModule("/obj/command/governance/OfficeController")
+  )
+  public static async assignOffice(
+    playerId: string,
+    officeKey: string
+  ): Promise<OfficeAssignResult> {
+    return logic().assignOffice(playerId, officeKey);
+  }
+
+  /**
+   * Narrow-entry mutation: clear an office's explicit holder (the seat
+   * reverts to the founder default). Office-only — a singular seat has
+   * no empty state. Same `OfficeController` gate as `assignOffice`.
+   */
+  @CallSecurity(
+    SecurityPolicies.FromModule("/obj/command/governance/OfficeController")
+  )
+  public static async vacateOffice(officeKey: string): Promise<boolean> {
+    return logic().vacateOffice(officeKey);
+  }
+
+  /**
+   * HMR seam: drop the cached OfficeRegistry pointer so the next call
+   * re-resolves. Registry state itself is unaffected.
+   * @internal
+   */
+  public static _resetOfficeRegistryRefForReload(): void {
+    logic()._resetOfficeRegistryRefForReload();
+  }
+
+  // ─────────────────────── the committee reads ───────────────────────
+
   /**
    * The committee over `path` — the group holding title (the state
    * default `core` included), or `null` for a player-held subdivision.

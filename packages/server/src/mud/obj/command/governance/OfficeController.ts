@@ -25,7 +25,7 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { OfficeApi } from '../../../api/office';
+import { CompactApi } from '../../../api/compact';
 import { PlayerApi } from '../../../api/player';
 import { Office } from '../../../lib/governance/Office';
 
@@ -91,7 +91,7 @@ export default class OfficeController extends CommandController<OfficeModel> {
       );
     }
 
-    const result = await OfficeApi.assign(playerId, office.getKey());
+    const result = await CompactApi.assignOffice(playerId, office.getKey());
     if (!result.ok) {
       return this.fail(
         context,
@@ -130,7 +130,7 @@ export default class OfficeController extends CommandController<OfficeModel> {
         'unknown-office',
       );
     }
-    const changed = await OfficeApi.vacate(office.getKey());
+    const changed = await CompactApi.vacateOffice(office.getKey());
     if (!changed) {
       return this.fail(
         context,
@@ -145,7 +145,7 @@ export default class OfficeController extends CommandController<OfficeModel> {
   }
 
   private async executeList(context: CommandContext): Promise<void> {
-    const roster = await OfficeApi.roster();
+    const roster = await CompactApi.officeRoster();
     const lines = ['Government offices:'];
     for (const row of roster) {
       const holder = row.isFounderDefault

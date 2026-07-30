@@ -1,14 +1,14 @@
 /**
  * OfficeRegistry — singleton Idea holding the office-substrate state and
  * behavior. Lives at `/obj/OfficeRegistry`, sibling to `AccessRegistry`
- * and the other singleton registries under `obj/`. The thin `OfficeApi`
- * facade at `api/office.ts` (and its logic singleton at `/obj/api/office`)
+ * and the other singleton registries under `obj/`. The office face of `CompactApi`
+ * (`api/compact.ts`, its logic singleton at `/obj/api/compact`)
  * are the only legitimate callers — every public method carries
  * `@CallSecurity(OfficeApiCallers)` so the security gate denies any other
  * module's call. External code that grabs the Registry via
  * `StuffApi.findByTemplatePath` gets a reference but `SecurityError` on
  * any method call. The narrow-entry pattern: one state home (this Stuff),
- * one calling surface (`OfficeApi`), one structurally-enforced path.
+ * one calling surface (`CompactApi`'s office face), one structurally-enforced path.
  *
  * Modeled on `AccessRegistry`, minus all seeding:
  *
@@ -54,13 +54,13 @@ import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const OfficeRegistryBase = PostRegistrationMixin(Idea);
 
-// OfficeApi's logic lives in the /obj/api/office logic singleton (the
-// Api face is a thin forwarding shell). Admit both the face module and
-// the logic singleton's template path so the Registry's methods stay
-// callable only through the office subsystem.
+// The office face lives on CompactApi (the single meta-institution
+// facade), its logic in the /obj/api/compact singleton. Admit both the
+// face module and the logic singleton's template path so the Registry's
+// methods stay callable only through the Compact's office surface.
 const OfficeApiCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/office#OfficeApi'),
-  SecurityPolicies.FromTemplate('/obj/api/office'),
+  SecurityPolicies.FromModule('/api/compact#CompactApi'),
+  SecurityPolicies.FromTemplate('/obj/api/compact'),
 );
 
 export default class OfficeRegistry extends OfficeRegistryBase {
@@ -239,7 +239,7 @@ export default class OfficeRegistry extends OfficeRegistryBase {
 
   // ── Private helpers (ungated — internal callers route here, never the
   // gated public methods, since an intra-singleton self-call resolves the
-  // caller to this Registry, which is outside the OfficeApi allowlist) ──
+  // caller to this Registry, which is outside the office-face allowlist) ──
 
   private resolveFounderLabel(): string {
     return this.founderDisplay ?? '(founder unset)';

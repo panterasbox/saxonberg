@@ -1,7 +1,7 @@
 /**
  * OfficeController — the `office` verb wiring, driven as the dispatcher
  * would: a real controller Stuff whose `execute` calls the gated
- * `OfficeApi.assign`/`vacate` (the caller frame is the controller, so the
+ * `CompactApi.assign`/`vacate` (the caller frame is the controller, so the
  * narrow-entry `FromModule(OfficeController)` gate passes), over a real
  * `OfficeRegistry` + in-memory store. Proves the MVC mapping (target →
  * playerId, office key resolution) and the assign/replace/vacate
@@ -17,7 +17,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeController from '../OfficeController';
 import OfficeRegistry from '../../../OfficeRegistry';
 import Avatar from '../../../Avatar';
-import { OfficeApi } from '../../../../api/office';
+import { CompactApi } from '../../../../api/compact';
 import { StuffApi } from '../../../../api/stuff';
 import {
   CommandApi,
@@ -177,7 +177,7 @@ describe('OfficeController', () => {
       () => undefined,
       async () => undefined,
     );
-    OfficeApi._resetRegistryRefForReload();
+    CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
     seedFounder();
     const reg = makeStuffAtPath(
@@ -191,7 +191,7 @@ describe('OfficeController', () => {
     if (prevTwitch === undefined) delete process.env[TWITCH_ENV];
     else process.env[TWITCH_ENV] = prevTwitch;
     vi.restoreAllMocks();
-    OfficeApi._resetRegistryRefForReload();
+    CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
   });
 
@@ -214,7 +214,7 @@ describe('OfficeController', () => {
       ctx,
     );
 
-    const held = await OfficeApi.holderOf('prime-minister');
+    const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('explicit');
     if (held.kind === 'explicit') expect(held.holderPlayerId).toBe('alice');
     expect(ctx.getNotes()).not.toContainEqual(
@@ -246,10 +246,10 @@ describe('OfficeController', () => {
       makeContext(giver),
     );
 
-    const held = await OfficeApi.holderOf('prime-minister');
+    const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('explicit');
     if (held.kind === 'explicit') expect(held.holderPlayerId).toBe('bob');
-    expect(await OfficeApi.holdsOffice(alice, 'prime-minister')).toBe(false);
+    expect(await CompactApi.holdsOffice(alice, 'prime-minister')).toBe(false);
   });
 
   it('vacate reverts the seat to the founder default', async () => {
@@ -272,7 +272,7 @@ describe('OfficeController', () => {
       ctx,
     );
 
-    const held = await OfficeApi.holderOf('prime-minister');
+    const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('founder');
     expect(ctx.getNotes()).not.toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected' }),

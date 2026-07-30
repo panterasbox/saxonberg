@@ -5,12 +5,19 @@ import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import { StuffApi } from "../../api/stuff";
 import { ParcelApi } from "../../api/parcel";
 import { GroupApi } from "../../api/group";
 import { ChatApi } from "../../api/chat";
-import { OfficeApi } from "../../api/office";
 import { PlayerApi } from "../../api/player";
 import { ExecutionContextApi } from "../../api/execution-context";
+import { TemplatePaths } from "../../lib/paths";
+import type {
+  OfficeHolderResult,
+  OfficeRosterRow,
+  OfficeAssignResult,
+} from "../../lib/governance/Office";
+import type OfficeRegistry from "../OfficeRegistry";
 import type {
   CommitteeView,
   CommitteeChannelView,
@@ -19,6 +26,49 @@ import type {
 const CompactApiCallers = SecurityPolicies.FromModule(
   "/api/compact#CompactApi"
 );
+
+// ───────────────────────── the office half ─────────────────────────
+// (merged from the retired OfficeLogic — the Compact's seats)
+
+const OFFICE_REGISTRY_PATH = TemplatePaths.officeRegistry;
+
+/**
+ * Avatar-shaped sniff: only Avatar instances carry a non-empty
+ * playerId. NPCs and props fail closed without touching the Registry.
+ */
+function playerIdOfQuick(subject: Stuff): string | null {
+  const id = subject.getPlayerId();
+  return id && id.length > 0 ? id : null;
+}
+
+/**
+ * Resolve the OfficeRegistry without forcing a clone. In production it
+ * is cloned by `AppBootstrap`; in test harnesses without a live
+ * Registry the office predicates fail **closed** (a missing Registry
+ * means "we cannot prove this player holds office / is the founder" —
+ * failing open would silently grant office authority).
+ */
+let officeRegistryRef: OfficeRegistry | null = null;
+function lookupOfficeRegistry(): OfficeRegistry | null {
+  if (officeRegistryRef) return officeRegistryRef;
+  const reg = StuffApi.findByTemplatePath<OfficeRegistry>(
+    OFFICE_REGISTRY_PATH
+  );
+  if (reg) officeRegistryRef = reg;
+  return reg ?? null;
+}
+
+/** The founder predicate, shared by the office face + the committee backstop. */
+async function isFounderImpl(subject: Stuff | null): Promise<boolean> {
+  if (subject === null) return false;
+  const reg = lookupOfficeRegistry();
+  if (!reg) return false;
+  const playerId = playerIdOfQuick(subject);
+  if (playerId === null) return false;
+  return reg.isFounder(playerId);
+}
+
+// ──────────────────────── the committee half ───────────────────────
 
 /**
  * The committee over `path`, derived from parcel title: the group
@@ -48,10 +98,14 @@ function channelNameFor(committee: CommitteeView): string {
 /**
  * CompactLogic — the hot-reloadable logic singleton behind
  * {@link CompactApi}: the Compact's (the meta institution's) single
- * facade. First residents: the committee reads — pure derive-on-read
- * over parcel title + grouping + chat; it owns no storage. Internal
- * sub-logic lives in module-private free functions; each public method
- * carries the `FromModule` gate.
+ * facade. Two halves: the **office face** (merged from the retired
+ * `OfficeLogic` — durable state stays on `/obj/OfficeRegistry`, whose
+ * methods admit this singleton; the no-registry path fails CLOSED,
+ * because failing open would silently grant office authority) and the
+ * **committee reads** — pure derive-on-read over parcel title +
+ * grouping + chat. It owns no storage of its own. Internal sub-logic
+ * lives in module-private free functions; each public method carries
+ * the `FromModule` gate.
  *
  * @internal
  */
@@ -73,7 +127,7 @@ export class CompactLogic extends ApiLogic {
     if (!committee) return false;
     // The Art. XI pool-of-one backstop, mirroring the office founder
     // default: at founding every committee's work is the founder's.
-    if (await OfficeApi.isFounder(player)) return true;
+    if (await isFounderImpl(player)) return true;
     if (!PlayerApi.isAvatarStuff(player)) return false;
     const playerId = player.getPlayerId();
     if (!playerId) return false;
@@ -98,6 +152,88 @@ export class CompactLogic extends ApiLogic {
     const name = channelNameFor(committee);
     const channel = await ChatApi.resolveByName(name);
     return channel ? { name } : null;
+  }
+
+  // ─────────────────────── the office face ───────────────────────
+
+  /** See {@link CompactApi.officeHolderOf}. */
+  @CallSecurity(CompactApiCallers)
+  public async officeHolderOf(officeKey: string): Promise<OfficeHolderResult> {
+    const reg = lookupOfficeRegistry();
+    if (!reg) return { kind: "unknown", officeKey };
+    return reg.holderOf(officeKey);
+  }
+
+  /** See {@link CompactApi.holdsOffice}. */
+  @CallSecurity(CompactApiCallers)
+  public async holdsOffice(
+    subject: Stuff | null,
+    officeKey: string
+  ): Promise<boolean> {
+    if (subject === null) return false;
+    const reg = lookupOfficeRegistry();
+    if (!reg) return false;
+    const playerId = playerIdOfQuick(subject);
+    if (playerId === null) return false;
+    return reg.holdsOffice(playerId, officeKey);
+  }
+
+  /** See {@link CompactApi.officesOf}. */
+  @CallSecurity(CompactApiCallers)
+  public async officesOf(subject: Stuff | null): Promise<string[]> {
+    if (subject === null) return [];
+    const reg = lookupOfficeRegistry();
+    if (!reg) return [];
+    const playerId = playerIdOfQuick(subject);
+    if (playerId === null) return [];
+    return reg.officesOf(playerId);
+  }
+
+  /** See {@link CompactApi.isFounder}. */
+  @CallSecurity(CompactApiCallers)
+  public async isFounder(subject: Stuff | null): Promise<boolean> {
+    return isFounderImpl(subject);
+  }
+
+  /** See {@link CompactApi.officeRoster}. */
+  @CallSecurity(CompactApiCallers)
+  public async officeRoster(): Promise<OfficeRosterRow[]> {
+    const reg = lookupOfficeRegistry();
+    if (!reg) return [];
+    return reg.roster();
+  }
+
+  /** See {@link CompactApi.founderLabel}. */
+  @CallSecurity(CompactApiCallers)
+  public founderLabel(): string {
+    const reg = lookupOfficeRegistry();
+    if (!reg) return "(founder unset)";
+    return reg.founderLabel();
+  }
+
+  /** See {@link CompactApi.assignOffice}. */
+  @CallSecurity(CompactApiCallers)
+  public async assignOffice(
+    playerId: string,
+    officeKey: string
+  ): Promise<OfficeAssignResult> {
+    const reg = lookupOfficeRegistry();
+    if (!reg) return { changed: false, priorHolderId: null, ok: false };
+    return reg.assign(playerId, officeKey);
+  }
+
+  /** See {@link CompactApi.vacateOffice}. */
+  @CallSecurity(CompactApiCallers)
+  public async vacateOffice(officeKey: string): Promise<boolean> {
+    const reg = lookupOfficeRegistry();
+    if (!reg) return false;
+    return reg.vacate(officeKey);
+  }
+
+  /** See {@link CompactApi._resetOfficeRegistryRefForReload}. */
+  @CallSecurity(CompactApiCallers)
+  public _resetOfficeRegistryRefForReload(): void {
+    officeRegistryRef = null;
   }
 
   /** See {@link CompactApi.ensureCommitteeChannel}. */

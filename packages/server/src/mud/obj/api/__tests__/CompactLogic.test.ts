@@ -11,8 +11,9 @@ import { CompactApi } from "../../../api/compact";
 import { ParcelApi } from "../../../api/parcel";
 import { GroupApi } from "../../../api/group";
 import { ChatApi } from "../../../api/chat";
-import { OfficeApi } from "../../../api/office";
 import { ExecutionContextApi } from "../../../api/execution-context";
+import { TemplatePaths } from "../../../lib/paths";
+import { Idea } from "../../../lib/stuff/Idea";
 import Avatar from "../../Avatar";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
@@ -57,13 +58,25 @@ function stubTitle(): void {
       } as unknown as Awaited<ReturnType<typeof ParcelApi.coveringParcelOf>>;
     }
   );
-  vi.spyOn(OfficeApi, "isFounder").mockResolvedValue(false);
+}
+
+/**
+ * A duck-typed OfficeRegistry whose `isFounder` always answers true —
+ * installed at the registry template path for the founder-backstop test.
+ * (With NO registry installed, the founder predicate fails closed — the
+ * default the other tests rely on.)
+ */
+class FakeFounderRegistry extends Idea {
+  public async isFounder(_playerId: string): Promise<boolean> {
+    return true;
+  }
 }
 
 describe("CompactApi — the committee reads", () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
+    CompactApi._resetOfficeRegistryRefForReload();
     stubTitle();
   });
 
@@ -116,11 +129,16 @@ describe("CompactApi — the committee reads", () => {
 
   it("isCommitteeMember: the founder backstop (Art. XI pool-of-one)", async () => {
     vi.spyOn(GroupApi, "isMember").mockResolvedValue(false);
-    (OfficeApi.isFounder as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+    makeStuffAtPath(
+      () => new FakeFounderRegistry(),
+      TemplatePaths.officeRegistry
+    );
+    CompactApi._resetOfficeRegistryRefForReload();
     const founder = makeAvatar("founder");
     await expect(
       CompactApi.isCommitteeMember(founder, "/domain/terminus/registry")
     ).resolves.toBe(true);
+    CompactApi._resetOfficeRegistryRefForReload();
   });
 
   it("committeeChannelOf resolves an existing channel by well-known name", async () => {
