@@ -27,18 +27,13 @@ interface CommitteeModel extends CommandModel {
 
 export default class CommitteeController extends CommandController<CommitteeModel> {
   async execute(model: CommitteeModel, context: CommandContext): Promise<void> {
-    const sub = model.subcommand ?? 'show';
-    switch (sub) {
+    // Undeclared subcommands are rejected by the dispatcher before the
+    // controller is cloned — only declared branches here.
+    switch (model.subcommand ?? 'show') {
       case 'show':
         return this.executeShow(model, context);
       case 'channel':
-        return this.executeChannel(context);
-      default:
-        return this.fail(
-          context,
-          `Unknown committee subcommand: ${sub}`,
-          'unknown-subcommand',
-        );
+        return this.executeChannel(model, context);
     }
   }
 
@@ -92,8 +87,11 @@ export default class CommitteeController extends CommandController<CommitteeMode
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
   }
 
-  private async executeChannel(context: CommandContext): Promise<void> {
-    const path = this.queryPath({} as CommitteeModel, context);
+  private async executeChannel(
+    model: CommitteeModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const path = this.queryPath(model, context);
     const channel = await CompactApi.ensureCommitteeChannel(path);
     if (!channel) {
       return this.fail(

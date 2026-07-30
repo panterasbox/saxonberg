@@ -278,7 +278,7 @@ global mint). Default-safe: an ungoverned server holds the band on `τ` alone.
 
 The institutional skeleton, locked ahead of content so offices, NPCs,
 and venues can fill in later. Substrate: the civics build
-(`docs/requirements/civics-requirements.md`) — each tier below is a
+([civics.md](../subsystems/civics.md)) — each tier below is a
 `Government` instance on the jurisdiction chain. **Governing
 principle: a functional city beats adherence to legacy narrative** —
 the corpo-carved-patchwork lore stays as flavor and informal politics,

@@ -27,25 +27,18 @@ import {
 } from '../../../api/government';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Container } from '../../../lib/spatial/Container';
 
 const TOPIC = 'system.civics';
 
 export default class GovernmentController extends CommandController<CommandModel> {
   async execute(model: CommandModel, context: CommandContext): Promise<void> {
-    const sub = model.subcommand ?? 'list';
-    switch (sub) {
+    // Undeclared subcommands are rejected by the dispatcher before the
+    // controller is cloned — only declared branches here.
+    switch (model.subcommand ?? 'list') {
       case 'list':
         return this.executeList(context);
       case 'residency':
         return this.executeResidency(context);
-      default:
-        return this.fail(
-          context,
-          `Unknown government subcommand: ${sub}`,
-          'unknown-subcommand',
-        );
     }
   }
 
@@ -54,7 +47,7 @@ export default class GovernmentController extends CommandController<CommandModel
     // The resolve walk wants a containment scope; a giver is always one,
     // but the narrowing keeps the type honest.
     const chain = MixinApi.isContainer(giver)
-      ? await GovernmentApi.subjectTo(giver as Stuff & Container)
+      ? await GovernmentApi.subjectTo(giver)
       : [];
     if (chain.length === 0) {
       this.send(

@@ -248,8 +248,7 @@ export class CompactLogic extends ApiLogic {
     if (existing) return { name };
     // The mint is an act, so its actor derives from execution context —
     // never a parameter. No acting command → no mint (reads stay pure).
-    const giver = ExecutionContextApi.getCurrentCommandContext()
-      ?.commandGiver as Stuff | undefined;
+    const giver = ExecutionContextApi.getCurrentCommandContext()?.commandGiver;
     if (!giver) return null;
     await ChatApi.createBoundChannel(giver, name, committee.groupRef);
     return { name };

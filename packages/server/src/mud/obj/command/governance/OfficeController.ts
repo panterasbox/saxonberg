@@ -40,20 +40,15 @@ interface OfficeModel extends CommandModel {
 
 export default class OfficeController extends CommandController<OfficeModel> {
   async execute(model: OfficeModel, context: CommandContext): Promise<void> {
-    const sub = model.subcommand ?? 'list';
-    switch (sub) {
+    // Undeclared subcommands are rejected by the dispatcher before the
+    // controller is cloned — only declared branches here.
+    switch (model.subcommand ?? 'list') {
       case 'assign':
         return this.executeAssign(model, context);
       case 'vacate':
         return this.executeVacate(model, context);
       case 'list':
         return this.executeList(context);
-      default:
-        return this.fail(
-          context,
-          `Unknown office subcommand: ${sub}`,
-          'unknown-subcommand',
-        );
     }
   }
 

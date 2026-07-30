@@ -8,8 +8,10 @@ coverage walk; **residency derives from a character's domicile**;
 **seats are employment positions**. Seeded by the diegetic-government
 design capture ([docs/staging/diegetic-government.md](../staging/diegetic-government.md)
 — the two-layer premise, the six enforcement powers, the jargon
-standard) and the civics requirements; the Terminus government stack is
-locked in [terminus-city.md §8](../staging/terminus-city.md).
+standard); the Terminus government stack is
+locked in [terminus-city.md §8](../staging/terminus-city.md). (The
+build's requirements + plan were retired at the pre-merge sweep, per
+the workflow.)
 
 **The premise (doctrine, not deferral):** the Compact — the real
 meta-institution — governs the platform and is singular; diegetic
