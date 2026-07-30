@@ -1,5 +1,5 @@
 # White rum — a spirit input. Category tag `rum`.
-class: /lib/material/Material
+class: /lib/material/ConsumableMaterial
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: white rum

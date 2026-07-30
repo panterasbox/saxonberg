@@ -50,6 +50,9 @@ export interface BuildContribution {
    * by-tag rule `craftImpl`'s gather matching uses), since a discrete
    * ingredient can't know which of its tags a recipe will ask for. */
   tags?: string[];
+  /** The source Material's template path — feeds the terminal mint's
+   * derived blend payload (macros in = macros out). */
+  materialPath?: string;
 }
 
 /** Public method surface contributed by {@link ManualBuildMixin}. */

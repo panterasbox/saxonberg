@@ -154,6 +154,33 @@ Phase-of-matter (`solid/liquid/gas`) is not a capability mixin —
 it's state, not identity. Iron is solid at room temp, liquid at
 1538 °C; the material's identity is invariant to state.
 
+### The fixed-vocabulary rule (and `ConsumableMaterial`)
+
+The material library is a **curated, closed vocabulary an author
+selects from** — never an open content catalog. The granularity test
+is *substrate-read properties*: two rows exist only when they differ
+in what the machinery reads (macros, density, hardness, spoilage) —
+eggs and steak are different kinds; ribeye and sirloin are one `meat`
+(that spread is `Grade` + prose on the instance). Growing the library
+is a **vocabulary decision, not a content decision**.
+
+**`ConsumableMaterial`** (`/lib/material/ConsumableMaterial`, the
+capability-subclass pattern with no extra fields — taxonomy) marks the
+ingestible half of the vocabulary: the curated food/drink *kinds*
+(meat, root-vegetable, trail-ration, gin…) whose worth is what a body
+does with them, as distinct from the structural matter the
+response/repair/salvage machinery organizes around.
+
+**Per-dish / per-drink substances are never material rows.** A mixture
+(a plated stew, a mixed cocktail) is a *derived blend*: its bulk slot
+points at ONE generic ConsumableMaterial (`food/cooked`,
+`cocktail/mixed` — physics + routing homes) and the blend's identity +
+macros ride the holder's per-instance **`BulkPayload`** (see
+[bulk.md](./bulk.md)), computed from the consumed inputs — macros in =
+macros out ([crafting.md](./crafting.md) § the mixture strategies).
+The early per-cocktail / per-dish rows (`cocktail/martini`,
+`food/hearty-stew`, …) were retired for exactly this drift.
+
 ### `TangibleMixin` and per-Detail materials
 
 `TangibleMixin` is composed onto every physical Stuff base —

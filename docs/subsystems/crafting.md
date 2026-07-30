@@ -161,6 +161,10 @@ a **`Document`** managed by a catalogue singleton — the
     `'bulk'`) — the branch discriminator the output/consume seams
     dispatch on.
   - `outputPortionL?` — the edible portion the dish is filled to.
+  - `outputAppearance?` — a **derived** blend's prose (per-dish content
+    belongs on the recipe, never on a Material row).
+  - `outputMaterial?` — now an OPTIONAL authored-substance **override**;
+    empty (the shipped roster) ⇒ the blend **derives** (below).
   - `difficulty?` / `discipline?` — the authored **ladder placement**
     the craft-resolve evidence records (see the knowledge ladder below);
     absent ⇒ no advancement row (every bar row).
@@ -235,16 +239,22 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
 8. **Clone output** — `StuffApi.clone(outputTemplate)` → decline
    `no-output`.
 9. **Apply output properties** — dispatched on `outputApplication`:
-   - `'bulk'` — `applyBulkOutput`: fill the output's bulk slot with
-     the authored `outputMaterial` at `Σ measureL` (the bar,
-     byte-identical).
+   - `'bulk'` / `'edible'` — fill the output's bulk slot at
+     `Σ measureL` / `outputPortionL`. The substance is **derived by
+     default**: the slot points at the ONE generic blend base
+     (`cocktail/mixed` / `food/cooked`) and a per-instance
+     **`BulkPayload`** carries the blend's identity (recipe
+     name/appearance/keywords) + macros **summed from the consumed
+     inputs** — macros in = macros out (a martini's 26 mg of alcohol
+     IS gin 19 + vermouth 7; a stew's carbs ARE its roots'). An
+     authored `outputMaterial` remains a supported override (fills
+     with that substance, no payload — asserts edibility for
+     `'edible'`). See [bulk.md](./bulk.md) § BulkPayload and the
+     fixed-vocabulary rule in [race.md](./race.md).
    - `'tangible'` — `applyTangibleOutput`: flow the **primary matched
      item input's Material** + the summed consumed mass onto the
      cloned Tangible (an iron ingot makes an iron knife —
      mass-conserving; the `ThermalLogic` casting-stamp surface).
-   - `'edible'` — `applyEdibleOutput`: fill the output's bulk slot
-     with the authored *food* `outputMaterial` at `outputPortionL`
-     (asserts edibility — an inedible edible recipe is a content bug).
 10. **Stamp** — assert `isCrafted(output)` (else throw — output
     template misauthored), `output.stamp({maker, grade, recipe,
     craftedAt})`.
@@ -359,9 +369,11 @@ distinct contribution, item slots' counts covered by the tag rule, **no
 leftovers** — a faithful build is exactly the recipe) and mints the
 graded, maker's-marked drink into the glass, **reusing the one quality
 model** (weakest-link `Grade`, the `applyBulkOutput` fill). An off-spec
-build still yields *a* drink — the generic mint — but matches no recipe
-(`recipeId === ''`), the discriminator the knowledge ladder rides. The
-maker is derived from `getActingAuthor`, never a parameter.
+build still yields *a* thing — the generic blend base named by its own
+row (`mixed drink` / `cooked fare`), its payload still honestly summed
+from what went in — but matches no recipe (`recipeId === ''`), the
+discriminator the knowledge ladder rides. The maker is derived from
+`getActingAuthor`, never a parameter.
 
 ### The by-hand paths, per branch (the uniform ladder shape)
 

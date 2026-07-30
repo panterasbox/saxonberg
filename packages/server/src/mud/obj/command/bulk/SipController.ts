@@ -53,6 +53,7 @@ export default class SipController extends CommandController<SipModel> {
     }
 
     const material = fromSlot.getMaterial();
+    const payload = fromSlot.getPayload();
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
       litres: SIP_LITRES,
@@ -68,9 +69,10 @@ export default class SipController extends CommandController<SipModel> {
       return;
     }
 
-    BulkableApi.ingest(giver, material, result.applied);
+    BulkableApi.ingest(giver, material, result.applied, payload);
 
-    const appearance = material?.getAppearance() || 'it';
+    const appearance =
+      payload?.appearance ?? (material?.getAppearance() || 'it');
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You take a sip of the ${appearance}.`)

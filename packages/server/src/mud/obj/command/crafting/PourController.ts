@@ -129,6 +129,7 @@ export default class PourController extends ManualBuildController<PourModel> {
           category,
           measureL: result.applied,
           gradeBand,
+          materialPath: material?.getTemplatePath() ?? undefined,
         });
         vessel.recordCommand(commandText);
         MessageApi.scene(giver)
@@ -175,6 +176,7 @@ export default class PourController extends ManualBuildController<PourModel> {
             ? ingredient.getQuantity()
             : 1,
           tags: [...material.getTags()],
+          materialPath: material.getTemplatePath() ?? undefined,
         });
         build.recordCommand(commandText);
         MessageApi.scene(giver)

@@ -295,10 +295,13 @@ function pushBulkMaterials(out: ScopeCandidate[], host: Stuff): void {
     if (slot.isEmpty()) continue;
     const material = slot.getMaterial();
     if (material === null) continue;
+    // A blend's per-instance payload names the held substance (`look
+    // stew` on the plated dish); an un-blended slot reads its Material.
+    const payload = slot.getPayload();
     out.push({
       stuff: host,
-      name: material.getName(),
-      keywords: material.getKeywords(),
+      name: payload?.name ?? material.getName(),
+      keywords: payload?.keywords ?? material.getKeywords(),
       via: { bulk: { affordance } },
     });
   }

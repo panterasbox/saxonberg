@@ -22,7 +22,10 @@ recipes:
         measureL: 0.01
     toolCapabilities: [mixing-glass]
     outputTemplate: /domain/lounge/cocktail-glass
-    outputMaterial: /lib/material/cocktail/martini
+    # Derived blend (no authored substance): identity + prose ride the
+    # recipe; toxins/macros sum from the drawn inputs (gin 19 + vermouth
+    # 7 = the martini's 26 mg — what the retired hand-authored row said).
+    outputAppearance: a crystal-clear martini, beaded with cold
 
   - recipeId: daiquiri
     name: Daiquiri
@@ -38,7 +41,7 @@ recipes:
         measureL: 0.02
     toolCapabilities: [shaker]
     outputTemplate: /domain/lounge/cocktail-glass
-    outputMaterial: /lib/material/cocktail/daiquiri
+    outputAppearance: a pale, frothy daiquiri
 
   # ── the smithing branch (crafting-branches build). Transform recipes
   # over discrete stock + heat: the input metal's Material flows onto the
@@ -147,7 +150,7 @@ recipes:
         count: 1
     toolCapabilities: []
     outputTemplate: /obj/items/plated-dish
-    outputMaterial: /lib/material/food/toasted-ration
+    outputAppearance: toasted biscuit and crisped sausage, still steaming
     outputApplication: edible
     outputPortionL: 0.3
     requiresHeatK: 450
@@ -165,7 +168,7 @@ recipes:
         count: 1
     toolCapabilities: [pot]
     outputTemplate: /obj/items/plated-dish
-    outputMaterial: /lib/material/food/root-mash
+    outputAppearance: a pale steaming mash
     outputApplication: edible
     outputPortionL: 0.35
     requiresHeatK: 373
@@ -188,7 +191,7 @@ recipes:
         count: 1
     toolCapabilities: [pot]
     outputTemplate: /obj/items/plated-dish
-    outputMaterial: /lib/material/food/hearty-stew
+    outputAppearance: a thick brown stew, roots and meat in a dark gravy
     outputApplication: edible
     outputPortionL: 0.4
     requiresHeatK: 373
@@ -206,7 +209,7 @@ recipes:
         count: 1
     toolCapabilities: [pot]
     outputTemplate: /obj/items/plated-dish
-    outputMaterial: /lib/material/food/fine-roast
+    outputAppearance: a burnished roast, crackling and rich
     outputApplication: edible
     outputPortionL: 0.4
     requiresHeatK: 500

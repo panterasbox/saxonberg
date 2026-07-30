@@ -36,6 +36,7 @@ interface RecipeSeedEntry {
   requiresHeatK?: number;
   outputApplication?: string;
   outputPortionL?: number;
+  outputAppearance?: string;
   difficulty?: string;
   discipline?: string;
 }
@@ -81,6 +82,7 @@ export class RecipeSeeder {
       r.requiresHeatK = entry.requiresHeatK ?? 0;
       r.outputApplication = entry.outputApplication ?? '';
       r.outputPortionL = entry.outputPortionL ?? 0;
+      r.outputAppearance = entry.outputAppearance ?? '';
       r.difficulty = entry.difficulty ?? '';
       r.discipline = entry.discipline ?? '';
       await r.save();
@@ -106,17 +108,11 @@ export class RecipeSeeder {
         `RecipeSeeder: recipe '${entry.recipeId}' missing 'outputTemplate'`,
       );
     }
-    // A tangible (transform) recipe authors NO outputMaterial — the
-    // chosen input's Material flows onto the output. Bulk/edible recipes
-    // still must name the substance they mint.
-    if (
-      entry.outputApplication !== 'tangible' &&
-      (typeof entry.outputMaterial !== 'string' || !entry.outputMaterial)
-    ) {
-      throw new Error(
-        `RecipeSeeder: recipe '${entry.recipeId}' missing 'outputMaterial'`,
-      );
-    }
+    // `outputMaterial` is optional everywhere: a tangible recipe flows
+    // the chosen input's Material onto the output, and a bulk/edible
+    // recipe DERIVES its blend from the consumed inputs by default
+    // (macros in = macros out) — an authored substance is the override,
+    // never the requirement (the fixed-vocabulary rule).
   }
 
   static #defaultSeedPath(): string {

@@ -26,13 +26,17 @@ import { MixinApi } from "../../api/mixin";
 import type Material from "../material/Material";
 
 /**
- * Render the nutrition label lines for an edible Material, or `null`
- * when there's nothing to show. Pure data + display.
+ * Render the nutrition label lines from the given face (a Material's
+ * fields or a blend payload's — one renderer), or `null` when there's
+ * nothing to show. Pure data + display.
  */
-function renderNutritionLabel(material: Material): string | null {
-  if (material.getEdibility() !== true) return null;
+function renderNutritionLines(
+  edible: boolean,
+  amounts: Record<string, number>,
+  toxicity: readonly { type: string; amount: number }[],
+): string | null {
+  if (!edible) return null;
   const lines: string[] = [];
-  const amounts = material.getNutrientAmounts();
   const nutrientKeys = Object.keys(amounts);
   if (nutrientKeys.length > 0) {
     lines.push(
@@ -40,7 +44,6 @@ function renderNutritionLabel(material: Material): string | null {
         nutrientKeys.map((k) => `${k} ${amounts[k]}mg`).join(", "),
     );
   }
-  const toxicity = material.getToxicity();
   if (toxicity.length > 0) {
     lines.push(
       "Contains: " + toxicity.map((t) => `${t.type} ${t.amount}mg`).join(", "),
@@ -59,24 +62,53 @@ function nutritionLabelAugmenter(
   host: Stuff,
   _viewer: Stuff,
 ): string {
-  const material = labelMaterialOf(host);
-  if (!material) return text;
-  const label = renderNutritionLabel(material);
+  const face = labelFaceOf(host);
+  if (!face) return text;
+  const label = renderNutritionLines(
+    face.edible,
+    face.nutrientAmounts,
+    face.toxicity,
+  );
   return label ? `${text}\n${label}` : text;
 }
 
+/** The label's inputs, whichever face supplies them. */
+interface LabelFace {
+  edible: boolean;
+  nutrientAmounts: Record<string, number>;
+  toxicity: readonly { type: string; amount: number }[];
+}
+
 /**
- * The Material a host's label describes: a served vessel labels what it
- * *holds* (the plated dish, the labelled bottle — its bulk-slot food),
- * falling back to the host's own Tangible material (the bare ration).
+ * What a host's label describes: a served vessel labels what it *holds*
+ * — the bulk slot's **blend payload** when present (the derived meal),
+ * else the held Material (the labelled bottle) — falling back to the
+ * host's own Tangible material (the bare ration).
  */
-function labelMaterialOf(host: Stuff): Material | null {
+function labelFaceOf(host: Stuff): LabelFace | null {
   if (MixinApi.isBulkable(host)) {
     const aff = host.hasInteriorBulk() ? 'interior' : 'surface';
+    const payload = host.getBulkPayload(aff);
+    if (payload && payload.edible) {
+      return {
+        edible: true,
+        nutrientAmounts: payload.nutrientAmounts,
+        toxicity: payload.toxicity,
+      };
+    }
     const held = host.getBulkMaterial(aff);
-    if (held && held.getEdibility() === true) return held;
+    if (held && held.getEdibility() === true) return faceOfMaterial(held);
   }
-  return MixinApi.isTangible(host) ? host.getMaterial() : null;
+  const own = MixinApi.isTangible(host) ? host.getMaterial() : null;
+  return own ? faceOfMaterial(own) : null;
+}
+
+function faceOfMaterial(material: Material): LabelFace {
+  return {
+    edible: material.getEdibility() === true,
+    nutrientAmounts: material.getNutrientAmounts(),
+    toxicity: material.getToxicity(),
+  };
 }
 
 /** Marker surface — the mixin adds no methods, only the augmenter. */

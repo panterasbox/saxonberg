@@ -92,6 +92,7 @@ function loadPackMaterial(rel: string): Material {
     m.setName(d.name as string);
     m.setTags((d.tags as string[]) ?? []);
     if (d.edibility === true) m.setEdibility(true);
+    if (Array.isArray(d.nutrients)) m.setNutrients(d.nutrients as string[]);
     if (d.nutrientAmounts) {
       m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
     }
@@ -201,11 +202,7 @@ beforeEach(async () => {
   loadPackMaterial('food/trail-ration');
   loadPackMaterial('food/root-vegetable');
   loadPackMaterial('food/stew-meat');
-  loadPackMaterial('food/toasted-ration');
-  loadPackMaterial('food/root-mash');
-  loadPackMaterial('food/hearty-stew');
-  loadPackMaterial('food/fine-roast');
-  loadPackMaterial('food/pot-luck');
+  loadPackMaterial('food/cooked');
 
   // Output templates cloned by the roster (the real classes, minted here
   // — the faked-Mongo test has no clone pipeline; the substation
@@ -361,23 +358,29 @@ describe('the cookhouse, served', () => {
 
     const dish = outcome.output;
     const slot = BulkableApi.slotFor(dish, undefined)!;
-    expect(slot.getMaterialPath()).toBe('/lib/material/food/hearty-stew');
+    // The DERIVED blend: no per-dish material row exists — the slot
+    // points at the ONE generic cooked base and the payload carries the
+    // stew's identity + macros, summed from the ACTUAL pantry inputs
+    // (macros in = macros out; the fixed-vocabulary rule live).
+    expect(slot.getMaterialPath()).toBe('/lib/material/food/cooked');
+    const payload = slot.getPayload()!;
+    expect(payload.name).toBe('Hearty Stew');
+    expect(payload.nutrientAmounts).toMatchObject({
+      carb: expect.any(Number),
+      protein: expect.any(Number),
+    });
+    expect(payload.edible).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9);
 
-    // The macros route through the shipped metabolism ingest.
+    // The macros route through the shipped metabolism ingest — the
+    // payload speaks for the meal.
     const eater = makeStuff(() => new Creature());
     eater.setMass(Quantity.of(70, 'kg'));
     const material = slot.getMaterial()!;
     const res = BulkableApi.transfer(slot, null, { kind: 'all' });
-    expect(() => BulkableApi.ingest(eater, material, res.applied)).not.toThrow();
-
-    // The NutritionLabel describes what the dish HOLDS (the stew, not
-    // the ceramic).
-    expect(material.getEdibility()).toBe(true);
-    expect(material.getNutrientAmounts()).toMatchObject({
-      carb: expect.any(Number),
-      protein: expect.any(Number),
-    });
+    expect(() =>
+      BulkableApi.ingest(eater, material, res.applied, payload),
+    ).not.toThrow();
   });
 
   it('the same order refuses when the pantry chest is closed', async () => {

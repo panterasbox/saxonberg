@@ -60,7 +60,10 @@ const STEW_ROW = {
   ],
   toolCapabilities: ['pot'],
   outputTemplate: '/obj/food/plated-dish',
-  outputMaterial: '/lib/material/food/hearty-stew',
+  // The derived-blend authoring shape: no substance row; prose on the
+  // recipe.
+  outputMaterial: '',
+  outputAppearance: 'a thick brown stew, roots and meat in a dark gravy',
   baseGradeBand: '',
   requiresHeatK: 373,
   outputApplication: 'edible',
@@ -133,6 +136,8 @@ describe('Recipe schema round-trip', () => {
     expect(r).not.toBeNull();
     expect(r.getOutputApplication()).toBe('edible');
     expect(r.getOutputPortionL()).toBeCloseTo(0.4, 9);
+    expect(r.getOutputMaterial()).toBe(''); // derived — no substance row
+    expect(r.getOutputAppearance()).toMatch(/thick brown stew/);
     expect(r.getRequiresHeatK()).toBe(373);
     const slots = r.getInputSlots();
     expect(slots.every((s) => Recipe.isItemSlot(s))).toBe(true);

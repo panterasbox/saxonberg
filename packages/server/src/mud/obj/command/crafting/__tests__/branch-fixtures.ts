@@ -43,8 +43,7 @@ import {
 export const IRON = '/lib/material/_test/mb-iron';
 export const VEG = '/lib/material/food/root-vegetable';
 export const MEAT = '/lib/material/food/stew-meat';
-export const STEW = '/lib/material/food/hearty-stew';
-export const POTLUCK = '/lib/material/food/pot-luck';
+export const COOKED = '/lib/material/food/cooked';
 export const KNIFE_T = '/obj/arms/belt-knife';
 export const DISH_T = '/obj/items/plated-dish';
 
@@ -95,7 +94,11 @@ export function registerMaterial(
   path: string,
   name: string,
   tags: string[],
-  opts: { edible?: boolean; keywords?: string[] } = {},
+  opts: {
+    edible?: boolean;
+    keywords?: string[];
+    amounts?: Record<string, number>;
+  } = {},
 ): void {
   makeStuffAtPath(() => {
     const m = new Material();
@@ -103,6 +106,10 @@ export function registerMaterial(
     m.setTags(tags);
     m.setKeywords(opts.keywords ?? tags.slice(-1));
     if (opts.edible) m.setEdibility(true);
+    if (opts.amounts) {
+      m.setNutrients(Object.keys(opts.amounts));
+      m.setNutrientAmounts(opts.amounts);
+    }
     return m;
   }, path);
 }
@@ -205,7 +212,9 @@ export function branchRecipeRows(): Record<string, unknown>[] {
       ],
       toolCapabilities: ['pot'],
       outputTemplate: DISH_T,
-      outputMaterial: STEW,
+      // Derived blend — no authored substance; macros sum from inputs.
+      outputMaterial: '',
+      outputAppearance: 'a thick brown stew, roots and meat in a dark gravy',
       baseGradeBand: '',
       requiresHeatK: 373,
       outputApplication: 'edible',
@@ -267,18 +276,16 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
   registerMaterial(VEG, 'root vegetable', ['food', 'vegetable', 'raw'], {
     edible: true,
     keywords: ['vegetable'],
+    amounts: { carb: 17000 },
   });
   registerMaterial(MEAT, 'stew meat', ['food', 'meat', 'raw'], {
     edible: true,
     keywords: ['meat'],
+    amounts: { protein: 26000 },
   });
-  registerMaterial(STEW, 'hearty stew', ['food', 'cooked'], {
+  registerMaterial(COOKED, 'cooked fare', ['food', 'cooked'], {
     edible: true,
-    keywords: ['stew'],
-  });
-  registerMaterial(POTLUCK, 'pot luck', ['food', 'cooked'], {
-    edible: true,
-    keywords: ['pottage'],
+    keywords: ['fare', 'portion'],
   });
 
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {

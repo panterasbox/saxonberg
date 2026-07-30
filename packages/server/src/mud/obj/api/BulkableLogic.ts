@@ -9,6 +9,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   BulkSlot,
   BulkAffordance,
+  BulkPayload,
   ClosureLevel,
 } from '../../lib/bulk/Bulkable';
 import { CLOSURE_ORDER } from '../../lib/bulk/Bulkable';
@@ -88,13 +89,23 @@ export class BulkableLogic extends ApiLogic {
 
   /** See {@link BulkableApi.ingest}. */
   @CallSecurity(BulkableApiCallers)
-  public ingest(actor: Stuff, material: Material | null, litres: number): void {
+  public ingest(
+    actor: Stuff,
+    material: Material | null,
+    litres: number,
+    payload: BulkPayload | null = null,
+  ): void {
     if (material === null) return;
     const eater = actor as unknown as {
-      ingest?: (m: Material, q: Quantity<'L'>, phase?: 'solid' | 'liquid') => void;
+      ingest?: (
+        m: Material,
+        q: Quantity<'L'>,
+        phase?: 'solid' | 'liquid',
+        payload?: BulkPayload | null,
+      ) => void;
     };
     if (typeof eater.ingest === 'function') {
-      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid');
+      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid', payload);
     }
   }
 
@@ -104,6 +115,7 @@ export class BulkableLogic extends ApiLogic {
     actor: Stuff,
     material: Material | null,
     litres: number,
+    payload: BulkPayload | null = null,
   ): number {
     if (material === null) return 0;
     const eater = actor as unknown as {
@@ -111,10 +123,16 @@ export class BulkableLogic extends ApiLogic {
         m: Material,
         q: Quantity<'L'>,
         phase?: 'solid' | 'liquid',
+        payload?: BulkPayload | null,
       ) => number | void;
     };
     if (typeof eater.ingest !== 'function') return 0;
-    const accepted = eater.ingest(material, Quantity.of(litres, 'L'), 'solid');
+    const accepted = eater.ingest(
+      material,
+      Quantity.of(litres, 'L'),
+      'solid',
+      payload,
+    );
     return typeof accepted === 'number' ? accepted : litres;
   }
 
@@ -213,10 +231,19 @@ export class BulkableLogic extends ApiLogic {
         ? toHolder.getTemperature().rawValue()
         : null;
 
-    // 5. Apply.
+    // 5. Apply. Capture the source's blend payload BEFORE the debit — a
+    // full drain clears it with the material.
+    const fromPayload = from.getPayload();
+    const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
-      if (to.isEmpty()) to.setMaterial(material);
+      if (toWasEmpty) {
+        to.setMaterial(material);
+        // A blend poured into an empty vessel stays that blend (a copy).
+        // Same-material pours into a non-empty vessel keep the
+        // destination's payload — blend merging is out of scope.
+        if (fromPayload) to.setPayload(fromPayload);
+      }
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
     }
 

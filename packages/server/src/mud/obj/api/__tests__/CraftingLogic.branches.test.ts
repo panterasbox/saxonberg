@@ -65,7 +65,7 @@ const MEAT = '/lib/material/_test/branch-meat';
 const STEW = '/lib/material/_test/branch-stew';
 const GIN = '/lib/material/_test/branch-gin';
 const VERMOUTH = '/lib/material/_test/branch-vermouth';
-const MARTINI_MAT = '/lib/material/_test/branch-martini';
+const MIXED = '/lib/material/cocktail/mixed';
 const KNIFE_T = '/obj/_test/branch-knife';
 const DISH_T = '/obj/_test/branch-dish';
 const GLASS_T = '/obj/_test/branch-glass';
@@ -167,9 +167,11 @@ beforeEach(async () => {
   registerMaterial(VEG, 'root vegetable', ['vegetable'], true);
   registerMaterial(MEAT, 'stew meat', ['meat'], true);
   registerMaterial(STEW, 'hearty stew', ['food'], true);
-  registerMaterial(GIN, 'house gin', ['gin']);
-  registerMaterial(VERMOUTH, 'dry vermouth', ['vermouth']);
-  registerMaterial(MARTINI_MAT, 'martini', ['cocktail']);
+  const gin = registerMaterial(GIN, 'house gin', ['gin'], true);
+  gin.setToxicity([{ type: 'alcohol', amount: 19 }]);
+  const vermouth = registerMaterial(VERMOUTH, 'dry vermouth', ['vermouth'], true);
+  vermouth.setToxicity([{ type: 'alcohol', amount: 7 }]);
+  registerMaterial(MIXED, 'mixed drink', ['cocktail'], true);
 
   store.recipes!.push(
     {
@@ -211,7 +213,9 @@ beforeEach(async () => {
       ],
       toolCapabilities: ['mixing-glass'],
       outputTemplate: GLASS_T,
-      outputMaterial: MARTINI_MAT,
+      // Derived blend — the authored-substance override retired.
+      outputMaterial: '',
+      outputAppearance: 'a crystal-clear martini, beaded with cold',
       baseGradeBand: '',
     },
   );
@@ -410,5 +414,15 @@ describe('the gather walk rungs', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(outcome.grade.getBand()).toBe('fair'); // min(fine, fair)
+
+    // The DERIVED drink blend: the one generic mixed base + a payload
+    // whose toxins sum from the drawn spirits — gin 19 + vermouth 7 =
+    // the 26 mg the retired hand-authored martini row encoded.
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    expect(slot.getMaterialPath()).toBe(MIXED);
+    const payload = slot.getPayload()!;
+    expect(payload.name).toBe('Gin Martini');
+    expect(payload.appearance).toMatch(/crystal-clear martini/);
+    expect(payload.toxicity).toEqual([{ type: 'alcohol', amount: 26 }]);
   });
 });

@@ -22,7 +22,7 @@ import {
 import type Material from '../../lib/material/Material';
 import { Recipe, type RecipeInputSlot } from '../../lib/craft/Recipe';
 import type RecipeCatalogue from '../RecipeCatalogue';
-import type { BulkSlot } from '../../lib/bulk/Bulkable';
+import type { BulkSlot, BulkPayload } from '../../lib/bulk/Bulkable';
 import type { Tooled } from '../../lib/craft/Tooled';
 import type {
   CraftRequest,
@@ -50,11 +50,11 @@ const EPS = 1e-9;
 /** The generic substance an off-spec (recipe-unmatched) build mints. */
 const GENERIC_MIXED_MATERIAL = '/lib/material/cocktail/mixed';
 
-/** The generic food an off-spec (item-bearing) vessel build mints. */
-const GENERIC_POTLUCK_MATERIAL = '/lib/material/food/pot-luck';
+/** The generic substance every derived cooked blend points at. */
+const GENERIC_COOKED_MATERIAL = '/lib/material/food/cooked';
 
-/** The portion an off-spec pot-luck fill lands in the dish (L). */
-const GENERIC_POTLUCK_PORTION_L = 0.3;
+/** The portion an off-spec cooked fill lands in the dish (L). */
+const GENERIC_COOKED_PORTION_L = 0.3;
 
 /** The template an off-spec workpiece mint clones (a re-meltable lump). */
 const WORKED_LUMP_TEMPLATE = '/obj/Casting';
@@ -90,6 +90,8 @@ interface BottleCandidate {
 interface MatchedInput {
   slot: BulkSlot;
   measureL: number;
+  /** The drawn substance (feeds the derived blend payload). */
+  material: Material | null;
 }
 
 /** A reachable discrete/glob item input candidate. */
@@ -348,6 +350,54 @@ function pickItemInputs(
 }
 
 /**
+ * Derive a blend's {@link BulkPayload} from its consumed inputs —
+ * **macros in = macros out** (the fixed-vocabulary rule's engine): union
+ * the parts' nutrient routing tags, sum their per-serving label amounts
+ * and toxin doses (each consumed slot/unit is one serving — exactly the
+ * arithmetic the retired hand-authored cocktail rows encoded: a martini
+ * was gin 19 + vermouth 7 = 26 mg of alcohol). Identity (name /
+ * appearance / keywords) comes from the matched recipe — inherently
+ * per-dish content that lives on the Recipe, never a Material row — or
+ * from the generic blend material for an off-spec build.
+ */
+function deriveBlendPayload(
+  name: string,
+  appearance: string,
+  keywords: readonly string[],
+  parts: { material: Material; servings: number }[],
+): BulkPayload {
+  const nutrients = new Set<string>();
+  const nutrientAmounts: Record<string, number> = {};
+  const toxins = new Map<string, number>();
+  let edible = false;
+  for (const part of parts) {
+    if (part.material.getEdibility() === true) edible = true;
+    for (const tag of part.material.getNutrients()) nutrients.add(tag);
+    const amounts = part.material.getNutrientAmounts();
+    for (const [tag, mg] of Object.entries(amounts)) {
+      nutrientAmounts[tag] = (nutrientAmounts[tag] ?? 0) + mg * part.servings;
+    }
+    for (const tox of part.material.getToxicity()) {
+      if (tox.amount <= 0) continue;
+      toxins.set(
+        tox.type,
+        (toxins.get(tox.type) ?? 0) + tox.amount * part.servings,
+      );
+    }
+  }
+  const payload: BulkPayload = {
+    name,
+    nutrients: [...nutrients],
+    nutrientAmounts,
+    toxicity: [...toxins].map(([type, amount]) => ({ type, amount })),
+    edible,
+  };
+  if (appearance) payload.appearance = appearance;
+  if (keywords.length > 0) payload.keywords = [...keywords];
+  return payload;
+}
+
+/**
  * Domain seam #1 — apply the output's material/amount. The **only** bulk/
  * cocktail-specific output step: fill the cloned glass's bulk slot with the
  * recipe's authored cocktail Material (the mixture derivation strategy) at
@@ -366,10 +416,31 @@ async function applyBulkOutput(
       `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Bulkable`,
     );
   }
-  const material = await StuffApi.singleton<Material>(recipe.getOutputMaterial());
   const totalL = matched.reduce((sum, m) => sum + m.measureL, 0);
+  const authored = recipe.getOutputMaterial();
+  if (authored) {
+    // The authored-substance override (a recipe may still name its
+    // blend; the shipped roster derives).
+    const material = await StuffApi.singleton<Material>(authored);
+    outSlot.setMaterial(material);
+    outSlot.setAmount(Quantity.of(totalL, 'L'));
+    return;
+  }
+  // The derived default: the generic blend base + a payload computed
+  // from the drawn inputs (each slot's draw = one serving).
+  const material = await StuffApi.singleton<Material>(GENERIC_MIXED_MATERIAL);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(totalL, 'L'));
+  outSlot.setPayload(
+    deriveBlendPayload(
+      recipe.getName(),
+      recipe.getOutputAppearance(),
+      recipe.getKeywords(),
+      matched.flatMap((m) =>
+        m.material ? [{ material: m.material, servings: 1 }] : [],
+      ),
+    ),
+  );
 }
 
 /**
@@ -413,7 +484,11 @@ function applyTangibleOutput(
  * inedible `outputMaterial` under `outputApplication: edible` is a content
  * bug, caught loudly.
  */
-async function applyEdibleOutput(output: Stuff, recipe: Recipe): Promise<void> {
+async function applyEdibleOutput(
+  output: Stuff,
+  recipe: Recipe,
+  matchedItems: MatchedItemInput[],
+): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
     throw new Error(
@@ -421,17 +496,31 @@ async function applyEdibleOutput(output: Stuff, recipe: Recipe): Promise<void> {
         `Bulkable`,
     );
   }
-  const material = await StuffApi.singleton<Material>(
-    recipe.getOutputMaterial(),
-  );
-  if (!material.getEdibility()) {
-    throw new Error(
-      `CraftingLogic: edible output material '${recipe.getOutputMaterial()}' ` +
-        `is not edible`,
-    );
+  const authored = recipe.getOutputMaterial();
+  if (authored) {
+    const material = await StuffApi.singleton<Material>(authored);
+    if (!material.getEdibility()) {
+      throw new Error(
+        `CraftingLogic: edible output material '${authored}' is not edible`,
+      );
+    }
+    outSlot.setMaterial(material);
+    outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
+    return;
   }
+  // The derived default: the generic cooked base + macros summed from
+  // the consumed units (macros in = macros out).
+  const material = await StuffApi.singleton<Material>(GENERIC_COOKED_MATERIAL);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(recipe.getOutputPortionL(), 'L'));
+  outSlot.setPayload(
+    deriveBlendPayload(
+      recipe.getName(),
+      recipe.getOutputAppearance(),
+      recipe.getKeywords(),
+      matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+    ),
+  );
 }
 
 /**
@@ -750,26 +839,46 @@ async function mintVessel(
   }
 
   const hasItems = req.contributions.some((c) => c.kind === 'item');
-  let outputMaterialPath = hasItems
-    ? GENERIC_POTLUCK_MATERIAL
-    : GENERIC_MIXED_MATERIAL;
-  let recipeId = '';
+  const recipeId = recipe ? recipe.getRecipeId() : '';
   // Conservation for a bulk build: Σ buffer measures → the vessel volume.
   // An edible recipe fills its authored portion; an off-spec item build
-  // lands the generic pot-luck portion.
+  // lands the generic cooked portion.
   let amountL = req.contributions.reduce((sum, c) => sum + c.measureL, 0);
-  if (recipe) {
-    outputMaterialPath = recipe.getOutputMaterial();
-    recipeId = recipe.getRecipeId();
-    if (recipe.getOutputApplication() === 'edible') {
-      amountL = recipe.getOutputPortionL();
-    }
-  } else if (hasItems) {
-    amountL = Math.max(amountL, GENERIC_POTLUCK_PORTION_L);
+  if (recipe && recipe.getOutputApplication() === 'edible') {
+    amountL = recipe.getOutputPortionL();
+  } else if (!recipe && hasItems) {
+    amountL = Math.max(amountL, GENERIC_COOKED_PORTION_L);
   }
-  const material = await StuffApi.singleton<Material>(outputMaterialPath);
+  // The blend base: an authored substance (the override channel) wins;
+  // else the ONE generic per phase-kind, with the actual identity +
+  // macros DERIVED onto the vessel's payload from what was banked
+  // (macros in = macros out — the fixed-vocabulary rule).
+  const authored = recipe?.getOutputMaterial() ?? '';
+  const genericPath = hasItems
+    ? GENERIC_COOKED_MATERIAL
+    : GENERIC_MIXED_MATERIAL;
+  const material = await StuffApi.singleton<Material>(authored || genericPath);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(amountL, 'L'));
+  if (!authored) {
+    const parts: { material: Material; servings: number }[] = [];
+    for (const c of req.contributions) {
+      if (!c.materialPath) continue;
+      const m = await StuffApi.singleton<Material>(c.materialPath);
+      parts.push({
+        material: m,
+        servings: c.kind === 'item' ? (c.count ?? 1) : 1,
+      });
+    }
+    outSlot.setPayload(
+      deriveBlendPayload(
+        recipe ? recipe.getName() : material.getName(),
+        recipe ? recipe.getOutputAppearance() : '',
+        recipe ? recipe.getKeywords() : material.getKeywords(),
+        parts,
+      ),
+    );
+  }
 
   glass.stamp({
     maker: makerPath,
@@ -822,7 +931,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     }
     const need = inSlot.measureL ?? 0;
     claimed.set(cand.stuff, (claimed.get(cand.stuff) ?? 0) + need);
-    matched.push({ slot: cand.slot, measureL: need });
+    matched.push({ slot: cand.slot, measureL: need, material: cand.material });
     grades.push(cand.grade);
   }
 
@@ -858,7 +967,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   if (application === 'tangible') {
     applyTangibleOutput(output, recipe, matchedItems);
   } else if (application === 'edible') {
-    await applyEdibleOutput(output, recipe);
+    await applyEdibleOutput(output, recipe, matchedItems);
   } else {
     await applyBulkOutput(output, recipe, matched);
   }

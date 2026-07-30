@@ -17,12 +17,13 @@
  *   - `outputTemplate` — the **real cloneable** Stuff template to mint (a
  *     glass). The honest boundary: only the recipe-as-knowledge is a
  *     Document; the output *form* is a template.
- *   - `outputMaterial` — **one output-derivation strategy** (the *mixture*
- *     case): the resulting substance is authored on the recipe because no
- *     single input material flows through. NOT the universal output rule — a
- *     transform like ore→ingot flows the input's material onto the output
- *     Tangible; assembly composes components. (v1 is transform + bulk; those
- *     other strategies arrive as new branches in `CraftingLogic`.)
+ *   - `outputMaterial` — an OPTIONAL authored-substance override for a
+ *     mixture. Empty (the shipped roster) ⇒ the blend **derives**: the
+ *     output slot points at one generic blend base and a per-instance
+ *     `BulkPayload` sums identity + macros from the consumed inputs
+ *     (macros in = macros out — the fixed-vocabulary rule; per-dish
+ *     Material rows are the retired anti-pattern). A transform recipe
+ *     ignores it (the input's material flows onto the Tangible).
  *   - `baseGradeBand` — optional floor band.
  */
 
@@ -78,6 +79,7 @@ export class Recipe extends Document {
     'requiresHeatK',
     'outputApplication',
     'outputPortionL',
+    'outputAppearance',
     'difficulty',
     'discipline',
   ];
@@ -100,7 +102,7 @@ export class Recipe extends Document {
   /** The output template path to clone (a real cloneable Stuff). */
   outputTemplate: string = '';
 
-  /** The cocktail Material the output glass holds (the mixture strategy). */
+  /** Optional authored-substance override; empty ⇒ the blend derives. */
   outputMaterial: string = '';
 
   /** Optional floor band word; empty = no floor. */
@@ -114,6 +116,15 @@ export class Recipe extends Document {
 
   /** Edible portion volume in litres (`'edible'` outputs only). */
   outputPortionL: number = 0;
+
+  /**
+   * Appearance prose for a **derived** mixture blend ("a thick brown
+   * stew…") — carried on the recipe (inherently per-dish content)
+   * instead of a per-dish Material row (the retired anti-pattern). Used
+   * only when `outputMaterial` is empty (the derived default); empty ⇒
+   * the generic blend material's own appearance shows.
+   */
+  outputAppearance: string = '';
 
   /**
    * Authored ladder placement — a `Difficulty` word the craft-resolve
@@ -158,6 +169,9 @@ export class Recipe extends Document {
   }
   getOutputPortionL(): number {
     return this.outputPortionL;
+  }
+  getOutputAppearance(): string {
+    return this.outputAppearance;
   }
   getDifficulty(): string {
     return this.difficulty;

@@ -163,6 +163,24 @@ Demo Materials (`coffee`, `water`) are **flat** — appearance + keywords
 only, no composition / chemistry depth (fidelity is demand-driven;
 nothing in this slice reads past appearance + keywords).
 
+### `BulkPayload` — the per-instance blend face
+
+A **derived mixture** (a plated stew, a mixed cocktail — the crafting
+branches' blends) can't be a Material row without making the material
+library boundless (the fixed-vocabulary rule, [race.md](./race.md) §
+Material). So each slot optionally carries a **`BulkPayload`** — a
+plain persisted record with a Material row's identity + metabolism
+face (`name`/`appearance`/`keywords`, `nutrients` routing tags, label
+`nutrientAmounts`, per-serving `toxicity`, `edible`) — while the slot's
+material stays ONE generic substance (`food/cooked`,
+`cocktail/mixed`). Every reader treats `payload ?? material`
+uniformly: the MQL bulk candidate (`look stew`), the contents
+augmenter, the NutritionLabel, the drink/sip prose, and metabolism's
+`ingest`. Cleared whenever the slot empties; `transfer` carries a copy
+into an empty destination (same-material pours into a non-empty vessel
+keep the destination's payload — blend *merging* is out of scope). A
+payload-less slot behaves byte-identically to before.
+
 ### Description composition
 
 `BulkableMixin` contributes a `markupAugmenter` (the same

@@ -26,8 +26,7 @@ import {
   TestActor,
   VEG,
   MEAT,
-  STEW,
-  POTLUCK,
+  COOKED,
   standUpBranchHarness,
   makeContext,
   ref,
@@ -145,7 +144,16 @@ describe('the by-hand cooking path', () => {
     await completeStep(2500);
 
     const slot = BulkableApi.slotFor(dish, undefined)!;
-    expect(slot.getMaterialPath()).toBe(STEW);
+    // The DERIVED blend: the one generic cooked base + a per-instance
+    // payload — identity from the recipe, macros summed from the inputs
+    // (macros in = macros out: 2 veg × 17000 carb + 1 meat × 26000
+    // protein). No per-dish material row exists.
+    expect(slot.getMaterialPath()).toBe(COOKED);
+    const payload = slot.getPayload()!;
+    expect(payload.name).toBe('Hearty Stew');
+    expect(payload.appearance).toMatch(/thick brown stew/);
+    expect(payload.nutrientAmounts).toEqual({ carb: 34000, protein: 26000 });
+    expect(payload.edible).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9); // the portion
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe(
       'hearty-stew',
@@ -175,7 +183,11 @@ describe('the by-hand cooking path', () => {
     await completeStep(2500);
 
     const slot = BulkableApi.slotFor(dish, undefined)!;
-    expect(slot.getMaterialPath()).toBe(POTLUCK);
+    // Off-spec still conserves: the generic base named by its own row,
+    // the macros honestly summed from what actually went in.
+    expect(slot.getMaterialPath()).toBe(COOKED);
+    expect(slot.getPayload()!.name).toBe('cooked fare');
+    expect(slot.getPayload()!.nutrientAmounts).toEqual({ carb: 17000 });
     expect(slot.getAmount().rawValue()).toBeGreaterThan(0);
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe('');
   });

@@ -91,6 +91,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
             kind: 'item',
             count: 1,
             tags: [...material.getTags()],
+            materialPath: material.getTemplatePath() ?? undefined,
           });
         }
         build.recordCommand(commandText);

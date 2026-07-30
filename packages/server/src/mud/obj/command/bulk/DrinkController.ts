@@ -52,6 +52,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // Capture the material BEFORE the transfer empties (and clears) the
     // slot, for the ingest hand-off and the prose.
     const material = fromSlot.getMaterial();
+    const payload = fromSlot.getPayload();
     const result = BulkableApi.transfer(fromSlot, null, { kind: 'all' });
     for (const note of result.notes) context.note(note);
 
@@ -63,9 +64,10 @@ export default class DrinkController extends CommandController<DrinkModel> {
       return;
     }
 
-    BulkableApi.ingest(giver, material, result.applied);
+    BulkableApi.ingest(giver, material, result.applied, payload);
 
-    const appearance = material?.getAppearance() || 'it';
+    const appearance =
+      payload?.appearance ?? (material?.getAppearance() || 'it');
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You drink the ${appearance}.`)
