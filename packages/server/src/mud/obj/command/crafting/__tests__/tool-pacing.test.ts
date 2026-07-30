@@ -13,6 +13,7 @@ import HammerController from '../HammerController';
 import HeatController from '../HeatController';
 import RepairController from '../RepairController';
 import { SchedulerApi } from '../../../../api/scheduler';
+import { MessageApi } from '../../../../api/message';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -27,7 +28,6 @@ import {
   TestActor,
   IRON,
   standUpBranchHarness,
-  type BranchHarness,
   makeContext,
   ref,
   completeStep,
@@ -52,7 +52,6 @@ async function executeAs(
 }
 
 let seq = 0;
-let harness: BranchHarness;
 let room: TestActor;
 let actor: TestActor;
 
@@ -73,7 +72,7 @@ function makeHotIngot(): Ingot {
 }
 
 beforeEach(async () => {
-  harness = await standUpBranchHarness();
+  await standUpBranchHarness();
   room = makeStuff(() => new TestActor());
   actor = makeStuffAtPath(() => new TestActor(), `/obj/Avatar/pacer-${seq++}`);
   ContainmentApi.move(actor, room);
@@ -203,6 +202,37 @@ describe('the engaged repair (Q1/Q2)', () => {
     expect(jerkin.getCondition()).toBe(0.5);
     await completeStep(200);
     expect(jerkin.getCondition()).toBe(1); // repaired at completion
+  });
+
+  it('completion narrates even though the controller clone is destructed (the live shape)', async () => {
+    registerLeather();
+    const jerkin = makeWornJerkin();
+    jerkin.setCondition(1); // nothing to repair — the decline path
+    const kit = makeSpecTool('mending');
+    ContainmentApi.move(kit, actor);
+    ContainmentApi.move(jerkin, room);
+    const scenes: string[] = [];
+    const realScene = MessageApi.scene.bind(MessageApi);
+    vi.spyOn(MessageApi, 'scene').mockImplementation(((g: never) => {
+      const s = realScene(g);
+      const realToSelf = s.toSelf.bind(s);
+      s.toSelf = ((m: { toString(): string }) => {
+        scenes.push(String(m));
+        return realToSelf(m as never);
+      }) as never;
+      return s;
+    }) as never);
+    const controller = makeStuff(() => new RepairController());
+    const ctx = makeContext(actor, room, 'repair jerkin');
+    await executeAs(actor, () =>
+      controller.execute({ item: ref(jerkin, 'jerkin') } as never, ctx),
+    );
+    // The dispatcher destructs the per-dispatch clone when execute
+    // returns — a `this.<method>()` in onComplete would [inert] no-op
+    // (antipatterns.md § Activity-completion closures). Reproduce it.
+    StuffApi.destruct(controller);
+    await completeStep(6100);
+    expect(scenes.some((m) => /already sound/i.test(m))).toBe(true);
   });
 
   it('the plain kit repairs at the base duration', async () => {

@@ -15,6 +15,7 @@
  */
 
 import { ManualBuildController } from './ManualBuildController';
+import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -64,24 +65,30 @@ export default class RepairController extends ManualBuildController<RepairModel>
       durationMs: this.paceMs(REPAIR_MS, pacer, ['mending', 'anvil']),
       beginSelf: Mml.compose`You settle in over ${Mml.item(item)} and set to the repair.`,
       beginPeers: Mml.compose`${Mml.name(giver)} sets to repairing ${Mml.item(item)}.`,
-      onComplete: () => {
-        void (async (): Promise<void> => {
-          const outcome = await CraftingApi.repair({ item, makerPath });
-          if (!outcome.ok) {
-            this.declineToScene(giver, outcome, context);
-            return;
-          }
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(
-              Mml.compose`You work ${Mml.item(item)} back into true — sound as the day it was made.`,
-            )
-            .toPeers(Mml.compose`${Mml.name(giver)} repairs ${Mml.item(item)}.`)
-            .send();
-        })().catch((err: unknown) => {
-          console.error('RepairController: repair failed', err);
-        });
-      },
+      // No `this` in the closure — the controller clone is destructed
+      // when execute returns (antipatterns.md § Activity-completion
+      // closures); the body is a module-private free function.
+      onComplete: () => completeRepair(giver, item, makerPath),
     });
   }
+}
+
+/** The completion body — plain values only, never the controller. */
+function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
+  void (async (): Promise<void> => {
+    const outcome = await CraftingApi.repair({ item, makerPath });
+    if (!outcome.ok) {
+      CraftController.declineScene(giver, outcome);
+      return;
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`You work ${Mml.item(item)} back into true — sound as the day it was made.`,
+      )
+      .toPeers(Mml.compose`${Mml.name(giver)} repairs ${Mml.item(item)}.`)
+      .send();
+  })().catch((err: unknown) => {
+    console.error('RepairController: repair failed', err);
+  });
 }

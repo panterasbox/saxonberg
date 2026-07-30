@@ -69,15 +69,27 @@ export abstract class CraftController<
     failure: CraftingFailure,
     context: CommandContext,
   ): void {
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`${declineMessage(failure)}`)
-      .send();
+    CraftController.declineScene(giver, failure);
     context.note({
       kind: 'controller-rejected',
       reason: failure.reason,
       detail: failure.detail ?? '',
     });
+  }
+
+  /**
+   * The scene half alone, as a **static** — for engaged-completion
+   * closures, which must never call instance methods (the controller is
+   * a per-dispatch clone destructed when `execute` returns; a
+   * `this.<method>()` in `onComplete` no-ops as `[inert]` — see
+   * antipatterns.md § Activity-completion closures). No note: at
+   * completion the dispatch envelope has already shipped.
+   */
+  public static declineScene(giver: Stuff, failure: CraftingFailure): void {
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`${declineMessage(failure)}`)
+      .send();
   }
 }
 

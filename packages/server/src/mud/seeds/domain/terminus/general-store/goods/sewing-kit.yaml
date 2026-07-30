@@ -8,7 +8,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a sewing kit
   primaryKeyword: sewing-kit
-  keywords: [kit, sewing, needle, awl, thread]
+  keywords: [sewing-kit, kit, sewing, needle, awl, thread]
   longDescription: |
     A canvas roll of needles, waxed thread, an awl, and patience. Everything soft that tears, this mends.
   capabilities: [mending]

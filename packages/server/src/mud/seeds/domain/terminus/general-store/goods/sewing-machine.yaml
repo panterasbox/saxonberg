@@ -9,7 +9,7 @@ hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: a treadle sewing machine
   primaryKeyword: sewing-machine
-  keywords: [machine, sewing, treadle]
+  keywords: [sewing-machine, machine, sewing, treadle]
   longDescription: |
     Cast iron and walnut, a wheel taller than your hand, a needle that never hesitates. Everything the kit does, it does before you've finished threading.
   capabilities:
