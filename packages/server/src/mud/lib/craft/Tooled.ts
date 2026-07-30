@@ -20,12 +20,16 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
-import { ToolCapabilities } from './ToolCapability';
+import { ToolCapabilities, type CapabilitySpec } from './ToolCapability';
 
 export interface Tooled {
   getCapabilities(): readonly string[];
-  setCapabilities(value: string[]): void;
+  setCapabilities(value: (string | CapabilitySpec)[]): void;
   hasCapability(cap: string): boolean;
+  /** The kind's authored work-rate, clamped 0.25–10; 1 when absent. */
+  capabilityRate(kind: string): number;
+  /** The kind's authored control band, or null. */
+  capabilityControl(kind: string): string | null;
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -35,28 +39,34 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     static persistentFields = ['capabilities'];
 
     /**
-     * The capabilities this tool offers (validated against the vocabulary).
+     * The capabilities this tool offers — bare kind strings (shorthand
+     * for the defaulted spec) and/or parameterized entries
+     * `{ kind, rate?, control?, placement? }`, validated against the
+     * vocabulary. Persisted exactly as authored; normalization happens
+     * on read (`entryFor`), so seeds stay byte-stable.
      *
      * @authorable
      */
-    public capabilities: string[] = [];
+    public capabilities: (string | CapabilitySpec)[] = [];
 
     getCapabilities(): readonly string[] {
-      return this.capabilities;
+      return this.capabilities.map((e) =>
+        typeof e === 'string' ? e : e.kind,
+      );
     }
 
-    setCapabilities(value: string[]): void {
+    setCapabilities(value: (string | CapabilitySpec)[]): void {
       if (!Array.isArray(value)) {
-        throw new TypeError('ToolMixin.setCapabilities: expected string[]');
+        throw new TypeError(
+          'ToolMixin.setCapabilities: expected an array of kinds/specs',
+        );
       }
-      for (const cap of value) {
-        if (!ToolCapabilities.isCapability(cap)) {
-          throw new RangeError(
-            `ToolMixin.setCapabilities: unknown capability '${cap}'`,
-          );
-        }
+      for (const entry of value) {
+        ToolCapabilities.validateEntry(entry);
       }
-      this.capabilities = [...value];
+      this.capabilities = value.map((e) =>
+        typeof e === 'string' ? e : { ...e },
+      );
     }
 
     hasCapability(cap: string): boolean {
@@ -65,7 +75,34 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       // until repaired.
       const self = this as unknown as Stuff;
       if (MixinApi.isDurable(self) && self.isBroken()) return false;
-      return this.capabilities.includes(cap);
+      return this.entryFor(cap) !== null;
+    }
+
+    capabilityRate(kind: string): number {
+      const entry = this.entryFor(kind);
+      const rate = entry?.rate ?? 1;
+      if (!Number.isFinite(rate) || rate <= 0) return 1;
+      return Math.min(
+        ToolCapabilities.RATE_MAX,
+        Math.max(ToolCapabilities.RATE_MIN, rate),
+      );
+    }
+
+    capabilityControl(kind: string): string | null {
+      return this.entryFor(kind)?.control ?? null;
+    }
+
+    /** The kind's normalized entry — a bare string IS the defaulted
+     * spec everywhere behavior reads it. Null when the kind is absent. */
+    private entryFor(kind: string): CapabilitySpec | null {
+      for (const e of this.capabilities) {
+        if (typeof e === 'string') {
+          if (e === kind) return { kind };
+        } else if (e.kind === kind) {
+          return e;
+        }
+      }
+      return null;
     }
 
     /**
@@ -91,11 +128,14 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
         ).getInstanceContributions?.call(this) ?? {};
       const environment: string[] = [...(inner.environment ?? [])];
       const inventory: string[] = [...(inner.inventory ?? [])];
-      for (const cap of this.capabilities) {
-        const def = ToolCapabilities.definitionOf(cap);
+      for (const entry of this.capabilities) {
+        const spec: CapabilitySpec =
+          typeof entry === 'string' ? { kind: entry } : entry;
+        const def = ToolCapabilities.definitionOf(spec.kind);
         if (!def || def.verbs.length === 0) continue;
+        const placement = spec.placement ?? def.placement;
         inventory.push(...def.verbs);
-        if (def.placement === 'reachable') environment.push(...def.verbs);
+        if (placement === 'reachable') environment.push(...def.verbs);
       }
       if (
         environment.length === (inner.environment?.length ?? 0) &&

@@ -14,6 +14,8 @@
  * distinct from Material's open tag set.
  */
 
+import { Grade } from './Grade';
+
 /** The known tool capabilities. */
 export const TOOL_CAPABILITIES = [
   'shaker',
@@ -43,6 +45,25 @@ export interface CapabilityKindDef {
   /** `cmd/` YAML keys the kind confers (empty = recipe-side kind). */
   verbs: readonly string[];
   placement: CapabilityPlacement;
+}
+
+/**
+ * A parameterized capability entry — how a tool variant is authored as
+ * pure instance data (kit → machine, whetstone → grinding wheel). A
+ * bare kind string is shorthand for the defaulted spec.
+ */
+export interface CapabilitySpec {
+  kind: string;
+  /** Work-rate multiplier — paces the conferring kind's engaged steps
+   * (clamped {@link ToolCapabilities.RATE_MIN}–{@link ToolCapabilities.RATE_MAX}
+   * at read). Default 1. */
+  rate?: number;
+  /** A Grade band embedded in the capital — floors the outcome grade of
+   * work done with this instrument. Default none. */
+  control?: string;
+  /** Per-entry override of the kind's default placement (the grinding
+   * wheel: `whetstone` kind, `reachable` placement). */
+  placement?: CapabilityPlacement;
 }
 
 /**
@@ -115,5 +136,45 @@ export class ToolCapabilities {
     return ToolCapabilities.isCapability(kind)
       ? CAPABILITY_TABLE[kind]
       : null;
+  }
+
+  /** The work-rate clamp band — data can never zero a duration. */
+  public static readonly RATE_MIN = 0.25;
+  public static readonly RATE_MAX = 10;
+
+  /**
+   * Validate one authored capability entry (either form). Throws with
+   * the offending detail; the tool setter is the seed's validation
+   * gate (setter-first hydration).
+   */
+  public static validateEntry(entry: string | CapabilitySpec): void {
+    const kind = typeof entry === 'string' ? entry : entry.kind;
+    if (!ToolCapabilities.isCapability(kind)) {
+      throw new RangeError(
+        `ToolCapabilities.validateEntry: unknown capability '${kind}'`,
+      );
+    }
+    if (typeof entry === 'string') return;
+    if (entry.rate !== undefined) {
+      if (!Number.isFinite(entry.rate) || entry.rate <= 0) {
+        throw new RangeError(
+          `ToolCapabilities.validateEntry: bad rate '${entry.rate}' for '${kind}'`,
+        );
+      }
+    }
+    if (entry.control !== undefined && !Grade.isBand(entry.control)) {
+      throw new RangeError(
+        `ToolCapabilities.validateEntry: unknown control band '${entry.control}' for '${kind}'`,
+      );
+    }
+    if (
+      entry.placement !== undefined &&
+      entry.placement !== 'reachable' &&
+      entry.placement !== 'carried'
+    ) {
+      throw new RangeError(
+        `ToolCapabilities.validateEntry: unknown placement '${entry.placement}' for '${kind}'`,
+      );
+    }
   }
 }
