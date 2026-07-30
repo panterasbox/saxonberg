@@ -113,6 +113,17 @@ export class AddressApi {
     return logic().coveringLocalityOf(address);
   }
 
+  /**
+   * The covering Localities for `address` from most- to least-specific
+   * (the winner plus its ancestors) — the sync sibling of
+   * {@link AddressApi.coveringLocalityOf}, exposing the full chain the
+   * trace already computed internally. `[]` when uncovered. First
+   * consumer: the civics jurisdiction chain.
+   */
+  public static coverageChainOf(address: string): Locality[] {
+    return logic().coverageChainOf(address);
+  }
+
   /** The Locality claiming exactly `address`, or `null`. Exact-match. */
   public static findByAddress(address: string): Locality | null {
     return logic().findByAddress(address);

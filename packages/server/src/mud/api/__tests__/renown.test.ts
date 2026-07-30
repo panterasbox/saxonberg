@@ -2,7 +2,7 @@
  * RenownApi — the gated append/read surface over the raw renown signal
  * log. Covers: `append` persists a raw, scope-tagged row and defaults
  * `at` from the game-clock; `eventsFor` filters by scope-containment
- * (cooperative-wide = all; Group axis; nested-locality prefix); a
+ * (Compact-wide = all; Group axis; nested-locality prefix); a
  * disconnected store no-ops.
  *
  * Mongo is faked with an in-memory collection (the chronicle/belief-store
@@ -72,7 +72,7 @@ describe('RenownApi append + read', () => {
     expect(ev!.at).toBe(99);
   });
 
-  it('cooperative-wide (null) scope returns every event for the subject', async () => {
+  it('Compact-wide (null) scope returns every event for the subject', async () => {
     await RenownApi.append({ subject: SUBJECT, source: SOURCE, groups: ['g:a'] });
     await RenownApi.append({
       subject: SUBJECT,

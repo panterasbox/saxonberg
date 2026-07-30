@@ -12,6 +12,7 @@
 class: /domain/eternal/duncan-hall/DormRoom
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  _address: terminus/city/campus/duncan-hall
   shortDescription: a dorm room
   primaryKeyword: room
   longDescription: |

@@ -1,6 +1,6 @@
 # Governance instruments
 
-Normative governance **instruments** for the Saxonberg cooperative — the
+Normative governance **instruments** for the Compact — the
 documents that *bind*, as distinct from the design slates that *explore*.
 These are not backlog (they don't live under `docs/slates/`); they're the
 constitutional texts the [cooperative build](../slates/builds/cooperative-slate.md)

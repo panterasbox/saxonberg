@@ -10,6 +10,7 @@
 class: /domain/eternal/duncan-hall/Corridor
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
+  _address: terminus/city/campus/duncan-hall
   shortDescription: a dorm corridor
   primaryKeyword: corridor
   longDescription: |

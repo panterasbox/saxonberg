@@ -16,7 +16,7 @@
  * vacate` subcommands. If you find yourself reaching for it anywhere else,
  * the answer is almost certainly an office check instead.
  *
- * The async preload returns `OfficeApi.isFounder(giver)`; the dispatcher
+ * The async preload returns `CompactApi.isFounder(giver)`; the dispatcher
  * threads it back to the sync body via `allowed`. `context.commandGiver`
  * is framework-stamped (the `gated-api-actor-from-context` rule — the
  * acting principal is derived from execution context, never a parameter).
@@ -25,7 +25,7 @@
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { OfficeApi } from '../../../api/office';
+import { CompactApi } from '../../../api/compact';
 
 // Split declaration: the annotated body const gives the arrow its
 // contextual typing; `Object.assign` in the initializer keeps the
@@ -37,7 +37,7 @@ const body: CommandValidator<boolean> = (_context, allowed) => {
   return 'only the founder may seat or unseat officeholders';
 };
 const preload: NonNullable<CommandValidator<boolean>['preload']> =
-  (context) => OfficeApi.isFounder(context.commandGiver);
+  (context) => CompactApi.isFounder(context.commandGiver);
 const validator: CommandValidator<boolean> = Object.assign(body, {
   preload,
 });

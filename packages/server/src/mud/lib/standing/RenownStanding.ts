@@ -10,7 +10,7 @@
  * read surface never awaits.
  *
  * `scope` is the stored scope key: the sentinel `'*'` for the
- * cooperative-wide roll-up (the scope governance reads), else a `Group`
+ * Compact-wide roll-up (the scope governance reads), else a `Group`
  * ref or a locality address prefix. `value` is the signed standing
  * (esteem ↔ notoriety).
  */
@@ -19,8 +19,8 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../../../backend/PersistenceManager';
 import { SecurityApi } from '../../api/security';
 
-/** The stored `scope` sentinel for the cooperative-wide roll-up. */
-export const COOPERATIVE_WIDE = '*';
+/** The stored `scope` sentinel for the Compact-wide roll-up. */
+export const COMPACT_WIDE = '*';
 
 export default class RenownStanding extends Document {
   static collectionName = Collections.Renown;
@@ -34,8 +34,8 @@ export default class RenownStanding extends Document {
 
   /** Durable subject id the standing is about. */
   subject = "";
-  /** Scope key — `'*'` (cooperative-wide), a `Group` ref, or a locality. */
-  scope = COOPERATIVE_WIDE;
+  /** Scope key — `'*'` (Compact-wide), a `Group` ref, or a locality. */
+  scope = COMPACT_WIDE;
   /** The signed standing (esteem positive ↔ notoriety negative). */
   value = 0;
   /** Game-time SECONDS of the recompute that produced this row (world clock). */

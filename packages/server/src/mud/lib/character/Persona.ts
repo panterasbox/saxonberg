@@ -66,6 +66,15 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // roster ungated. Homing it on AuthorMixin would wrongly hide the
         // public roster from non-authors.
         'governance/office.yaml',
+        // The `government`/`gov` verb (civics — the FICTION's governments,
+        // a different category than the Compact's `governance`) is likewise
+        // universal: the jurisdiction chain over where you stand and your
+        // residency are public reads.
+        'civics/government.yaml',
+        // The `committee` verb (system — META administration: the group
+        // holding title over a subdivision) — a public read like the two
+        // above; the one mutation (channel ensure) is idempotent.
+        'system/committee.yaml',
       ],
       environment: [],
       inventory: [],

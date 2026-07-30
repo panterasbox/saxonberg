@@ -1,0 +1,32 @@
+# The Terminus Registry — the city's one built department Business (the
+# municipal shape: proprietor-absent, no corpoKey — the budget.yaml
+# precedent). Two positions: the registrar's counter and the Magistrate's
+# seat (the civics Government template's `magistrate` seat references
+# THIS business + position — a seat is an employment position, never a
+# second office apparatus). Odile double-hats both on a SHIFT-LESS roster
+# (`schedule: []` — never on shift, so no wage flows yet; real shifts
+# arrive with real city content). Stands up lazily like every Business;
+# `holdsSeat` proves against the authored roster even before standup.
+class: /lib/employment/Business
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  proprietorPath: ''
+  positions:
+    - key: registrar
+      label: keeping the city registry
+      wageRate: 4
+      confers: []
+    - key: magistrate
+      label: sitting as Magistrate of Terminus
+      wageRate: 6
+      confers: []
+  rosterSlots:
+    - positionKey: registrar
+      assignee: /domain/terminus/registry/clerk
+      schedule: []
+    - positionKey: magistrate
+      assignee: /domain/terminus/registry/clerk
+      schedule: []
+  banksAt: goodkin
+  operatingLocations:
+    - /domain/terminus/registry/office

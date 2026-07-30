@@ -72,6 +72,9 @@ const STUBS: Doc[] = [
   // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
   // cascade resolves without heavy NPC hydration.
   { path: "/domain/terminus/terminal/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  // The registry office (cascaded off the arrival gate, civics) populates
+  // the registrar — same stub treatment.
+  { path: "/domain/terminus/registry/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the registrar" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {

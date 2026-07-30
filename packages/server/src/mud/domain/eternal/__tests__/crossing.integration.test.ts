@@ -139,6 +139,8 @@ function docs(): Doc[] {
     stub("/domain/terminus/terminal/departure-gate-a"),
     stub("/domain/terminus/terminal/departure-gate-b"),
     stub("/domain/terminus/terminal/office"),
+    // The registry annex off the arrival gate's east frontage (civics).
+    stub("/domain/terminus/registry/office"),
     stub("/domain/terminus/terminal/departure-terminal-c", "/lib/stuff/Thing"),
   ];
   return [...real, ...stubs];

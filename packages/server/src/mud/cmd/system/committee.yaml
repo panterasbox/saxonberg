@@ -1,0 +1,38 @@
+verbs: [committee]
+controller: /obj/command/system/CommitteeController
+description: "Who administers this subdivision — the committee of record"
+help: |
+  Every subdivision of the world's content is administered by its
+  **committee** — the group holding title over it (title IS
+  administration; the state's `core` group is the default everywhere no
+  finer title is held). This is real platform administration, not the
+  fiction's governments — for those, see `government`.
+
+  `committee` shows the committee over where you stand: the group, its
+  subdivision, its members, and its chat channel if one exists.
+  `committee show <path>` asks about an explicit content path.
+
+  `committee channel` ensures the committee's chat channel exists and
+  names it — committees get their own frequencies; the audience is the
+  committee group itself.
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  show:
+    description: "Show the committee here (or over an explicit path)"
+    help: |
+      The committee of record — the title-holding group — over where
+      you stand, or over an explicit content path when one is given.
+    examples:
+      - cmd: committee show /domain/lounge
+        note: Who administers the lounge?
+    args:
+      - name: path
+        type: string
+        required: false
+  channel:
+    description: "Ensure + show this committee's chat channel"
+    help: |
+      Resolve the committee over where you stand and ensure its chat
+      channel exists (idempotent — an existing channel is simply named).
+      The channel's audience is the committee group.

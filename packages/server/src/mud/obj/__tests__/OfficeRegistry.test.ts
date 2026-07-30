@@ -10,13 +10,13 @@
  * instances. Handoffs are driven by writing/deleting `OfficeHolder` rows
  * directly (the mechanism — the gated `assign`/`vacate` happy path is
  * exercised end-to-end through the controller in OfficeController.test);
- * occupancy is read through the ungated `OfficeApi` surface.
+ * occupancy is read through the ungated `CompactApi` surface.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeRegistry from '../OfficeRegistry';
 import Avatar from '../Avatar';
-import { OfficeApi } from '../../api/office';
+import { CompactApi } from '../../api/compact';
 import { StuffApi } from '../../api/stuff';
 import { Document } from '../../lib/persistence/Document';
 import { OfficeHolder } from '../../lib/governance/OfficeHolder';
@@ -152,7 +152,7 @@ describe('OfficeRegistry', () => {
     prevTwitch = process.env[TWITCH_ENV];
     delete process.env[GOOGLE_ENV];
     delete process.env[TWITCH_ENV];
-    OfficeApi._resetRegistryRefForReload();
+    CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
   });
 
@@ -162,7 +162,7 @@ describe('OfficeRegistry', () => {
     if (prevTwitch === undefined) delete process.env[TWITCH_ENV];
     else process.env[TWITCH_ENV] = prevTwitch;
     vi.restoreAllMocks();
-    OfficeApi._resetRegistryRefForReload();
+    CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
   });
 
@@ -206,8 +206,8 @@ describe('OfficeRegistry', () => {
     seedGoogleUser('rando', 'someone@example.com');
     await bootRegistry();
 
-    expect(await OfficeApi.isFounder(makeAvatar('founder'))).toBe(true);
-    expect(await OfficeApi.isFounder(makeAvatar('rando'))).toBe(false);
+    expect(await CompactApi.isFounder(makeAvatar('founder'))).toBe(true);
+    expect(await CompactApi.isFounder(makeAvatar('rando'))).toBe(false);
   });
 
   it('isFounder is true for a matching Twitch handle (case-insensitive login)', async () => {
@@ -217,7 +217,7 @@ describe('OfficeRegistry', () => {
     seedTwitchUser('founder', 'bobalu_smallberries');
     await bootRegistry();
 
-    expect(await OfficeApi.isFounder(makeAvatar('founder'))).toBe(true);
+    expect(await CompactApi.isFounder(makeAvatar('founder'))).toBe(true);
   });
 
   it('isFounder is false when no matching User exists yet', async () => {
@@ -226,7 +226,7 @@ describe('OfficeRegistry', () => {
     // No users seeded (founder hasn't logged in).
     await bootRegistry();
 
-    expect(await OfficeApi.isFounder(makeAvatar('founder'))).toBe(false);
+    expect(await CompactApi.isFounder(makeAvatar('founder'))).toBe(false);
   });
 
   it('the founder is the default holder of every office (pool-of-one)', async () => {
@@ -237,12 +237,12 @@ describe('OfficeRegistry', () => {
 
     const founder = makeAvatar('founder');
     for (const office of OFFICE_APPARATUS) {
-      const held = await OfficeApi.holderOf(office.getKey());
+      const held = await CompactApi.officeHolderOf(office.getKey());
       expect(held.kind).toBe('founder');
       if (held.kind === 'founder') {
         expect(held.founderLabel).toBe('Bobalu_Smallberries');
       }
-      expect(await OfficeApi.holdsOffice(founder, office.getKey())).toBe(true);
+      expect(await CompactApi.holdsOffice(founder, office.getKey())).toBe(true);
     }
   });
 
@@ -252,11 +252,11 @@ describe('OfficeRegistry', () => {
     seedTwitchUser('founder', 'bobalu_smallberries');
     await bootRegistry();
 
-    const founderOffices = await OfficeApi.officesOf(makeAvatar('founder'));
+    const founderOffices = await CompactApi.officesOf(makeAvatar('founder'));
     expect(founderOffices.sort()).toEqual(
       OFFICE_APPARATUS.map((o) => o.getKey()).sort(),
     );
-    expect(await OfficeApi.officesOf(makeAvatar('nobody'))).toEqual([]);
+    expect(await CompactApi.officesOf(makeAvatar('nobody'))).toEqual([]);
   });
 
   it('an explicit handoff overrides the founder default for that seat', async () => {
@@ -270,19 +270,19 @@ describe('OfficeRegistry', () => {
       holderId: 'alice',
     });
 
-    const held = await OfficeApi.holderOf('prime-minister');
+    const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('explicit');
     if (held.kind === 'explicit') expect(held.holderPlayerId).toBe('alice');
 
-    expect(await OfficeApi.holdsOffice(makeAvatar('alice'), 'prime-minister')).toBe(
+    expect(await CompactApi.holdsOffice(makeAvatar('alice'), 'prime-minister')).toBe(
       true,
     );
     expect(
-      await OfficeApi.holdsOffice(makeAvatar('founder'), 'prime-minister'),
+      await CompactApi.holdsOffice(makeAvatar('founder'), 'prime-minister'),
     ).toBe(false);
 
     // The founder still holds the other four.
-    const founderOffices = await OfficeApi.officesOf(makeAvatar('founder'));
+    const founderOffices = await CompactApi.officesOf(makeAvatar('founder'));
     expect(founderOffices).not.toContain('prime-minister');
     expect(founderOffices.length).toBe(OFFICE_APPARATUS.length - 1);
   });
@@ -297,7 +297,7 @@ describe('OfficeRegistry', () => {
       holderId: 'alice',
     });
 
-    const roster = await OfficeApi.roster();
+    const roster = await CompactApi.officeRoster();
     expect(roster.length).toBe(OFFICE_APPARATUS.length);
     const pm = roster.find((r) => r.key === 'prime-minister')!;
     expect(pm.branch).toBe('executive');
@@ -322,11 +322,11 @@ describe('OfficeRegistry', () => {
 
     // Reload: re-construct the registry over the same store, re-run
     // postRegister (which does no DB work).
-    OfficeApi._resetRegistryRefForReload();
+    CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
     await bootRegistry();
 
-    const held = await OfficeApi.holderOf('prime-minister');
+    const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('explicit');
     if (held.kind === 'explicit') expect(held.holderPlayerId).toBe('alice');
   });
@@ -334,7 +334,7 @@ describe('OfficeRegistry', () => {
   it('holderOf reports unknown for a non-apparatus office key', async () => {
     installInMemoryStore();
     await bootRegistry();
-    const held = await OfficeApi.holderOf('grand-vizier');
+    const held = await CompactApi.officeHolderOf('grand-vizier');
     expect(held.kind).toBe('unknown');
   });
 
@@ -352,10 +352,10 @@ describe('OfficeRegistry', () => {
     expect(row).not.toBeNull();
     await row!.delete();
 
-    const held = await OfficeApi.holderOf('prime-minister');
+    const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('founder');
     expect(
-      await OfficeApi.holdsOffice(makeAvatar('founder'), 'prime-minister'),
+      await CompactApi.holdsOffice(makeAvatar('founder'), 'prime-minister'),
     ).toBe(true);
   });
 });

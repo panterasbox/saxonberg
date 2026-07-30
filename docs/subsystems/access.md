@@ -501,6 +501,24 @@ read of "the resource's owner group is who decides"; the
 alternative is "operators always win." Surface as a real
 decision when the first scoped-authoring consumer cares.
 
+## The committee — the title-holding group, named
+
+The jargon standard's replacement for cabal/"content group", realized
+(the civics build): **a committee is the group holding parcel title
+over a subdivision** — a relationship *derived* from `ownerOf`, never
+a stored kind. All committees are groups structurally; not all groups
+are committees; a player-held subdivision has none; the `core` state
+default is the Compact's own committee. Reads live on **`CompactApi`**
+(the single meta-institution facade — `api/compact.ts`):
+`committeeOf(path)`, `isCommitteeMember` (group membership, or the
+founder via the Art. XI pool-of-one backstop — mirroring the office
+founder default), `committeeMembersOf`, and the chat seam
+(`committeeChannelOf` / idempotent `ensureCommitteeChannel` — a bound
+channel whose audience IS the committee group; chat.md). Surfaced by
+the public `committee` verb (`system` category). A committee's
+*authority* is exactly title — this Api adds identity and reads, never
+a second authorization path; `can` stays the gate.
+
 ## Cross-references
 
 - [call-security.md](./call-security.md) — `FromController`

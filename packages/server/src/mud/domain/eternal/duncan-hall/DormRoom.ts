@@ -56,6 +56,14 @@ export default class DormRoom extends DormRoomBase {
   static readonly SCOPE = '/domain/eternal/duncan-hall/dormroom';
 
   /**
+   * The dorm's address in the addressing namespace — content knows its
+   * own address (matches the `_address` the duncan-hall room seeds
+   * declare). The provision-time domicile stamp writes this onto the
+   * tenant (the civics residency substrate).
+   */
+  static readonly ADDRESS = 'terminus/city/campus/duncan-hall';
+
+  /**
    * Prose rides the Visible/Detailed slices; the Warren back-ref + exits are
    * runtime; the theme overlay + fixtures ride the spine's slices. The
    * born-with fixtures (Bed / Desk / Footlocker) are declared as `populates:`

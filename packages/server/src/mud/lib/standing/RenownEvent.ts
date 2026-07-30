@@ -50,7 +50,7 @@ export type RenownEventKind =
 
 /**
  * A renown scope — the circle a standing is asked about.
- *   - `null` = cooperative-wide (the global polity scope; matches every
+ *   - `null` = Compact-wide (the global polity scope; matches every
  *     event). This is the scope governance reads.
  *   - a `Group` ref (e.g. `'contacts:thieves-guild'`) — matches events
  *     whose `groups` axis contains it.

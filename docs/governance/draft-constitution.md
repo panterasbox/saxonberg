@@ -1,4 +1,4 @@
-# Draft Constitution of the Cooperative
+# Draft Constitution of the Compact
 
 > **Status: DRAFT — not ratified.** A formal consolidation of the design in
 > [cooperative-slate.md](../slates/builds/cooperative-slate.md) into normative articles. The
@@ -62,9 +62,12 @@
 ## Preamble
 
 We, the members of this world — its makers, its funders, and its players —
-establish this constitution to govern ourselves as a **cooperative**: a
+establish this constitution to govern ourselves as **the Compact**: a
 polity in which those who fund the world are those who govern it, and in
-which the act of governing is itself part of the world. We hold that a
+which the act of governing is itself part of the world. We take our name
+from what we hold to be the whole of the thing: not the apparatus but the
+agreement, engaged in good faith — for a right that lives only on paper
+is no right at all. We hold that a
 digital polity, freed of the distances and frictions of physical assembly,
 can govern *better* than its forebears — keeping what those systems protected
 and discarding only what they merely endured. We bind ourselves to honest

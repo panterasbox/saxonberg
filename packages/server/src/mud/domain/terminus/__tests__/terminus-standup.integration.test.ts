@@ -94,6 +94,9 @@ const STUBS: Doc[] = [
   },
   { path: "/domain/test/crossroads-room", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
   { path: "/domain/terminus/terminal/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  // The registry office (cascaded via the arrival gate's east exit)
+  // populates the registrar — same heavy-NPC stub treatment.
+  { path: "/domain/terminus/registry/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the registrar" } },
   { path: "/domain/eternal/university-avenue/crossing", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 

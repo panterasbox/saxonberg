@@ -128,7 +128,7 @@ describe('RenownLogic.recompute', () => {
       groups: ['managed:g2'],
     });
     await RenownApi.recompute();
-    expect(RenownApi.renownOf(S, null)).toBe(0); // +1 + -1, cooperative-wide
+    expect(RenownApi.renownOf(S, null)).toBe(0); // +1 + -1, Compact-wide
     expect(RenownApi.renownOf(S, 'managed:g1')).toBe(1); // esteemed by the guild
     expect(RenownApi.renownOf(S, 'managed:g2')).toBe(-1); // notorious in g2
   });

@@ -858,7 +858,7 @@ export class PersistenceManager {
 
       // Participation standings: the materialized per-subject aggregate (a
       // rebuildable cache). Indexed on `{ subject, scope }` — the upsert key
-      // and the warm() load shape (scope is always the cooperative-wide '*').
+      // and the warm() load shape (scope is always the Compact-wide '*').
       await this.getCollection(Collections.Participation).createIndex({
         subject: 1,
         scope: 1,

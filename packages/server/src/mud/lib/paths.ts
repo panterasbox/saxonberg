@@ -38,6 +38,7 @@ export const TemplatePaths = {
   soulCatalogue: "/obj/SoulCatalogue",
   disciplineCatalogue: "/obj/DisciplineCatalogue",
   corpoCatalogue: "/obj/CorpoCatalogue",
+  governmentCatalogue: "/obj/GovernmentCatalogue",
   helpCatalogue: "/obj/HelpCatalogue",
   bulletinBoard: "/obj/BulletinBoard",
 
@@ -99,6 +100,10 @@ export const TemplatePathPrefixes = {
   // scans at boot (the megacorps and their product brands).
   corpo: "/lib/corpo/Corpo/",
   brand: "/lib/corpo/Brand/",
+  // Civics — the diegetic Government leaf roster the GovernmentCatalogue
+  // scans at boot (governments are plural authored content — never the
+  // Compact's face).
+  government: "/lib/civics/Government/",
   perceptionModalities: "/lib/perception/modalities/",
   // Addressing — the Locality leaf roster lives under this prefix; the
   // AddressRegistry enumerates it to build the coverage index.

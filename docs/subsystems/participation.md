@@ -68,7 +68,7 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
 - **`participation` standing** (`ParticipationStanding`) — the rebuildable
   per-subject aggregate: the recency-decayed active-bucket count. A derived
   cache, never authoritative — **drop it, replay the log, get identical
-  standings** (the invariant a test asserts). Cooperative-wide only (no
+  standings** (the invariant a test asserts). Compact-wide only (no
   scope partition); the `{subject, scope}` shape with `scope = '*'` is kept
   for parity with `RenownStanding`.
 
@@ -127,7 +127,7 @@ fit). Raw logs stay per-faucet.
   dispatcher; no faucet, no logic singleton.
 - **`RenownApi`** — the shared, general social-standing substrate, read for
   the quality half. Untouched by this build (it is dual-projection —
-  governance reads the cooperative-wide roll-up; NPC/social/disguise read
+  governance reads the Compact-wide roll-up; NPC/social/disguise read
   the per-circle vector — not a consumer-chamber thing).
 
 Value-objects live in `lib/standing/` (`ParticipationEvent`,

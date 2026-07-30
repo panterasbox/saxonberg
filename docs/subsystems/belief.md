@@ -235,7 +235,7 @@ like recognition — "the same Bob, three realms at one referent key": a
 separate record from recognition's, not a field on it. Regard is the
 per-viewer leg D&D charisma unbundles into (regard + renown +
 susceptibility — see the reputation slate) and the *reciprocation /
-social-embeddedness* primitive of the future reputation / cooperative-
+social-embeddedness* primitive of the future reputation / Compact-
 polity Sybil keystone.
 
 - **Overwrite, not raise-only.** `know` *raises* `knownAs` and merges

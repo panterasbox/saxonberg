@@ -4,7 +4,7 @@
  * The only faucet/sink for money: total supply changes solely by a logged
  * central-bank mint or drain, every operation auditable. v1 builds only the
  * monetary *mechanism* (mint / drain / float / seed), not its governance —
- * the legislative/archive/judicial wrapper is the cooperative build's job
+ * the legislative/archive/judicial wrapper is the Compact-governance build's job
  * and grafts on later without disturbing the mechanism.
  *
  * The mint/drain/float *logic* lives in {@link BankingLogic} and is surfaced

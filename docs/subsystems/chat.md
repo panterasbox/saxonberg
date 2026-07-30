@@ -35,7 +35,7 @@ fixed origin story and lifetime:
   collection. Carries an explicit member roster (creator joins as
   `owner`); only members are eligible to post or receive.
 - **open-join-standalone** — engine-seeded (`Help`, `Global`, `Chat`)
-  or, in time, content-team-created. Persistent. Has no member
+  or, in time, committee-created. Persistent. Has no member
   roster at all — eligibility is universal. Audience is gated only
   by per-player subscription.
 - **ad-hoc** — minted on the fly when a `dm` is sent to more than one

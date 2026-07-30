@@ -1,0 +1,15 @@
+# The Eternal University — the campus-tier government (the town-gown
+# layer): the University holds its own charter inside the city inside the
+# realm, so a dorm room's jurisdiction chain reads [university, city,
+# realm]. THIN in v1: identity + jurisdiction only (the campus Locality
+# declares this key); a Chancellor seat and college structure are later
+# content.
+class: /lib/civics/Government
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: eternal-university
+  displayName: the Eternal University
+  description: >-
+    The University under its own charter — older than the city
+    administration around it, governing its campus by academic privilege
+    the realm's charter recognizes rather than grants.

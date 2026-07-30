@@ -84,6 +84,7 @@ behavior. Read the relevant doc before editing in its area.
   - [parcel.md](./docs/subsystems/parcel.md) — real-property title: ParcelRecord + chain-of-title, ParcelRegistry, `ownerOf`, `subdivide`/`transfer`
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
+  - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
   - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports (Twitch/YouTube/Kick — Kick = webhook-inbound + the KickProfile provider); overlay chat forwarding
   - [twitch-relay.md](./docs/subsystems/twitch-relay.md) — [superseded → streaming.md] the Twitch transport: EventSub reader, reauth flow, RelaySpeaker
@@ -462,7 +463,9 @@ reason.
   slash). Content commands are **afforded by content** (the owning
   NPC/fixture's `commandContributions`), never by a core mixin. Categories:
   perception, social, movement, posture, inventory, boundary, bulk, shell,
-  author, system, charactergen, crafting, banking, governance, stream, tpa,
+  author, system, charactergen, crafting, banking, governance, civics
+  (the FICTION's governments — `government`; the meta `committee` verb
+  stays under `system`, the jargon standard's layer split), stream, tpa,
   medical, combat, magic (`cast`/`spells` — the casting core), work (the
   labor market — `job`/`fulfill`), device
   ("operating a built object or mechanism" —

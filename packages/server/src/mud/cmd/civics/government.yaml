@@ -1,0 +1,37 @@
+verbs: [government, gov]
+controller: /obj/command/civics/GovernmentController
+description: "The governments over this place, and your residency"
+help: |
+  Every place may sit under a chain of governments — a campus inside a
+  city inside a realm, most local first. These are the fiction's own
+  institutions: authored, plural, different from city to city. (They
+  are not the Compact — the real body that runs the platform; for its
+  seats, see `offices`.)
+
+  `government` (or `government list`) shows the chain over where you
+  are standing — each government's name, its departments, its seats
+  and who holds them, and its charter. Ground no government claims
+  says so honestly.
+
+  `government residency` shows the chain over where you *live* — your
+  domicile. You are subject to the law of wherever you stand; you are
+  a resident of wherever you dwell. Your domicile follows your home
+  and persists until a new home replaces it.
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  list:
+    description: "Show the government chain over where you stand"
+    help: |
+      The jurisdiction chain at your current location, most local
+      first, with each government's seats, departments, and charter.
+      Public — runnable by anyone.
+  residency:
+    description: "Show your residency — the chain over your domicile"
+    help: |
+      Where you are a resident: the government chain over your
+      domicile (your home's address). Distinct from where you stand —
+      a visitor is subject to local law without being a resident.
+    examples:
+      - cmd: government residency
+        note: Whose resident am I?

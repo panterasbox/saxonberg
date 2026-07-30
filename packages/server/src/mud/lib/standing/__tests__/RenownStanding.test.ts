@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import RenownStanding, { COOPERATIVE_WIDE } from '../RenownStanding';
+import RenownStanding, { COMPACT_WIDE } from '../RenownStanding';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 
 let store: Map<string, Record<string, unknown>>;
@@ -43,14 +43,14 @@ afterEach(() => {
 describe('RenownStanding', () => {
   it('reads the neutral 0 from a cold cache (never throws)', () => {
     expect(
-      RenownStanding.cached().get(RenownStanding.key('/p', COOPERATIVE_WIDE))
+      RenownStanding.cached().get(RenownStanding.key('/p', COMPACT_WIDE))
     ).toBeUndefined();
   });
 
   it('warm loads saved rows into the cache, keyed by {subject, scope}', async () => {
     const a = new RenownStanding();
     a.subject = '/p1';
-    a.scope = COOPERATIVE_WIDE;
+    a.scope = COMPACT_WIDE;
     a.value = 5;
     a.recomputedAt = 100;
     await a.save();
@@ -62,7 +62,7 @@ describe('RenownStanding', () => {
 
     await RenownStanding.warm();
     const cache = RenownStanding.cached();
-    expect(cache.get(RenownStanding.key('/p1', COOPERATIVE_WIDE))).toBe(5);
+    expect(cache.get(RenownStanding.key('/p1', COMPACT_WIDE))).toBe(5);
     expect(cache.get(RenownStanding.key('/p1', 'managed:guild'))).toBe(-2);
     expect(cache.get(RenownStanding.key('/p1', 'managed:none'))).toBeUndefined();
   });

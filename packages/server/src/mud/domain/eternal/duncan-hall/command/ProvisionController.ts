@@ -41,6 +41,8 @@ import { CredentialApi } from '../../../../api/credential';
 import { Lock } from '../../../../lib/lock/Lock';
 import { ParcelRecord, type ParcelOwner } from '../../../../lib/parcel/ParcelRecord';
 import DormWarren from '../DormWarren';
+import DormRoom from '../DormRoom';
+import { Character } from '../../../../lib/character/Character';
 import DormThemes from '../DormThemes';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 
@@ -102,6 +104,18 @@ export default class ProvisionController extends CommandController<ProvisionMode
 
     await ParcelApi.subdivide(unitExtent, DormWarren.DORMS_EXTENT, owner);
     await ParcelApi.grantUse(unitExtent, playerPath, null);
+
+    // Stamp the tenant's domicile (the civics residency substrate): the
+    // dorm is now their home; the field persists-until-replaced, so a
+    // later unprovision leaves it standing until a new home overwrites
+    // it. Best-effort — a stamp failure never voids the lease.
+    try {
+      if (target instanceof Character) {
+        target.setDomicileAddress(DormRoom.ADDRESS);
+      }
+    } catch {
+      /* best-effort */
+    }
 
     // Key the unit's lock (a fresh keyway re-keys any prior tenant's key to
     // dead metal) and issue the tenant their key — a physical brass key in

@@ -1678,8 +1678,8 @@ subcommands:
     description: …
 ```
 
-If you find yourself starting `executeAssign` with an
-`OfficeApi.isFounder(ctx.commandGiver)` check, that's the smell —
+If you find yourself starting `executeAssign` with a
+`CompactApi.isFounder(ctx.commandGiver)` check, that's the smell —
 the gate is a subcommand validator, and the controller re-derives
 no authority.
 

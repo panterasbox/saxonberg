@@ -29,7 +29,7 @@ Three deltas, the first the important one:
   literacy, taught by doing.
 - **STANDING / world — you become *counted*.** Your character lands on the rolls
   with an **enumeration date** (the roll-clock) — the personhood/enfranchisement
-  anchor (the hook into the cooperative polity: counted = you get a say). §6
+  anchor (the hook into the Compact: counted = you get a say). §6
   newcomer → on-the-rolls.
 - **CASE — the gaps are the bodies.** You learn, viscerally, that **the form's
   missing boxes are the kill-list's recruiting ground** (§15.2). The victims
@@ -50,7 +50,7 @@ world is the murderer's tool.**
 
 The form measures **what you contribute**, not who you are. And this is not a
 borrowed dystopia — it is **the world's own civic logic with the floor removed.**
-The cooperative enfranchises by engagement; the influence stocks are literally
+The Compact enfranchises by engagement; the influence stocks are literally
 *make / play / fund* (producer / consumer / patron — see
 [influence.md](../../../subsystems/influence.md)), and your *say* is
 engagement × renown. **The census measures exactly what the legislature
@@ -59,7 +59,7 @@ there, but *our own operating principle, one inversion away from monstrous.*
 
 The inversion is the thesis in one move:
 
-> The cooperative makes engagement **additive and opt-in** — *more
+> The Compact makes engagement **additive and opt-in** — *more
 > participation → more voice.*
 > The census makes the same engagement **the floor of personhood** — *no
 > participation → no person.*

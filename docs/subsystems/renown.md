@@ -73,7 +73,7 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
   identical standings). Reads hit an always-a-`Map` in-memory cache
   (cold = neutral `0`, never throws) warmed at boot (`warm()`, mirroring
   `AppSettings.warm`) and refreshed by each recompute. `scope` is the
-  stored key — the sentinel `'*'` = cooperative-wide (the scope governance
+  stored key — the sentinel `'*'` = Compact-wide (the scope governance
   reads), else a `Group` ref or locality prefix. Stamps `recomputedAt` +
   `recomputedRealAt`.
 
@@ -164,8 +164,8 @@ of the scope-tagged log, not separate state. Scope is multi-axis —
 objective `Group`s shared by source & subject, via the new
 `GroupApi.sharedManagedGroups`). The recompute derives each subject's
 materialized scope set from that subject's own events:
-`{cooperative-wide} ∪ groups ∪ localities`. **Two projections of one
-quantity:** governance reads the single cooperative-wide roll-up;
+`{Compact-wide} ∪ groups ∪ localities`. **Two projections of one
+quantity:** governance reads the single Compact-wide roll-up;
 NPC/social/disguise read the per-`Group`/per-locality vector.
 
 ## The recompute

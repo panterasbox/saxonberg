@@ -227,7 +227,7 @@ export const AppSettingKeys = {
    * Banking — the **demo** sales-tax rate, a fraction of a purchase remitted
    * to the placeholder treasury via the remittance-split seam. Authored and
    * **inert** (recorded, not governed — the corpo-affiliation-edge
-   * precedent); live/legislated taxation is the cooperative build. See
+   * precedent); live/legislated taxation is the Compact-governance build. See
    * docs/subsystems/banking.md.
    */
   bankingSalesTaxRate: "banking.salesTaxRate",

@@ -79,7 +79,7 @@ export class RenownApi {
 
   /**
    * The raw, scope-filtered log reader — the substrate read. Returns the
-   * subject's signal rows within `scope` (default: cooperative-wide).
+   * subject's signal rows within `scope` (default: Compact-wide).
    * Consumers should read the materialized aggregate (`renownOf`); this is
    * the unscored substrate seam.
    */
@@ -103,7 +103,7 @@ export class RenownApi {
 
   /**
    * The sync cached read — the signed standing (esteem ↔ notoriety) of
-   * `subject` within `scope` (default cooperative-wide, the scope
+   * `subject` within `scope` (default Compact-wide, the scope
    * governance reads). Returns the neutral 0 for a non-materialized scope.
    * The seam future consumers (governance / NPC / disguise) call.
    */
