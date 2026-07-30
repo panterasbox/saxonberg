@@ -124,6 +124,36 @@ const CharacterBase = AdvancementMixin(
  */
 export abstract class Character extends CharacterBase {
   /**
+   * Domicile — the address-namespace string (Pattern A) of this
+   * character's home, or `null` when none was ever established. The
+   * civics residency read (`GovernmentApi.residentOf`) derives the
+   * character's government chain from it.
+   *
+   * **Persists-until-replaced is structural**: nothing ever clears this
+   * field — a new home overwrites it, losing a dwelling leaves it
+   * standing (homelessness is no dwelling, not no civic identity).
+   * Writers are residence content (the dorm lease grant stamps it);
+   * see docs/subsystems/civics.md § the domicile seam.
+   */
+  protected _domicileAddress: string | null = null;
+
+  static persistentFields = ['_domicileAddress'];
+
+  public getDomicileAddress(): string | null {
+    return this._domicileAddress;
+  }
+  public setDomicileAddress(value: string | null): void {
+    if (value !== null && typeof value !== 'string') {
+      throw new TypeError(
+        'Character._domicileAddress must be a string or null',
+      );
+    }
+    const trimmed = value?.trim() ?? '';
+    if (trimmed.length === 0) return; // never clears — persists-until-replaced
+    this._domicileAddress = trimmed;
+  }
+
+  /**
    * Constructor.
    * Subclasses should call super() and then initialize.
    */

@@ -190,6 +190,12 @@ export class AddressLogic extends ApiLogic {
     return lookupRegistry()?.coveringLocalityOf(address) ?? null;
   }
 
+  /** See {@link AddressApi.coverageChainOf}. Sync fast-path. */
+  @CallSecurity(AddressApiCallers)
+  public coverageChainOf(address: string): Locality[] {
+    return lookupRegistry()?.coverageChainOf(address) ?? [];
+  }
+
   /** See {@link AddressApi.findByAddress}. Exact-match. */
   @CallSecurity(AddressApiCallers)
   public findByAddress(address: string): Locality | null {
