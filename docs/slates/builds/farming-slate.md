@@ -58,6 +58,11 @@ See also:
   what the maintenance/upkeep drain below is priced against); this slate
   owns only the *spatial subdivision + biology*, not the title or the
   meter. The "assume I already have the land" premise is property's.
+- [docs/slates/builds/stewardship-slate.md](./stewardship-slate.md) — **the
+  gate.** Land use decides whether a parcel admits cultivation and at what
+  density (none / a bed / a field); the allowance cascade decides how much
+  liveness the locality funds. Also the home of the residence ladder the
+  houseplant on-ramp sits at the bottom of.
 - [docs/slates/builds/ranching-slate.md](./ranching-slate.md) — **the
   sibling** (the animal half of agriculture). Two couplings to reconcile:
   the conserved **feed loop** (crops → feed → livestock → products →

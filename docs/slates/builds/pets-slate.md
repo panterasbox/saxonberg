@@ -42,7 +42,11 @@ fauna are Character-tier carves) ·
 [dorm-warren-slate](./dorm-warren-slate.md) (where a pet lives) ·
 [reputation-slate](./reputation-slate.md) (regard, scoped to the animal) ·
 [provenance-slate](./provenance-slate.md) (authorship — *not* the possession gap this surfaces) ·
-**[property-slate](./property-slate.md) (the parent — the possession/custody substrate this build consumes).**
+**[property-slate](./property-slate.md) (the parent — the possession/custody
+substrate this build consumes)** ·
+**[stewardship-slate](./stewardship-slate.md) (the gate — land use decides
+whether your residence admits a companion at all, and how many; the dorm is the
+ladder's bottom rung).**
 
 ---
 

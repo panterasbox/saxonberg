@@ -66,6 +66,16 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
    phases named, tenancy/tax mechanisms thinnest] — the essential
    **sinks** (rent, rates) and the residence progression every player
    rides. *Serves: Landwrights; the money supply's drain side.*
+   **2026-07-31:** the missing connective tissue is now designed in
+   [stewardship-slate](./slates/builds/stewardship-slate.md) — **land
+   use** (a closed vocabulary typing what a parcel admits; absent from
+   the corpus today), the **allowance cascade** (Compact → locality →
+   parcel, with the sandbox drawing Compact-direct), the ladder's
+   **actual gating rule** (condition of what you already hold, not just
+   money), and **stewardship** (condition + Discipline). Two known
+   blockers: dense suburbia needs the deferred *region parcel*, and the
+   cascade needs Phase 1's un-designed allowance **meter**. **Land use
+   alone needs neither** and is what unblocks farming/ranching/pets.
 
 ## 2. Pre-beta content passes (wanted regardless of guilds)
 

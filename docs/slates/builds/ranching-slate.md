@@ -26,6 +26,9 @@ different experience; see The family placement) ·
 [fishing-slate](./fishing-slate.md) (aquaculture is ranching's aquatic casting;
 `BodyPlan`→parts on cleaning is settled there) ·
 [mining-slate](./mining-slate.md) (the commons-renewal counterpoint) ·
+[stewardship-slate](./stewardship-slate.md) (**the gate** — land use decides
+whether a parcel admits livestock and how many head; the allowance cascade
+decides how much liveness the locality funds) ·
 [guild-slate](./guild-slate.md) (**the Grange** — ranching is its herd wing) ·
 substrates: [race.md](../../subsystems/race.md) (`Creature` tier · `Species` ·
 `SexedMixin`) · [vitals.md](../../subsystems/vitals.md) +
