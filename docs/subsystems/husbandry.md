@@ -413,6 +413,71 @@ pot` as readily as `water the lily`.
 
 ---
 
+## Advancement — `horticulture`, and how it earns
+
+Two Discipline rows ship, opening the Catalog's **first agricultural branch**
+(39 shipped before them and none were agricultural):
+
+| key | channel | ISCED-F | role |
+|---|---|---|---|
+| `agriculture` | knowledge | `081` | the narrow-field spine node; nothing practises it |
+| `horticulture` | skill | `0812` | the practised leaf — `specializes: [agriculture]` |
+
+`agriculture` is minted ahead of its siblings on purpose: it is the home
+farming's crop rows, ranching's animal husbandry and stewardship's land care
+will all need, and giving them a parent that already exists is cheaper than
+re-parenting later. (Re-parenting is safe regardless — edges join on `key`,
+never on templatePath.) The broad-field parent (ISCED-F `08`) stays absent,
+per advancement.md's deferred-spine rule and `medicine`'s precedent.
+
+**`horticulture` is the plant side only.** Animals are a different practice
+with a different anchor, so phase 5's pets and livestock get their own leaf
+under the same parent rather than overloading this one — which is exactly what
+naming it `horticulture` instead of `husbandry` preserves.
+
+### Evidence is outcome-shaped, not an action count
+
+All three husbandry verbs mint a `deed`, and **difficulty is read off the
+world** at the moment of the act — never tagged on the verb:
+
+| act | difficulty | from |
+|---|---|---|
+| `plant` | `trivial` | pressing a seed into soil is the entry act |
+| `water` | `trivial` → `hard` | `Plant.careDifficulty()` — the condition band, so a top-up is trivial and a rescue is hard |
+| `repot` | `trivial` → `hard` | `Plant.transplantDifficulty()` — the growth stage, since root disturbance scales with what there is to disturb |
+
+Two properties make this a practice rather than an odometer:
+
+- **A refused act earns nothing.** `water` credits only when the soil actually
+  had headroom — going through the motions on a wet plant is rejected before
+  any deed is minted — and a planting into a soil-less pot credits nothing.
+- **The easy end cannot be farmed, by the estimator's own maths.** A trivial
+  success is *unsurprising* and barely moves the BKT estimate, and the
+  transit rate is an inverted-U peaking at `hard`. So spamming waterings is a
+  levelling-mill the model already forbids; there is no bespoke guard here
+  because none is needed.
+
+> ⚠ **One tension worth naming.** Because difficulty tracks how far gone the
+> plant is, the `hard` grade is only reachable by letting one get to
+> `failing` — so the model does, in principle, reward brinkmanship. It is
+> left standing because the cost is real (days of game-time, and the plant may
+> simply die, which credits nothing and is terminal) and because the
+> alternative — grading by *how hard the judgment was* — is not measurable
+> until phase 7's diagnosis surface exists. Revisit it there.
+
+### No conferrals, deliberately
+
+`horticulture` confers no verbs. The natural knowing→doing seam for growing
+things is **diagnosis** — reading a plant closely enough to tell a thirsty one
+from a root-bound one, with instruments and error bars behind it — and that is
+phase 7's build. A conferral now would mean inventing the content the band is
+supposed to open.
+
+The row is still live rather than decorative: it accrues real evidence today,
+and the shipped `competence` verb reports its band.
+
+---
+
 ## Deferred seams — attach points, not stubs
 
 - **`_vigor` is the condition score.** Phase 5 gives it a general home
@@ -439,8 +504,9 @@ pot` as readily as `water the lily`.
   the `DormWarren` keyed-holder pattern — which phase 2 and phase 4 pay for.
 - **The finite-but-regenerating bulk source.** The tap is infinite, as
   `lib/bulk/UnboundedSource.ts`'s own docstring anticipates.
-- **No Discipline.** No agricultural Discipline row ships; science is the
-  skill ceiling, not the entry fee.
+- **No competence GATE, no instruments, no error bars.** Science is the skill
+  ceiling, not the entry fee; v1 is the entry. The `horticulture` Discipline
+  ships and accrues evidence (below), but nothing reads its band yet.
 - **No bond, no attention need, no regard.** A plant cannot hold an opinion
   of you — the family's stated asymmetry, and
   [pets](../slates/builds/pets-slate.md)' whole divergence.

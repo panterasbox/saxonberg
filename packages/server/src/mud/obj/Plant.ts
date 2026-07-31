@@ -46,6 +46,7 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type { Containable } from "../lib/spatial/Containable";
 import type { Slotted } from "../lib/slot/Slotted";
+import type { Difficulty } from "../lib/advancement/ActSignature";
 import PlantPot from "./PlantPot";
 
 // PersistableMixin OUTERMOST — the documented host rule.
@@ -82,6 +83,51 @@ export default class Plant extends PlantBase {
   public getPot(): PlantPot | null {
     const host = this.getOccupiedHost();
     return host instanceof PlantPot ? host : null;
+  }
+
+  /**
+   * How hard it is to bring this plant's water back right now — the
+   * `horticulture` difficulty the `water` verb credits.
+   *
+   * **A world-measurement, not a tag** (the advancement rule): it reads the
+   * plant's own condition, so topping up a thriving plant is trivial and
+   * pulling a failing one back is a rescue. The `water` verb only credits
+   * anything at all when the soil had headroom, so a routine top-up is
+   * genuinely the easy end rather than a grind — and the estimator makes a
+   * trivial success barely move the estimate, which is what stops the easy
+   * end from being a levelling-mill.
+   */
+  public careDifficulty(): Difficulty {
+    switch (this.getConditionBand()) {
+      case "thriving":
+        return "trivial";
+      case "healthy":
+        return "easy";
+      case "stressed":
+        return "standard";
+      default:
+        // `failing` — a rescue. (`dead` never reaches here: `waterPlant`
+        // absorbs nothing, so the verb credits nothing.)
+        return "hard";
+    }
+  }
+
+  /**
+   * How hard it is to move this plant to another pot — the `horticulture`
+   * difficulty the `repot` verb credits. Root disturbance scales with what
+   * there is to disturb, so a seedling is trivial and a grown plant is not.
+   */
+  public transplantDifficulty(): Difficulty {
+    switch (this.getGrowthStage()) {
+      case "seedling":
+        return "trivial";
+      case "young":
+        return "easy";
+      case "established":
+        return "standard";
+      default:
+        return "hard"; // `mature`
+    }
   }
 
   /**

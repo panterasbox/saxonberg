@@ -21,6 +21,7 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
+import { AdvancementApi } from '../../../api/advancement';
 import PlantPot, { PLANT_SLOT } from '../../PlantPot';
 import Plant from '../../Plant';
 
@@ -144,6 +145,10 @@ export default class RepotController extends CommandController<RepotModel> {
       return;
     }
 
+    // Read the difficulty before the move — root disturbance is a measurement
+    // of the plant as it stands.
+    const difficulty = subject.transplantDifficulty();
+
     if (origin) origin.vacate(PLANT_SLOT, subject);
     ContainmentApi.move(subject, target);
     target.occupy(subject, PLANT_SLOT);
@@ -152,6 +157,20 @@ export default class RepotController extends CommandController<RepotModel> {
       await PersistableApi.captureHostOf(subject);
     } catch (err) {
       console.warn('RepotController: capture after repotting failed:', err);
+    }
+
+    // Credit `horticulture`. This is the build's one real diagnosis-and-fix
+    // act: the player read a cause line ("it has outgrown its pot"), inferred
+    // the remedy, and acted — so it grades by what was actually at stake,
+    // which is how much root there was to disturb.
+    try {
+      await AdvancementApi.recordDeed(giver, {
+        discipline: 'horticulture',
+        difficulty,
+        outcome: 'success',
+      });
+    } catch (err) {
+      console.warn('RepotController: recording the deed failed:', err);
     }
 
     MessageApi.scene(giver)

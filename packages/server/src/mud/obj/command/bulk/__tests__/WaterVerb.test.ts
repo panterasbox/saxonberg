@@ -33,6 +33,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
 import { PersistableApi } from '../../../../api/persistable';
+import { AdvancementApi } from '../../../../api/advancement';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import {
@@ -194,6 +195,7 @@ function noteReasons(ctx: CommandContext): string[] {
 }
 
 let captured: Stuff[];
+let deeds: Array<{ discipline: string; difficulty: string; outcome: string }>;
 
 describe('the watering capability', () => {
   it('the watering row confers water, carried-only', () => {
@@ -230,6 +232,13 @@ describe('water <plant>', () => {
         captured.push(s);
       }) as unknown as typeof PersistableApi.captureHostOf,
     );
+    deeds = [];
+    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation((async (
+      _owner: Stuff,
+      subcheck: { discipline: string; difficulty: string; outcome: string },
+    ) => {
+      deeds.push(subcheck);
+    }) as unknown as typeof AdvancementApi.recordDeed);
   });
 
   // No StuffApi.clearAll() — it wipes the WorldClockRegistry (the Caster
@@ -398,6 +407,51 @@ describe('water <plant>', () => {
       ctx2,
     );
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
+  });
+
+  it('credits horticulture, and the difficulty tracks the plant\'s state', async () => {
+    // The anti-grind property, at the verb: difficulty is a measurement of
+    // the world (how far gone the plant was), not a tag on the act. A routine
+    // top-up grades trivially — and the estimator makes a trivial success
+    // barely move the estimate, so watering cannot be farmed.
+    const { giver, room, plant } = scene();
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+    dryOut(plant, 6); // still healthy — a routine top-up
+    expect(plant.getConditionBand()).toBe('healthy');
+
+    const ctrl = makeStuff(() => new WaterController());
+    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    expect(deeds).toHaveLength(1);
+    expect(deeds[0]!.discipline).toBe('horticulture');
+    expect(deeds[0]!.difficulty).toBe('easy');
+    expect(deeds[0]!.outcome).toBe('success');
+  });
+
+  it('a rescue grades harder than a top-up', async () => {
+    const { giver, room, plant } = scene();
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+    // Let it fall to `failing` — pulling it back is a rescue, not a top-up.
+    plant.getVigor();
+    now = BASE + 90 * 86_400;
+    expect(plant.getConditionBand()).toBe('failing');
+
+    const ctrl = makeStuff(() => new WaterController());
+    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    expect(deeds).toHaveLength(1);
+    expect(deeds[0]!.difficulty).toBe('hard');
+  });
+
+  it('going through the motions earns nothing — no headroom, no deed', async () => {
+    const { giver, room, plant } = scene();
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+    plant.getVigor(); // full root zone, no elapsed time
+
+    const ctrl = makeStuff(() => new WaterController());
+    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    expect(deeds).toHaveLength(0);
   });
 
   it('a dead plant cannot be revived by watering', async () => {

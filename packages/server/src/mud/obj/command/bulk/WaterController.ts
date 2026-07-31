@@ -28,9 +28,11 @@ import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { PersistableApi } from '../../../api/persistable';
+import { AdvancementApi } from '../../../api/advancement';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Growing } from '../../../lib/husbandry/Growing';
 import PlantPot, { PLANT_SLOT } from '../../PlantPot';
+import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
 
@@ -158,6 +160,11 @@ export default class WaterController extends CommandController<WaterModel> {
       return;
     }
 
+    // Read the difficulty BEFORE the water lands — it is a measurement of the
+    // state the plant was in when the act was needed, and watering it is
+    // precisely what changes that state.
+    const difficulty =
+      plant instanceof Plant ? plant.careDifficulty() : 'standard';
     const absorbed = plant.waterPlant(result.applied);
 
     // A failed capture must not fail the verb.
@@ -165,6 +172,21 @@ export default class WaterController extends CommandController<WaterModel> {
       await PersistableApi.captureHostOf(plant);
     } catch (err) {
       console.warn('WaterController: capture after watering failed:', err);
+    }
+
+    // Credit `horticulture` — but only when the soil actually took the water.
+    // A plant with no headroom never reaches here (the verb rejected above),
+    // so there is no credit for going through the motions.
+    if (absorbed > 0) {
+      try {
+        await AdvancementApi.recordDeed(giver, {
+          discipline: 'horticulture',
+          difficulty,
+          outcome: 'success',
+        });
+      } catch (err) {
+        console.warn('WaterController: recording the deed failed:', err);
+      }
     }
 
     const appearance =

@@ -34,6 +34,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
 import { PersistableApi } from '../../../../api/persistable';
+import { AdvancementApi } from '../../../../api/advancement';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import {
@@ -199,6 +200,7 @@ function noteReasons(ctx: CommandContext): string[] {
 }
 
 let captured: Array<Stuff>;
+let deeds: Array<{ discipline: string; difficulty: string; outcome: string }>;
 
 describe('plant / repot', () => {
   beforeEach(() => {
@@ -223,6 +225,13 @@ describe('plant / repot', () => {
         captured.push(s);
       }) as unknown as typeof PersistableApi.captureHostOf,
     );
+    deeds = [];
+    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation((async (
+      _owner: Stuff,
+      subcheck: { discipline: string; difficulty: string; outcome: string },
+    ) => {
+      deeds.push(subcheck);
+    }) as unknown as typeof AdvancementApi.recordDeed);
   });
 
   // No StuffApi.clearAll() — it would wipe the WorldClockRegistry and
@@ -398,6 +407,65 @@ describe('plant / repot', () => {
     const said = JSON.stringify(giver.received);
     expect(said).toContain('too small');
     expect(captured).toHaveLength(0);
+  });
+
+  it('both verbs credit horticulture; repot grades by root disturbance', async () => {
+    const { giver, room } = scene();
+    const pot = makePot(0.5);
+    ContainmentApi.move(pot, room);
+    const seed = makeSeed();
+    ContainmentApi.move(seed, giver);
+
+    // `plant` — the entry act, trivially graded and so self-limiting.
+    await makeStuff(() => new PlantController()).execute(
+      plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')),
+      makeContext(giver, room),
+    );
+    expect(deeds).toHaveLength(1);
+    expect(deeds[0]!.discipline).toBe('horticulture');
+    expect(deeds[0]!.difficulty).toBe('trivial');
+
+    // `repot` a seedling — barely any root to disturb.
+    const grown = pot.getOccupant(PLANT_SLOT) as Plant;
+    const second = makePot(3);
+    ContainmentApi.move(second, room);
+    await makeStuff(() => new RepotController()).execute(
+      repotModel(one(grown, 'lily'), one(second, 'pot', 'into')),
+      makeContext(giver, room),
+    );
+    expect(deeds).toHaveLength(2);
+    expect(deeds[1]!.discipline).toBe('horticulture');
+    expect(deeds[1]!.difficulty).toBe('trivial'); // still a seedling
+
+    // …and a grown plant is a real transplant.
+    for (let d = 4; d <= 200; d += 4) {
+      now = BASE + d * 86_400;
+      grown.waterPlant(1);
+    }
+    expect(grown.getGrowthStage()).toBe('mature');
+    const third = makePot(3);
+    ContainmentApi.move(third, room);
+    await makeStuff(() => new RepotController()).execute(
+      repotModel(one(grown, 'lily'), one(third, 'pot', 'into')),
+      makeContext(giver, room),
+    );
+    expect(deeds).toHaveLength(3);
+    expect(deeds[2]!.difficulty).toBe('hard');
+  });
+
+  it('a refused act earns nothing', async () => {
+    // No credit for an attempt the world turned down — the pot has no soil.
+    const { giver, room } = scene();
+    const dry = makePot(0, 0.5);
+    ContainmentApi.move(dry, room);
+    const seed = makeSeed();
+    ContainmentApi.move(seed, giver);
+
+    await makeStuff(() => new PlantController()).execute(
+      plantModel(one(seed, 'seed'), one(dry, 'pot', 'in')),
+      makeContext(giver, room),
+    );
+    expect(deeds).toHaveLength(0);
   });
 
   it('repot rejects a soil-less destination and a non-plant subject', async () => {

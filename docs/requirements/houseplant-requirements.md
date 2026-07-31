@@ -105,9 +105,16 @@ has an owner.
   [pets](../slates/builds/pets-slate.md)' whole divergence.
 - **No automation ladder.** No hired hand, no self-watering pot, no script.
   Needs the employment engine and a production brain (phase 8).
-- **No Discipline, no competence gate, no instruments, no error bars.** Science
-  is the skill ceiling, not the entry fee; v1 is the entry. No agricultural
-  Discipline row ships and this build does not author one.
+- **No competence gate, no instruments, no error bars.** Science is the skill
+  ceiling, not the entry fee; v1 is the entry.
+  > **Amended during the build (2026-07-31).** The original non-goal also read
+  > "no Discipline … and this build does not author one", routing the
+  > agricultural rows to the parallel content track. Reversed on request: the
+  > `agriculture` + `horticulture` rows now ship, and the three husbandry
+  > verbs mint world-graded evidence into `horticulture`. The *gate* half of
+  > the non-goal stands unchanged — nothing reads the band, and the Discipline
+  > confers no verbs, because the natural conferral is phase 7's diagnosis
+  > surface. See husbandry.md § Advancement.
 - **No new Api.** Reads live on the objects. The one addition is a static on
   the *existing* `PersistableApi`.
 

@@ -23,6 +23,7 @@ import { Mml } from '../../../api/mml';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
+import { AdvancementApi } from '../../../api/advancement';
 import Seed from '../../Seed';
 import PlantPot, { PLANT_SLOT } from '../../PlantPot';
 import Plant from '../../Plant';
@@ -164,6 +165,20 @@ export default class PlantController extends CommandController<PlantModel> {
       await PersistableApi.captureHostOf(plant);
     } catch (err) {
       console.warn('PlantController: capture after planting failed:', err);
+    }
+
+    // Credit `horticulture`. Pressing a seed into soil is the entry act and
+    // reads `trivial`, which is the honest grade AND self-limiting: the
+    // estimator treats a trivial success as unsurprising, so no amount of
+    // planting substitutes for keeping something alive.
+    try {
+      await AdvancementApi.recordDeed(giver, {
+        discipline: 'horticulture',
+        difficulty: 'trivial',
+        outcome: 'success',
+      });
+    } catch (err) {
+      console.warn('PlantController: recording the deed failed:', err);
     }
 
     MessageApi.scene(giver)

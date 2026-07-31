@@ -83,6 +83,11 @@ transfer.
 > Three further spine bugs surfaced and were fixed: by-reference field
 > capture, born-with `populates` re-running on a restore clone, and
 > `fitsSlot` vetoing its own restore. See husbandry.md § Durability.
+>
+> It additionally **opened the Catalog's agricultural branch** —
+> `agriculture` + `horticulture`, with the husbandry verbs minting
+> world-graded evidence into it. No conferrals: the knowing→doing seam for
+> growing things is diagnosis, which is phase 7's.
 
 **Verified clear:** the dorm room is a keyed persistable host, `Bed`/`Desk` are
 `Surfaced` with **free placement**, and `ContainerMixin.captureSlice` records
@@ -338,8 +343,11 @@ orphan until the sequence exists.
 pure data, and it unblocks builds without competing with them:
 
 - the first `plantae` species rows (`seeds/lib/species/` holds only `wolf.yaml`)
-- the **agricultural Disciplines** — 39 ship and **none are agricultural**;
-  farming, husbandry and stewardship all want rows
+- the **agricultural Disciplines** — ~~39 ship and **none are agricultural**~~
+  **partly done (phase 1):** `agriculture` (the ISCED-F narrow-field spine
+  node) and `horticulture` (the practised plant leaf) now ship, so the branch
+  is open and the remaining rows have a parent. Farming's crop rows,
+  ranching's animal husbandry and stewardship's land care are still to author
 - preservation recipes · pet/livestock species rows
 
 **Code builds stay sequential.** These verticals share five conventions, so two

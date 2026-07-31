@@ -112,6 +112,33 @@ describe("Discipline seed roster", () => {
     );
   });
 
+  it("opens the agricultural branch — the Catalog had no agricultural node", () => {
+    const byKey = loadAll();
+    // Horticulture is the living-world family's first practiced leaf, under
+    // an ISCED-F narrow field minted as its home (39 Disciplines shipped
+    // before it and none were agricultural).
+    const horticulture = byKey.get("horticulture");
+    expect(horticulture, "horticulture missing").toBeTruthy();
+    expect(horticulture?.channel).toBe("skill");
+    expect(horticulture?.iscedf).toBe("0812"); // ISCED-F: Horticulture
+    expect(horticulture?.specializes).toContain("agriculture");
+
+    const agriculture = byKey.get("agriculture");
+    expect(agriculture, "agriculture missing").toBeTruthy();
+    expect(agriculture?.channel).toBe("knowledge"); // structural, unpracticed
+    expect(agriculture?.iscedf).toBe("081"); // ISCED-F narrow field
+
+    // No conferrals yet, deliberately: the knowing→doing seam for growing
+    // things is diagnosis, which is a later phase's build. A row that
+    // conferred a verb now would mean inventing the content it opens.
+    expect(horticulture?.conferrals ?? []).toEqual([]);
+    expect(agriculture?.conferrals ?? []).toEqual([]);
+
+    // The plant side only — animal husbandry is its own leaf, later, under
+    // the same parent.
+    expect(byKey.has("animal-husbandry")).toBe(false);
+  });
+
   it("carries the full magic grid — 5 verbs + 13 nouns, no conferrals", () => {
     const byKey = loadAll();
     const verbs = ["create", "destroy", "control", "transform", "perceive"];
