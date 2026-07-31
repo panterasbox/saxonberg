@@ -13,6 +13,13 @@ persists with its owner, carrying a `place`** — and the **furnishable
 residence** that consumes it: a multi-room, leased, empty-at-move-in
 floorplan whose character is the objects you played for.
 
+It also gives that residence its first *mechanical* reason to exist.
+Sleep is this game's logout state, and the shipped rest model already
+recovers by `posture × restQuality` on a reconcile-on-read clock — so
+**a bed you own is recovery you keep while you are away**, and a bedroom
+is the archetype that has an internal function before anyone furnishes
+it (D10).
+
 The engine work is deliberately small, because the title half already
 shipped. [Chattel](../subsystems/chattel.md) landed with the general
 store: per-instance `_chattelId`, a gated registry, `ownerOf`,
@@ -74,6 +81,19 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   bathroom, living.** Each is a distinct template path over one generic
   room class, differing in prose and in the built-in fixtures it seeds.
   They are content, editable without code.
+- **Sleeping in your own bed recovers you across the offline gap.**
+  Logging out at rest on a posture-bearing bed means the metabolic
+  reconcile that runs on your next login integrates the elapsed hours at
+  *that bed's* `restQuality` — so a residence has a mechanical reason to
+  exist beyond storage. This requires the bed you slept on to survive the
+  round-trip: **you wake where you slept**, not merely in the posture you
+  left in.
+- **The bedroom's bed is the substrate's first real rest surface.** The
+  shipped dorm `Bed` is a `Surfaced` prop you cannot lie on, and nothing
+  in the world authors `restQuality` but a campfire log. The bedroom
+  archetype seeds a `Postured` bed with a `lie` slot and an authored
+  `restQuality`, which is what makes the archetype non-decorative on day
+  one.
 - **A room can carry room-level state.** Room state is a first-class part
   of a room's record, not merely its contents — so an archetype that later
   earns behavior has somewhere to keep it, without a migration.
@@ -94,6 +114,25 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   [stewardship build](../slates/builds/stewardship-slate.md)'s own work.
   This build ships **a rung**, and guarantees only that a room *can carry*
   the state stewardship will define.
+- **Earned rest quality.** A bed's `restQuality` here is an **authored
+  constant** on the template row — a four-poster is simply better than a
+  cot. Making it *derive* from anything you maintain (bedding freshness,
+  tidiness, how dark and quiet the room is, whether the window was left
+  open) is the same aggregation as every other condition read, and it
+  needs the condition model this build explicitly does not ship. The
+  seam is D11's: those inputs are named, and their home is fixed, but
+  none of them moves a number in v1.
+- **Sleep as a real in-world state.** No `sleep` verb, no sleeping
+  condition, no unconsciousness, no dreams, no sleep debt, no forced or
+  interrupted sleep, no waking someone. D10 is deliberately the *smaller*
+  claim: the shipped rest model does not stop at disconnect. An actual
+  modelled sleep state is a vitals/condition question and would arrive
+  with the same machinery stewardship needs.
+- **Room-general cadences.** Energy draw, debris accumulation, air
+  quality and pests are named and homed in D11 because a room is the
+  wrong place to discover them late — but nothing here *runs* on a
+  cadence. This build ships the field seam (D7) sized to hold them and
+  the reasoning for where each lives.
 - **Land use.** The closed vocabulary typing what a parcel admits is
   stewardship's. Room archetypes here are content identity, not a typed
   gate on what may be placed where; a bathroom that accepts a chest
@@ -275,6 +314,76 @@ under the unit to `storage` — intact, titled, recoverable — **before**
 the shell reverts. The unit re-lets empty; the ex-tenant's furniture
 waits for their next address.
 
+### D10 — Sleep is logout, and logout does not suspend the body
+
+**The question.** A bedroom is the one archetype that already has an
+internal function, because sleep is this game's logout state. What does
+that function actually consist of?
+
+**The answer: nothing new. The shipped rest model simply does not stop
+at disconnect.** Metabolism already recovers by
+`posture × restQuality`, reconciled on read from a persisted
+`metabolicClockStamp` against `WorldClockApi.getNow()`, sub-stepped at
+`STEP_SEC: 60` and capped at `MAX_STEPS: 720` (≈12 game-hours). A player
+who logs out lying on a good bed and returns tomorrow gets that
+integration at that bed's multiplier. A player who logs out standing in
+the street gets it at 1.0. **The delta between those two is the entire
+mechanic** — and it is the reason a residence is worth having before
+condition, decoration or the ladder exist.
+
+**Parity, not a bonus.** The rule is that offline time is treated the
+same as online time, not better. There is no sleep bonus to farm, no
+reason to log out strategically beyond "sleep somewhere good," and the
+existing `MAX_STEPS` cap plus recovery's self-capping at full endurance
+means a week away earns exactly what a night away earns. Absence is
+never punished either — logging out badly placed is the *absence* of the
+bed's multiplier, never a penalty below the floor. (This is the same
+posture the mirror slate takes toward sensor silence, arrived at
+independently.)
+
+**The one piece of real work: occupancy must round-trip.**
+`PosedMixin` persists `posture`, so an avatar restores *lying*. But
+`getOccupiedHost()` is a live scan over slot occupancy
+(`SlotApi.findOccupiedHost`), so the *bed* is gone — and
+`currentRestQuality()` therefore reads 1.0 on the very reconcile that
+was supposed to pay out. Sleep-as-logout is not free; it is this.
+
+The fix rides D4's existing ordering. The occupied host and slot name
+are captured owner-side (they are facts about the sleeper, not about
+someone else's furniture), and re-occupied on materialize **after** the
+room's fixtures have restored — the same "fixtures first, then the
+overlay" rule, extended one step. A bed that no longer exists, no longer
+admits the posture, or is already occupied degrades to the room floor:
+you wake in the room, standing, at 1.0. Never an error, never a
+teleport.
+
+**Why not a `sleep` verb.** `lie` on a bed already is the act; a second
+verb for the same body state would be a synonym with a mood attached
+(project memory: `prefer-subcommands-over-verbs`). A real sleep *state*
+— distinct from lying down, with its own condition, its own
+interruptions and its own vulnerability — is a genuinely different and
+larger thing, and it is a non-goal above.
+
+### D11 — Room-general surfaces: named, homed, not yet running
+
+Every room, not just a bedroom, plausibly carries **energy draw, debris
+on the floor, air quality, and pests**. They are settled here because
+choosing their home late is what forces a migration, and because two of
+them turn out not to be their own systems at all.
+
+| Surface | Home | Why |
+|---|---|---|
+| **Energy draw** | the *fixture*, aggregated by the room | A lamp knows its own draw; a room does not have a wattage. This is the instrument-confers rule applied to consumption, and it is how a metered sub-allowance would later bill without the room knowing anything new. |
+| **Debris** | a room-level field (D7) | The one genuinely room-general quantity — it accumulates on the floor, not on any object, and it is the natural first tenant of the declared-fields seam. |
+| **Air quality** | `AtmosphericMixin` on `Location`, **shipped** | `_temperature`, `_humidity` and `_atmosphere` already exist and are already read by thermal and respiration. Air quality is a fourth reading on an existing face, not a new room concern. |
+| **Pests** | **emergent — no field at all** | Pests are what happens when debris and food sit long enough in a space that admits them. Modelling them as their own room cadence would double-count the two inputs that actually cause them, and would make the fix ("clean up") arbitrary rather than causal. |
+
+None of these runs in v1: each wants a cadence, and a cadence over an
+unmaintained quantity is a condition model. What ships is the seam and
+the placement. The bedroom is where they will first *matter* — debris
+and air are exactly the inputs a derived `restQuality` would read — which
+is why they are decided alongside D10 rather than after it.
+
 ## Constraints
 
 - **No furnishing subsystem in the module sense.** No `FurnishingApi` /
@@ -311,6 +420,22 @@ waits for their next address.
   `no-logic-module-imports`).
 - **`clone()` is not modified.** `place` is instance state carried by the
   spine, not a clone-time injection.
+- **Metabolism is not modified.** D10 changes *what the reconcile sees*
+  (a restored bed), never how it integrates. No new recovery term, no
+  offline multiplier, no second clock — `metabolicClockStamp`,
+  `STEP_SEC` and `MAX_STEPS` stay exactly as shipped, and the cap stays
+  the thing that makes a long absence bounded.
+- **Occupancy restore is best-effort and never throws.** A missing,
+  changed, or occupied bed degrades to the room floor. Restoring a
+  player must not be able to fail because their furniture moved — the
+  same posture the spine already takes to a `fitsSlot` veto during
+  restore.
+- **Re-occupancy respects the shipped slot contract.** Restoring goes
+  through `SlotApi`'s occupy path so `fitsSlot`, capacity and
+  `onSlotReleased` witnesses behave identically to a live `lie` — it is
+  not a raw write into the host's slot map.
+- **`restQuality` stays authored data.** Beds carry it as a template
+  field; nothing in this build derives it.
 
 ## Acceptance criteria
 
@@ -346,6 +471,22 @@ waits for their next address.
 - **Rooms carry room-level state.** A residence room declares and
   round-trips at least one field of its own, distinct from its contents —
   the seam D7 exists to establish.
+- **You wake where you slept.** Log out lying on a bedroom bed; after
+  dormancy and a restart, the avatar restores *on that bed*, in that
+  posture, and `getOccupiedHost()` returns it. Restoring after the bed
+  has been sold, moved or destroyed leaves the avatar in the room,
+  standing, with no error raised — a named test for each degradation.
+- **Sleeping somewhere good pays, and only that.** Two identical avatars
+  logged out for the same elapsed game-time — one on a `restQuality` bed,
+  one on the floor — reconcile to *different* recovery, in the bed's
+  favor, and the difference is exactly the multiplier. A third logged out
+  for a week reconciles to no more than the `MAX_STEPS` cap allows, and
+  no avatar recovers past full. Recovery on the floor is not below the
+  no-residence baseline.
+- **The bedroom bed is lieable.** The bedroom archetype's bed is
+  `Postured` with a `lie` slot and an authored `restQuality > 1`, and
+  `lie on bed` works the day the archetype seeds — distinguishing it from
+  the shipped dorm `Bed`, which is a `Surfaced` prop and stays one.
 - **Multi-room and lease-gated.** A unit's rooms connect within the unit;
   the front door gates on the lease; a non-leaseholder cannot enter.
 - **Revert evicts to storage.** Ending a lease returns the tenant's goods
@@ -375,6 +516,17 @@ waits for their next address.
   [parcel.md](../subsystems/parcel.md) (subdivide / lease / retire),
   [residency.md](../subsystems/residency.md) (dormancy),
   [containment / spatial.md](../subsystems/spatial.md) (custody)
+- Sleep-as-logout (D10): [posture.md](../subsystems/posture.md)
+  (`Postured` / `Posed`, the posture-bearing slot, `restQuality`),
+  [slot.md](../subsystems/slot.md) (occupancy, `fitsSlot`, capacity),
+  [metabolism.md](../subsystems/metabolism.md) (reconcile-on-read,
+  coupled recovery), [connection.md](../subsystems/connection.md)
+  (what logout actually does), [vitals.md](../subsystems/vitals.md)
+- Room-general surfaces (D11): [thermal.md](../subsystems/thermal.md) and
+  [respiration.md](../subsystems/respiration.md) (the shipped
+  `AtmosphericMixin` readings air quality joins),
+  [light.md](../subsystems/light.md) (`AmbientLit`, now composed on
+  `Location` — the precedent for a room-general reading)
 - In flight: build-2's Hinkley Hills — the suburb house is this
   substrate's intended second consumer; it defers house interiors,
   furnishing and chattel-title here
