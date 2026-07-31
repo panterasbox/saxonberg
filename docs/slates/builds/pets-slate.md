@@ -50,7 +50,10 @@ possession gap this surfaces) · **[property-slate](./property-slate.md) (the
 parent — the possession/custody substrate this build consumes)** ·
 **[stewardship-slate](./stewardship-slate.md) (the gate — land use decides
 whether your residence admits a companion at all, and how many; the dorm is the
-ladder's bottom rung).**
+ladder's bottom rung)** ·
+**[disease-slate](./disease-slate.md) (your sick dog — and the *zoonotic
+bridge* to your own body; pets are disease's LAST proving ground, after crops
+and herds, because the stakes are highest).**
 
 ---
 

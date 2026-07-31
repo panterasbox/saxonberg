@@ -594,10 +594,14 @@ taught at two speeds.
 
 ## Open questions (for the deep pass)
 
-- **Disease [the biggest open call].** The most pedagogically interesting
-  mechanic here (density-dependent transmission is a genuine tension against
-  stocking for yield) **and** the one most likely to make a cozy loop feel
-  punishing. Ships in v1, or waits for a wave?
+- ~~**Disease [the biggest open call].**~~ **DESIGNED 2026-07-31 →
+  [disease-slate](./disease-slate.md)** — its own doc, because it spans farming,
+  ranching, aquaculture, pets and player health. Two findings land here: **good
+  husbandry *is* immunity** (the resist factor reads live off host state, so the
+  condition score becomes the resistance term), and disease is **the
+  counterweight paddock granularity lacks** — subdividing concentrates animals,
+  and concentration is transmission. Ranching is the **second** proving ground;
+  crops go first.
 - **Where yield lives** — a `Produces` mixin on the animal, or a ranch-level
   production tap? Per-head vs per-herd accounting under the aggregate density.
 - **Breeding model** — gestation over `WorldClock`; offspring inheriting species

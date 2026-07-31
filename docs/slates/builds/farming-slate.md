@@ -58,6 +58,12 @@ See also:
   what the maintenance/upkeep drain below is priced against); this slate
   owns only the *spatial subdivision + biology*, not the title or the
   meter. The "assume I already have the land" premise is property's.
+- [docs/slates/builds/disease-slate.md](./disease-slate.md) — **blight, and
+  rotation's second reason.** Farming is disease's **first proving ground**
+  (simplest host, lowest stakes); disease gives crop rotation its truer
+  historical reason (breaking the pathogen cycle) alongside the nutrient one
+  this slate already has, and resistance is the Mendelian marker trait the
+  Genetics section already names.
 - [docs/slates/builds/stewardship-slate.md](./stewardship-slate.md) — **the
   gate.** Land use decides whether a parcel admits cultivation and at what
   density (none / a bed / a field); the allowance cascade decides how much
