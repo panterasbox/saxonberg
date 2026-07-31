@@ -1,0 +1,19 @@
+# A watering can — the instrument that confers `water`. `capabilities:
+# [watering]` is the whole of it: the closed capability table's `watering`
+# row confers `bulk/water.yaml` at `placement: carried`, so the verb appears
+# only while the can is in your pack.
+#
+# Ships EMPTY. Fill it at a tap or any water source with the shipped `fill`,
+# then `water` a plant.
+class: /obj/WateringCan
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a tin watering can
+  primaryKeyword: can
+  keywords: [can, "watering can", watering, tin]
+  longDescription: |
+    A dented tin can with a long spout and a wire handle, sized for reaching over a windowsill without soaking the sill.
+  material: /lib/material/alloy/steel
+  interiorBulk: true
+  interiorCapacity: 2
+  capabilities: [watering]

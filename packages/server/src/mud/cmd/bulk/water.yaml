@@ -1,0 +1,36 @@
+verbs: [water]
+controller: /obj/command/bulk/WaterController
+description: "Water a growing plant"
+help: |
+  Tip water into a plant's soil. You need something holding water — a
+  watering can is what this verb comes with, but name any holder with
+  `with` or `from` and it will pour from that instead.
+
+  Only as much goes in as the soil can hold; the rest stays in the can.
+  Naming the pot works as well as naming the plant. If the soil is
+  already wet, watering again does nothing for it — and nothing will
+  bring back a plant that has died.
+
+  `pour` is the manual path and still works; `water` is the one that
+  knows what a plant is.
+examples:
+  - cmd: water the lily
+    note: Water a plant from whatever water you're carrying
+  - cmd: water the pot with the can
+    note: Name the source explicitly
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible
+  - name: source
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [with, from]
+    validators:
+      - /lib/command/validators/mustBeVisible
