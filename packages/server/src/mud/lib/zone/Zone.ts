@@ -46,10 +46,14 @@ import { ZoneApi } from '../../api/zone';
  * `lookupAncestorField`).
  */
 export abstract class Zone extends Idea {
-  /** Zone itself persists no fields (subclasses declare their own; the
-   *  inheritance walk reads dynamic fields via `lookupField`). See the
+  /** The two fields Zone itself owns (subclasses declare their own on
+   *  top). `wire` HAS to be here: it's a declared field with an
+   *  accessor pair, so the Hydrator only reaches it by name — and a
+   *  `wire: true` seed row that silently doesn't apply reads as "not
+   *  wire", which routes quarantined code down the governed path
+   *  (found live: `eval` inside a circle ran GOVERNED). See the
    *  ownership-removal note below. */
-  static persistentFields: string[] = [];
+  static persistentFields: string[] = ['name', 'wire'];
 
   // Ownership/access fields (`ownerGroup` / `accessGroups` /
   // `ownerGroupName`) were REMOVED in property phase 0a. Title now lives in

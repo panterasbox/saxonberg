@@ -100,7 +100,13 @@ export default class SandboxCrossingExit extends Exit {
     }
     const avatar = mover as unknown as Avatar;
     const playerId = avatar.getPlayerId();
-    const linked = this.wardrobe?.getLinkedSandboxPath() ?? '';
+    // An UNOWNED fixture never links (a public booth opens onto each
+    // enterer's own circle); an owned one is gated below.
+    const linked = this.wardrobe
+      ? (await this.wardrobe.ownerPlayerId()) === null
+        ? ''
+        : this.wardrobe.getLinkedSandboxPath()
+      : '';
     const own = linked === '' || linked === `/home/${playerId}`;
     if (!own) {
       const moverPath = mover.getTemplatePath() ?? '';
@@ -116,7 +122,7 @@ export default class SandboxCrossingExit extends Exit {
       }
     }
     const scope = this.wardrobe
-      ? this.wardrobe.linkForEnterer(avatar)
+      ? await this.wardrobe.linkForEnterer(avatar)
       : `/home/${playerId}`;
     await SandboxApi.enter(avatar, scope);
     return true;

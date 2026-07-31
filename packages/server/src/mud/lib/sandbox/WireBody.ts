@@ -45,6 +45,20 @@ export default class WireBody extends Avatar {
   /** The projected identity's playerId (never registered under it). */
   private wirePlayerId: string = '';
 
+  /**
+   * The identity is a CONSTRUCTOR argument, not context threaded
+   * through `postRegister`, because everything downstream keys on it:
+   * authority (wizard / author-scope membership), parcel title, the
+   * epistemic ledgers. A vessel that finishes construction without one
+   * is an anonymous body that silently loses its player's powers inside
+   * their own circle — so make it impossible to build one by accident
+   * (the `Interactive` precedent for runtime-only objects).
+   */
+  constructor(playerId?: string) {
+    super();
+    if (playerId) this.wirePlayerId = playerId;
+  }
+
   public override async postRegister(
     context?: WireBodyInitContext,
   ): Promise<void> {
@@ -53,7 +67,7 @@ export default class WireBody extends Avatar {
     // and the spine is gated off by shouldPersist() anyway. The
     // default-loadout floor (implant + aether apps) still installs —
     // minted under the circle root, so it is circle-born.
-    const playerId = context?.playerId;
+    const playerId = context?.playerId ?? this.wirePlayerId;
     await super.postRegister({ ...context, playerId: undefined });
     if (playerId) this.wirePlayerId = playerId;
   }
@@ -77,6 +91,18 @@ export default class WireBody extends Avatar {
   /** Vessels never install the periodic-save backstop. */
   public override startAutoSave(): void {
     // no-op: shouldPersist() is false; there is nothing to save.
+  }
+
+  /**
+   * A crossing is not a login. The vessel runs the rest of the session
+   * ceremony (the client needs its connection-established payload and
+   * an auto-sense of the circle it just arrived in — without them the
+   * player types `go wardrobe` and sees nothing at all), but the world
+   * hears no presence event: the player didn't arrive or return, they
+   * stepped sideways and are present-but-unreachable (Decision P).
+   */
+  protected override announceSessionPresence(): void {
+    // deliberately silent
   }
 
   /**

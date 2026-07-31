@@ -151,8 +151,15 @@ export default class CloneController extends CommandController<CloneModel> {
     // falling through to the `'core'` fallback. (See open question
     // #6 in the plan: class-allowlist for non-core authors is a
     // follow-up build.)
+    // `findAllByTemplatePath`, not the singleton lookup: a live
+    // instance here is only a REPRESENTATIVE for the slice walk, and
+    // any of them answers the same. The singular form throws once two
+    // instances share the path — which is the normal state after
+    // cloning the same template twice, so the third `clone` of
+    // anything died on its own access check (found live in the
+    // circle, cloning a wardrobe).
     const sourceResource: Stuff | null =
-      StuffApi.findByTemplatePath(path) ?? null;
+      StuffApi.findAllByTemplatePath(path)[0] ?? null;
     if (!(await AccessApi.can(giver, 'clone', sourceResource))) {
       return this.fail(
         context,

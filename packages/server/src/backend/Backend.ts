@@ -29,6 +29,7 @@ import type {
   UnlinkResult,
 } from './Application';
 import { Application } from './Application';
+import { ConnectionManager } from './ConnectionManager';
 import type { InboundClientMessage } from './inbound/index';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { SecurityApi } from '../mud/api/security';
@@ -242,9 +243,22 @@ export class Backend implements IBackend {
     const prior = this.inboundChainBySocketId.get(socketId) ?? Promise.resolve();
     const next = prior
       .then(() =>
-        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () =>
-          app.processUserMessage(socketId, message)
-        )
+        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () => {
+          // Sandbox taint at the INBOUND boundary (roots table, kind
+          // (a) — Interactive principal): everything this socket asks
+          // for runs as the body currently holding it. The command
+          // path establishes this for itself, but so must every other
+          // inbound handler — an MQL subscribe, a one-shot query, a
+          // client-state write — or work done on a player's behalf
+          // while they stand inside their circle is field-scoped and
+          // the boundary denies reads of their own body.
+          const holder = ConnectionManager.get()
+            .getInteractive(socketId)
+            ?.getHolder() as { getCircleScope?: () => string | null } | null;
+          const scope = holder?.getCircleScope?.() ?? null;
+          if (scope !== null) ExecutionContextApi.establishCircleScope(scope);
+          return app.processUserMessage(socketId, message);
+        })
       )
       .catch((error) => {
         console.error(
@@ -421,7 +435,8 @@ export class Backend implements IBackend {
     handle: string,
     done: (error: unknown, user?: { id: string }) => void,
     withCharacter = false,
-    startLocation?: string
+    startLocation?: string,
+    wizard = false
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('Backend: test authentication is disabled'));
@@ -443,7 +458,7 @@ export class Backend implements IBackend {
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter)
-            await app.provisionTestCharacter(id, handle, startLocation);
+            await app.provisionTestCharacter(id, handle, startLocation, wizard);
           return id;
         }
       );

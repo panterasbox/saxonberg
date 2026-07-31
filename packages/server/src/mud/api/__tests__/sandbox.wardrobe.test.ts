@@ -134,8 +134,13 @@ describe('the wardrobe door (Wave 4)', () => {
     // ENTER through the real movement path: nothing material traverses.
     await (avatar as unknown as Mobile).traverse(passage, 'walk');
 
-    // first enter linked the fixture to the enterer's own circle
-    expect(wardrobe.getLinkedSandboxPath()).toBe(SCOPE);
+    // This fixture is UNOWNED (nothing stamped it), so it is a public
+    // booth: it takes no link at all and opens onto whoever walked in.
+    // A commons wardrobe that linked itself to its first user would
+    // silently become that user's private door — and the wire alcove's
+    // whole point is that the next person gets their own circle.
+    expect(wardrobe.getLinkedSandboxPath()).toBe('');
+    expect(SandboxApi.liveSessionForPlayer(PLAYER)?.scope).toBe(SCOPE);
     // the field body never moved — parked in place, link crossed
     expect(avatar.getContainer()).toBe(room);
     expect(avatar.isParked()).toBe(true);
@@ -172,9 +177,12 @@ describe('the wardrobe door (Wave 4)', () => {
     expect(w2.getLinkedSandboxPath()).toBe(session!.scope);
   });
 
-  it('destroying an occupied wardrobe reaps safely (the non-event eviction)', async () => {
+  it('destroying an occupied LINKED wardrobe reaps safely (the non-event eviction)', async () => {
     const { avatar, interactive, room } = await makeRig();
     const wardrobe = await placeWardrobe(room);
+    // A linked door — the case where the fixture really is the mouth of
+    // one named circle, so tearing it out has to evict cleanly.
+    wardrobe.setLinkedSandboxPath(SCOPE);
     await (avatar as unknown as Mobile).traverse(
       wardrobeExitOf(room),
       'walk'
@@ -186,6 +194,35 @@ describe('the wardrobe door (Wave 4)', () => {
     await new Promise((r) => setTimeout(r, 50));
 
     expect(SandboxApi.sessionForScope(SCOPE)).toBeNull();
+    expect(interactive.getHolder()).toBe(avatar);
+    expect(avatar.isParked()).toBe(false);
+  });
+
+  it('destroying an occupied PUBLIC booth strands nobody', async () => {
+    const { avatar, interactive, room } = await makeRig();
+    // Unowned + unlinked: the booth is a doorway, not the circle. It
+    // names no scope, so it has no session to close — and the way out
+    // is the circle's OWN `out` passage, which the booth never owned.
+    // Destroying it must therefore be a true non-event, not an eviction.
+    const wardrobe = await placeWardrobe(room);
+    await (avatar as unknown as Mobile).traverse(wardrobeExitOf(room), 'walk');
+    const wireBody = SandboxApi.activeBodyFor(PLAYER)!;
+
+    StuffApi.destruct(wardrobe as unknown as Stuff);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // Still inside, still holding the link.
+    expect(SandboxApi.sessionForScope(SCOPE)).not.toBeNull();
+    expect(interactive.getHolder()).toBe(wireBody);
+
+    // And the way out still works.
+    await asSystem(async () => {
+      const entry = SandboxApi.entryRoomForScope(SCOPE)!;
+      const out = (entry as unknown as { getExit(d: string): unknown }).getExit(
+        'out'
+      ) as SandboxCrossingExit;
+      await (wireBody as unknown as Mobile).traverse(out, 'walk');
+    });
     expect(interactive.getHolder()).toBe(avatar);
     expect(avatar.isParked()).toBe(false);
   });

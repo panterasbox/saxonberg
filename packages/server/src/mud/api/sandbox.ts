@@ -26,9 +26,11 @@ import { SandboxLogic } from '../obj/api/SandboxLogic';
 import type { SandboxSession } from '../obj/api/SandboxLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Avatar from '../obj/Avatar';
+import { TemplatePathPrefixes } from '../lib/paths';
 import type Interactive from '../obj/Interactive';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import { ExecutionContextApi } from './execution-context';
 
 export type { SandboxSession } from '../obj/api/SandboxLogic';
 
@@ -107,11 +109,47 @@ export class SandboxApi {
    * pass an invited/studio scope. Actor comes from the caller's world,
    * never a scope parameter on player paths.
    */
-  public static enter(
+  public static async enter(
     actor: Avatar,
     targetScope?: string
   ): Promise<SandboxSession> {
-    return logic().enter(actor, targetScope);
+    const session = await logic().enter(actor, targetScope);
+    // Stamp the vessel's identity path (Decision C:
+    // `/obj/Avatar/<playerId>/wire`, a minted-singleton identity under
+    // the avatar's own branch, backed by NOTHING — no domain row).
+    //
+    // It matters because half the engine asks "is this an avatar?" by
+    // the `/obj/Avatar/` templatePath PREFIX (`PlayerApi.isAvatarStuff`,
+    // and through it `AccessApi.isWizard`). An unstamped vessel isn't
+    // avatar-shaped, so a player loses their own powers the moment they
+    // step into their own circle — no `eval`, no `clone` (found live).
+    // `getIdentityPath()` still reports the REAL identity, so authority
+    // membership and the epistemic ledgers key on the person, not the
+    // vessel.
+    //
+    // Stamped HERE rather than in the logic singleton because
+    // `setTemplatePath` is `ApiOnly`-gated — an Api class is exactly
+    // the sanctioned caller.
+    const playerId = actor.getPlayerId();
+    const vessel = playerId ? logic().activeBodyFor(playerId) : null;
+    if (vessel && vessel.getTemplatePath() === null) {
+      // Under the CIRCLE's root: `enter` is called from the field (the
+      // wardrobe exit's traverse), and the vessel is circle-born — a
+      // field-context write against a circle-scoped receiver is exactly
+      // what Layer 4 exists to deny. The stamp is the crossing's own
+      // bookkeeping, so it belongs on the far side of the boundary.
+      ExecutionContextApi.runRoot(
+        SandboxApi,
+        'enter.stampVessel',
+        () => {
+          vessel.setTemplatePath(
+            `${TemplatePathPrefixes.avatar}${playerId}/wire`
+          );
+        },
+        { circleScope: session.scope }
+      );
+    }
+    return session;
   }
 
   /**

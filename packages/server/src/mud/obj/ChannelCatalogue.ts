@@ -34,7 +34,6 @@
  */
 
 import { SecurityApi } from '../api/security';
-import { SandboxApi } from '../api/sandbox';
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Channel } from '../lib/social/Channel';
@@ -228,6 +227,17 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    * Compute the live audience for a persistent channel — tuned-in
    * subscribers (open) or backing-group members (player-created via the
    * Subject's `groupRef`), filtered to those NOT muted.
+   *
+   * The audience is always the REGISTRY (field) avatar, even for a
+   * player who is currently inside a circle. Comms are seamless across
+   * the boundary (Decision N), but the redirect belongs at the delivery
+   * seam — `Avatar.handleMessage` forwards a parked body's frames to
+   * whatever sockets the live vessel holds — not here. A recipient is
+   * also the *viewer* every per-recipient MML name is lensed for, so
+   * putting the vessel in the audience makes a field-context render
+   * read circle-resident perception state, which the boundary denies:
+   * one person stepping into their circle killed the channel post for
+   * everyone (found live).
    */
   public async audienceFor(channel: Channel): Promise<Stuff[]> {
     const subject = await this.subjectFor(channel);
@@ -235,7 +245,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       const out: Stuff[] = [];
       for (const av of PlayerApi.getAllAvatars()) {
         const sub = this.getSubscription(av, channel);
-        if (sub.tunedIn && !sub.muted) out.push(this.activeBodyOf(av));
+        if (sub.tunedIn && !sub.muted) out.push(av);
       }
       return out;
     }
@@ -247,23 +257,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     for (const m of members) {
       if (!PlayerApi.isAvatarStuff(m)) continue;
       const sub = this.getSubscription(m, channel);
-      if (sub.tunedIn && !sub.muted) out.push(this.activeBodyOf(m));
+      if (sub.tunedIn && !sub.muted) out.push(m);
     }
     return out;
-  }
-
-  /**
-   * Comms are seamless across the sandbox boundary (Decision N):
-   * recipient resolution follows IDENTITY, not body. Subscriptions and
-   * rules stay on the registry (field) avatar; delivery lands on the
-   * player's ACTIVE body — the wire body while a circle session lives,
-   * the avatar otherwise — so a channel message delivers exactly once,
-   * to wherever the person actually is.
-   */
-  private activeBodyOf(avatar: Stuff): Stuff {
-    const playerId = avatar.getPlayerId();
-    if (!playerId) return avatar;
-    return (SandboxApi.activeBodyFor(playerId) as Stuff | null) ?? avatar;
   }
 
   /**

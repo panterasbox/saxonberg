@@ -33,7 +33,8 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import type { MqlManyResult } from '../../../api/mql';
 import Avatar from '../../Avatar';
-import EvalScript from '../../../lib/script/EvalScript';
+import type EvalScript from '../../../lib/script/EvalScript';
+import { ScriptApi } from '../../../api/script';
 import { SandboxApi } from '../../../api/sandbox';
 import { ParcelApi } from '../../../api/parcel';
 import { GroupApi } from '../../../api/group';
@@ -68,7 +69,7 @@ export default class EvalController extends CommandController<EvalModel> {
     // The gate: authority over the parcel — title-holder / group
     // membership / the core default — via the shipped owner-kind
     // dispatch. Your own self-home passes by the pure rule.
-    if (!(await this.holdsAuthority(giver, parcel, playerKey))) {
+    if (!(await this.holdsAuthority(giver, parcel))) {
       return this.fail(
         context,
         `you hold no authority over ${parcel}`,
@@ -80,36 +81,16 @@ export default class EvalController extends CommandController<EvalModel> {
     // parcel quarantines (circle scope; the four layers contain the
     // run; side-effects discard); a FIELD parcel governs (writes are
     // real, reach bounded to the extent, the act receipted).
-    const zone = await ZoneApi.resolveZoneForPath(parcel);
+    // `resolveEnclosingZoneForPath`, not `resolveZoneForPath`: `/home`
+    // and `/studio` are non-SPATIAL zones, so the spatial resolver
+    // skips right past them and answers null — which reads as "not
+    // wire" and sends quarantined code down the governed path.
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(parcel);
     const isWire = (await zone?.lookupField<boolean>('wire')) === true;
 
     // Singleton mints IN the jurisdiction's namespace — addressable
     // provenance, re-runnable by path.
     const singletonPath = `${parcel}/_eval`;
-    const existing = StuffApi.findByTemplatePath<EvalScript>(singletonPath);
-
-    let evalStuff: EvalScript;
-    if (model.expr) {
-      // New code → replace singleton. `create` (not clone): the eval
-      // scratch is a per-player dynamic unique (identity path
-      // `/home/<key>/_eval`, destruct-and-replace on each new code
-      // body) — the Party-Idea shape, not authorable content.
-      if (existing) StuffApi.destruct(existing);
-      evalStuff = await StuffApi.create(() => new EvalScript());
-      // Stamp templatePath so MQL path-atom can address it. The
-      // setter on Stuff (ApiOnly-gated) updates byTemplatePath
-      // for us; no need to re-key by hand.
-      evalStuff.setTemplatePath(singletonPath);
-      evalStuff.setCode(model.expr);
-    } else {
-      if (!existing) {
-        return this.fail(
-          context,
-          'no prior eval to re-run; provide code first',
-        );
-      }
-      evalStuff = existing;
-    }
 
     // Resolve targets. The matcher already ran MQL on `--on` (it's
     // declared `type: objects` in the yaml), so model.on is an
@@ -136,25 +117,85 @@ export default class EvalController extends CommandController<EvalModel> {
       targets = [giver];
     }
 
-    // Iterate — each run inside its jurisdiction's root: wire →
-    // quarantined circle scope; field → governed jurisdiction bound
-    // with the act receipted (authorship + mudlog).
-    for (const t of targets) {
-      try {
-        const result = isWire
-          ? await SandboxApi.runScoped(parcel, () => evalStuff.run(t))
-          : await SandboxApi.runGoverned(parcel, () => evalStuff.run(t));
-        const repr = this._formatResult(result);
-        const name = t.getPresentation();
-        this.tell(context, `\n${name}: ${repr}\n`);
-      } catch (err) {
-        const name = t.getPresentation();
-        this.tell(
-          context,
-          `\n${name}: error: ${(err as Error).message}\n`,
+    // The scratch's whole life — lookup, destruct-and-replace, run —
+    // happens INSIDE the jurisdiction's root, not just the run.
+    //
+    // A wire jurisdiction makes the scratch circle-scoped, and the
+    // boundary check is symmetric: a circle-context caller may not
+    // touch a field receiver any more than the reverse. Minting
+    // outside and running inside therefore fails on the SECOND
+    // `eval <code>` in the same jurisdiction — the field-context
+    // destruct of the previous, circle-scoped scratch is denied
+    // (found live). Keeping the whole span in one root also means the
+    // scratch a wire jurisdiction leaves behind dies with the circle,
+    // which is what "quarantined" is supposed to mean.
+    const inJurisdiction = <T,>(fn: () => Promise<T>): Promise<T> =>
+      isWire
+        ? SandboxApi.runScoped(parcel, fn)
+        : SandboxApi.runGoverned(parcel, fn);
+
+    // Name the targets and report the results from OUT here, in the
+    // caller's own context. Inside a wire root the controller is
+    // standing in the circle, and `getPresentation()` / `tell()` on a
+    // field target is exactly the cross-boundary dispatch the layers
+    // deny — so the plain `eval <expr>` in the field died writing its
+    // OWN output line, not running the player's code (found live).
+    // Only the player's code belongs inside the jurisdiction.
+    const names = targets.map((t) => t.getPresentation());
+    const results: Array<{ ok: boolean; value: unknown }> = [];
+    let missingPrior = false;
+
+    await inJurisdiction(async () => {
+      let evalStuff: EvalScript;
+      if (model.expr) {
+        // New code → replace the singleton. The mint lives behind
+        // `ScriptApi` because the identity stamp it performs
+        // (`setTemplatePath`, so MQL's path atom can address the
+        // scratch) is `ApiOnly`-gated — a controller doing it itself
+        // dies on the gate, which is exactly how `eval <code>` was
+        // failing.
+        evalStuff = await ScriptApi.mintEvalScratch(
+          singletonPath,
+          model.expr,
         );
+      } else {
+        const existing =
+          StuffApi.findByTemplatePath<EvalScript>(singletonPath);
+        if (!existing) {
+          missingPrior = true;
+          return;
+        }
+        evalStuff = existing;
       }
+
+      for (const target of targets) {
+        try {
+          results.push({ ok: true, value: await evalStuff.run(target) });
+        } catch (err) {
+          results.push({ ok: false, value: (err as Error).message });
+        }
+      }
+    });
+
+    if (missingPrior) {
+      return this.fail(
+        context,
+        'no prior eval to re-run; provide code first',
+      );
     }
+    // Formatting is a call on THIS controller, which is field-resident
+    // — inside a wire root even `this._formatResult(...)` is a denied
+    // cross-boundary dispatch. Nothing but the player's code runs in
+    // there.
+    results.forEach((r, i) => {
+      const name = names[i] ?? '?';
+      this.tell(
+        context,
+        r.ok
+          ? `\n${name}: ${this._formatResult(r.value)}\n`
+          : `\n${name}: error: ${String(r.value)}\n`,
+      );
+    });
     if (!isWire) {
       // The governed channel made concrete for code: the act is
       // receipted — addressable provenance for the minted template +
@@ -193,15 +234,37 @@ export default class EvalController extends CommandController<EvalModel> {
   private async holdsAuthority(
     giver: Stuff,
     parcel: string,
-    playerKey: string,
   ): Promise<boolean> {
+    const identityPath = giver.getIdentityPath();
+    const identityKey = identityPath?.split('/').filter(Boolean).pop();
+    // The self-home rule, applied to the home ROOT as well as paths
+    // under it: `ParcelRecord.selfHomeOwnerOf` matches only
+    // `/home/<key>/…` (something *inside* your home), but a circle's
+    // parcel path IS `/home/<key>` exactly — so without this, nobody
+    // owns their own circle and eval refuses you your own sandbox.
+    if (identityKey && parcel === `/home/${identityKey}`) return true;
     try {
       const owner = await ParcelApi.ownerOf(parcel);
       if (owner?.kind === 'player') {
-        return owner.templatePath === giver.getTemplatePath();
+        // Mirror `AccessRegistry.subjectOwnsAsPlayer`: a player title
+        // is stored EITHER at the avatar's own identity path (a
+        // transferred title) or in the self-home form `/home/<key>`
+        // (the pure rule, which is how your own circle is yours).
+        // Comparing only against the identity path silently refuses
+        // every player their own circle — including in the field.
+        const identity = giver.getIdentityPath();
+        if (!identity) return false;
+        if (owner.templatePath === identity) return true;
+        const key = identity.split('/').filter(Boolean).pop();
+        return key !== undefined && owner.templatePath === `/home/${key}`;
       }
       if (owner?.kind === 'group' && owner.ref) {
-        return GroupApi.isMember(playerKey, owner.ref);
+        // Groups key on the member PATH (`/obj/Avatar/<id>`), not the
+        // bare playerId — the same key `AccessRegistry.memberKeyOf`
+        // builds. Passing the raw id silently never matches.
+        return identityPath
+          ? GroupApi.isMember(identityPath, owner.ref)
+          : false;
       }
     } catch {
       // registry offline / no row — fall through to the core dispatch

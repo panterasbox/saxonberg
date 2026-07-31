@@ -1,0 +1,31 @@
+# The wire alcove — a quiet singleton side-room holding a public
+# wardrobe (the sandbox's door; docs/subsystems/sandbox.md). Content
+# for the crossing's smoke path and the E2E suite: tests pin their
+# spawn here (`startLocation: /domain/lounge/wire-alcove`) so an
+# ordinary avatar stands next to a door with zero provisioning — which
+# is also the honest player story: character creation IS the circle
+# grant, and any wardrobe anywhere opens onto your own circle until a
+# host links it. Deliberately unwired into the lounge Warren's exit
+# graph (reachable by spawn/goto only), so the alcove never perturbs
+# the lounge's elastic budding.
+#
+# The wardrobe re-clones fresh each boot (populates), so its
+# `linkedSandboxPath` starts empty every run — links to the first
+# enterer, exactly the door's shipped first-enter rule.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the wire alcove
+  primaryKeyword: alcove
+  longDescription: |
+    A hushed nook off the lounge's back corridor, barely wide enough to
+    turn around in. Most of it is taken up by a tall lacquered wardrobe
+    that doesn't quite seem to touch the wall behind it. A printed card
+    tacked beside the doors reads: "STEP IN. YOUR CIRCLE. BUILD
+    ANYTHING. WALK OUT — ONLY WHAT YOU SAVED COMES BACK."
+  populates:
+    - /obj/sandbox/wardrobe
+    # Light is fixture-side, never ambient: without a LightSource in the
+    # room the band is `pitch-black`, vision's `canSee` gate fails, and
+    # everyone in here reads as "someone". See alcove-lamp.yaml.
+    - /domain/lounge/alcove-lamp

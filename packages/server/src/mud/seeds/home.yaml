@@ -8,6 +8,12 @@
 # folder/leaf invariant accepts any future descendant template
 # under /home/...
 class: /lib/home/HomeZone
+# Without a hydratorClass the clone pipeline applies NO data at all
+# (`StuffApi.clone` step 6), so `wire: true` below would sit in the row
+# and never reach the instance — and a circle that doesn't know it's
+# wire runs its code GOVERNED instead of quarantined. `/studio` already
+# names the same hydrator; this makes the pair consistent.
+hydratorClass: /lib/persistence/PersistentHydrator
 data:
   name: home
   # Wire-classification root (sandbox, Decision O): every descendant of

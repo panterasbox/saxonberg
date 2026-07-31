@@ -175,6 +175,29 @@ This is NOT a read allowlist: it is the same fixed set the
 destroyed-object guard exempts, grown by the transport seam, and it
 answers only "what is this / who holds the socket."
 
+**The reference-data tier (added during the live pass).** A third
+exemption arm registers whole BASE CLASSES whose instances are shared,
+seeded vocabulary rather than world state: `Species`, `BodyPlan`,
+`Clade`, `LocomotionMode`, `Material`, `Modality`, `Condition`,
+`CombatFormation`, and `Zone`. These are commons — never mutated at
+runtime, and the PM policy table REFUSEs writes to their rows
+independently — so exempting them widens **reads** only.
+
+They are not a convenience. A body inside a circle that cannot read
+its own species is not animate: it can't walk, act, or leave (the
+first vessel was refused `go` as "not currently animate", then refused
+again on its clade's rank). `Zone` is the same problem one level up: a
+zone is the template tree's *classification* of a path, and wire-ness
+itself is a Zone field, so un-exempt, code inside a circle cannot even
+ask whether it is inside a circle. `PersistentHydrator` is exempt for
+the same shape of reason — hydrators are stateless engine singletons
+used as pure functions BY the clone pipeline, and without the
+exemption every clone inside a circle silently skipped hydration, so
+the vessel minted with no default loadout.
+
+**The rule of thumb**: keep the list to genuine vocabulary. Anything a
+player can change is world state and does not belong here.
+
 ## The crossing (as built)
 
 - **Fork/merge**: `ForkableMixin` (`lib/persistence/Forkable.ts`) —
@@ -190,13 +213,38 @@ answers only "what is this / who holds the socket."
   framework constructs in-scope and attaches to the fork only.
 - **Channel-subscription travel** (the plan's third slice) was
   replaced by **active-body delivery redirect**, which is strictly
-  less machinery: subscriptions/rules stay on the registry (field)
-  avatar; `ChannelCatalogue.audienceFor` and the presence relay remap
-  each recipient through `SandboxApi.activeBodyFor(playerId)` — the
-  wire body while a session lives, the avatar otherwise — so exactly
-  one live delivery target exists and nothing needs restoring at
-  exit. `dm`/`tell` resolve via the `online` scope → Interactive
-  holders, which IS the wire body during a visit, by construction.
+  less machinery: subscriptions and rules stay on the registry
+  (field) avatar and nothing needs restoring at exit.
+
+  Where the redirect happens moved during the live pass. It is at the
+  **delivery seam only** — `Avatar.handleMessage`/`handleEnvelope`
+  resolve their sockets through a module-private `forwardingTargets`,
+  which hands back the live vessel's Interactives while the body is
+  parked. Everything upstream of that keeps naming the FIELD avatar:
+
+    - `ChannelCatalogue.audienceFor` returns registry avatars. A
+      recipient is also the *viewer* every per-recipient MML name is
+      lensed for, so putting the vessel in the audience makes a
+      field-context render read circle-resident perception state,
+      which the boundary denies — one person stepping into a circle
+      killed the channel post for **everyone**.
+    - The `online` MQL provider (`api/mql/online-wire.ts`) walks
+      Interactive → holder → back to the holder's field identity, for
+      the same reason plus one more: a field-context resolve must not
+      touch a circle-scoped object at all, since the scope-walk's own
+      reads deny before any filtering could happen.
+    - `Avatar.isConnected()` reports the vessel's connectivity while
+      parked. Sockets live on the vessel, so the inherited answer is
+      `false`, and every consumer of it — `who`, the `online` scope
+      that `dm`/`tell` resolve against, the presence roster, notify —
+      reads that as *offline*. Stepping into your own circle made you
+      unreachable to the whole world, the precise opposite of "the
+      wire is unsurveillable, not unreachable."
+
+  Read side and write side are twins: `isConnected` answers *is this
+  person reachable*, `forwardingTargets` answers *through which
+  sockets*. Both keep the field body as the stable identity everyone
+  addresses.
 - **Parking (Decision P)**: `Avatar.parked` — presence emit
   suppressed in `onLinkdead`, `canEvict` veto while parked, captured
   at park (best-effort, loud on failure — the autosave posture).
@@ -226,13 +274,32 @@ answers only "what is this / who holds the socket."
   direction is always open and runs `SandboxApi.exit`.
 - **`Wardrobe`** (`/obj/sandbox/wardrobe` + skin siblings): Thing-tier,
   chattel-identified, one persistent field (`linkedSandboxPath`,
-  Pattern A; `''` = links on first enter to that enterer's own
-  circle). `onMoved` re-seats the passage (the door is wherever the
-  fixture is); destroy reaps occupants via `closeSession` (each exits
-  to their parked avatar) and orphans the zone (re-bindable; doors are
-  concurrent). Guest access rides the shipped parcel grant surface —
-  `revokeUse` carries a direct sandbox witness that exits a revoked
-  guest mid-visit.
+  Pattern A; `''` = unlinked). `onMoved` re-seats the passage (the door
+  is wherever the fixture is). Guest access rides the shipped parcel
+  grant surface — `revokeUse` carries a direct sandbox witness that
+  exits a revoked guest mid-visit.
+
+  **The public-booth rule.** What a door does on first entry turns on
+  **ownership**, not on who got there first:
+
+    - *Owned* (chattel-stamped — someone bought or crafted it): the
+      first entry links the door to its OWNER's circle, permanently.
+      That is what makes "sell empty" work — the buyer's first entry
+      links *their* circle — and it is why a visitor in your hall can't
+      re-point your wardrobe at their own space by beating you to it.
+    - *Unowned* (a fixture standing in a commons — the wire alcove, a
+      library, a campus nook): it NEVER links. Every enterer goes to
+      their own circle. Character creation is already the grant
+      (`selfHomeOwnerOf`), so the honest behavior for a door nobody
+      owns is "this opens onto yours" — a phone booth, not a claim.
+
+  Destroy follows from the same split. A *linked* door is the mouth of
+  one named circle, so `onDestruct` reaps its occupants via
+  `closeSession` (each exits to their parked avatar) and orphans the
+  zone — re-bindable, since doors are concurrent. A *public booth*
+  names no scope and therefore has no session to close: the way out is
+  the circle's own `out` passage, which the booth never owned, so
+  destroying it strands nobody and is a true non-event.
 - **Circle materialization**: lazy, under the circle-scoped root — the
   `CircleFloor` entry room + the `out` passage + every
   Location-classed authored template under the circle's namespace
@@ -259,6 +326,35 @@ answers only "what is this / who holds the socket."
   outside the extent while in-extent writes are real and receipted
   (`recordAuthoring` + a mudlog line). `isWizard` is required for
   every mode — jurisdiction gates *where*, never *whether*.
+
+  Three things the live pass forced into the shape:
+
+    1. **The scratch's whole life runs inside the jurisdiction root**,
+       not just the run. The boundary is symmetric, so a scratch minted
+       field-side and run circle-side dies on the *second*
+       `eval <code>` in the same jurisdiction — the field-context
+       destruct of the previous, now circle-scoped, scratch is denied.
+       Keeping mint + lookup + run in one root also means the scratch a
+       wire jurisdiction leaves behind dies with the circle, which is
+       what "quarantined" is supposed to mean.
+    2. **Only the player's code goes in there.** Naming the targets and
+       reporting the results happen outside, in the caller's own
+       context: inside a wire root the controller is standing in the
+       circle, so `target.getPresentation()`, `this.tell(...)`, and even
+       `this._formatResult(...)` are cross-boundary dispatches against
+       a field-resident receiver. The plain field `eval` was dying
+       writing its OWN output line, not running anyone's code.
+    3. **Wire-ness resolves through `ZoneApi.resolveEnclosingZoneForPath`**,
+       not `resolveZoneForPath`. `/home` and `/studio` are non-SPATIAL
+       zones, so the spatial resolver walks straight past them and
+       answers `null` — which reads as "not wire" and sends quarantined
+       code down the *governed* path.
+
+  The scratch mint itself lives behind `ScriptApi.mintEvalScratch`. Its
+  identity stamp (`setTemplatePath`, so MQL's path atom can address the
+  scratch) is `ApiOnly`-gated, and `EvalController` is a controller —
+  it was calling the setter directly, so **every** `eval <code>` died
+  on the gate, in the field as well as in a circle.
 - **The harness seam**: `POST /api/sandbox/test-session` (CSRF +
   session-attribution bridge) → `SandboxApi.launchTestSession(actor)`
   — which IS `enter`, options bag left open for the draft-overlay
@@ -314,3 +410,62 @@ answers only "what is this / who holds the socket."
   event-read filter excludes scoped rows automatically — field
   conservation with zero reader changes. The in-circle derive-on-read
   branch lands with the round-trip wave.
+
+## What the live pass turned up outside the sandbox
+
+The browser + WebSocket pass through the wardrobe found several defects
+that predate this build and are not sandbox-specific. They are recorded
+here because the crossing is what made them visible, and because two of
+them are fixed on this branch.
+
+**Fixed here, because the sandbox couldn't work around them:**
+
+- **`eval <code>` was dead engine-wide.** `EvalController` stamped its
+  scratch singleton by calling the `ApiOnly`-gated
+  `Stuff.setTemplatePath` directly, from a controller. Fixed by adding
+  `ScriptApi.mintEvalScratch` (see above). The `#templatePath` doc
+  comment had named this exact case for a long time — "Api code that
+  wants MQL path-atom addressability for an ad-hoc runtime singleton,
+  e.g. `EvalScript` stamping `/home/<id>/_eval`" — there just was no Api
+  to be called from.
+- **The third `clone` of any template died on its own access check.**
+  `CloneController` resolved a representative live instance for the
+  access slice-walk with `StuffApi.findByTemplatePath`, the singleton
+  form, which throws once two instances share a path — the ordinary
+  state after cloning the same template twice. Now
+  `findAllByTemplatePath(path)[0]`.
+- **Zone `data` never reached the instance.** `Zone.persistentFields`
+  was `[]` and `seeds/home.yaml` named no `hydratorClass`, so a seeded
+  `wire: true` sat in the row and never applied. Both fixed; `/home` now
+  mirrors `/studio`. **Deploy step**: `SeederManager` is insert-only, so
+  an existing environment keeps its stale `/home` row — delete
+  `domain { path: '/home' }` once and restart to re-seed. Same for
+  `/domain/lounge/wire-alcove` and `/lib/sandbox/CircleFloor` if they
+  were seeded before the light fixtures landed.
+
+**Reported, not fixed (they would change the world, not the sandbox):**
+
+- **No class composes `AmbientLitMixin`, so light is fixture-side
+  only.** A Location with no `LightSource` in it computes
+  `pitch-black`, at which band `VisionModality.canSee` fails and
+  `RecognitionApi.describe` falls back to "someone" / "something" for
+  every occupant. A dark room doesn't merely read as dark: nobody in it
+  can be named, told apart, or addressed by name, so `tell <name>`
+  cannot resolve a target. The lounge is lit by its neon signs; a room
+  authored without a fixture is not. The two rooms this build adds
+  (`wire-alcove`, `CircleFloor`) each ship a light for that reason.
+- **The residency eviction sweep walks across the boundary.**
+  `ResidencyLogic`'s presence walk runs from a field root and calls
+  `getContainer()` on circle-resident objects, which denies with a
+  receipt each pass. Harmless today (the sweep skips what it can't
+  read) but it is noise in `sandbox.boundary`, and the sweep should
+  either run per-scope or filter on `getCircleScope()` first.
+- **MQL subscription re-resolve does the same in the other
+  direction**, from a circle root against field deps
+  (`mql.reresolve` diagnostics). Same shape of fix.
+
+**Debuggability**: the boundary deny receipt now carries a stack,
+captured synchronously before the async receipt body. The `caller` line
+names the principal, but the boundary's hard cases are precisely the
+ones where the principal is a framework frame (`<unresolved>`) and the
+only useful question is *which walk reached across*.

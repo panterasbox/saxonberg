@@ -238,12 +238,26 @@ describe('sandbox-escape: the round-trip criterion', () => {
       { path: `${SCOPE}/workshop`, class: '/lib/location/CartesianLocation' },
     ]);
     // …and the epistemic record exists, wire-marked.
-    expect(store.get(Collections.Chronicles)).toEqual([
-      {
+    //
+    // Asserted by shape rather than as the whole array: a crossing runs
+    // the ordinary arrival ceremony, so the engine's own chronicle
+    // writes (the `first-arrival` deed) land here too. That is the
+    // policy working — chronicles are STAMP, so anything written from
+    // inside carries the scope and discards with it — and the test's
+    // claim is "every chronicle row is wire-marked", not "the circle
+    // wrote exactly one row".
+    const chronicles = store.get(Collections.Chronicles) ?? [];
+    expect(
+      chronicles.every(
+        (row) => (row as { circleScope?: string }).circleScope === SCOPE
+      )
+    ).toBe(true);
+    expect(chronicles).toContainEqual(
+      expect.objectContaining({
         owner: Avatar.getTemplatePath(PLAYER),
         deed: 'built a workshop',
         circleScope: SCOPE,
-      },
-    ]);
+      })
+    );
   });
 });

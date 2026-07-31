@@ -98,12 +98,22 @@ describe('sandbox crossing', () => {
       // presentation forked
       expect(wireBody.getName()).toBe('Crosser');
     });
-    // identity thread: the vessel acts AS the player
+    // identity thread: the vessel acts AS the player — this is what
+    // authority (wizard/core membership, parcel title) keys on, so an
+    // empty identity silently strips a player of their own powers
+    // inside their own circle.
     expect(wireBody.getIdentityPath()).toBe(Avatar.getTemplatePath(PLAYER));
+    expect(wireBody.getPlayerId()).toBe(PLAYER);
     // the link moved; the avatar parked, presence-frozen, NOT announced
     expect(interactive.getHolder()).toBe(wireBody);
-    expect(avatar.isConnected()).toBe(false);
+    // The sockets moved off the field body…
+    expect(avatar.getInteractives().size).toBe(0);
     expect(avatar.isParked()).toBe(true);
+    // …but the person is still ONLINE: `isConnected` follows the live
+    // vessel while parked (Decision N's presence half). Answering
+    // `false` here is what made a player who stepped into their own
+    // circle vanish from `who`, from `tell`, and from the roster.
+    expect(avatar.isConnected()).toBe(true);
     await new Promise((r) => setTimeout(r, 10));
     expect(events).toEqual([]);
     // the parked avatar keeps the registry slot; the vessel never takes it

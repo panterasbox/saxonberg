@@ -177,8 +177,8 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
   if (state.entryRoom && !state.entryRoom.isDestroyed()) {
     return state.entryRoom;
   }
-  const { default: CartesianLocation } = await import(
-    '../../lib/location/CartesianLocation'
+  const { default: CircleFloor } = await import(
+    '../../lib/sandbox/CircleFloor'
   );
   const { default: Location } = await import('../../lib/stuff/Location');
   const { default: SandboxCrossingExit } = await import(
@@ -194,8 +194,8 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
         entry = await StuffApi.clone(CIRCLE_FLOOR_PATH);
       } catch {
         // Template store offline (tests / pre-seed boot): a bare
-        // Exitable room stands in for the CircleFloor.
-        entry = await StuffApi.create(() => new CartesianLocation());
+        // CircleFloor stands in for the seeded, described one.
+        entry = await StuffApi.create(() => new CircleFloor());
       }
       // The way out — a return passage on the entry room.
       if (MixinApi.isExitable(entry)) {
@@ -326,7 +326,7 @@ async function enterImpl(
     'sandbox.enter',
     async () => {
       const body = await StuffApi.create(
-        () => new WireBody(),
+        () => new WireBody(playerId),
         { playerId, wire: true }
       );
       await PersistableApi.forkRuntimeState(
@@ -359,16 +359,36 @@ async function enterImpl(
   // Transfer every Interactive (multiplexed sessions all move). The
   // transfers run under an omni root: the choreography spans both sides
   // of the boundary and is system work by definition.
+  const moved: Interactive[] = [];
   ExecutionContextApi.runRoot(
     null,
     'sandbox.transfer',
     () => {
       for (const interactive of [...actor.getInteractives()]) {
         ConnectionApi.transfer(interactive as Interactive, wireBody);
+        moved.push(interactive as Interactive);
       }
     },
     { circleScope: OMNI_SCOPE }
   );
+
+  // Run the session ceremony on the vessel for each moved socket: the
+  // client needs its connection-established payload (it re-binds panes
+  // to the new body) and an auto-sense of the circle. Without this the
+  // player types `go wardrobe` and the screen simply doesn't change.
+  // Presence stays silent — `WireBody.announceSessionPresence` is a
+  // no-op, so nobody hears a login that didn't happen.
+  for (const interactive of moved) {
+    await ExecutionContextApi.runRootGuarded(
+      null,
+      'sandbox.enterCeremony',
+      () => wireBody.enter(interactive),
+      'swallow',
+      { circleScope: scope }
+    );
+    // The socket now drives a different body — re-render its panes.
+    MqlSubscriptionApi.refreshForInteractive(interactive);
+  }
 
   state.occupants.add(wireBody.stuffId);
   state.wireByPlayerId.set(playerId, wireBody);
@@ -389,6 +409,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
   const state = scope ? sessions.get(scope) : undefined;
   const avatar = PlayerApi.findAvatarByPlayerId(playerId);
 
+  const returned: Interactive[] = [];
   await ExecutionContextApi.runRootGuarded(
     null,
     'sandbox.exit',
@@ -396,6 +417,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
       if (avatar) {
         for (const interactive of [...wireBody.getInteractives()]) {
           ConnectionApi.transfer(interactive as Interactive, avatar);
+          returned.push(interactive as Interactive);
         }
         // Merge: epistemic only (the consumer's allowlist).
         PersistableApi.mergeRuntimeState(
@@ -403,10 +425,40 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
           wireBody as unknown as Stuff,
           EPISTEMIC_MERGE_ALLOWLIST
         );
-        avatar.setParked(false);
+        // `parked` stays TRUE across the re-entry ceremony below so the
+        // return emits no presence event (nobody heard them leave); it
+        // clears once the sockets are re-oriented.
       }
       // Reap the vessel wholesale — inventory and all.
       await StuffApi.destruct(wireBody as unknown as Stuff);
+    },
+    'rethrow',
+    { circleScope: OMNI_SCOPE }
+  );
+
+  // Re-orient each returning socket on the field body: the client
+  // re-binds its panes and the player sees the room they left. Same
+  // ceremony as entering, and just as necessary — walking out must not
+  // leave a blank screen either.
+  for (const interactive of returned) {
+    await ExecutionContextApi.runRootGuarded(
+      null,
+      'sandbox.exitCeremony',
+      () => avatar!.enter(interactive),
+      'swallow'
+    );
+    MqlSubscriptionApi.refreshForInteractive(interactive);
+  }
+  // Unpark under an omni root. `exit` is reached from the wire body's
+  // own `go out`, so the ambient context is the CIRCLE — and the
+  // avatar being unparked is field-resident, which is a denied
+  // crossing (found live: the deny left the avatar parked forever, so
+  // every later delivery forwarded to a vessel that no longer exists).
+  await ExecutionContextApi.runRootGuarded(
+    null,
+    'sandbox.exit.unpark',
+    () => {
+      avatar?.setParked(false);
     },
     'rethrow',
     { circleScope: OMNI_SCOPE }
@@ -752,7 +804,7 @@ export class SandboxLogic extends ApiLogic {
       'sandbox.respawn',
       async () => {
         const body = await StuffApi.create(
-          () => new WireBody(),
+          () => new WireBody(playerId),
           { playerId, wire: true }
         );
         await PersistableApi.forkRuntimeState(

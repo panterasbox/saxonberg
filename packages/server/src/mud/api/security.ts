@@ -578,6 +578,12 @@ export class SecurityApi {
       '/obj/EventSubscriptions',
       '/obj/AddressRegistry',
       '/obj/TopicCatalogue',
+      // The staff→player news window. Read-only presentation content
+      // (writes are REFUSE'd at the PM layer), and the session
+      // ceremony reads it to build a client's bootstrap payload — so a
+      // player crossing into a circle must be able to reach it, or the
+      // whole ceremony throws and they arrive to a blank screen.
+      '/obj/BulletinBoard',
       '/obj/SoulCatalogue',
       '/obj/SubjectCatalogue',
       '/obj/ChannelCatalogue',
@@ -697,6 +703,13 @@ export class SecurityApi {
     ctxScope: string | null,
     rcvScope: string | null
   ): void {
+    // Captured SYNCHRONOUSLY, before the async receipt body: taken
+    // inside the IIFE it records only the IIFE. The `caller` line names
+    // the principal, but the boundary's hard cases are the ones where
+    // the principal is a framework frame (`<unresolved>`) and the only
+    // useful question is which walk reached across — a residency sweep,
+    // an MQL re-resolve, a per-viewer render. That's the stack.
+    const denyStack = new Error('boundary-deny').stack ?? null;
     void (async () => {
       try {
         const caller = ExecutionContextApi.getCurrentTarget();
@@ -716,6 +729,7 @@ export class SecurityApi {
             `${receiver.stuffId ?? '<unknown>'} (${receiverPath ?? 'no path'}) — ` +
             `context scope ${ctxScope ?? 'field'} vs receiver scope ` +
             `${rcvScope ?? 'field'}; caller ${callerModule ?? '<unresolved>'}`,
+          stack: denyStack,
         });
       } catch {
         // receipts are best-effort; the deny already threw

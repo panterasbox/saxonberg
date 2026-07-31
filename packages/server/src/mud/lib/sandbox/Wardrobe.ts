@@ -30,6 +30,7 @@
 import Thing from '../stuff/Thing';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { ChattelApi } from '../../api/chattel';
 import { SandboxApi } from '../../api/sandbox';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
@@ -65,14 +66,46 @@ export default class Wardrobe extends Thing {
   }
 
   /**
-   * Resolve (and if unlinked, ESTABLISH) the circle scope for an
-   * enterer — first enter links the door to that person's own circle.
+   * Resolve the circle scope this door opens onto for `avatar`, linking
+   * the fixture if this is the first entry through an OWNED one.
+   *
+   * Two shapes, and the difference is ownership:
+   *
+   *   - **Owned** (chattel-stamped — someone bought or crafted it): the
+   *     first entry links the door to its OWNER's circle, permanently.
+   *     That is what makes "sell empty" work (the buyer's first entry
+   *     links *their* circle) and it is why a guest walking into your
+   *     hall can't re-point your wardrobe at their own space by getting
+   *     there first.
+   *   - **Unowned** (a fixture standing in a commons — the wire alcove,
+   *     a library, a campus nook): it NEVER links. Every enterer goes
+   *     to their own circle. A public wardrobe is a phone booth, not a
+   *     claim: character creation is already the grant
+   *     (`selfHomeOwnerOf`), so the honest behavior for a door nobody
+   *     owns is "this opens onto yours."
    */
-  public linkForEnterer(avatar: Avatar): string {
-    if (this.linkedSandboxPath === '') {
-      this.linkedSandboxPath = `/home/${avatar.getPlayerId()}`;
+  public async linkForEnterer(avatar: Avatar): Promise<string> {
+    if (this.linkedSandboxPath !== '') return this.linkedSandboxPath;
+    const ownerId = await this.ownerPlayerId();
+    if (ownerId === null) {
+      // Public booth: no link, no claim — your own circle.
+      return `/home/${avatar.getPlayerId()}`;
     }
+    this.linkedSandboxPath = `/home/${ownerId}`;
     return this.linkedSandboxPath;
+  }
+
+  /**
+   * The playerId of this fixture's chattel owner, or `null` when the
+   * fixture is unowned (never stamped — a commons fixture).
+   */
+  public async ownerPlayerId(): Promise<string | null> {
+    if (!this.getChattelId()) return null;
+    const owner = await ChattelApi.ownerOf(this as unknown as Stuff).catch(
+      () => null
+    );
+    if (owner?.kind !== 'player') return null;
+    return owner.templatePath.split('/').filter(Boolean).pop() ?? null;
   }
 
   /**

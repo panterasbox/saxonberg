@@ -48,6 +48,10 @@ export async function mintSession(
      * singleton room) so co-location tests bypass the elastic lounge
      * Warren. Only meaningful with `withCharacter`. */
     startLocation?: string;
+    /** Confer wizard (code-trust) on the provisioned character — the
+     * `clone`/`eval`/`goto` axis. Test-auth only; the server adds the
+     * character to the managed `wizards` group. */
+    wizard?: boolean;
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -62,6 +66,7 @@ export async function mintSession(
           ...(opts.startLocation
             ? { startLocation: opts.startLocation }
             : {}),
+          ...(opts.wizard ? { wizard: true } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -137,15 +142,22 @@ export async function enterWorld(
 export async function openWorldAs(
   browser: Browser,
   prefix = 'world',
-  opts: { startLocation?: string } = {}
-): Promise<{ page: Page; context: BrowserContext; close: () => Promise<void> }> {
-  const { state } = await mintSession({
+  opts: { startLocation?: string; wizard?: boolean } = {}
+): Promise<{
+  page: Page;
+  context: BrowserContext;
+  handle: string;
+  state: SessionState;
+  close: () => Promise<void>;
+}> {
+  const { state, handle } = await mintSession({
     handle: uniqueHandle(prefix),
     withCharacter: true,
     startLocation: opts.startLocation,
+    wizard: opts.wizard,
   });
   const { context, page } = await enterWorld(browser, state);
-  return { page, context, close: () => context.close() };
+  return { page, context, handle, state, close: () => context.close() };
 }
 
 /** Type a command into the base input and submit it. */

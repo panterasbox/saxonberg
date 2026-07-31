@@ -38,6 +38,30 @@ function _indexHandle(scope: string | null, handle: InternalHandle): void {
   set.add(handle);
 }
 
+/**
+ * The scope a callback registered *now* should fire under.
+ *
+ * Three cases, and the third is the one that needs saying:
+ *   - registered inside a circle → that circle (continuations carry
+ *     birth scope, so deferred work stays governed);
+ *   - registered inside any other execution context (a command, a
+ *     session root) → that context's scope, `null` for ordinary field
+ *     work;
+ *   - registered with **no execution context at all** → `OMNI_SCOPE`.
+ *     That is boot: the maintenance sweeps (residency eviction, the
+ *     standings recomputes, the attendant idle sweep) install before
+ *     any root exists, and they are system work by definition — they
+ *     walk the whole world, circle-resident objects included. Without
+ *     this they would run field-scoped and be boundary-denied on every
+ *     circle object (found live: the residency presence walk throwing
+ *     on a wire body).
+ */
+function _registrationScope(): string | null {
+  const scope = ExecutionContextApi.getCircleScope();
+  if (scope !== null) return scope;
+  return ExecutionContextApi.getCallStack().length === 0 ? '*' : null;
+}
+
 function _unindexHandle(scope: string | null, handle: InternalHandle): void {
   if (scope === null || scope === '*') return;
   const set = _handlesByScope.get(scope);
@@ -154,7 +178,7 @@ export class ScheduleApi {
     const causing = propagate
       ? ExecutionContextApi.getCurrentCausingCommandId()
       : null;
-    const birthScope = ExecutionContextApi.getCircleScope();
+    const birthScope = _registrationScope();
     const id = SecurityApi.uuid();
     let cancelled = false;
 
@@ -194,7 +218,7 @@ export class ScheduleApi {
     const causing = propagate
       ? ExecutionContextApi.getCurrentCausingCommandId()
       : null;
-    const birthScope = ExecutionContextApi.getCircleScope();
+    const birthScope = _registrationScope();
     const initialDelay = opts?.initialDelayMs ?? intervalMs;
     const mode = opts?.mode ?? 'fixed-delay';
     const id = SecurityApi.uuid();

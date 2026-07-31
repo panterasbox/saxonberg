@@ -1,0 +1,26 @@
+# The circle's ambient glow — the light source that makes "an evenly
+# lit expanse" mechanically true.
+#
+# Light in this engine is fixture-side: a Location containing no
+# LightSource reads `pitch-black`, at which band the vision gate fails
+# and every occupant degrades to "someone". The floor's prose promises
+# even light, so something in the room has to emit it.
+#
+# Sourceless by fiction — the floor of a circle glows because the circle
+# does — hence the flat, shadowless colour temperature and the
+# deliberately featureless description. It rides the shipped
+# PortableLight class (the library's only concrete LightSource) with
+# `on: true`; nothing in the sandbox surface offers to switch it off.
+class: /lib/equipment/PortableLight
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: an even, sourceless glow
+  primaryKeyword: glow
+  keywords: [glow, light]
+  longDescription: |
+    The light in here does not come from anywhere. It is simply
+    present, flat and shadowless, the way light is in a drawing before
+    anyone decides where the sun is.
+  on: true
+  emittedIntensity: 400
+  emittedColorTemperature: 5000

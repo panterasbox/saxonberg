@@ -442,6 +442,23 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
+   * Re-resolve every subscription this Interactive holds, right now.
+   *
+   * Subscriptions re-resolve when a tracked DEPENDENCY changes — but
+   * swapping the body behind a socket isn't a dependency of any query,
+   * it's a change of who the query is *for*. After the sandbox crossing
+   * moves a socket to a wire body (or back), its panes would otherwise
+   * keep rendering the room the player already left (found live: the
+   * location pane still read "the wire alcove" from inside the circle).
+   */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public refreshForInteractive(interactive: Interactive): void {
+    const bucket = this.registry.get(interactive);
+    if (!bucket) return;
+    for (const sub of bucket.values()) this.markDirty(sub);
+  }
+
+  /**
    * Cancel every subscription whose birth scope is `scope` — the
    * sandbox reap seam: a circle's live queries die with its session.
    * Field-born subscriptions are untouched (they continue across a
@@ -664,16 +681,33 @@ export default class MqlSubscriptionRegistry extends Idea {
     const subs = [...this.dirty];
     this.dirty.clear();
     for (const sub of subs) {
-      // Per-subscription root carrying the subscription's BIRTH scope
-      // (sandbox): the drain runs on whatever context marked things
-      // dirty; each re-resolve must run under its registrant's scope,
-      // not the mutator's. This registry is frame-mutator-allowlisted.
-      ExecutionContextApi.runRoot(
+      // Per-subscription root carrying the subscription's effective
+      // scope (sandbox): the drain runs on whatever context marked
+      // things dirty, so each re-resolve must run as ITS OWN
+      // subscription, never the mutator.
+      //
+      // The effective scope is the CURRENT HOLDER's — a pane renders
+      // what the body behind it sees, and a socket that follows its
+      // player into a circle takes its panes along. Birth scope is the
+      // fallback for a holderless/detached moment. (A field-born
+      // subscription whose holder is now a wire body therefore
+      // re-resolves in-circle; when the player walks out and the socket
+      // returns to the field avatar, it resolves field-side again.)
+      //
+      // Guarded 'swallow': a single bad subscription (a stale holder, a
+      // query that now denies) must never escape the batched drain — an
+      // uncaught throw here would take the process down.
+      const holderScope =
+        (sub.interactive.getHolder() as { getCircleScope?: () => string | null } | null)
+          ?.getCircleScope?.() ?? null;
+      const effectiveScope = holderScope ?? sub.birthScope;
+      void ExecutionContextApi.runRootGuarded(
         null,
         'mql.reresolve',
         () => this.reresolveAndEmit(sub),
-        sub.birthScope !== null
-          ? { circleScope: sub.birthScope }
+        'swallow',
+        effectiveScope !== null
+          ? { circleScope: effectiveScope }
           : undefined,
       );
     }
