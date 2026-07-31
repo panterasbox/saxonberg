@@ -679,6 +679,72 @@ fresh DB**. Phase 1 shipped without these and the integrity test caught it.
 
 ---
 
+## Parallel build — the residence work in build-3
+
+**These two builds run concurrently**, against the roadmap's own advice
+(*"code builds stay sequential … two concurrent builds would independently
+rediscover the same convention flaws"*). A unification pass follows. This
+section exists so that pass has a checklist instead of a merge conflict.
+
+build-3 is on `feature/apartment`, currently deep in furnishing decisions
+(D14–D16). Three surfaces touch this build, and they are **not** equally
+dangerous:
+
+### 1. Land use — a gift, not a collision
+
+Furnishing's D15 independently reached the same tiering this plan did — *"the
+premises (unit / sub-parcel): title, **land use**, the lease, the address —
+this is where it is decided, and it is the shipped parcel layer."* But it
+**defers land use** ("stewardship owns condition, land use, and the residence
+ladder's gate; this build does not").
+
+So there is **no conflict**: Hinkley implements the seam furnishing names and
+declines. Two independent builds converging on the same tier is a good signal
+the tier is right.
+
+> **Tell build-3.** Their deferred seam will already exist by the time they
+> want it, so they can consume `ParcelApi.landUseOf` rather than re-defer it.
+
+### 2. Keyed rooms — ⚠ the real collision
+
+Furnishing stands rooms up "host-keyed, via the shipped seed-then-persist" —
+i.e. the `DormWarren.admit` shape. **This plan refactors that** (Decision B:
+extract `restoreOrSeed`, move `DormWarren` onto it). Both builds therefore
+touch `api/persistable.ts`, `obj/api/PersistableLogic.ts` and the dorm.
+
+**Recommendation: land Wave 2 on master first, as its own small change,
+before either branch goes further.** It is one Api static, one refactor and its
+tests — self-contained, needing nothing from Hinkley or the apartment. Both
+builds then branch off a master that already has it, and the unify pass has one
+less thing to reconcile. Deferring it means two hand-rolled copies and a
+three-way merge in the spine.
+
+### 3. Real property vs chattel — adjacent, not overlapping
+
+Hinkley moves **title to ground** (`ParcelApi.transfer`, real property);
+furnishing lands **owner-stamped movables** (chattel-title). Different
+registries by design (`parcel.md` vs `chattel.md`), so they should not fight.
+Two things for the unify pass:
+
+- **The verb surface.** This plan adds `title` (civics) for owned ground;
+  furnishing may add a lease-shaped verb. Whether those stay separate or become
+  one dispatch verb is a unify-pass call — **not** a reason to pre-emptively
+  merge them now.
+- **A harvested crop carries a maker, not an owner.** `CraftedMixin` stamps who
+  grew it; chattel stamps who owns it. Once furnishing lands chattel-title, the
+  harvest may want both. Left alone here deliberately.
+
+### What this build must NOT do
+
+- **Do not touch the house interior.** It is `details:` prose precisely so
+  furnishing can upgrade it later rather than have it rebuilt.
+- **Do not invent a residence ladder or an ascent gate.** Both builds decline
+  it; stewardship owns it.
+- **Do not add a second lease mechanism.** `grantUse` already ships and
+  furnishing is the one exercising it.
+
+---
+
 ## Deferred seams — attach points, not stubs
 
 - **The bed's `moisture` is live, but nothing fills it from the sky.** Rain and
