@@ -163,6 +163,28 @@ precedents):
   merges.
 - **Marshal-credential issuance** [T4, small] — Office or court?
   Waits on the courts design.
+- **Preservation / spoilage** [T2 —
+  [preservation-slate](./slates/builds/preservation-slate.md)] — **the
+  keystone deferral of the extraction family.** Mining's salt ("preservation
+  is the killer app" [DECIDED]) and fishing ("the natural driver to finally
+  build perishability") both point at it and stop. Without it winter is a
+  pause not an economy, salt is a rock, the salt-cod route is decorative,
+  and the preserving crafting branch has no reason to exist. Small: the
+  growth term plus a freshness gauge copying `Wet.ts`.
+- **Disease** [T2 — [disease-slate](./slates/builds/disease-slate.md)] —
+  spans farming / ranching / aquaculture / pets / player health. The
+  `contagion` seam is already cut on every shipped `Condition`; the delta is
+  a growth term (**shared with preservation — build it there first**) and a
+  `ContagionSpec`. *Good husbandry is immunity.* Crops are the first proving
+  ground; pets and players last.
+- **The health vertical** [T2/T3 —
+  [health-vertical-slate](./slates/builds/health-vertical-slate.md)] —
+  clinical practice, public health, and the teaching seam, over disease +
+  harm. The College of Physic's demand anchor already names *polity
+  public-health paper*; the demo slate's **aid post** is its stage. The
+  differentiator: every prior game's healer asks *how much healing*, ours
+  asks *what is wrong*. Largest gap: **there is no diagnosis surface at
+  all.**
 - **Ranching deep pass** — the Grange's herd wing; scheduled to
   ride the farming session; shares the breeding substrate (and
   aquaculture is fishing's ranching sibling — design them together).

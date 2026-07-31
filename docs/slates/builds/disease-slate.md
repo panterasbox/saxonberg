@@ -121,8 +121,9 @@ graph.**
 
 **The within-host half inherits a mature discipline** (from metabolism, copied
 verbatim by seven other mixins): a persisted game-time stamp, first-touch seed,
-linkdead re-stamp, an `elapsed <= 0` guard, the 4-hour far-past guard, and a
-reentrancy flag.
+linkdead re-stamp, an `elapsed <= 0` guard, and a reentrancy flag. ⚠ **Not the
+4-hour far-past guard** — that is bodies-only; a herd inheriting it could
+not get sick across a logout. See [ranching § The clock](./ranching-slate.md).
 
 ---
 

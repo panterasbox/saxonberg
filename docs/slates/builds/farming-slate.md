@@ -135,8 +135,10 @@ Every decision below is bound by these:
 3. **Derive-on-read, no tick, no presence freeze.** Crop state is a pure
    function of `(plantedAt, now, ∫weather, soil, interventions)`,
    reconciled lazily on read (the metabolism pattern). A field **does not
-   presence-freeze** — crops grow while nobody's online. The only bound is
-   the far-past guard.
+   presence-freeze** — crops grow while nobody's online. ⚠ **And it does NOT
+   inherit the bodies-only far-past guard** — see [ranching § The
+   clock](./ranching-slate.md); bound long absences with a step cap, not a
+   time cap.
    > **Generalized 2026-07-30** — this is no longer a farming-specific
    > divergence from metabolism; it is the **family-wide clock**, shared
    > with ranching and pets: *things you own reconcile against world time;
@@ -465,9 +467,11 @@ pressure:    { weeds, pests }                                   ← adversarial 
 ### `reconcile(plot, now)` — the keystone
 
 On **any read or action**, walk game-time from `lastSeenAt → now` in
-sub-steps (the metabolism lazy-sub-step + far-past guard). Per sub-step:
+sub-steps (the metabolism lazy-sub-step; ⚠ **not** its bodies-only far-past
+guard). Per sub-step:
 
-1. `WeatherApi.weatherAt(t, locality)` — rain tops up `moisture`;
+1. The **resolved** weather for that sub-step (⚠ *not* `weatherAt` — see *The
+   clock*; needs the time-parameterised resolve) — rain tops up `moisture`;
    temperature feeds `gddAccum` and drives evapotranspiration.
 2. **Reserves:** `moisture += rain − ET(temp,humidity,stage) −
    uptake(stage)`; `N,P,K −= uptake(stage)`; weeds/pests grow if pressure
@@ -906,7 +910,7 @@ the platform's reason for being, and farming is a clean first vehicle.
 | Farming need | Shipped substrate |
 |---|---|
 | crop maturing over time | metabolism's reconcile-on-read over game-time |
-| weather driving growth | weather's stateless procedural field (call `weatherAt` **directly** — see *The clock*) |
+| weather driving growth | weather's stateless procedural field — ⚠ **via the resolved read, NOT `weatherAt`** (that would drop authored pins); needs the time-parameterised resolve, see *The clock* |
 | **temperature** | thermal — **real** (GDD = `∫thermal`, Q10); `AtmosphericMixin` even gives a room-scope override that fans out a restamp |
 | **sun → light** | ⚠ **NET-NEW, farming owns it.** `setAmbientFlux` has **zero non-test callers**; `CelestialApi.sunAltitude`/`isDayAt` are fully implemented but consumed only by readout verbs and weather generation. **Nothing derives a room's ambient light from the sun.** `obj/Lamp.ts` (an hourly `WorldClockApi.every` flipping a light at dusk/dawn) is the pattern to copy. Crops need light, so this is a hard prerequisite — and it also blocks the greenhouse glass story (`Window`/`LightConduit` propagates flux *from an adjacent room*, and no room has sun-derived flux to propagate) |
 | **seasons** | built but **unused** — `CelestialApi.currentSeason` has two consumers (a readout verb, weather generation); **no object's state is keyed to a season**, and `atNextSunrise`/`atNextSunset`/`atNextFullMoon` have **zero callers**. Cheap wiring, but not free |

@@ -146,9 +146,27 @@ copies wholesale). No tick, no per-system time model.
 The avatar's own metabolic clock **keeps freezing** on logout (shipped behavior:
 `isHasInteractive() && isLinkdead()`) — you can't hire someone to eat for you,
 so offline decay of your own body has no fair mitigation. Everything you *own* —
-crops, herds, pets — runs on world time whether or not you're logged in. The
-existing far-past guard (`MAX_REASONABLE_GAP_SEC`) clamps the six-month absence
-without special-casing anything.
+crops, herds, pets — runs on world time whether or not you're logged in.
+
+> ### ⚠ The far-past guard is BODIES-ONLY. Owned things must not inherit it.
+> **Corrected 2026-07-31** — an earlier draft of this section said the guard
+> "clamps the six-month absence without special-casing anything." **That was
+> wrong twice over**, and it silently negated the convention this section
+> states.
+>
+> `MAX_REASONABLE_GAP_SEC` does **not clamp — it DROPS the whole interval**
+> (`Metabolic.ts`: *"a gap this long means absence … drop it, integrate
+> nothing"*), and it is **4 real hours**. An owned herd inheriting it would gain
+> nothing across any absence longer than a lunch break — **exactly the freeze
+> this convention exists to abolish.**
+>
+> The guard exists to protect **bodies** ("real absence never starves you").
+> **A herd is not a body. A crop is not a body. Food is not a body.** Owned
+> things **integrate the full gap**; only the inhabited body gets the guard.
+> Bound long absences with a **step/sample cap**, never a time cap.
+>
+> *(Note the guard is per-consumer, not one global constant —* `Metabolic.ts`
+> *uses 4h,* `MechanicalMovement.ts` *uses 90 days. Each consumer picks.)*
 
 **This supersedes the pets slate's "offline = freeze / owner-proxy presence"
 line.** The goal that line was protecting — respect the player's time — survives
@@ -173,11 +191,23 @@ The cleanest statement of what the family actually *is*:
 > **Every living thing you keep has needs. Meeting them well produces a better
 > outcome. Only the *outcome* differs.**
 >
-> | Kept thing | Outcome of good care |
-> |---|---|
-> | **Plant** | `Grade` — harvest quality |
-> | **Livestock** | yield **+** `Grade` |
-> | **Pet** | capability **+** bond |
+> | Kept thing | Outcome that **differs** | Outcome they **share** |
+> |---|---|---|
+> | **Plant** | `Grade` — harvest quality | ⭐ **resistance** |
+> | **Livestock** | yield **+** `Grade` | ⭐ **resistance** |
+> | **Pet** | capability **+** bond | ⭐ **resistance** |
+
+> **The shared column** *[amended 2026-07-31, disease session]*. The section
+> title counts the outputs that **differ**; resistance is the one all three
+> **share** — so it is a fourth *column*, not a fourth row.
+> [disease-slate](./disease-slate.md) found that the resist substrate's
+> susceptibility factor reads **live off host state**, so **the condition score
+> this care model already computes becomes the resistance term**:
+> **good husbandry *is* immunity.** That makes disease a consequence of care
+> quality rather than a dice roll, and it means care produces a *fourth* output
+> alongside yield, `Grade` and bond — the same input, one more consequence.
+> (The section title's "three outputs" names the three that *differ*; resistance
+> is the one they **share**.)
 
 So the *practice* is genuinely shared, right down to the daily act: **the
 rancher scoring body condition and the owner noticing the dog's coat are
