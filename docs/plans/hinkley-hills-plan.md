@@ -29,7 +29,63 @@ content. The growth model itself is **not modified except additively**.
 
 ## Grounding — facts established by reading the code
 
-Do not re-derive these. Each was checked in the tree at plan time.
+Do not re-derive these. Each was checked in the tree at plan time, and
+**re-checked against master after the sandbox and import-boundary merges**
+(§ Reconciled against master).
+
+### ⚠ Reconciled against master — what landed after this plan was written
+
+Two builds merged between plan and build: **sandbox** (`4dabe623`) and
+**import-boundary** (`d007bc9d`). Every grounding fact below survived — but
+five things changed that this build touches directly.
+
+**1. The import boundary is now a hard, CI-gated rule.** *Nothing under
+`src/mud/` imports anything from outside `src/mud/` — Node built-ins included
+— except the Api tier* (`mud/api/**` **and** `mud/obj/api/**`), which imports
+and wraps. `import type` is exempt everywhere. **The per-file exception
+registry is empty; ask before adding the first entry.** Nothing this build
+plans needs a capability, so the practical effect is a prohibition: no `fs`,
+no `crypto`, no `vm` in `lib/parcel/`, `lib/husbandry/`, `obj/` or `domain/`.
+The mudlib names a shipped file through `SourceTreeApi.readYamlResource(
+import.meta.url, …)`, never an import.
+See [architecture.md § The import boundary](../architecture.md).
+
+**2. `SecurityApi.assertFieldMutation(this, '<method>')` is the new
+per-mutator guard**, and `ParcelRegistry` now carries it on **`subdivide` ·
+`transfer` · `grantUse` · `revokeUse` · `retire`** — one line at the top of
+each, denying the mutation under circle (sandbox) scope with a receipt. Two
+consequences:
+
+- **Wave 7 gets sandbox safety for free.** `title buy` runs through
+  `subdivide` + `transfer`, so a purchase attempted from inside a circle is
+  already refused, twice over — the guard, and `Collections.Parcels` being
+  **REFUSE** in `COLLECTION_POLICIES`. Assert it rather than build it.
+- **Any new registry mutator this build adds carries the guard too.** A read
+  (`landUseOf`) does not.
+
+**3. `Collections` — the collection-name enum — moved into the mudlib**
+(`lib/persistence/Collections.ts`) so a record can name its own collection
+without reaching into `backend/`. `ParcelRecord` still holds the literal
+`"parcels"` (it never imported backend, so the refactor passed it by). Wave 1
+is already editing that file: **switch it to `Collections.Parcels`** while
+there. No lint requires it; consistency does.
+
+**4. `config/parcels.yaml` gained a `/studio` row** (the sandbox's group-cell
+namespace, owned by `core`). Wave 1's "add `landUse` to the obvious
+infrastructure rows" now has one more row to consider — and it is the row that
+makes the point below.
+
+**5. `ForkableMixin` + `PersistableApi.forkRuntimeState`/`mergeRuntimeState`
+exist** — the persistence spine's *runtime* sibling, for a body projecting
+into a sandbox wire body. **Explicitly out of scope here.** A bed is not
+projected; `Cultivable` and `Growing` declare **no** `forkSlice_*` methods.
+The doc's own scope note ("one consumer today") is the reason.
+
+**Unchanged and still true:** `DormWarren.admit` is untouched, so Wave 2's
+refactor target is exactly as described. There is still **no `restoreOrSeed`**
+anywhere. `ParcelApi`, `ParcelRecord` and the husbandry tree are untouched
+apart from the guard lines above. `m²` is still absent from the `Unit` union.
+`title` / `feed` / `harvest` are still free verb names.
 
 ### Parcels — richer than expected
 
@@ -39,8 +95,9 @@ Do not re-derive these. Each was checked in the tree at plan time.
   new `landUse` field is the same move, with precedent.
 - **`ParcelApi` already ships** `ownerOf` · `coveringParcelOf` · `subdivide` ·
   `transfer` · `grantUse` / `revokeUse` / `hasUseGrant` · `heldUnitOf` ·
-  `childParcelsOf` · `setKeyway` · `rebuildCoverageIndex`. **Title machinery is
-  done** — the missing piece is a player-facing *act*, not a mechanism.
+  `childParcelsOf` · `setKeyway` · `rebuildCoverageIndex` · `retire` ·
+  `selfHomeOwnerOf`. **Title machinery is done** — the missing piece is a
+  player-facing *act*, not a mechanism.
 - `ParcelRegistry.subdivide(childPath, parentExtent, owner)` writes the row,
   appends a `subdivide` chain-of-title event, and reindexes the coverage trie.
   `transfer` is its sibling. **Both already do what the purchase needs.**
@@ -161,6 +218,22 @@ and one read on the existing facade.**
 - `ParcelApi.landUseOf(path): Promise<LandUse>` — **longest-prefix through the
   existing coverage trie**, walking `parentParcel` upward until a non-null
   `landUse` is found; unclaimed ground answers `wild`. No new Api.
+
+> **⚠ `wild` must map to `admitsCultivation → 'none'`, and that is a
+> fail-closed decision, not a flavour one.**
+>
+> Stewardship's table reads *"~nothing built; passage and gathering"* —
+> gathering, not cultivation — so `none` is the faithful mapping anyway. But
+> master made it load-bearing: **most parcel rows are not ground at all.**
+> `/lib/lounge`, `/studio`, `/obj/…` are path-branch titles over the template
+> tree, and they all answer `wild` by default. Were `wild` to admit a bed,
+> the default answer for every abstract branch in the registry would be
+> "cultivable" — the gate would be open everywhere nobody had thought to
+> close it.
+>
+> With `none`, cultivation is permitted **only where a use explicitly says
+> so**. Hinkley's `residential` is the first such grant, which is exactly the
+> shape the gate should have.
 
 **A2. A parcel carries its own AREA — declared, never derived from rooms.**
 
@@ -400,6 +473,12 @@ Category: **`civics`** — this is the government's records counter, alongside
 extent**, so title and durable state share one identity. No Warren, no floors,
 no budding.
 
+**It is content, so it is not boundary-exempt — and should not be.** The
+sandbox's exempt list is an enumeration of framework registries and
+catalogues; *"anything unmarked and unscoped is subject to the ordinary
+compare, so a new module category fails closed."* `DormWarren` is likewise
+absent from it. Do not add `LotHolder` to that list.
+
 **L. Content is templates over shared classes, and the emptiness is authored.**
 One `Locality`, one `Government`, one TPA node, a lane of three rooms
 (arrival · street · the lot), the house as a `Detailed` fixture with prose
@@ -422,7 +501,9 @@ No content, no consumer yet. The vocabulary, the field, the read, the tests.
 - **`lib/parcel/ParcelRecord.ts`** — `landUse: LandUse | null = null` **and
   `area: Quantity<'m²'> | null = null`**, both added to `persistentFields`
   (+ `area` to `fieldMarshallers`). Validate on the setter path; an unknown
-  use throws with the offending value.
+  use throws with the offending value. **While here: `static collectionName =
+  Collections.Parcels`**, replacing the string literal the import-boundary
+  sweep passed by.
 - **`lib/quantity.ts`** — `'m²'` joins the `Unit` union, with converters
   (`m²`↔`hectare`, and an `acre` scale for display), plus
   `seeds/lib/persistence/QuantityMarshaller/m2.yaml`.
@@ -431,11 +512,14 @@ No content, no consumer yet. The vocabulary, the field, the read, the tests.
 - **`obj/ParcelRegistry.ts`** — `landUseOf(path)`: resolve the covering parcel,
   then walk `parentParcel` upward for the first non-null `landUse`; `wild` when
   nothing claims it. Gated `FromModule('/api/parcel#ParcelApi')` like its
-  siblings.
+  siblings. **A read — so no `assertFieldMutation`.** Any *mutator* added here
+  takes the guard line its five siblings now carry.
 - **`api/parcel.ts`** — the forwarding static + the re-export of `LandUse`.
 - **`config/parcels.yaml`** — a `landUse` on the existing infrastructure rows
   where it is obvious (`civic` for the registry/terminal, `commercial` for the
-  store). Seeding is insert-iff-absent, so this is additive.
+  store). Seeding is insert-iff-absent, so this is additive. **Leave the
+  path-branch rows (`/lib/lounge`, `/studio`, the `/obj/…` roots) `null`** —
+  they are not ground, and `wild → none` already makes that fail closed.
 
 ### Tests — `lib/parcel/__tests__/LandUse.test.ts` + registry tests
 
@@ -444,6 +528,9 @@ No content, no consumer yet. The vocabulary, the field, the read, the tests.
   an explicit child overrides
 - unclaimed ground answers `wild`
 - `admitsCultivation` maps the six to `none`/`bed`/`field` per stewardship
+- ⭐ **`wild` admits nothing**, and a path-branch row with no `landUse`
+  (`/studio`, `/lib/lounge`) therefore refuses cultivation — the fail-closed
+  default, asserted directly so nobody later "helpfully" opens it
 - **area round-trips as a `Quantity<'m²'>`** through the marshaller
 - **`subdivide` refuses a lot outside its use's area band**, naming both
 - ⭐ **nothing reconciles area against rooms** — a parcel's area is unchanged by
@@ -463,6 +550,9 @@ Independent of Hinkley. Do it before the content that needs it.
 - **`api/persistable.ts` + `obj/api/PersistableLogic.ts`** —
   `restoreOrSeed(host, key)`. Narrow with `MixinApi.isPersistable`; a
   non-persistable host is a clear throw (a programming error, not a user path).
+  It joins the **durable** half of the facade (`capture` / `materialize` /
+  `hasRecord`) — **not** the fork/merge half master added, which is runtime
+  state for sandbox projection and shares nothing with this.
 - **`domain/eternal/duncan-hall/DormWarren.ts`** — `admit` refactors onto it.
   The Warren membership, key stashing and exit wiring stay; the
   restore-or-seed decision goes.
@@ -650,6 +740,10 @@ deliberate step rather than smeared across the build.
 - buying away from the Registry is refused
 - the same lot cannot be sold twice
 - `title` bare reports what you hold and its land use
+- ⭐ **a purchase from inside a sandbox circle is refused** — `subdivide`'s
+  `assertFieldMutation` denies it with a receipt. Free from master; assert it
+  rather than build it, because a title minted in a holodeck would be a real
+  title.
 
 ---
 
@@ -885,8 +979,18 @@ Two things for the unify pass:
   `shortDescription`; "Hinkley Hills" is a `Locality.name`.
 - **Never run `prettier --write`** — quote style is mixed by area; match the
   file.
-- Green before the MR: `build`, `test`, `lint`, `lint:gates`,
-  `lint:module-scope`, `lint:world-scan`, `lint:thin-forwarder`.
+- **Nothing under `src/mud/` imports from outside it** — the Api tier
+  (`mud/api/**`, `mud/obj/api/**`) is the only importer-and-wrapper, and the
+  exception registry is **empty**. This build needs no capability, so the rule
+  should never bind; if it does, the answer is an Api fold, not an exception.
+- **A new field-visible mutator on an exempt singleton takes
+  `SecurityApi.assertFieldMutation(this, '<method>')`** — one line, the
+  `ParcelRegistry` shape. Reads do not.
+- Green before the MR: `build`, `test`, `lint`, and **all ten** lints —
+  `lint:gates` · `lint:module-scope` · `lint:boundary` · `lint:world-scan` ·
+  `lint:thin-forwarder` · `lint:pm` · `lint:imports` · `lint:does-nothing` ·
+  `lint:inert-weapon` · `lint:combat-dynamics`. The last three are unrelated
+  to this build's surface but are CI-gating.
 
 ---
 
@@ -908,6 +1012,8 @@ Two things for the unify pass:
 | `obj/command/bulk/WaterController.ts` | `feed`'s direct ancestor |
 | `docs/antipatterns.md § Working verbs conferred by a venue` | why the sale is `title` |
 | `seeds/domain/terminus/registry/office.yaml` | the sale's venue |
+| `docs/architecture.md § The import boundary` | the rule that landed after this plan; empty exception registry |
+| `obj/ParcelRegistry.ts` § the `assertFieldMutation` lines | the per-mutator sandbox guard, five live examples |
 
 **Created**
 
