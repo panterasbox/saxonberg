@@ -1,9 +1,9 @@
 # Pets slate (working doc) — the creature you won over
 
 > **Reconciled 2026-07-31** against the husbandry sessions (pets · ranching ·
-> farming · stewardship). Contradicted text is struck in place; the full
-> ledger — what changed, what those sessions newly **constrained**, and the one
-> hole they opened (**now closed** — see *The off-screen life*) — is in **[§
+> farming · stewardship). Contradicted text is struck in place; the full ledger
+> — what changed, what those sessions newly **constrained**, and the one hole
+> they opened (**now closed** — see *The off-screen life*) — is in **[§
 > Reconciliation](#reconciliation--what-the-husbandry-sessions-changed-2026-07-31)**.
 > The shared convention set is owned by [ranching-slate § The five shared
 > conventions](./ranching-slate.md).
@@ -248,9 +248,10 @@ already does. *Design the rules; harvest the emergence.*
   gap below and has real economic implications; captured, not queued.
 
 **Deferred but shaped:**
-- *"My puppy grew into a war-dog."* — growth-through-participation (advancement)
-  + combat ally (gated on the combat slate). Growth itself is the maturation
-  gap.
+- *"My puppy grew into a war-dog."* — **unblocked 2026-07-31.** Growth is the
+  maturation gap (now forced by ranching); "grew *into* one" is the pet's own
+  `Discipline` transcript (§ *Bonding + needs*); and the combat-ally half is no
+  longer gated — see § *Combat*.
 - *"I tamed the dragon."* — magic taming of an apex species (Wave 3).
 - *Riding.* — a rideable species is `Companion + Mountable`; mounts already
   ship.
@@ -379,9 +380,9 @@ care model (below) pointed at a pet.
 ### The cadence, at 12×
 
 **One login = one meaningful interaction.** Notice the animal, read it, do the
-right thing, get a response — seconds, not a chore loop. The
-[off-screen digest](#the-off-screen-life-decided-2026-07-31) covers what happened
-while you were away. That is the whole daily loop, and it is deliberately light.
+right thing, get a response — seconds, not a chore loop. The [off-screen
+digest](#the-off-screen-life-decided-2026-07-31) covers what happened while you
+were away. That is the whole daily loop, and it is deliberately light.
 
 ---
 
@@ -514,6 +515,169 @@ nuisance.
 **The range anchors on `homePath` and governs roaming *once home*.** Away from
 home the pet is in the return branch instead — so there is no leash concept and
 no second spatial system.
+
+---
+
+## Combat **[2026-07-31 — the guardrail expired]**
+
+> **This slate's guardrail said "combat-free until the combat slate lands."
+> Combat landed six builds ago** (core, multi-party, experience, weapon
+> playstyle, formations, hooks). The deferral self-expired; this section
+> replaces it. See [combat.md](../../subsystems/combat.md),
+> [combat-formations.md](../../subsystems/combat-formations.md),
+> [party.md](../../subsystems/party.md),
+> [combat-hooks.md](../../subsystems/combat-hooks.md),
+> [accountability.md](../../subsystems/accountability.md).
+
+### The good news — the pet case was designed in
+
+`PartyApi.sideOf` is a **three-rung chain and rung 2 is reserved for exactly
+this**, verbatim from party.md:
+
+> **owner** (de facto — pet / companion): a pet derives its side from its
+> *owner's* `sideOf`. A **seam only** — pets are unbuilt this cycle; `sideOf` is
+> structured to admit the rung when they land.
+
+Verified in code: the rung is **a comment, not an implementation**
+(`PartyLogic.sideOfImpl` — party → *(gap)* → `solo:<templatePath>`). Land it and
+the fighting loop follows from shipped parts:
+
+| Piece | State |
+|---|---|
+| `areAllied(pet, owner)` | falls out of rung 2 |
+| **getting into the fight** | `lib/behavior/backs-up.ts` — "a party member who joins an ally's fight"; scans for an allied occupant already fighting and `CombatApi.join`s on their side |
+| **fighting** | `lib/behavior/combatant.ts` — the session auto-assigns it to any combatant with no live `Interactive` |
+| **being worth bringing** | **focus-fire**: poise erosion scales with `graph.edgeCount`, and a defender pressed by enough attackers can't spend a beat recovering. Design intent: *"the lone turtle beats one but loses to two."* **The dog is that second edge** |
+| **stances, not orders** | `party adopt` / `party assign`; and the call is **derived** — *"the captain leads by attacking"* — so you never micromanage the animal |
+
+**`vanguard` is the guard-dog preset as written:** `front`/`back` roles where
+any threat edge onto a `back` intercepts to a `front`.
+
+### It works TODAY — but through the wrong door
+
+The shipped wolf is **two YAML files and zero TypeScript**
+(`seeds/lib/species/wolf.yaml` + `seeds/domain/newbie-wilds/npc/wolf.yaml`).
+Swap `class: /lib/npc/NPC` → `/lib/party/Mercenary`, add `backs-up`, and you
+have a fighting companion **right now**, no engine change.
+
+**Useful for prototyping; wrong as the destination.** It routes through *party
+membership*, not ownership — giving your dog a roster slot, a role, and a place
+in a captaincy. Parties are of persons. The ownership rung exists precisely so a
+pet need not be enlisted.
+
+*(Consistency check passed: `CombatantMixin` sits on `Character`, so a bare
+`Creature` cannot fight at all — which the slate already requires anyway, since
+tameable fauna are Character-tier.)*
+
+### Two problems, and they are the same flag
+
+`SpeciesApi.isSentient` gates a three-case severity, and `wolf / frog / plant`
+are `sentient: false`:
+
+- **Your dog gets culled.** Non-sentient + lethal → the winning blow finishes
+  it, **stage 2 skipped**. No downed state, no interruptible coup, no `defend
+  <fallen>`, no dragging it clear.
+- **Killing it is not a crime.** `deriveBlame`'s expression is literally
+  `lethality === 'lethal' && !consented && sentient`. Someone kills your bonded
+  animal; the ledger records nothing.
+
+> **Proposal: the staging-and-blame axis is "is it someone's," not "is it
+> sentient."** A wild wolf still gets culled. An **owned** animal is downed
+> first — so interposition and drag-clear apply — and its killing enters the
+> ledger.
+
+The reason the coup exists is that killing should be deliberate, telegraphed and
+answerable; what makes it weighty is not the victim's inner life but that it is
+a **chosen killing of something that belongs to someone**. That generalises past
+pets — killing a farmer's cow should be blameworthy too, and rustling is a real
+crime — so it is a **chattel consequence, not a pet special case**. The enabling
+fact is already on the Wave 1 list: `ChattelMixin` on the Creature stack is what
+tells combat and accountability that an animal is *someone's*.
+
+**Cost, corrected.** Half of this is cheap and half is not:
+
+- **The crime predicate is cheap** — blame is derived on read, and
+  accountability.md invites it: *"Re-legislating what counts as a crime
+  re-scores history without rewriting a single row."*
+- **Owner-responsibility is NOT cheap.** The two-principal model exists
+  (`BlameVerdict.commandResponsible`) but `directedBy` is populated **only** on
+  the coup-directive path — never from party membership, never from ownership,
+  and there is **no owner/handler field on the row at all**. So *"my dog mauled
+  someone"* needs a **new fact plus a new write path**, not just a re-read. The
+  master-apprentice shape is the right thing to copy; it is not already wired.
+
+Note also: **there is no revive or stabilize-the-downed anywhere.** The medic
+vertical arrests bleeding on a *living* body; rescue of a downed sentient is
+purely social. So downed-first buys **interposition and drag-clear, not a
+medical save.**
+
+### Even a non-combatant pet forces the staging decision
+
+Worth separating, because it changes the wave:
+
+- **Pet as combatant** — genuinely deferrable. A Wave 1 pet can simply not join
+  fights; "the dog doesn't fight" is a coherent state.
+- **Pet as *victim*** — **not deferrable.** Combat is live. A pet standing in a
+  room can be attacked, and under today's rules it dies instantly with no blame.
+  **So the staging + blame decision belongs to Wave 1 whether or not the pet
+  ever throws a bite.**
+
+This mirrors the off-screen-life discovery: the shipped world forces an answer
+the moment a pet exists in it.
+
+### The gap in the formation half
+
+`sideOf` has the owner rung reserved. **`formationPathOf` does not** — it is a
+two-rung total chain (active party → `DEFAULT_FORMATION_PATH`). So a pet
+inherits your **side** but not your **formation**, and cannot hold a role.
+Without the symmetric rung, the `vanguard` guard-dog case is unreachable. Same
+rung, same shape, added to the sibling chain.
+
+### Two more gaps worth scoping
+
+- **In-fight tactics are not authorable.** `brainPathFor` hardcodes
+  `/lib/behavior/combatant` for anything without a live `Interactive`, and the
+  `behaviors:` spec list does **not** feed it. Everything *outside* the beat
+  loop is freely brain-authorable (`backs-up`, `arms`, `wary`) — but a companion
+  that fights differently from a sellsword needs an engine change.
+- **There is no combat witness topic.** Witness aliases are only `arrival` /
+  `departure` / `emote` / `speech`, so "your dog reacts when you are jumped" is
+  **cadence-polled** (2s in the shipped sellsword). Workable, but it is a beat
+  of delay rather than a leap to your defence — the obvious candidate if that
+  moment should land properly.
+
+### What bond and training do here
+
+Both existing mechanics extend with no new machinery:
+
+- **Obedience is already bond-gated**, so a low-bond animal will not hold its
+  role and may break off — and disengaging draws a **parting shot**. Honest, and
+  it makes combat a genuine **test of the relationship** rather than a separate
+  system.
+- **The pet's `Discipline` transcript** (§ *Bonding + needs*) is what makes a
+  trained guard dog actually better in a fight. **Training, bonding, and combat
+  close into one loop.**
+- **Fleeing** — a frightened animal breaking is the **fear/threat axis**, still
+  the one remaining structural gap. **Wave 2.**
+
+### Content the species layer already affords (zero engine change)
+
+A creature's innate attack rides the **augment carrier**: unarmed, the attacker
+itself fires `augmentInflict` if it composes `CombatReactiveMixin` — *"a
+venomous bite and a poison blade are the same abstraction with a different
+carrier."* Species may also declare `naturalAttacks[]` (claw/claw/bite as a
+deterministic beat-keyed rotation) and `affordedGambits`. Tuning note:
+`deriveProfile` is exactly neutral below **150 kg**, so a ~40 kg wolf is
+mechanically vanilla — size only starts to matter for something large.
+
+### The custody payoff
+
+`sideOf` rung 2 resolves **through the owner** — so an **unclaimed stray falls
+to rung 3, `solo`**, and two distinct solos are never allied.
+
+> **The stray that has adopted you and that you have not admitted is yours will
+> not fight at your side.** The liminal state was invented for emotional reasons
+> in § *The acquisition ladder*; the combat substrate gives it teeth for free.
 
 ---
 
@@ -813,8 +977,13 @@ economy vein (shop-theft, once possession lands); multiplayer interaction
 
 ## Scope guardrails
 
-- **No battle coupling.** Combat-free until the combat slate lands. Utility
-  (mount / haul / guard) is fine; pet-vs-pet / pet-vs-player combat is out.
+- ~~**No battle coupling.**~~ **EXPIRED 2026-07-31** — its own condition
+  ("until the combat slate lands") was met six builds ago. Replaced by
+  § *Combat*, which keeps the spirit: a pet fights in the **world's own**
+  combat as a companion, never as a separate battle minigame, and the
+  no-Pokémon rule in § *The frame* stands. Note the section's finding that the
+  **staging + blame** decision is Wave 1 even for a non-combatant pet, because a
+  pet standing in a room can be attacked today.
 - **No new module categories, no new *primitives*.** The build is orchestration
   of shipped substrates. ~~`CompanionMixin` lives in a `lib/<subsystem>`
   folder~~ — **retired**; custody is `ChattelMixin` on the Creature stack.
