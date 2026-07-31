@@ -66,6 +66,24 @@ Future affordance mixins ship a new mixin, register it in `Mixins`,
 and slots that want it declare `accepts: 'NewMixin'`. No central
 switch, no closed enum.
 
+> ### ⚠ `fitsSlot` is a PLACEMENT policy — it must not veto a restore
+>
+> A `fitsSlot` that consults mutable world state (a capacity, a size, a
+> volume) will eventually refuse a *legitimate re-seat*, because the
+> persistence restore re-occupies slots by replaying the recorded occupancy —
+> it is re-establishing an arrangement that already existed, not asking
+> permission to make a new one. `Plant.fitsSlot` hit this exactly: it
+> compares the plant's per-stage root demand against its pot's soil volume,
+> so a **root-bound plant became unrestorable** — and root-bound is an
+> ordinary designed state, not an error.
+>
+> The rule that resolves it: **a candidate already inside the host's contents
+> always fits.** Verbs consult `fitsSlot` *before* they move anything, so the
+> sizing gate still fires for a real placement; only the restore (where the
+> occupant is already in the contents, put there by the container slice)
+> reads permissive. Any new sizing-shaped `fitsSlot` wants the same shape.
+> See [husbandry.md](./husbandry.md) § The verb surface.
+
 ## Foldable — the folded gate
 
 `FoldableMixin` (`lib/slot/Foldable.ts`) is a two-state fold/unfold

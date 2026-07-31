@@ -16,7 +16,9 @@ that shapes every slate.
 > that *grow, are kept, sicken, spoil and are worked* (farming · ranching ·
 > pets · preservation · disease · the health vertical · stewardship · seasonal
 > labor). This doc organizes **by area**; that one organizes **by order**, and
-> is narrower and newer where they overlap.
+> is narrower and newer where they overlap. **Phase 1 (the houseplant — the
+> growth model) is shipped:** see
+> [husbandry.md](./subsystems/husbandry.md).
 
 ---
 
@@ -27,7 +29,9 @@ The substrate is in place. Major shipped surfaces:
 - **Auth + persistence** — Google OAuth; the **self-persistence spine**
   (`PersistableMixin`/`PersistableApi` — any host captures its own fields +
   inventory + gear + location into `holder_snapshots`, routed through
-  call-security; Avatar migrated onto it, so gear/inventory now survive
+  call-security; **multi-instance nested hosts** ride a keyed `{ref, key}`
+  reference, so many instances of one template nest without collapsing;
+  Avatar migrated onto it, so gear/inventory now survive
   logout); template/clone track for the Idea hierarchy; Marshaller
   framework for non-default serialization.
 - **Standard Model + mixins** — class-factory mixin pattern,

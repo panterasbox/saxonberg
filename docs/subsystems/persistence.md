@@ -874,3 +874,28 @@ Index creation is best-effort (logs and continues on failure).
   "retire the pair" was corrected). A late review pass typed the
   `shouldPersist` hook (off duck-typing) and added the singleton-host
   runtime guard.
+
+- **Keyed nested hosts + three snapshot-fidelity fixes** (houseplant build,
+  living-world phase 1 — `1dfbe2df..0936da6e`). The spine's stated invariant
+  was that *"a nested host reached by the `{ref}` walk is a singleton (unique
+  templatePath)"*; the first multi-instance nested host (a cultivated plant,
+  one of many from one template) broke it, so ref entries gained an optional
+  per-instance `key` and keys gained **provenance** (`setPersistenceKey(key,
+  explicit)` / `isPersistenceKeyExplicit()`) so a singleton's scope-derived
+  owner cannot send its own restore down the keyed branch. Keyless records are
+  byte-identical to the pre-key shape — backward compatibility was a hard
+  requirement, and there is live data.
+
+  Building the durability proofs surfaced **three pre-existing bugs**, each
+  fixed here rather than worked around: `captureFields` stored object-valued
+  fields **by reference** (so a mutation between capture and save rewrote the
+  snapshot the sync-block invariant promises is frozen — now detached, and
+  promoted to an [antipatterns.md](../antipatterns.md) entry because the trap
+  generalizes past persistence); a restore-cloned **non-host container
+  re-ran its `populates:`**, doubling contents and throwing on the `Slotted`
+  re-occupy (the record is authoritative — `restoreItem` now clears what the
+  clone seeded, the same rule `seedBornWith` already gives hosts); and a
+  nested host captured its own `place`, fighting the referrer that actually
+  positions it. `PersistableApi.captureHostOf` landed as the mutating-act
+  capture the whole husbandry family reuses. See
+  [husbandry.md](./husbandry.md).

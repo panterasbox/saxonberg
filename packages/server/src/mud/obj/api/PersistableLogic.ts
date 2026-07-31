@@ -287,7 +287,7 @@ async function preloadTreeMarshallers(host: Stuff): Promise<void> {
  * alone rather than mangled — the save path fails loudly on those already.
  */
 function detachValue(value: unknown): unknown {
-  if (value === null || typeof value !== 'object') return value;
+  if (value === null || typeof value !== "object") return value;
   try {
     return JSON.parse(JSON.stringify(value));
   } catch {
@@ -494,12 +494,6 @@ async function restoreState(
 }
 
 /**
- * Reconstitute one `ContentEntry` into a live Stuff placed inside `host`.
- * A `{ ref }` follows the reference — cloning the nested host's shell (which
- * self-materializes its own records via `postRegister`); anything else is
- * cloned through the gated path and has its own `state` applied (recursion).
- */
-/**
  * **The record is authoritative.** A non-host content item is restored by
  * re-cloning its template, and a clone re-runs the template's `populates:`
  * — so a container that declares born-with contents (a stocked chest, a
@@ -534,6 +528,13 @@ function clearSeededContents(
   }
 }
 
+/**
+ * Reconstitute one `ContentEntry` into a live Stuff placed inside `host`.
+ * A `{ ref }` follows the reference — cloning the nested host's shell (and,
+ * when the ref carries a key, materializing that instance's own record);
+ * anything else is cloned through the gated path, has whatever the clone
+ * seeded cleared, and has its own `state` applied (recursion).
+ */
 async function restoreItem(
   entry: ContentEntry,
   host: Stuff,

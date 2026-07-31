@@ -171,6 +171,17 @@ export interface Growing {
   profile: GrowthProfileData | null;
 }
 
+/** The player-facing size phrase per stage (how big, never a number). */
+const STAGE_PHRASE: Record<GrowthStage, string> = {
+  seedling: 'It is still a seedling.',
+  young: 'It is a young plant.',
+  established: 'It is well established.',
+  mature: 'It is fully grown.',
+};
+
+/** The mature-and-flowering variant — the one stage that reads differently. */
+const FLOWERING_PHRASE = 'It is fully grown, and in flower.';
+
 /** The player-facing band phrase (state, never cause). */
 const CONDITION_PHRASE: Record<Exclude<ConditionBand, 'dead'>, string> = {
   thriving: 'It is thriving.',
@@ -187,20 +198,35 @@ const CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
 };
 
 /**
- * Append the condition band (and, when a factor is limiting, its cause) to
- * a growing host's long description — band first, cause second, both prose
- * and never a number. The band describes *state*; the cause line names the
- * inferable *reason* and is omitted when nothing is limiting. Reads through
- * the reconcile-on-read getters, so an absent owner's plant reads
- * truthfully.
+ * Append the plant's **size, condition and cause** to its long description,
+ * in that order — how big it is, how it is doing, and why. All three are
+ * prose and never a number.
+ *
+ * The three lines are deliberately different kinds of statement. Size is a
+ * physical fact. The band describes *state*, never cause. The cause line
+ * names the inferable *reason* and is omitted when nothing is limiting —
+ * which is the split phase 7's diagnosis surface generalizes.
+ *
+ * **Flowering rides the size line**, because it is the one stage that reads
+ * differently rather than a fourth kind of statement — and because a
+ * flowering plant sets a seed into its pot, which would otherwise appear
+ * from nowhere.
+ *
+ * Reads through the reconcile-on-read getters, so an absent owner's plant
+ * reads truthfully.
  */
 function conditionAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isGrowing(host)) return text;
   const band = host.getConditionBand();
   const lines: string[] = [];
   if (band === 'dead') {
+    // A dead plant has no size worth reporting and no cause to infer — it
+    // is over, and the description says only that.
     lines.push('It is dead.');
   } else {
+    lines.push(
+      host.isFlowering() ? FLOWERING_PHRASE : STAGE_PHRASE[host.getGrowthStage()],
+    );
     lines.push(CONDITION_PHRASE[band]);
     const limiting = host.getLimitingFactor();
     if (limiting) lines.push(CAUSE_PHRASE[limiting]);

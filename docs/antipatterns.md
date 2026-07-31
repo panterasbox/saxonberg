@@ -2187,3 +2187,50 @@ zero code, zero statics — so a tool variant (kit → machine) is pure
 data. See
 [command-spec.md § who affords a verb](./subsystems/command-spec.md) and
 [crafting.md § The offer](./subsystems/crafting.md).
+
+## A snapshot that aliases live state
+
+**ANTIPATTERN**: taking a "snapshot" of an object-valued field by assigning
+the reference. Any mutation before the snapshot is consumed rewrites the
+snapshot too — so a value that was supposed to be frozen silently moves, and
+the bug surfaces as *state that quietly reverted* rather than as a crash.
+
+This bit the persistence spine for real. `captureFields` copied every declared
+`persistentFields` value into the record, and for a scalar that is a copy —
+but a `reserves` record, a `details` map, a `keywords` array is a **reference
+to the host's own live object**. Capture is documented as *the last
+synchronous block before the save* precisely so concurrent triggers each write
+a valid full snapshot, and aliasing defeated that guarantee: watering a plant
+in the same turn as its capture rewrote the "checkpoint" it was supposed to
+have been taken before.
+
+### BAD (the snapshot is a view of the thing it is snapshotting)
+
+```typescript
+for (const field of fields) {
+  out[field] = self[field];   // an object here is SHARED, not copied
+}
+// ...caller mutates `host.reserves` before the save lands → `out` changes too
+```
+
+### GOOD (detach anything object-shaped)
+
+```typescript
+function detachValue(value: unknown): unknown {
+  if (value === null || typeof value !== "object") return value;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value; // not plain data — leave it rather than mangle it
+  }
+}
+```
+
+The JSON round-trip is faithful *here* because a persistent field is about to
+be BSON-serialized, so it holds plain data by construction. Anything that
+would not round-trip is left alone rather than silently mangled — the save
+path already fails loudly on those.
+
+**The general rule: if you call it a snapshot, copy it.** The same trap waits
+in any `captureSlice` hook, any undo buffer, any "remember the previous value
+so I can compare" setter, and any before/after diff over a collection.

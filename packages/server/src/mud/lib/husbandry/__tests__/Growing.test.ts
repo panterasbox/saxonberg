@@ -307,6 +307,56 @@ describe('GrowingMixin — the growth model', () => {
     expect(f.getSoilMoisture()).toBe(0); // integrated despite linkdead
   });
 
+  it('the augmenter reports SIZE, condition and cause — in that order', () => {
+    const f = fixture({ litresPerGameDay: 0 });
+    f.getVigor();
+    const aug = (
+      f as unknown as {
+        constructor: {
+          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
+        };
+      }
+    ).constructor.markupAugmenters[0]!;
+
+    // Size first: a fresh plant is a seedling, and the stage has to reach the
+    // player — `look` is the only place growth is observable.
+    expect(aug('A peace lily.', f, f)).toContain('It is still a seedling.');
+
+    // The ladder is legible at every stage.
+    setNow(35 * DAY);
+    expect(aug('', f, f)).toContain('It is a young plant.');
+    setNow(95 * DAY);
+    expect(aug('', f, f)).toContain('It is well established.');
+
+    // At maturity, flowering rides the size line — otherwise the seed it sets
+    // into the pot would appear from nowhere.
+    setNow(200 * DAY);
+    expect(f.isFlowering()).toBe(true);
+    expect(aug('', f, f)).toContain('in flower');
+
+    // Order: size, then condition, then (when limiting) cause.
+    const text = aug('', f, f);
+    expect(text.indexOf('fully grown')).toBeLessThan(text.indexOf('thriving'));
+  });
+
+  it('a dead plant reports only that — no size, no cause to infer', () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(12 * 360 * DAY);
+    expect(f.getConditionBand()).toBe('dead');
+    const aug = (
+      f as unknown as {
+        constructor: {
+          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
+        };
+      }
+    ).constructor.markupAugmenters[0]!;
+    const text = aug('A peace lily.', f, f);
+    expect(text).toContain('It is dead.');
+    expect(text).not.toContain('seedling');
+    expect(text).not.toContain('The soil is dry.');
+  });
+
   it('the augmenter reads through the getter without recursing', () => {
     const f = fixture();
     f.getVigor();

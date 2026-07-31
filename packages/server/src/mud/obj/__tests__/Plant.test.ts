@@ -192,8 +192,11 @@ describe('Plant — the growing object', () => {
       (text, aug) => aug(text, p, p),
       'Broad dark leaves.',
     );
+    // `look` has to carry all three: species (the short description), size
+    // stage, and condition band — the stage is only observable here.
+    expect(augmented).toContain('It is still a seedling.');
     expect(augmented).toContain('It looks healthy.');
-    expect(augmented).not.toMatch(/\d\.\d/); // a band, never a number
+    expect(augmented).not.toMatch(/\d\.\d/); // prose, never a number
   });
 
   it('⭐ the two species diverge under identical treatment', () => {

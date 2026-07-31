@@ -204,26 +204,38 @@ dim corner that stresses the lily suits it.
 
 ---
 
-## Legibility — a band, and the cause read separately
+## Legibility — size, condition, and the cause read separately
 
-Two vocabularies, deliberately split. The **condition band** describes
-*state* and never a number:
-
-> `thriving` · `healthy` · `stressed` · `failing` · `dead`
-
-The **cause line** names the limiting factor in plain language, and is
-omitted when nothing is limiting:
+`look` carries three lines, appended by a `markupAugmenter` in this order —
+**how big it is, how it is doing, and why**. All three are prose and never a
+number, and they are deliberately different *kinds* of statement.
 
 ```
+It is well established.
 It looks healthy.
 The soil is dry.
 ```
 
+**Size** is a physical fact, one phrase per growth stage. It is the only
+place growth is observable, so it has to reach the player — and **flowering
+rides this line** (`It is fully grown, and in flower.`) rather than adding a
+fourth kind of statement, because a flowering plant sets a seed into its pot
+and that seed would otherwise appear from nowhere.
+
+**The condition band** describes *state*, never cause:
+
+> `thriving` · `healthy` · `stressed` · `failing` · `dead`
+
+**The cause line** names the limiting factor in plain language, and is
+omitted when nothing is limiting.
+
 Symptom banded, cause inferable — a player observes a symptom and infers a
 reason. That split is what **phase 7's diagnosis surface generalizes**, and
-it is why the band vocabulary describes state rather than cause. Both lines
-are appended by a `markupAugmenter`, and **nothing ever gates on a band**
-(banding is presentation, never security).
+it is why the band vocabulary describes state rather than cause. **Nothing
+ever gates on a band** (banding is presentation, never security).
+
+A **dead** plant reports only `It is dead.` — no size worth reporting and no
+cause left to infer.
 
 ### Growth stages
 
@@ -492,6 +504,11 @@ and the shipped `competence` verb reports its band.
 - **No genetics.** A seed grows into its parent's species, full stop, and
   carries no inherited variation. `Globbable` seed *lots* arrive with
   genetics, where fixed-vs-segregating lines make stacking meaningful.
+- **The switchable desk lamp.** `obj/Lamp.ts` and `device/switch.yaml` both
+  ship, so a *player-controlled* in-room light lever is cheap — but wiring one
+  means dimming a room every player lives in, a blast radius phase 1 declined.
+  The light axis is exercisable without it (room-to-room placement), so this
+  is an ergonomics upgrade rather than a gap.
 - **No sun→light driver.** Room ambient light is authored data here;
   deriving it from `CelestialApi` is phase 4's, and the front steps' static
   value is a placeholder awaiting it.
