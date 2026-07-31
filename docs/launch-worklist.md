@@ -9,6 +9,12 @@
 > landscape as the lens, build the economy it revealed. Work off this
 > for the next few builds; strike items as they ship.
 >
+> **Sequencing (2026-07-31):** the farming / ranching / pets / preservation /
+> disease / health cluster now has a dependency-ordered build sequence —
+> [living-world-roadmap.md](./living-world-roadmap.md). Nine phases starting
+> from a houseplant; phases 1–3 are a plan, 4–9 a direction. Items below that
+> belong to that family are ordered *there*, not here.
+>
 > Each item carries a **design-readiness tag**:
 > **[T1]** settled / complete-by-precedent — `/requirements`-ready ·
 > **[T2]** captured at slate level — needs a requirements pass, no open

@@ -10,6 +10,14 @@ and the subsystem references under `docs/subsystems/`. The
 [design-philosophy.md](./design-philosophy.md) is the principle
 that shapes every slate.
 
+> **Sequenced sibling (2026-07-31):**
+> [living-world-roadmap.md](./living-world-roadmap.md) — a
+> **dependency-ordered** nine-phase build sequence for the family of systems
+> that *grow, are kept, sicken, spoil and are worked* (farming · ranching ·
+> pets · preservation · disease · the health vertical · stewardship · seasonal
+> labor). This doc organizes **by area**; that one organizes **by order**, and
+> is narrower and newer where they overlap.
+
 ---
 
 ## Foundation (shipped)
@@ -189,7 +197,7 @@ remains in the near-term Track A queue:
 >   instrument + medicine branches (splint / suture / antiseptic — harm
 >   shipped only the dressing branch), and a *general* death-transition
 >   driver (each driver drives only its own cascade).
->   ([vitals-slate.md](./slates/builds/vitals-slate.md))
+>   ([vitals-slate.md](./slates/tails/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane
 >   shipped. The pane's `here` + `contents` payload already
@@ -784,7 +792,7 @@ landing first.
   build as **content packs** — pure-data, no-code deliverables with a
   reconcile installer (see
   [content-packs.md](./subsystems/content-packs.md) /
-  [content-packs-slate.md](./slates/builds/content-packs-slate.md));
+  [content-packs-slate.md](./slates/tails/content-packs-slate.md));
   Capability / Full (new-code mods, needing `isolated-vm`) remain.*
 - **Persistence framework upgrade** — fine-grained per-record
   access patterns. Recognition + identification + social-graph
