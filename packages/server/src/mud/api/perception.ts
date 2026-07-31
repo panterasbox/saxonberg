@@ -122,7 +122,16 @@ export class PerceptionApi {
    *   - the BodyPlan has no sensoryPorts (sessile).
    */
   public static sensorium(viewer: Stuff): readonly Modality[] {
-    return logic().sensorium(viewer);
+    // The boundary read aperture (SecurityApi.projectAcross): message
+    // delivery asks each RECIPIENT what it can perceive, and a channel
+    // spans the boundary routinely — the sender is in the field and a
+    // subscriber is inside a circle, or the reverse. The walk reads the
+    // recipient's species/anatomy, so un-apertured it denies and takes
+    // the whole `chat` down with it. Pure read; yields modalities.
+    return SecurityApi.projectAcross(viewer, undefined, () =>
+      logic().sensorium(viewer),
+      PerceptionApi
+    );
   }
 
   /**
@@ -133,7 +142,10 @@ export class PerceptionApi {
    * reception gating.
    */
   public static canPerceive(viewer: Stuff, modality: Modality): boolean {
-    return logic().canPerceive(viewer, modality);
+    return SecurityApi.projectAcross(viewer, undefined, () =>
+      logic().canPerceive(viewer, modality),
+      PerceptionApi
+    );
   }
 
   /**

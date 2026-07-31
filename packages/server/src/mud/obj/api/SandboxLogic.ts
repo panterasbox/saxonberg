@@ -321,12 +321,21 @@ async function enterImpl(
   // the induction stamps everything (the vessel, its implant floor, the
   // shadow followers) circle-born.
   const { default: WireBody } = await import('../../lib/sandbox/WireBody');
+  // Read the field body's species HERE, in field context: the mint
+  // below runs under the circle root, where reading the parked avatar
+  // is the cross-boundary dispatch the layers deny. Species is
+  // reference data (boundary-exempt), so the resolved value is safe to
+  // carry across and hold from inside.
+  const actorSpecies = actor.getSpecies();
   const wireBody = (await ExecutionContextApi.runRootGuarded(
     null,
     'sandbox.enter',
     async () => {
+      // Species rides the constructor: the loadout inside
+      // `postRegister` needs a body plan to slot the implant into, and
+      // the fork below runs too late for that.
       const body = await StuffApi.create(
-        () => new WireBody(playerId),
+        () => new WireBody(playerId, actorSpecies),
         { playerId, wire: true }
       );
       await PersistableApi.forkRuntimeState(
@@ -799,12 +808,14 @@ export class SandboxLogic extends ApiLogic {
     const interactives = [...wireBody.getInteractives()];
 
     const { default: WireBody } = await import('../../lib/sandbox/WireBody');
+    // Field-context read, for the same reason as `enter`.
+    const avatarSpecies = avatar.getSpecies();
     const fresh = (await ExecutionContextApi.runRootGuarded(
       null,
       'sandbox.respawn',
       async () => {
         const body = await StuffApi.create(
-          () => new WireBody(playerId),
+          () => new WireBody(playerId, avatarSpecies),
           { playerId, wire: true }
         );
         await PersistableApi.forkRuntimeState(

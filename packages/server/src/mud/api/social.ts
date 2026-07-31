@@ -172,7 +172,14 @@ export class SocialApi {
    * against the `social.idleAfter` AppSetting; no stored idle state.
    */
   public static statusOf(target: Avatar): PresenceStatus {
-    return presenceLogic().statusOf(target);
+    // Boundary read aperture: a roster row is composed for a viewer who
+    // may be on the other side of a circle from the person it describes
+    // (`who` from inside, the roster pane from outside). Reading their
+    // engagements is a pure read that yields a display string.
+    return SecurityApi.projectAcross(target, undefined, () =>
+      presenceLogic().statusOf(target),
+      SocialApi
+    );
   }
 
   /**
@@ -201,7 +208,12 @@ export class SocialApi {
    * shared by `who` and the live roster pane.
    */
   public static composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
-    return profileLogic().composeRow(viewer, target);
+    // The roster row IS the per-viewer projection of a person — the
+    // same category as naming, and the same aperture.
+    return SecurityApi.projectAcross(viewer, target, () =>
+      profileLogic().composeRow(viewer, target),
+      SocialApi
+    );
   }
 
   /**

@@ -288,6 +288,29 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   public getDestination(): Stuff & Container { return this.destination; }
+
+  /**
+   * Does traversing this exit actually land the mover in the room
+   * `getDestination()` names?
+   *
+   * True for every ordinary exit. An exit subclass that fully applies
+   * its own traversal (`applyTraversal`) may have no spatial
+   * destination at all — the sandbox's wardrobe passage is the shipped
+   * case: crossing onto the wire moves no body, and its
+   * `destinationPath` is a presentation label naming the wire, not a
+   * room.
+   *
+   * The distinction matters to anything that walks the exit GRAPH
+   * structurally instead of traversing it — the vision flux walk today;
+   * sound, pathfinding and reachability by the same argument. Those
+   * walkers must skip an exit that answers false rather than resolving
+   * its destination, which may not be a Container at all.
+   *
+   * @hook Override (returning false) in an exit subclass whose
+   *   `applyTraversal` handles the move itself. Structural walkers read
+   *   it; the traversal path does not.
+   */
+  public hasSpatialDestination(): boolean { return true; }
   public setDestination(value: Stuff & Container): void { this.destination = value; }
 
   /** Backing storage for `door`; the accessor pair mediates

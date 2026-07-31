@@ -37,6 +37,31 @@ export default class SandboxCrossingExit extends Exit {
   /** The carrying fixture (enter direction only; live within-session). */
   private wardrobe: Wardrobe | null = null;
 
+  /**
+   * A crossing has NO spatial destination — that is Decision H's whole
+   * point: the body never moves, so there is nowhere for a traversal to
+   * resolve to. The `destinationPath` the fixture stamps
+   * (`/home/<id>`, or bare `/home` while unlinked) is *presentation*:
+   * it names the wire in the exit listing. It is not a room.
+   *
+   * Anything that walks the exit graph structurally rather than
+   * traversing it — the vision flux walk, and by the same shape sound,
+   * pathfinding, `reachable` — must therefore skip this exit. Left
+   * unmarked, the light walk followed `/home` and landed on the
+   * HomeZone *Idea*, whose `getContents` does not exist: one lamp in
+   * the wire alcove and `look` threw for everyone standing in it
+   * (found live — the light was the first consumer to actually follow
+   * an exit out of that room).
+   *
+   * `getObviousExits` still lists it, because a player must be able to
+   * SEE the wardrobe passage; this predicate is the seam a structural
+   * walker checks instead of assuming every listed exit leads to a
+   * room.
+   */
+  public override hasSpatialDestination(): boolean {
+    return false;
+  }
+
   public getCrossingDirection(): 'enter' | 'return' {
     return this.crossingDirection;
   }

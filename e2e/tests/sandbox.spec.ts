@@ -199,6 +199,241 @@ test.describe('sandbox: the wardrobe crossing', () => {
     }
   });
 
+  test('the vessel is a working body: it can speak on a channel', async ({
+    browser,
+  }) => {
+    // The crossing mints a baseline body, and "baseline" has to include
+    // the ordinary implant floor — not just carried, but SLOTTED, so the
+    // augment confers `AetherMixin` and the comms verbs parse.
+    //
+    // The defect this guards: the vessel was minted before the fork
+    // carried its species across, so it had no body plan, so the
+    // loadout's `occupy(implant, 'cranial')` threw, was swallowed, and
+    // left the implant loose in inventory. The player could RECEIVE a
+    // channel message inside their circle and could not send one —
+    // "You have no way to send a thought." Inbound-only comms is the
+    // failure mode a one-sided test would have missed, so this asserts
+    // the outbound half explicitly.
+    const { page, close } = await openWorldAs(browser, 'wire-voice', {
+      startLocation: ALCOVE,
+    });
+    try {
+      await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
+      await runCommand(page, 'go wardrobe');
+      await expect(whereHeading(page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      // The implant travelled (baseline mint, not a copy of your gear).
+      await sendUntil(page, 'inventory', page.getByText(/aether implant/i).first());
+
+      // And it WORKS: tuning in is the verb-level ESP gate.
+      await sendUntil(
+        page,
+        'chat join global',
+        page.getByText(/tuned in to global/i).first()
+      );
+      await expect(page.getByText(/no way to send a thought/i)).toHaveCount(0);
+    } finally {
+      await close();
+    }
+  });
+
+  test('who works from inside a circle, and lists the field', async ({
+    browser,
+  }) => {
+    // `who` composes a per-viewer roster ROW for every online person.
+    // From inside a circle the viewer is circle-scoped and everyone it
+    // describes is field-resident, so the projection reaches across the
+    // boundary — and un-apertured it threw, taking the whole verb down
+    // (`getDisguise`, then `getEngagements`, then `composeRow`).
+    //
+    // The assertion is on the COUNT header rather than on names: two
+    // strangers don't know each other's names, and this test is about
+    // the projection surviving the crossing, not about belief.
+    const inside = await openWorldAs(browser, 'wire-who-in', {
+      startLocation: ALCOVE,
+    });
+    const outside = await openWorldAs(browser, 'wire-who-out', {
+      startLocation: ALCOVE,
+    });
+    try {
+      await sendUntil(
+        outside.page,
+        'look',
+        whereHeading(outside.page, ALCOVE_HEADING)
+      );
+      await sendUntil(
+        inside.page,
+        'look',
+        whereHeading(inside.page, ALCOVE_HEADING)
+      );
+      await runCommand(inside.page, 'go wardrobe');
+      await expect(whereHeading(inside.page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      await sendUntil(
+        inside.page,
+        'who',
+        inside.page.getByText(/^Online — \d+/m).first()
+      );
+      // No controller blow-up, and the parked body still counts as
+      // online — stepping into your circle must not delete you from the
+      // world's view of who is playing.
+      await expect(inside.page.getByText(/Something went wrong/i)).toHaveCount(
+        0
+      );
+      await expect(
+        inside.page.getByText(/^Online — 0\b/m)
+      ).toHaveCount(0);
+    } finally {
+      await inside.close();
+      await outside.close();
+    }
+  });
+
+  test('a message OUT of a circle reaches the field, exactly once', async ({
+    browser,
+  }) => {
+    // The outbound half of the seam, plus the duplicate-delivery bug
+    // that only appears once the audience is the field identity while
+    // the speaker is a vessel: `a === speaker` stops meaning "the same
+    // person", so the sender received their own line twice — once as
+    // "You", once as a stranger. Exclusion is by identity path now.
+    const inside = await openWorldAs(browser, 'wire-out-in', {
+      startLocation: ALCOVE,
+    });
+    const outside = await openWorldAs(browser, 'wire-out-out', {
+      startLocation: ALCOVE,
+    });
+    const PHRASE = 'circleside broadcast marker';
+    try {
+      await sendUntil(
+        inside.page,
+        'look',
+        whereHeading(inside.page, ALCOVE_HEADING)
+      );
+      await sendUntil(
+        outside.page,
+        'look',
+        whereHeading(outside.page, ALCOVE_HEADING)
+      );
+      await sendUntil(
+        inside.page,
+        'chat join global',
+        inside.page.getByText(/tuned in to global/i).first()
+      );
+      await sendUntil(
+        outside.page,
+        'chat join global',
+        outside.page.getByText(/tuned in to global/i).first()
+      );
+
+      await runCommand(inside.page, 'go wardrobe');
+      await expect(whereHeading(inside.page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      // Sent ONCE — deliberately not `sendUntil`, because a re-send
+      // would manufacture the very duplicate this test rules out.
+      await runCommand(inside.page, `chat global ${PHRASE}`);
+
+      // Match the DELIVERED line (`[Global] …`), not the bare phrase:
+      // the scrollback also carries the command echo the player typed,
+      // which contains the phrase too and would make every count 2.
+      const delivered = new RegExp(`\\[Global\\].*${PHRASE}`, 'i');
+
+      // It got out of the circle, once.
+      await expect(outside.page.getByText(delivered).first()).toBeVisible({
+        timeout: 20_000,
+      });
+      await expect(outside.page.getByText(delivered)).toHaveCount(1);
+
+      // …and the sender heard it exactly once, as themselves — not a
+      // second time as a stranger, which is what an object-identity
+      // self-exclusion produced once the speaker became a vessel.
+      await expect(inside.page.getByText(delivered)).toHaveCount(1);
+    } finally {
+      await inside.close();
+      await outside.close();
+    }
+  });
+
+  test('the field body stays put: present, but unreachable', async ({
+    browser,
+  }) => {
+    // Decision P made visible. Nothing material crosses, so the person
+    // who steps onto the wire leaves their body standing exactly where
+    // it was — the room still lists them. That is the whole reason
+    // `who` and `tell` keep working: the field body is the stable
+    // identity everyone addresses while the vessel does the carrying.
+    const inside = await openWorldAs(browser, 'wire-parked-in', {
+      startLocation: ALCOVE,
+    });
+    const watcher = await openWorldAs(browser, 'wire-parked-out', {
+      startLocation: ALCOVE,
+    });
+    try {
+      await sendUntil(
+        inside.page,
+        'look',
+        whereHeading(inside.page, ALCOVE_HEADING)
+      );
+      // The watcher can see one other person in the room to start with.
+      const contents = watcher.page.getByRole('list', { name: 'contents' });
+      await sendUntil(watcher.page, 'look', contents.getByRole('button').first());
+      const before = await contents.getByRole('button').count();
+
+      await runCommand(inside.page, 'go wardrobe');
+      await expect(whereHeading(inside.page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      // The alcove's population is UNCHANGED — the body did not leave.
+      await runCommand(watcher.page, 'look');
+      await expect(contents.getByRole('button')).toHaveCount(before);
+    } finally {
+      await inside.close();
+      await watcher.close();
+    }
+  });
+
+  test('eval inside a circle runs, quarantined', async ({ browser }) => {
+    // `eval` is the sandbox's headline authoring surface and it was
+    // dead engine-wide (the controller stamped its scratch through an
+    // `ApiOnly`-gated setter). It also has to run QUARANTINED here —
+    // your own `/home/<id>` is a wire jurisdiction — which means the
+    // scratch is minted circle-scoped, so the mint, the lookup and the
+    // run all have to happen inside the same root.
+    //
+    // `return` is deliberate: the interpreter has no implicit return,
+    // so a bare expression evaluates to `undefined`. That is the
+    // shipped contract, not a bug — asserting on it here keeps the
+    // idiom honest.
+    const { page, close } = await openWorldAs(browser, 'wire-eval', {
+      startLocation: ALCOVE,
+      wizard: true,
+    });
+    try {
+      await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
+      await runCommand(page, 'go wardrobe');
+      await expect(whereHeading(page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      await sendUntil(page, 'eval return 6*7', page.getByText(/: 42\b/).first());
+
+      // Twice in a row: the second `eval` destructs the first scratch,
+      // which is now circle-scoped — the case that used to die on the
+      // boundary because the mint had happened outside the root.
+      await sendUntil(page, 'eval return 8*8', page.getByText(/: 64\b/).first());
+      await expect(page.getByText(/Something went wrong/i)).toHaveCount(0);
+    } finally {
+      await close();
+    }
+  });
+
   test('a wizard cannot walk a real body into a circle with goto', async ({
     browser,
   }) => {

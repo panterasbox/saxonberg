@@ -90,7 +90,9 @@ export class RecognitionApi {
    * can pass whatever it has; the perceiver-ness is checked internally.
    */
   public static describe(viewer: Stuff, target: Stuff): string {
-    return logic().describe(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () => logic().describe(viewer, target),
+      RecognitionApi
+    );
   }
 
   /**
@@ -103,7 +105,10 @@ export class RecognitionApi {
    * so the idle status never contradicts the act in flight.
    */
   public static describeWithStatus(viewer: Stuff, target: Stuff): string {
-    return logic().describeWithStatus(viewer, target);
+    return SecurityApi.projectAcross(viewer, target, () =>
+      logic().describeWithStatus(viewer, target),
+      RecognitionApi
+    );
   }
 
   /**
@@ -155,7 +160,12 @@ export class RecognitionApi {
    * keyword. This is the Wave-5 name-leak gate.
    */
   public static perceivedKeywords(viewer: Stuff, target: Stuff): string[] {
-    return logic().perceivedKeywords(viewer, target);
+    // Same aperture: keywords are the targeting face of the same
+    // projection, and `who`-style listings ask for both.
+    return SecurityApi.projectAcross(viewer, target, () =>
+      logic().perceivedKeywords(viewer, target),
+      RecognitionApi
+    );
   }
 }
 

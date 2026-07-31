@@ -312,8 +312,21 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       text: body,
     };
 
+    // Self-exclusion by IDENTITY, not by object. The audience is always
+    // the registry (field) avatar, but the speaker may be the vessel
+    // that person is currently wearing — two different Stuff for one
+    // human being. An `===` compare misses that, so a player posting
+    // from inside their own circle received their own message twice:
+    // once as "You", once as a stranger ("a human").
+    const speakerIdentity = speaker.getIdentityPath();
     for (const a of audience) {
       if (a === speaker) continue;
+      if (
+        speakerIdentity !== null &&
+        a.getIdentityPath() === speakerIdentity
+      ) {
+        continue;
+      }
       if (!MixinApi.isSensor(a)) continue;
       MessageApi.sendMessage(a, {
         id: SecurityApi.uuid(),

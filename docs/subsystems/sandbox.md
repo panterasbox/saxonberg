@@ -359,6 +359,19 @@ player can change is world state and does not belong here.
   session-attribution bridge) → `SandboxApi.launchTestSession(actor)`
   — which IS `enter`, options bag left open for the draft-overlay
   compose. One "Test in holodeck" button in the CMS editor calls it.
+- **The browser battery** (`e2e/tests/sandbox.spec.ts`, 8 specs): the
+  crossing as a player meets it, through the real client — walk in and
+  out; circle-born clutter does not follow you out; a dropped
+  connection resumes inside the grace window; a message reaches IN;
+  the vessel can speak OUT (the implant floor is slotted, not just
+  carried); `who` survives the crossing; a message out lands exactly
+  once; `goto` will not walk a real body in. Assertions target the
+  **location pane heading**, never the message feed — the feed is
+  append-only scrollback, so a room name from three commands ago is
+  still on screen and a "did we move?" assertion against it passes
+  without anyone moving. For the same reason, a delivered-message
+  assertion matches the rendered `[Global] …` line rather than the bare
+  phrase: the command echo carries the phrase too.
 - **The escape battery** (`pnpm test:escape`,
   `lib/sandbox/__tests__/escape/`): dispatch, durable-write, deferred,
   comms, subscriptions, lookup, singleton, shadow, eval, crossing +
@@ -411,6 +424,56 @@ player can change is world state and does not belong here.
   conservation with zero reader changes. The in-circle derive-on-read
   branch lands with the round-trip wave.
 
+## The read aperture (`SecurityApi.projectAcross`)
+
+The layers contain durable **mutation**. They are symmetric about
+dispatch, though, and that symmetry breaks a whole family of read-only
+work the moment two people stand on opposite sides of a circle:
+
+| Surface | What it was doing | Symptom |
+|---|---|---|
+| `RecognitionApi.describe*` / `perceivedKeywords` | name a person for a viewer | `who` from inside died on `getDisguise()`; a channel post from the field died naming its in-circle recipient |
+| `PerceptionApi.sensorium` / `canPerceive` | delivery sense-gate: can this recipient perceive the frame? | `chat` from inside died on the recipient's `getSpecies()` |
+| `SocialApi.statusOf` / `composeRow` | compose a roster row | `who` from inside died on `getEngagements()` |
+
+Every one of those is a **projection of a person**: read-only, mutates
+nothing, and yields text or a display row — which is exactly what the
+doctrine already lets through ("the payload is rendered MML — nothing
+but text crosses"). So they route through one seam:
+
+```ts
+SecurityApi.projectAcross(a, b, fn, principal)
+```
+
+which runs `fn` under an omni root **iff** `a` and `b` are on opposite
+sides (`b === undefined` compares against the ambient context, for the
+single-subject forms). Same-side calls — every look, every act line, the
+whole hot path — take the identity branch and see no widening at all.
+
+Two things the shape had to get right:
+
+- **It lives on the boundary, not in each facade.** There is one policy
+  — *naming, sensing and status are projections, not mutations* — and it
+  is stated once, beside the check it relaxes.
+- **The root is planted AS the calling facade**, which is why
+  `principal` exists. A fresh root discards the frame that identified
+  the caller, so the logic singleton's own
+  `FromModule('/api/<x>#<X>Api')` gate would otherwise refuse its own
+  facade. The aperture changes the SCOPE, never the principal.
+
+It is not a general hatch: callers hand over the two principals, so the
+omni root only ever wraps a projection the boundary was about to be
+asked about anyway. Anything that writes stays on the ordinary path and
+stays denied.
+
+**Identity, not object, is the unit of a person.** Once the audience is
+the field avatar and the speaker may be a vessel, `a === speaker` stops
+meaning "the same human being" — a player posting from inside their own
+circle received their own message twice, once as "You" and once as a
+stranger. The channel fan-out excludes by `getIdentityPath()`. Expect
+this class of bug anywhere a comparison means *person* rather than
+*object*.
+
 ## What the live pass turned up outside the sandbox
 
 The browser + WebSocket pass through the wardrobe found several defects
@@ -434,6 +497,15 @@ them are fixed on this branch.
   form, which throws once two instances share a path — the ordinary
   state after cloning the same template twice. Now
   `findAllByTemplatePath(path)[0]`.
+- **The residency presence walk aborted at the first circle
+  occupant.** The sweep runs from a field root and reads each
+  connected holder's room; a wire body is circle-resident, so the read
+  denied — and the deny is not caught per-holder, it aborts the whole
+  walk. One player stepping into their own circle silently turned off
+  residency keep-alive for the entire world. Residency spans the
+  boundary by definition (it keeps alive whatever is in use, on either
+  side), so the walk goes through `projectAcross` per holder — narrow
+  as the reach, and it no longer takes everyone else down with it.
 - **Zone `data` never reached the instance.** `Zone.persistentFields`
   was `[]` and `seeds/home.yaml` named no `hydratorClass`, so a seeded
   `wire: true` sat in the row and never applied. Both fixed; `/home` now
@@ -442,6 +514,24 @@ them are fixed on this branch.
   `domain { path: '/home' }` once and restart to re-seed. Same for
   `/domain/lounge/wire-alcove` and `/lib/sandbox/CircleFloor` if they
   were seeded before the light fixtures landed.
+
+- **A crossing exit is not a spatial exit.** The wardrobe passage
+  advertises a `destinationPath` (`/home/<id>`, or bare `/home` while
+  unlinked) purely as presentation — it names the wire in the exit
+  listing. But anything that walks the exit GRAPH structurally rather
+  than traversing it will resolve that path and land on the HomeZone
+  *Idea*, which is not a Container: `loc.getContents is not a
+  function`, and `look` dies for everyone in the room. `Exit` gained
+  `hasSpatialDestination()` (`@hook`, default true) for exit subclasses
+  whose `applyTraversal` handles the move itself; the vision flux walk
+  is the first consumer and skips them.
+
+  Worth flagging for whoever wires the next graph-walker: **sound,
+  pathfinding, and `reachable` have the same shape** and want the same
+  check. This one only surfaced because the two rooms this build adds
+  ship lights — before that, no room in the world computed light at
+  all, so nothing ever followed an exit out of the alcove. A latent bug
+  that a feature made reachable is the normal way this goes.
 
 **Reported, not fixed (they would change the world, not the sandbox):**
 
@@ -454,15 +544,11 @@ them are fixed on this branch.
   cannot resolve a target. The lounge is lit by its neon signs; a room
   authored without a fixture is not. The two rooms this build adds
   (`wire-alcove`, `CircleFloor`) each ship a light for that reason.
-- **The residency eviction sweep walks across the boundary.**
-  `ResidencyLogic`'s presence walk runs from a field root and calls
-  `getContainer()` on circle-resident objects, which denies with a
-  receipt each pass. Harmless today (the sweep skips what it can't
-  read) but it is noise in `sandbox.boundary`, and the sweep should
-  either run per-scope or filter on `getCircleScope()` first.
-- **MQL subscription re-resolve does the same in the other
-  direction**, from a circle root against field deps
-  (`mql.reresolve` diagnostics). Same shape of fix.
+- **MQL subscription re-resolve reaches the other way**, from a circle
+  root against field deps (`mql.reresolve` diagnostics). It degrades
+  gracefully — the re-resolve drops what it can't read — but it is
+  noise in `sandbox.boundary` and wants the same treatment as the
+  residency walk below.
 
 **Debuggability**: the boundary deny receipt now carries a stack,
 captured synchronously before the async receipt body. The `caller` line

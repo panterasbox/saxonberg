@@ -29,7 +29,7 @@
 
 import { nanoid } from 'nanoid';
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
-import { ExecutionContextApi } from './execution-context';
+import { ExecutionContextApi, OMNI_SCOPE } from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import { SecurityError } from '../lib/security/errors';
@@ -636,11 +636,73 @@ export class SecurityApi {
     'hasInteractive',
     'isConnected',
     'isLinkdead',
+    // `isParked` rides the same seam: the delivery redirect
+    // (`Avatar.forwardingTargets`) asks a recipient "are you wearing a
+    // vessel right now?" before choosing which sockets to write to.
+    // It is a read of transport state, not of the world — and without
+    // it a channel post from inside a circle dies on its LAST hop,
+    // after the message has already been composed and echoed to the
+    // sender. Read-only: `setParked` is deliberately NOT here.
+    'isParked',
     'onConnectionAttached',
     'onConnectionDetached',
     'onLinkdead',
     'onLinkRestored',
   ]);
+
+  /**
+   * The **read aperture** across the circle boundary: run `fn` under an
+   * omni root when — and only when — `a` and `b` sit on opposite sides.
+   *
+   * The layers contain durable MUTATION. They are symmetric about
+   * dispatch, though, which means a pure *projection of a person* dies
+   * the moment the two people are on opposite sides: a channel post
+   * from the field renders for a recipient inside a circle; `who` from
+   * inside renders every field person for a viewer who isn't; the
+   * delivery sense-gate asks a far recipient what it can perceive.
+   * Every one of those is read-only and yields text or a display row —
+   * exactly what the doctrine already lets cross ("the payload is
+   * rendered MML — nothing but text crosses"). Found live: one player
+   * stepping into their own circle broke `chat` for the whole channel
+   * and `who` for themselves.
+   *
+   * Kept here, on the boundary itself, rather than copied into each
+   * read facade: there is one policy — *naming, sensing and status are
+   * projections, not mutations* — and it should be stated once, beside
+   * the check it relaxes. Same-side calls (every look, every act line,
+   * the entire hot path) take the identity branch and see no widening.
+   *
+   * NOT a general escape hatch: callers pass the two principals, so the
+   * omni root only ever wraps a projection the boundary was already
+   * about to be asked about. Anything that writes belongs on the
+   * ordinary path and stays denied.
+   *
+   * @internal — the read-facade seam; not an author surface.
+   */
+  public static projectAcross<T>(
+    a: { getCircleScope?: () => string | null } | null,
+    b: { getCircleScope?: () => string | null } | null | undefined,
+    fn: () => T,
+    principal: unknown = SecurityApi
+  ): T {
+    const scopeA = a?.getCircleScope?.() ?? null;
+    // `b === undefined` means "the ambient context" — the single-subject
+    // form, for projections whose other side is simply wherever the
+    // caller is standing (the delivery sense-gate, a status read).
+    const scopeB =
+      b === undefined
+        ? ExecutionContextApi.getCircleScope()
+        : (b?.getCircleScope?.() ?? null);
+    if (scopeA === scopeB) return fn();
+    // Rooted AS the calling facade, not as SecurityApi: a fresh root
+    // discards the frame that identified the caller, so the logic
+    // singleton's own per-facade `FromModule` gate would then
+    // refuse its own facade. The caller passes itself; the aperture
+    // changes the SCOPE, never the principal.
+    return ExecutionContextApi.runRoot(principal, 'boundary.project', fn, {
+      circleScope: OMNI_SCOPE,
+    });
+  }
 
   /** Single-dispatch inspection bypass (the ShadowApi `_consumeBypass`
    *  shape). Armed only via {@link _armInspectionBypass}; every arm is

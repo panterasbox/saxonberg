@@ -34,6 +34,7 @@
 
 import Avatar, { type AvatarInitContext } from '../../obj/Avatar';
 import { SandboxApi } from '../../api/sandbox';
+import type Species from '../species/Species';
 
 /** Init context for a wire body: the projected identity. */
 export interface WireBodyInitContext extends AvatarInitContext {
@@ -45,23 +46,43 @@ export default class WireBody extends Avatar {
   /** The projected identity's playerId (never registered under it). */
   private wirePlayerId: string = '';
 
+  /** The projected identity's species, applied before the loadout. */
+  private wireSpecies: Species | null = null;
+
   /**
-   * The identity is a CONSTRUCTOR argument, not context threaded
-   * through `postRegister`, because everything downstream keys on it:
-   * authority (wizard / author-scope membership), parcel title, the
-   * epistemic ledgers. A vessel that finishes construction without one
-   * is an anonymous body that silently loses its player's powers inside
-   * their own circle — so make it impossible to build one by accident
-   * (the `Interactive` precedent for runtime-only objects).
+   * Identity and species are CONSTRUCTOR arguments, not context
+   * threaded through `postRegister`, because everything downstream
+   * keys on them.
+   *
+   * `playerId`: authority (wizard / author-scope membership), parcel
+   * title, the epistemic ledgers. A vessel that finishes construction
+   * without one is an anonymous body that silently loses its player's
+   * powers inside their own circle.
+   *
+   * `species`: anatomy. `Avatar.postRegister` installs the default
+   * loadout, and that walks the body plan to find the cranial slot the
+   * aether implant occupies. A speciesless vessel has no body plan, so
+   * the occupy throws, the loadout swallows it, and the implant ends up
+   * loose in inventory with no comms update hosted — the player can
+   * *receive* a channel message inside their circle but cannot send
+   * one ("You have no way to send a thought"). The fork carries species
+   * too, but the fork runs after `postRegister`, which is exactly too
+   * late. Same reasoning as `playerId`, and the same conclusion: make
+   * it impossible to build one by accident (the `Interactive`
+   * precedent for runtime-only objects).
    */
-  constructor(playerId?: string) {
+  constructor(playerId?: string, species?: Species | null) {
     super();
     if (playerId) this.wirePlayerId = playerId;
+    if (species) this.wireSpecies = species;
   }
 
   public override async postRegister(
     context?: WireBodyInitContext,
   ): Promise<void> {
+    // Anatomy FIRST — `super.postRegister` runs the default loadout,
+    // which needs a body plan to slot the implant into.
+    if (this.wireSpecies) this.setSpecies(this.wireSpecies);
     // Run the Avatar lifecycle WITHOUT a playerId: PlayerApi
     // registration is keyed on it (the parked avatar keeps the slot),
     // and the spine is gated off by shouldPersist() anyway. The
