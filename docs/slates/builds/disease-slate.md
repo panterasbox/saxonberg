@@ -17,8 +17,11 @@
 > resistance term. Disease stops being a dice roll and becomes the consequence
 > of care.
 
-See also — consumers: [farming](./farming-slate.md) (blight; rotation's *true*
-reason) · [ranching](./ranching-slate.md) (**where this question started** —
+See also — **the vertical this engine serves**:
+[health-vertical-slate](./health-vertical-slate.md) (clinical practice, public
+health, the College of Physic, and the teaching seam — the *pedagogical* payoff
+of everything below).
+Consumers: [farming](./farming-slate.md) (blight; rotation's *true* reason) · [ranching](./ranching-slate.md) (**where this question started** —
 herd disease was its "biggest open call") · [pets](./pets-slate.md) (the
 individual case; the zoonotic bridge) · [fishing](./fishing-slate.md)
 (aquaculture; its *Water composition* section already routes contamination
