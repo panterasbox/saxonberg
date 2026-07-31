@@ -144,6 +144,7 @@ behavior. Read the relevant doc before editing in its area.
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves
   - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge: LoadBearing derived burden, the consequence ladder, the haulage draft term
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
+  - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-three limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [thermal.md](./docs/subsystems/thermal.md) — heat exchange: ThermalMixin Newton cooling, the thermos/campfire, ThermalRegulation
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi

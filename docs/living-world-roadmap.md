@@ -54,15 +54,35 @@ doesn't.
 **Why first:** it proves the family's **biggest new primitive** — the plant
 growth model — at the smallest possible scale, and it **dodges every
 dependency**: no land use, no parcels, no weather, no economy, and *not* the
-sun→light driver (indoor ambient light is authored and ships).
+sun→light driver (indoor ambient light is *authored data*).
 
 **Proves:** reconcile-on-read on a new owned host · the family clock (world
 time, **no** far-past guard) · a `Material`-driven rate · banded legibility ·
 the care→outcome model.
 
-**Needs building:** the growth model itself · the first `plantae` species row
-(the taxonomy ships; the shelf is empty) · a `water` act over shipped bulk
+**Needs building:** the growth model itself · a `water` act over shipped bulk
 transfer.
+
+> ### ✅ SHIPPED 2026-07-31 — see [husbandry.md](./subsystems/husbandry.md)
+>
+> Two claims above were half wrong, and the build corrected both:
+>
+> - **"indoor ambient light … ships"** — the *mixin* shipped, but no
+>   location class composed `AmbientLitMixin` and no seed set
+>   `ambientIntensity`, so every room in the game read pitch-black. This
+>   build composed it on `Location` (inert by default) and authored the
+>   tree's first ambient values, across Duncan Hall.
+> - **"the first `plantae` species row (the shelf is empty)"** — the peace
+>   lily already shipped in the `species-and-names` pack. The build added a
+>   snake plant beside it so the two curves could diverge.
+>
+> It also **lifted a stated limitation in the persistence spine**: a nested
+> host was assumed to be a singleton, so two plants from one template would
+> have collapsed into one on restore. Nested refs now carry a per-instance
+> key — which is the same unlock **phase 5 needs for pets and livestock**.
+> Three further spine bugs surfaced and were fixed: by-reference field
+> capture, born-with `populates` re-running on a restore clone, and
+> `fitsSlot` vetoing its own restore. See husbandry.md § Durability.
 
 **Verified clear:** the dorm room is a keyed persistable host, `Bed`/`Desk` are
 `Surfaced` with **free placement**, and `ContainerMixin.captureSlice` records

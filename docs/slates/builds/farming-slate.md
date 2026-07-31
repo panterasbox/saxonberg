@@ -1039,7 +1039,8 @@ branch, the magic effect layer, and the University teaching seam.
    already spans `animalia` *and* `plantae` (a sessile peace-lily row is
    the proof token), so crops, livestock, and pets are **one catalog
    shape** — which is what makes the husbandry-wide genome coherent. This
-   overturns the earlier lean toward a sibling catalog. *Caveat: the
-   peace-lily row is documentation-only today — `race.md` lists it, but no
-   seed exists in the tree, so the first real `plantae` row is farming's to
-   author.*
+   overturns the earlier lean toward a sibling catalog. *Corrected
+   2026-07-31: the peace-lily row is NOT documentation-only — it ships in
+   the `species-and-names` pack, and the houseplant build added a snake
+   plant (`Dracaena trifasciata`) beside it. The `plantae` shelf is
+   populated; farming extends it rather than opening it.*
