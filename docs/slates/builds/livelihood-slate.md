@@ -82,7 +82,7 @@ See also:
 - [economy-slate](./economy-slate.md) — currency / value / faucet-sink /
   the employment-venue section this deepens; the author-budget model (§4)
   closes its open "deliberate faucet without inflation" thread.
-- [crafting-slate](./crafting-slate.md) /
+- [crafting-slate](../tails/crafting-slate.md) /
   [banking.md](../../subsystems/banking.md) — Dave's Bar venue + the
   conserved money substrate (`payWage`, the CB mint/drain chokepoint, the
   deficit P&L) the employment model lands on.
@@ -755,6 +755,130 @@ now.
   the designed answer. This program lands **after or alongside the
   Reserve**, not before.
 
+## 9. Seasonality — the labor market's missing time dimension **[2026-07-31]**
+
+Everything above models labor demand as **flat**. It is not: agriculture's
+demand for hands is violently seasonal, and that single fact is the historical
+origin of day-labor markets, migrant work, winter unemployment, and
+counter-cyclical industry. Giving the curve a shape costs almost nothing here,
+because **three things already designed separately click together the moment it
+has one.**
+
+### It explains the compensation basis — the best consequence
+
+§6.1 already states the economics without naming the cause:
+
+> **time** — "the **employer bears demand risk** (lulls still pay)"
+> **per-settlement** — "the **worker bears demand risk** in exchange for
+> freedom"
+
+**Seasonality is what creates that demand risk.** Nobody carries a wage through
+an off-season, so:
+
+| Role | Basis | Why |
+|---|---|---|
+| **Permanent farmhand** | **time** | the employer accepts carrying them through winter — that is what a permanent seat *is* |
+| **Harvest hand** | **per-settlement** | paid per bushel brought in; nobody pays a wage for a fortnight of need |
+| **Miner** | **per-settlement** (§7.2) | the same logic, for the same reason |
+
+So agriculture's piece-rate and the mine's piece-rate are **the same
+phenomenon**, derived from a shipped data field rather than invented. A farm
+naturally runs a **small permanent crew plus a seasonal surge** — exactly as
+real farms do — and the two rungs of the automation ladder stop competing and
+start composing.
+
+### Three designed pieces, already the right shape
+
+- **`voluntary-within-windows`** (§6.3, the player default) **is the seasonal
+  shape.** Make the window the harvest and no new schedule vocabulary is needed.
+- **The mine is `self-directed` + piece-rate + co-op residual** (§7.2) — an
+  arrangement chosen for other reasons that happens to be *built to absorb
+  intermittent labor*.
+- **The public-works floor is "counter-cyclical by construction"** (§8.2) —
+  empty in booms, absorbing in slumps, self-draining on recovery.
+
+### Seasonality gives the job guarantee its clearest demonstration
+
+§8.2's floor is designed against the **business cycle** — which is aperiodic,
+invisible, and hard to feel. Seasonality hands it a **predictable annual
+cycle**:
+
+> **Every winter the pool fills. Every harvest it drains into the fields**, as
+> private wages beat the deliberately-below-market floor and employers hire out
+> of the buffer stock.
+
+Players *watch the buffer-stock mechanism work*, once a real month, forever. The
+WPA analogy stops being an analogy — it becomes **literal winter public works.**
+
+### Two absorbers, not one
+
+Winter labor has both a **public floor** (the wage anchor, below private) and a
+**private alternative** (the mine, competing above it). That is a richer and
+more honest macro than a single absorber: the floor sets the ground, the mine
+bids against it, and a player chooses.
+
+**And the mine gains a labor-supply constraint it did not have** — cheap hands
+in winter, scarce at harvest. Free, and true: miners were farmers in the
+off-season.
+
+### Players are structurally seasonal labor
+
+Intermittent play *is* the seasonal-work pattern. Gigs (achieve → settle) fit
+players; standing employment (maintain → time) fits NPCs, who are always
+present. That is not a limitation — it is the natural division, and §3's
+NPC-bootstrap already leans this way.
+
+### It answers §5.4's open question at world scale
+
+**"Cozy downtime"** is called this slate's *"biggest undiscovered requirement…
+has no mechanics behind it yet."* **Winter is that lull, at the scale of the
+whole world** — and seasonality supplies the answer the shift-level version
+lacked: *you do different work.* The mine, the floor, indoor crafts,
+[preservation](./preservation-slate.md), repair, teaching. The lull is not dead
+air; it is the other half of the year.
+
+### Two guard rails
+
+> **1. Seasonality changes WHAT you do, never WHETHER you can earn.** If harvest
+> pays triple and winter pays nothing, rational play is to appear only at
+> harvest. The counter-cyclical employers are precisely what prevent that: there
+> is always work, it is just different work.
+
+> **2. The harvest must never require attendance.**
+> NPC hands are always hireable at standard rates for a standard result. Player
+> labor is *better or cheaper*, never *required* — a landowner who finds nobody
+> still gets a harvest. Same rule [weather](../tails/weather-slate.md) runs on:
+> **modulate, never gate.** A scheduled world-event you must attend is a
+> treadmill, and Law 2's spirit forbids it.
+
+### The mechanism is already shipped
+
+[contract.md](../../subsystems/contract.md) has everything a harvest gig needs:
+**open-bounty** posting (escrow-held at post rather than claim — right for
+"anyone who brings in a bushel gets paid"), **`expired`** as a terminal that
+reverts escrow, and the physical **job board**. A seasonal gig is an open-bounty
+contract whose expiry is the end of the window.
+
+**What is new is only the seasonal *posting*** — more gigs, at better rates,
+inside the window.
+
+### Pricing — seasonality argues for the cheap answer
+
+§3 leaves pricing **[OPEN]**: flat difficulty-band vs demand-driven. Seasonality
+does not require emergent price discovery to be legible — **seasonally varying
+postings** (more work, better rates, in-window) deliver the felt effect at a
+fraction of the cost, and stay authored and tunable. Demand-driven pricing
+remains the richer answer; it is no longer the *necessary* one.
+
+### Forecastability makes it plannable
+
+Seasons are known in advance and weather is forecastable, so **both sides can
+plan** — a landowner lines up hands, a laborer positions for the window. That is
+the first genuine *economic* consumer of the forecast surface
+[weather-slate](../tails/weather-slate.md) notes is currently inert.
+
+---
+
 ## Current build state [NOW]
 
 *(Refreshed 2026-07-23.)*
@@ -770,11 +894,16 @@ now.
   + withdrawal quota, the Attendant queue/lease substrate, and chattel
   + the general store — whose **consignment is a live share-of-flow
   arrangement** (§6.1) already in production.
-- **Not built:** the clause primitive as an object, contracts/escrow,
-  the gig lifecycle, the job board, comp bases beyond time-wage as
-  *authorable terms* (piece-rate, share-of-flow employment, the draw
-  as a named leg kind), entity forms, the appropriation, the
-  public-works floor + match (§8).
+- **⚠ Stale as written — corrected 2026-07-31.** The **work-contracts
+  build shipped** (MR !149 → [contract.md](../../subsystems/contract.md)):
+  the clause primitive with engine verification, the gig lifecycle over
+  conserved escrow, the **physical job board**, and the two-beat turn-in.
+  Strike those four from this list.
+- **Genuinely not built:** comp bases beyond time-wage as *authorable
+  terms* (**piece-rate** — which §9 makes load-bearing), share-of-flow
+  employment, the draw as a named leg kind, entity forms, the
+  appropriation, and the **public-works floor + match (§8)** — the last
+  of which §9 depends on for its winter half.
 - The CB deficit subsidy + red-by-design P&L still backstop the
   system; the deficit log remains the seam the full §4 author-budget
   model plugs into.
