@@ -31,7 +31,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 /**
  * The signal sources that feed renown. Open vocabulary.

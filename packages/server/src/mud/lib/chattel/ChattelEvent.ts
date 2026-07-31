@@ -11,7 +11,7 @@
  */
 
 import { Document } from "../persistence/Document";
-import { Collections } from "../../../backend/PersistenceManager";
+import { Collections } from "../persistence/Collections";
 import type { ChattelOwner } from "./ChattelRecord";
 
 export type ChattelEventKind = "mint" | "transfer" | "released";

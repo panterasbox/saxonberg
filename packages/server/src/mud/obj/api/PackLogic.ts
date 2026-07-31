@@ -10,7 +10,7 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { NameBank } from '../../lib/species/NameBank';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../../lib/persistence/Collections';
 import { PersistApi } from '../../api/persist';
 import { StuffApi } from '../../api/stuff';
 import { QuantityApi } from '../../api/quantity';

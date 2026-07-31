@@ -1,6 +1,7 @@
 // ScriptLogic — the hot-reloadable logic singleton behind ScriptApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { Script as VmScript, createContext } from "node:vm";
 import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
@@ -25,6 +26,7 @@ import type {
 } from "../../lib/script/Interpreter";
 import type { Coroutine } from "../../lib/script/Coroutine";
 import type { ScriptAbortReason } from "../../lib/script/AbortReason";
+import type { CompiledSandbox } from "../../api/script";
 import { Scope } from "../../lib/script/Scope";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Sensor } from "../../lib/message/Sensor";
@@ -528,6 +530,27 @@ export class ScriptLogic extends ApiLogic {
   @CallSecurity(ScriptApiCallers)
   public format(ast: Script): string {
     return formatScript(ast);
+  }
+
+  /** See {@link ScriptApi.compileSandboxed}. */
+  @CallSecurity(ScriptApiCallers)
+  public compileSandboxed(code: string): CompiledSandbox {
+    // Box into the opaque handle. Safe by construction: `CompiledSandbox`
+    // has no structure, so the only value that can reach `runSandboxed`
+    // is one this line produced.
+    return new VmScript(code) as unknown as CompiledSandbox;
+  }
+
+  /** See {@link ScriptApi.runSandboxed}. */
+  @CallSecurity(ScriptApiCallers)
+  public runSandboxed(
+    compiled: CompiledSandbox,
+    sandbox: Record<string, unknown>,
+  ): unknown {
+    // Unbox — see `compileSandboxed`; nothing else mints a CompiledSandbox.
+    return (compiled as unknown as VmScript).runInContext(
+      createContext(sandbox),
+    );
   }
 
   /** See {@link ScriptApi.mintEvalScratch}. */

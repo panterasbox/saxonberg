@@ -13,7 +13,7 @@ import type {
   RawDiagnostic,
   DiagnosticEvent,
 } from '@saxonberg/types';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../../lib/persistence/Collections';
 import { PersistApi } from '../../api/persist';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { AccessApi } from '../../api/access';

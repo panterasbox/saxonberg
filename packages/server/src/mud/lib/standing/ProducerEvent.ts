@@ -27,7 +27,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 /**
  * Provenance of a producer signal. Open vocabulary; `engagement` (a

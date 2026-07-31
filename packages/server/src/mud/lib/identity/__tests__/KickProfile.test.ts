@@ -12,6 +12,7 @@ import { Document } from '../../persistence/Document';
 import { Marshaller } from '../../persistence/Marshaller';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
+import { PersistApi } from '../../../api/persist';
 import { installEncryptedStringMarshaller } from '../../persistence/__tests__/encrypted-string-marshaller-test-helpers';
 
 const VALID_KEY = crypto.randomBytes(32).toString('base64');
@@ -30,6 +31,10 @@ describe('KickProfile', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     process.env.TOKEN_ENC_KEY = VALID_KEY;
+    // The key cache is process-wide (it lives on PersistApi, not on the
+    // marshaller instance), so clearAll() no longer drops it. Without
+    // this the suite passes only by vitest's per-file module isolation.
+    PersistApi._resetEncryptionKeyForTest();
     installEncryptedStringMarshaller();
     Document.setMarshallerResolver(
       (path) =>

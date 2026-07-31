@@ -14,7 +14,7 @@
  */
 
 import { Document } from "../persistence/Document";
-import { Collections } from "../../../backend/PersistenceManager";
+import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
 
 export default class SupplyAggregate extends Document {

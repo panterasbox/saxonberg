@@ -114,6 +114,34 @@ Two path-resolution helpers:
   Used for the content tree where paths are virtual identifiers,
   not OS file paths.
 
+### The shipped-resource face (synchronous)
+
+The async surface above backs the author shell. A second, **synchronous**
+group serves a different caller: mudlib modules that need to load an
+authored data file shipping in the source tree — a char-gen roster, a
+theme catalogue, a command schema — from a static initialiser,
+`postRegister`, or a lazy first-use path that cannot await.
+
+- `readResource(moduleUrl, relativePath)` — raw text.
+- `readYamlResource<T>(moduleUrl, relativePath)` — text + YAML parse.
+- `readJsonResource<T>(moduleUrl, relativePath)` — text + JSON parse.
+- `parseYaml<T>(text)` — the same parser for text already in hand (a
+  command argument, a CMS field). No file involved.
+- `toMudPath(absolute)` — absolute source path → `/`-rooted mud template
+  path. Pure arithmetic, no I/O. The single definition of the mud root;
+  `CommandDefinition` and `CommandLogic` used to keep one each.
+- `resolveFrom(filePath, relativeRef)` — resolve a ref against the
+  directory containing `filePath` (the sibling-file rule an authored
+  spec uses to point at its controller).
+
+`moduleUrl` is the caller's own `import.meta.url` — a **language
+construct, not an import** — which is how a mudlib module names a file
+without reaching outside `src/mud/`. The read itself happens here, in the
+Api tier, and is sandbox-checked like everything else on this face. This
+group exists because of [the import
+boundary](../architecture.md); before it, five modules held their own
+`readFileSync`.
+
 ## See also
 
 - [shell-environment.md](./shell-environment.md) — settings keyspace

@@ -40,7 +40,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 import type { Lethality, StopCondition } from '../combat/CombatTerms';
 
 /** The kind of attribution row. Closed vocabulary (four writers). */

@@ -284,6 +284,26 @@ discoverability.
   direction rule). CI-gating. It deliberately does NOT judge whether an
   exemption is *justified* — that is a review call, and the reason
   these stay short readable lists instead of being derived.
+- `pnpm lint:imports` (`scripts/check-mud-imports.ts`) — **the import
+  boundary**: nothing under `src/mud/` imports outside the tree (Node
+  built-ins included) except the Api tier (`api/**` + `obj/api/**`),
+  which imports and wraps. Mudlib code cannot *import* a capability — it
+  asks the gated surface. Scope: imports only; ambient globals
+  (`process.env`, `globalThis`, `Buffer`) stay reachable, so this is an
+  architectural boundary, not a security perimeter. The import-graph
+  twin of call-security, and much of what makes the sandbox / wizard
+  code-trust story checkable. `import
+  type` is exempt everywhere (erased, no capability); both the built-in
+  and npm allowlists are **enumerated** so a widening is a deliberate
+  edit; dynamic `import()`/`require()`/`createRequire` ride the same
+  matrix. The per-file exception registry is **empty** — every
+  capability lives behind an Api, and the mudlib keeps the policy (the
+  fold pattern is an opaque handle: `ScriptApi.compileSandboxed`,
+  `ProseApi.compile`, `PersistApi.sealString`,
+  `CommandApi.validateCommandView`). **Ask before adding the first
+  exception.** `--report` groups crossings for a sweep.
+  CI-gating. Pattern + folds: [architecture.md § The import
+  boundary](./docs/architecture.md).
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).
@@ -679,6 +699,7 @@ orchestration cases:
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind, `'core'` = the state default. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
 | Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.isAuthor(giver)` for MQL pre-gates, `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/obj/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
+| `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `obj/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 
@@ -730,7 +751,9 @@ multiplexing, disconnect): see
 ## MongoDB Collections
 
 One line per collection; the owning subsystem doc holds the schema,
-indexes, and write-path rules — this list is for orientation only.
+indexes, and write-path rules — this list is for orientation only. The
+name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
+side — `backend/PersistenceManager` re-exports it).
 
 - `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
 - `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)

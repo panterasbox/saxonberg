@@ -475,6 +475,9 @@ salvaged into the subsystem doc):
 > `world-clock` → time.md · `document-tree` → document-store.md. The two
 > governance instruments (`draft-constitution`, `founding-charter`) moved
 > out of `builds/` to [../governance/](../governance/).
+>
+> **Retired 2026-07-31**: `import-boundary` → architecture.md § The
+> import boundary (§12 above; shipped and absorbed in one MR).
 
 ### 11. Magic items & BUC
 *NetHack's consumables as an immsim stress-test.* Most of the potion / scroll
@@ -504,6 +507,21 @@ on combat.
   procgen-NPC generator folded in). Consumers: BUC-at-spawn, create-monster,
   world-population. **Shared world-wide.**
 
+### 12. Engine hygiene — ✅ shipped
+*Platform refactors with a lint at the end — no product surface.*
+
+Shipped as the **import boundary** (2026-07-31, MR !158) →
+[architecture.md § The import boundary](../architecture.md): nothing
+under `src/mud/` imports outside the tree (Node built-ins included)
+except the Api tier (`api/**` + `obj/api/**`), which imports and wraps —
+the import-graph twin of call-security, and what makes the sandbox /
+wizard code-trust story checkable. CI-gating via `pnpm lint:imports`.
+36 violating files → 0, with **zero exceptions**: the capability moves
+to an Api and the mudlib keeps the policy (the recurring mechanism is an
+opaque handle). The slate is fully absorbed and retired; its two
+residual tails — the blanket test exemption, and ambient globals that an
+import rule structurally can't reach — are recorded in the subsystem
+doc's *What this rule does not cover*.
 ---
 
 ## Deferred game-design (`deferred-rpg/`)

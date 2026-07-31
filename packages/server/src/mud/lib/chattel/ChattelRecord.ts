@@ -19,7 +19,7 @@
  */
 
 import { Document } from "../persistence/Document";
-import { Collections } from "../../../backend/PersistenceManager";
+import { Collections } from "../persistence/Collections";
 
 /**
  * Who owns a chattel. Player-only in v1 (an Avatar's durable

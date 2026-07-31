@@ -18,7 +18,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 export type MediaAssetStatus = 'draft' | 'approved';
 

@@ -25,6 +25,18 @@ import { ExecutionContextApi } from "./execution-context";
 import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+
+/**
+ * Opaque handle to a compiled sandboxed script. Deliberately carries no
+ * structure: the backing form (`vm.Script`, later an `isolated-vm`
+ * compiled script) is an Api-tier implementation detail, and the mudlib
+ * holds one only to hand it back to {@link ScriptApi.runSandboxed}.
+ */
+export type CompiledSandbox = {
+  readonly __compiledSandbox: unique symbol;
+};
 
 const LOGIC_PATH = "/obj/api/script";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -153,6 +165,47 @@ export class ScriptApi {
   ): Promise<string | null> {
     ExecutionContextApi.tagActingAuthor(builder);
     return logic().captureManualBuild(recipeId, name, sources);
+  }
+
+  /**
+   * Compile `code` into a sandboxed script, ready to run against a
+   * context built later. The returned handle is **opaque** — the backing
+   * form is Node's `vm.Script` today and the planned `isolated-vm`
+   * migration changes it without touching callers.
+   *
+   * The `vm` module is a capability, so it lives here in the Api tier and
+   * nowhere else (docs/architecture.md § The import boundary). The caller
+   * — `EvalScript` — still owns the sandbox *contents*: the name
+   * allowlist and the receiver bindings are mudlib policy, and assembling
+   * them is plain object work needing no privilege.
+   *
+   * **Gated to `EvalScript` alone.** Moving `vm` behind an Api is only
+   * worth anything if the Api actually gates it: an ungated pair here
+   * would hand every module arbitrary code execution with a
+   * caller-chosen globals bag, which is strictly worse than the
+   * `SANDBOX_NAMES` allowlist it replaced. `EvalScript` is the one
+   * legitimate caller, and it is itself reachable only behind
+   * `AccessApi.isWizard`.
+   */
+  @CallSecurity(SecurityPolicies.FromModule("/lib/script/EvalScript"))
+  static compileSandboxed(code: string): CompiledSandbox {
+    return logic().compileSandboxed(code);
+  }
+
+  /**
+   * Run a {@link ScriptApi.compileSandboxed} handle against a fresh
+   * context built from `sandbox` — a plain object whose own enumerable
+   * keys become the globals the code can see, and the only ones.
+   *
+   * Gated to `EvalScript` for the same reason as
+   * {@link ScriptApi.compileSandboxed}.
+   */
+  @CallSecurity(SecurityPolicies.FromModule("/lib/script/EvalScript"))
+  static runSandboxed(
+    compiled: CompiledSandbox,
+    sandbox: Record<string, unknown>,
+  ): unknown {
+    return logic().runSandboxed(compiled, sandbox);
   }
 
   /**

@@ -41,7 +41,7 @@
  * Idea-rooted Stuff (for HMR) and are reached through the injected resolver.
  */
 
-import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { PersistApi } from '../../api/persist';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 
 type Indexable = Record<string, unknown>;
@@ -228,7 +228,7 @@ export class Document {
     await this.preloadFieldMarshallers();
     const collection = this.getCollectionName();
     const doc = this.toDocument();
-    const savedId = await PersistenceManager.get().save(collection, doc);
+    const savedId = await PersistApi.save(collection, doc);
     if (!this._id) this._id = savedId;
   }
 
@@ -259,7 +259,7 @@ export class Document {
       );
     }
     const collection = this.getCollectionName();
-    await PersistenceManager.get().delete(collection, this._id);
+    await PersistApi.delete(collection, this._id);
   }
 
   /**
@@ -278,7 +278,7 @@ export class Document {
         `${this.name}.collectionName not defined - must be set in subclass`
       );
     }
-    const doc = await PersistenceManager.get().findById(this.collectionName, id);
+    const doc = await PersistApi.findById(this.collectionName, id);
     if (!doc) return null;
     await Document.preloadFieldMarshallersFor(this as AnyConstructor);
     const instance = new this() as T;
@@ -298,7 +298,7 @@ export class Document {
         `${this.name}.collectionName not defined - must be set in subclass`
       );
     }
-    const docs = await PersistenceManager.get().find(this.collectionName, query);
+    const docs = await PersistApi.find(this.collectionName, query);
     await Document.preloadFieldMarshallersFor(this as AnyConstructor);
     return docs.map((doc) => {
       const instance = new this() as T;

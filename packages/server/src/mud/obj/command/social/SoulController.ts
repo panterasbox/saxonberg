@@ -21,9 +21,9 @@ import type {
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
-import YAML from 'yaml';
 import { SoulApi } from '../../../api/soul';
 import type { EmoteSpec } from '../../SoulCatalogue';
+import { SourceTreeApi } from '../../../api/source-tree';
 
 interface SoulModel extends CommandModel {
   verb?: string;
@@ -75,7 +75,7 @@ export default class SoulController extends CommandController<SoulModel> {
     }
     let parsed: unknown;
     try {
-      parsed = YAML.parse(raw);
+      parsed = SourceTreeApi.parseYaml(raw);
     } catch (err) {
       return this.fail(
         context,
@@ -125,12 +125,12 @@ export default class SoulController extends CommandController<SoulModel> {
           // wholesale via `soul edit <verb> grammar <yaml>`.
           break;
         case 'grammar': {
-          const parsed = YAML.parse(value);
+          const parsed = SourceTreeApi.parseYaml(value);
           patch = { grammar: parsed as EmoteSpec['grammar'] };
           break;
         }
         case 'aliases': {
-          const parsed = YAML.parse(value);
+          const parsed = SourceTreeApi.parseYaml(value);
           if (!Array.isArray(parsed)) {
             return this.fail(
               context,
@@ -142,7 +142,7 @@ export default class SoulController extends CommandController<SoulModel> {
           break;
         }
         case 'tags': {
-          const parsed = YAML.parse(value);
+          const parsed = SourceTreeApi.parseYaml(value);
           if (!Array.isArray(parsed)) {
             return this.fail(context, 'tags must be a list', 'invalid-tags');
           }

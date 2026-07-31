@@ -1484,6 +1484,80 @@ not `SchedulerApi`.
   predate and live below the `ExecutionContext` substrate. New
   mudlib code shouldn't acquire the same exception.
 
+## Importing Outside `src/mud/` From the Mudlib
+
+Mudlib code — `lib/`, `obj/` outside `obj/api/`, `cmd/`, `domain/` —
+must NOT import anything from outside `src/mud/`. That includes Node
+built-ins (`fs`, `path`, `url`, `crypto`, `vm`, `child_process`), npm
+packages, and `../backend/`. Only the Api tier (`mud/api/**` and
+`mud/obj/api/**`) may import outward, and its job is to wrap what it
+imports.
+
+The point is capability, not tidiness: mudlib code that cannot import
+`fs` cannot read a file the Apis didn't agree to read. See
+[architecture.md § The import boundary](./architecture.md). Enforced by
+`pnpm lint:imports`, CI-gating.
+
+`import type` is exempt everywhere (erased at compile, no runtime
+capability), as is `@saxonberg/types`.
+
+### BAD (mudlib reaching for the filesystem)
+
+```ts
+// lib/whatever/Themes.ts
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import YAML from 'yaml';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const parsed = YAML.parse(readFileSync(join(here, 'themes.yaml'), 'utf-8'));
+```
+
+### GOOD (name the file; let the Api read it)
+
+```ts
+// lib/whatever/Themes.ts
+import { SourceTreeApi } from '../../api/source-tree';
+
+const parsed = SourceTreeApi.readYamlResource<ThemeFile>(
+  import.meta.url,
+  'themes.yaml'
+);
+```
+
+`import.meta.url` is a language construct, not an import — a mudlib
+module may name its own location freely. The read happens in the Api
+tier, sandbox-checked. Siblings: `readResource`, `readJsonResource`,
+`parseYaml` (for text already in hand, e.g. a command argument), and the
+pure path arithmetic `toMudPath` / `resolveFrom`.
+
+### Other common shapes
+
+| Don't | Do |
+|---|---|
+| `import { Collections } from '../../../backend/PersistenceManager'` | `import { Collections } from '../persistence/Collections'` — it's mudlib vocabulary |
+| `Application.get().sendMessageToInteractive(i, frame)` | `ConnectionApi.sendMessage(i, frame)` |
+| `CommandDefinition.fromFile(path)` (a value object holding a read) | the Api-tier caller reads; the value object parses what it's handed |
+| a test seam that points a `static path` at a temp file | inject the *source text* instead — no temp file, and the real read stays in the tree |
+
+### Permitted exceptions
+
+**None.** The exception registry in `check-mud-imports.ts` is empty.
+
+Every module that looked like an irreducible exception split instead —
+the capability moved to an Api, the *policy* stayed in the mudlib.
+`EvalScript` still decides what goes in its sandbox and only asks
+`ScriptApi` to run it; `Prose` still owns the value object while
+`ProseLogic` owns the Liquid engine; `EncryptedStringMarshaller` still
+validates the envelope while `PersistApi` holds the cipher;
+`CommandDefinition` still enforces every structural invariant while
+`CommandApi` compiles the schema. The recurring trick is an **opaque
+handle** — the Api hands back a branded type with no structure, and the
+mudlib holds it only to hand it back.
+
+**Ask before adding the first one.**
+
 ## Atmospheric Reads — Go Through `BiomeApi.resolveXFor`
 
 When you need a Location's or Vessel's temperature / pressure /

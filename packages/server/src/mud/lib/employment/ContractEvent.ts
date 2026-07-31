@@ -13,7 +13,7 @@
  */
 
 import { Document } from "../persistence/Document";
-import { Collections } from "../../../backend/PersistenceManager";
+import { Collections } from "../persistence/Collections";
 
 export const CONTRACT_EVENT_KINDS = [
   "posted",

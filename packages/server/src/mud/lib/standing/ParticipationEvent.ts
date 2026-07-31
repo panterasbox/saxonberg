@@ -32,7 +32,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 /**
  * Provenance of a participation signal. Open vocabulary; `command` (a
