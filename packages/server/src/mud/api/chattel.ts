@@ -50,10 +50,14 @@ function ownerKeyOf(owner: Stuff): ChattelOwner {
 
 export class ChattelApi {
   /**
-   * The owner of a movable good — `stamp ?? authorOf`. A per-instance
-   * owner-stamp overrides; absent a stamp, the item's author (via the
-   * shipped `authorOf` resolution). Null for a glob or an unstamped +
-   * unauthored good.
+   * The owner of a movable good — `stamp ?? parcel-extent ?? authorOf`,
+   * three rungs and total. A per-instance owner-stamp overrides; absent a
+   * stamp, a good whose template path falls under a **parcel's extent**
+   * resolves to that parcel's owner (so a landlord owns the fixtures in a
+   * unit they let, and a fixture carried off stays titled to the parcel —
+   * displacement is theft, recoverable); absent both, the item's author
+   * (via the shipped `authorOf` resolution). Null for a glob or an
+   * unstamped + unowned + unauthored good.
    */
   public static async ownerOf(item: Stuff): Promise<ChattelOwner | null> {
     return logic().ownerOf(item);

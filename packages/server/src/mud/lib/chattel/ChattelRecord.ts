@@ -20,13 +20,24 @@
 
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
+import type { GroupRef } from "../social/GroupProvider";
 
 /**
- * Who owns a chattel. Player-only in v1 (an Avatar's durable
- * `templatePath`); the union mirrors `ParcelOwner` so a future
- * group/corpo owner slots in without a migration.
+ * Who owns a chattel. The union mirrors `ParcelOwner` structurally (it is
+ * deliberately NOT an import — `lib/chattel` does not depend on
+ * `lib/parcel`; structural typing makes a `ParcelOwner` assignable here).
+ *
+ * **Only the `player` arm is ever *stamped*.** The `group` arm exists so
+ * that `ownerOf`'s **parcel rung** — an unstamped good whose template path
+ * falls under a parcel extent resolves to that parcel's owner, and a
+ * parcel may be group-held — is expressible as a *resolved* answer. No
+ * stored `chattel` row ever carries it, so the persisted schema is
+ * untouched (the widening this docstring anticipated in v1 is read-side
+ * only). See `ChattelLogic.ownerOf`.
  */
-export type ChattelOwner = { kind: "player"; templatePath: string };
+export type ChattelOwner =
+  | { kind: "group"; name?: string; ref?: GroupRef }
+  | { kind: "player"; templatePath: string };
 
 export class ChattelRecord extends Document {
   static collectionName = Collections.Chattel;

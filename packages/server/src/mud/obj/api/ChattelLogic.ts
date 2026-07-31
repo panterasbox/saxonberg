@@ -3,7 +3,8 @@
  * `/obj/api/chattel`; methods admit only the `ChattelApi` face. Extends
  * `ApiLogic`, so it is itself residency-exempt.
  *
- * Owns the ownership-resolution chain (`stamp ?? authorOf`) and the
+ * Owns the ownership-resolution chain
+ * (`stamp ?? parcel-extent ?? authorOf`) and the
  * glob-refusal invariant, delegating storage to the `ChattelRegistry`
  * singleton (reached via `StuffApi.findByTemplatePath`, memoized). Like
  * `ParcelLogic` it **pure-degrades** when the registry isn't live (no
@@ -21,6 +22,7 @@ import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
 import { ProvenanceApi } from "../../api/provenance";
+import { ParcelApi } from "../../api/parcel";
 import { TemplatePaths } from "../../lib/paths";
 import type { ChattelOwner } from "../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../lib/chattel/Chattel";
@@ -58,10 +60,28 @@ export class ChattelLogic extends ApiLogic {
         if (owner) return owner;
       }
     }
-    // Fallback: an unstamped content good resolves to its author (no
-    // world-wide restamp). Pure-degrade also lands here when no registry.
     const path = item.getTemplatePath();
     if (!path) return null;
+    // Rung 2 — the parcel. An unstamped good whose template path falls
+    // under a parcel's extent is titled to THAT PARCEL'S OWNER: a landlord
+    // owns the fixtures in a unit they let. Keyed on the template path
+    // rather than the item's location, which is what makes displacement
+    // recoverable — a fixture carried out of the unit stays titled to the
+    // parcel, so it is theft (custody without title), not a transfer.
+    // Inserted ABOVE the author fallback, so every good outside any extent
+    // resolves exactly as it did before this rung existed.
+    //
+    // `coveringParcelOf`, NOT `ParcelApi.ownerOf`: the latter is *total*
+    // (it falls back to the state, `{kind:'group', name:'core'}`), so using
+    // it here would make the author rung unreachable and silently retitle
+    // every authored good in the world to core. The covering lookup returns
+    // null when no parcel covers the path, which is exactly the "outside
+    // any extent" case D5 requires to fall through unchanged.
+    const covering = await ParcelApi.coveringParcelOf(path);
+    const parcelOwner = covering?.getOwner() ?? null;
+    if (parcelOwner) return parcelOwner;
+    // Fallback: an unstamped content good resolves to its author (no
+    // world-wide restamp). Pure-degrade also lands here when no registry.
     const authorPath = await ProvenanceApi.authorOf(path);
     return authorPath ? { kind: "player", templatePath: authorPath } : null;
   }
