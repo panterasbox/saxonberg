@@ -101,6 +101,11 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   and a tub that is a posture-bearing host authoring `restQuality` and
   `warmth` — three fixtures at three levels of detail, chosen by what
   the world reads (D13).
+- **The living room ships empty on purpose.** The one archetype the
+  landlord does not fit out: a floor, light, at most a hearth. It is
+  justified by *audience* rather than by a task — the room a visitor is
+  brought into, and therefore the room where owning and placing goods
+  becomes legible to anyone but you (D16).
 - **A room can be posted.** A room-level designation field says what the
   sign on the door says — unisex, gendered, staff-only, whatever the
   fiction posts — as an opaque string the engine never enforces and no
@@ -189,6 +194,14 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   stewardship's. Room archetypes here are content identity, not a typed
   gate on what may be placed where; a bathroom that accepts a chest
   freezer is silly but permitted in v1.
+- **Hosting as a mechanic.** No invitation, no guest list, no visitor
+  access grant, no co-presence surface. The living room is *for*
+  visitors (D16), but who may come in is the door's question and lands
+  with co-lease.
+- **A television object.** `watch` names a streamer and fills the
+  cockpit embed from anywhere, so a TV fixture would model nothing. It
+  is prose, by the same rule as the toilet reached from the other side
+  (D16).
 - **Stewardship as a room capability.** No `StewardedMixin`, no
   maintenance obligation on a room, no janitor, no consequence for
   neglect. Responsibility for a room's condition is a **relation** held
@@ -772,6 +785,79 @@ costs nothing — it deletes a qualifier rather than adding a tier — and
 it means the next venue that wants a bathroom authors a seed row instead
 of re-deriving the concept.
 
+### D16 — The living room is for an audience, and it ships empty
+
+**The question.** The other three archetypes are *task* rooms, each
+justified by an affordance: you sleep, you cook, you wash. The living
+room has no task. What is it?
+
+**The answer: that is not a deficiency, it is the definition. The living
+room is the room for other people.** It is justified by *audience*
+rather than by activity — the room you bring a visitor into — which
+makes it the fourth distinct kind of answer in the set and the one this
+build has the most direct stake in.
+
+**Because it is where this build's thesis becomes legible.** This
+document opens by promising a residence "whose character is the objects
+you played for." Character is only *character* if something can perceive
+it. Furniture in a bedroom is for you; furniture in a living room is for
+whoever walks in. The guest-drop goal — "I left my book at a friend's" —
+is already in scope, and a friend's is a living room.
+
+**The lounge settles what a social room actually needs.** The shipped
+lounge is the flagship social space and the universal login landing, and
+it seeds **no seating objects whatsoever**: *"Mismatched armchairs and a
+sagging couch cluster around a rug worn pale down the middle"* is prose.
+Nobody has ever missed them. So a social room does not need furniture
+objects to work.
+
+Which isolates the real difference exactly. Your living room is not a
+better lounge — it is the same room under a different relation: **the
+furniture is yours, and you put it there.** That is D15 one tier down.
+The lounge's chairs are prose because nobody owns them; yours are
+objects because you bought them, hold title to them, and placed them.
+
+**So the archetype ships nearly empty, and that is correct.** Every other
+archetype comes with built-ins the landlord fitted — a bed, a range, a
+toilet. The living room comes with a floor, light, and at most a hearth.
+**The empty room is the invitation**, and filling it is the whole point
+of the build. An archetype that arrived pre-furnished would be
+pre-empting the player's only job here.
+
+What it does offer, all shipped, all authored:
+
+| Element | Shape | Note |
+|---|---|---|
+| seating | `Postured` sofa / armchair, modest `restQuality` | the third instance of one pattern (bed high, tub warm, sofa modest); the shipped `FoldingChair` is the exact seed shape — `staticSlots: sit:1`, `postures: [sit]`. **Bought, not fitted** — seating is the tenant's chattel, which is the point |
+| hearth | `Furnace` + `LightSource` + `warmth` on the seat | optional built-in; re-runs D12's ventilation lesson in a second room |
+| mantel / shelves | `Surfaced` | where placed chattel is *seen*; `placeOn` ships |
+| television | **prose** | `watch` names a streamer and fills the cockpit embed from anywhere — **it needs no object**, so an object would model nothing |
+
+That last row completes the LOD ladder from the opposite end. The toilet
+is prose because its function is not worth modelling; the television is
+prose because its function is *already* modelled and does not need the
+object. Both reduce to one rule: **a fixture becomes an object only when
+something reads it.**
+
+**It never earns a class.** Audience is not behavior — it is who walks
+in. Seating, hearth and shelves are all *contents*. So by D6's test the
+living room joins the kitchen and the bathroom: **three of the four
+archetypes will never earn a class**, and only the bedroom does, only
+via the mirror. That is as strong as the D6 claim can be made.
+
+**The set is now four distinct kinds of answer** — *function* (bedroom,
+D10), *bundle* (kitchen, D12), *presence* (bathroom, D13), *audience*
+(living, D16). None of the four is a variation on another, which is what
+justified modelling all four rather than shipping one room class with
+four prose strings.
+
+**Deferred, and both land here when they come.** Hosting as a mechanic
+— invitation, guest access, co-presence — belongs with co-lease and the
+door, already non-goals. And prose-on-owned-items personalization
+("my film-school desk"), already a non-goal, is *the living room's*
+payoff: annotating your furniture only matters in the room where
+visitors read it.
+
 ## Constraints
 
 - **No furnishing subsystem in the module sense.** No `FurnishingApi` /
@@ -876,6 +962,15 @@ of re-deriving the concept.
 - **Four archetypes exist as content.** Bedroom, kitchen, bathroom and
   living each seed their own fixture set from `populates:`, are editable
   without code, and share one room class.
+- **The living room materializes empty of furniture**, and a visitor
+  standing in it sees exactly the goods the tenant placed there —
+  described, titled to the tenant, and persisting on the tenant's record
+  rather than the room's. This is the guest-facing half of the guest-drop
+  criterion and the observable form of the build's thesis (D16).
+- **A bought chair really seats.** A `Postured` armchair placed in the
+  living room accepts `sit`, contributes its `restQuality` to coupled
+  recovery, and — being tenant chattel — leaves with the tenant and
+  survives eviction into storage.
 - **Rooms carry room-level state.** A room declares and
   round-trips at least one field of its own, distinct from its contents —
   the seam D7 exists to establish.
@@ -963,6 +1058,15 @@ of re-deriving the concept.
   [property-slate](../slates/builds/property-slate.md) §I (chattel &
   persistence, the seed-then-persist handoff), §J (custody vs. title),
   §K (rent vs. own, the lease)
+- The living room (D16): [location.md](../subsystems/location.md) (the
+  lounge — the shipped social room whose armchairs are prose),
+  [posture.md](../subsystems/posture.md) (`FoldingChair`'s `staticSlots`
+  is the seating seed shape), [spatial.md](../subsystems/spatial.md)
+  (`Surfaced` + `placeOn` — the display surfaces),
+  [streaming.md](../subsystems/streaming.md) (`watch` needs no object —
+  why the television is prose),
+  [perception.md](../subsystems/perception.md) (a visitor is the thing
+  that makes placed goods legible)
 - Venue-genericity (D15): [parcel.md](../subsystems/parcel.md) (title,
   land use, the extent — the tier where home-vs-bank is decided),
   [employment.md](../subsystems/employment.md) (the Business, positions
