@@ -8,15 +8,20 @@
  *
  * This script forbids `PersistenceManager.get(` everywhere EXCEPT the
  * sanctioned set:
- *   - the persistence framework — `lib/persistence` (Document) and
- *     `lib/stuff/Template.ts` (the template primitive): it *is* the data
- *     layer;
  *   - the backend — `backend`: it owns PM's lifecycle (connect / seed /
  *     hooks);
  *   - `api/hot-reload.ts` — the HMR hook-manifest reload (PM lifecycle, not
  *     data);
  *   - the `api/persist.ts` facade itself;
  *   - tests (any `__tests__` directory).
+ *
+ * `lib/persistence/Document.ts` and `lib/stuff/Template.ts` used to be
+ * sanctioned too, on the grounds that they *are* the data layer. They now
+ * go through `PersistApi` like everything else — the import boundary
+ * (docs/architecture.md) forbids a mudlib module importing `backend/` at
+ * all, so the carve-out had to go, and PersistApi's surface already
+ * covered every call they made. The facade is now the mudlib's only
+ * route to persistence, with no exceptions.
  *
  * CI-gating (exits 1 on findings). A standalone script, not an ESLint
  * rule, for the same ESLint-8-legacy reason as `check-gate-strings`.
@@ -32,19 +37,9 @@ const SERVER_SRC = join(here, "..", "src");
 const PM_ACCESS = /PersistenceManager\s*\.\s*get\s*\(/;
 
 /** Path prefixes (relative to `src/`) where `PersistenceManager.get()` is allowed. */
-const ALLOW_PREFIX = ["backend/", "mud/lib/persistence/"];
+const ALLOW_PREFIX = ["backend/"];
 /** Exact files where `PersistenceManager.get()` is allowed. */
-const ALLOW_EXACT = new Set([
-  "mud/lib/stuff/Template.ts",
-  "mud/api/persist.ts",
-  "mud/api/hot-reload.ts",
-  // DiagnosticLogic backs a raw scalar collection (not a `Document`
-  // subclass), so it reaches for `getCollection` directly by design —
-  // see docs/subsystems/diagnostics.md ("raw getCollection, not a
-  // Document"). It is the store's only writer, gated as a logic
-  // singleton.
-  "mud/obj/api/DiagnosticLogic.ts",
-]);
+const ALLOW_EXACT = new Set(["mud/api/persist.ts", "mud/api/hot-reload.ts"]);
 
 function allowed(rel: string): boolean {
   if (rel.includes("/__tests__/")) return true;

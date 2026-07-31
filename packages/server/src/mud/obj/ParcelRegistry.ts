@@ -28,6 +28,7 @@
 
 import { Idea } from "../lib/stuff/Idea";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
+import { SecurityApi } from '../api/security';
 import { CallSecurity } from "../lib/security/decorators";
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { PathTrie } from "../lib/collections/PathTrie";
@@ -147,6 +148,9 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     parentExtent: string,
     owner: ParcelOwner,
   ): Promise<ParcelRecord> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'subdivide');
     // Reuse the live trie handle if one already claims this extent (the
     // trie keys on object identity — a fresh DB load would leave a stale
     // duplicate); else a fresh row.
@@ -176,6 +180,9 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     extent: string,
     newOwner: ParcelOwner,
   ): Promise<ParcelRecord | null> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'transfer');
     // Mutate the live trie handle in place (identity-keyed). Fall back to a
     // DB load only when the extent isn't indexed yet.
     let record = this.coverage.exact(extent)[0] ?? null;
@@ -206,6 +213,9 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     holder: string,
     expiresAt: number | null,
   ): Promise<boolean> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'grantUse');
     const record = await this.recordFor(extent);
     if (!record) return false;
     record.grants = record.grants.filter((g) => g.holder !== holder);
@@ -222,12 +232,36 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   /** Revoke `holder`'s lease on `extent`; true when a grant was removed. */
   @CallSecurity(ParcelApiCallers)
   public async revokeUse(extent: string, holder: string): Promise<boolean> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'revokeUse');
     const record = await this.recordFor(extent);
     if (!record) return false;
     const before = record.grants.length;
     record.grants = record.grants.filter((g) => g.holder !== holder);
     if (record.grants.length === before) return false;
     await record.save();
+    // Sandbox witness (a direct call, no new global event): a guest
+    // revoked while INSIDE the extent's circle is reaped — their wire
+    // body exits, re-attaching at their parked avatar (the non-event
+    // eviction the wire-body model makes free). Dynamic import: the
+    // sandbox facade sits above this registry in the module graph.
+    try {
+      const { SandboxApi } = await import('../api/sandbox');
+      const session = SandboxApi.sessionForScope(extent);
+      if (session) {
+        const key = holder.split('/').filter(Boolean).pop() ?? holder;
+        const wireBody = SandboxApi.activeBodyFor(key);
+        if (
+          wireBody &&
+          SandboxApi.liveSessionForPlayer(key)?.scope === extent
+        ) {
+          await SandboxApi.exit(wireBody);
+        }
+      }
+    } catch (err) {
+      console.warn('[sandbox] revoke-while-inside reap failed:', err);
+    }
     return true;
   }
 
@@ -285,6 +319,9 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    */
   @CallSecurity(ParcelApiCallers)
   public async retire(extent: string): Promise<void> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'retire');
     await ParcelRecord.deleteByExtent(extent);
     for (const stale of this.coverage.exact(extent)) {
       this.coverage.remove(extent, stale);

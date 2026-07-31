@@ -885,3 +885,27 @@ retired (not grown) at reconcile.
 - [antipatterns.md](../antipatterns.md) — `ContainmentApi.move`
   over raw `setContainer`; pre-asserted casts; instanceof
   vs. virtual methods vs. cast-by-invariant.
+
+## `hasSpatialDestination()` — an exit that leads nowhere
+
+The sandbox build added an `@hook` to `Exit`:
+
+```ts
+public hasSpatialDestination(): boolean { return true; }
+```
+
+True for every ordinary exit. An exit subclass that fully applies its
+own traversal (`applyTraversal`) may name **no room at all** — the
+sandbox's `SandboxCrossingExit` is the shipped case: crossing onto the
+wire moves no body, and its `destinationPath` is a presentation label
+naming the wire, not a place.
+
+The distinction matters to anything that walks the exit **graph**
+structurally instead of traversing it. The vision flux walk is the
+first such consumer and skips exits that answer false; **sound,
+pathfinding and `reachable` have the same shape and will want the same
+check.** Found live: the light walk followed the wardrobe's
+`/home` label, landed on the HomeZone *Idea* — which has no
+`getContents` — and `look` threw for everyone in the room.
+
+See [sandbox.md](./sandbox.md).

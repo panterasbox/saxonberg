@@ -288,3 +288,19 @@ not entangle the review model with a specific store.
 - **Monaco is bundled locally, not from its default CDN** — so the editor
   chunk is self-contained and Vite-code-split, with the language workers
   imported Vite-natively.
+
+## "Test in holodeck"
+
+The editor toolbar carries a button that steps the author's game
+session into their sandbox circle. It has **no endpoint of its own** —
+it sends `go wardrobe` over the game tab's existing socket
+(`websocketClient.sendCommand`), the way the forum panes' buttons
+dispatch commands, and the ordinary refusal comes back in-fiction when
+the author isn't standing at a door.
+
+The sandbox build originally shipped `POST /api/sandbox/test-session` →
+`SandboxApi.launchTestSession` for this; both were **deleted** before
+merge. The method was `enter` under another name, and the name asserted
+something the model denies: there is no act of *launching* a session. A
+session is bookkeeping that exists because a body is on the far side of
+a door. See [sandbox.md](./sandbox.md).

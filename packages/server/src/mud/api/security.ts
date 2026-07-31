@@ -29,7 +29,7 @@
 
 import { nanoid } from 'nanoid';
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
-import { ExecutionContextApi } from './execution-context';
+import { ExecutionContextApi, OMNI_SCOPE } from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import { SecurityError } from '../lib/security/errors';
@@ -525,6 +525,387 @@ export class SecurityApi {
     SecurityApi.#shadowApi = impl;
   }
 
+  /* ───────────────── Sandbox boundary check (Layer 4) ─────────────────
+   *
+   * Cross-scope dispatch is denied wholesale: context scope must equal
+   * receiver scope, in both directions, with exactly the enumerated
+   * pass-throughs below (system omni, infrastructure exemption, the
+   * logged inspection aperture, the message-delivery seam, and the rare
+   * jurisdiction bound). Zero circles ⇒ two loads and one compare —
+   * `null === null` short-circuits before any other work.
+   */
+
+  /**
+   * Base classes whose instances are boundary-exempt infrastructure
+   * (Decision J) — registered by `BootstrapManager.installFrameworkWiring`
+   * (`ApiLogic` today). Late-bound like `#shadowApi` so this
+   * bootstrap-special module never imports the mud class graph.
+   * `instanceof` against a registered base is spoof-proof (prototype
+   * chain), unlike a duck-typed marker method.
+   */
+  static #boundaryExemptBases: Array<abstract new (...a: never[]) => unknown> =
+    [];
+
+  /** @internal — boot wiring only; idempotent per class. */
+  public static _registerBoundaryExemptBase(
+    cls: abstract new (...a: never[]) => unknown
+  ): void {
+    if (!SecurityApi.#boundaryExemptBases.includes(cls)) {
+      SecurityApi.#boundaryExemptBases.push(cls);
+    }
+  }
+
+  /**
+   * Non-`ApiLogic` singletons (registries, catalogues, vocabulary
+   * holders) exempted by ENUMERATION, never inference — anything
+   * unmarked and unscoped is subject to the ordinary compare, so a new
+   * module category fails closed. Classified holder-by-holder in
+   * docs/subsystems/sandbox.md; the needs-a-guard members additionally
+   * carry per-mutator scope checks.
+   */
+  static readonly #BOUNDARY_EXEMPT_TEMPLATE_PATHS: ReadonlySet<string> =
+    new Set([
+      '/obj/EventRegistry',
+      '/obj/AccessRegistry',
+      '/obj/ParcelRegistry',
+      '/obj/OfficeRegistry',
+      '/obj/ChattelRegistry',
+      '/obj/GroupRegistry',
+      '/obj/ReactionRegistry',
+      '/obj/MqlSubscriptionRegistry',
+      '/obj/SchedulerRegistry',
+      '/obj/WorldClockRegistry',
+      '/obj/EventSubscriptions',
+      '/obj/AddressRegistry',
+      '/obj/TopicCatalogue',
+      // The staff→player news window. Read-only presentation content
+      // (writes are REFUSE'd at the PM layer), and the session
+      // ceremony reads it to build a client's bootstrap payload — so a
+      // player crossing into a circle must be able to reach it, or the
+      // whole ceremony throws and they arrive to a blank screen.
+      '/obj/BulletinBoard',
+      '/obj/SoulCatalogue',
+      '/obj/SubjectCatalogue',
+      '/obj/ChannelCatalogue',
+      '/obj/CorpoCatalogue',
+      // Seeded reference catalogues — authored content the engine reads
+      // to answer "what exists in the world": never player-mutable at
+      // runtime, and REFUSE'd at the PM layer besides. Same tier as the
+      // reference-data BASES (Species, Material, Zone …), enumerated
+      // here because each is a singleton rather than a class of many.
+      //
+      // Every one of these was a verb that simply died inside a circle
+      // — `help`, `spells`, `recipes`/`craft`, `studio`, `competence`,
+      // `government`. A player standing in their own circle could not
+      // read the rulebook.
+      '/obj/HelpCatalogue',
+      '/obj/SpellCatalogue',
+      '/obj/RecipeCatalogue',
+      '/obj/BlueprintCatalogue',
+      '/obj/DisciplineCatalogue',
+      '/obj/GovernmentCatalogue',
+    ]);
+
+  /**
+   * The Sensor delivery pipeline — the ONE allowlisted cross-boundary
+   * dispatch channel (comms are seamless; Decision N). Narrow by
+   * construction: the frame body is rendered MML materialized
+   * per-recipient at compose time and the payload carries `StuffRef`
+   * snapshots, so no live reference can ride the exception. A fixed
+   * method set, not a predicate authors can widen.
+   */
+  static readonly #MESSAGE_DELIVERY_METHODS: ReadonlySet<string> = new Set([
+    'onMessage',
+    'filterMessage',
+    'handleMessage',
+    'onEnvelope',
+    'filterEnvelope',
+    'handleEnvelope',
+  ]);
+
+  /**
+   * Framework identity primitives exempt from the boundary compare —
+   * the same reads the destroyed-object guard exempts, plus the scope
+   * read itself. These answer "what is this?" (liveness, identity,
+   * scope), never touch domain state, and framework plumbing (registry
+   * upkeep, MQL result filtering, receipts) must be able to ask them
+   * about any object. NOT a read allowlist — a fixed framework set.
+   */
+  static readonly #BOUNDARY_EXEMPT_METHODS: ReadonlySet<string> = new Set([
+    'isDestroyed',
+    'toString',
+    'getTemplatePath',
+    'getCircleScope',
+    'getIdentityPath',
+    'getPlayerId',
+    'getPresentation',
+    // The connection-transport seam (HasInteractive): the third
+    // principal state is OUT-OF-WORLD plumbing — a socket must attach
+    // to / detach from a holder on either side of the boundary (the
+    // crossing itself moves Interactives between a field body and a
+    // circle vessel). No domain state rides these.
+    'getHolder',
+    'getInteractives',
+    'hasInteractive',
+    'isConnected',
+    'isLinkdead',
+    // `isParked` rides the same seam: the delivery redirect
+    // (`Avatar.forwardingTargets`) asks a recipient "are you wearing a
+    // vessel right now?" before choosing which sockets to write to.
+    // It is a read of transport state, not of the world — and without
+    // it a channel post from inside a circle dies on its LAST hop,
+    // after the message has already been composed and echoed to the
+    // sender. Read-only: `setParked` is deliberately NOT here.
+    'isParked',
+  ]);
+
+  /**
+   * The transport hooks that **mutate**, exempt in ONE DIRECTION only:
+   * the engine reaching *into* a circle, never circle code reaching
+   * *out*.
+   *
+   * These are the connection lifecycle's write half — attaching and
+   * detaching sockets, and the link-state hooks whose bodies do real
+   * work (`Avatar.onLinkdead` emits presence, saves, and destructs a
+   * guest outright). The crossing genuinely needs them across the
+   * boundary: a socket closes in FIELD context while its holder is a
+   * circle-resident vessel, so the engine must be able to reach in.
+   *
+   * The reverse is never needed and is a hole. `@hook` methods are
+   * public and deliberately UNGATEABLE — a subclass's
+   * `super.onLinkdead()` is author code, so no `@CallSecurity` can sit
+   * on them — which means a symmetric exemption let content standing
+   * inside a circle call `someFieldAvatar.onLinkdead()` and force a
+   * presence event, a save, or a guest's destruction on the far side.
+   * Public ungated hooks were always callable by same-scope content;
+   * what a symmetric exemption added was the crossing.
+   *
+   * Direction is decided by the SCOPES, not by the caller: allowed when
+   * the context is field (`null`) and the receiver is circle-scoped.
+   * Circle → field, and circle-A → circle-B, both stay denied.
+   */
+  static readonly #INBOUND_TRANSPORT_METHODS: ReadonlySet<string> = new Set([
+    'setHolder',
+    'addInteractive',
+    'removeInteractive',
+    'onConnectionAttached',
+    'onConnectionDetached',
+    'onLinkdead',
+    'onLinkRestored',
+  ]);
+
+  /**
+   * The **read aperture** across the circle boundary: run `fn` under an
+   * omni root when — and only when — `a` and `b` sit on opposite sides.
+   *
+   * The layers contain durable MUTATION. They are symmetric about
+   * dispatch, though, which means a pure *projection of a person* dies
+   * the moment the two people are on opposite sides: a channel post
+   * from the field renders for a recipient inside a circle; `who` from
+   * inside renders every field person for a viewer who isn't; the
+   * delivery sense-gate asks a far recipient what it can perceive.
+   * Every one of those is read-only and yields text or a display row —
+   * exactly what the doctrine already lets cross ("the payload is
+   * rendered MML — nothing but text crosses"). Found live: one player
+   * stepping into their own circle broke `chat` for the whole channel
+   * and `who` for themselves.
+   *
+   * Kept here, on the boundary itself, rather than copied into each
+   * read facade: there is one policy — *naming, sensing and status are
+   * projections, not mutations* — and it should be stated once, beside
+   * the check it relaxes. Same-side calls (every look, every act line,
+   * the entire hot path) take the identity branch and see no widening.
+   *
+   * NOT a general escape hatch: callers pass the two principals, so the
+   * omni root only ever wraps a projection the boundary was already
+   * about to be asked about. Anything that writes belongs on the
+   * ordinary path and stays denied.
+   *
+   * @internal — the read-facade seam; not an author surface.
+   */
+  public static projectAcross<T>(
+    a: { getCircleScope?: () => string | null } | null,
+    b: { getCircleScope?: () => string | null } | null | undefined,
+    fn: () => T,
+    principal: unknown = SecurityApi
+  ): T {
+    const ambient = ExecutionContextApi.getCircleScope();
+    // Already omni: there is nothing left to widen, and this is the
+    // common case for a NESTED projection (a presentation walk that
+    // reaches another body's worn gear re-enters here). Cheap exit.
+    if (ambient === OMNI_SCOPE) return fn();
+    const scopeA = a?.getCircleScope?.() ?? null;
+    // `b === undefined` means "the ambient context" — the single-subject
+    // form, for projections whose other side is simply wherever the
+    // caller is standing (the delivery sense-gate, a status read).
+    const scopeB =
+      b === undefined ? ambient : (b?.getCircleScope?.() ?? null);
+    if (scopeA === scopeB) return fn();
+    // Rooted AS the calling facade, not as SecurityApi: a fresh root
+    // discards the frame that identified the caller, so the logic
+    // singleton's own per-facade `FromModule` gate would then
+    // refuse its own facade. The caller passes itself; the aperture
+    // changes the SCOPE, never the principal.
+    return ExecutionContextApi.runRoot(principal, 'boundary.project', fn, {
+      circleScope: OMNI_SCOPE,
+    });
+  }
+
+  /** Single-dispatch inspection bypass (the ShadowApi `_consumeBypass`
+   *  shape). Armed only via {@link _armInspectionBypass}; every arm is
+   *  the caller's (SandboxApi's) responsibility to gate and log. */
+  static #inspectionBypassArmed = false;
+
+  /**
+   * Arm a one-dispatch boundary bypass — the due-process inspection
+   * aperture. @internal — `SandboxApi.inspect` is the sole caller and
+   * owns gating + receipt logging; this seam just arms the latch.
+   */
+  public static _armInspectionBypass(): void {
+    SecurityApi.#inspectionBypassArmed = true;
+  }
+
+  static #consumeInspectionBypass(): boolean {
+    if (!SecurityApi.#inspectionBypassArmed) return false;
+    SecurityApi.#inspectionBypassArmed = false;
+    return true;
+  }
+
+  /**
+   * Is `target` boundary-exempt infrastructure? Registered-base
+   * `instanceof` OR enumerated template path; the verdict is cached on
+   * the raw target (a lazily-stamped slot) so the steady-state cost is
+   * one property read.
+   */
+  static #isBoundaryExempt(target: {
+    getTemplatePath(): string | null;
+  }): boolean {
+    const slot = target as unknown as { _boundaryExemptCache?: boolean };
+    const cached = slot._boundaryExemptCache;
+    if (cached !== undefined) return cached;
+    let exempt = false;
+    for (const base of SecurityApi.#boundaryExemptBases) {
+      if (target instanceof (base as new (...a: unknown[]) => object)) {
+        exempt = true;
+        break;
+      }
+    }
+    if (!exempt) {
+      const path = target.getTemplatePath();
+      exempt =
+        path !== null && SecurityApi.#BOUNDARY_EXEMPT_TEMPLATE_PATHS.has(path);
+    }
+    slot._boundaryExemptCache = exempt;
+    return exempt;
+  }
+
+  /**
+   * Fire-and-forget denial receipt (channel `sandbox.boundary`):
+   * caller module-id, receiver identity, method, and the scope pair.
+   * Dynamic import (the `_recordGuardError` pattern) — diagnostics
+   * must never break or slow the deny path.
+   */
+  static #emitBoundaryReceipt(
+    kind: 'dispatch' | 'shadow-attach' | 'shadow-detach' | 'mutation-guard',
+    receiver: { stuffId?: string; getTemplatePath?: () => string | null },
+    method: string,
+    ctxScope: string | null,
+    rcvScope: string | null
+  ): void {
+    // Captured SYNCHRONOUSLY, before the async receipt body: taken
+    // inside the IIFE it records only the IIFE. The `caller` line names
+    // the principal, but the boundary's hard cases are the ones where
+    // the principal is a framework frame (`<unresolved>`) and the only
+    // useful question is which walk reached across — a residency sweep,
+    // an MQL re-resolve, a per-viewer render. That's the stack.
+    const denyStack = new Error('boundary-deny').stack ?? null;
+    void (async () => {
+      try {
+        const caller = ExecutionContextApi.getCurrentTarget();
+        const callerCls =
+          caller && typeof caller === 'object'
+            ? (caller as object).constructor
+            : null;
+        const callerModule = callerCls ? ModuleApi.lookup(callerCls) : null;
+        const receiverPath = receiver.getTemplatePath?.() ?? null;
+        const { DiagnosticApi } = await import('./diagnostics');
+        await DiagnosticApi.record({
+          path: receiverPath,
+          channel: 'sandbox.boundary',
+          severity: 'error',
+          message:
+            `sandbox boundary denied ${kind}: ${method}() on ` +
+            `${receiver.stuffId ?? '<unknown>'} (${receiverPath ?? 'no path'}) — ` +
+            `context scope ${ctxScope ?? 'field'} vs receiver scope ` +
+            `${rcvScope ?? 'field'}; caller ${callerModule ?? '<unresolved>'}`,
+          stack: denyStack,
+        });
+      } catch {
+        // receipts are best-effort; the deny already threw
+      }
+    })();
+  }
+
+  /**
+   * The same scope rule at the SHADOW seam — `ShadowApi.attach`/`detach`
+   * call this against the host's stamped scope before any mutation.
+   * Omni and the inspection bypass except; mismatch emits the receipt
+   * and throws. No message-delivery or exemption pass-throughs here —
+   * shadow installation is never a delivery and never infrastructure.
+   * @internal
+   */
+  public static _assertShadowBoundary(
+    host: { stuffId: string; getCircleScope(): string | null;
+            getTemplatePath(): string | null },
+    op: 'attach' | 'detach'
+  ): void {
+    const rcvScope = host.getCircleScope();
+    const ctxScope = ExecutionContextApi.getCircleScope();
+    if (rcvScope === ctxScope) return;
+    if (ctxScope === '*') return;
+    if (SecurityApi.#consumeInspectionBypass()) return;
+    SecurityApi.#emitBoundaryReceipt(
+      op === 'attach' ? 'shadow-attach' : 'shadow-detach',
+      host,
+      op,
+      ctxScope,
+      rcvScope
+    );
+    throw new SecurityError(
+      `sandbox boundary denied shadow ${op} on ${host.stuffId}: ` +
+        `context scope ${ctxScope ?? 'field'} vs host scope ` +
+        `${rcvScope ?? 'field'}`,
+      { stuffId: host.stuffId, methodName: op, policyName: 'SandboxBoundary' }
+    );
+  }
+
+  /**
+   * Per-mutator guard for the audited needs-a-guard singleton methods
+   * (docs/subsystems/sandbox.md § exempt-singleton classification): a
+   * flagged mutation of field-visible shared state denies under circle
+   * scope, with a receipt. One line at the top of each flagged mutator.
+   */
+  public static assertFieldMutation(
+    holder: { stuffId?: string; getTemplatePath?: () => string | null },
+    method: string
+  ): void {
+    const ctxScope = ExecutionContextApi.getCircleScope();
+    if (ctxScope === null || ctxScope === '*') return;
+    SecurityApi.#emitBoundaryReceipt(
+      'mutation-guard',
+      holder,
+      method,
+      ctxScope,
+      null
+    );
+    throw new SecurityError(
+      `sandbox boundary denied ${method}: this mutation writes ` +
+        `field-visible shared state and may not run from circle scope ` +
+        `${ctxScope}`,
+      { methodName: method, policyName: 'SandboxBoundary' }
+    );
+  }
+
   /**
    * Register the security gate as a `ProxyApi` interceptor. Called
    * automatically by the static initializer at module-load time;
@@ -598,6 +979,59 @@ export class SecurityApi {
         );
       }
       return undefined;
+    }
+
+    // 1b. sandbox boundary (Layer 4) — AFTER the destroyed guard (dead
+    // objects stay inert no-ops) and BEFORE the entry policy (denials
+    // are boundary-attributed). Fast path: two loads, one compare —
+    // `null === null` (with no jurisdiction bound) covers the entire
+    // zero-circle world. Both context fields come from ONE frame-0
+    // read (`_boundaryContext`).
+    const rcvScope = ctx.target.getCircleScope();
+    const bctx = ExecutionContextApi._boundaryContext();
+    const ctxScope = bctx.scope;
+    if (rcvScope !== ctxScope || bctx.bound !== null) {
+      let pass =
+        ctxScope === '*' ||
+        SecurityApi.#BOUNDARY_EXEMPT_METHODS.has(ctx.prop) ||
+        SecurityApi.#isBoundaryExempt(ctx.target) ||
+        SecurityApi.#consumeInspectionBypass() ||
+        SecurityApi.#MESSAGE_DELIVERY_METHODS.has(ctx.prop) ||
+        // Inbound-only: the engine reaching INTO a circle. Field
+        // context, circle-scoped receiver — never the reverse.
+        (ctxScope === null &&
+          rcvScope !== null &&
+          SecurityApi.#INBOUND_TRANSPORT_METHODS.has(ctx.prop));
+      if (!pass && bctx.bound !== null && rcvScope === ctxScope) {
+        // Jurisdiction bound (governed eval, Decision K): a FIELD
+        // receiver under the bound's extent is in-jurisdiction —
+        // writes are real inside, denied outside. Rare path; allowed
+        // to be O(path length).
+        if (rcvScope === null) {
+          const path = ctx.target.getTemplatePath();
+          pass = path !== null && path.startsWith(bctx.bound);
+        }
+      }
+      if (!pass) {
+        SecurityApi.#emitBoundaryReceipt(
+          'dispatch',
+          ctx.target,
+          ctx.prop,
+          ctxScope,
+          rcvScope
+        );
+        throw new SecurityError(
+          `sandbox boundary denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}: ` +
+            `context scope ${ctxScope ?? 'field'} vs receiver scope ` +
+            `${rcvScope ?? 'field'}` +
+            (bctx.bound !== null ? ` (jurisdiction ${bctx.bound})` : ''),
+          {
+            stuffId: ctx.target.stuffId,
+            methodName: ctx.prop,
+            policyName: 'SandboxBoundary',
+          }
+        );
+      }
     }
 
     // 2. entry policy

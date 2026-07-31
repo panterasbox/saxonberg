@@ -29,6 +29,7 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
+import { SecurityApi } from '../api/security';
 import Subject, {
   type SubjectSurface,
 } from '../lib/forum/Subject';
@@ -148,6 +149,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     title: string,
     opts: MakeSubjectOptions = {},
   ): Promise<Subject> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'makeSubject');
     const trimmed = title.trim();
     if (!trimmed) throw new Error('A subject needs a title.');
     if (RESERVED_NAMES.has(trimmed.toLowerCase())) {
@@ -205,6 +209,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     parent: Subject,
     threadName: string,
   ): Promise<Subject> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'makeThreadSubject');
     const seg = threadName.trim();
     if (!seg) throw new Error('A thread subject needs a name.');
     const handle = `${parent.getTitle()}/${seg}`;
@@ -337,6 +344,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
 
   /** Delete a subject (and its backing managed group, if curated). */
   public async deleteSubject(subject: Subject): Promise<void> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'deleteSubject');
     const backingId = backingGroupIdOf(subject);
     if (backingId) {
       const g = await Group.findById(backingId);
@@ -355,6 +365,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
    * curated). Throws on a reserved or taken new title.
    */
   public async renameSubject(subject: Subject, newTitle: string): Promise<void> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'renameSubject');
     const trimmed = newTitle.trim();
     if (!trimmed) throw new Error('A subject needs a title.');
     if (RESERVED_NAMES.has(trimmed.toLowerCase())) {

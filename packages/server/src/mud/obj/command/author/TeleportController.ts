@@ -113,6 +113,9 @@ export default class TeleportController extends CommandController<TeleportModel>
         }
         return;
       } catch (err) {
+        if (this.isSandboxBoundaryDenial(err)) {
+          return this.failWireDestination(context);
+        }
         if (!(err instanceof ContainmentError)) throw err;
         // Mobile-level veto: fall through to the raw move.
       }
@@ -122,9 +125,31 @@ export default class TeleportController extends CommandController<TeleportModel>
       const op = model.force ? ContainmentApi.forceMove : ContainmentApi.move;
       op(subject, dest);
     } catch (err) {
+      if (this.isSandboxBoundaryDenial(err)) {
+        return this.failWireDestination(context);
+      }
       return this.fail(context, (err as Error).message, "move-failed");
     }
     this.tell(context, `\nrelocated ${subjectName} to ${destName}\n`);
+  }
+
+  /**
+   * Decision L2 (sandbox): the boundary denies real-body placement into
+   * a circle; only the prose is ours (see GotoController).
+   */
+  private isSandboxBoundaryDenial(err: unknown): boolean {
+    return (
+      err instanceof Error && err.message.startsWith("sandbox boundary denied")
+    );
+  }
+
+  private failWireDestination(context: CommandContext): void {
+    return this.fail(
+      context,
+      "that place is on the wire — no real body can be placed inside a " +
+        "circle. Enter through its wardrobe.",
+      "move-failed"
+    );
   }
 
   /* ── TPA ride (unprivileged) ────────────────────────────────────── */

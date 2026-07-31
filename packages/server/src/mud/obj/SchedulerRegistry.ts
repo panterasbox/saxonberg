@@ -46,7 +46,10 @@ import {
 } from '../lib/activity/Engaged';
 import { EventApi, type Subscription } from '../api/event';
 import { Events } from '../lib/events';
-import { ExecutionContextApi } from '../api/execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../api/execution-context';
 import { HotReloadApi } from '../api/hot-reload';
 import { MessageApi } from '../api/message';
 import { MixinApi } from '../api/mixin';
@@ -182,10 +185,19 @@ export default class SchedulerRegistry extends Idea {
     // what populates the type→class dispatch index. Latest start wins —
     // after a hot reload, the next start of a type re-points dispatch
     // for every in-flight engagement of that type.
-    this.activityRegistry.set(
-      engagement.type,
-      engagement.constructor as ActivityClass,
-    );
+    //
+    // Sandbox needs-a-guard: the index is a free-string global — a
+    // circle start must not RE-POINT dispatch for in-flight field
+    // engagements of the same type. A circle-novel type still registers
+    // (its own dispatch needs the entry; the class is wizard code).
+    const startScope = ExecutionContextApi.getCircleScope();
+    const scopedStart = startScope !== null && startScope !== OMNI_SCOPE;
+    if (!scopedStart || !this.activityRegistry.has(engagement.type)) {
+      this.activityRegistry.set(
+        engagement.type,
+        engagement.constructor as ActivityClass,
+      );
+    }
 
     const actor = engagement.actor;
     const conflicts: Engagement[] = [];
@@ -359,11 +371,16 @@ export default class SchedulerRegistry extends Idea {
         Events.StuffDestructed,
         (payload) => {
           if (payload.stuffId !== hostId) return;
-          ExecutionContextApi.runRoot(SchedulerApi, 'hostDestroyed', () => {
-            const live = this.engagementsById.get(id);
-            if (!live) return;
-            this.terminate(live, 'host-destroyed');
-          });
+          ExecutionContextApi.runRoot(
+            SchedulerApi,
+            'hostDestroyed',
+            () => {
+              const live = this.engagementsById.get(id);
+              if (!live) return;
+              this.terminate(live, 'host-destroyed');
+            },
+            { circleScope: OMNI_SCOPE },
+          );
         },
       );
       this.hostSubscriptions.set(
@@ -381,11 +398,16 @@ export default class SchedulerRegistry extends Idea {
             // Guarded('swallow'): a throwing emission handler is recorded
             // as a runtime diagnostic and swallowed — a clock tick has no
             // caller to rethrow to, and swallowing keeps the cadence alive.
+            // The engagement's continuation runs under its actor's
+            // stamped scope — a circle actor's engagement stays
+            // circle-governed across every async tick.
+            const actorScope = e.actor.getCircleScope();
             void ExecutionContextApi.runRootGuarded(
               SchedulerApi,
               'emission',
               () => this.fireEmission(e, em),
-              'swallow'
+              'swallow',
+              actorScope !== null ? { circleScope: actorScope } : undefined
             );
           },
         );
@@ -399,11 +421,17 @@ export default class SchedulerRegistry extends Idea {
       const h = WorldClockApi.after(
         Quantity.of(e.duration / 1000, 's'),
         () => {
-          ExecutionContextApi.runRoot(SchedulerApi, 'completion', () => {
-            const live = this.engagementsById.get(id);
-            if (!live || !isDurativeActivity(live)) return;
-            this.completeFromTimer(live);
-          });
+          const actorScope = e.actor.getCircleScope();
+          ExecutionContextApi.runRoot(
+            SchedulerApi,
+            'completion',
+            () => {
+              const live = this.engagementsById.get(id);
+              if (!live || !isDurativeActivity(live)) return;
+              this.completeFromTimer(live);
+            },
+            actorScope !== null ? { circleScope: actorScope } : undefined,
+          );
         },
       );
       this.completionTimers.set(e.engagementId, h);

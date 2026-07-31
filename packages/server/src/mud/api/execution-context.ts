@@ -113,6 +113,28 @@ export interface RunFrameOpts {
   metadata?: Record<string, unknown>;
 }
 
+/**
+ * The omni scope sentinel — system roots (boot, seeding, maintenance,
+ * relay ingest) plant this so framework work passes the sandbox
+ * boundary check everywhere. Distinct from `null` (field scope): omni
+ * means "trusted system context," null means "the ordinary world."
+ */
+export const OMNI_SCOPE = '*';
+
+/**
+ * Optional scope opts for `runRoot` / `runRootGuarded`. The sandbox
+ * containment build's taint carrier: a root planted with `circleScope`
+ * runs its whole async tree as circle-context work; one planted with
+ * `jurisdictionBound` runs as governed-eval work bounded to a parcel
+ * extent. Both are read via `getCircleScope()` /
+ * `getJurisdictionBound()` — never passed as parameters to downstream
+ * APIs.
+ */
+export interface RunRootOpts {
+  circleScope?: string;
+  jurisdictionBound?: string;
+}
+
 /** ALS-backed storage. Mutating operations replace the array immutably. */
 const _als = new AsyncLocalStorage<CallFrame[]>();
 
@@ -158,6 +180,12 @@ const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
   // gates who may call it. Same narrow trust as the registries above: this
   // entry asserts the singleton's BODY is engine code, not content.
   /\/mud\/obj\/api\/PersistableLogic\.(ts|js)$/,
+  // The sandbox logic singleton plants circle-scoped roots for the
+  // crossing choreography (mint/park/reap under the circle's scope) and
+  // the eval scope root — the sanctioned root-level scope assignment.
+  // Same narrow trust as PersistableLogic: this entry asserts the
+  // singleton's BODY is engine code, not content.
+  /\/mud\/obj\/api\/SandboxLogic\.(ts|js)$/,
   /\.test\.(ts|js)$/,                            // tests need the seam — they can't fake production identity
 ];
 
@@ -215,6 +243,24 @@ function _assertFrameMutatorAllowed(op: string): void {
         `may push or tag call frames`
     );
   }
+}
+
+/**
+ * Build root-frame metadata from scope opts, or `undefined` when no
+ * scope rides this root (the common case — zero allocation).
+ */
+function _scopeMetadata(
+  opts: RunRootOpts | undefined
+): Record<string, unknown> | undefined {
+  if (!opts || (opts.circleScope == null && opts.jurisdictionBound == null)) {
+    return undefined;
+  }
+  const md: Record<string, unknown> = {};
+  if (opts.circleScope != null) md.circleScope = opts.circleScope;
+  if (opts.jurisdictionBound != null) {
+    md.jurisdictionBound = opts.jurisdictionBound;
+  }
+  return md;
 }
 
 /** Best-effort offending-content path for a guarded root's `target`. */
@@ -489,6 +535,90 @@ export class ExecutionContextApi {
   }
 
   /**
+   * The ambient circle scope for the current execution tree, or `null`
+   * for ordinary field work. Read from the **frame-0 root's** metadata —
+   * one ALS load plus a constant index, no walk (frame 0 is the root by
+   * construction; scope is minted only at execution roots and never
+   * moves). Returns `OMNI_SCOPE` (`'*'`) for system roots that planted
+   * it, a parcel path (`/home/<playerId>` / `/studio/<groupId>`) for
+   * circle roots, and `null` when no root planted a scope (including
+   * `run()` without any enclosing context — correct: no root, no scope).
+   *
+   * This is the sandbox containment build's single scope oracle: no API
+   * accepts scope as a parameter; everything derives it from here.
+   */
+  public static getCircleScope(): string | null {
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) return null;
+    return (stack[0]!.metadata?.circleScope as string | undefined) ?? null;
+  }
+
+  /**
+   * The governed-eval jurisdiction bound (a parcel extent) for the
+   * current execution tree, or `null`. Same frame-0 slot discipline as
+   * {@link getCircleScope}; planted only by the governed-eval root, so
+   * this is null on every ordinary path.
+   */
+  public static getJurisdictionBound(): string | null {
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) return null;
+    return (
+      (stack[0]!.metadata?.jurisdictionBound as string | undefined) ?? null
+    );
+  }
+
+  /**
+   * Both boundary fields in ONE store access — the security gate's
+   * per-dispatch read (zero-circle worlds pay one `getStore()` + one
+   * metadata load, exactly what the lone scope read cost). @internal
+   */
+  public static _boundaryContext(): {
+    scope: string | null;
+    bound: string | null;
+  } {
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) return { scope: null, bound: null };
+    const md = stack[0]!.metadata;
+    if (!md) return { scope: null, bound: null };
+    return {
+      scope: (md.circleScope as string | undefined) ?? null,
+      bound: (md.jurisdictionBound as string | undefined) ?? null,
+    };
+  }
+
+  /**
+   * Establish the circle scope on the **current root frame** — the
+   * command-boundary seam, where the root is planted before the giver
+   * (and therefore the giver's stamped scope) is known. Set-once:
+   * establishing over an already-present scope throws (a circle frame
+   * under a field root — or a re-scoped root — is a contradiction, and
+   * silently overwriting would be a taint-laundering primitive).
+   *
+   * Gated by the same frame-mutator allowlist as {@link tagCurrentFrame};
+   * throws when called outside any frame context.
+   */
+  public static establishCircleScope(scope: string): void {
+    _assertFrameMutatorAllowed('establishCircleScope');
+    const stack = _als.getStore();
+    if (!stack || stack.length === 0) {
+      throw new SecurityError(
+        'establishCircleScope: no frame on the stack to establish scope on'
+      );
+    }
+    const root = stack[0]!;
+    const existing = root.metadata?.circleScope;
+    if (existing != null) {
+      throw new SecurityError(
+        `establishCircleScope: scope already established (${String(
+          existing
+        )}); re-establishing (${scope}) is a contradiction`
+      );
+    }
+    if (!root.metadata) root.metadata = {};
+    root.metadata.circleScope = scope;
+  }
+
+  /**
    * Walk the call stack top-down and return the first
    * `metadata.causingCommandId` we hit. Set on the Command frame by
    * `CommandGiverMixin.executeCommand`, and re-planted on a fresh
@@ -623,7 +753,8 @@ export class ExecutionContextApi {
   public static runRoot<T>(
     target: unknown | null,
     method: string,
-    fn: () => T
+    fn: () => T,
+    opts?: RunRootOpts
   ): T {
     _assertFrameMutatorAllowed('runRoot');
     const root: CallFrame = {
@@ -632,6 +763,7 @@ export class ExecutionContextApi {
       method,
       timestamp: Date.now(),
       kind: FrameKind.Root,
+      metadata: _scopeMetadata(opts),
     };
     return _als.run([root], fn);
   }
@@ -660,7 +792,8 @@ export class ExecutionContextApi {
     target: unknown | null,
     method: string,
     fn: () => T | Promise<T>,
-    policy: 'absorb' | 'rethrow' | 'swallow'
+    policy: 'absorb' | 'rethrow' | 'swallow',
+    opts?: RunRootOpts
   ): Promise<T | undefined> {
     _assertFrameMutatorAllowed('runRootGuarded');
     const root: CallFrame = {
@@ -669,6 +802,7 @@ export class ExecutionContextApi {
       method,
       timestamp: Date.now(),
       kind: FrameKind.Root,
+      metadata: _scopeMetadata(opts),
     };
     try {
       return await _als.run(

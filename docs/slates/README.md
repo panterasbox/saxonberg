@@ -430,6 +430,7 @@ extends; none is a fresh build.
 | [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
 | [async-commands](./tails/async-commands-slate.md) | command-routing.md | **shipped (MR !122)** → command-routing.md § Async dispatch + command-spec.md: opt-in `async` override (spec field + reserved `--async`/`--sync` flags, accept-time detach in `_executeOne`, sync stays per-giver/never-global) + the `script` verb. Deferred tail: a line-level prefix for bare typed multi-statement scripts, a per-actor async cap, a generic cancel verb |
 | [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
+| [sandbox](./tails/sandbox-slate.md) | sandbox.md | **SHIPPED (MR !156)** — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary + read aperture, the wire-body crossing, the `SandboxCrossing` door, the seeding aperture, jurisdiction-targeted eval → sandbox.md. Retained for the tail: **chronicle presentation** of in-circle deeds, **accountability/consent** inside someone else's circle, **disposition symmetry** (revert vs "your personality is always you"), **SHADOW overlay mechanics**, and the carried property-slate questions (what counts as "power" at the release gate, combination exploits, instancing). Promotion/chartering and the publish gate belong to civics and the CMS slate respectively |
 | [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
 | [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |
 | [crafting](./tails/crafting-slate.md) | crafting.md | skill-as-control (`_control` scatter), assembly recipes, tailoring branch, batching, workshop lockers, DIY stock-pricing, skill-scaled salvage yield, seasoning/tuning beyond edges, environmental decay, recipe-spread beyond watching; post-capability-table: runtime affordance recompute, powered variants/supply gate, per-capability wear + machine-vs-hand advancement asymmetry |
@@ -474,6 +475,9 @@ salvaged into the subsystem doc):
 > `world-clock` → time.md · `document-tree` → document-store.md. The two
 > governance instruments (`draft-constitution`, `founding-charter`) moved
 > out of `builds/` to [../governance/](../governance/).
+>
+> **Retired 2026-07-31**: `import-boundary` → architecture.md § The
+> import boundary (§12 above; shipped and absorbed in one MR).
 
 ### 11. Magic items & BUC
 *NetHack's consumables as an immsim stress-test.* Most of the potion / scroll
@@ -503,6 +507,21 @@ on combat.
   procgen-NPC generator folded in). Consumers: BUC-at-spawn, create-monster,
   world-population. **Shared world-wide.**
 
+### 12. Engine hygiene — ✅ shipped
+*Platform refactors with a lint at the end — no product surface.*
+
+Shipped as the **import boundary** (2026-07-31, MR !158) →
+[architecture.md § The import boundary](../architecture.md): nothing
+under `src/mud/` imports outside the tree (Node built-ins included)
+except the Api tier (`api/**` + `obj/api/**`), which imports and wraps —
+the import-graph twin of call-security, and what makes the sandbox /
+wizard code-trust story checkable. CI-gating via `pnpm lint:imports`.
+36 violating files → 0, with **zero exceptions**: the capability moves
+to an Api and the mudlib keeps the policy (the recurring mechanism is an
+opaque handle). The slate is fully absorbed and retired; its two
+residual tails — the blanket test exemption, and ambient globals that an
+import rule structurally can't reach — are recorded in the subsystem
+doc's *What this rule does not cover*.
 ---
 
 ## Deferred game-design (`deferred-rpg/`)

@@ -25,6 +25,23 @@ import { Template } from '../mud/lib/stuff/Template';
 import { bootstrapManifest } from '../mud/bootstrap';
 import { EventApi } from '../mud/api/event';
 import { SecurityApi } from '../mud/api/security';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../mud/api/execution-context';
+import { PersistenceManager } from './PersistenceManager';
+import { ApiLogic } from '../mud/lib/stuff/ApiLogic';
+import Interactive from '../mud/obj/Interactive';
+import PersistentHydrator from '../mud/lib/persistence/PersistentHydrator';
+import Species from '../mud/lib/species/Species';
+import BodyPlan from '../mud/lib/species/BodyPlan';
+import Clade from '../mud/lib/species/Clade';
+import Material from '../mud/lib/material/Material';
+import Condition from '../mud/lib/vitals/Condition';
+import { Modality } from '../mud/lib/perception/Modality';
+import { CombatFormation } from '../mud/lib/combat/CombatFormation';
+import { LocomotionMode } from '../mud/lib/locomotion/LocomotionMode';
+import { Zone } from '../mud/lib/zone/Zone';
 import { ShadowApi } from '../mud/api/shadow';
 import { CommandApi } from '../mud/api/command';
 import { GlobbableApi } from '../mud/api/glob';
@@ -101,6 +118,65 @@ export class BootstrapManager {
     SecurityApi._registerShadowApi(ShadowApi);
     CommandApi.installShadowBridge();
     GlobbableApi.installMergeOnArrival();
+    // The sandbox scope resolver (Decision G): PM learns the ambient
+    // circle scope through this injected closure — backend stays
+    // import-clean of the mud layer's scope machinery, and the omni
+    // sentinel collapses to null HERE so PM never knows the sentinel.
+    PersistenceManager.get().setScopeResolver(() => {
+      const scope = ExecutionContextApi.getCircleScope();
+      return scope === OMNI_SCOPE ? null : scope;
+    });
+    // The sandbox boundary's infrastructure exemption (Decision J):
+    // every ApiLogic singleton is boundary-exempt by base-class
+    // identity (spoof-proof instanceof, late-bound here to keep
+    // security.ts import-clean of the mud class graph). Interactive is
+    // exempt too: the connection transport is out-of-world plumbing —
+    // sockets attach to holders on either side of the boundary, and no
+    // domain state rides an Interactive's surface.
+    SecurityApi._registerBoundaryExemptBase(ApiLogic);
+    SecurityApi._registerBoundaryExemptBase(Interactive);
+    // Hydrators are shared, stateless engine singletons used as pure
+    // functions BY the clone pipeline — a circle-context clone must be
+    // able to call the one field-resident hydrator instance. (Found
+    // live: without this, every clone inside a circle silently skipped
+    // its hydration, so a wire body minted with no default loadout.)
+    SecurityApi._registerBoundaryExemptBase(PersistentHydrator);
+    // REFERENCE DATA — the closed, shared vocabularies every body reads
+    // to know what it is, what it's made of, and how it moves. These
+    // are commons, not world state: they are seeded, never mutated at
+    // runtime, and the PM policy table REFUSEs writes to their rows, so
+    // exempting them widens reads only.
+    //
+    // A body inside a circle must be able to read its own species or it
+    // isn't animate — it can't walk, act, or leave (found live: the
+    // wire body was refused `go` as "not currently animate", then
+    // refused again on its clade's rank). This is the same category as
+    // the enumerated catalogues above, expressed as base classes
+    // because the instances are many and seeded, not enumerable by
+    // hand. Keep the list to genuine vocabulary: anything a player can
+    // change is world state and does not belong here.
+    // Zone belongs to the same tier, for the same reason one step up:
+    // a zone is the template tree's *classification* of a path, not
+    // anything that happens at it. The circle's own wire-ness is a
+    // Zone field (`/home`'s `wire: true`, inherited down the walk), so
+    // the very question "am I inside a circle?" is a read of a
+    // field-resident Zone — un-exempt, code inside a circle can't ask
+    // it (found live: `eval` in-circle died on `lookupField`). Zone
+    // rows are seeded, and the PM policy table governs writes to them
+    // independently, so this widens reads only.
+    for (const referenceBase of [
+      Species,
+      BodyPlan,
+      Clade,
+      LocomotionMode,
+      Material,
+      Modality,
+      Condition,
+      CombatFormation,
+      Zone,
+    ]) {
+      SecurityApi._registerBoundaryExemptBase(referenceBase);
+    }
   }
 
   /**

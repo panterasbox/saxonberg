@@ -19,6 +19,7 @@
  */
 
 import { Document } from "../persistence/Document";
+import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
 
 /**
@@ -384,6 +385,14 @@ export const AppSettingKeys = {
    * is a flip, re-read each sweep, no restart). The deferred game-time
    * reset sweep will namespace under `residency.reset.*`.
    */
+  /**
+   * Sandbox (holodeck) — the orphan sweeper: scoped-row discard for any
+   * circle scope with no live session (docs/subsystems/sandbox.md).
+   */
+  /** Sandbox sweeper — real-time cadence in ms (the residency pattern). */
+  sandboxSweeperIntervalMs: "sandbox.sweeper.intervalMs",
+  /** Sandbox — linkdead reconnect grace inside a circle, in ms. */
+  sandboxSessionGraceMs: "sandbox.session.graceMs",
   /** Eviction — `observe` (log only) | `enforce` (actually cull). */
   residencyEvictionMode: "residency.eviction.mode",
   /** Eviction — sweep cadence in ms. */
@@ -1104,7 +1113,7 @@ export type AppSettingKey =
   (typeof AppSettingKeys)[keyof typeof AppSettingKeys];
 
 export class AppSettings extends Document {
-  static collectionName = "app_settings";
+  static collectionName = Collections.AppSettings;
   static persistentFields = ["values"];
 
   /**

@@ -1,9 +1,11 @@
 /**
  * ProseApi — author-facing face for Liquid-based prose templating.
  *
- * The templating engine, its default filter vocabulary, and the
- * compiled-template value object {@link Prose} live in
- * `lib/prose/Prose.ts`; this Api is the thin, security-gated surface
+ * The compiled-template value object {@link Prose} lives in
+ * `lib/prose/Prose.ts`; the Liquid engine and its default filter
+ * vocabulary live in {@link ProseLogic}, because `liquidjs` is outside
+ * `src/mud/` and only the Api tier may import it (docs/architecture.md
+ * § The import boundary). This Api is the thin, security-gated surface
  * authors call. `Prose` is value re-exported here so callers reach the
  * compiled-template type through its face.
  *
@@ -25,6 +27,16 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export { Prose } from '../lib/prose/Prose';
+
+/**
+ * Opaque handle to a compiled prose template. Carries no structure on
+ * purpose: the backing form is a Liquid AST, and `liquidjs` is an
+ * Api-tier dependency the mudlib may not name (docs/architecture.md §
+ * The import boundary).
+ */
+export type CompiledProse = {
+  readonly __compiledProse: unique symbol;
+};
 
 const LOGIC_PATH = '/obj/api/prose';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -51,6 +63,30 @@ export class ProseApi {
    */
   static format(source: string, vars: Record<string, unknown>): Mml {
     return logic().format(source, vars);
+  }
+
+  /**
+   * Compile a prose template into an opaque handle for repeated
+   * rendering. Backing form is a Liquid AST; callers hold it only to
+   * hand back to {@link ProseApi.renderCompiled}. Used by
+   * {@link Prose.parse} — most code wants `Prose` or
+   * {@link ProseApi.format}, not this.
+   */
+  static compile(source: string): CompiledProse {
+    return logic().compile(source);
+  }
+
+  /**
+   * Render a {@link ProseApi.compile} handle against a variable bag,
+   * returning raw markup. Mml fragments interpolate verbatim; raw
+   * strings get five-entity escaping. `Prose.render` wraps the result
+   * back into an `Mml`, which is what callers should hold.
+   */
+  static renderCompiled(
+    compiled: CompiledProse,
+    vars: Record<string, unknown>,
+  ): string {
+    return logic().renderCompiled(compiled, vars);
   }
 
   /**

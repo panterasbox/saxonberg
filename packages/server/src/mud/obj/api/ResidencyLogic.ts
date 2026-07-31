@@ -23,6 +23,7 @@
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
+import { SecurityApi } from '../../api/security';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
@@ -96,14 +97,27 @@ function presenceWalkImpl(): Set<string> {
   for (const interactive of ConnectionApi.getAllInteractives()) {
     const holder = interactive.getHolder();
     if (holder === null || !MixinApi.isContainable(holder)) continue;
-    const room = (holder as Stuff & Containable).getContainer();
-    if (room === null || !MixinApi.isContainer(room)) continue;
-    if (visited.has(room.stuffId)) continue;
-    visited.add(room.stuffId);
-    ProxyApi.unwrap(room).touch();
-    for (const item of (room as Stuff & Container).getDeepContents()) {
-      ProxyApi.unwrap(item).touch();
-    }
+    // The sweep runs from a field root, but a holder may be a wire body
+    // standing in a circle — reading its room is a cross-boundary
+    // dispatch. Residency spans the boundary BY DEFINITION: it keeps
+    // alive whatever is in use, and a room someone is standing in must
+    // not be culled out from under them, circle or field.
+    //
+    // Skipping those holders is not the answer either. This walk is the
+    // keep-alive for EVERYONE, and an uncaught deny aborts it at the
+    // first circle occupant — so one player stepping into their own
+    // circle silently turned off residency keep-alive for the whole
+    // world. Per-holder, so the aperture stays as narrow as the reach.
+    SecurityApi.projectAcross(holder, undefined, () => {
+      const room = (holder as Stuff & Containable).getContainer();
+      if (room === null || !MixinApi.isContainer(room)) return;
+      if (visited.has(room.stuffId)) return;
+      visited.add(room.stuffId);
+      ProxyApi.unwrap(room).touch();
+      for (const item of (room as Stuff & Container).getDeepContents()) {
+        ProxyApi.unwrap(item).touch();
+      }
+    });
   }
   return visited;
 }

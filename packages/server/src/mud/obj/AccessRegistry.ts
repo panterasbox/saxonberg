@@ -294,14 +294,22 @@ export default class AccessRegistry extends AccessRegistryBase {
   // ── Private helpers ──
 
   /**
-   * The uniform group-membership key for any subject — its `templatePath`
-   * (a player as `/obj/Avatar/<id>`, an NPC as its own path). Null for an
-   * unregistered subject (no path). Authority groups (wizards / streamers /
-   * archwizards / author scopes) hold player keys only, so an NPC's path
-   * simply isn't in them — no player-vs-NPC branch is needed anywhere.
+   * The uniform group-membership key for any subject — its **identity**
+   * path (a player as `/obj/Avatar/<id>`, an NPC as its own path). Null
+   * for an unregistered subject (no path). Authority groups (wizards /
+   * streamers / archwizards / author scopes) hold player keys only, so
+   * an NPC's path simply isn't in them — no player-vs-NPC branch is
+   * needed anywhere.
+   *
+   * `getIdentityPath()` rather than `getTemplatePath()` because
+   * authority belongs to the PERSON, not the body they are currently
+   * wearing: a projection (the sandbox wire body) reports the real
+   * `/obj/Avatar/<id>` it acts as, so a wizard is still a wizard inside
+   * their own circle — which is the whole point of having one. Every
+   * ordinary object returns its templatePath here, unchanged.
    */
   private memberKeyOf(subject: Stuff): string | null {
-    const path = subject.getTemplatePath();
+    const path = subject.getIdentityPath();
     return path && path.length > 0 ? path : null;
   }
 
@@ -363,7 +371,9 @@ export default class AccessRegistry extends AccessRegistryBase {
     subject: Stuff,
     owner: ParcelOwner & { kind: 'player' },
   ): boolean {
-    const subjectPath = subject.getTemplatePath();
+    // Identity, not body — a player inside their circle still holds
+    // their own titles (see `memberKeyOf`).
+    const subjectPath = subject.getIdentityPath();
     if (!subjectPath) return false;
     if (owner.templatePath === subjectPath) return true;
     const key = subjectPath.split('/').filter(Boolean).pop();

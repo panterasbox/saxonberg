@@ -13,6 +13,7 @@
  * `StuffApi.singletonSync`. `dest /obj/api/connection` reloads it.
  */
 
+import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
 import type Interactive from '../obj/Interactive';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
@@ -154,6 +155,35 @@ export class ConnectionApi {
    */
   public static originOf(playerId: string): ConnectionOrigin {
     return logic().originOf(playerId);
+  }
+
+  /**
+   * Deliver a `MessageFrame` to one connected Interactive's client.
+   *
+   * The sensor-pipeline exit: a multiplexing `SensorMixin` host
+   * (`Avatar`, `Login`) calls this once per forwarding target from its
+   * `handleMessage` override. `frameId` is stamped per-Interactive at
+   * send time, so a multi-device Avatar gets a monotonic stream from
+   * each Interactive's own perspective. A detached or socket-less
+   * Interactive is a silent no-op.
+   */
+  public static sendMessage(
+    interactive: Interactive,
+    frame: MessageFrame
+  ): void {
+    return logic().sendMessage(interactive, frame);
+  }
+
+  /**
+   * Envelope counterpart to {@link ConnectionApi.sendMessage} — the
+   * structured server→client push, stamped from the same per-Interactive
+   * `frameId` counter so one ordering primitive covers all traffic.
+   */
+  public static sendEnvelope(
+    interactive: Interactive,
+    template: EnvelopeTemplate
+  ): void {
+    return logic().sendEnvelope(interactive, template);
   }
 }
 

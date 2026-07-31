@@ -347,3 +347,30 @@ ladder's output).
 | `make` verb | `obj/command/crafting/MakeController.ts` + `cmd/crafting/make.yaml` |
 | Boot seeder | `backend/ScriptSeeder.ts` |
 | Authored demo scripts | `mud/domain/lounge/scripts/*.script` |
+
+## `ScriptApi.mintEvalScratch`
+
+The `eval` verb's scratch singleton (`<jurisdiction>/_eval`) is minted
+here rather than in the controller. The mint stamps an identity path so
+MQL's path atom can address the scratch and a later bare `eval` can
+re-run it — and `Stuff.setTemplatePath` is `ApiOnly`-gated, so a
+controller doing it itself dies on the gate. It did: **every**
+`eval <code>` was failing on that gate, in the field as well as inside
+a circle, until the sandbox build's live pass caught it. See
+[sandbox.md](./sandbox.md) for the jurisdiction half.
+
+## The eval sandbox and the import boundary
+
+`EvalScript` (`lib/script/EvalScript.ts`) is the wizard-gated eval
+container. Node's `vm` is a capability, so under [the import
+boundary](../architecture.md) it may not be imported from the mudlib —
+the three vm calls (`new Script`, `createContext`, `runInContext`) live
+in `ScriptLogic`, behind `ScriptApi.compileSandboxed` /
+`ScriptApi.runSandboxed` and an opaque `CompiledSandbox` handle.
+
+What did **not** move is the part that matters for review: the
+`SANDBOX_NAMES` allowlist and the `self`/`target` receiver bindings stay
+in `EvalScript`. Deciding what an eval'd script can see is mudlib policy;
+assembling that plain object needs no privilege. A reader auditing the
+sandbox surface still reads one file, and the planned `isolated-vm`
+migration still replaces one function plus its Api counterpart.

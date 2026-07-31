@@ -288,6 +288,29 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   public getDestination(): Stuff & Container { return this.destination; }
+
+  /**
+   * Does traversing this exit actually land the mover in the room
+   * `getDestination()` names?
+   *
+   * True for every ordinary exit. An exit subclass that fully applies
+   * its own traversal (`applyTraversal`) may have no spatial
+   * destination at all — the sandbox's wardrobe passage is the shipped
+   * case: crossing onto the wire moves no body, and its
+   * `destinationPath` is a presentation label naming the wire, not a
+   * room.
+   *
+   * The distinction matters to anything that walks the exit GRAPH
+   * structurally instead of traversing it — the vision flux walk today;
+   * sound, pathfinding and reachability by the same argument. Those
+   * walkers must skip an exit that answers false rather than resolving
+   * its destination, which may not be a Container at all.
+   *
+   * @hook Override (returning false) in an exit subclass whose
+   *   `applyTraversal` handles the move itself. Structural walkers read
+   *   it; the traversal path does not.
+   */
+  public hasSpatialDestination(): boolean { return true; }
   public setDestination(value: Stuff & Container): void { this.destination = value; }
 
   /** Backing storage for `door`; the accessor pair mediates
@@ -684,6 +707,29 @@ export default class Exit extends ConcealableMixin(Idea) {
     }
     // Setter detaches us from the door's `attachedTo` set.
     this.door = null;
+  }
+
+  /**
+   * Traversal-application override seam (sandbox Decision H). An exit
+   * subclass may fully APPLY the traversal itself and report `true` =
+   * handled — `Mobile.traverse` then returns without resolving a
+   * destination, announcing, or moving anything. The wardrobe passage
+   * is the first override: crossing into a circle runs the wire-body
+   * choreography, and nothing material ever traverses. Default `false`
+   * (a virtual call + branch on the hot path; every ordinary exit
+   * takes the normal road).
+   *
+   * @hook Invoked by `Mobile.traverse` after the door gate
+   *   (`canTraverse`) and the mover's own veto, BEFORE departure
+   *   announcement and destination resolution. Return `true` when this
+   *   exit has fully handled the traversal (nothing more happens);
+   *   `false` to continue the ordinary move. **Override** — chain is
+   *   unnecessary (the base is a constant `false`).
+   */
+  public async applyTraversal(
+    _mover: Stuff & Containable
+  ): Promise<boolean> {
+    return false;
   }
 
   /**

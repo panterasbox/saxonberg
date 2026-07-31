@@ -98,6 +98,10 @@ function makeFakeAvatar(opts: {
     ) => Promise<unknown>;
   };
   avatar.getTemplatePath = () => `${Avatar.TEMPLATE_PATH_PREFIX}test`;
+  // The bare prototype fake has no constructed #circleScope slot; the
+  // inbound command path reads the stamp before dispatch.
+  (avatar as unknown as { getCircleScope: () => string | null }).getCircleScope =
+    () => null;
   avatar.getContainer = () =>
     opts.container === undefined ? ({} as Stuff & Container) : opts.container;
   avatar.executeCommand = opts.executeCommand ?? (async () => undefined);

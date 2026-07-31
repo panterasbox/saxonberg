@@ -212,6 +212,24 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
      * this list; `persistentStore` is a plain `Record` so it
      * round-trips through Mongo without a custom handler.
      */
+    /**
+     * Fork the settings keyspace onto a wire body (sandbox Decision Q).
+     * Same argument as the cockpit's client state: a player's settings
+     * are their shell, and crossing a threshold is not a reason to hand
+     * them somebody else's defaults. Fork-only — no merge back.
+     */
+    forkSlice_Environment(): unknown {
+      return { persistentStore: { ...this.persistentStore } };
+    }
+
+    /** Apply a forked settings keyspace (mint direction only). */
+    mergeSlice_Environment(slice: unknown): void {
+      const s = slice as { persistentStore?: Record<string, unknown> };
+      if (s?.persistentStore) {
+        this.persistentStore = { ...s.persistentStore };
+      }
+    }
+
     static persistentFields = ['persistentStore'];
 
     /**

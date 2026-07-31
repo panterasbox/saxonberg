@@ -130,6 +130,29 @@ export class ZoneApi {
   ): Promise<SpatialZone | null> {
     return logic().resolveZoneForPath(templatePath);
   }
+
+  /**
+   * Resolve the nearest *enclosing* zone for a template path —
+   * **any** Zone subclass, spatial or not.
+   *
+   * The sister of {@link resolveZoneForPath}: same nearest-first
+   * ancestor walk, but keyed on `isFolderClass` rather than
+   * `isSpatialZoneClass`, and it returns the path's OWN zone when the
+   * path is itself a zone (a namespace root does classify itself).
+   *
+   * Reach for this when the question is about an inherited
+   * *classification* field rather than about spatial geometry — the
+   * motivating reader is wire-ness (`zone.lookupField('wire')`), which
+   * is rooted at `/home` and `/studio`. Both are non-spatial
+   * `HomeZone`/`StudioZone`, so `resolveZoneForPath` skips them and
+   * answers `null` — which silently reads as "not wire" and sends
+   * quarantined code down the governed path.
+   */
+  public static async resolveEnclosingZoneForPath(
+    templatePath: string
+  ): Promise<Zone | null> {
+    return logic().resolveEnclosingZoneForPath(templatePath);
+  }
 }
 
 SecurityApi.decorateApiClass(ZoneApi);

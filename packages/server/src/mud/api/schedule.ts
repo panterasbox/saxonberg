@@ -20,6 +20,56 @@
 import { ExecutionContextApi } from './execution-context';
 import { SecurityApi } from './security';
 
+/**
+ * Per-scope index of live handles registered from circle contexts —
+ * consulted by `cancelAllForScope` at circle reap. Field/omni
+ * registrations are never indexed, so this map holds zero entries when
+ * no circle exists.
+ */
+const _handlesByScope: Map<string, Set<InternalHandle>> = new Map();
+
+function _indexHandle(scope: string | null, handle: InternalHandle): void {
+  if (scope === null || scope === '*') return;
+  let set = _handlesByScope.get(scope);
+  if (!set) {
+    set = new Set();
+    _handlesByScope.set(scope, set);
+  }
+  set.add(handle);
+}
+
+/**
+ * The scope a callback registered *now* should fire under.
+ *
+ * Three cases, and the third is the one that needs saying:
+ *   - registered inside a circle → that circle (continuations carry
+ *     birth scope, so deferred work stays governed);
+ *   - registered inside any other execution context (a command, a
+ *     session root) → that context's scope, `null` for ordinary field
+ *     work;
+ *   - registered with **no execution context at all** → `OMNI_SCOPE`.
+ *     That is boot: the maintenance sweeps (residency eviction, the
+ *     standings recomputes, the attendant idle sweep) install before
+ *     any root exists, and they are system work by definition — they
+ *     walk the whole world, circle-resident objects included. Without
+ *     this they would run field-scoped and be boundary-denied on every
+ *     circle object (found live: the residency presence walk throwing
+ *     on a wire body).
+ */
+function _registrationScope(): string | null {
+  const scope = ExecutionContextApi.getCircleScope();
+  if (scope !== null) return scope;
+  return ExecutionContextApi.getCallStack().length === 0 ? '*' : null;
+}
+
+function _unindexHandle(scope: string | null, handle: InternalHandle): void {
+  if (scope === null || scope === '*') return;
+  const set = _handlesByScope.get(scope);
+  if (!set) return;
+  set.delete(handle);
+  if (set.size === 0) _handlesByScope.delete(scope);
+}
+
 export interface ScheduleOptions {
   /**
    * When true (default), captures
@@ -75,10 +125,22 @@ interface InternalHandle {
  */
 function planRun(
   causingId: string | null,
-  fn: () => void
+  fn: () => void,
+  circleScope: string | null = null
 ): void {
+  // Continuations carry BIRTH scope: a callback scheduled from circle
+  // context re-plants that scope on its fresh root, so the four
+  // containment layers govern the deferred work exactly as they governed
+  // the scheduling act (the `causingCommandId` precedent, verbatim).
+  const opts = circleScope !== null ? { circleScope } : undefined;
   if (causingId === null) {
-    void ExecutionContextApi.runRootGuarded(ScheduleApi, 'fire', fn, 'swallow');
+    void ExecutionContextApi.runRootGuarded(
+      ScheduleApi,
+      'fire',
+      fn,
+      'swallow',
+      opts
+    );
     return;
   }
   void ExecutionContextApi.runRootGuarded(
@@ -90,7 +152,8 @@ function planRun(
       });
       fn();
     },
-    'swallow'
+    'swallow',
+    opts
   );
 }
 
@@ -115,21 +178,26 @@ export class ScheduleApi {
     const causing = propagate
       ? ExecutionContextApi.getCurrentCausingCommandId()
       : null;
+    const birthScope = _registrationScope();
     const id = SecurityApi.uuid();
     let cancelled = false;
 
     const timer = setTimeout(() => {
       if (cancelled) return;
-      planRun(causing, fn);
+      _unindexHandle(birthScope, handle);
+      planRun(causing, fn, birthScope);
     }, delayMs);
 
-    return {
+    const handle: InternalHandle = {
       id,
       cancel: () => {
         cancelled = true;
         clearTimeout(timer);
+        _unindexHandle(birthScope, handle);
       },
-    } satisfies InternalHandle as InternalHandle;
+    };
+    _indexHandle(birthScope, handle);
+    return handle;
   }
 
   /**
@@ -150,6 +218,7 @@ export class ScheduleApi {
     const causing = propagate
       ? ExecutionContextApi.getCurrentCausingCommandId()
       : null;
+    const birthScope = _registrationScope();
     const initialDelay = opts?.initialDelayMs ?? intervalMs;
     const mode = opts?.mode ?? 'fixed-delay';
     const id = SecurityApi.uuid();
@@ -160,7 +229,7 @@ export class ScheduleApi {
 
     const fireFixedDelay = (): void => {
       if (cancelled) return;
-      planRun(causing, fn);
+      planRun(causing, fn, birthScope);
       if (cancelled) return;
       timeout = setTimeout(fireFixedDelay, intervalMs);
     };
@@ -172,7 +241,7 @@ export class ScheduleApi {
       // long, depending on the runtime's policy.
       interval = setInterval(() => {
         if (cancelled) return;
-        planRun(causing, fn);
+        planRun(causing, fn, birthScope);
       }, intervalMs);
     };
 
@@ -182,12 +251,12 @@ export class ScheduleApi {
       timeout = setTimeout(() => {
         timeout = null;
         if (cancelled) return;
-        planRun(causing, fn);
+        planRun(causing, fn, birthScope);
         startFixedRate();
       }, initialDelay);
     }
 
-    return {
+    const handle: InternalHandle = {
       id,
       cancel: () => {
         cancelled = true;
@@ -199,8 +268,11 @@ export class ScheduleApi {
           clearInterval(interval);
           interval = null;
         }
+        _unindexHandle(birthScope, handle);
       },
-    } satisfies InternalHandle as InternalHandle;
+    };
+    _indexHandle(birthScope, handle);
+    return handle;
   }
 
   /**
@@ -211,6 +283,22 @@ export class ScheduleApi {
     // The handle returned from schedule/recurring carries its own
     // cancel closure; cast back to the internal shape.
     (handle as InternalHandle).cancel?.();
+  }
+
+  /**
+   * Cancel every live handle registered from `scope`'s circle context —
+   * the reap seam `SandboxLogic` invokes when a circle session ends, so
+   * no deferred callback outlives its circle. Returns the cancel count.
+   * A no-op for scopes with no indexed handles (the map is empty when no
+   * circle exists). @internal
+   */
+  public static cancelAllForScope(scope: string): number {
+    const set = _handlesByScope.get(scope);
+    if (!set) return 0;
+    // cancel() unindexes as it goes; snapshot first.
+    const handles = [...set];
+    for (const h of handles) h.cancel();
+    return handles.length;
   }
 }
 

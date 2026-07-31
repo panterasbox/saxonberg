@@ -182,6 +182,26 @@ export abstract class Stuff {
    * effects can override the rendered identity via a method shadow.
    */
   getPresentation(): string {
+    // Presentation is a PROJECTION, and the whole chain beneath it has
+    // to be one, not just this frame. `getPresentation` sits on the
+    // boundary's exempt-method list, but it is not a leaf: it consults
+    // the disguise deferral, and `getDisguise` in turn walks the worn
+    // coverings. Exempting method NAMES one at a time only moved the
+    // denial to the next hop each time (`getPresentation` →
+    // `getDisguise` → `getAllOccupants` → …) — found live twice, on
+    // `who` and again on `committee`. Wrapping the body instead makes
+    // the exemption transitive for exactly the span it covers, and no
+    // further.
+    //
+    // Same-side calls — the overwhelming majority — cost one scope
+    // compare and nothing else.
+    return SecurityApi.projectAcross(this, undefined, () =>
+      this.presentationCore()
+    );
+  }
+
+  /** The pure identity synthesis; see `getPresentation` for the seam. */
+  private presentationCore(): string {
     let base = DEFAULT_PRESENTATION;
     // Disguise defers FIRST and at the baseline (not via a shadow on
     // the synthesizer): a masked creature presents its covering's
@@ -274,6 +294,20 @@ export abstract class Stuff {
    */
   public getTemplatePath(): string | null {
     return ProxyApi.unwrap(this as unknown as Stuff).#templatePath;
+  }
+
+  /**
+   * The IDENTITY this object acts as — the key the identity-keyed
+   * epistemic producers (belief viewer key, chronicle owner,
+   * transcript/disposition/renown subject) attribute to. Defaults to
+   * `getTemplatePath()` (byte-identical for every ordinary object); a
+   * projection vessel (the sandbox `WireBody`) overrides it to return
+   * the real identity's path (`/obj/Avatar/<playerId>`), so in-circle
+   * derive-on-read composes the player's real history ∪ scoped appends
+   * and PASS rows attribute to the real identity, never the vessel.
+   */
+  public getIdentityPath(): string | null {
+    return this.getTemplatePath();
   }
 
   /**
@@ -483,6 +517,53 @@ export abstract class Stuff {
   public static _stampZone(stuff: Stuff, zone: SpatialZone | null): void {
     Stuff.#assertStampGateAllowed('_stampZone');
     ProxyApi.unwrap(stuff).#zone = zone;
+  }
+
+  /**
+   * The circle scope this object belongs to — `null` for every ordinary
+   * field object (zero cost by default), a wire parcel path
+   * (`/home/<playerId>` / `/studio/<groupId>`) for a circle-born object.
+   * Stamped at mint from the *minting context's* ambient scope
+   * (`ExecutionContextApi.getCircleScope()` inside `StuffApi`'s register
+   * path) — the induction that makes the sandbox boundary hold: objects
+   * minted under circle context are circle-scoped, everything else stays
+   * null with no work done.
+   *
+   * Hard-private (`#`) for tamper-resistance — same shape and same
+   * threat model as `#zone`: the security gate's boundary check trusts
+   * this slot, so a bracket-write forgery would be a containment escape.
+   * Runtime-only: never persisted (a circle-born object's durable rows
+   * carry the scope via the PM policy seam instead).
+   */
+  #circleScope: string | null = null;
+
+  /**
+   * The circle scope stamp, or `null` for a field object. Unwraps via
+   * `RAW_TARGET` because the `#` slot lives on the raw target only.
+   */
+  public getCircleScope(): string | null {
+    return ProxyApi.unwrap(this as unknown as Stuff).#circleScope;
+  }
+
+  // There is deliberately NO public setter. The scope is stamped once,
+  // at mint, from the minting context (`_stampCircleScope` below), and
+  // an object does not change circles — it is born in one and dies
+  // there. A `setCircleScope` shipped in the first draft for "the rare
+  // cross-boundary move (promotion, future governance acts)", gated
+  // `ApiOnly`; it acquired no callers, and `ApiOnly` would have been
+  // the wrong contract anyway (it admits every Api and every logic
+  // singleton, when the only conceivable writer is the sandbox facade).
+  // If promotion ever lands it brings its own participant contract.
+
+  /**
+   * Pre-register stamp seam for the circle scope — used by `StuffApi`'s
+   * register path to stamp newborns from the minting context's scope,
+   * BEFORE the proxy wrap. Caller-gated identically to `_stampZone`.
+   * @internal
+   */
+  public static _stampCircleScope(stuff: Stuff, scope: string | null): void {
+    Stuff.#assertStampGateAllowed('_stampCircleScope');
+    ProxyApi.unwrap(stuff).#circleScope = scope;
   }
 
   /**

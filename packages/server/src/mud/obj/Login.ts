@@ -30,6 +30,7 @@ import { AppApi } from "../api/app";
 import { AppSettingKeys } from "../lib/config/AppSettings";
 import { ConnectionApi } from "../api/connection";
 import { PlayerApi } from "../api/player";
+import { SandboxApi } from "../api/sandbox";
 import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
 import { ContainmentApi } from "../api/containment";
@@ -40,7 +41,6 @@ import { NameBank } from "../lib/species/NameBank";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { SensorMixin } from "../lib/message/Sensor";
 import { CommandGiverMixin } from "../lib/command/CommandGiver";
-import { Application } from "../../backend/Application";
 import { GoogleProfile } from "../lib/identity/GoogleProfile";
 import Avatar from "./Avatar";
 import type { CommandContributions } from "../api/command";
@@ -343,6 +343,19 @@ export default class Login extends LoginBase {
   public async playCharacter(playerId: string): Promise<boolean> {
     const user = this.interactive.getUser();
     if (!user.playerIds.includes(playerId)) return false;
+
+    // Sandbox reconnect (Decision P): a live circle session inside its
+    // grace window means the player dropped mid-visit — re-attach to
+    // the WIRE BODY, back in the circle where they were, exactly like
+    // ordinary linkdead-reconnect. The parked field avatar keeps its
+    // registry slot and stays frozen. The choreography (transfer +
+    // ceremony under the right roots) lives in SandboxLogic.
+    if (await SandboxApi.reconnect(this.interactive, playerId)) {
+      console.info(`Login: reconnected into a live circle - ${playerId}`);
+      StuffApi.destruct(this);
+      return true;
+    }
+
     const avatars = await PlayerApi.loadAvatarsForUser(user);
     const avatar = avatars.find((a) => a.getPlayerId() === playerId);
     if (!avatar) return false;
@@ -398,16 +411,14 @@ export default class Login extends LoginBase {
 
   /** SensorMixin delivery — multiplex frames to the connected Interactive(s). */
   protected override handleMessage(frame: MessageFrame): void {
-    const app = Application.get();
     for (const interactive of this.interactives) {
-      app.sendMessageToInteractive(interactive, frame);
+      ConnectionApi.sendMessage(interactive, frame);
     }
   }
 
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
-    const app = Application.get();
     for (const interactive of this.interactives) {
-      app.sendEnvelopeToInteractive(interactive, envelope);
+      ConnectionApi.sendEnvelope(interactive, envelope);
     }
   }
 }

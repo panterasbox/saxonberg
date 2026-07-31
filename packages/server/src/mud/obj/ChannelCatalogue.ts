@@ -227,6 +227,17 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    * Compute the live audience for a persistent channel — tuned-in
    * subscribers (open) or backing-group members (player-created via the
    * Subject's `groupRef`), filtered to those NOT muted.
+   *
+   * The audience is always the REGISTRY (field) avatar, even for a
+   * player who is currently inside a circle. Comms are seamless across
+   * the boundary (Decision N), but the redirect belongs at the delivery
+   * seam — `Avatar.handleMessage` forwards a parked body's frames to
+   * whatever sockets the live vessel holds — not here. A recipient is
+   * also the *viewer* every per-recipient MML name is lensed for, so
+   * putting the vessel in the audience makes a field-context render
+   * read circle-resident perception state, which the boundary denies:
+   * one person stepping into their circle killed the channel post for
+   * everyone (found live).
    */
   public async audienceFor(channel: Channel): Promise<Stuff[]> {
     const subject = await this.subjectFor(channel);
@@ -301,8 +312,21 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       text: body,
     };
 
+    // Self-exclusion by IDENTITY, not by object. The audience is always
+    // the registry (field) avatar, but the speaker may be the vessel
+    // that person is currently wearing — two different Stuff for one
+    // human being. An `===` compare misses that, so a player posting
+    // from inside their own circle received their own message twice:
+    // once as "You", once as a stranger ("a human").
+    const speakerIdentity = speaker.getIdentityPath();
     for (const a of audience) {
       if (a === speaker) continue;
+      if (
+        speakerIdentity !== null &&
+        a.getIdentityPath() === speakerIdentity
+      ) {
+        continue;
+      }
       if (!MixinApi.isSensor(a)) continue;
       MessageApi.sendMessage(a, {
         id: SecurityApi.uuid(),
@@ -399,6 +423,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     newName: string,
     promoter: Stuff,
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'promoteAdHocToManaged');
     const ad = this.byHandle.get(handle);
     if (!ad) throw new Error(`No ad-hoc channel with handle '${handle}'`);
     const existing = await this.resolveByName(newName);
@@ -449,6 +476,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    * `free-chat` surface.
    */
   public async createPlayerChannel(owner: Stuff, name: string): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'createPlayerChannel');
     const subjects = await this.requireSubjects();
     if (RESERVED_NAMES.has(name.toLowerCase())) {
       throw new Error(`Reserved name '${name}' — pick another.`);
@@ -484,6 +514,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     name: string,
     groupRef: string,
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'createBoundChannel');
     const subjects = await this.requireSubjects();
     if (RESERVED_NAMES.has(name.toLowerCase())) {
       throw new Error(`Reserved name '${name}' — pick another.`);
@@ -517,6 +550,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     subject: Subject,
     procedure: 'free' | 'rules-of-order' = 'free',
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'attachChatToSubject');
     const subjects = await this.requireSubjects();
     const surface = procedure === 'free' ? 'free-chat' : 'rules-chat';
     if (subject.hasManifestation(surface)) {
@@ -543,6 +579,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   }
 
   public async disbandPlayerChannel(name: string): Promise<boolean> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'disbandPlayerChannel');
     const c = await this.resolveByName(name);
     if (!c) return false;
     if (c.subject) {
@@ -561,6 +600,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     oldName: string,
     newName: string,
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'renamePlayerChannel');
     if (RESERVED_NAMES.has(newName.toLowerCase())) {
       throw new Error(`Reserved name '${newName}' — pick another.`);
     }

@@ -18,11 +18,7 @@
  * No new Api: this is a controller calling the security-threaded Apis.
  */
 
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 import { SecurityApi } from "../../../api/security";
-import YAML from "yaml";
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
@@ -50,6 +46,7 @@ import type {
 } from "@saxonberg/types";
 import { Pronouns, PRONOUN_LABELS } from "@saxonberg/types";
 import { SpeciesApi } from "../../../api/species";
+import { SourceTreeApi } from "../../../api/source-tree";
 
 // Pronoun options derive from the `Pronouns` enum (the single source of
 // truth for the values); the display labels are colocated with the enum.
@@ -625,9 +622,10 @@ export default class EnrollController extends CommandController<EnrollModel> {
 
   static loadConfig(): CharGenConfig {
     if (EnrollController.#config) return EnrollController.#config;
-    const here = dirname(fileURLToPath(import.meta.url));
-    const path = join(here, "../../../config/char-gen.yaml");
-    const parsed = YAML.parse(readFileSync(path, "utf-8")) as CharGenConfig;
+    const parsed = SourceTreeApi.readYamlResource<CharGenConfig>(
+      import.meta.url,
+      "../../../config/char-gen.yaml"
+    );
     EnrollController.#config = {
       species: parsed.species ?? [],
       aspirations: parsed.aspirations ?? [],

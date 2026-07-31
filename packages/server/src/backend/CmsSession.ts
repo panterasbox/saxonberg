@@ -72,7 +72,17 @@ export class CmsSession {
       // explicitly. Null actor (no in-world avatar) → no tag → every gate
       // fails closed. Gated to backend/ + framework callers; CmsSession
       // qualifies.
-        if (actor) ExecutionContextApi.tagActingAuthor(actor);
+        if (actor) {
+          ExecutionContextApi.tagActingAuthor(actor);
+          // Sandbox taint: a CMS op runs under the acting avatar's
+          // stamped circle scope (null for the ordinary parked/field
+          // body — the resolve above finds the registered field avatar,
+          // never a wire body, so CMS work stays field-scoped).
+          const circleScope = actor.getCircleScope();
+          if (circleScope !== null) {
+            ExecutionContextApi.establishCircleScope(circleScope);
+          }
+        }
         return fn();
       },
       'rethrow'

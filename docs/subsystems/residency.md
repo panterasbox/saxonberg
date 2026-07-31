@@ -267,3 +267,18 @@ wired.
   retained size needs a heap walk we can't afford per-sweep.
 - **Ordered LRU / incremental sweeping** — escalations if observe-mode
   data ever shows the O(n) scan spiking.
+
+## The presence walk and the sandbox boundary
+
+`presenceWalkImpl` runs from a field root and reads each connected
+holder's room — but a holder may be a wire body standing in a circle,
+which is a cross-boundary dispatch. Residency spans the boundary **by
+definition**: it keeps alive whatever is in use, and a room someone is
+standing in must not be culled out from under them, circle or field.
+
+The per-holder body therefore goes through
+`SecurityApi.projectAcross`. Skipping circle holders instead would not
+do: an uncaught deny aborts the whole walk at the first circle
+occupant, so one player stepping into their own circle silently turned
+off residency keep-alive for the entire world. See
+[sandbox.md](./sandbox.md).

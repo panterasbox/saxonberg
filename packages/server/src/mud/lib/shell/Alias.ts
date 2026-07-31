@@ -203,6 +203,22 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'AliasMixin';
 
     /** Hydrator round-trips `aliases` by reflection. `aliasesSession` is transient. */
+    /**
+     * Fork per-character verb aliases onto a wire body (sandbox
+     * Decision Q). An alias is a typing habit, not a possession; a
+     * maker who has to retype full verbs inside their own workshop is
+     * being punished for using it. Fork-only — no merge back.
+     */
+    forkSlice_Alias(): unknown {
+      return { aliases: { ...this.aliases } };
+    }
+
+    /** Apply forked aliases (mint direction only). */
+    mergeSlice_Alias(slice: unknown): void {
+      const s = slice as { aliases?: Record<string, string> };
+      if (s?.aliases) this.aliases = { ...s.aliases };
+    }
+
     static persistentFields = ['aliases'];
 
     /**

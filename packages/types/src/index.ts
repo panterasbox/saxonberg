@@ -2190,6 +2190,13 @@ export interface RuntimeDiagnostic {
   severity?: DiagnosticSeverity; // defaults to 'error'
   message: string;
   stack?: string | null;
+  /**
+   * Explicit channel override. When absent the channel derives from
+   * `path`. Used by producers whose rows classify by mechanism rather
+   * than by content path (e.g. the sandbox boundary's
+   * `sandbox.boundary` denial receipts).
+   */
+  channel?: string;
 }
 
 /** One raw line held in the console ring (unattributed). */

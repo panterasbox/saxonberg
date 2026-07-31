@@ -72,6 +72,9 @@ export default class GotoController extends CommandController<GotoModel> {
         giver.teleport(dest);
         return;
       } catch (err) {
+        if (this.isSandboxBoundaryDenial(err)) {
+          return this.failWireDestination(context);
+        }
         if (!(err instanceof ContainmentError)) throw err;
       }
     }
@@ -83,6 +86,9 @@ export default class GotoController extends CommandController<GotoModel> {
         : ContainmentApi.move;
       op(giver as Stuff & Containable, dest);
     } catch (err) {
+      if (this.isSandboxBoundaryDenial(err)) {
+        return this.failWireDestination(context);
+      }
       return this.fail(context, 'move-failed', (err as Error).message);
     }
     if (model.look && MixinApi.isMobile(giver)) {
@@ -92,6 +98,28 @@ export default class GotoController extends CommandController<GotoModel> {
     }
     this.tell(context, `\narrived at ${destName} (fallback)\n`);
     return;
+  }
+
+  /**
+   * Decision L2 (sandbox): direct placement into a circle is denied by
+   * the boundary itself — the move dispatches on the circle-scoped
+   * destination from a field command context, and Layer 4 refuses. No
+   * bespoke guard exists; only this prose is ours: catch the denial and
+   * point at the door instead of surfacing a raw SecurityError.
+   */
+  private isSandboxBoundaryDenial(err: unknown): boolean {
+    return (
+      err instanceof Error && err.message.startsWith('sandbox boundary denied')
+    );
+  }
+
+  private failWireDestination(context: CommandContext): void {
+    return this.fail(
+      context,
+      'move-failed',
+      'that place is on the wire — no real body can be placed inside a ' +
+        'circle. Enter through its wardrobe.'
+    );
   }
 
   private tell(context: CommandContext, text: string): void {

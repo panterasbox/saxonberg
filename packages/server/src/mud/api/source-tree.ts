@@ -79,6 +79,91 @@ export class SourceTreeApi {
   }
 
   /**
+   * Read a **shipped resource** — an authored data file that lives in the
+   * source tree next to (or near) the module asking for it. Synchronous:
+   * these loads happen in static initialisers, `postRegister`, and lazy
+   * first-use paths that cannot await.
+   *
+   * `moduleUrl` is the caller's own `import.meta.url`. That is a language
+   * construct rather than an import, which is how a mudlib module names a
+   * file without reaching outside `src/mud/` — the read itself happens
+   * here, in the Api tier (see docs/architecture.md § The import
+   * boundary). The resolved path must stay inside the sandbox root, the
+   * same rule the async surface enforces.
+   *
+   * @param moduleUrl the caller's `import.meta.url`
+   * @param relativePath path relative to the calling module's directory
+   */
+  public static readResource(moduleUrl: string, relativePath: string): string {
+    return logic().readResource(moduleUrl, relativePath);
+  }
+
+  /**
+   * {@link SourceTreeApi.readResource} + a YAML parse — the shape almost
+   * every authored data file in the tree actually wants (command specs,
+   * char-gen rosters, theme catalogues).
+   */
+  public static readYamlResource<T>(
+    moduleUrl: string,
+    relativePath: string,
+  ): T {
+    return logic().readYamlResource<T>(moduleUrl, relativePath);
+  }
+
+  /**
+   * {@link SourceTreeApi.readResource} + a JSON parse. Used for build
+   * artifacts the runtime consumes (the author-surface projection) as
+   * well as authored JSON.
+   */
+  public static readJsonResource<T>(
+    moduleUrl: string,
+    relativePath: string,
+  ): T {
+    return logic().readJsonResource<T>(moduleUrl, relativePath);
+  }
+
+  /**
+   * Parse a YAML (or JSON — YAML is a superset) document out of a string
+   * that did not come from the file system: a command argument, a CMS
+   * field, a pasted spec. Throws on malformed input; callers that are
+   * handling user text should catch and turn it into a rejection note.
+   *
+   * Lives on the source-tree face because it is the same parser the
+   * resource reads use, exposed for text that is already in hand.
+   */
+  public static parseYaml<T>(text: string): T {
+    return logic().parseYaml<T>(text);
+  }
+
+  /**
+   * Map an absolute source path to its `/`-rooted **mud template path** —
+   * the namespace dispatch and the clone pipeline speak
+   * (`…/src/mud/obj/command/perception/LookController.ts` →
+   * `/obj/command/perception/LookController`, extension aside).
+   *
+   * Pure path arithmetic, no I/O. The mud root is derived once inside the
+   * Api tier, which is why callers need neither `path` nor the root
+   * constant — before this existed, `CommandDefinition` and
+   * `CommandLogic` each computed their own copy of it.
+   */
+  public static toMudPath(absolutePath: string): string {
+    return logic().toMudPath(absolutePath);
+  }
+
+  /**
+   * Resolve `relativeRef` against the **directory containing**
+   * `filePath`, returning an absolute path. The sibling-file rule an
+   * authored spec uses when it points at something next to itself (a
+   * `controller:` ref relative to its own YAML view).
+   *
+   * Pure path arithmetic, no I/O, no sandbox check — pair it with
+   * {@link SourceTreeApi.toMudPath} or a resource read, which do check.
+   */
+  public static resolveFrom(filePath: string, relativeRef: string): string {
+    return logic().resolveFrom(filePath, relativeRef);
+  }
+
+  /**
    * Resolve an absolute path inside the sandbox.
    *
    * Pipeline:

@@ -88,6 +88,9 @@ lint:
     # Persistence-gating lockdown: PersistenceManager.get() only via the
     # PersistApi facade / sanctioned framework boundary.
     - pnpm -C packages/server lint:pm
+    # The driver/mudlib import boundary: nothing under src/mud/ imports
+    # outside the tree (Node built-ins included) but the Api tier.
+    - pnpm -C packages/server lint:imports
     # Materials-response legibility: no construction/implement does nothing.
     - pnpm -C packages/server lint:does-nothing
     # Weapon-playstyle legibility: no seeded weapon derives an inert profile.

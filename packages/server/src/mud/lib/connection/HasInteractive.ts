@@ -349,6 +349,34 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      */
     public _transientClientState: Record<string, unknown> = {};
 
+    /**
+     * Fork the cockpit's client state onto a wire body (sandbox
+     * Decision Q). Layout, theme, per-bar input modes — the player's
+     * SHELL, not world state: it describes how they like to look at
+     * the game, and it should not reset because they stepped through a
+     * door. Found live: clicking "Test in holodeck" from the builder
+     * layout crossed you correctly and then dumped you back into the
+     * world layout, because the vessel is a fresh body with default
+     * client state.
+     *
+     * Fork-only, deliberately — there is no `mergeSlice_`. Preferences
+     * changed inside a circle discard with it, like everything else
+     * that is not on the epistemic merge allowlist.
+     */
+    forkSlice_ClientState(): unknown {
+      return { clientState: { ...this._clientState } };
+    }
+
+    /**
+     * Apply a forked cockpit state. Reached in the MINT direction only
+     * — the sandbox's merge-back allowlist is epistemic slices, so a
+     * theme changed inside a circle discards with it.
+     */
+    mergeSlice_ClientState(slice: unknown): void {
+      const s = slice as { clientState?: Record<string, unknown> };
+      if (s?.clientState) this._clientState = { ...s.clientState };
+    }
+
     static persistentFields = ['_clientState'];
 
     public getInteractives(): ReadonlySet<Interactive> {

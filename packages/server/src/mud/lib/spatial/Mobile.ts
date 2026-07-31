@@ -373,6 +373,15 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // below — control-flow narrowing on `this` inside a mixin is unreliable.
       // eslint-disable-next-line @typescript-eslint/no-this-alias
       const mover = this;
+
+      // Traversal-application seam (sandbox Decision H): an exit
+      // subclass may fully handle the traversal (the wardrobe passage
+      // runs the wire-body crossing — nothing material traverses).
+      // Consulted BEFORE destination resolution / announcements: a
+      // handled traversal has no destination to resolve and no
+      // departure to announce (the body stays where it is).
+      if (await exit.applyTraversal(mover)) return;
+
       const source = exit.getSource();
       // Lazy-resolve the destination via the singleton cache. For Exits
       // authored with a live ref this is a no-op; for path-only exits

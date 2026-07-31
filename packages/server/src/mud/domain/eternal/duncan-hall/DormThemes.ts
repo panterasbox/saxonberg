@@ -21,10 +21,6 @@
  * the move-in commit. Apartments reuse this same core one rung up.
  */
 
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import YAML from 'yaml';
 import { PersistableApi } from '../../../api/persistable';
 import Bed from './Bed';
 import Desk from './Desk';
@@ -32,6 +28,7 @@ import Footlocker from './Footlocker';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Visible } from '../../../lib/description/Visible';
+import { SourceTreeApi } from '../../../api/source-tree';
 
 /** Prose fields a theme may write, mapped to their gated setter. Anything
  *  else is refused — the function-fixed boundary. */
@@ -50,19 +47,16 @@ interface Theme {
   footlocker?: ProseBundle;
 }
 
-function defaultThemesPath(): string {
-  const here = dirname(fileURLToPath(import.meta.url));
-  return join(here, 'dorm-themes.yaml');
-}
-
 /** Thrown by {@link DormThemes.applyTo} — an unknown theme or a non-prose
  *  field (the whole commit is refused; nothing is written). */
 export class DormThemeError extends Error {}
 
 export default class DormThemes {
-  /** The theme-catalogue YAML path (a `static` so a test can point it at a
-   *  fixture — the `ParcelSeeder` read precedent). */
-  static themesPath: string = defaultThemesPath();
+  /** Test seam: raw catalogue YAML standing in for the shipped
+   *  `dorm-themes.yaml`. `null` (the default) reads the real file. Source
+   *  text rather than a path, so a fixture needs no temp file — and so the
+   *  read stays inside the source tree (the import boundary). */
+  static themesSource: string | null = null;
 
   /** The authored theme ids (the move-in / remodel menu). */
   static ids(): string[] {
@@ -114,8 +108,13 @@ export default class DormThemes {
   /** Read + parse the theme catalogue fresh (infrequent, small file). */
   private static load(): Record<string, Theme> {
     try {
-      const parsed = YAML.parse(
-        readFileSync(DormThemes.themesPath, 'utf-8'),
+      const parsed = (
+        DormThemes.themesSource !== null
+          ? SourceTreeApi.parseYaml(DormThemes.themesSource)
+          : SourceTreeApi.readYamlResource(
+              import.meta.url,
+              'dorm-themes.yaml',
+            )
       ) as { themes?: Record<string, Theme> } | null;
       return parsed?.themes ?? {};
     } catch {

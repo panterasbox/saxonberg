@@ -18,11 +18,12 @@
  */
 
 import { Document } from '../persistence/Document';
+import { Collections } from '../persistence/Collections';
 
 export type MediaAssetStatus = 'draft' | 'approved';
 
 export class MediaAsset extends Document {
-  static collectionName = 'media_assets';
+  static collectionName = Collections.MediaAssets;
   static persistentFields = [
     'key',
     'sourcePath',

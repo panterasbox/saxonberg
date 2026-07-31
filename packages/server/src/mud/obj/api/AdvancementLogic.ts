@@ -45,7 +45,7 @@ function active(): boolean {
 
 /** The durable owner key, or `null` for a session-ephemeral owner. */
 function ownerKey(owner: Stuff): string | null {
-  return owner.getTemplatePath();
+  return owner.getIdentityPath();
 }
 
 /**

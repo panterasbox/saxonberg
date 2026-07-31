@@ -350,12 +350,22 @@ function walkFluxAt(
   if (MixinApi.isExitable(loc)) {
     for (const exit of loc.getObviousExits()) {
       if (exit.getDoor()) continue;
+      // An exit that applies its own traversal may name no room at all
+      // (the sandbox wardrobe passage names the WIRE). Walking it lands
+      // on a non-Container and takes `look` down for the whole room.
+      if (!exit.hasSpatialDestination()) continue;
       const destPath = exit.getDestinationTemplatePath();
       if (destPath && !StuffApi.findByTemplatePath(destPath)) continue;
       let dest: Stuff & Container;
       try {
         dest = exit.getDestination();
       } catch {
+        continue;
+      }
+      // Belt-and-braces on the hot path: a destroyed room's proxy
+      // answers every call with `undefined`, and `look` must not die
+      // because one neighbour was reaped mid-walk.
+      if (!MixinApi.isContainer(dest) || (dest as Stuff).isDestroyed()) {
         continue;
       }
       const sub = walkFluxAt(dest, depth + 1, visited);

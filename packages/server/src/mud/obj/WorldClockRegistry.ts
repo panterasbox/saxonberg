@@ -39,7 +39,10 @@ import type { Calendar, CalendarDate } from '../lib/time/Calendar';
 import { DefaultCalendar } from '../lib/time/DefaultCalendar';
 import { WorldClockState } from '../lib/time/WorldClockState';
 import { ScheduleApi, type ScheduleHandle } from '../api/schedule';
-import { ExecutionContextApi } from '../api/execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../api/execution-context';
 import { EventApi, type Subscription } from '../api/event';
 import { Events } from '../lib/events';
 import type {
@@ -93,6 +96,14 @@ interface Schedule {
   tag: string | null;
   hostSub: Subscription<unknown> | null;
   handle: ClockHandle;
+  /**
+   * Circle scope captured at registration. The heartbeat runs under an
+   * omni maintenance root; a scoped schedule's callback is re-rooted
+   * under its birth scope so circle-registered clock work stays
+   * governed by the containment layers (the ScheduleApi precedent).
+   * `null` for every field/system registration — no extra work.
+   */
+  birthScope: string | null;
 }
 
 export default class WorldClockRegistry extends Idea {
@@ -525,6 +536,7 @@ export default class WorldClockRegistry extends Idea {
     opts?: ScheduleOpts;
   }): ClockHandle {
     const id = SecurityApi.uuid();
+    const registrantScope = ExecutionContextApi.getCircleScope();
     const s: Schedule = {
       id,
       nextFireAtS: spec.nextFireAtS,
@@ -536,6 +548,8 @@ export default class WorldClockRegistry extends Idea {
       tag: spec.opts?.tag ?? null,
       hostSub: null,
       handle: null as unknown as ClockHandle,
+      birthScope:
+        registrantScope === OMNI_SCOPE ? null : registrantScope,
     };
     s.handle = {
       id,
@@ -556,9 +570,14 @@ export default class WorldClockRegistry extends Idea {
         Events.StuffDestructed,
         (payload) => {
           if (payload.stuffId !== hostId) return;
-          ExecutionContextApi.runRoot(WorldClockApi, 'hostDestroyed', () => {
-            this.cancelInternal(s);
-          });
+          ExecutionContextApi.runRoot(
+            WorldClockApi,
+            'hostDestroyed',
+            () => {
+              this.cancelInternal(s);
+            },
+            { circleScope: OMNI_SCOPE },
+          );
         },
       ) as unknown as Subscription<unknown>;
     }
@@ -615,9 +634,14 @@ export default class WorldClockRegistry extends Idea {
     this.heartbeat = ScheduleApi.schedule(
       realMs,
       () => {
-        ExecutionContextApi.runRoot(WorldClockApi, 'heartbeat', () => {
-          this.onHeartbeat();
-        });
+        ExecutionContextApi.runRoot(
+          WorldClockApi,
+          'heartbeat',
+          () => {
+            this.onHeartbeat();
+          },
+          { circleScope: OMNI_SCOPE },
+        );
       },
       { propagateAttribution: false },
     );
@@ -667,6 +691,18 @@ export default class WorldClockRegistry extends Idea {
 
   private invoke(s: Schedule): void {
     try {
+      if (s.birthScope !== null) {
+        // Circle-registered schedule: re-root the callback under its
+        // birth scope so the heartbeat's omni root never launders a
+        // circle continuation into system context.
+        ExecutionContextApi.runRoot(
+          WorldClockApi,
+          'fire',
+          () => s.cb(s.handle),
+          { circleScope: s.birthScope },
+        );
+        return;
+      }
       s.cb(s.handle);
     } catch (err) {
       console.error(
@@ -674,6 +710,18 @@ export default class WorldClockRegistry extends Idea {
         err,
       );
     }
+  }
+
+  /**
+   * Cancel every schedule registered from `scope`'s circle context —
+   * the reap seam for circle sessions. Returns the cancel count.
+   */
+  public cancelAllForScope(scope: string): number {
+    const doomed = [...this.schedules.values()].filter(
+      (s) => s.birthScope === scope,
+    );
+    for (const s of doomed) this.cancelInternal(s);
+    return doomed.length;
   }
 
   private nextCronMatch(

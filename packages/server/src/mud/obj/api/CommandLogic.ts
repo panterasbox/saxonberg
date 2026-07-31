@@ -24,9 +24,10 @@ import {
   resolve as resolvePath,
   sep,
 } from 'path';
-import { readdirSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
+import { SourceTreeApi } from '../../api/source-tree';
 import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import {
   MqlApi,
@@ -269,7 +270,23 @@ export class CommandLogic extends ApiLogic {
       const filePath = filename.startsWith('domain/')
         ? join(MUD_ROOT, filename)
         : join(CMD_DIR, filename);
-      const command = CommandDefinition.fromFile(filePath);
+      // The read lives here, in the Api tier: `CommandDefinition` is a
+      // mudlib value object and may not touch `fs` (the import boundary).
+      // The wrapper preserves the operator-facing context the retired
+      // `CommandDefinition.fromFile` used to add — without it a missing
+      // spec surfaces as a bare ENOENT with no indication of which
+      // command failed to load.
+      let command: CommandDefinition;
+      try {
+        command = CommandDefinition.fromYaml(
+          readFileSync(filePath, 'utf-8'),
+          filePath,
+        );
+      } catch (error) {
+        throw new Error(
+          `Failed to load command definition from ${filePath}: ${error}`,
+        );
+      }
       commands.set(filename, command);
       return command;
     } catch (error) {
@@ -1419,6 +1436,16 @@ export class CommandLogic extends ApiLogic {
     if (Object.keys(cmd.payload).length > 0) out.payload = cmd.payload;
     if (cmd.fallthrough) out.fallthrough = true;
     return out;
+  }
+
+  /** See {@link CommandApi.validateCommandView}. */
+  @CallSecurity(CommandApiCallers)
+  public validateCommandView(view: unknown): string | null {
+    const validate = commandSpecValidator();
+    if (validate(view)) return null;
+    return (validate.errors ?? [])
+      .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
+      .join('\n');
   }
 
   /** See {@link CommandApi.validateAgainstJsonSchema}. */
@@ -2601,4 +2628,28 @@ function resolvePronounFragment(
   else if (s === '$$') slot = 'last';
   if (slot === null) return null;
   return focused.getPronounMemory().readFragment(slot);
+}
+
+/**
+ * The compiled `cmd/command.schema.json` validator, loaded lazily so the
+ * cost lands on the first spec parsed rather than at module import.
+ *
+ * `allErrors: true` — unlike the per-field struct validator above, this
+ * one reports the whole trail, because its audience is an author who
+ * just mistyped a command spec and wants every complaint at once.
+ *
+ * It lives here rather than in `CommandDefinition` because `ajv` sits
+ * outside `src/mud/` (docs/architecture.md § The import boundary); the
+ * value object calls `CommandApi.validateCommandView` instead.
+ */
+let _specValidate: ValidateFunction | null = null;
+
+function commandSpecValidator(): ValidateFunction {
+  if (_specValidate) return _specValidate;
+  const schema = SourceTreeApi.readJsonResource<object>(
+    import.meta.url,
+    '../../cmd/command.schema.json',
+  );
+  _specValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
+  return _specValidate;
 }

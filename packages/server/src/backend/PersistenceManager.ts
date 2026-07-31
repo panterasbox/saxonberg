@@ -24,58 +24,30 @@ import { fileURLToPath } from 'url';
 import { dirname, join, isAbsolute } from 'path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import YAML from 'yaml';
+import { Collections } from '../mud/lib/persistence/Collections';
 
 /**
- * MongoDB collections enum.
+ * The MongoDB collection-name vocabulary.
+ *
+ * Defined in the mudlib (`mud/lib/persistence/Collections`) because it is
+ * vocabulary, not mechanism, and mudlib records name their own collection.
+ * Re-exported here so PM's own surface — `COLLECTION_POLICIES` is a total
+ * `Record<Collections, …>` — keeps one import site for the driver side.
  */
-export enum Collections {
-  Users = 'users',
-  GoogleProfiles = 'google_profiles',
-  TwitchProfiles = 'twitch_profiles',
-  KickProfiles = 'kick_profiles',
-  Domain = 'domain',
-  Emotes = 'emotes',
-  NameBanks = 'name_banks',
-  Groups = 'groups',
-  Channels = 'channels',
-  Parties = 'parties',
-  Beliefs = 'beliefs',
-  Chronicles = 'chronicles',
-  Transcripts = 'transcripts',
-  DispositionEvents = 'disposition_events',
-  ForumSubjects = 'forum_subjects',
-  ForumBoards = 'forum_boards',
-  ForumEntries = 'forum_entries',
-  ForumVotes = 'forum_votes',
-  ForumEvents = 'forum_events',
-  RenownEvents = 'renown_events',
-  Renown = 'renown',
-  ParticipationEvents = 'participation_events',
-  Participation = 'participation',
-  ProducerEvents = 'producer_events',
-  Producer = 'producer',
-  AuthoringEvents = 'authoring_events',
-  Positions = 'positions',
-  Recipes = 'recipes',
-  Blueprints = 'blueprints',
-  Bulletins = 'bulletins',
-  Documents = 'documents',
-  BankLedger = 'bank_ledger',
-  BankAccounts = 'bank_accounts',
-  BankSupply = 'bank_supply',
-  Parcels = 'parcels',
-  ParcelEvents = 'parcel_events',
-  Diagnostics = 'diagnostics',
-  HolderSnapshots = 'holder_snapshots',
-  AccountabilityEvents = 'accountability_events',
-  Contracts = 'contracts',
-  ContractEvents = 'contract_events',
-}
+export { Collections };
 
 /**
  * Operations a hook can wrap.
  */
 export type HookOperation = 'save' | 'delete';
+
+/**
+ * The typed slice of Mongo find options PM's surface speaks.
+ */
+export interface FindOptions {
+  sort?: Record<string, 1 | -1>;
+  limit?: number;
+}
 
 /**
  * Around-save hook signature. The hook receives the doc plus a `next`
@@ -111,6 +83,147 @@ export class HookReentryError extends Error {
     this.name = 'HookReentryError';
   }
 }
+
+/**
+ * Thrown when a write from circle-scoped context hits a REFUSE-classified
+ * collection — the sandbox containment doctrine's "no ungoverned durable
+ * mutation" made loud. The scope in the message identifies the offending
+ * circle for the receipt trail.
+ */
+export class SandboxWriteRefusedError extends Error {
+  constructor(collection: string, scope: string, operation: string) {
+    super(
+      `PersistenceManager: ${operation} on '${collection}' refused from ` +
+        `circle scope '${scope}' — this collection holds field-real state ` +
+        `that a sandbox session may not mutate.`
+    );
+    this.name = 'SandboxWriteRefusedError';
+  }
+}
+
+/**
+ * Per-collection sandbox write disposition (docs/subsystems/sandbox.md):
+ *
+ *   - `stamp`  — the write proceeds with `circleScope` stamped on the row;
+ *     field reads exclude stamped rows; exit discards them. The material
+ *     ledgers: the game genuinely runs in-circle, then reverts.
+ *   - `refuse` — circle context may not write here at all (field-real
+ *     registries, identity, title, config). Throws.
+ *   - `pass`   — the write is identity-real and persists (authored truth,
+ *     the epistemic ledgers). `mark: true` additionally records the scope
+ *     on the row (the epistemic wire mark) without ever filtering reads.
+ *   - `shadow` — rebuildable caches. `mode: 'skip'` silently skips the
+ *     terminal write from circle context (readers derive live from their
+ *     event ledgers in-circle). `mode: 'overlay'` is specified as the
+ *     labeled attach point but not built — no collection needs it today.
+ */
+export type CollectionPolicy =
+  | { verb: 'stamp' }
+  | { verb: 'refuse' }
+  | { verb: 'pass'; mark?: boolean }
+  | { verb: 'shadow'; mode: 'skip' | 'overlay' };
+
+/**
+ * The total policy table — `Record<Collections, …>` makes totality a
+ * COMPILE error: a new collection cannot ship without a policy row (fails
+ * closed at build time, not at an audit). Verified writer-by-writer in
+ * docs/subsystems/sandbox.md; keep the two in sync.
+ */
+export const COLLECTION_POLICIES: Readonly<
+  Record<Collections, CollectionPolicy>
+> = {
+  // ── STAMP: the material gameplay ledgers — run in-circle, revert ──
+  [Collections.BankLedger]: { verb: 'stamp' },
+  [Collections.Transcripts]: { verb: 'stamp' },
+  [Collections.RenownEvents]: { verb: 'stamp' },
+  [Collections.ParticipationEvents]: { verb: 'stamp' },
+  [Collections.DispositionEvents]: { verb: 'stamp' },
+  // ── PASS(mark): the epistemic ledgers — persist, wire-marked ──
+  [Collections.Chronicles]: { verb: 'pass', mark: true },
+  [Collections.Beliefs]: { verb: 'pass', mark: true },
+  [Collections.AuthoringEvents]: { verb: 'pass', mark: true },
+  [Collections.AccountabilityEvents]: { verb: 'pass', mark: true },
+  [Collections.Diagnostics]: { verb: 'pass', mark: true },
+  // ── PASS(unmarked): authored truth + the mechanism's own stores ──
+  [Collections.Domain]: { verb: 'pass' },
+  [Collections.Documents]: { verb: 'pass' },
+  [Collections.HolderSnapshots]: { verb: 'pass' },
+  // ── SHADOW(skip): rebuildable caches — skip-and-rebuild ──
+  [Collections.BankAccounts]: { verb: 'shadow', mode: 'skip' },
+  [Collections.BankSupply]: { verb: 'shadow', mode: 'skip' },
+  [Collections.Renown]: { verb: 'shadow', mode: 'skip' },
+  [Collections.Participation]: { verb: 'shadow', mode: 'skip' },
+  [Collections.Producer]: { verb: 'shadow', mode: 'skip' },
+  // ── REFUSE: field-real registries, identity, title, config ──
+  [Collections.Users]: { verb: 'refuse' },
+  [Collections.GoogleProfiles]: { verb: 'refuse' },
+  [Collections.TwitchProfiles]: { verb: 'refuse' },
+  [Collections.KickProfiles]: { verb: 'refuse' },
+  [Collections.Emotes]: { verb: 'refuse' },
+  [Collections.NameBanks]: { verb: 'refuse' },
+  [Collections.Groups]: { verb: 'refuse' },
+  [Collections.Channels]: { verb: 'refuse' },
+  [Collections.Parties]: { verb: 'refuse' },
+  [Collections.ForumSubjects]: { verb: 'refuse' },
+  [Collections.ForumBoards]: { verb: 'refuse' },
+  [Collections.ForumEntries]: { verb: 'refuse' },
+  [Collections.ForumVotes]: { verb: 'refuse' },
+  [Collections.ForumEvents]: { verb: 'refuse' },
+  [Collections.ProducerEvents]: { verb: 'refuse' },
+  [Collections.Positions]: { verb: 'refuse' },
+  [Collections.Recipes]: { verb: 'refuse' },
+  [Collections.Bulletins]: { verb: 'refuse' },
+  [Collections.Parcels]: { verb: 'refuse' },
+  [Collections.ParcelEvents]: { verb: 'refuse' },
+  [Collections.Contracts]: { verb: 'refuse' },
+  [Collections.ContractEvents]: { verb: 'refuse' },
+  [Collections.Chattel]: { verb: 'refuse' },
+  [Collections.ChattelEvents]: { verb: 'refuse' },
+  [Collections.AppSettings]: { verb: 'refuse' },
+  [Collections.WorldState]: { verb: 'refuse' },
+  [Collections.OfficeHolders]: { verb: 'refuse' },
+  // Audit-flipped from provisional PASS (2026-07-30): blueprint dedup
+  // OVERWRITES an existing global catalogue row's identity fields on a
+  // signature hit — field-visible mutation, so it fails closed. The CMS
+  // publish path is unaffected (the acting avatar resolves to the parked
+  // field body, whose scope is null). media_assets' only writer is the
+  // offline illustrate CLI; no circle path should ever reach it.
+  [Collections.Blueprints]: { verb: 'refuse' },
+  [Collections.MediaAssets]: { verb: 'refuse' },
+};
+
+/**
+ * The five STAMP collections — the set that carries scoped rows, gets the
+ * partial `circleScope` index, and participates in read filtering + exit
+ * discard. Derived from the table so it can't drift.
+ */
+const STAMP_COLLECTIONS: ReadonlySet<string> = new Set(
+  (Object.keys(COLLECTION_POLICIES) as Collections[]).filter(
+    (c) => COLLECTION_POLICIES[c].verb === 'stamp'
+  )
+);
+
+/**
+ * The SHADOW(skip) collections — field-truth-only caches whose reads get
+ * the residual field-side filter (defensive: no scoped row should ever
+ * exist here, and the filter guarantees stale residue never surfaces).
+ */
+const SHADOW_COLLECTIONS: ReadonlySet<string> = new Set(
+  (Object.keys(COLLECTION_POLICIES) as Collections[]).filter(
+    (c) => COLLECTION_POLICIES[c].verb === 'shadow'
+  )
+);
+
+/**
+ * The ambient-scope resolver — installed by
+ * `BootstrapManager.installFrameworkWiring()` (the `_registerShadowApi` /
+ * `setDocumentMarshallerResolver` precedent) so PM stays import-clean of
+ * the mud layer. Returns the current circle scope (a parcel path) or
+ * `null` for field/system work — the installer maps the omni sentinel to
+ * `null` before it reaches PM. Pre-wiring boots see the default `null`
+ * resolver (correct: boot is system work).
+ */
+export type ScopeResolver = () => string | null;
 
 /**
  * Shape of an entry in `hooks.yaml`.
@@ -163,9 +276,24 @@ export class PersistenceManager {
     new AsyncLocalStorage<Set<string>>();
 
   /**
+   * The installed ambient-scope resolver (see {@link ScopeResolver}).
+   * Defaults to "no scope" so pre-wiring boots and tests behave exactly
+   * as before the sandbox build.
+   */
+  private scopeResolver: ScopeResolver = () => null;
+
+  /**
    * Private constructor (singleton pattern).
    */
   private constructor() {}
+
+  /**
+   * Install the ambient-scope resolver. Called once from
+   * `BootstrapManager.installFrameworkWiring()`; tests may stub.
+   */
+  public setScopeResolver(resolver: ScopeResolver): void {
+    this.scopeResolver = resolver;
+  }
 
   /**
    * Get the singleton instance.
@@ -331,7 +459,10 @@ export class PersistenceManager {
 
     try {
       const objectId = new ObjectId(id);
-      const doc = await collection.findOne({ _id: objectId });
+      const filter = this.composeScopeReadFilter(collectionName, {
+        _id: objectId,
+      });
+      const doc = await collection.findOne(filter);
 
       if (doc) {
         // Convert _id to string for consistency
@@ -353,16 +484,23 @@ export class PersistenceManager {
    *
    * @param collectionName - Collection name
    * @param query - MongoDB query object
+   * @param options - Optional sort / limit (the typed slice of the driver's
+   *   find options the logic layer is sanctioned to use)
    * @returns Array of matching documents
    */
   public async find(
     collectionName: string,
-    query: Record<string, unknown>
+    query: Record<string, unknown>,
+    options?: FindOptions
   ): Promise<Record<string, unknown>[]> {
     const collection = this.getCollection(collectionName);
 
     try {
-      const docs = await collection.find(query).toArray();
+      const filtered = this.composeScopeReadFilter(collectionName, query);
+      let cursor = collection.find(filtered);
+      if (options?.sort) cursor = cursor.sort(options.sort);
+      if (options?.limit != null) cursor = cursor.limit(options.limit);
+      const docs = await cursor.toArray();
 
       // Convert _id to string for each document
       return docs.map((doc) => ({
@@ -373,6 +511,72 @@ export class PersistenceManager {
       console.error(`PersistenceManager: Error finding documents in ${collectionName}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Delete every document matching `filter`.
+   *
+   * A bulk maintenance operation (compile-row supersede, scoped-row
+   * discard): it does NOT dispatch through the per-id around-delete hook
+   * chain — hooks are per-document lifecycle witnesses and a bulk filter
+   * has no per-document identity to hand them — but it DOES reserve the
+   * `(collection, delete)` slot, so a hook that bulk-deletes its own
+   * collection from inside its own dispatch still fails loudly.
+   *
+   * @returns The number of documents deleted.
+   */
+  public async deleteMany(
+    collectionName: string,
+    filter: Record<string, unknown>
+  ): Promise<number> {
+    // Sandbox policy seam: a scoped context bulk-deletes only its own
+    // rows on STAMP collections; REFUSE refuses; SHADOW skips; PASS
+    // passes (identity-real bulk deletes, e.g. the compile-row
+    // supersede). Field/system contexts pass the filter untouched — the
+    // discard path composes its own `{circleScope}` filter.
+    const scope = this.scopeResolver();
+    let effectiveFilter = filter;
+    if (scope !== null) {
+      const policy =
+        COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
+      if (!policy) {
+        throw new SandboxWriteRefusedError(
+          collectionName,
+          scope,
+          'deleteMany (unclassified collection)'
+        );
+      }
+      switch (policy.verb) {
+        case 'refuse':
+          throw new SandboxWriteRefusedError(
+            collectionName,
+            scope,
+            'deleteMany'
+          );
+        case 'stamp':
+          effectiveFilter = { ...filter, circleScope: scope };
+          break;
+        case 'shadow':
+          if (policy.mode === 'skip') return 0;
+          break;
+        case 'pass':
+          break;
+      }
+    }
+    const slot = `${collectionName}:delete`;
+    return this.withSlot(slot, collectionName, 'delete', async () => {
+      const collection = this.getCollection(collectionName);
+      try {
+        const result = await collection.deleteMany(effectiveFilter);
+        return result.deletedCount ?? 0;
+      } catch (error) {
+        console.error(
+          `PersistenceManager: Error bulk-deleting from ${collectionName}:`,
+          error
+        );
+        throw error;
+      }
+    });
   }
 
   /**
@@ -472,6 +676,47 @@ export class PersistenceManager {
     collectionName: string,
     document: Record<string, unknown>
   ): Promise<string> {
+    // Sandbox policy seam: one resolver call; `null` (the overwhelmingly
+    // common case) falls straight through to today's path with no
+    // allocation and no policy lookup.
+    const scope = this.scopeResolver();
+    if (scope !== null) {
+      const policy =
+        COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
+      if (policy) {
+        switch (policy.verb) {
+          case 'refuse':
+            throw new SandboxWriteRefusedError(collectionName, scope, 'save');
+          case 'stamp':
+            document.circleScope = scope;
+            break;
+          case 'pass':
+            if (policy.mark) document.circleScope = scope;
+            break;
+          case 'shadow':
+            // skip-and-rebuild: the terminal cache write is a documented
+            // no-op from circle context — readers derive live from their
+            // event ledgers instead. The returned id is a local receipt,
+            // never a durable identifier.
+            if (policy.mode === 'skip') {
+              return document._id != null
+                ? String(document._id)
+                : new ObjectId().toString();
+            }
+            break;
+        }
+      }
+      // An unknown collection name (not in the enum) written from circle
+      // context fails closed — the totality guarantee has no row to
+      // consult, and silence would be an escape hatch.
+      if (!policy) {
+        throw new SandboxWriteRefusedError(
+          collectionName,
+          scope,
+          'save (unclassified collection)'
+        );
+      }
+    }
     const slot = `${collectionName}:save`;
     return this.withSlot(slot, collectionName, 'save', async () => {
       const hooks = this.saveHooks.get(slot) ?? [];
@@ -523,11 +768,40 @@ export class PersistenceManager {
    * the MongoDB delete. Re-entry into the same slot throws.
    */
   private async dispatchDelete(collectionName: string, id: string): Promise<void> {
+    // Sandbox policy seam (mirror of dispatchSave): a scoped context may
+    // delete only rows carrying its OWN scope on STAMP collections (the
+    // terminal filter composes `circleScope`), REFUSE refuses, PASS
+    // passes (identity-real deletes, e.g. belief forget), SHADOW skips.
+    const scope = this.scopeResolver();
+    let scopeGuard: string | null = null;
+    if (scope !== null) {
+      const policy =
+        COLLECTION_POLICIES[collectionName as Collections] ?? undefined;
+      if (!policy) {
+        throw new SandboxWriteRefusedError(
+          collectionName,
+          scope,
+          'delete (unclassified collection)'
+        );
+      }
+      switch (policy.verb) {
+        case 'refuse':
+          throw new SandboxWriteRefusedError(collectionName, scope, 'delete');
+        case 'stamp':
+          scopeGuard = scope;
+          break;
+        case 'shadow':
+          if (policy.mode === 'skip') return;
+          break;
+        case 'pass':
+          break;
+      }
+    }
     const slot = `${collectionName}:delete`;
     await this.withSlot(slot, collectionName, 'delete', async () => {
       const hooks = this.deleteHooks.get(slot) ?? [];
       const terminal = (idArg: string): Promise<void> =>
-        this.persistDelete(collectionName, idArg);
+        this.persistDelete(collectionName, idArg, scopeGuard);
       let next = terminal;
       for (let i = hooks.length - 1; i >= 0; i--) {
         const hook = hooks[i]!;
@@ -536,6 +810,47 @@ export class PersistenceManager {
       }
       await next(id);
     });
+  }
+
+  /**
+   * Compose the sandbox read filter for `collectionName` into `query`
+   * (Decision F, docs/subsystems/sandbox.md):
+   *
+   *   - STAMP collections: field context gets the residual predicate
+   *     `circleScope: {$exists: false}` (existing indexes still drive the
+   *     query — the predicate only filters scoped residue); circle
+   *     context gets `$or: [field rows, own-scope rows]` (global ∪ own).
+   *   - SHADOW(skip) collections: both contexts get the field-side
+   *     residual filter — the caches are field truth only, and stale
+   *     scoped residue must never surface.
+   *   - PASS / REFUSE collections: NO injection, ever (the checkable
+   *     inertness criterion).
+   *
+   * A query that already names `circleScope` or `$or` is passed through
+   * untouched — the discard path composes its own scope filter.
+   */
+  private composeScopeReadFilter(
+    collectionName: string,
+    query: Record<string, unknown>
+  ): Record<string, unknown> {
+    const isStamp = STAMP_COLLECTIONS.has(collectionName);
+    const isShadow = !isStamp && SHADOW_COLLECTIONS.has(collectionName);
+    if (!isStamp && !isShadow) return query;
+    if ('circleScope' in query || '$or' in query) return query;
+
+    const scope = this.scopeResolver();
+    if (isStamp && scope !== null) {
+      // circle context: global ∪ own-scope
+      return {
+        ...query,
+        $or: [
+          { circleScope: { $exists: false } },
+          { circleScope: scope },
+        ],
+      };
+    }
+    // field context on STAMP, any context on SHADOW: field rows only
+    return { ...query, circleScope: { $exists: false } };
   }
 
   /**
@@ -575,13 +890,23 @@ export class PersistenceManager {
   }
 
   /**
-   * Terminal delete: the actual MongoDB deletion.
+   * Terminal delete: the actual MongoDB deletion. When `scopeGuard` is
+   * set (a scoped delete on a STAMP collection), the filter composes
+   * `circleScope` so a circle can only ever delete its own rows.
    */
-  private async persistDelete(collectionName: string, id: string): Promise<void> {
+  private async persistDelete(
+    collectionName: string,
+    id: string,
+    scopeGuard: string | null = null
+  ): Promise<void> {
     const collection = this.getCollection(collectionName);
     try {
       const objectId = new ObjectId(id);
-      await collection.deleteOne({ _id: objectId });
+      const filter: Record<string, unknown> =
+        scopeGuard !== null
+          ? { _id: objectId, circleScope: scopeGuard }
+          : { _id: objectId };
+      await collection.deleteOne(filter);
     } catch (error) {
       console.error(
         `PersistenceManager: Error deleting document from ${collectionName}:`,
@@ -1034,6 +1359,17 @@ export class PersistenceManager {
       await this.getCollection(Collections.ContractEvents).createIndex({
         at: 1,
       });
+
+      // Sandbox: partial circleScope index on every STAMP collection —
+      // serves circle-side $or reads and exit's deleteMany({circleScope})
+      // while costing nothing for the (overwhelming) unscoped majority.
+      // Partial beats sparse: same storage win, clearer semantics.
+      for (const stampCollection of STAMP_COLLECTIONS) {
+        await this.getCollection(stampCollection).createIndex(
+          { circleScope: 1 },
+          { partialFilterExpression: { circleScope: { $exists: true } } }
+        );
+      }
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {

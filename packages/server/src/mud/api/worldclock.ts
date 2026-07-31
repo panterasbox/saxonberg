@@ -212,6 +212,14 @@ export class WorldClockApi {
     return logic().cancelByHost(host);
   }
 
+  /**
+   * Cancel every schedule registered from `scope`'s circle context — the
+   * sandbox reap seam (continuations die with their circle). @internal
+   */
+  public static cancelAllForScope(scope: string): number {
+    return logic().cancelAllForScope(scope);
+  }
+
   /* ──────────────────── calendar-aware scheduling ──────────────────── */
 
   /**

@@ -17,9 +17,10 @@
  */
 
 import { Document } from '../persistence/Document';
+import { Collections } from '../persistence/Collections';
 
 export class WorldClockState extends Document {
-  static collectionName = 'world_state';
+  static collectionName = Collections.WorldState;
   static persistentFields = [
     'elapsedGameTimeS',
     'scale',

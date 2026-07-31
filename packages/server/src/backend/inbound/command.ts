@@ -90,7 +90,21 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   await ExecutionContextApi.runRootGuarded(
     giver,
     'executeCommand',
-    () => giver.executeCommand(commandText, { interactive, bodyFields, barId }),
+    () => {
+      // Sandbox taint: the command root is planted before the giver is
+      // known, so the holder's stamped circle scope is established here
+      // (set-once) — a wire body's commands run circle-scoped, a field
+      // avatar's stay unscoped, with one stamped-field read either way.
+      const circleScope = giver.getCircleScope();
+      if (circleScope !== null) {
+        ExecutionContextApi.establishCircleScope(circleScope);
+      }
+      return giver.executeCommand(commandText, {
+        interactive,
+        bodyFields,
+        barId,
+      });
+    },
     'absorb'
   );
 };

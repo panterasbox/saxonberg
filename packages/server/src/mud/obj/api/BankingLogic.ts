@@ -33,7 +33,10 @@ import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { WorldClockApi } from "../../api/worldclock";
 import { PersistApi } from "../../api/persist";
-import { ExecutionContextApi } from "../../api/execution-context";
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from "../../api/execution-context";
 import { ContainmentApi } from "../../api/containment";
 import { GlobbableApi } from "../../api/glob";
 import { MixinApi } from "../../api/mixin";
@@ -57,6 +60,52 @@ function active(): boolean {
 
 /** Monotonic per-process counter making each transaction id unique. */
 let txSeq = 0;
+
+/* ───────────── sandbox: the scoped balance overlay ─────────────
+ *
+ * Conservation is scope-aware (sandbox build): a circle session's money
+ * legs write STAMPED `bank_ledger` rows (the PM policy seam), but the
+ * rebuildable caches (`bank_accounts` / `bank_supply`) are SHADOW(skip)
+ * — never touched from circle context. In-circle balances instead live
+ * in this per-scope in-memory overlay, replayed leg-by-leg by
+ * `postTransaction` — "derive from events" with session lifetime. The
+ * overlay is cleared at circle reap (`discardScopeOverlay`); a restart
+ * clears it trivially (sessions are runtime state; the sweeper discards
+ * the stamped rows). Field context never reads or writes it.
+ */
+const scopedBalanceOverlay: Map<string, Map<string, number>> = new Map();
+
+/** The current circle scope, with omni collapsed to null. */
+function currentCircleScope(): string | null {
+  const scope = ExecutionContextApi.getCircleScope();
+  return scope === OMNI_SCOPE ? null : scope;
+}
+
+function bumpScopedBalance(
+  scope: string,
+  accountId: string,
+  delta: number,
+): void {
+  let perScope = scopedBalanceOverlay.get(scope);
+  if (!perScope) {
+    perScope = new Map();
+    scopedBalanceOverlay.set(scope, perScope);
+  }
+  perScope.set(accountId, (perScope.get(accountId) ?? 0) + delta);
+}
+
+/**
+ * The balance read every internal precondition uses: the warmed field
+ * cache, plus — under circle scope only — the session's overlay delta.
+ * Field reads never see circle money; circle reads see field balance ∪
+ * their own session's plays.
+ */
+function balanceMinor(accountId: string): number {
+  const base = AccountBalance.cachedBalance(accountId);
+  const scope = currentCircleScope();
+  if (scope === null) return base;
+  return base + (scopedBalanceOverlay.get(scope)?.get(accountId) ?? 0);
+}
 
 /** The Coin template — the one cash object; cloned per cash issuance. */
 const COIN_PATH = "/obj/Coin";
@@ -424,7 +473,7 @@ async function seedFloatImpl(
 ): Promise<boolean> {
   if (amount.minor <= 0) return false;
   const branchAccount = await resolveBranchAccountImpl(bank);
-  if (AccountBalance.cachedBalance(branchAccount) > 0) return false;
+  if (balanceMinor(branchAccount) > 0) return false;
   await issueCashImpl(bank as unknown as Stuff & Container, amount, "float");
   await postTransaction("deposit", [
     {
@@ -704,7 +753,7 @@ async function settleImpl(
       "BankingLogic.settle: the credential declined (frozen or over its cap)",
     );
   }
-  if (AccountBalance.cachedBalance(routingAccount) < charge.amount.minor) {
+  if (balanceMinor(routingAccount) < charge.amount.minor) {
     throw new Error("BankingLogic.settle: insufficient balance");
   }
 
@@ -792,7 +841,7 @@ async function escrowHoldImpl(
   if (amount.minor <= 0) {
     throw new Error("BankingLogic.escrowHold: amount must be positive");
   }
-  if (AccountBalance.cachedBalance(fromAccountId) < amount.minor) {
+  if (balanceMinor(fromAccountId) < amount.minor) {
     return { ok: false, reason: "insufficient-funds" };
   }
   const escrowId = Account.escrowAccountFor(contractId);
@@ -853,7 +902,7 @@ async function escrowMoveImpl(
   amount: Money,
 ): Promise<string> {
   const escrowId = Account.escrowAccountFor(contractId);
-  if (active() && AccountBalance.cachedBalance(escrowId) < amount.minor) {
+  if (active() && balanceMinor(escrowId) < amount.minor) {
     throw new Error(
       `BankingLogic.${kind}: escrow for ${contractId} holds less than ` +
         `${amount.render()} (over-release)`,
@@ -910,7 +959,7 @@ async function payDrawImpl(
   }
   if (
     active() &&
-    AccountBalance.cachedBalance(businessAccountId) < amount.minor
+    balanceMinor(businessAccountId) < amount.minor
   ) {
     throw new Error(
       `BankingLogic.payDraw: the business holds less than ${amount.render()}`,
@@ -1127,7 +1176,7 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
   return {
     account: accountId,
     lines,
-    balance: AccountBalance.cachedBalance(accountId),
+    balance: balanceMinor(accountId),
   };
 }
 
@@ -1184,6 +1233,11 @@ async function postTransaction(
   const txId = `tx-${realAt.toString(36)}-${(txSeq++).toString(36)}`;
   const locality = opts.locality ?? null;
 
+  // Sandbox: a circle transaction writes its (stamped) ledger rows but
+  // NEVER touches the field caches — deltas ride the per-scope overlay
+  // instead, and the field supply headline provably excludes them.
+  const circleScope = currentCircleScope();
+
   for (const leg of legs) {
     const row = new LedgerEntry();
     row.kind = kind;
@@ -1199,12 +1253,23 @@ async function postTransaction(
     row.realAt = realAt;
     await row.save();
 
+    if (circleScope !== null) {
+      if (!Account.isSentinel(leg.from)) {
+        bumpScopedBalance(circleScope, leg.from, -leg.amount);
+      }
+      if (!Account.isSentinel(leg.to)) {
+        bumpScopedBalance(circleScope, leg.to, leg.amount);
+      }
+      continue;
+    }
     if (!Account.isSentinel(leg.from)) await applyDelta(leg.from, -leg.amount);
     if (!Account.isSentinel(leg.to)) await applyDelta(leg.to, leg.amount);
   }
 
-  const { minted, drained } = BankTransaction.supplyDelta(kind, legs);
-  if (minted !== 0 || drained !== 0) await bumpSupply(minted, drained);
+  if (circleScope === null) {
+    const { minted, drained } = BankTransaction.supplyDelta(kind, legs);
+    if (minted !== 0 || drained !== 0) await bumpSupply(minted, drained);
+  }
   return txId;
 }
 
@@ -1349,7 +1414,7 @@ export class BankingLogic extends ApiLogic {
   ): Promise<void> {
     if (
       active() &&
-      AccountBalance.cachedBalance(fromAccountId) < amount.minor
+      balanceMinor(fromAccountId) < amount.minor
     ) {
       throw new Error(
         `BankingLogic.drain: ${fromAccountId} holds less than ${amount.render()}`,
@@ -1377,7 +1442,13 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.balanceOf}. Sync warm read. */
   @CallSecurity(BankingApiCallers)
   public balanceOf(accountId: string): Money {
-    return Money.of(AccountBalance.cachedBalance(accountId));
+    return Money.of(balanceMinor(accountId));
+  }
+
+  /** See {@link BankingApi.discardScopeOverlay}. */
+  @CallSecurity(BankingApiCallers)
+  public discardScopeOverlay(scope: string): void {
+    scopedBalanceOverlay.delete(scope);
   }
 
   /** See {@link BankingApi.moneySupply}. Sync warm read. */
@@ -1467,7 +1538,7 @@ export class BankingLogic extends ApiLogic {
     // The convenience fee (Terms), conserved → branch + corpo royalty. Zero
     // for Goodkin (no-op); charged out of the just-credited balance.
     const fee = bank.getTerms().getTransactionFee();
-    if (fee > 0 && AccountBalance.cachedBalance(account.accountId) >= fee) {
+    if (fee > 0 && balanceMinor(account.accountId) >= fee) {
       await chargeFeeImpl(bank, account.accountId, fee, "deposit fee");
     }
   }
@@ -1482,7 +1553,7 @@ export class BankingLogic extends ApiLogic {
     }
     const terms = bank.getTerms();
     const fee = terms.getTransactionFee();
-    const balance = AccountBalance.cachedBalance(account.accountId);
+    const balance = balanceMinor(account.accountId);
     if (balance < amount.minor + fee) {
       throw new Error(
         `BankingLogic.withdraw: your balance is under ${amount.render()}` +
@@ -1577,7 +1648,7 @@ export class BankingLogic extends ApiLogic {
     // so the balance check covers amount + fee.
     const to = await accountByIdImpl(toAccountId);
     const wireFee = await transferFeeFor(from, to);
-    if (AccountBalance.cachedBalance(fromAccountId) < amount.minor + wireFee) {
+    if (balanceMinor(fromAccountId) < amount.minor + wireFee) {
       throw new Error(
         `BankingLogic.transfer: balance under ${amount.render()}` +
           (wireFee > 0 ? ` (plus a ${wireFee}-credit wire fee)` : ""),
@@ -1681,7 +1752,7 @@ export class BankingLogic extends ApiLogic {
   @CallSecurity(BankingApiCallers)
   public escrowBalanceOf(contractId: string): Money {
     return Money.of(
-      AccountBalance.cachedBalance(Account.escrowAccountFor(contractId)),
+      balanceMinor(Account.escrowAccountFor(contractId)),
     );
   }
 

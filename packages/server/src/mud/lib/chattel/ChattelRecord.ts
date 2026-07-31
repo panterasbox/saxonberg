@@ -19,6 +19,7 @@
  */
 
 import { Document } from "../persistence/Document";
+import { Collections } from "../persistence/Collections";
 
 /**
  * Who owns a chattel. Player-only in v1 (an Avatar's durable
@@ -28,7 +29,7 @@ import { Document } from "../persistence/Document";
 export type ChattelOwner = { kind: "player"; templatePath: string };
 
 export class ChattelRecord extends Document {
-  static collectionName = "chattel";
+  static collectionName = Collections.Chattel;
   static persistentFields = ["chattelId", "owner", "titledAt"];
 
   /** The durable per-instance id this title is keyed on. */

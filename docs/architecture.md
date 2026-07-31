@@ -118,7 +118,10 @@ adding.
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
   class (`Light`, `Quantity`, `Reserve`), an enum-like vocabulary plus
-  its validation array, or a platform-wide registry (`lib/mixin.ts`'s
+  its validation array (`lib/persistence/Collections.ts`'s
+  `Collections` — collection *names*, no driver and no I/O, which is
+  why it lives here and `backend/PersistenceManager` re-exports it
+  rather than owning it), or a platform-wide registry (`lib/mixin.ts`'s
   `Mixins`, `lib/paths.ts`'s `TemplatePaths`). This is the fourth
   category named so that an orphan type/constant has a home other than
   the forbidden `types.ts` / `constants.ts` reflex — see
@@ -485,6 +488,145 @@ For load-time cycle breakage, `await import(...)` inside a method
 body (see `PersistenceManager.dispatchSave` and friends) is the
 established escape hatch — keeps the static graph clean while the
 runtime call still resolves.
+
+## The import boundary
+
+The rule in one line: **nothing under `src/mud/` imports anything from
+outside `src/mud/` — Node built-ins included — except the Api layer,
+which imports and wraps.**
+
+This is the classic driver/mudlib split stated for our tree. Mudlib code
+**cannot import a capability**: no filesystem, no network, no child
+process, no code-eval. It asks the gated Api surface, or it does without.
+(The rule checks imports; see *What this rule does not cover* below for
+what that leaves open.) The
+rule is the import-graph twin of call-security — call-security governs
+*who may call what at runtime*, this governs *what a module can reach at
+all* — and together they are what makes the sandbox and wizard
+code-trust story checkable rather than aspirational. Authored code that
+can only import mud modules can only do what the Apis gate.
+
+Enforced by `pnpm lint:imports` (`scripts/check-mud-imports.ts`),
+CI-gating. A script rather than an ESLint rule for the same ESLint-8
+reason as `check-gate-strings`, and because `no-restricted-imports`
+cannot express "a relative import that escapes this subtree" without a
+resolver plugin. `--report` prints crossings grouped by module and file.
+
+### The tiers
+
+| Tier | Files | May import |
+|---|---|---|
+| **mudlib** (the default) | `lib/`, `obj/` outside `obj/api/`, `cmd/`, `domain/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
+| **Api** | `mud/api/**` **and** `mud/obj/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
+| **test** | `**/__tests__/**` | unrestricted |
+
+The Api tier is **both halves of the `XApi` ↔ `XLogic` split**, not just
+`api/`. `api/` is the thin non-HMR forwarding shell; the logic singleton
+is where a capability actually gets used (`CommandLogic` enumerating YAML
+views, `PackLogic` reading pack files, `GitLogic` driving `simple-git`).
+Exempting only `api/` would force the wrap to forward *backwards* into
+logic that could not do the work. This tier is already the `@internal`,
+gated one — the boundary and the doc-visibility boundary coincide, which
+is the `callable == visible == cared-about` invariant again.
+
+Two deliberate softenings:
+
+- **`import type` is exempt everywhere.** It is erased at compile time
+  and confers no runtime capability. The rule is about capability, not
+  vocabulary — `import type { BootstrapEntry }` from backend is fine.
+- **Both allowlists are enumerated, not open.** A new built-in or npm
+  dependency in the Api tier is a deliberate edit to the script. That is
+  the tripwire that forces the conversation, the same discipline as the
+  export-discipline registry. Driver-level packages (mongodb, express,
+  ws, passport) are on no tier's list: they belong to `backend/`.
+
+Dynamic `import()`, `require()` and `createRequire` ride the same matrix
+— a soundness hole there would make the whole rule decorative.
+
+### Naming a file without reaching for one
+
+The recurring mudlib need is "load the authored data file that ships next
+to me" — a char-gen roster, a theme catalogue, a command schema. The
+answer is the synchronous shipped-resource face on `SourceTreeApi`:
+
+```typescript
+SourceTreeApi.readYamlResource<CharGenConfig>(
+  import.meta.url,
+  '../../../config/char-gen.yaml'
+);
+```
+
+`import.meta.url` is a **language construct, not an import**, so a mudlib
+module can name its own location without leaving the tree; the read
+happens in the Api tier, sandbox-checked. Siblings: `readResource`,
+`readJsonResource`, `parseYaml` (for text already in hand — a command
+argument, a CMS field), and the pure path arithmetic `toMudPath` /
+`resolveFrom`.
+
+### No exceptions
+
+The registry in `check-mud-imports.ts` is **empty**, and the rule is
+enforced with no carve-outs at all. Getting there took one more pass than
+expected, and the pattern that dissolved every hard case is the same one:
+
+> When a mudlib module holds a capability, the part that *needs* the
+> capability is almost always smaller than it looks — and the part that
+> doesn't is the part worth keeping in the mudlib.
+
+Four modules looked like irreducible exceptions because their whole
+purpose was the library they imported. Each split cleanly anyway:
+
+| Module | Held | Now |
+|---|---|---|
+| `lib/script/EvalScript` | `node:vm` | `ScriptApi.compileSandboxed` / `runSandboxed` over an opaque handle. The **sandbox allowlist and the receiver bindings stay in the mudlib** — deciding what the sandbox contains is policy, and assembling it is plain object work. Only `createContext` / `new Script` / `runInContext` moved. |
+| `lib/prose/Prose` | `liquidjs` | The Liquid engine and its filter set moved to `ProseLogic`; `Prose` kept the value-object half (source string, opaque compiled handle, Mml-typed render). |
+| `lib/persistence/EncryptedStringMarshaller` | `crypto` | `PersistApi.sealString` / `unsealString` — encrypt-at-rest is a persistence concern. The marshaller kept the envelope validation and the `Marshaller` shape. (A standalone `CryptoApi` was considered and rejected long before this; folding into the owning subsystem's face is what that decision implies.) |
+| `lib/command/CommandDefinition` | `ajv` | `CommandApi.validateCommandView` — the command subsystem validating its own spec format. The value object kept every structural invariant it checks *after* the schema. |
+
+The two persistence-framework files (`lib/persistence/Document`,
+`lib/stuff/Template`) that imported `PersistenceManager` on the grounds
+that they *are* the data layer now route through `PersistApi`, whose
+surface already covered every call they made — a migration its own
+docstring had anticipated. That also let `check-pm-access.ts` drop two
+allowlist entries: **the mudlib now has no path to persistence except
+the facade.**
+
+The recurring shape of the fold is an **opaque handle**: the Api compiles
+or seals, hands back a branded type with no structure
+(`CompiledSandbox`, `CompiledProse`), and the mudlib holds it only to
+hand it back. The mudlib keeps the policy and the vocabulary; the Api
+keeps the capability.
+
+**Ask before adding the first exception.** The mechanism is still there,
+and a genuine one is a one-entry edit with its reason recorded — but the
+answer has so far always been "fold it into an Api," and the lint failing
+is the tripwire that forces that conversation.
+
+### What this rule does not cover
+
+It governs **imports**, so ambient globals stay reachable from the
+mudlib: `process` (and `process.env`), `Buffer`, `console`, `globalThis`,
+and timers. Some of those are load-bearing and fine (`Buffer` is inert
+data handling; `ScheduleApi` already owns timers by a separate rule).
+
+`process.env` is the one worth naming, because mudlib code reads it
+today: `obj/AccessRegistry.ts` (the wizard / archwizard / streamer
+allowlists), `obj/OfficeRegistry.ts` (the founder identity), and
+`obj/ReactionRegistry.ts` (`NODE_ENV` / `VITEST`). Those are deliberate
+and unaffected by this rule — but note the shape: a module that can read
+`process.env` can also write it, and `globalThis` reaches further still.
+Closing that needs a different mechanism (a lint on identifiers, or a
+real module sandbox), not this one.
+
+So: a strong **architectural** boundary — it makes the capability
+surface finite, reviewable, and gated — but not a security perimeter.
+Read the two claims separately.
+
+**Tests are blanket-exempt** (`**/__tests__/**`), deliberately: they are
+not shipped mudlib and already reach for white-box seams by design. If
+that wants tightening later, the target is banning `../backend/` *value*
+imports from test files (~10 at the time the rule landed) while leaving
+`import type` and the test-only deps alone.
 
 ## Class Hierarchy
 

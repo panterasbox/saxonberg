@@ -2,13 +2,14 @@
 // SourceTreeApi. (Doc comment lives on the class declaration below so
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
-import { promises as fs } from 'node:fs';
+import { promises as fs, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { SourceTreeSandboxError } from '../../lib/shell/SourceTreeSandboxError';
+import YAML from 'yaml';
 import type { DirEntry } from '../../api/source-tree';
 
 const SourceTreeApiCallers = SecurityPolicies.FromModule('/api/source-tree#SourceTreeApi'
@@ -51,6 +52,50 @@ export class SourceTreeLogic extends ApiLogic {
   @CallSecurity(SourceTreeApiCallers)
   public getSandboxRoot(): string {
     return sandboxRoot();
+  }
+
+  /** See {@link SourceTreeApi.readResource}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public readResource(moduleUrl: string, relativePath: string): string {
+    return readFileSync(resolveResource(moduleUrl, relativePath), 'utf-8');
+  }
+
+  /** See {@link SourceTreeApi.readYamlResource}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public readYamlResource<T>(moduleUrl: string, relativePath: string): T {
+    const raw = readFileSync(
+      resolveResource(moduleUrl, relativePath),
+      'utf-8',
+    );
+    return YAML.parse(raw) as T;
+  }
+
+  /** See {@link SourceTreeApi.readJsonResource}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public readJsonResource<T>(moduleUrl: string, relativePath: string): T {
+    const raw = readFileSync(
+      resolveResource(moduleUrl, relativePath),
+      'utf-8',
+    );
+    return JSON.parse(raw) as T;
+  }
+
+  /** See {@link SourceTreeApi.parseYaml}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public parseYaml<T>(text: string): T {
+    return YAML.parse(text) as T;
+  }
+
+  /** See {@link SourceTreeApi.toMudPath}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public toMudPath(absolutePath: string): string {
+    return '/' + path.relative(mudRoot(), absolutePath).split(path.sep).join('/');
+  }
+
+  /** See {@link SourceTreeApi.resolveFrom}. */
+  @CallSecurity(SourceTreeApiCallers)
+  public resolveFrom(filePath: string, relativeRef: string): string {
+    return path.resolve(path.dirname(filePath), relativeRef);
   }
 
   /** See {@link SourceTreeApi.resolvePath}. */
@@ -226,9 +271,9 @@ export class SourceTreeLogic extends ApiLogic {
  * self-calls.
  *
  * Discovery: walk up from this module's directory until we find a
- * directory named `packages`; its parent is the sandbox root. The walk
- * stops at the filesystem root if no `packages` ancestor is found, in
- * which case we throw — the shell's code tree is meaningless without
+ * directory named `packages` — that directory IS the sandbox root. The
+ * walk stops at the filesystem root if no `packages` ancestor is found,
+ * in which case we throw — the shell's code tree is meaningless without
  * one.
  */
 function sandboxRoot(): string {
@@ -258,4 +303,41 @@ function sandboxRoot(): string {
 function stripCwdLeadingSlash(cwd: string): string {
   if (cwd.startsWith('/')) return cwd.slice(1);
   return cwd;
+}
+
+/**
+ * Resolve a module-relative resource path to an absolute one, refusing
+ * anything that escapes the sandbox root.
+ *
+ * `moduleUrl` is the caller's own `import.meta.url` — a language
+ * construct, not an import, so a mudlib module can supply it without
+ * reaching outside `src/mud/`. That is what lets the shipped-resource
+ * reads live here while their callers stay inside the import boundary.
+ */
+function resolveResource(moduleUrl: string, relativePath: string): string {
+  const here = path.dirname(fileURLToPath(moduleUrl));
+  const absolute = path.resolve(here, relativePath);
+  const root = sandboxRoot();
+  if (absolute !== root && !absolute.startsWith(root + path.sep)) {
+    throw new SourceTreeSandboxError(
+      `SourceTreeApi: resource '${relativePath}' resolves outside the ` +
+        `sandbox root`,
+    );
+  }
+  return absolute;
+}
+
+/**
+ * The mud tree's own root — the anchor of the `/`-rooted template
+ * namespace. Derived from THIS module's location (`<mud>/obj/api/`), so
+ * `src/` and `dist/` both land on their own `mud` directory. Memoised
+ * process-wide; module-private so the logic singleton stays stateless.
+ */
+let mudRootCache: string | null = null;
+
+function mudRoot(): string {
+  if (mudRootCache) return mudRootCache;
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  mudRootCache = path.resolve(here, '../..');
+  return mudRootCache;
 }

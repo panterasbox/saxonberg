@@ -1,6 +1,7 @@
 // ScriptLogic — the hot-reloadable logic singleton behind ScriptApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { Script as VmScript, createContext } from "node:vm";
 import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
@@ -13,6 +14,8 @@ import { ScheduleApi } from "../../api/schedule";
 import { AppApi } from "../../api/app";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
+import { StuffApi } from "../../api/stuff";
+import EvalScript from "../../lib/script/EvalScript";
 import { Interpreter } from "../../lib/script/Interpreter";
 import { RecipeKnowledge } from "../../lib/script/RecipeKnowledge";
 import { Transcriber } from "../../lib/script/Transcriber";
@@ -23,6 +26,7 @@ import type {
 } from "../../lib/script/Interpreter";
 import type { Coroutine } from "../../lib/script/Coroutine";
 import type { ScriptAbortReason } from "../../lib/script/AbortReason";
+import type { CompiledSandbox } from "../../api/script";
 import { Scope } from "../../lib/script/Scope";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Sensor } from "../../lib/message/Sensor";
@@ -31,6 +35,35 @@ import type { Script, Pipeline, Command, Arg } from "../../lib/script/ast";
 import type { ParsedCommand } from "../../api/command-line";
 
 const ScriptApiCallers = SecurityPolicies.FromModule("/api/script#ScriptApi");
+
+/**
+ * Mint the eval scratch singleton at `path`, replacing any prior one.
+ *
+ * The stamp is the reason this lives behind an Api at all:
+ * `Stuff.setTemplatePath` is `ApiOnly`-gated, and `EvalController` — a
+ * controller, not Api code — was calling it directly, so every
+ * `eval <code>` died on the gate before reaching the interpreter. The
+ * doc comment on `#templatePath` already named this exact case ("Api
+ * code that wants MQL path-atom addressability for an ad-hoc runtime
+ * singleton — e.g. `EvalScript` stamping `/home/<id>/_eval`"); it just
+ * had no Api to be called from.
+ *
+ * `create` (not `clone`): the scratch is a per-jurisdiction dynamic
+ * unique — destruct-and-replace on each new code body, backed by
+ * nothing, gone at restart.
+ */
+async function mintEvalScratchImpl(
+  path: string,
+  code: string,
+): Promise<EvalScript> {
+  const existing = StuffApi.findByTemplatePath<EvalScript>(path);
+  if (existing) StuffApi.destruct(existing);
+  const scratch = await StuffApi.create(() => new EvalScript());
+  // The setter re-keys `byTemplatePath` for us — no manual index work.
+  scratch.setTemplatePath(path);
+  scratch.setCode(code);
+  return scratch;
+}
 
 /* ─────────────────────────── impl ─────────────────────────── */
 //
@@ -497,6 +530,36 @@ export class ScriptLogic extends ApiLogic {
   @CallSecurity(ScriptApiCallers)
   public format(ast: Script): string {
     return formatScript(ast);
+  }
+
+  /** See {@link ScriptApi.compileSandboxed}. */
+  @CallSecurity(ScriptApiCallers)
+  public compileSandboxed(code: string): CompiledSandbox {
+    // Box into the opaque handle. Safe by construction: `CompiledSandbox`
+    // has no structure, so the only value that can reach `runSandboxed`
+    // is one this line produced.
+    return new VmScript(code) as unknown as CompiledSandbox;
+  }
+
+  /** See {@link ScriptApi.runSandboxed}. */
+  @CallSecurity(ScriptApiCallers)
+  public runSandboxed(
+    compiled: CompiledSandbox,
+    sandbox: Record<string, unknown>,
+  ): unknown {
+    // Unbox — see `compileSandboxed`; nothing else mints a CompiledSandbox.
+    return (compiled as unknown as VmScript).runInContext(
+      createContext(sandbox),
+    );
+  }
+
+  /** See {@link ScriptApi.mintEvalScratch}. */
+  @CallSecurity(ScriptApiCallers)
+  public async mintEvalScratch(
+    path: string,
+    code: string,
+  ): Promise<EvalScript> {
+    return mintEvalScratchImpl(path, code);
   }
 
   /** See {@link ScriptApi.captureManualBuild}. */

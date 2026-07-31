@@ -135,6 +135,24 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return true;
     }
 
+    /* ── fork/merge slice (sandbox Decision Q; epistemic) ──
+     * Fork: the current list travels so `dm <friend>` resolves inside a
+     * projection. Merge: entries the fork gained (people met in-circle)
+     * union back — knowledge is identity-real; duplicates dedup via the
+     * ordinary addContact guard. */
+
+    forkSlice_Contacts(): unknown {
+      return this._contacts.map((e) => ({ ...e }));
+    }
+
+    mergeSlice_Contacts(slice: unknown): void {
+      if (!Array.isArray(slice)) return;
+      for (const entry of slice as ContactEntry[]) {
+        if (!entry || typeof entry !== 'object') continue;
+        this.addContact({ ...entry });
+      }
+    }
+
     removeContact(
       kind: ContactEntry['kind'],
       ref: string,

@@ -124,6 +124,24 @@ export class ZoneLogic extends ApiLogic {
     spatialZoneClassCache.clear();
   }
 
+  /** See {@link ZoneApi.resolveEnclosingZoneForPath}. */
+  @CallSecurity(ZoneApiCallers)
+  public async resolveEnclosingZoneForPath(
+    templatePath: string
+  ): Promise<Zone | null> {
+    const selfTemplate = await Template.findByPath(templatePath);
+    if (selfTemplate && (await this.isFolderClass(selfTemplate.class))) {
+      return await StuffApi.singleton<Zone>(templatePath);
+    }
+    for (const ancestor of Template.ancestorPaths(templatePath)) {
+      const ancestorTpl = await Template.findByPath(ancestor);
+      if (!ancestorTpl) continue;
+      if (!(await this.isFolderClass(ancestorTpl.class))) continue;
+      return await StuffApi.singleton<Zone>(ancestor);
+    }
+    return null;
+  }
+
   /** See {@link ZoneApi.resolveZoneForPath}. */
   @CallSecurity(ZoneApiCallers)
   public async resolveZoneForPath(

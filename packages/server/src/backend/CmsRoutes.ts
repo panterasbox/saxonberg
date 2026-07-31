@@ -30,6 +30,9 @@ import type {
   DiagnosticListFilter as CmsDiagFilter,
 } from '@saxonberg/types';
 import { CmsApi, CmsError } from '../mud/api/cms';
+import { SandboxApi } from '../mud/api/sandbox';
+import { ExecutionContextApi } from '../mud/api/execution-context';
+import type Avatar from '../mud/obj/Avatar';
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { SourceTreeSandboxError } from '../mud/api/source-tree';
 import { SecurityApi } from '../mud/api/security';

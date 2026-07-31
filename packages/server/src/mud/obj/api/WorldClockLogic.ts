@@ -229,6 +229,12 @@ export class WorldClockLogic extends ApiLogic {
     return resolveRegistry().cancelByHost(host);
   }
 
+  /** See {@link WorldClockApi.cancelAllForScope}. */
+  @CallSecurity(WorldClockApiCallers)
+  public cancelAllForScope(scope: string): number {
+    return resolveRegistry().cancelAllForScope(scope);
+  }
+
   /* ──────────────────── calendar-aware scheduling ──────────────────── */
 
   /** See {@link WorldClockApi.onDate}. */
