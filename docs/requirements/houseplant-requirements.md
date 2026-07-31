@@ -209,9 +209,10 @@ a watering can, and a tap** (`populates:` data, the same field the bed and desk
 use). Nobody has to shop before meeting the growth model.
 
 Everything else is at the shipped Terminus general store, as **content only**:
-a small pot, a large pot, a bag of potting soil, and a snake-plant seed. The
-store is fully data-driven (`stockLines` + `prices` + templates under
-`goods/`), so this is four YAML files and two list entries — no code.
+a small pot, a large pot, a sack of potting soil, and a snake-plant seed. The
+store is fully data-driven (`stockLines` + `prices`), and `itemTemplatePath`
+takes any path — so the pots and the seed are stocked straight from the `/obj/`
+templates the build already creates, and only the sack is new. No code.
 
 **The large pot is the first thing a player has a reason to buy**, and the
 reason is legible before the purchase (*"it has outgrown its pot"*).
@@ -514,14 +515,16 @@ anatomy beyond the shipped `sessile` body plan, no vitals, no `MetabolicMixin`.
 
 **Subsystem docs the build touches**
 
-- [persistence.md](../subsystems/persistence.md) · [residence.md](../subsystems/residence.md)
+- [persistence.md](../subsystems/persistence.md)
+  · [residence.md](../subsystems/residence.md)
   · [spatial.md](../subsystems/spatial.md) · [slot.md](../subsystems/slot.md)
   · [bulk.md](../subsystems/bulk.md) · [light.md](../subsystems/light.md)
   · [race.md](../subsystems/race.md) · [crafting.md](../subsystems/crafting.md)
   · [retail.md](../subsystems/retail.md)
   · [command-routing.md](../subsystems/command-routing.md)
   · [command-spec.md](../subsystems/command-spec.md)
-  · [time.md](../subsystems/time.md) · [metabolism.md](../subsystems/metabolism.md)
+  · [time.md](../subsystems/time.md)
+  · [metabolism.md](../subsystems/metabolism.md)
   · [content-packs.md](../subsystems/content-packs.md)
 
 **Downstream phases whose enablers this build deliberately does not land**

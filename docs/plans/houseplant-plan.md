@@ -8,7 +8,7 @@ decisions, it says where the code goes.
 
 **Shape of the build:** one new mixin, four new concrete classes, three new
 verbs, one capability-table row, **one small extension to the persistence
-core**, and content (including store goods).
+core**, and content (including store stock).
 
 > **Revised twice on 2026-07-31.**
 >
@@ -154,8 +154,10 @@ ownership; it is not a persistence spine.
 
 `seeds/domain/terminus/general-store/counter.yaml` is a `/lib/retail/Stock`
 with `stockLines: [{ itemTemplatePath, par }]` and a `prices:` map, over
-templates in `goods/`. It restocks to par on the game-time reset sweep. Adding
-goods is **four YAML files and two list entries — no code.**
+templates in `goods/`. It restocks to par on the game-time reset sweep.
+**`itemTemplatePath` takes any path**, so stocking an existing `/obj/` item
+needs no `goods/` template at all — adding stock is **two list entries per
+item, no code.**
 
 Its header states the convention that decides the seed's shape: *"The goods are
 all discrete Things (never Globbable) so each carries a chattel stamp on buy."*
@@ -252,11 +254,13 @@ whetstone: { verbs: ['crafting/sharpen.yaml'], placement: 'carried' },
 | `_maturity: number` | accumulated good-time toward the next stage |
 | `growthStage: string` | `seedling \| young \| established \| mature` |
 | `_flowering: boolean` | latched at maturity in good condition |
+| `_seedSet: boolean` | this flowering episode has already set its seed |
 | `_lastLux: number` | the light reading the window is integrated with |
 | `profile: GrowthProfileData` | the authored reaction-norm block |
 
 Soil moisture is **not** here — it is `reserves['moisture']` on
-`ReservedMixin`, so it persists and authors independently.
+`ReservedMixin`, so it persists and authors independently. Root room is not
+here either: it is **derived** from the host pot on each read (Decision H).
 
 **B. The reconcile.** Sync, read-triggered, no scheduler:
 
@@ -267,13 +271,21 @@ Soil moisture is **not** here — it is `reserves['moisture']` on
 5. `steps = min(ceil(elapsed / STEP_SEC), MAX_STEPS)`; `dt = elapsed / steps`.
    The bound is a **step cap, never a time cap**.
 6. Per step: drain moisture by `ET(dt) × warmthMultiplier()`; compute
-   `satWater` and `satLight` from `profile` (`_lastLux` supplies the light);
-   `limiting = min(satWater, satLight)`; relax
-   `_vigor += (limiting - _vigor) × dt / TAU`; accrue `_maturity` when
-   `limiting ≥ GOOD_AT`; check the death floor.
+   `satWater` and `satLight` from `profile` (`_lastLux` supplies the light) and
+   `satRoot` from `rootRoom()` (Decision H — sampled **once** before the loop,
+   since the pot cannot change mid-window); `limiting = min(satWater, satLight,
+   satRoot)`; relax `_vigor += (limiting - _vigor) × dt / TAU`; accrue
+   `_maturity` when `limiting ≥ GOOD_AT`; check the death floor.
 7. Advance `growthStage` on `_maturity` thresholds; latch `_flowering` at
-   `mature` **and** `_vigor ≥ THRIVING_AT`; clear it if vigor falls back.
+   `mature` **and** `_vigor ≥ THRIVING_AT`; clear it (and `_seedSet`) if vigor
+   falls back. On a fresh latch, set a seed if `_seedSet` is false
+   (Decision I).
 8. Checkpoint: write back, `growthClockStamp = now`.
+
+> ⚠ **A stage advance changes `satRoot`**, because root demand is per-stage. A
+> plant that matures inside a small pot must become root-limited *from that
+> moment*, so recompute `satRoot` whenever step 7 advances the stage — not only
+> at the top of the reconcile.
 
 **C. Light is segmented at moves, not integrated from history.** There is no
 light history, so the window uses `_lastLux` and re-samples at the end. To keep
@@ -340,6 +352,12 @@ So a pot in a dorm room restores as: room → pot (nested state) → plant (own
 record). A pot in a transient room is culled with it and the plant is
 abandoned — the documented rule, uniformly applied.
 
+`GrowingMixin` requires `Reserved` on its host; assert it at first use with a
+clear error rather than silently reading zero. `ThermalMixin` supplies
+`getTemperature()`; if it needs weather fan-out registration to read sanely
+indoors, fall back to `Wet.ts`'s behaviour (neutral multiplier when the read
+throws) and note it.
+
 **G. Moisture lives on the plant, not the pot.** The physically prettier model
 puts water in the soil; it is rejected because it splits one checkpoint across
 two objects, and the reconcile, the clock stamp and the record are all the
@@ -365,20 +383,27 @@ satRoot = clamp(potSoilVolume / profile.rootDemand[stage], ROOT_FLOOR, 1)
 `Plant.fitsSlot(pot, 'plant')` returns `potSoilVolume ≥ rootDemand[stage]`, so
 a mature plant refuses a thimble at `repot` time. **No new `SlotSpec` field.**
 
+**Where the mixin gets the volume — the one seam it needs from its host.**
+`GrowingMixin` must not know what a pot is. It calls a protected
+`rootRoom(): number | null` that the mixin defaults to `null` and `Plant`
+overrides by walking to its slot host and reading `getSoilVolume()`. Two cases:
+
+- `null` (**unpotted** — a bare-rooted plant, or the Wave 1 test fixture):
+  `satRoot = 1`. Not being in a pot is not a root constraint; an unpotted plant
+  is already in trouble via **water**, since nothing can hold moisture for it.
+  Modelling it twice would double-punish.
+- a number: the clamped ratio above.
+
+This keeps Wave 1 testable with no pot in existence.
+
 **I. Flowering sets a seed.** On the flowering latch, clone one `Seed` into
 the pot's contents, **once per flowering episode** (a `_seedSet` boolean
 cleared when flowering clears). The player takes it with the shipped `get`. No
 new verb, no economy, and the propagation loop closes.
 
-`PersistableMixin` **must be outermost** so its `cleanupOnDestruct` fires
-before `Container` evacuates and its `applyPopulates` override wraps
-`Populates` — the documented host rule.
-
-`GrowingMixin` requires `Reserved` on its host; assert it at first use with a
-clear error rather than silently reading zero. `ThermalMixin` supplies
-`getTemperature()`; if it needs weather fan-out registration to read sanely
-indoors, fall back to `Wet.ts`'s behaviour (neutral multiplier when the read
-throws) and note it.
+The seed lands in the **pot's contents**, not the plant's — a plant is not a
+container. If the plant is unpotted when it flowers, drop the seed into
+whatever contains the plant instead.
 
 **J. The persistence key is per-instance, minted lazily, never at register.**
 
@@ -410,8 +435,10 @@ undefined`. No-op when none is found; hop-capped against a containment cycle.
 A new static on an **existing facade, not a new Api**; every later phase in the
 family needs the identical walk.
 
-**N. Two templates over one class**, `seeds/obj/plant/{peace-lily,
-snake-plant}.yaml` → `/obj/plant/peace-lily`, `/obj/plant/snake-plant`.
+**N. Content is templates over shared classes.** Two plants over `/obj/Plant`
+(`/obj/plant/{peace-lily,snake-plant}`), two pots over `/obj/PlantPot`
+(`/obj/pot/{small,large}`), two seeds over `/obj/Seed`
+(`/obj/seed/{peace-lily,snake-plant}`). Flat directories — no one-file dirs.
 
 ---
 
@@ -429,8 +456,11 @@ No content, no verb, no plant, no persistence. A mixin and its tests.
   - `static markupAugmenters = [conditionAugmenter]`
   - Public surface (methods only): `getVigor()` · `getConditionBand()` ·
     `getGrowthStage()` · `isFlowering()` · `getSoilMoisture()` ·
-    `waterPlant(litres)` · `getLimitingFactor(): 'water' | 'light' | null` ·
+    `waterPlant(litres)` ·
+    `getLimitingFactor(): 'water' | 'light' | 'root' | null` ·
     `reconcileGrowth()` · `getProfile()` / `setProfile()`
+  - Protected: `rootRoom(): number | null` — the host seam (Decision H),
+    defaulting to `null` here; `Plant` overrides it.
   - Private: `dial()` (copy `Wet.ts`'s), the satisfaction curves, `ET`,
     `warmthMultiplier()`, `growthNowSeconds()`, `_reconcilingGrowth` guard.
 - **`lib/mixin.ts`** — `Growing: 'GrowingMixin'`.
@@ -444,8 +474,10 @@ Against a bare `GrowingMixin(ReservedMixin(Thing))` fixture:
 
 - first touch seeds the stamp and integrates nothing
 - moisture drains over elapsed game-time; a watered plant holds
-- `min(satWater, satLight)` governs — starving *either* input alone caps vigor,
-  and `getLimitingFactor()` names the right one
+- `min(satWater, satLight, satRoot)` governs — starving *any one* input alone
+  caps vigor, and `getLimitingFactor()` names the right one
+- with `rootRoom()` returning `null` (the bare fixture) `satRoot` is 1 and
+  never limits — so every other test in this file runs pot-free
 - the band ladder walks `thriving → healthy → stressed → failing → dead` in
   order and never skips
 - **⭐ a multi-real-day gap reconciles fully** (the far-past-guard proof — the
@@ -482,7 +514,7 @@ plant lands on a spine that can hold it.
   - Update the comment that states the singleton invariant — it is now the
     *keyless* invariant.
 - **`api/persistable.ts` + `obj/api/PersistableLogic.ts`** — add
-  `captureHostOf(stuff)` (Decision J). The Api↔logic split is mandatory: the
+  `captureHostOf(stuff)` (Decision M). The Api↔logic split is mandatory: the
   static forwards, the walk lives in the logic singleton.
 
 ### Tests — `obj/api/__tests__/PersistableKeyedNesting.test.ts`
@@ -530,10 +562,17 @@ plant lands on a spine that can hold it.
 - **`seeds/obj/plant/snake-plant.yaml`** — same class, inverted profile:
   drought-tolerant, low-light-tolerant, slower to mature, modest root demand.
 - **`seeds/obj/pot/{small,large}.yaml`** — `class: /obj/PlantPot`, the
-  `staticSlots` + `interiorBulk` block from Decision F. The small pot carries
-  a `seedling`/`young` root ceiling; the large one carries `mature`.
-- **`seeds/obj/plant/seed/{peace-lily,snake-plant}.yaml`** — `class:
-  /obj/Seed`, `growsIntoPath` pointing at the matching plant template.
+  `staticSlots` + `interiorBulk` block from Decision F. Their **soil volumes**
+  are the only difference: the small pot's carries a peace lily to `young`
+  before it binds; the large one carries it to `mature`. Both ship empty — the
+  dorm's starter is a *third* template (Wave 6) that seeds pre-filled and
+  pre-planted, so a bought pot and a starter pot share one class.
+- **`seeds/obj/seed/{peace-lily,snake-plant}.yaml`** — `class: /obj/Seed`,
+  `growsIntoPath` pointing at the matching plant template.
+  > These are ordinary `/obj/` items, **not** general-store `goods/` templates.
+  > Wave 6's `stockLines` point straight at these paths — `itemTemplatePath`
+  > takes any path, and duplicating a template under `goods/` would mean two
+  > seeds that grow the same plant and drift apart.
 - **Potting soil `Material`** in `packages/content/base-library/content/lib/
   material/bulk/potting-soil.yaml`, following `water.yaml`'s shape with a
   granular/solid tag set (`BulkableApi.ingestSolid` exists — bulk is not
@@ -596,7 +635,10 @@ deliberate and phase 7 generalizes it.
   `plant <seed> in <pot>`. Args: `seed` (object, required, `scope: reachable`),
   `pot` (object, required, prepositions `[in, into]`). Rejections, each with
   its own note kind and a plain-language line: target is not a seed; target is
-  not a pot; **the pot has no soil**; the slot is occupied. On success:
+  not a pot; **the pot has no soil**; the slot is occupied. `fitsSlot` applies
+  here too — a seedling fits anything today, but gate on it rather than
+  assuming, so a future large-seeded species can't be planted into a thimble.
+  On success:
   `StuffApi.clone(seed.getGrowsIntoPath())` → move into the pot's contents →
   occupy the `plant` slot → `StuffApi.destruct(seed)` →
   `PersistableApi.captureHostOf(plant)`.
@@ -676,28 +718,37 @@ deliberate and phase 7 generalizes it.
 
 **The starter — the dorm.**
 
+- **`seeds/obj/pot/starter.yaml`** — `class: /obj/PlantPot`, same soil volume
+  as the small pot, but **pre-filled with soil and carrying its own
+  `populates:`** that brings a peace lily into its slot. This is why a starter
+  and a bought pot share one class: the difference is entirely template data.
 - **`seeds/domain/eternal/duncan-hall/dormroom.yaml`** — extend `populates:`:
-  bed/desk/footlocker stay, then the watering can, the tap, and a **small pot
-  already filled with soil and already holding a peace lily**, placed as
-  `{ template: /obj/pot/small, onto: <the desk entry's path> }`. Order matters
-  — the surface must be populated first.
-  > **The pot's soil and occupant are authored on the pot template**, not
-  > assembled by the room: the pot seeds with its bulk slot pre-filled and its
-  > own `populates:` bringing the plant into its slot. That keeps the dorm seed
-  > a list of items rather than an assembly script, and it means a bought pot
-  > can ship empty from the identical class.
+  bed/desk/footlocker stay, then the watering can, the tap, and
+  `{ template: /obj/pot/starter, onto: <the desk entry's path> }`. Order
+  matters — the surface must be populated first.
+  > ⚠ **Nested `populates:` runs during the clone cascade.** Verify the pot's
+  > own populate lands its plant *in the slot*, not merely in its contents —
+  > `PopulatesMixin` moves by containment, so the slot occupancy is an extra
+  > step the pot must take (a `postRegister` that occupies with whatever
+  > `SlottableMixin` arrived, or an explicit occupy in its populate applier).
+  > If that proves awkward, seed the plant from the room instead and have the
+  > pot adopt it — but do not leave a plant sitting in a pot's contents outside
+  > its slot, which is exactly the −1-index trap.
 - **`seeds/domain/eternal/duncan-hall/dorm-fixtures/tap.yaml`** — an
   `/obj/UnboundedReceptacle` holding `/lib/material/bulk/water`, copying
   `seeds/obj/vessel/urn.yaml`. Prose should sit with the room's register.
 
 **The commerce — the general store. Content only, no code.**
 
-- **`seeds/domain/terminus/general-store/goods/`** — four new templates:
-  `flower-pot-small`, `flower-pot-large`, `potting-soil` (a sack: an ordinary
-  bulk holder pre-filled with the soil material), `snake-plant-seed`. They are
-  discrete Things, per the counter's stated convention.
-- **`counter.yaml`** — four `stockLines` entries with a `par`, and four
-  `prices` entries. Calibrate against the shipped ladder in the file's own
+- **`seeds/obj/vessel/soil-sack.yaml`** — the only genuinely new good: an
+  ordinary bulk holder pre-filled with the potting-soil material. Everything
+  else the store sells already exists from Wave 3.
+- **`counter.yaml`** — four `stockLines` entries with a `par`, pointing at
+  `/obj/pot/small`, `/obj/pot/large`, `/obj/vessel/soil-sack` and
+  `/obj/seed/snake-plant`, plus four matching `prices` entries. **No new
+  `goods/` templates** — the existing goods live there because they are
+  store-specific, not because the path is required. Calibrate against the
+  shipped ladder in the file's own
   header (stipend 20; torch 2, rations 3, waterskin 4, clasp-knife 6, lantern
   10). Suggested shape, not gospel: small pot ~3, large pot ~8, sack of soil
   ~2, seed ~5. **The large pot must be a real but reachable purchase** — it is
@@ -750,7 +801,7 @@ whole design cannot be skipped.
 - a **dead** plant is still dead after restore, and `seedBornWith` does not
   re-seed a replacement
 - **the abandonment rule holds and is observable**: a plant left in a transient
-  room is culled with it and does not come back (Decision I — assert the
+  room is culled with it and does not come back (Decision L — assert the
   documented behaviour, don't leave it untested)
 - **⭐ the restart-rollback property.** Water, capture, water again *without*
   capturing, restore from the earlier record. Assert (a) the second watering is
@@ -893,11 +944,12 @@ whole design cannot be skipped.
 `obj/command/inventory/{Plant,Repot}Controller.ts` · `cmd/bulk/water.yaml` ·
 `cmd/inventory/{plant,repot}.yaml` ·
 `seeds/obj/plant/{peace-lily,snake-plant}.yaml` ·
-`seeds/obj/plant/seed/{peace-lily,snake-plant}.yaml` ·
-`seeds/obj/pot/{small,large}.yaml` · `seeds/obj/vessel/watering-can.yaml` ·
-`seeds/domain/eternal/duncan-hall/dorm-fixtures/tap.yaml` · four general-store
-goods templates · the potting-soil material · the snake-plant species row ·
-`docs/subsystems/husbandry.md` · five test files
+`seeds/obj/seed/{peace-lily,snake-plant}.yaml` ·
+`seeds/obj/pot/{small,large,starter}.yaml` ·
+`seeds/obj/vessel/{watering-can,soil-sack}.yaml` ·
+`seeds/domain/eternal/duncan-hall/dorm-fixtures/tap.yaml` · the potting-soil
+material · the snake-plant species row · `docs/subsystems/husbandry.md` ·
+five test files
 
 **Modified**
 
