@@ -28,7 +28,7 @@ import EventRegistry from '../../../../obj/EventRegistry';
 import Interactive from '../../../../obj/Interactive';
 import Avatar from '../../../../obj/Avatar';
 import CartesianLocation from '../../../location/CartesianLocation';
-import Wardrobe from '../../Wardrobe';
+import SandboxCrossing from '../../SandboxCrossing';
 import SandboxCrossingExit from '../../SandboxCrossingExit';
 import type { Containable } from '../../../spatial/Containable';
 import type { Container } from '../../../spatial/Container';
@@ -159,14 +159,14 @@ describe('sandbox-escape: the round-trip criterion', () => {
       () => new Interactive('sock-rt', 'sess-rt', { _id: 'u1' } as never)
     );
     ConnectionApi.transfer(interactive, avatar);
-    const wardrobe = await StuffApi.create(() => new Wardrobe());
+    const wardrobe = await StuffApi.create(() => new SandboxCrossing());
     ContainmentApi.move(
       wardrobe as unknown as Stuff & Containable,
       room as unknown as Stuff & Container
     );
     const passage = (
       room as unknown as { getExit(d: string): SandboxCrossingExit }
-    ).getExit('wardrobe');
+    ).getExit('crossing');
 
     // ENTER through the door.
     await (avatar as unknown as Mobile).traverse(passage, 'walk');

@@ -1,10 +1,17 @@
 /**
- * Wardrobe — the sandbox's player door (docs/subsystems/sandbox.md):
- * a placeable, ownable fixture whose presence in a room installs the
- * crossing passage. Content over the boundary substrate — the only
- * sandbox-specific machinery is the `SandboxCrossingExit` it carries.
- * Skins (wardrobe / turbolift / mirror / drafting table) are sibling
- * templates differing only in `Visible`/`Detailed` data.
+ * SandboxCrossing — the sandbox's player door
+ * (docs/subsystems/sandbox.md): a placeable, ownable fixture whose
+ * presence in a room installs the crossing passage. Content over the
+ * boundary substrate — the only sandbox-specific machinery is the
+ * `SandboxCrossingExit` it carries.
+ *
+ * The class is the MECHANISM; a wardrobe is one skin of it. Skins are
+ * sibling TEMPLATES differing only in data — the shipped one is
+ * `/obj/sandbox/wardrobe`, and a turbolift, a mirror or a drafting
+ * table are new template rows, not new classes. That is why nothing
+ * skin-specific may live here: `passageDirection` is a field for
+ * exactly this reason, so a turbolift installs an exit called
+ * "turbolift" rather than one called "wardrobe".
  *
  * A `Thing`-tier fixture (Chattel identity rides the Thing base), with
  * one persistent field:
@@ -37,17 +44,35 @@ import type { Container } from '../spatial/Container';
 import type Avatar from '../../obj/Avatar';
 import SandboxCrossingExit from './SandboxCrossingExit';
 
-/** The passage's direction label in a room's exit list. */
-const PASSAGE_DIRECTION = 'wardrobe';
+/** Fallback exit label when a skin declares none. */
+const DEFAULT_PASSAGE_DIRECTION = 'crossing';
 
-export default class Wardrobe extends Thing {
-  static persistentFields: string[] = ['linkedSandboxPath'];
+export default class SandboxCrossing extends Thing {
+  static persistentFields: string[] = [
+    'linkedSandboxPath',
+    'passageDirection',
+  ];
 
   /**
    * The circle this door opens onto (Pattern A path string; empty =
    * unlinked, links on first enter). @runtimeState persisted.
    */
   protected linkedSandboxPath: string = '';
+
+  /**
+   * The exit label this fixture installs. Skin-specific data, not a
+   * constant: the wardrobe template says `wardrobe`, a turbolift says
+   * `turbolift`, and the player types what they see.
+   */
+  protected passageDirection: string = DEFAULT_PASSAGE_DIRECTION;
+
+  public getPassageDirection(): string {
+    return this.passageDirection || DEFAULT_PASSAGE_DIRECTION;
+  }
+
+  public setPassageDirection(value: string): void {
+    this.passageDirection = value;
+  }
 
   /** The installed passage exit (runtime-only; re-minted per placement). */
   private passage: SandboxCrossingExit | null = null;
@@ -125,7 +150,7 @@ export default class Wardrobe extends Thing {
       const exit = StuffApi.createSync(
         () =>
           new SandboxCrossingExit({
-            direction: PASSAGE_DIRECTION,
+            direction: this.getPassageDirection(),
             source: to,
             // The real destination is the crossing itself; the path is
             // presentation-level only (an unlinked door names the wire).
@@ -135,7 +160,7 @@ export default class Wardrobe extends Thing {
           })
       );
       exit.setCrossingDirection('enter');
-      exit.setWardrobe(this);
+      exit.setCrossing(this);
       void to.addExit(exit);
       this.passage = exit;
     }
@@ -155,7 +180,7 @@ export default class Wardrobe extends Thing {
         // Fire-and-forget (onDestruct is synchronous); closeSession
         // exits every occupant then discards.
         void SandboxApi.closeSession(linked).catch((err) =>
-          console.error('[sandbox] wardrobe-destroy reap failed:', err)
+          console.error('[sandbox] crossing-destroy reap failed:', err)
         );
       }
     }
@@ -166,7 +191,7 @@ export default class Wardrobe extends Thing {
   private teardownPassage(room: (Stuff & Container) | null): void {
     if (!this.passage) return;
     if (room && MixinApi.isExitable(room)) {
-      room.removeExit(PASSAGE_DIRECTION);
+      room.removeExit(this.getPassageDirection());
     }
     if (!this.passage.isDestroyed()) {
       try {

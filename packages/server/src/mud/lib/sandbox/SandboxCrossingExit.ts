@@ -1,11 +1,11 @@
 /**
- * SandboxCrossingExit — the wardrobe passage (docs/subsystems/sandbox.md,
+ * SandboxCrossingExit — the crossing passage (docs/subsystems/sandbox.md,
  * Decision H): "a door is just an exit," kept literal. An `Exit`
  * subclass whose `applyTraversal` override runs the wire-body crossing
  * instead of a containment move — nothing material ever traverses.
  *
  * Two directions:
- *   - **`enter`** (the field-side door a Wardrobe fixture installs):
+ *   - **`enter`** (the field-side door a SandboxCrossing installs):
  *     `canTraverse` performs the DOOR GATE (the mover's own circle is
  *     always theirs — the self-home rule; a fixture linked to someone
  *     else's circle admits its host; guest grants ride the parcel grant
@@ -15,9 +15,9 @@
  *     the parked field body never moved, so there is no destination to
  *     resolve; you simply wake up where you left.
  *
- * The target circle resolves LIVE through the carrying Wardrobe
+ * The target circle resolves LIVE through the carrying fixture
  * (within-session ref, Pattern B — re-minted with the exit on every
- * placement): an unlinked wardrobe links on first enter.
+ * placement): an unlinked, unowned door opens onto whoever enters.
  */
 
 import Exit, { type TraversalGuard } from '../boundary/Exit';
@@ -28,14 +28,14 @@ import { SandboxApi } from '../../api/sandbox';
 import { ParcelApi } from '../../api/parcel';
 import { PlayerApi } from '../../api/player';
 import type Avatar from '../../obj/Avatar';
-import type Wardrobe from './Wardrobe';
+import type SandboxCrossing from './SandboxCrossing';
 
 export default class SandboxCrossingExit extends Exit {
   /** Which way this passage runs. */
   private crossingDirection: 'enter' | 'return' = 'enter';
 
   /** The carrying fixture (enter direction only; live within-session). */
-  private wardrobe: Wardrobe | null = null;
+  private crossing: SandboxCrossing | null = null;
 
   /**
    * A crossing has NO spatial destination — that is Decision H's whole
@@ -54,7 +54,7 @@ export default class SandboxCrossingExit extends Exit {
    * an exit out of that room).
    *
    * `getObviousExits` still lists it, because a player must be able to
-   * SEE the wardrobe passage; this predicate is the seam a structural
+   * SEE the crossing passage; this predicate is the seam a structural
    * walker checks instead of assuming every listed exit leads to a
    * room.
    */
@@ -70,12 +70,12 @@ export default class SandboxCrossingExit extends Exit {
     this.crossingDirection = value;
   }
 
-  public getWardrobe(): Wardrobe | null {
-    return this.wardrobe;
+  public getCrossing(): SandboxCrossing | null {
+    return this.crossing;
   }
 
-  public setWardrobe(value: Wardrobe | null): void {
-    this.wardrobe = value;
+  public setCrossing(value: SandboxCrossing | null): void {
+    this.crossing = value;
   }
 
   /**
@@ -109,7 +109,7 @@ export default class SandboxCrossingExit extends Exit {
     // Already inside? Refuse HERE, in the door's own prose, rather than
     // letting `SandboxApi.enter` throw its guard up through the
     // dispatcher as "Something went wrong in GoController". Cloning a
-    // wardrobe inside your own circle and walking into it is the
+    // crossing inside your own circle and walking into it is the
     // obvious thing to try — the recursion is correctly refused either
     // way, but a player should meet a closed door, not a stack trace.
     if (
@@ -129,7 +129,7 @@ export default class SandboxCrossingExit extends Exit {
   /**
    * The crossing itself — Decision H's whole point — plus the async
    * authority gate: your own circle is always yours (unlinked fixtures
-   * link on first enter — `Wardrobe.linkForEnterer`); someone else's
+   * link on first enter — `SandboxCrossing.linkForEnterer`); someone else's
    * circle admits its title holder and use-grant holders
    * (`ParcelApi.hasUseGrant`, the shipped lease surface).
    */
@@ -144,10 +144,10 @@ export default class SandboxCrossingExit extends Exit {
     const playerId = avatar.getPlayerId();
     // An UNOWNED fixture never links (a public booth opens onto each
     // enterer's own circle); an owned one is gated below.
-    const linked = this.wardrobe
-      ? (await this.wardrobe.ownerPlayerId()) === null
+    const linked = this.crossing
+      ? (await this.crossing.ownerPlayerId()) === null
         ? ''
-        : this.wardrobe.getLinkedSandboxPath()
+        : this.crossing.getLinkedSandboxPath()
       : '';
     const own = linked === '' || linked === `/home/${playerId}`;
     if (!own) {
@@ -159,12 +159,12 @@ export default class SandboxCrossingExit extends Exit {
         !isOwner && (await ParcelApi.hasUseGrant(linked, moverPath));
       if (!isOwner && !hasGrant) {
         throw new ContainmentError(
-          'This wardrobe opens onto a circle that is not yours.'
+          'This door opens onto a circle that is not yours.'
         );
       }
     }
-    const scope = this.wardrobe
-      ? await this.wardrobe.linkForEnterer(avatar)
+    const scope = this.crossing
+      ? await this.crossing.linkForEnterer(avatar)
       : `/home/${playerId}`;
     await SandboxApi.enter(avatar, scope);
     return true;

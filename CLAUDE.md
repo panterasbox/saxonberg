@@ -274,6 +274,15 @@ discoverability.
   scoped to `mud/api/` author faces: flags faces that speak a named type
   but don't re-export it. Residual gaps are capability/mixin interfaces
   that ride their own concept's face.
+- `pnpm lint:boundary` (`scripts/check-boundary-exemptions.ts`) — the
+  sandbox boundary's exemption lists, checked the way the base-class
+  list already is: by the build. Every exempt template path must
+  resolve to a real seed row (rename a singleton and the exemption
+  silently points at nothing), and the symmetric vs inbound-only method
+  sets must stay disjoint (an entry in both silently un-does the
+  direction rule). CI-gating. It deliberately does NOT judge whether an
+  exemption is *justified* — that is a review call, and the reason
+  these stay short readable lists instead of being derived.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).

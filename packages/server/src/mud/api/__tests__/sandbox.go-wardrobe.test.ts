@@ -21,7 +21,7 @@ import EventRegistry from '../../obj/EventRegistry';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import Wardrobe from '../../lib/sandbox/Wardrobe';
+import SandboxCrossing from '../../lib/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
 
@@ -80,13 +80,13 @@ describe('go wardrobe (the real command path)', () => {
 
     // Place the (unowned, public) wardrobe: its onMoved installs the
     // passage into the room.
-    const wardrobe = await StuffApi.create(() => new Wardrobe());
+    const wardrobe = await StuffApi.create(() => new SandboxCrossing());
     ContainmentApi.move(
       wardrobe as unknown as Stuff & Containable,
       room as unknown as Stuff & Container
     );
     expect(
-      (room as unknown as { getExit(d: string): unknown }).getExit('wardrobe')
+      (room as unknown as { getExit(d: string): unknown }).getExit('crossing')
     ).toBeTruthy();
 
     // Walk it through the real Mobile.traverse path (which consults
@@ -98,7 +98,7 @@ describe('go wardrobe (the real command path)', () => {
       room as unknown as {
         getExit(d: string): import('../../lib/boundary/Exit').default;
       }
-    ).getExit('wardrobe');
+    ).getExit('crossing');
     await (avatar as unknown as import('../../lib/spatial/Mobile').Mobile).traverse(
       exit,
       'walk'

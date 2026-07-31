@@ -198,6 +198,35 @@ the vessel minted with no default loadout.
 **The rule of thumb**: keep the list to genuine vocabulary. Anything a
 player can change is world state and does not belong here.
 
+**Transport writes are INBOUND-only.** The connection lifecycle splits
+in two. Its reads (`getHolder`, `getInteractives`, `isConnected`,
+`isLinkdead`, `isParked`) are symmetric — the delivery redirect asks
+questions in both directions. Its **writes** (`setHolder`,
+`add`/`removeInteractive`, `onConnectionAttached`/`Detached`,
+`onLinkdead`, `onLinkRestored`) are exempt only when the context is
+FIELD and the receiver is circle-scoped: the engine reaching *into* a
+circle, which the crossing genuinely needs (a socket closes in field
+context while its holder is a vessel).
+
+The reverse is never needed and was a hole. These are `@hook` methods —
+public and deliberately **ungateable**, since a subclass's
+`super.onLinkdead()` is author code, so no `@CallSecurity` can sit on
+one — and `Avatar.onLinkdead` has a real body: it emits presence,
+saves, and destructs a guest outright. A symmetric exemption therefore
+let content standing inside a circle call `someFieldAvatar.onLinkdead()`
+and force any of that on the far side. (Public ungated hooks were
+always callable by same-scope content; what the symmetric exemption
+added was the crossing.) Direction is decided by the SCOPES, not the
+caller, so circle→field and circle-A→circle-B both stay denied —
+pinned by `transport.escape.test.ts`.
+
+**Both lists are CI-checked** (`pnpm lint:boundary`). The base-class
+exemptions are typechecked for free; the path strings were not, so a
+renamed singleton could silently change the security surface. The
+script also asserts the symmetric and inbound-only method sets stay
+disjoint, since the symmetric check short-circuits and an entry in both
+would quietly restore the hole.
+
 ## The crossing (as built)
 
 - **Fork/merge**: `ForkableMixin` (`lib/persistence/Forkable.ts`) —
@@ -283,12 +312,20 @@ player can change is world state and does not belong here.
   hasUseGrant` — in `applyTraversal`, refusing via the ordinary
   ContainmentError prose path) then `SandboxApi.enter`; `return`
   direction is always open and runs `SandboxApi.exit`.
-- **`Wardrobe`** (`/obj/sandbox/wardrobe` + skin siblings): Thing-tier,
-  chattel-identified, one persistent field (`linkedSandboxPath`,
-  Pattern A; `''` = unlinked). `onMoved` re-seats the passage (the door
-  is wherever the fixture is). Guest access rides the shipped parcel
-  grant surface — `revokeUse` carries a direct sandbox witness that
-  exits a revoked guest mid-visit.
+- **`SandboxCrossing`** (`lib/sandbox/`): the door's MECHANISM —
+  Thing-tier, chattel-identified, two persistent fields
+  (`linkedSandboxPath`, Pattern A, `''` = unlinked; and
+  `passageDirection`, the exit label it installs). `onMoved` re-seats
+  the passage (the door is wherever the fixture is). Guest access rides
+  the shipped parcel grant surface — `revokeUse` carries a direct
+  sandbox witness that exits a revoked guest mid-visit.
+
+  **A wardrobe is a skin, not the class.** `/obj/sandbox/wardrobe` is a
+  template row over that mechanism; a turbolift, a mirror, a drafting
+  table are sibling ROWS — prose, keywords, and `passageDirection` —
+  never new classes. That is why the exit label is a field: the class
+  used to hardcode `'wardrobe'`, so a turbolift would have installed an
+  exit called "wardrobe". Nothing skin-specific belongs in `lib/`.
 
   **The public-booth rule.** What a door does on first entry turns on
   **ownership**, not on who got there first:

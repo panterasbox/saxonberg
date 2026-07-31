@@ -15,6 +15,7 @@
     "docs:clean": "rm -rf docs/api",
     "lint:gates": "tsx scripts/check-gate-strings.ts",
     "lint:module-scope": "tsx scripts/check-module-scope.ts",
+    "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",
     "lint:world-scan": "tsx scripts/check-world-scan.ts",
     "lint:thin-forwarder": "tsx scripts/check-thin-forwarder.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",

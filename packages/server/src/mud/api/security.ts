@@ -645,10 +645,7 @@ export class SecurityApi {
     // crossing itself moves Interactives between a field body and a
     // circle vessel). No domain state rides these.
     'getHolder',
-    'setHolder',
     'getInteractives',
-    'addInteractive',
-    'removeInteractive',
     'hasInteractive',
     'isConnected',
     'isLinkdead',
@@ -660,6 +657,37 @@ export class SecurityApi {
     // after the message has already been composed and echoed to the
     // sender. Read-only: `setParked` is deliberately NOT here.
     'isParked',
+  ]);
+
+  /**
+   * The transport hooks that **mutate**, exempt in ONE DIRECTION only:
+   * the engine reaching *into* a circle, never circle code reaching
+   * *out*.
+   *
+   * These are the connection lifecycle's write half — attaching and
+   * detaching sockets, and the link-state hooks whose bodies do real
+   * work (`Avatar.onLinkdead` emits presence, saves, and destructs a
+   * guest outright). The crossing genuinely needs them across the
+   * boundary: a socket closes in FIELD context while its holder is a
+   * circle-resident vessel, so the engine must be able to reach in.
+   *
+   * The reverse is never needed and is a hole. `@hook` methods are
+   * public and deliberately UNGATEABLE — a subclass's
+   * `super.onLinkdead()` is author code, so no `@CallSecurity` can sit
+   * on them — which means a symmetric exemption let content standing
+   * inside a circle call `someFieldAvatar.onLinkdead()` and force a
+   * presence event, a save, or a guest's destruction on the far side.
+   * Public ungated hooks were always callable by same-scope content;
+   * what a symmetric exemption added was the crossing.
+   *
+   * Direction is decided by the SCOPES, not by the caller: allowed when
+   * the context is field (`null`) and the receiver is circle-scoped.
+   * Circle → field, and circle-A → circle-B, both stay denied.
+   */
+  static readonly #INBOUND_TRANSPORT_METHODS: ReadonlySet<string> = new Set([
+    'setHolder',
+    'addInteractive',
+    'removeInteractive',
     'onConnectionAttached',
     'onConnectionDetached',
     'onLinkdead',
@@ -968,7 +996,12 @@ export class SecurityApi {
         SecurityApi.#BOUNDARY_EXEMPT_METHODS.has(ctx.prop) ||
         SecurityApi.#isBoundaryExempt(ctx.target) ||
         SecurityApi.#consumeInspectionBypass() ||
-        SecurityApi.#MESSAGE_DELIVERY_METHODS.has(ctx.prop);
+        SecurityApi.#MESSAGE_DELIVERY_METHODS.has(ctx.prop) ||
+        // Inbound-only: the engine reaching INTO a circle. Field
+        // context, circle-scoped receiver — never the reverse.
+        (ctxScope === null &&
+          rcvScope !== null &&
+          SecurityApi.#INBOUND_TRANSPORT_METHODS.has(ctx.prop));
       if (!pass && bctx.bound !== null && rcvScope === ctxScope) {
         // Jurisdiction bound (governed eval, Decision K): a FIELD
         // receiver under the bound's extent is in-jurisdiction —

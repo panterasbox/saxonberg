@@ -25,7 +25,7 @@ import EventRegistry from '../../obj/EventRegistry';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import Wardrobe from '../../lib/sandbox/Wardrobe';
+import SandboxCrossing from '../../lib/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../lib/sandbox/SandboxCrossingExit';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
@@ -76,8 +76,8 @@ async function makeRig(): Promise<{
   return { avatar, interactive, room };
 }
 
-async function placeWardrobe(room: CartesianLocation): Promise<Wardrobe> {
-  const wardrobe = await StuffApi.create(() => new Wardrobe());
+async function placeWardrobe(room: CartesianLocation): Promise<SandboxCrossing> {
+  const wardrobe = await StuffApi.create(() => new SandboxCrossing());
   ContainmentApi.move(
     wardrobe as unknown as Stuff & Containable,
     room as unknown as Stuff & Container
@@ -87,7 +87,8 @@ async function placeWardrobe(room: CartesianLocation): Promise<Wardrobe> {
 
 function wardrobeExitOf(room: CartesianLocation): SandboxCrossingExit {
   const exit = (room as unknown as { getExit(d: string): unknown }).getExit(
-    'wardrobe'
+    // The bare mechanism, not the wardrobe skin — so the generic label.
+    'crossing'
   );
   expect(exit).toBeInstanceOf(SandboxCrossingExit);
   return exit as SandboxCrossingExit;
@@ -121,7 +122,7 @@ describe('the wardrobe door (Wave 4)', () => {
       other as unknown as Stuff & Container
     );
     expect(
-      (room as unknown as { getExit(d: string): unknown }).getExit('wardrobe')
+      (room as unknown as { getExit(d: string): unknown }).getExit('crossing')
     ).toBeFalsy();
     expect(wardrobeExitOf(other)).toBeTruthy();
   });
