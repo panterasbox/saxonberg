@@ -9,6 +9,7 @@ import { MixinApi } from "../../api/mixin";
 import { GroupApi } from "../../api/group";
 import { RecognitionApi } from "../../api/recognition";
 import { PlayerApi } from "../../api/player";
+import { SandboxApi } from "../../api/sandbox";
 import { ShellApi } from "../../api/shell";
 import { GrammarApi } from "../../api/grammar";
 import { Mml } from "../../api/mml";
@@ -666,7 +667,11 @@ async function relayPresenceImpl(
     // `isConnected()` true, but sending to it throws DestroyedObjectError
     // on `onEnvelope` and would abort the whole relay loop.
     if ((viewer as Stuff).isDestroyed()) continue;
-    if (!viewer.isConnected()) continue; // online viewers only — skip linkdead
+    // Sandbox (Decision N): rules stay on the registry avatar; delivery
+    // follows the ACTIVE body. A parked viewer's wire body is the live
+    // delivery target; an unparked viewer delivers to themselves.
+    const deliveryBody = SandboxApi.activeBodyFor(viewer.getPlayerId()) ?? viewer;
+    if (!deliveryBody.isConnected()) continue; // online viewers only — skip linkdead
     const rule = await ruleForImpl(viewer, actor as Stuff, {
       excludeMql: true,
     });
@@ -721,8 +726,10 @@ async function relayPresenceImpl(
         : Mml.fromMarkup(resolved);
     // Per-viewer isolation: a single bad recipient (mid-teardown handle,
     // a send that throws) must not deny every other viewer their frame.
+    // The scene anchors on the ACTIVE body so a parked viewer's notice
+    // lands in their circle session (delivery follows identity).
     try {
-      MessageApi.scene(viewer)
+      MessageApi.scene(deliveryBody)
         .topic("world.social.presence")
         .toSelf(body, payload)
         .send();

@@ -26,7 +26,10 @@
  */
 
 import { PersistenceManager } from '../../backend/PersistenceManager';
+import type { FindOptions } from '../../backend/PersistenceManager';
 import { SecurityApi } from './security';
+
+export type { FindOptions };
 
 export class PersistApi {
   /** Whether the Mongo connection is live (the no-op-when-offline guard). */
@@ -34,12 +37,13 @@ export class PersistApi {
     return PersistenceManager.get().isConnected();
   }
 
-  /** Documents in `collection` matching `query`. */
+  /** Documents in `collection` matching `query`, optionally sorted/limited. */
   static async find(
     collection: string,
-    query: Record<string, unknown>
+    query: Record<string, unknown>,
+    options?: FindOptions
   ): Promise<Record<string, unknown>[]> {
-    return PersistenceManager.get().find(collection, query);
+    return PersistenceManager.get().find(collection, query, options);
   }
 
   /** One document by Mongo `_id`, or `null`. */
@@ -61,6 +65,18 @@ export class PersistApi {
   /** Delete the document with `id` from `collection`. */
   static async delete(collection: string, id: string): Promise<void> {
     return PersistenceManager.get().delete(collection, id);
+  }
+
+  /**
+   * Delete every document in `collection` matching `filter`; returns the
+   * delete count. Bulk maintenance — skips per-id around-delete hooks
+   * (see `PersistenceManager.deleteMany`).
+   */
+  static async deleteMany(
+    collection: string,
+    filter: Record<string, unknown>
+  ): Promise<number> {
+    return PersistenceManager.get().deleteMany(collection, filter);
   }
 }
 

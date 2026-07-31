@@ -1725,3 +1725,44 @@ yet drives the priority.
 - [antipatterns.md § Per-Field
   Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-normalize-hooks)
   — setter-based invariants the Hydrator rides on
+
+## The sandbox boundary's read aperture (`SecurityApi.projectAcross`)
+
+The sandbox build added a Layer-4 dispatch check to the gate (see
+[sandbox.md](./sandbox.md)) and, with it, one new `SecurityApi`
+surface worth knowing about from this side:
+
+```ts
+SecurityApi.projectAcross(a, b, fn, principal)
+```
+
+Runs `fn` under an omni root **iff** `a` and `b` sit on opposite sides
+of a circle (`b === undefined` compares against the ambient context).
+Same-side calls take an identity branch and see no widening at all.
+
+The rule it encodes: the layers contain durable **mutation**, but a
+read-only *projection of a person* — what they are called, what they
+can sense, what they are doing — is neither durable nor a mutation, and
+yields text or a display row, which the doctrine already lets cross.
+Its consumers are `RecognitionApi.describe*` / `perceivedKeywords` /
+`salientFeatures`, `PerceptionApi.sensorium` / `canPerceive`, and
+`SocialApi.statusOf` / `composeRow`.
+
+Two things about the shape are load-bearing:
+
+- **The root is planted AS the calling facade** (hence `principal`). A
+  fresh root discards the frame that identified the caller, so the
+  logic singleton's own per-facade `FromModule` gate would otherwise
+  refuse its own facade.
+- **A projection is the unit, not a call.** Exempting method *names*
+  does not compose: an exempt method that dispatches on `this`
+  re-enters the proxy, and the inner hop is a fresh check with the same
+  cross-scope context, so the denial just moves down one frame
+  (`getPresentation` → `getDisguise` → `getAllOccupants`). Anything
+  with a body wraps its body; only genuine leaves belong on a list.
+
+**Exemption lists are CI-checked** — `pnpm lint:boundary`. The
+base-class exemptions are typechecked for free; the template-path
+strings were not, so a renamed singleton could silently change the
+security surface (the same problem shape `lint:gates` exists for). It
+also asserts the symmetric and inbound-only method sets stay disjoint.

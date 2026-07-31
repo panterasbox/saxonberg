@@ -569,6 +569,10 @@ describe("security (AC #8)", () => {
     // Only capture/captureHostOf/materialize/hasRecord/deleteAllFor — no
     // raw write/save. (`captureHostOf` is a capture, host-resolving: it
     // reaches the same gated writer through the same principal.)
+    //
+    // The fork protocol (sandbox build) is RUNTIME state movement, not a
+    // record-store write path: forkRuntimeState/mergeRuntimeState never
+    // touch `holder_snapshots`.
     expect(surface.sort()).toEqual(
       [
         "capture",
@@ -576,6 +580,8 @@ describe("security (AC #8)", () => {
         "deleteAllFor",
         "hasRecord",
         "materialize",
+        "forkRuntimeState",
+        "mergeRuntimeState",
       ].sort(),
     );
   });

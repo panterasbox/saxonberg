@@ -46,10 +46,14 @@ import { ZoneApi } from '../../api/zone';
  * `lookupAncestorField`).
  */
 export abstract class Zone extends Idea {
-  /** Zone itself persists no fields (subclasses declare their own; the
-   *  inheritance walk reads dynamic fields via `lookupField`). See the
+  /** The two fields Zone itself owns (subclasses declare their own on
+   *  top). `wire` HAS to be here: it's a declared field with an
+   *  accessor pair, so the Hydrator only reaches it by name — and a
+   *  `wire: true` seed row that silently doesn't apply reads as "not
+   *  wire", which routes quarantined code down the governed path
+   *  (found live: `eval` inside a circle ran GOVERNED). See the
    *  ownership-removal note below. */
-  static persistentFields: string[] = [];
+  static persistentFields: string[] = ['name', 'wire'];
 
   // Ownership/access fields (`ownerGroup` / `accessGroups` /
   // `ownerGroupName`) were REMOVED in property phase 0a. Title now lives in
@@ -67,6 +71,21 @@ export abstract class Zone extends Idea {
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }
+
+  /**
+   * Wire-classification field (sandbox build, Decision O): `true` on a
+   * *wire namespace root* (`/home`, `/studio`) and inherited by every
+   * descendant through the ordinary `lookupField` walk — so "is this
+   * path wire?" is `await zone.lookupField<boolean>('wire')`, data
+   * resolved by a mechanism that already exists, never a hardcoded
+   * prefix list and never an `instanceof`. A third wire root is a seed
+   * row with this field, not an edit to the containment layers.
+   * `null` = not declared here (walk further); field zones never set it.
+   */
+  protected wire: boolean | null = null;
+
+  public getWire(): boolean | null { return this.wire; }
+  public setWire(value: boolean): void { this.wire = value; }
 
   /**
    * Effective value of `fieldName` for this zone. Reads own value

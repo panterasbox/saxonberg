@@ -46,6 +46,7 @@ function makeFakeAvatar(): Avatar {
   Object.assign(a, {
     getTemplatePath: () => `${Avatar.TEMPLATE_PATH_PREFIX}test`,
     executeCommand: vi.fn().mockResolvedValue(undefined),
+    getCircleScope: () => null, // no constructed #circleScope slot on the fake
     getContainer: () => ({}), // non-null
     getInteractives: () => new Set(),
   });

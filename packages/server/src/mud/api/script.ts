@@ -16,6 +16,7 @@
  */
 
 import type { Script } from "../lib/script/ast";
+import type EvalScript from "../lib/script/EvalScript";
 import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
@@ -152,6 +153,21 @@ export class ScriptApi {
   ): Promise<string | null> {
     ExecutionContextApi.tagActingAuthor(builder);
     return logic().captureManualBuild(recipeId, name, sources);
+  }
+
+  /**
+   * Mint (replacing any prior) the **eval scratch** singleton at
+   * `path` — `<jurisdiction>/_eval` — carrying `code`, and return it
+   * ready to `run`.
+   *
+   * The `eval` verb's scratch is path-addressable so MQL's path atom
+   * can name it and a later bare `eval` can re-run it; stamping that
+   * identity goes through `Stuff.setTemplatePath`, which is
+   * `ApiOnly`-gated. `EvalController` is a controller, so it has no
+   * standing to stamp — this is the seam it calls instead.
+   */
+  static mintEvalScratch(path: string, code: string): Promise<EvalScript> {
+    return logic().mintEvalScratch(path, code);
   }
 }
 

@@ -510,3 +510,16 @@ plan and requirements (now retired) described the earlier shape:
   `styleMessageFor` exists and is tested; wiring it into the
   multi-recipient speech path hits the same async-`ruleFor`/sync-render
   wall and wants a sync contacts-fast-path — deferred.
+
+## Roster rows across the sandbox boundary
+
+`SocialApi.statusOf` and `SocialApi.composeRow` route through
+`SecurityApi.projectAcross` (see
+[call-security.md](./call-security.md)). A roster row IS the per-viewer
+projection of a person — the same category as naming — and `who` from
+inside a circle composes one for every online person, all of them
+field-resident. Un-apertured the verb simply threw.
+
+The presence relay resolves its delivery target through
+`SandboxApi.activeBodyFor`: rules stay on the registry avatar, delivery
+follows the live body. See [sandbox.md](./sandbox.md).

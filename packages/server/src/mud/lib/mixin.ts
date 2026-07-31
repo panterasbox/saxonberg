@@ -133,6 +133,7 @@ export const Mixins = {
   Spawned: 'SpawnedMixin',
   Populates: 'PopulatesMixin',
   Persistable: 'PersistableMixin',
+  Forkable: 'ForkableMixin',
   Globbable: 'GlobbableMixin',
   Bulkable: 'BulkableMixin',
   UnboundedSource: 'UnboundedSourceMixin',

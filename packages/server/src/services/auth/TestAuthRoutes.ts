@@ -47,6 +47,7 @@ export class TestAuthRoutes {
             handle?: unknown;
             withCharacter?: unknown;
             startLocation?: unknown;
+            wizard?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -60,6 +61,8 @@ export class TestAuthRoutes {
         typeof body?.startLocation === 'string'
           ? body.startLocation
           : undefined;
+      // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
+      const wizard = body?.wizard === true;
 
       void backend.handleTestAuthentication(
         handle,
@@ -81,7 +84,8 @@ export class TestAuthRoutes {
           });
         },
         withCharacter,
-        startLocation
+        startLocation,
+        wizard
       );
     });
 

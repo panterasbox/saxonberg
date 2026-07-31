@@ -44,6 +44,7 @@ import { DiagnosticApi } from '../mud/api/diagnostics';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
+import { SandboxApi } from '../mud/api/sandbox';
 import { EmploymentApi } from '../mud/api/employment';
 import { AttendantApi } from '../mud/api/attendant';
 import { SocialApi } from '../mud/api/social';
@@ -240,6 +241,13 @@ export class AppBootstrap {
     // above). Ships in observe mode, so booting culls nothing until an
     // operator flips `residency.mode` to `enforce`.
     ResidencyApi.boot();
+
+    // Sandbox (the holodeck) — install the orphan sweeper. Sessions are
+    // runtime state, so after a restart every circle scope is
+    // sessionless and the first sweep discards all scoped rows (the
+    // discard doctrine). Ordered after PM connect (above) and before
+    // players can enter (the WS listener starts after bootstrap).
+    SandboxApi.boot();
 
     // Banking (the monetary substrate) — warm the account-balance read cache
     // and the single-row supply headline from their materialized rows, then

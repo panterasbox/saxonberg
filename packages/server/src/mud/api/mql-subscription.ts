@@ -289,6 +289,24 @@ export class MqlSubscriptionApi {
     logic().cancelAllForInteractive(interactive);
   }
 
+  /**
+   * Re-resolve every subscription this Interactive holds — the seam the
+   * sandbox crossing calls after moving a socket between bodies, so the
+   * client's panes re-render for the body it now drives. @internal
+   */
+  public static refreshForInteractive(interactive: Interactive): void {
+    logic().refreshForInteractive(interactive);
+  }
+
+  /**
+   * Cancel every subscription registered from `scope`'s circle context —
+   * the sandbox reap seam (a circle's live queries die with its
+   * session). Field-born subscriptions are untouched. @internal
+   */
+  public static cancelAllForScope(scope: string): number {
+    return logic().cancelAllForScope(scope);
+  }
+
   /* ─── test seams ─── */
 
   public static _getRegistrySizeForTesting(): number {

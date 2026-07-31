@@ -134,6 +134,14 @@ export class ShadowApi {
       );
     }
 
+    // Sandbox boundary (Layer 4 at the shadow seam): circle context
+    // shadows only circle-resident hosts, and vice versa — checked
+    // centrally here, BEFORE any mutation, with the same receipt shape
+    // as the dispatch check. Circle-installed shadows need no special
+    // reap path — they die with the reaped vessel/zone via the
+    // ordinary shadow-host lifecycle.
+    SecurityApi._assertShadowBoundary(host, 'attach');
+
     // Validate @Unshadowable + @ShadowSecurity(attach) BEFORE any mutation.
     for (const m of intercept) {
       if (SecurityApi.isMethodUnshadowable(host, m)) {
@@ -189,6 +197,8 @@ export class ShadowApi {
   public static detach(shadow: Shadow): void {
     const host = this.#shadowHost.get(shadow);
     if (!host) return;
+    // Sandbox boundary: same scope rule as attach, both directions.
+    SecurityApi._assertShadowBoundary(host, 'detach');
     const methods = this.#shadowMethods.get(shadow) ?? EMPTY_METHODS;
 
     for (const m of methods) {

@@ -130,6 +130,18 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().cancelAllForInteractive(interactive);
   }
 
+  /** See {@link MqlSubscriptionApi.refreshForInteractive}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public refreshForInteractive(interactive: Interactive): void {
+    resolveRegistry().refreshForInteractive(interactive);
+  }
+
+  /** See {@link MqlSubscriptionApi.cancelAllForScope}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public cancelAllForScope(scope: string): number {
+    return resolveRegistry().cancelAllForScope(scope);
+  }
+
   /* ─── test seams ─── */
 
   /** See {@link MqlSubscriptionApi._getRegistrySizeForTesting}. */

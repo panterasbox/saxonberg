@@ -58,7 +58,10 @@ function makeApp(): Express {
 }
 
 function fakeAvatar(playerId: string): Avatar {
-  return { getPlayerId: () => playerId } as unknown as Avatar;
+  return {
+    getPlayerId: () => playerId,
+    getCircleScope: () => null,
+  } as unknown as Avatar;
 }
 
 /** Stub the bridge's avatar resolution so runAsSessionPlayer has an actor. */

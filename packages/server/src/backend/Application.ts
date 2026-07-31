@@ -773,7 +773,8 @@ export class Application {
   public async provisionTestCharacter(
     userId: string,
     name = 'Tester',
-    startLocation?: string
+    startLocation?: string,
+    wizard = false
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       throw new Error('Application.provisionTestCharacter: test-only');
@@ -782,15 +783,43 @@ export class Application {
     if (!user) {
       throw new Error(`Application.provisionTestCharacter: no user ${userId}`);
     }
-    if (user.playerIds.length > 0) return;
-    const playerId = await this.createDefaultCharacter(
-      user,
-      name,
-      undefined,
-      startLocation
-    );
-    user.playerIds.push(playerId);
-    await user.save();
+    if (user.playerIds.length === 0) {
+      const playerId = await this.createDefaultCharacter(
+        user,
+        name,
+        undefined,
+        startLocation
+      );
+      user.playerIds.push(playerId);
+      await user.save();
+    }
+    // Test-only staff conferral (E2E coverage of the authoring paths:
+    // clone, eval, goto). Joins BOTH axes, because they are genuinely
+    // different capabilities and a test character needs both to author:
+    // `wizards` is code trust (eval / reload / TS-escape), `core` is
+    // content-author scope (the ownership walk `AccessApi.can` runs for
+    // `clone`/`write`). Same member-key rule the `wizard` verb uses;
+    // idempotent. Unreachable outside AUTH_MODE=test.
+    if (wizard && user.playerIds.length > 0) {
+      const { GroupApi } = await import('../mud/api/group');
+      const { default: Avatar } = await import('../mud/obj/Avatar');
+      const reg = await GroupApi.registry();
+      const provider = reg.managed();
+      const memberKey = Avatar.getTemplatePath(user.playerIds[0]!);
+      for (const groupName of ['wizards', 'core']) {
+        const group = await provider.findByName(groupName);
+        if (!group || !group._id) {
+          console.warn(
+            `provisionTestCharacter: no managed '${groupName}' group to join`
+          );
+          continue;
+        }
+        if (group.addMember(memberKey, 'member')) {
+          await group.save();
+          provider.fireChange(group._id);
+        }
+      }
+    }
   }
 }
 

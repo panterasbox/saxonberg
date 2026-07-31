@@ -25,6 +25,10 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../execution-context';
 import { desugar } from './desugar';
 import { MqlPermissionError, type MqlQuantity } from './types';
 import { getOnlineHolders } from './online-provider';
@@ -1454,11 +1458,26 @@ function describeKind(kind: ChainElement['kind']): string {
 }
 
 /**
+ * Sandbox lookup hygiene (Layer-3 filter): drop matches whose receiver
+ * scope differs from the ambient context scope. Omni sees all
+ * (system-mode MQL unchanged); the `null === null` compare makes the
+ * zero-circle world a single skipped branch. This is HYGIENE — the
+ * dispatch check backstops any leak — so resolution simply omits
+ * cross-scope objects rather than erroring.
+ */
+function filterScopeCompatible(matches: MqlMatch[]): MqlMatch[] {
+  const ctxScope = ExecutionContextApi.getCircleScope();
+  if (ctxScope === OMNI_SCOPE) return matches;
+  return matches.filter((m) => m.stuff.getCircleScope() === ctxScope);
+}
+
+/**
  * Sort by score descending and dedup by stuffId, keeping the
  * highest-scored entry for each id. The stable iteration order of
  * the input gives us the secondary tiebreak (req §14.2).
  */
-function finalize(matches: MqlMatch[]): MqlMatch[] {
+function finalize(rawMatches: MqlMatch[]): MqlMatch[] {
+  const matches = filterScopeCompatible(rawMatches);
   const byId = new Map<string, MqlMatch>();
   for (const m of matches) {
     const existing = byId.get(m.stuff.stuffId);

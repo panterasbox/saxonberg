@@ -12,6 +12,7 @@
 
 import { ShelledCharacter } from "../lib/shell/ShelledCharacter";
 import { PlayerApi } from "../api/player";
+import { SandboxApi } from "../api/sandbox";
 import { ConnectionApi } from "../api/connection";
 import { EventApi } from "../api/event";
 import { StuffApi } from "../api/stuff";
@@ -21,7 +22,8 @@ import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
 import type { Container } from "../lib/spatial/Container";
-import type { Stuff } from "../lib/stuff/Stuff";
+import type { Stuff, EvictionContext } from "../lib/stuff/Stuff";
+import type { VetoResult } from "../lib/errors";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import CommsUpdate from "../lib/comms/CommsUpdate";
@@ -38,6 +40,7 @@ import { ShellApi } from "../api/shell";
 import { BulletinApi } from "../api/bulletin";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
+import { ForkableMixin } from "../lib/persistence/Forkable";
 import { PersistableApi } from "../api/persistable";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -57,6 +60,34 @@ import type { CommandContributions } from "../api/command";
 import type Interactive from "./Interactive";
 import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
+
+/**
+ * The sockets a delivery to `body` should actually reach.
+ *
+ * Normally its own. While **parked** (its player is inside a circle —
+ * sandbox Decision N), the field body is the stable identity everyone
+ * addresses, but the player is wearing a vessel elsewhere: forward to
+ * the live body's sockets so `tell alice` reaches Alice wherever she
+ * is. Comms are seamless; the wire is unsurveillable, not unreachable,
+ * and the payload is rendered MML — nothing but text crosses.
+ *
+ * A module-private function, NOT a method: an inner helper would be a
+ * second proxy dispatch, and only the delivery seam itself is on the
+ * boundary's message-delivery allowlist.
+ */
+function forwardingTargets(body: Avatar): Iterable<Interactive> {
+  if (!body.isParked()) return body.getInteractives();
+  const live = SandboxApi.activeBodyFor(body.getPlayerId());
+  // `isDestroyed` is not belt-and-braces: exit reaps the vessel and
+  // unparks the avatar in that order, so a delivery landing in between
+  // resolves a live-looking handle to a dead one — whose proxy answers
+  // every call with `undefined`, and the for-of over that blows up the
+  // delivery seam itself (found live on `go out`).
+  if (!live || live === body || live.isDestroyed()) {
+    return body.getInteractives();
+  }
+  return live.getInteractives();
+}
 
 /**
  * Context passed to Avatar.postRegister() by Login when cloning.
@@ -89,12 +120,14 @@ export interface AvatarInitContext {
 // slice), its worn gear (Slotted slice), and its own spawn/recall location
 // (`place`). `shouldPersist()` (below) gates guests out.
 const AvatarBase = PersistableMixin(
-  PostRegistrationMixin(
-    HasInteractiveMixin(
-      AetherMixin(
-        NotifyPolicyMixin(
-          ContactsMixin(
-            PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+  ForkableMixin(
+    PostRegistrationMixin(
+      HasInteractiveMixin(
+        AetherMixin(
+          NotifyPolicyMixin(
+            ContactsMixin(
+              PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+            ),
           ),
         ),
       ),
@@ -544,6 +577,29 @@ export default class Avatar extends AvatarBase {
     this.sessionActive = true;
     // A returning connection cancels any pending deliberate-leave intent.
     this.leaveIntent = false;
+    this.announceSessionPresence(reconnect, interactive);
+  }
+
+  /**
+   * Emit the session-start presence event. Split out of `enter()` as an
+   * override seam: a body that is a PROJECTION of a player (the sandbox
+   * wire body) runs the whole rest of the session ceremony — the
+   * connection-established payload, the welcome, the auto-sense — but
+   * must not tell the world its player just logged in. They didn't;
+   * they stepped sideways.
+   *
+   * @hook Invoked at the end of `Avatar.enter`. **Override** to
+   *   suppress or re-shape session presence for a non-login body;
+   *   chain `super.announceSessionPresence(...)` to keep it.
+   */
+  protected announceSessionPresence(
+    reconnect: boolean,
+    interactive: Interactive,
+  ): void {
+    // Still parked ⇒ this ceremony is the RETURN half of a crossing
+    // (the socket coming home from a circle). Nobody heard them leave,
+    // so nobody hears them come back — symmetric with `onLinkdead`.
+    if (this.parked) return;
     EventApi.emit(reconnect ? Events.PlayerReconnected : Events.PlayerLoggedIn, {
       playerId: this.getPlayerId(),
       userId: interactive.getUserId() ?? "",
@@ -585,7 +641,7 @@ export default class Avatar extends AvatarBase {
    * `PlayerLoggedOut` (a deliberate departure) instead of
    * `PlayerDisconnected` (an involuntary linkdead drop). Not persisted.
    */
-  private leaveIntent: boolean = false;
+  protected leaveIntent: boolean = false;
 
   /**
    * Mark this avatar's next presence drop as a deliberate leave (sign out
@@ -749,7 +805,7 @@ export default class Avatar extends AvatarBase {
    */
   protected override handleMessage(frame: MessageFrame): void {
     const app = Avatar.getApplicationInstance();
-    for (const interactive of this.interactives) {
+    for (const interactive of forwardingTargets(this)) {
       app.sendMessageToInteractive(interactive, frame);
     }
   }
@@ -764,7 +820,7 @@ export default class Avatar extends AvatarBase {
    */
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
     const app = Avatar.getApplicationInstance();
-    for (const interactive of this.interactives) {
+    for (const interactive of forwardingTargets(this)) {
       app.sendEnvelopeToInteractive(interactive, envelope);
     }
   }
@@ -828,6 +884,12 @@ export default class Avatar extends AvatarBase {
       StuffApi.destruct(this);
       return;
     }
+    // A PARKED avatar (its player crossed into a circle) suppresses the
+    // presence emit: the player didn't leave — they're elsewhere and
+    // unreachable, which is what the implant-blind wire means. Presence
+    // reads present parked as present-but-unreachable, never offline.
+    // (Sandbox Decision P — a suppression, no new event.)
+    if (this.parked) return;
     // Split deliberate departures from involuntary drops. A sign-out /
     // switch-character closes the socket with the intentional-leave code,
     // which the connection layer recorded via `setLeaveIntent` — that's a
@@ -841,6 +903,132 @@ export default class Avatar extends AvatarBase {
     } else {
       EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     }
+  }
+
+  /* ── sandbox parking (Decision P) ──
+   *
+   * `parked` = this avatar's player is inside a circle on a wire body.
+   * A parked avatar is present-but-unreachable: the presence emit is
+   * suppressed (see onLinkdead), the residency sweep may not harvest
+   * the body mid-visit (canEvict veto — bounded, sessions end), and
+   * exit/reconnect re-attach to it. Runtime-only state.
+   */
+  private parked = false;
+
+  public isParked(): boolean {
+    return this.parked;
+  }
+
+  public setParked(value: boolean): void {
+    this.parked = value;
+  }
+
+  /**
+   * Connected while parked — the presence half of Decision N.
+   *
+   * A parked avatar owns no sockets (they moved to the vessel), so the
+   * inherited "any Interactives?" answer is `false`, and every consumer
+   * of it treats the player as offline: `who` stops listing them,
+   * `tell <name>` resolves to nothing at all (the `online` scope is
+   * empty, so the arg fails `at least 1`), the presence roster drops
+   * them, notifications stop. Found live: stepping into your own circle
+   * made you unreachable to the whole world — the precise opposite of
+   * "the wire is unsurveillable, not unreachable."
+   *
+   * So reachability follows the person: this is the read-side twin of
+   * `forwardingTargets` (the write side), and both keep the field body
+   * as the stable identity everyone addresses while the vessel does the
+   * actual carrying. `isConnected` is boundary-exempt (transport
+   * plumbing), so a field-context caller may ask a circle-resident
+   * vessel this one question.
+   */
+  public override isConnected(): boolean {
+    if (super.isConnected()) return true;
+    if (!this.parked) return false;
+    const live = SandboxApi.activeBodyFor(this.getPlayerId());
+    return (
+      live !== null &&
+      live !== (this as Avatar) &&
+      !live.isDestroyed() &&
+      live.isConnected()
+    );
+  }
+
+  /**
+   * Residency veto while parked: the body must be re-attachable at
+   * exit. The spine's capture at park time covers crash durability; the
+   * veto covers availability. Chains to the Persistable fall-through
+   * for the unparked case.
+   */
+  public override canEvict(context: EvictionContext): VetoResult {
+    if (this.parked) {
+      return { ok: false, reason: 'parked: its player is inside a circle' };
+    }
+    return super.canEvict(context);
+  }
+
+  /* ── fork/merge slices (sandbox Decision Q) ── */
+
+  /**
+   * Presentation slice: what a projection vessel needs so the person is
+   * recognizably themselves (name; species rides recognition, gear does
+   * not travel). Fork-only for the sandbox — the merge allowlist never
+   * includes it, so nothing here flows back.
+   */
+  public forkSlice_Presentation(): unknown {
+    return {
+      honorific: this.getHonorific(),
+      name: this.getName(),
+      surname: this.getSurname(),
+      nameSuffix: this.getNameSuffix(),
+    };
+  }
+
+  /**
+   * Embodiment slice (fork-only): what KIND of living body this is.
+   *
+   * A projection of a person is still that person's kind of body —
+   * it carries their species (hence body plan, hence the ability to
+   * walk and act) and the plain fact of being alive. Without both, the
+   * vessel is a statue you are trapped inside: `requiresAnimate`
+   * refuses `go`, so you can't even leave (found live).
+   *
+   * Deliberately NOT the body's condition: no wounds, no fatigue, no
+   * gear. Baseline mint (Decision C) means a healthy body of the right
+   * kind, not a copy of the one you left parked. Nothing here merges
+   * back — the allowlist is epistemic-only.
+   */
+  public forkSlice_Embodiment(): unknown {
+    return {
+      // Reference data (shared, read-only, boundary-exempt), so the
+      // live ref is safe to hold from inside a circle.
+      species: this.getSpecies(),
+      lifecycleState: this.getLifecycleState(),
+    };
+  }
+
+  public mergeSlice_Embodiment(slice: unknown): void {
+    const s = slice as {
+      species?: ReturnType<Avatar['getSpecies']>;
+      lifecycleState?: string;
+    };
+    if (s?.species) this.setSpecies(s.species);
+    if (s?.lifecycleState) this.setLifecycleState(s.lifecycleState);
+  }
+
+  public mergeSlice_Presentation(slice: unknown): void {
+    const s = slice as {
+      honorific?: string;
+      name?: string;
+      surname?: string;
+      nameSuffix?: string;
+    };
+    if (typeof s?.name === 'string' && s.name.length > 0) {
+      this.setName(s.name);
+    }
+    this.setHonorific(s?.honorific);
+    this.setSurname(s?.surname);
+    this.setNameSuffix(s?.nameSuffix);
   }
 
   public toString(): string {

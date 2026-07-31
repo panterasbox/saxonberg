@@ -22,6 +22,7 @@
  */
 
 import { StuffApi } from './stuff';
+import { ExecutionContextApi, OMNI_SCOPE } from './execution-context';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -47,6 +48,33 @@ function logic(): AccessLogic {
   );
 }
 
+/**
+ * Run an authority query as SYSTEM work (sandbox boundary).
+ *
+ * An access check asks the registry a question *about* the world — it
+ * walks a resource's zone to its parcel to its owning group. Those are
+ * field-resident objects, and the walk is a read on the framework's
+ * behalf, not the caller reaching across the boundary into the world.
+ * Without this, a player standing in their own circle can't be told
+ * whether they may clone a template, because the check itself gets
+ * boundary-denied on the zone it walks — the authoring loop the sandbox
+ * exists for would refuse itself (found live).
+ *
+ * The answer is unaffected: the SUBJECT is still the caller, resolved
+ * by identity (`AccessRegistry.memberKeyOf` reads `getIdentityPath`),
+ * so a wire body is judged as the person wearing it — never widened.
+ * Only the walk's reads are system-scoped.
+ */
+function asAuthorityQuery<T>(fn: () => Promise<T>): Promise<T> {
+  // Root AS AccessApi, not as `null`: the logic singleton's gate
+  // (`FromModule('/api/access#AccessApi')`) reads the caller off the
+  // current frame's target, so a null-target root would erase this
+  // facade's identity and the registry would deny its own facade.
+  return ExecutionContextApi.runRoot(AccessApi, 'access.query', fn, {
+    circleScope: OMNI_SCOPE,
+  });
+}
+
 export class AccessApi {
   /**
    * Resource-targeted slice walk. Returns true iff `subject` is a
@@ -59,7 +87,7 @@ export class AccessApi {
     action: string,
     resource: Stuff | null
   ): Promise<boolean> {
-    return logic().can(subject, action, resource);
+    return asAuthorityQuery(() => logic().can(subject, action, resource));
   }
 
   /**
@@ -71,7 +99,7 @@ export class AccessApi {
     subject: Stuff | null,
     zone: Stuff
   ): Promise<boolean> {
-    return logic().canMutateZone(subject, zone);
+    return asAuthorityQuery(() => logic().canMutateZone(subject, zone));
   }
 
   /**

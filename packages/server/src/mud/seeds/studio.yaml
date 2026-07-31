@@ -1,0 +1,18 @@
+# /studio — the group-cell namespace root for the sandbox (the wire's
+# shared workshops). Mirrors /home's shape: a real Zone seed so the
+# folder/leaf invariant accepts descendants, carrying the inherited
+# `wire: true` classification field (sandbox Decision O — wire-ness is
+# a zone FIELD resolved by Zone.lookupField, never a class or a
+# hardcoded prefix list).
+#
+# Provisioning is a GOVERNANCE act with the shipped title verbs: the
+# /studio parcel is owned by `core` (see mud/config/parcels.yaml), so a
+# governor `subdivide`s /studio/<groupId> and `transfer --group`s the
+# child title to the group. Personal space is a right (/home, the
+# self-home rule); group space is a grant. See
+# docs/subsystems/sandbox.md.
+class: /lib/zone/FolderZone
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: studio
+  wire: true

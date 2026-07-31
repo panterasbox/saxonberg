@@ -11,12 +11,13 @@
  */
 
 import { Document } from "../persistence/Document";
+import { Collections } from "../../../backend/PersistenceManager";
 import type { ChattelOwner } from "./ChattelRecord";
 
 export type ChattelEventKind = "mint" | "transfer" | "released";
 
 export class ChattelEvent extends Document {
-  static collectionName = "chattel_events";
+  static collectionName = Collections.ChattelEvents;
   static persistentFields = ["chattelId", "event", "from", "to", "actor", "at"];
 
   chattelId: string = "";

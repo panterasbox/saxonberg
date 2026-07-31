@@ -252,3 +252,12 @@ from the retired requirements/plan in four deliberate ways:
 The `world` layout's right rail gained the **Inspect | Who's Online**
 pane switch when the social-inspection feature merged from master — the
 roster pane is that subsystem's; the cockpit just hosts it in the rail.
+
+## Crossing into a sandbox circle
+
+This state **forks onto the wire body** (fork-only — a change made
+inside a circle discards with it). The vessel is a baseline body, and
+"baseline" means no gear and no chattel, not a stranger's defaults: a
+maker who has to retype full verbs, re-pick a theme, or re-open a
+layout inside their own workshop is being punished for using it. See
+[sandbox.md](./sandbox.md) § the crossing.

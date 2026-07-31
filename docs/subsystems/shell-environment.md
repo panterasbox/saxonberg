@@ -472,3 +472,12 @@ specific entries:
 | Use `var` for state that should be persistent | Declare a schema entry on the right mixin and use `settings` |
 | Build a `SettingsApi` (or `SettingsRegistry`) wrapping `EnvironmentMixin` | Settings are mixin-owned; schema is static class data; a wrapping layer adds nothing |
 | Branch on `MixinApi.isEnvironment(host)` at the call site | Use `resolveSetting(host, key)`; the branch is centralized |
+
+## Crossing into a sandbox circle
+
+This state **forks onto the wire body** (fork-only — a change made
+inside a circle discards with it). The vessel is a baseline body, and
+"baseline" means no gear and no chattel, not a stranger's defaults: a
+maker who has to retype full verbs, re-pick a theme, or re-open a
+layout inside their own workshop is being punished for using it. See
+[sandbox.md](./sandbox.md) § the crossing.

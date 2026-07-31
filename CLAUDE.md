@@ -82,6 +82,7 @@ behavior. Read the relevant doc before editing in its area.
   - [call-security.md](./docs/subsystems/call-security.md) — proxy interception, decorators, policies, shadows, participant contracts, FromController
   - [access.md](./docs/subsystems/access.md) — AccessApi predicates (wizard/archwizard/streamer axes), parcel-title ownership, the code-trust lockdown
   - [parcel.md](./docs/subsystems/parcel.md) — real-property title: ParcelRecord + chain-of-title, ParcelRegistry, `ownerOf`, `subdivide`/`transfer`
+  - [sandbox.md](./docs/subsystems/sandbox.md) — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary, the wire-body crossing + wardrobe door, the Forkable substrate, jurisdiction-targeted eval
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
@@ -274,6 +275,15 @@ discoverability.
   scoped to `mud/api/` author faces: flags faces that speak a named type
   but don't re-export it. Residual gaps are capability/mixin interfaces
   that ride their own concept's face.
+- `pnpm lint:boundary` (`scripts/check-boundary-exemptions.ts`) — the
+  sandbox boundary's exemption lists, checked the way the base-class
+  list already is: by the build. Every exempt template path must
+  resolve to a real seed row (rename a singleton and the exemption
+  silently points at nothing), and the symmetric vs inbound-only method
+  sets must stay disjoint (an entry in both silently un-does the
+  direction rule). CI-gating. It deliberately does NOT judge whether an
+  exemption is *justified* — that is a review call, and the reason
+  these stay short readable lists instead of being derived.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).

@@ -90,6 +90,9 @@ export class HotReloadApi {
    * import.
    */
   public static async reload(path: string): Promise<void> {
+    // Sandbox needs-a-guard: the blueprint registry backs every clone
+    // world-wide; a circle context may not re-point it.
+    SecurityApi.assertFieldMutation({}, 'HotReloadApi.reload');
     const inflight = this.#inflight.get(path);
     if (inflight) return inflight;
 
@@ -131,6 +134,9 @@ export class HotReloadApi {
    * intent.
    */
   public static unload(path: string): void {
+    // Sandbox needs-a-guard: freezing a path denies every future clone
+    // of it world-wide; a circle context may not do that.
+    SecurityApi.assertFieldMutation({}, 'HotReloadApi.unload');
     const prior = this.#registry.get(path);
     this.#registry.delete(path);
     this.#frozenPaths.add(path);

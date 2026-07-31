@@ -113,6 +113,9 @@ describe('EnrollController.commit → chronicle seeding', () => {
       setSex: vi.fn(),
       enter: vi.fn().mockResolvedValue(undefined),
       getTemplatePath: () => avatarPath,
+      // The identity-keyed producers key on getIdentityPath (sandbox
+      // build); an ordinary body's identity IS its templatePath.
+      getIdentityPath: () => avatarPath,
       // The commit path grants the onboarding coin to non-guests; this
       // AppApi.setting mock returns a non-numeric string for the stipend
       // key, so no mint fires — the guard just needs the accessor.

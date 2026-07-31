@@ -32,7 +32,7 @@ function active(): boolean {
 
 /** The durable per-viewer key, or `null` for a session-ephemeral viewer. */
 function viewerKey(viewer: Stuff): string | null {
-  return viewer.getTemplatePath();
+  return viewer.getIdentityPath();
 }
 
 /**

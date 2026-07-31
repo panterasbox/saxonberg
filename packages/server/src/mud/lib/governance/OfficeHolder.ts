@@ -17,9 +17,10 @@
  */
 
 import { Document } from '../persistence/Document';
+import { Collections } from '../../../backend/PersistenceManager';
 
 export class OfficeHolder extends Document {
-  static collectionName = 'office_holders';
+  static collectionName = Collections.OfficeHolders;
   static persistentFields = ['officeKey', 'holderId'];
 
   /**

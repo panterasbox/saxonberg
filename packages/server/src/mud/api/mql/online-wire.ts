@@ -21,6 +21,7 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { ConnectionApi } from '../connection';
+import { PlayerApi } from '../player';
 import { setOnlineHoldersProvider } from './online-provider';
 
 let _wired = false;
@@ -38,9 +39,22 @@ export function installOnlineHoldersProvider(): void {
     for (const interactive of ConnectionApi.getAllInteractives()) {
       const holder = interactive.getHolder();
       if (!holder) continue;
-      if (seen.has(holder.stuffId)) continue;
-      seen.add(holder.stuffId);
-      out.push(holder);
+      // Present the player's stable FIELD identity, never the vessel
+      // they happen to be wearing (sandbox, Decision N: recipient
+      // resolution follows identity, not body). Two reasons:
+      // `tell alice` must find Alice whether or not she stepped into
+      // her circle, and a field-context resolve must not touch a
+      // circle-scoped object at all — the boundary would deny the
+      // scope-walk's own reads before any filtering could happen.
+      // Delivery is redirected to her live body at the delivery seam
+      // (`Avatar.handleMessage` forwards while parked).
+      const playerId = holder.getPlayerId();
+      const identity = playerId
+        ? (PlayerApi.findAvatarByPlayerId(playerId) as Stuff | null) ?? holder
+        : holder;
+      if (seen.has(identity.stuffId)) continue;
+      seen.add(identity.stuffId);
+      out.push(identity);
     }
     return out;
   });

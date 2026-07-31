@@ -510,3 +510,22 @@ into this doc as they ship.
 - [augmentation.md](./augmentation.md) — the baseline AetherImplant
   that makes the `'verbal-esp'` modality universal for players, so
   every chat channel is in-fiction "a frequency on your implant."
+
+## Audience resolution across the sandbox boundary
+
+`ChannelCatalogue.audienceFor` returns the **registry (field) avatar**,
+always — even for a subscriber currently inside a circle. Comms are
+seamless across the boundary, but the redirect belongs at the delivery
+seam (`Avatar.handleMessage` forwards a parked body's frames to
+whatever sockets its live vessel holds), not here: a recipient is also
+the *viewer* every per-recipient MML name is lensed for, so putting the
+vessel in the audience makes a field-context render read circle-
+resident perception state, and one person entering a circle killed the
+channel post for the whole channel.
+
+The fan-out excludes the speaker **by identity path**, not by object.
+Once the audience is field avatars and the speaker may be a vessel,
+`a === speaker` stops meaning "the same human being" — a player posting
+from inside their own circle received their own line twice, once as
+"You" and once as a stranger. Expect this wherever a comparison means
+*person* rather than *object*. See [sandbox.md](./sandbox.md).

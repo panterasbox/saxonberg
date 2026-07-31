@@ -25,7 +25,10 @@ import { TwitchClient } from './TwitchClient';
 import { StreamApi } from '../mud/api/stream';
 import { EventApi } from '../mud/api/event';
 import { Events } from '../mud/lib/events';
-import { ExecutionContextApi } from '../mud/api/execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../mud/api/execution-context';
 import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import type { NormalizedInbound } from '../mud/api/stream';
 
@@ -56,8 +59,11 @@ export class TwitchRelayReader {
       if (n.subscriptionType !== 'channel.chat.message') return;
       const norm = normalize(n.event);
       if (!norm) return;
-      void ExecutionContextApi.runRoot(null, 'twitch.inbound', () =>
-        StreamApi.dispatchInbound('twitch', norm)
+      void ExecutionContextApi.runRoot(
+        null,
+        'twitch.inbound',
+        () => StreamApi.dispatchInbound('twitch', norm),
+        { circleScope: OMNI_SCOPE }
       );
     });
 

@@ -90,7 +90,11 @@ export class ProvenanceApi {
     SecurityPolicies.AnyOf(
       SecurityPolicies.FromTemplate('/obj/api/template'),
       SecurityPolicies.FromTemplate('/obj/api/document'),
-      SecurityPolicies.FromTemplate('/obj/api/studio')
+      SecurityPolicies.FromTemplate('/obj/api/studio'),
+      // Governed eval (sandbox build): a field-parcel eval is a real,
+      // receipted authoring act against the minted `_eval` template —
+      // the governed channel made concrete for code.
+      SecurityPolicies.FromTemplate('/obj/command/author/EvalController')
     )
   )
   public static async recordAuthoring(

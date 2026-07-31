@@ -320,3 +320,20 @@ sync at the enumeration seams by warming it into
   `viewerVisionProfile`) and the Shadow seam dispatch live there.
 - [roadmap.md](../roadmap.md) — Display-name composition (DescribeApi
   v2) is the second planned user
+
+## Across the sandbox boundary
+
+`PerceptionApi.sensorium` / `canPerceive` route through
+`SecurityApi.projectAcross` (see
+[call-security.md](./call-security.md)). Message delivery asks each
+RECIPIENT what it can perceive, and a channel spans the boundary
+routinely — sender in the field, subscriber inside a circle, or the
+reverse. The walk reads the recipient's species and anatomy, so
+un-apertured it denied and took the whole `chat` verb down with it.
+
+The vision flux walk gained two guards for the same reason lighting a
+room made them reachable: it skips exits answering false to
+`Exit.hasSpatialDestination()` (a crossing exit names the wire, not a
+room, and resolving it lands on a non-Container), and it skips a
+destination that is destroyed — a reaped neighbour's proxy answers
+every call with `undefined`, and `look` must not die because of it.

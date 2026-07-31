@@ -299,3 +299,13 @@ the three `Zone` ownership fields (`ownerGroup` / `accessGroups` /
 `persistentFields = []`. Ownership moved to the gated `parcels` registry (the
 governing security invariant); the folder/leaf invariant and the field-
 inheritance walk are untouched. See [parcel.md](./parcel.md).
+
+The sandbox build (`feature/sandbox`) made two changes here. `Zone`
+gained a `wire` classification field and, with it, a non-empty
+`persistentFields = ['name', 'wire']` — the empty list from property
+phase 0a meant a declared field with an accessor pair was never
+hydrated, so a seeded `wire: true` sat in the row and never reached the
+instance. `ZoneApi.resolveEnclosingZoneForPath` joined
+`resolveZoneForPath` as its any-Zone sister: the spatial resolver skips
+non-spatial zones, so asking it about `/home` or `/studio` answers
+`null`, which reads as "not wire". See [sandbox.md](./sandbox.md).

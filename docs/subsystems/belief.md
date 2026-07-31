@@ -355,3 +355,23 @@ holds; sequential single-viewer commands keep the race benign).
 > Shadow — it's the explicit `RecognitionApi.describe` entry point;
 > disguise is NOT a shadow on the synthesizer — it's `getPresentation`
 > deferring to `getDisguise`.
+
+## Naming across the sandbox boundary
+
+`RecognitionApi.describe` / `describeWithStatus` / `perceivedKeywords`
+/ `salientFeatures` route through `SecurityApi.projectAcross` (see
+[call-security.md](./call-security.md)). `describe` is the one place
+the engine answers "what does THIS viewer call THAT thing", and both
+halves routinely sit on opposite sides of a circle: a channel post from
+the field renders for a recipient inside one; `who` from inside renders
+every field person for a viewer who isn't. The walk (perception, light,
+disguise, belief) then reads the far object and the boundary denies it.
+
+Naming is exactly what the doctrine already permits to cross — a pure
+read yielding text — so the projection runs under an omni root when,
+and only when, the two are on opposite sides.
+
+One consequence worth carrying: **an unlit room makes its occupants
+unnameable.** `canSee` fails at `pitch-black`, `describe` falls back to
+"someone" / "something" for everyone present, and `tell <name>` cannot
+resolve a target at all. See [sandbox.md](./sandbox.md).
