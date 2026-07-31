@@ -141,16 +141,77 @@ being repetitive. Structurally it's a *wordless conversation* and can ride the
 same engagement/state-machine substrate as
 [npc-dialogue](../../subsystems/npc-dialogue.md).
 
-### The acquisition ladder — one knob (domesticability), three on-ramps
+### The acquisition ladder — one knob (domesticability), four on-ramps
 
 Shops don't *bypass* taming — they sell the **back half** of it.
 
-- **Buy (the floor).** A pet-shop [`Business`](../../subsystems/employment.md)
+- **Adopted (the gift) — *the DF cat.*** A **stray** in a high-traffic venue
+  accrues regard toward whoever it repeatedly encounters, and at a threshold it
+  simply **starts following them**. You did not ask, and you were not trying.
+
+  > **This is the purest statement of the spine, not a softer one.** The shop is
+  > a transaction and the taming encounter is a *performance* — you execute the
+  > right moves and the animal responds to your technique. Adoption is
+  > the only path where the animal's judgment of you is **uncontaminated by you
+  > performing for it.** The most honest version of *won over* is the one where
+  > you weren't trying.
+
+  - **Proximity buys opportunity; who you are decides the outcome.** Trait
+    compatibility, reputation, and how you actually behaved around it — so two
+    regulars in the same tavern get different results from the same animal.
+  - **The cat can pick the wrong person** — possibly the one who never fed it
+    over the one who did. Keep this. It is true to life, it is funny, it
+    generates real social friction, and it enforces that **regard is not
+    purchasable**.
+  - **You cannot refuse the adoption — only the custody.** It decides you are
+    its person; *you* decide whether to make it official (name it, take it home,
+    chattel-stamp it). Until then you have **a stray that has adopted you and
+    that you have not yet admitted is yours** — the custody⊥bond orthogonality
+    producing something charming on its own.
+  - **An adopted stray is no longer available** to adopt anyone else. Personal
+    and scarce, not a dispenser.
+  - **Anti-grind:** never show progress (the opacity rule — you cannot farm what
+    you cannot see); make **elapsed days** matter rather than repetitions; make
+    compatibility decisive so repetition alone can't get there for the wrong
+    person; and let the animal **visibly warm** first, so the moment reads as
+    earned-but-unasked rather than random.
+  - **Cost:** one `strays` brain (the `greets`/`introduces` witness-on-arrival
+    shape) + the `follow` brain Wave 1 needs anyway. **Cheaper than the shop.**
+  - **Content:** one carved stray in a high-traffic venue — the Duncan lobby,
+    the tavern, the quad — **serves every new player who passes through**, which
+    is the "NPCs are expensive carves" rule paying off unusually well. Sits
+    naturally beside Katie's move-in beat.
+
+- **Buy (the choice).** A pet-shop [`Business`](../../subsystems/employment.md)
   sells creatures that are **domesticated but *unbonded*** — fear-baseline ~zero
   (safe to stand near), but **regard-toward-you neutral**. You still earn its
   loyalty. **Bonding an unbonded creature *is* the core taming loop** — the shop
   just removes the dangerous wild/fear front-half. *Taming stays the thing even
   on the easy path.*
+
+  **Adoption does not replace it — the two are different registers.** *Adoption
+  is what happens to you; purchase is what you choose.* The shop is where you go
+  for a **specific** animal: a working dog, a hunting bird, a species you want.
+  The Wardens' supply chain is upstream of the shop, so the guild's demand
+  anchor is untouched.
+
+  **Substrate (verified 2026-07-31):** a pet shop is a `Stock` — a `Vessel` +
+  `PricedOfferMixin` + `ResettableMixin` — whose `stockLines`
+  (`{itemTemplatePath, par}`) point at animal templates; `buy` already stamps
+  ownership. Two consequences:
+  - **Shop animals are template clones; strays are individuals.** `reset()`
+    restocks by cloning, so a shop animal arrives blank — exactly right for
+    *domesticated but unbonded*, and it sharpens the emotional split. But the
+    sale needs a **mint-an-individual seam**: at purchase the clone acquires its
+    chattel id and becomes a keyed persistable host. Adoption needs no such
+    moment; a stray is an individual from the first encounter.
+  - **A pet shop is compute-expensive, and that is honest.** `Behaved` always
+    vetoes eviction (re-cloning would erase the behavior spec), so **every
+    stocked animal is a Character-tier NPC pinned in memory** — four species at
+    par 3 is a dozen live NPCs standing there permanently. Not a bug to
+    engineer around: it is exactly what the allowance meter exists to price
+    ([stewardship](./stewardship-slate.md)). Keeping live animals costs more
+    liveness than keeping torches, and the shopkeeper pays it.
 - **Tame wild (the trophy).** A wild creature: front-half (manage fear via
   approach) **plus** back-half (bond). Gated by species domesticability +
   individual temperament. The aspirational, story-generating path.
@@ -569,24 +630,42 @@ can't reuse. As of 2026-07-30 each has a named shared answer:
 
 ## Build waves (re-sequenced)
 
-**Wave 1 — Bonding (the shop path). Ships taming's soul with zero heavy
-substrate.** Buy a **domesticated-but-unbonded** creature from a pet-shop
-`Business` → bond it via care/interaction (the core taming loop =
-regard-building) → obedience gated by bond band (a low-bond pet ignores
-`heel`/`fetch`) → a `follow` brain → light care (feed occasionally; neglect
-cools the bond) → persists as an individual. **Dodges** the fear axis
-(domesticated = no fear baseline) and manner-of-approach.
+**Wave 1 — The companion. Both on-ramps, plus what the clock now forces.**
+*(Restructured 2026-07-31.)*
 
-*(Updated 2026-07-30 — the two "cheap answers" this wave planned are replaced by
-the shared ones, at comparable cost: custody is **`ChattelMixin` on the Creature
-stack**, not a `documents` owner field; instance persistence is a **keyed
-`PersistableMixin` host**, not a new `documents` `kind`; and there is no
-owner-proxy freeze. Taking the shared route costs about the same as the
-pet-specific one and is the difference between a herd being able to reuse this
-and not.)*
+Both acquisition paths ship together — **no reason to choose.** They share their
+only hard dependency (`buy` transfers chattel, so a shop animal must be chattel
+too) and they land different emotional registers.
 
-→ *proves companion + care + the bond-gates-obedience spine, and
-taming-as-bonding.*
+| | Ships in Wave 1 |
+|---|---|
+| **The shared enabler** | `ChattelMixin` on the Creature stack — one composition line; unlocks both paths, plus livestock and aquaculture |
+| **Adopted (the gift)** | a `strays` brain in a high-traffic venue + the adoption scene + the liminal adopted-but-unclaimed state |
+| **Buy (the choice)** | a pet shop as a `Stock` over animal templates + the **mint-an-individual seam** at purchase |
+| **The relationship** | bonding via care/interaction; **obedience gated by bond band** (a low-bond pet ignores `heel`/`fetch`); a `follow` brain |
+| **Being an individual** | a keyed `PersistableMixin` host; a **dub/name verb** |
+| **The off-screen life** | `petLifeBetween` + the outcome ladder + `Species.homeRange` — **no longer optional, see below** |
+
+> **Wave 1 grew, and the reason is structural.** Under the retired freeze model
+> this wave could defer "what happens while you're logged off." It cannot now:
+> the moment a pet exists and its owner logs out, **something has to happen**,
+> because owned things run on world time. **The off-screen life is table stakes
+> for the first pet in the game**, not a later refinement.
+
+**Still dodges** the fear axis (domesticated animals and strays have no fear
+baseline to manage) and manner-of-approach — Wave 2's job, and now the *only*
+heavy substrate this wave avoids.
+
+*(2026-07-30 — the two "cheap answers" this wave originally planned are replaced
+by the shared ones at comparable cost: custody is `ChattelMixin`, not a
+`documents` owner field; persistence is a keyed `PersistableMixin` host, not a
+new `documents` kind; and there is no owner-proxy freeze. The shared route costs
+about the same and is the difference between a herd being able to reuse this and
+not.)*
+
+→ *proves companion + care + the bond-gates-obedience spine — and proves it
+**harder** than the shop alone would, because adoption makes bonding **precede**
+acquisition rather than follow it.*
 
 **Wave 2 — Wild taming. The substrate investment.** Build the **fear/threat
 axis** (aversion / alarm / flight, distinct from regard; a flee brain) + the
