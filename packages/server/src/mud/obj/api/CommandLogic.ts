@@ -24,7 +24,7 @@ import {
   resolve as resolvePath,
   sep,
 } from 'path';
-import { readdirSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import type { MessageFrame, Note, Status } from '@saxonberg/types';
@@ -269,7 +269,12 @@ export class CommandLogic extends ApiLogic {
       const filePath = filename.startsWith('domain/')
         ? join(MUD_ROOT, filename)
         : join(CMD_DIR, filename);
-      const command = CommandDefinition.fromFile(filePath);
+      // The read lives here, in the Api tier: `CommandDefinition` is a
+      // mudlib value object and may not touch `fs` (the import boundary).
+      const command = CommandDefinition.fromYaml(
+        readFileSync(filePath, 'utf-8'),
+        filePath,
+      );
       commands.set(filename, command);
       return command;
     } catch (error) {

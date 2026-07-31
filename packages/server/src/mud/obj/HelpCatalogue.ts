@@ -18,8 +18,6 @@
  * data: {} }`; the index is rebuilt on demand by the projectors.
  */
 
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
 import type {
   HelpTopic,
   HelpKind,
@@ -36,6 +34,7 @@ import { Mml } from "../api/mml";
 import type { CommandDefinition } from "../lib/command/CommandDefinition";
 import type { VetoResult } from "../lib/errors";
 import type { EvictionContext } from '../lib/stuff/Stuff';
+import { SourceTreeApi } from '../api/source-tree';
 
 // ── The parsed shape of `author-surface.json` (the build artifact the
 //    projection script emits). Declared locally because the script lives
@@ -85,11 +84,10 @@ function stripMixinSuffix(value: string): string {
 /** Load + parse the author-surface artifact; `null` if absent/unparseable. */
 function loadAuthorSurfaceFromDisk(): AuthorSurface | null {
   try {
-    const path = fileURLToPath(
-      new URL("../../../docs/api/author-surface.json", import.meta.url)
+    return SourceTreeApi.readJsonResource<AuthorSurface>(
+      import.meta.url,
+      "../../../docs/api/author-surface.json"
     );
-    const raw = readFileSync(path, "utf8");
-    return JSON.parse(raw) as AuthorSurface;
   } catch {
     return null;
   }

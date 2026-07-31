@@ -16,6 +16,7 @@ import Interactive from '../Interactive';
 import { Character } from '../../lib/character/Character';
 import { User } from '../../lib/identity/User';
 import { MixinApi } from '../../api/mixin';
+import { ConnectionApi } from '../../api/connection';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 
@@ -339,7 +340,7 @@ describe('Avatar', () => {
 
   describe('onMessage (SensorMixin override)', () => {
     let avatar: Avatar;
-    let mockApp: { sendMessageToInteractive: ReturnType<typeof vi.fn> };
+    let sendMessage: ReturnType<typeof vi.fn>;
     let interactive1: Interactive;
     let interactive2: Interactive;
 
@@ -347,16 +348,12 @@ describe('Avatar', () => {
       // Create a simple avatar for testing
       avatar = makeAvatar('test-player-123');
 
-      // Mock Application.sendMessageToInteractive
-      mockApp = {
-        sendMessageToInteractive: vi.fn(),
-      };
-
-      // Spy on Avatar.getApplicationInstance to return our mock app
-      vi.spyOn(
-        Avatar as unknown as { getApplicationInstance: () => unknown },
-        'getApplicationInstance'
-      ).mockReturnValue(mockApp);
+      // Stub the wire exit: ConnectionApi.sendMessage is where a
+      // multiplexed frame leaves the mudlib for a socket.
+      sendMessage = vi.fn();
+      vi.spyOn(ConnectionApi, 'sendMessage').mockImplementation(
+        sendMessage as unknown as typeof ConnectionApi.sendMessage
+      );
 
       interactive1 = makeStuff(() => new Interactive('socket-1', 'session-1', makeUser('user-1')));
       interactive2 = makeStuff(() => new Interactive('socket-2', 'session-2', makeUser('user-1')));
@@ -375,12 +372,12 @@ describe('Avatar', () => {
 
       avatar.onMessage(message);
 
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledTimes(2);
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+      expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
         message
       );
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledWith(
         interactive2,
         message
       );
@@ -393,8 +390,8 @@ describe('Avatar', () => {
 
       avatar.onMessage(message);
 
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledTimes(1);
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
         message
       );
@@ -406,7 +403,7 @@ describe('Avatar', () => {
       // Should not throw
       expect(() => avatar.onMessage(message)).not.toThrow();
 
-      expect(mockApp.sendMessageToInteractive).not.toHaveBeenCalled();
+      expect(sendMessage).not.toHaveBeenCalled();
     });
 
     it('should support multiplexing (same user, multiple devices)', () => {
@@ -422,11 +419,11 @@ describe('Avatar', () => {
       avatar.onMessage(message);
 
       // Both devices receive the message
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledWith(
         laptop,
         message
       );
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledWith(
         phone,
         message
       );
@@ -441,11 +438,11 @@ describe('Avatar', () => {
       avatar.onMessage(outputMsg);
       avatar.onMessage(errorMsg);
 
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
         outputMsg
       );
-      expect(mockApp.sendMessageToInteractive).toHaveBeenCalledWith(
+      expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
         errorMsg
       );

@@ -55,7 +55,6 @@ import type {
   EnvelopeTemplate,
   MessageFrame,
 } from "@saxonberg/types";
-import { Application } from "../../backend/Application";
 import type { CommandContributions } from "../api/command";
 import type Interactive from "./Interactive";
 import type TopicCatalogue from "./TopicCatalogue";
@@ -804,9 +803,8 @@ export default class Avatar extends AvatarBase {
    * shadowable extension point on SensorMixin) has had its say.
    */
   protected override handleMessage(frame: MessageFrame): void {
-    const app = Avatar.getApplicationInstance();
     for (const interactive of forwardingTargets(this)) {
-      app.sendMessageToInteractive(interactive, frame);
+      ConnectionApi.sendMessage(interactive, frame);
     }
   }
 
@@ -819,9 +817,8 @@ export default class Avatar extends AvatarBase {
    * (shadows, scripted behavior) fire regardless of wire state.
    */
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
-    const app = Avatar.getApplicationInstance();
     for (const interactive of forwardingTargets(this)) {
-      app.sendEnvelopeToInteractive(interactive, envelope);
+      ConnectionApi.sendEnvelope(interactive, envelope);
     }
   }
 
@@ -1033,10 +1030,5 @@ export default class Avatar extends AvatarBase {
 
   public toString(): string {
     return `[Avatar ${this.fullName} playerId=${this.playerId}]`;
-  }
-
-  /** @internal — overridable for tests. */
-  private static getApplicationInstance(): Application {
-    return Application.get();
   }
 }

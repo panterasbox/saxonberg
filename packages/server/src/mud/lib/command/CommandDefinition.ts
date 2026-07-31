@@ -24,11 +24,8 @@
  *      subsumes "optional cannot precede greedy".
  */
 
-import { parse as parseYaml } from 'yaml';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join, relative, resolve as resolvePath, sep } from 'path';
 import Ajv, { type ValidateFunction } from 'ajv';
+import { SourceTreeApi } from '../../api/source-tree';
 import type {
   CommandView,
   SubcommandDefinition,
@@ -38,13 +35,6 @@ import type {
   ExampleDefinition,
 } from '../../api/command';
 import { SUBCOMMAND_FIELD } from '../../api/command';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const SCHEMA_PATH = join(__dirname, '../../cmd/command.schema.json');
-// src/mud/lib/command -> src/mud. The `/`-rooted mud template namespace
-// is anchored here: a controller ref resolves to a path relative to this.
-const MUD_ROOT = join(__dirname, '../..');
 
 /**
  * Resolve a raw `controller:` spec value to the `/`-rooted mud template
@@ -57,8 +47,9 @@ const MUD_ROOT = join(__dirname, '../..');
  */
 function resolveController(rawController: string, specFilePath: string): string {
   if (rawController.startsWith('/')) return rawController;
-  const abs = resolvePath(dirname(specFilePath), rawController);
-  return '/' + relative(MUD_ROOT, abs).split(sep).join('/');
+  return SourceTreeApi.toMudPath(
+    SourceTreeApi.resolveFrom(specFilePath, rawController)
+  );
 }
 
 let _validate: ValidateFunction | null = null;
@@ -69,7 +60,10 @@ let _validate: ValidateFunction | null = null;
  */
 function getSchemaValidator(): ValidateFunction {
   if (_validate) return _validate;
-  const schemaJson = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8')) as object;
+  const schemaJson = SourceTreeApi.readJsonResource<object>(
+    import.meta.url,
+    '../../cmd/command.schema.json'
+  );
   const ajv = new Ajv({ allErrors: true, strict: false });
   _validate = ajv.compile(schemaJson);
   return _validate;
@@ -151,18 +145,6 @@ export class CommandDefinition {
   }
 
   /**
-   * Load CommandDefinition from YAML file.
-   */
-  static fromFile(filePath: string): CommandDefinition {
-    try {
-      const yamlContent = readFileSync(filePath, 'utf-8');
-      return this.fromYaml(yamlContent, filePath);
-    } catch (error) {
-      throw new Error(`Failed to load command definition from ${filePath}: ${error}`);
-    }
-  }
-
-  /**
    * Parse CommandDefinition from YAML string. The parsed view is
    * validated against `cmd/command.schema.json`; schema failures
    * throw with the full Ajv error trail so authoring mistakes
@@ -174,7 +156,7 @@ export class CommandDefinition {
   ): CommandDefinition {
     let view: unknown;
     try {
-      view = parseYaml(yamlContent);
+      view = SourceTreeApi.parseYaml(yamlContent);
     } catch (error) {
       throw new Error(`Failed to parse YAML in ${filePath}: ${error}`);
     }

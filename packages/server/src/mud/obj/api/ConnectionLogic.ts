@@ -6,6 +6,8 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ConnectionManager } from '../../../backend/ConnectionManager';
+import { Application } from '../../../backend/Application';
+import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
 import type Interactive from '../Interactive';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { HasInteractive } from '../../lib/connection/HasInteractive';
@@ -171,5 +173,20 @@ export class ConnectionLogic extends ApiLogic {
     if (wasConnected && previous.isLinkdead()) {
       previous.onLinkdead?.();
     }
+  }
+
+  /** See {@link ConnectionApi.sendMessage}. */
+  @CallSecurity(ConnectionApiCallers)
+  public sendMessage(interactive: Interactive, frame: MessageFrame): void {
+    Application.get().sendMessageToInteractive(interactive, frame);
+  }
+
+  /** See {@link ConnectionApi.sendEnvelope}. */
+  @CallSecurity(ConnectionApiCallers)
+  public sendEnvelope(
+    interactive: Interactive,
+    template: EnvelopeTemplate
+  ): void {
+    Application.get().sendEnvelopeToInteractive(interactive, template);
   }
 }

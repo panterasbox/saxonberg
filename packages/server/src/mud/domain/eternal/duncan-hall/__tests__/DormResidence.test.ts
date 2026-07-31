@@ -7,9 +7,6 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { writeFileSync } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
 import DormWarren from '../DormWarren';
 import DormRoom from '../DormRoom';
 import Desk from '../Desk';
@@ -200,10 +197,9 @@ function reset(): void {
   vi.restoreAllMocks();
   ParcelApi._resetRegistryRefForReload();
   StuffApi.clearAll();
-  DormThemes.themesPath = defaultThemesPath;
+  DormThemes.themesSource = null;
 }
 
-const defaultThemesPath = DormThemes.themesPath;
 const snapshots = () => col('holder_snapshots');
 
 function makeAvatar(playerId: string): Avatar {
@@ -345,13 +341,8 @@ describe('shell personalization — move-in theme + local remodel', () => {
     ContainmentApi.move(iris, room);
 
     // A malformed style trying to set an executable-code field.
-    const bad = join(tmpdir(), `dorm-bad-theme-${Date.now()}.yaml`);
-    writeFileSync(
-      bad,
-      'themes:\n  hack:\n    room:\n      shortDescription: nice\n      class: /obj/evil/Backdoor\n',
-      'utf-8',
-    );
-    DormThemes.themesPath = bad;
+    DormThemes.themesSource =
+      'themes:\n  hack:\n    room:\n      shortDescription: nice\n      class: /obj/evil/Backdoor\n';
 
     vi.spyOn(PromptApi, 'choice').mockResolvedValue('hack' as never);
     const ctx = ctxWithInteractive(iris, 'remodel');

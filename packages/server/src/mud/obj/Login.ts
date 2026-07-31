@@ -41,7 +41,6 @@ import { NameBank } from "../lib/species/NameBank";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { SensorMixin } from "../lib/message/Sensor";
 import { CommandGiverMixin } from "../lib/command/CommandGiver";
-import { Application } from "../../backend/Application";
 import { GoogleProfile } from "../lib/identity/GoogleProfile";
 import Avatar from "./Avatar";
 import type { CommandContributions } from "../api/command";
@@ -412,16 +411,14 @@ export default class Login extends LoginBase {
 
   /** SensorMixin delivery — multiplex frames to the connected Interactive(s). */
   protected override handleMessage(frame: MessageFrame): void {
-    const app = Application.get();
     for (const interactive of this.interactives) {
-      app.sendMessageToInteractive(interactive, frame);
+      ConnectionApi.sendMessage(interactive, frame);
     }
   }
 
   protected override handleEnvelope(envelope: EnvelopeTemplate): void {
-    const app = Application.get();
     for (const interactive of this.interactives) {
-      app.sendEnvelopeToInteractive(interactive, envelope);
+      ConnectionApi.sendEnvelope(interactive, envelope);
     }
   }
 }

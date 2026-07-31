@@ -142,6 +142,16 @@ const EXCEPTIONS: Record<string, { modules: string[]; reason: string }> = {
       "is pure computation with file-loading tags deliberately " +
       "unconfigured (see the class doc). ProseApi/ProseLogic forward here.",
   },
+  "lib/command/CommandDefinition.ts": {
+    modules: ["ajv"],
+    reason:
+      "Compiles `cmd/command.schema.json` against an authored command " +
+      "spec. `ajv` is pure computation (a schema + a value in, a verdict " +
+      "out — no fs / net / process), and the schema itself now loads " +
+      "through SourceTreeApi. Routing the validation through the gated " +
+      "CommandApi instead would put the security stack in front of the " +
+      "~120 tests that build a CommandDefinition from inline YAML.",
+  },
   "lib/script/EvalScript.ts": {
     modules: ["vm"],
     reason:
