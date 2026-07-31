@@ -267,17 +267,24 @@ of them are **placeholders for a running game**.
 | `husbandry.band.{thriving,healthy,stressed}At` | 0.8 / 0.55 / 0.3 | the band ladder |
 | `husbandry.warmth{Factor,ReferenceK}` | 0.03 / 295 | transpiration accelerant |
 
-Behaviour the shipped literals produce, with the peace lily's profile:
+Behaviour the shipped literals produce, with the peace lily's profile. The
+neglect figures are measured from a **`healthy`** plant (the band a fresh one
+starts in) and run from a *full* pot, so they include the ~1 real day the
+moisture reserve buffers before satisfaction starts to dip at all; a
+`thriving` plant takes roughly half again as long at every rung, because the
+decay is exponential from wherever it started.
 
 | behaviour | lands at |
 |---|---|
-| a full pot → `stressed` | ~1.5 real days of neglect |
+| a full pot → `stressed` | ~1.5–2 real days of total neglect |
 | → `failing` | ~4 real days |
 | → `dead` | ~7 real days |
 | `seedling` → `mature`, well kept | ~2 real weeks |
 
-The fuse is deliberately long and every band above `dead` is recoverable —
-farming's forgiveness contract governs the *slope*, not the *floor*.
+Two consequences worth keeping in view. **A daily player who waters at each
+login never leaves `healthy`** — the reserve is sized against the login, not
+the game-day. And **one skipped day is recoverable at every rung above
+`dead`**: farming's forgiveness contract governs the slope, not the floor.
 
 ---
 
