@@ -165,6 +165,52 @@ There is **no sleeping player body and no away-recovery** — recovery only
 accrues while present and at rest. (Diegetic sleep is a future NPC
 behavior over the same posture × `restQuality` rest path.)
 
+## Rates — what the shipped defaults actually mean
+
+Measured 2026-07-31 from `METABOLIC_DEFAULTS`, at the shipped clock scale
+of **12×** (1 game day = 2 real hours). These are *played* hours, since the
+clock above presence-freezes.
+
+| Reserve | Basal drain | Full → empty | In real play-time |
+|---|---|---|---|
+| **hydration** | `0.03 %/game-min` | 2.3 game-days | **~4.6 h** |
+| **satiation** | `0.02 %/game-min` | 3.5 game-days | **~6.9 h** |
+
+At basal rate a player drinks **about once every two sessions** — deliberately
+below the threshold of notice.
+
+### Exertion is the real driver — a ~47× ratio
+
+Basal drain is nearly irrelevant to the felt experience. Coupled recovery
+(§ *Coupled recovery*) spends `RECOVERY_HYDRATION_COST = 0.7` hydration per
+point of endurance, at up to `MAX_RECOVERY_PER_MIN = 2.0` — so sustained
+recovery draws **1.4 %-hydration per game-minute, ~47× basal**, and could drain
+a full bar in roughly **six real minutes** at the cap.
+
+> **This ratio is the design, not an accident of tuning.** It means a player who
+> talks, trades, and farms never thinks about water, while a player who fights,
+> hauls, or treks thinks about it constantly. Consumption is driven by
+> **exertion and environment, not by the clock** — which is also the
+> physiologically honest model (you lose water sweating, not ticking), and it is
+> what the slate's *fun trap* section asks for: gentle at baseline, biting only
+> at the margins.
+
+Tuning consequence: **tune the exertion end, not the basal end.** Basal is
+already safely below notice; the whole felt curve lives in the recovery draw and
+its `RECOVERY_HYDRATION_THROTTLE_PCT = 30` throttle.
+
+### ⚠ `setScale` silently rescales metabolism
+
+Every rate here is **per game-minute**, and game-minutes flow at the world
+clock's `scale`. So `WorldClockApi.setScale` is not only "how long is a day" —
+it is also **"how fast do you get thirsty, in real time."** Doubling the scale
+to 24× halves the real-time hydration budget.
+
+The two are separable decisions that share one number today. If the clock scale
+is ever retuned for daylight or seasonal reasons, **the metabolic constants must
+be re-derived in the same change**, or survival silently gets harsher or softer
+as a side effect. See [time.md § Why 12×](./time.md).
+
 ## Wave 2 — meal chemistry
 
 ### Inspectable nutrition data + the label

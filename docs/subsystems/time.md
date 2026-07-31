@@ -57,6 +57,31 @@ constant `DEFAULT_SCALE`; the live value is clock state, persisted in
 `WorldClockState`, mutated at runtime by `setScale()` (author `eval`
 in v1 until an admin verb lands).
 
+### Why 12× — and what it costs to change
+
+Reviewed and **held** 2026-07-31. The scale serves two experiences with
+different natural rates, and 12× is the only value that suits both:
+
+| Scale | Day | Season (90 d) | Year (360 d) |
+|---|---|---|---|
+| 6× | 4 h | 15 real days | 60 real days |
+| **12×** | **2 h** | **7.5 real days** | **30 real days** |
+| 24× | 1 h | 3.75 real days | 15 real days |
+
+- **Diurnal** — a 2-hour day gives ~1 hour of daylight, about one session's
+  worth, so a player sees a whole day-cycle in a sitting.
+- **Seasonal** — a crop cycle lands near a real week and a year near a real
+  month. At 6× winter becomes a 15-real-day dead season; at 24× a crop matures
+  in three days and daylight is half an hour.
+
+> **⚠ Scale is coupled to metabolism.** Metabolic rates are expressed *per
+> game-minute*, so `setScale` also changes how fast bodies get hungry and
+> thirsty **in real time** — doubling the scale halves the real-time hydration
+> budget. The world clock is the **diurnal + seasonal** authority; hunger and
+> thirst are a separate design decision that currently shares this one number.
+> **Retuning the scale requires re-deriving `METABOLIC_DEFAULTS` in the same
+> change.** See [metabolism.md § Rates](./metabolism.md).
+
 ```ts
 WorldClockApi.getNow(): Quantity<'s'>;   // game-seconds since epoch
 WorldClockApi.getScale(): number;
