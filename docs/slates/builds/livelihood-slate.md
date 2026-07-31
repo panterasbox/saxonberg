@@ -870,6 +870,66 @@ postings** (more work, better rates, in-window) deliver the felt effect at a
 fraction of the cost, and stay authored and tunable. Demand-driven pricing
 remains the richer answer; it is no longer the *necessary* one.
 
+### Substrate audit — and three corrections **[verified 2026-07-31]**
+
+**The cheapest seam in the whole substrate.** `EmploymentLogic.runTick` calls
+`DefaultCalendar.decompose(now)` and uses only `.weekday` and `.hour` — but the
+returned `CalendarDate` **carries `year`, `month`, `day`, and throws them
+away.** `RosterClock` sees `{weekday, hour}` only, so a `ShiftEntry` cannot yet
+express "only in fall." Widening it with an optional `months?: number[]` /
+`season?` is a **pure-function change inside `Roster.evaluate` with one call
+site.**
+
+**Seasonal postings need no new primitive.** `WorldClockApi.cron` already
+carries a `month` field, and the calendar's 12 × 30 months align **exactly** to
+the four 90-day seasons — so a season boundary is a clean `{month: 1|4|7|10,
+monthday: 1}`. `FastTravel.armTimetable()` is the proven production pattern to
+copy. The only missing pieces are a **systemic job generator** (nothing posts a
+contract today but an actor typing `job post`) and a `ContractApi.boot()` to arm
+the schedule — `EmploymentApi.boot()` is the arming precedent.
+
+**`per-settlement` is built and unconsumed.** `EmploymentApi.settlePiecework`
+ships; no authored Position carries the basis. The miner's whole arrangement —
+piece-rate + self-directed — is *already waiting* for a venue.
+
+> #### ⚠ Correction 1 — "can't make payroll in winter" does not exist
+> `payWageImpl` has **no employer-solvency check**, deliberately and with a
+> comment: *"a venue runs its P&L red by design (the deficit-as-target), with
+> the CB subsidy covering it. The wage is owed regardless."* So the §6.1
+> demand-risk story — *the employer bears the lull* — is true in **principle**
+> and currently absorbed by the CB in **practice**. Contrast `payDraw` and
+> `escrowHold`, which **are** solvency-checked. If winter payroll is meant to
+> bite, that constraint has to be built; it is not there today.
+
+> #### ⚠ Correction 2 — §8's floor is counter-cyclical against a *different*
+> cycle §8.2 is explicitly counter-cyclical against the **business cycle** —
+> money supply → spending → demand. A harvest→winter labor cycle is
+> **real-supply** seasonality, which is orthogonal to that monetary framing.
+> **The mechanism still works perfectly as the winter absorber** (a
+> below-private floor that private employers bid out of), but the claim above
+> should be read precisely: seasonality gives the floor its most *legible
+> demonstration*, not its *originating rationale*. Do not conflate the two
+> economics.
+
+> #### ⚠ Correction 3 — no NPC produces anything, so guard rail 2 is not yet
+> true "NPC hands are always hireable" is a sound **design rule** and currently
+> **false in fact**. The full brain roster contains nothing that makes anything
+> — **NPC labor is a pure cost on every P&L except when a player orders.** You
+> can hire an NPC today; it will draw wages and harvest nothing. There is also
+> **no hire/fire driver or command surface** — the Api exists and nothing calls
+> it. Guard rail 2 therefore depends on a **production brain** that does not
+> exist, and counter-cyclical migration to the mine has no NPC-side production
+> to migrate either.
+
+**Refinement to the pricing lean above.** [mining-slate](./mining-slate.md)
+explicitly rejects authored wage differentials — *"Professions self-correct… the
+market balances them (mine too well → ore floods → price drops → income falls);
+**no hand-tuned per-job wages**."* That conflicts with seasonally varying
+*rates*. It does **not** conflict with seasonally varying **quantity**: more
+gigs posted inside the window, at ordinary rates, still creates the labor pull.
+**Lean on volume, not on a seasonal wage multiplier** — it honors mining's rule
+and needs no pricing model.
+
 ### Forecastability makes it plannable
 
 Seasons are known in advance and weather is forecastable, so **both sides can
