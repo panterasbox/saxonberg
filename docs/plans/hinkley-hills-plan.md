@@ -162,6 +162,47 @@ and one read on the existing facade.**
   existing coverage trie**, walking `parentParcel` upward until a non-null
   `landUse` is found; unclaimed ground answers `wild`. No new Api.
 
+**A2. A parcel carries its own AREA — declared, never derived from rooms.**
+
+Stewardship specifies land use as **capability + ceiling** (*"a density limit
+**is** the quantitative half of a use classification"*). Decision A implements
+the capability half; this is the ceiling half, and phase 4's fields and phase
+5's stocking rate (**head per acre**) both need it as a real number.
+
+- `ParcelRecord.area: Quantity<'m²'> | null` — added alongside `landUse`
+  (same field, same wave, same seeder, nearly free).
+- **`m²` is a new `Unit`** (the union + a converter + one marshaller seed).
+  Worth it: the value is displayed to players, compared against zoning bands,
+  and eventually divided by head — all three want the unit system, and the
+  shipped tag-table mechanism then bands it for display ("a quarter-acre lot")
+  exactly as it bands lux.
+- **Each land use declares a permissible area band**, and `subdivide` refuses a
+  lot outside it. That is the whole of "constrained by zoning" — one check at
+  mint time, not an ongoing simulation.
+
+> ### ⚠ Area is MACRO. Nothing reconciles it against room dimensions.
+>
+> `Location.getSizeScale()` (m²) exists, but it has **exactly one consumer** —
+> the vision walk, dividing flux to get lux. Room "area" is a **photometric
+> denominator**, not a spatial model.
+>
+> **Do not derive parcel area from room geometry, and do not add a consistency
+> check between them.** Two reasons, and the second is the one that bites:
+>
+> 1. Rooms are an *abstraction*. Making geometry load-bearing means minting
+>    placeholder rooms to satisfy spatial constraints — at which point the
+>    honest answer is a real 3D engine, not this one.
+> 2. It would promote a **lighting constant into a land-tenure fact**. Every
+>    future tweak to how a room reads light would become a title migration.
+>
+> A structure's draw on its parcel is its **authored blueprint footprint**, not
+> a sum over its rooms — so `workable = gross − footprint`, and farming reads
+> `workable`. Build-3 never has to make room dimensions mean anything.
+
+**Phase 2 keeps it live rather than inert.** The yard's area admits exactly one
+bed, and the bed-placement gate checks it — so the field ships tested rather
+than joining `allowance` as an untested seam.
+
 **B. `PersistableApi.restoreOrSeed(host, key)` — the one new static.**
 
 The six-line D1 decision, on an existing facade, in `PersistableLogic`:
@@ -332,9 +373,15 @@ No content, no consumer yet. The vocabulary, the field, the read, the tests.
   the `LandUse` type, and the `LandUses` holder: `isLandUse`,
   `admitsCultivation(use): 'none' | 'bed' | 'field'` (stewardship's answer
   space, verbatim).
-- **`lib/parcel/ParcelRecord.ts`** — `landUse: LandUse | null = null`, added to
-  `persistentFields`. Validate on the setter path; an unknown string throws
-  with the offending value.
+- **`lib/parcel/ParcelRecord.ts`** — `landUse: LandUse | null = null` **and
+  `area: Quantity<'m²'> | null = null`**, both added to `persistentFields`
+  (+ `area` to `fieldMarshallers`). Validate on the setter path; an unknown
+  use throws with the offending value.
+- **`lib/quantity.ts`** — `'m²'` joins the `Unit` union, with converters
+  (`m²`↔`hectare`, and an `acre` scale for display), plus
+  `seeds/lib/persistence/QuantityMarshaller/m2.yaml`.
+- **`lib/parcel/LandUse.ts`** — each use also declares its **permissible area
+  band**; `ParcelRegistry.subdivide` refuses a child outside its use's band.
 - **`obj/ParcelRegistry.ts`** — `landUseOf(path)`: resolve the covering parcel,
   then walk `parentParcel` upward for the first non-null `landUse`; `wild` when
   nothing claims it. Gated `FromModule('/api/parcel#ParcelApi')` like its
@@ -351,6 +398,11 @@ No content, no consumer yet. The vocabulary, the field, the read, the tests.
   an explicit child overrides
 - unclaimed ground answers `wild`
 - `admitsCultivation` maps the six to `none`/`bed`/`field` per stewardship
+- **area round-trips as a `Quantity<'m²'>`** through the marshaller
+- **`subdivide` refuses a lot outside its use's area band**, naming both
+- ⭐ **nothing reconciles area against rooms** — a parcel's area is unchanged by
+  adding, removing or resizing rooms inside it (the guard against someone
+  later "helpfully" deriving it)
 - a record written before this change (no `landUse`) loads and answers by
   inheritance — **backward compatibility, there is live parcel data**
 
@@ -703,7 +755,11 @@ declines. Two independent builds converging on the same tier is a good signal
 the tier is right.
 
 > **Tell build-3.** Their deferred seam will already exist by the time they
-> want it, so they can consume `ParcelApi.landUseOf` rather than re-defer it.
+> want it, so they can consume `ParcelApi.landUseOf` rather than re-defer it —
+> **and `ParcelRecord.area` with it** (Decision A2). The seam build-3 needs
+> from that is `workable = gross − footprint`: a structure declares an
+> **authored blueprint footprint**, never a sum over its rooms. Room dimensions
+> stay non-load-bearing on both sides of the unification.
 
 ### 2. Keyed rooms — ⚠ the real collision
 
