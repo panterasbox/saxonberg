@@ -93,6 +93,11 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   already ship — so `cook` works in your own home with no errand, and
   the archetype is a *bundle* rather than a behavior. Its built-ins are
   the landlord's under D5; the pot is the tenant's.
+- **The bathroom reads as complete while modelling almost nothing.** A
+  toilet that is deliberately pure prose, a basin that is real water,
+  and a tub that is a posture-bearing host authoring `restQuality` and
+  `warmth` — three fixtures at three levels of detail, chosen by what
+  the world reads (D13).
 - **The bedroom's bed is the substrate's first real rest surface.** The
   shipped dorm `Bed` is a `Surfaced` prop you cannot lie on, and nothing
   in the world authors `restQuality` but a campfire log. The bedroom
@@ -144,6 +149,21 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   Spoilage belongs to the food and its container, never to the kitchen
   (D12), and it needs the condition model — so it lands with
   stewardship, not here.
+- **Washing, hygiene and sterility.** No `wash` verb, no cleanliness
+  gauge on bodies or items, no in-world producer for
+  `dressingQuality`, and `Condition.contagion` stays exactly as shipped
+  (*"reserved, no consumer v1"*). The bathroom's real function is a
+  precondition for the medic vertical, it is a short bridge, and it
+  still needs the condition model and a verb — so it defers with
+  spoilage (D13).
+- **Toilet function.** Stated as a non-goal rather than merely omitted,
+  because "the toilet does nothing" is a **decision** (D13) and the next
+  person to read the archetype should not mistake it for unfinished
+  work.
+- **The bathroom debate.** Public-accommodation access is a legislature
+  obstacle course belonging to civics content. A private residential
+  bathroom raises no access question; this build takes no position that
+  could constrain that design.
 - **New cooking surface of any kind.** No new recipes, no new food
   materials, no `kitchen`-only verb, no change to `cook` / `mix` /
   `heat` / `plate` / the gather walk. The kitchen archetype is
@@ -486,6 +506,98 @@ answer and the same reason. So even the kitchen's best future does not
 promote it to a class. It lands with the condition model — spoilage is
 decay without transmission, and its clock starts at an act.
 
+### D13 — The bathroom is presence, and the tub is its one affordance
+
+**The question.** The bedroom has a function (D10); the kitchen has
+none and is a bundle (D12). What is the bathroom?
+
+**The answer: a third kind — presence.** The toilet paradox is that a
+residence *without* one reads broken and every player will look for it,
+while modelling what a toilet is *for* would be the worst return on
+effort in the corpus. Both halves are true at once, and the resolution
+is to satisfy the first and refuse the second, **on purpose and in
+writing**, so that nobody later mistakes the absence of a mechanic for
+an oversight and "fixes" it.
+
+So the toilet is a `Detailed` fixture with prose and **no affordance at
+all**. That is the finished design, not a stub.
+
+**The general rule it forces — the LOD ladder.** A fixture is modelled
+to the depth at which the world actually reads it, and no deeper. The
+bathroom is where that rule has to be stated because it is the only room
+whose fixtures sit at three different rungs at once:
+
+| Fixture | Rung | Why there |
+|---|---|---|
+| toilet | **prose only** | read as scenery; its function is never invoked |
+| basin | **real water** — the dorm tap's `UnboundedReceptacle` | filling and pouring are shipped acts, so a basin that isn't a water source is a worse lie than one that is |
+| tub | **a real affordance** — `Postured` | it is the one thing in the room a body does something in |
+
+**The tub is the bathroom's bed.** `PosturedMixin` already carries two
+authored attributes: `restQuality`, read by metabolism's coupled
+recovery, and `warmth`, read by `ThermalRegulation` off the host whose
+posture slot the body occupies. A campfire log-seat authors both. A tub
+is exactly that shape — get in, recover, get warm — and it needs **zero
+code**, precisely like the bedroom's bed. This is what keeps the
+bathroom from being decoration.
+
+One honest caveat: `warmth` is a *constant* slot attribute refreshed on
+occupy/leave, deliberately piecewise-constant between discrete events.
+An authored-warm tub is therefore "always warm," which is the same small
+lie the shipped campfire seat already tells. The alternative — `warmth:
+0` until hot water is modelled — buys accuracy nobody asked for and
+costs the room its only affordance. Author the warmth; if metered
+utilities ever arrive, the number is one field.
+
+**Washing is enabling, and it is deferred with two seams already cut.**
+The bathroom's real future is not hygiene-for-its-own-sake but hygiene
+as a **precondition for other people's work** — the nurse who must wash.
+Two shipped facts make that bridge unusually short:
+
+- `DressingMixin.dressingQuality` — *"0 (filthy) .. 1 (clean/sterile)"* —
+  is consumed by `treat` (outcome = competence band × dressing quality)
+  and is **authored per template with no producer in the world**. An act
+  at a basin that sets it is nearly the whole feature.
+- `Condition.contagion` is present and explicitly *"reserved, no
+  consumer v1"*. Handwashing is the chain of infection, and the chain of
+  infection is that field.
+
+Both are the `ptomaine` shape from D12: a consumer with no producer,
+waiting on the condition model. Washing also **adds a verb**, which
+D12's authored-not-coded constraint forbids. Deferred — but the two
+seams are named here so the eventual build knows it is a bridge, not a
+subsystem.
+
+And when it lands it still does not belong to the room: cleanliness is
+an attribute of the *item* and the *body*, modulated by the fixture you
+use — the same argument as spoilage (D12) and pests (D11). **Two of the
+three non-bedroom archetypes will never earn a class**, which is the
+strongest evidence D6 could ask for.
+
+**Water by address tier, not by archetype.** Which water fixture a
+bathroom gets is a property of *where the residence is*: a tap in
+Terminus, a pump or a hauled bucket on the frontier. The archetype
+declares that it has a water source, and the tier picks which. This is
+decided now rather than later because build-2's Hinkley Hills house is
+this substrate's intended second consumer and must not inherit
+municipal plumbing by accident. v1 ships the tap; the finite,
+regenerating source that would make a frontier pump mechanically
+different is already named as deferred in `UnboundedSource`'s own
+docstring, and that is where the tier distinction will eventually bite.
+
+**The interior lock.** The bathroom is the one room in a home that locks
+from the inside. `Lockable` ships, so the door can carry it as authored
+detail — but with one leaseholder per unit (co-lease is a non-goal) it
+has no mechanical consequence in v1. It is recorded because it is the
+exact seam co-lease, guests, and the prison's panopticon would consume,
+and because its absence would otherwise look like an oversight.
+
+**Not the bathroom debate.** That design is an obstacle course for a
+legislature, and it is entirely about **public accommodation** — a
+private residential bathroom raises no access question whatsoever. It
+belongs to civics content, is deliberately untouched here, and this
+build takes no position that could constrain it.
+
 ## Constraints
 
 - **No furnishing subsystem in the module sense.** No `FurnishingApi` /
@@ -598,6 +710,20 @@ decay without transmission, and its clock starts at an act.
   for a week reconciles to no more than the `MAX_STEPS` cap allows, and
   no avatar recovers past full. Recovery on the floor is not below the
   no-residence baseline.
+- **The tub is a real rest surface, and it is warm.** Getting into a
+  bathroom tub occupies a posture slot, and metabolism's coupled
+  recovery reads its `restQuality` while `ThermalRegulation` reads its
+  `warmth` — the same two reads the campfire seat already exercises,
+  asserted here over the new fixture.
+- **The toilet does nothing, deliberately.** A named test asserts the
+  toilet fixture exposes no affordance — it is `Detailed` prose and
+  composes no capability mixin. The test exists so the decision is
+  enforced rather than remembered.
+- **The water source is chosen by tier, not by archetype.** The bathroom
+  and kitchen resolve their water fixture from the unit's address tier;
+  the archetype row declares that a water source exists and does not
+  name a tap. A second tier authored in a test fixture yields a
+  different fixture with the archetype row unchanged.
 - **You can cook at home, with no engine change.** In a leased unit's
   kitchen: `ignite` the range, `cook` a learned dish using the larder's
   ingredients and your own pot, and eat it — start to finish, with the
@@ -666,6 +792,17 @@ decay without transmission, and its clock starts at an act.
   (meal chemistry, `ptomaine` awaiting a producer),
   [respiration.md](../subsystems/respiration.md) (CO as a burden),
   [retail.md](../subsystems/retail.md) (where ingredients come from)
+- The bathroom (D13): [posture.md](../subsystems/posture.md)
+  (`restQuality` + `warmth` on the posture-bearing host — the tub),
+  [thermal.md](../subsystems/thermal.md) (`ThermalRegulation` reads the
+  seat's warmth), [harm.md](../subsystems/harm.md) (`DressingMixin`,
+  `treat`, and the sterility axis awaiting a producer),
+  [boundary.md](../subsystems/boundary.md) (`Lockable` — the interior
+  lock), [address.md](../subsystems/address.md) (the tier that picks the
+  water fixture). Absorbs the *residential* half of the unwritten
+  bathroom design (the toilet paradox, the LOD ladder,
+  washing-as-enabling, taps-vs-pumps); its public-accommodation half
+  stays unwritten and out of scope.
 - Room-general surfaces (D11): [thermal.md](../subsystems/thermal.md) and
   [respiration.md](../subsystems/respiration.md) (the shipped
   `AtmosphericMixin` readings air quality joins),
