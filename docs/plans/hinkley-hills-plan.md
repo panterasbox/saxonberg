@@ -16,6 +16,14 @@ content. The growth model itself is **not modified except additively**.
 > with one plant gives that plant all the soil. If a change makes the shipped
 > houseplant behave differently, the generalization is wrong — and the phase-1
 > tests are the tripwire.
+>
+> **One deliberate exception, and only one:** Decision F moves **where water is
+> stored** from the plant to the soil. A watered pot-plant still *behaves* as it
+> did, but the storage location changes, so phase-1 fixtures and one
+> husbandry.md claim change with it. That is why the structural work (Wave 3)
+> and the water move (Wave 4) are separate waves: **Wave 3 must leave the
+> phase-1 tests untouched**, which proves the generalization is inert before
+> Wave 4 deliberately changes the model.
 
 ---
 
@@ -203,12 +211,60 @@ line.
 fourth argument, `getLimitingFactor()` a fourth answer (`'nutrient'`) and one
 cause line (*"The soil is spent."*).
 
-**F. The bed's own moisture is distinct from the plant's, and does not drive
-growth yet.** The bed carries a `moisture` `Reserve` that `water <bed>` fills;
-the plant still reads **its own** root-zone moisture for `satWater`. The bed's
-moisture is the seam phase 4's rain and evapotranspiration will drive — wiring
-bed→plant moisture transfer now would pre-empt that model. Watering a bed
-**also** waters its plants (the ergonomic act), so nothing feels inert.
+**F. Water moves to the soil — the bed holds it, and the plant drinks by
+reading.** *(Changed on request; this reverses a phase-1 decision, and the
+reversal only works because of the shape below.)*
+
+Phase 1 put moisture on the plant and
+[husbandry.md](../subsystems/husbandry.md) records why: *"the physically
+prettier model puts water in the soil; it is rejected because it **splits one
+checkpoint across two objects**, while the reconcile, the clock stamp and the
+persistence record are all the plant's."* That objection is correct and is not
+waved away — it is **answered** by giving the bed a checkpoint of its own:
+
+- **The bed owns `moisture` AND its own clock stamp**, and reconciles it on
+  read: it drains by the **summed demand of its occupants** × warmth over its
+  own elapsed window. One store, one stamp, one reconcile — self-contained.
+- **The plant only READS the bed.** `satWater` comes from a new
+  `soilMoisture(): number | null` host seam (the `rootRoom` / `nutrientLevel`
+  shape). **The plant never mutates the bed during its reconcile.**
+- So there are **two self-contained checkpoints, not one split across two
+  objects** — which is precisely the thing phase 1 refused. Each re-derives
+  from its own stamp, so a torn capture self-heals exactly as phase 1's
+  rollback property already proves.
+
+Three things fall out that are better than what phase 1 had:
+
+- **Water competition is emergent.** More plants in a bed drain it faster, so
+  everyone runs drier — the same shape as the shared-soil root competition in
+  Decision D, from the same source of truth, with no new rule.
+- **No read-order artifact.** Because the bed drains by total demand over its
+  *own* window rather than each plant debiting as it reads, the outcome does not
+  depend on which plant is looked at first. (Had the plants debited the bed,
+  whoever read first would drink first when it ran dry — a real fairness bug
+  this shape avoids.)
+- **"An unpotted plant has no water" becomes literal.** husbandry.md already
+  says an unpotted plant *"is already in trouble via water, since nothing can
+  hold moisture for it"* — it was modelled with a private reserve anyway. Now
+  `soilMoisture()` returns `null` → `satWater = 0`, and the doc's sentence is
+  the mechanism rather than a gloss.
+
+> **⚠ Two mutual reads, one recursion hazard.** The bed's reconcile reads its
+> occupants' water demand, and each occupant's reconcile reads the bed's
+> moisture. The bed must read demand through a **non-reconciling** accessor
+> (`waterDemandPerGameDay()`, a pure read of the authored profile) — never
+> `getSoilMoisture()`, which would reconcile the plant, which reads the bed.
+> The bed needs its own reentry guard, as `GrowingMixin` has.
+
+**Migration.** The plant's `moisture` reserve is retired and the pot/bed
+templates author one instead. Existing plant records keep a now-unread
+`reserves.moisture` (harmless); existing **pot** records have no `reserves`
+field, so a restore keeps the clone's authored value — **shipped dorm plants
+come back watered.** Slightly generous on upgrade; acceptable, and stated here
+so it is not a surprise.
+
+`water <bed>` and `water <plant>` both credit the bed (the plant forwards), so
+the verb surface does not change.
 
 **G. `feed <bed> [with <source>]` is `water`'s twin.** `WaterController` is the
 line-for-line template: resolve target → resolve a carried bulk source →
@@ -329,8 +385,10 @@ Independent of Hinkley. Do it before the content that needs it.
 
 - **`lib/husbandry/Cultivable.ts`** (new) — `CultivableMixin` +
   `interface Cultivable`, holding what phase 1 put on `PlantPot`: the soil
-  read, `PLANT_SLOT`, `getPlant()`, `occupiedSlotCount()`, the
+  **volume** read, `PLANT_SLOT`, `getPlant()`, `occupiedSlotCount()`, the
   populate-then-adopt applier, the carrier `onMoved` forward.
+  **No moisture and no nitrogen in this wave** — soil *state* is Wave 4, so
+  this wave stays provably inert.
 - **`obj/PlantPot.ts`** — reduced to `CultivableMixin(…)` over `Thing`. Its
   external surface must not change.
 - **`obj/GardenBed.ts`** (new) — `CultivableMixin(…)` over a **fixture** base
@@ -357,15 +415,34 @@ Independent of Hinkley. Do it before the content that needs it.
 
 ---
 
-## Wave 4 — soil: moisture, nitrogen, and the fourth factor
+## Wave 4 — soil state: water moves, nitrogen arrives
+
+**This is the wave that changes phase 1's model** (Decision F). Do it as one
+deliberate step rather than smeared across the build.
 
 ### Files
 
-- **`obj/GardenBed.ts`** — authored `reserves` (`moisture`, `nitrogen`, theme
-  `cultivation`); `nutrientLevel()` returns the nitrogen fraction.
-- **`lib/husbandry/Growing.ts`** — the `nutrientLevel()` seam (default `null`),
-  `satNutrient`, the fourth argument to `min`, `'nutrient'` on
-  `LimitingFactor`, one cause line, and `_worstLimiting` (Decision I).
+- **`lib/husbandry/Cultivable.ts`** — the soil's **own** state: a `moisture`
+  and a `nitrogen` `Reserve` (theme `cultivation`), **its own clock stamp**, and
+  `reconcileSoil()` — drains moisture by the **summed** `waterDemandPerGameDay()`
+  of its occupants × warmth over its own elapsed window, behind its **own
+  reentry guard**. Exposes `soilMoistureFraction()` and `nutrientFraction()`.
+- **`lib/husbandry/Growing.ts`** — two seams replace one reserve:
+  - `soilMoisture(): number | null` — reads the host bed; `null` (unpotted)
+    → `satWater = 0`, making husbandry.md's "nothing can hold moisture for it"
+    literal.
+  - `nutrientLevel(): number | null` — `null` → `satNutrient = 1`.
+  - `satNutrient` as the **fourth** `min()` argument, `'nutrient'` on
+    `LimitingFactor`, one cause line, and `_worstLimiting` (Decision I).
+  - `waterDemandPerGameDay()` — a **pure, non-reconciling** read of the
+    profile, for the bed to sum. **Never call `getSoilMoisture()` from the
+    bed** (Decision F's recursion hazard).
+  - The plant's own `moisture` `Reserve` and its private drain are **retired**;
+    `waterPlant(litres)` **forwards to the bed** so the verb surface is
+    unchanged.
+- **`obj/PlantPot.ts` + the pot/bed seeds** — author `reserves.moisture`
+  (a pot is a bed with one slot, so it holds the water now). Note the migration
+  in Decision F: shipped dorm plants come back watered.
 - **`lib/config/AppSettings.ts` + `config/app-settings.yaml`** — the new
   `husbandry.*` dials (nutrient happy/spent thresholds, the grade ladder).
 - **`cmd/bulk/feed.yaml` + `obj/command/bulk/FeedController.ts`** — `water`'s
@@ -377,8 +454,18 @@ Independent of Hinkley. Do it before the content that needs it.
 
 ### Tests
 
+- ⭐ **a pot-plant still behaves as phase 1** — same watering cadence, same
+  bands, same decline curve — even though the water now lives in the pot. The
+  phase-1 *assertions* survive; only the fixtures move.
+- ⭐ **water competition is emergent**: four plants in one bed run it dry faster
+  than one does, and all four read drier — with no per-plant debiting
+- ⭐ **no read-order artifact**: reading plant A then B gives the same state as
+  B then A across a dry window
+- **an unpotted plant has no water at all** — `satWater` 0, `'water'` limiting,
+  and it still declines without crashing (the phase-1 test, now literal)
+- **the bed's reconcile does not recurse** — a bed read that sums occupant
+  demand does not re-enter a plant reconcile that reads the bed
 - a depleted bed limits growth and names `'nutrient'`; feeding clears it
-- **a pot is unaffected** — `nutrientLevel()` null → `satNutrient` 1
 - `feed` credits only the headroom; feeding a full bed says so and spends
   nothing
 - `_worstLimiting` is **monotone**: a plant stressed then nursed back retains
@@ -476,7 +563,10 @@ No new production files. The end-to-end proof, through real verbs only.
   feed to maturity → harvest three → the bed is spent → feed it → the next
   crop grades better.** If this reads awkwardly, the verb surface is wrong.
 - title, the bed, its soil and its plants all survive a restart together
-- ⭐ **phase 1 is untouched**: the dorm houseplant walk passes unchanged
+- ⭐ **phase 1 still works**: the dorm houseplant walk passes — with its
+  fixtures updated for Decision F's storage move and **no assertion weakened**.
+  If an assertion has to be relaxed to make it pass, the water move broke
+  something and that is the signal.
 
 ---
 
@@ -489,8 +579,12 @@ No new production files. The end-to-end proof, through real verbs only.
   4/5 inherit it · the pot↔bed relationship and the N = 1 reduction · shared
   soil as the density trade-off · the weakest-link grade · Hinkley Hills's
   place in the address tree and **why it governs itself**.
-- **`husbandry.md`** — the bed as N > 1, shared soil, the fourth factor,
-  the harvest ending a plant.
+- **`husbandry.md`** — the bed as N > 1, shared soil, the fourth factor, the
+  harvest ending a plant, and **§ "Moisture lives on the plant, not the pot"
+  rewritten**: the decision is reversed, and the doc must say *why the original
+  objection (a split checkpoint) no longer applies* — the bed has a checkpoint
+  of its own and the plant only reads it. A reader who finds the old paragraph
+  and the new code will otherwise conclude the code is wrong.
 - **`parcel.md`** — land use. **`address.md`** — the suburb tier.
 - **`persistence.md`** — `restoreOrSeed`. **`residence.md`** — the dorm now
   uses it.
@@ -503,8 +597,10 @@ No new production files. The end-to-end proof, through real verbs only.
 
 ## Deferred seams — attach points, not stubs
 
-- **The bed's `moisture` is phase 4's rain input** (Decision F). Do not wire
-  weather to it here.
+- **The bed's `moisture` is live, but nothing fills it from the sky.** Rain and
+  real evapotranspiration are still phase 4's — the bed drains by its
+  occupants' demand and is refilled only by hand. The seam phase 4 needs is now
+  a *working* reserve rather than an inert one, which is strictly better for it.
 - **`_worstLimiting` is the quality substrate.** Phase 4's per-stage
   sensitivities (drought at flowering costs *count*; at filling costs *size*)
   refine it; do not generalize now.
@@ -573,7 +669,8 @@ tree · the compost material + sack · the crop species/plant/item/seed ·
 `lib/parcel/ParcelRecord.ts` · `obj/ParcelRegistry.ts` · `api/parcel.ts` ·
 `api/persistable.ts` · `obj/api/PersistableLogic.ts` ·
 `domain/eternal/duncan-hall/DormWarren.ts` · `lib/husbandry/Growing.ts` ·
-`obj/Plant.ts` · `obj/PlantPot.ts` · `obj/command/bulk/WaterController.ts` +
+`obj/Plant.ts` (loses its `moisture` reserve) · `obj/PlantPot.ts` (gains one) ·
+the phase-1 pot/plant seeds · `obj/command/bulk/WaterController.ts` +
 `obj/command/inventory/RepotController.ts` (the `getBed` rename) ·
 `lib/mixin.ts` · `api/mixin.ts` · `lib/config/AppSettings.ts` ·
 `config/app-settings.yaml` · `config/parcels.yaml` · `husbandry.md` ·
