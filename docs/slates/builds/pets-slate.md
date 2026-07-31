@@ -1,11 +1,11 @@
 # Pets slate (working doc) — the creature you won over
 
-> **Reconciled 2026-07-31** against the four husbandry sessions (pets · ranching
-> · farming · stewardship). Contradicted text is struck in place; the full
+> **Reconciled 2026-07-31** against the husbandry sessions (pets · ranching ·
+> farming · stewardship). Contradicted text is struck in place; the full
 > ledger — what changed, what those sessions newly **constrained**, and the one
 > hole they opened (**now closed** — see *The off-screen life*) — is in **[§
 > Reconciliation](#reconciliation--what-the-husbandry-sessions-changed-2026-07-31)**.
-> The shared convention set is owned by [ranching-slate § The four shared
+> The shared convention set is owned by [ranching-slate § The five shared
 > conventions](./ranching-slate.md).
 
 > **Status: design explored deep; not yet requirements.** Player pets, taken
@@ -282,6 +282,108 @@ test).
     the material floor is cheap and delegable. **Bond is only earned in
     person.** This is what the retracted boarding-fee economy was groping for,
     without the standing financial commitment.
+
+## Bonding + needs — the care loop **[DECIDED 2026-07-31]**
+
+The reference here is the Japanese care-sim lineage (Tamagotchi, Nintendogs,
+Monster Rancher / Digimon, and Harvest Moon's barn) — but taken for **what it is
+actually loved for**, which is not what it is usually copied for:
+
+> **Those games are beloved for their *acts*, not their *meters*.** Nintendogs
+> is remembered for petting the dog and calling its name, never for a hunger
+> bar. Tamagotchi's needs are the least-loved thing about Tamagotchi; what
+> people remember is that **care quality decided what it became**.
+
+The governing rule that falls out:
+
+> ### Needs create occasions. Acts create bond. A need must never be a chore.
+
+### Four needs — and only one is yours alone
+
+| Need | Substrate | Delegable? |
+|---|---|---|
+| **Food / water** | metabolism (shipped) | **yes** |
+| **Warmth / shelter** | thermal (shipped) | **yes** |
+| **Safety** | hazard / concealment (shipped) | **yes** |
+| **Attention** | `regard` | **no** |
+
+Three material needs, all on shipped substrate, all auto-satisfied at home by a
+bowl and a warm room — they bite only on expedition or through real neglect.
+Then one nobody can cover for you.
+
+**That table *is* the "automation maintains your assets; it cannot maintain your
+relationships" rule, expressed as a needs model.** The kennel handles rows one
+to three. Row four is why you come back.
+
+### The acts
+
+| Act | Rides | What it is really for |
+|---|---|---|
+| **feed** — a *preferred* food | metabolism + species prefs | the need is the excuse; **the preference is where the bond lives** |
+| **pet / stroke** | the accept-refuse hook | pure bond — the Nintendogs core |
+| **play / fetch** | engagement + the fetch brain | bond, and the on-ramp to the utility loop |
+| **groom / brush** | condition | bond + visible wellbeing |
+| **walk together** | it follows you | bond by mere presence — the passive accumulator |
+| **name it, call it** | `NamedMixin` + recognition | the identity act; the biggest single emotional beat |
+| **speak to it** | Vocal | cheap, expressive, always available |
+
+All shipped or near it — and they need exactly the **accept/refuse hook** this
+slate already flags as missing for `give`→`offer`, so petting and offering share
+one seam.
+
+### The anti-grind is that the animal can say no
+
+If petting grants bond, players will spam petting. Diminishing returns would fix
+that mechanically and kill it emotionally. The better answer:
+
+> **You cannot pet a cat that isn't in the mood.** Whether an act lands depends
+> on the animal's **temperament**, its **current state**, and **how it already
+> feels about you**.
+
+This makes the animal an agent rather than a slot machine, it is true to actual
+animals, and it is squarely the genre (cats in these games famously refuse).
+**The refusal is the personality.** And it produces the loop: a low-bond animal
+declines more, so you have to read it — and the reading is the game.
+
+Which gives the unification worth building on:
+
+> **Bonding *is* the taming encounter, continued at low stakes, forever.** The
+> same skill — read the animal, pick the right approach — daily instead of once.
+> That is precisely what the shop sells when it sells "the back half of taming."
+> **The back half is this.**
+
+The three things you read are **temperament** (traits, shipped), **current
+state** (hungry / cold / tired / just ate), and **current regard**. Opaque per
+the house rule — learned from behaviour, never from a number.
+
+### Care quality decides what it becomes — and this kills the training problem
+
+The genre's deepest idea is Monster Rancher's and Digimon's: **how you raised it
+determines what it grows into.** We get this honestly, because **maturation is
+already a gap ranching forces** (calf→cow, puppy→dog) and **a pet is
+Character-tier — so advancement already applies to it.**
+
+> **Training is not a new stat. Training is the pet's own `Discipline`
+> transcript.** A dog holds competence bands in *retrieval* or *guarding*
+> exactly as a character holds them in smithing, because per-character
+> advancement is shipped and a pet is a character.
+
+That resolves the open worry about a RimWorld/DF-style training axis: no
+parallel loyalty stat, no bespoke training meter, full substrate reuse — and it
+honours this slate's own guardrail, *reuse the bond, don't mint a stat*.
+
+A well-raised dog matures into a capable working animal; a neglected one is
+skittish and useless. **Same driver, different outcome** — which is the family's
+care model (below) pointed at a pet.
+
+### The cadence, at 12×
+
+**One login = one meaningful interaction.** Notice the animal, read it, do the
+right thing, get a response — seconds, not a chore loop. The
+[off-screen digest](#the-off-screen-life-decided-2026-07-31) covers what happened
+while you were away. That is the whole daily loop, and it is deliberately light.
+
+---
 
 ## The off-screen life **[DECIDED 2026-07-31]**
 
@@ -594,7 +696,7 @@ still wanted; that's a field, not a possession primitive.
 > substrate under two distinct experiences**: where pets and ranching touch
 > (custody, the clock, maturation, persistence, the genome) they must be
 > *identical*; where they part (bond vs yield) they part completely. The full
-> convention set lives in [ranching-slate § The four shared
+> convention set lives in [ranching-slate § The five shared
 > conventions](./ranching-slate.md).
 
 Pets are not the only consumer of "owned animals." **Livestock/ranching is the

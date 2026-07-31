@@ -8,7 +8,7 @@
 >
 > **Session 1** ran ranching against **both** its neighbors at once —
 > [pets](./pets-slate.md) (the relationship half) and
-> [farming](./farming-slate.md) (the plant half) — and settled the four
+> [farming](./farming-slate.md) (the plant half) — and settled the five
 > conventions all three must agree on, plus the deliberate divergences.
 >
 > **Session 2** designed the loop. Three decisions carry the most weight:
@@ -92,9 +92,10 @@ two touch (custody, maturation, persistence, the clock) they must be
 
 ---
 
-## The four shared conventions **[DECIDED]**
+## The five shared conventions **[DECIDED]**
 
 These bind ranching, farming, and pets alike. Build them once; do not fork.
+Conventions 1–4 are **substrate**; convention 5 is the **design** they all run.
 
 ### 1. Where identity lives — one density dial
 
@@ -164,6 +165,48 @@ consequence** (see §4 of the divergence table below).
 Both are **transforms** (feed → product), never faucets — the conserved-economy
 rule. The standing tap is the headline ranching mechanic and does not exist
 today; the reset sweep is the shape it should copy rather than a new driver.
+
+### 5. One care model, three outputs **[ADDED 2026-07-31, pets session]**
+
+The cleanest statement of what the family actually *is*:
+
+> **Every living thing you keep has needs. Meeting them well produces a better
+> outcome. Only the *outcome* differs.**
+>
+> | Kept thing | Outcome of good care |
+> |---|---|
+> | **Plant** | `Grade` — harvest quality |
+> | **Livestock** | yield **+** `Grade` |
+> | **Pet** | capability **+** bond |
+
+So the *practice* is genuinely shared, right down to the daily act: **the
+rancher scoring body condition and the owner noticing the dog's coat are
+performing the same read** — and since body-condition scoring is natively
+banded in the real discipline, it is the same *surface* too.
+
+**Common to all three:** food · water · warmth · safety · energy partitioning ·
+the maturation driver · the genome · reconcile-on-read · forgiveness · the
+one-interaction-per-login cadence.
+
+**Pet-only, exactly two things:** an **attention** need, and an outcome that
+**cannot be delegated**. That is the whole divergence, and it is why the
+automation ladder's limit (*assets, never relationships*) is the same statement
+as this one.
+
+**The houseplant sits where you would predict** — the three material needs and
+*not* the fourth. The plant is the pet minus the relationship, which is exactly
+why it is farming's on-ramp: it teaches the entire care model with the
+un-delegable part removed.
+
+**One real divergence, not a shared mechanic:** **livestock care is measured in
+aggregate; pet care is measured per head.** You body-condition-score a herd by
+sampling; you notice *one* dog. That is the density dial (§1) showing up in the
+daily act — and it is why the same practice feels completely different at the
+two ends of it.
+
+Detail on the pet end — the acts, the accept/refuse rule, and
+care-quality-decides-what-it-becomes — lives in
+[pets-slate § Bonding + needs](./pets-slate.md).
 
 ---
 
