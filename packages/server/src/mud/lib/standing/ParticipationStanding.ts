@@ -18,7 +18,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 import { SecurityApi } from '../../api/security';
 
 /** The stored `scope` sentinel — participation is Compact-wide only. */

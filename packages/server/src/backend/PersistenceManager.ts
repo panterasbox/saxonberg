@@ -24,59 +24,17 @@ import { fileURLToPath } from 'url';
 import { dirname, join, isAbsolute } from 'path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import YAML from 'yaml';
+import { Collections } from '../mud/lib/persistence/Collections';
 
 /**
- * MongoDB collections enum.
+ * The MongoDB collection-name vocabulary.
+ *
+ * Defined in the mudlib (`mud/lib/persistence/Collections`) because it is
+ * vocabulary, not mechanism, and mudlib records name their own collection.
+ * Re-exported here so PM's own surface — `COLLECTION_POLICIES` is a total
+ * `Record<Collections, …>` — keeps one import site for the driver side.
  */
-export enum Collections {
-  Users = 'users',
-  GoogleProfiles = 'google_profiles',
-  TwitchProfiles = 'twitch_profiles',
-  KickProfiles = 'kick_profiles',
-  Domain = 'domain',
-  Emotes = 'emotes',
-  NameBanks = 'name_banks',
-  Groups = 'groups',
-  Channels = 'channels',
-  Parties = 'parties',
-  Beliefs = 'beliefs',
-  Chronicles = 'chronicles',
-  Transcripts = 'transcripts',
-  DispositionEvents = 'disposition_events',
-  ForumSubjects = 'forum_subjects',
-  ForumBoards = 'forum_boards',
-  ForumEntries = 'forum_entries',
-  ForumVotes = 'forum_votes',
-  ForumEvents = 'forum_events',
-  RenownEvents = 'renown_events',
-  Renown = 'renown',
-  ParticipationEvents = 'participation_events',
-  Participation = 'participation',
-  ProducerEvents = 'producer_events',
-  Producer = 'producer',
-  AuthoringEvents = 'authoring_events',
-  Positions = 'positions',
-  Recipes = 'recipes',
-  Blueprints = 'blueprints',
-  Bulletins = 'bulletins',
-  Documents = 'documents',
-  BankLedger = 'bank_ledger',
-  BankAccounts = 'bank_accounts',
-  BankSupply = 'bank_supply',
-  Parcels = 'parcels',
-  ParcelEvents = 'parcel_events',
-  Diagnostics = 'diagnostics',
-  HolderSnapshots = 'holder_snapshots',
-  AccountabilityEvents = 'accountability_events',
-  Contracts = 'contracts',
-  ContractEvents = 'contract_events',
-  Chattel = 'chattel',
-  ChattelEvents = 'chattel_events',
-  AppSettings = 'app_settings',
-  WorldState = 'world_state',
-  MediaAssets = 'media_assets',
-  OfficeHolders = 'office_holders',
-}
+export { Collections };
 
 /**
  * Operations a hook can wrap.

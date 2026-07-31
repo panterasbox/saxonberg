@@ -22,7 +22,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 /** Provenance of an authoring act. Open vocabulary; `save` is the v1 kind. */
 export type AuthoringEventKind = 'save';

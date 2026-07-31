@@ -32,7 +32,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 /**
  * The fields a caller supplies to mint one chronicle entry — the

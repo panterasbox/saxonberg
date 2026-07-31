@@ -17,7 +17,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { Collections } from '../../../backend/PersistenceManager';
+import { Collections } from '../persistence/Collections';
 
 export class WorldClockState extends Document {
   static collectionName = Collections.WorldState;
