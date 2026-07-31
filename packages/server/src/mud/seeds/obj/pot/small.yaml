@@ -1,0 +1,30 @@
+# A small plant pot. Ships EMPTY — you pour soil into it with the shipped
+# `pour`, then `plant` a seed in it.
+#
+# `interiorCapacity` is the soil volume, and the soil volume is THE ROOT
+# CEILING: 0.5 L carries a peace lily to `young` and then binds, which is
+# what makes "it has outgrown its pot" happen to a player rather than being
+# explained to them. The `plant` slot and the capacity are the only things
+# that distinguish this from the large pot — one class, two data files.
+class: /obj/PlantPot
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a small clay pot
+  primaryKeyword: pot
+  keywords: [pot, "small pot", "clay pot", planter]
+  longDescription: |
+    A squat unglazed pot the size of two cupped hands, with a chipped rim and a drainage hole worn smooth.
+  material: /lib/material/ceramic/ceramic
+  interiorBulk: true
+  interiorCapacity: 0.5
+  # A loose solid pours in and stays put; nothing here is liquid-tight.
+  closure: open
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 1
+      userFacingDetail: planting
+  details:
+    planting:
+      keywords: [soil, planting, hole, rim]
+      description: A drainage hole in the base, and room at the top for one plant.

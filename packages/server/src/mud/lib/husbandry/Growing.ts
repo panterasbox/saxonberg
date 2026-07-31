@@ -367,7 +367,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         const tau = dial(AppSettingKeys.husbandryVigorTauSec, 3_801_600);
         const goodAt = dial(AppSettingKeys.husbandryGoodAt, 0.6);
         const deathAt = dial(AppSettingKeys.husbandryDeathAt, 0.12);
-        const warmth = this.warmthMultiplier();
+        const warmth = this.transpirationWarmth();
         // Sampled once before the loop — the pot cannot change mid-window —
         // and re-sampled on a stage advance (root demand is per-stage).
         let satRoot = this.satRoot();
@@ -600,7 +600,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * warmer than the reference transpires faster; at or below it,
      * neutral. Gracefully neutral when Thermal is absent or throws.
      */
-    private warmthMultiplier(): number {
+    private transpirationWarmth(): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isThermal(self)) return 1;
       try {

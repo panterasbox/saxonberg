@@ -92,8 +92,8 @@ function profile(over: Partial<GrowthProfileData> = {}): GrowthProfileData {
   };
 }
 
-function installMoisture<T extends GrowFixture | LinkdeadFixture>(
-  t: T,
+function installMoisture(
+  t: { setReserve(r: Reserve): void },
   capacity = 1,
   current = capacity,
 ): void {

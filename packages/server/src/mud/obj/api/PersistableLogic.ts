@@ -355,9 +355,14 @@ function captureItem(item: Stuff, placement: Placement): ContentEntry {
     // clone a duplicate of a host that is already live. The field is
     // OMITTED (not null) in that case — keyless records stay
     // byte-identical to the pre-key shape.
-    const key = item.isPersistenceKeyExplicit()
-      ? (item.getPersistenceKey() ?? undefined)
-      : undefined;
+    // Read the key BEFORE the provenance flag: a host that mints its key
+    // lazily (a cultivated Plant) does so in `getPersistenceKey`, and that
+    // mint is what makes it explicit.
+    const stashed = item.getPersistenceKey();
+    const key =
+      stashed !== null && item.isPersistenceKeyExplicit()
+        ? stashed
+        : undefined;
     return key !== undefined
       ? { ref: templatePath, key, placement }
       : { ref: templatePath, placement };
