@@ -625,6 +625,14 @@ taught at two speeds.
   the dependency sharper: pasture *is* farming's field-room + soil reserves, so
   ranching cannot ship its signature verb before farming's plot model exists.**
 
+### Dependency — the time-parameterised weather resolve
+
+Pasture growth integrates weather over an elapsed window, which nothing can
+answer today. **Designed, ~2 lines, unbuilt** — shared with farming's ∫weather
+and preservation's spoilage rate. See
+[weather-slate § The resolution](../tails/weather-slate.md). Settle it before
+this builds, or invent a workaround that is silently wrong.
+
 ### Deferred to a running game (calibration, not design)
 
 Residual + recovery thresholds, the utilization penalty a hired cadence gives

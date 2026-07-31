@@ -125,6 +125,7 @@ Two drivers, and they are **not** equally free:
 |---|---|---|
 | **Water activity** | **`WetMixin`** — per-object saturation, banded `dry/damp/wet/soaked`, **composed on every `Thing`/`Vessel`/`Agent`** | ✅ **free — already universal** |
 | **Ambient humidity** | an **already-resolvable field** on `AtmosphericMixin`, alongside temperature and pressure | ✅ free |
+| **Weather over the elapsed window** | the time-parameterised resolve — [weather-slate § The resolution](../tails/weather-slate.md) | ⚠ **~2 lines, unbuilt** — settle before this builds |
 | **Temperature** | `ThermalMixin` is **opt-in and narrowly composed** (~11 classes: forge, kiln, flask, campfire, creature…). **A sack of grain has no temperature at all.** | ⚠ **not free** |
 
 **The temperature gap is the real cost of this build.** Two routes, and the

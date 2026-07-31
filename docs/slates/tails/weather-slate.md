@@ -306,10 +306,107 @@ implementation is missing. **Settle it before the first husbandry consumer
 builds** — all three want it, and each would otherwise invent its own
 workaround.
 
-*(Softening note: the invariant is **nearly unexercised** — `resolveWeatherFor`
-has exactly one production caller, `analyze weather`. The fan-outs call the
-module-private `computeResolved`, and the biome fold calls `deviatedFieldFor`.
-So "one resolved state" is architecturally real but not yet load-bearing.)*
+### The resolution — ~2 lines, not a subsystem **[DESIGNED 2026-07-31]**
+
+**Every internal function is already time-parameterised.** Verified in
+`WeatherLogic`:
+
+- `weatherAt(timeS, locality)` → `computeSample(nowS, locality)` — pure, any
+  time.
+- `pinnedSample(pin, locality, **nowS**)` — segment, season, and deviation all
+  derived from the passed time (`aliveScale(nowS, locality)` for `alive` pins,
+  the profile verbatim for `frozen`).
+- `deviatedFieldFor` → `pin !== null ? pinnedDeviation(pin, locality, nowS) :
+  computeSample(nowS, locality).deviation`.
+
+The **only** thing that makes the resolve now-only is the public entry:
+
+```ts
+public async resolveWeatherFor(scope) {
+  const nowS = nowSecondsOrNull();   // ← the entire limitation
+  …
+}
+```
+
+> **So the fix is to accept an optional time instead of reading the clock:**
+> `resolveWeatherFor(scope, atTimeS?)`, defaulting to now. Same one-line change
+> on `deviatedFieldFor`. **Nothing below either entry point changes at all.**
+
+**Why it is safe:** authored pins are `WeatherPin { type, mode }` — *"this scope
+is **always** this weather."* **Standing, not scheduled**: no start, no end, no
+validity window. So a pinned scope's resolved weather is well-defined at any
+time without inventing pin history.
+
+### The second half — one async resolve, many sync samples
+
+The naive fix is still wrong for an integral: 336 calls each re-walking
+`AddressApi.resolveLocalityFor` plus the pin chain is the async-in-a-reconcile
+trap thermal's cached ambient exists to avoid.
+
+**Resolve the chain once; sample it many times.**
+
+```
+WeatherApi.samplesBetween(scope, fromS, toS): Promise<ResolvedSegment[]>
+```
+
+One async locality+pin resolve, then a pure segment walk. `ResolvedSegment`
+carries `{ startsAt, endsAt, sample, precipitationHere }` — enough for every
+known consumer; provenance and `cloudForm` are presentation and can stay out.
+
+*(If more consumers appear, the generalisation is a captured **resolver value
+object** — `resolverFor(scope)` async once, `.at(t)` sync thereafter. Start with
+the array; it is simpler and matches how this codebase returns values.)*
+
+### Step by segment — the integral is exact *and* cheap
+
+Weather is **piecewise-constant per 6-game-hour segment**
+(`segmentIndex = floor(t / 21600)`), so the natural sub-step is not an arbitrary
+tick — **it is the segment**:
+
+- **Exact** for `type`, `cloud`, and `precipitation` — they do not vary within a
+  segment.
+- **Bounded and cheap** — 4 segments a game-day, so a **week of real absence
+  (84 game-days) is 336 samples.** A whole game-year is 1,460.
+- ⚠ **One caveat:** *deviation* is **not** perfectly piecewise-constant — it
+  lerps from the previous segment's targets across the first `INTERP_BAND =
+  0.15` of each segment (~54 game-minutes). Segment-stepping is therefore a very
+  good approximation for temperature/humidity, and can be made **exact** with a
+  trapezoid across the ramp if any consumer ever needs it. For GDD over a 90-day
+  season the difference is noise.
+
+### The semantics question, and why the answer is forced
+
+Replaying a past window uses **today's** authored pins — a pin added this
+morning "applies" to last week's integral.
+
+That is correct, and not a compromise: **recording pin history would mean stored
+weather state, which Dealbreaker 1 forbids** (*"No simulation, no tick, no
+stored state… the lazy-compute discipline IS the guardrail"*). It also matches
+`weatherAt`'s existing semantics — a pure function of the *current* seed and the
+*current* authored field. **The reconcile replays against present authorship, by
+design.**
+
+### Two smaller calls
+
+- **No far-past limit.** [preservation](../builds/preservation-slate.md)
+  explicitly needs the *full* gap (food rots while you are logged out), so this
+  read must not inherit the bodies-only `MAX_REASONABLE_GAP_SEC`. Guard with a
+  **sample-count cap** instead of a time cap.
+- **It is a pull API, so it is exempt from the presence gate** — which is
+  exactly the "prefer the pull side" guidance above. An unoccupied field
+  integrates correctly.
+
+### Why settle it now
+
+Three consumers want the identical read —
+[farming](../builds/farming-slate.md)'s ∫weather,
+[ranching](../builds/ranching-slate.md)'s pasture growth, and
+[preservation](../builds/preservation-slate.md)'s spoilage rate. Whichever
+builds first will otherwise invent a workaround, and the two most likely
+workarounds are both bad: calling `weatherAt` directly (violates the one-resolve
+invariant and silently drops authored pins) or accepting present-tense weather
+(silently wrong integrals). **Two lines now prevents three divergent workarounds
+later.**
 
 ---
 

@@ -233,8 +233,10 @@ been restamped.
 > only the procgen-only `weatherAt` accepts an arbitrary past time. **Nothing
 > can answer "what was the *resolved* weather over the elapsed window"** — which
 > is exactly what the ∫weather integral is. Shared with ranching's pasture
-> growth and preservation's spoilage rate. See
-> [weather-slate § The blocking gap](../tails/weather-slate.md).
+> growth and preservation's spoilage rate. **Resolved 2026-07-31 — and it is
+> ~2 lines**, because every internal weather function already takes a time; only
+> the public entry reads the clock. See
+> [weather-slate § The resolution](../tails/weather-slate.md).
 
 ---
 
