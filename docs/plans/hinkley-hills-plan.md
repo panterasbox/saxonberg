@@ -203,6 +203,52 @@ the capability half; this is the ceiling half, and phase 4's fields and phase
 bed, and the bed-placement gate checks it — so the field ships tested rather
 than joining `allowance` as an untested seam.
 
+**A3. A building interior is at least its own zone — but land use stays on the
+parcel row.**
+
+Two halves of one proposal, and they resolve differently.
+
+**Yes to the zone standard.** A building interior is **always at least its own
+zone**, and may hold sub-zones. This is worth standardizing because:
+
+- `cellSize` is a **zone** property, and `CartesianLocation.getSizeScale()` is
+  literally `zone.getCellSize()²` — so a zone is already the unit at which
+  interior scale is declared. A house with 4 m cells and a warehouse with 10 m
+  cells stop needing per-room fiddling.
+- It makes `ParcelRecord.zonePath` do real work. Today it is always `== extent`
+  (the 0a simplification); a building's own zone gives it a genuine referent.
+- One parcel → one backing zone → sub-zones for complexity is a shape the
+  coverage trie already handles by prefix.
+
+For Hinkley that reads: the **lot is a zone** (holding the yard room), and the
+house — when build-3 gives it an interior — is a **sub-zone** of it. Phase 2
+shows nothing of this beyond not violating it.
+
+**No to land use on the zone**, and this is not a preference:
+
+> **⚠ The project already tried zone-level and retired it.**
+> `config/parcels.yaml`'s header: *"ownership is declared HERE (a gated
+> platform seed channel), **never on the editable `domain` zone template**…
+> **access-check data lives only in this collection.** This replaces the
+> **retired** `data.ownerGroupName` stamps on the lounge / Terminus zone
+> seeds."*
+>
+> Land use **gates behaviour** (Decision A: the bed refuses ground). That makes
+> it access-check data. On an editable zone template, **a content author could
+> rezone their own land** — the precise forgery those stamps were removed to
+> close.
+
+**The resolution keeps both benefits.** Land use and area live on the **parcel
+row**; the parcel *points at* the zone through `zonePath`. You still get one
+place to look (the parcel), the zone still owns interior scale, and no
+access-check data enters editable content.
+
+> **⚠ And note where the derive temptation returns.** Once a zone owns
+> `cellSize` *and* a parcel owns `area`, "just multiply the rooms" looks
+> tempting again. Decision A2 already refused it, and the two living one tier
+> apart is not new evidence — it is the same lighting constant wearing a
+> different hat.
+
 **B. `PersistableApi.restoreOrSeed(host, key)` — the one new static.**
 
 The six-line D1 decision, on an existing facade, in `PersistableLogic`:
@@ -754,8 +800,12 @@ So there is **no conflict**: Hinkley implements the seam furnishing names and
 declines. Two independent builds converging on the same tier is a good signal
 the tier is right.
 
-> **Tell build-3.** Their deferred seam will already exist by the time they
-> want it, so they can consume `ParcelApi.landUseOf` rather than re-defer it —
+> **Tell build-3 two things.** First, the **zone standard** (Decision A3): a
+> building interior is at least its own zone, sub-zones for complexity — that
+> is squarely their call to honour, since apartments are the build with real
+> interiors, and it is where `cellSize` already lives. Second, their deferred
+> seam will already exist by the time they want it, so they can consume
+> `ParcelApi.landUseOf` rather than re-defer it —
 > **and `ParcelRecord.area` with it** (Decision A2). The seam build-3 needs
 > from that is `workable = gross − footprint`: a structure declares an
 > **authored blueprint footprint**, never a sum over its rooms. Room dimensions
