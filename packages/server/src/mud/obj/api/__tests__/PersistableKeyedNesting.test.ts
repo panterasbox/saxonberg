@@ -327,7 +327,6 @@ describe("PersistableApi.captureHostOf — the mutating-act capture", () => {
   it("terminates at the hop cap on a pathologically deep chain", async () => {
     // Deeper than the 32-hop cap, no persistable anywhere: must return
     // cleanly (the cycle guard is this same bound).
-    let outer = makeStuffAtPath(() => new PlainBox(), "/obj/box-0");
     const innermost = makeStuffAtPath(() => new Trinket(), "/obj/trinket");
     let cur: Stuff = innermost;
     for (let i = 1; i <= 40; i++) {
@@ -338,7 +337,6 @@ describe("PersistableApi.captureHostOf — the mutating-act capture", () => {
       );
       cur = box;
     }
-    void outer;
     await expect(
       PersistableApi.captureHostOf(innermost),
     ).resolves.toBeUndefined();

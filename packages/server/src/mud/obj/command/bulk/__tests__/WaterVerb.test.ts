@@ -30,7 +30,6 @@ import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Location from '../../../../lib/stuff/Location';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
 import { PersistableApi } from '../../../../api/persistable';
