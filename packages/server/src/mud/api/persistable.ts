@@ -81,6 +81,20 @@ export class PersistableApi {
   }
 
   /**
+   * Capture the persistence host **responsible for** `stuff`, after a
+   * mutating act on it: `stuff` itself when it is a host (a watered
+   * plant), else the nearest persistable containment ancestor (the dorm
+   * room a chest sits in), captured under its own stashed key. A clean
+   * no-op when no host is found — the thing lives in transient space —
+   * and hop-capped against a containment cycle. The event-driven capture
+   * every husbandry-family phase reuses; see
+   * [docs/subsystems/persistence.md].
+   */
+  static captureHostOf(stuff: Stuff): Promise<void> {
+    return logic().captureHostOf(stuff);
+  }
+
+  /**
    * True when a record exists for `scope`. With `key`, tests the single
    * `(scope, key)` record (a multi-instance host); without, whether any
    * record is scoped to `scope` (the host's path).

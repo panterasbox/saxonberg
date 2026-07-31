@@ -48,6 +48,13 @@ export interface Placement {
  * One entry in a container slice. Either a **non-host item** (nests its own
  * captured `state`, recursing) or a **nested host reference** (`ref` = the
  * host's own `scope`; it persists itself, so it is not absorbed).
+ *
+ * `key` is the nested host's per-instance persistence key, present iff the
+ * host had one at capture time. A keyed ref restores by cloning a **fresh**
+ * shell and materializing its `(scope, key)` record — so many instances of
+ * one template nest side by side without collapsing. A keyless ref keeps
+ * the original singleton resolve (`findByTemplatePath` dedup), so every
+ * record written before the key existed restores unchanged.
  */
 export type ContentEntry =
   | {
@@ -55,10 +62,10 @@ export type ContentEntry =
       state: Record<string, MixinSlice>;
       placement: Placement;
     }
-  | { ref: string; placement: Placement };
+  | { ref: string; key?: string; placement: Placement };
 
 /** A nested-host reference entry (narrowed by the `ref` discriminant). */
-export type RefEntry = { ref: string; placement: Placement };
+export type RefEntry = { ref: string; key?: string; placement: Placement };
 
 /** The default slice — a layer's declared fields, marshalled to stored form. */
 export interface FieldsSlice {
