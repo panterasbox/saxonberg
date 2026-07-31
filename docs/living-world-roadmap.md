@@ -87,8 +87,35 @@ the template) and a **harvest** that mints matter.
 **No new Api.** A garden is the smallest possible consumer, so the gate that
 unblocks three verticals arrives cheap and on something that barely needs it.
 
-**Needs nothing hard:** land use requires neither the un-designed allowance
-meter nor the deferred region parcel.
+**Land use itself needs nothing hard** — it requires neither the un-designed
+allowance meter nor the deferred region parcel.
+
+> ⚠ **But phase 2 has a persistence cost this doc missed** *(found during phase
+> 1 planning, 2026-07-31)*. **Persistence is opt-in per host and only three
+> classes opted in** — `Avatar`, `DormRoom`, `ConsignmentShelf`. Everything
+> else is a transient runtime clone re-seeded from template.
+>
+> **Phase 1 pays for the *movable* half.** A cultivated plant becomes its own
+> keyed persistence host carrying its own location, so it stays durable
+> wherever it is carried — and lifting that required extending the spine's
+> nested-host entry to `{ ref, key }`, because it had assumed one live instance
+> per template. **Pets and livestock inherit that unlock directly** (phase 5 is
+> the same shape: many instances of one template, each its own keyed host).
+>
+> **Phase 2 must pay for the *ground* half, and it is a different pattern.** A
+> garden bed or a Warren-budded field-room is a **room**, not a movable — so it
+> needs a keyed holder driving seed-vs-restore over `(scope, key)`, the
+> `DormWarren.admit` pattern, not the plant's self-hosting one. Phase 4's
+> field-rooms are unambiguously this. Budget for it here rather than
+> discovering it in phase 4.
+>
+> Related: capture is **event-driven, not periodic and not at shutdown**
+> (autosave is Avatar-only; `AppBootstrap.shutdown` persists only the world
+> clock). Reconcile-on-read absorbs this well — a rolled-back checkpoint
+> re-derives the elapsed time — but **player interventions must capture their
+> host at the moment they happen.** Phase 1 adds
+> `PersistableApi.captureHostOf` for exactly this, and the whole family reuses
+> it.
 
 ---
 
@@ -277,6 +304,8 @@ natural home above:
 | the diagnosis surface | **phase 7** |
 | a production brain | **phase 8** |
 | the allowance meter | **phase 9** |
+| durable movable hosts (keyed nested `{ref, key}`) | **phase 1** — pets/livestock inherit it |
+| durable owned *ground* (the keyed-holder pattern) | **phase 2**, used again in **phase 4** |
 
 None needs a home invented for it. They were unscheduled, which reads like an
 orphan until the sequence exists.
