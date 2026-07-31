@@ -218,11 +218,23 @@ Corollaries worth holding:
 
 `WeatherLogic.runBoundaryFanout` walks **live Interactives → their rooms** and
 restamps only sky-exposed ones, so **room temperature is only maintained where
-someone is standing.** A crop must therefore call
-`WeatherApi.weatherAt(t, locality)` **directly** — it is a pure deterministic
-function of `(time, locality)` — and never rely on its room's temperature having
-been restamped. The reconcile design already does this; it is now a hard
-requirement, not a convenience.
+someone is standing.** A crop must never rely on its room's temperature having
+been restamped.
+
+> ⚠ **Corrected 2026-07-31 — and it opens a real gap.** An earlier draft said a
+> crop should call `WeatherApi.weatherAt(t, locality)` **directly**. That
+> violates weather.md's governing invariant — *"nobody calls `weatherAt` /
+> `deviationFor` directly except the resolver and the biome field-fold"* — and a
+> crop that did would **silently ignore authored weather pins**, so a
+> storyteller's storm would not touch the harvest.
+>
+> But the correct call does not exist. `resolveWeatherFor(scope)` is
+> **now-only** (no time parameter) and async; `forecastFor` looks **forward**;
+> only the procgen-only `weatherAt` accepts an arbitrary past time. **Nothing
+> can answer "what was the *resolved* weather over the elapsed window"** — which
+> is exactly what the ∫weather integral is. Shared with ranching's pasture
+> growth and preservation's spoilage rate. See
+> [weather-slate § The blocking gap](../tails/weather-slate.md).
 
 ---
 
