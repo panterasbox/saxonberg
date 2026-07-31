@@ -266,6 +266,17 @@ good's `place` is set through the chattel logic singleton, never
 author- or player-writable as data, so it cannot be forged into someone
 else's residence.
 
+**One index, added in planning.** A room materializing has to find the
+goods placed in it, and their state lives in their *owner's* record — so
+something must be queryable by room. The chosen answer is an indexed
+`place` on the **existing `chattel` row**: not a new registry (which is
+what this decision rejects), but one more field on the row that already
+exists per owned good, written by the same single gated call that sets
+the instance field. The instance keeps `place` as its persistent field
+and D1's round-trip is unchanged; **the row is an index, not a second
+source of truth.** The duplication is real, is one-directional, and gets
+stated in the subsystem doc rather than hidden.
+
 ### D2 — Host capture skips owner-stamped goods
 
 `captureContainer` filters goods whose `ownerOf` resolves to an explicit
