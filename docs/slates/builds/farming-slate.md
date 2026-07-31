@@ -15,7 +15,8 @@
 >    axes*. **Houseplants** fall out as farming's on-ramp.
 > 3. **Winter is 7.5 real days and globally synchronized**, which is both this
 >    slate's biggest UX risk and the entire reason preservation exists. See
->    *Winter*. It has a hard dependency on the **deferred** spoilage tail.
+>    *Winter*. It has a hard dependency on spoilage — which **now has a home**:
+>    [preservation-slate](./preservation-slate.md).
 > 4. **The substrate mapping was optimistic about light.** Thermal is real;
 >    **sun→ambient light is not wired at all** and is net-new work farming owns.
 >

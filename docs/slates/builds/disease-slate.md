@@ -341,6 +341,13 @@ disease driver either follows that precedent or adds a gated
 
 ## Where to prove it — crops first
 
+> **Amended 2026-07-31: the *growth term* should be proven earlier, in
+> [preservation](./preservation-slate.md).** Food spoilage is **this same
+> equation minus transmission** — no `ContagionSpec`, no host range, no
+> immunity, no push tick. Build the growth term there, prove it on a fish, and
+> disease inherits it working. Crops remain the right first proof of *disease*;
+> they are no longer the first proof of the *machinery*.
+
 **Not cattle, and definitely not pets.** Plants are the right first host:
 
 - **Simplest host** — no vitals stack, no consciousness, no death choreography.

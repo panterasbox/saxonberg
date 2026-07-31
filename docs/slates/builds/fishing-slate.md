@@ -13,7 +13,9 @@
 > fishing owns the **accessible, opportunistic, contemplative** niche —
 > *panning grown up*, the socializer's low-attention income floor. It is
 > also the **first real gameplay consumer of weather-as-a-system** beyond
-> wetness, and the natural driver to finally build **perishability**. The
+> wetness, and the natural driver to finally build **perishability** —
+> now designed in [preservation-slate](./preservation-slate.md), with fish as
+> its v1 perishable. The
 > **spatial model** bottoms out in navigable rooms as **three regimes** —
 > a shore *feature* in a land room (v1, free) / a boat on a **liquid
 > warren** (the elastic-graph substrate — a graph by default, a coordinate

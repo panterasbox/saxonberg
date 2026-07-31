@@ -590,7 +590,9 @@ clean interdependence). A **bodily need** (electrolytes → universal constant
 demand). Historically **money-adjacent** ("salary" = salt), **taxed** (the
 gabelle), a house/corpo **monopoly** — a natural state-revenue lever and near-money
 on the frontier. Central *because* everyone needs it (value=application at its
-purest).
+purest). *(2026-07-31: the consumer is now designed —
+[preservation-slate](./preservation-slate.md); note salt does not yet exist as a
+solid `Material`, only `bulk/salt-water`.)*
 
 **Gold — the hoard, not the coin [DECIDED].** Store of value, **Mammon's metal**,
 the hoarder's pile (scarcity + permanence + ornament + niche application), **not
