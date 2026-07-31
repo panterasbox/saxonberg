@@ -13,6 +13,7 @@ import BuyController from "../BuyController";
 import Stock from "../../../../lib/retail/Stock";
 import Thing from "../../../../lib/stuff/Thing";
 import Coin from "../../../../obj/Coin";
+import PlantPot, { PLANT_SLOT } from "../../../../obj/PlantPot";
 import BankCounter from "../../../../lib/banking/BankCounter";
 import PaymentCard from "../../../../lib/banking/PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
@@ -63,6 +64,7 @@ async function makeStoreBusiness(): Promise<string> {
   return EmploymentApi.operatingAccountOf(biz);
 }
 const TORCH = "/obj/test/Torch";
+const POT = "/obj/pot/large";
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -86,6 +88,7 @@ function stubClones(): void {
       t.setKeywords(["torch"]);
       return t;
     }
+    if (path === POT) return makePot(path);
     const c = makeStuffAtPath(() => new Coin(), path);
     c.setMass(Quantity.of(0.008, "kg"));
     return c;
@@ -122,6 +125,35 @@ function makeStore(opts: {
   }, TORCH);
   ContainmentApi.move(torch, stock as never);
   return { stock, torch };
+}
+
+/** A real `/obj/pot/large`-shaped good: Slotted + a bulk soil interior. */
+function makePot(path: string): PlantPot {
+  const pot = makeStuffAtPath(() => new PlantPot(), path);
+  pot.setKeywords(["pot", "large pot"]);
+  pot.interiorBulk = true;
+  pot.setInteriorCapacity(Quantity.of(3, "L"));
+  pot.setStaticSlots([
+    { name: PLANT_SLOT, accepts: "SlottableMixin", capacity: 1 },
+  ]);
+  return pot;
+}
+
+/** A counter stocking the gardening line's headline good. */
+function makePotStore(price: number): { stock: Stock; pot: PlantPot } {
+  const stock = makeStuffAtPath(() => {
+    const s = new Stock();
+    s.stockLines = [{ itemTemplatePath: POT, par: 1 }];
+    s.setPrice(POT, price);
+    s.discipline = "line";
+    s.attendDurationMs = 0;
+    s.staffingPolicy = "self-service";
+    s.serverPositionKeys = ["clerk"];
+    return s;
+  }, STORE);
+  const pot = makePot(POT);
+  ContainmentApi.move(pot as never, stock as never);
+  return { stock, pot };
 }
 
 function makeContext(
@@ -227,6 +259,49 @@ describe("BuyController — buy that stamps", () => {
     );
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(BankingApi.reconcile().balanced).toBe(true);
+  });
+
+  it("the gardening line buys like any other good — a pot changes hands, stamped", async () => {
+    // Husbandry phase 1 stocks the pots / soil / seed from shared `/obj/`
+    // templates rather than store-local `goods/` copies. That is a stock-line
+    // path difference and nothing more, so the shipped buy loop has to carry
+    // them unchanged — including the chattel stamp, which is what makes the
+    // pot the buyer's.
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuffAtPath(() => new TestGiver(), "/obj/Avatar/gardener");
+    ContainmentApi.move(giver as never, loc as never);
+    const card = makeStuff(() => new PaymentCard());
+    ContainmentApi.move(card as never, giver as never);
+    const bank = makeStuffAtPath(() => {
+      const b = new BankCounter();
+      b.setCorpoKey("goodkin");
+      return b;
+    }, BANK);
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
+    const cash = await asOwner(giver, () =>
+      BankingApi.issueCash(giver as never, Money.of(300)),
+    );
+    await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
+    const storeAcct = await makeStoreBusiness();
+
+    // The shipped price of `/obj/pot/large` — a real but reachable purchase
+    // against the 20-credit arrival stipend.
+    const { stock, pot } = makePotStore(8);
+
+    const controller = makeStuff(() => new BuyController());
+    await asOwner(giver, () =>
+      controller.execute({ thing: "pot" }, makeContext(giver, loc, stock)),
+    );
+
+    expect(pot.getContainer()).toBe(giver);
+    const owner = await ChattelApi.ownerOf(pot as never);
+    expect(owner?.templatePath).toBe("/obj/Avatar/gardener");
+    expect(BankingApi.balanceOf(storeAcct).minor).toBe(8);
+    expect(stock.onHand(POT)).toBe(0);
+    expect(BankingApi.reconcile().balanced).toBe(true);
+    // …and it is a working pot, not a prop: empty of soil, one plant slot.
+    expect(pot.hasSoil()).toBe(false);
+    expect(pot.getSlotNames()).toContain(PLANT_SLOT);
   });
 
   it("an unattended (closed) counter refuses; nothing changes hands", async () => {
