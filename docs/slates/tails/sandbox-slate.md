@@ -2,10 +2,10 @@
 
 **Captured 2026-07-30**, out of the sandboxing design session. This slate
 **consolidates the scattered holodeck design into one authoritative
-artifact**: [property-slate §§D–I](./property-slate.md) (the magic circle,
+artifact**: [property-slate §§D–I](../builds/property-slate.md) (the magic circle,
 the wardrobe, the serialization boundary), the story-bible's administered
-realm (wire/field, promotion), [cms-slate](./cms-slate.md)'s author→test
-loop, and [land-compute-and-license](./land-compute-and-license.md)
+realm (wire/field, promotion), [cms-slate](../builds/cms-slate.md)'s author→test
+loop, and [land-compute-and-license](../builds/land-compute-and-license.md)
 Movement 1 (the pre-gate/post-gate split, the group-owned WIP cell). It
 **is** the "sandbox/wardrobe slate" the apartment build defers to, and it
 fills the never-written access-slate *Testing & the sandbox* section that
@@ -29,7 +29,7 @@ the platform's anti-cheat is the *routing* between them:
 - **The sandbox channel** — the wire: your holodeck, a group cell.
   Mutations here are **real while inside and void at the boundary**.
   Cheating is **structurally impossible, not administratively
-  forbidden** ([property-slate §E](./property-slate.md)) — safety never
+  forbidden** ([property-slate §E](../builds/property-slate.md)) — safety never
   depends on trusting the actor, so it holds for wizards, for guests,
   and **by accident**. You cannot cheat in your sandbox even if you try,
   and you cannot un-cheat your way around the law by calling a governed
@@ -51,7 +51,7 @@ structure, not review.
 ## What "anything goes" means — the two gates
 
 The sandbox opens exactly one of the two orthogonal gates
-([property-slate §G](./property-slate.md)):
+([property-slate §G](../builds/property-slate.md)):
 
 | Gate | Protects | Sandbox opens it? |
 |---|---|---|
@@ -75,7 +75,7 @@ comes from restore-to-baseline, not from a dead world.
 
 ## The mechanism — four containment layers over one magic circle
 
-The circle ([property-slate §D](./property-slate.md)): *material* state is
+The circle ([property-slate §D](../builds/property-slate.md)): *material* state is
 domain-local, *epistemic/social* state is global. Inside a circle,
 material state is fully real; it **does not cross out**, and the boundary
 is **symmetric** — it binds the owner too, so the owner can't be the
@@ -465,7 +465,7 @@ co-presence in one circle, personal or group-titled.
 
 **The build cut (decided 2026-07-30): one maximal build.** All phases
 ship in a single build cycle
-([sandbox-requirements.md](../../requirements/sandbox-requirements.md));
+([sandbox.md](../../subsystems/sandbox.md));
 the phase list below survives as **internal wave ordering** only. The
 wizard-gated `sandbox` verb ships alongside the wardrobe as the
 author's permanent fast door. The only exclusions are the two true
@@ -519,6 +519,11 @@ net every later phase runs under.
 
 ## Open questions
 
+> **Status after the build** (`feature/sandbox`, merged): four of these
+> are answered and struck through below; the rest are still open and are
+> why this slate is kept rather than retired. The shipped surface lives
+> in [sandbox.md](../../subsystems/sandbox.md).
+
 - **Chronicle presentation** — a wire-scoped deed persists, but how does
   the `chronicle` verb render it ("slew a dragon *of their own
   authoring, in the wire*")? Deed vs claim treatment for in-circle feats.
@@ -529,24 +534,34 @@ net every later phase runs under.
   under the symmetric rule, but "your personality is always you" argues
   it persists like belief. Leaning revert (symmetry beats philosophy
   until a case proves otherwise).
-- **What the wire body mints with** — appearance/species copied at entry
-  (a read, fine), but do augment-conferred capabilities project (read-in
-  copies of your rig) or does the vessel start baseline? Baseline is
-  purer; copies make the harness honest about testing *as yourself*.
+- ~~**What the wire body mints with**~~ — **ANSWERED by the build.**
+  Baseline: no gear, no chattel, no augment projection. What travels is
+  a fixed set of fork slices — presentation, contacts, embodiment
+  (species + lifecycle, without which the body has no anatomy and cannot
+  slot its implant), and the player's *shell* (cockpit layout, settings,
+  aliases). "Baseline" means no possessions, not a stranger's defaults.
 - **SHADOW mechanics** — the exact overlay-read composition, unique
   indexes that must gain `circleScope` in their keys, and which
   conservation checks go scope-aware vs scope-exempt.
-- **Deny-all vs a read allowlist at the boundary** — deny-all dispatch
-  is safer and simpler; "read-in" can ride the gated seeding aperture
-  instead of free cross-boundary getters. Does any harness case
-  genuinely need live reads of field objects?
-- **The infrastructure-exemption criterion** — "carries no zone" as the
-  test vs an explicit scopeless marker on `ApiLogic`/registries; pick
-  the one that fails closed when a new module category appears.
-- **Async propagation coverage** — every seam that mints a fresh
-  ExecutionContext must carry circle scope; the Phase-0 reach audit
-  enumerates them, but the *mechanism* (ambient vs explicit) is a plan
-  decision.
+- ~~**Deny-all vs a read allowlist at the boundary**~~ — **ANSWERED by
+  the build.** Deny-all, with one narrow exception that the live pass
+  forced and that the slate did not anticipate: a read-only *projection
+  of a person* (naming, sensing, status) must cross, or `who`, `chat`
+  and the delivery sense-gate all die whenever two people are on
+  opposite sides. That is `SecurityApi.projectAcross` — not a read
+  allowlist, because it is keyed on the projection rather than on
+  methods or objects.
+- ~~**The infrastructure-exemption criterion**~~ — **ANSWERED by the
+  build.** Explicit, never inferred: registered base classes plus an
+  enumerated path list, both central so the exemption surface is
+  readable in one place, and both CI-checked (`pnpm lint:boundary`).
+  Self-declared exemption was rejected — content authors write classes,
+  so a marker would let any new class grant itself a bypass.
+- ~~**Async propagation coverage**~~ — **ANSWERED by the build.**
+  Ambient: the scope rides frame-0 root metadata, so every composed
+  frame inherits it without a parameter. The roots table in
+  [sandbox.md](../../subsystems/sandbox.md) records the verified
+  seams.
 - Carried from property-slate §D/§E, still open here: **what counts as
   "power"** for the release gate (augments clearly; crafted `Grade`,
   conferred verbs, standing — or do they route through augments/ledgers
@@ -560,13 +575,13 @@ net every later phase runs under.
   act, the civic + technical gates) → story-bible § the administered
   realm + the civics build. This slate ends at the publish gate's door.
 - **The publish/review gate itself** (drafts → changeset → forums
-  review → atomic go-live) → [cms-slate](./cms-slate.md) (law == code).
+  review → atomic go-live) → [cms-slate](../builds/cms-slate.md) (law == code).
 - **Hostile code / `isolated-vm`** → roadmap Framework 13. Until then,
   code authorship stays wizard-tier everywhere. Layer 4 raises the bar
   so that cheating requires *deliberately evasive* raw TS, but the
   floor under that bar is `isolated-vm`'s to build.
 - **The compute economy** (allowance-gated circle size, billing,
-  degradation) → [property-slate](./property-slate.md) Phase 1. Circles
+  degradation) → [property-slate](../builds/property-slate.md) Phase 1. Circles
   are compute-priced from birth; the meter is property's build.
 - **The canonical dwelling** (apartment / dorm / furnishing) → the
   apartment build. The home is field property; this slate is the thing

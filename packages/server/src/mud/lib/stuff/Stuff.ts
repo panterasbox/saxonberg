@@ -545,19 +545,15 @@ export abstract class Stuff {
     return ProxyApi.unwrap(this as unknown as Stuff).#circleScope;
   }
 
-  /**
-   * Restamp the circle scope — the rare cross-boundary move (promotion,
-   * future governance acts). `ApiOnly`-gated: only Api-layer callers
-   * (in practice `SandboxLogic` via its facade) may restamp; ordinary
-   * player paths never touch this. Mint-time stamping uses the
-   * caller-allowlisted `_stampCircleScope` seam instead.
-   */
-  @Final
-  @Unshadowable
-  @CallSecurity(SecurityPolicies.ApiOnly)
-  public setCircleScope(value: string | null): void {
-    ProxyApi.unwrap(this as unknown as Stuff).#circleScope = value;
-  }
+  // There is deliberately NO public setter. The scope is stamped once,
+  // at mint, from the minting context (`_stampCircleScope` below), and
+  // an object does not change circles — it is born in one and dies
+  // there. A `setCircleScope` shipped in the first draft for "the rare
+  // cross-boundary move (promotion, future governance acts)", gated
+  // `ApiOnly`; it acquired no callers, and `ApiOnly` would have been
+  // the wrong contract anyway (it admits every Api and every logic
+  // singleton, when the only conceivable writer is the sandbox facade).
+  // If promotion ever lands it brings its own participant contract.
 
   /**
    * Pre-register stamp seam for the circle scope — used by `StuffApi`'s

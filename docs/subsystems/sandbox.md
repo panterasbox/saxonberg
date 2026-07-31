@@ -644,6 +644,19 @@ them are fixed on this branch.
   all, so nothing ever followed an exit out of the alcove. A latent bug
   that a feature made reachable is the normal way this goes.
 
+**Known residuals, accepted for this build:**
+
+- **Denial prose is security-error-shaped.** Subclassing `Avatar`
+  carries verbs whose targets are field-side by nature (`party`, forums
+  posting, banking withdrawals against the real account). All are
+  contained — the layers refuse them — but a player who tries one
+  inside a circle meets a boundary message rather than an in-fiction
+  refusal. Salvaged from the retired plan's risk list, where it was
+  accepted on the grounds that denials are receipts, not UX. The
+  wardrobe's own recursion refusal was fixed this way (`canTraverse`
+  prose instead of a thrown guard) and is the pattern to follow when
+  each of these is polished.
+
 **Reported, not fixed (they would change the world, not the sandbox):**
 
 - **Unlit rooms make their occupants unnameable** — reported here, and

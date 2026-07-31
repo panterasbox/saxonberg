@@ -986,3 +986,33 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   list made the case for one home on the Interactive that each subsystem
   appends to via its own `cancelAllForInteractive`. See
   [forums.md](./forums.md).
+
+## Parked bodies (sandbox)
+
+While a player is inside a sandbox circle their field avatar is
+**parked** — it keeps the `PlayerApi` registry slot, holds no sockets,
+and the player is wearing a vessel elsewhere. Three consequences land
+in this subsystem:
+
+- **`Avatar.isConnected()` follows the live vessel while parked.**
+  Sockets live on the vessel, so the inherited "any Interactives?"
+  answer is `false`, and every consumer of it — `who`, the `online`
+  scope that `dm`/`tell` resolve against, the presence roster, notify —
+  reads that as *offline*. Stepping into your own circle made you
+  unreachable to the whole world.
+- **The registry slot is guarded by object identity.**
+  `PlayerApi.unregisterAvatar` deletes only when the avatar holding the
+  slot IS the one being unregistered. A playerId no longer implies a
+  unique body: a wire body reports the REAL playerId (the identity
+  thread), so deleting by id alone meant every vessel reaped evicted
+  its player's actual body from the registry — and the next connection
+  then materialized a second one and collided on the persistence spine.
+- **Transport writes cross the boundary INBOUND only.** The lifecycle's
+  reads are symmetric; its writes (`setHolder`, `add`/`removeInteractive`,
+  `onConnectionAttached`/`Detached`, `onLinkdead`, `onLinkRestored`) are
+  exempt only when the context is field and the receiver is
+  circle-scoped — the engine reaching into a circle, never circle code
+  reaching out. These are `@hook`s, so they are structurally
+  ungateable, and `Avatar.onLinkdead` has a real body.
+
+See [sandbox.md](./sandbox.md).

@@ -955,6 +955,60 @@ const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
 on a singleton class throw. `singleton()` is the convenient surface
 that respects the contract automatically.
 
+## Object Identity Where You Mean *Person* Identity
+
+**ANTIPATTERN**: comparing two `Stuff` with `===` (or by `stuffId`) to
+ask "is this the same **person**?"
+
+A playerId no longer implies a unique body. A sandbox wire body reports
+the REAL playerId and identity path — that is the identity thread
+working as designed, so authority and the epistemic ledgers key on the
+person rather than the vessel — while the field avatar stays parked.
+Two live `Stuff`, one human being.
+
+### BAD
+
+```typescript
+// The channel fan-out, excluding the speaker from their own post.
+for (const a of audience) {
+  if (a === speaker) continue;   // audience holds FIELD avatars;
+  ...                            // speaker may be a VESSEL
+}
+
+// The registry, releasing a slot.
+this.avatarsByPlayerId.delete(avatar.getPlayerId());
+```
+
+Both shipped, and both were wrong the moment a vessel existed: a player
+posting from inside their own circle received their own message twice
+(once as "You", once as a stranger), and every vessel reaped evicted
+its player's real body from the registry — after which the next
+connection materialized a *second* body and collided on the persistence
+spine.
+
+### GOOD
+
+```typescript
+// Compare the IDENTITY, which is what "the same person" means.
+const speakerIdentity = speaker.getIdentityPath();
+for (const a of audience) {
+  if (a === speaker) continue;
+  if (speakerIdentity !== null &&
+      a.getIdentityPath() === speakerIdentity) continue;
+  ...
+}
+
+// Release the slot only if THIS object is the one holding it.
+const held = this.avatarsByPlayerId.get(playerId);
+if (held && held.stuffId !== avatar.stuffId) return;
+this.avatarsByPlayerId.delete(playerId);
+```
+
+The rule: `===` answers "the same object". `getIdentityPath()` answers
+"the same person". Reach for object identity only when you genuinely
+mean this exact body — a registry slot release, a self-exclusion that
+should NOT follow the person across a projection.
+
 ## Hardcoded Platform Template Paths — Use the `TemplatePaths` Index
 
 A platform template path (`/lib/…`, `/obj/…`) is **data** — a string key

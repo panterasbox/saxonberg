@@ -1,5 +1,5 @@
 /**
- * THE ROUND-TRIP ACCEPTANCE TEST (requirements § acceptance): enter
+ * THE ROUND-TRIP ACCEPTANCE TEST (docs/subsystems/sandbox.md): enter
  * through the real door → author (PASS persists) + play (STAMP rows
  * visible in-circle, invisible to field reads) + play-money (the
  * banking overlay moves; the field cache never does) → exit → field

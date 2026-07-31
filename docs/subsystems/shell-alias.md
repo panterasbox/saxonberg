@@ -375,3 +375,12 @@ Out of scope for v1, deliberate follow-ups when demand surfaces:
 | Read from `avatar.aliases` directly | `avatar.getAlias(name)` (lookup chain) or `avatar.getAliases()` (resolved view) |
 | Call `ShellApi.expandAliases` from a controller | Expansion is a substrate-pipeline concern; controllers read `context.aliasExpansion` if they need to know an alias fired |
 | Skip set-time validation by writing the body string straight to `aliases` | Always go through `setAlias` so the body is tokenized once and rejected if malformed |
+
+## Crossing into a sandbox circle
+
+This state **forks onto the wire body** (fork-only — a change made
+inside a circle discards with it). The vessel is a baseline body, and
+"baseline" means no gear and no chattel, not a stranger's defaults: a
+maker who has to retype full verbs, re-pick a theme, or re-open a
+layout inside their own workshop is being punished for using it. See
+[sandbox.md](./sandbox.md) § the crossing.
