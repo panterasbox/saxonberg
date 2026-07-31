@@ -133,9 +133,23 @@ question against one table:
 | **farming** | may I cultivate here, at what density? | none · a bed · a field |
 | **ranching** | may I keep stock, how many head? | none · a few · a herd |
 | **pets** | may I keep companions, how many? | 0 · 1 · several |
+| **pets** | may an unattended animal be in public here? | the **leash law** |
 
 Counting what is already present is a **derive-on-read MQL query over the
 extent** — no stored counters, consistent with the rest of the family.
+
+### The leash law — a second consequence beyond capacity
+
+Added 2026-07-31 from the pets session. A **`ranging`** species (a cat) roams
+its home parcel *plus adjacent public space*, so land use also declares
+**whether unattended animals are permitted in public**. A dense residential
+district may forbid it; the frontier obviously does not.
+
+This is worth having because it is a *behavioural* consequence rather than
+another ceiling: it makes **urban and rural pet-keeping genuinely different**,
+and it gives pets' "someone else has been feeding your cat" outcome an actual
+**place** to happen. See
+[pets-slate § Home range](./pets-slate.md).
 
 ### A farm is ONE parcel
 

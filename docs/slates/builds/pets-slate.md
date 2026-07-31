@@ -1,11 +1,12 @@
 # Pets slate (working doc) — the creature you won over
 
-> **Reconciled 2026-07-31** against the four husbandry sessions (pets ·
-> ranching · farming · stewardship). Contradicted text is struck in place; the
-> full ledger — what changed, what those sessions newly **constrained**, and the
-> one hole they **opened** — is in **[§ Reconciliation](#reconciliation--what-the-husbandry-sessions-changed-2026-07-31)**.
-> The shared convention set is owned by
-> [ranching-slate § The four shared conventions](./ranching-slate.md).
+> **Reconciled 2026-07-31** against the four husbandry sessions (pets · ranching
+> · farming · stewardship). Contradicted text is struck in place; the full
+> ledger — what changed, what those sessions newly **constrained**, and the one
+> hole they opened (**now closed** — see *The off-screen life*) — is in **[§
+> Reconciliation](#reconciliation--what-the-husbandry-sessions-changed-2026-07-31)**.
+> The shared convention set is owned by [ranching-slate § The four shared
+> conventions](./ranching-slate.md).
 
 > **Status: design explored deep; not yet requirements.** Player pets, taken
 > through the NetHack lens and stress-tested against the live subsystems.
@@ -221,6 +222,138 @@ test).
     person.** This is what the retracted boarding-fee economy was groping for,
     without the standing financial commitment.
 
+## The off-screen life **[DECIDED 2026-07-31]**
+
+Killing the presence-freeze removed an answer without replacing it. This is the
+replacement — and the framing matters more than the mechanism:
+
+> **A daily player is away ~22 real hours. At 12× that is 11 game days. A week
+> away is 84.** So the question was never "where is the dog parked." It is
+> **what did the animal do with its eleven days** — which is a *gift*, because
+> it means the pet has a life you weren't there for, and the payoff is being
+> told about it on your return.
+
+### One pure function, no simulation
+
+Copy the pattern weather already proves (`weatherAt(time, locality)` is pure and
+deterministic — "tomorrow is computable today"):
+
+> **`petLifeBetween(pet, t0, t1)`** — a **seeded, deterministic** function of
+> the pet, its home range, its bond, its supply situation, and the elapsed
+> window. Returns **(where it ended up, what changed, a digest of what
+> happened)**.
+
+Zero live tick; **O(1) per observation, not O(elapsed time)**; and it emits
+narration for free. It matches the seeded/deterministic-from procgen doctrine.
+Because it is reconcile-on-read, **any observer triggers it** — a neighbour
+walking past your house sees the animal in its correct present state, which is
+what makes the multiplayer branch below work at all.
+
+### The resolution, in order
+
+```
+reconcile(pet, t0 → t1):
+  1. AT HOME?
+       yes → roam within the homeRange band  → outcome: home | wandered
+       no  → attempt return, weighted by bond × distance × territory hostility
+             → home | wandered | LOST
+  2. SUPPLY — is food reachable (home stores, an arrangement, a feeder)?
+       yes → condition holds
+       no  → condition decays ASYMPTOTICALLY (miserable, never dead)
+       someone else fed it → THEIR regard edge rises (never custody)
+  3. BOND drift over the window, floored
+  4. Emit the digest
+```
+
+### The outcome ladder
+
+| Outcome | When | Recovery |
+|---|---|---|
+| **Home** | bonded, left in safe territory | none needed |
+| **Waiting** | left indoors, or low bond with nowhere better | none needed |
+| **Wandered** | moved within its home range | it's nearby |
+| **Lost** | left somewhere distant or hostile | **findable — go look** |
+| **Feral** | bond floored | re-tame it |
+| **Someone else's favourite** | a neighbour kept feeding it | show up more |
+
+Two carry the design:
+
+- **"Lost" makes taking your dog into a dungeon a real decision.** Log off in
+  the Sunken Delve and a poorly-bonded animal may not find its way back —
+  NetHack's pets-left-behind-on-a-level stake, honestly earned. It is **lost,
+  not dead and never deleted**: a findable pet is a quest hook, and the belief
+  substrate means it still recognises you when you get there.
+- **"Someone else's favourite" is the best thing this model produces.** A pet
+  can be taken from you by **kindness** — no theft mechanic, just another player
+  who was reliably the one with food. And because **custody is chattel while
+  bond is regard, and the two are already orthogonal**, the resolution is exact:
+  **custody does not transfer; affection does.** You come home and your dog is
+  gladder to see the neighbour. Fully recoverable by showing up. A genuinely
+  poignant beat falling out of rules already written, not a scripted event.
+
+### Absence has to be survivable — you make arrangements
+
+Condition asymptotes and bond floors, but at 84 game days for a week away, drift
+must be slow relative to absence or every pet dies of the owner having a life.
+The answer is the one real owners use: **a neighbour, a friend, a boarding
+kennel, a self-feeder.** This is the automation ladder working exactly as
+specified — **the arrangement maintains *condition* and cannot maintain
+*bond***, so you return to a healthy animal that missed you.
+
+> **This does not revive the retracted boarding-fee economy.** What was
+> retracted was a **standing** financial commitment — rent for owning a pet. An
+> *optional arrangement for a known absence* is a different thing and passes the
+> time-respect test **so long as the free path exists**: normal play costs
+> nothing, the coping animal is always available, and paying buys convenience,
+> never admission.
+
+### The payoff is the digest
+
+None of this is felt unless the player is told. **The reconcile returns a short
+narrative digest on login**, not just a state mutation:
+
+> *Mittens waited by the door the first day. After that she took herself off to
+> the kitchen garden most afternoons. Someone has been leaving food on the
+> step.*
+
+That is the whole reason to model an off-screen life rather than parking the
+animal, and it is where the legibility rule pays off — **you learn the pet's
+state from what it did, never from a gauge.**
+
+### Home range — where a pet may plausibly go **[DECIDED]**
+
+RimWorld solves this with player-drawn animal areas. Room-and-parcel structure
+gives a better answer, because **the range should fall out of the world rather
+than a UI overlay.** Two inputs:
+
+**1. A species band** (`Species.homeRange` — a data field, exactly the
+`domesticability` pattern; closed vocabulary):
+
+| Band | Roams | Typical |
+|---|---|---|
+| **denning** | its home room only | caged birds, reptiles, rabbits |
+| **holding** | the whole **home parcel** | dogs, farm animals |
+| **ranging** | the home parcel **+ adjacent public space** | cats |
+
+**2. The land use it resolves against.** Because a farm is **one parcel**, a
+`holding` dog roams the entire farm for free — the range needs no new geometry,
+it *is* the parcel. And a `ranging` cat in a city goes out into civic space,
+which is exactly where it meets neighbours, gets fed by strangers, and becomes a
+nuisance.
+
+> **That makes roaming a zoning question — the leash law.** Land use can declare
+> whether unattended animals are permitted in public: a dense residential
+> district may forbid it, the frontier obviously doesn't. So **urban and rural
+> pet-keeping genuinely differ**, "someone else's favourite" gets a *place* to
+> happen, and [stewardship](./stewardship-slate.md) gains a consequence beyond
+> capacity. See its land-use table.
+
+**The range anchors on `homePath` and governs roaming *once home*.** Away from
+home the pet is in the return branch instead — so there is no leash concept and
+no second spatial system.
+
+---
+
 ## Reconciliation — what the husbandry sessions changed **[2026-07-31]**
 
 Four sessions (pets · ranching · farming · stewardship) settled decisions that
@@ -266,27 +399,17 @@ condition curve stays asymptotic (miserable, never dead). This is a *tighter*
 constraint for pets than for a field, because a field can be delegated and a
 relationship cannot.
 
-### The hole the clock change opened — where is my pet when I'm offline?
+### ~~The hole the clock change opened~~ — **CLOSED 2026-07-31**
 
-The retired text had an answer: *"the pet is stowed somewhere safe and its clock
-freezes."* **Nothing replaced it.** Under the family clock, the animal keeps
-existing on world time, and it is the one owned thing that **can leave the
-property** — so its location while you are away is now an open, load-bearing
-question that farming and ranching never have to ask.
-
-Sketch, not yet decided — **the answer should be a bond consequence**:
-
-- A **well-bonded** pet makes its own way **home** (its `homePath`).
-- A **poorly-bonded** one stays where you left it, and may drift.
-- Either way, **resolve at reconcile time, not as a live tick** — the same rule
-  ranching uses for the gate-you-left-open. You do not watch it happen; you
-  discover where it got to. (A live wandering pet is real compute, billed to the
-  owner's parcel under the shipped cost-owner rule: *owned gear → owner's
-  parcel*.)
-
-This has a lovely second-order beat the slate already half-anticipates under
-*Multiplayer*: **someone else may have been feeding your cat while you were
-gone** — raising *their* regard edge, never transferring custody.
+Killing the freeze removed the old answer (*"stowed somewhere safe, clock
+frozen"*) and nothing replaced it — pets being the one owned thing that **can
+leave the property**, this was load-bearing in a way farming and ranching never
+have to face. **Now designed: see [§ The off-screen
+life](#the-off-screen-life-decided-2026-07-31)** — a seeded deterministic
+`petLifeBetween` reconcile, a six-outcome ladder, the species-banded home range
+resolved against land use, and a narrative digest on login. The reframe that
+unlocked it: at 12× a daily player's pet lives **11 game days** alone between
+sessions, so the question is what it *did*, not where it was parked.
 
 ### Cheap inheritances
 
@@ -496,8 +619,9 @@ economy vein (shop-theft, once possession lands); multiplayer interaction
   from outside — land use declares a companion ceiling per residence, so the cap
   is a property of **where you live**, not a global rule. What remains is
   whether there is also a per-player cap above that.)*
-- **Where the pet is when you are offline** — the hole the clock change opened;
-  see *Reconciliation*. Lean: a bond consequence, resolved at reconcile time.
+- ~~**Where the pet is when you are offline**~~ — **ANSWERED 2026-07-31**, see
+  *The off-screen life*. Residual tuning only: bond-drift rate against an
+  11-game- day absence, and how hostile territory weights the return roll.
 - **Does the dorm admit a companion?** Blocks Wave 1's on-ramp either way; see
   *Reconciliation*.
 - **Failed tame.** For amenable creatures, failure = it flees, come back later.
