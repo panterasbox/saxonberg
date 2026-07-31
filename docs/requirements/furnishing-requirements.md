@@ -190,10 +190,14 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   `UnboundedReceptacle`, ∞ by design) and the range's fuel reserve is
   not billed to anyone. Sub-allowances and metering are the economy
   layer's, with the rest of rent economics.
-- **Land use.** The closed vocabulary typing what a parcel admits is
-  stewardship's. Room archetypes here are content identity, not a typed
-  gate on what may be placed where; a bathroom that accepts a chest
-  freezer is silly but permitted in v1.
+- **Land use as a *placement* gate.** Build-2 ships the closed vocabulary
+  and `landUseOf`, and this build **consumes** it at provisioning (D18)
+  rather than re-deferring it. What stays out is any typed gate on what
+  may be *placed* in a room: archetypes are content identity, and a
+  bathroom that accepts a chest freezer is silly but permitted in v1.
+- **Deriving area from anything.** `area` and `storeys` are declared at
+  provision. No summing rooms, no reading `getSizeScale()`, no
+  reconciling a stored `workable` (D17).
 - **Hosting as a mechanic.** No invitation, no guest list, no visitor
   access grant, no co-presence surface. The living room is *for*
   visitors (D16), but who may come in is the door's question and lands
@@ -869,6 +873,110 @@ door, already non-goals. And prose-on-owned-items personalization
 payoff: annotating your furniture only matters in the room where
 visitors read it.
 
+### D17 — Buildings consume ground; interiors consume floors
+
+**The question, from build-2's handoff.** `ParcelRecord.area` and
+`workable = gross − footprint` land with Hinkley Hills. How does a
+building and its interior spaces consume a parcel's acreage — and which
+half of that is ours?
+
+**The finding: multi-storey breaks area conservation, and that is
+exactly our half.** Hinkley's house is single-storey, so
+`gross − footprint` is complete for them. An apartment building is not: a
+300 m² footprint at four storeys offers ~1200 m² of interior to
+subdivide into units. If sub-parcel areas had to sum inside the parent's
+ground area, **apartments would be refused at `subdivide` on the second
+floor.**
+
+Two different quantities are being called *area*:
+
+| | Conserved? |
+|---|---|
+| **ground area** — what a parcel occupies on the map | yes: children ≤ parent |
+| **floor area** — what an interior offers | no: multiplied by storeys |
+
+**The model: two ledgers, one new field.**
+
+**Ground ledger — `workable = area − Σ children.area`, derived, never
+stored.** (This answers the handoff's open question: *derive*. A stored
+`workable` needs reconciling every time a structure is added, which is
+the duplication argument D1 already had.) Any child sub-parcel consumes
+ground whether it is a building or a sub-lot, so there is no
+structure/non-structure distinction to maintain — and Hinkley's
+`gross − footprint` is just this formula when the only child is the
+house.
+
+**The footprint needs no field at all.** The handoff asks for "an
+authored blueprint footprint declared by the structure." It already
+exists: **the footprint *is* the building parcel's own `area`.** A
+building is a sub-parcel of its lot; its area is the ground it stands on;
+`subdivide`'s existing parent/child relation *is* the footprint claim.
+Declared at provision like every other area, bounded by the same zoning
+band, no new rule and no second place to look. This is a simplification
+of the handoff's proposal, offered back to build-2.
+
+**Floor ledger — a parcel declares `storeys` (default 1), and its
+children conserve against `area × storeys`.** Every ground parcel is
+`storeys: 1` and behaves precisely as today; a building at `storeys: 4`
+may let four times its footprint. One field, and it is the entire
+arithmetic of the interior.
+
+**Why `storeys` rather than a `grossFloorArea` field.** The parcel row
+already encodes floors — `slotOfExtent` parses a trailing
+`f<floor>-r<pos>`, *"DECISION J: the extent IS the slot"*, built for the
+dorm. The vertical dimension is **already in the extent grammar** with no
+area semantics attached; `storeys` gives it some. It is also what a
+content author thinks in. Buildings with unequal floor plates are the LOD
+ladder's problem (D13), not v1's.
+
+**The remainder is real, and it is common area.**
+`area × storeys − Σ unit areas` is corridors, stairwells and the lobby —
+which `DormWarren` already materializes (`ensureFloor`, `lobby()`). The
+arithmetic falls out of content that exists rather than requiring new
+content, and it names a ratio real estate already has a word for.
+
+**The trap, and why we cannot fall into it.** The handoff warns that
+*"just multiply the rooms"* will look tempting once `cellSize` is on the
+zone and `area` on the parcel — `getSizeScale()` is `cellSize²` with
+exactly one consumer, the vision walk dividing flux into lux. It is a
+photometric denominator, not a spatial model, and deriving tenure from it
+would make every future lighting tweak a title migration. In this build
+the temptation is **structurally unavailable**: our rooms are mostly
+non-coordinate Locations (the dorm room is *"a plain non-coordinate
+Location"*), so there is no geometry to sum even if we wanted one. Area
+is declared, never derived.
+
+### D18 — A building interior is its own zone
+
+Adopt build-2's standard, which lands here because this is the build with
+actual interiors. One zone per building, its `cellSize` authored (~3 m
+for a residential interior) so interior scale is declared once rather
+than fiddled per room — `CartesianLocation.getSizeScale()` is literally
+`cellSize²`, so the zone is already the tier at which that is said.
+
+It also gives `ParcelRecord.zonePath` a real referent for the first time:
+today it is always `== extent`, the 0a simplification.
+
+**Sub-zones are deferred.** The standard permits a building to hold them;
+nothing here needs one, because no unit wants a different scale from its
+building. When one does — a warehouse bay, a cathedral nave — the
+coverage trie already handles it by prefix.
+
+**Land use is consumed, not re-deferred.** Build-2 ships
+`ParcelRecord.landUse` (the closed six) and `ParcelApi.landUseOf(path)`
+with longest-prefix inheritance, and D15 independently reached the same
+tier. Provisioning a residential unit reads it and refuses with a named
+reason where the use forbids it. What stays out of scope is unchanged:
+**land use never becomes a typed gate on what may be *placed* in a
+room** — a bathroom that accepts a chest freezer is still silly and still
+permitted.
+
+⚠ And it lives on the **parcel row**, never on the zone template: land
+use gates behavior, which makes it access-check data, and an editable
+`domain` zone template would let a content author rezone their own land —
+the exact forgery the retired `data.ownerGroupName` stamps were removed
+to close.
+
 ## Constraints
 
 - **No furnishing subsystem in the module sense.** No `FurnishingApi` /
@@ -1053,6 +1161,21 @@ visitors read it.
   the shipped dorm `Bed`, which is a `Surfaced` prop and stays one.
 - **Multi-room and lease-gated.** A unit's rooms connect within the unit;
   the front door gates on the lease; a non-leaseholder cannot enter.
+- **A four-storey building lets four times its footprint.** Subdividing
+  a `storeys: 4` building parcel into units whose areas sum above its
+  ground area succeeds; the same sum against a `storeys: 1` lot is
+  refused. A ground parcel with no `storeys` declared behaves exactly as
+  today — the named regression (D17).
+- **`workable` derives and never drifts.** A lot's workable area equals
+  its area minus its children's, recomputed on read; adding a structure
+  reduces it with no write, and nothing stores it.
+- **The building has a zone of its own.** Its parcel's `zonePath` names a
+  zone that is not its own extent, the zone declares `cellSize`, and the
+  unit's rooms resolve interior scale from it rather than each declaring
+  their own (D18).
+- **Provisioning respects land use.** Provisioning a residential unit
+  where the covering parcel's use forbids it is refused, and the refusal
+  names the reason.
 - **Revert evicts to storage.** Ending a lease returns the tenant's goods
   to storage intact and titled, reverts the shell clean, and the unit
   re-lets empty. Re-provisioning a different unit and re-placing from
