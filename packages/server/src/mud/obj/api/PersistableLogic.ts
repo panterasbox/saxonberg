@@ -269,6 +269,32 @@ async function preloadTreeMarshallers(host: Stuff): Promise<void> {
   }
 }
 
+/**
+ * Detach an object-valued captured field from the live instance.
+ *
+ * A capture is documented as **the last synchronous block before the save**,
+ * so that concurrent triggers each write a valid full snapshot. That
+ * guarantee only holds if the snapshot is a *copy*: an object-valued
+ * persistent field (a `reserves` record, a growth `profile`, a `details`
+ * map, a `keywords` array) is otherwise stored by REFERENCE, and any
+ * mutation between the capture and the save — a plant watered in the same
+ * turn, an inventory shuffled — silently rewrites the snapshot that was
+ * supposed to be frozen.
+ *
+ * A persistent field is about to be BSON-serialized, so it holds plain data
+ * by construction and a JSON round-trip is faithful. Anything that will not
+ * round-trip (a live reference that should have had a marshaller) is left
+ * alone rather than mangled — the save path fails loudly on those already.
+ */
+function detachValue(value: unknown): unknown {
+  if (value === null || typeof value !== 'object') return value;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
+}
+
 /** Marshal one layer's declared fields to stored form (synchronous). */
 function captureFields(
   host: Stuff,
@@ -288,9 +314,9 @@ function captureFields(
     // (e.g. a room's lazily-null `_temperature`) is stored raw, not marshalled.
     if (mPath && value != null) {
       const m = StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(mPath);
-      out[field] = m ? m.toStored(value) : value;
+      out[field] = detachValue(m ? m.toStored(value) : value);
     } else {
-      out[field] = value;
+      out[field] = detachValue(value);
     }
   }
   return out;
@@ -473,6 +499,41 @@ async function restoreState(
  * self-materializes its own records via `postRegister`); anything else is
  * cloned through the gated path and has its own `state` applied (recursion).
  */
+/**
+ * **The record is authoritative.** A non-host content item is restored by
+ * re-cloning its template, and a clone re-runs the template's `populates:`
+ * — so a container that declares born-with contents (a stocked chest, a
+ * pre-planted pot) arrives holding a fresh set of them, which then collides
+ * with the recorded set: doubled contents, and a `Slotted` re-occupy that
+ * throws because the born-with occupant already claimed the slot.
+ *
+ * A *host* never has this problem: `PersistableMixin.applyPopulates` only
+ * retains the specs, and `seedBornWith` runs on the no-record branch alone.
+ * This is the same rule for the non-host case — clear what the clone seeded
+ * before applying what the record says.
+ *
+ * Scoped by the record: contents are cleared only when the captured state
+ * actually carries a `ContainerMixin` slice (the record speaks to contents),
+ * and slots only when it carries a `SlottedMixin` one. A record that says
+ * nothing about contents leaves the born-with set alone.
+ */
+function clearSeededContents(
+  clone: Stuff,
+  state: Record<string, MixinSlice>,
+): void {
+  const slices = Object.values(state);
+  if (slices.some(isSlottedSlice) && MixinApi.isSlotted(clone)) {
+    for (const [slot, occupants] of clone.getAllOccupants()) {
+      for (const occupant of [...occupants]) clone.vacate(slot, occupant);
+    }
+  }
+  if (slices.some(isContainerSlice) && MixinApi.isContainer(clone)) {
+    for (const item of [...clone.getContents()]) {
+      StuffApi.destruct(item);
+    }
+  }
+}
+
 async function restoreItem(
   entry: ContentEntry,
   host: Stuff,
@@ -491,6 +552,7 @@ async function restoreItem(
   }
   if (!entry.templatePath) return null;
   const clone = await StuffApi.clone<Stuff>(entry.templatePath);
+  clearSeededContents(clone, entry.state);
   await restoreState(clone, entry.state, principal);
   if (MixinApi.isContainable(clone) && MixinApi.isContainer(host)) {
     ContainmentApi.move(

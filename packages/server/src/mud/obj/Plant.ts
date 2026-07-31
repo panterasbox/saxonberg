@@ -99,14 +99,26 @@ export default class Plant extends PlantBase {
    * its own mixin check): this plant fits a pot iff the pot's soil volume
    * carries its **current stage's** root demand. A mature plant therefore
    * refuses a thimble at `repot` time, with no new `SlotSpec` field.
+   *
+   * **A plant already inside the pot always fits it.** The sizing rule is a
+   * *placement* policy — "may an actor put this plant in that pot" — and
+   * both verbs consult it before they move anything. Re-seating a plant
+   * that is already in the pot's contents is not a placement: it is the
+   * persistence restore re-establishing an arrangement that already
+   * existed. Refusing it would make a **root-bound plant unrestorable**,
+   * and root-bound is a designed, ordinary state — the one the whole
+   * transplanting lesson depends on.
    */
   public override fitsSlot(host: Stuff & Slotted, slot: string): boolean {
     if (!(host instanceof PlantPot)) return false;
+    void slot;
+    if (MixinApi.isContainable(this) && this.getContainer() === host) {
+      return true;
+    }
     const profile = this.getProfile();
     if (!profile) return true;
     const demand = profile.rootDemand[this.getGrowthStage()];
     if (!Number.isFinite(demand) || demand <= 0) return true;
-    void slot;
     return host.getSoilVolume() >= demand;
   }
 
@@ -124,7 +136,7 @@ export default class Plant extends PlantBase {
   ): void {
     void from;
     void to;
-    this.reconcileGrowth();
+    this.noteEnvironmentChanged();
   }
 
   /**

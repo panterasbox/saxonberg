@@ -147,6 +147,14 @@ export interface Growing {
   getLimitingFactor(): LimitingFactor;
   /** Reconcile growth over elapsed game-time (sync, read-triggered). */
   reconcileGrowth(): void;
+  /**
+   * Tell the plant its surroundings just changed: close the integrated
+   * light window at its true level and re-sample. Called by the host's own
+   * move hook and by a carrier (a pot) that moved with the plant inside
+   * it — see {@link Growing.reconcileGrowth} on why the window has to be
+   * segmented at the moment of a move.
+   */
+  noteEnvironmentChanged(): void;
   /** The authored reaction norm (null until authored). */
   getProfile(): GrowthProfileData | null;
   setProfile(value: GrowthProfileData | null): void;
@@ -294,7 +302,11 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       if (!this._reconcilingGrowth) this.reconcileGrowth();
       if (this.isGrowthDead() || !this.profile) return null;
       const satWater = this.satWater();
-      const satLight = this.satLight(this._lastLux);
+      // The cause line answers "why is it unhappy *now*", so the light term
+      // is sampled live rather than read off the last integrated window —
+      // move a plant into the dark and it says so immediately, before the
+      // dark hours have accrued.
+      const satLight = this.satLight(this.sampleLux());
       const satRoot = this.satRoot();
       const limiting = Math.min(satWater, satLight, satRoot);
       if (limiting >= dial(AppSettingKeys.husbandryGoodAt, 0.6)) return null;
@@ -396,6 +408,11 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       }
 
       // Close the integrated window: the next one opens at today's light.
+      this._lastLux = this.sampleLux();
+    }
+
+    public noteEnvironmentChanged(): void {
+      this.reconcileGrowth();
       this._lastLux = this.sampleLux();
     }
 

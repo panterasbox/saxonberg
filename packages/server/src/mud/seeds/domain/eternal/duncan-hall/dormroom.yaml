@@ -16,8 +16,20 @@ data:
   shortDescription: a dorm room
   primaryKeyword: room
   longDescription: |
-    A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed. The kind of blank the university hands every new arrival, waiting to be made someone's.
+    A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed, a cold tap in the corner. Daylight comes in over the desk. The kind of blank the university hands every new arrival, waiting to be made someone's.
+  # Enough daylight over the desk to keep a houseplant honest (the `lit`
+  # band starts at 20 lux, and a plain Location's size scale is 1 m²), and
+  # the dimmest place a plant can reach is the footlocker — a closed
+  # container reads pitch-black, which is the light lever for free.
+  ambientIntensity: 30
+  ambientColorTemperature: 5500
+  # Order matters: the desk must be populated BEFORE the pot that rests
+  # `onto` it.
   populates:
     - /domain/eternal/duncan-hall/dorm-fixtures/bed
     - /domain/eternal/duncan-hall/dorm-fixtures/desk
     - /domain/eternal/duncan-hall/dorm-fixtures/footlocker
+    - /domain/eternal/duncan-hall/dorm-fixtures/tap
+    - /obj/vessel/watering-can
+    - template: /obj/pot/starter
+      onto: /domain/eternal/duncan-hall/dorm-fixtures/desk

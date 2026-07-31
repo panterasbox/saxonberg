@@ -14,7 +14,10 @@ data:
   material: /lib/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 3
-  closure: open
+  # `liquidTight` (the default), NOT `open`: an `open` interior does not
+  # RETAIN bulk — the transfer drains it straight through to the floor. A
+  # pot's drainage hole lets water out, but the soil has to stay in it, and
+  # water is modelled on the plant's own reserve rather than in the pot.
   staticSlots:
     - name: plant
       accepts: SlottableMixin

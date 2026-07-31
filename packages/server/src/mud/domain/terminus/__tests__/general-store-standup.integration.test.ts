@@ -19,6 +19,9 @@ import { MixinApi } from "../../../api/mixin";
 import { AppSettings } from "../../../lib/config/AppSettings";
 import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
 import Stock from "../../../lib/retail/Stock";
+import PlantPot from "../../../obj/PlantPot";
+import Seed from "../../../obj/Seed";
+import type { Bulkable } from "../../../lib/bulk/Bulkable";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Switchable } from "../../../lib/boundary/Switchable";
 import type { LightSource } from "../../../lib/perception/LightSource";
@@ -29,8 +32,22 @@ const PH = PersistentHydrator.templatePath;
 const STORE_DIR = fileURLToPath(
   new URL("../../../seeds/domain/terminus/general-store/", import.meta.url),
 );
+const OBJ_DIR = fileURLToPath(new URL("../../../seeds/obj/", import.meta.url));
 const COUNTER = "/domain/terminus/general-store/counter";
 const TORCH = "/domain/terminus/general-store/goods/torch";
+
+/**
+ * The gardening line (husbandry phase 1) — stocked straight from ordinary
+ * `/obj/` templates rather than store-local `goods/` copies, because
+ * `itemTemplatePath` takes any path and duplicating them would mean two
+ * pots (and two seeds growing the same plant) drifting apart.
+ */
+const GARDEN_LINES = [
+  "pot/small",
+  "pot/large",
+  "vessel/soil-sack",
+  "seed/snake-plant",
+] as const;
 
 function seedDoc(rel: string): Doc {
   const parsed = YAML.parse(
@@ -38,6 +55,19 @@ function seedDoc(rel: string): Doc {
   ) as Record<string, unknown>;
   return {
     path: `/domain/terminus/general-store/${rel}`,
+    class: parsed.class as string,
+    hydratorClass: (parsed.hydratorClass as string) ?? PH,
+    data: (parsed.data as Record<string, unknown>) ?? {},
+  };
+}
+
+/** Load a seed under `seeds/obj/` at its `/obj/<rel>` path. */
+function objDoc(rel: string): Doc {
+  const parsed = YAML.parse(
+    readFileSync(`${OBJ_DIR}${rel}.yaml`, "utf-8"),
+  ) as Record<string, unknown>;
+  return {
+    path: `/obj/${rel}`,
     class: parsed.class as string,
     hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
@@ -54,6 +84,7 @@ describe("general-store standup (real seeds)", () => {
       { path: PH, class: PH, data: {} },
       seedDoc("counter"),
       ...goods,
+      ...GARDEN_LINES.map(objDoc),
     ]);
     installV1QuantityMarshallers();
     await AppSettings.warm();
@@ -103,5 +134,46 @@ describe("general-store standup (real seeds)", () => {
     // The waterskin is a real fluid container; the knife a real wielded weapon.
     expect(MixinApi.isBulkable(counter.resolveBuy("waterskin")!)).toBe(true);
     expect(MixinApi.isWieldable(counter.resolveBuy("knife")!)).toBe(true);
+  });
+
+  it("the gardening line stocks to par and is priced against the ladder", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+    for (const rel of GARDEN_LINES) {
+      const path = `/obj/${rel}`;
+      expect(counter.onHand(path), `${path} on hand`).toBeGreaterThan(0);
+      expect(counter.priceFor(path), `${path} priced`).toBeGreaterThan(0);
+    }
+    // The large pot is the first purchase a player has a REASON to make, so
+    // it must stay affordable against the 20-credit arrival stipend while
+    // costing more than the small pot it replaces.
+    const small = counter.priceFor("/obj/pot/small")!;
+    const large = counter.priceFor("/obj/pot/large")!;
+    expect(large).toBeGreaterThan(small);
+    expect(large).toBeLessThan(20);
+  });
+
+  it("the gardening goods are real — pots hold soil, the sack pours, the seed names a plant", async () => {
+    const counter = await StuffApi.singleton<Stock>(COUNTER);
+
+    // A pot is a Slotted host with a plant slot AND a bulk interior for
+    // soil — a garden bed at N = 1.
+    const pot = counter.resolveBuy("large pot") as unknown as PlantPot;
+    expect(MixinApi.isSlotted(pot)).toBe(true);
+    expect(MixinApi.isBulkable(pot)).toBe(true);
+    expect(pot.getSlotNames()).toContain("plant");
+    expect(pot.getSoilVolume()).toBe(0); // ships empty; you pour soil in
+    expect(pot.hasSoil()).toBe(false);
+
+    // The sack ships FULL of potting soil, so `pour` needs no new verb.
+    const sack = counter.resolveBuy("sack") as unknown as Stuff & Bulkable;
+    expect(MixinApi.isBulkable(sack)).toBe(true);
+    expect(sack.getBulkAmount("interior").rawValue()).toBeGreaterThan(0);
+    expect(sack.getBulkMaterialPath("interior")).toBe(
+      "/lib/material/bulk/potting-soil",
+    );
+
+    // The seed names the plant it grows into (and is discrete, per above).
+    const seed = counter.resolveBuy("snake plant seed") as unknown as Seed;
+    expect(seed.getGrowsIntoPath()).toBe("/obj/plant/snake-plant");
   });
 });

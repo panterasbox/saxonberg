@@ -20,6 +20,13 @@ data:
     Six broad limestone steps lead up to the open doors of Duncan Hall behind you to the north. A black-iron handrail traces the right edge; the left edge is broken by a stone planter, the geraniums in it stubbornly outliving the season.
 
     Beyond the steps the quad opens up, sun-bleached and mostly empty at this hour.
+  # Outdoor daylight. STATIC for now: deriving a room's light from the sun's
+  # actual position (CelestialApi) is phase 4's, so this is a placeholder
+  # that will become a computed value rather than an authored one. The
+  # geraniums in the planter are scenery, not a `Plant` — decorative
+  # greenery needs none of the growth machinery.
+  ambientIntensity: 400
+  ambientColorTemperature: 5800
   coords:
     x: 0
     y: 0
