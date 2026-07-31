@@ -1,5 +1,15 @@
 # Pets slate (working doc) — the creature you won over
 
+> **Updated 2026-07-30** — a cross-slate design session (pets · ranching ·
+> farming) settled the conventions all three share. Three things changed here:
+> **two of the three structural gaps below are now closed** (chattel shipped;
+> the persistence spine grew multi-instance keyed hosts), the **custody edge is
+> chattel, not a bespoke `CompanionMixin`**, and **pets no longer freeze on
+> logout** — one family-wide clock, with the time-respect contract preserved by
+> bounding the *consequence* instead of stopping the clock. The shared
+> convention set is owned by
+> [ranching-slate § The four shared conventions](./ranching-slate.md).
+
 > **Status: design explored deep; not yet requirements.** Player pets, taken
 > through the NetHack lens and stress-tested against the live subsystems.
 > **Taming is the spine** — a pet is a creature you *won over*, not a unit you
@@ -182,9 +192,22 @@ grind and **not a money sink** (the earlier boarding-fee economy is **retracted*
   extreme neglect → it goes feral and **leaves you**. **Loss is a *relationship*
   failure — not starvation-death, not a billing failure.** (Rhymes with NetHack:
   tameness decays, hits zero → wild.)
-- **Offline = freeze.** When the owner logs off, the pet is stowed somewhere safe
-  and its clock freezes (owner-proxy presence — see the gap map). No fees, no den
-  economy, no starving-while-you-sleep.
+- ~~**Offline = freeze.**~~ **[SUPERSEDED 2026-07-30 — see
+  [ranching-slate § The clock](./ranching-slate.md)]** The family now runs **one
+  uniform clock**: *things you own reconcile against world time; the body you
+  inhabit reconciles against played time.* A pet does **not** freeze when you log
+  off. The time-respect goal this line was protecting survives untouched, because
+  it was never about the clock — it was about the **shape of the consequence**:
+  - The pet's **bond** drifts while you're gone, and at the floor it goes feral
+    and leaves — a recoverable, story-generating loss.
+  - The pet's condition curve is **asymptotic toward "miserable but alive."** It
+    never starves to death. (A *ranch* animal does die of neglect — that's the
+    economic stake, and it has a paid mitigation. Deliberate divergence.)
+  - **Automation maintains your assets; it cannot maintain your
+    relationships.** A hired hand or kennel keeps the animal fed and healthy —
+    the material floor is cheap and delegable. **Bond is only earned in
+    person.** This is what the retracted boarding-fee economy was groping for,
+    without the standing financial commitment.
 
 ## Subsystem stress — the gap map
 
@@ -201,11 +224,16 @@ X-ray a thinner **relational / psychological / temporal** layer. The punchline:
 
 ### Structural gaps (design-worthy, broadly reusable)
 
+> **Status update 2026-07-30 (verified against the code): two of the three are
+> now closed or nearly so.** Chattel shipped and answers possession; the
+> persistence spine grew multi-instance keyed hosts. Only the **fear/threat
+> axis** remains a genuine structural gap. Rows updated in place.
+
 | Gap | What's actually missing | Forced by | Who else wants it |
 |---|---|---|---|
-| **Possession / property** | No owner-stamp on a movable good *instance* — possession is pure containment. `Charge` has no *debtor* field; billing is hard-wired to the acting giver. (We have authorship + brand, **not** custody of goods.) | "this pet is *mine*" · shop-theft | trade, shops, looting, gifting-that-sticks, inheritance, crime — **foundational economy** |
+| ~~**Possession / property**~~ **CLOSED** | Chattel shipped 2026-07-23 (`chattel` / `chattel_events`, `ownerOf = stamp ?? authorOf`, chain-of-title). Remaining work is **one composition line** — `ChattelMixin` onto the Creature stack. See the custody section above. | — | — |
 | **Fear / threat axis** | `regard` is affinity-only. No aversion / alarm / flight state, no flee brain. A creature can *like* you; it cannot be *afraid* of you. | the wild taming encounter ("warms vs **flees**") | combat morale, predator/prey, intimidation, guards reacting to a drawn weapon — **all tension** |
-| **Dependent presence + individual persistence** | Presence-freeze keys on the entity's *own* session; a pet has none → owner-blind game-time metabolism (can starve while observed). Persist-back is **Avatar-only** — a tamed named individual is neither template-clone nor Avatar, so its bond state dies on restart. | a pet that survives your logout *as itself* | any evolving NPC, any world that *remembers*, relationships over time — **the "living world" gap** |
+| ~~**Dependent presence + individual persistence**~~ **MOSTLY CLOSED** | **Presence:** resolved by decision, not code — the family runs one clock and a pet *doesn't* freeze (see Care & loss); what's left is the asymptotic condition curve. **Persistence:** `PersistableMixin` is **not** Avatar-only (a `ConsignmentShelf` and a `DormRoom` compose it) and multi-instance `(scope, key)` hosts shipped with the leased dorm room. Nothing in it is Avatar-shaped — no NPC composes it *yet*. | a pet that survives your logout *as itself* | any evolving NPC, any world that *remembers* — **the "living world" gap** |
 
 ### The legibility gap (rich, more specialized)
 
@@ -245,18 +273,46 @@ ambient background critters stay thin `Creature`s. This validates *"a pet is an
 owned NPC"* against the actual code, and draws a clean "which animals are rich"
 line.
 
-## The custody edge (small — plumbing, not a primitive)
+## The custody edge — **RESOLVED 2026-07-30: it's chattel**
 
-The one thing pets *definitely* add is the ownership/custody edge, and it's tiny:
-a light `CompanionMixin` on the (Character-tier) creature holding a durable
-`ownerPath` (Pattern A path-string → Avatar) + `homePath`; the owner's roster is
-**derived on read** via MQL (`creatures where owner == me`) — no live-ref, no R2
-cleanup. Custody (a claim) stays orthogonal to bond (a feeling): a stray can adore
-you without being yours; a neglected pet is legally yours until the bond floors
-out and it runs feral. Custody is a *degenerate case of the possession gap* — the
-first, simplest instance of an owner-stamp on an instance.
+> **The sketch below (`CompanionMixin` + `ownerPath`) is RETIRED.** Chattel
+> shipped 2026-07-23 and is the possession answer. Verified in code:
+> `ChattelMixin` is composed in exactly one place (`lib/stuff/Thing.ts`), and
+> `Creature` descends from `Agent`, not `Thing` — so no animal can be owned
+> today; `ChattelApi.stamp` would refuse a pet. But the chattel gate is
+> **structural** (`MixinApi.isChattel`), not tier-based, so:
+>
+> **Adding `ChattelMixin` to the Creature stack gives pets, livestock, and
+> aquaculture per-instance ownership with chain-of-title, from shipped code.**
+>
+> A bespoke `CompanionMixin` would be exactly the pet-shaped custody edge this
+> slate's own guardrail warns a hundred cattle can't reuse — and the property
+> slate already classes a pet as chattel ("real property bottoms out at the zone;
+> everything finer is chattel or slots"). See
+> [chattel.md](../../subsystems/chattel.md) +
+> [ranching-slate § Custody](./ranching-slate.md).
+
+What survives from the original sketch is the *semantics*, which chattel already
+honors: custody (a claim) stays orthogonal to bond (a feeling) — a stray can
+adore you without being yours; a neglected pet is legally yours until the bond
+floors out and it runs feral. The owner's roster stays **derived on read** (MQL
+over the registry), not a live-ref list. A `homePath` is still pet-local and
+still wanted; that's a field, not a possession primitive.
 
 ## Sibling consumer — livestock & ranching
+
+> **Family placement (2026-07-30).** Pets and ranching share *substrate* (an
+> owned, individually-identified animal) but **not experience**, and the
+> [guild roster](./guild-slate.md) already drew that line: **the Grange** holds
+> "cultivation, soil, husbandry + breeding, genetics" — farming *and* ranching as
+> one vocation — while **taming** belongs to **the Wardens**, whose demand anchor
+> is "the pet supply chain." Ranching's real design family is
+> farming/fishing/mining (the production family). The goal is **one shared
+> substrate under two distinct experiences**: where pets and ranching touch
+> (custody, the clock, maturation, persistence, the genome) they must be
+> *identical*; where they part (bond vs yield) they part completely. The full
+> convention set lives in
+> [ranching-slate § The four shared conventions](./ranching-slate.md).
 
 Pets are not the only consumer of "owned animals." **Livestock/ranching is the
 sibling** (see [ranching-slate](./ranching-slate.md)), and the two diverge along
@@ -276,12 +332,18 @@ metabolism, domesticability + maturation, husbandry-grade persistence, and the
 `Business`/labor wrapper** — and diverge only at the top: pets add bond + taming;
 livestock add yield/breeding/butchering.
 
-**Design consequence for this slate:** the shared bits (the custody edge,
-domesticability on `Species`, the maturation driver, dependent-presence
-persistence) must be built **reusable by a herd, not pet-specific** — they belong
-to a husbandry/possession layer both consumers sit on, the way renown /
-participation / producer all sit on `lib/standing/`. Don't build a custody edge a
-hundred cattle can't reuse.
+**Design consequence for this slate:** the shared bits must be built **reusable
+by a herd, not pet-specific** — don't build a custody edge a hundred cattle can't
+reuse. As of 2026-07-30 each has a named shared answer:
+
+| Shared bit | The answer (not pet-specific) |
+|---|---|
+| custody | `ChattelMixin` on the Creature stack ([chattel.md](../../subsystems/chattel.md)) |
+| individual persistence | a keyed `PersistableMixin` host — `(scope, key)` shipped with the dorm room |
+| the clock | one uniform model: owned things run on world time, the avatar on played time |
+| domesticability | a `Species` data field (one axis: wild → pet → livestock) |
+| maturation | the `age`/`lifecycleState` driver — a real gap, forced by ranching (calf→cow) |
+| genetics | the husbandry-wide `Genome` layer farming owns; four consumers |
 
 ## Build waves (re-sequenced)
 
@@ -290,12 +352,19 @@ substrate.** Buy a **domesticated-but-unbonded** creature from a pet-shop
 `Business` → bond it via care/interaction (the core taming loop = regard-building)
 → obedience gated by bond band (a low-bond pet ignores `heel`/`fetch`) → a
 `follow` brain → light care (feed occasionally; neglect cools the bond) →
-persists as an individual. **Dodges** possession/theft (custody = a `documents`
-owner field), the fear axis (domesticated = no fear baseline), and
-manner-of-approach. The **only** heavy gaps it touches get cheap answers:
-*dependent presence* → freeze-on-owner-absence (owner-proxy), and *instance
-persistence* → a new `documents` `kind`. → *proves companion + care + the
-bond-gates-obedience spine, and taming-as-bonding.*
+persists as an individual. **Dodges** the fear axis (domesticated = no fear
+baseline) and manner-of-approach.
+
+*(Updated 2026-07-30 — the two "cheap answers" this wave planned are replaced by
+the shared ones, at comparable cost: custody is **`ChattelMixin` on the Creature
+stack**, not a `documents` owner field; instance persistence is a **keyed
+`PersistableMixin` host**, not a new `documents` `kind`; and there is no
+owner-proxy freeze. Taking the shared route costs about the same as the
+pet-specific one and is the difference between a herd being able to reuse this
+and not.)*
+
+→ *proves companion + care + the bond-gates-obedience spine, and
+taming-as-bonding.*
 
 **Wave 2 — Wild taming. The substrate investment.** Build the **fear/threat
 axis** (aversion / alarm / flight, distinct from regard; a flee brain) + the

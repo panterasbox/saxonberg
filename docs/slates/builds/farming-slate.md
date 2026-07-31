@@ -103,9 +103,18 @@ Every decision below is bound by these:
    crafting "location-agnostic" rule). A new crop is a data row.
 3. **Derive-on-read, no tick, no presence freeze.** Crop state is a pure
    function of `(plantedAt, now, ∫weather, soil, interventions)`,
-   reconciled lazily on read (the metabolism pattern). The one divergence
-   from metabolism: a field **does not presence-freeze** — crops grow
-   while nobody's online. The only bound is the far-past guard.
+   reconciled lazily on read (the metabolism pattern). A field **does not
+   presence-freeze** — crops grow while nobody's online. The only bound is
+   the far-past guard.
+   > **Generalized 2026-07-30** — this is no longer a farming-specific
+   > divergence from metabolism; it is the **family-wide clock**, shared
+   > with ranching and pets: *things you own reconcile against world time;
+   > the body you inhabit reconciles against played time.* The avatar's own
+   > metabolic clock still freezes on logout (you can't hire someone to eat
+   > for you). Owned assets never do — offline decay is made fair by the
+   > **automation ladder** below, whose limit is that *automation maintains
+   > your assets; it cannot maintain your relationships.* Owner:
+   > [ranching-slate § The clock](./ranching-slate.md).
 4. **Genes encode reaction norms, not trait values.** A "drought-tolerance
    allele" bends the *shape* of the moisture→satisfaction curve; it never
    adds a number to yield. The phenotype only exists once the environment
@@ -680,7 +689,12 @@ branch, the magic effect layer, and the University teaching seam.
    stays a band.*
 3. **First teaching unit** — course / mentor / treatise. *Lean: course
    (mints a known-of claim) as the diegetic study.com analogue.*
-4. **Crop catalog as `Species`-family or its own tier** — do crops reuse
-   the race `Species`/`Clade` `Idea` pattern directly, or a sibling
-   catalog? *Lean: a sibling crop catalog on the same pure-data-`Idea`
-   pattern (plants aren't the `Creature` stack).*
+4. ~~**Crop catalog as `Species`-family or its own tier**~~ **RESOLVED
+   2026-07-30 — reuse the existing tree.** The `Species`/`Clade` taxonomy
+   already spans `animalia` *and* `plantae` (a sessile peace-lily row is
+   the proof token), so crops, livestock, and pets are **one catalog
+   shape** — which is what makes the husbandry-wide genome coherent. This
+   overturns the earlier lean toward a sibling catalog. *Caveat: the
+   peace-lily row is documentation-only today — `race.md` lists it, but no
+   seed exists in the tree, so the first real `plantae` row is farming's to
+   author.*

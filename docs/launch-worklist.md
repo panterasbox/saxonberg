@@ -95,8 +95,13 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
 
 ## 3. Launch-enhancing systems (valuable, not economy-blocking)
 
-- **Pets W1–W2 (taming)** [T2] — the Wardens' supply-chain anchor;
-  chattel shipping already closed one of its three named gaps.
+- **Pets W1–W2 (taming)** [T2] — the Wardens' supply-chain anchor.
+  **2026-07-30:** two of its three named gaps are now closed (chattel;
+  multi-instance keyed persistence) — only the **fear/threat axis**
+  remains structural. If pets builds before ranching, the one rule is:
+  **don't solve custody or persistence pet-shaped** — both are shared
+  one-liners (`ChattelMixin` on the Creature stack; a keyed
+  `PersistableMixin` host).
 - **Magic-items / BUC + identification** [T2] — the Society of
   Inquiry's identification economy.
 - **Courts / the adjudication stack** [T3] — opens the Advocates,
@@ -148,9 +153,14 @@ precedents):
   merges.
 - **Marshal-credential issuance** [T4, small] — Office or court?
   Waits on the courts design.
-- **Ranching deep pass** [stub] — the Grange's herd wing; scheduled to
+- **Ranching deep pass** — the Grange's herd wing; scheduled to
   ride the farming session; shares the breeding substrate (and
   aquaculture is fishing's ranching sibling — design them together).
+  **2026-07-30: the shared conventions are now DECIDED** (density dial ·
+  custody = `ChattelMixin` on the Creature stack · one family-wide clock ·
+  two yield shapes) — see
+  [ranching-slate](./slates/builds/ranching-slate.md). What's left open is
+  ranching's own content design (yield feel, herd UX, the breeding game).
 - **The procgen doctrine capture** — due when the first extraction
   vertical builds its generation grammar (mining/fishing). The
   scattered instincts to write down as one doctrine: procgen for
