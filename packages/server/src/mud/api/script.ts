@@ -25,6 +25,8 @@ import { ExecutionContextApi } from "./execution-context";
 import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 
 /**
  * Opaque handle to a compiled sandboxed script. Deliberately carries no
@@ -166,17 +168,6 @@ export class ScriptApi {
   }
 
   /**
-   * Mint (replacing any prior) the **eval scratch** singleton at
-   * `path` — `<jurisdiction>/_eval` — carrying `code`, and return it
-   * ready to `run`.
-   *
-   * The `eval` verb's scratch is path-addressable so MQL's path atom
-   * can name it and a later bare `eval` can re-run it; stamping that
-   * identity goes through `Stuff.setTemplatePath`, which is
-   * `ApiOnly`-gated. `EvalController` is a controller, so it has no
-   * standing to stamp — this is the seam it calls instead.
-   */
-  /**
    * Compile `code` into a sandboxed script, ready to run against a
    * context built later. The returned handle is **opaque** — the backing
    * form is Node's `vm.Script` today and the planned `isolated-vm`
@@ -187,7 +178,16 @@ export class ScriptApi {
    * — `EvalScript` — still owns the sandbox *contents*: the name
    * allowlist and the receiver bindings are mudlib policy, and assembling
    * them is plain object work needing no privilege.
+   *
+   * **Gated to `EvalScript` alone.** Moving `vm` behind an Api is only
+   * worth anything if the Api actually gates it: an ungated pair here
+   * would hand every module arbitrary code execution with a
+   * caller-chosen globals bag, which is strictly worse than the
+   * `SANDBOX_NAMES` allowlist it replaced. `EvalScript` is the one
+   * legitimate caller, and it is itself reachable only behind
+   * `AccessApi.isWizard`.
    */
+  @CallSecurity(SecurityPolicies.FromModule("/lib/script/EvalScript"))
   static compileSandboxed(code: string): CompiledSandbox {
     return logic().compileSandboxed(code);
   }
@@ -196,7 +196,11 @@ export class ScriptApi {
    * Run a {@link ScriptApi.compileSandboxed} handle against a fresh
    * context built from `sandbox` — a plain object whose own enumerable
    * keys become the globals the code can see, and the only ones.
+   *
+   * Gated to `EvalScript` for the same reason as
+   * {@link ScriptApi.compileSandboxed}.
    */
+  @CallSecurity(SecurityPolicies.FromModule("/lib/script/EvalScript"))
   static runSandboxed(
     compiled: CompiledSandbox,
     sandbox: Record<string, unknown>,
@@ -204,6 +208,17 @@ export class ScriptApi {
     return logic().runSandboxed(compiled, sandbox);
   }
 
+  /**
+   * Mint (replacing any prior) the **eval scratch** singleton at
+   * `path` — `<jurisdiction>/_eval` — carrying `code`, and return it
+   * ready to `run`.
+   *
+   * The `eval` verb's scratch is path-addressable so MQL's path atom
+   * can name it and a later bare `eval` can re-run it; stamping that
+   * identity goes through `Stuff.setTemplatePath`, which is
+   * `ApiOnly`-gated. `EvalController` is a controller, so it has no
+   * standing to stamp — this is the seam it calls instead.
+   */
   static mintEvalScratch(path: string, code: string): Promise<EvalScript> {
     return logic().mintEvalScratch(path, code);
   }

@@ -122,6 +122,28 @@ describe('EncryptedStringMarshaller', () => {
       expect(() => m.toStored('x')).toThrow(/must decode to 32 bytes/);
     });
 
+    it('reports a missing key as a key error on the DECRYPT path too', () => {
+      // Regression: the key lookup must sit outside fromStored's
+      // try/catch. Inside it, a forgotten TOKEN_ENC_KEY surfaces as
+      // "tampered or wrong key" and sends the operator hunting for data
+      // corruption instead of an env var.
+      const m = resolve();
+      const env = m.toStored('secret');
+      delete process.env.TOKEN_ENC_KEY;
+      PersistApi._resetEncryptionKeyForTest();
+      expect(() => m.fromStored(env)).toThrow(/TOKEN_ENC_KEY is not set/);
+    });
+
+    it('still reports genuine tampering as tampering', () => {
+      const m = resolve();
+      const env = m.toStored('secret');
+      const bytes = Buffer.from(env.ct, 'base64');
+      bytes[0] = bytes[0]! ^ 0xff;
+      expect(() =>
+        m.fromStored({ ...env, ct: bytes.toString('base64') })
+      ).toThrow(/tampered or wrong key/);
+    });
+
     it('does not validate the key at registration (lazy)', () => {
       // The marshaller is already registered in beforeEach with the key
       // cleared here — registration itself must not have round-tripped.

@@ -1705,16 +1705,6 @@ export class CommandApi {
   }
 
   /**
-   * Validate `value` against a JSON Schema fragment. Returns a
-   * friendly error string on failure, `null` on success. Compiled
-   * validators are cached by JSON-stringified schema so repeated
-   * calls against the same fragment skip recompilation.
-   *
-   * Used by the matcher's struct path and by `WriteController`, which
-   * reads a class's static `dataSchema` after the (async) class load
-   * and validates with the same machinery.
-   */
-  /**
    * Validate a parsed command **spec** (the YAML view) against
    * `cmd/command.schema.json`. Returns `null` when it conforms, or the
    * full Ajv error trail — every complaint at once, because the audience
@@ -1733,6 +1723,16 @@ export class CommandApi {
     return logic().validateCommandView(view);
   }
 
+  /**
+   * Validate `value` against a JSON Schema fragment. Returns a
+   * friendly error string on failure, `null` on success. Compiled
+   * validators are cached by JSON-stringified schema so repeated
+   * calls against the same fragment skip recompilation.
+   *
+   * Used by the matcher's struct path and by `WriteController`, which
+   * reads a class's static `dataSchema` after the (async) class load
+   * and validates with the same machinery.
+   */
   static validateAgainstJsonSchema(
     schema: Record<string, unknown>,
     value: unknown,

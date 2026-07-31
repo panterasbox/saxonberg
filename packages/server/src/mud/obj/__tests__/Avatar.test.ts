@@ -9,7 +9,15 @@
  * - Character inheritance
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+  type MockInstance,
+} from 'vitest';
 import Avatar from '../Avatar';
 import { CommandApi } from '../../api/command';
 import Interactive from '../Interactive';
@@ -340,7 +348,7 @@ describe('Avatar', () => {
 
   describe('onMessage (SensorMixin override)', () => {
     let avatar: Avatar;
-    let sendMessage: ReturnType<typeof vi.fn>;
+    let sendMessage: MockInstance<typeof ConnectionApi.sendMessage>;
     let interactive1: Interactive;
     let interactive2: Interactive;
 
@@ -350,10 +358,9 @@ describe('Avatar', () => {
 
       // Stub the wire exit: ConnectionApi.sendMessage is where a
       // multiplexed frame leaves the mudlib for a socket.
-      sendMessage = vi.fn();
-      vi.spyOn(ConnectionApi, 'sendMessage').mockImplementation(
-        sendMessage as unknown as typeof ConnectionApi.sendMessage
-      );
+      sendMessage = vi
+        .spyOn(ConnectionApi, 'sendMessage')
+        .mockImplementation(() => {});
 
       interactive1 = makeStuff(() => new Interactive('socket-1', 'session-1', makeUser('user-1')));
       interactive2 = makeStuff(() => new Interactive('socket-2', 'session-2', makeUser('user-1')));

@@ -8,7 +8,11 @@
  * for `--save` (named persistent scripts) and `--mixin` (composable
  * capability) without needing a redesign — both are additive.
  *
- * Sandbox: Node's built-in `vm` module (`vm.Script` + `vm.createContext`).
+ * Sandbox: Node's `vm`, reached through `ScriptApi.compileSandboxed` /
+ * `runSandboxed` — `vm` is a capability and lives in the Api tier (see
+ * docs/architecture.md § The import boundary). What this file still
+ * owns is the part that matters for review: `SANDBOX_NAMES` and the
+ * `self`/`target` bindings ARE the sandbox surface.
  * Not the security boundary (that's `@CallSecurity` on whatever Apis
  * the eval'd code touches), but the moat that prevents trivially
  * reaching `process` / `require` / `globalThis`.

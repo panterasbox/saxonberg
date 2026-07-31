@@ -29,6 +29,16 @@ const ProseApiCallers = SecurityPolicies.FromModule('/api/prose#ProseApi');
  * opaque compiled handle, and the Mml-typed render surface — and reaches
  * back through `ProseApi` for compile / render / registerFilter.
  *
+ * **Reload caveat.** The memoised engine is module state in a
+ * hot-reloadable module, so `dest /obj/api/prose` builds a fresh engine
+ * and any filter installed through `ProseApi.registerFilter` is gone
+ * (before the engine moved here it lived in the non-reloadable
+ * `lib/prose/Prose.ts` and survived). Nothing in-tree registers a filter
+ * today — the default set is rebuilt by `engine()` either way — so this
+ * bites only an author who has registered one at runtime: re-register
+ * after a reload. Making them survive wants a durable filter registry,
+ * which is more machinery than the current zero callers justify.
+ *
  * Each method carries the `FromModule` gate **per method** (a
  * class-level default would also deny the inherited `Stuff`/`Idea`
  * framework methods the framework itself invokes).
@@ -52,6 +62,9 @@ export class ProseLogic extends ApiLogic {
   /** See {@link ProseApi.compile}. */
   @CallSecurity(ProseApiCallers)
   public compile(source: string): CompiledProse {
+    // Box into the opaque handle. Safe by construction: `CompiledProse`
+    // has no structure, so the only value that can reach `renderCompiled`
+    // is one this line produced.
     return engine().parse(source) as unknown as CompiledProse;
   }
 
@@ -61,6 +74,7 @@ export class ProseLogic extends ApiLogic {
     compiled: CompiledProse,
     vars: Record<string, unknown>,
   ): string {
+    // Unbox — see `compile`; nothing else mints a CompiledProse.
     const rendered = engine().renderSync(
       compiled as unknown as ReturnType<Liquid['parse']>,
       vars,

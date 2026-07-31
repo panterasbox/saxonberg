@@ -287,9 +287,12 @@ discoverability.
 - `pnpm lint:imports` (`scripts/check-mud-imports.ts`) — **the import
   boundary**: nothing under `src/mud/` imports outside the tree (Node
   built-ins included) except the Api tier (`api/**` + `obj/api/**`),
-  which imports and wraps. Mudlib code gets no ambient capabilities — it
-  asks the gated surface. The import-graph twin of call-security, and
-  what makes the sandbox / wizard code-trust story checkable. `import
+  which imports and wraps. Mudlib code cannot *import* a capability — it
+  asks the gated surface. Scope: imports only; ambient globals
+  (`process.env`, `globalThis`, `Buffer`) stay reachable, so this is an
+  architectural boundary, not a security perimeter. The import-graph
+  twin of call-security, and much of what makes the sandbox / wizard
+  code-trust story checkable. `import
   type` is exempt everywhere (erased, no capability); both the built-in
   and npm allowlists are **enumerated** so a widening is a deliberate
   edit; dynamic `import()`/`require()`/`createRequire` ride the same
@@ -748,7 +751,9 @@ multiplexing, disconnect): see
 ## MongoDB Collections
 
 One line per collection; the owning subsystem doc holds the schema,
-indexes, and write-path rules — this list is for orientation only.
+indexes, and write-path rules — this list is for orientation only. The
+name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
+side — `backend/PersistenceManager` re-exports it).
 
 - `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
 - `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)

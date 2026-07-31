@@ -272,10 +272,21 @@ export class CommandLogic extends ApiLogic {
         : join(CMD_DIR, filename);
       // The read lives here, in the Api tier: `CommandDefinition` is a
       // mudlib value object and may not touch `fs` (the import boundary).
-      const command = CommandDefinition.fromYaml(
-        readFileSync(filePath, 'utf-8'),
-        filePath,
-      );
+      // The wrapper preserves the operator-facing context the retired
+      // `CommandDefinition.fromFile` used to add — without it a missing
+      // spec surfaces as a bare ENOENT with no indication of which
+      // command failed to load.
+      let command: CommandDefinition;
+      try {
+        command = CommandDefinition.fromYaml(
+          readFileSync(filePath, 'utf-8'),
+          filePath,
+        );
+      } catch (error) {
+        throw new Error(
+          `Failed to load command definition from ${filePath}: ${error}`,
+        );
+      }
       commands.set(filename, command);
       return command;
     } catch (error) {

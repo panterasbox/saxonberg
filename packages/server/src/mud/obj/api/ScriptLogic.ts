@@ -535,6 +535,9 @@ export class ScriptLogic extends ApiLogic {
   /** See {@link ScriptApi.compileSandboxed}. */
   @CallSecurity(ScriptApiCallers)
   public compileSandboxed(code: string): CompiledSandbox {
+    // Box into the opaque handle. Safe by construction: `CompiledSandbox`
+    // has no structure, so the only value that can reach `runSandboxed`
+    // is one this line produced.
     return new VmScript(code) as unknown as CompiledSandbox;
   }
 
@@ -544,6 +547,7 @@ export class ScriptLogic extends ApiLogic {
     compiled: CompiledSandbox,
     sandbox: Record<string, unknown>,
   ): unknown {
+    // Unbox — see `compileSandboxed`; nothing else mints a CompiledSandbox.
     return (compiled as unknown as VmScript).runInContext(
       createContext(sandbox),
     );

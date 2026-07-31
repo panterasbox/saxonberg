@@ -118,7 +118,10 @@ adding.
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
   class (`Light`, `Quantity`, `Reserve`), an enum-like vocabulary plus
-  its validation array, or a platform-wide registry (`lib/mixin.ts`'s
+  its validation array (`lib/persistence/Collections.ts`'s
+  `Collections` — collection *names*, no driver and no I/O, which is
+  why it lives here and `backend/PersistenceManager` re-exports it
+  rather than owning it), or a platform-wide registry (`lib/mixin.ts`'s
   `Mixins`, `lib/paths.ts`'s `TemplatePaths`). This is the fourth
   category named so that an orphan type/constant has a home other than
   the forbidden `types.ts` / `constants.ts` reflex — see
@@ -493,8 +496,10 @@ outside `src/mud/` — Node built-ins included — except the Api layer,
 which imports and wraps.**
 
 This is the classic driver/mudlib split stated for our tree. Mudlib code
-gets **no ambient capabilities**: no filesystem, no network, no process,
-no code-eval. It asks the gated Api surface, or it does without. The
+**cannot import a capability**: no filesystem, no network, no child
+process, no code-eval. It asks the gated Api surface, or it does without.
+(The rule checks imports; see *What this rule does not cover* below for
+what that leaves open.) The
 rule is the import-graph twin of call-security — call-security governs
 *who may call what at runtime*, this governs *what a module can reach at
 all* — and together they are what makes the sandbox and wizard
@@ -603,10 +608,25 @@ It governs **imports**, so ambient globals stay reachable from the
 mudlib: `process` (and `process.env`), `Buffer`, `console`, `globalThis`,
 and timers. Some of those are load-bearing and fine (`Buffer` is inert
 data handling; `ScheduleApi` already owns timers by a separate rule).
-`process.env` and `globalThis` are the ones worth watching — closing them
-needs a different mechanism (a lint on identifiers, or a real module
-sandbox), not this one. Worth knowing before treating the boundary as a
-security perimeter rather than what it is: a strong architectural one.
+
+`process.env` is the one worth naming, because mudlib code reads it
+today: `obj/AccessRegistry.ts` (the wizard / archwizard / streamer
+allowlists), `obj/OfficeRegistry.ts` (the founder identity), and
+`obj/ReactionRegistry.ts` (`NODE_ENV` / `VITEST`). Those are deliberate
+and unaffected by this rule — but note the shape: a module that can read
+`process.env` can also write it, and `globalThis` reaches further still.
+Closing that needs a different mechanism (a lint on identifiers, or a
+real module sandbox), not this one.
+
+So: a strong **architectural** boundary — it makes the capability
+surface finite, reviewable, and gated — but not a security perimeter.
+Read the two claims separately.
+
+**Tests are blanket-exempt** (`**/__tests__/**`), deliberately: they are
+not shipped mudlib and already reach for white-box seams by design. If
+that wants tightening later, the target is banning `../backend/` *value*
+imports from test files (~10 at the time the rule landed) while leaving
+`import type` and the test-only deps alone.
 
 ## Class Hierarchy
 

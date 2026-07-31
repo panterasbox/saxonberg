@@ -271,9 +271,9 @@ export class SourceTreeLogic extends ApiLogic {
  * self-calls.
  *
  * Discovery: walk up from this module's directory until we find a
- * directory named `packages`; its parent is the sandbox root. The walk
- * stops at the filesystem root if no `packages` ancestor is found, in
- * which case we throw — the shell's code tree is meaningless without
+ * directory named `packages` — that directory IS the sandbox root. The
+ * walk stops at the filesystem root if no `packages` ancestor is found,
+ * in which case we throw — the shell's code tree is meaningless without
  * one.
  */
 function sandboxRoot(): string {

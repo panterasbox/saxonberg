@@ -146,10 +146,16 @@ export class PersistApi {
    * key or ciphertext detail.
    */
   static unsealString(envelope: EncryptedEnvelope): string {
+    // Resolved OUTSIDE the try: a missing or wrong-length TOKEN_ENC_KEY is
+    // an operator error and must keep its own diagnostic. Folding it into
+    // the catch below would rebrand "you forgot the env var" as "the
+    // ciphertext was tampered with" and send the reader after a phantom
+    // data corruption.
+    const key = encryptionKey();
     try {
       const decipher = crypto.createDecipheriv(
         ALGORITHM,
-        encryptionKey(),
+        key,
         Buffer.from(envelope.iv, 'base64')
       );
       decipher.setAuthTag(Buffer.from(envelope.tag, 'base64'));

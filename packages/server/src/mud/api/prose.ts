@@ -1,9 +1,11 @@
 /**
  * ProseApi — author-facing face for Liquid-based prose templating.
  *
- * The templating engine, its default filter vocabulary, and the
- * compiled-template value object {@link Prose} live in
- * `lib/prose/Prose.ts`; this Api is the thin, security-gated surface
+ * The compiled-template value object {@link Prose} lives in
+ * `lib/prose/Prose.ts`; the Liquid engine and its default filter
+ * vocabulary live in {@link ProseLogic}, because `liquidjs` is outside
+ * `src/mud/` and only the Api tier may import it (docs/architecture.md
+ * § The import boundary). This Api is the thin, security-gated surface
  * authors call. `Prose` is value re-exported here so callers reach the
  * compiled-template type through its face.
  *
@@ -64,12 +66,6 @@ export class ProseApi {
   }
 
   /**
-   * Register a custom filter usable as `{{ x | name }}` (with optional
-   * args: `{{ x | name: 'arg' }}`). Filters that return Mml fragments
-   * compose with the Mml-aware output handler; raw-string returns get
-   * five-entity escaping.
-   */
-  /**
    * Compile a prose template into an opaque handle for repeated
    * rendering. Backing form is a Liquid AST; callers hold it only to
    * hand back to {@link ProseApi.renderCompiled}. Used by
@@ -93,6 +89,12 @@ export class ProseApi {
     return logic().renderCompiled(compiled, vars);
   }
 
+  /**
+   * Register a custom filter usable as `{{ x | name }}` (with optional
+   * args: `{{ x | name: 'arg' }}`). Filters that return Mml fragments
+   * compose with the Mml-aware output handler; raw-string returns get
+   * five-entity escaping.
+   */
   static registerFilter(name: string, fn: FilterFn): void {
     logic().registerFilter(name, fn);
   }

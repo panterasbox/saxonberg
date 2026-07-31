@@ -6,12 +6,17 @@
  * imports and wraps.**
  *
  * This is the classic driver/mudlib split stated for our tree. Mudlib
- * code gets **no ambient capabilities** (no filesystem, no network, no
- * process, no code-eval); it asks the gated Api surface. The rule is the
- * import-graph twin of call-security: call-security governs who may call
- * what at runtime, this governs what a module can reach at all. Together
- * they make the sandbox / wizard code-trust story checkable — authored
- * code that can only import mud modules can only do what the Apis gate.
+ * code cannot **import** a capability — no filesystem, no network, no
+ * child process, no code-eval; it asks the gated Api surface. The rule
+ * is the import-graph twin of call-security: call-security governs who
+ * may call what at runtime, this governs what a module can reach at all.
+ *
+ * Scope, stated honestly: this checks IMPORTS. Ambient globals
+ * (`process` and `process.env`, `Buffer`, `console`, `globalThis`) are
+ * not imports and stay reachable — several mudlib registries read
+ * `process.env` today for founder/wizard allowlists. Closing that wants
+ * a different mechanism (an identifier lint, or a real module sandbox).
+ * So: a strong architectural boundary, not a security perimeter.
  *
  * Four tiers:
  *   - **mudlib** (the default — `lib/`, `obj/` outside `obj/api/`, `cmd/`,
@@ -141,8 +146,11 @@ function tierOf(rel: string): Tier {
 /**
  * Import / re-export bodies contain only identifiers, braces, commas,
  * `as`, `type`, `*` and whitespace — never `;`, backticks, parens or
- * quotes. Constraining the body keeps template literals and comments
+ * quotes. Constraining the body keeps template literals and prose
  * containing the word `from` out of the match.
+ *
+ * Runs against comment-stripped source (see `stripComments`), so a
+ * hand-formatted list with a `// note` between specifiers still matches.
  */
 const STATIC_IMPORT =
   /^[ \t]*(?:import|export)(?<body>[A-Za-z0-9_$*{},\s]*?)from\s*['"](?<spec>[^'"]+)['"]/gm;
@@ -151,6 +159,14 @@ const SIDE_EFFECT_IMPORT = /^[ \t]*import\s*['"](?<spec>[^'"]+)['"]/gm;
 /** `import('x')` / `require('x')` with a literal specifier. */
 const DYNAMIC_IMPORT = /\bimport\s*\(\s*['"]([^'"]+)['"]/g;
 const REQUIRE_CALL = /(?<![.\w])require\s*\(\s*['"]([^'"]+)['"]/g;
+/**
+ * `import(...)` / `require(...)` whose specifier is NOT a string literal
+ * — a variable, a template literal, a concatenation. The checker cannot
+ * resolve those, so in the mudlib tier they are refused outright rather
+ * than waved through: an unresolvable specifier is exactly how a
+ * capability would slip past a static rule.
+ */
+const COMPUTED_IMPORT = /(?:\bimport|(?<![.\w])require)\s*\(\s*(?!['"])[^)\s]/g;
 /** `createRequire` — an escape hatch that resolves outside the checker. */
 const CREATE_REQUIRE = /\bcreateRequire\s*\(/g;
 
@@ -164,6 +180,58 @@ interface Finding {
   kind: string;
 }
 
+/**
+ * Blank out comments, preserving every byte offset and line break so
+ * reported line numbers stay true.
+ *
+ * Every scan below runs on the stripped text. Without this the checker
+ * reads prose: a comment saying "imported via a lazy import (it pulls
+ * nothing back)" trips the computed-specifier rule, and a `// note`
+ * between specifiers in a hand-formatted import list hides the import
+ * entirely. String and template literals are tracked so a `//` inside a
+ * URL or a regex-ish string isn't mistaken for a comment.
+ */
+function stripComments(src: string): string {
+  const out = src.split("");
+  let i = 0;
+  const blank = (from: number, to: number): void => {
+    for (let k = from; k < to && k < out.length; k++) {
+      if (out[k] !== "\n") out[k] = " ";
+    }
+  };
+  while (i < src.length) {
+    const c = src[i];
+    const next = src[i + 1];
+    if (c === "/" && next === "/") {
+      const end = src.indexOf("\n", i);
+      blank(i, end === -1 ? src.length : end);
+      i = end === -1 ? src.length : end;
+    } else if (c === "/" && next === "*") {
+      const end = src.indexOf("*/", i + 2);
+      const stop = end === -1 ? src.length : end + 2;
+      blank(i, stop);
+      i = stop;
+    } else if (c === "'" || c === '"' || c === "`") {
+      const quote = c;
+      i++;
+      while (i < src.length) {
+        if (src[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (src[i] === quote) {
+          i++;
+          break;
+        }
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+  return out.join("");
+}
+
 function lineOf(src: string, index: number): number {
   let n = 1;
   for (let i = 0; i < index; i++) if (src.charCodeAt(i) === 10) n++;
@@ -175,7 +243,9 @@ function walk(dir: string, out: string[]): void {
     const p = join(dir, entry);
     const st = statSync(p);
     if (st.isDirectory()) walk(p, out);
-    else if (p.endsWith(".ts") || p.endsWith(".tsx")) out.push(p);
+    // `.mts` / `.cts` are valid under NodeNext and would otherwise be a
+    // blind spot in the scan.
+    else if (/\.(ts|tsx|mts|cts)$/.test(p)) out.push(p);
   }
 }
 
@@ -223,7 +293,7 @@ const findings: Finding[] = [];
 for (const abs of files) {
   const rel = relative(MUD, abs).split("\\").join("/");
   const tier = tierOf(rel);
-  const src = readFileSync(abs, "utf8");
+  const src = stripComments(readFileSync(abs, "utf8"));
 
   const consider = (
     spec: string,
@@ -262,8 +332,9 @@ for (const abs of files) {
   for (const m of src.matchAll(REQUIRE_CALL))
     consider(m[1]!, m.index!, "require()", false);
 
-  // createRequire resolves specifiers this checker cannot see, so it is
-  // itself restricted to the tiers that may import freely.
+  // These resolve specifiers the checker cannot see, so they are refused
+  // in the tier that may not import outward at all. (`import(someVar)` in
+  // the Api tier is fine — that tier may import anything on its lists.)
   if (tier === "mudlib") {
     for (const m of src.matchAll(CREATE_REQUIRE)) {
       findings.push({
@@ -273,6 +344,16 @@ for (const abs of files) {
         spec: "createRequire(...)",
         key: "createRequire",
         kind: "createRequire",
+      });
+    }
+    for (const m of src.matchAll(COMPUTED_IMPORT)) {
+      findings.push({
+        file: rel,
+        tier,
+        line: lineOf(src, m.index!),
+        spec: "<computed specifier>",
+        key: "computed-import",
+        kind: "dynamic import()/require()",
       });
     }
   }

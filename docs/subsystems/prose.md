@@ -230,3 +230,11 @@ speak — and reaches back through `ProseApi.compile` /
 unchanged: `ProseApi.format` and `ProseApi.registerFilter` are still the
 surface, and the Mml-aware output escaping and filter semantics moved
 verbatim.
+
+One consequence worth knowing: the memoised engine is now module state
+in a **hot-reloadable** module, so `dest /obj/api/prose` rebuilds it and
+drops any filter installed at runtime through `ProseApi.registerFilter`
+(the default set is rebuilt either way). Nothing in-tree registers one
+today; an author who does should re-register after a reload. Making them
+survive wants a durable filter registry — more machinery than the
+current zero callers justify.
