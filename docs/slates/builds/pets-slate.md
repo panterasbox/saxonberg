@@ -681,6 +681,165 @@ to rung 3, `solo`**, and two distinct solos are never allied.
 
 ---
 
+## Scale, welfare, and the law **[DECIDED 2026-07-31]**
+
+### How many pets — three limits, none of them arbitrary
+
+| Limit | Mechanism | Where it lives |
+|---|---|---|
+| **The legal cap** | land use declares a companion ceiling per residence | [stewardship](./stewardship-slate.md) — municipal ordinance, per household, differs by district |
+| **Compute** | `Behaved` **vetoes eviction**, so every pet is a Character-tier NPC **pinned in memory**, billed to the owner's parcel under the shipped cost-owner rule | the allowance |
+| **Care capacity** | obligations scale with what you hold ⇒ **holding more than you can steward is negative-sum** | condition (below) |
+
+**No cap needs writing beyond the legal one** — the other two self-enforce.
+
+And a consequence that lands on the *city*, not the player: **the ordinance and
+the allowance are one decision.** A locality zoning a generous companion ceiling
+is committing allowance out of its bundle to fund those animals. Pet-friendly
+districts cost the city liveness — which is the land-use ⊕ allowance
+unification, applied to pets, and a real thing for a government to argue about.
+
+### The cruelty statute was built in the combat session
+
+The § *Combat* proposal — make killing an **owned** animal staged and
+blameworthy — **is** the animal-cruelty law. Extend it to the `harm` row kind
+(already shipped alongside `death`) and non-lethal cruelty rides the same
+derive-on-read machinery. Nothing new.
+
+The genuinely hard case is **cruelty to your own animal**, where ownership and
+consent both fail — you own it, so who is the victim? Real law answers by making
+animals a special category of property: yours, but not yours to do anything you
+like with. That is a **limit on property rights**, distinct in kind from harm to
+a person. Our stack already has the shape for it:
+
+> **Animal welfare is a locality's law, not an engine rule.** The engine
+> supplies the *facts* — condition derived and visible, harm rows recorded. The
+> **government decides what counts as an offence.**
+
+So cities differ: a frontier settlement doesn't care, Terminus has an ordinance.
+Same substrate, different politics. Enforcement machinery is the polity's and
+the courts stack's business, not this slate's.
+
+### Neglect is enforced by witness, not by system
+
+Neglect has no act to record — it is an absence. It is detectable anyway,
+because **condition is derived on read and legible to anyone who looks.** A
+neglected animal is visibly neglected to a passing neighbour. No surveillance,
+no automated audit: someone has to **notice and act**, which is how animal
+control actually works.
+
+It also gives *"someone else's favourite"* (§ *The off-screen life*) a second
+life — a neighbour who has been quietly feeding your starving dog holds both
+**evidence and standing**.
+
+### Hoarding is a condition, not a count
+
+Real hoarding law is about keeping more animals than you can care for, and the
+model makes that **automatically visible**: many animals, degrading condition.
+It needs no separate offence.
+
+That also closes the obvious dodge — the cap is per-residence, so someone could
+spread animals across properties. Fine: **the difference between a kennel and a
+mill is condition, not headcount.** Neglect, hoarding, and cruelty aftermath all
+read off the same derived fact.
+
+### Abandonment already has a mechanical basis
+
+Abandoning a domesticated animal is an offence in life because **it cannot
+survive** — and the model already knows the difference, because
+**domesticability is the axis**. A high-domesticability lapdog has no fear
+baseline and no survival skills; a semi-wild barn cat does. Releasing one and
+abandoning the other are materially different acts with no new rule. (Feeds the
+open *feral / release rules* question.)
+
+### The guard rail
+
+> **Ordinary absence must never be a crime.** A player who logs off for a week
+> and returns to a sad dog has committed no offence — that is what arrangements
+> are for, and the condition curve is asymptotic by design.
+
+The primary consequence of neglect is already **relational**: the bond drifts
+and eventually the animal leaves. That is the punishment and it is the right
+one. **Legal** consequence is reserved for the egregious and the *active* —
+cruelty is an act; neglect-as-offence needs sustained extreme failure **plus a
+witness willing to report it.** This keeps the time-respect contract intact
+while still letting the world have laws worth having.
+
+---
+
+## Breeding as an industry **[DECIDED 2026-07-31]**
+
+**Is a pet breeder just a rancher?** No — and the difference is precise.
+
+| | **Ranching** | **Pet breeding** |
+|---|---|---|
+| Selects for | **yield traits** — milk, wool, growth, meat | **temperament, capability, lineage** |
+| Sells | head of stock, fungible-ish | **this individual**, with papers |
+| Value comes from | **measurement** (yield, `Grade`) | **provenance** (who its parents were) |
+| Density-dial position | aggregate herd **+** a slotted breeding tier | **entirely** the slotted/individual tier |
+
+> **A pet breeder is ranching run wholly at the breeding-stock tier, with no
+> production herd.** Same `Genome`, same meiosis, same reaction norms, same
+> gestation and maturation — a different *operating point* on the density dial,
+> and a different market.
+
+### Papers = three shipped ledgers composing
+
+Pedigree value needs a pedigree, and we do not have to invent one:
+
+- **Chain of title** — `ChattelMixin` on the Creature stack (already Wave 1)
+  gives per-instance ownership *with chain-of-title*. Who bred it, who has owned
+  it.
+- **Lineage** — the parent edges the genome layer produces anyway.
+- **Deeds** — the [chronicle](../../subsystems/chronicle.md), the append-only
+  identity ledger: what the animal actually did.
+
+**A breeder's mark rides the crafting maker's-mark pattern** — a bred animal
+carries who produced it, so a breeder's renown is built from the animals they
+have put into the world, and a buyer can check.
+
+### The trust problem is the good part
+
+If value comes from *claimed* lineage, then **lying about lineage** becomes
+possible — and the chronicle already distinguishes **deed from claim by
+provenance**. So a claimed pedigree and a verifiable one are different objects,
+which makes **appraisal a real service** (the `appraisal` Discipline ships; the
+Society of Inquiry's identification economy is the natural counterparty).
+
+### The moat is the generation interval
+
+From ranching: `R = h²·S / L`, and a game year is **30 real days**. A
+multi-generation program is a **real-month-scale** commitment, so an established
+line cannot be spun up on demand. That is a genuine, honest moat — and it is why
+breeding is a *specialty* rather than something everyone does on the side.
+
+### Two supply chains, not one — and they are different products
+
+The [guild roster](./guild-slate.md) anchors the Wardens on "the pet supply
+chain (**taming** feeds the shops)." Breeding is the *other* source, and the
+split is real rather than competitive:
+
+| Source | Guild practice | Product |
+|---|---|---|
+| **Tamed wild** | the **Wardens** | a trophy — unique, harder, story-generating |
+| **Bred** | the **Grange** (husbandry + genetics) | predictable, pedigreed, specifiable |
+
+**The practice is the Grange's; the market is the Wardens'.** A breeder is a
+Granger serving the pet trade — the same *one substrate, two experiences* line
+the family runs on. Wild-caught versus bred is a genuine distinction in the real
+animal trade, with different economics and different ethics, and it slots
+straight into § *The acquisition ladder*: the shop sells **bred** animals, the
+Wardens supply **wild-caught** ones, and adoption is free.
+
+### Welfare is what separates a kennel from a mill
+
+Volume breeding at poor condition is the puppy mill, and it needs no new rule —
+**condition is the measure** (§ *Scale, welfare, and the law*). A bad breeder is
+legible exactly the way a hoarder is, and the locality's ordinance is what makes
+it actionable.
+
+---
+
 ## Reconciliation — what the husbandry sessions changed **[2026-07-31]**
 
 Four sessions (pets · ranching · farming · stewardship) settled decisions that
@@ -960,10 +1119,11 @@ economy vein (shop-theft, once possession lands); multiplayer interaction
 - **Shop-theft.** Bless the emergent exploit (with regard/theft consequences,
   once possession exists) or close it? Colors how "consistent-world" we commit
   to be. Parked for now.
-- **Roster cap.** One pet at a time, or several? *(2026-07-31: partly answered
-  from outside — land use declares a companion ceiling per residence, so the cap
-  is a property of **where you live**, not a global rule. What remains is
-  whether there is also a per-player cap above that.)*
+- ~~**Roster cap.**~~ **ANSWERED 2026-07-31** — see *Scale, welfare, and the
+  law*. Three limits, no arbitrary number: the **legal cap** (land use, per
+  residence), **compute** (every pet is a pinned Character-tier NPC billed to
+  the owner's parcel), and **care capacity** (obligations scale, so over-holding
+  is negative-sum). **No per-player cap is needed** on top.
 - ~~**Where the pet is when you are offline**~~ — **ANSWERED 2026-07-31**, see
   *The off-screen life*. Residual tuning only: bond-drift rate against an
   11-game- day absence, and how hostile territory weights the return roll.
