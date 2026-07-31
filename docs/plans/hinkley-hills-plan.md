@@ -595,6 +595,90 @@ No new production files. The end-to-end proof, through real verbs only.
 
 ---
 
+## The content manifest — every template this build mints
+
+**19 new templates.** Listed because "the Hinkley Hills content tree" is not an
+instruction. Note there is **no Warren**: the requirements chose one keyed
+field-room, so the holder is a small singleton (below), not the dorm's elastic
+graph.
+
+### Address + civics — `seeds/lib/`
+
+| # | Path | Class |
+|---|---|---|
+| 1 | `lib/address/hinkley-hills.yaml` | `/lib/address/Locality` — `_address: terminus/hinkley-hills`, `_governmentKey: hinkley-hills`. **Must live under `seeds/lib/address/`** or `AddressRegistry` never warms it. |
+| 2 | `lib/civics/Government/hinkley-hills.yaml` | `/lib/civics/Government` — thin: no departments it does not have. |
+
+### The place — `seeds/domain/terminus/`
+
+| # | Path | Class |
+|---|---|---|
+| 3 | `hinkley-hills.yaml` | `/lib/location/CartesianZone` (the `registry.yaml` precedent: zone at the parent level, rooms in the folder) |
+| 4 | `hinkley-hills/arrival.yaml` | `/lib/location/CartesianLocation` — outdoor, `SkyExposed`, authored ambient |
+| 5 | `hinkley-hills/lane.yaml` | ditto — the street. Carries the **unbuilt neighbouring lots as `details:` prose** |
+| 6 | `hinkley-hills/yard.yaml` | ditto — ⭐ **the keyed template**, cloned per lot by the holder (the `DormRoom.SCOPE` role). Carries **the house as `details:` prose** and `populates:` the bed |
+| 7 | `hinkley-hills/tpa-terminal.yaml` | `/domain/common/tpa/TpaTerminal` — `directionality: both`, `routes` back to Terminus |
+| 8 | `hinkley-hills/standpipe.yaml` | `/obj/UnboundedReceptacle` — the water source (the dorm tap's role; without it every watering is a trip to town) |
+| 9 | `hinkley-hills/lot-holder.yaml` | `/domain/terminus/hinkley-hills/LotHolder` — the singleton (the `dorm-warren.yaml` role) |
+
+### Cultivation — `seeds/obj/`
+
+| # | Path | Class |
+|---|---|---|
+| 10 | `obj/bed/garden.yaml` | `/obj/GardenBed` — N slots + soil volume + `reserves` (moisture, nitrogen) |
+| 11 | `obj/vessel/compost-sack.yaml` | `/obj/Receptacle` — the soil-sack shape, pre-filled |
+
+### The crop — four templates, one species
+
+| # | Path | Class |
+|---|---|---|
+| 12 | `content/…/species/plantae/…/<crop>.yaml` | `/lib/species/Species` (the snake-plant row's shape) |
+| 13 | `obj/plant/<crop>.yaml` | `/obj/Plant` — profile + `harvestTemplatePath` + `nutrientDraw` |
+| 14 | `obj/seed/<crop>.yaml` | `/obj/Seed` |
+| 15 | `obj/crop/<crop>.yaml` | `/obj/Crop` over `/lib/material/food/root-vegetable` |
+
+### Materials — `packages/content/base-library/`
+
+| # | Path | Class |
+|---|---|---|
+| 16 | `…/material/bulk/compost.yaml` | `/lib/material/Material` (the potting-soil shape) |
+
+### Controller seeds — ⚠ the phase-1 sweep catch
+
+Every controller needs a seed or **dispatch throws "Template not found" on a
+fresh DB**. Phase 1 shipped without these and the integrity test caught it.
+
+| # | Path |
+|---|---|
+| 17 | `obj/command/bulk/FeedController.yaml` |
+| 18 | `obj/command/inventory/HarvestController.yaml` |
+| 19 | `obj/command/civics/TitleController.yaml` |
+
+### Modified, not new
+
+- **`config/parcels.yaml`** — the suburb extent (`landUse: residential`, owned
+  by the suburb group) + `landUse` on the existing infrastructure rows. **The
+  lot itself is NOT pre-seeded** — the sale mints it via `subdivide`.
+- **`seeds/domain/terminus/terminal/departure-terminal-a.yaml`** — a `route`
+  to Hinkley, or the suburb is unreachable outbound.
+- **`seeds/domain/terminus/general-store/counter.yaml`** — stock lines +
+  prices for the crop seed and the compost sack (content only, per phase 1).
+- **The phase-1 pot seeds** (`obj/pot/{small,large,starter}.yaml`) — gain
+  `reserves.moisture` under Decision F.
+
+### Deliberately NOT templates
+
+- **The house** — `details:` prose on the yard, not a Stuff. Room-spec rule:
+  prose is bulk, Stuff is few.
+- **The unbuilt neighbouring lots** — `details:` prose on the lane. Their
+  emptiness is the story, not nine empty rooms.
+- **Any NPC** — Odile already registrar *and* acting Magistrate at the
+  Registry. No new cast.
+- **A buyable bed** — the bed ships with the lot. Buying a *fixture* would need
+  a placement verb that does not exist, and inventing one is out of scope.
+
+---
+
 ## Deferred seams — attach points, not stubs
 
 - **The bed's `moisture` is live, but nothing fills it from the sky.** Rain and
@@ -659,9 +743,7 @@ No new production files. The end-to-end proof, through real verbs only.
 `obj/Crop.ts` · `domain/terminus/hinkley-hills/LotHolder.ts` ·
 `cmd/bulk/feed.yaml` + `FeedController` · `cmd/inventory/harvest.yaml` +
 `HarvestController` · `cmd/civics/title.yaml` + `TitleController` ·
-`seeds/lib/address/hinkley-hills.yaml` ·
-`seeds/lib/civics/Government/hinkley-hills.yaml` · the Hinkley Hills content
-tree · the compost material + sack · the crop species/plant/item/seed ·
+**the 19 templates in § The content manifest** ·
 `docs/subsystems/smallholding.md` · six test files
 
 **Modified**
