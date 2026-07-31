@@ -23,9 +23,15 @@ data:
     that doesn't quite seem to touch the wall behind it. A printed card
     tacked beside the doors reads: "STEP IN. YOUR CIRCLE. BUILD
     ANYTHING. WALK OUT — ONLY WHAT YOU SAVED COMES BACK."
+  # A lit interior nook. `lit` band (20-60 lux) — enough to read faces
+  # by, which is the whole point: at `pitch-black` the vision gate fails
+  # and every occupant degrades to "someone", so nobody in the room can
+  # be named or addressed.
+  #
+  # Authored ambient rather than a lamp FIXTURE: a PortableLight is a
+  # Thing, so the first passer-by could pocket the room's lighting and
+  # leave the alcove dark for everyone after them.
+  ambientIntensity: 40
+  ambientColorTemperature: 4000
   populates:
     - /obj/sandbox/wardrobe
-    # Light is fixture-side, never ambient: without a LightSource in the
-    # room the band is `pitch-black`, vision's `canSee` gate fails, and
-    # everyone in here reads as "someone". See alcove-lamp.yaml.
-    - /domain/lounge/alcove-lamp

@@ -566,13 +566,17 @@ describe("security (AC #8)", () => {
     const surface = Object.getOwnPropertyNames(PersistableApi).filter(
       (n) => typeof (PersistableApi as unknown as Record<string, unknown>)[n] === "function",
     );
-    // Only capture/materialize/hasRecord/deleteAllFor — no raw write/save.
+    // Only capture/captureHostOf/materialize/hasRecord/deleteAllFor — no
+    // raw write/save. (`captureHostOf` is a capture, host-resolving: it
+    // reaches the same gated writer through the same principal.)
+    //
     // The fork protocol (sandbox build) is RUNTIME state movement, not a
     // record-store write path: forkRuntimeState/mergeRuntimeState never
     // touch `holder_snapshots`.
     expect(surface.sort()).toEqual(
       [
         "capture",
+        "captureHostOf",
         "deleteAllFor",
         "hasRecord",
         "materialize",

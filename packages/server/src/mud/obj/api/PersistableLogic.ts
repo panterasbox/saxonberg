@@ -87,9 +87,14 @@ function stashedKey(host: Stuff): string | null {
   return MixinApi.isPersistable(host) ? host.getPersistenceKey() : null;
 }
 
-/** Stash a resolved key so a later keyless re-capture reuses it. */
-function stashKey(host: Stuff, key: string): void {
-  if (MixinApi.isPersistable(host)) host.setPersistenceKey(key);
+/**
+ * Stash a resolved key so a later keyless re-capture reuses it. `explicit`
+ * carries the key's provenance (see `Persistable.setPersistenceKey`): an
+ * establishing context's real per-instance key marks the host
+ * multi-instance; a scope-derived owner does not.
+ */
+function stashKey(host: Stuff, key: string, explicit: boolean): void {
+  if (MixinApi.isPersistable(host)) host.setPersistenceKey(key, explicit);
 }
 
 /**
@@ -145,6 +150,18 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   if (!MixinApi.isContainable(host)) return null;
   const env = host.getContainer();
   if (!env) return null;
+  // A nested host — one sitting anywhere inside another persistable host's
+  // tree — is placed by its REFERRER (the ancestor whose container slice
+  // holds its `{ref, key}` entry), so its own `place` would fight that
+  // (and could phantom-clone a stale container template on restore). A
+  // HasInteractive host (an avatar) is exempt: the container slice filters
+  // it out, so nothing refs it and its own `place` stays load-bearing.
+  if (
+    !MixinApi.isHasInteractive(host) &&
+    nearestPersistableHost(env) !== null
+  ) {
+    return null;
+  }
   if (MixinApi.isWarrenMember(env)) {
     const warren = env.getWarren()?.getTemplatePath();
     if (warren) return { startLocation: warren };
@@ -200,6 +217,24 @@ async function restorePlacement(
   }
 }
 
+/** Containment hops the persistable-ancestor walks tolerate (cycle guard). */
+const MAX_ANCESTOR_HOPS = 32;
+
+/**
+ * The nearest persistable host at-or-above `stuff` in the containment
+ * chain, or null. Hop-capped, so a (malformed) containment cycle
+ * terminates instead of spinning. Shared by `capturePlacement`'s
+ * nested-host rule and `captureHostOf`'s walk.
+ */
+function nearestPersistableHost(stuff: Stuff): Stuff | null {
+  let cur: Stuff | null = stuff;
+  for (let hops = 0; cur && hops <= MAX_ANCESTOR_HOPS; hops++) {
+    if (MixinApi.isPersistable(cur)) return cur;
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  }
+  return null;
+}
+
 /**
  * Resolve the live principal for a record `owner`: a player-owned scope
  * restores as that player when it is online (a live `Stuff` at the path),
@@ -234,6 +269,32 @@ async function preloadTreeMarshallers(host: Stuff): Promise<void> {
   }
 }
 
+/**
+ * Detach an object-valued captured field from the live instance.
+ *
+ * A capture is documented as **the last synchronous block before the save**,
+ * so that concurrent triggers each write a valid full snapshot. That
+ * guarantee only holds if the snapshot is a *copy*: an object-valued
+ * persistent field (a `reserves` record, a growth `profile`, a `details`
+ * map, a `keywords` array) is otherwise stored by REFERENCE, and any
+ * mutation between the capture and the save — a plant watered in the same
+ * turn, an inventory shuffled — silently rewrites the snapshot that was
+ * supposed to be frozen.
+ *
+ * A persistent field is about to be BSON-serialized, so it holds plain data
+ * by construction and a JSON round-trip is faithful. Anything that will not
+ * round-trip (a live reference that should have had a marshaller) is left
+ * alone rather than mangled — the save path fails loudly on those already.
+ */
+function detachValue(value: unknown): unknown {
+  if (value === null || typeof value !== "object") return value;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
+}
+
 /** Marshal one layer's declared fields to stored form (synchronous). */
 function captureFields(
   host: Stuff,
@@ -253,9 +314,9 @@ function captureFields(
     // (e.g. a room's lazily-null `_temperature`) is stored raw, not marshalled.
     if (mPath && value != null) {
       const m = StuffApi.findByTemplatePath<Marshaller<unknown, unknown>>(mPath);
-      out[field] = m ? m.toStored(value) : value;
+      out[field] = detachValue(m ? m.toStored(value) : value);
     } else {
-      out[field] = value;
+      out[field] = detachValue(value);
     }
   }
   return out;
@@ -313,7 +374,24 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
 function captureItem(item: Stuff, placement: Placement): ContentEntry {
   const templatePath = item.getTemplatePath() ?? "";
   if (MixinApi.isPersistable(item)) {
-    return { ref: templatePath, placement };
+    // A MULTI-INSTANCE nested host records its per-instance key alongside
+    // the ref, so restore can distinguish siblings cloned from one
+    // template. A singleton does not: its stashed owner is scope-derived,
+    // and emitting it would send the restore down the keyed branch and
+    // clone a duplicate of a host that is already live. The field is
+    // OMITTED (not null) in that case — keyless records stay
+    // byte-identical to the pre-key shape.
+    // Read the key BEFORE the provenance flag: a host that mints its key
+    // lazily (a cultivated Plant) does so in `getPersistenceKey`, and that
+    // mint is what makes it explicit.
+    const stashed = item.getPersistenceKey();
+    const key =
+      stashed !== null && item.isPersistenceKeyExplicit()
+        ? stashed
+        : undefined;
+    return key !== undefined
+      ? { ref: templatePath, key, placement }
+      : { ref: templatePath, placement };
   }
   return { templatePath, state: captureState(item), placement };
 }
@@ -416,10 +494,46 @@ async function restoreState(
 }
 
 /**
+ * **The record is authoritative.** A non-host content item is restored by
+ * re-cloning its template, and a clone re-runs the template's `populates:`
+ * — so a container that declares born-with contents (a stocked chest, a
+ * pre-planted pot) arrives holding a fresh set of them, which then collides
+ * with the recorded set: doubled contents, and a `Slotted` re-occupy that
+ * throws because the born-with occupant already claimed the slot.
+ *
+ * A *host* never has this problem: `PersistableMixin.applyPopulates` only
+ * retains the specs, and `seedBornWith` runs on the no-record branch alone.
+ * This is the same rule for the non-host case — clear what the clone seeded
+ * before applying what the record says.
+ *
+ * Scoped by the record: contents are cleared only when the captured state
+ * actually carries a `ContainerMixin` slice (the record speaks to contents),
+ * and slots only when it carries a `SlottedMixin` one. A record that says
+ * nothing about contents leaves the born-with set alone.
+ */
+function clearSeededContents(
+  clone: Stuff,
+  state: Record<string, MixinSlice>,
+): void {
+  const slices = Object.values(state);
+  if (slices.some(isSlottedSlice) && MixinApi.isSlotted(clone)) {
+    for (const [slot, occupants] of clone.getAllOccupants()) {
+      for (const occupant of [...occupants]) clone.vacate(slot, occupant);
+    }
+  }
+  if (slices.some(isContainerSlice) && MixinApi.isContainer(clone)) {
+    for (const item of [...clone.getContents()]) {
+      StuffApi.destruct(item);
+    }
+  }
+}
+
+/**
  * Reconstitute one `ContentEntry` into a live Stuff placed inside `host`.
- * A `{ ref }` follows the reference — cloning the nested host's shell (which
- * self-materializes its own records via `postRegister`); anything else is
- * cloned through the gated path and has its own `state` applied (recursion).
+ * A `{ ref }` follows the reference — cloning the nested host's shell (and,
+ * when the ref carries a key, materializing that instance's own record);
+ * anything else is cloned through the gated path, has whatever the clone
+ * seeded cleared, and has its own `state` applied (recursion).
  */
 async function restoreItem(
   entry: ContentEntry,
@@ -427,7 +541,8 @@ async function restoreItem(
   principal: Stuff,
 ): Promise<Stuff | null> {
   if ("ref" in entry) {
-    const nested = await cloneHost((entry as RefEntry).ref);
+    const refEntry = entry as RefEntry;
+    const nested = await cloneHost(refEntry.ref, refEntry.key);
     if (nested && MixinApi.isContainable(nested) && MixinApi.isContainer(host)) {
       ContainmentApi.move(
         nested as Stuff & Containable,
@@ -438,6 +553,7 @@ async function restoreItem(
   }
   if (!entry.templatePath) return null;
   const clone = await StuffApi.clone<Stuff>(entry.templatePath);
+  clearSeededContents(clone, entry.state);
   await restoreState(clone, entry.state, principal);
   if (MixinApi.isContainable(clone) && MixinApi.isContainer(host)) {
     ContainmentApi.move(
@@ -449,21 +565,32 @@ async function restoreItem(
 }
 
 /**
- * Resolve a nested host by `scope` — the single live instance if one is
- * already registered at the path (a host is a singleton), else clone it
- * once. Cloning fires the host's `postRegister`, which self-materializes its
- * own records — so the reference walk reconstructs the whole tree.
+ * Resolve a nested host by `scope` (+ optional per-instance `key`).
+ *
+ * **Keyed** (`{ref, key}`): the host is one of possibly many instances of
+ * its template, so the path dedup would collapse siblings — instead clone
+ * a fresh shell, stamp the key, and materialize its `(scope, key)` record.
+ * **Keyless** (`{ref}`): the original singleton walk — the single live
+ * instance at the path if one is registered, else clone once and
+ * self-restore with a keyless materialize. Every record written before
+ * the key existed takes this branch unchanged.
+ *
+ * The spine no longer auto-materializes on register (D1); this walk is
+ * the nested host's establishing context, reconstructing the whole tree.
  */
-async function cloneHost(scope: string): Promise<Stuff | null> {
+async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
   if (!scope) return null;
+  if (key !== undefined) {
+    const nested = await StuffApi.clone<Stuff>(scope);
+    if (nested && MixinApi.isPersistable(nested)) {
+      nested.setPersistenceKey(key);
+      await materializeImpl(nested, key);
+    }
+    return nested;
+  }
   const existing = StuffApi.findByTemplatePath(scope);
   if (existing) return existing;
   const nested = await StuffApi.clone<Stuff>(scope);
-  // The spine no longer auto-materializes on register (D1). A nested host
-  // reached by the `{ref}` walk is a singleton (unique templatePath), so it
-  // self-restores its own records here with a keyless materialize —
-  // reconstructing the whole tree. (Multi-instance hosts are never nested by
-  // ref; their establishing context drives their keyed restore.)
   if (nested && MixinApi.isPersistable(nested)) {
     await materializeImpl(nested);
   }
@@ -483,7 +610,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   // key); else the scope-derived key (a singleton's self/parcel owner). Then
   // enforce the single invariant: no live sibling has already claimed it.
   const owner = key ?? stashedKey(host) ?? (await ownerOfScope(scope, host));
-  stashKey(host, owner);
+  stashKey(host, owner, key !== undefined);
   assertUniqueKey(scope, owner, host);
   // Warm marshallers, THEN take the synchronous snapshot (atomic — the
   // last sync block before the save), so concurrent triggers each write a
@@ -511,7 +638,7 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
   // establishing context seeds instead). No keyless "restore every record"
   // mode — a scope holds one record per key, and each host restores its own.
   const owner = key ?? stashedKey(host) ?? (await ownerOfScope(scope, host));
-  stashKey(host, owner);
+  stashKey(host, owner, key !== undefined);
   assertUniqueKey(scope, owner, host);
   const record = await PersistedRecord.findByScopeAndOwner(scope, owner);
   if (record) await restoreRecord(host, record);
@@ -539,6 +666,19 @@ async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void
       await restorePlacement(host, record.getPlace());
     },
   );
+}
+
+/**
+ * Capture the persistence host responsible for `stuff`: the thing itself
+ * when it is a host, else the nearest persistable containment ancestor
+ * (hop-capped, so a containment cycle terminates). A clean no-op when no
+ * host is found — the thing lives in transient space and has no record to
+ * refresh. The mutating-act capture every husbandry-family phase shares.
+ */
+async function captureHostOfImpl(stuff: Stuff): Promise<void> {
+  const host = nearestPersistableHost(stuff);
+  if (!host) return;
+  await captureImpl(host, stashedKey(host) ?? undefined);
 }
 
 async function hasRecordImpl(scope: string, key?: string): Promise<boolean> {
@@ -583,6 +723,12 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async materialize(host: Stuff, key?: string): Promise<void> {
     return materializeImpl(host, key);
+  }
+
+  /** See {@link PersistableApi.captureHostOf}. */
+  @CallSecurity(PersistableApiCallers)
+  public async captureHostOf(stuff: Stuff): Promise<void> {
+    return captureHostOfImpl(stuff);
   }
 
   /** See {@link PersistableApi.hasRecord}. */

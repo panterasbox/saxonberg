@@ -8,11 +8,14 @@
  * immersion feed the same number), banded for the player (`damp` / `wet` /
  * `soaked`) with a real value underneath.
  *
- * **Not `ReservedMixin` reuse.** `Reserve` is biological (Creature-coupled:
- * biological keys, a constructor install, the vitals band feed). Wetness
- * borrows only the *decomposed-scalar persistence shape* — two plain scalar
- * fields, no keyed map, no marshaller — so it rides onto a plain `Thing`
- * without dragging the reserve machinery.
+ * **Not `ReservedMixin` reuse.** Not because `Reserve` is biological — it
+ * is a **neutral** capacity axis, as `lib/reserve.ts` says outright, and its
+ * landscape table already lists non-creature consumers (`fuel` on a
+ * campfire, `air` in a Location, `moisture` on a cultivated plant). Wetness
+ * skips it because a single unbounded `[0,1]` saturation needs no keyed
+ * collection: it borrows only the *decomposed-scalar persistence shape* —
+ * two plain scalar fields, no keyed map, no marshaller — so it rides onto a
+ * plain `Thing` without the reserve's Record-of-reserves machinery.
  *
  * **Drainage is reconcile-on-read; accrual is pushed.** The gauge dries on
  * read over elapsed game-time, presence-frozen (the metabolism / harm /

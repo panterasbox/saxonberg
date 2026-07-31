@@ -14,17 +14,29 @@ body becomes woundable by ordinary hazards, and a non-combat **medic** loop
 
 ## `ConditionApi` — the condition-surface facade
 
-The gated facade over the whole vitals **condition** surface — inflicted
-trauma + afflictions, the one home for inflicted status effects on a body
-(`api/condition.ts` → the gated `ConditionLogic` singleton at
-`/obj/api/condition`). Reserves (endurance) and transient combat flags are
-NOT conditions and stay out. Beyond the `inflict` producer (below) it
-forwards the plain condition mutators — `afflict(target, condition)` /
-`relieve(target, condition)` — and a query `conditionsOf(target)`, each a
-thin gated pass-through to the body's own `VitalsMixin` method (a no-op /
-empty for a non-`Vitals` target). It is deliberately **bounded**: internal
-drivers (metabolism, respiration) keep calling the body methods directly;
-the Api ADDS a facade, it does not re-route them.
+The gated facade over the vitals **condition** surface (`api/condition.ts` →
+the gated `ConditionLogic` singleton at `/obj/api/condition`). Reserves
+(endurance) and transient combat flags are NOT conditions and stay out.
+
+> **Corrected 2026-07-31 (verified against the code).** This section used to
+> claim the facade also "forwards the plain condition mutators —
+> `afflict(target, condition)` / `relieve(target, condition)` — and a query
+> `conditionsOf(target)`." **It does not.** `api/condition.ts` has **exactly
+> one** public static, `inflict`, and `ConditionLogic` has exactly one
+> `@CallSecurity`'d method, also `inflict` — which is **trauma-only**
+> (`InflictSpec` is a discriminated union over `mechanism` and always mints a
+> `Trauma`). *(The stale wording also survives in `condition.ts`'s own header
+> comment.)*
+>
+> **Consequence for anyone building an affliction driver** (disease, poison, a
+> new cascade): **an affliction cannot be inflicted through the Api at all.**
+> Follow the shipped driver precedent — metabolism, respiration, thermal, and
+> magic all call the body's own `VitalsMixin.afflict()` / `relieve()` directly
+> from their mixin — or add a gated `ConditionApi.afflict` first. See
+> [disease-slate](../slates/builds/disease-slate.md).
+
+The Api is deliberately **bounded**: internal drivers keep calling the body
+methods directly; it ADDS a producer facade, it does not re-route them.
 
 ## The `inflict` producer
 

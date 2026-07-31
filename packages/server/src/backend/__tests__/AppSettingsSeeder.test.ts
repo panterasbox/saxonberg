@@ -41,7 +41,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(268); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 4 kick relay (replayWindowSec + dedupTtlSec + dedupMaxSize + resolveCacheTtlMs) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate) + 2 sandbox (sweeper.intervalMs + session.graceMs)
+    expect(added).toBe(279); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 4 kick relay (replayWindowSec + dedupTtlSec + dedupMaxSize + resolveCacheTtlMs) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate) + 11 husbandry (step/maxSteps, vigor tau, goodAt, deathAt, rootFloor, 3 bands, 2 warmth) + 2 sandbox (sweeper.intervalMs + session.graceMs)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -359,6 +359,17 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.craftingRepairCostFactor]: "0.6",
           [AppSettingKeys.craftingRepairBrokenFactor]: "2",
           [AppSettingKeys.craftingRepairMetalHeatK]: "900",
+          [AppSettingKeys.husbandryStepSec]: "43200",
+          [AppSettingKeys.husbandryMaxSteps]: "2000",
+          [AppSettingKeys.husbandryVigorTauSec]: "3801600",
+          [AppSettingKeys.husbandryGoodAt]: "0.6",
+          [AppSettingKeys.husbandryDeathAt]: "0.12",
+          [AppSettingKeys.husbandryRootFloor]: "0.4",
+          [AppSettingKeys.husbandryBandThrivingAt]: "0.8",
+          [AppSettingKeys.husbandryBandHealthyAt]: "0.55",
+          [AppSettingKeys.husbandryBandStressedAt]: "0.3",
+          [AppSettingKeys.husbandryWarmthFactor]: "0.03",
+          [AppSettingKeys.husbandryWarmthReferenceK]: "295",
           [AppSettingKeys.sandboxSweeperIntervalMs]: "300000",
           [AppSettingKeys.sandboxSessionGraceMs]: "600000",
         },
@@ -411,8 +422,10 @@ describe("AppSettingsSeeder", () => {
     //   + resolveCacheTtlMs)
     // + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness,
     //   repair pricing/heat, salvageRate)
+    // + 11 husbandry (step/maxSteps, vigor tau, goodAt, deathAt, rootFloor,
+    //   3 bands, 2 warmth)
     // + 2 sandbox (sweeper.intervalMs + session.graceMs).
-    expect(added).toBe(267); // 268 total − 1 operator-preset key
+    expect(added).toBe(278); // 279 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

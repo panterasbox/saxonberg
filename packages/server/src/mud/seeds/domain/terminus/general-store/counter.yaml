@@ -32,6 +32,15 @@ data:
     - { itemTemplatePath: /domain/terminus/general-store/goods/iron-ingot, par: 3 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/sewing-kit, par: 2 }
     - { itemTemplatePath: /domain/terminus/general-store/goods/sewing-machine, par: 1 }
+    # The gardening line. These are ordinary `/obj/` templates, NOT
+    # store-local `goods/` ones: `itemTemplatePath` takes any path, and
+    # duplicating them here would mean two pots (and two seeds growing the
+    # same plant) drifting apart. The existing goods live under `goods/`
+    # because they are store-specific, not because the path is required.
+    - { itemTemplatePath: /obj/pot/small, par: 3 }
+    - { itemTemplatePath: /obj/pot/large, par: 2 }
+    - { itemTemplatePath: /obj/vessel/soil-sack, par: 4 }
+    - { itemTemplatePath: /obj/seed/snake-plant, par: 3 }
   prices:
     /domain/terminus/general-store/goods/torch: 2
     /domain/terminus/general-store/goods/rations: 3
@@ -42,3 +51,11 @@ data:
     /domain/terminus/general-store/goods/iron-ingot: 5
     /domain/terminus/general-store/goods/sewing-kit: 5
     /domain/terminus/general-store/goods/sewing-machine: 18
+    # Against the shipped ladder (stipend 20; torch 2, rations 3, waterskin
+    # 4, clasp-knife 6, lantern 10). The large pot is deliberately a real
+    # but reachable purchase — it is the first thing a new player has a
+    # REASON to buy, and the reason is legible before the purchase.
+    /obj/pot/small: 3
+    /obj/pot/large: 8
+    /obj/vessel/soil-sack: 2
+    /obj/seed/snake-plant: 5

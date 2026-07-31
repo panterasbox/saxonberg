@@ -525,9 +525,10 @@ shapes:
 - **container** (`{ contents }`, `ContainerMixin.captureSlice`) — one
   `ContentEntry` per Containable, in `getContents()` order. A **non-host
   item** nests `{ templatePath, state, placement }` (recursing through
-  sub-containers); a **nested host** is a reference `{ ref, placement }` —
-  not absorbed, because it persists itself. Surface-resting items record the
-  index of the Surfaced sibling they rest on.
+  sub-containers); a **nested host** is a reference
+  `{ ref, key?, placement }` — not absorbed, because it persists itself
+  (see *Keyed nested hosts* below). Surface-resting items record the index
+  of the Surfaced sibling they rest on.
 - **slotted** (`{ worn }`, `SlottedMixin.captureSlice`) — worn/equipped
   occupancy by **position** (indices into the container slice) + the slot
   names each item claims; non-content occupants (a rider, a sitter) resolve
@@ -566,7 +567,88 @@ composes three defenses:
    tree by walking references.
 
 Capture snapshots synchronously (after a marshaller pre-warm) so concurrent
-triggers each write a valid full snapshot (last-write-wins).
+triggers each write a valid full snapshot (last-write-wins). **The snapshot
+is a copy, not a view:** an object-valued persistent field (a `reserves`
+record, a `details` map, a `keywords` array) is detached with a JSON
+round-trip on the way out, because storing it by reference would let a
+mutation between the capture and the save silently rewrite the snapshot that
+the sync-block invariant promises is frozen. A persistent field is about to
+be BSON-serialized, so it holds plain data by construction.
+
+### Keyed nested hosts
+
+A nested host is captured as a `{ ref }` and restored by following the
+reference. Originally that walk assumed **the nested host is a singleton** —
+it resolved the ref through `findByTemplatePath`, returning the single live
+instance if one existed — and `PersistableLogic` said so in its own comment.
+That held while the only nested hosts were singleton fixtures.
+
+It stops holding the moment a host is **multi-instance**: two peace lilies
+cloned from one plant template, nested in one room, would collapse into one
+on restore. So a ref entry now carries the nested host's per-instance key
+when it has one:
+
+| entry | restore |
+|---|---|
+| `{ ref }` | the singleton walk, unchanged — live instance at the path, else clone once and materialize keylessly |
+| `{ ref, key }` | clone a **fresh** shell, stamp the key, materialize its `(scope, key)` record |
+
+**Keys carry provenance, and that is what picks the branch.**
+`Persistable.setPersistenceKey(key, explicit = true)` records whether an
+*establishing context* supplied a real per-instance key (a leased dorm
+room's unit parcel, a cultivated plant's uuid) or whether
+`PersistableLogic` merely stashed the **scope-derived owner** it resolves on
+a keyless capture. Only an explicitly-keyed host emits `{ ref, key }` —
+otherwise a singleton's derived owner would send its own restore down the
+keyed branch and clone a duplicate of a host that is already live.
+`isPersistenceKeyExplicit()` is sticky once true.
+
+**Backward compatibility is a hard requirement** and the shape delivers it:
+`key` is optional and simply **absent** (not null) on an unkeyed ref, so
+every record written before the change is byte-identical and restores
+unchanged, and keyless nested hosts (`DormRoom`, `ConsignmentShelf`) show no
+behaviour change.
+
+Two related rules fall out:
+
+- **A nested host captures `place: null`.** It is placed by its *referrer* —
+  the ancestor whose container slice holds its ref — so its own `place`
+  would fight that, and could phantom-clone a stale container template on
+  restore. A `HasInteractive` host (an avatar) is exempt, because the
+  container slice filters it out, so nothing refs it and its own `place`
+  stays load-bearing.
+- **The record is authoritative over born-with content.** A non-host content
+  item is restored by re-cloning its template, and a clone re-runs the
+  template's `populates:` — so a container declaring born-with contents (a
+  stocked chest, a pre-planted pot) arrived holding a *fresh* set that then
+  collided with the recorded set: doubled contents, and a `Slotted`
+  re-occupy that threw because the born-with occupant had already claimed
+  the slot. `restoreItem` now clears what the clone seeded before applying
+  what the record says, scoped by the record (contents only when the state
+  carries a container slice, slots only when it carries a slotted one). A
+  *host* never had this problem —
+  `PersistableMixin.applyPopulates` only retains the specs and
+  `seedBornWith` runs on the no-record branch alone — so this is the same
+  rule for the non-host case.
+
+The first consumer is the houseplant (each cultivated plant is its own keyed
+host, carrying its own location), and **pets and livestock are the same
+shape** — see [husbandry.md](./husbandry.md).
+
+### `captureHostOf` — the mutating-act capture
+
+Capture is **event-driven, not periodic, and not at shutdown**: autosave is
+Avatar-only and `AppBootstrap.shutdown()` persists the world clock and
+nothing else. Reconcile-on-read state survives a rolled-back checkpoint by
+re-deriving elapsed time from its clock stamp — but it cannot re-derive an
+**intervention**, so an act that changes a host's state has to capture it.
+
+`PersistableApi.captureHostOf(stuff)` is that call: capture `stuff` itself
+when it is a host (a watered plant), else walk outward to the nearest
+persistable containment ancestor (the dorm room a chest sits in) and capture
+that under its own stashed key. A clean no-op when no host is found — the
+thing lives in transient space and owns no record — and hop-capped against a
+containment cycle.
 
 ### The eviction seam
 
@@ -792,3 +874,28 @@ Index creation is best-effort (logs and continues on failure).
   "retire the pair" was corrected). A late review pass typed the
   `shouldPersist` hook (off duck-typing) and added the singleton-host
   runtime guard.
+
+- **Keyed nested hosts + three snapshot-fidelity fixes** (houseplant build,
+  living-world phase 1 — `1dfbe2df..0936da6e`). The spine's stated invariant
+  was that *"a nested host reached by the `{ref}` walk is a singleton (unique
+  templatePath)"*; the first multi-instance nested host (a cultivated plant,
+  one of many from one template) broke it, so ref entries gained an optional
+  per-instance `key` and keys gained **provenance** (`setPersistenceKey(key,
+  explicit)` / `isPersistenceKeyExplicit()`) so a singleton's scope-derived
+  owner cannot send its own restore down the keyed branch. Keyless records are
+  byte-identical to the pre-key shape — backward compatibility was a hard
+  requirement, and there is live data.
+
+  Building the durability proofs surfaced **three pre-existing bugs**, each
+  fixed here rather than worked around: `captureFields` stored object-valued
+  fields **by reference** (so a mutation between capture and save rewrote the
+  snapshot the sync-block invariant promises is frozen — now detached, and
+  promoted to an [antipatterns.md](../antipatterns.md) entry because the trap
+  generalizes past persistence); a restore-cloned **non-host container
+  re-ran its `populates:`**, doubling contents and throwing on the `Slotted`
+  re-occupy (the record is authoritative — `restoreItem` now clears what the
+  clone seeded, the same rule `seedBornWith` already gives hosts); and a
+  nested host captured its own `place`, fighting the referrer that actually
+  positions it. `PersistableApi.captureHostOf` landed as the mutating-act
+  capture the whole husbandry family reuses. See
+  [husbandry.md](./husbandry.md).

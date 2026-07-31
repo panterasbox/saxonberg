@@ -27,10 +27,25 @@ substrate + the lounge that uses it.
 `lib/stuff/Location.ts` is the abstract base. Pure structural role:
 "any Stuff that can hold other Stuff but doesn't itself live inside
 something." Composition layers
-`AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff))))`
-— so every concrete Location picks up biome-aware atmospheric state
-([biome.md](./biome.md)) plus a Material reference for the room
-itself. Two derived-geometry methods (`getVolume(): Quantity<'m³'> |
+`AddressableMixin(AmbientLitMixin(AtmosphericMixin(AdornableMixin(
+ContainerMixin(Stuff)))))` — so every concrete Location picks up
+biome-aware atmospheric state ([biome.md](./biome.md)), a rooted
+address ([address.md](./address.md)), and an ambient light level
+([light.md](./light.md)).
+
+> **Corrected 2026-07-31.** This line previously read
+> `AtmosphericMixin(TangibleMixin(AdornableMixin(ContainerMixin(Stuff))))`,
+> which was wrong twice over: a Location is **space, not matter**, so it is
+> deliberately NOT `Tangible` (no material, no mass — that is the seam
+> `Thing`/`Vessel`/`Agent` ride, and the same seam that decides what can get
+> wet), and `AddressableMixin` was missing. `AmbientLitMixin` is the
+> houseplant build's addition — the mixin shipped long before, but **no
+> location class composed it**, so `ambientIntensity` was authorable nowhere
+> and every room read pitch-black. It is inert by default (the perception
+> walk skips a zero-flux ambient), so an unauthored room reads exactly as it
+> did before. See [husbandry.md](./husbandry.md) § Content.
+
+Two derived-geometry methods (`getVolume(): Quantity<'m³'> |
 null` and `getCeilingHeight(): Quantity<'m'> | null`) live on
 `AtmosphericMixin` with null-returning defaults; concrete Location
 subclasses override per their topology (and Vessel can too, when a

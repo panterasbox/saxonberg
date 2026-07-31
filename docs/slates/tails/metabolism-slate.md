@@ -406,6 +406,30 @@ encumbrance used:
 
 ---
 
+## The fun trap — **confirmed by measurement 2026-07-31**
+
+> **The goal this section states is already met by the shipped constants.**
+> Measured at 12×: basal hydration empties in **~4.6 real play-hours** and
+> satiation in **~6.9** — a drink about **once every two sessions**, safely
+> below notice. Meanwhile coupled recovery draws **~47× basal**, so the felt
+> experience is set almost entirely by **exertion**, exactly as this section
+> asks. Full numbers in [metabolism.md § Rates](../../subsystems/metabolism.md).
+>
+> Two consequences worth carrying forward:
+>
+> - **Tune the exertion end, not the basal end.** Basal is already invisible;
+>   the whole curve lives in the recovery draw.
+> - **Exertion-driven is also the honest model** — water is lost by sweating,
+>   not by ticking — so the fun answer and the physical answer agree here.
+>
+> **What is still missing is the *point* of it.** "Carry water" is only a
+> decision if there is somewhere water is scarce. The reframe: **ambient in
+> civilization** (a fountain or tap makes drinking trivial and thoughtless) and
+> **a real constraint on expedition** (the mine, the wilds, a frontier
+> holding, a hot day). That turns hydration from a bar into a **packing
+> decision**, and it
+> makes thermal + weather genuine inputs rather than decoration.
+
 ## The fun trap
 
 Hunger/thirst is the single most notoriously *un-fun* mechanic in games —
@@ -417,6 +441,68 @@ exertion. The fun is rationing and the exhaustion spiral on a hard
 journey, **not** maintenance. Per game-stands-alone: metabolism is "on"
 but gentle; survival-*as-challenge* is content/tuning, never a baseline
 burden.
+
+---
+
+## Add the upside — the buff economy **[PROPOSED 2026-07-31]**
+
+Today nutrition can only **penalize**: hydration *throttles* endurance recovery
+below 30%, deficiencies degrade, and protein routes into an inert pool that
+drains nowhere. There is no state where eating *well* puts you above baseline —
+only states where eating badly puts you below it.
+
+> **Proposal: give good nutrition a real, visible benefit, so the mechanic
+> becomes *seek benefit* rather than *avoid punishment*.**
+
+### Why — the economic argument, not the feel argument
+
+This is load-bearing for the [guild](../builds/guild-slate.md) roster, where
+metabolism is the Grange's and Victuallers' audited paymaster ("everyone eats;
+per-capita demand never zero"):
+
+- A **starvation** model creates demand for the **cheapest calories**. Bulk
+  commodity, price-only competition, quality irrelevant.
+- A **buff** model creates demand for **good food** — which is what makes
+  farming's `Grade` bands, cultivar composition, cooking, and brewing
+  economically meaningful instead of decorative.
+
+The whole upstream chain (soil → cultivar → harvest quality → recipe → dish)
+only *pays* if someone downstream cares about quality. Under starvation-only,
+nobody does.
+
+### It is not a fictionalization
+
+Good nutrition genuinely improves performance — that is real physiology the
+model currently represents **only in the negative direction**. Adding the upside
+makes it *more* faithful, not less. The `protein → tissue-repair` seam already
+sketched here is exactly this shape, still inert.
+
+### Prior art — the pattern is unusually consistent
+
+**Time-driven hunger/thirst attrition is the most reliably disliked mechanic in
+the survival genre.** Games resolve it three ways:
+
+| Resolution | Examples | Lesson |
+|---|---|---|
+| **Make it the point** | Don't Starve · The Long Dark · DayZ · Rust | works, but it becomes the game's identity |
+| **Convert to a buff economy** | **Valheim** (timed food slots granting HP/stamina; you never starve, you just get weak) · Breath of the Wild (no hunger at all; food is heal + buff) | the best-regarded version; *seek benefit*, not *avoid punishment* |
+| **Defang it** | EverQuest + classic DikuMUDs (food/drink timers, remembered as busywork; EQ eventually made them near-cosmetic) · WoW (food/drink as out-of-combat regen, no starvation) · Subnautica (kept real thirst; the most-complained-about early-game element, later given a mode without it) | the MUD lineage's verdict is **negative** — and it is the tradition this project inherits from |
+
+**Valheim is the model to follow**, with the caveat that its food is a pure
+timed buff with no underlying physiology. Here the physiology already exists —
+so the move is to *surface its upside*, not to replace it with a buff timer.
+
+### Open
+
+- **What the upside actually grants.** Endurance ceiling, recovery rate, carry,
+  focus, cold tolerance? *Lean: the reserves and rates already modeled — raise
+  the ceiling and the recovery rate, never invent a stat.*
+- **Duration vs. state.** Valheim-style timed slots, or a continuous
+  nutrition-quality state derived from the keyed nutrient ledger? *Lean: the
+  latter — the ledger already exists and a derived state avoids a parallel
+  buff-timer system.*
+- **Legibility.** How a player reads "well fed" without a numeric gauge —
+  presumably the same banded, described-not-numbered surface as competence.
 
 ---
 

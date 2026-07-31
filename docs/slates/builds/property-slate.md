@@ -13,6 +13,21 @@
 > four-phase spine is scoped below. Parent of
 > [pets-slate](./pets-slate.md) · [ranching-slate](./ranching-slate.md) · the
 > farming work (separate session).
+>
+> **Child spun out 2026-07-31 → [stewardship-slate](./stewardship-slate.md).**
+> Three things this slate names but never designs now live there: **land use**
+> (a closed vocabulary typing what a parcel admits — genuinely absent from this
+> corpus; a parcel is structurally typed and categorically untyped), the
+> **residence ladder's actual gating mechanism** (§L sketches the rungs but no
+> ascent rule exists), and **stewardship** (property condition + a Discipline —
+> no decay-through-neglect exists today, only the economic
+> insolvency→freeze→evict path). It also carries the **allowance cascade**
+> decision: the Compact grants a locality a bundle, the locality apportions it
+> to parcels on its own terms, while the *sandbox* draws Compact-direct — so a
+> hostile local government can never squeeze a player's creative channel. That
+> makes §L's "prestige = a bigger allowance" concrete, and turns Phase 2's
+> "are Offices real allocators?" from a question into a mechanism. **It depends
+> on Phase 1's meter, which is still un-designed.**
 
 See also — substrates this stands on / consolidates:
 [zone.md](../../subsystems/zone.md) (`ownerGroup`/`accessGroups`, the slice-walk,

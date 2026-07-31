@@ -83,6 +83,7 @@ import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
+import type { Growing } from '../lib/husbandry/Growing';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
 import type { Furnace } from '../lib/fire/Furnace';
@@ -887,6 +888,10 @@ export class MixinApi {
 
   public static isWet(obj: Stuff): obj is Stuff & Wet {
     return this.hasMixin(obj, Mixins.Wet);
+  }
+
+  public static isGrowing(obj: Stuff): obj is Stuff & Growing {
+    return this.hasMixin(obj, Mixins.Growing);
   }
 
   public static isCombustible(obj: Stuff): obj is Stuff & Combustible {

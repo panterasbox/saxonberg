@@ -912,6 +912,46 @@ export const AppSettingKeys = {
   /** Wetness — saturation at/above which the band reads `soaked`. */
   wetnessBandSoakedAt: "wetness.band.soakedAt",
 
+  /* ────────────────────────── husbandry (living world phase 1) ────────────────────────── */
+  /**
+   * Husbandry — the growth model's dials (GrowingMixin). Growth is
+   * reconcile-on-read over game-time with NO far-past guard (an owned
+   * thing lives the full absence — the family clock); long gaps are
+   * bounded by the step cap, never a time cap. All literals are
+   * placeholders for a running game. See docs/subsystems/husbandry.md.
+   */
+  /** Husbandry — game-seconds per reconcile integration step. */
+  husbandryStepSec: "husbandry.stepSec",
+  /** Husbandry — the step cap a long absence is integrated within (dt
+   * grows to compensate — a step cap, never a time cap). */
+  husbandryMaxSteps: "husbandry.maxSteps",
+  /** Husbandry — vigor relaxation time constant (game-seconds): the e-fold
+   * toward the limiting satisfaction. Sets the neglect fuse's slope. */
+  husbandryVigorTauSec: "husbandry.vigorTauSec",
+  /** Husbandry — limiting satisfaction at/above which maturity accrues
+   * ("good time"). The root floor sits below it, so a pot-bound plant
+   * stalls. */
+  husbandryGoodAt: "husbandry.goodAt",
+  /** Husbandry — vigor below which the plant dies (terminal latch). */
+  husbandryDeathAt: "husbandry.deathAt",
+  /** Husbandry — the root-satisfaction floor: a pot-bound plant holds at a
+   * visible band and never dies of root binding alone. */
+  husbandryRootFloor: "husbandry.rootFloor",
+  /** Husbandry — vigor at/above which the band reads `thriving` (also the
+   * flowering latch threshold). */
+  husbandryBandThrivingAt: "husbandry.band.thrivingAt",
+  /** Husbandry — vigor at/above which the band reads `healthy`. */
+  husbandryBandHealthyAt: "husbandry.band.healthyAt",
+  /** Husbandry — vigor at/above which the band reads `stressed` (below it,
+   * `failing`). */
+  husbandryBandStressedAt: "husbandry.band.stressedAt",
+  /** Husbandry — extra fractional transpiration per K above the warmth
+   * reference. */
+  husbandryWarmthFactor: "husbandry.warmthFactor",
+  /** Husbandry — the reference temperature (K) above which warmth
+   * accelerates transpiration. */
+  husbandryWarmthReferenceK: "husbandry.warmthReferenceK",
+
   /* ────────────────────────── storm (weather Wave 2) ────────────────────────── */
   /** Storm — Floor surface-bulk puddle litres accrued per rain segment. */
   stormPuddleAccrualLitersPerSegment: "storm.puddle.accrualLitersPerSegment",

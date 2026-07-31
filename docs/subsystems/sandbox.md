@@ -646,15 +646,27 @@ them are fixed on this branch.
 
 **Reported, not fixed (they would change the world, not the sandbox):**
 
-- **No class composes `AmbientLitMixin`, so light is fixture-side
-  only.** A Location with no `LightSource` in it computes
-  `pitch-black`, at which band `VisionModality.canSee` fails and
-  `RecognitionApi.describe` falls back to "someone" / "something" for
-  every occupant. A dark room doesn't merely read as dark: nobody in it
-  can be named, told apart, or addressed by name, so `tell <name>`
-  cannot resolve a target. The lounge is lit by its neon signs; a room
-  authored without a fixture is not. The two rooms this build adds
-  (`wire-alcove`, `CircleFloor`) each ship a light for that reason.
+- **Unlit rooms make their occupants unnameable** — reported here, and
+  **fixed on master by the husbandry build**, which composed
+  `AmbientLitMixin` onto `Location` itself. Worth keeping the causal
+  chain written down, because it is not obvious: a Location with no
+  light computes `pitch-black`; at that band `VisionModality.canSee`
+  fails; `RecognitionApi.describe` then falls back to "someone" /
+  "something" for every occupant. A dark room does not merely read as
+  dark — nobody in it can be named, told apart, or addressed, so
+  `tell <name>` cannot resolve a target at all.
+
+  Both rooms this build adds author `ambientIntensity` directly (40 for
+  the alcove, 60 for the circle floor), which is the shipped
+  convention. They briefly carried light-source FIXTURES instead, when
+  that was the only mechanism available; both were converted at the
+  merge. The fixture version was worse in two specific ways worth
+  remembering: a `PortableLight` is a **Thing**, so the first passer-by
+  could pocket the alcove's lighting and leave it dark for everyone
+  after them; and the circle floor's "sourceless glow" listed itself in
+  the room's contents and was minted circle-born in every circle, to
+  model light that the fiction explicitly says has no source — which is
+  what an ambient value already means.
 - **MQL subscription re-resolve reaches the other way**, from a circle
   root against field deps (`mql.reresolve` diagnostics). It degrades
   gracefully — the re-resolve drops what it can't read — but it is

@@ -13,11 +13,13 @@ data:
     A quiet, evenly lit expanse with no walls worth mentioning — the
     raw floor of your circle. Anything could stand here. Nothing does,
     yet. The way out is simply out.
-  # "Evenly lit" has to be true mechanically, not just in the prose:
-  # light is fixture-side, so a room with no LightSource in it reads
-  # `pitch-black` and its occupants stop being recognizable to each
-  # other. The glow clones with the floor inside the circle-scoped
-  # root, so it is circle-born and dies with the discard like
-  # everything else in here.
-  populates:
-    - /lib/sandbox/circle-glow
+  # "Evenly lit" has to be true mechanically, not just in the prose: a
+  # room with no light reads `pitch-black`, and its occupants stop being
+  # recognizable to each other.
+  #
+  # Ambient rather than a fixture, because the fiction says the light
+  # has no source — which is exactly what an ambient value models. A
+  # glow OBJECT would also have listed itself in the room's contents and
+  # been minted circle-born in every circle, for nothing.
+  ambientIntensity: 60
+  ambientColorTemperature: 5000
