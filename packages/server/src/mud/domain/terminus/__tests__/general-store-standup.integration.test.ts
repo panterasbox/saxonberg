@@ -74,6 +74,11 @@ function objDoc(rel: string): Doc {
   };
 }
 
+// The counter stocks fourteen lines to par on standup, each a real clone
+// through the actual pipeline — the gardening line pushed that past the
+// default 5s budget.
+vi.setConfig({ testTimeout: 30_000 });
+
 describe("general-store standup (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
