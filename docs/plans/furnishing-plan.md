@@ -304,6 +304,12 @@ venue-generic per D15.
 - **bathroom** — toilet (`Detailed` prose, no capability mixin), basin
   (`UnboundedReceptacle`), tub (`/obj/Chair` class, `lie` + `restQuality`
   + `warmth`).
+
+⚠ While writing the kitchen and bathroom rows, keep them **tier-agnostic**
+— no row encodes "Terminus" or assumes municipal plumbing (*Resolved —
+water by tier*). It costs nothing now and is the difference between the
+frontier build adding a resolver and the frontier build editing every
+archetype.
 - **living** — nearly empty: floor, light, at most a hearth. Seating is
   chattel the tenant buys, not a fitted built-in.
 
@@ -383,36 +389,28 @@ record (costs a hop, and puts something about the good in the host's
 record, which rubs against the guest-drop goal's "the host's record never
 carries it"), and scanning owners (correct, unworkable).
 
-## ⚠ One inconsistency for your review
+## Resolved — water by tier
 
-**The water-by-tier criterion overreaches its own decision.** D13's prose
-says *"v1 ships the tap; the finite, regenerating source that would make
-a frontier pump mechanically different is already named as deferred."*
-But its acceptance criterion says the archetype row *"declares that a
-water source exists and does not name a tap,"* and that *"a second tier
-authored in a test fixture yields a different fixture with the archetype
-row unchanged."*
+**Decision: ship the tap, soften the criterion** (agreed 2026-07-31).
+D13's prose and its acceptance criterion had disagreed — the prose said
+v1 ships the tap, the criterion demanded a tier→fixture resolver and a
+synthetic second-tier fixture. The requirements now say one thing.
 
-Those disagree. The criterion requires a **tier → fixture resolver** — a
-small piece of code in the populate path, since `populates:` is a list of
-literal template paths and cannot branch. That would be the only
-archetype item that is not pure seed data, denting D12's
-authored-not-coded constraint.
+A resolver is real code (`populates:` is a list of literal template paths
+and cannot branch) and there is no frontier dwelling in this build to
+resolve against, so it would be written, tested against a fixture, and
+used by nothing. It defers to the build that has one.
 
-**Recommendation: ship the tap, keep the rule as documented intent, and
-soften the criterion.** There is no second tier in this build to resolve
-against — build-2's house is `details:` prose — so the resolver would be
-written, tested against a synthetic fixture, and unused. Better in the
-build that has the frontier dwelling. The requirement that *matters* and
-survives is the one D13 argues for: **the tier picks the fixture, not the
-archetype**, which is honoured as long as no archetype row is
-tier-specific.
+**What Wave 8 owes instead is an invariant, not a mechanism: no archetype
+row is tier-specific.** No bathroom or kitchen row encodes "Terminus" or
+assumes municipal plumbing. Checked by reading the rows — it is a review
+item, not a test — because the failure it guards against is *retrofit
+cost*, not behavior: get it wrong and every archetype needs editing when
+the second tier lands; get it right and the resolver later slots in above
+rows that never mentioned a tap.
 
-Alternative if you want it now: add the resolver in Wave 8 and accept the
-constraint dent, stated in the subsystem doc.
-
-*(This is the only place the requirements contradict themselves. Flagged
-rather than silently picked.)*
+D12's authored-not-coded constraint survives intact, which was the other
+reason to prefer this shape.
 
 ## Ordering and parallelism
 
@@ -454,7 +452,7 @@ All 31 criteria, each to a wave.
 | a posted room says so and stops there | 7 |
 | the tub is a real rest surface, and warm | 8 |
 | the toilet does nothing, deliberately | 8 |
-| **the water source is chosen by tier** | **see ⚠ above** |
+| no archetype row is tier-specific | 8 (review item) |
 | you can cook at home, no engine change | 8 |
 | the larder's lid is load-bearing | 8 |
 | the kitchen ventilates or it doesn't | 8 |

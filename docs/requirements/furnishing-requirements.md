@@ -635,6 +635,16 @@ regenerating source that would make a frontier pump mechanically
 different is already named as deferred in `UnboundedSource`'s own
 docstring, and that is where the tier distinction will eventually bite.
 
+**The resolver defers with it; only the invariant ships here.** A
+tier→fixture resolver is real code — `populates:` is a list of literal
+template paths and cannot branch — and with no frontier dwelling in this
+build to resolve *against*, it would be written, tested against a
+synthetic fixture, and used by nothing. What ships is the half that
+costs nothing now and is expensive to retrofit: **no archetype row is
+tier-specific.** Get that wrong and every archetype needs editing when
+the second tier arrives; get it right and the resolver later slots in
+above rows that never mentioned a tap.
+
 **The interior lock.** The bathroom is the one room in a home that locks
 from the inside. `Lockable` ships, so the door can carry it as authored
 detail — but with one leaseholder per unit (co-lease is a non-goal) it
@@ -1130,11 +1140,14 @@ to close.
   toilet fixture exposes no affordance — it is `Detailed` prose and
   composes no capability mixin. The test exists so the decision is
   enforced rather than remembered.
-- **The water source is chosen by tier, not by archetype.** The bathroom
-  and kitchen resolve their water fixture from the unit's address tier;
-  the archetype row declares that a water source exists and does not
-  name a tap. A second tier authored in a test fixture yields a
-  different fixture with the archetype row unchanged.
+- **No archetype row is tier-specific.** v1 ships the tap. The surviving
+  requirement is the *invariant*, not a resolver: nothing in the bathroom
+  or kitchen archetype encodes "Terminus" or assumes municipal plumbing,
+  so the tier can pick the fixture later without touching an archetype
+  row. Checked by reading the rows, not by a synthetic second tier.
+  **The resolver itself is deferred** to the build that has a frontier
+  dwelling to resolve *against* — writing it here would mean code tested
+  against a fixture and used by nothing (D13).
 - **You can cook at home, with no engine change.** In a leased unit's
   kitchen: `ignite` the range, `cook` a learned dish using the larder's
   ingredients and your own pot, and eat it — start to finish, with the
