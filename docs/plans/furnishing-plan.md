@@ -94,7 +94,9 @@ The core. Two artifacts.
 **`place` on the good.** A persistent field carried by `ChattelMixin`
 (the good already composes it, and only an owned good has a place),
 written **only** through `ChattelLogic` per D1's gate. Values: a room
-identity, `'inventory'`, `'storage'` (default).
+identity, `'inventory'`, `'storage'` (default). That one write path also
+stamps the `chattel` row's indexed `place` (see *Resolved*, below) — one
+call, both writes, which is what keeps the index from drifting.
 
 **A new owner-side slice.** The owner's `holder_snapshots` record gains
 a slice holding every **stamped** good the owner titles, as
@@ -152,8 +154,8 @@ it.
 Ordering is the whole decision, and it is already stated. The room
 captures nothing owner-side on the way down.
 
-**This wave depends on the open question below** — everything else in
-the plan does not.
+The lookup is one indexed query — `chattel` where `place = <room
+identity>` — then owner → owner's record per hit (see *Resolved*, below).
 
 **Tests.** The furnish loop (lease → place → dormancy → restart → same
 goods, same rooms, fixtures respawned separately); the guest-drop leak
@@ -269,41 +271,39 @@ suffocates nobody (no silent tax on being offline).
 **Risk: medium.** Touches the restore path for every avatar. The
 never-throws constraint is the guard.
 
-## The one open question — how a room finds the goods placed in it
+## Resolved — how a room finds the goods placed in it
 
-**Wave 4 needs an index and the requirements do not name one.** The
-goods' state lives in the owner's record (Wave 2); a room materializing
-cannot scan every owner's record to find what belongs in it.
+**Decision: `place` rides the existing `chattel` row, indexed** (option 1
+of the three costed during planning; agreed 2026-07-31).
 
-D1 says `place` is a field on the good and explicitly **not** a second
-registry — its reasoning being that a registry "would need reconciling
-against the containment tree it duplicates." That reasoning holds against
-a *new* registry. It does not settle where the by-room index lives.
+Wave 4 needs a by-room index: the goods' state lives in the owner's
+record (Wave 2), and a materializing room cannot scan every owner's
+record to find what belongs in it. D1 says `place` is a field on the good
+and explicitly **not** a second registry — but its reasoning ("a registry
+would need reconciling against the containment tree it duplicates") holds
+against a *new* registry and never settled where a by-room index lives.
 
-Three options:
+So: one indexed field on a row that already exists per owned good. The
+registry is already the authority for *who owns this*; *where they keep
+it* changes on the same acts, through the same gate. Concretely —
 
-1. **`place` on the existing `chattel` row, indexed.** Query
-   `chattel` by `place = <room identity>`. One field on a row that already
-   exists per owned good; the registry is already the authority for *who
-   owns this*, and *where they keep it* changes on the same acts and
-   through the same gate. The good's live instance still carries `place`
-   as a persistent field, so D1's round-trip is unchanged — the row is
-   the **index**, not a second source of truth, and D1 already mandates a
-   single write path through `ChattelLogic`, which is what keeps them
-   from diverging. **Recommended.**
-2. **A manifest on the room's record** — chattel ids only, no state. Two
-   hops (id → owner → owner's record). It also puts *something* about the
-   good in the host's record, which reads against the guest-drop goal's
-   "the host's record never carries it" even though a pointer is not the
-   good.
-3. **Scan owners.** Correct and unworkable.
+- The good's live instance keeps `place` as a persistent field, so D1's
+  round-trip is exactly as specified. **The row is an index, not a second
+  source of truth.**
+- `ChattelLogic` is the single writer (D1 already mandates this), and it
+  writes both in one call. That is what keeps them from diverging, and it
+  is the reason this is safe rather than merely convenient.
+- Wave 4's lookup is one query: `chattel` where `place = <room
+  identity>`, then owner → owner's record for each hit.
 
-Option 1 costs one indexed field and a documented duplication; option 2
-costs a hop and a wording conflict. I recommend 1 and would note the
-tension with D1 in the subsystem doc rather than silently resolving it.
+**The duplication is real and gets documented**, in the subsystem doc, as
+"the row indexes what the instance owns" — not quietly resolved. The
+rejected alternatives, for the record: a manifest of chattel ids on the
+*room's* record (costs a hop, and puts something about the good in the
+host's record, which rubs against the guest-drop goal's "the host's
+record never carries it"), and scanning owners (correct, unworkable).
 
-**This is the only decision the plan cannot make from the requirements
-as written.** Everything else is executable.
+The plan is fully executable.
 
 ## Ordering and parallelism
 
