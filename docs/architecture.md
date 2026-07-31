@@ -558,25 +558,55 @@ happens in the Api tier, sandbox-checked. Siblings: `readResource`,
 argument, a CMS field), and the pure path arithmetic `toMudPath` /
 `resolveFrom`.
 
-### The exception registry
+### No exceptions
 
-Six per-file carve-outs live in `check-mud-imports.ts`, each with its
-reason. They fall into two kinds:
+The registry in `check-mud-imports.ts` is **empty**, and the rule is
+enforced with no carve-outs at all. Getting there took one more pass than
+expected, and the pattern that dissolved every hard case is the same one:
 
-- **It IS the data layer** — `lib/persistence/Document.ts` and
-  `lib/stuff/Template.ts` import `PersistenceManager`. Exactly the
-  boundary `check-pm-access.ts` already sanctions for the same two files.
-- **The host module is the capability being modeled** — the marshaller
-  that exists to encrypt (`crypto`), the prose value object that *is* the
-  compiled-template binding (`liquidjs`), the sandboxed-eval primitive
-  (`vm`), the command-spec validator (`ajv`). All four are pure
-  computation in the capability sense: a value in, a verdict or a
-  transformed value out, no fs / net / process. Folding them into an Api
-  would relocate the import without changing the trust story.
+> When a mudlib module holds a capability, the part that *needs* the
+> capability is almost always smaller than it looks — and the part that
+> doesn't is the part worth keeping in the mudlib.
 
-**Ask before adding a seventh.** A new entry is drift by definition; the
-answer is almost always "fold it into an Api," and the lint failing is
-the intended tripwire that forces that conversation.
+Four modules looked like irreducible exceptions because their whole
+purpose was the library they imported. Each split cleanly anyway:
+
+| Module | Held | Now |
+|---|---|---|
+| `lib/script/EvalScript` | `node:vm` | `ScriptApi.compileSandboxed` / `runSandboxed` over an opaque handle. The **sandbox allowlist and the receiver bindings stay in the mudlib** — deciding what the sandbox contains is policy, and assembling it is plain object work. Only `createContext` / `new Script` / `runInContext` moved. |
+| `lib/prose/Prose` | `liquidjs` | The Liquid engine and its filter set moved to `ProseLogic`; `Prose` kept the value-object half (source string, opaque compiled handle, Mml-typed render). |
+| `lib/persistence/EncryptedStringMarshaller` | `crypto` | `PersistApi.sealString` / `unsealString` — encrypt-at-rest is a persistence concern. The marshaller kept the envelope validation and the `Marshaller` shape. (A standalone `CryptoApi` was considered and rejected long before this; folding into the owning subsystem's face is what that decision implies.) |
+| `lib/command/CommandDefinition` | `ajv` | `CommandApi.validateCommandView` — the command subsystem validating its own spec format. The value object kept every structural invariant it checks *after* the schema. |
+
+The two persistence-framework files (`lib/persistence/Document`,
+`lib/stuff/Template`) that imported `PersistenceManager` on the grounds
+that they *are* the data layer now route through `PersistApi`, whose
+surface already covered every call they made — a migration its own
+docstring had anticipated. That also let `check-pm-access.ts` drop two
+allowlist entries: **the mudlib now has no path to persistence except
+the facade.**
+
+The recurring shape of the fold is an **opaque handle**: the Api compiles
+or seals, hands back a branded type with no structure
+(`CompiledSandbox`, `CompiledProse`), and the mudlib holds it only to
+hand it back. The mudlib keeps the policy and the vocabulary; the Api
+keeps the capability.
+
+**Ask before adding the first exception.** The mechanism is still there,
+and a genuine one is a one-entry edit with its reason recorded — but the
+answer has so far always been "fold it into an Api," and the lint failing
+is the tripwire that forces that conversation.
+
+### What this rule does not cover
+
+It governs **imports**, so ambient globals stay reachable from the
+mudlib: `process` (and `process.env`), `Buffer`, `console`, `globalThis`,
+and timers. Some of those are load-bearing and fine (`Buffer` is inert
+data handling; `ScheduleApi` already owns timers by a separate rule).
+`process.env` and `globalThis` are the ones worth watching — closing them
+needs a different mechanism (a lint on identifiers, or a real module
+sandbox), not this one. Worth knowing before treating the boundary as a
+security perimeter rather than what it is: a strong architectural one.
 
 ## Class Hierarchy
 

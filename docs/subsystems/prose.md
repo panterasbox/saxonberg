@@ -215,3 +215,18 @@ These are all enabled; they just don't appear in current templates.
   `ProseApi`-rendered fragments end up
 - [shell-environment.md](./shell-environment.md) — settings keyspace
   that hosts most player-overridable templates today
+
+## Where the engine lives
+
+The Liquid engine and the default filter set live in `ProseLogic`
+(`obj/api/ProseLogic.ts`), not in `lib/prose/Prose.ts`. `liquidjs` is a
+dependency outside `src/mud/`, and under [the import
+boundary](../architecture.md) only the Api tier may import it.
+
+`Prose` keeps the value-object half — the source string, an opaque
+`CompiledProse` handle, and the `Mml`-typed `render` surface callers
+speak — and reaches back through `ProseApi.compile` /
+`renderCompiled` / `registerFilter`. Author-facing behaviour is
+unchanged: `ProseApi.format` and `ProseApi.registerFilter` are still the
+surface, and the Mml-aware output escaping and filter semantics moved
+verbatim.

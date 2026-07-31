@@ -26,6 +26,16 @@ import { SecurityApi } from './security';
 
 export { Prose } from '../lib/prose/Prose';
 
+/**
+ * Opaque handle to a compiled prose template. Carries no structure on
+ * purpose: the backing form is a Liquid AST, and `liquidjs` is an
+ * Api-tier dependency the mudlib may not name (docs/architecture.md §
+ * The import boundary).
+ */
+export type CompiledProse = {
+  readonly __compiledProse: unique symbol;
+};
+
 const LOGIC_PATH = '/obj/api/prose';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../obj/api/ProseLogic', import.meta.url)
@@ -59,6 +69,30 @@ export class ProseApi {
    * compose with the Mml-aware output handler; raw-string returns get
    * five-entity escaping.
    */
+  /**
+   * Compile a prose template into an opaque handle for repeated
+   * rendering. Backing form is a Liquid AST; callers hold it only to
+   * hand back to {@link ProseApi.renderCompiled}. Used by
+   * {@link Prose.parse} — most code wants `Prose` or
+   * {@link ProseApi.format}, not this.
+   */
+  static compile(source: string): CompiledProse {
+    return logic().compile(source);
+  }
+
+  /**
+   * Render a {@link ProseApi.compile} handle against a variable bag,
+   * returning raw markup. Mml fragments interpolate verbatim; raw
+   * strings get five-entity escaping. `Prose.render` wraps the result
+   * back into an `Mml`, which is what callers should hold.
+   */
+  static renderCompiled(
+    compiled: CompiledProse,
+    vars: Record<string, unknown>,
+  ): string {
+    return logic().renderCompiled(compiled, vars);
+  }
+
   static registerFilter(name: string, fn: FilterFn): void {
     logic().registerFilter(name, fn);
   }

@@ -1714,6 +1714,25 @@ export class CommandApi {
    * reads a class's static `dataSchema` after the (async) class load
    * and validates with the same machinery.
    */
+  /**
+   * Validate a parsed command **spec** (the YAML view) against
+   * `cmd/command.schema.json`. Returns `null` when it conforms, or the
+   * full Ajv error trail — every complaint at once, because the audience
+   * is an author who just mistyped a spec.
+   *
+   * Distinct from {@link CommandApi.validateAgainstJsonSchema}, which
+   * checks a runtime *field value* against an inline schema authored on a
+   * `type: struct` field and reports only the first error.
+   *
+   * Called by `CommandDefinition.fromYaml`: `ajv` lives outside
+   * `src/mud/`, so the mudlib value object asks for the verdict rather
+   * than compiling the schema itself (docs/architecture.md § The import
+   * boundary).
+   */
+  static validateCommandView(view: unknown): string | null {
+    return logic().validateCommandView(view);
+  }
+
   static validateAgainstJsonSchema(
     schema: Record<string, unknown>,
     value: unknown,

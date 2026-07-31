@@ -293,8 +293,12 @@ discoverability.
   type` is exempt everywhere (erased, no capability); both the built-in
   and npm allowlists are **enumerated** so a widening is a deliberate
   edit; dynamic `import()`/`require()`/`createRequire` ride the same
-  matrix. Six per-file exceptions, each with a reason — **ask before
-  adding a seventh**. `--report` groups crossings for a sweep.
+  matrix. The per-file exception registry is **empty** — every
+  capability lives behind an Api, and the mudlib keeps the policy (the
+  fold pattern is an opaque handle: `ScriptApi.compileSandboxed`,
+  `ProseApi.compile`, `PersistApi.sealString`,
+  `CommandApi.validateCommandView`). **Ask before adding the first
+  exception.** `--report` groups crossings for a sweep.
   CI-gating. Pattern + folds: [architecture.md § The import
   boundary](./docs/architecture.md).
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,

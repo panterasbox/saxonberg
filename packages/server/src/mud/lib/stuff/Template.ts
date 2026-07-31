@@ -28,7 +28,7 @@
  * the hook is defense-in-depth at the persistence chokepoint.
  */
 import { Document } from '../persistence/Document';
-import { PersistenceManager } from '../../../backend/PersistenceManager';
+import { PersistApi } from '../../api/persist';
 import { type AnyConstructor } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
 
@@ -113,7 +113,7 @@ export abstract class Template extends Document {
    * (`ZoneTemplate` / `LeafTemplate`) based on the doc's `class` field.
    */
   static async findByPath(path: string): Promise<Template | null> {
-    const docs = (await PersistenceManager.get().find(
+    const docs = (await PersistApi.find(
       Template.collectionName,
       { path }
     )) as DomainDoc[];
@@ -139,7 +139,7 @@ export abstract class Template extends Document {
     paths: readonly string[],
   ): Promise<Template[]> {
     if (paths.length === 0) return [];
-    const docs = (await PersistenceManager.get().find(
+    const docs = (await PersistApi.find(
       Template.collectionName,
       { path: { $in: [...paths] } }
     )) as DomainDoc[];
@@ -153,7 +153,7 @@ export abstract class Template extends Document {
   static async findDescendants(basePath: string): Promise<Template[]> {
     const prefix = basePath.endsWith('/') ? basePath : basePath + '/';
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const docs = (await PersistenceManager.get().find(
+    const docs = (await PersistApi.find(
       Template.collectionName,
       { path: { $regex: `^${escaped}` } }
     )) as DomainDoc[];
@@ -173,7 +173,7 @@ export abstract class Template extends Document {
    * and want subclass dispatch.
    */
   static async loadById(id: string): Promise<Template | null> {
-    const doc = (await PersistenceManager.get().findById(
+    const doc = (await PersistApi.findById(
       Template.collectionName,
       id
     )) as DomainDoc | null;

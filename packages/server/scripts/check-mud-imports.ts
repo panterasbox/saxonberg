@@ -111,55 +111,18 @@ const API_OUT_OF_TREE_PREFIXES = ["backend/"];
  * Per-file exceptions: a mudlib-tier file that may import specific
  * modules, each with the reason it is not folded into an Api.
  *
- * Keys are paths relative to `src/mud/`. Every entry is a considered
- * carve-out, not a backlog item to be grown — ask before adding one, the
- * same discipline as the `no-restricted-syntax` export exceptions.
+ * **Deliberately empty.** The boundary holds with no carve-outs at all —
+ * every capability, and every library that reaches outside the tree,
+ * lives behind an Api. Keeping the mechanism (and this comment) costs
+ * nothing and means a future genuine exception is a one-entry edit with
+ * its reason recorded, rather than a reason to weaken the rule.
+ *
+ * Adding an entry is drift by definition: the lint failing is the
+ * intended tripwire, and the answer has so far always been "fold it into
+ * an Api." **Ask before adding one.** Keys are paths relative to
+ * `src/mud/`.
  */
-const EXCEPTIONS: Record<string, { modules: string[]; reason: string }> = {
-  "lib/persistence/Document.ts": {
-    modules: ["backend/PersistenceManager"],
-    reason:
-      "IS the data layer — the same sanctioned framework boundary that " +
-      "check-pm-access.ts already allows PersistenceManager.get() from.",
-  },
-  "lib/stuff/Template.ts": {
-    modules: ["backend/PersistenceManager"],
-    reason:
-      "IS the data layer — the template primitive, same sanctioned " +
-      "framework boundary as lib/persistence/Document.ts.",
-  },
-  "lib/persistence/EncryptedStringMarshaller.ts": {
-    modules: ["crypto"],
-    reason:
-      "The marshaller's whole job is encrypt-at-rest; `crypto` is pure " +
-      "computation (no fs / net / process). Folding it into an Api would " +
-      "relocate the import without changing the trust story.",
-  },
-  "lib/prose/Prose.ts": {
-    modules: ["liquidjs"],
-    reason:
-      "The prose value object IS the compiled-template binding; liquidjs " +
-      "is pure computation with file-loading tags deliberately " +
-      "unconfigured (see the class doc). ProseApi/ProseLogic forward here.",
-  },
-  "lib/command/CommandDefinition.ts": {
-    modules: ["ajv"],
-    reason:
-      "Compiles `cmd/command.schema.json` against an authored command " +
-      "spec. `ajv` is pure computation (a schema + a value in, a verdict " +
-      "out — no fs / net / process), and the schema itself now loads " +
-      "through SourceTreeApi. Routing the validation through the gated " +
-      "CommandApi instead would put the security stack in front of the " +
-      "~120 tests that build a CommandDefinition from inline YAML.",
-  },
-  "lib/script/EvalScript.ts": {
-    modules: ["vm"],
-    reason:
-      "The sandboxed-eval primitive — `node:vm` IS the capability being " +
-      "modeled, and this is the single place it may appear. Reachable " +
-      "only behind AccessApi.isWizard (the code-trust axis).",
-  },
-};
+const EXCEPTIONS: Record<string, { modules: string[]; reason: string }> = {};
 
 /* ------------------------------------------------------------------ */
 /* Scanning                                                            */

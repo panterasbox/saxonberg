@@ -24,7 +24,6 @@
  *      subsumes "optional cannot precede greedy".
  */
 
-import Ajv, { type ValidateFunction } from 'ajv';
 import { SourceTreeApi } from '../../api/source-tree';
 import type {
   CommandView,
@@ -34,7 +33,7 @@ import type {
   CommandValidator,
   ExampleDefinition,
 } from '../../api/command';
-import { SUBCOMMAND_FIELD } from '../../api/command';
+import { CommandApi, SUBCOMMAND_FIELD } from '../../api/command';
 
 /**
  * Resolve a raw `controller:` spec value to the `/`-rooted mud template
@@ -50,23 +49,6 @@ function resolveController(rawController: string, specFilePath: string): string 
   return SourceTreeApi.toMudPath(
     SourceTreeApi.resolveFrom(specFilePath, rawController)
   );
-}
-
-let _validate: ValidateFunction | null = null;
-
-/**
- * Load the JSON schema once and return the compiled Ajv validator.
- * Pure-lazy: cost is paid on first YAML load, not at module import.
- */
-function getSchemaValidator(): ValidateFunction {
-  if (_validate) return _validate;
-  const schemaJson = SourceTreeApi.readJsonResource<object>(
-    import.meta.url,
-    '../../cmd/command.schema.json'
-  );
-  const ajv = new Ajv({ allErrors: true, strict: false });
-  _validate = ajv.compile(schemaJson);
-  return _validate;
 }
 
 /**
@@ -160,11 +142,8 @@ export class CommandDefinition {
     } catch (error) {
       throw new Error(`Failed to parse YAML in ${filePath}: ${error}`);
     }
-    const validate = getSchemaValidator();
-    if (!validate(view)) {
-      const trail = (validate.errors ?? [])
-        .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
-        .join('\n');
+    const trail = CommandApi.validateCommandView(view);
+    if (trail !== null) {
       throw new Error(
         `Schema validation failed for ${filePath}:\n${trail}`
       );

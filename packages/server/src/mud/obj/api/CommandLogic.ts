@@ -27,6 +27,7 @@ import {
 import { readFileSync, readdirSync } from 'fs';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
+import { SourceTreeApi } from '../../api/source-tree';
 import type { MessageFrame, Note, Status } from '@saxonberg/types';
 import {
   MqlApi,
@@ -1426,6 +1427,16 @@ export class CommandLogic extends ApiLogic {
     return out;
   }
 
+  /** See {@link CommandApi.validateCommandView}. */
+  @CallSecurity(CommandApiCallers)
+  public validateCommandView(view: unknown): string | null {
+    const validate = commandSpecValidator();
+    if (validate(view)) return null;
+    return (validate.errors ?? [])
+      .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
+      .join('\n');
+  }
+
   /** See {@link CommandApi.validateAgainstJsonSchema}. */
   @CallSecurity(CommandApiCallers)
   public validateAgainstJsonSchema(
@@ -2606,4 +2617,28 @@ function resolvePronounFragment(
   else if (s === '$$') slot = 'last';
   if (slot === null) return null;
   return focused.getPronounMemory().readFragment(slot);
+}
+
+/**
+ * The compiled `cmd/command.schema.json` validator, loaded lazily so the
+ * cost lands on the first spec parsed rather than at module import.
+ *
+ * `allErrors: true` — unlike the per-field struct validator above, this
+ * one reports the whole trail, because its audience is an author who
+ * just mistyped a command spec and wants every complaint at once.
+ *
+ * It lives here rather than in `CommandDefinition` because `ajv` sits
+ * outside `src/mud/` (docs/architecture.md § The import boundary); the
+ * value object calls `CommandApi.validateCommandView` instead.
+ */
+let _specValidate: ValidateFunction | null = null;
+
+function commandSpecValidator(): ValidateFunction {
+  if (_specValidate) return _specValidate;
+  const schema = SourceTreeApi.readJsonResource<object>(
+    import.meta.url,
+    '../../cmd/command.schema.json',
+  );
+  _specValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
+  return _specValidate;
 }

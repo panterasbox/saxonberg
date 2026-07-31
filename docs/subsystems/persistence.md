@@ -786,6 +786,27 @@ Un-Stuffing them — re-homing them as path-resolved code modules — is a
 deferred, separate change; `Document` reaches them through the injected
 resolver seam in the meantime.
 
+## `PersistApi` — the mudlib's only route
+
+Every mudlib read and write goes through `PersistApi` (`mud/api/persist.ts`).
+`lib/persistence/Document` and `lib/stuff/Template` used to hold the last
+framework carve-out — sanctioned on the grounds that they *are* the data
+layer — and now route through the facade like everything else. The
+[import boundary](../architecture.md) is what closed it: a mudlib module
+may not import `backend/` under any justification, and PersistApi's
+surface already covered every call the two made. `check-pm-access.ts`
+dropped both allowlist entries; only the facade itself and
+`api/hot-reload` (PM *lifecycle*, not data) may still reach
+`PersistenceManager.get()`.
+
+The same face owns **encrypt-at-rest**: `PersistApi.sealString` /
+`unsealString` (AES-256-GCM under `TOKEN_ENC_KEY`, fresh IV per value,
+`EncryptedEnvelope` stored shape). `crypto` is outside `src/mud/`, so the
+cipher lives in the Api tier and `EncryptedStringMarshaller` is the
+field-level adapter over it — it keeps the envelope validation and the
+`Marshaller` shape, and holds no key. The key is memoised process-wide
+and lazily loaded; `_resetEncryptionKeyForTest` invalidates it.
+
 ## Collections
 
 Defined in **`mud/lib/persistence/Collections.ts`**, and re-exported by

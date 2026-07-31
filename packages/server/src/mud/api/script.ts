@@ -26,6 +26,16 @@ import { ScriptLogic } from "../obj/api/ScriptLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
+/**
+ * Opaque handle to a compiled sandboxed script. Deliberately carries no
+ * structure: the backing form (`vm.Script`, later an `isolated-vm`
+ * compiled script) is an Api-tier implementation detail, and the mudlib
+ * holds one only to hand it back to {@link ScriptApi.runSandboxed}.
+ */
+export type CompiledSandbox = {
+  readonly __compiledSandbox: unique symbol;
+};
+
 const LOGIC_PATH = "/obj/api/script";
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL("../obj/api/ScriptLogic", import.meta.url),
@@ -166,6 +176,34 @@ export class ScriptApi {
    * `ApiOnly`-gated. `EvalController` is a controller, so it has no
    * standing to stamp — this is the seam it calls instead.
    */
+  /**
+   * Compile `code` into a sandboxed script, ready to run against a
+   * context built later. The returned handle is **opaque** — the backing
+   * form is Node's `vm.Script` today and the planned `isolated-vm`
+   * migration changes it without touching callers.
+   *
+   * The `vm` module is a capability, so it lives here in the Api tier and
+   * nowhere else (docs/architecture.md § The import boundary). The caller
+   * — `EvalScript` — still owns the sandbox *contents*: the name
+   * allowlist and the receiver bindings are mudlib policy, and assembling
+   * them is plain object work needing no privilege.
+   */
+  static compileSandboxed(code: string): CompiledSandbox {
+    return logic().compileSandboxed(code);
+  }
+
+  /**
+   * Run a {@link ScriptApi.compileSandboxed} handle against a fresh
+   * context built from `sandbox` — a plain object whose own enumerable
+   * keys become the globals the code can see, and the only ones.
+   */
+  static runSandboxed(
+    compiled: CompiledSandbox,
+    sandbox: Record<string, unknown>,
+  ): unknown {
+    return logic().runSandboxed(compiled, sandbox);
+  }
+
   static mintEvalScratch(path: string, code: string): Promise<EvalScript> {
     return logic().mintEvalScratch(path, code);
   }

@@ -19,7 +19,7 @@
  */
 
 import { Idea } from '../stuff/Idea';
-import { Script, createContext, type Context } from 'node:vm';
+import { ScriptApi, type CompiledSandbox } from '../../api/script';
 import type { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MqlApi } from '../../api/mql';
@@ -45,11 +45,13 @@ const SANDBOX_NAMES = [
 ] as const;
 
 /**
- * Bind the sandbox names to actual values for one execution. Used
- * by `run()` to assemble the per-call context. Pulled out so the
- * `isolated-vm` migration replaces only this function.
+ * Bind the sandbox names to actual values for one execution. Returns a
+ * plain object; turning it into a real context is `ScriptApi`'s job (the
+ * `vm` capability lives in the Api tier). Deciding *what goes in it* is
+ * this file's job, and stays here. Pulled out so the `isolated-vm`
+ * migration replaces only this function and its Api counterpart.
  */
-function buildSandboxContext(receiver: Stuff): Context {
+function buildSandbox(receiver: Stuff): Record<string, unknown> {
   const sandbox: Record<string, unknown> = {
     StuffApi,
     MqlApi,
@@ -74,7 +76,7 @@ function buildSandboxContext(receiver: Stuff): Context {
       delete sandbox[k];
     }
   }
-  return createContext(sandbox);
+  return sandbox;
 }
 
 export default class EvalScript extends Idea {
@@ -87,12 +89,13 @@ export default class EvalScript extends Idea {
   public code: string = '';
 
   /**
-   * Compiled `vm.Script`. Implementation-private; rebuilt when
+   * Compiled script handle, opaque by design (see
+   * {@link CompiledSandbox}). Implementation-private; rebuilt when
    * `code` changes (`setCode` clears it). Cleared eagerly so the
    * `isolated-vm` migration can swap to a different compiled form
    * without touching callers.
    */
-  private _compiled: Script | null = null;
+  private _compiled: CompiledSandbox | null = null;
 
   static persistentFields: string[] = ['code'];
 
@@ -124,9 +127,8 @@ export default class EvalScript extends Idea {
       // minimal binding glue that `isolated-vm` will replace with
       // its own per-isolate function-call wrapper.
       const wrapped = `(function(){ ${this.code} }).call(self)`;
-      this._compiled = new Script(wrapped);
+      this._compiled = ScriptApi.compileSandboxed(wrapped);
     }
-    const ctx = buildSandboxContext(receiver);
-    return this._compiled.runInContext(ctx);
+    return ScriptApi.runSandboxed(this._compiled, buildSandbox(receiver));
   }
 }

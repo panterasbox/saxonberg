@@ -29,29 +29,11 @@
  * in tests).
  */
 
-import * as crypto from 'crypto';
 import { Marshaller } from './Marshaller';
+import { PersistApi, type EncryptedEnvelope } from '../../api/persist';
 import { TemplatePaths } from '../paths';
 
-/**
- * Stored shape for an encrypted string. A structured object (not a
- * concatenated blob) so the field stays greppable in Mongo and the
- * version tag supports a future re-key/algorithm migration.
- */
-export interface EncryptedEnvelope {
-  /** Format version (for future re-key / algorithm migration). */
-  v: 1;
-  /** Base64-encoded 12-byte GCM nonce, fresh per `toStored` call. */
-  iv: string;
-  /** Base64-encoded 16-byte GCM authentication tag. */
-  tag: string;
-  /** Base64-encoded ciphertext. */
-  ct: string;
-}
-
-const ALGORITHM = 'aes-256-gcm';
-const IV_BYTES = 12;
-const KEY_BYTES = 32;
+export type { EncryptedEnvelope };
 
 export class EncryptedStringMarshaller extends Marshaller<
   string,
@@ -60,68 +42,13 @@ export class EncryptedStringMarshaller extends Marshaller<
   public static readonly templatePath =
     TemplatePaths.encryptedStringMarshaller;
 
-  /**
-   * Decoded 32-byte key, cached after the first successful load.
-   * Validated lazily on first round-trip (see class docs).
-   */
-  private cachedKey?: Buffer;
-
-  /**
-   * Load + validate `TOKEN_ENC_KEY` once, lazily. Accepts base64 or hex
-   * encoding; both must decode to exactly 32 bytes. Throws a clear,
-   * key-free error on absence or wrong length.
-   */
-  private getKey(): Buffer {
-    if (this.cachedKey) return this.cachedKey;
-
-    const raw = process.env.TOKEN_ENC_KEY;
-    if (!raw) {
-      throw new Error(
-        'EncryptedStringMarshaller: TOKEN_ENC_KEY is not set — cannot ' +
-          'encrypt/decrypt token fields. Set a 32-byte key (e.g. ' +
-          '`openssl rand -base64 32`).'
-      );
-    }
-
-    let key = Buffer.from(raw, 'base64');
-    if (key.length !== KEY_BYTES && /^[0-9a-fA-F]+$/.test(raw)) {
-      // Fall back to hex if the value isn't a 32-byte base64 string but
-      // is valid hex.
-      const hex = Buffer.from(raw, 'hex');
-      if (hex.length === KEY_BYTES) key = hex;
-    }
-    if (key.length !== KEY_BYTES) {
-      throw new Error(
-        `EncryptedStringMarshaller: TOKEN_ENC_KEY must decode to ` +
-          `${KEY_BYTES} bytes (got ${key.length}). Generate with ` +
-          '`openssl rand -base64 32`.'
-      );
-    }
-
-    this.cachedKey = key;
-    return key;
-  }
-
   public toStored(plaintext: string): EncryptedEnvelope {
     if (typeof plaintext !== 'string') {
       throw new TypeError(
         'EncryptedStringMarshaller: toStored expects a string'
       );
     }
-    const key = this.getKey();
-    const iv = crypto.randomBytes(IV_BYTES);
-    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    const ct = Buffer.concat([
-      cipher.update(plaintext, 'utf8'),
-      cipher.final(),
-    ]);
-    const tag = cipher.getAuthTag();
-    return {
-      v: 1,
-      iv: iv.toString('base64'),
-      tag: tag.toString('base64'),
-      ct: ct.toString('base64'),
-    };
+    return PersistApi.sealString(plaintext);
   }
 
   public fromStored(stored: EncryptedEnvelope): string {
@@ -138,27 +65,6 @@ export class EncryptedStringMarshaller extends Marshaller<
           '{ v: 1, iv, tag, ct }).'
       );
     }
-    const key = this.getKey();
-    try {
-      const decipher = crypto.createDecipheriv(
-        ALGORITHM,
-        key,
-        Buffer.from(stored.iv, 'base64')
-      );
-      decipher.setAuthTag(Buffer.from(stored.tag, 'base64'));
-      const pt = Buffer.concat([
-        decipher.update(Buffer.from(stored.ct, 'base64')),
-        decipher.final(),
-      ]);
-      return pt.toString('utf8');
-    } catch {
-      // GCM authentication failure (tampered ciphertext / IV / tag, or
-      // wrong key). Never surface the underlying message — it could leak
-      // key/ciphertext detail.
-      throw new Error(
-        'EncryptedStringMarshaller: token decryption failed (tampered ' +
-          'or wrong key).'
-      );
-    }
+    return PersistApi.unsealString(stored);
   }
 }

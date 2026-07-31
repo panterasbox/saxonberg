@@ -6,11 +6,11 @@
 > [architecture.md § The import boundary](../../architecture.md), with an
 > antipattern entry in [antipatterns.md](../../antipatterns.md) and the
 > lint in CLAUDE.md's lint family. `pnpm lint:imports` is CI-gating and
-> green at **0 crossings**.
+> green at **0 crossings, with an empty exception registry**.
 >
 > The slate is **fully absorbed** — a retirement candidate at the next
 > sweep. Retained only for the record of what the sweep actually cost and
-> the one residual tail below.
+> the two residual tails below.
 >
 > **What shipped vs. what this slate predicted.** The plan held. Three
 > refinements landed during the build:
@@ -22,16 +22,31 @@
 >   keyed on the caller's `import.meta.url` — a language construct, not an
 >   import. No new Api was minted. `toMudPath` also retired the duplicate
 >   `MUD_ROOT` that `CommandDefinition` and `CommandLogic` each computed.
-> - The registry ended at **six** entries, not the predicted five:
->   `ajv` in `CommandDefinition` joined them (routing spec validation
->   through the gated `CommandApi` would put the security stack in front
->   of ~120 command tests). Four of the six share one rationale — the
->   host module *is* the capability, and the library is pure computation.
+> - The registry ended at **zero**. It first landed at six, on the
+>   argument that four of them were "pure computation, so the exception
+>   is safe." That argument was wrong on its own terms — the `ajv` entry
+>   claimed routing through a gated Api would break ~120 command tests,
+>   which the same commit had already disproved by routing
+>   `CommandDefinition.fromYaml` through `SourceTreeApi.parseYaml`. On a
+>   second pass every one of the six folded. The pattern that dissolved
+>   them: **the part of a module that needs the capability is smaller
+>   than it looks**, and the part that doesn't is the part worth keeping
+>   in the mudlib (`EvalScript` keeps its sandbox allowlist and only asks
+>   `ScriptApi` to run the code). The recurring mechanism is an opaque
+>   handle — `CompiledSandbox`, `CompiledProse`.
+> - Bonus tightening: `Document` and `Template` moving to `PersistApi`
+>   let `check-pm-access.ts` drop two allowlist entries, so the mudlib
+>   now has **no route to persistence except the facade**.
 >
-> **Residual tail (not worth a slate):** tests are blanket-exempt. If the
-> rule wants tightening later, the target is banning `../backend/`
-> *value* imports from `__tests__/**` (~10 files at ship time). Deferred
-> deliberately until the rule has bedded in.
+> **Residual tail (not worth a slate):** two, both deliberate.
+> 1. Tests are blanket-exempt. If the rule wants tightening later, the
+>    target is banning `../backend/` *value* imports from `__tests__/**`
+>    (~10 files at ship time).
+> 2. The rule governs **imports**, so ambient globals stay reachable from
+>    the mudlib — `process.env`, `globalThis`, `Buffer`, `console`.
+>    Closing those needs a different mechanism (an identifier lint, or a
+>    real module sandbox). Worth knowing before treating the boundary as
+>    a security perimeter rather than a strong architectural one.
 >
 > Historical survey numbers below were taken on `feat/capability-table`
 > and are superseded by the ship numbers: **36 violating files → 0**, of
@@ -61,7 +76,10 @@ gate.
 | **Mudlib** (default) | everything under `src/mud/` not listed below | relative imports resolving **inside** `src/mud/` + `@saxonberg/types` + any `import type` |
 | **Api layer** (exempt) | `mud/api/**` **and** `mud/obj/api/**` | the above + Node built-ins + an **enumerated** npm allowlist + `../backend/` value-imports |
 | **Tests** | `**/__tests__/**` | unrestricted (v1; tighten later if wanted) |
-| **Registry exceptions** | exact files listed in the lint script, each with a reason | exactly the modules their entry names |
+
+*(As shipped there are **no** registry exceptions — the mechanism exists
+but the list is empty. The historical text below assumed there would be
+some.)*
 
 Outside `src/mud/` (`backend/`, `services/`, `tools/`) is the driver —
 it imports express/ws/mongodb by nature and is not governed.

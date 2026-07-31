@@ -515,9 +515,11 @@ on combat.
   what makes the sandbox / wizard code-trust story checkable. 36
   violating files → 0 (29 of them the `Collections`-enum sweep); the
   fold added a synchronous shipped-resource face to `SourceTreeApi`
-  rather than minting an Api. Six per-file exceptions, each with a
-  reason. Slate fully absorbed — retire at the next sweep; the one
-  residual tail is tightening the blanket test exemption.
+  rather than minting an Api. **Zero exceptions** — the four
+  "pure-computation" carve-outs folded too, each via an opaque handle,
+  with the mudlib keeping the policy. Slate fully absorbed — retire at
+  the next sweep; residual tails are the blanket test exemption and
+  ambient globals (which imports can't reach).
 
 ---
 

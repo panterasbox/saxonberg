@@ -1543,12 +1543,20 @@ pure path arithmetic `toMudPath` / `resolveFrom`.
 
 ### Permitted exceptions
 
-The six per-file carve-outs in `check-mud-imports.ts`, each with its
-reason: the two persistence-framework files that ARE the data layer, and
-four modules whose whole purpose is the library they import (`crypto`,
-`liquidjs`, `vm`, `ajv` — all pure computation, no fs / net / process).
-**Ask before adding a seventh** — the lint failing is the intended
-tripwire, and the answer is almost always "fold it into an Api."
+**None.** The exception registry in `check-mud-imports.ts` is empty.
+
+Every module that looked like an irreducible exception split instead —
+the capability moved to an Api, the *policy* stayed in the mudlib.
+`EvalScript` still decides what goes in its sandbox and only asks
+`ScriptApi` to run it; `Prose` still owns the value object while
+`ProseLogic` owns the Liquid engine; `EncryptedStringMarshaller` still
+validates the envelope while `PersistApi` holds the cipher;
+`CommandDefinition` still enforces every structural invariant while
+`CommandApi` compiles the schema. The recurring trick is an **opaque
+handle** — the Api hands back a branded type with no structure, and the
+mudlib holds it only to hand it back.
+
+**Ask before adding the first one.**
 
 ## Atmospheric Reads — Go Through `BiomeApi.resolveXFor`
 

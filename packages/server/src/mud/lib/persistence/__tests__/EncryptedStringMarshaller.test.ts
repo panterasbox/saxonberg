@@ -14,6 +14,7 @@ import * as crypto from 'crypto';
 import { EncryptedStringMarshaller } from '../EncryptedStringMarshaller';
 import type { EncryptedEnvelope } from '../EncryptedStringMarshaller';
 import { StuffApi } from '../../../api/stuff';
+import { PersistApi } from '../../../api/persist';
 import { installEncryptedStringMarshaller } from './encrypted-string-marshaller-test-helpers';
 
 const VALID_KEY = crypto.randomBytes(32).toString('base64');
@@ -23,9 +24,13 @@ describe('EncryptedStringMarshaller', () => {
 
   beforeEach(() => {
     process.env.TOKEN_ENC_KEY = VALID_KEY;
+    // The key cache lives on PersistApi (process-wide config), so a
+    // suite that swaps TOKEN_ENC_KEY between cases must invalidate it.
+    PersistApi._resetEncryptionKeyForTest();
     installEncryptedStringMarshaller();
   });
   afterEach(() => {
+    PersistApi._resetEncryptionKeyForTest();
     StuffApi.clearAll();
     if (ORIG === undefined) delete process.env.TOKEN_ENC_KEY;
     else process.env.TOKEN_ENC_KEY = ORIG;
