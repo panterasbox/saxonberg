@@ -356,6 +356,23 @@ management.*
 > attention. Granularity becomes a dial the player sets, and it self-balances —
 > nobody is forced into a cadence they did not choose.
 
+### The clock bounds the useful range **[CORRECTION 2026-07-31]**
+
+Real management-intensive grazing moves stock **every 1–3 days**. At the
+verified `DEFAULT_SCALE` of **12×** (2 real hours = 1 game day), a player
+logging in once a real day skips **12 game days** — four to twelve missed moves,
+and a paddock wrecked before they ever saw it. So:
+
+> **Game paddock residency wants ~7–14 game days, meaning fewer and larger
+> paddocks than real intensive grazing.** Do not port the real-world cadence.
+
+The player-set dial survives intact; the clock simply **is a fourth bound**
+alongside fencing, allowance, and attention. It also promotes the hired hand
+from convenience to structure: **subdividing past ~weekly residency is what
+actually makes hiring necessary**, which is the automation ladder doing its job
+rather than a balance patch. Full clock math in [farming § The
+clock](./farming-slate.md).
+
 ### The move is a *read*, not a timer
 
 The chore risk is predictability, not frequency — "move every three days" is a
@@ -408,11 +425,13 @@ working ranch; the difference is output per acre, never access.
 ### What bounds subdivision (so nothing arbitrary has to)
 
 **Fencing** (materials + labor, and it wears — which finally gives fence
-maintenance something to be other than a gauge) · **compute allowance** (each
-paddock is a room, and the property substrate prices persistent simulation, so
-subdividing spends the game's real scarcity currency) · **attention** (the whole
-point). A player who subdivides absurdly pays in all three. **No maximum needs
-writing down.**
+maintenance something to be other than a gauge; a **grown hedge** is the cheap-
+in-materials, expensive-in-time third option — see [farming § Pests, thorns, and
+navigability](./farming-slate.md)) · **compute allowance** (each paddock is a
+room, and the property substrate prices persistent simulation, so subdividing
+spends the game's real scarcity currency) · **attention** (the whole point) ·
+**the clock** (above — residency below ~a game week can't be hand-run). A player
+who subdivides absurdly pays in all four. **No maximum needs writing down.**
 
 ### Paddock = room, not slot
 
@@ -536,7 +555,12 @@ taught at two speeds.
 - **Where yield lives** — a `Produces` mixin on the animal, or a ranch-level
   production tap? Per-head vs per-herd accounting under the aggregate density.
 - **Breeding model** — gestation over `WorldClock`; offspring inheriting species
-  + genome; how much of the `R = h²S/L` depth lands in v1.
+  + genome; how much of the `R = h²S/L` depth lands in v1. **Live tension
+    (2026-07-31):** a game year is **30 real days**, so a realistic multi-year
+    cattle generation interval is a **two-real-month** investment. The term that
+    makes animal breeding pedagogically interesting is the same term that could
+    make it unplayable — likely answer is compressing livestock maturation
+    relative to reality (a game-cow matures in one game year).
 - **Herd UX** — what `look` shows for an aggregate herd; how you count, split,
   and pen it. *(Promotion out of the aggregate is now answered — records earn
   identity; see Pedagogy. Demotion back down is still open.)*
