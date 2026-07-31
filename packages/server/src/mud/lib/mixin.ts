@@ -161,6 +161,8 @@ export const Mixins = {
   Respiration: 'RespirationMixin',
   // The cross-cutting wetness gauge — any Thing / body can be wet.
   Wet: 'WetMixin',
+  // The living-world growth model — a cultivated thing that grows.
+  Growing: 'GrowingMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
