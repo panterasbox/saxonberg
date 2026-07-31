@@ -13,10 +13,7 @@ import type {
   RawDiagnostic,
   DiagnosticEvent,
 } from '@saxonberg/types';
-import {
-  PersistenceManager,
-  Collections,
-} from '../../../backend/PersistenceManager';
+import { Collections } from '../../../backend/PersistenceManager';
 import { PersistApi } from '../../api/persist';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { AccessApi } from '../../api/access';
@@ -41,10 +38,6 @@ function connected(): boolean {
   return PersistApi.isConnected();
 }
 
-function collection() {
-  return PersistenceManager.get().getCollection(Collections.Diagnostics);
-}
-
 /** The context-derived actor for the read gates (never a passed value). */
 function actor(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
@@ -63,8 +56,10 @@ function makeRow(
 }
 
 async function insert(row: DiagnosticDoc): Promise<void> {
-  const col = collection();
-  await col.insertOne(row as Parameters<typeof col.insertOne>[0]);
+  await PersistApi.save(
+    Collections.Diagnostics,
+    row as unknown as Record<string, unknown>
+  );
 }
 
 /** Fire the per-row event the author-push router (and future subscribers) consume. */
@@ -149,7 +144,7 @@ export class DiagnosticLogic extends ApiLogic {
     const row = makeRow({
       source: 'runtime',
       severity: d.severity ?? 'error',
-      channel: DiagnosticChannel.pathToChannel(d.path),
+      channel: d.channel ?? DiagnosticChannel.pathToChannel(d.path),
       path: d.path,
       author,
       versionId: null,
@@ -176,7 +171,10 @@ export class DiagnosticLogic extends ApiLogic {
     const author = await ProvenanceApi.authorOf(path);
     // Supersede: a recheck fully replaces this file's compile rows, so a
     // fixed file clears (empty `diags` → nothing re-inserted).
-    await collection().deleteMany({ source: 'compile', path });
+    await PersistApi.deleteMany(Collections.Diagnostics, {
+      source: 'compile',
+      path,
+    });
     for (const d of diags) {
       const row = makeRow({
         source: 'compile',
@@ -226,11 +224,10 @@ export class DiagnosticLogic extends ApiLogic {
       q.path = { $regex: `^${escapeRegex(filter.pathPrefix)}` };
     }
 
-    const rows = await collection()
-      .find(q)
-      .sort({ ts: -1 })
-      .limit(filter.limit ?? DEFAULT_LIMIT)
-      .toArray();
+    const rows = await PersistApi.find(Collections.Diagnostics, q, {
+      sort: { ts: -1 },
+      limit: filter.limit ?? DEFAULT_LIMIT,
+    });
     return rows.map(toDoc);
   }
 
@@ -248,8 +245,7 @@ export class DiagnosticLogic extends ApiLogic {
       ok = !!owner && owner === subject.getTemplatePath();
     }
     if (!ok) return -1;
-    const res = await collection().deleteMany({ path });
-    return res.deletedCount ?? 0;
+    return PersistApi.deleteMany(Collections.Diagnostics, { path });
   }
 
   /**

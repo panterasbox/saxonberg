@@ -1,0 +1,15 @@
+# /lib/sandbox/CircleFloor — the generic circle entry room (the holodeck
+# floor). Every circle's lazily-materialized entry space clones from
+# this template inside the circle-scoped root, so the room and its
+# return passage are circle-born and die with the discard. Skinnable
+# later; deliberately spare prose now — the point of the floor is what
+# you build on it. See docs/subsystems/sandbox.md.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: the circle floor
+  shortDescription: a bare circle floor
+  longDescription: >
+    A quiet, evenly lit expanse with no walls worth mentioning — the
+    raw floor of your circle. Anything could stand here. Nothing does,
+    yet. The way out is simply out.

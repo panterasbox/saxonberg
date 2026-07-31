@@ -596,4 +596,76 @@ export class PersistableLogic extends ApiLogic {
   public async deleteAllFor(owner: string): Promise<number> {
     return deleteAllForImpl(owner);
   }
+
+  /** See {@link PersistableApi.forkRuntimeState}. */
+  @CallSecurity(PersistableApiCallers)
+  public async forkRuntimeState(source: Stuff, fork: Stuff): Promise<void> {
+    const { ShadowApi } = await import('../../api/shadow');
+    const { OMNI_SCOPE } = await import('../../api/execution-context');
+
+    // COLLECT under a system root: the fork deliberately spans the
+    // boundary (the source is the field body, the fork is circle-born),
+    // and this singleton is the sanctioned frame-mutator for exactly
+    // this choreography. Reads only — slices and follow factories.
+    const collected = ExecutionContextApi.runRoot(
+      null,
+      'fork.collect',
+      () => {
+        const slices = MixinApi.isForkable(source)
+          ? source.collectForkSlices()
+          : null;
+        const factories: Array<() => Stuff> = [];
+        const seen = new Set<object>();
+        for (const shadows of ShadowApi.getAllShadows(source).values()) {
+          for (const shadow of shadows) {
+            if (seen.has(shadow)) continue;
+            seen.add(shadow);
+            const describe = (
+              shadow as { describeFork?: () => (() => Stuff) | null }
+            ).describeFork;
+            if (typeof describe !== 'function') continue;
+            const factory = describe.call(shadow);
+            if (typeof factory === 'function') factories.push(factory);
+          }
+        }
+        return { slices, factories };
+      },
+      { circleScope: OMNI_SCOPE }
+    );
+
+    // APPLY in the caller's ambient context (the circle root at a
+    // crossing) — the fork and any shadow followers are minted/mutated
+    // in-scope, so followers are circle-stamped and die with the vessel.
+    if (collected.slices && MixinApi.isForkable(fork)) {
+      fork.applyForkedState(collected.slices);
+    }
+    for (const factory of collected.factories) {
+      const follower = await StuffApi.create(factory);
+      ShadowApi.attach(
+        fork,
+        follower as Parameters<typeof ShadowApi.attach>[1]
+      );
+    }
+  }
+
+  /** See {@link PersistableApi.mergeRuntimeState}. */
+  @CallSecurity(PersistableApiCallers)
+  public mergeRuntimeState(
+    source: Stuff,
+    fork: Stuff,
+    allowlist: readonly string[]
+  ): void {
+    if (!MixinApi.isForkable(source) || !MixinApi.isForkable(fork)) return;
+    // The merge spans the boundary too (fork = circle vessel, source =
+    // field body): run under a system root, with the ALLOWLIST as the
+    // actual policy — epistemic-only for the sandbox.
+    ExecutionContextApi.runRoot(
+      null,
+      'fork.merge',
+      () => {
+        source.applyForkedState(fork.collectForkSlices(), allowlist);
+      },
+      { circleScope: '*' }
+    );
+  }
 }

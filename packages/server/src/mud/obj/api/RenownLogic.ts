@@ -61,7 +61,7 @@ function active(): boolean {
  * drops a signal.
  */
 function durableKey(stuffId: string): string {
-  return StuffApi.findById(stuffId)?.getTemplatePath() ?? stuffId;
+  return StuffApi.findById(stuffId)?.getIdentityPath() ?? stuffId;
 }
 
 /**

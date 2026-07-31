@@ -19,6 +19,7 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
+import { SecurityApi } from '../api/security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Emote } from '../lib/social/Emote';
@@ -126,6 +127,9 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    */
   @CallSecurity(SoulApiCallers)
   public async mint(spec: EmoteSpec): Promise<Emote> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'mint');
     const map = await this.ensureCache();
     if (map.has(spec.verb.toLowerCase())) {
       throw new Error(`Emote '${spec.verb}' already exists.`);
@@ -153,6 +157,9 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     verb: string,
     patch: Partial<EmoteSpec>,
   ): Promise<Emote> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'edit');
     const map = await this.ensureCache();
     const existing = map.get(verb.toLowerCase());
     if (!existing) {
@@ -183,6 +190,9 @@ export default class SoulCatalogue extends SoulCatalogueBase {
 
   @CallSecurity(SoulApiCallers)
   public async delete(verb: string): Promise<boolean> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'delete');
     const map = await this.ensureCache();
     const existing = map.get(verb.toLowerCase());
     if (!existing) return false;

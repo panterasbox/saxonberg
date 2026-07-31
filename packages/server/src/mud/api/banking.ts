@@ -135,6 +135,15 @@ export class BankingApi {
     return logic().balanceOf(accountId);
   }
 
+  /**
+   * Drop a circle scope's in-memory balance overlay — the sandbox reap
+   * seam (a session's play-money dies with its session; the stamped
+   * ledger rows are discarded separately by the PM seam). @internal
+   */
+  public static discardScopeOverlay(scope: string): void {
+    logic().discardScopeOverlay(scope);
+  }
+
   /** The sync total money supply (Σ mints − Σ drains). */
   public static moneySupply(): Money {
     return logic().moneySupply();

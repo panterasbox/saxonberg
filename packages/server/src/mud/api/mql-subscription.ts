@@ -289,6 +289,15 @@ export class MqlSubscriptionApi {
     logic().cancelAllForInteractive(interactive);
   }
 
+  /**
+   * Cancel every subscription registered from `scope`'s circle context —
+   * the sandbox reap seam (a circle's live queries die with its
+   * session). Field-born subscriptions are untouched. @internal
+   */
+  public static cancelAllForScope(scope: string): number {
+    return logic().cancelAllForScope(scope);
+  }
+
   /* ─── test seams ─── */
 
   public static _getRegistrySizeForTesting(): number {

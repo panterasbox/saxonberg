@@ -33,6 +33,8 @@ const TOPIC = "system.parcel";
 interface TransferModel extends CommandModel {
   parcel?: string;
   recipient?: MqlOneResult | string;
+  /** Group-recipient widening (sandbox build): a managed-group NAME. */
+  group?: string;
 }
 
 export default class TransferController extends CommandController<TransferModel> {
@@ -63,6 +65,34 @@ export default class TransferController extends CommandController<TransferModel>
         `You don't own ${parcel.getExtent()}.`,
         "not-owner",
       );
+    }
+
+    // GROUP recipient (sandbox build, the ONE widening): a group has no
+    // avatar to say yes — the governor's act IS the acceptance, and the
+    // chain-of-title entry records it. The membership-vs-consent
+    // asymmetry is deliberate: pushing a title onto a PERSON needs
+    // their yes; granting one to a GROUP is a governance act the giver
+    // already holds the authority for (the canMutateZone gate above).
+    if (model.group) {
+      const groupName = model.group.trim();
+      if (!groupName) {
+        return this.fail(context, "Transfer to which group?", "no-receiver");
+      }
+      const owner = { kind: "group" as const, name: groupName };
+      const ref = await ParcelApi.resolveOwnerRef(owner);
+      if (!ref) {
+        return this.fail(
+          context,
+          `No managed group named '${groupName}'.`,
+          "no-receiver",
+        );
+      }
+      await ParcelApi.transfer(parcel.getExtent(), { ...owner, ref });
+      this.send(
+        context,
+        Mml.compose`\nTransferred the title to ${parcel.getExtent()} to the ${groupName} group.\n`,
+      );
+      return;
     }
 
     const resolved =

@@ -21,7 +21,11 @@ import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
 import { PathTrie } from '../lib/collections/PathTrie';
 import { ProxyApi } from './proxy';
-import { ExecutionContextApi, FrameKind } from './execution-context';
+import {
+  ExecutionContextApi,
+  FrameKind,
+  OMNI_SCOPE,
+} from './execution-context';
 // SecurityApi installs its proxy interceptor in a static initializer
 // at module-load time, so simply importing it (which we do for several
 // other uses below) guarantees the security gate is in place before
@@ -581,6 +585,7 @@ export class StuffApi {
     } finally {
       Stuff._endConstruction(prevSentinel);
     }
+    this.#stampScopeFromContext(raw);
     const proxy = ProxyApi.wrap(raw);
     if (MixinApi.isPostRegistration(proxy)) {
       // Don't even register — fail before the half-initialised object
@@ -671,6 +676,12 @@ export class StuffApi {
     hydrate: ((obj: T) => Promise<void>) | null,
     context: unknown
   ): Promise<T> {
+    // Circle-scope induction: a newborn minted under circle context is
+    // stamped with the minting context's scope; field and omni contexts
+    // leave the slot null at zero cost. This single line beside the
+    // register chokepoint is what makes the sandbox boundary hold for
+    // every clone()/create() path.
+    this.#stampScopeFromContext(raw);
     // Wrap before registry insertion so every consumer that resolves
     // the object by `stuffId` (including hydration's own self-resolving
     // hooks) sees the proxy. Holding the raw in the registry would
@@ -711,6 +722,19 @@ export class StuffApi {
     });
 
     return proxy;
+  }
+
+  /**
+   * Stamp a newborn's circle scope from the minting context's ambient
+   * scope. A real circle scope (a parcel path) stamps; `null` (field)
+   * and `'*'` (omni/system) leave the slot null — system-minted objects
+   * are field objects. One ALS read per mint; nothing else.
+   */
+  static #stampScopeFromContext(raw: Stuff): void {
+    const scope = ExecutionContextApi.getCircleScope();
+    if (scope !== null && scope !== OMNI_SCOPE) {
+      Stuff._stampCircleScope(raw, scope);
+    }
   }
 
   /**

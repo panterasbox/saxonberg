@@ -38,12 +38,6 @@ const ALLOW_EXACT = new Set([
   "mud/lib/stuff/Template.ts",
   "mud/api/persist.ts",
   "mud/api/hot-reload.ts",
-  // DiagnosticLogic backs a raw scalar collection (not a `Document`
-  // subclass), so it reaches for `getCollection` directly by design —
-  // see docs/subsystems/diagnostics.md ("raw getCollection, not a
-  // Document"). It is the store's only writer, gated as a logic
-  // singleton.
-  "mud/obj/api/DiagnosticLogic.ts",
 ]);
 
 function allowed(rel: string): boolean {

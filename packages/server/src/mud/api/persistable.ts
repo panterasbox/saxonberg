@@ -98,6 +98,39 @@ export class PersistableApi {
   static deleteAllFor(owner: string): Promise<number> {
     return logic().deleteAllFor(owner);
   }
+
+  /* ── the fork/merge substrate (ForkableMixin — the spine's runtime
+   *    sibling; no new facade per the one-Api-per-subsystem rule) ── */
+
+  /**
+   * Carry `source`'s offered runtime slices onto `fork` (permissive —
+   * a slice travels if its layer offers one and the fork's layer
+   * accepts it). Also runs the shadow follow pass: each shadow on
+   * `source` whose `describeFork()` returns a factory is re-created by
+   * the framework IN THE CALLER'S CONTEXT and attached to the fork,
+   * and only to the fork. Runtime state only — never a persistence
+   * route.
+   */
+  static async forkRuntimeState(
+    source: Stuff,
+    fork: Stuff
+  ): Promise<void> {
+    return logic().forkRuntimeState(source, fork);
+  }
+
+  /**
+   * Merge a fork's offered slices back onto `source`, restricted to
+   * `allowlist` (the consumer's policy — for the sandbox, epistemic
+   * only). Slices outside the list are dropped; material state has no
+   * merge path back.
+   */
+  static mergeRuntimeState(
+    source: Stuff,
+    fork: Stuff,
+    allowlist: readonly string[]
+  ): void {
+    return logic().mergeRuntimeState(source, fork, allowlist);
+  }
 }
 
 SecurityApi.decorateApiClass(PersistableApi);

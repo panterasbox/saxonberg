@@ -30,6 +30,9 @@ import type {
   DiagnosticListFilter as CmsDiagFilter,
 } from '@saxonberg/types';
 import { CmsApi, CmsError } from '../mud/api/cms';
+import { SandboxApi } from '../mud/api/sandbox';
+import { ExecutionContextApi } from '../mud/api/execution-context';
+import type Avatar from '../mud/obj/Avatar';
 import { DiagnosticApi } from '../mud/api/diagnostics';
 import { SourceTreeSandboxError } from '../mud/api/source-tree';
 import { SecurityApi } from '../mud/api/security';
@@ -192,6 +195,43 @@ export class CmsRoutes {
       try {
         const out = await CmsSession.runAsSessionPlayer(req, 'cms.write', () =>
           CmsApi.write(backend, path, content)
+        );
+        res.json(out);
+      } catch (e) {
+        sendCmsError(res, e);
+      }
+    });
+
+    // The author→test harness seam (sandbox build): launch a test
+    // session for the CMS session's acting avatar — the crossing + a
+    // fresh body; reap-wholesale on exit leaves nothing but the edits.
+    // The principal rides the session-attribution bridge (never a
+    // request field); draft-overlay compose is deliberately NOT built —
+    // `launchTestSession`'s options bag is the labeled attach point.
+    app.post('/api/sandbox/test-session', requireAuth, async (req, res) => {
+      const header = req.get('X-CMS-CSRF');
+      const expected = req.session.cmsCsrf;
+      if (!expected || !header || header !== expected) {
+        res.status(403).json({ error: 'denied', message: 'csrf' });
+        return;
+      }
+      try {
+        const out = await CmsSession.runAsSessionPlayer(
+          req,
+          'sandbox.testSession',
+          async () => {
+            const actor = ExecutionContextApi.getActingAuthor() as
+              | Avatar
+              | null;
+            if (!actor) {
+              throw new CmsError(
+                'denied',
+                'no in-world avatar for this session — open a game tab first'
+              );
+            }
+            const session = await SandboxApi.launchTestSession(actor);
+            return { id: session.id, scope: session.scope };
+          }
         );
         res.json(out);
       } catch (e) {

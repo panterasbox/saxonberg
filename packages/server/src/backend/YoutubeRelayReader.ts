@@ -25,7 +25,10 @@ import type { LiveChatResolution } from './YoutubeClient';
 import { StreamApi } from '../mud/api/stream';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
-import { ExecutionContextApi } from '../mud/api/execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../mud/api/execution-context';
 
 export class YoutubeRelayReader {
   private static instance: YoutubeRelayReader;
@@ -78,14 +81,18 @@ export class YoutubeRelayReader {
       liveChatId,
       {
         onMessage: (m) =>
-          void ExecutionContextApi.runRoot(null, 'youtube.inbound', () =>
-            StreamApi.dispatchInbound('youtube', {
-              channelKey: liveChatId,
-              senderUserId: m.authorChannelId,
-              senderLogin: m.authorName,
-              senderDisplay: m.authorName,
-              text: m.text,
-            }),
+          void ExecutionContextApi.runRoot(
+            null,
+            'youtube.inbound',
+            () =>
+              StreamApi.dispatchInbound('youtube', {
+                channelKey: liveChatId,
+                senderUserId: m.authorChannelId,
+                senderLogin: m.authorName,
+                senderDisplay: m.authorName,
+                text: m.text,
+              }),
+            { circleScope: OMNI_SCOPE },
           ),
         onEnd: () => this.onStreamEnd(liveChatId),
       },
@@ -101,8 +108,11 @@ export class YoutubeRelayReader {
   /** Stream ended: close the local read + auto-untune (notice the players). */
   private onStreamEnd(liveChatId: string): void {
     this.client.closeStream(liveChatId);
-    void ExecutionContextApi.runRoot(null, 'youtube.streamEnd', () =>
-      StreamApi.dropChannel('youtube', liveChatId),
+    void ExecutionContextApi.runRoot(
+      null,
+      'youtube.streamEnd',
+      () => StreamApi.dropChannel('youtube', liveChatId),
+      { circleScope: OMNI_SCOPE },
     );
   }
 }

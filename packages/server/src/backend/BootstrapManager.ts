@@ -25,6 +25,13 @@ import { Template } from '../mud/lib/stuff/Template';
 import { bootstrapManifest } from '../mud/bootstrap';
 import { EventApi } from '../mud/api/event';
 import { SecurityApi } from '../mud/api/security';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../mud/api/execution-context';
+import { PersistenceManager } from './PersistenceManager';
+import { ApiLogic } from '../mud/lib/stuff/ApiLogic';
+import Interactive from '../mud/obj/Interactive';
 import { ShadowApi } from '../mud/api/shadow';
 import { CommandApi } from '../mud/api/command';
 import { GlobbableApi } from '../mud/api/glob';
@@ -101,6 +108,23 @@ export class BootstrapManager {
     SecurityApi._registerShadowApi(ShadowApi);
     CommandApi.installShadowBridge();
     GlobbableApi.installMergeOnArrival();
+    // The sandbox scope resolver (Decision G): PM learns the ambient
+    // circle scope through this injected closure — backend stays
+    // import-clean of the mud layer's scope machinery, and the omni
+    // sentinel collapses to null HERE so PM never knows the sentinel.
+    PersistenceManager.get().setScopeResolver(() => {
+      const scope = ExecutionContextApi.getCircleScope();
+      return scope === OMNI_SCOPE ? null : scope;
+    });
+    // The sandbox boundary's infrastructure exemption (Decision J):
+    // every ApiLogic singleton is boundary-exempt by base-class
+    // identity (spoof-proof instanceof, late-bound here to keep
+    // security.ts import-clean of the mud class graph). Interactive is
+    // exempt too: the connection transport is out-of-world plumbing —
+    // sockets attach to holders on either side of the boundary, and no
+    // domain state rides an Interactive's surface.
+    SecurityApi._registerBoundaryExemptBase(ApiLogic);
+    SecurityApi._registerBoundaryExemptBase(Interactive);
   }
 
   /**

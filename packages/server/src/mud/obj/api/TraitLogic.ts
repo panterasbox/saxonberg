@@ -35,7 +35,7 @@ function active(): boolean {
 
 /** The durable owner key, or `null` for a session-ephemeral owner. */
 function ownerKey(owner: Stuff): string | null {
-  return owner.getTemplatePath();
+  return owner.getIdentityPath();
 }
 
 /**
@@ -185,7 +185,7 @@ async function regardBaselineImpl(
   viewer: Stuff,
   subject: Stuff
 ): Promise<number> {
-  const subjectKey = subject.getTemplatePath();
+  const subjectKey = subject.getIdentityPath();
   if (subjectKey && RegardApi.regardsHeldBy(viewer).has(subjectKey)) {
     return RegardApi.getRegard(viewer, subject);
   }

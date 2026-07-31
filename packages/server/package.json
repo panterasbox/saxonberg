@@ -9,6 +9,7 @@
     "start": "tsx src/preload.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:escape": "vitest run src/mud/lib/sandbox/__tests__/escape",
     "docs": "typedoc",
     "docs:project": "tsx scripts/project-author-surface.ts",
     "docs:clean": "rm -rf docs/api",

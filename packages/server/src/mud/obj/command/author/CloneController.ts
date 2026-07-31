@@ -44,6 +44,11 @@ import { SourceTreeApi } from '../../../api/source-tree';
 import { ContainmentApi } from '../../../api/containment';
 import type { MqlOneResult } from '../../../api/mql';
 import { AccessApi } from '../../../api/access';
+import { SandboxApi } from '../../../api/sandbox';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../../../api/execution-context';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { Template } from '../../../lib/stuff/Template';
 import type { Container } from '../../../lib/spatial/Container';
@@ -54,11 +59,63 @@ interface CloneModel extends CommandModel {
   mql?: MqlOneResult;
   into?: MqlOneResult;
   here?: boolean;
+  /** Mint N copies in one act (sandbox QoL, Decision L1). */
+  count?: number;
+  /** Explicit disambiguation for the dual-source resolution. */
+  instance?: boolean;
+  /** Force template-source resolution even for a live match. */
+  templateSource?: boolean;
 }
+
+/** The `--count` cap — a modest rig, not a fork bomb. */
+const COUNT_CAP = 20;
 
 export default class CloneController extends CommandController<CloneModel> {
   async execute(model: CloneModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+
+    // Sanctioned QoL opts (sandbox Decision L1): a bounded --count.
+    const count = model.count ?? 1;
+    if (!Number.isInteger(count) || count < 1) {
+      return this.fail(context, 'clone --count needs a positive integer');
+    }
+    if (count > COUNT_CAP) {
+      return this.fail(
+        context,
+        `clone --count caps at ${COUNT_CAP} (mint in batches)`,
+        'count-capped',
+      );
+    }
+
+    // Instance-source branch (the sandbox seeding aperture, Decision L):
+    // when the resolved source is a LIVE object, the context carries
+    // circle scope, and the actor owns it, route to seedCopy — the copy
+    // carries the original's instance state and is circle-born. Default
+    // stays inference (live object in-circle → seed; path → template);
+    // `--instance` / `--template` disambiguate the ambiguous name.
+    if (!model.templateSource && model.mql?.stuff) {
+      const live = model.mql.stuff;
+      const inCircle =
+        ExecutionContextApi.getCircleScope() !== null &&
+        ExecutionContextApi.getCircleScope() !== OMNI_SCOPE;
+      if (!(live instanceof Template) && (model.instance || inCircle)) {
+        if (!inCircle) {
+          return this.fail(
+            context,
+            'clone --instance (seeding a live copy) only works inside ' +
+              'your circle — enter through a wardrobe first',
+            'not-in-circle',
+          );
+        }
+        return this.seedCopies(live, count, model, context);
+      }
+      if (model.instance && live instanceof Template) {
+        return this.fail(
+          context,
+          'that resolved to a template, not a live thing — drop --instance',
+        );
+      }
+    }
 
     // 1. Resolve the template path.
     let path: string | null = null;
@@ -104,9 +161,35 @@ export default class CloneController extends CommandController<CloneModel> {
       );
     }
 
-    // 2. Clone. Phase 2 hydration may fire `applyContainer` if the
-    // template declares `data.container`; the instance may
+    // 2. Clone (× count). Phase 2 hydration may fire `applyContainer`
+    // if the template declares `data.container`; the instance may
     // self-place during this step.
+    for (let i = 1; i < count; i++) {
+      // Copies 2..N: clone + place, compactly reported; the first copy
+      // below keeps the full reporting shape.
+      try {
+        const extra = await StuffApi.clone(path);
+        if (MixinApi.isContainable(extra)) {
+          const placement = this.resolvePlacement(
+            model,
+            giver,
+            extra as Stuff & Containable,
+            context,
+          );
+          if (!('error' in placement) && placement.dest !== null) {
+            ContainmentApi.move(extra as Stuff & Containable, placement.dest);
+          }
+        }
+      } catch (err) {
+        return this.fail(
+          context,
+          `stopped at copy ${i + 1}/${count}: ${(err as Error).message}`,
+        );
+      }
+    }
+    if (count > 1) {
+      this.tell(context, `\nminted ${count - 1} additional cop${count - 1 === 1 ? 'y' : 'ies'} of ${path}\n`);
+    }
     let cloned: Stuff;
     try {
       cloned = await StuffApi.clone(path);
@@ -228,6 +311,57 @@ export default class CloneController extends CommandController<CloneModel> {
       return { error: 'no destination — pass --into or --here' };
     }
     return { dest: giver };
+  }
+
+  /**
+   * The seeding aperture's verb surface (sandbox Decision L): mint
+   * `count` circle-born copies of a live owned object via
+   * `SandboxApi.seedCopy`, then land them through the ordinary
+   * `--into`/`--here`/inventory precedence. Ownership and
+   * out-of-circle failures are ordinary rejection notes.
+   */
+  private async seedCopies(
+    live: Stuff,
+    count: number,
+    model: CloneModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const minted: Stuff[] = [];
+    for (let i = 0; i < count; i++) {
+      let copy: Stuff;
+      try {
+        copy = await SandboxApi.seedCopy(
+          giver as unknown as Parameters<typeof SandboxApi.seedCopy>[0],
+          live,
+        );
+      } catch (err) {
+        return this.fail(context, (err as Error).message, 'seed-refused');
+      }
+      minted.push(copy);
+      if (MixinApi.isContainable(copy)) {
+        const placement = this.resolvePlacement(
+          model,
+          giver,
+          copy as Stuff & Containable,
+          context,
+        );
+        if (!('error' in placement) && placement.dest !== null) {
+          try {
+            ContainmentApi.move(copy as Stuff & Containable, placement.dest);
+          } catch {
+            // the copy exists; placement failure is surfaced below
+          }
+        }
+      }
+    }
+    const name = live.getPresentation();
+    this.tell(
+      context,
+      count === 1
+        ? `\nseeded a copy of ${name} (${minted[0]!.stuffId}) — circle-born; it dies with the circle\n`
+        : `\nseeded ${count} copies of ${name} — circle-born; they die with the circle\n`,
+    );
   }
 
   private tell(context: CommandContext, text: string): void {

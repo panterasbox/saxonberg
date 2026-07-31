@@ -303,6 +303,21 @@ settings:
   # game clock; it ships in observe mode too (flip to enforce to repop for
   # real). Only the general store's stock is wired today.
   # See docs/subsystems/residency.md.
+  # Sandbox (holodeck) — the orphan sweeper discards scoped rows for any
+  # circle scope with no live session (after a restart that is ALL of
+  # them — the discard doctrine: nothing survives a session but the
+  # authored edit). Real-time cadence, the residency pattern.
+  # See docs/subsystems/sandbox.md.
+  - key: sandbox.sweeper.intervalMs
+    value: "300000"
+  # A dropped connection mid-visit keeps the circle session alive this
+  # long; reconnecting inside the window lands back on the same wire
+  # body, in the circle (ordinary linkdead-reconnect semantics — losing
+  # a test rig to a wifi blip is exactly the friction that makes
+  # builders hate a tool). Past it, the visit force-exits.
+  - key: sandbox.session.graceMs
+    value: "600000"
+
   - key: residency.eviction.mode
     value: observe
   - key: residency.eviction.intervalMs

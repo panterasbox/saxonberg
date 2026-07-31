@@ -34,11 +34,19 @@ import { StuffApi } from '../../../api/stuff';
 import type { MqlManyResult } from '../../../api/mql';
 import Avatar from '../../Avatar';
 import EvalScript from '../../../lib/script/EvalScript';
+import { SandboxApi } from '../../../api/sandbox';
+import { ParcelApi } from '../../../api/parcel';
+import { GroupApi } from '../../../api/group';
+import { AccessApi } from '../../../api/access';
+import { ZoneApi } from '../../../api/zone';
+import { ProvenanceApi } from '../../../api/provenance';
+import { MudlogApi } from '../../../api/mudlog';
 
 interface EvalModel extends CommandModel {
   expr?: string;
   on?: MqlManyResult;
   all?: boolean;
+  parcel?: string;
 }
 
 export default class EvalController extends CommandController<EvalModel> {
@@ -48,15 +56,36 @@ export default class EvalController extends CommandController<EvalModel> {
     // Wizard axis check is now declarative — see eval.yaml's
     // `validators: requiresWizard`. The dispatcher rejects the
     // command before this controller runs when the giver isn't a
-    // wizard.
+    // wizard. Code-trust gates WHETHER you may run code; the parcel
+    // jurisdiction below gates WHERE it reaches — never the reverse.
 
-    // Singleton resolution. Keyed by the player's persistent
-    // identity (Avatar.getPlayerId) so different players don't
-    // stomp each other's singleton across runtime sessions. Falls
-    // back to stuffId for non-Avatar givers (scripted NPCs that
-    // happen to compose CommandGiver).
+    // Jurisdiction resolution (sandbox build): NO invocation form runs
+    // without a named jurisdiction — the default supplies one (your own
+    // circle). One rule, no special cases.
     const playerKey = giver instanceof Avatar ? giver.getPlayerId() : giver.stuffId;
-    const singletonPath = `/home/${playerKey}/_eval`;
+    const parcel = this.normalizeParcel(model.parcel) ?? `/home/${playerKey}`;
+
+    // The gate: authority over the parcel — title-holder / group
+    // membership / the core default — via the shipped owner-kind
+    // dispatch. Your own self-home passes by the pure rule.
+    if (!(await this.holdsAuthority(giver, parcel, playerKey))) {
+      return this.fail(
+        context,
+        `you hold no authority over ${parcel}`,
+        'access-denied',
+      );
+    }
+
+    // Disposition falls out of the parcel's namespace kind: a WIRE
+    // parcel quarantines (circle scope; the four layers contain the
+    // run; side-effects discard); a FIELD parcel governs (writes are
+    // real, reach bounded to the extent, the act receipted).
+    const zone = await ZoneApi.resolveZoneForPath(parcel);
+    const isWire = (await zone?.lookupField<boolean>('wire')) === true;
+
+    // Singleton mints IN the jurisdiction's namespace — addressable
+    // provenance, re-runnable by path.
+    const singletonPath = `${parcel}/_eval`;
     const existing = StuffApi.findByTemplatePath<EvalScript>(singletonPath);
 
     let evalStuff: EvalScript;
@@ -107,10 +136,14 @@ export default class EvalController extends CommandController<EvalModel> {
       targets = [giver];
     }
 
-    // Iterate.
+    // Iterate — each run inside its jurisdiction's root: wire →
+    // quarantined circle scope; field → governed jurisdiction bound
+    // with the act receipted (authorship + mudlog).
     for (const t of targets) {
       try {
-        const result = await evalStuff.run(t);
+        const result = isWire
+          ? await SandboxApi.runScoped(parcel, () => evalStuff.run(t))
+          : await SandboxApi.runGoverned(parcel, () => evalStuff.run(t));
         const repr = this._formatResult(result);
         const name = t.getPresentation();
         this.tell(context, `\n${name}: ${repr}\n`);
@@ -122,7 +155,59 @@ export default class EvalController extends CommandController<EvalModel> {
         );
       }
     }
+    if (!isWire) {
+      // The governed channel made concrete for code: the act is
+      // receipted — addressable provenance for the minted template +
+      // an operator-visible line.
+      try {
+        await ProvenanceApi.recordAuthoring({ path: singletonPath });
+      } catch {
+        // provenance is best-effort here; the mudlog line still lands
+      }
+      MudlogApi.info(
+        'sandbox.eval.governed',
+        Mml.text(
+          `governed eval by ${giver.getPresentation()} against ${parcel}`,
+        ),
+      );
+    }
     return;
+  }
+
+  /** Normalize a `--parcel` value to a `/`-rooted path, or null. */
+  private normalizeParcel(raw: string | undefined): string | null {
+    if (!raw) return null;
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    const rooted = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    return rooted.endsWith('/') && rooted !== '/'
+      ? rooted.slice(0, -1)
+      : rooted;
+  }
+
+  /**
+   * Authority over `parcel` via the shipped owner-kind dispatch:
+   * player title (incl. the self-home pure rule), group membership,
+   * or the core-default `AccessApi.can` walk.
+   */
+  private async holdsAuthority(
+    giver: Stuff,
+    parcel: string,
+    playerKey: string,
+  ): Promise<boolean> {
+    try {
+      const owner = await ParcelApi.ownerOf(parcel);
+      if (owner?.kind === 'player') {
+        return owner.templatePath === giver.getTemplatePath();
+      }
+      if (owner?.kind === 'group' && owner.ref) {
+        return GroupApi.isMember(playerKey, owner.ref);
+      }
+    } catch {
+      // registry offline / no row — fall through to the core dispatch
+    }
+    const resource = StuffApi.findByTemplatePath(parcel) ?? null;
+    return AccessApi.can(giver, 'eval', resource);
   }
 
   private tell(context: CommandContext, text: string): void {

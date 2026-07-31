@@ -71,7 +71,10 @@ function makeApp(): Express {
 
 /** An avatar stub that satisfies the gates (non-null getPlayerId). */
 function fakeAvatar(playerId: string): Avatar {
-  return { getPlayerId: () => playerId } as unknown as Avatar;
+  return {
+    getPlayerId: () => playerId,
+    getCircleScope: () => null,
+  } as unknown as Avatar;
 }
 
 describe('CmsRoutes', () => {

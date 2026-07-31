@@ -21,7 +21,8 @@ import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
 import type { Containable } from "../lib/spatial/Containable";
 import type { Container } from "../lib/spatial/Container";
-import type { Stuff } from "../lib/stuff/Stuff";
+import type { Stuff, EvictionContext } from "../lib/stuff/Stuff";
+import type { VetoResult } from "../lib/errors";
 import { SpeciesApi } from "../api/species";
 import AetherImplant from "../lib/augmentation/AetherImplant";
 import CommsUpdate from "../lib/comms/CommsUpdate";
@@ -38,6 +39,7 @@ import { ShellApi } from "../api/shell";
 import { BulletinApi } from "../api/bulletin";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
+import { ForkableMixin } from "../lib/persistence/Forkable";
 import { PersistableApi } from "../api/persistable";
 import { HasInteractiveMixin } from "../lib/connection/HasInteractive";
 import { AetherMixin } from "../lib/message/Aether";
@@ -89,12 +91,14 @@ export interface AvatarInitContext {
 // slice), its worn gear (Slotted slice), and its own spawn/recall location
 // (`place`). `shouldPersist()` (below) gates guests out.
 const AvatarBase = PersistableMixin(
-  PostRegistrationMixin(
-    HasInteractiveMixin(
-      AetherMixin(
-        NotifyPolicyMixin(
-          ContactsMixin(
-            PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+  ForkableMixin(
+    PostRegistrationMixin(
+      HasInteractiveMixin(
+        AetherMixin(
+          NotifyPolicyMixin(
+            ContactsMixin(
+              PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+            ),
           ),
         ),
       ),
@@ -585,7 +589,7 @@ export default class Avatar extends AvatarBase {
    * `PlayerLoggedOut` (a deliberate departure) instead of
    * `PlayerDisconnected` (an involuntary linkdead drop). Not persisted.
    */
-  private leaveIntent: boolean = false;
+  protected leaveIntent: boolean = false;
 
   /**
    * Mark this avatar's next presence drop as a deliberate leave (sign out
@@ -828,6 +832,12 @@ export default class Avatar extends AvatarBase {
       StuffApi.destruct(this);
       return;
     }
+    // A PARKED avatar (its player crossed into a circle) suppresses the
+    // presence emit: the player didn't leave — they're elsewhere and
+    // unreachable, which is what the implant-blind wire means. Presence
+    // reads present parked as present-but-unreachable, never offline.
+    // (Sandbox Decision P — a suppression, no new event.)
+    if (this.parked) return;
     // Split deliberate departures from involuntary drops. A sign-out /
     // switch-character closes the socket with the intentional-leave code,
     // which the connection layer recorded via `setLeaveIntent` — that's a
@@ -841,6 +851,69 @@ export default class Avatar extends AvatarBase {
     } else {
       EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     }
+  }
+
+  /* ── sandbox parking (Decision P) ──
+   *
+   * `parked` = this avatar's player is inside a circle on a wire body.
+   * A parked avatar is present-but-unreachable: the presence emit is
+   * suppressed (see onLinkdead), the residency sweep may not harvest
+   * the body mid-visit (canEvict veto — bounded, sessions end), and
+   * exit/reconnect re-attach to it. Runtime-only state.
+   */
+  private parked = false;
+
+  public isParked(): boolean {
+    return this.parked;
+  }
+
+  public setParked(value: boolean): void {
+    this.parked = value;
+  }
+
+  /**
+   * Residency veto while parked: the body must be re-attachable at
+   * exit. The spine's capture at park time covers crash durability; the
+   * veto covers availability. Chains to the Persistable fall-through
+   * for the unparked case.
+   */
+  public override canEvict(context: EvictionContext): VetoResult {
+    if (this.parked) {
+      return { ok: false, reason: 'parked: its player is inside a circle' };
+    }
+    return super.canEvict(context);
+  }
+
+  /* ── fork/merge slices (sandbox Decision Q) ── */
+
+  /**
+   * Presentation slice: what a projection vessel needs so the person is
+   * recognizably themselves (name; species rides recognition, gear does
+   * not travel). Fork-only for the sandbox — the merge allowlist never
+   * includes it, so nothing here flows back.
+   */
+  public forkSlice_Presentation(): unknown {
+    return {
+      honorific: this.getHonorific(),
+      name: this.getName(),
+      surname: this.getSurname(),
+      nameSuffix: this.getNameSuffix(),
+    };
+  }
+
+  public mergeSlice_Presentation(slice: unknown): void {
+    const s = slice as {
+      honorific?: string;
+      name?: string;
+      surname?: string;
+      nameSuffix?: string;
+    };
+    if (typeof s?.name === 'string' && s.name.length > 0) {
+      this.setName(s.name);
+    }
+    this.setHonorific(s?.honorific);
+    this.setSurname(s?.surname);
+    this.setNameSuffix(s?.nameSuffix);
   }
 
   public toString(): string {

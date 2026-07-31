@@ -94,6 +94,7 @@ import type { Perceiver } from '../lib/description/Perceiver';
 import type { Scryable } from '../lib/perception/Scryable';
 import type { Slotted } from '../lib/slot/Slotted';
 import type { Persistable } from '../lib/persistence/Persistable';
+import type { Forkable } from '../lib/persistence/Forkable';
 import type {
   MixinSlice,
   CaptureContext,
@@ -290,6 +291,11 @@ export class MixinApi {
     arg: AnyConstructor | Stuff,
     mixinName: MixinName
   ): boolean {
+    // A predicate's honest answer for a null/undefined host is `false`
+    // — asked most often through the `isX` narrowers, whose callers may
+    // hold an optional. A crash here (an async fire-and-forget path
+    // asking about a gone actor) would be strictly worse information.
+    if (arg == null) return false;
     if (typeof arg === 'function') {
       return this.#hasMixinOnConstructor(arg, mixinName);
     }
@@ -905,6 +911,10 @@ export class MixinApi {
 
   public static isPersistable(obj: Stuff): obj is Stuff & Persistable {
     return this.hasMixin(obj, Mixins.Persistable);
+  }
+
+  public static isForkable(obj: Stuff): obj is Forkable {
+    return this.hasMixin(obj, Mixins.Forkable);
   }
 
   public static isSlotted(obj: Stuff): obj is Stuff & Slotted {

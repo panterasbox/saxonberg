@@ -152,6 +152,13 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // Content-pack class-resolve check (requires-kernel boundary).
   {
     site: "obj/api/PackLogic.ts::loadClassByPath",
+    classification: "gated-direct",
+  },
+  {
+    // Sandbox circle materialization: authored templates under the
+    // circle path re-clone only when their class is Location-shaped —
+    // the class resolve is the room filter (docs/subsystems/sandbox.md).
+    site: "obj/api/SandboxLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
   // Studio describeClass introspection: resolves an already-committed

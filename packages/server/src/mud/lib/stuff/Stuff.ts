@@ -277,6 +277,20 @@ export abstract class Stuff {
   }
 
   /**
+   * The IDENTITY this object acts as — the key the identity-keyed
+   * epistemic producers (belief viewer key, chronicle owner,
+   * transcript/disposition/renown subject) attribute to. Defaults to
+   * `getTemplatePath()` (byte-identical for every ordinary object); a
+   * projection vessel (the sandbox `WireBody`) overrides it to return
+   * the real identity's path (`/obj/Avatar/<playerId>`), so in-circle
+   * derive-on-read composes the player's real history ∪ scoped appends
+   * and PASS rows attribute to the real identity, never the vessel.
+   */
+  public getIdentityPath(): string | null {
+    return this.getTemplatePath();
+  }
+
+  /**
    * The controlling player's account id, or `null` when this Stuff is not a
    * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
    * return its `playerId`. This is the auth/account identity (OAuth id,
@@ -483,6 +497,57 @@ export abstract class Stuff {
   public static _stampZone(stuff: Stuff, zone: SpatialZone | null): void {
     Stuff.#assertStampGateAllowed('_stampZone');
     ProxyApi.unwrap(stuff).#zone = zone;
+  }
+
+  /**
+   * The circle scope this object belongs to — `null` for every ordinary
+   * field object (zero cost by default), a wire parcel path
+   * (`/home/<playerId>` / `/studio/<groupId>`) for a circle-born object.
+   * Stamped at mint from the *minting context's* ambient scope
+   * (`ExecutionContextApi.getCircleScope()` inside `StuffApi`'s register
+   * path) — the induction that makes the sandbox boundary hold: objects
+   * minted under circle context are circle-scoped, everything else stays
+   * null with no work done.
+   *
+   * Hard-private (`#`) for tamper-resistance — same shape and same
+   * threat model as `#zone`: the security gate's boundary check trusts
+   * this slot, so a bracket-write forgery would be a containment escape.
+   * Runtime-only: never persisted (a circle-born object's durable rows
+   * carry the scope via the PM policy seam instead).
+   */
+  #circleScope: string | null = null;
+
+  /**
+   * The circle scope stamp, or `null` for a field object. Unwraps via
+   * `RAW_TARGET` because the `#` slot lives on the raw target only.
+   */
+  public getCircleScope(): string | null {
+    return ProxyApi.unwrap(this as unknown as Stuff).#circleScope;
+  }
+
+  /**
+   * Restamp the circle scope — the rare cross-boundary move (promotion,
+   * future governance acts). `ApiOnly`-gated: only Api-layer callers
+   * (in practice `SandboxLogic` via its facade) may restamp; ordinary
+   * player paths never touch this. Mint-time stamping uses the
+   * caller-allowlisted `_stampCircleScope` seam instead.
+   */
+  @Final
+  @Unshadowable
+  @CallSecurity(SecurityPolicies.ApiOnly)
+  public setCircleScope(value: string | null): void {
+    ProxyApi.unwrap(this as unknown as Stuff).#circleScope = value;
+  }
+
+  /**
+   * Pre-register stamp seam for the circle scope — used by `StuffApi`'s
+   * register path to stamp newborns from the minting context's scope,
+   * BEFORE the proxy wrap. Caller-gated identically to `_stampZone`.
+   * @internal
+   */
+  public static _stampCircleScope(stuff: Stuff, scope: string | null): void {
+    Stuff.#assertStampGateAllowed('_stampCircleScope');
+    ProxyApi.unwrap(stuff).#circleScope = scope;
   }
 
   /**

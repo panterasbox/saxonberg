@@ -27,7 +27,10 @@ import { StreamApi } from '../mud/api/stream';
 import type { NormalizedInbound } from '../mud/api/stream';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
-import { ExecutionContextApi } from '../mud/api/execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../mud/api/execution-context';
 
 export class KickRelayReader {
   private static instance: KickRelayReader;
@@ -112,8 +115,11 @@ export class KickRelayReader {
   public handleInbound(event: unknown): void {
     const norm = normalizeKickChatEvent(event);
     if (!norm) return;
-    void ExecutionContextApi.runRoot(null, 'kick.inbound', () =>
-      StreamApi.dispatchInbound('kick', norm)
+    void ExecutionContextApi.runRoot(
+      null,
+      'kick.inbound',
+      () => StreamApi.dispatchInbound('kick', norm),
+      { circleScope: OMNI_SCOPE }
     );
   }
 }

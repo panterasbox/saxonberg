@@ -12,6 +12,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
+import { cmsClient } from "./cmsClient";
 import { MonacoLazy } from "./MonacoLazy";
 import { StudioForm } from "./studio/StudioForm";
 import { tokens } from "../ui";
@@ -197,6 +198,19 @@ export const CmsEditor: React.FC = () => {
     studioLoadData(body);
   }, [studioSerialize, cmsEditDraft, cmsSave, studioLoadData]);
 
+  // The author→test harness seam (sandbox): one call, the game tab's
+  // session crosses into the author's circle on a fresh wire body.
+  const csrf = useStore((s) => s.cms.csrf);
+  const testInHolodeck = React.useCallback(async () => {
+    if (!csrf) return;
+    try {
+      await cmsClient.launchTestSession(csrf);
+    } catch (e) {
+      // Surface through the shared error bar via the store's shape.
+      console.warn("test-session launch failed", e);
+    }
+  }, [csrf]);
+
   // Studio-mode dirtiness: the serialized overlay diverges from the
   // persisted body. (Computed at render; cheap for the small field set.)
   const studioDirty =
@@ -249,6 +263,13 @@ export const CmsEditor: React.FC = () => {
             </Tabs>
           )}
           <Kind>{open.kind}</Kind>
+          <SaveButton
+            type="button"
+            title="Cross your game session into your circle to try this out (the sandbox)"
+            onClick={() => void testInHolodeck()}
+          >
+            Test in holodeck
+          </SaveButton>
           <SaveButton
             onClick={() =>
               mode === "studio" ? void saveStudio() : void cmsSave()

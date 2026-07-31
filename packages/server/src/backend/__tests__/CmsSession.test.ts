@@ -41,7 +41,10 @@ describe('CmsSession.runAsSessionPlayer', () => {
   });
 
   it('resolves the session Avatar and runs fn under a Root frame', async () => {
-    const avatar = { _marker: 'avatar' } as unknown as Avatar;
+    const avatar = {
+      _marker: 'avatar',
+      getCircleScope: () => null,
+    } as unknown as Avatar;
     vi.spyOn(User, 'findById').mockResolvedValue(fakeUser(['p-1']));
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockImplementation((pid) =>
       pid === 'p-1' ? avatar : undefined
@@ -103,7 +106,10 @@ describe('CmsSession.runAsSessionPlayer', () => {
   });
 
   it('picks the first owned playerId that has a loaded Avatar', async () => {
-    const avatar = { _marker: 'second' } as unknown as Avatar;
+    const avatar = {
+      _marker: 'second',
+      getCircleScope: () => null,
+    } as unknown as Avatar;
     vi.spyOn(User, 'findById').mockResolvedValue(fakeUser(['p-1', 'p-2']));
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockImplementation((pid) =>
       pid === 'p-2' ? avatar : undefined

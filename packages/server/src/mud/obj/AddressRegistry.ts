@@ -31,6 +31,7 @@
 
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
+import { SecurityApi } from '../api/security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { PathTrie } from '../lib/collections/PathTrie';
@@ -67,6 +68,9 @@ export default class AddressRegistry extends AddressRegistryBase {
    */
   @CallSecurity(AddressLogicCaller)
   public registerLocality(locality: Locality): void {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'registerLocality');
     const addr = locality.getAddress();
     if (addr.length > 0) this.coverage.insert(addr, locality);
   }

@@ -15,6 +15,15 @@
 # keyed on `extent`).
 
 parcels:
+  # The /studio branch — the sandbox's group-cell namespace (sandbox
+  # build, Decision M). Held by `core` so acting on it is already a
+  # governance-gated act through the shipped AccessApi.can core-default
+  # dispatch: a governor `subdivide`s /studio/<groupId> out of this
+  # parcel and `transfer --group`s the child title to the group. No
+  # self-serve path exists; /home stays personal, always.
+  - extent: /studio
+    owner: { kind: group, name: core }
+
   # The lounge team's ownership roots — the library folder and the content
   # folder, both owned by the managed `lounge` group (was ownerGroupName).
   - extent: /lib/lounge

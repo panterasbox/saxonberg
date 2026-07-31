@@ -567,8 +567,18 @@ describe("security (AC #8)", () => {
       (n) => typeof (PersistableApi as unknown as Record<string, unknown>)[n] === "function",
     );
     // Only capture/materialize/hasRecord/deleteAllFor — no raw write/save.
+    // The fork protocol (sandbox build) is RUNTIME state movement, not a
+    // record-store write path: forkRuntimeState/mergeRuntimeState never
+    // touch `holder_snapshots`.
     expect(surface.sort()).toEqual(
-      ["capture", "deleteAllFor", "hasRecord", "materialize"].sort(),
+      [
+        "capture",
+        "deleteAllFor",
+        "hasRecord",
+        "materialize",
+        "forkRuntimeState",
+        "mergeRuntimeState",
+      ].sort(),
     );
   });
 });

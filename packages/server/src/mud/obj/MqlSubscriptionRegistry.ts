@@ -46,6 +46,10 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type Interactive from '../obj/Interactive';
 import type { Subscription } from '../api/event';
 import { MixinApi } from '../api/mixin';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+} from '../api/execution-context';
 import { MqlApi, MqlPermissionError } from '../api/mql';
 import { EventApi } from '../api/event';
 import { MessageApi } from '../api/message';
@@ -84,6 +88,14 @@ interface SubscriptionState {
   locationDependent: boolean;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
+  /**
+   * Circle scope captured at registration (sandbox build): the batched
+   * re-resolve re-plants this on its per-subscription root, so a
+   * circle-born subscription resolves under circle containment and a
+   * field-born one stays field-pure no matter whose mutation marked it
+   * dirty. `null` for field/omni registrants.
+   */
+  birthScope: string | null;
 }
 
 type RecordValue =
@@ -278,6 +290,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       lastResult.set(stuff.stuffId, rec);
     }
 
+    const registrantScope = ExecutionContextApi.getCircleScope();
     const sub: SubscriptionState = {
       interactive,
       subscriptionId,
@@ -289,6 +302,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       locationDependent,
       lastResult,
       dependencyHandles: [],
+      birthScope: registrantScope === OMNI_SCOPE ? null : registrantScope,
     };
 
     this.deriveAndInstallDependencies(sub, stuffList);
@@ -425,6 +439,28 @@ export default class MqlSubscriptionRegistry extends Idea {
       this.teardownSubscription(sub);
     }
     this.registry.delete(interactive);
+  }
+
+  /**
+   * Cancel every subscription whose birth scope is `scope` — the
+   * sandbox reap seam: a circle's live queries die with its session.
+   * Field-born subscriptions are untouched (they continue across a
+   * crossing — the world-side resolve stays field-pure). Returns the
+   * cancel count.
+   */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public cancelAllForScope(scope: string): number {
+    let cancelled = 0;
+    for (const [interactive, bucket] of [...this.registry.entries()]) {
+      for (const [subscriptionId, sub] of [...bucket.entries()]) {
+        if (sub.birthScope !== scope) continue;
+        this.teardownSubscription(sub);
+        bucket.delete(subscriptionId);
+        cancelled++;
+      }
+      if (bucket.size === 0) this.registry.delete(interactive);
+    }
+    return cancelled;
   }
 
   /* ─── test seams ─── */
@@ -628,7 +664,18 @@ export default class MqlSubscriptionRegistry extends Idea {
     const subs = [...this.dirty];
     this.dirty.clear();
     for (const sub of subs) {
-      this.reresolveAndEmit(sub);
+      // Per-subscription root carrying the subscription's BIRTH scope
+      // (sandbox): the drain runs on whatever context marked things
+      // dirty; each re-resolve must run under its registrant's scope,
+      // not the mutator's. This registry is frame-mutator-allowlisted.
+      ExecutionContextApi.runRoot(
+        null,
+        'mql.reresolve',
+        () => this.reresolveAndEmit(sub),
+        sub.birthScope !== null
+          ? { circleScope: sub.birthScope }
+          : undefined,
+      );
     }
   }
 

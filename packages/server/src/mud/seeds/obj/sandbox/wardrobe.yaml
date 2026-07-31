@@ -1,0 +1,17 @@
+# /obj/sandbox/wardrobe — the sandbox's player door: a placeable,
+# ownable fixture whose presence in a room installs the crossing
+# passage (SandboxCrossingExit). Content over the boundary substrate;
+# skins (turbolift / mirror / drafting table) are sibling templates
+# differing only in Visible/Detailed data. An unlinked wardrobe links
+# on first enter to that enterer's own circle — clone one, place it,
+# step in (the authoring ladder, literally).
+# See docs/subsystems/sandbox.md.
+class: /lib/sandbox/Wardrobe
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: wardrobe
+  shortDescription: a tall standing wardrobe
+  longDescription: >
+    A tall wardrobe of dark lacquered wood, doors slightly ajar. The
+    inside does not appear to have a back. Stepping in feels less like
+    entering furniture and more like leaving the room.

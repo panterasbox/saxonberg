@@ -687,6 +687,29 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * Traversal-application override seam (sandbox Decision H). An exit
+   * subclass may fully APPLY the traversal itself and report `true` =
+   * handled — `Mobile.traverse` then returns without resolving a
+   * destination, announcing, or moving anything. The wardrobe passage
+   * is the first override: crossing into a circle runs the wire-body
+   * choreography, and nothing material ever traverses. Default `false`
+   * (a virtual call + branch on the hot path; every ordinary exit
+   * takes the normal road).
+   *
+   * @hook Invoked by `Mobile.traverse` after the door gate
+   *   (`canTraverse`) and the mover's own veto, BEFORE departure
+   *   announcement and destination resolution. Return `true` when this
+   *   exit has fully handled the traversal (nothing more happens);
+   *   `false` to continue the ordinary move. **Override** — chain is
+   *   unnecessary (the base is a constant `false`).
+   */
+  public async applyTraversal(
+    _mover: Stuff & Containable
+  ): Promise<boolean> {
+    return false;
+  }
+
+  /**
    * Can `mover` traverse this exit right now?
    *
    * Returns `{ ok: false, reason, gate }` on the first failing gate

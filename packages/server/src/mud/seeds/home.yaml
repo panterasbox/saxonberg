@@ -10,3 +10,6 @@
 class: /lib/home/HomeZone
 data:
   name: home
+  # Wire-classification root (sandbox, Decision O): every descendant of
+  # /home inherits wire-ness through the Zone.lookupField walk.
+  wire: true

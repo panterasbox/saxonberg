@@ -34,6 +34,7 @@
  */
 
 import { SecurityApi } from '../api/security';
+import { SandboxApi } from '../api/sandbox';
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Channel } from '../lib/social/Channel';
@@ -234,7 +235,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       const out: Stuff[] = [];
       for (const av of PlayerApi.getAllAvatars()) {
         const sub = this.getSubscription(av, channel);
-        if (sub.tunedIn && !sub.muted) out.push(av);
+        if (sub.tunedIn && !sub.muted) out.push(this.activeBodyOf(av));
       }
       return out;
     }
@@ -246,9 +247,23 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     for (const m of members) {
       if (!PlayerApi.isAvatarStuff(m)) continue;
       const sub = this.getSubscription(m, channel);
-      if (sub.tunedIn && !sub.muted) out.push(m);
+      if (sub.tunedIn && !sub.muted) out.push(this.activeBodyOf(m));
     }
     return out;
+  }
+
+  /**
+   * Comms are seamless across the sandbox boundary (Decision N):
+   * recipient resolution follows IDENTITY, not body. Subscriptions and
+   * rules stay on the registry (field) avatar; delivery lands on the
+   * player's ACTIVE body — the wire body while a circle session lives,
+   * the avatar otherwise — so a channel message delivers exactly once,
+   * to wherever the person actually is.
+   */
+  private activeBodyOf(avatar: Stuff): Stuff {
+    const playerId = avatar.getPlayerId();
+    if (!playerId) return avatar;
+    return (SandboxApi.activeBodyFor(playerId) as Stuff | null) ?? avatar;
   }
 
   /**
@@ -399,6 +414,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     newName: string,
     promoter: Stuff,
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'promoteAdHocToManaged');
     const ad = this.byHandle.get(handle);
     if (!ad) throw new Error(`No ad-hoc channel with handle '${handle}'`);
     const existing = await this.resolveByName(newName);
@@ -449,6 +467,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    * `free-chat` surface.
    */
   public async createPlayerChannel(owner: Stuff, name: string): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'createPlayerChannel');
     const subjects = await this.requireSubjects();
     if (RESERVED_NAMES.has(name.toLowerCase())) {
       throw new Error(`Reserved name '${name}' — pick another.`);
@@ -484,6 +505,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     name: string,
     groupRef: string,
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'createBoundChannel');
     const subjects = await this.requireSubjects();
     if (RESERVED_NAMES.has(name.toLowerCase())) {
       throw new Error(`Reserved name '${name}' — pick another.`);
@@ -517,6 +541,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     subject: Subject,
     procedure: 'free' | 'rules-of-order' = 'free',
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'attachChatToSubject');
     const subjects = await this.requireSubjects();
     const surface = procedure === 'free' ? 'free-chat' : 'rules-chat';
     if (subject.hasManifestation(surface)) {
@@ -543,6 +570,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   }
 
   public async disbandPlayerChannel(name: string): Promise<boolean> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'disbandPlayerChannel');
     const c = await this.resolveByName(name);
     if (!c) return false;
     if (c.subject) {
@@ -561,6 +591,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     oldName: string,
     newName: string,
   ): Promise<Channel> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'renamePlayerChannel');
     if (RESERVED_NAMES.has(newName.toLowerCase())) {
       throw new Error(`Reserved name '${newName}' — pick another.`);
     }
