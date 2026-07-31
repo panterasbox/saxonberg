@@ -49,7 +49,7 @@ every content precedent here), [chattel](../subsystems/chattel.md),
 ## Goals
 
 - **Owned chattel persists with its owner, not with whatever room it is
-  standing in.** Each owned good carries a **`place`** — a residence room
+  standing in.** Each owned good carries a **`place`** — a room
   identity, `inventory`, or `storage`. A host's content-capture **skips
   owner-stamped goods** (they persist owner-side); the owner's record
   carries them wherever they sit. The two scopes compose over one spine
@@ -80,7 +80,10 @@ every content precedent here), [chattel](../subsystems/chattel.md),
 - **Four room archetypes ship as template rows: bedroom, kitchen,
   bathroom, living.** Each is a distinct template path over one generic
   room class, differing in prose and in the built-in fixtures it seeds.
-  They are content, editable without code.
+  They are content, editable without code — and **venue-generic**: a
+  bank or a bar can seed the same bathroom the day this lands, because
+  home-ness is supplied by the parcel above the room, never by the room
+  (D15).
 - **Sleeping in your own bed recovers you across the offline gap.**
   Logging out at rest on a posture-bearing bed means the metabolic
   reconcile that runs on your next login integrates the elapsed hours at
@@ -186,6 +189,15 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   stewardship's. Room archetypes here are content identity, not a typed
   gate on what may be placed where; a bathroom that accepts a chest
   freezer is silly but permitted in v1.
+- **Stewardship as a room capability.** No `StewardedMixin`, no
+  maintenance obligation on a room, no janitor, no consequence for
+  neglect. Responsibility for a room's condition is a **relation** held
+  above the room (D15), exactly as ownership is — and both the relation
+  and the condition it governs are stewardship's.
+- **Non-residential venues as content.** No bank bathroom, bar kitchen
+  or school washroom ships here. D15 guarantees they need only a seed
+  row when someone wants one; authoring them is content work belonging
+  to whoever builds that venue.
 - **Room archetype *classes* and their behavior.** Archetypes ship as
   template rows over one class. Promoting a bedroom to `class:
   /lib/residence/Bedroom` later is a one-line template edit — the
@@ -274,7 +286,7 @@ owner naming a container.
 
 ### D4 — The room re-placement overlay, ordered after fixtures
 
-A residence room, on materialize, does two things in order: restore its
+A room, on materialize, does two things in order: restore its
 own record (its **fixtures**, host-keyed, via the shipped seed-then-persist
 handoff), then **overlay** the owned chattel whose `place` names it —
 cloned as the *owner* principal and placed.
@@ -312,7 +324,8 @@ migration, no change to the general store.
 ### D6 — Archetypes are template rows now; classes when they earn it
 
 Bedroom, kitchen, bathroom and living ship as four template paths over
-one generic residence-room class. What distinguishes them is prose and
+one generic room class — venue-generic, per D15. What distinguishes
+them is prose and
 their `populates:` fixture set — both already declarative data on the
 shipped spine.
 
@@ -333,7 +346,7 @@ skins are rows — with the difference that these rows are expected to
 
 ### D7 — Rooms carry room-level state, not only contents
 
-A residence room's persisted record carries **declared fields of its
+A room's persisted record carries **declared fields of its
 own**, not merely a container slice. v1 declares little, but the shape is
 established, so an archetype that later carries condition (stewardship)
 or an external reading (the mirror) has somewhere to put it without a
@@ -671,9 +684,93 @@ an opaque string forecloses nothing.
 **It belongs to rooms, not to bathrooms.** A staff room, a members'
 club, a ward and a private study are all posted; the bathroom is merely
 the room that made the omission obvious. So the field lands as D7
-room-level state on the residence-room base — the same generalization
+room-level state on the generic room base — the same generalization
 D11 made for debris — and the residential answer is `unrestricted`,
 read by nothing.
+
+### D15 — Rooms are venue-generic. Home-ness lives in the parcel above
+
+**The question.** Bathrooms and kitchens exist in banks, bars, schools
+and prisons, not only in homes. Does a home bathroom run the same
+program as a bank's? Or do they share something primitive, with the
+residential one being *higher-order* because it is stewarded and has a
+lifecycle the bank's does not?
+
+**The answer: there is no program to share.** D12 and D13 already
+established that neither room has behavior — the kitchen is a bundle,
+the bathroom is presence. A room with no program cannot run a different
+one somewhere else. So the question resolves into: what *is* shared, and
+where does the difference actually live?
+
+**What is shared is a fixture vocabulary, not a room.** A "bathroom" is
+not a kind of thing. It is a room that populates from
+`{toilet, basin, tub, mirror}`; a "kitchen" populates from
+`{range, tap, counter, larder}`. The archetype is a **conventional
+`populates:` set**, and each venue picks its own subset from the same
+vocabulary. The corpus already demonstrates this without anyone having
+named it: the Hearthworks **cookhouse** is a commercial kitchen built
+today from `Oven` + `CookPot` + `pantry-chest` on a plain
+`CartesianLocation`, and D12's home kitchen is the same vocabulary with
+a menu, an NPC cook and a Business subtracted.
+
+This also makes the LOD ladder (D13) work **across venues**, not just
+across fixtures: a home bathroom is toilet + basin + tub; a bank's is
+toilet + basin, because nobody bathes at a bank; a frontier outhouse is
+toilet alone. Same vocabulary, three depths, zero shared behavior to
+diverge.
+
+**Where the difference actually lives — three tiers, and the room is the
+bottom one.**
+
+| Tier | Carries | Home vs. bank |
+|---|---|---|
+| **the room** | fixtures, room-level state (debris, air, the posted designation) | **identical** — a bathroom is a bathroom |
+| **the premises** (unit / sub-parcel) | title, land use, the lease, the address | **this is where it is decided**, and it is the shipped parcel layer |
+| **the relation** | who is responsible, and what follows from the condition | tenant stewardship vs. a janitor on a shift |
+
+**The stewardship intuition is right but mis-tiered.** Stewardship is a
+**relation**, not a room capability — the same guardrail this doc
+already applies twice (ownership is a relation, hence a registry and no
+`OwnableMixin`). The room never knows whether it is stewarded. It
+carries *condition* as state (D7's seam); the **obligation** to maintain
+it and the **consequence** of not doing so belong to the parcel relation
+above it.
+
+Which is the better answer, because it cuts both ways: a bank bathroom
+can be stewarded too — by a janitor, which is an employment position
+with a shift — and a neglected home and a neglected bank get filthy by
+**the same rule**. Only the consequence layer differs: a filthy bank
+damages the Business's reception and renown; a filthy home costs the
+tenant their own comfort and, eventually, the ladder's gate.
+
+**Every candidate for residence-specific-ness fails at the room tier.**
+This was tested rather than assumed:
+
+- *The lease lifecycle* — provisioned empty, furnished, evicted to
+  storage. Not residential: a shop leases its premises identically, and
+  `grantUse`/`revokeUse` are already generic on parcels.
+- *Owner-based persistence* (`place`, D1–D4) — not residential either. A
+  shopkeeper's own tools in a leased shop should persist owner-side by
+  exactly the same rule. **The whole engine half of this build is
+  venue-generic**, which is a stronger result than it was scoped for.
+- *Sleep-as-logout* (D10) — an inn bed does this too, and an inn is
+  commercial.
+- *Residency* — where you live determines jurisdiction and address, and
+  a bank confers none. This one is genuinely residential, but it is a
+  property of the **dwelling**, not of any room in it.
+- *A door that gates on the lease* — a bank's door is public during
+  hours. But that is the **door**, and doors already carry `Lockable`,
+  credentials and business hours.
+
+Nothing survives at the room tier. That is the finding.
+
+**What it changes here.** The archetypes ship as **rooms**, not as
+residence rooms: one generic room class, four conventional fixture sets,
+reusable in a bank or a bar the day they land. The residence-ness is
+supplied entirely by the parcel and the lease wrapped around them. This
+costs nothing — it deletes a qualifier rather than adding a tier — and
+it means the next venue that wants a bathroom authors a seed row instead
+of re-deriving the concept.
 
 ## Constraints
 
@@ -779,7 +876,7 @@ read by nothing.
 - **Four archetypes exist as content.** Bedroom, kitchen, bathroom and
   living each seed their own fixture set from `populates:`, are editable
   without code, and share one room class.
-- **Rooms carry room-level state.** A residence room declares and
+- **Rooms carry room-level state.** A room declares and
   round-trips at least one field of its own, distinct from its contents —
   the seam D7 exists to establish.
 - **You wake where you slept.** Log out lying on a bedroom bed; after
@@ -794,6 +891,16 @@ read by nothing.
   for a week reconciles to no more than the `MAX_STEPS` cap allows, and
   no avatar recovers past full. Recovery on the floor is not below the
   no-residence baseline.
+- **The archetypes are venue-generic.** Seeding a bathroom and a kitchen
+  into a plain non-residential location — no parcel, no lease, no
+  tenant — works with the same template rows and no residence
+  machinery: the fixtures materialize, the tub is occupiable, `cook`
+  runs. A named test, because it is the check that D15's tiering is real
+  rather than asserted.
+- **The engine half is venue-generic too.** Owner-based persistence
+  (`place`, the skip rule, the re-placement overlay) is exercised once
+  outside a residence — a good owned by one character, placed in a room
+  on a parcel someone else holds — and behaves identically.
 - **A posted room says so and stops there.** A room's designation
   round-trips as room-level state and is readable; a character whose
   pronouns or sex differ from anything the sign says walks in and out
@@ -856,6 +963,17 @@ read by nothing.
   [property-slate](../slates/builds/property-slate.md) §I (chattel &
   persistence, the seed-then-persist handoff), §J (custody vs. title),
   §K (rent vs. own, the lease)
+- Venue-genericity (D15): [parcel.md](../subsystems/parcel.md) (title,
+  land use, the extent — the tier where home-vs-bank is decided),
+  [employment.md](../subsystems/employment.md) (the Business, positions
+  and shifts — a janitor is how a commercial venue is stewarded),
+  [retail.md](../subsystems/retail.md) +
+  [attendant.md](../subsystems/attendant.md) (what a *venue* adds on top
+  of a room), [crafting.md](../subsystems/crafting.md) (the Hearthworks
+  cookhouse — the shipped commercial kitchen D12's home kitchen is
+  measured against), [civics.md](../subsystems/civics.md) (residency,
+  the one genuinely residential property — and it belongs to the
+  dwelling, not a room)
 - Boundary: [stewardship-slate](../slates/builds/stewardship-slate.md) —
   owns condition, land use, and the residence ladder's gate; this build
   ships a rung and the seam, never the ladder
