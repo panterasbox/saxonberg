@@ -36,6 +36,16 @@ function whereHeading(page: import('@playwright/test').Page, name: RegExp) {
   return page.getByRole('heading', { name });
 }
 const ALCOVE_HEADING = /wire alcove/i;
+
+/** The most recent `who` header count, or null if none is on screen. */
+async function onlineCount(
+  page: import('@playwright/test').Page
+): Promise<number | null> {
+  const text = await page.locator('body').innerText();
+  const all = [...text.matchAll(/Online — (\d+)/g)];
+  const last = all[all.length - 1];
+  return last ? Number(last[1]) : null;
+}
 const CIRCLE_HEADING = /circle floor/i;
 
 test.describe('sandbox: the wardrobe crossing', () => {
@@ -429,6 +439,193 @@ test.describe('sandbox: the wardrobe crossing', () => {
       // boundary because the mint had happened outside the root.
       await sendUntil(page, 'eval return 8*8', page.getByText(/: 64\b/).first());
       await expect(page.getByText(/Something went wrong/i)).toHaveCount(0);
+    } finally {
+      await close();
+    }
+  });
+
+  test('the rulebook is readable from inside a circle', async ({ browser }) => {
+    // A sweep of the ordinary verb surface from inside, because the
+    // ones that broke were not the exciting ones: `help` (the topic
+    // index), `spells`, `recipes`, `studio`, `competence`,
+    // `government`, `committee`. Each reads a seeded reference
+    // catalogue — a field-resident singleton — so each simply died,
+    // and a player standing in their own circle could not read the
+    // rulebook.
+    //
+    // The assertion is deliberately blunt: run them and require that
+    // NOTHING threw. A per-verb assertion on output would drift with
+    // the content; "no controller blew up" is the invariant that
+    // actually regressed.
+    const { page, close } = await openWorldAs(browser, 'wire-rulebook', {
+      startLocation: ALCOVE,
+      wizard: true,
+    });
+    try {
+      await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
+      await runCommand(page, 'go wardrobe');
+      await expect(whereHeading(page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      for (const verb of [
+        'help',
+        'spells',
+        'recipes',
+        'studio',
+        'competence',
+        'government',
+        'committee',
+        'score',
+        'chronicle',
+        'standing',
+      ]) {
+        await runCommand(page, verb);
+      }
+      // Give the last one a beat to land, then assert on the whole
+      // session's scrollback.
+      await sendUntil(page, 'look', whereHeading(page, CIRCLE_HEADING));
+      await expect(page.getByText(/Something went wrong/i)).toHaveCount(0);
+      await expect(page.getByText(/sandbox boundary denied/i)).toHaveCount(0);
+    } finally {
+      await close();
+    }
+  });
+
+  test('a wardrobe inside a circle refuses, in prose', async ({ browser }) => {
+    // Cloning a wardrobe inside your own circle and walking into it is
+    // the obvious thing to try. The recursion has always been refused
+    // — `SandboxApi.enter` guards it — but the guard THREW, so the
+    // player met "Something went wrong in GoController" instead of a
+    // closed door. A refusal is content, not a crash.
+    const { page, close } = await openWorldAs(browser, 'wire-nested', {
+      startLocation: ALCOVE,
+      wizard: true,
+    });
+    try {
+      await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
+      await runCommand(page, 'go wardrobe');
+      await expect(whereHeading(page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      await sendUntil(
+        page,
+        'clone /obj/sandbox/wardrobe --here',
+        page.getByText(/cloned/i).first()
+      );
+      await runCommand(page, 'go wardrobe');
+
+      // Still in the circle, and no stack trace reached the player.
+      await expect(whereHeading(page, CIRCLE_HEADING)).toBeVisible();
+      await expect(page.getByText(/Something went wrong/i)).toHaveCount(0);
+    } finally {
+      await close();
+    }
+  });
+
+  test('you are still yourself after a round trip', async ({ browser }) => {
+    // The vessel reports the REAL playerId (the identity thread), and
+    // the registry that maps playerId → body deleted by id alone. So
+    // every vessel reaped — on exit, on respawn, on session close —
+    // evicted its player's actual body from the registry. After one
+    // round trip you were gone from `who`, from presence, from `tell`'s
+    // `online` scope; the next connection then found no live avatar,
+    // materialized a SECOND one, and collided on the persistence spine.
+    //
+    // Two round trips, because the first exit is what breaks it and the
+    // second proves it is not a one-shot.
+    const traveller = await openWorldAs(browser, 'wire-round-a', {
+      startLocation: ALCOVE,
+    });
+    const watcher = await openWorldAs(browser, 'wire-round-b', {
+      startLocation: ALCOVE,
+    });
+    try {
+      await sendUntil(
+        traveller.page,
+        'look',
+        whereHeading(traveller.page, ALCOVE_HEADING)
+      );
+      await sendUntil(
+        watcher.page,
+        'look',
+        whereHeading(watcher.page, ALCOVE_HEADING)
+      );
+
+      // Baseline count, from the watcher's side.
+      let before: number | null = null;
+      await expect(async () => {
+        await runCommand(watcher.page, 'who');
+        before = await onlineCount(watcher.page);
+        expect(before).not.toBeNull();
+      }).toPass({ timeout: 20_000 });
+
+      for (let trip = 0; trip < 2; trip++) {
+        await runCommand(traveller.page, 'go wardrobe');
+        await expect(
+          whereHeading(traveller.page, CIRCLE_HEADING)
+        ).toBeVisible({ timeout: 20_000 });
+        await runCommand(traveller.page, 'go out');
+        await expect(
+          whereHeading(traveller.page, ALCOVE_HEADING)
+        ).toBeVisible({ timeout: 20_000 });
+      }
+
+      // The roster COUNT must not drop. Asserted as a delta rather
+      // than an absolute, because this room accumulates the bodies of
+      // every other spec in the run (their sockets close, but the
+      // avatars linger until the grace window and the residency sweep
+      // reap them) — "exactly 2" was never going to hold.
+      //
+      // The regression is precisely a decrement: the traveller
+      // unregistered themselves by walking home.
+      await expect(async () => {
+        await runCommand(watcher.page, 'who');
+        const now = await onlineCount(watcher.page);
+        expect(now).not.toBeNull();
+        expect(now!).toBeGreaterThanOrEqual(before!);
+      }).toPass({ timeout: 20_000 });
+    } finally {
+      await traveller.close();
+      await watcher.close();
+    }
+  });
+
+  test('your shell crosses with you', async ({ browser }) => {
+    // The vessel is a baseline body, and "baseline" was taken too
+    // literally: layout, theme, settings and aliases all live on the
+    // avatar, none of them forked, so stepping into your own circle
+    // handed you a stranger's defaults. The CMS "Test in holodeck"
+    // button made it obvious — it crossed you correctly and dumped you
+    // out of the builder layout you were working in.
+    //
+    // These are the player's SHELL: how they like to look at the game
+    // and how they like to type. Not world state, and not a reason to
+    // reset because you walked through a door. Fork-only — a
+    // preference changed inside a circle still discards with it.
+    const { page, close } = await openWorldAs(browser, 'wire-shell', {
+      startLocation: ALCOVE,
+    });
+    try {
+      await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
+
+      // A custom alias is the cheapest durable marker of "my shell".
+      await sendUntil(
+        page,
+        'alias set zz look',
+        page.getByText(/zz/).first()
+      );
+
+      await runCommand(page, 'go wardrobe');
+      await expect(whereHeading(page, CIRCLE_HEADING)).toBeVisible({
+        timeout: 20_000,
+      });
+
+      // It came with us: the alias resolves INSIDE the circle, which
+      // it cannot do if the vessel got default aliases.
+      await sendUntil(page, 'zz', whereHeading(page, CIRCLE_HEADING));
+      await expect(page.getByText(/I don't understand 'zz'/i)).toHaveCount(0);
     } finally {
       await close();
     }

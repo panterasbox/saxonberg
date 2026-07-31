@@ -205,7 +205,18 @@ player can change is world state and does not belong here.
   method-name convention; surfaced on `PersistableApi.
   forkRuntimeState/mergeRuntimeState` (no new facade). First slices:
   `Presentation` (Avatar name parts; fork-only) and `Contacts`
-  (epistemic; the ONE entry on the sandbox merge allowlist). The
+  (epistemic; the ONE entry on the sandbox merge allowlist).
+
+  Three more landed from the browser pass, all fork-only: `Embodiment`
+  (species + lifecycle — without it the vessel has no body plan, so the
+  implant never slots and the player cannot speak), `ClientState`
+  (cockpit layout, theme, per-bar input modes) and `Environment` /
+  `Alias` (the settings keyspace, per-character verb aliases). The last
+  three are the player's **shell** — how they like to look at the game
+  and how they like to type. "Baseline body" was taken too literally:
+  it means no gear and no chattel, not a stranger's defaults. The CMS
+  button made it obvious, crossing an author correctly and dumping them
+  out of the builder layout they were working in. The
   collect phase runs under an omni sub-root inside `PersistableLogic`
   (the fork deliberately spans the boundary); apply runs in the
   circle root so followers and state land circle-stamped. Shadows opt
@@ -293,6 +304,12 @@ player can change is world state and does not belong here.
       (`selfHomeOwnerOf`), so the honest behavior for a door nobody
       owns is "this opens onto yours" — a phone booth, not a claim.
 
+  **Recursion refuses in prose.** A wardrobe cloned inside a circle is
+  the obvious thing to try, and stepping into it is correctly refused —
+  but the refusal belongs in `canTraverse`, where it renders as a
+  closed door, not in `SandboxApi.enter`, whose throw reached the
+  player as "Something went wrong in GoController".
+
   Destroy follows from the same split. A *linked* door is the mouth of
   one named circle, so `onDestruct` reaps its occupants via
   `closeSession` (each exits to their parked avatar) and orphans the
@@ -355,17 +372,41 @@ player can change is world state and does not belong here.
   scratch) is `ApiOnly`-gated, and `EvalController` is a controller —
   it was calling the setter directly, so **every** `eval <code>` died
   on the gate, in the field as well as in a circle.
-- **The harness seam**: `POST /api/sandbox/test-session` (CSRF +
-  session-attribution bridge) → `SandboxApi.launchTestSession(actor)`
-  — which IS `enter`, options bag left open for the draft-overlay
-  compose. One "Test in holodeck" button in the CMS editor calls it.
-- **The browser battery** (`e2e/tests/sandbox.spec.ts`, 8 specs): the
+- **The CMS button rides the command bus** — it has no endpoint of its
+  own. "Test in holodeck" sends `go wardrobe` over the game tab's
+  existing socket, the same way the forum panes' buttons dispatch
+  commands, and the ordinary refusal comes back in-fiction when the
+  author isn't standing at a door.
+
+  The build originally shipped `POST /api/sandbox/test-session` →
+  `SandboxApi.launchTestSession(actor)`; both are **deleted**. The
+  method was `enter` under another name (its options bag, reserved for
+  a draft-overlay compose, was never read), and the name asserted
+  something the model denies: there is no act of *launching* a session.
+  A session is bookkeeping that exists BECAUSE a body is on the far
+  side of a door — crossing the threshold is the whole of it, minting
+  the vessel and moving the Interactive are consequences, and the last
+  occupant walking out ends it. `closeSession` is likewise an internal
+  consequence, never a verb.
+
+  The one capability the endpoint really had was operating the door for
+  a body that isn't standing at one. If that is ever wanted, it is a
+  *command* — the bus is the only way in, and a doorless crossing is a
+  design decision about the fiction, not a REST route.
+- **The browser battery** (`e2e/tests/sandbox.spec.ts`, 14 specs): the
   crossing as a player meets it, through the real client — walk in and
   out; circle-born clutter does not follow you out; a dropped
   connection resumes inside the grace window; a message reaches IN;
   the vessel can speak OUT (the implant floor is slotted, not just
   carried); `who` survives the crossing; a message out lands exactly
-  once; `goto` will not walk a real body in. Assertions target the
+  once; `goto` will not walk a real body in; the rulebook verbs
+  (`help`/`spells`/`recipes`/`studio`/`competence`/`government`/
+  `committee`) all answer from inside; a nested wardrobe refuses in
+  prose; you are still the registered body after a round trip; your
+  shell (layout, settings, aliases) crosses with you. Two of those are
+  blunt on purpose — "nothing threw, nothing
+  was denied" is the invariant that actually regressed, and a
+  per-verb assertion on output would drift with the content. Assertions target the
   **location pane heading**, never the message feed — the feed is
   append-only scrollback, so a room name from three commands ago is
   still on screen and a "did we move?" assertion against it passes
@@ -465,6 +506,39 @@ It is not a general hatch: callers hand over the two principals, so the
 omni root only ever wraps a projection the boundary was about to be
 asked about anyway. Anything that writes stays on the ordinary path and
 stays denied.
+
+**A projection is the unit, not a call.** The first instinct — add the
+denied method to the exempt-method set — is wrong, and wrong in a way
+that looks right twice before it stops working. An exempt method that
+dispatches on `this` re-enters the proxy, and the inner hop is a fresh
+boundary check with the same cross-scope context, so the denial just
+moves down one frame: `getPresentation` (exempt) → `getDisguise`
+(exempt it too) → `getAllOccupants` (…and again). `getPresentation`
+therefore wraps its own BODY in the aperture rather than sitting on a
+list, which makes the exemption transitive for exactly the span it
+covers and no further. `RecognitionApi.salientFeatures` is the same
+shape (it walks worn coverings) and gets the same treatment.
+
+The exempt-method set stays for genuine LEAVES — `isDestroyed`,
+`getTemplatePath`, the `HasInteractive` transport seam — methods that
+answer from their own fields without dispatching further.
+
+**The reference-catalogue tier.** Alongside the exempt BASES there is
+an enumerated list of seeded singletons — `HelpCatalogue`,
+`SpellCatalogue`, `RecipeCatalogue`, `BlueprintCatalogue`,
+`DisciplineCatalogue`, `GovernmentCatalogue`, beside the pre-existing
+`TopicCatalogue` / `SoulCatalogue` / `CorpoCatalogue` / … Each is
+authored content the engine reads to answer "what exists in the
+world", never player-mutable at runtime, REFUSE'd at the PM layer
+besides. They are enumerated rather than based because each is a
+singleton rather than a class of many.
+
+Every one was a verb that simply died inside a circle — `help`,
+`spells`, `recipes`, `studio`, `competence`, `government`. A player
+standing in their own circle could not read the rulebook. Worth
+restating the rule when adding to this list: **genuine vocabulary
+only**; anything a player can change is world state and belongs on the
+ordinary path.
 
 **Identity, not object, is the unit of a person.** Once the audience is
 the field avatar and the speaker may be a vessel, `a === speaker` stops

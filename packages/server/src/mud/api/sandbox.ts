@@ -253,20 +253,6 @@ export class SandboxApi {
   ): Promise<T> {
     return logic().runGoverned(parcelPath, fn);
   }
-
-  /**
-   * The author→test harness seam: launch a test session for `actor`
-   * (the crossing + a fresh body; reap-wholesale on exit). It IS
-   * `enter` — no harness special case. `opts` is deliberately an open
-   * bag so the CMS draft-overlay compose can land later without a
-   * signature change.
-   */
-  public static launchTestSession(
-    actor: Avatar,
-    _opts: Record<string, unknown> = {}
-  ): Promise<SandboxSession> {
-    return logic().enter(actor);
-  }
 }
 
 SecurityApi.decorateApiClass(SandboxApi);

@@ -12,7 +12,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
-import { cmsClient } from "./cmsClient";
+import { websocketClient } from "../../services/websocket";
 import { MonacoLazy } from "./MonacoLazy";
 import { StudioForm } from "./studio/StudioForm";
 import { tokens } from "../ui";
@@ -198,18 +198,25 @@ export const CmsEditor: React.FC = () => {
     studioLoadData(body);
   }, [studioSerialize, cmsEditDraft, cmsSave, studioLoadData]);
 
-  // The author→test harness seam (sandbox): one call, the game tab's
-  // session crosses into the author's circle on a fresh wire body.
-  const csrf = useStore((s) => s.cms.csrf);
-  const testInHolodeck = React.useCallback(async () => {
-    if (!csrf) return;
-    try {
-      await cmsClient.launchTestSession(csrf);
-    } catch (e) {
-      // Surface through the shared error bar via the store's shape.
-      console.warn("test-session launch failed", e);
-    }
-  }, [csrf]);
+  // Step into the sandbox from the editor. This rides the COMMAND BUS,
+  // like the forum panes' buttons and like every other clickable in the
+  // client: it sends the same `go wardrobe` the player could type, over
+  // the game tab's existing socket.
+  //
+  // It deliberately has no endpoint of its own. The REST route it used
+  // to call (`POST /api/sandbox/test-session` → `launchTestSession`)
+  // was `SandboxApi.enter` under a different name — there is no such
+  // act as "launching a session". A session is bookkeeping that exists
+  // BECAUSE a body is on the far side of a door; crossing the threshold
+  // is the whole of it, and the last occupant walking out ends it.
+  //
+  // So the button operates a door, and needs the player to be standing
+  // at one. When they aren't, the ordinary refusal comes back over the
+  // bus, in-fiction, exactly as if they had typed it — no special
+  // error path, nothing for this component to interpret.
+  const testInHolodeck = React.useCallback(() => {
+    websocketClient.sendCommand("go wardrobe");
+  }, []);
 
   // Studio-mode dirtiness: the serialized overlay diverges from the
   // persisted body. (Computed at render; cheap for the small field set.)
@@ -265,8 +272,8 @@ export const CmsEditor: React.FC = () => {
           <Kind>{open.kind}</Kind>
           <SaveButton
             type="button"
-            title="Cross your game session into your circle to try this out (the sandbox)"
-            onClick={() => void testInHolodeck()}
+            title="Step through the wardrobe into your circle (sends: go wardrobe)"
+            onClick={testInHolodeck}
           >
             Test in holodeck
           </SaveButton>

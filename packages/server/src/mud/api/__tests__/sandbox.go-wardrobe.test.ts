@@ -24,7 +24,6 @@ import CartesianLocation from '../../lib/location/CartesianLocation';
 import Wardrobe from '../../lib/sandbox/Wardrobe';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
-import type { CommandGiver } from '../../lib/command/CommandGiver';
 
 const PLAYER = 'go-wardrobe-tester';
 const SCOPE = `/home/${PLAYER}`;

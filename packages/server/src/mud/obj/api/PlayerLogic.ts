@@ -99,11 +99,26 @@ export class PlayerLogic extends ApiLogic {
   /** See {@link PlayerApi.unregisterAvatar}. */
   @CallSecurity(PlayerApiCallers)
   public unregisterAvatar(avatar: Avatar): void {
-    if (!avatar.getPlayerId()) {
+    const playerId = avatar.getPlayerId();
+    if (!playerId) {
       return;
     }
-
-    this.avatarsByPlayerId.delete(avatar.getPlayerId());
+    // Only if THIS avatar is the one holding the slot. A playerId no
+    // longer implies a unique body: a sandbox wire body reports the
+    // REAL playerId (the identity thread — authority and the epistemic
+    // ledgers key on the person, not the vessel) while the field avatar
+    // keeps the registry slot, parked.
+    //
+    // Deleting by id alone meant every vessel reaped — on exit, on
+    // respawn, on session close — evicted its player's real body from
+    // the registry. The player then vanished from `who`, from presence,
+    // from `tell`'s `online` scope; worse, the next connection found no
+    // live avatar, materialized a SECOND one, and collided on the
+    // persistence spine ("two live instances … both keyed"). Found
+    // live: crossing once, walking out, then opening a second tab.
+    const held = this.avatarsByPlayerId.get(playerId);
+    if (held && held.stuffId !== avatar.stuffId) return;
+    this.avatarsByPlayerId.delete(playerId);
   }
 
   /** See {@link PlayerApi.findAvatarByPlayerId}. */

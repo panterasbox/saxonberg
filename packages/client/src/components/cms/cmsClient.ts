@@ -123,23 +123,6 @@ export const cmsClient = {
   },
 
   /**
-   * Launch a sandbox test session for the session's acting avatar
-   * (the author→test harness seam): the game tab's session crosses
-   * into the circle on a fresh wire body; walking out (or the sweep)
-   * reaps everything but the edits.
-   */
-  async launchTestSession(
-    csrf: string,
-  ): Promise<{ id: string; scope: string }> {
-    const res = await fetch(`/api/sandbox/test-session`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "X-CMS-CSRF": csrf },
-    });
-    return unwrap<{ id: string; scope: string }>(res);
-  },
-
-  /**
    * Read the author-diagnostics store (the diagnostics panel). Read-only;
    * the server resolves the acting author from the session and applies the
    * author-tier gate + non-wizard compile redaction. `mine` is the

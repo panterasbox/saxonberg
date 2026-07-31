@@ -148,9 +148,23 @@ export class RecognitionApi {
     target: Stuff,
     covered?: ReadonlySet<string>
   ): string {
-    return covered === undefined
-      ? logic().salientFeatures(target)
-      : logic().salientFeatures(target, covered);
+    // Single-subject form of the same aperture as `describe`: this is
+    // the worn-feature half of naming a person, and it walks the
+    // target's slot occupants to find the notable item. Enumerating
+    // exempt METHODS does not work here — the walk is a chain
+    // (`getPresentation` → `getDisguise` → `getAllOccupants` → the
+    // occupant's own `getPresentation` …), so exempting one hop just
+    // moves the denial to the next. The projection is the unit, not
+    // the call.
+    return SecurityApi.projectAcross(
+      target,
+      undefined,
+      () =>
+        covered === undefined
+          ? logic().salientFeatures(target)
+          : logic().salientFeatures(target, covered),
+      RecognitionApi
+    );
   }
 
   /**

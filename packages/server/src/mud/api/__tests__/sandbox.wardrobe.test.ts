@@ -263,7 +263,7 @@ describe('the seeding aperture (Wave 4)', () => {
   });
 
   it('refuses outside a circle, refuses the unowned, copies the owned', async () => {
-    const { avatar, room } = await makeRig();
+    const { avatar } = await makeRig();
 
     // Fake template store so StuffApi.clone can mint the copy.
     const pm = PersistenceManager.get();

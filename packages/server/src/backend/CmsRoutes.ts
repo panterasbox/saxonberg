@@ -202,43 +202,6 @@ export class CmsRoutes {
       }
     });
 
-    // The author→test harness seam (sandbox build): launch a test
-    // session for the CMS session's acting avatar — the crossing + a
-    // fresh body; reap-wholesale on exit leaves nothing but the edits.
-    // The principal rides the session-attribution bridge (never a
-    // request field); draft-overlay compose is deliberately NOT built —
-    // `launchTestSession`'s options bag is the labeled attach point.
-    app.post('/api/sandbox/test-session', requireAuth, async (req, res) => {
-      const header = req.get('X-CMS-CSRF');
-      const expected = req.session.cmsCsrf;
-      if (!expected || !header || header !== expected) {
-        res.status(403).json({ error: 'denied', message: 'csrf' });
-        return;
-      }
-      try {
-        const out = await CmsSession.runAsSessionPlayer(
-          req,
-          'sandbox.testSession',
-          async () => {
-            const actor = ExecutionContextApi.getActingAuthor() as
-              | Avatar
-              | null;
-            if (!actor) {
-              throw new CmsError(
-                'denied',
-                'no in-world avatar for this session — open a game tab first'
-              );
-            }
-            const session = await SandboxApi.launchTestSession(actor);
-            return { id: session.id, scope: session.scope };
-          }
-        );
-        res.json(out);
-      } catch (e) {
-        sendCmsError(res, e);
-      }
-    });
-
     console.info('CmsRoutes: Routes configured');
   }
 }

@@ -106,6 +106,23 @@ export default class SandboxCrossingExit extends Exit {
         reason: 'A guest cannot cross onto the wire.',
       };
     }
+    // Already inside? Refuse HERE, in the door's own prose, rather than
+    // letting `SandboxApi.enter` throw its guard up through the
+    // dispatcher as "Something went wrong in GoController". Cloning a
+    // wardrobe inside your own circle and walking into it is the
+    // obvious thing to try — the recursion is correctly refused either
+    // way, but a player should meet a closed door, not a stack trace.
+    if (
+      SandboxApi.liveSessionForPlayer(
+        (mover as unknown as Avatar).getPlayerId()
+      ) !== null
+    ) {
+      return {
+        ok: false,
+        gate: 'blocked',
+        reason: 'You are already on the wire; this door goes nowhere new.',
+      };
+    }
     return { ok: true };
   }
 

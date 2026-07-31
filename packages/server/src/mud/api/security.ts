@@ -588,6 +588,22 @@ export class SecurityApi {
       '/obj/SubjectCatalogue',
       '/obj/ChannelCatalogue',
       '/obj/CorpoCatalogue',
+      // Seeded reference catalogues — authored content the engine reads
+      // to answer "what exists in the world": never player-mutable at
+      // runtime, and REFUSE'd at the PM layer besides. Same tier as the
+      // reference-data BASES (Species, Material, Zone …), enumerated
+      // here because each is a singleton rather than a class of many.
+      //
+      // Every one of these was a verb that simply died inside a circle
+      // — `help`, `spells`, `recipes`/`craft`, `studio`, `competence`,
+      // `government`. A player standing in their own circle could not
+      // read the rulebook.
+      '/obj/HelpCatalogue',
+      '/obj/SpellCatalogue',
+      '/obj/RecipeCatalogue',
+      '/obj/BlueprintCatalogue',
+      '/obj/DisciplineCatalogue',
+      '/obj/GovernmentCatalogue',
     ]);
 
   /**
@@ -685,14 +701,17 @@ export class SecurityApi {
     fn: () => T,
     principal: unknown = SecurityApi
   ): T {
+    const ambient = ExecutionContextApi.getCircleScope();
+    // Already omni: there is nothing left to widen, and this is the
+    // common case for a NESTED projection (a presentation walk that
+    // reaches another body's worn gear re-enters here). Cheap exit.
+    if (ambient === OMNI_SCOPE) return fn();
     const scopeA = a?.getCircleScope?.() ?? null;
     // `b === undefined` means "the ambient context" — the single-subject
     // form, for projections whose other side is simply wherever the
     // caller is standing (the delivery sense-gate, a status read).
     const scopeB =
-      b === undefined
-        ? ExecutionContextApi.getCircleScope()
-        : (b?.getCircleScope?.() ?? null);
+      b === undefined ? ambient : (b?.getCircleScope?.() ?? null);
     if (scopeA === scopeB) return fn();
     // Rooted AS the calling facade, not as SecurityApi: a fresh root
     // discards the frame that identified the caller, so the logic

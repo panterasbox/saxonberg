@@ -182,6 +182,26 @@ export abstract class Stuff {
    * effects can override the rendered identity via a method shadow.
    */
   getPresentation(): string {
+    // Presentation is a PROJECTION, and the whole chain beneath it has
+    // to be one, not just this frame. `getPresentation` sits on the
+    // boundary's exempt-method list, but it is not a leaf: it consults
+    // the disguise deferral, and `getDisguise` in turn walks the worn
+    // coverings. Exempting method NAMES one at a time only moved the
+    // denial to the next hop each time (`getPresentation` →
+    // `getDisguise` → `getAllOccupants` → …) — found live twice, on
+    // `who` and again on `committee`. Wrapping the body instead makes
+    // the exemption transitive for exactly the span it covers, and no
+    // further.
+    //
+    // Same-side calls — the overwhelming majority — cost one scope
+    // compare and nothing else.
+    return SecurityApi.projectAcross(this, undefined, () =>
+      this.presentationCore()
+    );
+  }
+
+  /** The pure identity synthesis; see `getPresentation` for the seam. */
+  private presentationCore(): string {
     let base = DEFAULT_PRESENTATION;
     // Disguise defers FIRST and at the baseline (not via a shadow on
     // the synthesizer): a masked creature presents its covering's
