@@ -680,7 +680,10 @@ recipient.handleMessage(frame)     (after filterMessage)
               │
               ▼ (Avatar override)
 for (const i of this.interactives):
-    Application.sendMessageToInteractive(i, frame)
+    ConnectionApi.sendMessage(i, frame)
+              │
+              ▼
+Application.sendMessageToInteractive(i, frame)
               │
               ▼
 Backend.sendMessageToSocket(socketId, frame)
@@ -689,10 +692,14 @@ Backend.sendMessageToSocket(socketId, frame)
 ws.send(JSON.stringify(frame))     (only if ws.readyState === OPEN)
 ```
 
-`Application.sendMessageToInteractive` is the **sole gateway** from
-game objects to the network — Application owns the Backend
-reference, no other game code holds it. Avatar's override at
-`handleMessage` is what implements multiplexing.
+`ConnectionApi.sendMessage` / `sendEnvelope` are the mudlib's **only**
+way onto the wire; they forward through `ConnectionLogic` to
+`Application`, which owns the Backend reference and stamps the
+per-Interactive `frameId`. A `Stuff` never holds an `Application`
+reference — under [the import boundary](../architecture.md) a mudlib
+module may not import `backend/` at all, so the connection subsystem
+owning the socket *and* the send is what makes the layering hold.
+Avatar's override at `handleMessage` is what implements multiplexing.
 `Backend.sendMessageToSocket` is the final network call; logs and
 skips if the socket is missing or closed.
 

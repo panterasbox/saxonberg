@@ -504,6 +504,21 @@ on combat.
   procgen-NPC generator folded in). Consumers: BUC-at-spawn, create-monster,
   world-population. **Shared world-wide.**
 
+### 12. Engine hygiene — ✅ shipped
+*Platform refactors with a lint at the end — no product surface.*
+- [import-boundary-slate](./builds/import-boundary-slate.md) —
+  **shipped 2026-07-31** → [architecture.md § The import
+  boundary](../architecture.md). The driver/mudlib split as a CI-gating
+  import rule: nothing in `src/mud/` imports outside the tree (Node
+  built-ins included) except the Api tier (`api/**` + `obj/api/**`),
+  which imports and wraps. The import-graph twin of call-security, and
+  what makes the sandbox / wizard code-trust story checkable. 36
+  violating files → 0 (29 of them the `Collections`-enum sweep); the
+  fold added a synchronous shipped-resource face to `SourceTreeApi`
+  rather than minting an Api. Six per-file exceptions, each with a
+  reason. Slate fully absorbed — retire at the next sweep; the one
+  residual tail is tightening the blanket test exemption.
+
 ---
 
 ## Deferred game-design (`deferred-rpg/`)

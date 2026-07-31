@@ -117,7 +117,7 @@ template) gets it for free. No subclass changes required.
 `PersistenceManager.get()` returns the singleton. It owns:
 
 - The MongoDB connection (`MongoClient`, `Db`).
-- A `Collections` enum (`Users`, `GoogleProfiles`, `Domain`).
+- The `Collections` vocabulary — re-exported, not defined here (below).
 - `save` / `findById` / `find` / `delete` operations.
 - A hook registry (around-save / around-delete chains).
 
@@ -788,7 +788,16 @@ resolver seam in the meantime.
 
 ## Collections
 
-Defined in `backend/PersistenceManager.ts`:
+Defined in **`mud/lib/persistence/Collections.ts`**, and re-exported by
+`backend/PersistenceManager` so the driver side keeps one import site
+(`COLLECTION_POLICIES` is a total `Record<Collections, …>`).
+
+It lives in the mudlib because it is **vocabulary, not mechanism** — no
+driver, no connection, no I/O — and mudlib records name their own
+collection (`static collectionName = Collections.BankLedger`). Under
+[the import boundary](../architecture.md) a mudlib module may not reach
+into `backend/` to learn its own name, so the enum moved to the side
+that reads it; ~30 ledger-shaped records import it directly today.
 
 ```typescript
 enum Collections {

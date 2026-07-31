@@ -486,6 +486,98 @@ body (see `PersistenceManager.dispatchSave` and friends) is the
 established escape hatch — keeps the static graph clean while the
 runtime call still resolves.
 
+## The import boundary
+
+The rule in one line: **nothing under `src/mud/` imports anything from
+outside `src/mud/` — Node built-ins included — except the Api layer,
+which imports and wraps.**
+
+This is the classic driver/mudlib split stated for our tree. Mudlib code
+gets **no ambient capabilities**: no filesystem, no network, no process,
+no code-eval. It asks the gated Api surface, or it does without. The
+rule is the import-graph twin of call-security — call-security governs
+*who may call what at runtime*, this governs *what a module can reach at
+all* — and together they are what makes the sandbox and wizard
+code-trust story checkable rather than aspirational. Authored code that
+can only import mud modules can only do what the Apis gate.
+
+Enforced by `pnpm lint:imports` (`scripts/check-mud-imports.ts`),
+CI-gating. A script rather than an ESLint rule for the same ESLint-8
+reason as `check-gate-strings`, and because `no-restricted-imports`
+cannot express "a relative import that escapes this subtree" without a
+resolver plugin. `--report` prints crossings grouped by module and file.
+
+### The tiers
+
+| Tier | Files | May import |
+|---|---|---|
+| **mudlib** (the default) | `lib/`, `obj/` outside `obj/api/`, `cmd/`, `domain/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
+| **Api** | `mud/api/**` **and** `mud/obj/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
+| **test** | `**/__tests__/**` | unrestricted |
+
+The Api tier is **both halves of the `XApi` ↔ `XLogic` split**, not just
+`api/`. `api/` is the thin non-HMR forwarding shell; the logic singleton
+is where a capability actually gets used (`CommandLogic` enumerating YAML
+views, `PackLogic` reading pack files, `GitLogic` driving `simple-git`).
+Exempting only `api/` would force the wrap to forward *backwards* into
+logic that could not do the work. This tier is already the `@internal`,
+gated one — the boundary and the doc-visibility boundary coincide, which
+is the `callable == visible == cared-about` invariant again.
+
+Two deliberate softenings:
+
+- **`import type` is exempt everywhere.** It is erased at compile time
+  and confers no runtime capability. The rule is about capability, not
+  vocabulary — `import type { BootstrapEntry }` from backend is fine.
+- **Both allowlists are enumerated, not open.** A new built-in or npm
+  dependency in the Api tier is a deliberate edit to the script. That is
+  the tripwire that forces the conversation, the same discipline as the
+  export-discipline registry. Driver-level packages (mongodb, express,
+  ws, passport) are on no tier's list: they belong to `backend/`.
+
+Dynamic `import()`, `require()` and `createRequire` ride the same matrix
+— a soundness hole there would make the whole rule decorative.
+
+### Naming a file without reaching for one
+
+The recurring mudlib need is "load the authored data file that ships next
+to me" — a char-gen roster, a theme catalogue, a command schema. The
+answer is the synchronous shipped-resource face on `SourceTreeApi`:
+
+```typescript
+SourceTreeApi.readYamlResource<CharGenConfig>(
+  import.meta.url,
+  '../../../config/char-gen.yaml'
+);
+```
+
+`import.meta.url` is a **language construct, not an import**, so a mudlib
+module can name its own location without leaving the tree; the read
+happens in the Api tier, sandbox-checked. Siblings: `readResource`,
+`readJsonResource`, `parseYaml` (for text already in hand — a command
+argument, a CMS field), and the pure path arithmetic `toMudPath` /
+`resolveFrom`.
+
+### The exception registry
+
+Six per-file carve-outs live in `check-mud-imports.ts`, each with its
+reason. They fall into two kinds:
+
+- **It IS the data layer** — `lib/persistence/Document.ts` and
+  `lib/stuff/Template.ts` import `PersistenceManager`. Exactly the
+  boundary `check-pm-access.ts` already sanctions for the same two files.
+- **The host module is the capability being modeled** — the marshaller
+  that exists to encrypt (`crypto`), the prose value object that *is* the
+  compiled-template binding (`liquidjs`), the sandboxed-eval primitive
+  (`vm`), the command-spec validator (`ajv`). All four are pure
+  computation in the capability sense: a value in, a verdict or a
+  transformed value out, no fs / net / process. Folding them into an Api
+  would relocate the import without changing the trust story.
+
+**Ask before adding a seventh.** A new entry is drift by definition; the
+answer is almost always "fold it into an Api," and the lint failing is
+the intended tripwire that forces that conversation.
+
 ## Class Hierarchy
 
 ### Top-level branches
