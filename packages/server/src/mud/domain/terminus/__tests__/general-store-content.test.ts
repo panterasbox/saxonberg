@@ -17,6 +17,9 @@ import YAML from "yaml";
 const STORE_DIR = fileURLToPath(
   new URL("../../../seeds/domain/terminus/general-store/", import.meta.url),
 );
+const OBJ_DIR = fileURLToPath(
+  new URL("../../../seeds/obj/", import.meta.url),
+);
 const CH_DIR = fileURLToPath(
   new URL("../../../seeds/domain/terminus/counting-houses/", import.meta.url),
 );
@@ -78,6 +81,11 @@ describe("general-store content integrity", () => {
     "/lib/craft/ToolItem",
     "/lib/craft/Whetstone",
     "/obj/Ingot",
+    // The gardening line (husbandry phase 1): a pot is a Slotted fixture
+    // with a bulk interior for soil, a seed a discrete Thing naming the
+    // plant it grows into. Both stocked from ordinary `/obj/` templates.
+    "/obj/PlantPot",
+    "/obj/Seed",
   ]);
 
   it("every priced/stocked good is a real, discrete item (never Globbable)", () => {
@@ -87,12 +95,20 @@ describe("general-store content integrity", () => {
     expect(lines.length).toBeGreaterThan(0);
 
     for (const line of lines) {
-      const rel = line.itemTemplatePath.replace(
+      // A stock line's `itemTemplatePath` takes ANY path: the store-local
+      // staples live under `goods/` because they are store-specific, while
+      // the gardening line points straight at shared `/obj/` templates
+      // (duplicating those would mean two pots, and two seeds growing the
+      // same plant, drifting apart). Resolve either home.
+      const local = line.itemTemplatePath.startsWith(
         "/domain/terminus/general-store/",
-        "",
       );
-      expect(existsSync(`${STORE_DIR}${rel}.yaml`)).toBe(true);
-      const good = load(STORE_DIR, `${rel}.yaml`);
+      const dir = local ? STORE_DIR : OBJ_DIR;
+      const rel = local
+        ? line.itemTemplatePath.replace("/domain/terminus/general-store/", "")
+        : line.itemTemplatePath.replace("/obj/", "");
+      expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
+      const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).
       expect(DISCRETE_ITEM_CLASSES.has(good.class ?? "")).toBe(true);
       // Priced, coinage-clean (a positive integer minor amount).

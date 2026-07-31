@@ -1,0 +1,21 @@
+# Dracaena trifasciata — snake plant. Sessile body plan, monoecious,
+# aperiodic. The peace lily's deliberate opposite: drought-tolerant and
+# low-light-tolerant, so it inverts BOTH growth curves at once and "one
+# engine, many plants" is visible side by side rather than asserted. The
+# taxonomy row is identical in shape to wallisii.yaml; the divergence is
+# entirely in the growth profile on the plant template.
+class: /lib/species/Species
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  binomial: Dracaena trifasciata
+  commonNames: ["snake plant", "mother-in-law's tongue", "houseplant"]
+  _bodyPlanPath: /lib/body-plans/sessile
+  _parentCladePath: /lib/species/plantae
+  _defaultMaterialPath: /lib/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 25
+  circadianBand: aperiodic
+  diet: photosynthesis

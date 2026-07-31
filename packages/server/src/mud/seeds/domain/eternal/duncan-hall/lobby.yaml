@@ -28,6 +28,10 @@ data:
     A long marble counter divides the lobby roughly in half. The far wall is studded with brass mail slots — most empty, a few stuffed with envelopes nobody has come down for. Bulletin boards on either side advertise things that have already happened: a study group two weeks back, a missing textbook from last term.
 
     The front doors stand open to the south, letting the day's heat in.
+  # Daylight through the open front doors plus the counter lamps — the
+  # brightest interior in the building. `bright` (60-200 lux).
+  ambientIntensity: 80
+  ambientColorTemperature: 5500
   coords:
     x: 0
     y: 1

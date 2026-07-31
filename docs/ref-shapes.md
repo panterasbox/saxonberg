@@ -159,6 +159,8 @@ semantics across all singleton refs.
 | `Party` | `formationPath` (raw-path variant — the holder **never resolves**: the party side stores/returns the string only and never imports `lib/combat`; the consumer (combat) resolves path → `CombatFormation` Idea on its own side of the one-way dep, via the total `PartyApi.formationPathOf` chain) | `getFormationPath()` / `setFormationPath(value)` |
 | `Character` | `_domicileAddress` (ADDRESS-namespace path, not templatePath — the raw-path variant: the holder never resolves; `GovernmentApi.residentOf` resolves address → jurisdiction chain on the civics side; setter enforces persists-until-replaced) | `getDomicileAddress()` / `setDomicileAddress(value)` ([civics.md](./subsystems/civics.md)) |
 | `Locality` | `_governmentKey` (durable-`key` join variant, the `_brandKey` shape — resolves on read through `GovernmentCatalogue`) | `getGovernmentKey()` / `setGovernmentKey(value)` ([civics.md](./subsystems/civics.md)) |
+| `Seed` | `growsIntoPath` (**template**-path variant — the holder never resolves it to an Idea; the `plant` verb hands it to `StuffApi.clone` to mint a fresh instance, so the string names a *lineage to instantiate*, not a singleton to read) | `getGrowsIntoPath()` / `setGrowsIntoPath(value)` ([husbandry.md](./subsystems/husbandry.md)) |
+| `Plant` | `seedTemplatePath` (the same instantiate-don't-resolve variant, in reverse — a flowering episode clones it into the pot) | `getSeedTemplatePath()` / `setSeedTemplatePath(value)` |
 
 ---
 

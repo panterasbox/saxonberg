@@ -1,0 +1,41 @@
+# The starter pot — the dorm's born-with houseplant, and the reason nobody
+# has to shop before meeting the growth model.
+#
+# Same class and same soil volume as the small pot; the difference is
+# entirely template DATA: this one ships pre-filled with soil and carries
+# its own `populates:` bringing a peace lily into its slot. That is why a
+# starter and a bought pot are one class.
+#
+# 0.5 L of soil carries a peace lily to `young` and then binds — so the
+# free plant is also the thing that teaches transplanting, and the large pot
+# at the general store is the first purchase a player has a reason to make.
+class: /obj/PlantPot
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a small clay pot
+  primaryKeyword: pot
+  keywords: [pot, "small pot", "clay pot", planter]
+  longDescription: |
+    A squat unglazed pot with a chipped rim, filled to within a thumb's width of the top with dark soil.
+  material: /lib/material/ceramic/ceramic
+  interiorBulk: true
+  interiorCapacity: 0.5
+  interiorMaterial: /lib/material/bulk/potting-soil
+  interiorAmount: 0.5
+  # `liquidTight` (the default), NOT `open`: an `open` interior does not
+  # RETAIN bulk — the transfer drains it straight through to the floor. A
+  # pot's drainage hole lets water out, but the soil has to stay in it, and
+  # water is modelled on the plant's own reserve rather than in the pot.
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 1
+      userFacingDetail: planting
+  details:
+    planting:
+      keywords: [soil, planting, hole, rim]
+      description: Dark soil, damp near the surface, packed around a single stem.
+  # The pot's own born-with content. `applyPopulates` claims the plant slot
+  # after placing, so the lily is slotted and not merely sitting in the pot.
+  populates:
+    - /obj/plant/peace-lily

@@ -9,6 +9,12 @@
 > landscape as the lens, build the economy it revealed. Work off this
 > for the next few builds; strike items as they ship.
 >
+> **Sequencing (2026-07-31):** the farming / ranching / pets / preservation /
+> disease / health cluster now has a dependency-ordered build sequence —
+> [living-world-roadmap.md](./living-world-roadmap.md). Nine phases starting
+> from a houseplant; phases 1–3 are a plan, 4–9 a direction. Items below that
+> belong to that family are ordered *there*, not here.
+>
 > Each item carries a **design-readiness tag**:
 > **[T1]** settled / complete-by-precedent — `/requirements`-ready ·
 > **[T2]** captured at slate level — needs a requirements pass, no open
@@ -66,6 +72,16 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
    phases named, tenancy/tax mechanisms thinnest] — the essential
    **sinks** (rent, rates) and the residence progression every player
    rides. *Serves: Landwrights; the money supply's drain side.*
+   **2026-07-31:** the missing connective tissue is now designed in
+   [stewardship-slate](./slates/builds/stewardship-slate.md) — **land
+   use** (a closed vocabulary typing what a parcel admits; absent from
+   the corpus today), the **allowance cascade** (Compact → locality →
+   parcel, with the sandbox drawing Compact-direct), the ladder's
+   **actual gating rule** (condition of what you already hold, not just
+   money), and **stewardship** (condition + Discipline). Two known
+   blockers: dense suburbia needs the deferred *region parcel*, and the
+   cascade needs Phase 1's un-designed allowance **meter**. **Land use
+   alone needs neither** and is what unblocks farming/ranching/pets.
 
 ## 2. Pre-beta content passes (wanted regardless of guilds)
 
@@ -95,8 +111,13 @@ and real **sinks** (rent, tax, wear). Ordered by leverage:
 
 ## 3. Launch-enhancing systems (valuable, not economy-blocking)
 
-- **Pets W1–W2 (taming)** [T2] — the Wardens' supply-chain anchor;
-  chattel shipping already closed one of its three named gaps.
+- **Pets W1–W2 (taming)** [T2] — the Wardens' supply-chain anchor.
+  **2026-07-30:** two of its three named gaps are now closed (chattel;
+  multi-instance keyed persistence) — only the **fear/threat axis**
+  remains structural. If pets builds before ranching, the one rule is:
+  **don't solve custody or persistence pet-shaped** — both are shared
+  one-liners (`ChattelMixin` on the Creature stack; a keyed
+  `PersistableMixin` host).
 - **Magic-items / BUC + identification** [T2] — the Society of
   Inquiry's identification economy.
 - **Courts / the adjudication stack** [T3] — opens the Advocates,
@@ -148,9 +169,36 @@ precedents):
   merges.
 - **Marshal-credential issuance** [T4, small] — Office or court?
   Waits on the courts design.
-- **Ranching deep pass** [stub] — the Grange's herd wing; scheduled to
+- **Preservation / spoilage** [T2 —
+  [preservation-slate](./slates/builds/preservation-slate.md)] — **the
+  keystone deferral of the extraction family.** Mining's salt ("preservation
+  is the killer app" [DECIDED]) and fishing ("the natural driver to finally
+  build perishability") both point at it and stop. Without it winter is a
+  pause not an economy, salt is a rock, the salt-cod route is decorative,
+  and the preserving crafting branch has no reason to exist. Small: the
+  growth term plus a freshness gauge copying `Wet.ts`.
+- **Disease** [T2 — [disease-slate](./slates/builds/disease-slate.md)] —
+  spans farming / ranching / aquaculture / pets / player health. The
+  `contagion` seam is already cut on every shipped `Condition`; the delta is
+  a growth term (**shared with preservation — build it there first**) and a
+  `ContagionSpec`. *Good husbandry is immunity.* Crops are the first proving
+  ground; pets and players last.
+- **The health vertical** [T2/T3 —
+  [health-vertical-slate](./slates/builds/health-vertical-slate.md)] —
+  clinical practice, public health, and the teaching seam, over disease +
+  harm. The College of Physic's demand anchor already names *polity
+  public-health paper*; the demo slate's **aid post** is its stage. The
+  differentiator: every prior game's healer asks *how much healing*, ours
+  asks *what is wrong*. Largest gap: **there is no diagnosis surface at
+  all.**
+- **Ranching deep pass** — the Grange's herd wing; scheduled to
   ride the farming session; shares the breeding substrate (and
   aquaculture is fishing's ranching sibling — design them together).
+  **2026-07-30: the shared conventions are now DECIDED** (density dial ·
+  custody = `ChattelMixin` on the Creature stack · one family-wide clock ·
+  two yield shapes) — see
+  [ranching-slate](./slates/builds/ranching-slate.md). What's left open is
+  ranching's own content design (yield feel, herd UX, the breeding game).
 - **The procgen doctrine capture** — due when the first extraction
   vertical builds its generation grammar (mining/fishing). The
   scattered instincts to write down as one doctrine: procgen for

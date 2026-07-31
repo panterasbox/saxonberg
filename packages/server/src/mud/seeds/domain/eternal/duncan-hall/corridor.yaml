@@ -15,3 +15,8 @@ data:
   primaryKeyword: corridor
   longDescription: |
     A long hallway of identical doors, each with a small brass number and a slot for a name card. A stairwell landing anchors one end. The carpet is the specific grey of somewhere nobody lingers.
+  # Institutional strip lighting: enough to read a door number by and not
+  # much more. `dim` (5-20 lux) — a corridor is a plausibly darker place
+  # than a dorm room, so a plant left out here is measurably worse off.
+  ambientIntensity: 9
+  ambientColorTemperature: 4000

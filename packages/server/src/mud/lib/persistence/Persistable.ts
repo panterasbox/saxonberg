@@ -79,8 +79,26 @@ export interface Persistable {
    * Stash the explicit per-instance persistence key (the record `owner`).
    * Written by `PersistableLogic` when a keyed capture/materialize resolves
    * a key; read back on a keyless re-capture.
+   *
+   * `explicit` (default true) records the key's **provenance**: an
+   * establishing context supplying a real per-instance key (a leased dorm
+   * room's unit parcel, a cultivated plant's uuid) means "this host is one
+   * of many". `PersistableLogic` passes `false` for the scope-derived
+   * owner it stashes on a keyless capture — that value is a singleton's
+   * self/parcel owner, not a multi-instance key. See
+   * {@link isPersistenceKeyExplicit}.
    */
-  setPersistenceKey(key: string): void;
+  setPersistenceKey(key: string, explicit?: boolean): void;
+
+  /**
+   * Whether this host's stashed key was supplied by an establishing
+   * context rather than derived from its scope — i.e. whether the host is
+   * **multi-instance**. Sticky once true. The nested-host capture reads it
+   * to decide between a `{ref, key}` entry (clone a fresh keyed shell per
+   * sibling) and a bare `{ref}` (the singleton dedup), so a singleton's
+   * derived owner never turns its ref into a keyed one.
+   */
+  isPersistenceKeyExplicit(): boolean;
 
   /**
    * Mark this live host for revert on its next destruct — its
@@ -113,6 +131,10 @@ export function PersistableMixin<
     /** Stashed explicit persistence key; null until first keyed op. */
     protected _persistenceKey: string | null = null;
 
+    /** True once an establishing context supplied a real per-instance key
+     * (never for a scope-derived owner). Transient — sticky within a life. */
+    protected _persistenceKeyExplicit = false;
+
     /** Set true by `markForRevert()` — folds into `shouldPersist()`. */
     protected _reverting = false;
 
@@ -136,8 +158,13 @@ export function PersistableMixin<
       return this._persistenceKey;
     }
 
-    setPersistenceKey(key: string): void {
+    setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
+      if (explicit) this._persistenceKeyExplicit = true;
+    }
+
+    isPersistenceKeyExplicit(): boolean {
+      return this._persistenceKeyExplicit;
     }
 
     markForRevert(): void {

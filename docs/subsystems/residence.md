@@ -62,6 +62,12 @@ the spine (`lib/persistence/Persistable.ts`, `obj/api/PersistableLogic.ts`,
   (`obj/Avatar.ts`); `DormWarren.admit` drives a keyed restore-or-seed per
   unit. The `{ref}` nested-host walk self-restores in the spine's `cloneHost`
   (a keyless materialize that resolves the nested host's scope-derived key).
+  Since the houseplant build a ref entry may also carry an explicit
+  **`{ref, key}`** for a genuinely multi-instance nested host (a cultivated
+  plant); the dorm's own hosts are unaffected — a `DormRoom` is a `Location`,
+  never Containable, so it is never nested by ref, and the keyless branch is
+  byte-identical to before. See
+  [persistence.md](./persistence.md) § Keyed nested hosts.
 - **`markForRevert()`** sets a host's `shouldPersist()` false so the
   capture-on-destruct backstop writes nothing — the end-lease revert seam
   (a general spine seam, not dorm code).

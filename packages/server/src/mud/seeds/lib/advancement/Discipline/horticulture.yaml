@@ -1,0 +1,34 @@
+# Horticulture — growing plants, judged by whether they live. The practised
+# leaf of the living-world family's first phase (the houseplant).
+#
+# **Deliberately the PLANT side only.** Husbandry as a whole will cover
+# animals too, and that is a different practice with a different ISCED-F
+# anchor (0811 crop-and-livestock, 0841 veterinary) — so phase 5's pets and
+# livestock get their own leaf rather than overloading this one. Naming it
+# `horticulture` instead of `husbandry` is what keeps that room.
+#
+# **Evidence is outcome-shaped, not an action count.** The husbandry verbs
+# mint a deed only when the act was the RIGHT act — `water` credits nothing
+# when the soil has no headroom (the verb rejects), and difficulty is read off
+# the plant's own state at that moment, so rescuing a failing plant is a hard
+# check and topping up a thriving one is trivial. That leans on the
+# estimator's own anti-grind property rather than a bespoke guard: a trivial
+# success is *unsurprising* and barely moves the estimate, so spamming the
+# easy end is a levelling-mill the BKT math forbids.
+#
+# **No conferrals yet, on purpose.** The natural knowing→doing seam here is
+# diagnosis — reading a plant closely enough to tell a thirsty one from a
+# root-bound one, with instruments and error bars behind it — and that is
+# phase 7's build. Minting a verb now would mean inventing the content the
+# band is supposed to open. The row is still live rather than decorative: it
+# accrues real evidence today and `competence` reports its band.
+class: /lib/advancement/Discipline
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  key: horticulture
+  channel: skill
+  label: Horticulture
+  iscedf: "0812"  # ISCED-F 2013 detailed field: Horticulture
+  description: Keeping plants alive and getting them to grow — reading a dry pot, a dim corner or a bound root, and knowing which one you are looking at. Improves by doing, in soil.
+  specializes:
+    - agriculture

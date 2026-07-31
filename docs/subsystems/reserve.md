@@ -97,6 +97,27 @@ auto-installed by `ReservedMixin` itself — so a future non-biological
 reserve host (a magic-only entity) can compose `ReservedMixin` without
 acquiring biology.
 
+## The non-biological instances
+
+The axis is genuinely neutral, and the shipped consumers prove it. Beyond
+`fuel` (a `Combustible`, theme `combustion`), `air` (an enclosed scope's
+`Location`) and `mana` (a `Caster`, theme `arcane`):
+
+| key | unit | owner (installs/drives) | read it via |
+|---|---|---|---|
+| `moisture` | `L` | `Plant` + `GrowingMixin` (theme `cultivation`, floor effect `wilting`) | `getSoilMoisture()` — the raw keyed read skips the growth reconcile, so never use it outside `lib/husbandry` |
+
+`moisture` is the first reserve **authored entirely in a template's `data`**
+rather than installed by a constructor — the whole keyed Record is one
+`persistentFields` entry, so a plant's root-zone capacity is content. It is
+also the first with a real-units capacity that is neither `%` nor `pt`.
+
+> ⚠ **`Wet.ts` used to claim this axis is "biological (Creature-coupled)"**
+> and cited that as its reason for not reusing it. That was wrong, and the
+> houseplant build corrected the comment. Wetness skips `Reserved` because a
+> single unbounded `[0,1]` saturation needs no keyed collection — not because
+> the axis is biological. See [husbandry.md](./husbandry.md).
+
 ## The band feed
 
 A floored biological reserve degrades the body: `VitalsMixin.getConditionBand`

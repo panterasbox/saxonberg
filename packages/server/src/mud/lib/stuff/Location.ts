@@ -8,7 +8,7 @@
  * navigation), coordinate mixins, NamedMixin (for places with proper
  * names like "Town Square"), and whatever else they need.
  *
- * Composition: `AdornableMixin(ContainerMixin(Stuff))`
+ * Composition: `AmbientLitMixin(AdornableMixin(ContainerMixin(Stuff)))`
  *
  * Provides:
  * - contents: Set<Stuff & Containable> (host-internal storage)
@@ -25,14 +25,24 @@ import { ContainerMixin } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 import { AddressableMixin } from '../address/Addressable';
+import { AmbientLitMixin } from '../perception/AmbientLit';
 import { Suppressions, type MagicSuppression } from '../magic/Suppression';
 
 // A Location represents *space*, not *matter* — so it is NOT `Tangible`
 // (rooms have no material or mass; nothing ever read them). "Made of matter"
 // is the Tangible seam (Thing / Vessel / Agent), which is also exactly the
 // "can get wet" set — see lib/wetness/Wet.ts.
+//
+// `AmbientLitMixin` composes here because an ambient light level is a
+// property of SPACE generally — "underground rooms keep 0 lumen (the
+// default); outdoor rooms author a stored value", as its own docstring puts
+// it. Until the husbandry build it was composed by test fixtures only, so
+// `ambientIntensity` was authorable on no shipped room at all and every
+// room read pitch-black. Composing it at the base is inert by default: the
+// perception walk skips a zero-flux ambient, so an unauthored room reads
+// exactly as it did before.
 const LocationBase = AddressableMixin(
-  AtmosphericMixin(AdornableMixin(ContainerMixin(Stuff))),
+  AmbientLitMixin(AtmosphericMixin(AdornableMixin(ContainerMixin(Stuff)))),
 );
 
 export default class Location extends LocationBase {

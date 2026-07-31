@@ -27,6 +27,7 @@ export const TOOL_CAPABILITIES = [
   'whetstone',
   'mending',
   'pot',
+  'watering',
 ] as const;
 
 /** A tool capability — one of {@link TOOL_CAPABILITIES}. */
@@ -113,6 +114,11 @@ const CAPABILITY_TABLE: Record<ToolCapability, CapabilityKindDef> = {
     placement: 'reachable',
   },
   whetstone: { verbs: ['crafting/sharpen.yaml'], placement: 'carried' },
+  // The first non-crafting consumer of the instrument-confers-verbs rule:
+  // a watering can in your pack affords `water`. `carried` is the
+  // whetstone's personal-capital rule as data — a can on the floor confers
+  // nothing.
+  watering: { verbs: ['bulk/water.yaml'], placement: 'carried' },
   striking: { verbs: [], placement: 'reachable' },
   strainer: { verbs: [], placement: 'reachable' },
   muddler: { verbs: [], placement: 'reachable' },

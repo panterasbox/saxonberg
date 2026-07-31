@@ -1,5 +1,25 @@
 # Farming slate (working doc)
 
+> **Revised 2026-07-31 (the husbandry-family sessions).** Farming was re-read
+> against [ranching](./ranching-slate.md) and [pets](./pets-slate.md), and
+> against the **actual clock and substrate**. Four changes, in descending
+> importance:
+>
+> 1. **The 12× clock invalidates this slate's tending-cadence lean.** A daily
+>    player skips **12 game days** between logins, so "frequent-but-forgiving,
+>    the Stardew arc" is not a high-touch loop — it is an un-tendable one. See
+>    *The clock*; open question 1 is now **resolved**.
+> 2. **A second axis is added — environment control** (open field → greenhouse →
+>    hydroponics), orthogonal to the density axis this slate already had, plus a
+>    **time-horizon** axis (annual crop → perennial orchard). See *The three
+>    axes*. **Houseplants** fall out as farming's on-ramp.
+> 3. **Winter is 7.5 real days and globally synchronized**, which is both this
+>    slate's biggest UX risk and the entire reason preservation exists. See
+>    *Winter*. It has a hard dependency on spoilage — which **now has a home**:
+>    [preservation-slate](./preservation-slate.md).
+> 4. **The substrate mapping was optimistic about light.** Thermal is real;
+>    **sun→ambient light is not wired at all** and is net-new work farming owns.
+>
 > **Status: design captured, not built.** Farming is an **integrating
 > vertical** (the [Dave's Bar](./daves-bar-slate.md) precedent) — it is
 > ~90% *composition* of shipped substrate (metabolism, thermal, weather,
@@ -39,6 +59,17 @@ See also:
   what the maintenance/upkeep drain below is priced against); this slate
   owns only the *spatial subdivision + biology*, not the title or the
   meter. The "assume I already have the land" premise is property's.
+- [docs/slates/builds/disease-slate.md](./disease-slate.md) — **blight, and
+  rotation's second reason.** Farming is disease's **first proving ground**
+  (simplest host, lowest stakes); disease gives crop rotation its truer
+  historical reason (breaking the pathogen cycle) alongside the nutrient one
+  this slate already has, and resistance is the Mendelian marker trait the
+  Genetics section already names.
+- [docs/slates/builds/stewardship-slate.md](./stewardship-slate.md) — **the
+  gate.** Land use decides whether a parcel admits cultivation and at what
+  density (none / a bed / a field); the allowance cascade decides how much
+  liveness the locality funds. Also the home of the residence ladder the
+  houseplant on-ramp sits at the bottom of.
 - [docs/slates/builds/ranching-slate.md](./ranching-slate.md) — **the
   sibling** (the animal half of agriculture). Two couplings to reconcile:
   the conserved **feed loop** (crops → feed → livestock → products →
@@ -80,10 +111,10 @@ See also:
   known-of→can-make ladder gating recipes/techniques; deed-vs-claim by
   provenance (the external-mastery seam reuses it).
 - [docs/slates/deferred-rpg/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)
-  — the **thaumic-channel** magic model. This slate's *pharmacological*
-  magic is a distinct, biology-grounded vector; the two **compose** (a
-  farmed compound restores a mana `Reserve`; a reagent feeds spellcraft),
-  and neither adds a "magic" engine word.
+  — the **thaumic-channel** magic model. This slate's *pharmacological* magic is
+  a distinct, biology-grounded vector; the two **compose** (a farmed compound
+  restores a mana `Reserve`; a reagent feeds spellcraft), and neither adds a
+  "magic" engine word.
 
 ---
 
@@ -103,9 +134,20 @@ Every decision below is bound by these:
    crafting "location-agnostic" rule). A new crop is a data row.
 3. **Derive-on-read, no tick, no presence freeze.** Crop state is a pure
    function of `(plantedAt, now, ∫weather, soil, interventions)`,
-   reconciled lazily on read (the metabolism pattern). The one divergence
-   from metabolism: a field **does not presence-freeze** — crops grow
-   while nobody's online. The only bound is the far-past guard.
+   reconciled lazily on read (the metabolism pattern). A field **does not
+   presence-freeze** — crops grow while nobody's online. ⚠ **And it does NOT
+   inherit the bodies-only far-past guard** — see [ranching § The
+   clock](./ranching-slate.md); bound long absences with a step cap, not a
+   time cap.
+   > **Generalized 2026-07-30** — this is no longer a farming-specific
+   > divergence from metabolism; it is the **family-wide clock**, shared
+   > with ranching and pets: *things you own reconcile against world time;
+   > the body you inhabit reconciles against played time.* The avatar's own
+   > metabolic clock still freezes on logout (you can't hire someone to eat
+   > for you). Owned assets never do — offline decay is made fair by the
+   > **automation ladder** below, whose limit is that *automation maintains
+   > your assets; it cannot maintain your relationships.* Owner:
+   > [ranching-slate § The clock](./ranching-slate.md).
 4. **Genes encode reaction norms, not trait values.** A "drought-tolerance
    allele" bends the *shape* of the moisture→satisfaction curve; it never
    adds a number to yield. The phenotype only exists once the environment
@@ -128,6 +170,206 @@ Every decision below is bound by these:
    substrates (vitals/augmentation/perception/thermal/reserve/comms) by a
    compound the plant biosynthesized. "Casting a spell" is running a
    synthesis you understand.
+
+---
+
+## The clock — what the player actually experiences **[DECIDED 2026-07-31]**
+
+Verified: `DEFAULT_SCALE` is **12×**, `DefaultCalendar` is 360 days
+(12 months × 30) with four **90-day seasons**.
+
+| Game | Real |
+|---|---|
+| 1 day | **2 hours** |
+| 1 season | **7.5 days** |
+| 1 year | **30 days** |
+
+> **The consequence that governs every cadence decision: a player who logs in
+> once a day skips 12 game days.** A two-hour session covers *one* of the twelve
+> game days that elapsed.
+
+**This retires open question 1's lean.** "Frequent-but-forgiving early — the
+Stardew arc" assumes Stardew's premise: you are present for every game day.
+Here you are absent for eleven of twelve. Any mechanic on a sub-12-game-day
+cadence is not *high-touch*; it is **un-tendable by hand**, and it silently
+promotes automation into the role the core loop was supposed to hold.
+
+### The rule: design cadence around the login, not the game-day
+
+**One visit = one meaningful tend decision.** Reserves (moisture, N/P/K) buffer
+over **one to two game weeks**, so a returning player finds a field that has
+drifted but not died, makes one decision, and the checkpoint reconciles forward.
+This is also agronomically honest — real irrigation intervals are weekly, not
+daily. The machinery this slate already specified (checkpoint + lazy sub-step)
+supports it exactly; only the *lean* was wrong.
+
+Corollaries worth holding:
+
+- **Growth runs on world time, not play time** (the family clock — owned things
+  never freeze). So a crop advances 12 game days per real day whether or not you
+  played. **You don't grind, you return.** A 60–90-game-day crop matures in
+  5–7.5 real days: plant Monday, harvest the following Monday, ~7 check-ins.
+- **A multi-season breeding program is a real-month commitment** (a game year is
+  30 real days). Fine for crops; see ranching for the animal-side tension, where
+  generation interval is the whole pedagogical point *and* the whole cost.
+- **Ranching inherits a correction from this.** Real management-intensive
+  grazing moves stock every 1–3 days — impossible here. See
+  [ranching § Paddock granularity](./ranching-slate.md).
+
+### Implementation note — read weather, don't trust the room
+
+`WeatherLogic.runBoundaryFanout` walks **live Interactives → their rooms** and
+restamps only sky-exposed ones, so **room temperature is only maintained where
+someone is standing.** A crop must never rely on its room's temperature having
+been restamped.
+
+> ⚠ **Corrected 2026-07-31 — and it opens a real gap.** An earlier draft said a
+> crop should call `WeatherApi.weatherAt(t, locality)` **directly**. That
+> violates weather.md's governing invariant — *"nobody calls `weatherAt` /
+> `deviationFor` directly except the resolver and the biome field-fold"* — and a
+> crop that did would **silently ignore authored weather pins**, so a
+> storyteller's storm would not touch the harvest.
+>
+> But the correct call does not exist. `resolveWeatherFor(scope)` is
+> **now-only** (no time parameter) and async; `forecastFor` looks **forward**;
+> only the procgen-only `weatherAt` accepts an arbitrary past time. **Nothing
+> can answer "what was the *resolved* weather over the elapsed window"** — which
+> is exactly what the ∫weather integral is. Shared with ranching's pasture
+> growth and preservation's spoilage rate. **Resolved 2026-07-31 — and it is
+> ~2 lines**, because every internal weather function already takes a time; only
+> the public entry reads the clock. See
+> [weather-slate § The resolution](../tails/weather-slate.md).
+
+---
+
+## The three axes **[DECIDED 2026-07-31]**
+
+This slate had a **density** axis and nothing else. Two more make the space
+explicit, and every combination is a real farm type read off **one engine with
+different parameters** — the slate's own *"one biology, many farms — content,
+not code."*
+
+| Axis | Range | What it varies |
+|---|---|---|
+| **Density** | aggregate matter → slotted individual → single carved plant | how much *identity* a plant has |
+| **Environment** | open field → greenhouse → hydroponics | how much *variance* you have bought away |
+| **Time horizon** | annual crop → perennial orchard | how long the *commitment* runs |
+
+Worked examples: a staple field is *(aggregate, open, annual)*. A pharma herb
+lab is *(slotted, hydroponic, annual)*. An orchard is *(slotted, open,
+perennial)*. A houseplant is *(single, indoor, perennial)*.
+
+### The environment axis is a variance-reduction ladder
+
+Each rung trades money for control — and this is real horticulture, not a game
+progression invented for the occasion:
+
+| Rung | Removes | Costs |
+|---|---|---|
+| **Open field** | nothing | free; fully at weather's mercy; strictly seasonal |
+| **Greenhouse** | temperature + most weather | build + **fuel** (the thermal/fire economy) |
+| **Hydroponics** | **soil entirely** (nutrients become a controlled solution) | equipment + precise inputs; maximum control |
+
+**Greenhouses are what winter is for.** Without a hard season nobody builds one,
+which is the strongest argument for keeping winter hard (below). Hydroponics is
+where the numeric instrument tier finally pays off — the one environment precise
+enough that exact numbers beat bands.
+
+**Substrate check (2026-07-31):** heating is *better* supported than expected —
+`AtmosphericMixin.setTemperature()` on a `Location` is a room-scope override
+that **terminates the resolve chain** and fans out a restamp to everything
+inside, so a heated greenhouse works cleanly. The awkward half is light:
+**`SkyExposed` is a property of the biome template, not the room** — no per-room
+override, no partial value — so "sheltered but lit" is a binary chosen by which
+biome you hang. The `Window` boundary (`baseTransmissivity`, `colorTint`,
+implementing `LightConduit`) is the right seam for glass, but it propagates flux
+*from an adjacent room*, and **no room has sun-derived flux yet** (see
+*Substrate mapping*).
+
+### Orchards — the perennial, and the tenure hook
+
+An orchard is the **standing tap** (ranching's yield shape: a recurring yield
+off a living organism, the same shape as milk, wool, and a deployed fish trap),
+where an annual crop is a **terminal harvest**. That makes it a *multi-year
+capital investment* rather than a seasonal choice — plant, wait years, then
+yield for decades.
+
+> **The orchard is the mechanic that makes land tenure emotionally real.** You
+> only plant trees on ground you are confident you will still hold in five
+> years. Nothing else in the design ties a player to a specific parcel that way
+> — which makes it [property](./property-slate.md)'s best gameplay argument.
+
+**Substrate:** [residency.md](../../subsystems/residency.md) already names
+**"resource nodes" as a deferred consumer of the same game-time reset sweep**
+whose only wired user today is retail's `Stock.reset()`. The standing tap is not
+merely *similar* to `Stock` — the residency design anticipated exactly this
+consumer.
+
+### Houseplants — farming's on-ramp **[DECIDED]**
+
+A houseplant is to farming as a pet is to ranching — *with one correction*. The
+parallel holds on identity, personal care, non-economic stakes, and loss through
+neglect. It **breaks on the spine**: a plant cannot hold an opinion of you, so
+there is **no bond, no regard edge, nothing to win over.** Under the family rule
+(*automation maintains your assets; it cannot maintain your relationships*) a
+houseplant is an **asset** — delegable to a neighbor or a self-watering pot, and
+killable. State the asymmetry plainly:
+
+> **A neglected pet leaves you. A neglected plant dies.**
+
+**The real prize is that it is the cheapest possible entry to the growth
+model.** One pot, one plant, in the dorm room every player already has — no
+land, no parcel title, no weather, no soil economics, no `Warren`. Just light
+and water on the same reconcile engine. **Farming v1 can ship a houseplant
+before it ships a field**, and teach the model at zero scale.
+
+**Verified buildable now:** the dorm room is a keyed persistable host; `Bed` and
+`Desk` are `Surfaced` (free placement, not slots); and
+`ContainerMixin.captureSlice` records **which surface an item rests on**, so a
+plant on the desk round-trips through the reap/restore cycle exactly where you
+left it. The only missing piece is the growth/water state driver itself.
+
+---
+
+## Winter **[DECIDED 2026-07-31]**
+
+**7.5 real days, and globally synchronized** — season is computed from a single
+`CAMPUS_LATITUDE`; per-locality climate bias is an explicitly *reserved*
+`Locality` tier-field for a later wave. **There is no "farm somewhere warmer"
+today.**
+
+### Keep it hard — winter is why preservation exists
+
+> Without a season where production stops, you eat fresh forever, and salt,
+> smoke, and cold storage have no reason to exist.
+
+Softening winter would quietly gut a crafting branch, the salt-cod interlock
+with [mining](./mining-slate.md) and [fishing](./fishing-slate.md), and a chunk
+of the Grange's economics. A **global** winter also makes it a *shared world
+event*: production halts everywhere at once, stored goods spike, and that is
+**DAU-independent demand arriving on a schedule** — once every real month.
+
+### What a player actually does, in ascending cost
+
+1. **Process what you stored.** Winter is when the *transform chain* runs —
+   cheese, cloth, preserves, tool repair. The harvest→crafting coupling stops
+   being a footnote and becomes the season's activity.
+2. **Buy your way out** — the greenhouse rung.
+3. **Own land somewhere milder** — blocked on the reserved per-locality climate
+   seam.
+
+### Two honest problems
+
+- **Spoilage is the hard dependency.** It is currently deferred to the
+  [metabolism tail](../tails/metabolism-slate.md), which already frames it
+  correctly ("it rots whether you're logged in or not; preservation — salt /
+  smoke / cold storage — is the counterplay, and the economic payoff").
+  **Until spoilage exists, winter is a pause rather than an economy**, because
+  nothing rewards having stored well.
+- **7.5 real days of no outdoor growth could bounce a farming-only player.** The
+  mitigation is that mining, fishing, and crafting are live enough to absorb
+  them — which makes this a **sequencing dependency**, not something the farming
+  design solves alone. Name it; don't pretend it's handled.
 
 ---
 
@@ -171,6 +413,37 @@ biology**:
 Both densities run the identical `PlantMixin` growth model — the aggregate
 instances it once per field, the bed once per slot.
 
+**Substrate note:** an N-slot planting bed is pure YAML today —
+`seeds/obj/Campfire.yaml`'s `staticSlots` pattern verbatim (`log:1`, `accepts:
+SlottableMixin`, `capacity: 4`, plus a matching `details` entry) is the
+template. One caveat: the slotted capture slice records occupancy **by index
+into the container slice**, and non-content occupants resolve to −1 and are
+skipped — so bed-held plants must live in the host's *contents* **and** its
+slots (the wear/equip pattern).
+
+### A field-room is a land-use choice — and grazing is one of them
+
+> **Pasture is not a separate system. Pasture *is* a field whose standing crop
+> is harvested by mouth instead of by hand** — the animal is the harvester. Full
+> model in [ranching § Land use](./ranching-slate.md); farming owns the plot,
+> the soil, and the biology it runs on.
+
+Each field-room is committed each season to one of four uses, and **they differ
+in nutrient flow, not just yield**:
+
+| Use | Harvested by | Nutrient flow | Effect on the field |
+|---|---|---|---|
+| **Crop** | you, at maturity | **exported** | depleting |
+| **Hay** | you cut; animals eat elsewhere | **exported** | depleting |
+| **Graze** | the animal, continuously | returned **in place** | ~neutral; with rotation, building |
+| **Orchard** | the tree, annually (perennial) | mixed; multi-year commitment | occupies the room for years |
+
+So a field cropped or hayed hard watches its reserves sag, and the fix — **put
+the herd on the tired field for a season** — is something a player *derives*
+rather than looks up. Real mixed farms rotate land through pasture for exactly
+this reason, and here it falls out of the soil accounting being correct rather
+than from an authored "+N grazing" bonus.
+
 ---
 
 ## The growth model (the engine)
@@ -194,9 +467,11 @@ pressure:    { weeds, pests }                                   ← adversarial 
 ### `reconcile(plot, now)` — the keystone
 
 On **any read or action**, walk game-time from `lastSeenAt → now` in
-sub-steps (the metabolism lazy-sub-step + far-past guard). Per sub-step:
+sub-steps (the metabolism lazy-sub-step; ⚠ **not** its bodies-only far-past
+guard). Per sub-step:
 
-1. `WeatherApi.weatherAt(t, locality)` — rain tops up `moisture`;
+1. The **resolved** weather for that sub-step (⚠ *not* `weatherAt` — see *The
+   clock*; needs the time-parameterised resolve) — rain tops up `moisture`;
    temperature feeds `gddAccum` and drives evapotranspiration.
 2. **Reserves:** `moisture += rain − ET(temp,humidity,stage) −
    uptake(stage)`; `N,P,K −= uptake(stage)`; weeds/pests grow if pressure
@@ -255,10 +530,15 @@ Harvest mints matter stamped with a `CraftedMixin` maker's-mark (grew on
 ## Maintenance & the automation ladder (anti-idle)
 
 The loop is **earn → automate → but the automation costs**, so idle income
-is structurally impossible. Upkeep is a **real-time drain** (the
-[participation](../../subsystems/participation.md) "a human showed up"
-divergence — wall-clock, not game-time), and each rung just changes *who
-pays*, never *whether*:
+is structurally impossible. Each rung just changes *who pays*, never *whether*:
+
+> **~~Upkeep is a real-time drain (wall-clock, not game-time).~~ STRUCK
+> 2026-07-31 — upkeep is game-time like everything else.** That divergence
+> existed because game-time *froze* when you logged off; under the family clock
+> nothing freezes for owned assets, so game-time and real-time are now the same
+> clock at a fixed ratio. Worse, `time.md` confirms **pausing the world clock
+> pauses in-flight activities** — a real-time drain would be the only thing
+> still ticking through an admin pause. **One clock.**
 
 | Rung | Who shows up | The cost |
 |---|---|---|
@@ -271,7 +551,64 @@ soil-structure/OM decay, and **weeds/pests as an *adversarial* reserve**
 (pressure that rises when untended and competes for the same soil). Design
 rule: upkeep should be *fought* (weeds you clear feel like farming), never
 an HP bar (a fence gauge is a chore). **Automation raises the ceiling; it
-never removes the floor.**
+never removes the floor** — and per the family rule, automation buys
+*reliability at a quality penalty*: a hired hand runs a cadence, a player runs
+the read.
+
+### Irrigation, and the one commons inside private farming
+
+Irrigation is the automation rung for watering, under the same
+cap-at-the-boring- reward rule (a fixed schedule cannot read the soil). The
+*interesting* half is the **source**, because water rights are the classic
+commons problem of real agriculture — and it cuts against the family's property
+line, where farm/ranch renewal is **private** while mining and fishing are
+**commons**. Water would be the exception: **a commons living inside the private
+system** — upstream and downstream, a shared draw, a real fight between the
+Grange and the Landwrights. Excellent polity-paper material.
+
+**Cost check (2026-07-31):** this is *not* cheap. `UnboundedSourceMixin`
+(`lib/bulk/UnboundedSource.ts` — a well, a spring, a tap) ships and makes
+irrigation-from-a-source work today, but an **infinite source has no commons
+problem** — you cannot over-draw a tap that never runs dry. The whole game needs
+the **finite-but-regenerating** source, which that file's own docstring names as
+explicitly deferred ("this is NOT a regenerating well… that richer model is
+deferred"). So the water commons rides a named deferral, not shipped substrate.
+*(Nearest live cousin: `WeatherLogic.maintainPuddle` fills a room `Floor`'s
+surface bulk from rain and evaporates it — a real rain-fed body, presence-gated
+and uncapped.)*
+
+### Pests, thorns, and navigability
+
+- **Pests are entirely net-new.** Verified absent — no `vermin`/`pest`/`infest`
+  anywhere in the tree, and no brain consumes, removes, or damages world
+  objects. The design above (adversarial reserve) stands; it just has no
+  substrate to lean on. Worth one cross-system note: **the vermin eating your
+  crop are the vermin eating your stored grain**, which makes storage a real
+  concern and feeds straight back into *Winter*.
+- **Thorns are cheap, with one gotcha.** `HazardMixin` is self-resolving and the
+  locus is free — compose it on a `Location` for a bramble *room*, or author a
+  `/lib/hazard/Trap` instance with `trigger: traversal` and a `point`-channel
+  delivery. **The gotcha: `resolveTraversal` skips anyone who perceives the
+  hazard, so an *obvious* hazard never fires.** A visible bramble patch would
+  never hurt anyone — author a low concealment band, or add an always-fires
+  path. Separately, "reaching into the bramble hurts" is *absent*:
+  `SearchController` never touches hazards; it is one call at `SearchActivity`
+  completion.
+- **Crops should not obstruct movement.** No terrain- or contents-derived
+  traversal cost exists anywhere (`LocomotionMode.costMultiplier` is authored
+  and has **no reader**), and adding one is a new primitive for thin payoff.
+- **Tall crops granting cover is free — and crude.** `coverScoreOf` literally
+  counts the non-`Mobile` contents of the hider's container (capped at 6), so a
+  maize field grants cover today with zero new code — **and so does a room with
+  six chairs.** The real gap is that cover has **no per-object weight**; nothing
+  distinguishes standing wheat from furniture. That is a stealth-wide problem,
+  **not farming's to fix** — but a hedge-and-cornfield build would be its most
+  visible customer.
+- **Hedges are a boundary you *grow*.** The one navigability-adjacent thing
+  worth building: a living fence is cheap in materials and expensive in *time*
+  (it must establish before it works), which is a genuine third option in
+  [ranching](./ranching-slate.md)'s fencing tradeoff alongside built fence and
+  hired labor.
 
 ---
 
@@ -567,11 +904,17 @@ the platform's reason for being, and farming is a clean first vehicle.
 
 ## Substrate mapping (what's reused)
 
+> **Audited 2026-07-31.** Most rows hold. **The `sun / light` row did not** —
+> corrected below, and it is the single biggest under-estimate in this slate.
+
 | Farming need | Shipped substrate |
 |---|---|
 | crop maturing over time | metabolism's reconcile-on-read over game-time |
-| weather driving growth | weather's stateless procedural field |
-| sun / temperature | light + thermal (GDD = `∫thermal`, Q10) |
+| weather driving growth | weather's stateless procedural field — ⚠ **via the resolved read, NOT `weatherAt`** (that would drop authored pins); needs the time-parameterised resolve, see *The clock* |
+| **temperature** | thermal — **real** (GDD = `∫thermal`, Q10); `AtmosphericMixin` even gives a room-scope override that fans out a restamp |
+| **sun → light** | ⚠ **NET-NEW, farming owns it.** `setAmbientFlux` has **zero non-test callers**; `CelestialApi.sunAltitude`/`isDayAt` are fully implemented but consumed only by readout verbs and weather generation. **Nothing derives a room's ambient light from the sun.** `obj/Lamp.ts` (an hourly `WorldClockApi.every` flipping a light at dusk/dawn) is the pattern to copy. Crops need light, so this is a hard prerequisite — and it also blocks the greenhouse glass story (`Window`/`LightConduit` propagates flux *from an adjacent room*, and no room has sun-derived flux to propagate) |
+| **seasons** | built but **unused** — `CelestialApi.currentSeason` has two consumers (a readout verb, weather generation); **no object's state is keyed to a season**, and `atNextSunrise`/`atNextSunset`/`atNextFullMoon` have **zero callers**. Cheap wiring, but not free |
+| **plant taxonomy** | the hook exists and the shelf is empty — `seeds/lib/body-plans/sessile.yaml` is documented for "plants, corals, mushrooms," but `seeds/lib/species/` contains only `wolf.yaml`. **Farming authors the first plant species** |
 | water / irrigation | bulk (`fill`/`pour`/transfer/drain) |
 | soil fertility/moisture/tilth | `Reserve` instances |
 | tools wearing out | crafting `ToolMixin` + `GradedMixin` |
@@ -591,6 +934,15 @@ the platform's reason for being, and farming is a clean first vehicle.
 
 Enough is settled to ship a cozy first slice with **no genetics and no
 magic**:
+
+> **Sequencing note (2026-07-31): consider a pre-v1 — the houseplant.** One pot
+> in the dorm room, on the same reconcile engine, with no land, no parcel, no
+> weather, and no soil economics. It teaches the growth model at zero scale, is
+> **buildable on shipped substrate today**, and de-risks the engine before any
+> of the land model exists. See *Houseplants*.
+>
+> **Hard prerequisite for the field tier either way:** the **sun→ambient light
+> driver** (see *Substrate mapping*) — crops need light and nothing derives it.
 
 - **A farm = a one-node Warren** under a `Locality`; **field = a room**,
   soil as `Reserve` instances on its `Floor`; the **aggregate** density
@@ -670,17 +1022,25 @@ branch, the magic effect layer, and the University teaching seam.
 
 ## Open questions
 
-1. **Tending cadence** — a *frequent* small ritual (high-touch, cozy,
-   caps plot count) or a *sparse* one (low-touch, scales, leans on
-   weather)? *Lean: frequent-but-forgiving early, automation-relieved
-   late — the Stardew arc.*
+1. ~~**Tending cadence**~~ **RESOLVED 2026-07-31 by the 12× clock.** The old
+   lean (*frequent-but-forgiving, the Stardew arc*) assumed Stardew's premise —
+   that you are present for every game day. At 12× a daily player skips **12
+   game days**, so a frequent ritual isn't high-touch, it's un-tendable.
+   **Answer: sparse-and-buffered — one login = one meaningful tend decision**,
+   with reserves buffering over 1–2 game weeks. See *The clock*.
 2. **How far do numbers surface** — do high-competence instruments cross
    from bands into real quantities for the deep player? *Lean: yes — world
    quantities are numeric with error bars; only the self-estimate (θ)
    stays a band.*
 3. **First teaching unit** — course / mentor / treatise. *Lean: course
    (mints a known-of claim) as the diegetic study.com analogue.*
-4. **Crop catalog as `Species`-family or its own tier** — do crops reuse
-   the race `Species`/`Clade` `Idea` pattern directly, or a sibling
-   catalog? *Lean: a sibling crop catalog on the same pure-data-`Idea`
-   pattern (plants aren't the `Creature` stack).*
+4. ~~**Crop catalog as `Species`-family or its own tier**~~ **RESOLVED
+   2026-07-30 — reuse the existing tree.** The `Species`/`Clade` taxonomy
+   already spans `animalia` *and* `plantae` (a sessile peace-lily row is
+   the proof token), so crops, livestock, and pets are **one catalog
+   shape** — which is what makes the husbandry-wide genome coherent. This
+   overturns the earlier lean toward a sibling catalog. *Corrected
+   2026-07-31: the peace-lily row is NOT documentation-only — it ships in
+   the `species-and-names` pack, and the houseplant build added a snake
+   plant (`Dracaena trifasciata`) beside it. The `plantae` shelf is
+   populated; farming extends it rather than opening it.*

@@ -737,6 +737,32 @@ settings:
     value: "0.8"
   - key: wetness.absorptionCapacityDefaultPct
     value: "5"
+  # Husbandry — the growth model's dials (placeholders for a running game).
+  # Calibrated against the 12x clock: stressed ~1 real day after the water
+  # runs out, dead ~1 real week of total neglect, seedling→mature ~2 real
+  # weeks well kept. See docs/subsystems/husbandry.md.
+  - key: husbandry.stepSec
+    value: "43200"
+  - key: husbandry.maxSteps
+    value: "2000"
+  - key: husbandry.vigorTauSec
+    value: "3801600"
+  - key: husbandry.goodAt
+    value: "0.6"
+  - key: husbandry.deathAt
+    value: "0.12"
+  - key: husbandry.rootFloor
+    value: "0.4"
+  - key: husbandry.band.thrivingAt
+    value: "0.8"
+  - key: husbandry.band.healthyAt
+    value: "0.55"
+  - key: husbandry.band.stressedAt
+    value: "0.3"
+  - key: husbandry.warmthFactor
+    value: "0.03"
+  - key: husbandry.warmthReferenceK
+    value: "295"
   # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
   # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
   - key: storm.puddle.accrualLitersPerSegment

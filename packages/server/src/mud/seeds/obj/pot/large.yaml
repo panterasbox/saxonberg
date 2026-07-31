@@ -1,0 +1,29 @@
+# A large plant pot — the same class as the small one, differing only in
+# how much soil it holds. 3 L carries a peace lily all the way to `mature`,
+# so this is the purchase a root-bound plant argues for. It is deliberately
+# the first thing a new player has a REASON to buy, and the reason is
+# legible before the purchase.
+class: /obj/PlantPot
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a large clay pot
+  primaryKeyword: pot
+  keywords: [pot, "large pot", "clay pot", planter]
+  longDescription: |
+    A deep unglazed pot you would need both arms for, broad enough at the mouth to get a full root ball into without wrecking it.
+  material: /lib/material/ceramic/ceramic
+  interiorBulk: true
+  interiorCapacity: 3
+  # `liquidTight` (the default), NOT `open`: an `open` interior does not
+  # RETAIN bulk — the transfer drains it straight through to the floor. A
+  # pot's drainage hole lets water out, but the soil has to stay in it, and
+  # water is modelled on the plant's own reserve rather than in the pot.
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 1
+      userFacingDetail: planting
+  details:
+    planting:
+      keywords: [soil, planting, hole, rim]
+      description: A wide drainage hole, and depth enough for a grown plant's roots.
