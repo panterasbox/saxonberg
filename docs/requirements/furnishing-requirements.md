@@ -98,6 +98,10 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   and a tub that is a posture-bearing host authoring `restQuality` and
   `warmth` — three fixtures at three levels of detail, chosen by what
   the world reads (D13).
+- **A room can be posted.** A room-level designation field says what the
+  sign on the door says — unisex, gendered, staff-only, whatever the
+  fiction posts — as an opaque string the engine never enforces and no
+  movement or access check ever reads (D14).
 - **The bedroom's bed is the substrate's first real rest surface.** The
   shipped dorm `Bed` is a `Surfaced` prop you cannot lie on, and nothing
   in the world authors `restQuality` but a campfire log. The bedroom
@@ -163,7 +167,12 @@ every content precedent here), [chattel](../subsystems/chattel.md),
 - **The bathroom debate.** Public-accommodation access is a legislature
   obstacle course belonging to civics content. A private residential
   bathroom raises no access question; this build takes no position that
-  could constrain that design.
+  could constrain that design. D14 ships the field it will consume and
+  nothing else — no enforcement, no vocabulary, no locality rule.
+- **Enforcing a posted designation, in any mode.** No norm reaction, no
+  witness response, no locality rule, no `AccessApi` predicate. The
+  designation is written and readable; every consequence of ignoring one
+  belongs to the layer that models consequences (D14).
 - **New cooking surface of any kind.** No new recipes, no new food
   materials, no `kitchen`-only verb, no change to `cook` / `mix` /
   `heat` / `plate` / the gather walk. The kitchen archetype is
@@ -592,11 +601,79 @@ has no mechanical consequence in v1. It is recorded because it is the
 exact seam co-lease, guests, and the prison's panopticon would consume,
 and because its absence would otherwise look like an oversight.
 
+**Whose bathroom it is** — unisex, gendered, staff-only — is a real
+thing a room needs to be able to say, and D14 gives it the field. What
+the field is *not* is a gate.
+
 **Not the bathroom debate.** That design is an obstacle course for a
 legislature, and it is entirely about **public accommodation** — a
 private residential bathroom raises no access question whatsoever. It
 belongs to civics content, is deliberately untouched here, and this
-build takes no position that could constrain it.
+build takes no position that could constrain it. D14 exists so that
+build inherits a seam instead of a migration.
+
+### D14 — A room can be *posted*. The kernel reads the sign; it never
+enforces it
+
+**The question.** A bathroom should be able to say whether it is unisex
+or gendered. What carries that, and what reads it?
+
+**The answer: a posted designation on the room, opaque to the engine.**
+A room-level field — `unrestricted` by default — holding *what the sign
+on the door says*. The kernel's entire job is to make it visible and
+queryable. **Nothing in movement, `AccessApi`, or any exit ever consults
+it.**
+
+**Why the kernel must not enforce it — from the shipped types, not from
+delicacy.** To gate entry the engine would have to pick an identity axis,
+and it ships exactly two, deliberately kept apart:
+
+- `SexedMixin` — *"Sexed is biology, not gender."* Its valid set is
+  derived from the host species' `sexDeterminationSystem`: `xy` yields
+  `['male', 'female', 'intersex']`, `monoecious` yields
+  `['male-and-female']`, `hermaphroditic-simultaneous` yields
+  `['hermaphrodite']`, `none` yields `[]`.
+- `GenderedMixin` — pronouns and social presentation: `he/she/they/it/ze`,
+  self-set, and the shipped Avatar default is `they`.
+
+**Neither axis partitions in two.** A hard rule on either would
+immediately have to answer *what about `they`*, *what about a monoecious
+species*, *what about a creature whose species declares no sex at all* —
+and whatever it answered would be a **position, compiled into the
+engine, for every locality forever**. A platform that hands its
+legislature real questions cannot pre-answer this one in C-code. The
+kernel stays neutral because the data does not split, which is a
+stronger reason than taste.
+
+**What does the enforcing, then.** The layers that already model
+compliance, in ascending hardness:
+
+| Mode | Mechanism | Status |
+|---|---|---|
+| **norm** | nobody stops you; people *react* — reactions, regard, renown all ship | free today |
+| **witness** | someone sees, and says something | free today |
+| **law / policy** | a locality declares a rule; the three-tier kernel/law/policy resolve, as civics' `charter` already does | the public build's |
+| **wall** | a locked door and a credential — `Lockable` + the credential substrate | shipped, and **identity-blind** |
+
+The wall rung is the honest one: an author who genuinely wants a room
+nobody may enter *locks it and issues keys*. Physical exclusion is a
+physical object, and it never asks who you are — only what you carry.
+
+**An open label, not an enum of identities.** The field holds a string
+the fiction posts, not a closed set the engine understands. This is what
+keeps the defamiliarization route open: species-as-race-allegory is the
+corpus's standing doctrine, and a designation vocabulary that is *not*
+the real-world one is what makes the legislature's argument playable
+rather than a re-enactment. That is the public-accommodation design's
+call to make; this build's only obligation is not to foreclose it, and
+an opaque string forecloses nothing.
+
+**It belongs to rooms, not to bathrooms.** A staff room, a members'
+club, a ward and a private study are all posted; the bathroom is merely
+the room that made the omission obvious. So the field lands as D7
+room-level state on the residence-room base — the same generalization
+D11 made for debris — and the residential answer is `unrestricted`,
+read by nothing.
 
 ## Constraints
 
@@ -650,6 +727,13 @@ build takes no position that could constrain it.
   not a raw write into the host's slot map.
 - **`restQuality` stays authored data.** Beds carry it as a template
   field; nothing in this build derives it.
+- **The posted designation is opaque to the engine.** It is never
+  compared against `getPronouns()` or `getSex()`, never consulted by
+  `AccessApi`, a movement validator, an exit, or a locomotion check, and
+  it is not a closed enum. A grep for the field name must find the
+  declaration, its accessors, its tests and its prose — and no consumer.
+  This is the constraint that keeps the kernel out of the identity
+  business, and it is the one D14 is for.
 - **The kitchen is authored, not coded.** Every fixture in D12 is an
   existing class with a new seed row (`Oven`, `UnboundedReceptacle`,
   `Chest`, a `Surfaced` counter) and the air reserve is a copied YAML
@@ -710,6 +794,12 @@ build takes no position that could constrain it.
   for a week reconciles to no more than the `MAX_STEPS` cap allows, and
   no avatar recovers past full. Recovery on the floor is not below the
   no-residence baseline.
+- **A posted room says so and stops there.** A room's designation
+  round-trips as room-level state and is readable; a character whose
+  pronouns or sex differ from anything the sign says walks in and out
+  freely, with no denial, no note and no message. Two named tests: the
+  field persists, and **entry is unaffected** — the second being the one
+  that pins D14's whole point.
 - **The tub is a real rest surface, and it is warm.** Getting into a
   bathroom tub occupies a posture slot, and metabolism's coupled
   recovery reads its `restQuality` while `ThermalRegulation` reads its
@@ -803,6 +893,15 @@ build takes no position that could constrain it.
   bathroom design (the toilet paradox, the LOD ladder,
   washing-as-enabling, taps-vs-pumps); its public-accommodation half
   stays unwritten and out of scope.
+- The posted designation (D14): [race.md](../subsystems/race.md) and
+  `lib/character/Sexed.ts` + `lib/character/Gendered.ts` (the two
+  identity axes the corpus keeps apart, and the reason neither can gate
+  a door), [access.md](../subsystems/access.md) (the predicate surface
+  this field is deliberately *not* added to),
+  [credential.md](../subsystems/credential.md) +
+  [boundary.md](../subsystems/boundary.md) (the wall rung — lock and
+  key, identity-blind), [civics.md](../subsystems/civics.md) (the
+  `charter` field's precedent: an inert seam a later law layer resolves)
 - Room-general surfaces (D11): [thermal.md](../subsystems/thermal.md) and
   [respiration.md](../subsystems/respiration.md) (the shipped
   `AtmosphericMixin` readings air quality joins),
