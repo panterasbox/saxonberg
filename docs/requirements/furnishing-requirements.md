@@ -88,6 +88,11 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   exist beyond storage. This requires the bed you slept on to survive the
   round-trip: **you wake where you slept**, not merely in the posture you
   left in.
+- **The kitchen makes the shipped cooking loop local.** Standing heat, a
+  water tap, a work surface and a larder, all authored from parts that
+  already ship — so `cook` works in your own home with no errand, and
+  the archetype is a *bundle* rather than a behavior. Its built-ins are
+  the landlord's under D5; the pot is the tenant's.
 - **The bedroom's bed is the substrate's first real rest surface.** The
   shipped dorm `Bed` is a `Surfaced` prop you cannot lie on, and nothing
   in the world authors `restQuality` but a campfire log. The bedroom
@@ -133,6 +138,21 @@ every content precedent here), [chattel](../subsystems/chattel.md),
   wrong place to discover them late — but nothing here *runs* on a
   cadence. This build ships the field seam (D7) sized to hold them and
   the reasoning for where each lives.
+- **Spoilage and preservation.** Nothing rots. `ptomaine.yaml` ships a
+  food-poisoning condition with no producer, and it keeps having none
+  after this build. A larder is a chest that is nearer the stove.
+  Spoilage belongs to the food and its container, never to the kitchen
+  (D12), and it needs the condition model — so it lands with
+  stewardship, not here.
+- **New cooking surface of any kind.** No new recipes, no new food
+  materials, no `kitchen`-only verb, no change to `cook` / `mix` /
+  `heat` / `plate` / the gather walk. The kitchen archetype is
+  **authored entirely from shipped parts**; if it needs engine work,
+  something is wrong with it.
+- **Metered utilities.** Water is unmetered (the dorm's
+  `UnboundedReceptacle`, ∞ by design) and the range's fuel reserve is
+  not billed to anyone. Sub-allowances and metering are the economy
+  layer's, with the rest of rent economics.
 - **Land use.** The closed vocabulary typing what a parcel admits is
   stewardship's. Room archetypes here are content identity, not a typed
   gate on what may be placed where; a bathroom that accepts a chest
@@ -384,6 +404,88 @@ the placement. The bedroom is where they will first *matter* — debris
 and air are exactly the inputs a derived `restQuality` would read — which
 is why they are decided alongside D10 rather than after it.
 
+### D12 — The kitchen is a bundle, and that is the finding
+
+**The question.** The bedroom turned out to have an internal function
+already (D10). Does the kitchen?
+
+**The answer: no — and the codebase says so out loud.** `CookPot.yaml`,
+shipped: *"Portable capital: reachable heat + a pot is a kitchen,
+anywhere."* Cooking is conferred by the instruments — reachable heat
+where the recipe wants it, the pot, the ingredients (`cook.yaml`, the
+shipped affordance rule). A kitchen *room* confers nothing, and no
+future kitchen function is visible that would change that (see the
+spoilage note below, which is the strongest candidate and still fails).
+
+So the kitchen is the archetype that **proves D6**: bedroom is the one
+that will eventually earn a class, kitchen is the one that never will.
+Having both in the same build is what makes the "template rows now,
+classes when they earn it" rule checkable rather than asserted.
+
+**What it delivers instead: the errand collapse.** A kitchen is worth
+having because it makes the shipped cooking loop *local* — standing
+heat, plumbed water, a work surface, and food in reach, in the home you
+already live in. That is exactly the value shape the dorm already
+demonstrates with one fixture: the tap exists so that "filling a
+watering can needs no errand." The kitchen is that argument, four times
+over, and every piece of it already ships:
+
+| Fixture | Shipped part | Note |
+|---|---|---|
+| range | `/obj/Oven` (`FurnaceMixin` + `Reserved` + `Thermal` + `LightSource`, 500 K, lit with `ignite`) | a residential skin of the Hearthworks cookhouse hearth |
+| tap | `UnboundedReceptacle`, `interiorMaterial: /lib/material/bulk/water` | the dorm's exact fixture; water is unmetered here (rent economics is a non-goal) |
+| counter | `Surfaced` work surface | the dorm desk's shape; `placeOn` already works |
+| larder | `/obj/Chest` skin | **open/closed already means something**: the craft gather walk descends one level into *open* room containers, so an open larder is ingredients in reach and a closed one is storage |
+
+**Built-ins are the landlord's; the pot is yours.** This is D5's best
+demonstration, because a kitchen is precisely what a landlord fits out
+and a tenant argues about. The range, tap, counter and larder are
+authored fixtures under the unit's parcel extent, so `ownerOf` resolves
+them to the landlord and carrying one off is theft-recoverable. The
+`CookPot` is a movable the tenant owns — its own docstring already calls
+it *portable capital*, and portable capital is chattel. The dorm sets
+the precedent exactly: university-owned bed/desk/footlocker/tap, plus a
+watering can and a starter pot you keep.
+
+Note the two guards are independent and both shipped: the pantry chest
+is 90 kg — *"a fixture by encumbrance (the anvil rule): nobody walks off
+with the pantry"* — and D5 adds title on top. Physical and legal, and
+neither needs the other.
+
+**The one thing the kitchen room genuinely owns: you run a fire
+indoors.** This is the real difference from every other archetype, and
+it is entirely shipped. `FireLogic` computes
+`ventilated = isSkyExposed(room) || openNeighboursOf(room).length > 0`;
+a scope holding a finite `air` reserve with a lit fire and no
+ventilation burns **incomplete** — smoke and carbon monoxide, the medium
+turns un-breathable, `RespirationMixin` takes the CO on as a metabolism
+burden, and the fire self-smothers. `SealedCellar` is the shipped
+lesson, in a cellar, where nobody lives.
+
+**The decision: the kitchen authors an `air` reserve.** One YAML block,
+copied from `cellar.yaml`, no code. The reasoning: it is the only
+mechanic in this build that is genuinely *about the room* rather than
+its contents; it makes the unit's interior doorways mean something; it
+is true, and it is the best thing a kitchen has ever taught anybody. It
+is also forgiving by construction — *any* open neighbour ventilates, an
+apartment kitchen has a doorway, and the failure mode of getting it
+wrong is "the stove went out and the room stinks," not death by
+accident. The escape hatch is symmetrical: deleting the block restores
+`airReserveOf → null` → "open air (unlimited)", with nothing else
+touched.
+
+**Spoilage is named, and homed away from the room.**
+`seeds/lib/metabolism/conditions/ptomaine.yaml` ships today — food
+poisoning *"from spoiled food"*, with a full toxin behavior and **no
+producer anywhere in the world**. Preservation is the kitchen's most
+anticipated future system and the thing that would make a larder more
+than a chest. It is still not a kitchen function: **spoilage belongs to
+the food, modulated by the container it sits in** (open counter vs.
+closed larder vs. a cold store), which is the same shape as D11's pest
+answer and the same reason. So even the kitchen's best future does not
+promote it to a class. It lands with the condition model — spoilage is
+decay without transmission, and its clock starts at an act.
+
 ## Constraints
 
 - **No furnishing subsystem in the module sense.** No `FurnishingApi` /
@@ -436,6 +538,19 @@ is why they are decided alongside D10 rather than after it.
   not a raw write into the host's slot map.
 - **`restQuality` stays authored data.** Beds carry it as a template
   field; nothing in this build derives it.
+- **The kitchen is authored, not coded.** Every fixture in D12 is an
+  existing class with a new seed row (`Oven`, `UnboundedReceptacle`,
+  `Chest`, a `Surfaced` counter) and the air reserve is a copied YAML
+  block. No new mixin, no new class, no new verb — this is the check
+  that D6's "archetypes are template rows" claim is real.
+- **Dormancy must not run the kitchen.** Fuel drain, air consumption and
+  smoke are *tick-driven*, not reconcile-on-read, so a dormant unit's
+  range burns no fuel and suffocates nobody, and a unit that wakes with
+  a lit range resumes from where it stopped. This is the expected
+  behavior, not a defect to correct — but it is a named test, because
+  the opposite (a tenant returning to an empty fuel reserve after a week
+  away) would be a silent tax on being offline and would contradict
+  D10's parity rule.
 
 ## Acceptance criteria
 
@@ -483,6 +598,26 @@ is why they are decided alongside D10 rather than after it.
   for a week reconciles to no more than the `MAX_STEPS` cap allows, and
   no avatar recovers past full. Recovery on the floor is not below the
   no-residence baseline.
+- **You can cook at home, with no engine change.** In a leased unit's
+  kitchen: `ignite` the range, `cook` a learned dish using the larder's
+  ingredients and your own pot, and eat it — start to finish, with the
+  only new artifacts being seed rows. A named test asserts the archetype
+  adds **zero** new classes, mixins or verbs.
+- **The larder's lid is load-bearing.** Ingredients in an *open* larder
+  are reachable by the craft gather walk; the same larder closed, they
+  are not — the shipped behavior, pinned here because the archetype now
+  depends on it.
+- **The kitchen ventilates or it doesn't.** A lit range in a kitchen
+  whose door is open burns complete and clean. The same range with every
+  boundary closed burns incomplete, fills the room with smoke and CO,
+  makes the medium un-breathable, and self-smothers — and opening the
+  door recovers the air and clears the smoke. Three named tests, all
+  over shipped `FireLogic` behavior.
+- **Kitchen built-ins are the landlord's, the pot is the tenant's.** The
+  range, tap, counter and larder resolve through `ownerOf` to the parcel
+  owner and are recoverable if carried out; the cook pot is tenant
+  chattel that leaves with the tenant and survives eviction into
+  storage.
 - **The bedroom bed is lieable.** The bedroom archetype's bed is
   `Postured` with a `lie` slot and an authored `restQuality > 1`, and
   `lie on bed` works the day the archetype seeds — distinguishing it from
@@ -522,6 +657,15 @@ is why they are decided alongside D10 rather than after it.
   [metabolism.md](../subsystems/metabolism.md) (reconcile-on-read,
   coupled recovery), [connection.md](../subsystems/connection.md)
   (what logout actually does), [vitals.md](../subsystems/vitals.md)
+- The kitchen (D12): [crafting.md](../subsystems/crafting.md) (`cook`,
+  the gather walk, `Recipe` docs, the Hearthworks cookhouse this is the
+  domestic sibling of), [fire.md](../subsystems/fire.md) (`FurnaceMixin`,
+  fuel reserves, the complete/incomplete burn and the ventilation
+  lesson `SealedCellar` teaches), [bulk.md](../subsystems/bulk.md) (the
+  tap, `fill`/`pour`), [metabolism.md](../subsystems/metabolism.md)
+  (meal chemistry, `ptomaine` awaiting a producer),
+  [respiration.md](../subsystems/respiration.md) (CO as a burden),
+  [retail.md](../subsystems/retail.md) (where ingredients come from)
 - Room-general surfaces (D11): [thermal.md](../subsystems/thermal.md) and
   [respiration.md](../subsystems/respiration.md) (the shipped
   `AtmosphericMixin` readings air quality joins),
