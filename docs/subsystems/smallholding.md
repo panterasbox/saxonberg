@@ -295,32 +295,39 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
 ---
 
-### ⚠ The shared-template shape has a ceiling, and the next phase removes it
+### ⭐ A lot's room gets an IDENTITY, not a copy
 
-A lot's room is a `TitledRoom` — a **persistable, non-singleton** room
-(a plain `CartesianLocation` persists nothing it holds and is
-singleton-shaped, so it is wrong on both counts). `LotHolder` clones one
-per lot and keys it on the lot's parcel extent.
+`TitledRoom` is `PersistableMixin(CartesianLocation)` — the shipped
+cartesian room plus the host mixin, and **nothing rebuilt by hand**. That
+matters: `CartesianLocation` carries six overrides beyond its mixins
+(`getSizeScale` = the zone's `cellSize²` light denominator, `getZone`,
+`getVolume`, `getCeilingHeight`, exit reciprocity, and `coords` itself),
+and a hand-built lookalike loses all of them silently. The light one is
+the dangerous omission — a yard would read **36× brighter** than its
+zone says.
 
-That works for the room's own contents, but **every clone shares one
-templatePath**, so anything that identifies the room *by path* gets the
-district rather than the lot:
+Keeping `CartesianLocation` means keeping `SingletonMixin`, and that is
+the point rather than an obstacle. `LotHolder` mints each room at
+**`<lotExtent>/<leaf>`** through `StuffApi.clone`'s `asTemplatePath`
+channel — the identity doctrine's *minted singleton with a
+scheme-derived key*. The shared template is the SOURCE; lot 2's yard is
+its own place.
 
-| Consumer | Today | Fix |
+Sharing one templatePath across N lots broke three things at once, and
+minting fixes all three with no special case:
+
+| | shared template | minted identity |
 |---|---|---|
-| the land-use gate | prefers the room's **persistence key**, which is the lot extent | done |
-| an avatar's captured placement | records `container: <shared template>`, so logging out in your own yard and back in lands you in a fresh one | **open** |
+| land use | resolved to the **district** — right only because every Hinkley lot is zoned alike | resolves per lot, from the path alone |
+| avatar placement | recorded the shared template — log out in your yard, log back into a fresh one | exact; the dorm needs a Warren for this, an identity gets it free |
+| cartesian room | impossible — N clones of one singleton path collide | fine, so `cellSize²` light stays correct |
 
-The dorm dodges the second by being a `WarrenMember` — the placement
-records the *warren* and `admit` re-derives the keyed room. A lot has no
-warren.
+Title and durable state still share one identity, because the mint is
+derived FROM the parcel extent. Sell the lot and the garden goes with
+it.
 
-**Both dissolve if a residence becomes one minted template each** rather
-than N clones of one: the template path becomes the identity, placement
-is exact, the land-use walk resolves per-lot without a key, and no
-`(scope, key)` record is needed at all. `TitledRoom` works unchanged in
-that model; `LotHolder` simply stops passing a key. Until then, treat a
-titled lot as somewhere you visit rather than somewhere you log out.
+This is the *minted template per residence* model arriving early — the
+engine already had the channel.
 
 ## `title` — the act the property build lacked
 

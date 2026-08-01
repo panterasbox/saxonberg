@@ -159,26 +159,26 @@ function seedSuburb(): void {
  * wants lots to exist has to stand both up.
  */
 function seedSubdivision(): void {
-  if (!StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)) {
-    makeStuffAtPath(() => {
-      const h = new LotHolder();
-      h.setRoomTemplate(`${SUBURB}/yard`);
-      return h;
-    }, HOLDER_PATH);
-  }
-  if (!StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)) {
-    makeStuffAtPath(() => {
-      const b = new PlatBook();
-      b.setLabel('Hinkley Hills');
-      b.setParentExtent(SUBURB);
-      b.setLots(['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5']);
-      b.setPriceMinor(4000);
-      b.setAreaM2(1000);
-      b.setLandUse('residential');
-      b.setHolderPath(HOLDER_PATH);
-      return b;
-    }, BOOK_PATH);
-  }
+  // The singletons persist across tests (no StuffApi.clearAll — it wipes
+  // the WorldClockRegistry), so their FIELDS are re-seeded every time
+  // rather than only on creation. Two tests below deliberately repoint
+  // `holderPath`, and without this reset that mutation leaks forward.
+  const holder =
+    StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH) ??
+    makeStuffAtPath(() => new LotHolder(), HOLDER_PATH);
+  holder.setRoomTemplate(`${SUBURB}/yard`);
+  holder.forgetLiveRooms();
+
+  const book =
+    StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH) ??
+    makeStuffAtPath(() => new PlatBook(), BOOK_PATH);
+  book.setLabel('Hinkley Hills');
+  book.setParentExtent(SUBURB);
+  book.setLots(['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5']);
+  book.setPriceMinor(4000);
+  book.setAreaM2(1000);
+  book.setLandUse('residential');
+  book.setHolderPath(HOLDER_PATH);
 }
 
 async function bootRegistries(): Promise<void> {
@@ -250,9 +250,16 @@ describe('title', () => {
     // The holder clones a room per sold lot and keys it through the
     // persistence spine, so the stub has to be a PERSISTABLE room — a
     // bare Location would make restoreOrSeed throw, correctly.
-    vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
-      makeStuffAtPath(() => new TitleTestRoom(), fresh('/domain/_title/room'))
-    ) as unknown as typeof StuffApi.clone);
+    // Honour `asTemplatePath` — the mint is the thing under test in one
+    // of these, and a stub that ignored it would quietly prove nothing.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (
+      _path: string,
+      opts?: { asTemplatePath?: string },
+    ) =>
+      makeStuffAtPath(
+        () => new TitleTestRoom(),
+        opts?.asTemplatePath ?? fresh('/domain/_title/room'),
+      )) as unknown as typeof StuffApi.clone);
 
     settled = [];
     settleWorks = true;
@@ -482,6 +489,43 @@ describe('title', () => {
     expect(reasons(ctx)).not.toContain('insufficient-funds');
     const owner = await ParcelApi.ownerOf(`${SUBURB}/lot-4`);
     expect(owner.kind).toBe('player');
+  });
+
+  it('⭐ each lot\'s room is MINTED at its own identity, not shared', async () => {
+    // The shared-template shape broke three things at once: land use
+    // resolved to the district, an avatar's captured placement pointed at
+    // a template rather than their own yard, and a cartesian room could
+    // not be used at all (singleton-shaped, so N clones collide).
+    //
+    // Minting through `asTemplatePath` fixes all three. Pin the identity.
+    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    expect(holder.identityFor(`${SUBURB}/lot-2`)).toBe(
+      `${SUBURB}/lot-2/yard`,
+    );
+    expect(holder.identityFor(`${SUBURB}/lot-3`)).toBe(
+      `${SUBURB}/lot-3/yard`,
+    );
+
+    const room = registryRoom();
+    // Two lots sold, one after the other. Under the shared-template shape
+    // the SECOND clone would have collided on the singleton guard.
+    await run(buyerIn(room), room, model('buy', 'lot 2'));
+    await run(buyerIn(room), room, model('buy', 'lot 3'));
+
+    const two = holder.liveRoomFor(`${SUBURB}/lot-2`);
+    const three = holder.liveRoomFor(`${SUBURB}/lot-3`);
+    expect(two).not.toBeNull();
+    expect(three).not.toBeNull();
+    expect(two).not.toBe(three);
+
+    // …and each carries its OWN path, so a placement recorded against it
+    // points at that lot rather than at a shared template.
+    expect(two!.getTemplatePath()).toBe(`${SUBURB}/lot-2/yard`);
+    expect(three!.getTemplatePath()).toBe(`${SUBURB}/lot-3/yard`);
+
+    // ⭐ Which means land use resolves PER LOT from the path alone — no
+    // persistence key needed to tell them apart.
+    expect(ParcelApi.landUseOf(two!.getTemplatePath()!)).toBe('residential');
   });
 
   it('title list shows unsold lots and marks sold ones', async () => {
