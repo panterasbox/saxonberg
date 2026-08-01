@@ -13,6 +13,15 @@
 # know the id); `{kind: player, templatePath: <path>}` is an individual.
 # `zonePath` defaults to `extent`. Seeding is idempotent (insert-iff-absent
 # keyed on `extent`).
+#
+# `landUse` — one of the closed six (residential · agricultural ·
+# commercial · industrial · civic · wild). OMIT IT on rows that are not
+# ground: `/studio`, `/lib/lounge` and friends are path-branch titles over
+# the template tree, and the inheritance walk answers `wild` for them,
+# which admits nothing. That default is the fail-closed one and should
+# stay. `areaM2` is the declared lot area — likewise omitted for
+# path-branch rows. Neither is ever derived from room geometry; see
+# lib/parcel/LandUse.ts.
 
 parcels:
   # The /studio branch — the sandbox's group-cell namespace (sandbox
@@ -36,17 +45,20 @@ parcels:
   # spatial zone" (was ownerGroupName: terminus).
   - extent: /domain/terminus/terminal
     owner: { kind: group, name: terminus }
+    landUse: civic
 
   # The downtown Counting-Houses financial quarter — the public avenue block +
   # the Goodkin branch. The city (municipality) owns the district; Goodkin owns
   # its branch by corpo affiliation on the counter fixture, not by zone title.
   - extent: /domain/terminus/counting-houses
     owner: { kind: group, name: terminus }
+    landUse: commercial
 
   # The general store off the avenue block — the city owns the building; the
   # store owns its Business (its P&L account), not the street it stands on.
   - extent: /domain/terminus/general-store
     owner: { kind: group, name: terminus }
+    landUse: commercial
 
   # The city Registry annex (the civics flagship) — the administration's
   # own rented rooms, held like everything municipal by the managed
@@ -54,6 +66,7 @@ parcels:
   # terms: the group holding title IS the committee).
   - extent: /domain/terminus/registry
     owner: { kind: group, name: terminus }
+    landUse: civic
 
   # Duncan Hall's dorms wing — the parent parcel the leased unit parcels
   # subdivide under (…/dorms/f<n>-r<p>). Owned by the managed `duncan-hall`
@@ -61,3 +74,4 @@ parcels:
   # No backing zone — the extent is just the D1 + Warren-member key string.
   - extent: /domain/eternal/duncan-hall/dorms
     owner: { kind: group, name: duncan-hall }
+    landUse: residential

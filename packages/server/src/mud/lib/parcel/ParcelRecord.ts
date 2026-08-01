@@ -31,6 +31,11 @@
  */
 
 import { Document } from "../persistence/Document";
+import { Collections } from "../persistence/Collections";
+import { QuantityMarshaller } from "../persistence/QuantityMarshaller";
+import { LandUses } from "./LandUse";
+import type { LandUse } from "./LandUse";
+import type { Quantity } from "../quantity";
 import type { GroupRef } from "../social/GroupProvider";
 
 /**
@@ -69,7 +74,7 @@ export interface UnitSlot {
 }
 
 export class ParcelRecord extends Document {
-  static collectionName = "parcels";
+  static collectionName = Collections.Parcels;
   static persistentFields = [
     "extent",
     "zonePath",
@@ -78,7 +83,14 @@ export class ParcelRecord extends Document {
     "grants",
     "allowance",
     "keyway",
+    "landUse",
+    "area",
   ];
+
+  /** Field-marshaller bindings — `area` round-trips as `{ value, unit }`. */
+  static fieldMarshallers = {
+    area: QuantityMarshaller.pathFor("m²"),
+  };
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
   extent: string = "";
@@ -102,8 +114,54 @@ export class ParcelRecord extends Document {
    *  re-minted each provision so old keys stop matching). Empty = unlocked/none. */
   keyway: string = "";
 
+  /**
+   * What may be done on this ground — the capability half of a zoning act.
+   * `null` = **inherit** from the covering parcel (`ParcelApi.landUseOf`
+   * walks upward); ground nothing claims answers `wild`, which admits
+   * nothing. Declared here in the gated `parcels` collection and never on
+   * an editable zone template — it gates behaviour, so it is access-check
+   * data. See `LandUse.ts`.
+   */
+  landUse: LandUse | null = null;
+
+  /**
+   * The lot's declared area — the *ceiling* half of a zoning act, and the
+   * number phase 4's fields and phase 5's stocking rate divide by.
+   *
+   * **Declared at provision, never derived from room geometry.** Rooms are
+   * an abstraction; making their dimensions load-bearing would mint
+   * placeholder rooms to satisfy spatial constraints, and would promote a
+   * lighting constant (`getSizeScale()` is a photometric denominator) into
+   * a land-tenure fact. A structure's draw on its parcel is its authored
+   * blueprint footprint, not a sum over its rooms.
+   */
+  area: Quantity<"m²"> | null = null;
+
   getExtent(): string {
     return this.extent;
+  }
+
+  /** This parcel's OWN declared use, or null when it inherits. */
+  getLandUse(): LandUse | null {
+    return this.landUse;
+  }
+
+  /**
+   * Declare this parcel's use. Validates against the closed vocabulary —
+   * an unknown use throws naming the offending value. `null` restores
+   * inheritance.
+   */
+  setLandUse(use: LandUse | string | null): void {
+    this.landUse = use === null ? null : LandUses.parse(use);
+  }
+
+  /** The declared area, or null when undeclared. */
+  getArea(): Quantity<"m²"> | null {
+    return this.area;
+  }
+
+  setArea(area: Quantity<"m²"> | null): void {
+    this.area = area;
   }
 
   getKeyway(): string {

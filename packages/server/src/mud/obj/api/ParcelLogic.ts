@@ -10,6 +10,8 @@ import {
   ParcelRecord,
   type ParcelOwner,
 } from "../../lib/parcel/ParcelRecord";
+import type { LandUse } from "../../lib/parcel/LandUse";
+import type { Quantity } from "../../lib/quantity";
 import type { GroupRef } from "../../lib/social/GroupProvider";
 import type ParcelRegistry from "../ParcelRegistry";
 
@@ -66,6 +68,13 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.coveringParcelOf(path) : null;
   }
 
+  /** See {@link ParcelApi.landUseOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public landUseOf(path: string): LandUse {
+    const reg = lookupRegistry();
+    return reg ? reg.landUseOf(path) : "wild";
+  }
+
   /** See {@link ParcelApi.resolveOwnerRef}. */
   @CallSecurity(ParcelApiCallers)
   public async resolveOwnerRef(owner: ParcelOwner): Promise<GroupRef | null> {
@@ -86,9 +95,10 @@ export class ParcelLogic extends ApiLogic {
     childPath: string,
     parentExtent: string,
     owner: ParcelOwner,
+    opts?: { landUse?: LandUse | null; area?: Quantity<"m²"> | null },
   ): Promise<ParcelRecord | null> {
     const reg = lookupRegistry();
-    return reg ? reg.subdivide(childPath, parentExtent, owner) : null;
+    return reg ? reg.subdivide(childPath, parentExtent, owner, opts) : null;
   }
 
   /** See {@link ParcelApi.transfer}. */

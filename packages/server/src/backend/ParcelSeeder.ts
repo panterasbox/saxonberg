@@ -29,12 +29,18 @@ import {
   ParcelRecord,
   type ParcelOwner,
 } from "../mud/lib/parcel/ParcelRecord";
+import { LandUses } from "../mud/lib/parcel/LandUse";
+import { Quantity } from "../mud/lib/quantity";
 
 interface ParcelSeedEntry {
   extent: string;
   zonePath?: string;
   owner: ParcelOwner;
   parentParcel?: string;
+  /** One of the closed six; omitted = inherit from the covering parcel. */
+  landUse?: string;
+  /** Declared lot area in m². Omitted = undeclared (path-branch rows). */
+  areaM2?: number;
 }
 
 interface ParcelSeedOptions {
@@ -71,6 +77,12 @@ export class ParcelSeeder {
       record.zonePath = entry.zonePath ?? entry.extent;
       record.owner = entry.owner;
       record.parentParcel = entry.parentParcel ?? null;
+      record.setLandUse(entry.landUse ?? null);
+      record.setArea(
+        typeof entry.areaM2 === "number"
+          ? Quantity.of(entry.areaM2, "m²")
+          : null,
+      );
       await record.save();
       inserted++;
     }
@@ -100,6 +112,21 @@ export class ParcelSeeder {
     if (owner.kind === "player" && !owner.templatePath) {
       throw new Error(
         `ParcelSeeder: player owner of '${entry.extent}' needs a 'templatePath'`,
+      );
+    }
+    // Fail the boot rather than silently seeding an unknown use: a typo
+    // here would read as `wild` through the inheritance walk, which is
+    // indistinguishable from "deliberately unzoned".
+    if (entry.landUse !== undefined && !LandUses.isLandUse(entry.landUse)) {
+      throw new Error(
+        `ParcelSeeder: parcel '${entry.extent}' declares unknown landUse ` +
+          `'${entry.landUse}' (expected one of ${LandUses.ALL.join(", ")})`,
+      );
+    }
+    if (entry.areaM2 !== undefined && !(entry.areaM2 > 0)) {
+      throw new Error(
+        `ParcelSeeder: parcel '${entry.extent}' declares a non-positive ` +
+          `areaM2 (${entry.areaM2})`,
       );
     }
   }

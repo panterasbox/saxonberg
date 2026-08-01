@@ -285,6 +285,96 @@ describe('Document', () => {
     });
   });
 
+  describe('optional marshalled fields', () => {
+    // A marshaller speaks a value-object contract — `toStored` takes an
+    // instance, `fromStored` returns one — so a null in a marshalled field
+    // used to throw on BOTH paths, which made an optional marshalled field
+    // inexpressible. `ParcelRecord.area` is the first one. Null now skips
+    // the marshaller in both directions.
+    class Boxed {
+      constructor(public readonly n: number) {}
+    }
+    const marshaller = {
+      toStored: (v: Boxed) => ({ n: v.n }),
+      fromStored: (raw: { n: number }) => new Boxed(raw.n),
+    };
+    const MARSHALLER_PATH = '/test/BoxMarshaller';
+
+    class BoxWidget extends Document {
+      static collectionName = 'boxes';
+      static persistentFields = ['label', 'box'];
+      static fieldMarshallers = { box: MARSHALLER_PATH };
+      label: string = '';
+      box: Boxed | null = null;
+    }
+
+    const marshalled = (d: BoxWidget): Record<string, unknown> =>
+      (d as unknown as { toDocument(): Record<string, unknown> }).toDocument();
+    const unmarshalled = (
+      d: BoxWidget,
+      doc: Record<string, unknown>
+    ): void =>
+      (
+        d as unknown as { fromDocument(x: Record<string, unknown>): void }
+      ).fromDocument(doc);
+
+    beforeEach(() => {
+      const resolve = (path: string) =>
+        path === MARSHALLER_PATH
+          ? (marshaller as unknown as never)
+          : undefined;
+      Document.setMarshallerResolver(resolve, async (path) => resolve(path));
+    });
+
+    it('marshals a present value through the marshaller', () => {
+      const w = new BoxWidget();
+      w.label = 'full';
+      w.box = new Boxed(7);
+      expect(marshalled(w).box).toEqual({ n: 7 });
+    });
+
+    it('stores a null field as null instead of throwing', () => {
+      const w = new BoxWidget();
+      w.label = 'empty';
+      expect(() => marshalled(w)).not.toThrow();
+      expect(marshalled(w).box).toBeNull();
+    });
+
+    it('rehydrates a stored null as null instead of throwing', () => {
+      const w = new BoxWidget();
+      expect(() =>
+        unmarshalled(w, { label: 'empty', box: null })
+      ).not.toThrow();
+      expect(w.box).toBeNull();
+      expect(w.label).toBe('empty');
+    });
+
+    it('⭐ round-trips both the present and the absent case', () => {
+      const full = new BoxWidget();
+      full.box = new Boxed(3);
+      const reloadedFull = new BoxWidget();
+      unmarshalled(reloadedFull, marshalled(full));
+      expect(reloadedFull.box).toBeInstanceOf(Boxed);
+      expect(reloadedFull.box!.n).toBe(3);
+
+      const empty = new BoxWidget();
+      const reloadedEmpty = new BoxWidget();
+      reloadedEmpty.box = new Boxed(99); // prove it is actively cleared
+      unmarshalled(reloadedEmpty, marshalled(empty));
+      expect(reloadedEmpty.box).toBeNull();
+    });
+
+    it('still throws when a PRESENT value names an unregistered marshaller', () => {
+      Document.setMarshallerResolver(
+        () => undefined,
+        async () => undefined
+      );
+      const w = new BoxWidget();
+      w.box = new Boxed(1);
+      expect(() => marshalled(w)).toThrow(/not registered/);
+    });
+  });
+
   describe('toString()', () => {
     it('renders an unsaved instance with "(unsaved)"', () => {
       const w = new Widget();

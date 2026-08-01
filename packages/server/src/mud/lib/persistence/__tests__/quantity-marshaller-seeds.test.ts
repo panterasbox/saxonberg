@@ -36,13 +36,20 @@ function encodeUnit(unit: string): string {
 describe("QuantityMarshaller seed coverage", () => {
   it("every pathFor(unit) in src has a seeded marshaller row", () => {
     // grep the tree for pathFor literals (the same sweep a reviewer runs).
+    // BOTH quote styles: quoting is mixed by area in this codebase (see
+    // CLAUDE.md § Code Style), so a single-quote-only sweep silently skips
+    // every double-quoted call site — which is the exact blind spot this
+    // test exists to close. `ParcelRecord.area` was the first one.
+    // The grep pattern carries no quote character at all — matching the
+    // bare call is enough, and the regex below decides which quote style
+    // it used. Keeps the shell string free of nested-escaping hazards.
     const out = execSync(
-      `grep -rh "QuantityMarshaller.pathFor('" --include='*.ts' ${SRC_ROOT}/mud 2>/dev/null || true`,
+      `grep -rh "QuantityMarshaller.pathFor(" --include='*.ts' ${SRC_ROOT}/mud 2>/dev/null || true`,
       { encoding: "utf-8" },
     );
     const units = new Set<string>();
-    for (const m of out.matchAll(/pathFor\('([^']+)'\)/g)) {
-      if (!m[1]!.includes("<")) units.add(m[1]!); // skip doc-comment examples
+    for (const m of out.matchAll(/pathFor\((['"])(.+?)\1\)/g)) {
+      if (!m[2]!.includes("<")) units.add(m[2]!); // skip doc-comment examples
     }
     expect(units.size).toBeGreaterThan(10); // the sweep found the call sites
 
