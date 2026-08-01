@@ -867,6 +867,50 @@ async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void
   // Fixtures first, THEN the owned goods placed here (D4). Outside the
   // principal frame above, because each good is cloned as ITS OWN owner.
   await overlayOwnedGoods(host);
+  // ...and last, put a resting body back on the thing it was resting on.
+  reoccupyRestingHost(host);
+}
+
+/**
+ * **You wake where you slept** (D10). `PosedMixin` persists the posture,
+ * but `getOccupiedHost()` is a live scan, so without this the bed is gone
+ * on restore and `currentRestQuality()` reads 1.0 on the very reconcile
+ * that was meant to pay out.
+ *
+ * Runs LAST, after the host has been re-placed and its room has laid down
+ * both its fixtures and the goods placed in it — Wave 4's ordering, one
+ * step further. A bed can only be re-occupied once it exists.
+ *
+ * Every failure degrades to the room floor — standing, 1.0, **no error and
+ * no teleport**. Restoring a player must never fail because their furniture
+ * moved: sold, redecorated, or someone else got there first.
+ */
+function reoccupyRestingHost(host: Stuff): void {
+  if (!MixinApi.isPosed(host) || !MixinApi.isSlottable(host)) return;
+  const path = host.getRestingOnPath();
+  const slot = host.getRestingSlot();
+  if (!path || !slot) return;
+  const room = MixinApi.isContainable(host) ? host.getContainer() : null;
+  if (!room || !MixinApi.isContainer(room)) return;
+  const seat = room
+    .getContents()
+    .find(
+      (item) =>
+        item.getTemplatePath() === path &&
+        MixinApi.isSlotted(item) &&
+        MixinApi.isPostured(item),
+    );
+  if (!seat) return; // the bed is gone — wake on the floor
+  try {
+    SlotApi.occupyAll(
+      seat as unknown as Stuff & Slotted,
+      host as unknown as Stuff & Slottable,
+      [slot],
+    );
+  } catch {
+    // Full, no longer admits the posture, or refused by `fitsSlot`. The
+    // avatar simply stands in the room; nothing is thrown at the player.
+  }
 }
 
 /**

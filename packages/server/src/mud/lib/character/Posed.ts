@@ -17,19 +17,42 @@
 
 import type { MixinConstructor } from '../mixin';
 import { Postures } from '../slot/Postured';
+import type { Stuff } from '../stuff/Stuff';
+import type { Slotted } from '../slot/Slotted';
+import { MixinApi } from '../../api/mixin';
 
 export interface Posed {
   getPosture(): string;
   setPosture(value: string): void;
+  /** Template path of the host whose posture slot this body occupies, or ''. */
+  getRestingOnPath(): string;
+  /** The slot name occupied on that host, or ''. */
+  getRestingSlot(): string;
 }
 
 export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PosedMixin extends Base {
     static _mixinName = 'PosedMixin';
-    static persistentFields = ['posture'];
+    static persistentFields = ['posture', 'restingOnPath', 'restingSlot'];
 
     /** @authorable */
     public posture: string = Postures.Stand;
+
+    /**
+     * The template path of the host whose posture slot this body occupies,
+     * or `''`. Persisted, because **`getOccupiedHost()` is a live scan** —
+     * the posture survives a logout but the bed does not, so on restore
+     * `currentRestQuality()` would read 1.0 on the very reconcile that was
+     * meant to pay out. Recording it is what makes "you wake where you
+     * slept" true rather than "you wake lying on the floor" (D10).
+     *
+     * Kept as a path + slot name rather than a reference: the instance is
+     * long gone by restore time, and the bed is re-cloned by its room.
+     */
+    public restingOnPath: string = '';
+
+    /** The slot name occupied on that host, or `''`. */
+    public restingSlot: string = '';
 
     public getPosture(): string {
       return this.posture;
@@ -37,6 +60,43 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public setPosture(value: string): void {
       this.posture = value;
+    }
+
+    public getRestingOnPath(): string {
+      return this.restingOnPath;
+    }
+
+    public getRestingSlot(): string {
+      return this.restingSlot;
+    }
+
+    /**
+     * Record the host + slot when this body takes a POSTURE-BEARING slot.
+     * Worn, held, mount and fixture slots leave `postures` undefined and are
+     * deliberately ignored: what is being remembered is where you are
+     * resting, not what you are carrying.
+     *
+     * @hook
+     */
+    public onSlotOccupied(host: Stuff & Slotted, slotName: string): void {
+      const bearing =
+        MixinApi.isPostured(host) &&
+        host.getAcceptedPostures(slotName).length > 0;
+      if (!bearing) return;
+      this.restingOnPath = host.getTemplatePath() ?? '';
+      this.restingSlot = slotName;
+    }
+
+    /**
+     * Forget it again on release, so a body that got up does not claim a
+     * bed it is no longer in.
+     *
+     * @hook
+     */
+    public onSlotReleased(_host: Stuff & Slotted, slotName: string): void {
+      if (slotName !== this.restingSlot) return;
+      this.restingOnPath = '';
+      this.restingSlot = '';
     }
   };
 }

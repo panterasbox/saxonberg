@@ -41,7 +41,14 @@ import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../../spatial/Container";
+import { ContainableMixin } from "../../spatial/Containable";
+import { PosedMixin } from "../../character/Posed";
+import { SlottableMixin } from "../../slot/Slottable";
+import { SlotApi } from "../../../api/slot";
+import PosturedChair from "../../../obj/Chair";
 import type { Containable } from "../../spatial/Containable";
+import type { Slotted } from "../../slot/Slotted";
+import type { Slottable } from "../../slot/Slottable";
 
 const CHAIR_PATH = "/obj/test/Chair";
 const ROOM_PATH = "/domain/test/Room";
@@ -56,6 +63,23 @@ class Person extends PersistableMixin(
   EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
   static persistentFields: string[] = [];
+}
+
+/** A sleeper: Posed + Slottable + Containable, an Avatar reduced to D10. */
+class Sleeper extends PersistableMixin(
+  PosedMixin(SlottableMixin(ContainableMixin(PostRegistrationMixin(Idea)))),
+) {
+  static persistentFields: string[] = [];
+}
+
+const BED_PATH = "/obj/fixture/bed";
+function makeBed(): PosturedChair {
+  const bed = makeStuffAtPath(() => new PosturedChair(), BED_PATH);
+  bed.setStaticSlots([
+    { name: "lie:1", accepts: "SlottableMixin", capacity: 1, postures: ["lie", "sit"] },
+  ]);
+  bed.setRestQuality(2.5);
+  return bed;
 }
 
 interface Doc extends Record<string, unknown> {
@@ -257,5 +281,71 @@ describe("the room overlay", () => {
     await PersistableApi.materialize(reborn);
     expect((reborn as unknown as Container).getContents().length).toBe(1);
     expect(col("parcels").length).toBe(0);
+  });
+});
+
+describe("sleep-as-logout — you wake where you slept (D10)", () => {
+  const SLEEPER = "/obj/Avatar/sleeper";
+
+  /** Lie the sleeper on a bed in `r`, capture both, wipe, restore. */
+  async function sleepAndWake(
+    withBed: boolean,
+  ): Promise<{ sleeper: Sleeper; bed: PosturedChair | null }> {
+    const r = room();
+    const bed = makeBed();
+    ContainmentApi.move(
+      bed as unknown as Stuff & Containable,
+      r as unknown as Stuff & Container,
+    );
+    const sleeper = makeStuffAtPath(() => new Sleeper(), SLEEPER);
+    ContainmentApi.move(
+      sleeper as unknown as Stuff & Containable,
+      r as unknown as Stuff & Container,
+    );
+    SlotApi.occupyAll(
+      bed as unknown as Stuff & Slotted,
+      sleeper as unknown as Stuff & Slottable,
+      ["lie:1"],
+    );
+    sleeper.setPosture("lie");
+    await PersistableApi.capture(r);
+    await PersistableApi.capture(sleeper);
+
+    StuffApi.clearAll();
+    await boot();
+    const reborn = room();
+    if (withBed) {
+      ContainmentApi.move(
+        makeBed() as unknown as Stuff & Containable,
+        reborn as unknown as Stuff & Container,
+      );
+    }
+    const woken = makeStuffAtPath(() => new Sleeper(), SLEEPER);
+    ContainmentApi.move(
+      woken as unknown as Stuff & Containable,
+      reborn as unknown as Stuff & Container,
+    );
+    await PersistableApi.materialize(woken);
+    const seat = (reborn as unknown as Container)
+      .getContents()
+      .find((x) => x.getTemplatePath() === BED_PATH) as PosturedChair | undefined;
+    return { sleeper: woken, bed: seat ?? null };
+  }
+
+  it("restores ON the bed, not merely in the posture", async () => {
+    const { sleeper, bed } = await sleepAndWake(true);
+    expect(sleeper.getPosture()).toBe("lie");
+    // The bed is what makes the reconcile pay out — a posture alone reads
+    // `restQuality` 1.0 and the night is worth nothing.
+    expect((sleeper as unknown as Slottable).getOccupiedHost()).toBe(bed);
+  });
+
+  it("degrades to the room floor when the bed is gone — no error, no teleport", async () => {
+    const { sleeper } = await sleepAndWake(false);
+    // Sold, destroyed, redecorated. You wake in the room, and nothing is
+    // thrown at the player: restoring must never fail because furniture
+    // moved.
+    expect((sleeper as unknown as Slottable).getOccupiedHost()).toBeNull();
+    expect(sleeper.isDestroyed()).toBe(false);
   });
 });
