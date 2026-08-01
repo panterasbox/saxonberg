@@ -340,9 +340,18 @@ incorporeal. It exists so a player can never be stranded because the
 content that would have brought them back does not exist, is unreachable,
 or was deleted. Content is free to be better than it.
 
-The wake point is `AppSettingKeys.defaultStartLocation`, read-only, and the
-named seam where "wake at your residence" plugs in later — that surface
-belongs to the residences build.
+**There is no wake point.** You come back where you are standing: the
+shade walked somewhere, and that is where it takes a body. `reembody` has
+no destination argument at all, and nothing is relocated.
+
+That is a deliberate retreat from an earlier shape that woke you at
+`defaultStartLocation`. Two things were wrong with it. A global default
+start is not where any *particular* player belongs — that lives in their
+own player data — and more to the point, there was no reason to move
+anybody: a shade that wants to return somewhere in particular can walk
+there first, exactly as a living person would. Content offering a passage
+on its own terms walks you to its temple, or moves the body it gets back;
+the engine decides where nobody ends up.
 
 ## Inside a circle
 

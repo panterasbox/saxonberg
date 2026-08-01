@@ -213,14 +213,18 @@ export class ConditionApi {
    * content exists would constrain it rather than serve it. Everything a
    * passage might charge or restore is already expressible: banking
    * charges, containment gives and takes, a quest gates however it likes.
-   * The caller decides **where** (the argument), **what you keep** (move
-   * the items), and **what it costs** (charge for it).
+   *
+   * **You come back where you are.** There is no wake point and no
+   * destination argument: the shade walked somewhere, and that is where it
+   * takes a body. Content that wants you to wake somewhere specific walks
+   * you there first, or moves the body it gets back — the engine does not
+   * decide where anybody ends up.
    *
    * It never reads the corpse. A body decays, can be destroyed, and does
    * not survive a restart — so nothing on the path back may depend on one.
    */
-  public static reembody(shade: Stuff, container: Stuff): Promise<Stuff> {
-    return logic().reembody(shade, container);
+  public static reembody(shade: Stuff): Promise<Stuff> {
+    return logic().reembody(shade);
   }
 
       }

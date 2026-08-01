@@ -258,8 +258,8 @@ export class ConditionLogic extends ApiLogic {
 
   /** See {@link ConditionApi.reembody}. */
   @CallSecurity(ConditionApiCallers)
-  public reembody(shade: Stuff, container: Stuff): Promise<Stuff> {
-    return reembodyImpl(shade, container);
+  public reembody(shade: Stuff): Promise<Stuff> {
+    return reembodyImpl(shade);
   }
 
   // The former `afflict` / `relieve` / `conditionsOf` thin forwarders
@@ -654,14 +654,21 @@ function resolveShadeLanding(arc: MortalArc): Stuff | null {
  * identity path and the `PlayerApi` slot, so it must be unregistered and
  * destructed before a restored body can take them.
  */
-async function reembodyImpl(shade: Stuff, container: Stuff): Promise<Stuff> {
+async function reembodyImpl(shade: Stuff): Promise<Stuff> {
   const ghost = playerBodyOf(shade);
   if (!ghost || !MixinApi.isIncorporeal(shade)) {
     throw new Error('ConditionApi.reembody: not a shade');
   }
-  if (!MixinApi.isContainer(container)) {
-    throw new Error('ConditionApi.reembody: destination is not a container');
-  }
+
+  // You come back WHERE YOU ARE. There is no wake point and no relocation:
+  // the shade walked somewhere, and that is where it takes a body. Read it
+  // before the shade is destructed, since the restored avatar lands
+  // wherever its own snapshot/instruction put it and has to be moved here.
+  //
+  // Content that wants you to wake somewhere specific walks you there, or
+  // moves the returned body — the engine does not decide where anybody
+  // ends up.
+  const landing = MixinApi.isContainable(shade) ? shade.getContainer() : null;
 
   const playerId = ghost.getPlayerId();
   const user = ghost.getUser?.();
@@ -680,7 +687,9 @@ async function reembodyImpl(shade: Stuff, container: Stuff): Promise<Stuff> {
   if (!body) throw new Error('ConditionApi.reembody: no body to return to');
 
   const stuff = body as unknown as Stuff;
-  if (MixinApi.isContainable(stuff)) ContainmentApi.move(stuff, container);
+  if (landing && MixinApi.isContainable(stuff) && MixinApi.isContainer(landing)) {
+    ContainmentApi.move(stuff, landing);
+  }
 
   // The arc is cleared HERE and only here — the identity is alive and
   // unmarked again, and the next login gets an ordinary body.

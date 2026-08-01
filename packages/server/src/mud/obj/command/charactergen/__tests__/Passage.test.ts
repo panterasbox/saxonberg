@@ -68,10 +68,26 @@ describe('passage — the floor beneath coming back', () => {
 
   it('reembody refuses anything that is not a shade', async () => {
     const living = makeStuff(() => new Creature());
-    const room = makeStuff(() => new Creature());
-    await expect(ConditionApi.reembody(living, room)).rejects.toThrow(
-      /not a shade/,
+    await expect(ConditionApi.reembody(living)).rejects.toThrow(/not a shade/);
+  });
+
+  it('takes no destination — you come back where you are', () => {
+    // No wake point, no relocation, and nothing to configure. A shade that
+    // wants to return somewhere in particular walks there first, which is
+    // what a living person would have to do.
+    const source = readFileSync(
+      join(__dirname, '../PassageController.ts'),
+      'utf8',
     );
+    expect(source).not.toContain('defaultStartLocation');
+    expect(source).not.toContain('resolveLanding');
+
+    // And the transition itself takes no destination at all.
+    const logic = readFileSync(
+      join(__dirname, '../../../api/ConditionLogic.ts'),
+      'utf8',
+    );
+    expect(logic).toContain('async function reembodyImpl(shade: Stuff)');
   });
 
   it('is afforded ONLY by being incorporeal', () => {

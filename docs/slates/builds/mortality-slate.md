@@ -314,13 +314,13 @@ corpse + shade + the two ledger writes.
   because "no content is available" must never strand a player. Everything
   richer is content and is **slated, not built**; saying so is what keeps
   the pre-merge sweep from reading the floor as a miss.
-- **The wake point** consumes the shipped residence spine
-  ([residence.md](../../subsystems/residence.md), `startLocation` /
-  `AppSettingKeys.defaultStartLocation`) **read-only**. The residences build
-  owns that surface.
-
-## The two ledgers death feeds
-
+- **There is no wake point.** You take a body where the shade is standing.
+  An earlier shape woke you at `defaultStartLocation`; that was wrong twice
+  over — a global default is not where any particular player belongs (their
+  own player data holds that), and there was no reason to move anybody at
+  all. A shade that wants to return somewhere walks there first, like
+  anyone else. So the engine decides where nobody ends up, and the
+  residence spine is not consulted either.
 - **Chronicle** — the append-only identity ledger is *for* this, and death
   is its most important event. A `deed` at the transition; the passage and
   the rebirth are their own entries. Currently there is no death entry

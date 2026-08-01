@@ -14,6 +14,11 @@
  * snapshot defect, wearing a third costume. So the engine keeps exactly
  * one route, always available, and content is free to be better than it.
  *
+ * You come back where you are standing — there is no wake point, and
+ * nothing gets relocated. A shade that wants to return somewhere in
+ * particular walks there first, which is the same thing a living person
+ * would do.
+ *
  * Zero arguments, and no `requiresEmbodied` — this is the one verb whose
  * entire purpose is to be usable by someone with no body. It is afforded
  * by `IncorporealMixin`, so only something incorporeal ever sees it.
@@ -21,13 +26,10 @@
 
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
-import { AppApi } from '../../../api/app';
 import { ConditionApi } from '../../../api/condition';
-import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
-import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
 const TOPIC = 'world.identity';
 
@@ -51,15 +53,12 @@ export default class PassageController extends CommandController<CommandModel> {
       return;
     }
 
-    // The wake point, read-only. Named as the seam where "wake at your
-    // residence" plugs in later — that surface belongs to the residences
-    // build, and this build only consumes what is already there.
-    const ref = AppApi.setting(AppSettingKeys.defaultStartLocation);
-    const { container } = await ContainmentApi.resolveLanding(ref);
-
-    // Deliberately never consults the corpse: a body decays, and nothing
-    // on the path back may depend on one existing.
-    const body = await ConditionApi.reembody(giver, container);
+    // No wake point, and nothing is moved: you take a body where you are
+    // standing. The shade walked here; this is where it stops being one.
+    //
+    // Deliberately never consults the corpse either: a body decays, and
+    // nothing on the path back may depend on one existing.
+    const body = await ConditionApi.reembody(giver);
 
     MessageApi.scene(body)
       .topic(TOPIC)
