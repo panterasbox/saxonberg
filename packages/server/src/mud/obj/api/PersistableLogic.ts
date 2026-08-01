@@ -11,6 +11,8 @@ import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { SlotApi } from "../../api/slot";
 import { ParcelApi } from "../../api/parcel";
+import { ChattelApi } from "../../api/chattel";
+import { Mixins } from "../../lib/mixin";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { PersistedRecord } from "../../lib/persistence/PersistedRecord";
 import { Document } from "../../lib/persistence/Document";
@@ -26,6 +28,8 @@ import type {
   Placement,
   HostPlacement,
   CaptureContext,
+  RestoreContext,
+  EstateEntry,
 } from "../../lib/persistence/PersistenceSlice";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
@@ -332,6 +336,74 @@ function captureFields(
  * container-order index both `Container` and `Slotted` reference is built
  * once per host and passed on the `CaptureContext`.
  */
+/**
+ * Goods a host **skipped** during the current synchronous capture because
+ * someone is stamped as owning them (the D2 skip rule). Capture cannot
+ * await, so the skipped goods land here and `captureImpl` flushes them into
+ * their owners' estates immediately afterwards.
+ *
+ * Module-scope because the capture walk is a recursive sync function and the
+ * flush is its caller — the same shape the shared content-order index has.
+ * Cleared at the start of every capture, so a throw mid-walk cannot leak
+ * entries into the next one.
+ */
+const skippedOwnedGoods = new Set<Stuff>();
+
+/**
+ * Push each skipped good's fresh state into its owner's estate — the ONLY
+ * path by which a good standing in a room that goes dormant, whose owner is
+ * offline, is captured by anybody at all. Without it a skipped good would be
+ * captured by nobody and destroyed with the room.
+ *
+ * A live owner is patched in memory (their own next capture then carries
+ * it); an offline owner's stored record is read-modify-written, because
+ * there is no instance to hold the entry.
+ */
+async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
+  for (const good of goods) {
+    if (good.isDestroyed() || !MixinApi.isChattel(good)) continue;
+    const chattelId = good.getChattelId();
+    if (!chattelId) continue;
+    const owner = await ChattelApi.ownerOf(good);
+    if (owner?.kind !== "player") continue;
+    const entry: EstateEntry = {
+      chattelId,
+      templatePath: good.getTemplatePath() ?? "",
+      state: captureState(good),
+      place: good.getPlace(),
+    };
+    const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
+    if (live && MixinApi.isEstate(live)) {
+      live._putEstateEntry(entry, good);
+      continue;
+    }
+    await patchStoredEstate(owner.templatePath, entry);
+  }
+}
+
+/**
+ * Read-modify-write one estate entry into an offline owner's stored record.
+ * Scoped to the owner's own `(scope, owner)` record — the same row their
+ * next materialize reads — so an offline owner learns about a good that
+ * moved while they were away.
+ */
+async function patchStoredEstate(
+  ownerPath: string,
+  entry: EstateEntry,
+): Promise<void> {
+  const rec = await PersistedRecord.findByScopeAndOwner(ownerPath, ownerPath);
+  if (!rec) return; // no record yet — the owner has never been captured
+  const key = Mixins.Estate;
+  const existing = rec.state[key];
+  const entries =
+    existing && "entries" in existing ? [...existing.entries] : [];
+  const at = entries.findIndex((e) => e.chattelId === entry.chattelId);
+  if (at >= 0) entries[at] = entry;
+  else entries.push(entry);
+  rec.state = { ...rec.state, [key]: { entries } };
+  await rec.save();
+}
+
 function captureState(host: Stuff): Record<string, MixinSlice> {
   const contributors = MixinApi.getPersistenceContributors(
     host.constructor as AnyConstructor,
@@ -352,6 +424,7 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
       captureItem(item as Stuff, placement),
     captureState: (item) => captureState(item as Stuff),
     indexOf: (item) => indexMap.get(item as Stuff) ?? -1,
+    noteOwnedGood: (item) => skippedOwnedGoods.add(item as Stuff),
   };
 
   const state: Record<string, MixinSlice> = {};
@@ -491,6 +564,23 @@ async function restoreState(
       }
     }
   }
+
+  // (4) Any layer carrying its OWN async restore hook. `Container` and
+  // `Slotted` are handled by the explicit passes above (their ordering
+  // against each other is load-bearing and cannot be a generic loop); this
+  // dispatches the rest — today, `EstateMixin`. Runs last, so an estate's
+  // `inventory` goods land in a container that has already been restored.
+  const ctx: RestoreContext = {
+    restoreItem: (entry, host) =>
+      restoreItem(entry as ContentEntry, host as Stuff, principal),
+  };
+  for (const c of MixinApi.getPersistenceContributors(
+    target.constructor as AnyConstructor,
+  )) {
+    if (!c.restoreSlice) continue;
+    const slice = state[c.key];
+    if (slice) await c.restoreSlice(target, slice, ctx);
+  }
 }
 
 /**
@@ -616,8 +706,15 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   // last sync block before the save), so concurrent triggers each write a
   // valid full snapshot (last-write-wins).
   await preloadTreeMarshallers(host);
+  skippedOwnedGoods.clear();
   const state = captureState(host);
   const place = capturePlacement(host);
+  // The skip rule's other half: goods this host does not persist because
+  // someone else holds title go to their owners' estates, now, before the
+  // host's record is written and long before the host destructs.
+  const skipped = [...skippedOwnedGoods];
+  skippedOwnedGoods.clear();
+  if (skipped.length > 0) await flushSkippedOwnedGoods(skipped);
   const rec =
     (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
     new PersistedRecord();
@@ -729,6 +826,31 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async captureHostOf(stuff: Stuff): Promise<void> {
     return captureHostOfImpl(stuff);
+  }
+
+  /** See {@link PersistableApi.captureDetached}. */
+  @CallSecurity(PersistableApiCallers)
+  public captureDetached(item: Stuff): Record<string, MixinSlice> {
+    return captureState(item);
+  }
+
+  /** See {@link PersistableApi.restoreDetached}. */
+  @CallSecurity(PersistableApiCallers)
+  public async restoreDetached(
+    entry: EstateEntry,
+    container: Stuff,
+    principal: Stuff,
+  ): Promise<Stuff | null> {
+    const restored = await restoreItem(
+      {
+        templatePath: entry.templatePath,
+        state: entry.state,
+        placement: {},
+      },
+      container,
+      principal,
+    );
+    return restored;
   }
 
   /** See {@link PersistableApi.hasRecord}. */

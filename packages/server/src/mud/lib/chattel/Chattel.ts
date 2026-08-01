@@ -28,6 +28,7 @@ import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
+import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
 
 /**
  * The id-minting contract: chattel identity has no in-world participant
@@ -43,6 +44,13 @@ export interface Chattel {
   getChattelId(): string;
   /** Privileged: set the server-minted id — chattel-logic-only. */
   _setChattelId(id: string): void;
+  /**
+   * Where the owner keeps this good — a room identity, `'inventory'`, or
+   * `'storage'` (the default). See {@link Chattel._setPlace}.
+   */
+  getPlace(): string;
+  /** Privileged: set the placement — chattel-logic-only. */
+  _setPlace(place: string): void;
 }
 
 export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
@@ -51,7 +59,7 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
   class ChattelMixin extends Base implements Chattel {
     static _mixinName = "ChattelMixin";
 
-    static persistentFields = ["_chattelId"];
+    static persistentFields = ["_chattelId", "_place"];
 
     /**
      * The durable per-instance id. Empty until minted by the chattel
@@ -76,6 +84,39 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public _setChattelId(id: string): void {
       this._chattelId = id;
+    }
+
+    /**
+     * Where the owner keeps this good: a **room identity**, `'inventory'`,
+     * or `'storage'` (the default). Distinct from *custody* — `place` says
+     * where the OWNER keeps it, and a good in a foreign room keeps naming
+     * that room while its title and its persistence stay with its owner.
+     *
+     * A property of the good rather than a registry, because it is not a
+     * relation between two principals: it is one value, always present,
+     * changing on the same acts that move custody (D1). The `chattel` row
+     * carries the same value as a **by-room index** so a materializing room
+     * can find what belongs in it without scanning every owner — index, not
+     * a second source of truth, and one gated call writes both.
+     *
+     * Plain field (not `#`): the hydrator bracket-assigns it on restore.
+     */
+    public _place: string = ESTATE_STORAGE;
+
+    public getPlace(): string {
+      return this._place;
+    }
+
+    /**
+     * Set the placement. Gated to the chattel logic singleton exactly as
+     * the id is — never author- or player-writable as data, so a `place`
+     * cannot be forged into someone else's residence.
+     */
+    @CallSecurity(ByChattelLogic)
+    @Final
+    @Unshadowable
+    public _setPlace(place: string): void {
+      this._place = place;
     }
 
     /**

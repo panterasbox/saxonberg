@@ -23,6 +23,7 @@ import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
 import { ProvenanceApi } from "../../api/provenance";
 import { ParcelApi } from "../../api/parcel";
+import { PersistableApi } from "../../api/persistable";
 import { TemplatePaths } from "../../lib/paths";
 import type { ChattelOwner } from "../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../lib/chattel/Chattel";
@@ -50,6 +51,17 @@ export class ChattelLogic extends ApiLogic {
   /** See {@link ChattelApi.ownerOf}. */
   @CallSecurity(ChattelApiCallers)
   public async ownerOf(item: Stuff): Promise<ChattelOwner | null> {
+    return this.resolveOwner(item);
+  }
+
+  /**
+   * The resolution chain itself, **ungated**: an intra-singleton self-call
+   * resolves to this Logic, which is outside the `ChattelApi` allowlist, so
+   * a gated method calling a gated sibling is denied. `setPlace` needs the
+   * owner, so the chain lives here and `ownerOf` is its gated face — the
+   * `ChattelRegistry` ungated-privates pattern.
+   */
+  private async resolveOwner(item: Stuff): Promise<ChattelOwner | null> {
     // A glob is owned-by-possession — never stamped, so never resolved.
     if (MixinApi.isGlobbable(item)) return null;
     const reg = lookupRegistry();
@@ -84,6 +96,67 @@ export class ChattelLogic extends ApiLogic {
     // world-wide restamp). Pure-degrade also lands here when no registry.
     const authorPath = await ProvenanceApi.authorOf(path);
     return authorPath ? { kind: "player", templatePath: authorPath } : null;
+  }
+
+  /**
+   * See {@link ChattelApi.setPlace}. **The single write path** for where an
+   * owner keeps a good: it sets the good's own `_place` field (what
+   * round-trips with the good) AND the `chattel` row's indexed `place`
+   * (what lets a materializing room find what belongs in it) in one call.
+   * Writing both here is the whole reason the index cannot drift.
+   *
+   * Also keeps the owner's **estate** current when the owner is live, so a
+   * placement survives the owner's next capture without a store round-trip.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async setPlace(item: Stuff, place: string): Promise<void> {
+    if (MixinApi.isGlobbable(item)) return; // a fungible stack has no place
+    if (!MixinApi.isChattel(item)) return;
+    const good = item as Stuff & Chattel;
+    good._setPlace(place);
+    const id = good.getChattelId();
+    if (!id) return; // unstamped: nothing owns it, so nothing keeps it
+    const reg = lookupRegistry();
+    if (reg) await reg.setPlace(id, place);
+    await this.syncEstate(good, place);
+  }
+
+  /** See {@link ChattelApi.placedIn}. */
+  @CallSecurity(ChattelApiCallers)
+  public async placedIn(
+    place: string,
+  ): Promise<Array<{ chattelId: string; owner: ChattelOwner | null }>> {
+    const reg = lookupRegistry();
+    if (!reg) return [];
+    const rows = await reg.placedIn(place);
+    return rows.map((r) => ({ chattelId: r.getChattelId(), owner: r.getOwner() }));
+  }
+
+  /**
+   * Upsert the good into its owner's estate, when that owner is a live
+   * player. The estate is the durable home of a good whose `place` is not
+   * its owner's own container, so it has to learn about the placement at
+   * the moment it happens — otherwise the owner's next capture would carry
+   * a stale entry (or none at all) forward.
+   *
+   * Silent when the owner is offline: the good is still live in a room, and
+   * the room's capture pass reports it to `PersistableLogic`, which flushes
+   * it to the stored estate then.
+   */
+  private async syncEstate(good: Stuff & Chattel, place: string): Promise<void> {
+    const owner = await this.resolveOwner(good as Stuff);
+    if (owner?.kind !== "player") return;
+    const host = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
+    if (!host || !MixinApi.isEstate(host)) return;
+    host._putEstateEntry(
+      {
+        chattelId: good.getChattelId(),
+        templatePath: good.getTemplatePath() ?? "",
+        state: PersistableApi.captureDetached(good as Stuff),
+        place,
+      },
+      good as Stuff,
+    );
   }
 
   /** See {@link ChattelApi.stamp}. */

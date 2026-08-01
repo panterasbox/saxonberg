@@ -105,6 +105,9 @@ export const Mixins = {
   // unspoofable ownership is stamped against (the parcel-title twin).
   // Composed at the Thing tier; refused on fungible stacks (Globbable).
   Chattel: 'ChattelMixin',
+  // Estate — owner-based persistence: the goods a principal holds title to,
+  // wherever they sit. The counterpart to the Container slice's skip rule.
+  Estate: 'EstateMixin',
   // Commerce — the shared authored price-list (Law 1: worth on the offer,
   // not the good). Composed by the bar's Menu and the store's Stock.
   PricedOffer: 'PricedOfferMixin',

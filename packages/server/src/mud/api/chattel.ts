@@ -64,6 +64,32 @@ export class ChattelApi {
   }
 
   /**
+   * Record **where the owner keeps** a titled good — a room identity,
+   * `'inventory'`, or `'storage'`. The single write path: it sets the
+   * good's own field, the `chattel` row's by-room index, and (when the
+   * owner is live) their estate, in one call.
+   *
+   * Distinct from custody: `place` says where the OWNER keeps it, so a good
+   * left in a foreign room keeps naming that room while its title and its
+   * persistence stay with its owner. A no-op for a glob or an unstamped
+   * good — neither has an owner to keep it.
+   */
+  public static async setPlace(item: Stuff, place: string): Promise<void> {
+    return logic().setPlace(item, place);
+  }
+
+  /**
+   * Every titled good recorded as placed in `place` — the by-room lookup a
+   * materializing room uses to overlay the goods that belong in it, without
+   * scanning every owner's record.
+   */
+  public static async placedIn(
+    place: string,
+  ): Promise<Array<{ chattelId: string; owner: ChattelOwner | null }>> {
+    return logic().placedIn(place);
+  }
+
+  /**
    * Establish ownership — mint a durable id on the good if it has none,
    * then title it to `owner`. Refuses a fungible stack. Actor
    * context-derived.

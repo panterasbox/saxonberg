@@ -114,6 +114,7 @@ import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { Chattel } from '../lib/chattel/Chattel';
+import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
 import type { ConsignmentShelf } from '../lib/retail/Consignment';
 import type { Bulkable } from '../lib/bulk/Bulkable';
@@ -977,6 +978,11 @@ export class MixinApi {
   /** A movable good carrying a durable per-instance chattel identity. */
   public static isChattel(obj: Stuff): obj is Stuff & Chattel {
     return this.hasMixin(obj, Mixins.Chattel);
+  }
+
+  /** A principal whose record carries the goods it holds title to. */
+  public static isEstate(obj: Stuff): obj is Stuff & Estate {
+    return this.hasMixin(obj, Mixins.Estate);
   }
 
   /** An object that restores itself on the game-time reset sweep. */

@@ -21,6 +21,7 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { GroupRef } from "../social/GroupProvider";
+import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
 
 /**
  * Who owns a chattel. The union mirrors `ParcelOwner` structurally (it is
@@ -41,7 +42,7 @@ export type ChattelOwner =
 
 export class ChattelRecord extends Document {
   static collectionName = Collections.Chattel;
-  static persistentFields = ["chattelId", "owner", "titledAt"];
+  static persistentFields = ["chattelId", "owner", "titledAt", "place"];
 
   /** The durable per-instance id this title is keyed on. */
   chattelId: string = "";
@@ -49,6 +50,15 @@ export class ChattelRecord extends Document {
   owner: ChattelOwner | null = null;
   /** Real-time epoch millis of the last title change (for auditing). */
   titledAt: number = 0;
+  /**
+   * Where the owner keeps this good — a room identity, `'inventory'`, or
+   * `'storage'`. **The by-room index**, nothing more: the good's own
+   * `_place` field is what round-trips with the good, and a materializing
+   * room needs to find what belongs in it without scanning every owner's
+   * record. One gated call in `ChattelLogic` writes both, which is what
+   * keeps them from diverging. See D1 + the plan's `Resolved`.
+   */
+  place: string = ESTATE_STORAGE;
 
   getChattelId(): string {
     return this.chattelId;
@@ -62,6 +72,11 @@ export class ChattelRecord extends Document {
   static async findByChattelId(chattelId: string): Promise<ChattelRecord | null> {
     const rows = await ChattelRecord.find<ChattelRecord>({ chattelId });
     return rows[0] ?? null;
+  }
+
+  /** Every row whose good is placed in `place` — the by-room lookup. */
+  static async findByPlace(place: string): Promise<ChattelRecord[]> {
+    return ChattelRecord.find<ChattelRecord>({ place });
   }
 
   /** Every current-state row (the boot index rebuild source). */
