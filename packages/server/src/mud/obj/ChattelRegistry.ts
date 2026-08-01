@@ -85,6 +85,16 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     return ChattelRecord.findByPlace(place);
   }
 
+  /**
+   * Every titled good placed at or **under** `placePrefix` — a whole unit's
+   * worth, across all its rooms. The lease-end sweep's input.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async placedUnder(placePrefix: string): Promise<ChattelRecord[]> {
+    const all = await ChattelRecord.findAll();
+    return all.filter((r) => r.place.startsWith(placePrefix));
+  }
+
   /** Establish title — the initial stamp (a `mint` event). */
   @CallSecurity(ChattelApiCallers)
   public async stamp(chattelId: string, owner: ChattelOwner): Promise<void> {

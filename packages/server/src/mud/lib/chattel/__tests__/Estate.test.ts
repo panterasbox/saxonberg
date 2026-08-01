@@ -275,3 +275,60 @@ describe("owner-based persistence — the estate slice", () => {
     expect(state?.EstateMixin?.entries).toEqual([]);
   });
 });
+
+describe("eviction to storage — the lease-end sweep (D9)", () => {
+  const UNIT = "/domain/test/unit-4b";
+
+  it("returns every good under the unit to storage, intact and titled", async () => {
+    const alice = makeOwner();
+    const a = makeTorch();
+    const b = makeTorch();
+    await ChattelApi.stamp(a, alice);
+    await ChattelApi.stamp(b, alice);
+    await ChattelApi.setPlace(a, `${UNIT}/bedroom`);
+    await ChattelApi.setPlace(b, `${UNIT}/kitchen`);
+
+    const evicted = await ChattelApi.evictToStorage(UNIT);
+    expect(evicted).toBe(2);
+
+    // Intact, titled, recoverable — never destructed. A good that is titled
+    // to somebody survives the end of their tenancy; moving house is
+    // re-placing from storage rather than starting over.
+    expect(a.getPlace()).toBe(ESTATE_STORAGE);
+    expect(b.getPlace()).toBe(ESTATE_STORAGE);
+    expect(a.isDestroyed()).toBe(false);
+    expect(await ChattelApi.ownerOf(a)).toEqual({
+      kind: "player",
+      templatePath: ALICE_PATH,
+    });
+    // ...and the owner's estate agrees, so the next capture cannot write
+    // the old placement straight back over the eviction.
+    expect(alice.getEstateEntry(a.getChattelId())?.place).toBe(ESTATE_STORAGE);
+  });
+
+  it("leaves goods outside the unit alone", async () => {
+    const alice = makeOwner();
+    const inside = makeTorch();
+    const elsewhere = makeTorch();
+    await ChattelApi.stamp(inside, alice);
+    await ChattelApi.stamp(elsewhere, alice);
+    await ChattelApi.setPlace(inside, `${UNIT}/bedroom`);
+    await ChattelApi.setPlace(elsewhere, "/domain/test/other-room");
+
+    expect(await ChattelApi.evictToStorage(UNIT)).toBe(1);
+    expect(elsewhere.getPlace()).toBe("/domain/test/other-room");
+  });
+
+  it("re-placing from storage furnishes the next address", async () => {
+    const alice = makeOwner();
+    const t = makeTorch();
+    await ChattelApi.stamp(t, alice);
+    await ChattelApi.setPlace(t, `${UNIT}/bedroom`);
+    await ChattelApi.evictToStorage(UNIT);
+
+    await ChattelApi.setPlace(t, "/domain/test/unit-9c/bedroom");
+    expect(t.getPlace()).toBe("/domain/test/unit-9c/bedroom");
+    const placed = await ChattelApi.placedIn("/domain/test/unit-9c/bedroom");
+    expect(placed.map((p) => p.chattelId)).toEqual([t.getChattelId()]);
+  });
+});

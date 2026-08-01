@@ -112,6 +112,17 @@ export class ChattelApi {
   }
 
   /**
+   * Force every owned good placed at or under `placePrefix` back to
+   * **storage** — the lease-end sweep (D9). Intact, titled, recoverable;
+   * **never destructed**, because a good titled to somebody survives the
+   * end of their tenancy. The unit re-lets empty and the ex-tenant's
+   * furniture waits for their next address. Returns the count.
+   */
+  public static async evictToStorage(placePrefix: string): Promise<number> {
+    return logic().evictToStorage(placePrefix);
+  }
+
+  /**
    * Every titled good recorded as placed in `place` — the by-room lookup a
    * materializing room uses to overlay the goods that belong in it, without
    * scanning every owner's record.

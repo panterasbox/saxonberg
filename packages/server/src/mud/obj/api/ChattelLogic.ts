@@ -25,7 +25,10 @@ import { ProvenanceApi } from "../../api/provenance";
 import { ParcelApi } from "../../api/parcel";
 import { PersistableApi } from "../../api/persistable";
 import { TemplatePaths } from "../../lib/paths";
-import { ESTATE_INVENTORY } from "../../lib/persistence/PersistenceSlice";
+import {
+  ESTATE_INVENTORY,
+  ESTATE_STORAGE,
+} from "../../lib/persistence/PersistenceSlice";
 import type { ChattelOwner } from "../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../lib/chattel/Chattel";
 import type { ChattelStampResult } from "../../api/chattel";
@@ -170,6 +173,40 @@ export class ChattelLogic extends ApiLogic {
       cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
     }
     return null;
+  }
+
+  /**
+   * See {@link ChattelApi.evictToStorage}. Ending a lease forces every
+   * owned good placed under `placePrefix` back to `storage` — **intact,
+   * titled, recoverable** — before the shell reverts (D9).
+   *
+   * Never destructs: a good that is titled to somebody survives the end of
+   * their tenancy, which is what makes "move house" re-placing from storage
+   * rather than starting over. Returns how many were evicted.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async evictToStorage(placePrefix: string): Promise<number> {
+    const reg = lookupRegistry();
+    if (!reg) return 0;
+    const rows = await reg.placedUnder(placePrefix);
+    for (const row of rows) {
+      const id = row.getChattelId();
+      await reg.setPlace(id, ESTATE_STORAGE);
+      // Update the live good and its owner's estate too, when either is
+      // loaded — otherwise the next capture would write the old placement
+      // straight back over the eviction.
+      const owner = row.getOwner();
+      if (owner?.kind !== "player") continue;
+      const host = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
+      if (!host || !MixinApi.isEstate(host)) continue;
+      const entry = host.getEstateEntry(id);
+      const live = host.getEstateLive(id);
+      if (live && MixinApi.isChattel(live)) live._setPlace(ESTATE_STORAGE);
+      if (entry) {
+        host._putEstateEntry({ ...entry, place: ESTATE_STORAGE }, null);
+      }
+    }
+    return rows.length;
   }
 
   /** See {@link ChattelApi.placedIn}. */
