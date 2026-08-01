@@ -14,8 +14,9 @@
  * It must be durable, too: without it, logging out and back in would mint a
  * fresh living body and death would cost nothing.
  *
- * All fields are plain scalars, so the `Hydrator`'s scalar default carries
- * it with no marshaller (docs/antipatterns.md § *Persistent Fields Default
+ * Every field is a plain, DURABLE scalar — nothing here is a handle to a
+ * live object, so nothing here can be stale by the time it is read. That
+ * also means the `Hydrator`'s scalar default carries it with no marshaller (docs/antipatterns.md § *Persistent Fields Default
  * to Scalars*).
  *
  * See [docs/subsystems/mortality.md](../../../../../docs/subsystems/mortality.md).
@@ -30,16 +31,17 @@ export interface MortalArc {
   cause: string;
 
   /**
-   * Runtime handle to the corpse, when one is still live.
+   * Where the body fell — where a returning shade appears.
    *
-   * **Never load-bearing.** A corpse decays, can be destroyed, and does not
-   * survive a restart — so nothing on the path back may require it. It is
-   * carried only so a returning shade can reappear beside its own body when
-   * that body happens to still exist.
+   * A durable template path, not a handle to the corpse. There was a
+   * `corpseStuffId` here; it went, for two reasons worth keeping written
+   * down. It was **redundant** — a corpse is laid at the body's own
+   * container, so "beside your corpse" and "where you fell" are the same
+   * room. And it was **unreadable when read**: a corpse is runtime-only,
+   * so a handle to one can never resolve after the restart this field
+   * exists to survive. A field that is guaranteed stale at its only read
+   * is worse than no field.
    */
-  corpseStuffId?: string;
-
-  /** Where the body fell — the shade's reappearance fallback. */
   whereTemplatePath?: string;
 }
 

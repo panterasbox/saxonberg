@@ -510,6 +510,8 @@ on combat.
 
 ### 12. Engine hygiene — ✅ shipped
 *Platform refactors with a lint at the end — no product surface.*
+- [reference-lifetime-slate](./builds/reference-lifetime-slate.md) — **NEW 2026-08-01.** Declare how long a reference holds. `ref-shapes.md` R2.1–R2.4 already say exactly that, but three of the four are **convention** — hand-written boilerplate that fails SILENTLY when forgotten (R2.3's self-heal is copy-pasted into every getter). Declare the rule per field (`static referenceFields = { _corpse: 'weak' }`), in the idiom the codebase already uses, and let the framework enforce it. **Not an internals nicety:** most cross-object refs are path strings today only because the world is still mostly singletons — a grown world is mostly clones, and every one of those is a Pattern B live ref with a cleanup obligation. Rejected: a `StuffRef<T>` wrapper (competes with R2.3 instead of completing it, ceremony at every read), real `WeakRef<>` (StuffApi's registries hold strong refs while registered, and post-unregister it clears NONDETERMINISTICALLY — GC timing into a deterministic residency story), and field decorators (**102 mixins return class expressions**, where legacy decorators are invalid). Implies a follow-on: **invert the six field-metadata statics** into one field-keyed structure — deliberately NOT bundled, since `persistentFields` alone is 231 files and persistence should not migrate alongside a behavior change.
+
 
 Shipped as the **import boundary** (2026-07-31, MR !158) →
 [architecture.md § The import boundary](../architecture.md): nothing

@@ -463,15 +463,7 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
   }
 
   // (f)
-  const corpse = await mintCorpseFrom(body, material, cause, nowS);
-  if (corpse) {
-    avatar.setMortalArc({
-      diedAt: nowS,
-      cause,
-      whereTemplatePath: where,
-      corpseStuffId: corpse.stuffId,
-    });
-  }
+  await mintCorpseFrom(body, material, cause, nowS);
 
   // (g/h) — mint the shade from the drained body BEFORE destructing it,
   // so the shell fork has something to read.
@@ -631,15 +623,20 @@ async function embodyForSessionImpl(avatar: Stuff): Promise<Stuff> {
   return shade;
 }
 
-/** Beside the corpse if it survives, else where the body fell. */
+/**
+ * Where a returning shade appears: the place the body fell.
+ *
+ * There is deliberately no corpse handle here. A corpse is laid at the
+ * body's own container, so "beside your corpse" and "where you fell" are
+ * the SAME room — the handle was redundant with a durable field that was
+ * already recorded. Its one unique case (somebody dragged the body
+ * elsewhere) cannot survive the login this resolve exists to serve,
+ * because a corpse is runtime-only and does not outlive a restart.
+ *
+ * That is why the arc holds only durable scalars: a field that can never
+ * be valid when it is read is worse than no field.
+ */
 function resolveShadeLanding(arc: MortalArc): Stuff | null {
-  if (arc.corpseStuffId) {
-    const corpse = StuffApi.findById(arc.corpseStuffId);
-    if (corpse && !corpse.isDestroyed() && MixinApi.isContainable(corpse)) {
-      const at = corpse.getContainer();
-      if (at) return at as unknown as Stuff;
-    }
-  }
   if (arc.whereTemplatePath) {
     return StuffApi.findByTemplatePath(arc.whereTemplatePath) ?? null;
   }
