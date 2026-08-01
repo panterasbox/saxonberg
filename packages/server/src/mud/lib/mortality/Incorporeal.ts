@@ -16,10 +16,6 @@
  * future content hands it something a ghost can hold. The capability is
  * intact; only the verb is taken.
  *
- * The way back is afforded by this state (so only something incorporeal
- * ever sees the verb) — wired in the re-embodiment wave, alongside the
- * verb it points at.
- *
  * `revocationReason` exists so the same lever re-skins. The deferred
  * prison work wants precisely this shape — a present participant with
  * embodied verbs revoked and a designed path back — and should reuse the
@@ -28,6 +24,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { CommandContributions } from '../../api/command';
 
 export interface Incorporeal {
   /** Prose shown when an embodied verb is refused. */
@@ -40,6 +37,18 @@ export function IncorporealMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   class IncorporealMixin extends Base implements Incorporeal {
     static _mixinName = 'IncorporealMixin';
+
+    /**
+     * The way back is afforded by the state itself, so only something
+     * that is actually incorporeal ever sees the verb — and so a player
+     * with no body is never left without one available command.
+     */
+    static commandContributions: CommandContributions = {
+      self: ['charactergen/passage.yaml'],
+      environment: [],
+      inventory: [],
+      peers: [],
+    };
 
     /** @runtimeState */
     public revocationReason = 'Your hand passes through it.';

@@ -255,6 +255,12 @@ export class ConditionLogic extends ApiLogic {
     return embodyForSessionImpl(avatar);
   }
 
+  /** See {@link ConditionApi.reembody}. */
+  @CallSecurity(ConditionApiCallers)
+  public reembody(shade: Stuff, container: Stuff): Promise<Stuff> {
+    return reembodyImpl(shade, container);
+  }
+
   // The former `afflict` / `relieve` / `conditionsOf` thin forwarders
   // were removed (item-1 antipattern sweep): callers narrow with
   // `MixinApi.isVitals` and call `target.afflict` / `.relieve` /
@@ -592,6 +598,78 @@ function resolveShadeLanding(arc: MortalArc): Stuff | null {
     return StuffApi.findByTemplatePath(arc.whereTemplatePath) ?? null;
   }
   return null;
+}
+
+/**
+ * A shade becomes a living body again (see {@link ConditionApi.reembody}).
+ *
+ * Nothing here reads the corpse — not the signature, not the body. That is
+ * how "no path back may depend on a body that decays" stops being a rule
+ * anyone has to remember and becomes a fact about the code.
+ *
+ * The ordering mirrors the split, for the same reason: the shade holds the
+ * identity path and the `PlayerApi` slot, so it must be unregistered and
+ * destructed before a restored body can take them.
+ */
+async function reembodyImpl(shade: Stuff, container: Stuff): Promise<Stuff> {
+  const ghost = playerBodyOf(shade);
+  if (!ghost || !MixinApi.isIncorporeal(shade)) {
+    throw new Error('ConditionApi.reembody: not a shade');
+  }
+  if (!MixinApi.isContainer(container)) {
+    throw new Error('ConditionApi.reembody: destination is not a container');
+  }
+
+  const playerId = ghost.getPlayerId();
+  const user = ghost.getUser?.();
+  const held = [...ghost.getInteractives()];
+
+  // Free the identity path and the registry slot first.
+  PlayerApi.unregisterAvatar(shade as unknown as never);
+  await StuffApi.destruct(shade);
+
+  // Clone + materialize the identity's own body: the clean baseline the
+  // death choreography captured, plus the arc it recorded.
+  const avatars = await PlayerApi.loadAvatarsForUser(user as never);
+  const body = (avatars as unknown as PlayerBody[]).find(
+    (a) => a.getPlayerId() === playerId,
+  );
+  if (!body) throw new Error('ConditionApi.reembody: no body to return to');
+
+  const stuff = body as unknown as Stuff;
+  if (MixinApi.isContainable(stuff)) ContainmentApi.move(stuff, container);
+
+  // The arc is cleared HERE and only here — the identity is alive and
+  // unmarked again, and the next login gets an ordinary body.
+  body.setMortalArc(null);
+  try {
+    await body.save();
+  } catch {
+    // A snapshot failure must not strand someone mid-return.
+  }
+
+  await recordReturnDeed(stuff);
+
+  for (const interactive of held) {
+    ConnectionApi.transfer(interactive as never, stuff as never);
+  }
+  for (const interactive of held) {
+    await body.enter(interactive as never);
+  }
+  return stuff;
+}
+
+/** The other half of the death deed — the chronicle records both edges. */
+async function recordReturnDeed(host: Stuff): Promise<void> {
+  try {
+    await ChronicleApi.recordDeed(host, {
+      template: '{{ who | name }} returned to the world.',
+      vars: { who: host },
+      tags: ['death', 'passage'],
+    });
+  } catch {
+    // Fire-and-forget.
+  }
 }
 
 /** The chronicle deed. No-ops without a durable owner key / connection. */
