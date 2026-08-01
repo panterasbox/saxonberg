@@ -114,20 +114,43 @@ draws nothing because it is not a bed. And the number is backed by things
 the player can **count**: *"40 plants in beds totalling 400 m²; your parcel
 supports 1000."* A ledger, not a stamp.
 
-### Over-draw is permitted, and there is no penalty mechanic
+### Density is soft. Extent is hard. They are not the same thing.
 
-A hard cap is the **dishonest** option. Real land does not refuse — you can
-over-plant, and you get worse yields, exhausted soil and disease pressure.
-A wall teaches something false and strips the author's ability to build a
-stupidly dense farm and let the economy judge it.
+**This originally said "over-draw is permitted, no penalty mechanic," and
+that was wrong** — build-2 caught it. The claim was that crowding is
+competition for light, water and nutrients, so the shipped min-of-three
+limiting factor handles over-draw with nothing new to build. That is **true
+within a bed and false across beds**: each `Cultivable` owns its own
+moisture and nitrogen reserves and its own reconcile, so four plants in four
+beds compete for nothing. A player who over-draws by *adding beds* gets
+linear output and no penalty at all, and land goes on meaning nothing.
 
-But the right form is not "soft cap with a penalty" — it is **no new
-mechanic at all**. Husbandry already runs the min-of-three limiting factor;
-crowding *is* competition for light, water and nutrients. Over-planting
-reduces the per-plant share of exactly those, and Liebig does the rest.
+The error was conflating two different quantities:
 
-**Diminishing returns emerge; they are not administered.** The player who
-over-plants is not scolded — they get a worse harvest and can work out why.
+| | real? | model |
+|---|---|---|
+| **density** — too many plants in one bed | yes, farmers over-sow constantly | **soft**: per-plant share falls, min-of-three does the rest, diminishing returns **emerge** |
+| **extent** — more bed than you have land | **no. There is simply no room** | **hard**: refuse the placement |
+
+A hard cap on *density* would teach something false — that is the argument
+this slate started with, and it still holds. But extending it to *extent*
+was the mistake. **You cannot put a hundred acres of beds on ten acres of
+land**, and there is no "you can, it just goes badly" — there is nowhere to
+put them. Refusing is not a penalty and not a multiplier; it is geometry,
+and it is the most honest statement in the model.
+
+So: **placing a productive object that would exceed the parcel's available
+land is refused, because there is no room for it.** Same shape as
+`subdivide`'s ceiling, one tier down.
+
+That makes *land's job is to make production scarce* true immediately, and
+it is **cheaper than every alternative considered**: no parcel-level shared
+water pool (which is physically dubious anyway — two fields share an
+aquifer, they do not share topsoil nitrogen), no `min(1, available ÷ draw)`
+effective-soil multiplier (the administered penalty this slate exists to
+avoid, hidden one level down), and no deferral.
+
+Crowding within a bed stays soft and emergent, exactly as designed.
 
 ### Unused capacity is indefinite
 
