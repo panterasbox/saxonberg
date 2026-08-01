@@ -206,12 +206,14 @@ population — audited 2026-07):
 Anything else — a fixture, an item, an NPC, a room — gets a template
 and a seed. When in doubt, it's a template.
 
-**Two recorded exceptions.** `WireBody` (the sandbox vessel) and the
-**corpse** minted by a player's death are runtime-only, per-instance,
-non-authored objects whose entire identity is the body they came from.
-Neither may carry a template path — the corpse in particular must not be
-able to collide in `byTemplatePath` with the identity its player is about
-to re-enter. See [mortality.md](./subsystems/mortality.md).
+**Not an exception: an object derived from another object.** "This
+instance's state comes from a live source, not from authored data" is not
+a reason to skip the template — it is the `GlobbableApi.split` shape.
+Clone at a template, then copy the derived fields in. The corpse a death
+leaves behind does exactly this: what a corpse *is* is authored
+(`/lib/mortality/corpse`), whose it *was* is poured in through a gated
+applier. `byTemplatePath` is a multi-bucket, so many instances sharing one
+path is ordinary — only `StuffApi.singleton()` objects to it.
 
 ## Duck Typing with Mixins
 

@@ -6,6 +6,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
+import { TemplatePaths } from '../../lib/paths';
+import { Creature } from '../../lib/creature/Creature';
 import { ConditionApi } from '../condition';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
@@ -208,6 +210,24 @@ describe('sandbox crossing', () => {
     await SandboxApi.enter(avatar);
     const vessel = SandboxApi.activeBodyFor(PLAYER)!;
     expect(vessel.getCircleScope()).not.toBeNull();
+
+    // The corpse is cloned from an authored template, and the mint THROWS
+    // when it is missing — a body failing to appear where someone died
+    // should be loud. This world has no Template store, so stand in for
+    // that one path and leave every other clone alone.
+    const realClone = StuffApi.clone.bind(StuffApi);
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (
+      path: string,
+      ...rest: unknown[]
+    ) => {
+      if (path === TemplatePaths.mortalityCorpse) {
+        // Minted through `create` so it picks up the AMBIENT scope, as a
+        // real clone inside the circle would: a field-scoped stand-in
+        // would be denied at the sandbox boundary on the very next call.
+        return StuffApi.create(() => new Creature());
+      }
+      return realClone(path, ...(rest as []));
+    }) as unknown as typeof StuffApi.clone);
 
     // Driven from INSIDE the circle, as a lethal trap in there would be:
     // the boundary rightly refuses a field-context call on a circle-scoped

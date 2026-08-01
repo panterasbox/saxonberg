@@ -495,31 +495,59 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 /**
  * Mint a corpse carrying a body's material state and its loadout.
  *
- * Minted with **no template path**. `StuffApi.create` without a template
- * is normally an antipattern; this takes the same bounded exception
- * `WireBody` already does — a runtime-only, per-instance, non-authored
- * object whose whole identity is the body it came from. It also means the
- * corpse can never collide in `byTemplatePath` with the identity the
- * player is about to re-enter.
+ * Cloned from the authored corpse template, then configured from the body
+ * — the `GlobbableApi.split` shape, which mints a runtime-derived instance
+ * the same way. What a corpse IS is authored; whose it WAS is poured in.
+ *
+ * **Throws if the template is missing**, deliberately. A body failing to
+ * appear where someone died is exactly the kind of thing that should be
+ * loud: silent absence would leave a death with no evidence, no loot and
+ * nothing to examine, and forensics would simply not work in that world.
  */
 async function mintCorpseFrom(
   body: Stuff & Vitals,
   material: Record<string, unknown>,
   cause: string,
   nowS: number,
-): Promise<(Stuff & Vitals) | null> {
-  const { Creature } = await import('../../lib/creature/Creature');
-  const corpse = await StuffApi.create(() => new Creature());
-  if (!MixinApi.isVitals(corpse)) return null;
+): Promise<Stuff & Vitals> {
+  // Everything ORDINARY about this corpse arrives through hydration.
+  //
+  // `dataOverlay` merges per-instance data over the template's authored
+  // block (`{...template.data, ...overlay}`) at the hydrate step — the
+  // shipped channel for cloning a shared seed with instance-specific
+  // fields. Hydration is state INJECTION; nothing in its contract says
+  // the state has to be authored, and the Stuff lifecycle is exactly why
+  // constructor args are not the alternative here. So the corpse arrives
+  // already named, already the right species, already carrying its cause
+  // and its time of death, instead of being minted blank and patched.
+  const speciesPath = MixinApi.isOrganism(body)
+    ? (body.getSpecies()?.getTemplatePath() ?? null)
+    : null;
 
-  if (MixinApi.isOrganism(corpse) && MixinApi.isOrganism(body)) {
-    corpse.setSpecies(body.getSpecies());
+  const corpse = await StuffApi.clone(TemplatePaths.mortalityCorpse, undefined, {
+    dataOverlay: {
+      shortDescription: `the body of ${body.getPresentation()}`,
+      _speciesPath: speciesPath,
+      causeOfDeath: cause,
+      diedAtGameSec: nowS,
+    },
+  });
+  if (!MixinApi.isVitals(corpse)) {
+    throw new Error(
+      `ConditionApi.die: the corpse template ` +
+        `'${TemplatePaths.mortalityCorpse}' did not produce a body with ` +
+        `vitals — a death must not leave the world without one.`,
+    );
   }
+
+  // The material record is the ONE thing that stays outside hydration,
+  // and deliberately. `adoptMaterialState` is gated to this choreography
+  // and has no `mergeSlice_` counterpart — that absence is what makes a
+  // corpse un-reanimatable. Routing it through the hydrator would mean
+  // widening the gate to a component any template can name, which is the
+  // opposite of the guarantee. What a corpse IS hydrates; whose body it
+  // WAS is poured, once, by the only caller allowed to.
   corpse.adoptMaterialState(material);
-  corpse.setCauseOfDeath(cause);
-  if (MixinApi.isOrganism(corpse)) corpse.setLifecycleState('dead');
-  if (MixinApi.isPostmortem(corpse)) corpse.markDeceasedAt(nowS);
-  corpse.setName(`the body of ${body.getPresentation()}`);
 
   // The loadout moves with the body it was on — that gear is the stake,
   // and the corpse is where someone has to go to get it.

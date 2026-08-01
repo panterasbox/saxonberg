@@ -167,6 +167,13 @@ design — see [antipatterns.md](../antipatterns.md).
 
 ## The corpse
 
+The corpse is cloned from the authored template `/lib/mortality/corpse`
+and then configured from the body — the `GlobbableApi.split` shape. What a
+corpse *is* is authored; whose it *was* is poured in through the gated
+`adoptMaterialState`. A missing template **throws**: a body failing to
+appear where someone died would leave a death with no evidence, no loot and
+nothing to examine, and forensics simply would not work in that world.
+
 `PostmortemMixin` on **`Creature`** — the tier whose own doc already names
 "a corpse" as a valid bare Creature, and which already brings `Container`
 (the loadout), `Vitals` + `BodyPlanSlots` (the wound map) and `Thermal`
