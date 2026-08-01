@@ -1,0 +1,5 @@
+# The Hinkley Hills lot holder — the suburb's keyed-room singleton
+# (the dorm-warren.yaml role, at a fraction of the size).
+class: /domain/terminus/hinkley-hills/LotHolder
+hydratorClass: /lib/persistence/PersistentHydrator
+data: {}

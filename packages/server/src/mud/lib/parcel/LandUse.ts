@@ -31,9 +31,20 @@
  * use explicitly grants it. Stewardship's own gloss agrees — *"~nothing
  * built; passage and gathering"* is gathering, not farming.
  *
- * The area band is the ceiling half. `ParcelRegistry.subdivide` refuses a lot
- * outside its use's band, which is the whole of "constrained by zoning" — one
- * check at mint time, not an ongoing simulation.
+ * ## The area band is a LOT band
+ *
+ * The ceiling half, and it is checked in exactly one place:
+ * `ParcelRegistry.subdivide` refuses a CHILD outside its effective use's
+ * band. That is the whole of "constrained by zoning" — one check when a
+ * lot is minted, not an ongoing simulation.
+ *
+ * **A district is not a lot, and is not checked against these numbers.**
+ * Hinkley Hills is ~24 hectares of `residential` ground, far past the two
+ * hectares a residential *lot* may be; that is not a contradiction,
+ * because the district is a seeded extent that lots are subdivided out
+ * OF, never a lot itself. The band's job is catching a mis-authored
+ * holding — a 3 m² farm, a 40-hectare townhouse — at the moment somebody
+ * mints one.
  */
 
 import type { Quantity } from "../quantity";
@@ -68,7 +79,8 @@ export type CultivationScale = (typeof CULTIVATION_SCALES)[number];
 interface LandUseSpec {
   /** How much cultivation the use admits. */
   readonly cultivation: CultivationScale;
-  /** Permissible lot area in m², inclusive. `subdivide` enforces it. */
+  /** Permissible LOT area in m², inclusive. `subdivide` enforces it on a
+   *  subdivided child — never on a district's own extent. */
   readonly areaBand: { readonly min: number; readonly max: number };
   /** One line, player-facing — the reason a refusal names. */
   readonly summary: string;

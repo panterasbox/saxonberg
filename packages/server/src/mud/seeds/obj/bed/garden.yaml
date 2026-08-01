@@ -21,6 +21,11 @@ data:
   # ~340 kg filled: the frame plus 12 L of soil in a bed that is mostly
   # soil by volume. Well over any character's strain ceiling.
   mass: 340
+  # This is GROUND, not a container of soil — so what may be grown in it
+  # is the parcel's business, and a bed refuses ground whose land use
+  # does not admit cultivation. A pot leaves this false: a houseplant on
+  # a windowsill is not agriculture and no ordinance cares.
+  fixedGround: true
   interiorBulk: true
   interiorCapacity: 12
   # `liquidTight` (the default), NOT `open`: an `open` interior does not

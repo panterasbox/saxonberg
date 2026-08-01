@@ -113,6 +113,12 @@ export interface Cultivable {
   getPlants(): Array<Stuff & Slottable>;
   /** Whether there is still room for another plant. */
   hasFreePlantSlot(): boolean;
+  /**
+   * Whether this is GROUND — soil in the earth, subject to what the
+   * parcel says may be done there — rather than a container of soil you
+   * carry about. A garden bed is; a pot is not.
+   */
+  isFixedGround(): boolean;
 
   // ---------- soil state (its own checkpoint) ----------
 
@@ -155,7 +161,37 @@ export function CultivableMixin<
     static _mixinName = Mixins.Cultivable;
 
     /** The soil's own checkpoint travels with the ground it belongs to. */
-    static persistentFields = ["soilClockStamp", "_soilMeanMoisture"];
+    static persistentFields = [
+      "soilClockStamp",
+      "_soilMeanMoisture",
+      "fixedGround",
+    ];
+
+    /**
+     * Is this ground, or a container of soil?
+     *
+     * The distinction that decides whether **land use applies**. A garden
+     * bed is soil in the earth: what may be grown in it is the parcel's
+     * business, and a bed on civic ground is refused. A pot is furniture
+     * — you carry it indoors, put it on a windowsill in a rented office,
+     * and no zoning ordinance has an opinion, because a houseplant is not
+     * agriculture.
+     *
+     * Authored DATA rather than a class check, so a future planter box
+     * that is bolted down needs no new class — and so the rule reads as
+     * a property of the thing rather than of its type.
+     *
+     * @authorable
+     */
+    public fixedGround: boolean = false;
+
+    public isFixedGround(): boolean {
+      return this.fixedGround;
+    }
+
+    public setFixedGround(value: boolean): void {
+      this.fixedGround = value;
+    }
 
     /**
      * The prerequisite surface, narrowed. TypeScript does not carry a

@@ -15,3 +15,8 @@ data:
       fee: 0
     - to: /domain/newbie-wilds/crossroads/terminal
       fee: 15
+    # Out to the suburb. Cheap on purpose: living in Hinkley Hills and
+    # working in Terminus has to be an ordinary arrangement, not a
+    # penalty, or nobody takes a lot.
+    - to: /domain/terminus/hinkley-hills/tpa
+      fee: 5
