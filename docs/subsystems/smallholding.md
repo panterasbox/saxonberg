@@ -234,6 +234,33 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
 ---
 
+### ⚠ The shared-template shape has a ceiling, and the next phase removes it
+
+A lot's room is a `TitledRoom` — a **persistable, non-singleton** room
+(a plain `CartesianLocation` persists nothing it holds and is
+singleton-shaped, so it is wrong on both counts). `LotHolder` clones one
+per lot and keys it on the lot's parcel extent.
+
+That works for the room's own contents, but **every clone shares one
+templatePath**, so anything that identifies the room *by path* gets the
+district rather than the lot:
+
+| Consumer | Today | Fix |
+|---|---|---|
+| the land-use gate | prefers the room's **persistence key**, which is the lot extent | done |
+| an avatar's captured placement | records `container: <shared template>`, so logging out in your own yard and back in lands you in a fresh one | **open** |
+
+The dorm dodges the second by being a `WarrenMember` — the placement
+records the *warren* and `admit` re-derives the keyed room. A lot has no
+warren.
+
+**Both dissolve if a residence becomes one minted template each** rather
+than N clones of one: the template path becomes the identity, placement
+is exact, the land-use walk resolves per-lot without a key, and no
+`(scope, key)` record is needed at all. `TitledRoom` works unchanged in
+that model; `LotHolder` simply stops passing a key. Until then, treat a
+titled lot as somewhere you visit rather than somewhere you log out.
+
 ## `title` — the act the property build lacked
 
 Every piece of title machinery shipped with the property build and none of

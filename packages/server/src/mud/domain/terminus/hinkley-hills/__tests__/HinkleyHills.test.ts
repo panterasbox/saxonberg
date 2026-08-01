@@ -32,6 +32,7 @@ import GardenBed from '../../../../obj/GardenBed';
 import PlantPot from '../../../../obj/PlantPot';
 import Seed from '../../../../obj/Seed';
 import Plant from '../../../../obj/Plant';
+import TitledRoom from '../../../../obj/TitledRoom';
 import ParcelRegistry from '../../../../obj/ParcelRegistry';
 import GroupRegistry from '../../../../obj/GroupRegistry';
 import { Reserve } from '../../../../lib/reserve';
@@ -492,6 +493,47 @@ describe('Hinkley Hills — the land-use gate', () => {
     await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
 
     expect(reasons(ctx)).toContain('land-use-forbids-cultivation');
+  });
+
+  it('⭐ a KEYED room resolves to its own lot, not to the district', async () => {
+    // Every lot's yard clones from ONE template under the district, so a
+    // template-path read answers `residential` for ALL of them — right
+    // today only because every Hinkley lot is zoned alike. The room's
+    // persistence key IS its lot's parcel extent, so the gate reads that
+    // instead.
+    //
+    // The proof is the refusal: `banned`'s own template path sits under
+    // the residential district and would be ALLOWED on a path read. It is
+    // refused, so the key is what was consulted.
+    seedParcel(`${SUBURB}/lot-9`, 'civic'); // a lot zoned against the grain
+    await ParcelApi.rebuildCoverageIndex();
+
+    const shared = fresh('/domain/terminus/hinkley-hills/yard');
+    const ok = makeStuffAtPath(() => new TitledRoom(), shared);
+    ok.setAmbientFlux(600);
+    ok.setPersistenceKey(`${SUBURB}/lot-1`);
+    const banned = makeStuffAtPath(() => new TitledRoom(), fresh(shared));
+    banned.setAmbientFlux(600);
+    banned.setPersistenceKey(`${SUBURB}/lot-9`);
+
+    for (const [room, refused] of [
+      [ok, false],
+      [banned, true],
+    ] as const) {
+      const giver = giverIn(room as unknown as LitRoom);
+      const bed = makeBed();
+      ContainmentApi.move(bed, room);
+      const seed = makeSeed();
+      ContainmentApi.move(seed, giver);
+      const ctx = ctxFor(giver, room as unknown as LitRoom);
+      await makeStuff(() => new PlantController()).execute(
+        model(one(seed, 'seed'), one(bed, 'bed', 'in')),
+        ctx,
+      );
+      expect(reasons(ctx).includes('land-use-forbids-cultivation')).toBe(
+        refused,
+      );
+    }
   });
 
   it('the two uses that admit cultivation are the ones stewardship named', () => {

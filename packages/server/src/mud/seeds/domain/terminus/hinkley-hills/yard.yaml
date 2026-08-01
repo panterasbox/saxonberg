@@ -16,7 +16,11 @@
 # `populates:` lays the bed down once, on first provisioning, through the
 # born-with path — after which the yard's own record carries it and the
 # specs sit unused (never double-seeded).
-class: /lib/location/CartesianLocation
+# `/obj/TitledRoom`, not a plain CartesianLocation: this room's contents
+# are the owner's, so it has to be a PERSISTENCE HOST — a plain
+# CartesianLocation persists nothing it holds, and `restoreOrSeed` throws
+# on it. It is also non-singleton, because one template is cloned per lot.
+class: /obj/TitledRoom
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
   shortDescription: the yard behind the house

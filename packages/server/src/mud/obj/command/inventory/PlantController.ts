@@ -104,10 +104,21 @@ export default class PlantController extends CommandController<PlantModel> {
       // clones from `/obj/bed/garden`, so the template path would zone
       // every bed in the world identically. The parcel that governs it
       // is the one covering the ROOM it is in.
+      //
+      // ⚠ And the room's own PERSISTENCE KEY wins over its template path
+      // when it has one. A room cloned once per lot shares its template
+      // path with every other lot's, so the template path resolves to the
+      // DISTRICT — right today only because every Hinkley lot is zoned
+      // alike. The key is the lot's parcel extent, which is the parcel
+      // that actually governs this ground.
       const site = MixinApi.isContainable(target)
         ? target.getContainer()
         : null;
-      const where = site?.getTemplatePath() ?? '';
+      const keyed =
+        site && MixinApi.isPersistable(site)
+          ? site.getPersistenceKey()
+          : null;
+      const where = keyed ?? site?.getTemplatePath() ?? '';
       const use = ParcelApi.landUseOf(where);
       if (!LandUses.permitsAnyCultivation(use)) {
         MessageApi.scene(giver)
