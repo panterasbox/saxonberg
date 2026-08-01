@@ -306,6 +306,14 @@ after the overlay. Every failure degrades to the room floor — standing,
 1.0, **no error and no teleport**. Restoring a player must never fail
 because their furniture moved.
 
+> **The verb that reaches it did not exist.** `lie` was unreachable by any
+> player — the posture views were never contributed and no actor composed
+> `SlottableMixin`. Both are fixed (see
+> [posture.md](./posture.md)); without them a bed you can occupy is worth
+> nothing, because nobody can occupy it. Found by driving the world, not by
+> a test — every unit test called `SlotApi.occupyAll` directly and so tested
+> the wrong end of the rope.
+
 ## Deploying this build
 
 **One row needs deleting on any already-seeded world.** `SeederManager` is
@@ -381,6 +389,13 @@ db.domain.findOne({ path: '/domain/eternal/duncan-hall/dorm-fixtures/bed' })
   read them.
 - **Real-world parity** — the mirror slate. Its only claim on this
   subsystem is that a room *can carry* state of its own, which it does.
+
+> **The lesson this build paid for**, recorded in
+> [antipatterns.md](../antipatterns.md) § *Testing the layer you wrote
+> instead of the layer a player reaches*: all four of its real defects lived
+> between a passing test and a reachable feature. Ask three questions of
+> anything player-facing — is the class composed, is the verb contributed,
+> is the content in the world.
 
 ## Cross-references
 

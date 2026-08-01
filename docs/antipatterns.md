@@ -2362,3 +2362,55 @@ path already fails loudly on those.
 **The general rule: if you call it a snapshot, copy it.** The same trap waits
 in any `captureSlice` hook, any undo buffer, any "remember the previous value
 so I can compare" setter, and any before/after diff over a collection.
+
+## Testing the layer you wrote instead of the layer a player reaches
+
+A test that calls the Api directly proves the Api works. It proves nothing
+about whether anyone can *get* to it — and the gap between those two is
+where features die silently.
+
+The furnishing build produced four real defects and **all four lived in
+this gap**, none of them visible to a green suite:
+
+| What was tested | What was broken |
+|---|---|
+| `FurnishableRoom`'s fields round-trip | the class composed no `PopulatesMixin`, so every seed's `populates:` was inert and **no fixture ever landed** |
+| the bed seed's YAML says `restQuality` | `SeederManager` is insert-only, so the live row **never updated** |
+| `SlotApi.occupyAll` puts a body in a bed | nothing contributed `posture/lie.yaml`, so **no player could issue `lie`** |
+| ...the same test | no actor composed `SlottableMixin`, so the verb **rejected everyone** |
+
+Each test was correct. Each passed. The feature did not work.
+
+### BAD (proves the mechanism, asserts the feature)
+
+```typescript
+SlotApi.occupyAll(bed, body, ['lie:1']);
+expect(body.getOccupiedHost()).toBe(bed);   // true, and irrelevant
+```
+
+### GOOD (assert the reachable surface too)
+
+```typescript
+// The verb exists for the actor that must issue it...
+expect(PosedMixin(Thing).commandContributions.self)
+  .toContain('posture/lie.yaml');
+// ...and the actor satisfies the validator that gates it.
+expect(MixinApi.hasMixin(Creature, Mixins.Slottable)).toBe(true);
+```
+
+**Three reachability questions to ask of any new feature**, because each has
+its own silent failure:
+
+1. **Is the class composed?** A mixin that is never applied is not a
+   capability. `hasMixin` in a test is cheap; the omission is invisible.
+2. **Is the verb contributed?** A `cmd/**.yaml` with no
+   `commandContributions` entry is dead YAML — verbs reach a giver only
+   through that seam.
+3. **Is the content in the world?** A seed file is not a database row.
+   `SeederManager` is insert-only, so an *edited* seed never reaches an
+   already-seeded world.
+
+**The general rule: a seed file is not the world, and an Api call is not a
+verb.** When a build's value is player-facing, drive it — boot the server,
+query the collection, type the command. Every defect above cost minutes to
+find that way and was invisible to 7,300 passing tests.

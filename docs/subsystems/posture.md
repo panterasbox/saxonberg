@@ -161,6 +161,29 @@ See [command-spec.md](./command-spec.md) for the field semantics.
 **Sleep-as-logout** made posture-slot occupancy durable. See
 [furnishing.md](./furnishing.md) § Sleep as logout.
 
+**The posture verbs were unreachable by any player, and had always been.**
+Driving the world in a browser to verify sleep-as-logout turned up two
+independent gaps, neither of which any unit test could see (they all called
+`SlotApi.occupyAll` directly):
+
+1. **Nothing contributed the verbs.** `cmd/posture/{lie,sit,stand,kneel}.yaml`
+   and their controllers had shipped since the substrate landed, but a verb
+   reaches a giver **only** through `commandContributions` (`Perceiver`
+   contributes `look` the same way). An uncontributed view is dead YAML, and
+   all four answered *"I don't understand"*. `PosedMixin` now contributes
+   them on the `self` surface — the `Respiration` inhale/exhale precedent.
+2. **No actor was `Slottable`.** `requiresSlottable` gates all four, and its
+   own docstring asserted *"v1 actors are always Slottable via Avatar's
+   composition"* — which was never true. `Creature` now composes
+   `SlottableMixin` beside the `SlottedMixin` it already had: **`Slotted` is
+   the chair's side, `Slottable` is the sitter's.**
+
+Verified in a browser against a live world: `lie bed` → *"You lie down."*,
+`stand` → *"You stand up."* (Bare `sit`/`kneel` default their target to
+`ground`, so they need a room with the default-floor adornment.)
+
+### Occupancy durability
+
 `PosedMixin` persisted the posture, but `getOccupiedHost()` is a **live
 scan** — so the bed was gone on restore and `currentRestQuality()` read
 1.0 on the very reconcile meant to pay out. `PosedMixin` now also records
