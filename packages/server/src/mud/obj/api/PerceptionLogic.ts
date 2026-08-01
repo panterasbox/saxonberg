@@ -709,20 +709,6 @@ function perceivesImpl(
   // everything currently visible stays visible.
   if (!MixinApi.isConcealable(target)) return true;
 
-  // The shade plane. Content authored there resolves ONLY for a viewer
-  // with no body — the seam a whole other layer can be built on without a
-  // second map. The material plane is unchanged for everybody, so a shade
-  // still sees the tavern it cannot drink in.
-  //
-  // THIS BUILD AUTHORS NOTHING ON THE SHADE PLANE. The hook ships so the
-  // underworld is content later rather than a retrofit.
-  if (
-    target.getPerceptualPlane() === 'shade' &&
-    !MixinApi.isIncorporeal(viewer)
-  ) {
-    return false;
-  }
-
   const level = target.getConcealment();
   if (!ConcealmentLevels.isConcealed(level)) return true;
   // Once found, always seen (the per-viewer discovery belief sticks).

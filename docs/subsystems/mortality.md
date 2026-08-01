@@ -423,9 +423,25 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
 
 ## Deferred
 
-- **The underworld**: the shade-perception axis (`perceptualPlane`) ships
-  with **nothing authored on it**, so ghost-side content is content rather
-  than a retrofit.
+- **The underworld.** A `perceptualPlane` axis was built here and then
+  **cut**, and the reasoning is worth keeping. It could not do the job it
+  was justified by: `Location` does not compose `ConcealableMixin`, so a
+  *place* could not be tagged at all — and traversal is gated by
+  `Exit.canTraverse()`, not by perception, so a tagged exit was invisible
+  rather than impassable. A living player who guessed the exit name walked
+  into "the underworld" and stood there seeing nothing.
+
+  What an underworld actually needs is a **traversal gate on
+  incorporeality** — rooms are ordinary content, and once the door is
+  gated nothing inside needs a plane. That is a smaller primitive, and it
+  should be built against a real quest's requirements rather than guessed
+  at.
+
+  If the ghost-in-the-tavern beat is wanted later, **concealment already
+  abstracts it**: a band only an incorporeal viewer clears rides the
+  shipped per-viewer detection face. One system, one mental model for
+  players, and no second invisibility axis for authors to track — which
+  was the real cost of the cut feature.
 - **The re-embodiment service** — decided as lore, unbuilt: contested
   metaphysics, two competing vendors (temple and clinic), coverage as the
   hook. See [mortality-slate](../slates/builds/mortality-slate.md).

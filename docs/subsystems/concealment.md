@@ -306,16 +306,3 @@ consumer — no test asserts others-can't-see-a-sneaker.
 - [activity.md](./activity.md) — `SearchActivity` as a costed engaged act.
 - [light.md](./light.md) — `VisionModality.perceivedBand`, the light
   `conditions` term.
-
-## The perceptual plane (2026-07-31)
-
-`ConcealableMixin` grew `perceptualPlane` — `'material'` (everything) or
-`'shade'`, which resolves **only** for an incorporeal viewer. It is the
-seam a whole other layer can be authored over the ordinary world without a
-second map: a shade still sees the material tavern it cannot drink in, and
-the shade plane is what it can see that the living cannot.
-
-**This build authors nothing on it.** The hook ships so the deferred
-underworld is content rather than a retrofit — one predicate in
-`perceivesImpl` and a field, paid now instead of a rewrite later. See
-[mortality.md](./mortality.md).

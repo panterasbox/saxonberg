@@ -289,11 +289,18 @@ corpse + shade + the two ledger writes.
   has no material powers, so being unseen grants nothing exploitable. A
   genuine other-fabric, if ever wanted, belongs to **magic** or to a
   resurrection service's in-fiction science.
-- **The other world is an overlay.** The system deliverable is a
-  **shade-perception axis** — content authorable as perceivable-only-by-
-  shades — and *nothing authored on it*. That converts the underworld from
-  a future rewrite into future content, for about one predicate and a hook.
-  Dedicated ghost places come later.
+- **The other world is NOT a perception axis.** A `perceptualPlane`
+  (`'material' | 'shade'`) was built and then cut. It could not tag a
+  *place* — `Location` does not compose `ConcealableMixin` — and it gated
+  sight rather than passage, since traversal runs through
+  `Exit.canTraverse()`; a living player who guessed an exit name walked
+  into the underworld and stood there seeing nothing. What an underworld
+  needs is a **traversal gate on incorporeality**: rooms are ordinary
+  content, and once the door is gated nothing inside needs a plane. The
+  ghost-in-the-tavern beat, if wanted, rides concealment's existing bands
+  rather than a second invisibility axis for authors and players to track.
+  Ghosts have no real-world referent, so "is it fun, and what does it cost
+  to keep track of" is the whole test here.
 - **The engine owns two transitions; the between is content.** `die`
   (body → corpse + shade) and `reembody` (shade → new body). **No route
   type, no terms vocabulary, no registry** — a schema written before the
