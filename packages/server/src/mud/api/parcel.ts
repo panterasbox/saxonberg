@@ -97,8 +97,20 @@ export class ParcelApi {
     childPath: string,
     parentExtent: string,
     owner: ParcelOwner,
+    area = 0,
+    storeys = 1,
   ): Promise<ParcelRecord | null> {
-    return logic().subdivide(childPath, parentExtent, owner);
+    return logic().subdivide(childPath, parentExtent, owner, area, storeys);
+  }
+
+  /**
+   * **Workable area** — a parcel's gross ground area minus what its
+   * children have taken, derived on read and never stored. A building's
+   * footprint IS its own parcel's `area`, so this is the general form of
+   * `gross − footprint` with no footprint field anywhere.
+   */
+  public static async workableAreaOf(extent: string): Promise<number> {
+    return logic().workableAreaOf(extent);
   }
 
   /**

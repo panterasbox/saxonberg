@@ -73,6 +73,8 @@ export class ParcelRecord extends Document {
   static persistentFields = [
     "extent",
     "zonePath",
+    "area",
+    "storeys",
     "owner",
     "parentParcel",
     "grants",
@@ -88,6 +90,39 @@ export class ParcelRecord extends Document {
 
   /** The typed title holder (group or individual player). */
   owner: ParcelOwner | null = null;
+
+  /**
+   * The parcel's **gross ground area**, m². Declared at provision, **never
+   * derived** — deriving it from room geometry would make placeholder rooms
+   * load-bearing and promote a lighting constant into a land-tenure fact
+   * (`getSizeScale()` is `cellSize²` with exactly one consumer, the vision
+   * walk dividing flux into lux). 0 means "not declared", which is every
+   * parcel that predates this field.
+   *
+   * ⚠ Build-2 (Hinkley Hills) declares this same field; the declarations
+   * are deliberately identical so the merge is trivial.
+   */
+  area: number = 0;
+
+  /**
+   * How many **storeys** stand on this parcel. Default 1, which is every
+   * ground parcel and is behaviour-identical to not having the field.
+   *
+   * The multi-storey correction (D17). Two different quantities get called
+   * "area": **ground** area is conserved (children ≤ parent), **floor**
+   * area is not — it is multiplied by storeys. A 300 m² footprint at four
+   * storeys offers ~1200 m² of interior to subdivide into units, so a
+   * conservation rule written against `area` alone would refuse apartments
+   * at `subdivide` on the second floor. The ceiling is `area × storeys`.
+   *
+   * `storeys` rather than a `grossFloorArea` field because **the row
+   * already encodes floors**: `slotOfExtent` parses a trailing
+   * `f<floor>-r<pos>` ("the extent IS the slot"), built for the dorm. The
+   * vertical dimension was already in the extent grammar with no area
+   * semantics attached; this gives it some. Unequal floor plates are the
+   * LOD ladder's problem, not v1's.
+   */
+  storeys: number = 1;
 
   /** The parent parcel's `extent` (the sparse-hierarchy edge), or null. */
   parentParcel: string | null = null;
@@ -200,6 +235,24 @@ export class ParcelRecord extends Document {
     const match = /^\/home\/([^/]+)\//.exec(path);
     if (!match) return null;
     return { kind: "player", templatePath: `/home/${match[1]}` };
+  }
+
+  getArea(): number {
+    return this.area;
+  }
+
+  getStoreys(): number {
+    return this.storeys > 0 ? this.storeys : 1;
+  }
+
+  /**
+   * The **floor** area available to subdivide out of this parcel:
+   * `area × storeys`. For every ground parcel (`storeys: 1`) this is just
+   * its area, so nothing changes; for a building it is what lets four
+   * storeys let four times the footprint.
+   */
+  getGrossFloorArea(): number {
+    return this.getArea() * this.getStoreys();
   }
 
   /** The one parcel claiming exactly `extent`, or null. */

@@ -147,10 +147,35 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     childPath: string,
     parentExtent: string,
     owner: ParcelOwner,
+    area = 0,
+    storeys = 1,
   ): Promise<ParcelRecord> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'subdivide');
+    // ── the ground/floor ledger (D17) ────────────────────────────────
+    // A child conserves against its parent's FLOOR area (`area × storeys`),
+    // not its ground area. Every ground parcel is `storeys: 1`, so this is
+    // the plain conservation rule there and unchanged for them; a building
+    // at four storeys may let four times its footprint, which is the case a
+    // rule written against `area` alone would refuse on the second floor.
+    //
+    // Unmeasured land (`area: 0`) is not policed — every parcel that
+    // predates the field keeps behaving exactly as it did.
+    if (area > 0 && parentExtent.length > 0) {
+      const parent = await ParcelRecord.findByExtent(parentExtent);
+      const ceiling = parent?.getGrossFloorArea() ?? 0;
+      if (ceiling > 0) {
+        const taken = (await this.childAreaTotal(parentExtent, childPath)) + area;
+        if (taken > ceiling) {
+          throw new Error(
+            `ParcelRegistry.subdivide: ${childPath} would take ${taken} m² of ` +
+              `${parentExtent}'s ${ceiling} m² (area ${parent?.getArea() ?? 0} × ` +
+              `${parent?.getStoreys() ?? 1} storeys)`,
+          );
+        }
+      }
+    }
     // Reuse the live trie handle if one already claims this extent (the
     // trie keys on object identity — a fresh DB load would leave a stale
     // duplicate); else a fresh row.
@@ -162,6 +187,8 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.zonePath = childPath;
     record.owner = owner;
     record.parentParcel = parentExtent.length > 0 ? parentExtent : null;
+    record.area = area;
+    record.storeys = storeys;
     await record.save();
     await this.appendEvent("subdivide", childPath, null, owner);
     this.reindex(childPath, record);
@@ -362,6 +389,42 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     if (owner.ref) return owner.ref;
     if (owner.name) return this.resolveGroupByName(owner.name);
     return null;
+  }
+
+  /**
+   * The area already taken by `parentExtent`'s children, excluding
+   * `exceptExtent` (so re-subdividing an existing child is not counted
+   * twice).
+   */
+  private async childAreaTotal(
+    parentExtent: string,
+    exceptExtent: string,
+  ): Promise<number> {
+    const kids = await ParcelRecord.find<ParcelRecord>({
+      parentParcel: parentExtent,
+    });
+    return kids
+      .filter((k) => k.getExtent() !== exceptExtent)
+      .reduce((sum, k) => sum + k.getArea(), 0);
+  }
+
+  /**
+   * **Workable area** — `area − Σ children.area`, derived on read and never
+   * stored (D17). A stored copy would need reconciling every time a
+   * structure was added, which is the duplication argument the chattel
+   * index already had.
+   *
+   * Any child consumes ground whether it is a building or a sub-lot, so
+   * there is no structure/non-structure distinction to maintain — and a
+   * building's **footprint** needs no field of its own, because it simply
+   * IS that building parcel's `area`.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async workableAreaOf(extent: string): Promise<number> {
+    const parcel = await ParcelRecord.findByExtent(extent);
+    if (!parcel) return 0;
+    const taken = await this.childAreaTotal(extent, "");
+    return Math.max(0, parcel.getArea() - taken);
   }
 
   private async appendEvent(

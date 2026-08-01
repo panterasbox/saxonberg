@@ -86,9 +86,20 @@ export class ParcelLogic extends ApiLogic {
     childPath: string,
     parentExtent: string,
     owner: ParcelOwner,
+    area = 0,
+    storeys = 1,
   ): Promise<ParcelRecord | null> {
     const reg = lookupRegistry();
-    return reg ? reg.subdivide(childPath, parentExtent, owner) : null;
+    return reg
+      ? reg.subdivide(childPath, parentExtent, owner, area, storeys)
+      : null;
+  }
+
+  /** See {@link ParcelApi.workableAreaOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public async workableAreaOf(extent: string): Promise<number> {
+    const reg = lookupRegistry();
+    return reg ? reg.workableAreaOf(extent) : 0;
   }
 
   /** See {@link ParcelApi.transfer}. */
