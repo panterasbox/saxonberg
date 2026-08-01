@@ -197,6 +197,26 @@ without `Visible` its prose is inert; without `Exitable` you cannot walk
 in. The shipped dorm room already had exactly this stack, which is why it
 is mirrored rather than re-derived.
 
+### The dorm bed
+
+Sleep-as-logout is the reason a residence is worth having, and the dorm is
+the residence every player currently has — so its bed gained a `lie:1`
+posture slot and `restQuality: 1.5`. Leaving it a `Surfaced` prop you
+cannot lie on would have shipped the mechanic somewhere nobody could
+reach it.
+
+`Surfaced` is **kept, not replaced**: the two are orthogonal. `Surfaced`
+is what rests ON the bed; the posture slot is who rests IN it.
+
+And it is deliberately the **bottom rung** — a university-issue single
+with a thin mattress, against the 2.0 of a bed you chose and paid for. The
+ladder should be visible from where you start.
+
+> The retrofit changed **no `class:` path**. The capability landed on the
+> class and the slot spec + `restQuality` landed as seed DATA — exactly the
+> way `/obj/Chair` works — which is why it was a seed edit rather than a
+> migration of every live per-unit record.
+
 > **The dorm room is itself an archetype** — a *bedsit*: bed, desk,
 > footlocker, tap, one room. It is not a fifth **kind** of answer; it is the
 > other four collapsed into a single room, which is evidence that archetypes
@@ -301,15 +321,12 @@ because their furniture moved.
 - **Washing / sterility** — `DressingMixin.dressingQuality` (consumed by
   `treat`, no producer) and `Condition.contagion` ("reserved, no consumer
   v1") are the two seams. Handwashing *is* the chain of infection.
-- **The dorm retrofit.** `DormRoom` keeps its own class and its own
-  fixture rows. The one retrofit that is genuinely load-bearing is its
-  **bed**: it is a `Surfaced` prop you cannot lie on, so sleep-as-logout —
-  the mechanic that makes a residence worth having — does not work in the
-  residence every player currently has. Promoting it to the `/obj/Chair`
-  shape is a seed edit; the rest (deduplicating `Desk` against
-  `/lib/spatial/Surface`, the tap against the basin) is tidying, and any
-  `class:` change to a live template row is a data migration, not a
-  refactor.
+- **The rest of the dorm retrofit.** The bed **is** done — see below. What
+  is left is tidying: deduplicating `/domain/eternal/duncan-hall/Desk`
+  against `/lib/spatial/Surface`, the dorm tap against the basin, and
+  `DormRoom` against `FurnishableRoom`. Each of those is a `class:` change
+  on a live template row, which is a **data migration**, not a refactor —
+  every dorm holds a record keyed by its unit parcel.
 - **The unit floorplan and lease** — provisioning a multi-room leased unit,
   its lease-gated door and its revert. The *rule* ships
   (`evictToStorage`); the Warren-shaped content does not.
