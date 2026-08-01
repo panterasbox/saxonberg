@@ -1,0 +1,298 @@
+# Furnishing — owner-based persistence and the furnishable room
+
+A residence you **furnish with goods you own**, that stay where you put
+them.
+
+Before this build a room persisted its *contents* in its own record, so a
+chair you carried into your dorm became, durably, part of the room —
+indexed under it, restored by it, gone with it. That was wrong in three
+directions at once: it lost the connection between a good and its owner, a
+guest's dropped possessions rode a stranger's record, and "move house" was
+impossible in principle.
+
+This subsystem introduces the **second persistence scope** — owned chattel
+persists with its *owner*, carrying a `place` — and the **furnishable
+room** that consumes it.
+
+Rides [chattel](./chattel.md) (title, the registry, `ownerOf`),
+[persistence](./persistence.md) (the `(scope, key)` spine),
+[parcel](./parcel.md), [residence](./residence.md) (the dorm — the simple
+rung and every content precedent) and [posture](./posture.md).
+
+---
+
+## The two scopes
+
+| | host-side (shipped) | owner-side (this build) |
+|---|---|---|
+| carries | a host's contents, its worn gear, its fields | every good its host holds **title** to |
+| slice | `ContainerSlice` / `SlottedSlice` | `EstateSlice` |
+| lives on | any `Persistable` | any `Estate` (today: `Avatar`) |
+| routes on | containment | **`place`** |
+
+They compose over one spine and never both own the same field. The seam
+between them is one predicate, below.
+
+## `place` — where the owner keeps it
+
+A field on the good (`ChattelMixin._place`): a **room identity**,
+`'inventory'`, or `'storage'` (the default).
+
+It is deliberately *not* a registry. Ownership is a relation and therefore
+lives in one; *where the owner keeps it* is not a relation between two
+principals — it is one value, always present, changing on the same acts
+that move custody.
+
+**Writes go through one gate.** `ChattelApi.setPlace` is the single write
+path, and it writes three things in one call:
+
+1. the good's own `_place` field — what round-trips *with the good*;
+2. the `chattel` row's indexed `place` — the **by-room index**;
+3. the owner's estate entry, when that owner is live.
+
+> **On the index.** A materializing room has to find the goods that belong
+> in it, and their state lives in their *owner's* record — so something must
+> be queryable by room. That is the row's `place`. **It is an index, not a
+> second source of truth**, and the single gated write path is what keeps
+> them from diverging. The duplication is real and is stated here rather
+> than hidden.
+
+`ChattelApi.followCustody(item)` re-derives the placement from where a good
+now *is* — the one call a custody verb makes after moving something.
+
+## The skip rule
+
+`ContainerMixin.captureSlice` drops two kinds of content:
+
+- a live player avatar (`HasInteractive`) — shipped;
+- a good someone has been **stamped** as owning — this build.
+
+Both in **one filter**, because the Container and Slotted slices read a
+single content ordering and `PersistableLogic` builds the same index; two
+passes would let the worn indices drift.
+
+**It keys on the stamp, not on `ownerOf`.** That is semantically right — a
+fixture under a parcel extent is *owned* (the parcel rung, below) but not
+*stamped*, so it keeps riding its room's record where it belongs — and it
+is also the only version that fits a capture walk that **cannot await**.
+`ChattelApi.isStamped` is the synchronous predicate.
+
+## Capture is synchronous, and that shapes everything
+
+`captureSlice` cannot go to the store for goods it can no longer see. The
+estate slice therefore serializes the host's **live map**: an entry whose
+good is loaded is re-captured fresh (so a plant that grew keeps its
+growth); an entry whose good is not loaded is **carried forward verbatim**,
+which is the only correct thing to do.
+
+That leaves one case: a good standing in a room that goes dormant **while
+its owner is offline**. Nobody is live to re-capture it, and the room's
+slice has skipped it — so without a third path it would be captured by
+nobody and destroyed with the room, losing the book instead of leaving it
+at your friend's.
+
+So the room's capture **reports** what it skipped
+(`CaptureContext.noteOwnedGood`), and `PersistableLogic` flushes each into
+its owner's estate after the synchronous state build — in memory when the
+owner is live, read-modify-write of their stored record when not.
+
+> This is the one place the implementation amends the design. The
+> requirements' D4 says "the room captures nothing owner-side on the way
+> down"; that is unimplementable as an absolute. What survives is the part
+> that matters and is enforced by test: **the host's own record never
+> carries somebody else's goods.**
+
+## The room overlay
+
+A host, on materialize, does two things in order:
+
+1. restore its **own** record — its fixtures;
+2. **overlay** the owned goods whose `place` names it.
+
+Order is the whole decision: fixtures first, so a placed good can rest on a
+surface that exists. Each good is cloned **as its owner**, so provenance
+and every principal-based gate resolve to the person whose good it is, in a
+room that may belong to somebody else.
+
+The room identity is `PersistableApi.placeIdOf(host)` — the host's scope,
+plus its per-instance key **only when that key is explicit**. A keyless
+host's stashed key is scope-derived, so folding it in would give one room
+two identities either side of its first capture.
+
+## Restore routing
+
+| `place` | on materialize |
+|---|---|
+| `inventory` | cloned into the owner's own container |
+| `storage` | **nothing at all** — the good is live in the registry and the record, with no presence in the world |
+| a room identity | deferred to that room's materialize |
+
+Storage is what makes "move house" work: it is the *absence* of a
+placement, not a place. `ChattelApi.evictToStorage(prefix)` is the
+lease-end sweep — intact, titled, recoverable, **never destructed**.
+
+## `ownerOf` — three rungs
+
+```
+ownerOf(item) =
+  explicit stamp                                  // changed hands
+  ?? covering parcel's owner                      // a fixture in a let unit
+  ?? authorOf(templatePath)                       // shipped fallback
+```
+
+The parcel rung keys on the **template path, not the location**, which is
+what makes displacement recoverable: a fixture carried out of a unit stays
+titled to the parcel, so it is theft (custody without title), never a
+transfer. Only an explicit stamp transfers it.
+
+> ⚠ It is built on `ParcelApi.coveringParcelOf`, **not** `ParcelApi.ownerOf`
+> — the latter is *total* (it falls back to the state) and would make the
+> author rung unreachable, silently retitling every authored good in the
+> world.
+
+`ChattelOwner` widened to mirror `ParcelOwner` so a group-held parcel is
+expressible. **Read-side only**: only the `player` arm is ever stamped, so
+no stored row gains a group owner.
+
+## Acreage — ground and floors
+
+Two quantities get called *area*, and only one is conserved.
+
+- **Ground** — `ParcelApi.workableAreaOf(extent)` = `area − Σ children.area`,
+  **derived on read, never stored**. Any child consumes ground whether it
+  is a building or a sub-lot, so there is no structure/non-structure
+  distinction — and a building's **footprint needs no field**: it *is* that
+  building parcel's own `area`.
+- **Floor** — `ParcelRecord.storeys`, default 1. `subdivide` conserves
+  children against `area × storeys`.
+
+Multi-storey is why: a 300 m² footprint at four storeys offers ~1200 m² of
+interior, so a rule written against ground area alone refuses apartments on
+the second floor. `storeys` rather than a `grossFloorArea` field because
+the row **already encodes floors** — `slotOfExtent` parses a trailing
+`f<floor>-r<pos>`, built for the dorm.
+
+⚠ Area is **declared at provision, never derived**. Do not sum rooms and do
+not read `getSizeScale()` — that is `cellSize²`, a photometric denominator
+with exactly one consumer (the vision walk dividing flux into lux), and
+deriving tenure from it would make every lighting tweak a title migration.
+
+Unmeasured land is not policed: a parcel with no declared area subdivides
+exactly as it did before the fields existed.
+
+## The room class and its archetypes
+
+`lib/location/FurnishableRoom` — `Persistable(Reserved(Location))` — is the
+**one class** every archetype is a template row over, and it is
+**venue-generic**: a bank's bathroom and a bar's kitchen are the same class
+with a different `populates:`. Home-ness is supplied by the **parcel above
+the room** — title, land use, the lease — never by the room.
+
+Four archetypes ship, and they are four *different kinds of answer*:
+
+| archetype | kind | why |
+|---|---|---|
+| **bedroom** | **function** | sleep is the logout state; the bed is the substrate's first real rest surface |
+| **kitchen** | **bundle** | cooking is conferred by heat + pot; the room collapses an errand |
+| **bathroom** | **presence** | a residence without one reads broken; what it is *for* is not modelled |
+| **living** | **audience** | the room you bring a visitor into — and it ships **empty**, because filling it is the point |
+
+They add **zero new classes, mixins or verbs** — a test enumerates the six
+shipped classes every fixture uses. Three of the four will never earn a
+class: spoilage belongs to food and its container, pests to debris plus
+food, cleanliness to items and bodies — none of them to the room.
+
+### The LOD ladder
+
+A fixture is modelled to the depth at which the world actually reads it,
+and no deeper. The bathroom carries all three rungs at once — toilet
+(prose), basin (real water), tub (a real affordance) — and the living
+room's television closes it from the far end: `watch` names a streamer and
+fills the cockpit embed from anywhere, so a TV object would model nothing.
+
+**One rule: a fixture becomes an object only when something reads it.**
+
+### The kitchen's air reserve
+
+The one authored decision with teeth. A kitchen is the only room where you
+deliberately run a fire indoors, so it authors a finite `air` reserve:
+`FireLogic` computes `ventilated = isSkyExposed || openNeighbours > 0`, and
+a lit range behind a closed door burns **incomplete** — smoke and carbon
+monoxide, an un-breathable medium, and the fire self-smothers.
+
+Forgiving by construction: any open neighbour ventilates. Deleting the
+block restores `airReserveOf → null` → open air, nothing else touched.
+
+## The posted designation
+
+A room carries `postedAs` — **what the sign on the door says**. Free text,
+default `unrestricted`.
+
+**The kernel reads the sign; it never enforces it.** Nothing in movement,
+`AccessApi`, an exit or a locomotion check consults it, and a test walks
+the source tree to keep it that way.
+
+The reason is the shipped types, not delicacy. To gate entry the engine
+must pick an identity axis, and it ships two that are deliberately kept
+apart — `SexedMixin` (biology; `xy` yields male/female/intersex,
+`monoecious` yields `male-and-female`, `none` yields nothing) and
+`GenderedMixin` (pronouns, self-set, default `they`). **Neither partitions
+in two.** Any rule would have to answer *what about `they`* and would
+compile a position into the engine for every locality forever.
+
+Compliance belongs to the layers that model it, ascending: **norm**
+(reactions, regard, renown), **witness**, **law/policy** (the civics
+`charter` three-tier resolve), and **wall** — a locked door and a
+credential, which is shipped and identity-blind: it asks what you carry,
+never who you are.
+
+## Sleep as logout
+
+Metabolism already recovers by `posture × restQuality`, reconciled on read.
+The shipped rest model simply **does not stop at disconnect**: log out
+lying on a good bed and the next reconcile integrates the elapsed hours at
+that bed's multiplier. Parity, never a bonus, and never below the floor.
+
+The one piece of engine work: `PosedMixin` persists the posture, but
+`getOccupiedHost()` is a **live scan**, so the bed was gone on restore and
+the multiplier read 1.0 on the very reconcile meant to pay out.
+`Slotted.occupy` now fires `onSlotOccupied` — the symmetric twin of the
+shipped `onSlotReleased` — and `PosedMixin` records `restingOnPath` +
+`restingSlot` for **posture-bearing** slots only.
+
+Re-occupancy runs last in `restoreRecord`: after placement, after fixtures,
+after the overlay. Every failure degrades to the room floor — standing,
+1.0, **no error and no teleport**. Restoring a player must never fail
+because their furniture moved.
+
+## Deliberately not here
+
+- **Condition / stewardship** — what a room's state *means*, and the
+  `restQuality` aggregation from bedding freshness and tidiness. Needs the
+  condition model.
+- **Room-general cadences** — energy (on the fixture), debris (a
+  room-level field), air quality (the shipped `AtmosphericMixin`), and
+  **pests, which get no field at all** because they are emergent from
+  debris plus food.
+- **Spoilage / preservation** — `ptomaine.yaml` ships a food-poisoning
+  condition with no producer, and keeps having none. Spoilage belongs to
+  the food and its container.
+- **Washing / sterility** — `DressingMixin.dressingQuality` (consumed by
+  `treat`, no producer) and `Condition.contagion` ("reserved, no consumer
+  v1") are the two seams. Handwashing *is* the chain of infection.
+- **The unit floorplan and lease** — provisioning a multi-room leased unit,
+  its lease-gated door and its revert. The *rule* ships
+  (`evictToStorage`); the Warren-shaped content does not.
+- **Land use and the building zone** — `ParcelRecord.landUse` and
+  `landUseOf` are build-2's and are not on master yet; provisioning will
+  read them.
+- **Real-world parity** — the mirror slate. Its only claim on this
+  subsystem is that a room *can carry* state of its own, which it does.
+
+## Cross-references
+
+[chattel](./chattel.md) · [persistence](./persistence.md) ·
+[parcel](./parcel.md) · [residence](./residence.md) ·
+[posture](./posture.md) · [slot](./slot.md) ·
+[metabolism](./metabolism.md) · [fire](./fire.md) ·
+[crafting](./crafting.md) · [spatial](./spatial.md)
