@@ -1,8 +1,16 @@
 # Furnishing — implementation plan
 
-Plan for [furnishing-requirements.md](../requirements/furnishing-requirements.md)
-(D1–D18). Phase 2 of the workflow: *how*, given that doc's *what* and
-*why*.
+Plan for the furnishing build (D1–D18). Phase 2 of the workflow: *how*,
+given the requirements' *what* and *why*.
+
+> **The requirements doc was retired at the pre-merge sweep**, per the
+> workflow's rule — its shipped design lives in
+> [furnishing.md](../subsystems/furnishing.md). **This plan is KEPT**
+> because its Wave 6 and Prerequisites describe work that did **not** ship:
+> the unit's floorplan, its lease-gated door and its revert; land use and
+> the building zone (whose fields are build-2's); and the cross-branch
+> `restoreOrSeed` sequencing. Those sections are the live reference for
+> finishing the tenancy content.
 
 The requirements fall into three parts, and D15 is why the first two
 separate:
@@ -469,7 +477,7 @@ All 31 criteria, each to a wave.
 
 ## Cross-references
 
-- Requirements: [furnishing-requirements.md](../requirements/furnishing-requirements.md)
+- Shipped design: [furnishing.md](../subsystems/furnishing.md) (the retired requirements' surviving half)
 - Cross-branch: `HANDOFF-from-hinkley-hills.md` /
   `HANDOFF-to-hinkley-hills.md` (repo root, untracked)
 - Spine: [persistence.md](../subsystems/persistence.md) ·

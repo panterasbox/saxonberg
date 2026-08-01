@@ -23,8 +23,9 @@
 See also: [property-slate](./property-slate.md) (the home as owned ground) ·
 [stewardship-slate](./stewardship-slate.md) (**condition** — the in-game
 quantity a parity feed would most naturally drive) · the **furnishing**
-build ([requirements](../../requirements/furnishing-requirements.md), D7 —
-which pays this slate's only forward-compatibility cost) ·
+build ([furnishing.md](../../subsystems/furnishing.md) — which pays this
+slate's only forward-compatibility cost: a room carries declared fields of
+its own, and `postedAs` is the first of them) ·
 the **enforcement** design (**the evidence firewall** and
 testimony-as-claims — the closest prior art for untrusted assertions;
 unwritten, below) · the **practicum** thesis (applied hours — the education

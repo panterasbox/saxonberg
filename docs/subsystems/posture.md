@@ -154,3 +154,19 @@ See [command-spec.md](./command-spec.md) for the field semantics.
   is what `mount` produces and `dismount` clears.
 - [boundary.md](./boundary.md) — Adornable retrofit (floor lives
   here).
+
+
+## History — the furnishing build (2026-07-31)
+
+**Sleep-as-logout** made posture-slot occupancy durable. See
+[furnishing.md](./furnishing.md) § Sleep as logout.
+
+`PosedMixin` persisted the posture, but `getOccupiedHost()` is a **live
+scan** — so the bed was gone on restore and `currentRestQuality()` read
+1.0 on the very reconcile meant to pay out. `PosedMixin` now also records
+**`restingOnPath`** and **`restingSlot`**, stamped by the new
+`onSlotOccupied` witness for **posture-bearing slots only** (worn, held and
+mount slots are ignored — this remembers where you rest, not what you
+carry) and cleared on release. `PersistableLogic` re-occupies last, after
+placement and fixtures; every failure degrades to the room floor with no
+error and no teleport.

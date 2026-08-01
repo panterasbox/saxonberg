@@ -824,6 +824,7 @@ registry) lives in `lib/mixin.ts`.
 
 | Folder | Mixin | Purpose |
 |---|---|---|
+| `lib/chattel/` | `EstateMixin` | owner-based persistence — every stamped good its host holds title to, wherever it sits; routes restore on `place` (furnishing.md) |
 | `lib/character/` | `GenderedMixin` | pronouns (he/she/they/etc.), persistent |
 | `lib/description/` | `NamedMixin` | proper names — `name`, `surname`, `nameSuffix`, `honorific`, `alternateNames`, `fullName`, persistent |
 | `lib/description/` | `VisibleMixin` | shortDescription, longDescription; provides `look` command |

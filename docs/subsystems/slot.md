@@ -252,3 +252,13 @@ the build's no-dead-props law) — was the first driver. Its
 guarded-boolean storage was later hoisted onto the shared `BistateMixin`
 base (`lib/Bistate.ts`) alongside `Sealable`/`Switchable` in commit
 `a99eccb4`.
+
+
+## History — the furnishing build (2026-07-31)
+
+**`Slotted.occupy` gained `onSlotOccupied`** — the symmetric twin of the
+shipped `onSlotReleased`, firing from the same chokepoint so every arming
+path reaches it (`SlotApi.occupyAll`, combat's grip swap, persistence
+restore). Declared `@hook` on `Slottable`. v1 consumer: `PosedMixin`
+records which host's posture slot a body occupies, so an avatar wakes where
+it slept — see [furnishing.md](./furnishing.md).
