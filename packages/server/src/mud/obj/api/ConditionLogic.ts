@@ -18,6 +18,7 @@ import { MATERIAL_FORK_SLICES } from '../../lib/vitals/Vitals';
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { MortalArc } from '../../lib/mortality/MortalArc';
 import { ContainmentApi } from '../../api/containment';
+import { SandboxApi } from '../../api/sandbox';
 import { ConnectionApi } from '../../api/connection';
 import { PersistableApi } from '../../api/persistable';
 import { PlayerApi } from '../../api/player';
@@ -334,6 +335,23 @@ async function dieImpl(
     //  - a player identity     → the body divides: a corpse takes the
     //    material half, and the identity walks off as a shade.
     const player = playerBodyOf(host);
+
+    // A death inside a holodeck circle is REAL there and discarded with
+    // it — which is the point of a holodeck, and what lets an author test
+    // a lethal trap on themselves. The body leaves a circle-scoped corpse
+    // (born in the circle, reaped with it) and the player is ejected to
+    // the field body that was parked all along.
+    //
+    // No shade, no arc, no snapshot: minting a real body from inside a
+    // circle is exactly the boundary the sandbox exists to hold. The
+    // discriminator is the receiver's circle stamp rather than
+    // `instanceof WireBody`, so a future circle vessel of another class
+    // behaves identically without being enumerated here.
+    if (player && host.getCircleScope() !== null) {
+      host.setCauseOfDeath(cause);
+      await ejectFromCircle(host, player, cause);
+      return;
+    }
 
     if (!player) {
       host.setCauseOfDeath(cause);
@@ -670,6 +688,39 @@ async function recordReturnDeed(host: Stuff): Promise<void> {
   } catch {
     // Fire-and-forget.
   }
+}
+
+/**
+ * A vessel died inside a circle: leave a circle-scoped corpse, then hand
+ * the player back to the field body that was parked the whole time.
+ *
+ * The ledger writes have already happened by the time this runs, and they
+ * ride the shipped write-path policy table rather than any bespoke
+ * suppression here — `chronicles` and `accountability_events` are
+ * PASS(mark) collections, so the rows persist carrying their circle stamp
+ * and `deriveBlame` declines to convict on them. Suppressing the writes
+ * instead would be drift; the table is the sandbox's contract.
+ */
+async function ejectFromCircle(
+  host: Stuff,
+  player: PlayerBody,
+  cause: string,
+): Promise<void> {
+  const nowS = conditionNowSeconds() ?? 0;
+  if (MixinApi.isVitals(host)) {
+    const material: Record<string, unknown> = {};
+    for (const name of MATERIAL_FORK_SLICES) {
+      const fn = (host as unknown as Record<string, () => unknown>)[
+        `forkSlice_${name}`
+      ];
+      if (typeof fn === 'function') material[name] = fn.call(host);
+    }
+    // Minted in the ambient (circle) context, so it is circle-born and
+    // dies with the discard.
+    await mintCorpseFrom(host, material, cause, nowS);
+  }
+  void player;
+  await SandboxApi.exit(host as never);
 }
 
 /** The chronicle deed. No-ops without a durable owner key / connection. */

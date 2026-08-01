@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
+import { ConditionApi } from '../condition';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { EventApi } from '../event';
@@ -196,18 +197,36 @@ describe('sandbox crossing', () => {
     await asSystem(() => wireBody.save());
   });
 
-  it('death inside: re-mints a fresh vessel; the parked body untouched', async () => {
+  it('death inside: EJECTS to the parked body, which is untouched', async () => {
+    // A circle death is real in there and discarded with the circle — the
+    // point of a holodeck, and what lets an author test a lethal trap on
+    // themselves. It used to re-mint a fresh vessel and leave the player
+    // inside; now they come out. No shade, no arc, no real body minted
+    // from inside a circle: that is the boundary the sandbox exists to
+    // hold.
     const { avatar, interactive } = await makeRig();
     await SandboxApi.enter(avatar);
-    const dead = SandboxApi.activeBodyFor(PLAYER)!;
+    const vessel = SandboxApi.activeBodyFor(PLAYER)!;
+    expect(vessel.getCircleScope()).not.toBeNull();
 
-    const fresh = await SandboxApi.respawnWireBody(dead);
-    expect(fresh).not.toBeNull();
-    expect(fresh!.stuffId).not.toBe(dead.stuffId);
-    expect(dead.isDestroyed()).toBe(true);
-    expect(interactive.getHolder()).toBe(fresh);
-    expect(avatar.isParked()).toBe(true);
-    expect(SandboxApi.activeBodyFor(PLAYER)).toBe(fresh);
+    // Driven from INSIDE the circle, as a lethal trap in there would be:
+    // the boundary rightly refuses a field-context call on a circle-scoped
+    // receiver.
+    await ExecutionContextApi.runRoot(
+      null,
+      'test.circle-death',
+      () => ConditionApi.die(vessel, 'slain'),
+      { circleScope: SCOPE },
+    );
+
+    // The player is back in their own body, out of the circle.
+    expect(interactive.getHolder()).toBe(avatar);
+    expect(avatar.isParked()).toBe(false);
+    expect(SandboxApi.activeBodyFor(PLAYER)).toBeNull();
+
+    // The FIELD body is untouched — it did not die with the vessel.
+    expect(avatar.getLifecycleState()).not.toBe('dead');
+    expect(avatar.getMortalArc()).toBeNull();
   });
 
   it('reconnect inside grace lands on the SAME wire body, in the circle', async () => {

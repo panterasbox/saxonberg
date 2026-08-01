@@ -416,6 +416,12 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
   const playerId = wireBody.getPlayerId();
   const scope = scopeByPlayerId.get(playerId);
   const state = scope ? sessions.get(scope) : undefined;
+  // Whatever currently holds this identity's registry slot — and it may
+  // not be the body that was parked here. If the FIELD body died while
+  // its player was inside a circle, the death choreography already put a
+  // shade in that slot (a parked avatar still reads as connected, so the
+  // split ran normally). The exit then composes with no extra plumbing:
+  // the player comes out as a shade, which is exactly right.
   const avatar = PlayerApi.findAvatarByPlayerId(playerId);
 
   const returned: Interactive[] = [];
@@ -791,71 +797,12 @@ export class SandboxLogic extends ApiLogic {
     return handleWireQuitImpl(wireBody);
   }
 
-  /**
-   * Death inside (Decision C): reap the dead vessel and re-mint a fresh
-   * one at the entry room — the parked body untouched. Invoked as a
-   * direct witness call from the death seam (no new global event).
-   */
-  @CallSecurity(SandboxApiCallers)
-  public async respawnWireBody(wireBody: Avatar): Promise<Avatar | null> {
-    const playerId = wireBody.getPlayerId();
-    const scope = scopeByPlayerId.get(playerId);
-    const state = scope ? sessions.get(scope) : undefined;
-    if (!state) return null;
-    const avatar = PlayerApi.findAvatarByPlayerId(playerId);
-    if (!avatar) return null;
-    const entryRoom = await ensureCircle(state);
-    const interactives = [...wireBody.getInteractives()];
-
-    const { default: WireBody } = await import('../../lib/sandbox/WireBody');
-    // Field-context read, for the same reason as `enter`.
-    const avatarSpecies = avatar.getSpecies();
-    const fresh = (await ExecutionContextApi.runRootGuarded(
-      null,
-      'sandbox.respawn',
-      async () => {
-        const body = await StuffApi.create(
-          () => new WireBody(playerId, avatarSpecies),
-          { playerId, wire: true }
-        );
-        await PersistableApi.forkRuntimeState(
-          avatar as unknown as Stuff,
-          body as unknown as Stuff
-        );
-        ContainmentApi.move(
-          body as unknown as Stuff & Containable,
-          entryRoom
-        );
-        return body;
-      },
-      'rethrow',
-      { circleScope: state.scope }
-    )) as Avatar;
-
-    await ExecutionContextApi.runRootGuarded(
-      null,
-      'sandbox.respawn.transfer',
-      async () => {
-        for (const interactive of interactives) {
-          ConnectionApi.transfer(interactive as Interactive, fresh);
-        }
-        await StuffApi.destruct(wireBody as unknown as Stuff);
-      },
-      'rethrow',
-      { circleScope: OMNI_SCOPE }
-    );
-
-    state.occupants.delete(wireBody.stuffId);
-    state.occupants.add(fresh.stuffId);
-    state.wireByPlayerId.set(playerId, fresh);
-    return fresh;
-  }
-
   /** The circle's entry room (test/inspection surface). @internal */
   @CallSecurity(SandboxApiCallers)
   public entryRoomForScope(scope: string): Stuff | null {
     return sessions.get(scope)?.entryRoom ?? null;
   }
+
 
   /**
    * See {@link SandboxApi.runScoped}. The sanctioned root-level scope
