@@ -24,8 +24,20 @@ data:
   interiorAmount: 0.5
   # `liquidTight` (the default), NOT `open`: an `open` interior does not
   # RETAIN bulk — the transfer drains it straight through to the floor. A
-  # pot's drainage hole lets water out, but the soil has to stay in it, and
-  # water is modelled on the plant's own reserve rather than in the pot.
+  # pot's drainage hole lets water out, but the soil has to stay in it.
+  #
+  # The WATER is the `moisture` reserve below, not the bulk interior: bulk
+  # is the soil, and phase 2 moved the water out of the plant and into the
+  # ground it is rooted in. A pot is a bed with one slot, so the pot holds
+  # it. NO `nitrogen` reserve — a houseplant is never nutrient-limited,
+  # and that is the seam that keeps phase 1's behaviour intact.
+  reserves:
+    moisture:
+      capacityValue: 0.35
+      currentValue: 0.35
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
   staticSlots:
     - name: plant
       accepts: SlottableMixin

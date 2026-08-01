@@ -157,6 +157,9 @@ export default class PlantController extends CommandController<PlantModel> {
 
     // Contents FIRST, then the slot — see the class docstring.
     ContainmentApi.move(plant, target);
+    // Settle the ground's water window before the arrival counts toward
+    // its demand — a bed that sat empty must not be billed for the gap.
+    target.reconcileSoil();
     target.occupy(plant, PLANT_SLOT);
     StuffApi.destruct(seed);
 

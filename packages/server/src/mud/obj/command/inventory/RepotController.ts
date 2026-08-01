@@ -150,6 +150,15 @@ export default class RepotController extends CommandController<RepotModel> {
     // of the plant as it stands.
     const difficulty = subject.transplantDifficulty();
 
+    // Settle BOTH grounds' water windows before the plant changes hands.
+    // Each bed drains by the demand of whoever is standing in it, so the
+    // window that just ended has to be drawn at the old membership: the
+    // origin owes this plant's share of it, and the destination — which
+    // may have sat empty for weeks — owes nothing and must not be made
+    // retroactively thirsty by an arrival. (`vacate` settles the origin
+    // itself; the destination is settled here because only the caller
+    // knows this is a transplant rather than a persistence re-seat.)
+    target.reconcileSoil();
     if (origin) origin.vacate(PLANT_SLOT, subject);
     ContainmentApi.move(subject, target);
     target.occupy(subject, PLANT_SLOT);

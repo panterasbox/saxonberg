@@ -16,10 +16,8 @@ import PlantPot, { PLANT_SLOT } from '../../../PlantPot';
 import Seed from '../../../Seed';
 import Material from '../../../../lib/material/Material';
 import { Reserve } from '../../../../lib/reserve';
-import {
-  MOISTURE_RESERVE_KEY,
-  type GrowthProfileData,
-} from '../../../../lib/husbandry/Growing';
+import { type GrowthProfileData } from '../../../../lib/husbandry/Growing';
+import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../lib/husbandry/Cultivable';
 import { Quantity } from '../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../lib/description/Named';
@@ -113,15 +111,6 @@ function newPlant(): Plant {
   p.setLastAmbientK(295);
   p.setLifecycleState('alive');
   p.setProfile(lilyProfile());
-  p.setReserve(
-    new Reserve(
-      MOISTURE_RESERVE_KEY,
-      Quantity.of(1, 'L'),
-      Quantity.of(1, 'L'),
-      'cultivation',
-      'wilting',
-    ),
-  );
   return p;
 }
 
@@ -139,6 +128,16 @@ function makePot(soil: number, capacity = Math.max(soil, 0.5)): PlantPot {
     pot.setStaticSlots([
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: 1 },
     ]);
+    // Phase 2: the WATER lives in the ground, not the plant.
+    pot.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(1, 'L'),
+        Quantity.of(1, 'L'),
+        'cultivation',
+        'wilting',
+      ),
+    );
     return pot;
   }, freshPath('/obj/pot/_test'));
 }
@@ -369,12 +368,24 @@ describe('plant / repot', () => {
     expect(large.getOccupant(PLANT_SLOT)).toBe(p);
     expect(small.getOccupant(PLANT_SLOT)).toBeNull();
     expect(large.getContents()).toContain(p);
-    expect(p.getSoilMoisture()).toBeCloseTo(before.moisture, 6);
+
+    // Every scrap of the PLANT's own state survives the move.
     expect(p.getVigor()).toBeCloseTo(before.vigor, 6);
     expect(p.getGrowthStage()).toBe(before.stage);
     expect(p.growthClockStamp).toBe(before.stamp);
     expect(p.getPersistenceKey()).toBe(before.key);
     expect(captured).toContain(p);
+
+    // ⭐ Moisture is NOT in that list any more, and its absence is the
+    // phase-2 change stated positively: water belongs to the GROUND, so a
+    // plant moved into a different pot drinks from that pot. Here the
+    // destination is full while the one it left was drawn down, and the
+    // plant reads the new soil rather than carrying the old water with
+    // it. That is the physically right answer, and it is only expressible
+    // because the reserve moved.
+    expect(before.moisture).toBeLessThan(1);
+    expect(p.getSoilMoisture()).toBeCloseTo(1, 6);
+    expect(p.getBed()).toBe(large);
   });
 
   it('repot into a too-small pot rejects, and the message names the reason', async () => {

@@ -778,6 +778,14 @@ settings:
     value: "0.03"
   - key: husbandry.warmthReferenceK
     value: "295"
+  # Soil nutrient (phase 2) — the fourth limiting factor's ramp. Soil at or
+  # above `nutrientHappyAt` is not a constraint; at or below
+  # `nutrientSpentAt` it is a total one. A pot authors no nitrogen reserve
+  # at all, so a houseplant never sees this axis.
+  - key: husbandry.nutrientHappyAt
+    value: "0.5"
+  - key: husbandry.nutrientSpentAt
+    value: "0.05"
   # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
   # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
   - key: storm.puddle.accrualLitersPerSegment

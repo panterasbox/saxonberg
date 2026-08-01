@@ -38,12 +38,15 @@ import { BulkableMixin } from "../lib/bulk/Bulkable";
 import { SlottedMixin } from "../lib/slot/Slotted";
 import { ContainerMixin } from "../lib/spatial/Container";
 import { PopulatesMixin } from "../lib/stuff/Populates";
+import { ReservedMixin } from "../lib/reserve";
 import { CultivableMixin } from "../lib/husbandry/Cultivable";
 
 // The same stack the pot composes — a bed is a pot with a bigger N.
 const GardenBedBase = CultivableMixin(
   PopulatesMixin(
-    SlottedMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+    SlottedMixin(
+      BulkableMixin(ContainerMixin(ReservedMixin(DetailedMixin(Thing)))),
+    ),
   ),
 );
 

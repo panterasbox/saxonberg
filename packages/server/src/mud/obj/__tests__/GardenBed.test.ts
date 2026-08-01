@@ -21,11 +21,12 @@ import PlantPot from '../PlantPot';
 import GardenBed from '../GardenBed';
 import Material from '../../lib/material/Material';
 import { Reserve } from '../../lib/reserve';
-import { PLANT_SLOT } from '../../lib/husbandry/Cultivable';
 import {
-  MOISTURE_RESERVE_KEY,
-  type GrowthProfileData,
-} from '../../lib/husbandry/Growing';
+  PLANT_SLOT,
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+} from '../../lib/husbandry/Cultivable';
+import { type GrowthProfileData } from '../../lib/husbandry/Growing';
 import { Quantity } from '../../lib/quantity';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
@@ -96,7 +97,7 @@ function makePlant(short = 'a peace lily'): Plant {
     p.setProfile(lilyProfile());
     p.setReserve(
       new Reserve(
-        MOISTURE_RESERVE_KEY,
+        SOIL_MOISTURE_RESERVE_KEY,
         Quantity.of(1, 'L'),
         Quantity.of(1, 'L'),
         'cultivation',
@@ -108,8 +109,14 @@ function makePlant(short = 'a peace lily'): Plant {
 }
 
 let bedSeq = 0;
-/** A bed holding `soil` litres with room for `slots` plants. */
-function makeBed(soil: number, slots: number): GardenBed {
+/**
+ * A bed holding `soil` litres of earth with room for `slots` plants, and a
+ * water reserve of `water` litres (default 4). Soil volume and water
+ * capacity are independent axes — the first is the ROOT ceiling, the
+ * second is the drought clock — so tests that mean to starve a plant of
+ * water must shrink the second, not the first.
+ */
+function makeBed(soil: number, slots: number, water = 4): GardenBed {
   bedSeq += 1;
   return makeStuffAtPath(() => {
     const bed = new GardenBed();
@@ -121,6 +128,25 @@ function makeBed(soil: number, slots: number): GardenBed {
     bed.setStaticSlots([
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: slots },
     ]);
+    // Phase 2: the ground holds the water AND the nutrient.
+    bed.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(water, 'L'),
+        Quantity.of(water, 'L'),
+        'cultivation',
+        'wilting',
+      ),
+    );
+    bed.setReserve(
+      new Reserve(
+        SOIL_NITROGEN_RESERVE_KEY,
+        Quantity.of(100, '%'),
+        Quantity.of(100, '%'),
+        'cultivation',
+        'spent',
+      ),
+    );
     return bed;
   }, `/obj/bed/_test-${bedSeq}`);
 }
@@ -138,6 +164,17 @@ function makePot(soil: number): PlantPot {
     p.setStaticSlots([
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: 1 },
     ]);
+    // A pot holds water but authors NO nitrogen — which is exactly why a
+    // houseplant is never nutrient-limited.
+    p.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(1, 'L'),
+        Quantity.of(1, 'L'),
+        'cultivation',
+        'wilting',
+      ),
+    );
     return p;
   }, `/obj/pot/_bedtest-${potSeq}`);
 }
@@ -424,5 +461,289 @@ describe('a bed cannot be carried — by mass, not by class', () => {
     expect(pot.getMass().rawValue()).toBeLessThan(5);
     // Well past any character's strain ceiling (≈ their own body mass).
     expect(bed.getMass().rawValue()).toBeGreaterThan(200);
+  });
+});
+
+describe('soil state — water lives in the ground now', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+
+  /** A lit room holding `ground`, with both clocks started at t = 0. */
+  function place(ground: GardenBed | PlantPot): LitRoom {
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    ContainmentApi.move(ground, room);
+    return room;
+  }
+
+  it('a plant reads its moisture from the GROUND, not from itself', () => {
+    const bed = makeBed(12, 4);
+    place(bed);
+    const p = makePlant();
+    seat(p, bed);
+
+    expect(p.getSoilMoisture()).toBeCloseTo(1, 5);
+    // Drain the bed directly; the plant sees it, having no reserve of
+    // its own to fall back on.
+    bed.drawNutrient(0); // no-op, keeps the shape honest
+    setNow(20 * DAY);
+    const after = p.getSoilMoisture();
+    expect(after).toBeLessThan(1);
+    expect(bed.soilMoistureFraction()).toBeCloseTo(after, 5);
+  });
+
+  it('⭐ an UNROOTED plant has no water at all — literally, not by gloss', () => {
+    // husbandry.md always said "nothing can hold moisture for it"; since
+    // the water moved to the ground that is the mechanism rather than a
+    // description, because there is no private reserve left to drain.
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    const loose = makePlant();
+    ContainmentApi.move(loose, room);
+
+    expect(loose.getBed()).toBeNull();
+    expect(loose.getSoilMoisture()).toBe(0);
+
+    setNow(10 * DAY);
+    loose.getVigor(); // must not crash
+    expect(loose.getLimitingFactor()).toBe('water');
+  });
+
+  it('⭐ water competition is emergent: four plants dry a bed faster than one', () => {
+    // Same bed, same soil, same species — only the head count differs.
+    // Nothing new was written to make this true: the bed drains by the
+    // SUMMED demand of whoever is standing in it.
+    const lonely = makeBed(12, 4);
+    const crowded = makeBed(12, 4);
+    place(lonely);
+    place(crowded);
+
+    seat(makePlant(), lonely);
+    for (let i = 0; i < 4; i++) seat(makePlant(`crowd ${i}`), crowded);
+
+    setNow(10 * DAY);
+    const lonelyLeft = lonely.soilMoistureFraction()!;
+    const crowdedLeft = crowded.soilMoistureFraction()!;
+
+    expect(crowdedLeft).toBeLessThan(lonelyLeft);
+    // …and all four read the same drier soil — they share it.
+    for (const plant of crowded.getPlants()) {
+      expect((plant as unknown as { getSoilMoisture(): number })
+        .getSoilMoisture()).toBeCloseTo(crowdedLeft, 5);
+    }
+  });
+
+  it('⭐ NO read-order artifact: A-then-B equals B-then-A', () => {
+    // The fairness bug this shape exists to avoid. Had each plant debited
+    // the bed as it was read, whoever was looked at first would drink
+    // first once the bed ran low.
+    function runDryWindow(readFirst: 'a' | 'b'): [number, number] {
+      // Meagre WATER (0.5 L) but ample earth, so the only thing the two
+      // plants can compete over is the reserve — which is the point.
+      const bed = makeBed(12, 4, 0.5);
+      place(bed);
+      const a = makePlant('a');
+      const b = makePlant('b');
+      seat(a, bed);
+      seat(b, bed);
+      setNow(40 * DAY);
+      const first = readFirst === 'a' ? a : b;
+      const second = readFirst === 'a' ? b : a;
+      first.getVigor();
+      second.getVigor();
+      return readFirst === 'a'
+        ? [a.getVigor(), b.getVigor()]
+        : [b.getVigor(), a.getVigor()];
+    }
+
+    setNow(0);
+    const [aFirstA, aFirstB] = runDryWindow('a');
+    setNow(0);
+    const [bFirstB, bFirstA] = runDryWindow('b');
+
+    // Same window, same pair, opposite read order → same world.
+    expect(aFirstA).toBeCloseTo(bFirstA, 10);
+    expect(aFirstB).toBeCloseTo(bFirstB, 10);
+    // …and the two plants in one bed fared identically as each other.
+    expect(aFirstA).toBeCloseTo(aFirstB, 10);
+  });
+
+  it('⭐ the bed reconcile does NOT recurse through its occupants', () => {
+    // The bed sums occupant demand; each occupant reads the bed's
+    // moisture. Demand is read through waterDemandPerGameDay(), which is
+    // pure — reading getSoilMoisture() there would re-enter.
+    const bed = makeBed(12, 4);
+    place(bed);
+    const p = makePlant();
+    seat(p, bed);
+    setNow(15 * DAY);
+
+    expect(() => bed.reconcileSoil()).not.toThrow();
+    expect(() => p.getVigor()).not.toThrow();
+    // The demand read really is pure: calling it does not move the clock
+    // stamp or the reserve.
+    const before = bed.soilMoistureFraction();
+    const stamp = bed.soilClockStamp;
+    expect(p.waterDemandPerGameDay()).toBeGreaterThan(0);
+    expect(bed.soilClockStamp).toBe(stamp);
+    expect(bed.soilMoistureFraction()).toBe(before);
+  });
+
+  it('watering a PLANT credits the ground; watering a full bed spends nothing', () => {
+    const bed = makeBed(12, 4);
+    place(bed);
+    const p = makePlant();
+    seat(p, bed);
+
+    // Full at the start — no headroom, so nothing is absorbed.
+    expect(p.waterPlant(1)).toBe(0);
+
+    setNow(20 * DAY);
+    p.getVigor(); // drain the window
+    const drained = bed.soilMoistureFraction()!;
+    expect(drained).toBeLessThan(1);
+    const absorbed = p.waterPlant(1);
+    expect(absorbed).toBeGreaterThan(0);
+    // The litre went into the GROUND, not into the plant.
+    expect(bed.soilMoistureFraction()!).toBeGreaterThan(drained);
+  });
+});
+
+describe('nutrient — the fourth limiting factor', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+
+  it('⭐ a POT is unchanged — it authors no nitrogen, so it never limits', () => {
+    // The reduction that keeps phase 1 honest: the fourth factor exists
+    // and a houseplant cannot see it.
+    const clay = makePot(3);
+    expect(clay.nutrientFraction()).toBeNull();
+
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    ContainmentApi.move(clay, room);
+    const p = makePlant();
+    seat(p, clay);
+    setNow(5 * DAY);
+    p.getVigor();
+    expect(p.getLimitingFactor()).not.toBe('nutrient');
+  });
+
+  it('a depleted bed limits growth and NAMES nutrient', () => {
+    const bed = makeBed(12, 4);
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    ContainmentApi.move(bed, room);
+    const p = makePlant();
+    seat(p, bed);
+
+    // Strip the soil bare.
+    expect(bed.drawNutrient(100)).toBe(100);
+    expect(bed.nutrientFraction()).toBe(0);
+
+    setNow(2 * DAY);
+    p.waterPlant(1); // water is NOT the constraint
+    p.getVigor();
+    expect(p.getLimitingFactor()).toBe('nutrient');
+  });
+
+  it('feeding clears it, and credits only the headroom', () => {
+    const bed = makeBed(12, 4);
+    bed.drawNutrient(100);
+    expect(bed.nutrientFraction()).toBe(0);
+
+    expect(bed.feedSoil(40)).toBe(40);
+    expect(bed.nutrientFraction()).toBeCloseTo(0.4, 5);
+
+    // Overfeeding takes only what fits and says so.
+    expect(bed.feedSoil(1000)).toBe(60);
+    expect(bed.nutrientFraction()).toBe(1);
+    expect(bed.feedSoil(10)).toBe(0);
+  });
+
+  it('drawNutrient takes only what is there', () => {
+    const bed = makeBed(12, 4);
+    bed.drawNutrient(90);
+    expect(bed.drawNutrient(50)).toBe(10);
+    expect(bed.nutrientFraction()).toBe(0);
+  });
+});
+
+describe('_worstLimiting — the quality substrate', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+
+  it('starts at 1 on an untouched plant', () => {
+    expect(makePlant().getWorstLimiting()).toBe(1);
+  });
+
+  it('⭐ is MONOTONE: a plant nursed back keeps its worst reading', () => {
+    // This is what makes farming reward your worst moment rather than
+    // your average, and it cannot be recovered afterwards from the
+    // smoothed vigor — a rescued plant looks fine and must still grade
+    // badly.
+    // Plenty of ROOT room (12 L of earth) so nothing but WATER can be the
+    // constraint, and a small reserve so the drought bites quickly.
+    const bed = makeBed(12, 4, 0.5);
+    const room = makeStuff(() => new LitRoom());
+    room.setAmbientFlux(300);
+    ContainmentApi.move(bed, room);
+    const p = makePlant();
+    seat(p, bed);
+
+    // A long drought — nobody waters it for two months, and the bed's
+    // reserve covers about a week.
+    setNow(60 * DAY);
+    const vigorAtBottom = p.getVigor();
+    const worstAfterDrought = p.getWorstLimiting();
+    expect(worstAfterDrought).toBeLessThan(0.9);
+    expect(bed.soilMoistureFraction()).toBe(0); // it really did run dry
+
+    // Nurse it back: keep it watered for a long, kind stretch.
+    for (let d = 62; d <= 160; d += 2) {
+      setNow(d * DAY);
+      p.waterPlant(1);
+    }
+
+    // The plant RECOVERS — by vigor it now looks well kept…
+    const vigorAfterCare = p.getVigor();
+    expect(vigorAfterCare).toBeGreaterThan(vigorAtBottom);
+    expect(p.getConditionBand()).not.toBe('failing');
+
+    // …and the scar STAYS. This is the whole point: the worst moment is
+    // not recoverable from the smoothed vigor after the fact, which is
+    // why harvest quality reads this field and not that one.
+    expect(p.getWorstLimiting()).toBeLessThanOrEqual(worstAfterDrought);
+    expect(p.getWorstLimiting()).toBeLessThan(vigorAfterCare);
   });
 });

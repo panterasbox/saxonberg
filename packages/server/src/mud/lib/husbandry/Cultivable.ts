@@ -47,11 +47,41 @@
 import type { PopulateSpec, Populates } from "../stuff/Populates";
 import { Mixins, type MixinConstructor } from "../mixin";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import { WorldClockApi } from "../../api/worldclock";
+import { AppApi } from "../../api/app";
+import { AppSettingKeys } from "../config/AppSettings";
+import { TemplatePaths } from "../paths";
+import { Quantity } from "../quantity";
+import { Reserve, type Reserved } from "../reserve";
 import type { Slotted } from "../slot/Slotted";
 import type { Slottable } from "../slot/Slottable";
 import type { Bulkable } from "../bulk/Bulkable";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
+
+const SECONDS_PER_GAME_DAY = 86_400;
+
+/** The soil's water reserve key (theme `cultivation`). */
+export const SOIL_MOISTURE_RESERVE_KEY = "moisture";
+/** The soil's nutrient reserve key — nitrogen, the limiting nutrient. */
+export const SOIL_NITROGEN_RESERVE_KEY = "nitrogen";
+
+/** Numeric AppSetting read, falling back to the seeded literal. */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === "" || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function clamp01(x: number): number {
+  return x < 0 ? 0 : x > 1 ? 1 : x;
+}
 
 /**
  * The canonical name of a cultivable's plant slot. Verbs and a plant's own
@@ -83,6 +113,30 @@ export interface Cultivable {
   getPlants(): Array<Stuff & Slottable>;
   /** Whether there is still room for another plant. */
   hasFreePlantSlot(): boolean;
+
+  // ---------- soil state (its own checkpoint) ----------
+
+  /** Reconcile the soil over elapsed game-time. Sync, read-triggered. */
+  reconcileSoil(): void;
+  /**
+   * Root-zone moisture as a fraction `[0, 1]`, reconciled. `null` when
+   * this ground authors no moisture reserve at all.
+   */
+  soilMoistureFraction(): number | null;
+  /**
+   * The MEAN moisture fraction across the window the last reconcile just
+   * closed — what a plant integrating that same window should see. Falls
+   * back to the current fraction when no window has closed.
+   */
+  meanSoilMoistureFraction(): number | null;
+  /** Nutrient level as a fraction `[0, 1]`, or `null` when unauthored. */
+  nutrientFraction(): number | null;
+  /** Pour water in. Returns the litres actually absorbed (headroom-capped). */
+  waterSoil(litres: number): number;
+  /** Feed the soil. Returns the fraction actually absorbed. */
+  feedSoil(fraction: number): number;
+  /** Draw nutrient out — what a harvested crop exports. */
+  drawNutrient(fraction: number): number;
 }
 
 /**
@@ -94,11 +148,14 @@ export interface Cultivable {
  */
 export function CultivableMixin<
   TBase extends MixinConstructor<
-    Stuff & Container & Bulkable & Slotted & Populates
+    Stuff & Container & Bulkable & Slotted & Populates & Reserved
   >,
 >(Base: TBase) {
   return class CultivableMixin extends Base implements Cultivable {
     static _mixinName = Mixins.Cultivable;
+
+    /** The soil's own checkpoint travels with the ground it belongs to. */
+    static persistentFields = ["soilClockStamp", "_soilMeanMoisture"];
 
     /**
      * The prerequisite surface, narrowed. TypeScript does not carry a
@@ -106,8 +163,16 @@ export function CultivableMixin<
      * body, so the composed Container/Bulkable/Slotted methods are
      * reached through this cast — the `LoadBearing` idiom.
      */
-    private get ground(): Stuff & Container & Bulkable & Slotted {
-      return this as unknown as Stuff & Container & Bulkable & Slotted;
+    private get ground(): Stuff &
+      Container &
+      Bulkable &
+      Slotted &
+      Reserved {
+      return this as unknown as Stuff &
+        Container &
+        Bulkable &
+        Slotted &
+        Reserved;
     }
 
     /**
@@ -175,6 +240,240 @@ export function CultivableMixin<
       return !this.ground.isSlotFull(PLANT_SLOT);
     }
 
+    // ---------- soil state: its OWN checkpoint ----------
+
+    /**
+     * Game-seconds stamp of the last soil reconcile; `0` = never touched.
+     * The soil has a stamp **of its own** — that is the whole reason
+     * moisture can live here without splitting one checkpoint across two
+     * objects. The bed re-derives from its own stamp; the plant only
+     * reads. Two self-contained checkpoints, not one shared one.
+     */
+    public soilClockStamp = 0;
+
+    /**
+     * Mean moisture fraction across the window the last reconcile closed.
+     * `-1` = no window yet (report the instantaneous value instead).
+     */
+    public _soilMeanMoisture = -1;
+
+    /** Reentry guard — the soil reconcile must never recurse. */
+    private _reconcilingSoil = false;
+
+    /**
+     * Integrate the soil over elapsed game-time: drain moisture by the
+     * **summed** water demand of its occupants, scaled by warmth.
+     *
+     * ⚠ It reads occupant demand through `waterDemandPerGameDay()`, which
+     * is a PURE read of the authored profile and never reconciles. Reading
+     * a plant's moisture here instead would re-enter that plant's growth
+     * reconcile, which reads this soil — the recursion hazard. The reentry
+     * guard is the belt to that braces.
+     *
+     * Draining by summed demand rather than letting each plant debit as it
+     * is read is also what removes the read-order artifact: whoever
+     * touches the bed first triggers the same total drain, so looking at
+     * plant A before plant B gives the same world as B before A.
+     */
+    public reconcileSoil(): void {
+      if (this._reconcilingSoil) return;
+      const nowS = this.soilNowSeconds();
+      if (nowS === null) return;
+
+      const reserved = this.ground;
+      if (!reserved.hasReserve(SOIL_MOISTURE_RESERVE_KEY)) {
+        this.soilClockStamp = nowS;
+        return;
+      }
+
+      // First touch: seed the stamp, integrate nothing.
+      if (this.soilClockStamp === 0) {
+        this.soilClockStamp = nowS;
+        return;
+      }
+      const elapsed = nowS - this.soilClockStamp;
+      if (elapsed <= 0) {
+        this.soilClockStamp = nowS;
+        return;
+      }
+
+      this._reconcilingSoil = true;
+      try {
+        const reserve = reserved.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+        const capacity = reserve ? reserve.capacity.rawValue() : 0;
+        const start = reserve ? reserve.current.rawValue() : 0;
+        const warmth = this.soilWarmth();
+        // Summed demand — more plants drink the bed dry faster, which is
+        // water competition emerging from the same source of truth the
+        // shared-soil root competition comes from. No new rule.
+        let demandPerDay = 0;
+        for (const plant of this.getPlants()) {
+          if (MixinApi.isGrowing(plant)) {
+            demandPerDay += plant.waterDemandPerGameDay();
+          }
+        }
+        const draw =
+          demandPerDay * (elapsed / SECONDS_PER_GAME_DAY) * warmth;
+
+        if (capacity > 0 && draw > 0) {
+          const end = Math.max(0, start - draw);
+          // The mean over the window. The drain is linear in time, so the
+          // mean is the midpoint UNLESS the soil ran dry partway: then it
+          // is a triangle over the fraction of the window before empty.
+          const startF = clamp01(start / capacity);
+          const endF = clamp01(end / capacity);
+          this._soilMeanMoisture =
+            end > 0
+              ? (startF + endF) / 2
+              : draw > 0
+                ? (startF * (start / draw)) / 2
+                : startF;
+          reserved.adjustReserve(
+            SOIL_MOISTURE_RESERVE_KEY,
+            Quantity.of(-(start - end), "L"),
+          );
+        } else if (capacity > 0) {
+          this._soilMeanMoisture = clamp01(start / capacity);
+        }
+        this.soilClockStamp = nowS;
+      } finally {
+        this._reconcilingSoil = false;
+      }
+    }
+
+    /** Root-zone moisture `[0, 1]`, reconciled; null when unauthored. */
+    public soilMoistureFraction(): number | null {
+      if (!this._reconcilingSoil) this.reconcileSoil();
+      return this.reserveFraction(SOIL_MOISTURE_RESERVE_KEY);
+    }
+
+    /** The window-mean a plant integrating the same window should read. */
+    public meanSoilMoistureFraction(): number | null {
+      const current = this.soilMoistureFraction();
+      if (current === null) return null;
+      return this._soilMeanMoisture < 0 ? current : this._soilMeanMoisture;
+    }
+
+    /** Nutrient level `[0, 1]`; null when this ground authors none. */
+    public nutrientFraction(): number | null {
+      return this.reserveFraction(SOIL_NITROGEN_RESERVE_KEY);
+    }
+
+    /**
+     * Pour water in — reconcile first (so the window that just ended is
+     * credited at its true dryness), then fill up to headroom. Returns the
+     * litres actually absorbed, so a verb can say "it is already full".
+     */
+    public waterSoil(litres: number): number {
+      if (!Number.isFinite(litres) || litres <= 0) return 0;
+      this.reconcileSoil();
+      return this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, "L");
+    }
+
+    /** Feed the soil; returns the fraction actually absorbed. */
+    public feedSoil(fraction: number): number {
+      if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      return this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, fraction, "%");
+    }
+
+    /** Draw nutrient out — what a harvested crop exports. */
+    public drawNutrient(fraction: number): number {
+      if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const reserved = this.ground;
+      const reserve = reserved.getReserve(SOIL_NITROGEN_RESERVE_KEY);
+      if (!reserve) return 0;
+      const taken = Math.min(fraction, reserve.current.rawValue());
+      if (taken <= 0) return 0;
+      reserved.adjustReserve(
+        SOIL_NITROGEN_RESERVE_KEY,
+        Quantity.of(-taken, reserve.current.unit),
+      );
+      return taken;
+    }
+
+    /** A reserve's current level as a fraction, or null when unauthored. */
+    private reserveFraction(key: string): number | null {
+      const reserve = this.ground.getReserve(key);
+      if (!reserve) return null;
+      const capacity = reserve.capacity.rawValue();
+      if (capacity <= 0) return null;
+      return clamp01(reserve.current.rawValue() / capacity);
+    }
+
+    /** Credit a reserve up to its headroom; returns the amount applied. */
+    private creditReserve(key: string, amount: number, unit: "L" | "%"): number {
+      const reserved = this.ground;
+      const reserve = reserved.getReserve(key);
+      if (!reserve) return 0;
+      const headroom =
+        reserve.capacity.rawValue() - reserve.current.rawValue();
+      const applied = Math.min(amount, Math.max(0, headroom));
+      if (applied <= 0) return 0;
+      reserved.adjustReserve(key, Quantity.of(applied, unit));
+      return applied;
+    }
+
+    /**
+     * Warmth multiplier on evaporation — the same shape `GrowingMixin`
+     * applies to transpiration, read off this ground's own thermal state
+     * when it has one.
+     */
+    private soilWarmth(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isThermal(self)) return 1;
+      try {
+        const k = self.lastAmbientK;
+        const reference = dial(AppSettingKeys.husbandryWarmthReferenceK, 295);
+        const factor = dial(AppSettingKeys.husbandryWarmthFactor, 0.03);
+        return Math.max(0.1, 1 + (k - reference) * factor);
+      } catch {
+        return 1;
+      }
+    }
+
+    /** Game-seconds now, or null when no world clock (pre-boot / tests). */
+    private soilNowSeconds(): number | null {
+      if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+        return null;
+      }
+      return WorldClockApi.getNow().rawValue();
+    }
+
+    /**
+     * Close the soil's window BEFORE the occupancy changes.
+     *
+     * The soil drains by the summed demand of whoever is standing in it,
+     * over its own elapsed window. If a plant were seated without first
+     * settling that window, the bed would drain the whole preceding gap
+     * at the NEW head count — a plant transplanted into a bed would make
+     * that bed retroactively thirsty for a month it was empty, and a
+     * plant lifted out would leave its share undrawn. Settling first
+     * makes each window drain at the membership it actually had.
+     */
+    public occupy(candidate: Stuff & Slottable, slot: string): void {
+      // …but a RE-SEAT is not a transplant. A candidate already in this
+      // host's contents is the persistence restore re-establishing an
+      // arrangement that already existed, so settling here would stamp
+      // the soil at `now` and swallow the whole absence the record exists
+      // to preserve. Same distinction `fitsSlot` draws, for the same
+      // reason (husbandry.md: a sizing rule must not veto a restore).
+      const reseat =
+        MixinApi.isContainable(candidate) &&
+        (candidate.getContainer() as Stuff | null) ===
+          (this as unknown as Stuff);
+      if (slot === PLANT_SLOT && !reseat) this.reconcileSoil();
+      super.occupy(candidate, slot);
+    }
+
+    /** Symmetric with {@link occupy} — settle before the head count drops. */
+    public vacate(
+      slot: string,
+      candidate: Stuff & Slottable
+    ): (Stuff & Slottable) | null {
+      if (slot === PLANT_SLOT) this.reconcileSoil();
+      return super.vacate(slot, candidate);
+    }
+
     /**
      * Populate, then **claim the slots**.
      *
@@ -216,6 +515,14 @@ export function CultivableMixin<
     ): void {
       void from;
       void to;
+      // Start (or close) the SOIL's own window at the moment the ground is
+      // placed. The soil seeds its stamp lazily on first read, and being
+      // put down is the earliest honest moment — otherwise a bed that
+      // nobody looks at until later stamps itself then, silently skipping
+      // the whole elapsed window and handing its occupants a full reserve
+      // they should long since have drunk. Placement is guaranteed: even a
+      // template's `container:` self-placement goes through containment.
+      this.reconcileSoil();
       for (const plant of this.getPlants()) {
         if (MixinApi.isGrowing(plant)) plant.noteEnvironmentChanged();
       }

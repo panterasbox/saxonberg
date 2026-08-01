@@ -33,6 +33,7 @@ import { BulkableMixin } from "../lib/bulk/Bulkable";
 import { SlottedMixin } from "../lib/slot/Slotted";
 import { ContainerMixin } from "../lib/spatial/Container";
 import { PopulatesMixin } from "../lib/stuff/Populates";
+import { ReservedMixin } from "../lib/reserve";
 import { CultivableMixin } from "../lib/husbandry/Cultivable";
 
 export { PLANT_SLOT } from "../lib/husbandry/Cultivable";
@@ -42,7 +43,9 @@ export { PLANT_SLOT } from "../lib/husbandry/Cultivable";
 // slice names its occupants by index into the container slice.
 const PlantPotBase = CultivableMixin(
   PopulatesMixin(
-    SlottedMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
+    SlottedMixin(
+      BulkableMixin(ContainerMixin(ReservedMixin(DetailedMixin(Thing)))),
+    ),
   ),
 );
 

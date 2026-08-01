@@ -20,16 +20,11 @@ data:
   material: /lib/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /obj/seed/peace-lily
-  # The root-zone moisture reserve — the water half of the growth model.
-  # Litres, theme `cultivation` (NOT biological: Reserve is a neutral
-  # capacity axis, and a plant is not a Creature).
-  reserves:
-    moisture:
-      capacityValue: 1
-      currentValue: 1
-      unit: "L"
-      theme: cultivation
-      floorEffect: wilting
+  # NO moisture reserve. Phase 2 moved the water out of the plant and into
+  # the GROUND it is rooted in (the pot's or the bed's `moisture` reserve),
+  # so a plant reads its soil rather than carrying a private supply. That
+  # is what makes water competition emerge in a shared bed, and what makes
+  # "an unrooted plant has no water" literally true.
   profile:
     # Thirsty: satisfied while the root zone is a third full, wilting dry.
     moistureHappyAt: 0.35

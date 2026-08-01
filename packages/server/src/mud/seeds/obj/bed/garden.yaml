@@ -26,6 +26,28 @@ data:
   # `liquidTight` (the default), NOT `open`: an `open` interior does not
   # RETAIN bulk — the transfer would drain the soil straight through to
   # the ground. Same reasoning as the pots.
+  #
+  # Two soil reserves, and they are different axes from the bulk soil
+  # above: bulk is EARTH (the root ceiling), these are what the earth
+  # currently HOLDS. 6 L of water is roughly a fortnight for a full bed
+  # of four, so a smallholding needs tending on about that cadence.
+  #
+  # Unlike a pot, a bed declares `nitrogen` — which is the whole of what
+  # makes the fourth limiting factor visible outdoors and invisible on a
+  # windowsill. Harvesting exports it; `feed` puts it back.
+  reserves:
+    moisture:
+      capacityValue: 6
+      currentValue: 6
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+    nitrogen:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: cultivation
+      floorEffect: spent
   staticSlots:
     - name: plant
       accepts: SlottableMixin

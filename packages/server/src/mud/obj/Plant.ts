@@ -157,6 +157,39 @@ export default class Plant extends PlantBase {
   }
 
   /**
+   * The moisture of the soil this plant is rooted in — phase 2 moved the
+   * water out of the plant and into the ground, so this is a pure read of
+   * the bed's own reconciled state. **The plant never mutates the bed
+   * during its own reconcile**; that is what keeps the two checkpoints
+   * self-contained.
+   *
+   * `null` when unrooted, which makes `satWater` 0 — the literal form of
+   * husbandry.md's "nothing can hold moisture for it".
+   */
+  protected override soilMoisture(): number | null {
+    return this.getBed()?.soilMoistureFraction() ?? null;
+  }
+
+  /** The window-mean the reconcile loop integrates against. */
+  protected override meanSoilMoisture(): number | null {
+    return this.getBed()?.meanSoilMoistureFraction() ?? null;
+  }
+
+  /**
+   * The nutrient level of the ground. A pot authors no nitrogen reserve,
+   * so this reads `null` there and a houseplant is never nutrient-limited
+   * — the pot's behaviour is unchanged by the fourth factor's arrival.
+   */
+  protected override nutrientLevel(): number | null {
+    return this.getBed()?.nutrientFraction() ?? null;
+  }
+
+  /** Watering a plant waters its ground; every occupant shares it. */
+  protected override waterTheSoil(litres: number): number {
+    return this.getBed()?.waterSoil(litres) ?? 0;
+  }
+
+  /**
    * The candidate-side slot test (`Slotted.canOccupy` consults it after
    * its own mixin check): this plant fits a pot iff the pot's soil volume
    * carries its **current stage's** root demand. A mature plant therefore

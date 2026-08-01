@@ -18,13 +18,7 @@ data:
   material: /lib/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /obj/seed/snake-plant
-  reserves:
-    moisture:
-      capacityValue: 1
-      currentValue: 1
-      unit: "L"
-      theme: cultivation
-      floorEffect: wilting
+  # No moisture reserve — the water lives in the ground (see peace-lily).
   profile:
     # Drought-tolerant: content on a nearly empty root zone, and it spends
     # water a third as fast — so it survives a gap that kills the lily.

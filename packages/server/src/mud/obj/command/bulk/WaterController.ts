@@ -31,7 +31,12 @@ import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Growing } from '../../../lib/husbandry/Growing';
-import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
+import {
+  PLANT_SLOT,
+  SOIL_MOISTURE_RESERVE_KEY,
+  type Cultivable,
+} from '../../../lib/husbandry/Cultivable';
+import type { Reserved } from '../../../lib/reserve';
 import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
@@ -169,9 +174,15 @@ export default class WaterController extends CommandController<WaterModel> {
       plant instanceof Plant ? plant.careDifficulty() : 'standard';
     const absorbed = plant.waterPlant(result.applied);
 
-    // A failed capture must not fail the verb.
+    // Capture the GROUND, not the plant: since phase 2 the litres land in
+    // the pot's (or bed's) moisture reserve, so capturing only the plant
+    // would durably record everything about this act except the water.
+    // `captureHostOf` walks up to the nearest persistable host either way
+    // — for a potted plant that is the room the pot stands in, whose
+    // record carries the pot's nested state.
+    const ground = this.groundUnder(plant);
     try {
-      await PersistableApi.captureHostOf(plant);
+      await PersistableApi.captureHostOf(ground ?? plant);
     } catch (err) {
       console.warn('WaterController: capture after watering failed:', err);
     }
@@ -205,19 +216,33 @@ export default class WaterController extends CommandController<WaterModel> {
   }
 
   /** Litres the plant's root zone can still take. */
+  /**
+   * How many litres the GROUND under `plant` can still take.
+   *
+   * Phase 2 moved the water out of the plant and into the soil, so the
+   * headroom is the bed's, not the plant's. Reading through the growth
+   * getter first reconciles the elapsed drain — otherwise the headroom is
+   * stale by the whole absence, and a long-neglected plant would report
+   * itself already wet.
+   */
   private moistureHeadroom(plant: Stuff & Growing): number {
-    if (!MixinApi.isReserved(plant)) return 0;
-    const reserve = plant.getReserve('moisture');
-    if (!reserve) return 0;
-    // Read through the growth getter first so the elapsed drain is
-    // reconciled — otherwise the headroom is stale by the whole absence.
     plant.getSoilMoisture();
-    const fresh = plant.getReserve('moisture');
-    if (!fresh) return 0;
-    return Math.max(
-      0,
-      fresh.capacity.rawValue() - fresh.current.rawValue(),
-    );
+    const ground = this.groundUnder(plant);
+    if (!ground) return 0;
+    const reserve = ground.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+    if (!reserve) return 0;
+    return Math.max(0, reserve.capacity.rawValue() - reserve.current.rawValue());
+  }
+
+  /** The cultivable ground `plant` is rooted in, or null when unrooted. */
+  private groundUnder(
+    plant: Stuff & Growing,
+  ): (Stuff & Cultivable & Reserved) | null {
+    if (!MixinApi.isSlottable(plant)) return null;
+    const host = plant.getOccupiedHost();
+    if (!host || !MixinApi.isCultivable(host)) return null;
+    if (!MixinApi.isReserved(host)) return null;
+    return host as unknown as Stuff & Cultivable & Reserved;
   }
 
   /** The first carried holder with a liquid in it, or null. */
