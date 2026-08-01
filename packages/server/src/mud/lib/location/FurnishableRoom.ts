@@ -20,10 +20,22 @@
  * lease-gated door is the *door*. So the room stays plain, and the next
  * venue that wants a bathroom writes a seed row.
  *
- * Composition: `Persistable(Reserved(Location))`. A `Location` already
- * brings containment, adornment, ambient light and atmosphere;
- * `Persistable` gives it a record to carry fixtures and state in; and
- * `Reserved` lets a room AUTHOR a finite `air` budget when it needs one.
+ * Composition — **DormRoom's stack minus `WarrenMember`**, which is the
+ * Warren's business and not a room's:
+ *
+ *   Persistable → PostRegistration → Exitable → Detailed → Visible
+ *     → Reserved → Populates → Location   (Location carries Container,
+ *                                          Adornable, AmbientLit, Atmospheric)
+ *
+ * Every layer is load-bearing and the omission of any of them is silent:
+ * without `Populates` a seed's `populates:` is INERT and no fixture ever
+ * lands; without `Visible` its prose is inert; without `Exitable` you cannot
+ * walk into it. `Reserved` is what lets a room AUTHOR a finite `air` budget.
+ *
+ * That the shipped dorm room already had exactly this stack is the reason
+ * to mirror it rather than re-derive: `DormRoom` IS a room archetype (a
+ * bedsit — bed, desk, footlocker, tap), and it has been carrying the
+ * correct composition all along.
  *
  * The reserve is capability, not behaviour: `FireLogic` reads
  * `hasReserve('air')` and treats its absence as open air, so every room
@@ -35,6 +47,11 @@
 
 import Location from "../stuff/Location";
 import { PersistableMixin } from "../persistence/Persistable";
+import { PopulatesMixin } from "../stuff/Populates";
+import { VisibleMixin } from "../description/Visible";
+import { DetailedMixin } from "../description/Detailed";
+import { ExitableMixin } from "../boundary/Exitable";
+import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { ReservedMixin } from "../reserve";
 import { CallSecurity, Final } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
@@ -42,7 +59,13 @@ import { SecurityPolicies } from "../security/SecurityPolicies";
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
 
-const FurnishableRoomBase = PersistableMixin(ReservedMixin(Location));
+const FurnishableRoomBase = PersistableMixin(
+  PostRegistrationMixin(
+    ExitableMixin(
+      DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+    ),
+  ),
+);
 
 export default class FurnishableRoom extends FurnishableRoomBase {
   static persistentFields: string[] = ["postedAs"];

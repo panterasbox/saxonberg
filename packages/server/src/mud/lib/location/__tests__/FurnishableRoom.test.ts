@@ -8,16 +8,18 @@
  * grew a consumer would still pass the first half.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import FurnishableRoom, { UNRESTRICTED } from "../FurnishableRoom";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
+import { Mixins } from "../../mixin";
 import { ContainmentApi } from "../../../api/containment";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import Thing from "../../stuff/Thing";
+import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../../spatial/Container";
 import type { Containable } from "../../spatial/Containable";
@@ -33,6 +35,27 @@ describe("FurnishableRoom", () => {
     const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
     expect(MixinApi.isPersistable(room)).toBe(true);
     expect(MixinApi.isContainer(room)).toBe(true);
+  });
+
+  it("composes every layer a room seed actually needs", () => {
+    // The regression this test exists for: FurnishableRoom first shipped as
+    // `Persistable(Reserved(Location))`, and EVERY OMISSION WAS SILENT — a
+    // seed's `populates:` never fired, its prose never landed, and nothing
+    // could walk into it. The YAML-shape tests all passed, because a seed
+    // row is only as real as the class that reads it.
+    //
+    // The stack mirrors the shipped DormRoom's, minus WarrenMember.
+    for (const layer of [
+      Mixins.Populates, // `populates:` — without this, no fixture EVER lands
+      Mixins.Visible, // shortDescription / longDescription
+      Mixins.Detailed, // `details:`
+      Mixins.Exitable, // you can walk into it
+      Mixins.Reserved, // the kitchen's authored `air` budget
+      Mixins.Container,
+      Mixins.Persistable,
+    ]) {
+      expect(MixinApi.hasMixin(FurnishableRoom, layer)).toBe(true);
+    }
   });
 
   it("declares room-level state of its own, distinct from its contents (D7)", () => {
@@ -58,6 +81,47 @@ describe("FurnishableRoom", () => {
       room as unknown as Stuff & Container,
     );
     expect((room as unknown as Container).getContents()).toContain(visitor);
+  });
+
+  it("actually SEEDS its fixtures — populates fires end to end", async () => {
+    // The behavioural half of "four archetypes seed their own fixture set".
+    // Parsing the seed row proves the row says so; this proves the class
+    // does it. Both are needed — the first version of this class parsed
+    // green and seeded nothing.
+    const paths = [
+      "/obj/fixture/toilet",
+      "/obj/fixture/basin",
+      "/obj/fixture/tub",
+    ];
+    // A `domain` row per fixture — `applyPopulates` resolves each spec
+    // through `Template.findByPath` before cloning it.
+    const rows = paths.map((path) => ({ _id: path, path, class: "/lib/stuff/Thing" }));
+    vi.spyOn(PersistenceManager, "get").mockReturnValue({
+      find: vi.fn(async (_c: string, q: Record<string, unknown>) =>
+        rows.filter((r) => r.path === q.path),
+      ),
+      save: vi.fn(async () => "1"),
+      findById: vi.fn(async () => null),
+      delete: vi.fn(async () => undefined),
+      isConnected: () => true,
+    } as unknown as PersistenceManager);
+
+    const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
+    const cloned: string[] = [];
+    vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
+      cloned.push(path);
+      return makeStuffAtPath(() => new Thing(), path);
+    }) as unknown as typeof StuffApi.clone);
+
+    // On a persistable host `applyPopulates` RETAINS the specs and
+    // `seedBornWith` lays them down once (the no-record branch) — the
+    // DormWarren.admit shape.
+    await room.applyPopulates(paths);
+    await room.seedBornWith();
+
+    expect(cloned).toEqual(paths);
+    expect((room as unknown as Container).getContents().length).toBe(3);
+    vi.restoreAllMocks();
   });
 
   it("has NO consumer anywhere in the engine — the D14 constraint, enforced", () => {

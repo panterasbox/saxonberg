@@ -182,10 +182,31 @@ exactly as it did before the fields existed.
 
 ## The room class and its archetypes
 
-`lib/location/FurnishableRoom` — `Persistable(Reserved(Location))` — is the
-**one class** every archetype is a template row over, and it is
-**venue-generic**: a bank's bathroom and a bar's kitchen are the same class
-with a different `populates:`. Home-ness is supplied by the **parcel above
+`lib/location/FurnishableRoom` is the **one class** every archetype is a
+template row over. Its composition is **`DormRoom`'s stack minus
+`WarrenMember`**:
+
+```
+Persistable → PostRegistration → Exitable → Detailed → Visible
+  → Reserved → Populates → Location
+```
+
+Every layer is load-bearing and **every omission is silent**: without
+`Populates` a seed's `populates:` is inert and no fixture ever lands;
+without `Visible` its prose is inert; without `Exitable` you cannot walk
+in. The shipped dorm room already had exactly this stack, which is why it
+is mirrored rather than re-derived.
+
+> **The dorm room is itself an archetype** — a *bedsit*: bed, desk,
+> footlocker, tap, one room. It is not a fifth **kind** of answer; it is the
+> other four collapsed into a single room, which is evidence that archetypes
+> **compose** rather than partition. It keeps its own class today only
+> because `DormRoom` also carries `WarrenMember` and the theme overlay, and
+> because its live records make a `class:` change a data migration rather
+> than a refactor.
+
+It is **venue-generic**: a bank's bathroom and a bar's kitchen are the
+same class with a different `populates:`. Home-ness is supplied by the **parcel above
 the room** — title, land use, the lease — never by the room.
 
 Four archetypes ship, and they are four *different kinds of answer*:
@@ -280,6 +301,15 @@ because their furniture moved.
 - **Washing / sterility** — `DressingMixin.dressingQuality` (consumed by
   `treat`, no producer) and `Condition.contagion` ("reserved, no consumer
   v1") are the two seams. Handwashing *is* the chain of infection.
+- **The dorm retrofit.** `DormRoom` keeps its own class and its own
+  fixture rows. The one retrofit that is genuinely load-bearing is its
+  **bed**: it is a `Surfaced` prop you cannot lie on, so sleep-as-logout —
+  the mechanic that makes a residence worth having — does not work in the
+  residence every player currently has. Promoting it to the `/obj/Chair`
+  shape is a seed edit; the rest (deduplicating `Desk` against
+  `/lib/spatial/Surface`, the tap against the basin) is tidying, and any
+  `class:` change to a live template row is a data migration, not a
+  refactor.
 - **The unit floorplan and lease** — provisioning a multi-room leased unit,
   its lease-gated door and its revert. The *rule* ships
   (`evictToStorage`); the Warren-shaped content does not.
