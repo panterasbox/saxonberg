@@ -111,6 +111,29 @@ export default class AssessController extends CommandController<AssessModel> {
       ).toString(),
     ];
 
+    // The dying readout. Competence buys INFORMATION, never outcomes: a
+    // novice can tell that someone is going, a competent one can name what
+    // is taking them, and only a proficient medic can say how long there
+    // is to work with. No roll, no effect on the clock itself.
+    const vitalsTarget = target as Stuff & Vitals;
+    if (vitalsTarget.isDying()) {
+      const cause = vitalsTarget.getCauseOfDeath();
+      const remaining = vitalsTarget.getDyingRemainingSec();
+      const who = isSelf ? 'You are' : `${target.getPresentation()} is`;
+      if (precise && remaining !== null) {
+        blocks.push(
+          Mml.escape(
+            `${who} dying${cause ? ` of ${cause}` : ''} — about ` +
+              `${Math.max(1, Math.round(remaining / 60))} minute(s) left.`,
+          ),
+        );
+      } else if (medBand === 'competent' && cause) {
+        blocks.push(Mml.escape(`${who} dying of ${cause}.`));
+      } else {
+        blocks.push(Mml.escape(`${who} dying.`));
+      }
+    }
+
     if (wounds.length === 0) {
       blocks.push(Mml.escape('No visible wounds.'));
     } else {
