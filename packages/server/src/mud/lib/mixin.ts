@@ -92,6 +92,10 @@ export const Mixins = {
   Organism: 'OrganismMixin',
   Sexed: 'SexedMixin',
   Vitals: 'VitalsMixin',
+  // What a body does after it stops: the decay clock, the forensic
+  // readability curve, and the eviction veto that keeps a corpse in the
+  // world long enough to be studied.
+  Postmortem: 'PostmortemMixin',
   // First-aid dressing capability — any item that can dress a wound
   // (bandage / gauze / clean rag). The harm build's medic vertical.
   Dressing: 'DressingMixin',

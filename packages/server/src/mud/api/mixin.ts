@@ -78,6 +78,7 @@ import type { Constructed } from '../lib/material/Constructed';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
+import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
@@ -868,6 +869,14 @@ export class MixinApi {
 
   public static isVitals(obj: Stuff): obj is Stuff & Vitals {
     return this.hasMixin(obj, Mixins.Vitals);
+  }
+
+  /**
+   * A body that runs a postmortem clock — decay, forensic readability, and
+   * the "don't collect me yet" eviction veto.
+   */
+  public static isPostmortem(obj: Stuff): obj is Stuff & Postmortem {
+    return this.hasMixin(obj, Mixins.Postmortem);
   }
 
   public static isReserved(obj: Stuff): obj is Stuff & Reserved {

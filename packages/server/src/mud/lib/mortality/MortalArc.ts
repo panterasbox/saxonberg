@@ -42,3 +42,32 @@ export interface MortalArc {
   /** Where the body fell — the shade's reappearance fallback. */
   whereTemplatePath?: string;
 }
+
+/**
+ * Decay stages, in order. A corpse walks them on game-time and never walks
+ * back.
+ *
+ * The stages exist to make **evidence degrade**: forensics is assessment
+ * pointed at a body, and the whole tension of it is that the answer key is
+ * stamped while the readable signs rot. A fresh body tells you almost
+ * everything; a spent one tells you nothing, and the difference is time
+ * nobody controls.
+ */
+export const DECAY_STAGES = ['fresh', 'stale', 'decomposed', 'spent'] as const;
+
+export type DecayStage = (typeof DECAY_STAGES)[number];
+
+export const MORTALITY_DEFAULTS = {
+  /** Game-seconds a corpse spends in each decay stage. */
+  DECAY_STAGE_SEC: 3600,
+  /**
+   * How readable the forensic record is at each stage, 1 → 0. Consumed by
+   * a future examination surface; the *shape* is what this build ships.
+   */
+  FORENSIC_READABILITY: {
+    fresh: 1,
+    stale: 0.6,
+    decomposed: 0.25,
+    spent: 0,
+  } as Record<DecayStage, number>,
+} as const;

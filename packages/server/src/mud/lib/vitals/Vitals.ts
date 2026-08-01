@@ -35,6 +35,8 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
 import type {
@@ -92,6 +94,36 @@ export const VITAL_SIGNS = [
 
 export type VitalSign = (typeof VITAL_SIGNS)[number];
 
+/**
+ * The **material** fork-slice family — the body-state a corpse inherits:
+ * the vital signs as they stood, the wound map, the cause stamp, and the
+ * anatomy deltas. Together they are what makes a dead body a forensic
+ * record rather than a prop.
+ *
+ * **These slices are fork-only, and that is a load-bearing asymmetry.**
+ * `ForkableMixin.applyForkedState` applies a slice by calling
+ * `mergeSlice_<Name>` ON THE TARGET — so if material state travelled that
+ * way, every `VitalsMixin` host would need a `mergeSlice_Vitals`, corpse
+ * and living body alike, and that method would be exactly the "trusted
+ * mixin escape" the design forbids: one call and a corpse walks again.
+ *
+ * Instead the apply side is {@link Vitals.adoptMaterialState}, gated to the
+ * death choreography and deliberately NOT named `mergeSlice_`. The
+ * consequence is the guarantee: `forkRuntimeState(corpse, newBody)` is a
+ * structural no-op, because there is no applier for it to find. A corpse
+ * is un-reanimatable **by protocol, not by policy** — nobody has to
+ * remember the rule.
+ *
+ * Adding a `mergeSlice_` for any name in this list is the single edit that
+ * silently undoes it. See `docs/antipatterns.md`.
+ */
+export const MATERIAL_FORK_SLICES = [
+  'Vitals',
+  'Trauma',
+  'CauseOfDeath',
+  'Anatomy',
+] as const;
+
 /** The accessible "HP bar" replacement — a derived band, never stored. */
 export type ConditionBand =
   | 'healthy'
@@ -135,6 +167,14 @@ const VITAL_UNITS: Record<VitalSign, Unit> = {
   spo2: '%',
   bloodVolume: 'L',
 };
+
+/**
+ * Only the death choreography may pour material state into a body. The
+ * gate is what stops `adoptMaterialState` from becoming the reanimation
+ * hatch that a `mergeSlice_` would have been — see
+ * {@link MATERIAL_FORK_SLICES}.
+ */
+const ByConditionLogic = SecurityPolicies.FromTemplate('/obj/api/condition');
 
 /** Backing-field name per vital sign (first-class persistent fields). */
 const VITAL_FIELD: Record<VitalSign, string> = {
@@ -244,6 +284,22 @@ export interface Vitals {
    */
   stabilize(): boolean;
 
+  // ---------- the material fork family (see MATERIAL_FORK_SLICES) ----------
+  forkSlice_Vitals(): unknown;
+  forkSlice_Trauma(): unknown;
+  forkSlice_CauseOfDeath(): unknown;
+  forkSlice_Anatomy(): unknown;
+  /**
+   * Adopt a forked material record onto this body — the corpse side of the
+   * death fork.
+   *
+   * **Not a `mergeSlice_`, on purpose.** See {@link MATERIAL_FORK_SLICES}:
+   * naming it that would put material state back on the Forkable protocol
+   * and make a corpse reanimatable by one ordinary-looking call. Gated to
+   * the death choreography.
+   */
+  adoptMaterialState(slices: Record<string, unknown>): void;
+
   /**
    * Write every vital sign back to its species baseline.
    *
@@ -306,7 +362,10 @@ export interface Vitals {
 }
 
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class VitalsMixin extends Base implements Vitals {
+  // A class DECLARATION, not an expression: legacy decorators are only
+  // valid on declarations, and `adoptMaterialState` carries a security
+  // gate. Same shape as the shipped `ChattelMixin`.
+  class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
 
     static persistentFields = [
@@ -475,6 +534,59 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private expireDying(record: DyingRecord): void {
       void ConditionApi.die(this as unknown as Stuff, record.cause);
+    }
+
+    // ---------- the material fork family ----------
+
+    public forkSlice_Vitals(): unknown {
+      const out: Record<string, number> = {};
+      for (const sign of VITAL_SIGNS) {
+        out[sign] = (
+          this as unknown as Record<string, Quantity<Unit>>
+        )[VITAL_FIELD[sign]]!.rawValue();
+      }
+      return out;
+    }
+
+    public forkSlice_Trauma(): unknown {
+      // The wound map as it stood, minus the dying record — the clock is
+      // resolved by the transition, and a corpse is not still dying.
+      return structuredClone(
+        this.conditions.filter((c) => c.kind !== 'dying'),
+      );
+    }
+
+    public forkSlice_CauseOfDeath(): unknown {
+      return { causeOfDeath: this.causeOfDeath };
+    }
+
+    public forkSlice_Anatomy(): unknown {
+      return structuredClone(this.bodyPartDeltas);
+    }
+
+    @CallSecurity(ByConditionLogic)
+    @Final
+    @Unshadowable
+    public adoptMaterialState(slices: Record<string, unknown>): void {
+      const vitals = slices.Vitals as Record<string, number> | undefined;
+      if (vitals) {
+        for (const sign of VITAL_SIGNS) {
+          const raw = vitals[sign];
+          if (typeof raw === 'number') {
+            this.setVitalSign(sign, Quantity.of(raw, VITAL_UNITS[sign]));
+          }
+        }
+      }
+      const trauma = slices.Trauma as ActiveCondition[] | undefined;
+      if (Array.isArray(trauma)) this.conditions = structuredClone(trauma);
+      const cod = slices.CauseOfDeath as
+        | { causeOfDeath: string | null }
+        | undefined;
+      if (cod) this.causeOfDeath = cod.causeOfDeath;
+      const anatomy = slices.Anatomy as
+        | Record<string, BodyPartDelta>
+        | undefined;
+      if (anatomy) this.bodyPartDeltas = structuredClone(anatomy);
     }
 
     /**
@@ -1122,5 +1234,6 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.conditions.splice(i, 1);
       return true;
     }
-  };
+  }
+  return VitalsMixin;
 }

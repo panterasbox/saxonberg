@@ -293,6 +293,13 @@ async function dieImpl(
     // Death is a lifecycle transition, NOT destruction — the body stays in
     // the world as a corpse (race.md). Never `StuffApi.destruct` here.
     host.setLifecycleState('dead');
+    // Start the postmortem clock. Algor mortis needs no code: a body that
+    // stops regulating drifts toward ambient through the shipped Thermal
+    // layer all by itself.
+    if (MixinApi.isPostmortem(host)) {
+      const nowS = conditionNowSeconds();
+      if (nowS !== null) host.markDeceasedAt(nowS);
+    }
 
     // The accountability row is a SYNCHRONOUS fire-and-forget append, and
     // it stays in the sync prefix deliberately: a consumer that reads the
