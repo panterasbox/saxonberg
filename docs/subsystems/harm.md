@@ -214,6 +214,14 @@ command category plus `assess` in `perception`.
   wound reads "bleeding controlled" and **hides precise severity behind the
   dressing** — an expert can judge through it, else `undress` and look.
   This is the loop that answers "how do I know I'm healed."
+  It also carries an **affliction readout** — what is wrong with someone
+  that isn't a wound. Trauma was the only thing it could describe, so
+  anything *carried* rather than *cut* (a poison, a disease, the mortality
+  floor's `recovering`) showed up nowhere and a body under it read
+  "unhurt". Signs before names, on the same competence rule: `unsteady`
+  for a novice, the condition's name for a competent medic. See
+  [mortality.md](./mortality.md) for the `Condition`-Idea fallback it
+  degrades through.
 - **medicine `Discipline`** — an authored Catalog leaf
   (`seeds/lib/advancement/Discipline/medicine.yaml`, `key: medicine`,
   ISCED-F `0913`).
@@ -335,3 +343,25 @@ plan/requirements docs describe the pre-review shape:
   real content-area host broke a standup/fast-travel invariant — so
   `GlassAlley` ships as a class + integration fixture, its reachable-in-
   world placement deferred.
+
+## Stabilization (shipped 2026-07-31)
+
+`treat` now does two jobs — see [mortality.md](./mortality.md). Beyond
+dressing a wound, it pulls a body out of the **dying window**:
+
+- a dying body is treatable with **no wound to dress** (cold or a toxin
+  leaves nothing to bandage);
+- the graded outcome gates the rescue — a failure spends the dressing
+  without holding them;
+- **rescued is not healed**: `stabilize()` drops the dying record and
+  touches nothing else, so a body still under its threshold falls back into
+  the window on the next reconcile.
+
+`assess` reports the remaining window, sharpened by competence — the
+information rule, not an outcome rule.
+
+`ConditionApi` grew **`die`**, the single death transition every lethal
+driver now reaches (replacing seven scattered sites), plus
+`embodyForSession` / `reembody` for the recovery arc. The per-driver dying
+windows live with the physics that justifies them, in each driver's own
+`*_DEFAULTS`.

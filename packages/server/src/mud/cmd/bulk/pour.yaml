@@ -19,6 +19,7 @@ examples:
     note: Pour a measured amount
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: source
     type: object

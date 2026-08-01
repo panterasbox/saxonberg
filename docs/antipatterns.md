@@ -206,6 +206,15 @@ population — audited 2026-07):
 Anything else — a fixture, an item, an NPC, a room — gets a template
 and a seed. When in doubt, it's a template.
 
+**Not an exception: an object derived from another object.** "This
+instance's state comes from a live source, not from authored data" is not
+a reason to skip the template — it is the `GlobbableApi.split` shape.
+Clone at a template, then copy the derived fields in. The corpse a death
+leaves behind does exactly this: what a corpse *is* is authored
+(`/lib/mortality/corpse`), whose it *was* is poured in through a gated
+applier. `byTemplatePath` is a multi-bucket, so many instances sharing one
+path is ordinary — only `StuffApi.singleton()` objects to it.
+
 ## Duck Typing with Mixins
 
 **ANTIPATTERN**: Checking for method existence using `typeof` instead of
@@ -2362,3 +2371,81 @@ path already fails loudly on those.
 **The general rule: if you call it a snapshot, copy it.** The same trap waits
 in any `captureSlice` hook, any undo buffer, any "remember the previous value
 so I can compare" setter, and any before/after diff over a collection.
+
+## A `mergeSlice_` for a material fork slice
+
+**Don't.** Never add `mergeSlice_Vitals`, `mergeSlice_Trauma`,
+`mergeSlice_CauseOfDeath` or `mergeSlice_Anatomy` — nor a `mergeSlice_` for
+anything added to `MATERIAL_FORK_SLICES` — to any host.
+
+**Why.** `ForkableMixin.applyForkedState` applies a slice by calling
+`mergeSlice_<Name>` **on the target**. Material body-state travelling that
+route would need such a method on every `VitalsMixin` host, corpse and
+living body alike — and that method is the "trusted mixin escape" the fork
+protocol explicitly forbids. One call and a corpse walks again.
+
+Today the guarantee is structural rather than procedural:
+`forkRuntimeState(corpse, freshBody)` is a **no-op because there is no
+applier to find**. Nobody has to remember a rule; there is nothing to call.
+Adding one `mergeSlice_` silently converts a protocol guarantee into a
+policy someone has to enforce.
+
+**Instead.** Material state reaches a body through
+`Vitals.adoptMaterialState(slices)`, which is gated
+(`FromTemplate('/obj/api/condition')`) so only the death choreography can
+call it, and deliberately **not** named `mergeSlice_` so it stays off the
+protocol.
+
+Pinned by `lib/persistence/__tests__/material-slices.no-merge.test.ts`,
+which walks the prototype chains and fails on any addition. See
+[mortality.md](./subsystems/mortality.md).
+
+## `!isDead()` or `isAlive()` where you mean "is this a living body?"
+
+**Don't.** Both spellings are wrong for a survival driver, and each has
+already caused a real defect.
+
+```ts
+if (host.getLifecycleState() === 'dead') return;   // misses `undead`
+if (!host.isAlive()) return;                       // catches unhydrated ''
+```
+
+**Why.** `undead` is animate *without* being alive — it is the shade's
+state — so `!isDead()` lets a bodiless self starve, suffocate, freeze and
+die a second time. And `lifecycleState` defaults to the **empty string**,
+so `isAlive()` reads `false` for any body whose state was never hydrated:
+switching metabolism off for fixtures and partially-constructed clones
+alike (this regressed 34 tests when tried).
+
+**Instead.** `Organism.isLivingBody()` — everything runs living processes
+except the two states that explicitly mean it does not.
+
+```ts
+if (!host.isLivingBody()) return;
+```
+
+The reading predicates (`getConditionBand`, `getConsciousness`) are the
+exception: they legitimately ask "is this a corpse", and `=== 'dead'` is
+correct there. See [mortality.md](./subsystems/mortality.md) § *Reading
+lifecycle state*.
+
+## Persisting death as a dead lifecycle on a player body
+
+**Don't.** Never let `lifecycleState: 'dead'` round-trip through
+`holder_snapshots` for a body a player re-enters.
+
+**Why.** `lifecycleState` is a declared persistent field on
+`OrganismMixin`, so it captures and materializes like any other. A restored
+dead body cannot act — `requiresAnimate` refuses every verb — and the dead
+state is itself what gets restored, so the next login restores it again,
+forever. This was a live defect: a player who died was permanently bricked.
+
+**Instead.** Record the death on the **identity**, as `Avatar.mortalArc`.
+The two look alike and behave oppositely: arc position always has
+re-embodiment as an exit; a dead lifecycle on a body is a dead end. It must
+still be durable — without it, logging out would mint a fresh body and
+death would cost nothing.
+
+Non-player organisms are unaffected: a dead plant or beast legitimately
+persists as dead, because nothing is waiting to re-enter it.
+

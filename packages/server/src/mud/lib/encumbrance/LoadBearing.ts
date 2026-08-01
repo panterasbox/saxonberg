@@ -82,6 +82,9 @@ export const LOAD_BEARING_DEFAULTS = {
     hurt: 0.85,
     serious: 0.6,
     critical: 0.35,
+    // A dying body bears what a critical one does — it is still a body,
+    // and the burden gauge has no opinion about how long it has left.
+    dying: 0.35,
     dead: 0,
   } satisfies Record<ConditionBand, number>,
   /** Recursion guard for the burden walk (matches locomotion/conveyance). */

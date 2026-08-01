@@ -9,6 +9,12 @@
 > It straddles the platform line — the function-over-form rule and the
 > moderation model are platform-fundamental, the death arc is game design —
 > which is exactly why it needs its own home. Nothing here is a build.
+>
+> **The death half now has a build extract**:
+> [builds/mortality-slate.md](../builds/mortality-slate.md) takes Theses 6–8
+> to a requirements doc (dying, stabilization, the corpse, the shade, the
+> passage floor). This slate remains the **design authority** for all of it,
+> and keeps the **moderation / prison half** (Theses 4–5) unbuilt.
 
 The one-sentence thesis: **the participant is inviolate, the vessel is
 mortal, and everything the world does to your body — wound it, kill it,

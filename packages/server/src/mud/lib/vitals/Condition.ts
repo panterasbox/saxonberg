@@ -164,6 +164,21 @@ export const HARM_DEFAULTS = {
   CLEARED_SEVERITY: 0.01,
   /** Limp: endurance %-drained per traverse per unit locomotor-wound severity. */
   LIMP_DRAIN_PER_SEVERITY: 4,
+
+  /* ── dying windows (game-seconds) ────────────────────────────────────
+   * How long the body has once a lethal threshold is crossed. Each driver
+   * owns the number for its own physics; these two are harm's. The
+   * default backstops a driver that has no opinion.
+   *
+   * They are short on purpose. This is the interval in which a medic can
+   * reach you — long enough that rescue is a real possibility, short
+   * enough that it is a scramble.
+   */
+  DYING_WINDOW_SEC_DEFAULT: 180,
+  /** Bleeding out: the fastest of them. */
+  EXSANGUINATION_DYING_WINDOW_SEC: 120,
+  /** Cardiac arrest from a fibrillating current — faster still. */
+  ELECTROCUTION_DYING_WINDOW_SEC: 90,
 } as const;
 
 /**
@@ -226,11 +241,58 @@ export interface SustainedEffect {
 }
 
 /** All four kinds behind one collection element. */
+/**
+ * Kind E — **the dying clock.** The body has crossed a lethal threshold,
+ * and from here the WINDOW kills it, not the threshold. That gap is the
+ * whole point: it is the only interval in which someone can intervene, and
+ * it is what turns nine independent "you are now dead" flips into a state a
+ * medic can act on.
+ *
+ * Two ways this record deliberately diverges from every other condition:
+ *
+ * - **It is exempt from the linkdead freeze and the far-past gap guard.**
+ *   Every other arm of `reconcileConditions` pauses while a player is
+ *   disconnected; inheriting either here would make pulling the plug a cure
+ *   for dying. See the integration site in `VitalsMixin.reconcileConditions`.
+ * - **The window comes from the driver**, not from a table here — the
+ *   producer that knows the physics supplies it (the shipped
+ *   `RESPIRATION_DEFAULTS.ANOXIA_LETHAL_SEC` precedent). Bleeding out and
+ *   freezing to death are not the same length of story.
+ *
+ * Plain scalars → default-Hydrator round-trip, no marshaller (the `Trauma`
+ * precedent). It persists, so a dying body that is evicted and restored is
+ * still dying, with its accrued time intact.
+ */
+export interface DyingRecord {
+  kind: 'dying';
+  /** Ground-truth cause, stamped onto the body when the window expires. */
+  cause: string;
+  /** Game-seconds from onset to death — supplied by the driver. */
+  windowSec: number;
+  /** Game-seconds accrued so far. */
+  elapsed: number;
+  /** Game-time anchor; `undefined` until the first touch seeds it. */
+  tickedAt?: number;
+  /**
+   * Caller-supplied attribution, carried to the death row when the window
+   * expires. Combat stamps it (it knows the killer, the terms, and whether
+   * consent was given); an environmental death leaves it unset. The ledger
+   * never infers consent — the producer that knows it supplies it.
+   *
+   * **Opaque on purpose.** `Condition.ts` is body-state vocabulary; it
+   * must not import the accountability ledger's shapes, and the body has
+   * no business inspecting attribution it is merely carrying. The death
+   * transition types it on the way out.
+   */
+  accountability?: unknown;
+}
+
 export type ActiveCondition =
   | AfflictionRecord
   | Trauma
   | SustainedShock
-  | SustainedEffect;
+  | SustainedEffect
+  | DyingRecord;
 
 /** How a condition perturbs a vital sign (shape only — no consumer v1). */
 export interface VitalEffect {

@@ -10,6 +10,7 @@ help: |
   left alone; something that doesn't burn at all just tells you so.
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

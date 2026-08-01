@@ -282,3 +282,16 @@ do: an uncaught deny aborts the whole walk at the first circle
 occupant, so one player stepping into their own circle silently turned
 off residency keep-alive for the entire world. See
 [sandbox.md](./sandbox.md).
+
+## The corpse joins the veto roster (2026-07-31)
+
+`PostmortemMixin` vetoes `canEvict` while a dead body has not finished
+decaying — "a body still lies here". At the terminal `spent` stage it stops
+objecting rather than destructing itself: **withdrawing an objection**, so
+the ordinary sweep decides, and goods on the corpse evacuate through the
+shipped container behaviour instead of dying with it. See
+[mortality.md](./mortality.md).
+
+Note the eviction sweep ships in **observe** mode, so a spent corpse
+permits collection but is not actually culled in production; the contract
+is tested directly.

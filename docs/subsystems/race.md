@@ -22,12 +22,33 @@ biologically. It splits cleanly into:
 Three things are *deferred* — the design context lives here for the
 follow-on builds:
 
-- Death/resurrection flow (state-machine present, transition flow
-  not). **The Vitals subsystem now owns the transition driver** (a
-  fatal vital crossing its floor → `alive → dead`); race ships the
-  state machine + `isAnimate` gating, Vitals drives it. The driver
-  itself is deferred there too, but the seams (cause-of-death stamp,
-  derived consciousness) ship. See [vitals.md](./vitals.md).
+- Death/resurrection flow — **shipped 2026-07-31**, see
+  [mortality.md](./mortality.md). Race still owns the state machine +
+  `isAnimate` gating; the transition is now a single call
+  (`ConditionApi.die`) reached from every lethal driver, and crossing a
+  fatal floor opens a rescuable **dying window** rather than killing
+  outright.
+
+  **The `death ≠ destruction` rule is amended — one rule, two
+  mechanisms.** It still holds that a body persists as a corpse and is
+  never routed through `StuffApi.destruct` as part of dying. What varies
+  is whether an **identity has to leave**:
+
+  - **NPCs, creatures, beasts** — unchanged: the same Stuff becomes the
+    corpse. Nothing is waiting to re-enter it.
+  - **PCs** — the body *divides*. A corpse takes the material half (the
+    wound map, the cause stamp, the loadout) and persists on its own
+    decay clock; the identity walks away as a shade, and the drained
+    shell is destructed so the shade can hold the identity path.
+
+  Both paths end with a persistent Creature-tier body in the world,
+  which is the invariant that actually mattered.
+
+  `undead` also becomes load-bearing for the first time: it is the
+  shade's lifecycle state — animate without being alive. Anything
+  branching on lifecycle should read `isLivingBody()`, which is
+  deliberately neither `!isDead()` nor `isAlive()` (see
+  [mortality.md](./mortality.md) § *Reading lifecycle state*).
 - Diet — `Material`'s edibility data now has a consumer:
   [metabolism](./metabolism.md). `edibility`/`nutrients` drive intake
   routing; `nutrients` gained a parallel `nutrientAmounts`
@@ -557,7 +578,7 @@ The single entry point for "what is this Organism, biologically?":
   lifecycle state per the slate's table:
 
 (The plain lifecycle-state reads — `isAlive()` / `isDead()` /
-`isUndead()` / `isPowered()` — are the Organism's own answer and live on
+`isUndead()` / `isPowered()` / `isLivingBody()` — are the Organism's own answer and live on
 `OrganismMixin` as no-arg instance methods; callers narrow with
 `MixinApi.isOrganism` and call `organism.isAlive()` directly. The
 2026-07 antipattern sweep removed the thin `SpeciesApi.isAlive(o)`-style

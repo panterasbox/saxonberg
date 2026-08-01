@@ -24,12 +24,15 @@ describe('VitalsMixin — death seams', () => {
     expect(c.getCauseOfDeath()).toBe('exsanguination');
   });
 
-  it('a floored vital reads lethal WITHOUT any lifecycle transition', () => {
+  it('a floored vital reads DYING, with no lifecycle transition', () => {
     const c = makeStuff(() => new Creature());
     const before = c.getLifecycleState();
     c.setVitalSign('bloodVolume', Quantity.of(1, 'L'));
-    expect(c.getConditionBand()).toBe('dead');
-    // No driver — the lifecycle state is unchanged by the reading.
+    // Was `dead` before the driver existed. A floored vital is a lethal
+    // SUBSTRATE state, not a death: the clock kills, never the threshold,
+    // and a body rescued out of this must not still read as a corpse.
+    expect(c.getConditionBand()).toBe('dying');
+    // Still no transition from a mere reading.
     expect(c.getLifecycleState()).toBe(before);
     expect(c.getLifecycleState()).not.toBe('dead');
   });

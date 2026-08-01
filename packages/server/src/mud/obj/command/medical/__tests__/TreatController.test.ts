@@ -24,12 +24,14 @@ import { MessageApi } from '../../../../api/message';
 import { ContainmentApi } from '../../../../api/containment';
 import { StuffApi } from '../../../../api/stuff';
 import { WorldClockApi } from '../../../../api/worldclock';
+import '../../../WorldClockRegistry'; // registers the class the reconcile probes for
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { Quantity } from '../../../../lib/quantity';
 import type { CommandContext } from '../../../../api/command';
 import type { Trauma } from '../../../../lib/vitals/Condition';
 import { OUTCOMES, type Outcome } from '../../../../lib/advancement/ActSignature';
@@ -239,5 +241,129 @@ describe('UndressController — the clot gate', () => {
     const w = woundOf(medic);
     expect(w.dressed).toBe(false);
     expect(w.bleeding).toBeFalsy(); // clotted → safe
+  });
+});
+
+/**
+ * Stabilization — the first time a non-combat Discipline decides whether
+ * someone lives.
+ *
+ * The distinction the whole seam turns on: `treat` on a dying body
+ * RESCUES, it does not HEAL. Whatever drove them under is untouched, so a
+ * body still below its threshold falls back into the window on the next
+ * reconcile. Stabilizing someone in a snowdrift buys them time, not a
+ * life.
+ */
+describe('TreatController — stabilization', () => {
+  /** A patient in the dying window, and a medic with a dressing. */
+  function dyingPatient(): {
+    medic: Creature;
+    patient: Creature;
+    room: Location;
+    dressing: Thing;
+  } {
+    const room = makeStuff(() => new Location());
+    const medic = makeStuff(() => new Creature());
+    stampTemplatePathForTest(medic, '/obj/Avatar/medic-stab');
+    const patient = makeStuff(() => new Creature());
+    stampTemplatePathForTest(patient, '/obj/Avatar/patient-stab');
+    patient.setLifecycleState('alive');
+    const dressing = makeStuff(() => new Bandage());
+    ContainmentApi.move(medic, room);
+    ContainmentApi.move(patient, room);
+    ContainmentApi.move(dressing, medic);
+    return { medic, patient, room, dressing };
+  }
+
+  it('pulls a dying body out of the window — with NO wound to dress', async () => {
+    const { medic, patient, room } = dyingPatient();
+    // Dying of cold: there is nothing to bandage, and the old controller
+    // would have refused with "no wound to dress".
+    patient.beginDying('hypothermia', 300);
+    expect(patient.isDying()).toBe(true);
+
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute(
+      { target: { stuff: patient } } as never,
+      ctxFor(medic, room),
+    );
+
+    expect(patient.isDying()).toBe(false);
+    expect(patient.getLifecycleState()).not.toBe('dead');
+  });
+
+  it('rescued is NOT healed — what was killing them is untouched', async () => {
+    const { medic, patient, room } = dyingPatient();
+    // Bleeding out: blood already on the floor, wound still open.
+    patient.setVitalSign('bloodVolume', Quantity.of(0.4, 'L'));
+    patient.afflict({
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left',
+      severity: 8,
+      bleeding: true,
+    });
+    patient.beginDying('exsanguination', 300);
+
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute(
+      { target: { stuff: patient } } as never,
+      ctxFor(medic, room),
+    );
+
+    // Out of the window…
+    expect(patient.isDying()).toBe(false);
+    expect(patient.getLifecycleState()).not.toBe('dead');
+
+    // …but the blood is still gone. The medic bought time, not a cure;
+    // the reconcile puts a body still under its floor straight back into
+    // the window (covered end-to-end in dying-per-driver).
+    expect(patient.getVitalSign('bloodVolume').rawValue()).toBeLessThanOrEqual(
+      patient.getVitalBand('bloodVolume').survivableMin,
+    );
+  });
+
+  it('mints a medicine deed for the stabilization', async () => {
+    const { medic, patient, room } = dyingPatient();
+    patient.beginDying('hypothermia', 300);
+
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute(
+      { target: { stuff: patient } } as never,
+      ctxFor(medic, room),
+    );
+
+    const rows = await AdvancementApi.entriesFor(medic, 'medicine');
+    expect(rows.length).toBeGreaterThanOrEqual(1);
+    expect(rows.every((r) => r.kind === 'deed')).toBe(true);
+  });
+
+  it('a failed attempt does not stabilize — and still spends the dressing', async () => {
+    const { medic, patient, room, dressing } = dyingPatient();
+    patient.beginDying('hypothermia', 300);
+    // A worthless dressing in untrained hands → the failure outcome.
+    (dressing as unknown as { setDressingQuality(q: number): void })
+      .setDressingQuality(0);
+
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute(
+      { target: { stuff: patient } } as never,
+      ctxFor(medic, room),
+    );
+
+    expect(patient.isDying()).toBe(true);
+    expect(StuffApi.findById(dressing.stuffId)).toBeFalsy();
+  });
+
+  it('a body that is neither wounded nor dying is still refused', async () => {
+    const { medic, patient, room } = dyingPatient();
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute(
+      { target: { stuff: patient } } as never,
+      ctxFor(medic, room),
+    );
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'no-wound' }),
+    );
   });
 });

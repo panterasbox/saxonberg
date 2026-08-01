@@ -31,3 +31,4 @@ args:
 validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresCastingFaculty
+  - /lib/command/validators/requiresEmbodied
