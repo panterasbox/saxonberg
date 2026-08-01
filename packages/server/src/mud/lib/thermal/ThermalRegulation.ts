@@ -481,7 +481,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // Ectotherm cold → torpor (immobilize, NOT lethal); endotherm cold
         // → hypothermia (lethal dwell).
         if (!ecto && rec.elapsed >= D.THERMAL_LETHAL_SEC) {
-          this.applyDeath("hypothermia");
+          host.beginDying("hypothermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
       } else {
@@ -494,7 +494,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const rec = this.ensureAffliction(TemplatePaths.thermalHyperthermia);
         rec.elapsed += elapsedSec;
         if (rec.elapsed >= D.THERMAL_LETHAL_SEC) {
-          this.applyDeath("hyperthermia");
+          host.beginDying("hyperthermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
       } else {
@@ -537,12 +537,6 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       return null;
     }
 
-    protected applyDeath(cause: string): void {
-      const host = this.regHost;
-      if (host.getLifecycleState() === "dead") return;
-      host.setCauseOfDeath(cause);
-      host.setLifecycleState("dead");
-    }
 
     // ---------- helpers ----------
 

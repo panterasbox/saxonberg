@@ -35,6 +35,7 @@ const BAND_PHRASE: Record<ConditionBand, string> = {
   hurt: 'looks hurt',
   serious: 'is seriously injured',
   critical: 'is in critical condition',
+  dying: 'is dying',
   dead: 'is dead',
 };
 
@@ -45,6 +46,7 @@ const BAND_PHRASE_SELF: Record<ConditionBand, string> = {
   hurt: 'look hurt',
   serious: 'are seriously injured',
   critical: 'are in critical condition',
+  dying: 'are dying',
   dead: 'are dead',
 };
 

@@ -94,6 +94,11 @@ export const RESPIRATION_DEFAULTS = {
     supply: 'asphyxiation',
     channel: 'strangulation',
   } as Record<RespirationCause, string>,
+  /**
+   * Dying window (game-seconds) once the anoxia cascade turns lethal.
+   * Short — the brain does not wait.
+   */
+  DYING_WINDOW_SEC: 90,
 };
 
 /** Numeric AppSetting read, falling back to the seeded literal (test-safe). */
@@ -542,7 +547,10 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         record.elapsed += elapsedSec;
         if (record.elapsed >= RESPIRATION_DEFAULTS.ANOXIA_LETHAL_SEC) {
-          this.applyDeath(RESPIRATION_DEFAULTS.DEATH_CAUSE_BY_CAUSE[cause]);
+          host.beginDying(
+            RESPIRATION_DEFAULTS.DEATH_CAUSE_BY_CAUSE[cause],
+            RESPIRATION_DEFAULTS.DYING_WINDOW_SEC,
+          );
           return true;
         }
       } else if (existing) {
@@ -551,13 +559,6 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return false;
     }
 
-    /** Flip the death seam: cause-of-death + lifecycle, once. */
-    protected applyDeath(cause: string): void {
-      const host = this as unknown as RespirationHost;
-      if (host.getLifecycleState() === 'dead') return;
-      host.setCauseOfDeath(cause);
-      host.setLifecycleState('dead');
-    }
 
     protected findAffliction(path: string): AfflictionRecord | null {
       const host = this as unknown as RespirationHost;
