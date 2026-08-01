@@ -472,6 +472,19 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
 
+      // A body that does not run living processes does not metabolize.
+      // There was no lifecycle guard here at all, so a corpse went on
+      // burning fuel and an `undead` body (a shade) would starve. The test
+      // is `isLivingBody()` — neither `!isDead()` (which misses undead) nor
+      // `isAlive()` (which would switch metabolism off for every body whose
+      // state was never hydrated). Re-stamp so a body that returns to life
+      // doesn't then integrate the whole gap it spent not living.
+      const organism = this as unknown as MetabolicHost;
+      if (!organism.isLivingBody()) {
+        this.metabolicClockStamp = nowS;
+        return;
+      }
+
       const elapsed = nowS - this.metabolicClockStamp;
       if (elapsed <= 0) {
         this.metabolicClockStamp = nowS;

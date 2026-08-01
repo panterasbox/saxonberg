@@ -274,8 +274,12 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const highBand = setpoint + D.BAND_HALF_WIDTH_K;
 
       const core = this.readCore();
-      const dead = host.getLifecycleState() === "dead";
-      const endotherm = this.strategy() === "endotherm" && !dead;
+      // "Does this body run living processes?" — `isLivingBody()`, which is
+      // neither `!isDead()` (a shade is undead, and must not burn fuel to
+      // stay warm) nor `isAlive()` (an unhydrated body carries the empty
+      // default and has always regulated).
+      const notLiving = !host.isLivingBody();
+      const endotherm = this.strategy() === "endotherm" && !notLiving;
 
       if (!endotherm) {
         this.driftCore(core, ambient, sliceSec);

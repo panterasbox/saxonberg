@@ -323,9 +323,14 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // Constructs never engage; a corpse never drowns again — tear down
       // any active engagement in both cases.
-      const dead =
-        MixinApi.isOrganism(self) && self.getLifecycleState() === 'dead';
-      if (!this.isRespiring() || dead) {
+      //
+      // "Does this body run living processes?" — `isLivingBody()`, which is
+      // neither `!isDead()` (a shade is undead, and must not be able to
+      // drown) nor `isAlive()` (an unhydrated body carries the empty
+      // default and has always respired).
+      const notLiving =
+        MixinApi.isOrganism(self) && !self.isLivingBody();
+      if (!this.isRespiring() || notLiving) {
         if (MixinApi.isEngaged(self)) {
           SchedulerApi.cancelByType(self, 'respiration-drain');
           SchedulerApi.cancelByType(self, 'respiration-recovery');

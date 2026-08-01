@@ -205,6 +205,16 @@ export interface Vitals {
   getCauseOfDeath(): string | null;
   setCauseOfDeath(value: string | null): void;
   /**
+   * Write every vital sign back to its species baseline.
+   *
+   * Lives here rather than on `Creature` because the sign→unit and
+   * sign→field maps are module-private to this file. Two consumers: the
+   * snapshot-healing backstop (a body that came back from storage marked
+   * dead) and the death choreography (the body is drained before it is
+   * destructed, so nothing dead ever reaches `holder_snapshots`).
+   */
+  resetVitalsToSpeciesBaseline(): void;
+  /**
    * Postmortem-progression seam. Death is living-stop + postmortem-start:
    * living processes freeze and postmortem changes (algor / rigor / livor
    * / decomposition) would begin here. v1 ships ZERO — returns `[]`; the
@@ -352,6 +362,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       assertVitalQuantity(value, sign);
       (this as unknown as Record<string, Quantity<Unit>>)[VITAL_FIELD[sign]] =
         value;
+    }
+
+    /**
+     * Every sign back to its species baseline. Degrades to the universe
+     * default profile when no species resolves (a fresh dev DB, a fixture),
+     * because the callers — snapshot healing and the death drain — must not
+     * throw on a body whose species is missing.
+     */
+    public resetVitalsToSpeciesBaseline(): void {
+      for (const sign of VITAL_SIGNS) {
+        const baseline = this.getVitalBand(sign).baseline;
+        this.setVitalSign(sign, Quantity.of(baseline, VITAL_UNITS[sign]));
+      }
     }
 
     /**
