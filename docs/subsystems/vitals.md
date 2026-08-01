@@ -180,6 +180,21 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   `toxinBehavior?: ToxinBehavior` field on `Condition` (null for non-toxin
   conditions) carrying a toxin's per-body rate params — read by
   metabolism's reconcile, the only consumer.
+
+  > **The Ideas are not live yet.** Condition seeds are inserted as
+  > template ROWS and nothing clones them into Ideas at boot, so
+  > `findByTemplatePath` answers `null` for **every** condition in a
+  > running world — `starvation` as much as `recovering`. Every consumer
+  > written so far quietly tolerates it (`Metabolic.resolveToxinBehavior`
+  > `?.`-chains to null; `MagicLogic` null-checks its seed; `assess`
+  > falls back to the path leaf), which is why nothing has ever failed
+  > loudly and why it went unnoticed until the mortality build's
+  > end-to-end pass read one back through the client. The consequence is
+  > that **authored `Condition` behavior is inert**: signs, names,
+  > progression and `toxinBehavior` are all read off an object that isn't
+  > there. Instantiating the catalogue at boot is its own small build —
+  > and until it lands, treat "the Idea resolves" as an assumption to
+  > verify, not a given.
 - **Kind B — trauma** (the `Trauma` value in `lib/vitals/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |

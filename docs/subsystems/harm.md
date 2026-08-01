@@ -214,6 +214,14 @@ command category plus `assess` in `perception`.
   wound reads "bleeding controlled" and **hides precise severity behind the
   dressing** — an expert can judge through it, else `undress` and look.
   This is the loop that answers "how do I know I'm healed."
+  It also carries an **affliction readout** — what is wrong with someone
+  that isn't a wound. Trauma was the only thing it could describe, so
+  anything *carried* rather than *cut* (a poison, a disease, the mortality
+  floor's `recovering`) showed up nowhere and a body under it read
+  "unhurt". Signs before names, on the same competence rule: `unsteady`
+  for a novice, the condition's name for a competent medic. See
+  [mortality.md](./mortality.md) for the `Condition`-Idea fallback it
+  degrades through.
 - **medicine `Discipline`** — an authored Catalog leaf
   (`seeds/lib/advancement/Discipline/medicine.yaml`, `key: medicine`,
   ISCED-F `0913`).

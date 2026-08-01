@@ -81,37 +81,38 @@ test.describe('mortality — the dying arc', () => {
       await expect(commandInput(page)).toBeVisible();
 
       // ---- coming back ------------------------------------------------
+      // How many times `get` has already reached its controller. The
+      // death poll ran `get all` while still alive-but-dying, so that
+      // line is ALREADY in the scrollback — an assertion that it is
+      // merely present would pass without re-embodiment ever happening.
+      // The transcript only grows, so the honest signal is a NEW one.
+      const gotBefore = await page.getByText(/don't see any/i).count();
+
       await runCommand(page, 'passage');
 
-      // Back in a body: the embodied surface returns. `get` no longer
-      // refuses for lack of one, which is the transition's whole point.
+      // Back in a body: the embodied surface returns, which is the
+      // transition's whole point.
+      //
+      // A NEW "don't see any" means `get` reached its controller again —
+      // the verb running and finding nothing, which `requiresEmbodied`
+      // was refusing a moment ago. Two weaker probes were tried and
+      // rejected: passage's own "you take a breath" line is printed
+      // before this loop starts, and the ABSENCE of "passes through" is
+      // unassertable because the shade's refusals stay up the transcript.
       await expect(async () => {
         await runCommand(page, 'get all');
-        await expect(
-          page.getByText(/you take a breath|it is your own/i).first(),
-        ).toBeVisible({ timeout: 3_000 });
+        expect(
+          await page.getByText(/don't see any/i).count(),
+        ).toBeGreaterThan(gotBefore);
       }).toPass({ timeout: 30_000 });
 
-      // The floor's diminishment is asserted against STATE, not prose:
-      // `assess` renders only the band, the dying readout and trauma
-      // wounds, so an `affliction` is invisible to it. That is a real
-      // legibility gap in the floor route (the cost a resurrection
-      // service is supposed to undercut cannot currently be seen by the
-      // player who paid it) — but it is a gap in the readout, not in the
-      // transition, so the test reads the body directly rather than
-      // pretending the prose exists.
-      // NB: no `||` in eval source — the command tokenizer reads it as a
-      // pipe ("Command piping is not yet implemented") before the code
-      // ever reaches the interpreter.
-      await runCommand(
-        page,
-        `eval --parcel ${PARCEL} return this.getConditions()` +
-          `.map(function(c){ return String(c.templatePath); }).join(",")`,
-      );
-      await expect(page.getByText(DENIED)).toHaveCount(0);
-      await expect(
-        page.getByText(/recovering/i).first(),
-      ).toBeVisible({ timeout: 10_000 });
+      // The floor charged us something, and the player can SEE it. This
+      // ran against `eval` until the sweep, because `assess` rendered only
+      // the band, the dying readout and trauma wounds — so the price of
+      // dying was invisible to the person who had just paid it. Asserting
+      // the prose is the point: a resurrection service has nothing to
+      // undercut if nobody can tell they were diminished.
+      await sendUntil(page, 'assess', page.getByText(/recovering/i).first());
     } finally {
       await close();
     }

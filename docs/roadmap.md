@@ -726,6 +726,14 @@ demands:
   `Creature`, the shade, and `reembody` + the `passage` floor. Still
   open: the underworld content, the re-embodiment service, and the
   recuperation model (the floor ships one crude diminishment).
+- **Instantiate the `Condition` catalogue at boot** — surfaced by the
+  mortality build's end-to-end pass. Condition seeds are inserted as
+  template rows and nothing clones them into Ideas, so
+  `findByTemplatePath` answers null for every condition in a running
+  world and all authored `Condition` behavior (observable signs, names,
+  progression, `toxinBehavior`) is inert. Every consumer tolerates the
+  null, so nothing fails loudly. Small build; unblocks the disease and
+  medic verticals. See [vitals.md](./subsystems/vitals.md).
 - **DietApi + Edible + Portable** — material toxicity authored
   but no consumer reads it. Needs eater-side diet check.
 - **Per-Detail materials and tissue authoring** — v1 is

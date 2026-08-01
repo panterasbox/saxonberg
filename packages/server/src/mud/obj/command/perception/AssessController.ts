@@ -23,6 +23,8 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals, ConditionBand } from '../../../lib/vitals/Vitals';
 import { TRAUMA_BEHAVIOR } from '../../../lib/vitals/Condition';
 import type { Trauma } from '../../../lib/vitals/Condition';
+import type Condition from '../../../lib/vitals/Condition';
+import { StuffApi } from '../../../api/stuff';
 
 const TOPIC = 'world.narration.action';
 
@@ -131,6 +133,57 @@ export default class AssessController extends CommandController<AssessModel> {
         blocks.push(Mml.escape(`${who} dying of ${cause}.`));
       } else {
         blocks.push(Mml.escape(`${who} dying.`));
+      }
+    }
+
+    // The affliction readout — what is WRONG with someone that isn't a
+    // wound. Without it `assess` could describe only trauma, so anything
+    // carried rather than cut showed up nowhere: a body under the floor
+    // route's `recovering` diminishment read exactly as "unhurt", and the
+    // cost a resurrection service is meant to undercut was invisible to
+    // the player who paid it.
+    //
+    // Signs, not names. `observableSigns` is authored per condition
+    // precisely so a looker reports what they can SEE ("unsteady",
+    // "hollow") — naming the condition is a diagnosis, and diagnosis is
+    // what competence buys. Same rule as the dying block above: a novice
+    // sees that something is off, a competent medic names it.
+    const afflictions = (target as Stuff & Vitals)
+      .getConditions()
+      .filter((c) => c.kind === 'affliction');
+    if (afflictions.length > 0) {
+      const named = medBand === 'competent' || precise;
+      const seen: string[] = [];
+      for (const a of afflictions) {
+        const path = (a as { templatePath: string }).templatePath;
+        const condition = StuffApi.findByTemplatePath<Condition>(path);
+        if (condition) {
+          seen.push(
+            named
+              ? condition.getName()
+              : (condition.getObservableSigns()[0] ?? 'unwell'),
+          );
+          continue;
+        }
+        // The Idea is not live. Condition seeds are inserted as template
+        // ROWS and nothing clones them into Ideas at boot, so today
+        // `findByTemplatePath` answers null for every one of them —
+        // `starvation` as much as `recovering`. (Pre-existing and
+        // world-wide: `Metabolic.resolveToxinBehavior` and `MagicLogic`
+        // already tolerate the same null.) Resolving the catalogue is its
+        // own build; until then, degrade to the path's leaf rather than
+        // rendering nothing, so the readout is useful now and gets
+        // strictly better — authored signs, real names — the moment the
+        // Ideas exist.
+        const leaf = path.split('/').filter(Boolean).pop();
+        if (!leaf) continue;
+        // The competence rule still holds: a leaf IS the condition's
+        // name, so an untrained looker must not be handed it.
+        seen.push(named ? leaf.replace(/-/g, ' ') : 'unwell');
+      }
+      if (seen.length > 0) {
+        const who = isSelf ? 'You seem' : `${target.getPresentation()} seems`;
+        blocks.push(Mml.escape(`${who} ${[...new Set(seen)].join(', ')}.`));
       }
     }
 

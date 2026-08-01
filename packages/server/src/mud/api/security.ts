@@ -709,9 +709,25 @@ export class SecurityApi {
   }
 
   /**
-   * One enclosure hop, raw. Duck-typed rather than `MixinApi.isContainable`
-   * because `api/mixin.ts` imports THIS module — the boundary sits below
-   * the mixin registry and cannot ask it anything.
+   * One enclosure hop, on the RAW object.
+   *
+   * Two deliberate departures from house style, both forced by where this
+   * code sits — inside the gate itself:
+   *
+   *   - **Duck-typed**, not `MixinApi.isContainable`: `api/mixin.ts`
+   *     imports THIS module, so the boundary sits below the mixin
+   *     registry and cannot ask it anything.
+   *   - **Unwrapped**, not called through the proxy: dispatching
+   *     `getContainer()` on a proxy would re-enter the gate we are
+   *     currently deciding, and the enclosure of an out-of-extent
+   *     receiver is exactly the call that would be denied. The walk has
+   *     to read the world without asking permission to.
+   *
+   * `getContainer()` may write (`R2.3` clears a slot pointing at a
+   * destroyed container). That is an idempotent cleanup the next
+   * ordinary read would do anyway, and it touches a plain field rather
+   * than re-entering dispatch — but it is why this calls the method
+   * instead of reading `environment`: the self-heal is the contract.
    */
   static #enclosureOf(raw: Stuff): Stuff | null {
     const get = (raw as unknown as { getContainer?: () => unknown })

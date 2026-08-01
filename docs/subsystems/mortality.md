@@ -402,6 +402,26 @@ Two properties the diminishment must keep, and a service's must too:
 - **Legible.** A player has to feel it, or a service has nothing to
   advertise against.
 
+  Legibility was a *claim* until the end-to-end pass, and the pass found
+  it false: `assess` rendered only the band, the dying readout and trauma
+  **wounds**, so a freshly re-embodied body read exactly `You look
+  unhurt.` The price of dying was invisible to the person who had just
+  paid it, and there was nothing for a temple to undercut. `assess` now
+  carries an **affliction readout** — signs, not names, on the same
+  competence rule as the dying block: an untrained looker sees `unsteady`,
+  a competent medic names the condition. (`AssessController`.)
+
+  It degrades on purpose. `observableSigns` and the real name come off the
+  authored `Condition` Idea — but **no Condition Idea is live at any path
+  today**: the seeds are inserted as template ROWS and nothing clones them
+  into Ideas at boot, so `findByTemplatePath` answers null for every one
+  of them, `starvation` as much as `recovering`. That is pre-existing and
+  world-wide (`Metabolic.resolveToxinBehavior` and `MagicLogic` already
+  swallow the same null), and instantiating the catalogue is its own
+  build. Until then the readout falls back to the template path's leaf, so
+  it works now and gets strictly better — authored signs, real names — the
+  moment the Ideas exist.
+
 The competitive axis is therefore *how little you are diminished*, and it
 needs no engine work: content calls `reembody`, gets the body back, and
 applies less than the floor does — or nothing, or a boon.
