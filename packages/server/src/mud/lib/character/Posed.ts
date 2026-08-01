@@ -20,6 +20,7 @@ import { Postures } from '../slot/Postured';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from '../slot/Slotted';
 import { MixinApi } from '../../api/mixin';
+import type { CommandContributions } from '../../api/command';
 
 export interface Posed {
   getPosture(): string;
@@ -34,6 +35,35 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PosedMixin extends Base {
     static _mixinName = 'PosedMixin';
     static persistentFields = ['posture', 'restingOnPath', 'restingSlot'];
+
+    /**
+     * The posture verbs, on the SELF affordance surface — an actor that has
+     * a posture is the thing that can change it (the `Respiration`
+     * inhale/exhale precedent one line up the same folder).
+     *
+     * These YAML views and their controllers have shipped since the posture
+     * substrate landed, but **nothing contributed them**, so no player could
+     * ever issue one: `lie`/`sit`/`stand`/`kneel` all came back "I don't
+     * understand". Verbs reach a giver ONLY through `commandContributions`
+     * (`Perceiver` contributes `look` the same way), so an uncontributed
+     * view is dead YAML.
+     *
+     * Found by driving the world in a browser while verifying
+     * sleep-as-logout: the bed was lieable and the mechanic still had no
+     * player-facing entry point, because the verb that reaches it did not
+     * exist for anybody.
+     */
+    static commandContributions: CommandContributions = {
+      self: [
+        'posture/lie.yaml',
+        'posture/sit.yaml',
+        'posture/stand.yaml',
+        'posture/kneel.yaml',
+      ],
+      environment: [],
+      inventory: [],
+      peers: [],
+    };
 
     /** @authorable */
     public posture: string = Postures.Stand;
