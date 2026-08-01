@@ -306,6 +306,42 @@ after the overlay. Every failure degrades to the room floor — standing,
 1.0, **no error and no teleport**. Restoring a player must never fail
 because their furniture moved.
 
+## Deploying this build
+
+**One row needs deleting on any already-seeded world.** `SeederManager` is
+**insert-only** — it inserts a template only where no document exists, and
+says so: *"Schema migrations on already-seeded templates are out of scope;
+the dev workflow for 'I changed the seed YAML' is `db.domain.deleteOne(
+{path}); restart`."*
+
+Everything new here lands by itself: the four archetypes and seven fixtures
+are new paths, so they insert on first boot, and **a fresh world is correct
+with no action at all.**
+
+The exception is the **dorm bed**, which *edits* an existing seed row —
+the first time this build family has changed a shipped fixture rather than
+adding one. On a world seeded before this build it keeps the old,
+un-lieable row until it is dropped:
+
+```js
+db.domain.deleteOne({ path: '/domain/eternal/duncan-hall/dorm-fixtures/bed' })
+// then restart; SeederManager re-inserts it with the lie:1 slot + restQuality
+```
+
+Verify by querying rather than trusting the file — the boot log's
+`0 new templates inserted` is not evidence either way:
+
+```js
+db.domain.findOne({ path: '/domain/eternal/duncan-hall/dorm-fixtures/bed' })
+  .data.staticSlots   // non-null = the retrofit is live
+```
+
+> **Not a job for a content pack.** `PackApi` reconciles (and *adopts*
+> existing rows), so it could do this — but standing a pack up for one row
+> is ceremony. Packs earn their keep when content changes **routinely**,
+> which is plausibly the archetypes' future and is not the bed's past. Move
+> content into a pack when the editing is real.
+
 ## Deliberately not here
 
 - **Condition / stewardship** — what a room's state *means*, and the
