@@ -508,7 +508,8 @@ collection — a `{ scope, owner, state }` envelope:
 
 There is **no player-facing write path**: `holder_snapshots` is written only
 by the gated `PersistableLogic`, reachable only through `PersistableApi`'s
-gated methods (`capture` / `materialize` / `hasRecord` / `deleteAllFor`).
+gated methods (`capture` / `materialize` / `restoreOrSeed` / `hasRecord` /
+`deleteAllFor`).
 
 ### Per-mixin composition
 
@@ -649,6 +650,33 @@ persistable containment ancestor (the dorm room a chest sits in) and capture
 that under its own stashed key. A clean no-op when no host is found — the
 thing lives in transient space and owns no record — and hop-capped against a
 containment cycle.
+
+### The keyed-holder ground pattern — `restoreOrSeed`
+
+`PersistableApi.restoreOrSeed(host, key)` is the decision every
+**multi-instance holder** makes when it stands one of its instances up:
+
+```ts
+host.setPersistenceKey(key);
+return (await hasRecord(scope, key))
+  ? (await materialize(host, key), true)   // re-entry
+  : (await host.seedBornWith(), await capture(host, key), false); // first time
+```
+
+The scope is the host's own `templatePath`, derived exactly as `capture`
+and `materialize` derive it, so a caller supplies only the key. It returns
+`true` on a restore and `false` on a fresh seed, which lets a holder tell a
+first provisioning from a re-entry and wire exits, announce or bill
+accordingly.
+
+Two consumers: **`DormWarren.admit`** (per leased unit) and
+**`LotHolder`** (per titled lot — see
+[smallholding.md](./smallholding.md)). It lives here rather than in either
+because hand-rolled, the same six lines invite three specific mistakes:
+capturing on the restore path, re-seeding a room that already has
+contents, and skipping the key stash so the next *keyless* re-capture
+writes a second record. A non-persistable host throws — a call-site
+programming error, not a user path.
 
 ### The eviction seam
 

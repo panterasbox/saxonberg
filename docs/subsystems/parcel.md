@@ -37,6 +37,8 @@ class ParcelRecord extends Document {
   parentParcel: string | null;  // parent parcel's extent (the sparse-hierarchy edge)
   grants: unknown[];            // INERT 0a seam (0b lease/grant mechanics)
   allowance: unknown | null;    // INERT 0a seam (Phase 1 compute economy)
+  landUse: LandUse | null;      // what may be done here; null = inherit
+  area: Quantity<'m²'> | null;  // the declared lot size; null = undeclared
 }
 ```
 
@@ -58,6 +60,47 @@ type ParcelOwner =
 
 `grants[]` and `allowance` are **present-but-inert** in 0a — the shape is
 the seam so 0b/Phase 1 land additively, no migration.
+
+## Land use and area (living-world phase 2)
+
+`landUse` and `area` are **live**, not seams. Together they are one zoning
+act: *"this ground is residential, at this size."*
+
+- **`landUse`** — one of the closed six (`residential · agricultural ·
+  commercial · industrial · civic · wild`), defined in
+  `lib/parcel/LandUse.ts`. `null` means **inherit**;
+  `ParcelApi.landUseOf(path)` resolves by longest prefix through the
+  coverage trie and then up the `parentParcel` chain, answering `wild`
+  when nothing claims the ground.
+- **`area`** — a `Quantity<'m²'>`, **declared at provision**.
+  `ParcelRegistry.subdivide` refuses a child outside its effective use's
+  permissible band, which is the whole of "constrained by zoning": one
+  check at mint time, not an ongoing simulation.
+
+> **⚠ `wild` admits nothing, and that default is load-bearing.** Most rows
+> in this collection are not ground at all — `/studio`, `/lib/lounge` and
+> the `/obj/…` roots are path-branch titles over the template tree, and
+> they all answer `wild`. Were `wild` to admit cultivation, it would be
+> legal on every branch nobody thought to zone. Leave those rows unzoned;
+> the fail-closed answer is the correct one.
+
+> **⚠ Area is NEVER derived from room geometry.** `Location.getSizeScale()`
+> is m² as well, but it is a **photometric denominator** (flux ÷ area →
+> lux) with exactly one consumer. Deriving parcel area from it would make
+> placeholder rooms load-bearing *and* promote a lighting constant into a
+> land-tenure fact, so every future lighting tweak became a title
+> migration. A structure's draw on its parcel is its authored blueprint
+> footprint, not a sum over its rooms.
+
+The area band is a **LOT** band, checked only on a subdivided child. A
+24-hectare `residential` district (Hinkley Hills) does not contradict a
+2-hectare residential *lot* ceiling: a district is what lots are
+subdivided out of.
+
+Both fields are declared here in the gated `parcels` collection for the
+same reason `owner` is — land use **gates behaviour**, which makes it
+access-check data, and access-check data on an editable zone template is
+forgeable. See [smallholding.md](./smallholding.md) for the consumer.
 
 ## `ParcelRegistry` + the coverage index
 

@@ -124,6 +124,10 @@ describe('Address roster — slim demonstrative inventory', () => {
       // campus tiers nest under it and each declares its government.
       'terminus-city.yaml',
       'eternal-campus.yaml',
+      // Hinkley Hills (living-world phase 2) — a SIBLING of the city, not
+      // a child of it: `terminus/hinkley-hills`, with a government of its
+      // own. Two jurisdictions a short walk apart is the point.
+      'hinkley-hills.yaml',
     ]);
     const actual = new Set(listYamlsRelative(SEEDS_DIR));
     expect(actual).toEqual(expected);

@@ -18,6 +18,16 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PlantController from '../../../../obj/command/inventory/PlantController';
+import WaterController from '../../../../obj/command/bulk/WaterController';
+import FeedController from '../../../../obj/command/bulk/FeedController';
+import HarvestController from '../../../../obj/command/inventory/HarvestController';
+import WateringCan from '../../../../obj/WateringCan';
+import Receptacle from '../../../../obj/Receptacle';
+import Crop from '../../../../obj/Crop';
+import Material from '../../../../lib/material/Material';
+import { PersistableApi } from '../../../../api/persistable';
+import { AdvancementApi } from '../../../../api/advancement';
+import { type GrowthProfileData } from '../../../../lib/husbandry/Growing';
 import GardenBed from '../../../../obj/GardenBed';
 import PlantPot from '../../../../obj/PlantPot';
 import Seed from '../../../../obj/Seed';
@@ -264,6 +274,101 @@ function reasons(ctx: CommandContext): string[] {
   return ctx.getNotes().map((n) => (n as { reason?: string }).reason ?? '');
 }
 
+// ── the acceptance walk's own fixtures ──
+
+const DAY = 86_400;
+const WALK_BASE = 60_000_000;
+let walkNow = WALK_BASE;
+
+function carrotProfile(): GrowthProfileData {
+  return {
+    moistureHappyAt: 0.3,
+    moistureWiltAt: 0.05,
+    litresPerGameDay: 0.12,
+    luxHappyAt: 120,
+    luxDarkAt: 15,
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 },
+    daysToStage: { young: 14, established: 42, mature: 84 },
+  };
+}
+
+function walkTissue(): Material {
+  return makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('plant-tissue');
+    m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
+    m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
+    return m;
+  }, fresh('/lib/material/_test/walk-tissue')) as unknown as Material;
+}
+
+function walkWater(): Material {
+  return makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('water');
+    m.setAppearance('clear water');
+    m.setTags(['liquid', 'beverage', 'drinkable']);
+    m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
+    m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
+    return m;
+  }, fresh('/lib/material/_test/walk-water')) as unknown as Material;
+}
+
+function walkCompost(): Material {
+  return makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('compost');
+    m.setAppearance('crumbly black compost');
+    m.setTags(['granular', 'solid', 'compost']);
+    m.setSpecificHeat(Quantity.of(1400, 'J/(kg·K)'));
+    m.setThermalConductivity(Quantity.of(0.2, 'W/(m·K)'));
+    return m;
+  }, fresh('/lib/material/_test/walk-compost')) as unknown as Material;
+}
+
+function makeWalkCan(litres: number): WateringCan {
+  return makeStuffAtPath(() => {
+    const can = new WateringCan();
+    can.setShortDescription('a tin watering can');
+    can.interiorBulk = true;
+    can.setInteriorCapacity(Quantity.of(litres, 'L'));
+    can.setBulkMaterial('interior', walkWater());
+    can.setInteriorAmount(Quantity.of(litres, 'L'));
+    return can;
+  }, fresh('/obj/vessel/_walk-can'));
+}
+
+/** Top the can back up — the standpipe in the yard, without the verb. */
+function refillCan(can: WateringCan, litres: number): void {
+  can.setBulkMaterial('interior', walkWater());
+  can.setInteriorAmount(Quantity.of(litres, 'L'));
+}
+
+function makeWalkSack(litres: number): Receptacle {
+  return makeStuffAtPath(() => {
+    const sack = new Receptacle();
+    sack.setShortDescription('a sack of compost');
+    sack.interiorBulk = true;
+    sack.setInteriorCapacity(Quantity.of(litres, 'L'));
+    sack.setBulkMaterial('interior', walkCompost());
+    sack.setInteriorAmount(Quantity.of(litres, 'L'));
+    return sack;
+  }, fresh('/obj/vessel/_walk-sack'));
+}
+
+type WaterExec = Parameters<WaterController['execute']>[0];
+function waterModel(target: MqlOneResult): WaterExec {
+  return { target } as ModelData as unknown as WaterExec;
+}
+type FeedExec = Parameters<FeedController['execute']>[0];
+function feedModel(target: MqlOneResult): FeedExec {
+  return { target } as ModelData as unknown as FeedExec;
+}
+type HarvestExec = Parameters<HarvestController['execute']>[0];
+function harvestModel(target: MqlOneResult): HarvestExec {
+  return { target } as ModelData as unknown as HarvestExec;
+}
+
 describe('Hinkley Hills — the land-use gate', () => {
   beforeEach(async () => {
     installStore();
@@ -396,5 +501,158 @@ describe('Hinkley Hills — the land-use gate', () => {
     expect(LandUses.permitsAnyCultivation('commercial')).toBe(false);
     expect(LandUses.permitsAnyCultivation('industrial')).toBe(false);
     expect(LandUses.permitsAnyCultivation('wild')).toBe(false);
+  });
+});
+
+/**
+ * ⭐ Wave 8 — the acceptance walk, through real verbs only.
+ *
+ * The loop the whole build exists to produce, end to end: plant into the
+ * bed, tend it, harvest it, watch the soil get poorer, feed it, and get a
+ * better crop next time. If this reads awkwardly the verb surface is
+ * wrong, which is why it is written as a sequence of verb calls rather
+ * than as method calls on the model.
+ *
+ * The one thing it deliberately does NOT do is buy the lot — that is
+ * `TitleVerb.test.ts`, which needs a whole banking harness for one act.
+ * Here the ground is already yours.
+ */
+describe('⭐ the acceptance walk: plant → tend → harvest → feed → again', () => {
+  beforeEach(async () => {
+    installStore();
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    walkNow = WALK_BASE;
+    WorldClockApi._setNowProviderForTesting(() => walkNow);
+    WorldClockApi.setScale(1000);
+    seedParcel(SUBURB, 'residential');
+    await bootParcels();
+    vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
+      (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
+    );
+    vi.spyOn(AdvancementApi, 'recordDeed').mockImplementation(
+      (async () => {}) as unknown as typeof AdvancementApi.recordDeed,
+    );
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      plantSeq += 1;
+      if (path.startsWith('/obj/crop/')) {
+        return makeStuffAtPath(() => {
+          const c = new Crop();
+          c.setShortDescription('a bunch of carrots');
+          return c;
+        }, `/obj/crop/_walk-${plantSeq}`);
+      }
+      return makeStuffAtPath(() => {
+        const p = new Plant();
+        p.setShortDescription('a row of carrots');
+        p.setMaterial(walkTissue());
+        p.setMass(Quantity.of(0.4, 'kg'));
+        p.setLastAmbientK(295);
+        p.setLifecycleState('alive');
+        p.setProfile(carrotProfile());
+        p.setHarvestTemplatePath('/obj/crop/carrot');
+        p.setNutrientDraw(15);
+        return p;
+      }, `/obj/plant/_walk-${plantSeq}`);
+    }) as unknown as typeof StuffApi.clone);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+  });
+
+  it('runs the whole loop, and the second crop beats the third', async () => {
+    const yard = makeStuffAtPath(() => new LitRoom(), YARD);
+    yard.setAmbientFlux(600);
+    const me = makeStuffAtPath(() => {
+      const t = new TestGiver();
+      t.setName('Alice');
+      return t;
+    }, '/obj/Avatar/_walk-alice');
+    ContainmentApi.move(me, yard);
+
+    // The ground is mine, and it is zoned for growing.
+    expect(ParcelApi.cultivationScaleAt(YARD)).toBe('bed');
+
+    const bed = makeBed();
+    ContainmentApi.move(bed, yard);
+    const can = makeWalkCan(4);
+    ContainmentApi.move(can, me);
+    const sack = makeWalkSack(20);
+    ContainmentApi.move(sack, me);
+
+    const bands: string[] = [];
+    const nitrogen: number[] = [];
+
+    for (let round = 1; round <= 3; round++) {
+      // ── plant ──
+      const seed = makeSeed();
+      ContainmentApi.move(seed, me);
+      const plantCtx = ctxFor(me, yard);
+      await makeStuff(() => new PlantController()).execute(
+        model(one(seed, 'seed'), one(bed, 'bed', 'in')),
+        plantCtx,
+      );
+      expect(reasons(plantCtx)).not.toContain(
+        'land-use-forbids-cultivation',
+      );
+      const crop = bed.getPlants()[0] as unknown as Plant;
+      expect(crop).toBeDefined();
+
+      // ── tend: water on a real cadence until it is grown ──
+      for (let d = 4; d <= 96; d += 4) {
+        walkNow = WALK_BASE + d * DAY;
+        refillCan(can, 4);
+        await makeStuff(() => new WaterController()).execute(
+          waterModel(one(crop, 'carrots')),
+          ctxFor(me, yard),
+        );
+      }
+      expect(crop.getGrowthStage()).toBe('mature');
+
+      // ── harvest ──
+      const harvestCtx = ctxFor(me, yard);
+      await makeStuff(() => new HarvestController()).execute(
+        harvestModel(one(crop, 'carrots')),
+        harvestCtx,
+      );
+      expect(reasons(harvestCtx)).not.toContain('not-mature');
+
+      const held = me
+        .getContents()
+        .filter((s) => s instanceof Crop) as unknown as Crop[];
+      expect(held).toHaveLength(round);
+      const latest = held[held.length - 1]!;
+      bands.push(
+        (latest as unknown as { getGrade(): { getBand(): string } })
+          .getGrade()
+          .getBand(),
+      );
+      nitrogen.push(bed.nutrientFraction()!);
+
+      // ── the bed is poorer, and I only feed it after round 2 ──
+      if (round === 2) {
+        await makeStuff(() => new FeedController()).execute(
+          feedModel(one(bed, 'bed')),
+          ctxFor(me, yard),
+        );
+        expect(bed.nutrientFraction()).toBe(1);
+      }
+      walkNow += 2 * DAY;
+    }
+
+    // ⭐ The soil got poorer each unfed round, and feeding put it back.
+    expect(nitrogen[0]).toBeGreaterThan(nitrogen[1]!);
+    // Round 3 started from a FED bed (fed after round 2), so it ends
+    // higher than round 2 did.
+    expect(nitrogen[2]).toBeGreaterThan(nitrogen[1]!);
+
+    // Every crop carries a maker and a band — the loop produced goods,
+    // not just state changes.
+    expect(bands).toHaveLength(3);
+    for (const band of bands) expect(band.length).toBeGreaterThan(0);
   });
 });

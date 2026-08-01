@@ -16,9 +16,11 @@ that shapes every slate.
 > that *grow, are kept, sicken, spoil and are worked* (farming · ranching ·
 > pets · preservation · disease · the health vertical · stewardship · seasonal
 > labor). This doc organizes **by area**; that one organizes **by order**, and
-> is narrower and newer where they overlap. **Phase 1 (the houseplant — the
-> growth model) is shipped:** see
-> [husbandry.md](./subsystems/husbandry.md).
+> is narrower and newer where they overlap. **Phases 1 and 2 are shipped:**
+> the houseplant / growth model
+> ([husbandry.md](./subsystems/husbandry.md)) and Hinkley Hills — ground
+> you own, the garden bed, the harvest and land use
+> ([smallholding.md](./subsystems/smallholding.md)).
 
 ---
 

@@ -125,16 +125,67 @@ phase 4's field evaluates over six inputs.
 the template's `data`. It drains by evapotranspiration (accelerated by the
 host's own Thermal reading) and refills through `waterPlant`.
 
-> **Moisture lives on the plant, not the pot.** The physically prettier
-> model puts water in the soil; it is rejected because it splits one
-> checkpoint across two objects, while the reconcile, the clock stamp and
-> the persistence record are all the plant's. **The pot supplies volume;
-> the plant owns its root-zone moisture.** Watering a pot with nothing
-> planted in it says so and changes nothing.
+> **⚠ REVERSED IN PHASE 2 — moisture lives in the SOIL now.** Phase 1 put
+> water on the plant and rejected the physically prettier model on the
+> grounds that it *"splits one checkpoint across two objects, while the
+> reconcile, the clock stamp and the persistence record are all the
+> plant's."*
+>
+> That objection was correct, and it is not waved away — it is
+> **answered**. Phase 2 gave the soil a checkpoint **of its own**: a
+> `CultivableMixin` host owns a `moisture` reserve, its own
+> `soilClockStamp`, its own `reconcileSoil()` and its own reentry guard,
+> and drains by the **summed** water demand of its occupants over its own
+> elapsed window. **The plant only READS.** So there are two
+> self-contained checkpoints, not one split across two objects — which is
+> precisely the thing phase 1 refused.
+>
+> **A pot is a bed with one slot**, so the pot holds the water now. The
+> shipped pot seeds author `reserves.moisture`; the plant seeds no longer
+> do. Read the code and this paragraph together: the old sentence is
+> preserved above only so a reader who finds it does not conclude the code
+> is wrong.
+>
+> Three things came out better than phase 1's arrangement:
+>
+>   - **Water competition is emergent.** More plants in a bed drain it
+>     faster, so everyone runs drier — the same shape as the shared-soil
+>     root competition, from the same source of truth, with no new rule.
+>   - **No read-order artifact.** The bed drains by total demand over its
+>     own window rather than each plant debiting as it is read, so looking
+>     at plant A before plant B gives the same world as B before A. Had
+>     the plants debited, whoever read first would drink first when the
+>     bed ran dry — a real fairness bug this shape avoids.
+>   - **"An unpotted plant has no water" is literal.** There is no private
+>     reserve left to fall back on: `soilMoisture()` returns `null` and
+>     `satWater` is 0, so the sentence below is the mechanism rather than
+>     a gloss.
 >
 > `Reserve` is a **neutral** capacity axis, not a Creature-coupled one —
 > its own docstring says so, and its landscape table lists `fuel` (a
-> campfire) and `air` (a Location) as non-creature consumers.
+> campfire) and `air` (a Location) as non-creature consumers. Soil is now
+> another.
+>
+> ⚠ **The recursion hazard, and its guard.** The bed's reconcile reads its
+> occupants' demand and each occupant's reconcile reads the bed. Demand is
+> therefore read through `waterDemandPerGameDay()` — a **pure,
+> non-reconciling** read of the authored profile. Never call
+> `getSoilMoisture()` from the soil side. The bed carries its own reentry
+> guard as the belt to that braces.
+>
+> ⚠ **Both clocks start together.** The soil seeds its stamp lazily on
+> first read, so a bed nobody has looked at would otherwise stamp itself
+> at that moment and skip the whole elapsed window — handing its occupants
+> a full reserve they should long since have drunk. Placement (`onMoved`)
+> starts the soil's clock, and a plant's own first touch reads its ground.
+>
+> ⚠ **Occupancy changes settle the window first** — a plant seated into a
+> bed must not make that bed retroactively thirsty for a month it stood
+> empty, and one lifted out must leave its share drawn. But a persistence
+> **re-seat is not a transplant**: settling there would swallow the
+> absence the record exists to preserve, so `plant`/`repot` settle the
+> destination explicitly (the caller knows which it is doing; the mixin
+> cannot).
 
 **Light** is the lux where the plant sits, read through
 `PerceptionApi.modalityByName('vision').signalAt(...)`. The sample climbs

@@ -99,7 +99,30 @@ here.
 
 ---
 
-## Phase 2 — Ground you own
+## Phase 2 — Ground you own ✅ SHIPPED
+
+> **Built as Hinkley Hills** (2026-07-31). The subsystem reference is
+> [smallholding.md](./subsystems/smallholding.md); the growth-model half
+> stayed in [husbandry.md](./subsystems/husbandry.md).
+>
+> **Two things this section got wrong, both worth recording:**
+>
+> 1. It expected the bed to be a *"second point on the density dial"* —
+>    a second class. It is not: `CultivableMixin` is the pot's own
+>    surface lifted whole, and **N is one authored number** (the plant
+>    slot's `capacity`). The shipped pot seeds needed no change.
+> 2. It planned to keep phase 1's *"moisture lives on the plant"*
+>    decision. That was **reversed** on request, and the reversal
+>    required a different design than a swap: the soil got a checkpoint
+>    of its own (its own stamp, reconcile and reentry guard) so the
+>    phase-1 objection — a checkpoint split across two objects — never
+>    applies. Water competition and the absence of a read-order artifact
+>    both fell out for free.
+>
+> Also shipped beyond this section's scope: nitrogen as a **fourth**
+> limiting factor, `_worstLimiting` as the quality substrate (harvest
+> grades on your worst moment, not your average), and the `title` verb —
+> the player-facing act the property build had left unbuilt.
 
 **Ships:** a garden bed in a yard, and a harvest.
 
