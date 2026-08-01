@@ -468,6 +468,13 @@ Category: **`civics`** — this is the government's records counter, alongside
 
 **K. The lot's yard is a keyed room behind a small content holder.**
 
+⚠ **BUILT DIFFERENTLY — the class is general.** Holding title to a lot is
+a platform concept that crosses localities, so the class landed at
+`obj/LotHolder.ts` (`/obj/LotHolder`) carrying authored data (`lots`,
+`roomTemplate`, `priceMinor`, `areaM2`, `landUse`), and Hinkley seeds an
+INSTANCE of it. `title` enumerates holders rather than naming one. The
+plan's original sketch follows, kept for the reasoning:
+
 `domain/terminus/hinkley-hills/LotHolder.ts` — clone the yard shell, then
 `PersistableApi.restoreOrSeed(yard, parcelExtent)`. Keyed by the **parcel
 extent**, so title and durable state share one identity. No Warren, no floors,
@@ -705,7 +712,8 @@ deliberate step rather than smeared across the build.
 - **`seeds/domain/terminus/hinkley-hills/`** — the zone, a TPA node, the lane
   (arrival · street · lot), the house (prose fixture), the yard (outdoor,
   `SkyExposed`, authored ambient), and the bed.
-- **`domain/terminus/hinkley-hills/LotHolder.ts`** — Decision K.
+- **`obj/LotHolder.ts`** — Decision K (general class, Hinkley-seeded
+  instance).
 - **`config/parcels.yaml`** — the suburb extent, `landUse: residential`, owned
   by the suburb's group; the lot is **not** pre-seeded (the sale mints it).
 - **The bed's placement gate** — placing a bed reads
@@ -811,7 +819,7 @@ graph.
 | 6 | `hinkley-hills/yard.yaml` | ditto — ⭐ **the keyed template**, cloned per lot by the holder (the `DormRoom.SCOPE` role). Carries **the house as `details:` prose** and `populates:` the bed |
 | 7 | `hinkley-hills/tpa-terminal.yaml` | `/domain/common/tpa/TpaTerminal` — `directionality: both`, `routes` back to Terminus |
 | 8 | `hinkley-hills/standpipe.yaml` | `/obj/UnboundedReceptacle` — the water source (the dorm tap's role; without it every watering is a trip to town) |
-| 9 | `hinkley-hills/lot-holder.yaml` | `/domain/terminus/hinkley-hills/LotHolder` — the singleton (the `dorm-warren.yaml` role) |
+| 9 | `hinkley-hills/lot-holder.yaml` | **`/obj/LotHolder`** — an INSTANCE of the general class, carrying the suburb's plat book as data (built differently from the plan; see Decision K) |
 
 ### Cultivation — `seeds/obj/`
 
@@ -1018,7 +1026,7 @@ Two things for the unify pass:
 **Created**
 
 `lib/parcel/LandUse.ts` · `lib/husbandry/Cultivable.ts` · `obj/GardenBed.ts` ·
-`obj/Crop.ts` · `domain/terminus/hinkley-hills/LotHolder.ts` ·
+`obj/Crop.ts` · `obj/LotHolder.ts` ·
 `cmd/bulk/feed.yaml` + `FeedController` · `cmd/inventory/harvest.yaml` +
 `HarvestController` · `cmd/civics/title.yaml` + `TitleController` ·
 **the 19 templates in § The content manifest** ·

@@ -18,6 +18,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleController from '../TitleController';
 import ParcelRegistry from '../../../ParcelRegistry';
+import LotHolder from '../../../LotHolder';
 import GroupRegistry from '../../../GroupRegistry';
 import { ParcelApi } from '../../../../api/parcel';
 import { BankingApi } from '../../../../api/banking';
@@ -34,6 +35,8 @@ import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
+import { PersistableMixin } from '../../../../lib/persistence/Persistable';
+import { PostRegistrationMixin } from '../../../../lib/stuff/PostRegistration';
 import Location from '../../../../lib/stuff/Location';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
@@ -53,6 +56,13 @@ import {
   installV1QuantityTagTables,
 } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
+/** A persistable room — what a real yard template clones to. */
+class TitleTestRoom extends PersistableMixin(
+  PostRegistrationMixin(ContainerMixin(Location)),
+) {
+  static _mixinName = 'TitleTestRoom';
+}
+
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {
@@ -66,6 +76,7 @@ class TestGiver extends SensorMixin(
 const REGISTRY_ROOM = '/domain/terminus/registry/office';
 const SUBURB = '/domain/terminus/hinkley-hills';
 const LOT2 = `${SUBURB}/lot-2`;
+const HOLDER_PATH = `${SUBURB}/lot-holder`;
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -139,6 +150,27 @@ function seedSuburb(): void {
   });
 }
 
+/**
+ * Hinkley's plat book — an INSTANCE of the general holder, exactly as the
+ * seed authors it. The controller knows no locality, so a test that wants
+ * lots to exist has to stand one of these up.
+ */
+function seedHolder(): LotHolder {
+  const existing = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH);
+  if (existing) return existing;
+  return makeStuffAtPath(() => {
+    const h = new LotHolder();
+    h.setLabel('Hinkley Hills');
+    h.setParentExtent(SUBURB);
+    h.setLots(['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5']);
+    h.setRoomTemplate(`${SUBURB}/yard`);
+    h.setPriceMinor(4000);
+    h.setAreaM2(1000);
+    h.setLandUse('residential');
+    return h;
+  }, HOLDER_PATH);
+}
+
 async function bootRegistries(): Promise<void> {
   if (!StuffApi.findByTemplatePath('/obj/GroupRegistry')) {
     const g = makeStuffAtPath(() => new GroupRegistry(), '/obj/GroupRegistry');
@@ -204,6 +236,13 @@ describe('title', () => {
     installV1QuantityTagTables();
     seedSuburb();
     await bootRegistries();
+    seedHolder();
+    // The holder clones a room per sold lot and keys it through the
+    // persistence spine, so the stub has to be a PERSISTABLE room — a
+    // bare Location would make restoreOrSeed throw, correctly.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () =>
+      makeStuffAtPath(() => new TitleTestRoom(), fresh('/domain/_title/room'))
+    ) as unknown as typeof StuffApi.clone);
 
     settled = [];
     settleWorks = true;
@@ -384,5 +423,7 @@ describe('title', () => {
     const said = buyer.lines.join(' ');
     expect(said).toContain('lot-2 — sold.');
     expect(said).toContain('lot-1');
+    // …grouped under the subdivision that offers them.
+    expect(said).toContain('Hinkley Hills');
   });
 });

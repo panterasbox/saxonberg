@@ -30,6 +30,21 @@
  * before the ground is stood up. A failed payment therefore leaves no
  * parcel and no yard, which is the property the test pins.
  *
+ * ## It knows no locality
+ *
+ * The verb is core; the subdivisions are content. Everything
+ * locality-specific — which lots exist, what they cost, how big they are,
+ * what stands on one, what use it is stamped with — is authored on a
+ * {@link LotHolder} instance, and this controller enumerates the holders
+ * rather than knowing any of them. A second subdivision anywhere in the
+ * world is a seed file and no change here.
+ *
+ * The one thing that IS named here is the Registry room: land changes
+ * hands over the city's records counter, and that is a fact about
+ * Terminus's institutions rather than about any subdivision. When a
+ * second records office exists it becomes a `commandContributions` /
+ * venue question, not a constant.
+ *
  * ⚠ Inside a sandbox circle this whole path is refused twice over —
  * `subdivide` and `transfer` both carry `assertFieldMutation`, and the
  * `parcels` collection is REFUSE in the PM policy table. A title minted
@@ -40,30 +55,21 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { AppApi } from '../../../api/app';
 import { ParcelApi } from '../../../api/parcel';
 import { BankingApi, type Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
-import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { LandUses } from '../../../lib/parcel/LandUse';
 import { Money } from '../../../lib/banking/Money';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type LotHolder from '../../../domain/terminus/hinkley-hills/LotHolder';
+import { MqlApi } from '../../../api/mql';
+import LotHolder from '../../../obj/LotHolder';
 
 const TOPIC = 'world.narration.action';
 
 /** Where land business is transacted — the city's records counter. */
 const REGISTRY_ROOM = '/domain/terminus/registry/office';
-/** The suburb the lots are subdivided out of. */
-const SUBURB_EXTENT = '/domain/terminus/hinkley-hills';
-/** The holder that stands a bought lot's yard up. */
-const LOT_HOLDER = '/domain/terminus/hinkley-hills/lot-holder';
-
-/** The lots the plat book offers. Content, deliberately small. */
-const PLAT_BOOK = ['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5'] as const;
 
 interface TitleModel extends CommandModel {
   subcommand?: string;
@@ -82,25 +88,41 @@ export default class TitleController extends CommandController<TitleModel> {
     }
   }
 
+  /**
+   * Every subdivision with lots to sell. MQL system enumeration (null
+   * giver — the plat books are world content, not a viewer's
+   * perception), the `LocomotionLogic.allModes` shape.
+   */
+  private holders(): LotHolder[] {
+    const matches = MqlApi.resolveMany('world:[class.LotHolder]', {
+      commandGiver: null,
+      scope: 'world',
+    });
+    return matches.stuff.filter((s): s is LotHolder => s instanceof LotHolder);
+  }
+
   /** `title` — what ground do I hold, and what may I do on it. */
   private async executeHoldings(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const me = giver.getTemplatePath() ?? '';
     const held: string[] = [];
 
-    for (const lot of PLAT_BOOK) {
-      const extent = `${SUBURB_EXTENT}/${lot}`;
-      const record = await ParcelApi.coveringParcelOf(extent);
-      if (!record || record.getExtent() !== extent) continue;
-      const owner = record.getOwner();
-      if (owner?.kind !== 'player' || owner.templatePath !== me) continue;
-      const use = ParcelApi.landUseOf(extent);
-      const area = record.getArea();
-      const size = area ? area.tag('lot') : 'an unmeasured piece of ground';
-      held.push(
-        `${lot} in Hinkley Hills — ${size}, zoned ${use}: ` +
-          `${LandUses.summaryOf(use)}.`,
-      );
+    for (const holder of this.holders()) {
+      const where = holder.getLabel();
+      for (const extent of holder.lotExtents()) {
+        const record = await ParcelApi.coveringParcelOf(extent);
+        if (!record || record.getExtent() !== extent) continue;
+        const owner = record.getOwner();
+        if (owner?.kind !== 'player' || owner.templatePath !== me) continue;
+        const use = ParcelApi.landUseOf(extent);
+        const area = record.getArea();
+        const size = area ? area.tag('lot') : 'an unmeasured piece of ground';
+        const leaf = extent.slice(extent.lastIndexOf('/') + 1);
+        held.push(
+          `${leaf} (${where}) — ${size}, zoned ${use}: ` +
+            `${LandUses.summaryOf(use)}.`,
+        );
+      }
     }
 
     if (held.length === 0) {
@@ -132,25 +154,40 @@ export default class TitleController extends CommandController<TitleModel> {
       return;
     }
 
-    const price = Money.of(this.lotPrice());
-    const area = Quantity.of(this.lotArea(), 'm²');
     const lines: string[] = [];
-    for (const lot of PLAT_BOOK) {
-      const extent = `${SUBURB_EXTENT}/${lot}`;
-      const record = await ParcelApi.coveringParcelOf(extent);
-      const taken = !!record && record.getExtent() === extent;
-      lines.push(
-        taken
-          ? `${lot} — sold.`
-          : `${lot} — ${area.tag('lot')}, zoned residential, ${price.render()}.`,
-      );
+    for (const holder of this.holders()) {
+      const price = Money.of(holder.getPriceMinor());
+      const area = Quantity.of(holder.getAreaM2(), 'm²');
+      const use = holder.getLandUse();
+      lines.push(`${holder.getLabel()}:`);
+      for (const extent of holder.lotExtents()) {
+        const leaf = extent.slice(extent.lastIndexOf('/') + 1);
+        const record = await ParcelApi.coveringParcelOf(extent);
+        const taken = !!record && record.getExtent() === extent;
+        lines.push(
+          taken
+            ? `  ${leaf} — sold.`
+            : `  ${leaf} — ${area.tag('lot')}, zoned ${use}, ${price.render()}.`,
+        );
+      }
+    }
+
+    if (lines.length === 0) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`The plat book is empty. Nothing is for sale.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-for-sale',
+        detail: 'no LotHolder offers any lots',
+      });
+      return;
     }
 
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(
-        Mml.compose`The plat book for Hinkley Hills:\n${lines.join('\n')}`,
-      )
+      .toSelf(Mml.compose`The plat book:\n${lines.join('\n')}`)
       .send();
   }
 
@@ -165,25 +202,36 @@ export default class TitleController extends CommandController<TitleModel> {
       return;
     }
 
-    const lot = this.normalizeLot(model.lot ?? '');
-    if (!lot) {
+    // Which subdivision sells it? The holders are the plat books; this
+    // controller knows none of them by name.
+    const raw = model.lot ?? '';
+    let holder: LotHolder | null = null;
+    let extent: string | null = null;
+    for (const h of this.holders()) {
+      const candidate = h.extentFor(raw);
+      if (candidate) {
+        holder = h;
+        extent = candidate;
+        break;
+      }
+    }
+    if (!holder || !extent) {
       this.reject(
         context,
         giver,
-        Mml.compose`No such lot. The plat book runs lot 1 to lot 5.`,
+        Mml.compose`No such lot. Ask for the plat book with \`title list\`.`,
         'unknown-lot',
-        `'${model.lot ?? ''}' is not in the plat book`,
+        `'${raw}' is in no plat book`,
       );
       return;
     }
 
-    const extent = `${SUBURB_EXTENT}/${lot}`;
     const existing = await ParcelApi.coveringParcelOf(extent);
     if (existing && existing.getExtent() === extent) {
       this.reject(
         context,
         giver,
-        Mml.compose`${lot} has already been sold.`,
+        Mml.compose`That lot has already been sold.`,
         'already-sold',
         `${extent} already has a title row`,
       );
@@ -203,28 +251,30 @@ export default class TitleController extends CommandController<TitleModel> {
     }
 
     // The money leg FIRST. A failed payment must leave no parcel row and
-    // no yard behind — nothing changes hands until the money has.
-    const paid = await this.takePayment(this.lotPrice(), lot);
+    // no room behind — nothing changes hands until the money has.
+    const price = holder.getPriceMinor();
+    const paid = await this.takePayment(price, extent);
     if (!paid) {
       this.reject(
         context,
         giver,
-        Mml.compose`You can't cover ${Money.of(this.lotPrice()).render()} for ${lot}.`,
+        Mml.compose`You can't cover ${Money.of(price).render()} for that lot.`,
         'insufficient-funds',
-        `could not settle ${this.lotPrice()} for ${extent}`,
+        `could not settle ${price} for ${extent}`,
       );
       return;
     }
 
-    // Mint the row, stamping the use and the area — `subdivide` refuses
-    // an area outside the use's band, which is zoning doing its one job.
+    // Mint the row, stamping the use and the area the SUBDIVISION
+    // declares — `subdivide` refuses an area outside the use's band,
+    // which is zoning doing its one job.
     await ParcelApi.subdivide(
       extent,
-      SUBURB_EXTENT,
+      holder.getParentExtent(),
       { kind: 'group', name: 'hinkley-hills' },
       {
-        landUse: 'residential',
-        area: Quantity.of(this.lotArea(), 'm²'),
+        landUse: holder.getLandUse(),
+        area: Quantity.of(holder.getAreaM2(), 'm²'),
       },
     );
     // …then hand the title over. Two steps, because the chain-of-title
@@ -232,22 +282,19 @@ export default class TitleController extends CommandController<TitleModel> {
     // actually happened.
     await ParcelApi.transfer(extent, { kind: 'player', templatePath: buyer });
 
-    // Stand the yard up, keyed on the extent we just wrote.
-    let firstTime = true;
-    const holder = StuffApi.findByTemplatePath<LotHolder>(LOT_HOLDER);
-    if (holder) {
-      const result = await holder.provisionYard(extent);
-      firstTime = result.firstTime;
-    }
+    // Stand the ground up, keyed on the extent we just wrote.
+    const { firstTime } = await holder.provision(extent);
+    const leaf = extent.slice(extent.lastIndexOf('/') + 1);
+    const where = holder.getLabel();
 
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
         firstTime
-          ? Mml.compose`The registrar writes the row, blots it, and turns the book around for you to see. ${lot} in Hinkley Hills is yours — a fence, a house, and a bed somebody dug and never planted.`
-          : Mml.compose`The registrar writes the row and turns the book around. ${lot} in Hinkley Hills is yours again.`,
+          ? Mml.compose`The registrar writes the row, blots it, and turns the book around for you to see. ${leaf} in ${where} is yours.`
+          : Mml.compose`The registrar writes the row and turns the book around. ${leaf} in ${where} is yours again.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} buys a lot in Hinkley Hills.`)
+      .toPeers(Mml.compose`${Mml.name(giver)} buys a lot in ${where}.`)
       .send();
   }
 
@@ -276,25 +323,13 @@ export default class TitleController extends CommandController<TitleModel> {
   }
 
   /**
-   * Accept `lot 2`, `lot-2`, `2` — a player types all three, and the
-   * plat book is five entries, so being generous costs nothing.
-   */
-  private normalizeLot(raw: string): string | null {
-    const cleaned = raw.trim().toLowerCase().replace(/\s+/g, '-');
-    const candidate = /^\d+$/.test(cleaned) ? `lot-${cleaned}` : cleaned;
-    return (PLAT_BOOK as readonly string[]).includes(candidate)
-      ? candidate
-      : null;
-  }
-
-  /**
    * Move the money through banking's settle chokepoint, to the Registry's
    * own Business. The Improvement District has no treasury — it is a
    * government that exists on paper — so the city's records office takes
    * the payment on its behalf, which is what a paper government's
    * finances actually look like.
    */
-  private async takePayment(amount: number, lot: string): Promise<boolean> {
+  private async takePayment(amount: number, extent: string): Promise<boolean> {
     let account: string;
     try {
       const business = await EmploymentApi.ensureOperatorAt(REGISTRY_ROOM);
@@ -305,7 +340,7 @@ export default class TitleController extends CommandController<TitleModel> {
     }
     const charge: Charge = {
       amount: Money.of(amount),
-      reason: `title to ${lot}, Hinkley Hills`,
+      reason: `title to ${extent}`,
       presented: true,
       payeeAccountId: account,
       category: 'sales',
@@ -334,22 +369,4 @@ export default class TitleController extends CommandController<TitleModel> {
     context.note({ kind: 'controller-rejected', reason, detail });
   }
 
-  private lotPrice(): number {
-    return this.dial(AppSettingKeys.landLotPriceMinor, 4000);
-  }
-
-  private lotArea(): number {
-    return this.dial(AppSettingKeys.landLotAreaM2, 1000);
-  }
-
-  private dial(key: string, fallback: number): number {
-    try {
-      const raw = AppApi.setting(key);
-      if (raw === '' || raw == null) return fallback;
-      const n = Number.parseFloat(raw);
-      return Number.isFinite(n) ? n : fallback;
-    } catch {
-      return fallback;
-    }
-  }
 }

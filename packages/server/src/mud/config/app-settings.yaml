@@ -798,15 +798,6 @@ settings:
     value: "0.8"
   - key: husbandry.grade.masterfulAt
     value: "0.95"
-  # Land — a suburban lot's price and size. A dial, not a PricedOffer:
-  # land is real property transacted over a records counter, not stock on
-  # a shelf. 4000 minor units is a real sum for an early character and
-  # nowhere near a fortune; 1000 m² is a quarter-acre, which is what the
-  # `lot` tag-table band calls it.
-  - key: land.lotPriceMinor
-    value: "4000"
-  - key: land.lotAreaM2
-    value: "1000"
   # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
   # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
   - key: storm.puddle.accrualLitersPerSegment

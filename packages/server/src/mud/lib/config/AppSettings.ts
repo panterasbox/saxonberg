@@ -970,16 +970,6 @@ export const AppSettingKeys = {
   husbandryGradeExceptionalAt: "husbandry.grade.exceptionalAt",
   husbandryGradeMasterfulAt: "husbandry.grade.masterfulAt",
 
-  /* ────────────────────────── land (living world phase 2) ────────────────────────── */
-  /**
-   * Land — the price of a suburban lot, in minor units. A dial rather
-   * than a `PricedOffer` because land is not stock: it is real property
-   * transacted over a records counter, and there is nothing on a shelf.
-   */
-  landLotPriceMinor: "land.lotPriceMinor",
-  /** Land — the declared area of a Hinkley Hills lot, in m². */
-  landLotAreaM2: "land.lotAreaM2",
-
   /* ────────────────────────── storm (weather Wave 2) ────────────────────────── */
   /** Storm — Floor surface-bulk puddle litres accrued per rain segment. */
   stormPuddleAccrualLitersPerSegment: "storm.puddle.accrualLitersPerSegment",
