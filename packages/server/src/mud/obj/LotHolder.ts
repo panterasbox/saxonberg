@@ -1,25 +1,27 @@
 /**
- * LotHolder — **a subdivision's plat book**: the lots it has to sell, and
- * the keyed room that stands on each one once sold.
+ * LotHolder — **how titled ground becomes a place**, and the live rooms
+ * that result.
  *
- * Holding title to a lot is a **platform** concept, not a Hinkley Hills
- * one. Any locality that subdivides ground and sells it needs exactly
- * this — a list of what is on offer, a price, and a room per sold lot
- * keyed so that title and durable state share an identity. So the CLASS
- * lives here in `/obj/`, and each subdivision seeds its own **instance**
- * with its own data, the way `/obj/Plant` is the class and
- * `/obj/plant/carrot` is a carrot.
+ * The provisioning half of selling land; {@link PlatBook} is the
+ * catalogue half and names one of these by path. The book says *lot 2,
+ * a quarter acre, residential, 4000*; this says *when it sells, a
+ * `TitledRoom` cloned from X, keyed on the lot's parcel extent*.
+ *
+ * ## Why this is its own object
+ *
+ * Because it is the piece most likely to be replaced wholesale. The
+ * current shape clones ONE shared room template per lot and tells the
+ * clones apart with a persistence key; the likely successor mints a
+ * template **per residence** instead, at which point the template path
+ * becomes the identity and no key is needed at all.
+ *
+ * Separated, that replacement is a new subclass of this class and a
+ * one-line edit to a plat book's `holderPath` — nothing in the book, the
+ * `title` verb or the parcel layer moves. Fused into the catalogue, the
+ * same change would reach into the object that also owns pricing.
  *
  * `SingletonMixin` is one-instance-per-templatePath, so a holder per
  * subdivision is exactly what composing it means.
- *
- * ## The data IS the subdivision
- *
- * Everything locality-specific is authored — `parentExtent`, `lots`,
- * `roomTemplate`, `priceMinor`, `areaM2`, `landUse` — so a second
- * subdivision anywhere in the world is a seed file and no code. The
- * `title` verb reads all of it off whichever holder governs the ground,
- * rather than knowing any of it.
  *
  * ## Keyed on the PARCEL EXTENT
  *
@@ -30,18 +32,26 @@
  * garden goes with it, because there is nothing else it could do.
  *
  * The standing-up itself is one call to `PersistableApi.restoreOrSeed` —
- * the keyed-holder ground pattern, shared with `DormWarren.admit`. This is
- * its second consumer, and the reason it lives on the spine rather than in
- * the dorm.
+ * the keyed-holder ground pattern, shared with `DormWarren.admit`. This
+ * is its second consumer, and the reason it lives on the spine rather
+ * than in the dorm.
+ *
+ * ## ⚠ The ceiling of the shared-template shape
+ *
+ * Every clone carries the same `templatePath`, so anything identifying a
+ * room BY PATH gets the district rather than the lot. The land-use gate
+ * therefore prefers the room's persistence key. An avatar's captured
+ * placement still does not — logging out in your own yard and back in
+ * would land you in a freshly cloned one, which the dorm dodges by being
+ * a `WarrenMember` and a lot cannot. Minting a template per residence
+ * dissolves both; see [docs/subsystems/smallholding.md].
  *
  * ## Not boundary-exempt, and it should not be
  *
  * Content, so the sandbox's ordinary scope compare applies (the exempt
- * list is an enumeration of framework registries; `DormWarren` is likewise
- * absent from it). A new module category fails closed, which is the right
- * default for a thing that mints rooms.
- *
- * See [docs/subsystems/smallholding.md] and [docs/subsystems/parcel.md].
+ * list is an enumeration of framework registries; `DormWarren` is
+ * likewise absent from it). A new module category fails closed, which is
+ * the right default for a thing that mints rooms.
  */
 
 import { Idea } from "../lib/stuff/Idea";
@@ -49,81 +59,26 @@ import { SingletonMixin } from "../lib/stuff/Singleton";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { StuffApi } from "../api/stuff";
 import { PersistableApi } from "../api/persistable";
-import { LandUses, type LandUse } from "../lib/parcel/LandUse";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { VetoResult } from "../lib/errors";
 
 const LotHolderBase = SingletonMixin(PostRegistrationMixin(Idea));
 
 export default class LotHolder extends LotHolderBase {
-  static persistentFields: string[] = [
-    "label",
-    "parentExtent",
-    "lots",
-    "roomTemplate",
-    "priceMinor",
-    "areaM2",
-    "landUse",
-  ];
-
-  /**
-   * What to call this subdivision in the plat book — "Hinkley Hills".
-   * A plain label rather than `NamedMixin`: proper names belong to
-   * characters, and this is a record, not somebody.
-   *
-   * @authorable
-   */
-  public label: string = "";
-
-  public getLabel(): string {
-    return this.label || this.parentExtent;
-  }
-
-  public setLabel(value: string): void {
-    this.label = value;
-  }
-
-  /**
-   * The district extent lots are subdivided OUT of — the parcel row that
-   * already exists, and that a sold lot becomes a child of.
-   *
-   * @authorable
-   */
-  public parentExtent: string = "";
-
-  /**
-   * The plat book: the leaf names this subdivision has to sell. Leaf
-   * names, not full extents — the extent is `parentExtent/<leaf>`, so a
-   * subdivision cannot accidentally sell ground it does not govern.
-   *
-   * @authorable
-   */
-  public lots: string[] = [];
+  static persistentFields: string[] = ["roomTemplate"];
 
   /**
    * The room template cloned per sold lot. Hinkley's is a yard; another
    * subdivision's might be a dock or a shopfront, which is exactly why
-   * this is data.
+   * this is data rather than a class.
+   *
+   * It must resolve to a **persistable, non-singleton** room —
+   * `/obj/TitledRoom` or a subclass. A plain `CartesianLocation` persists
+   * nothing it holds and `restoreOrSeed` throws on it.
    *
    * @authorable ref:Template
    */
   public roomTemplate: string = "";
-
-  /** Price of one lot, in minor units. @authorable */
-  public priceMinor: number = 0;
-
-  /** Declared area of one lot, in m². @authorable */
-  public areaM2: number = 0;
-
-  /**
-   * The land use a sold lot is stamped with. Validated against the closed
-   * vocabulary on the setter, so a typo fails at seed time rather than
-   * reading as `wild` — and therefore as "nothing may be grown here" —
-   * much later and much less obviously.
-   *
-   * @authorable
-   */
-  public landUse: LandUse = "residential";
 
   /** Live rooms by lot extent — the process-lifetime cache. */
   private _roomsByLot = new Map<string, Stuff>();
@@ -131,24 +86,6 @@ export default class LotHolder extends LotHolderBase {
   /** A load-bearing process-lifetime singleton is never culled. */
   public canEvict(): VetoResult {
     return { ok: false, reason: "system singleton; never culled" };
-  }
-
-  // ── the plat book ──
-
-  public getParentExtent(): string {
-    return this.parentExtent;
-  }
-
-  public setParentExtent(value: string): void {
-    this.parentExtent = value;
-  }
-
-  public getLots(): string[] {
-    return [...this.lots];
-  }
-
-  public setLots(value: string[]): void {
-    this.lots = [...value];
   }
 
   public getRoomTemplate(): string {
@@ -159,58 +96,16 @@ export default class LotHolder extends LotHolderBase {
     this.roomTemplate = value;
   }
 
-  public getPriceMinor(): number {
-    return this.priceMinor;
-  }
-
-  public setPriceMinor(value: number): void {
-    this.priceMinor = Math.max(0, value);
-  }
-
-  public getAreaM2(): number {
-    return this.areaM2;
-  }
-
-  public setAreaM2(value: number): void {
-    this.areaM2 = Math.max(0, value);
-  }
-
-  public getLandUse(): LandUse {
-    return this.landUse;
-  }
-
-  public setLandUse(value: LandUse | string): void {
-    this.landUse = LandUses.parse(value);
-  }
-
-  /**
-   * The full extent for a lot leaf, or null when this subdivision does
-   * not sell it. Accepts `lot 2`, `lot-2` and `2` alike — a player types
-   * all three, and a plat book is a handful of entries.
-   */
-  public extentFor(raw: string): string | null {
-    const cleaned = raw.trim().toLowerCase().replace(/\s+/g, "-");
-    const candidate = /^\d+$/.test(cleaned) ? `lot-${cleaned}` : cleaned;
-    if (!this.lots.includes(candidate)) return null;
-    return `${this.parentExtent}/${candidate}`;
-  }
-
-  /** Every lot extent this subdivision offers, in authored order. */
-  public lotExtents(): string[] {
-    return this.lots.map((l) => `${this.parentExtent}/${l}`);
-  }
-
-  /** Whether `extent` is a lot this subdivision governs. */
-  public governs(extent: string): boolean {
-    return this.lotExtents().includes(extent);
-  }
-
-  // ── standing the ground up ──
-
   /**
    * The live room for `lotExtent`, materialized if needed, plus whether
    * this was a FIRST provisioning (`true`) or a re-entry to ground
    * already worked. The sale uses that to decide how to describe it.
+   *
+   * The override point for a different provisioning model: a subclass
+   * that mints a template per residence replaces this method and nothing
+   * else.
+   *
+   * @hook
    */
   public async provision(
     lotExtent: string,

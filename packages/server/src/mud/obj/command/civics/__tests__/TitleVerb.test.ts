@@ -19,6 +19,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleController from '../TitleController';
 import ParcelRegistry from '../../../ParcelRegistry';
 import LotHolder from '../../../LotHolder';
+import PlatBook from '../../../PlatBook';
 import GroupRegistry from '../../../GroupRegistry';
 import { ParcelApi } from '../../../../api/parcel';
 import { BankingApi } from '../../../../api/banking';
@@ -77,6 +78,7 @@ const REGISTRY_ROOM = '/domain/terminus/registry/office';
 const SUBURB = '/domain/terminus/hinkley-hills';
 const LOT2 = `${SUBURB}/lot-2`;
 const HOLDER_PATH = `${SUBURB}/lot-holder`;
+const BOOK_PATH = `${SUBURB}/plat-book`;
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -151,24 +153,32 @@ function seedSuburb(): void {
 }
 
 /**
- * Hinkley's plat book — an INSTANCE of the general holder, exactly as the
- * seed authors it. The controller knows no locality, so a test that wants
- * lots to exist has to stand one of these up.
+ * Hinkley's two halves, exactly as the seeds author them: a CATALOGUE
+ * (what is for sale, on what terms) naming a PROVISIONER (how ground
+ * becomes a place). The controller knows no locality, so a test that
+ * wants lots to exist has to stand both up.
  */
-function seedHolder(): LotHolder {
-  const existing = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH);
-  if (existing) return existing;
-  return makeStuffAtPath(() => {
-    const h = new LotHolder();
-    h.setLabel('Hinkley Hills');
-    h.setParentExtent(SUBURB);
-    h.setLots(['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5']);
-    h.setRoomTemplate(`${SUBURB}/yard`);
-    h.setPriceMinor(4000);
-    h.setAreaM2(1000);
-    h.setLandUse('residential');
-    return h;
-  }, HOLDER_PATH);
+function seedSubdivision(): void {
+  if (!StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)) {
+    makeStuffAtPath(() => {
+      const h = new LotHolder();
+      h.setRoomTemplate(`${SUBURB}/yard`);
+      return h;
+    }, HOLDER_PATH);
+  }
+  if (!StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)) {
+    makeStuffAtPath(() => {
+      const b = new PlatBook();
+      b.setLabel('Hinkley Hills');
+      b.setParentExtent(SUBURB);
+      b.setLots(['lot-1', 'lot-2', 'lot-3', 'lot-4', 'lot-5']);
+      b.setPriceMinor(4000);
+      b.setAreaM2(1000);
+      b.setLandUse('residential');
+      b.setHolderPath(HOLDER_PATH);
+      return b;
+    }, BOOK_PATH);
+  }
 }
 
 async function bootRegistries(): Promise<void> {
@@ -236,7 +246,7 @@ describe('title', () => {
     installV1QuantityTagTables();
     seedSuburb();
     await bootRegistries();
-    seedHolder();
+    seedSubdivision();
     // The holder clones a room per sold lot and keys it through the
     // persistence spine, so the stub has to be a PERSISTABLE room — a
     // bare Location would make restoreOrSeed throw, correctly.
@@ -411,6 +421,67 @@ describe('title', () => {
     const buyer = buyerIn(room);
     const ctx = await run(buyer, room, model());
     expect(reasons(ctx)).toContain('holds-nothing');
+  });
+
+  it('⭐ the provisioner is SWAPPABLE without touching the catalogue', async () => {
+    // The reason the two are separate objects. A different provisioning
+    // model — the likely next one mints a template per residence rather
+    // than cloning one shared template per lot — is a subclass of
+    // LotHolder and a one-line change to the book's `holderPath`.
+    // Nothing in the catalogue, the verb or the parcel layer moves.
+    class MintingHolder extends LotHolder {
+      public minted: string[] = [];
+      public override async provision(
+        lotExtent: string,
+      ): Promise<{ room: Stuff; firstTime: boolean }> {
+        this.minted.push(lotExtent);
+        return {
+          room: makeStuffAtPath(
+            () => new TitleTestRoom(),
+            `${lotExtent}/minted`,
+          ),
+          firstTime: true,
+        };
+      }
+    }
+
+    const swapped = makeStuffAtPath(
+      () => new MintingHolder(),
+      fresh(`${SUBURB}/minting-holder`),
+    );
+    const book = StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)!;
+    book.setHolderPath(swapped.getTemplatePath()!);
+
+    const room = registryRoom();
+    const buyer = buyerIn(room);
+    const ctx = await run(buyer, room, model('buy', 'lot 3'));
+
+    // The sale went through the NEW provisioner…
+    expect(reasons(ctx)).not.toContain('insufficient-funds');
+    expect(swapped.minted).toEqual([`${SUBURB}/lot-3`]);
+    // …and everything the catalogue owns is unchanged: the title moved,
+    // the money moved, the zoning was stamped.
+    const owner = await ParcelApi.ownerOf(`${SUBURB}/lot-3`);
+    expect(owner.kind).toBe('player');
+    expect(settled).toEqual([4000]);
+    const record = await ParcelApi.coveringParcelOf(`${SUBURB}/lot-3`);
+    expect(record?.getLandUse()).toBe('residential');
+  });
+
+  it('a book whose provisioner is missing still sells, and says nothing false', async () => {
+    // An offer with nothing behind it is a content bug. The sale must not
+    // pretend a room appeared, but it also must not take the money and
+    // then throw — the title is real either way.
+    const book = StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)!;
+    book.setHolderPath('/domain/nowhere/absent-holder');
+
+    const room = registryRoom();
+    const buyer = buyerIn(room);
+    const ctx = await run(buyer, room, model('buy', 'lot 4'));
+
+    expect(reasons(ctx)).not.toContain('insufficient-funds');
+    const owner = await ParcelApi.ownerOf(`${SUBURB}/lot-4`);
+    expect(owner.kind).toBe('player');
   });
 
   it('title list shows unsold lots and marks sold ones', async () => {

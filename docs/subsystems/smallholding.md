@@ -213,22 +213,37 @@ one identity — sell the lot and the garden goes with it, because there is
 nothing else it could do. It is content, so it is **not** boundary-exempt,
 and should not be (`DormWarren` likewise is not).
 
-> **⚠ The CLASS is general; only the lots are Hinkley's.** Holding title
-> to a lot is a platform concept — any locality that subdivides ground and
-> sells it needs the same list, price and keyed room. So `LotHolder` lives
-> at **`/obj/LotHolder`**, and each subdivision seeds its own **instance**
-> with its own data (`label`, `parentExtent`, `lots`, `roomTemplate`,
-> `priceMinor`, `areaM2`, `landUse`) — the way `/obj/Plant` is the class
-> and `/obj/plant/carrot` is a carrot. `SingletonMixin` is
-> one-instance-per-templatePath, so a holder per subdivision is exactly
-> what composing it means.
->
-> A second subdivision anywhere in the world is therefore **a seed file
-> and no code**: the `title` verb enumerates holders
-> (`world:[class.LotHolder]`, the system-mode MQL shape) and reads
-> everything off whichever one sells the named lot. It knows no locality.
-> The only place a name is hardcoded is the Registry ROOM, and that is a
-> fact about Terminus's institutions rather than about any subdivision.
+### Two objects: the catalogue and the provisioner
+
+Selling subdivided ground crosses localities, so both classes are
+general (`/obj/`) and each subdivision seeds **instances** — the way
+`/obj/Plant` is the class and `/obj/plant/carrot` is a carrot.
+`SingletonMixin` is one-instance-per-templatePath, so one of each per
+subdivision is exactly what composing it means.
+
+| | `PlatBook` | `LotHolder` |
+|---|---|---|
+| answers | *what is for sale, on what terms* | *how titled ground becomes a place* |
+| data | `label`, `parentExtent`, `lots`, `priceMinor`, `areaM2`, `landUse`, `holderPath` | `roomTemplate` |
+| grows | **outward** — terms, demand pricing, auctions, as land becomes a market | **inward**, and is the piece most likely to be replaced wholesale |
+
+**They are split because the second one is going to be swapped.** The
+current provisioning model clones one shared room template per lot and
+tells the clones apart with a persistence key; the likely successor mints
+a template *per residence*, at which point the template path becomes the
+identity and no key is needed at all. Separated, that is **a `LotHolder`
+subclass and a one-line edit to a book's `holderPath`** — nothing in the
+catalogue, the `title` verb or the parcel layer moves. Fused, the same
+change would reach into the object that also owns pricing.
+`LotHolder.provision` is the `@hook` that swap overrides, and there is a
+test that swaps it.
+
+A second subdivision anywhere in the world is therefore **a seed file and
+no code**: `title` enumerates books (`world:[class.PlatBook]`, the
+system-mode MQL shape) and reads everything off whichever one sells the
+named lot. It knows no locality. The only name hardcoded in the verb is
+the Registry ROOM, and that is a fact about Terminus's institutions
+rather than about any subdivision.
 
 See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
@@ -272,10 +287,11 @@ chattel-stamps it, and land is real property on a different registry. And
 not a verb conferred by the Registry counter — the shipped rule is that a
 commerce object affords only its **commerce** verbs.
 
-**The order is the design:** at the Registry → find the holder that sells
-the named lot → funds check → money through banking's settle chokepoint →
-`subdivide` (stamping the use and area **the holder declares**, where
-zoning refuses a bad lot) → `transfer` → stand the ground up. The money
+**The order is the design:** at the Registry → find the plat book that
+sells the named lot → funds check → money through banking's settle chokepoint →
+`subdivide` (stamping the use and area **the book declares**, where
+zoning refuses a bad lot) → `transfer` → the book's provisioner stands
+the ground up. The money
 moves before the row is written, so an unfunded buyer changes nothing at
 all — no parcel row, no chain-of-title event, no yard. A half-completed
 land sale is worse than a refused one.

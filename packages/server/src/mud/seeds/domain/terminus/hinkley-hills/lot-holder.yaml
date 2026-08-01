@@ -1,24 +1,15 @@
-# Hinkley Hills' plat book — an INSTANCE of the general `/obj/LotHolder`,
-# not a class of its own. Holding title to a lot is a platform concept;
-# only these particular lots are Hinkley's, so everything specific to the
-# suburb is data on this row and a second subdivision anywhere in the
-# world is a seed file with no code behind it.
+# Hinkley Hills' lot holder — the PROVISIONING half: how a sold lot
+# becomes somewhere you can stand. An instance of the general
+# `/obj/LotHolder`, named by the plat book beside it.
+#
+# One field, and it is the one that changes when the provisioning model
+# does: today a shared room template cloned per lot and keyed on the
+# lot's parcel extent, tomorrow (probably) a template minted per
+# residence. That swap is a subclass and this line — the catalogue does
+# not move.
 class: /obj/LotHolder
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  label: Hinkley Hills
-  # The district these lots are subdivided out of — the parcel row seeded
-  # in config/parcels.yaml.
-  parentExtent: /domain/terminus/hinkley-hills
-  # Five lots, which is enough to make the empty ones on the lane read as
-  # a subdivision that did not fill rather than a menu.
-  lots: [lot-1, lot-2, lot-3, lot-4, lot-5]
-  # What stands on a sold lot here. A different subdivision might clone a
-  # dock or a shopfront; this one is a back yard with a bed in it.
+  # MUST be a persistable, non-singleton room (/obj/TitledRoom or a
+  # subclass) — a plain CartesianLocation persists nothing it holds.
   roomTemplate: /domain/terminus/hinkley-hills/yard
-  # A real sum for an early character and nowhere near a fortune.
-  priceMinor: 4000
-  # 1000 m² — a quarter-acre, which is what the `lot` tag-table calls it.
-  areaM2: 1000
-  # Residential: admits a garden bed, refuses a field.
-  landUse: residential

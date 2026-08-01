@@ -59,12 +59,14 @@ import { ParcelApi } from '../../../api/parcel';
 import { BankingApi, type Charge } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
 import { MixinApi } from '../../../api/mixin';
+import { StuffApi } from '../../../api/stuff';
 import { LandUses } from '../../../lib/parcel/LandUse';
 import { Money } from '../../../lib/banking/Money';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MqlApi } from '../../../api/mql';
-import LotHolder from '../../../obj/LotHolder';
+import PlatBook from '../../../obj/PlatBook';
+import type LotHolder from '../../../obj/LotHolder';
 
 const TOPIC = 'world.narration.action';
 
@@ -93,12 +95,23 @@ export default class TitleController extends CommandController<TitleModel> {
    * giver — the plat books are world content, not a viewer's
    * perception), the `LocomotionLogic.allModes` shape.
    */
-  private holders(): LotHolder[] {
-    const matches = MqlApi.resolveMany('world:[class.LotHolder]', {
+  private books(): PlatBook[] {
+    const matches = MqlApi.resolveMany('world:[class.PlatBook]', {
       commandGiver: null,
       scope: 'world',
     });
-    return matches.stuff.filter((s): s is LotHolder => s instanceof LotHolder);
+    return matches.stuff.filter((s): s is PlatBook => s instanceof PlatBook);
+  }
+
+  /**
+   * The provisioner a book names, or null when it names none (an offer
+   * with nothing behind it is a content bug, and the sale says so rather
+   * than taking the money).
+   */
+  private holderFor(book: PlatBook): LotHolder | null {
+    const path = book.getHolderPath();
+    if (!path) return null;
+    return StuffApi.findByTemplatePath<LotHolder>(path) ?? null;
   }
 
   /** `title` — what ground do I hold, and what may I do on it. */
@@ -107,9 +120,9 @@ export default class TitleController extends CommandController<TitleModel> {
     const me = giver.getTemplatePath() ?? '';
     const held: string[] = [];
 
-    for (const holder of this.holders()) {
-      const where = holder.getLabel();
-      for (const extent of holder.lotExtents()) {
+    for (const book of this.books()) {
+      const where = book.getLabel();
+      for (const extent of book.lotExtents()) {
         const record = await ParcelApi.coveringParcelOf(extent);
         if (!record || record.getExtent() !== extent) continue;
         const owner = record.getOwner();
@@ -155,12 +168,12 @@ export default class TitleController extends CommandController<TitleModel> {
     }
 
     const lines: string[] = [];
-    for (const holder of this.holders()) {
-      const price = Money.of(holder.getPriceMinor());
-      const area = Quantity.of(holder.getAreaM2(), 'm²');
-      const use = holder.getLandUse();
-      lines.push(`${holder.getLabel()}:`);
-      for (const extent of holder.lotExtents()) {
+    for (const book of this.books()) {
+      const price = Money.of(book.getPriceMinor());
+      const area = Quantity.of(book.getAreaM2(), 'm²');
+      const use = book.getLandUse();
+      lines.push(`${book.getLabel()}:`);
+      for (const extent of book.lotExtents()) {
         const leaf = extent.slice(extent.lastIndexOf('/') + 1);
         const record = await ParcelApi.coveringParcelOf(extent);
         const taken = !!record && record.getExtent() === extent;
@@ -180,7 +193,7 @@ export default class TitleController extends CommandController<TitleModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'nothing-for-sale',
-        detail: 'no LotHolder offers any lots',
+        detail: 'no PlatBook offers any lots',
       });
       return;
     }
@@ -205,17 +218,17 @@ export default class TitleController extends CommandController<TitleModel> {
     // Which subdivision sells it? The holders are the plat books; this
     // controller knows none of them by name.
     const raw = model.lot ?? '';
-    let holder: LotHolder | null = null;
+    let book: PlatBook | null = null;
     let extent: string | null = null;
-    for (const h of this.holders()) {
-      const candidate = h.extentFor(raw);
+    for (const b of this.books()) {
+      const candidate = b.extentFor(raw);
       if (candidate) {
-        holder = h;
+        book = b;
         extent = candidate;
         break;
       }
     }
-    if (!holder || !extent) {
+    if (!book || !extent) {
       this.reject(
         context,
         giver,
@@ -252,7 +265,7 @@ export default class TitleController extends CommandController<TitleModel> {
 
     // The money leg FIRST. A failed payment must leave no parcel row and
     // no room behind — nothing changes hands until the money has.
-    const price = holder.getPriceMinor();
+    const price = book.getPriceMinor();
     const paid = await this.takePayment(price, extent);
     if (!paid) {
       this.reject(
@@ -270,11 +283,11 @@ export default class TitleController extends CommandController<TitleModel> {
     // which is zoning doing its one job.
     await ParcelApi.subdivide(
       extent,
-      holder.getParentExtent(),
+      book.getParentExtent(),
       { kind: 'group', name: 'hinkley-hills' },
       {
-        landUse: holder.getLandUse(),
-        area: Quantity.of(holder.getAreaM2(), 'm²'),
+        landUse: book.getLandUse(),
+        area: Quantity.of(book.getAreaM2(), 'm²'),
       },
     );
     // …then hand the title over. Two steps, because the chain-of-title
@@ -282,10 +295,14 @@ export default class TitleController extends CommandController<TitleModel> {
     // actually happened.
     await ParcelApi.transfer(extent, { kind: 'player', templatePath: buyer });
 
-    // Stand the ground up, keyed on the extent we just wrote.
-    const { firstTime } = await holder.provision(extent);
+    // Stand the ground up, keyed on the extent we just wrote — the
+    // book's own provisioner, whatever model it implements.
+    const holder = this.holderFor(book);
+    const { firstTime } = holder
+      ? await holder.provision(extent)
+      : { firstTime: true };
     const leaf = extent.slice(extent.lastIndexOf('/') + 1);
-    const where = holder.getLabel();
+    const where = book.getLabel();
 
     MessageApi.scene(giver)
       .topic(TOPIC)
