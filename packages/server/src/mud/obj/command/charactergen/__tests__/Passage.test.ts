@@ -138,4 +138,38 @@ describe('passage — the floor beneath coming back', () => {
     expect(source).not.toContain('restoresLoadout');
     expect(source).not.toContain('PassageRoute');
   });
+
+  it('the floor DIMINISHES you — so a service has something to beat', () => {
+    // A free revival at full strength would make every temple and clinic
+    // strictly worse than doing nothing. The cost lives in the floor
+    // route, not in `reembody`, which is what lets content undercut it.
+    const controller = readFileSync(
+      join(__dirname, '../PassageController.ts'),
+      'utf8',
+    );
+    expect(controller).toContain('adjustReserve');
+    expect(controller).toContain('mortalityRecovering');
+
+    // And `reembody` itself hands back a clean body — the transition takes
+    // no position on what coming back should cost.
+    const logic = readFileSync(
+      join(__dirname, '../../../api/ConditionLogic.ts'),
+      'utf8',
+    );
+    const start = logic.indexOf('async function reembodyImpl');
+    const body = logic.slice(start, logic.indexOf('\n}\n', start));
+    expect(body).not.toContain('adjustReserve');
+    expect(body).not.toContain('Recovering');
+  });
+
+  it('diminishment never touches a vital sign', () => {
+    // Reserves only. Anything that could carry a body back across a lethal
+    // threshold would re-open the death loop through a side door: you
+    // revive, immediately re-enter the dying window, and die again.
+    const controller = readFileSync(
+      join(__dirname, '../PassageController.ts'),
+      'utf8',
+    );
+    expect(controller).not.toContain('setVitalSign');
+  });
 });

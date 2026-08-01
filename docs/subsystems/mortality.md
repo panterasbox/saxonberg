@@ -353,6 +353,46 @@ whoever came back too late — the bricking failure mode in a third costume.
 Proved structurally, the same way the material slices prove their own
 absence.
 
+### What healing happens, and when
+
+**At death, not at revival.** `divideBody` drains the body to baseline —
+every vital to its species baseline, every condition cleared, the cause
+nulled — and *then* captures. So the snapshot is already a clean body and
+`reembody` simply materializes it. There is no healing step at the far end
+because there is nothing left to heal.
+
+That ordering is not incidental. **Revival must clear the lethal state**,
+or the next reconcile re-opens the dying window and kills you again — an
+infinite death loop. Coming back "in the condition you left in" can never
+be literal; some healing is load-bearing, not generous.
+
+### Diminishment, and why the floor has to hurt
+
+A free revival at full strength would make **every** resurrection service
+in the world strictly worse than doing nothing. There would be no market
+for coming back, because nobody can beat free-and-perfect.
+
+So the cost lives in the **floor route**, not in the transition:
+
+- `reembody` hands back a clean body and takes no position on what dying
+  should cost — that is the caller's business, which is exactly what lets
+  a temple or a clinic offer a better return;
+- the `passage` verb, being the cheap way, drains the biological reserves
+  and leaves a `recovering` affliction. It clears itself as metabolism
+  refills, so nobody has to build a cure for it.
+
+Two properties the diminishment must keep, and a service's must too:
+
+- **Unpleasant, never dangerous.** Reserves only, never a vital sign —
+  anything that could carry a body back across a lethal threshold would
+  re-open the death loop through a side door.
+- **Legible.** A player has to feel it, or a service has nothing to
+  advertise against.
+
+The competitive axis is therefore *how little you are diminished*, and it
+needs no engine work: content calls `reembody`, gets the body back, and
+applies less than the floor does — or nothing, or a boon.
+
 ### The floor
 
 `passage` — zero arguments, always available, afforded only by being
@@ -473,7 +513,17 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   was the real cost of the cut feature.
 - **The re-embodiment service** — decided as lore, unbuilt: contested
   metaphysics, two competing vendors (temple and clinic), coverage as the
-  hook. See [mortality-slate](../slates/builds/mortality-slate.md).
+  hook. See [mortality-slate](../slates/builds/mortality-slate.md). The
+  seam it needs is already open: `reembody` returns the body, so a service
+  applies its own terms to it.
+- **The recuperation model.** The floor ships one crude cost — drained
+  reserves plus a self-clearing `recovering` affliction. What diminishment
+  should actually *be* is undesigned: a temporary competence penalty, a
+  wound that heals over time, a diminished vessel in the mortal-vessel
+  sense, or something a patron marks you with. The `recovering` condition
+  is deliberately a near-empty seed (no `signature`, no staged prose) so it
+  can grow into whichever of those wins without a migration. The dial
+  (`RECOVERY_RESERVE_COST`) is a placeholder, not a balance decision.
 - **The in-circle death arc** — a circle death ejects, so the full arc
   cannot be rehearsed in a holodeck.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and

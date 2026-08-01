@@ -482,6 +482,27 @@ Ruled 2026-07-31, so the content build inherits it rather than re-deriving it:
   routine paid service, death is a toll booth. The stakes live in what is on
   the corpse and what you owe when you walk out.
 
+### The recuperation model — one crude cut shipped, the design open
+
+The floor route diminishes you (drained reserves + a self-clearing
+`recovering` affliction) for one structural reason: **a free revival at
+full strength kills the service market before it exists.** Nobody competes
+with free-and-perfect, so the floor has to be the thing a temple or clinic
+beats.
+
+Constraints any diminishment must respect, discovered while building it:
+
+- **Revival must clear the lethal state.** Come back below a threshold and
+  the next reconcile re-opens the dying window — an infinite death loop.
+  "The condition you left in" can never be literal.
+- **Unpleasant, never dangerous** — reserves, never vital signs, or the
+  loop re-opens through a side door.
+- **Legible**, or a service has nothing to advertise against.
+
+What diminishment *should be* is undesigned: a competence penalty, a wound
+that heals over time, a diminished vessel, a patron's mark. The shipped
+`recovering` seed is near-empty on purpose so it can grow into any of them.
+
 Still open, and deliberately downstream:
 
 - **The in-circle death arc** — a circle death ejects, so the full arc
