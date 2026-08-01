@@ -227,3 +227,14 @@ Everything that *reads* the chronicle is deferred. **reputation**,
 will project from the ledger via `entriesFor` (and, later, MQL over the
 owner-scoped set), each interpreting `tags` / `who` in its own way. The
 substrate ships designed-for-them but ships none of them.
+
+## Death and return (2026-07-31)
+
+The ledger now records both edges of the mortality arc — a `death` deed at
+the transition, a `passage` deed on re-embodiment. See
+[mortality.md](./mortality.md).
+
+A death inside a sandbox circle still writes (the collection is PASS(mark),
+so the row persists carrying its circle stamp): "you died in a holodeck" is
+a true thing about you, and readers may lens the mark. Only the *crime*
+derivation declines to convict on it.

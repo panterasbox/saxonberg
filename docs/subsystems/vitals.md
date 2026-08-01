@@ -315,3 +315,26 @@ loop / playstyle, the tissue-vulnerability term, other channels
   the seeding slate
 - [capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)
   — physical attributes + mana ride this substrate
+
+## The dying arc (shipped 2026-07-31)
+
+The transition driver this doc deferred now exists — see
+[mortality.md](./mortality.md). What changed here:
+
+- **A fatal threshold opens a window, it does not kill.** `DyingRecord`
+  (condition Kind E) + the `dying` `ConditionBand` between `critical` and
+  `dead`. A floored vital reads `dying`, not `dead`: a rescued body must
+  not still read as a corpse.
+- **The dying arm of `reconcileConditions` opts OUT of the linkdead freeze
+  and the far-past guard.** Every other arm opts in. Inheriting either
+  would make disconnecting a cure for death; the divergence is commented at
+  the site and pinned by a test that also asserts a bleeding body in the
+  same fixture still freezes.
+- **`getConsciousness()` reads a dying body as `unconscious`.** Without it,
+  six of the nine drivers left a dying body walking and talking — this
+  readout only knows blood volume, SpO₂ and head trauma.
+- **The postmortem-progression seam is filled** by `PostmortemMixin`
+  (decay stages, forensic readability, the `canEvict` terminus).
+- **The material fork slices** (`MATERIAL_FORK_SLICES`) + the gated
+  `adoptMaterialState`. They are fork-only, and the *absence* of a
+  `mergeSlice_` is what makes a corpse un-reanimatable.

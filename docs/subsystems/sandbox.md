@@ -691,3 +691,37 @@ captured synchronously before the async receipt body. The `caller` line
 names the principal, but the boundary's hard cases are precisely the
 ones where the principal is a framework frame (`<unresolved>`) and the
 only useful question is *which walk reached across*.
+
+## Death inside a circle (2026-07-31)
+
+Replaces the old `SandboxApi.respawnWireBody` bullet — that method had no
+production caller and its behaviour (re-mint a fresh vessel, leave the
+player inside) is now wrong. It is deleted.
+
+A vessel's death is **real inside the circle and discarded with it**, which
+is the point of a holodeck and what lets an author test a lethal trap on
+themselves. The body leaves a **circle-scoped corpse** (born in the circle,
+reaped with it) and the player is **ejected** to the parked field body. No
+shade, no arc, no snapshot — minting a real body from inside a circle is
+exactly the boundary this subsystem exists to hold. The discriminator is
+the receiver's circle stamp, not `instanceof WireBody`.
+
+If the **field** body dies while its player is parked here, exit composes
+with no extra plumbing: a parked avatar still reads as connected, so the
+death split ran normally and left a shade in the registry slot. The player
+exits as a shade.
+
+**The crossing, run backwards.** [mortality.md](./mortality.md) reuses
+`ForkableMixin` in the opposite direction: the sandbox forks the *person*
+out of a body and discards the body; death forks the *body* out of a person
+and discards their claim on it. The new **material** slice family
+(`Vitals`, `Trauma`, `CauseOfDeath`, `Anatomy`) is fork-only, and the
+absence of a `mergeSlice_` for it is what makes a corpse un-reanimatable by
+protocol rather than by policy.
+
+**One PASS(mark) consumer now lenses the mark.** `deriveBlame` ignores
+circle-marked `accountability_events` rows: without that, anyone who could
+open a circle could stage a killing and mint a real crime row against a
+real identity. The writes are unchanged and still ride the policy table —
+the fix is in the consumer, where derive-on-read re-legislates every row
+without rewriting one.

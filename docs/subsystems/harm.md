@@ -335,3 +335,25 @@ plan/requirements docs describe the pre-review shape:
   real content-area host broke a standup/fast-travel invariant — so
   `GlassAlley` ships as a class + integration fixture, its reachable-in-
   world placement deferred.
+
+## Stabilization (shipped 2026-07-31)
+
+`treat` now does two jobs — see [mortality.md](./mortality.md). Beyond
+dressing a wound, it pulls a body out of the **dying window**:
+
+- a dying body is treatable with **no wound to dress** (cold or a toxin
+  leaves nothing to bandage);
+- the graded outcome gates the rescue — a failure spends the dressing
+  without holding them;
+- **rescued is not healed**: `stabilize()` drops the dying record and
+  touches nothing else, so a body still under its threshold falls back into
+  the window on the next reconcile.
+
+`assess` reports the remaining window, sharpened by competence — the
+information rule, not an outcome rule.
+
+`ConditionApi` grew **`die`**, the single death transition every lethal
+driver now reaches (replacing seven scattered sites), plus
+`embodyForSession` / `reembody` for the recovery arc. The per-driver dying
+windows live with the physics that justifies them, in each driver's own
+`*_DEFAULTS`.

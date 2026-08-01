@@ -118,3 +118,19 @@ The property compute/economy (cost-owner, the `Charge`-debtor gap,
 allowance — property slate Phase 1); a general player-facing
 `give`/trade/dispute surface (the `transfer` primitive makes it a thin
 later add); group/corpo owners; fungible-goods ownership.
+
+## Looting a corpse (2026-07-31)
+
+The mortality build deliberately adds **nothing** here.
+
+A dead body's gear moves onto the corpse, and taking it is ordinary
+containment. The record of who took what is the **chain of title this
+subsystem already keeps** — which is why looting mints no
+`accountability_events` row: the ledger would be duplicating a record that
+already exists in the right place, and inventing a kind for theft would
+force a "what is theft" ruling the courts work should make.
+
+The corpse itself carries **no chattel row**. `ChattelMixin` composes at
+the `Thing` tier and a body is a `Creature`; custody of a *body* is a
+different concept, and it belongs to the deferred coroner economy. See
+[mortality.md](./mortality.md).

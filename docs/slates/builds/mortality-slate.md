@@ -1,6 +1,10 @@
 # Mortality slate — dying, the corpse, the shade, the passage
 
-> **Status: design captured 2026-07-31, not built.** The **build-scoped**
+> **Status: BUILT 2026-07-31** — graduated to
+> [../../subsystems/mortality.md](../../subsystems/mortality.md), which is
+> now the source of truth for anything shipped. This slate is kept for its
+> **design rationale** and its still-open surface (the re-embodiment
+> service's lore, the underworld, the coroner economy). The **build-scoped**
 > mortality substrate: dying as a rescuable state, stabilization, the corpse
 > as a persistent forensic object, and the shade → passage → new-body
 > recovery arc.
@@ -410,7 +414,7 @@ chronicle deed · the accountability death row from every driver · the
 
 ---
 
-## Rough waves
+## Rough waves (as built — see the subsystem doc)
 
 1. **The transition.** `ConditionApi.die` + the `dying` condition + the band
    + collapse the seven copies. Ships the fix for the bricking bug.
