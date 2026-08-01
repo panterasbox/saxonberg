@@ -28,6 +28,7 @@ import { DialogueTreeSchema } from '../../../../../lib/npc/tree';
 import { type ParcelOwner } from '../../../../../lib/parcel/ParcelRecord';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
 import { GroupSeeder } from '../../../../../../backend/GroupSeeder';
+import { Document } from '../../../../../lib/persistence/Document';
 import { makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 
 const DORMS_OWNER: ParcelOwner = { kind: 'group', name: 'duncan-hall' };
@@ -105,6 +106,14 @@ function seedDormsParcel(): void {
 }
 
 async function bootWithAccess(): Promise<void> {
+  // `ParcelRecord.area` carries a QuantityMarshaller, so loading the
+  // coverage index preloads it. Nothing here declares an area (null skips
+  // the marshaller entirely), so a no-op resolver is enough — the
+  // OfficeController.test.ts precedent.
+  Document.setMarshallerResolver(
+    () => undefined,
+    async () => undefined,
+  );
   const groups = makeStuffAtPath(() => new GroupRegistry(), '/obj/GroupRegistry');
   await groups.postRegister();
   const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/obj/ParcelRegistry');

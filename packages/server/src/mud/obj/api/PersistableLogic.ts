@@ -681,6 +681,48 @@ async function captureHostOfImpl(stuff: Stuff): Promise<void> {
   await captureImpl(host, stashedKey(host) ?? undefined);
 }
 
+/**
+ * The keyed-holder ground pattern, in one place: key the host, then either
+ * restore its record or lay down its born-with fixtures and capture them.
+ *
+ * This is the decision every multi-instance holder makes — the one a
+ * `DormWarren` makes per unit and a smallholding makes per lot. Extracted
+ * because the alternative is each holder hand-rolling the same six lines
+ * and getting the branch subtly wrong (capturing on the restore path,
+ * re-seeding a restored room, forgetting to stash the key).
+ *
+ * The scope is the host's own `templatePath`, exactly as `capture` and
+ * `materialize` derive it — so a caller supplies only the key.
+ *
+ * Returns `true` when an existing record was restored, `false` when the
+ * host was seeded fresh. Callers that want to know whether this is a
+ * first provision (to wire exits, announce, bill) read that.
+ */
+async function restoreOrSeedImpl(host: Stuff, key: string): Promise<boolean> {
+  if (!MixinApi.isPersistable(host)) {
+    throw new TypeError(
+      "PersistableLogic.restoreOrSeed: host does not compose " +
+        `PersistableMixin (${host.getTemplatePath() ?? "unregistered"})`,
+    );
+  }
+  const scope = host.getTemplatePath();
+  if (!scope) {
+    throw new Error(
+      "PersistableLogic.restoreOrSeed: host has no templatePath stamp",
+    );
+  }
+  host.setPersistenceKey(key);
+  if (await hasRecordImpl(scope, key)) {
+    await materializeImpl(host, key);
+    return true;
+  }
+  // No record: lay the declared `populates:` fixtures down ONCE, then
+  // capture them so the next standup restores rather than re-seeds.
+  await host.seedBornWith();
+  await captureImpl(host, key);
+  return false;
+}
+
 async function hasRecordImpl(scope: string, key?: string): Promise<boolean> {
   if (key !== undefined) {
     return (await PersistedRecord.findByScopeAndOwner(scope, key)) !== null;
@@ -729,6 +771,12 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async captureHostOf(stuff: Stuff): Promise<void> {
     return captureHostOfImpl(stuff);
+  }
+
+  /** See {@link PersistableApi.restoreOrSeed}. */
+  @CallSecurity(PersistableApiCallers)
+  public async restoreOrSeed(host: Stuff, key: string): Promise<boolean> {
+    return restoreOrSeedImpl(host, key);
   }
 
   /** See {@link PersistableApi.hasRecord}. */

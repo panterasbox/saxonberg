@@ -566,9 +566,11 @@ describe("security (AC #8)", () => {
     const surface = Object.getOwnPropertyNames(PersistableApi).filter(
       (n) => typeof (PersistableApi as unknown as Record<string, unknown>)[n] === "function",
     );
-    // Only capture/captureHostOf/materialize/hasRecord/deleteAllFor — no
-    // raw write/save. (`captureHostOf` is a capture, host-resolving: it
-    // reaches the same gated writer through the same principal.)
+    // Only capture/captureHostOf/materialize/restoreOrSeed/hasRecord/
+    // deleteAllFor — no raw write/save. (`captureHostOf` is a capture,
+    // host-resolving: it reaches the same gated writer through the same
+    // principal. `restoreOrSeed` is a keyed materialize-or-capture: it
+    // writes only through `capture`, on the no-record branch.)
     //
     // The fork protocol (sandbox build) is RUNTIME state movement, not a
     // record-store write path: forkRuntimeState/mergeRuntimeState never
@@ -580,6 +582,7 @@ describe("security (AC #8)", () => {
         "deleteAllFor",
         "hasRecord",
         "materialize",
+        "restoreOrSeed",
         "forkRuntimeState",
         "mergeRuntimeState",
       ].sort(),
@@ -865,6 +868,111 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
     // Even with NO record, a keyed host seeds nothing here (context-driven).
     await room.applyPopulates(["/domain/chest"]);
     expect(room.getContents()).toHaveLength(0);
+  });
+});
+
+describe("restoreOrSeed — the keyed-holder ground pattern", () => {
+  it("SEEDS on the no-record branch, then captures, and reports false", async () => {
+    cloneFactories = {};
+    const key = "/domain/dorms/f1-r1";
+    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+
+    const restored = await PersistableApi.restoreOrSeed(room, key);
+
+    expect(restored).toBe(false); // first provision
+    // …and the capture happened, keyed, so the next standup restores.
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0]!.scope).toBe("/domain/dormroom");
+    expect(snapshots[0]!.owner).toBe(key);
+  });
+
+  it("MATERIALIZES on the has-record branch, and reports true", async () => {
+    cloneFactories = {};
+    const key = "/domain/dorms/f1-r1";
+    const seed = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    seed.setLabel("alice's room");
+    await PersistableApi.capture(seed, key);
+    StuffApi.unregister(seed);
+
+    const reborn = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const restored = await PersistableApi.restoreOrSeed(reborn, key);
+
+    expect(restored).toBe(true); // re-entry, not a first provision
+    expect(reborn.getLabel()).toBe("alice's room");
+    expect(snapshots).toHaveLength(1); // restored, did not write a second
+  });
+
+  it("⭐ born-with populates run exactly ONCE across two standups", async () => {
+    // The branch this extraction exists to get right. Stand a host up
+    // twice through restoreOrSeed: the first seeds, the second restores.
+    // Seeding twice would duplicate every fixture in the room.
+    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    const key = "/domain/dorms/f2-r7";
+
+    const first = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    let seedCalls = 0;
+    const realSeed = first.seedBornWith.bind(first);
+    (first as unknown as { seedBornWith: () => Promise<void> }).seedBornWith =
+      async () => {
+        seedCalls++;
+        return realSeed();
+      };
+    expect(await PersistableApi.restoreOrSeed(first, key)).toBe(false);
+    expect(seedCalls).toBe(1);
+    StuffApi.unregister(first);
+
+    const second = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    let secondSeedCalls = 0;
+    const realSeed2 = second.seedBornWith.bind(second);
+    (second as unknown as { seedBornWith: () => Promise<void> }).seedBornWith =
+      async () => {
+        secondSeedCalls++;
+        return realSeed2();
+      };
+    expect(await PersistableApi.restoreOrSeed(second, key)).toBe(true);
+    expect(secondSeedCalls).toBe(0); // restored — never re-seeded
+  });
+
+  it("stashes the key, so a later KEYLESS capture writes the same record", async () => {
+    cloneFactories = {};
+    const key = "/domain/dorms/f1-r1";
+    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    await PersistableApi.restoreOrSeed(room, key);
+
+    room.setLabel("edited after provisioning");
+    await PersistableApi.capture(room); // keyless — must reuse the stash
+
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0]!.owner).toBe(key);
+    expect(
+      (snapshots[0]!.state as Record<string, { fields: { label: string } }>)
+        .MultiRoom!.fields.label,
+    ).toBe("edited after provisioning");
+  });
+
+  it("keeps two keys under one scope independent", async () => {
+    cloneFactories = {};
+    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const b = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    expect(await PersistableApi.restoreOrSeed(a, "/lot/1")).toBe(false);
+    expect(await PersistableApi.restoreOrSeed(b, "/lot/2")).toBe(false);
+    a.setLabel("first lot");
+    b.setLabel("second lot");
+    await PersistableApi.capture(a);
+    await PersistableApi.capture(b);
+
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.map((s) => s.owner).sort()).toEqual(["/lot/1", "/lot/2"]);
+  });
+
+  it("throws on a host that does not compose PersistableMixin", async () => {
+    cloneFactories = {};
+    // A programming error at the call site, not a user-reachable path —
+    // so it is loud rather than a silent no-op.
+    const notAHost = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
+    await expect(
+      PersistableApi.restoreOrSeed(notAHost as unknown as Stuff, "/lot/1"),
+    ).rejects.toThrow(/PersistableMixin/);
   });
 });
 

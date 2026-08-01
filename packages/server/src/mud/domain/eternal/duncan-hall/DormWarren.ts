@@ -98,10 +98,14 @@ export default class DormWarren extends DormWarrenBase {
 
   /**
    * The live room for `unitKey`, materialized if needed. Cached → clone the
-   * `DormRoom` shell → stash its key → D1 restore-or-seed (record present →
-   * `materialize`; absent → `seedBornWith` [lay down the declared `populates:`
-   * fixtures] + `capture`) → wire the return leg to its floor corridor →
-   * cache.
+   * `DormRoom` shell → `PersistableApi.restoreOrSeed` (the keyed-holder
+   * ground pattern: key it, then restore its record or lay down the declared
+   * `populates:` fixtures and capture them) → wire the return leg to its
+   * floor corridor → cache.
+   *
+   * The restore-or-seed decision itself is NOT dorm-specific and no longer
+   * lives here; the Warren membership, the hub-exit wiring and the cache
+   * are what actually make this a dorm.
    */
   public async admit(unitKey: string): Promise<MemberStuff> {
     const cached = this._unitsByKey.get(unitKey);
@@ -109,14 +113,7 @@ export default class DormWarren extends DormWarrenBase {
 
     const room = await this.createMemberSerialized();
     this.addMember(room);
-    (room as unknown as Persistable).setPersistenceKey(unitKey);
-
-    if (await PersistableApi.hasRecord(DormRoom.SCOPE, unitKey)) {
-      await PersistableApi.materialize(room, unitKey);
-    } else {
-      await (room as unknown as Persistable).seedBornWith();
-      await PersistableApi.capture(room, unitKey);
-    }
+    await PersistableApi.restoreOrSeed(room, unitKey);
 
     await this.wireHubExit(room);
     this._unitsByKey.set(unitKey, room);
