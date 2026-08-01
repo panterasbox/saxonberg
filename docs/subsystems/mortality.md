@@ -225,7 +225,20 @@ step:
 7. **revert-and-destruct the old body** — before any new one registers,
    since `PlayerApi` warns-and-returns on a taken slot and `byTemplatePath`
    throws on two live objects at one path;
-8. **only now** may the shade take the slot and the sockets.
+8. **only now** may the shade take the slot and the sockets — and it is
+   **stood up in the room before it is handed them**. `Avatar.enter`
+   refuses a body with no container (the spawn contract), and a shade is
+   an Avatar, so a shade minted in mid-air throws straight out of the
+   dying clock's expiry. Live, that surfaced as the client dropping to
+   *"Disconnected — reconnecting…"* at the exact moment of death: the
+   rejection took the socket down with the command, and nothing past the
+   first step of the arc was reachable. The room is therefore captured at
+   step (3) as **both** a durable path (`whereTemplatePath`, for a shade
+   that returns at a later login) and a **live ref**, because by (8) the
+   body has been destructed and there is nothing left to ask. The login
+   path (`embodyForSessionImpl`) always placed its shade; this one did
+   not, and no test caught it because none drove death with a live
+   connection attached.
 
 **Accepted risk:** between (3) and (8) the drained body is briefly alive at
 baseline and still holds its Interactives. Per-socket command

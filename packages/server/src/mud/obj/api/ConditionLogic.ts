@@ -444,10 +444,14 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
     if (typeof fn === 'function') material[name] = fn.call(body);
   }
 
-  // (c)
-  const where = MixinApi.isContainable(body)
-    ? (body.getContainer()?.getTemplatePath() ?? undefined)
-    : undefined;
+  // (c) — the room is captured as BOTH a durable path (for a shade that
+  // comes back at a later login) and a live ref (for the shade minted in
+  // this same breath). The live ref is why the walk back up the container
+  // chain happens here, while the body is still standing in the world:
+  // three lines further down it has been destructed and there is nothing
+  // left to ask.
+  const fell = MixinApi.isContainable(body) ? body.getContainer() : null;
+  const where = fell?.getTemplatePath() ?? undefined;
   avatar.setMortalArc({ diedAt: nowS, cause, whereTemplatePath: where });
 
   // (d) — a clean, living baseline. NOT dead.
@@ -475,6 +479,19 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 
   if (shade) {
     PlayerApi.registerAvatar(shade as unknown as never);
+    // STAND IT UP BEFORE HANDING IT THE SOCKETS. `Avatar.enter` refuses a
+    // body with no container — it is the spawn contract, and a shade is an
+    // Avatar — so a shade minted in mid-air threw straight out of the
+    // dying clock's expiry. That rejection surfaced to the player as the
+    // client dropping to "Disconnected — reconnecting…" at the exact
+    // moment of death: the socket went down with the command, and the arc
+    // was unreachable past its first step. The login path
+    // (`embodyForSessionImpl`) always placed its shade; this one did not,
+    // and nothing caught it because no test drove death with a live
+    // connection attached.
+    if (fell && MixinApi.isContainable(shade) && MixinApi.isContainer(fell)) {
+      ContainmentApi.move(shade, fell);
+    }
     for (const interactive of held) {
       ConnectionApi.transfer(interactive as never, shade as never);
     }

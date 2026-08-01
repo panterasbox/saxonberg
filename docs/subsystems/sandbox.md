@@ -404,6 +404,32 @@ would quietly restore the hole.
        answers `null` — which reads as "not wire" and sends quarantined
        code down the *governed* path.
 
+  **The extent test asks LOCATION, not lineage.** The first cut resolved
+  "is this receiver inside the bound?" by requiring the receiver's own
+  `templatePath` to sit under the parcel. But a template path is *clone
+  lineage*: an avatar's is `/obj/Avatar/<id>` and a cloned corpse's is
+  `/lib/mortality/corpse`, wherever either happens to be standing. So a
+  governed eval was denied the one receiver it most obviously covers —
+  the wizard's own body, in the parcel they hold title to — and every
+  runtime instance besides. Worse, the eval scratch is minted and *then*
+  stamped, so at the instant of the stamp it had no path at all and
+  `eval <code>` could not execute a single statement in a field
+  jurisdiction. A field receiver is now in-jurisdiction three ways:
+
+    1. **content of the place** — its own path is at or under the bound
+       (segment-wise, so `/domain/lounge` does not swallow
+       `/domain/loungewear`);
+    2. **standing in the place** — an enclosure up its containment chain
+       is. O(depth), and only ever walked on the governed branch, which
+       no ordinary dispatch reaches;
+    3. **nowhere yet** — unstamped *and* unplaced, i.e. minted by this
+       very run, which has no prior existence for a jurisdiction to
+       protect.
+
+  Pinned by `api/__tests__/sandbox.jurisdiction.test.ts`, which is also
+  the first test over this branch at all — the reason it shipped able to
+  touch almost nothing.
+
   The scratch mint itself lives behind `ScriptApi.mintEvalScratch`. Its
   identity stamp (`setTemplatePath`, so MQL's path atom can address the
   scratch) is `ApiOnly`-gated, and `EvalController` is a controller —

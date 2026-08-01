@@ -169,8 +169,8 @@ privileged access. We don't want a flag; we want "this class actually
 came from `mud/api/`."
 
 **How it's captured.** A source transform (Vite plugin in dev/tests, a
-Node loader hook in production) appends a single call to the bottom of
-every `.ts` file under `mud/`:
+Node loader hook in the running server) appends a single call to the
+bottom of every `.ts` file under `mud/`:
 
 ```typescript
 import { ModuleApi as __callSecModuleApi } from '<...>/api/module';
@@ -181,6 +181,29 @@ The export names come from an AST walk of the module's `export class`
 / `export default class` / `export { X }` declarations.
 `import.meta.url` is set by the loader, not user code, so a class can't
 lie about its source file.
+
+> **The two paths do not see the same source, and that asymmetry has
+> already cost one production-only outage.** The Vite plugin reads *raw
+> TypeScript*. The Node loader hook chains **last**, so it reads tsx's
+> *compiled* output — where `export default class Foo` has been lowered
+> to `class Foo {…}` + `export { Foo as default };`. The resolver behind
+> the injected `{ default: … }` field understood the raw form and the
+> `export default Foo;` form but not the compiled clause, so it emitted
+> **no stamp at all** for every default-exported class in the running
+> server, while stamping them perfectly under Vitest. Since `FromModule`
+> **fails closed on an unstamped caller**, every policy naming a
+> default-exported class silently denied in dev and production and
+> passed in every test. It surfaced as `eval` being unable to run a
+> single statement in the live game — `ScriptApi.compileSandboxed` is
+> gated to `/lib/script/EvalScript` — while all 19 of `EvalScript`'s own
+> unit tests passed.
+>
+> Two rules follow. **Test the transform against the source the LOADER
+> sees**, not only the source the plugin sees
+> (`services/loader/__tests__/default-export-stamp.test.js`). And treat
+> "the gate denies only in the running server" as the *expected* shape
+> of a stamping bug: fail-closed plus a test-only transform path means a
+> stamping gap is invisible to the suite by construction.
 
 `ModuleApi.stamp` reads `Error.stack` to find its immediate caller's
 URL and rejects (silently — no throw) if `declaredUrl` doesn't match.

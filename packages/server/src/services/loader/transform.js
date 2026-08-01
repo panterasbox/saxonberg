@@ -279,23 +279,64 @@ export function transformSource(source, fileUrl) {
 }
 
 /**
+ * The local binding behind a module's default export, across all three
+ * shapes a default-exported class reaches this function in.
+ *
+ * The third shape is the one that matters most and was missing. The two
+ * transform paths do NOT see the same source: the Vite plugin (tests)
+ * reads raw TS, where `export default class Foo` is a class declaration
+ * carrying the `default` modifier; the Node loader hook (dev + prod)
+ * runs LAST in the chain and so reads tsx's COMPILED output, where the
+ * compiler has already lowered that same declaration to
+ *
+ *     class Foo { … }
+ *     export { Foo as default };
+ *
+ * `findExportedClassNames` accepts that clause and reports `'default'`,
+ * but this function used to answer `null` for it — so `fields` came out
+ * empty and `transformSource` returned the source unstamped. The result
+ * was a split-brain the test suite could not see: every default-exported
+ * class stamped fine under Vitest and was stamped NOWHERE in the running
+ * server, which silently denied every `FromModule` policy naming one.
+ * `ScriptApi.compileSandboxed` (gated to `/lib/script/EvalScript`) is how
+ * it surfaced — `eval` could not run a single statement in the live game
+ * while all 19 of `EvalScript`'s unit tests passed.
+ *
  * @param {ts.SourceFile} sf
  * @returns {string | null}
  */
 function findDefaultExportLocalName(sf) {
   for (const stmt of sf.statements) {
+    // 1. Raw TS: `export default class Foo {}`
     if (
       ts.isClassDeclaration(stmt) &&
       stmt.modifiers?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword)
     ) {
       return stmt.name?.text ?? null;
     }
+    // 2. `export default Foo;`
     if (
       ts.isExportAssignment(stmt) &&
       !stmt.isExportEquals &&
       ts.isIdentifier(stmt.expression)
     ) {
       return stmt.expression.text;
+    }
+    // 3. Compiled: `export { Foo as default };` — a re-export
+    //    (`export { Foo as default } from './other'`) is deliberately
+    //    excluded, matching the named-export rule: a class is stamped at
+    //    the module that declares it, never at one that forwards it.
+    if (
+      ts.isExportDeclaration(stmt) &&
+      stmt.moduleSpecifier === undefined &&
+      stmt.exportClause &&
+      ts.isNamedExports(stmt.exportClause)
+    ) {
+      for (const spec of stmt.exportClause.elements) {
+        if (spec.name.text === 'default') {
+          return (spec.propertyName ?? spec.name).text;
+        }
+      }
     }
   }
   return null;
