@@ -183,6 +183,22 @@ export class ConditionApi {
     return logic().die(host, cause, spec);
   }
 
+  /**
+   * Resolve the body a session should attach to.
+   *
+   * Returns `avatar` unchanged for the living. For an identity that is
+   * between bodies it swaps in a freshly-minted shade — the LAZY half of
+   * the arc: a death with nobody connected mints no vessel, because there
+   * would be nobody standing in it.
+   *
+   * This is what makes logging out fail as an escape hatch. The arc lives
+   * durably on the identity, so a player who dies, quits and returns comes
+   * back a ghost rather than a fresh body.
+   */
+  public static embodyForSession(avatar: Stuff): Promise<Stuff> {
+    return logic().embodyForSession(avatar);
+  }
+
       }
 
 SecurityApi.decorateApiClass(ConditionApi);

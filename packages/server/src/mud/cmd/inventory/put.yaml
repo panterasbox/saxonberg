@@ -16,6 +16,7 @@ examples:
     note: Rest an item on a surface
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: item
     type: object

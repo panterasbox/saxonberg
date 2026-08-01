@@ -11,6 +11,7 @@ help: |
   To move the contents somewhere useful instead, use `pour`.
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

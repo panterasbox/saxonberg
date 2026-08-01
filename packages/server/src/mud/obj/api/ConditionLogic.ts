@@ -14,6 +14,13 @@ import { TemplatePaths } from '../../lib/paths';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../lib/vitals/Condition';
+import { MATERIAL_FORK_SLICES } from '../../lib/vitals/Vitals';
+import type { Vitals } from '../../lib/vitals/Vitals';
+import type { MortalArc } from '../../lib/mortality/MortalArc';
+import { ContainmentApi } from '../../api/containment';
+import { ConnectionApi } from '../../api/connection';
+import { PersistableApi } from '../../api/persistable';
+import { PlayerApi } from '../../api/player';
 import { ChronicleApi } from '../../api/chronicle';
 import { AccountabilityApi } from '../../api/accountability';
 import { SpeciesApi } from '../../api/species';
@@ -242,6 +249,12 @@ export class ConditionLogic extends ApiLogic {
     return dieImpl(host, cause, spec);
   }
 
+  /** See {@link ConditionApi.embodyForSession}. */
+  @CallSecurity(ConditionApiCallers)
+  public embodyForSession(avatar: Stuff): Promise<Stuff> {
+    return embodyForSessionImpl(avatar);
+  }
+
   // The former `afflict` / `relieve` / `conditionsOf` thin forwarders
   // were removed (item-1 antipattern sweep): callers narrow with
   // `MixinApi.isVitals` and call `target.afflict` / `.relieve` /
@@ -255,6 +268,22 @@ export class ConditionLogic extends ApiLogic {
  * never after the await, or the re-entry it exists to stop slips past it.
  */
 const dying = new Set<string>();
+
+/**
+ * The structural shape of a player body — what the death choreography
+ * needs from it, without importing the Avatar tree (an import cycle).
+ */
+interface PlayerBody {
+  getPlayerId(): string;
+  setMortalArc(arc: MortalArc | null): void;
+  stopAutoSave(): void;
+  markForRevert(): void;
+  save(): Promise<void>;
+  getInteractives(): Iterable<unknown>;
+  enter(interactive: never): Promise<void>;
+  getUser?(): unknown;
+  setUser?(user: unknown): void;
+}
 
 /**
  * The single death transition (see {@link ConditionApi.die} for the
@@ -289,16 +318,29 @@ async function dieImpl(
       (record?.kind === 'dying' ? record.accountability : undefined);
     if (record) host.relieve(record);
 
-    host.setCauseOfDeath(cause);
-    // Death is a lifecycle transition, NOT destruction — the body stays in
-    // the world as a corpse (race.md). Never `StuffApi.destruct` here.
-    host.setLifecycleState('dead');
-    // Start the postmortem clock. Algor mortis needs no code: a body that
-    // stops regulating drifts toward ambient through the shipped Thermal
-    // layer all by itself.
-    if (MixinApi.isPostmortem(host)) {
-      const nowS = conditionNowSeconds();
-      if (nowS !== null) host.markDeceasedAt(nowS);
+    // ── the split ───────────────────────────────────────────────────
+    // ONE RULE, TWO MECHANISMS, and the axis is whether an identity has
+    // to leave. race.md's "death is not destruction" holds either way:
+    // both paths end with a persistent Creature-tier body in the world.
+    //
+    //  - nothing to walk away  → this Stuff simply stops. Unchanged,
+    //    zero new machinery, and what every NPC and beast does.
+    //  - a player identity     → the body divides: a corpse takes the
+    //    material half, and the identity walks off as a shade.
+    const player = playerBodyOf(host);
+
+    if (!player) {
+      host.setCauseOfDeath(cause);
+      // The body stays in the world as a corpse. Never
+      // `StuffApi.destruct` here.
+      host.setLifecycleState('dead');
+      // Start the postmortem clock. Algor mortis needs no code: a body
+      // that stops regulating drifts toward ambient through the shipped
+      // Thermal layer all by itself.
+      if (MixinApi.isPostmortem(host)) {
+        const nowS = conditionNowSeconds();
+        if (nowS !== null) host.markDeceasedAt(nowS);
+      }
     }
 
     // The accountability row is a SYNCHRONOUS fire-and-forget append, and
@@ -311,12 +353,245 @@ async function dieImpl(
     );
 
     // ── async tail ──────────────────────────────────────────────────
-    // Only the chronicle deed, which renders prose and hits Mongo. Nobody
-    // reads it in the same turn.
     await recordDeathDeed(host, cause);
+    if (player) await divideBody(player, cause);
   } finally {
     dying.delete(host.stuffId);
   }
+}
+
+/**
+ * The host as a player body, or `null`.
+ *
+ * Detected STRUCTURALLY rather than by `instanceof Avatar`: this module
+ * must not statically import the Avatar tree (an import cycle), and a
+ * future player-bearing class should behave identically without being
+ * enumerated here.
+ */
+function playerBodyOf(host: Stuff): PlayerBody | null {
+  if (!MixinApi.isHasInteractive(host)) return null;
+  const candidate = host as unknown as PlayerBody;
+  if (typeof candidate.getPlayerId !== 'function') return null;
+  if (!candidate.getPlayerId()) return null;
+  if (typeof candidate.setMortalArc !== 'function') return null;
+  return candidate;
+}
+
+/**
+ * Divide a player's body: the corpse takes the material half and the
+ * loadout, the identity takes the arc, and the drained shell is destructed
+ * so a shade can hold the identity path.
+ *
+ * **The ordering here IS the substance.** Each step is placed against a
+ * specific failure:
+ *
+ *   (a) stop the autosave first, or the periodic capture can write a
+ *       half-drained body over a good snapshot;
+ *   (b) take the material slices BEFORE draining, since draining is what
+ *       destroys them;
+ *   (c) record the arc on the identity — the durable death fact, and
+ *       deliberately never a dead lifecycle on the body;
+ *   (d) drain the body to a clean baseline. The avatar is NEVER flipped to
+ *       `dead`: that state on a persisted body is the bricking defect;
+ *   (e) capture BEFORE anything is destructed, so the snapshot records a
+ *       clean body plus the arc;
+ *   (f) only then mint the corpse and hand it the gear;
+ *   (g) revert-and-destruct the old body BEFORE any new one registers —
+ *       `PlayerApi` warns-and-returns on a taken slot and `byTemplatePath`
+ *       throws on two live objects at one path;
+ *   (h) and only now may the shade take the slot and the sockets.
+ */
+async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
+  const body = avatar as unknown as Stuff & Vitals;
+  const nowS = conditionNowSeconds() ?? 0;
+  const held = MixinApi.isHasInteractive(avatar as unknown as Stuff)
+    ? [...avatar.getInteractives()]
+    : [];
+
+  // (a)
+  avatar.stopAutoSave();
+
+  // (b) — before the drain destroys them
+  const material: Record<string, unknown> = {};
+  for (const name of MATERIAL_FORK_SLICES) {
+    const fn = (body as unknown as Record<string, () => unknown>)[
+      `forkSlice_${name}`
+    ];
+    if (typeof fn === 'function') material[name] = fn.call(body);
+  }
+
+  // (c)
+  const where = MixinApi.isContainable(body)
+    ? (body.getContainer()?.getTemplatePath() ?? undefined)
+    : undefined;
+  avatar.setMortalArc({ diedAt: nowS, cause, whereTemplatePath: where });
+
+  // (d) — a clean, living baseline. NOT dead.
+  body.resetVitalsToSpeciesBaseline();
+  for (const condition of [...body.getConditions()]) body.relieve(condition);
+  body.setCauseOfDeath(null);
+
+  // (e)
+  try {
+    await avatar.save();
+  } catch {
+    // A snapshot failure must not strand a player mid-transition.
+  }
+
+  // (f)
+  const corpse = await mintCorpseFrom(body, material, cause, nowS);
+  if (corpse) {
+    avatar.setMortalArc({
+      diedAt: nowS,
+      cause,
+      whereTemplatePath: where,
+      corpseStuffId: corpse.stuffId,
+    });
+  }
+
+  // (g/h) — mint the shade from the drained body BEFORE destructing it,
+  // so the shell fork has something to read.
+  const shade = held.length > 0 ? await mintShadeFrom(avatar) : null;
+
+  avatar.markForRevert();
+  PlayerApi.unregisterAvatar(avatar as unknown as never);
+  await StuffApi.destruct(avatar as unknown as Stuff);
+
+  if (shade) {
+    PlayerApi.registerAvatar(shade as unknown as never);
+    for (const interactive of held) {
+      ConnectionApi.transfer(interactive as never, shade as never);
+    }
+    for (const interactive of held) {
+      await (shade as unknown as PlayerBody).enter(interactive as never);
+    }
+  }
+}
+
+/**
+ * Mint a corpse carrying a body's material state and its loadout.
+ *
+ * Minted with **no template path**. `StuffApi.create` without a template
+ * is normally an antipattern; this takes the same bounded exception
+ * `WireBody` already does — a runtime-only, per-instance, non-authored
+ * object whose whole identity is the body it came from. It also means the
+ * corpse can never collide in `byTemplatePath` with the identity the
+ * player is about to re-enter.
+ */
+async function mintCorpseFrom(
+  body: Stuff & Vitals,
+  material: Record<string, unknown>,
+  cause: string,
+  nowS: number,
+): Promise<(Stuff & Vitals) | null> {
+  const { Creature } = await import('../../lib/creature/Creature');
+  const corpse = await StuffApi.create(() => new Creature());
+  if (!MixinApi.isVitals(corpse)) return null;
+
+  if (MixinApi.isOrganism(corpse) && MixinApi.isOrganism(body)) {
+    corpse.setSpecies(body.getSpecies());
+  }
+  corpse.adoptMaterialState(material);
+  corpse.setCauseOfDeath(cause);
+  if (MixinApi.isOrganism(corpse)) corpse.setLifecycleState('dead');
+  if (MixinApi.isPostmortem(corpse)) corpse.markDeceasedAt(nowS);
+  corpse.setName(`the body of ${body.getPresentation()}`);
+
+  // The loadout moves with the body it was on — that gear is the stake,
+  // and the corpse is where someone has to go to get it.
+  if (MixinApi.isContainer(body) && MixinApi.isContainer(corpse)) {
+    for (const item of [...body.getContents()]) {
+      if (MixinApi.isContainable(item)) ContainmentApi.move(item, corpse);
+    }
+  }
+
+  // Lay it where the body fell.
+  if (MixinApi.isContainable(body) && MixinApi.isContainable(corpse)) {
+    const at = body.getContainer();
+    if (at && MixinApi.isContainer(at)) ContainmentApi.move(corpse, at);
+  }
+  return corpse;
+}
+
+/**
+ * Mint the shade a player occupies while dead, carrying the SHELL slices
+ * (name, aliases, settings, cockpit layout, contacts) off the drained
+ * body.
+ *
+ * The material slices are offered by the same protocol call and silently
+ * dropped, because a shade implements no applier for them — the
+ * fork-only asymmetry doing its job with no special-casing here.
+ */
+async function mintShadeFrom(
+  avatar: PlayerBody,
+): Promise<Stuff | null> {
+  const { default: Shade } = await import('../../lib/mortality/Shade');
+  const species = MixinApi.isOrganism(avatar as unknown as Stuff)
+    ? (avatar as unknown as { getSpecies(): never }).getSpecies()
+    : null;
+  const shade = await StuffApi.create(
+    () => new Shade(avatar.getPlayerId(), species),
+  );
+  const user = avatar.getUser?.();
+  if (user) (shade as unknown as PlayerBody).setUser?.(user);
+  await PersistableApi.forkRuntimeState(
+    avatar as unknown as Stuff,
+    shade as unknown as Stuff,
+  );
+  return shade as unknown as Stuff;
+}
+
+/**
+ * Swap a deceased identity's restored body for a shade (see
+ * {@link ConditionApi.embodyForSession}).
+ *
+ * The restored Avatar is a real, living, baseline body — that is exactly
+ * what the death choreography captured, on purpose — so it must be
+ * unregistered and destructed before the shade can take the identity path.
+ * Same ordering rule as the split itself.
+ *
+ * Where the shade appears: **beside its own corpse** when that body still
+ * exists, otherwise where it fell, otherwise the wake point. The corpse is
+ * a nicety, never a requirement — it decays, and nothing on the path back
+ * may depend on it.
+ */
+async function embodyForSessionImpl(avatar: Stuff): Promise<Stuff> {
+  const player = playerBodyOf(avatar);
+  if (!player) return avatar;
+  const arc = (
+    avatar as unknown as { getMortalArc?(): MortalArc | null }
+  ).getMortalArc?.();
+  if (!arc) return avatar;
+
+  const shade = await mintShadeFrom(player);
+  if (!shade) return avatar;
+
+  const landing = resolveShadeLanding(arc);
+
+  player.markForRevert();
+  PlayerApi.unregisterAvatar(avatar as unknown as never);
+  await StuffApi.destruct(avatar);
+
+  PlayerApi.registerAvatar(shade as unknown as never);
+  if (landing && MixinApi.isContainable(shade) && MixinApi.isContainer(landing)) {
+    ContainmentApi.move(shade, landing);
+  }
+  return shade;
+}
+
+/** Beside the corpse if it survives, else where the body fell. */
+function resolveShadeLanding(arc: MortalArc): Stuff | null {
+  if (arc.corpseStuffId) {
+    const corpse = StuffApi.findById(arc.corpseStuffId);
+    if (corpse && !corpse.isDestroyed() && MixinApi.isContainable(corpse)) {
+      const at = corpse.getContainer();
+      if (at) return at as unknown as Stuff;
+    }
+  }
+  if (arc.whereTemplatePath) {
+    return StuffApi.findByTemplatePath(arc.whereTemplatePath) ?? null;
+  }
+  return null;
 }
 
 /** The chronicle deed. No-ops without a durable owner key / connection. */

@@ -20,6 +20,7 @@ examples:
     note: Name the source explicitly
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

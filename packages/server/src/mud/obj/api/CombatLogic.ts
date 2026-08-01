@@ -3655,13 +3655,16 @@ function abortCoup(
 
 /** Both parties present in the same room, neither already dead. */
 function coupEligible(executioner: Stuff, victim: Stuff): boolean {
+  // `isLivingBody()`, not `!isDead()`: `undead` is animate without being
+  // alive, so a shade would otherwise read as a valid coup target — and a
+  // bodiless self is not something you can put to death.
   if (
     MixinApi.isOrganism(executioner) &&
-    executioner.getLifecycleState() === "dead"
+    !executioner.isLivingBody()
   ) {
     return false;
   }
-  if (MixinApi.isOrganism(victim) && victim.getLifecycleState() === "dead") {
+  if (MixinApi.isOrganism(victim) && !victim.isLivingBody()) {
     return false;
   }
   if (!MixinApi.isContainable(executioner) || !MixinApi.isContainable(victim)) {

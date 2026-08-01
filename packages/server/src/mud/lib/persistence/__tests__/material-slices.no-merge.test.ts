@@ -21,7 +21,6 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import { Character } from '../../character/Character';
 import Avatar from '../../../obj/Avatar';
 import { Quantity } from '../../quantity';
 import { MATERIAL_FORK_SLICES } from '../../vitals/Vitals';
@@ -50,7 +49,8 @@ describe('material fork slices are fork-only', () => {
   it('NO body class implements a mergeSlice_ for any material slice', () => {
     const bodies: Record<string, object> = {
       Creature: makeStuff(() => new Creature()),
-      Character: makeStuff(() => new Character()),
+      // Avatar extends Character, so the Character tier is covered by
+      // walking Avatar's chain (Character itself is abstract).
       Avatar: makeStuff(() => new Avatar()),
     };
 

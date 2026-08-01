@@ -21,6 +21,7 @@ examples:
     note: Set and conceal a carried trap here
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

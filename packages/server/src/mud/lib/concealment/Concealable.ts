@@ -26,7 +26,16 @@ import type { MixinConstructor } from '../mixin';
 import type { ConcealmentLevel } from './ConcealmentLevel';
 import { ConcealmentLevels } from './ConcealmentLevel';
 
+/**
+ * The perceptual planes. Two, and deliberately not an open vocabulary:
+ * a third would need a rule for how it composes with the other two.
+ */
+export type PerceptualPlane = 'material' | 'shade';
+
 export interface Concealable {
+  /** Which plane this thing exists on — `'material'` for everything. */
+  getPerceptualPlane(): PerceptualPlane;
+  setPerceptualPlane(value: PerceptualPlane): void;
   /** The concealment band (`'obvious'` when not concealed). */
   getConcealment(): ConcealmentLevel;
   /** Set the concealment band; throws on an unknown band word. */
@@ -58,7 +67,11 @@ export interface Concealable {
 export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConcealableMixin extends Base implements Concealable {
     static _mixinName = 'ConcealableMixin';
-    static persistentFields = ['concealment', 'concealmentHint'];
+    static persistentFields = [
+      'concealment',
+      'concealmentHint',
+      'perceptualPlane',
+    ];
 
     /**
      * The concealment band; `'obvious'` (the default) = not concealed.
@@ -67,6 +80,37 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * @authorable
      */
     public concealment: ConcealmentLevel = 'obvious';
+
+    /**
+     * Which plane this thing exists on for perception purposes.
+     *
+     * `'material'` — everything, unless an author says otherwise.
+     * `'shade'` — resolves ONLY for an incorporeal viewer: the seam that
+     * lets a whole other layer be authored over the ordinary world without
+     * a second map. A shade still sees the material tavern it cannot drink
+     * in; the shade plane is what it can see *that the living cannot*.
+     *
+     * **This build authors nothing on it.** It ships so that the deferred
+     * underworld content is content rather than a retrofit — one predicate
+     * and a hook, paid now, instead of a rewrite later.
+     *
+     * @authorable
+     */
+    public perceptualPlane: PerceptualPlane = 'material';
+
+    public getPerceptualPlane(): PerceptualPlane {
+      return this.perceptualPlane;
+    }
+
+    public setPerceptualPlane(value: PerceptualPlane): void {
+      if (value !== 'material' && value !== 'shade') {
+        throw new RangeError(
+          `ConcealableMixin.setPerceptualPlane: expected 'material' or ` +
+            `'shade', got ${String(value)}`,
+        );
+      }
+      this.perceptualPlane = value;
+    }
 
     /**
      * The authored hint / "tell" surfaced to a viewer who nearly perceives

@@ -11,6 +11,7 @@ help: |
   to come off first with `remove` or `unwield`.
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: targets
     type: objects
