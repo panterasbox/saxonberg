@@ -214,6 +214,13 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
 
     tick(body, 3);
     expect(body.getVitalSign('heartRate').rawValue()).toBeLessThanOrEqual(30);
+    // Arrest opens the DYING window rather than killing outright — the
+    // clock decides from here, which is the interval a medic can act in.
+    expect(body.isDying()).toBe(true);
+    expect(body.getLifecycleState()).not.toBe('dead');
+
+    // Nobody intervenes: run the electrocution window out.
+    tick(body, 400);
     expect(body.getLifecycleState()).toBe('dead');
     expect(body.getCauseOfDeath()).toBe('electrocution');
     // Death ≠ destruction.

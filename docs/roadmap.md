@@ -199,8 +199,9 @@ remains in the near-term Track A queue:
 >   [harm.md](./subsystems/harm.md)). Still deferred: the *general* /
 >   instrument-mediated assess + measure-on-patient, the first-aid
 >   instrument + medicine branches (splint / suture / antiseptic — harm
->   shipped only the dressing branch), and a *general* death-transition
->   driver (each driver drives only its own cascade).
+>   shipped only the dressing branch). The *general* death-transition
+>   driver SHIPPED 2026-08-01 — every driver now routes through one
+>   `ConditionApi.die` ([mortality.md](./subsystems/mortality.md)).
 >   ([vitals-slate.md](./slates/tails/vitals-slate.md))
 > - **Things-here / Inventory chip strips.** Drafted as
 >   tandem-slice training wheels before the inspection pane
@@ -719,8 +720,12 @@ has since shipped as the self-persistence spine — see
 V1 shipped the substrate. Deferred work, sequenced as content
 demands:
 
-- **Death / resurrection flow** — state-machine present;
-  transition flow not. First content lifecycle event.
+- ~~**Death / resurrection flow**~~ — **SHIPPED 2026-08-01**
+  ([mortality.md](./subsystems/mortality.md)): the dying clock, the
+  single `ConditionApi.die` transition, the corpse as a forensic
+  `Creature`, the shade, and `reembody` + the `passage` floor. Still
+  open: the underworld content, the re-embodiment service, and the
+  recuperation model (the floor ships one crude diminishment).
 - **DietApi + Edible + Portable** — material toxicity authored
   but no consumer reads it. Needs eater-side diet check.
 - **Per-Detail materials and tissue authoring** — v1 is
