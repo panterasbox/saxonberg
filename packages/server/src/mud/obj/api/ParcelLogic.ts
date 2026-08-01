@@ -9,6 +9,7 @@ import { TemplatePaths } from "../../lib/paths";
 import {
   ParcelRecord,
   type ParcelOwner,
+  type ParcelSpace,
 } from "../../lib/parcel/ParcelRecord";
 import type { GroupRef } from "../../lib/social/GroupProvider";
 import type ParcelRegistry from "../ParcelRegistry";
@@ -95,11 +96,13 @@ export class ParcelLogic extends ApiLogic {
       : null;
   }
 
-  /** See {@link ParcelApi.workableAreaOf}. */
+  /** See {@link ParcelApi.spaceOf}. */
   @CallSecurity(ParcelApiCallers)
-  public async workableAreaOf(extent: string): Promise<number> {
+  public async spaceOf(extent: string): Promise<ParcelSpace> {
     const reg = lookupRegistry();
-    return reg ? reg.workableAreaOf(extent) : 0;
+    return reg
+      ? reg.spaceOf(extent)
+      : { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
   }
 
   /** See {@link ParcelApi.transfer}. */

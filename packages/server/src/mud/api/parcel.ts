@@ -44,7 +44,11 @@ function logic(): ParcelLogic {
   );
 }
 
-export type { ParcelOwner } from "../lib/parcel/ParcelRecord";
+export type {
+  ParcelOwner,
+  ParcelSpace,
+} from "../lib/parcel/ParcelRecord";
+import type { ParcelSpace } from "../lib/parcel/ParcelRecord";
 
 export class ParcelApi {
   /**
@@ -104,13 +108,33 @@ export class ParcelApi {
   }
 
   /**
-   * **Workable area** — a parcel's gross ground area minus what its
-   * children have taken, derived on read and never stored. A building's
-   * footprint IS its own parcel's `area`, so this is the general form of
-   * `gross − footprint` with no footprint field anywhere.
+   * A parcel's **space account** — capacity, what is spoken for, what is
+   * left, and the ratio. All derived on read; nothing stored.
+   *
+   * A ceiling on its own is useless — nobody plans against a maximum. These
+   * are the numbers that answer real questions, and they read differently
+   * by tier because `area` means ground for a child of a lot and floor for
+   * a child of a building:
+   *
+   * - on a **lot** — `allocated` is its buildings' footprints,
+   *   `unallocated` is the **yard**, `utilisation` is **site coverage**;
+   * - in a **building** — `allocated` is its units' floor area,
+   *   `unallocated` is the **common area** (corridors, cores, stairs),
+   *   `utilisation` is **efficiency**.
+   *
+   * A building that has let 100% of its gross floor reports zero common
+   * area, which is visibly absurd — this does not forbid it, it shows it.
+   */
+  public static async spaceOf(extent: string): Promise<ParcelSpace> {
+    return logic().spaceOf(extent);
+  }
+
+  /**
+   * The unallocated half of {@link ParcelApi.spaceOf} on its own — the
+   * yard on a lot, the common area in a building.
    */
   public static async workableAreaOf(extent: string): Promise<number> {
-    return logic().workableAreaOf(extent);
+    return (await logic().spaceOf(extent)).unallocated;
   }
 
   /**

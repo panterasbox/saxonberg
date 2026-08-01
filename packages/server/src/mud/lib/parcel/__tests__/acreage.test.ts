@@ -88,6 +88,11 @@ function installStore(): void {
 }
 
 async function boot(): Promise<void> {
+  // ParcelLogic memoizes its registry handle, so a fresh registry per test
+  // is not enough — the memo would still point at the previous test's dead
+  // one, whose in-memory coverage trie holds the previous test's parcels.
+  // The DormWarren / KatieProvisioning precedent.
+  ParcelApi._resetRegistryRefForReload();
   const reg = makeStuffAtPath(() => new ParcelRegistry(), "/obj/ParcelRegistry");
   await reg.postRegister();
 }
@@ -173,5 +178,64 @@ describe("the named regression — unmeasured land is untouched", () => {
     await ParcelApi.subdivide(LOT, "", LANDLORD, 800);
     const row = col("parcels").find((d) => d.extent === LOT);
     expect(row?.storeys).toBe(1);
+  });
+});
+
+describe("the space account — the numbers anybody actually cares about", () => {
+  it("a lot reports COVERAGE and its yard", async () => {
+    await ParcelApi.subdivide(LOT, "", LANDLORD, 1000);
+    await ParcelApi.subdivide(BUILDING, LOT, LANDLORD, 300, 4);
+
+    const lot = await ParcelApi.spaceOf(LOT);
+    expect(lot.capacity).toBe(1000); // storeys 1 — ground
+    expect(lot.allocated).toBe(300); // the building's footprint
+    expect(lot.unallocated).toBe(700); // the yard
+    expect(lot.utilisation).toBeCloseTo(0.3); // 30% site coverage
+  });
+
+  it("a building reports EFFICIENCY and its common area", async () => {
+    await ParcelApi.subdivide(LOT, "", LANDLORD, 1000);
+    await ParcelApi.subdivide(BUILDING, LOT, LANDLORD, 300, 4);
+    // Four storeys over a 300 m² footprint = 1200 m² of interior. Let 960
+    // of it as units and the rest is what you had to build to reach them.
+    await ParcelApi.subdivide(`${BUILDING}/f1-r1`, BUILDING, LANDLORD, 480);
+    await ParcelApi.subdivide(`${BUILDING}/f2-r1`, BUILDING, LANDLORD, 480);
+
+    const b = await ParcelApi.spaceOf(BUILDING);
+    expect(b.capacity).toBe(1200); // gross floor
+    expect(b.allocated).toBe(960); // lettable
+    expect(b.unallocated).toBe(240); // corridors, cores, stairs
+    expect(b.utilisation).toBeCloseTo(0.8); // 80% — a realistic building
+  });
+
+  it("letting 100% of gross floor is SHOWN, not forbidden", async () => {
+    // A building with no circulation at all is physically absurd. The
+    // number does not refuse it — it reports zero common area and an
+    // efficiency of 1, which is the tell.
+    await ParcelApi.subdivide(LOT, "", LANDLORD, 1000);
+    await ParcelApi.subdivide(BUILDING, LOT, LANDLORD, 300, 2);
+    await ParcelApi.subdivide(`${BUILDING}/f1-r1`, BUILDING, LANDLORD, 600);
+
+    const b = await ParcelApi.spaceOf(BUILDING);
+    expect(b.unallocated).toBe(0);
+    expect(b.utilisation).toBe(1);
+  });
+
+  it("unmeasured land makes no claim — utilisation is 0, not a divide-by-zero", async () => {
+    await ParcelApi.subdivide(LOT, "", LANDLORD);
+    const lot = await ParcelApi.spaceOf(LOT);
+    expect(lot.capacity).toBe(0);
+    expect(lot.utilisation).toBe(0);
+    expect(Number.isFinite(lot.utilisation)).toBe(true);
+  });
+
+  it("an unknown extent is all zeroes, never a throw", async () => {
+    const none = await ParcelApi.spaceOf("/domain/test/nowhere");
+    expect(none).toEqual({
+      capacity: 0,
+      allocated: 0,
+      unallocated: 0,
+      utilisation: 0,
+    });
   });
 });

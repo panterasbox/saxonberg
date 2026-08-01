@@ -27,6 +27,7 @@
  */
 
 import { Idea } from "../lib/stuff/Idea";
+import type { ParcelSpace } from "../lib/parcel/ParcelRecord";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { SecurityApi } from '../api/security';
 import { CallSecurity } from "../lib/security/decorators";
@@ -421,10 +422,50 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    */
   @CallSecurity(ParcelApiCallers)
   public async workableAreaOf(extent: string): Promise<number> {
+    return (await this.spaceOf(extent)).unallocated;
+  }
+
+  /**
+   * The parcel's **space account** — the numbers anybody actually cares
+   * about, all derived on read and none of them stored.
+   *
+   * `capacity` is a ceiling (`area × storeys`) and a ceiling on its own is
+   * useless — nobody plans against a maximum. What matters is how much of
+   * it is **spoken for** and how much is **left**, which is measurable the
+   * moment children exist, because every child declares its area at
+   * `subdivide`.
+   *
+   * The same three numbers read differently by tier, because `area` means
+   * ground for a child of a lot and floor for a child of a building:
+   *
+   * | tier | `allocated` | `unallocated` | `utilisation` |
+   * |---|---|---|---|
+   * | a **lot** | its buildings' footprints | the yard | **site coverage** |
+   * | a **building** | its units' floor area | **common area** — corridors, cores, stairs | **efficiency** |
+   *
+   * So a building that has let 100% of its gross floor reports
+   * `utilisation: 1` and zero common area, which is visibly absurd — the
+   * number does not forbid it, it *shows* it. Real buildings land around
+   * 0.75–0.85; the gap is the circulation you had to build to reach the
+   * units.
+   *
+   * `utilisation` is 0 for unmeasured land rather than a divide-by-zero:
+   * a parcel that declares no area makes no claim about how full it is.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async spaceOf(extent: string): Promise<ParcelSpace> {
     const parcel = await ParcelRecord.findByExtent(extent);
-    if (!parcel) return 0;
-    const taken = await this.childAreaTotal(extent, "");
-    return Math.max(0, parcel.getArea() - taken);
+    if (!parcel) {
+      return { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
+    }
+    const capacity = parcel.getGrossFloorArea();
+    const allocated = await this.childAreaTotal(extent, "");
+    return {
+      capacity,
+      allocated,
+      unallocated: Math.max(0, capacity - allocated),
+      utilisation: capacity > 0 ? allocated / capacity : 0,
+    };
   }
 
   private async appendEvent(

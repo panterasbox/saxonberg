@@ -68,6 +68,27 @@ export interface UnitSlot {
   pos: number;
 }
 
+/**
+ * A parcel's **space account** — capacity, what is spoken for, what is
+ * left, and the ratio between them. Every field derives on read; none is
+ * stored.
+ *
+ * Reads as **site coverage** on a lot (allocated = its buildings'
+ * footprints, unallocated = the yard) and as **efficiency** in a building
+ * (allocated = its units' floor area, unallocated = common area — the
+ * corridors, cores and stairs you had to build to reach the units).
+ */
+export interface ParcelSpace {
+  /** `area × storeys` — the ceiling, and the least interesting number. */
+  capacity: number;
+  /** Declared by the children: footprints on a lot, floor area in a building. */
+  allocated: number;
+  /** `capacity − allocated` — the yard, or the common area. */
+  unallocated: number;
+  /** `allocated ÷ capacity`, 0..1. Coverage on a lot, efficiency in a building. */
+  utilisation: number;
+}
+
 export class ParcelRecord extends Document {
   static collectionName = "parcels";
   static persistentFields = [

@@ -158,13 +158,38 @@ no stored row gains a group owner.
 
 Two quantities get called *area*, and only one is conserved.
 
-- **Ground** — `ParcelApi.workableAreaOf(extent)` = `area − Σ children.area`,
-  **derived on read, never stored**. Any child consumes ground whether it
-  is a building or a sub-lot, so there is no structure/non-structure
-  distinction — and a building's **footprint needs no field**: it *is* that
-  building parcel's own `area`.
+- **Ground** — any child consumes ground whether it is a building or a
+  sub-lot, so there is no structure/non-structure distinction — and a
+  building's **footprint needs no field**: it *is* that building parcel's
+  own `area`.
 - **Floor** — `ParcelRecord.storeys`, default 1. `subdivide` conserves
   children against `area × storeys`.
+
+### The space account — the numbers you actually read
+
+`area × storeys` is a **ceiling**, and a ceiling on its own is useless:
+nobody plans against a maximum. What matters is how much of it is spoken
+for and how much is left, and both are **measurable the moment children
+exist**, because every child declares its area at `subdivide`.
+
+`ParcelApi.spaceOf(extent)` returns all four, derived on read, none stored:
+
+| tier | `allocated` | `unallocated` | `utilisation` |
+|---|---|---|---|
+| a **lot** | its buildings' footprints | the **yard** | **site coverage** |
+| a **building** | its units' floor area | **common area** — corridors, cores, stairs | **efficiency** |
+
+The same three numbers read differently by tier, because `area` means
+*ground* for a child of a lot and *floor* for a child of a building. Real
+buildings land near 0.75–0.85 efficiency; the gap is the circulation you
+had to build to reach the units.
+
+A building that has let **100% of its gross floor** reports zero common
+area and an efficiency of 1 — visibly absurd. The model does not forbid
+it; it **shows** it. Enforcement (a minimum circulation share) would be a
+regulation, and regulation belongs to the legislature, not the engine.
+
+`ParcelApi.workableAreaOf` is the `unallocated` half on its own.
 
 Multi-storey is why: a 300 m² footprint at four storeys offers ~1200 m² of
 interior, so a rule written against ground area alone refuses apartments on
@@ -180,13 +205,6 @@ deriving tenure from it would make every lighting tweak a title migration.
 Unmeasured land is not policed: a parcel with no declared area subdivides
 exactly as it did before the fields existed.
 
-> ⚠ **`area × storeys` is a MAXIMUM, not usable space.** It is *gross* floor
-> area; real lettable area is meaningfully less once external walls, cores,
-> stairwells and corridors are taken out. The ceiling's job is to stop
-> `subdivide` refusing apartments on the second floor — it is a sanity bound,
-> not a floorplan. Nothing currently forces any circulation to exist, so a
-> building may legally let 100% of its gross floor.
->
 > ⚠ **`area` means two different things** depending on the parent it is
 > declared against: **ground** for a building on a lot, **floor** for a unit
 > in a building. The ceiling switches meaning with the parent, which is why

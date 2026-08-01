@@ -288,7 +288,12 @@ Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
   apartments on the second floor. `storeys` rather than a `grossFloorArea`
   field because the row **already encoded floors** — `slotOfExtent` parses
   `f<floor>-r<pos>`, built for the dorm.
-- **`ParcelApi.workableAreaOf`** = `area − Σ children.area`, derived on
+- **`ParcelApi.spaceOf`** — the space account: `capacity` (`area ×
+  storeys`), `allocated` (Σ children), `unallocated` and `utilisation`.
+  Reads as **coverage + yard** on a lot and **efficiency + common area** in
+  a building. All derived on read, none stored — a ceiling alone is useless,
+  these are the numbers anybody plans against.
+- **`ParcelApi.workableAreaOf`** = the `unallocated` half, derived on
   read and never stored. Any child consumes ground whether it is a building
   or a sub-lot, so a building's **footprint needs no field**: it *is* that
   building parcel's own `area`.
