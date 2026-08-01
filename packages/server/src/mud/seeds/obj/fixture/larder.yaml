@@ -1,0 +1,18 @@
+# The larder — ingredient storage, and its LID IS LOAD-BEARING.
+#
+# The craft gather walk descends one level into OPEN room containers, so an
+# open larder is ingredients in reach and a closed one is storage. That is
+# shipped behaviour (the Hearthworks pantry chest is the exemplar); the
+# archetype just depends on it now. Seeded open, so `cook` works at home.
+class: /obj/Chest
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a larder
+  primaryKeyword: larder
+  keywords: [larder, pantry, cupboard, chest]
+  longDescription: |
+    A tall larder with a slatted door, cool and dark inside, smelling faintly of flour and onions.
+  open: true
+  # A fixture by encumbrance (the anvil rule): nobody walks off with the
+  # larder. Title (D5) is the other, independent guard.
+  mass: 95
