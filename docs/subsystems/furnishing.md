@@ -180,6 +180,28 @@ deriving tenure from it would make every lighting tweak a title migration.
 Unmeasured land is not policed: a parcel with no declared area subdivides
 exactly as it did before the fields existed.
 
+> ⚠ **`area × storeys` is a MAXIMUM, not usable space.** It is *gross* floor
+> area; real lettable area is meaningfully less once external walls, cores,
+> stairwells and corridors are taken out. The ceiling's job is to stop
+> `subdivide` refusing apartments on the second floor — it is a sanity bound,
+> not a floorplan. Nothing currently forces any circulation to exist, so a
+> building may legally let 100% of its gross floor.
+>
+> ⚠ **`area` means two different things** depending on the parent it is
+> declared against: **ground** for a building on a lot, **floor** for a unit
+> in a building. The ceiling switches meaning with the parent, which is why
+> one formula serves both — correct today, and ambiguous to read.
+>
+> Both are addressed by
+> [development-slate](../slates/builds/development-slate.md), which makes
+> efficiency a **measured** ratio (lettable cells ÷ built cells) rather than
+> a deduction, and splits ground conservation from floor conservation. It
+> also corrects a third thing: `subdivide`'s ceiling currently makes **every**
+> child draw against the parent, when only *productive* children should —
+> a circulation sub-parcel consumes lettable capacity it does not produce
+> from. That fix needs `landUse`, which is build-2's field and is not on
+> master, so it is deferred rather than forgotten.
+
 ## The room class and its archetypes
 
 `lib/location/FurnishableRoom` is the **one class** every archetype is a
