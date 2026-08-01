@@ -426,6 +426,64 @@ describe('fitsSlot measures the room a plant WOULD get', () => {
   });
 });
 
+describe('the land draw — what makes production scarce', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+
+  it('⭐ the draw rides the BED, so a parcel total is countable', () => {
+    // Land's job is to make production scarce, and the number that does
+    // it is authored on the productive object — expressive (compose beds
+    // of any size) and honest (backed by things a player can walk up to
+    // and count), where a cell count is neither.
+    const beds = [makeBed(12, 4), makeBed(12, 4), makeBed(6, 2)];
+    for (const b of beds) b.setLandRequirementM2(8);
+
+    const draw = beds.reduce((n, b) => n + b.getLandRequirementM2(), 0);
+    expect(draw).toBe(24);
+  });
+
+  it('⭐ only PRODUCTIVE things draw — a pot is furniture', () => {
+    // The distinction was never spatial. Paths, farmhouses, barns and
+    // decoration are free; so is a houseplant, which is why 0 is the
+    // default rather than something a pot has to opt out of.
+    expect(makePot(3).getLandRequirementM2()).toBe(0);
+    expect(makeBed(12, 4).getLandRequirementM2()).toBe(0); // until authored
+  });
+
+  it('refuses a negative requirement rather than crediting land', () => {
+    const bed = makeBed(12, 4);
+    bed.setLandRequirementM2(-50);
+    expect(bed.getLandRequirementM2()).toBe(0);
+  });
+
+  it('⭐ over-draw carries NO penalty — crowding is the limiting factor', () => {
+    // A hard cap is dishonest (real land does not refuse) and a soft cap
+    // is worse (an administered multiplier pretending to be physics). So
+    // nothing here reads the draw and reduces a yield: two beds far past
+    // any sane parcel behave exactly as two beds.
+    const a = makeBed(12, 4);
+    const b = makeBed(12, 4);
+    a.setLandRequirementM2(100_000);
+    b.setLandRequirementM2(100_000);
+    seat(makePlant('a'), a);
+    seat(makePlant('b'), b);
+
+    // Same soil each, same root room each — the draw is inert to growth.
+    expect(a.rootRoomPerPlant()).toBe(b.rootRoomPerPlant());
+    expect(a.rootRoomPerPlant()).toBe(12);
+  });
+});
+
 describe('a bed cannot be carried — by mass, not by class', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();

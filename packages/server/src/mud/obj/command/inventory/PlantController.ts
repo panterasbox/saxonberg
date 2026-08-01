@@ -119,8 +119,24 @@ export default class PlantController extends CommandController<PlantModel> {
           ? site.getPersistenceKey()
           : null;
       const where = keyed ?? site?.getTemplatePath() ?? '';
+
+      // ⚠ UNPARCELLED GROUND IS NOT POLICED. `landUseOf` is total and
+      // answers `wild` for ground nobody has claimed — but "nobody has
+      // zoned this" is not the same statement as "this is zoned against
+      // you", and treating it as one breaks the hermit: a shack and a
+      // garden in an unparcelled forest must work with zero numbers.
+      //
+      // So the gate asks whether a parcel COVERS this ground at all
+      // before it asks what that parcel permits. The abstract path
+      // branches stay protected, because they DO have rows: `/studio`
+      // and `/lib/lounge` are covered, declare no use, and therefore
+      // still answer `wild` → refused.
+      //
+      // Same principle as the acreage check degrading on unmeasured
+      // land: measure nothing, police nothing.
+      const covering = await ParcelApi.coveringParcelOf(where);
       const use = ParcelApi.landUseOf(where);
-      if (!LandUses.permitsAnyCultivation(use)) {
+      if (covering && !LandUses.permitsAnyCultivation(use)) {
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(

@@ -169,6 +169,52 @@ On an editable zone template a content author could rezone their own land
 — the precise forgery the retired `data.ownerGroupName` stamps were
 removed to close.
 
+### ⚠ Unparcelled ground is NOT policed — the hermit test
+
+`landUseOf` is total and answers `wild` for ground nobody claims, but the
+gate asks whether a parcel **covers** the ground before it asks what that
+parcel permits.
+
+> *A hermit in a forest. A shack, maybe a garden. Nothing parcelled.*
+> **That works, with zero numbers.**
+
+"Nobody has zoned this" is not the same statement as "this is zoned
+against you", and conflating them turns every unclaimed acre in the world
+into red tape. The abstract branches stay protected anyway, because they
+DO carry rows: `/studio` and `/lib/lounge` are covered, declare no use,
+and so still answer `wild` → refused.
+
+Same principle as the acreage check degrading on unmeasured land:
+**measure nothing, police nothing.** The cap is there to constrain player
+expansion on land somebody has surveyed, not to make authoring a garden
+require a survey.
+
+### The land draw — what makes production scarce
+
+```
+draw = Σ over productive objects of landRequirementM2
+```
+
+Authored on the **bed**, not the zone and not a per-parcel declaration.
+A cell count is not expressive (the only lever is how many cells, and a
+barn inside a field zone would draw against farming); a declared per-zone
+number is not honest (an author could claim a thousand-cell estate draws
+1 m² and no player could tell). An authored constant on the productive
+object is both, and it is backed by things a player can walk up to and
+count.
+
+**Only productive things draw.** Paths, farmhouses, barns, yards and
+decoration are free — the distinction was never spatial, it is *does this
+use produce?* A pot draws 0, which is the default: a houseplant is
+furniture.
+
+> ⚠ **Over-draw is permitted and there is NO penalty mechanic.** A hard
+> cap is dishonest (real land does not refuse) and a soft cap is worse (an
+> administered multiplier pretending to be physics). Crowding is
+> competition for light, water and nutrients, so it belongs to the
+> limiting-factor minimum and nowhere else. Do not reimplement it as a
+> yield multiplier; there is a test asserting the draw is inert to growth.
+
 ### The gate applies to GROUND, not to furniture
 
 `Cultivable.fixedGround` (authored data, not a class check) decides.

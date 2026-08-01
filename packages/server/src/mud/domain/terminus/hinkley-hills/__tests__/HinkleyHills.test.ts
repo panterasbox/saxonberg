@@ -480,15 +480,46 @@ describe('Hinkley Hills — the land-use gate', () => {
     expect(pot.isFixedGround()).toBe(false);
   });
 
-  it('unzoned ground refuses too — wild admits nothing', async () => {
-    const nowhere = roomAt(fresh('/domain/unclaimed/field'));
-    const giver = giverIn(nowhere);
+  it('⭐ THE HERMIT TEST: unparcelled ground is not policed', async () => {
+    // A hermit in a forest. A shack, maybe a garden. Nothing parcelled.
+    // That has to work with zero numbers — "nobody has zoned this" is not
+    // the same statement as "this is zoned against you", and a gate that
+    // conflates them turns every unclaimed acre in the world into red
+    // tape. Measure nothing, police nothing.
+    const forest = roomAt(fresh('/domain/wilderness/clearing'));
+    const giver = giverIn(forest);
     const bed = makeBed();
-    ContainmentApi.move(bed, nowhere);
+    ContainmentApi.move(bed, forest);
     const seed = makeSeed();
     ContainmentApi.move(seed, giver);
 
-    const ctx = ctxFor(giver, nowhere);
+    // No parcel covers it at all.
+    expect(await ParcelApi.coveringParcelOf(forest.getTemplatePath()!)).
+      toBeNull();
+
+    const ctx = ctxFor(giver, forest);
+    const ctrl = makeStuff(() => new PlantController());
+    await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
+
+    expect(reasons(ctx)).not.toContain('land-use-forbids-cultivation');
+  });
+
+  it('⭐ …but a COVERED branch with no declared use still refuses', async () => {
+    // The other half, and why `wild` stays fail-closed. `/studio` and
+    // `/lib/lounge` are titles over the TEMPLATE TREE rather than ground.
+    // They HAVE parcel rows, declare no use, and so answer `wild` — which
+    // admits nothing. Covered-and-unzoned is policed; uncovered is not.
+    seedParcel('/studio', null);
+    await ParcelApi.rebuildCoverageIndex();
+
+    const cell = roomAt(fresh('/studio/some-group/room'));
+    const giver = giverIn(cell);
+    const bed = makeBed();
+    ContainmentApi.move(bed, cell);
+    const seed = makeSeed();
+    ContainmentApi.move(seed, giver);
+
+    const ctx = ctxFor(giver, cell);
     const ctrl = makeStuff(() => new PlantController());
     await ctrl.execute(model(one(seed, 'seed'), one(bed, 'bed', 'in')), ctx);
 

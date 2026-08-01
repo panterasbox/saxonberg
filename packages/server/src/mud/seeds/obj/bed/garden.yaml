@@ -26,6 +26,18 @@ data:
   # does not admit cultivation. A pot leaves this false: a houseplant on
   # a windowsill is not agriculture and no ordinance cares.
   fixedGround: true
+  # Square metres of land this draws from the parcel it stands on. A
+  # 2 m × 1 m frame plus the path you need around it to work it — call it
+  # 8 m², so a quarter-acre lot (1000 m²) has room for a great many beds
+  # and the number only starts to bite on a garden somebody is farming
+  # rather than gardening.
+  #
+  # The draw rides the BED because that is both expressive (compose beds
+  # of any size) and honest (backed by things a player can count).
+  # Over-draw is PERMITTED and carries no penalty — crowding is
+  # competition for light, water and nutrients, which the limiting-factor
+  # minimum already models.
+  landRequirementM2: 8
   interiorBulk: true
   interiorCapacity: 12
   # `liquidTight` (the default), NOT `open`: an `open` interior does not

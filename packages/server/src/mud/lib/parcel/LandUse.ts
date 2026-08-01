@@ -21,15 +21,25 @@
  * author could rezone their own land. This is the same rule that retired the
  * `data.ownerGroupName` zone stamps; see `config/parcels.yaml`'s header.
  *
- * ## `wild` is the fail-closed default
+ * ## `wild` is the fail-closed default — for COVERED ground
  *
- * A parcel with no explicit use inherits its covering parcel's, and ground
- * nothing claims answers `wild`. That default is load-bearing: **most parcel
- * rows are not ground at all** — `/lib/lounge`, `/studio` and the `/obj/…`
- * roots are path-branch titles over the template tree, and they all answer
- * `wild`. So `wild` admits *nothing*: cultivation is permitted only where a
- * use explicitly grants it. Stewardship's own gloss agrees — *"~nothing
- * built; passage and gathering"* is gathering, not farming.
+ * A parcel with no explicit use inherits its covering parcel's, and
+ * `landUseOf` is total: ground nothing claims answers `wild`, which admits
+ * nothing. That default is load-bearing, because **most parcel rows are not
+ * ground at all** — `/lib/lounge`, `/studio` and the `/obj/…` roots are
+ * path-branch titles over the template tree. They carry rows, declare no
+ * use, and must not read as cultivable. Stewardship's own gloss agrees:
+ * *"~nothing built; passage and gathering"* is gathering, not farming.
+ *
+ * ⚠ **But a consumer must ask whether a parcel COVERS the ground before it
+ * asks what that parcel permits.** "Nobody has zoned this" is not the same
+ * statement as "this is zoned against you", and conflating them turns every
+ * unclaimed acre into red tape — the hermit test: *a shack and a garden in
+ * an unparcelled forest must work with zero numbers.* So `landUseOf`
+ * answers `wild` for uncovered ground and the GATE lets it through, while
+ * covered-and-unzoned stays refused. Same principle as the acreage check
+ * degrading on unmeasured land: measure nothing, police nothing. See
+ * `PlantController`'s gate for the shipped shape.
  *
  * ## The area band is a LOT band
  *
@@ -37,6 +47,12 @@
  * `ParcelRegistry.subdivide` refuses a CHILD outside its effective use's
  * band. That is the whole of "constrained by zoning" — one check when a
  * lot is minted, not an ongoing simulation.
+ *
+ * **The band is GROUND area, and multi-storey does not enlarge it.** A
+ * four-storey residential lot offers more floor but stands on the same
+ * dirt; if a `storeys` factor lands on the record, the band must keep
+ * reading `area` and not `area × storeys`, or a modest tower is refused
+ * for being a large lot.
  *
  * **A district is not a lot, and is not checked against these numbers.**
  * Hinkley Hills is ~24 hectares of `residential` ground, far past the two

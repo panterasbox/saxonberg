@@ -119,6 +119,8 @@ export interface Cultivable {
    * carry about. A garden bed is; a pot is not.
    */
   isFixedGround(): boolean;
+  /** Square metres of land this draws from the parcel it stands on. */
+  getLandRequirementM2(): number;
 
   // ---------- soil state (its own checkpoint) ----------
 
@@ -165,6 +167,7 @@ export function CultivableMixin<
       "soilClockStamp",
       "_soilMeanMoisture",
       "fixedGround",
+      "landRequirementM2",
     ];
 
     /**
@@ -187,6 +190,52 @@ export function CultivableMixin<
 
     public isFixedGround(): boolean {
       return this.fixedGround;
+    }
+
+    /**
+     * Square metres of land this draws from the parcel it stands on —
+     * **land's job is to make production scarce, and this is the number
+     * that does it.**
+     *
+     * The draw rides the PRODUCTIVE OBJECT rather than the zone or a
+     * per-parcel declaration, for two reasons the development slate
+     * settled:
+     *
+     *   - a **cell count** is not expressive (the only lever is how many
+     *     cells, and a barn inside a field zone would draw against
+     *     farming);
+     *   - a **declared per-zone number** is not honest (an author could
+     *     claim a thousand-cell estate draws 1 m² and no player could
+     *     tell).
+     *
+     * An authored constant on the bed is both: compose beds of any size,
+     * let a greenhouse draw differently from open ground, and back the
+     * total with things a player can walk up to and count. Same shape as
+     * `restQuality` on a bed — an authored constant consumed by a system
+     * that already exists.
+     *
+     * **Only productive things draw.** Paths, farmhouses, barns, yards
+     * and decoration are free; the distinction was never spatial, it is
+     * *does this use produce?* A POT therefore draws 0, which is the
+     * default — a houseplant is furniture, not production.
+     *
+     * ⚠ **Over-draw is permitted and carries NO penalty mechanic.** A
+     * hard cap is dishonest (real land does not refuse) and a soft cap is
+     * worse (an administered multiplier pretending to be physics).
+     * Crowding is competition for light, water and nutrients, so it
+     * belongs to the limiting-factor minimum and nowhere else. Resist
+     * reimplementing it as a yield penalty here.
+     *
+     * @authorable
+     */
+    public landRequirementM2: number = 0;
+
+    public getLandRequirementM2(): number {
+      return this.landRequirementM2;
+    }
+
+    public setLandRequirementM2(value: number): void {
+      this.landRequirementM2 = Math.max(0, value);
     }
 
     public setFixedGround(value: boolean): void {
