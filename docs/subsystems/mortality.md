@@ -284,8 +284,28 @@ be used). It is perceptible because *being dead does not log you off* — the
 aether is the internet, and a shade is still on it. It is **not** a spirit
 field, and a mystical reading of it is a standing correction.
 
-**Transient.** Reaped on disconnect. The shade is a *view*; the arc is the
-state.
+**Transient, but it lingers like a body.** A shade does **not** override
+`onLinkdead`: a deliberate sign-out fires `PlayerLoggedOut`, a bare drop
+fires `PlayerDisconnected`, and either way the shade stays in the world
+holding the `PlayerApi` slot — so reconnecting returns you to the *same*
+shade in the *same* room, exactly as reconnecting to a living body does.
+
+### Logging out as a shade
+
+Three separate mechanisms have to agree, and they do:
+
+| you | what happens |
+|---|---|
+| **drop / sign out** | shade lingers, holding the registry slot |
+| **reconnect** | `loadAvatarsForUser` reuses the in-world shade; `embodyForSession` sees no arc on it and passes it straight through |
+| **log in after a restart** | the shade is gone (it persists nothing); the identity's snapshot carries the arc, so `embodyForSession` mints a fresh one |
+
+**You are still a shade either way** — that is what makes quitting useless
+as an escape from death. And there is no living body kept in reserve to
+fall back into: death *destructs* the drained avatar rather than parking
+it, so nothing can reconnect you into the person you used to be.
+
+The shade is a *view*; the arc on the identity is the state.
 
 ## Function over form, made mechanical
 

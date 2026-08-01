@@ -27,6 +27,8 @@ import BodyPlan from '../../species/BodyPlan';
 import { MixinApi } from '../../../api/mixin';
 import { SpeciesApi } from '../../../api/species';
 import { StuffApi } from '../../../api/stuff';
+import { PlayerApi } from '../../../api/player';
+import { ConditionApi } from '../../../api/condition';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -122,5 +124,57 @@ describe('Shade — activations differ, composition does not', () => {
     const updates = MixinApi.isAether(sh) ? sh.getHostedUpdates() : [];
     const hasWallet = updates.some((u) => MixinApi.isCredentialWallet(u));
     expect(hasWallet).toBe(false);
+  });
+
+  /**
+   * Logging out as a shade, and coming back.
+   *
+   * The rule: a shade behaves like a body, because from the player's side
+   * it IS their body. Logging out logs you out; reconnecting reconnects
+   * you — to the SAME shade, in the same room. And the identity's arc is
+   * what makes a fresh login still a ghost, so quitting is never an escape
+   * from death.
+   */
+  describe('logout and reconnect', () => {
+    it('linkdead does NOT reap it — the shade lingers like a body', async () => {
+      const sh = await shadeFor('ghost-9');
+      sh.onLinkdead();
+      // A guest is reaped on drop; a body lingers so the next enter() is a
+      // reconnect. A shade is the second kind.
+      expect(sh.isDestroyed()).toBe(false);
+    });
+
+    it('keeps the PlayerApi slot while linkdead, so reconnect finds IT', async () => {
+      const sh = await shadeFor('ghost-10');
+      PlayerApi.registerAvatar(sh);
+      sh.onLinkdead();
+
+      // This is the lookup `loadAvatarsForUser` does first ("reuse if
+      // already in-world"). Finding the shade here is what puts the player
+      // back into the same ghost rather than into their old body.
+      expect(PlayerApi.findAvatarByPlayerId('ghost-10')).toBe(sh);
+    });
+
+    it('a reconnecting shade passes through embodyForSession untouched', async () => {
+      // The login seam swaps a DECEASED identity for a shade. A shade that
+      // is already a shade carries no arc, so it is returned as-is — the
+      // reconnect does not mint a second one.
+      const sh = await shadeFor('ghost-11');
+      expect(sh.getMortalArc()).toBeNull();
+      const resolved = await ConditionApi.embodyForSession(sh);
+      expect(resolved).toBe(sh);
+    });
+
+    it('the ORIGINAL body is gone, so nothing can reconnect into it', async () => {
+      // Death destructs the drained avatar rather than parking it. There
+      // is deliberately no living body kept in reserve: logging out as a
+      // shade cannot drop you back into the person you used to be, because
+      // that object does not exist.
+      const sh = await shadeFor('ghost-12');
+      PlayerApi.registerAvatar(sh);
+      const held = PlayerApi.findAvatarByPlayerId('ghost-12');
+      expect(held).toBe(sh);
+      expect(MixinApi.isIncorporeal(held!)).toBe(true);
+    });
   });
 });

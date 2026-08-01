@@ -40,7 +40,6 @@ import type Species from '../species/Species';
 import { IncorporealMixin } from './Incorporeal';
 import { ConnectionApi } from '../../api/connection';
 import { PlayerApi } from '../../api/player';
-import { StuffApi } from '../../api/stuff';
 
 /** Init context for a shade: the identity it stands in for. */
 export interface ShadeInitContext extends AvatarInitContext {
@@ -127,14 +126,25 @@ export default class Shade extends IncorporealMixin(Avatar) {
   }
 
   /**
-   * Reaped on disconnect. Nothing is lost: the shell slices are
-   * re-derivable from the identity snapshot, and the arc position — the
-   * only durable fact — is on the identity, so logging back in mints a
-   * fresh shade rather than resurrecting anybody.
+   * A shade linkdeads exactly like a body, because from the player's side
+   * it IS their body — so this deliberately does NOT override
+   * `Avatar.onLinkdead`.
+   *
+   * That means a deliberate sign-out fires `PlayerLoggedOut` and a bare
+   * drop fires `PlayerDisconnected`, and either way the shade LINGERS the
+   * way a living body does. Reconnecting finds it still holding the
+   * `PlayerApi` slot, so the player returns to the same shade in the same
+   * room rather than being re-minted at the place they died.
+   *
+   * An earlier version reaped it on disconnect — the GUEST behaviour. It
+   * still put you back as a shade (the arc is on the identity, so the
+   * login path re-mints one), but the world never heard you leave and you
+   * came back wherever your body had fallen instead of where your ghost
+   * had walked to.
+   *
+   * Nothing durable rides on the lingering: the shade persists nothing, so
+   * a restart simply drops it and the next login re-mints from the arc.
    */
-  public override onLinkdead(): void {
-    void StuffApi.destruct(this);
-  }
 
   public override async onDestruct(): Promise<void> {
     this.stopAutoSave();
