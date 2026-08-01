@@ -25,7 +25,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
 import Seed from '../../Seed';
-import PlantPot, { PLANT_SLOT } from '../../PlantPot';
+import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
@@ -79,7 +79,7 @@ export default class PlantController extends CommandController<PlantModel> {
       });
       return;
     }
-    if (!(target instanceof PlantPot)) {
+    if (!MixinApi.isCultivable(target)) {
       const detail = `${target.getPresentation()} is not a pot`;
       MessageApi.scene(giver)
         .topic(TOPIC)

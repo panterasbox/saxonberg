@@ -20,9 +20,10 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ContainmentApi } from '../../../api/containment';
+import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
-import PlantPot, { PLANT_SLOT } from '../../PlantPot';
+import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
@@ -75,20 +76,20 @@ export default class RepotController extends CommandController<RepotModel> {
       });
       return;
     }
-    if (!(target instanceof PlantPot)) {
+    if (!MixinApi.isCultivable(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You can't plant anything in ${Mml.item(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'not-a-pot',
-        detail: `${target.getPresentation()} is not a pot`,
+        reason: 'not-cultivable',
+        detail: `${target.getPresentation()} is not ground you can plant in`,
       });
       return;
     }
 
-    const origin = subject.getPot();
+    const origin = subject.getBed();
     if (origin === target) {
       MessageApi.scene(giver)
         .topic(TOPIC)

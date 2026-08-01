@@ -15,7 +15,7 @@
  * `applyPopulates` override must wrap `Populates`.
  *
  * Everything about *how* it grows lives in `GrowingMixin`; this class is
- * only the three host seams the mixin declares plus the pot relationship:
+ * only the three host seams the mixin declares plus the bed relationship:
  *
  *   - `rootRoom()` — the soil litres its pot offers (the third limiting
  *     factor), or `null` when unpotted;
@@ -46,8 +46,9 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type { Containable } from "../lib/spatial/Containable";
 import type { Slotted } from "../lib/slot/Slotted";
+import type { Bulkable } from "../lib/bulk/Bulkable";
 import type { Difficulty } from "../lib/advancement/ActSignature";
-import PlantPot from "./PlantPot";
+import type { Cultivable } from "../lib/husbandry/Cultivable";
 
 // PersistableMixin OUTERMOST — the documented host rule.
 const PlantBase = PersistableMixin(
@@ -79,10 +80,18 @@ export default class Plant extends PlantBase {
     this.seedTemplatePath = value;
   }
 
-  /** The pot this plant is slotted into, or null when unpotted. */
-  public getPot(): PlantPot | null {
+  /**
+   * The ground this plant is rooted in — a pot or a garden bed — or null
+   * when unrooted. Speaks the {@link Cultivable} interface rather than a
+   * concrete class: *a pot is a bed with one slot*, and the plant has no
+   * business knowing which it is sitting in.
+   */
+  public getBed():
+    | (Stuff & Cultivable & Container & Bulkable & Slotted)
+    | null {
     const host = this.getOccupiedHost();
-    return host instanceof PlantPot ? host : null;
+    if (!host) return null;
+    return MixinApi.isCultivable(host) ? host : null;
   }
 
   /**
@@ -131,13 +140,20 @@ export default class Plant extends PlantBase {
   }
 
   /**
-   * The soil litres available to the roots — the pot's bulk interior.
-   * `null` when unpotted: not being in a pot is not a *root* constraint
-   * (an unpotted plant is already in trouble via water, since nothing can
+   * The soil litres available to THIS plant's roots — the bed's soil
+   * shared across its occupied slots.
+   *
+   * **At N = 1 that is exactly the bed's whole volume**, so every shipped
+   * pot behaves as it did in phase 1. Above N = 1 the shared soil makes
+   * density a real trade-off through the unchanged `satRoot` curve: a
+   * crowded bed root-limits its plants exactly as a too-small pot does.
+   *
+   * `null` when unrooted: not being in a pot is not a *root* constraint
+   * (an unrooted plant is already in trouble via water, since nothing can
    * hold moisture for it, and modelling it twice would double-punish).
    */
   protected override rootRoom(): number | null {
-    return this.getPot()?.getSoilVolume() ?? null;
+    return this.getBed()?.rootRoomPerPlant() ?? null;
   }
 
   /**
@@ -156,16 +172,23 @@ export default class Plant extends PlantBase {
    * transplanting lesson depends on.
    */
   public override fitsSlot(host: Stuff & Slotted, slot: string): boolean {
-    if (!(host instanceof PlantPot)) return false;
+    if (!MixinApi.isCultivable(host)) return false;
     void slot;
-    if (MixinApi.isContainable(this) && this.getContainer() === host) {
+    if (
+      MixinApi.isContainable(this) &&
+      (this.getContainer() as Stuff | null) === (host as Stuff)
+    ) {
       return true;
     }
     const profile = this.getProfile();
     if (!profile) return true;
     const demand = profile.rootDemand[this.getGrowthStage()];
     if (!Number.isFinite(demand) || demand <= 0) return true;
-    return host.getSoilVolume() >= demand;
+    // Measured against the room this plant would ACTUALLY get once seated
+    // (hence the prospective +1), so a fourth plant is refused entry to a
+    // bed sized for three for the same reason a mature plant refuses a
+    // thimble — one rule, both scales.
+    return host.rootRoomPerPlant(1) >= demand;
   }
 
   /**
@@ -218,9 +241,9 @@ export default class Plant extends PlantBase {
   protected override onFloweringLatched(): void {
     const path = this.seedTemplatePath;
     if (!path) return;
-    const pot = this.getPot();
+    const bed = this.getBed();
     const target: Stuff | null =
-      pot ?? (MixinApi.isContainable(this) ? this.getContainer() : null);
+      bed ?? (MixinApi.isContainable(this) ? this.getContainer() : null);
     if (!target || !MixinApi.isContainer(target)) return;
     void (async () => {
       try {

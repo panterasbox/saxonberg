@@ -502,7 +502,7 @@ describe('the dorm houseplant — content and placement', () => {
     expect(pot!.getSoilVolume()).toBeGreaterThan(0);
     expect(pot!.getOccupant(PLANT_SLOT)).toBe(plant);
     expect(pot!.getContents()).toContain(plant);
-    expect(plant!.getPot()).toBe(pot);
+    expect(plant!.getBed()).toBe(pot);
 
     // Resting on the desk (the `onto:` populate spec).
     expect(pot!.getRestingOn()).toBe(desk);
@@ -969,7 +969,7 @@ describe('the dorm houseplant — durability', () => {
 
     const transient = makeStuff(() => new Location());
     ContainmentApi.move(pot, transient);
-    expect(plant.getPot()).toBe(pot);
+    expect(plant.getBed()).toBe(pot);
 
     // Cull the transient room. Nothing captured it, so nothing wrote a
     // record: `ContainerMixin.cleanupOnDestruct` has nowhere to evacuate a
@@ -979,7 +979,7 @@ describe('the dorm houseplant — durability', () => {
     StuffApi.destruct(transient);
     expect(pot.isDestroyed()).toBe(true);
     expect(transient.isDestroyed()).toBe(true);
-    expect(plant.getPot()).toBeNull(); // its slot went with the pot
+    expect(plant.getBed()).toBeNull(); // its slot went with the pot
 
     const records = col('holder_snapshots');
     expect(

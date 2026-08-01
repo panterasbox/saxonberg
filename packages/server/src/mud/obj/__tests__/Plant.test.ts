@@ -497,7 +497,7 @@ describe('Plant — the growing object', () => {
     expect(clay.getContents()).toContain(p);
     expect(clay.getOccupant(PLANT_SLOT)).toBe(p);
     expect(p.getOccupiedHost()).toBe(clay);
-    expect(p.getPot()).toBe(clay);
+    expect(p.getBed()).toBe(clay);
     expect(clay.getContents().indexOf(p)).toBeGreaterThanOrEqual(0);
   });
 });

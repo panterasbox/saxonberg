@@ -164,6 +164,9 @@ export const Mixins = {
   Wet: 'WetMixin',
   // The living-world growth model — a cultivated thing that grows.
   Growing: 'GrowingMixin',
+  // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;
+  // a garden bed is the same surface with a bigger N.
+  Cultivable: 'CultivableMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).

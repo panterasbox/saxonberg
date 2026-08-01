@@ -31,7 +31,7 @@ import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Growing } from '../../../lib/husbandry/Growing';
-import PlantPot, { PLANT_SLOT } from '../../PlantPot';
+import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
@@ -64,10 +64,12 @@ export default class WaterController extends CommandController<WaterModel> {
 
     // Naming either half of the assembly works — a player types both.
     const target =
-      named instanceof PlantPot ? (named.getOccupant(PLANT_SLOT) ?? named) : named;
+      MixinApi.isCultivable(named)
+        ? (named.getPlant() ?? named)
+        : named;
 
     if (!MixinApi.isGrowing(target)) {
-      const isEmptyPot = named instanceof PlantPot;
+      const isEmptyPot = MixinApi.isCultivable(named);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
