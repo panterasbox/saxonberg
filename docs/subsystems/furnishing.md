@@ -321,12 +321,22 @@ because their furniture moved.
 - **Washing / sterility** — `DressingMixin.dressingQuality` (consumed by
   `treat`, no producer) and `Condition.contagion` ("reserved, no consumer
   v1") are the two seams. Handwashing *is* the chain of infection.
-- **The rest of the dorm retrofit.** The bed **is** done — see below. What
-  is left is tidying: deduplicating `/domain/eternal/duncan-hall/Desk`
-  against `/lib/spatial/Surface`, the dorm tap against the basin, and
-  `DormRoom` against `FurnishableRoom`. Each of those is a `class:` change
-  on a live template row, which is a **data migration**, not a refactor —
-  every dorm holds a record keyed by its unit parcel.
+- **Further dorm "dedupe" — checked, and there is none.** The bed **is**
+  done (below). The rest turned out not to be duplication at all, and this
+  is recorded so the next reader does not go looking:
+  - the **tap** already uses `/obj/UnboundedReceptacle`, the same class the
+    bathroom basin uses. Two rows over one class with different prose **is**
+    the archetype pattern; collapsing them would delete content;
+  - the **desk** is a `Surface` *plus* two things a `Surface` cannot be: the
+    **affordance carrier** for `remodel` (a container does not afford its
+    own verbs to occupants — a co-located sibling does) and a **theme
+    discriminant** (`DormThemes.roleOf` switches on `instanceof`). Same for
+    the footlocker, and for the bed;
+  - **`DormRoom`** carries `WarrenMember`, the theme overlay and the
+    population witness.
+
+  Each earns its class. The only thing shared is the *composition*, and
+  that is guarded by test on both sides rather than by collapsing them.
 - **The unit floorplan and lease** — provisioning a multi-room leased unit,
   its lease-gated door and its revert. The *rule* ships
   (`evictToStorage`); the Warren-shaped content does not.

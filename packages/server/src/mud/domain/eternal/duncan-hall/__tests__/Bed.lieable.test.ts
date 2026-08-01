@@ -11,6 +11,10 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 import Bed from "../Bed";
+import DormRoom from "../DormRoom";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { parse } from "yaml";
 import { StuffApi } from "../../../../api/stuff";
 import { SlotApi } from "../../../../api/slot";
 import { MixinApi } from "../../../../api/mixin";
@@ -80,5 +84,59 @@ describe("the dorm bed", () => {
     );
     expect(body.getRestingOnPath()).toBe(BED_PATH);
     expect(body.getRestingSlot()).toBe("lie:1");
+  });
+});
+
+/**
+ * The dorm's fixture classes are NOT duplication — each earns its class,
+ * and this pins why, so a future "tidy-up" reads the reason first.
+ */
+describe("the dorm fixtures earn their classes", () => {
+  it("Desk is a Surface PLUS an affordance carrier and a theme discriminant", async () => {
+    const { default: Desk } = await import("../Desk");
+    // 1. It affords `remodel` to the room's occupants. A container does not
+    //    afford its own verbs — a co-located sibling does (the
+    //    Menu-in-the-room precedent), so the desk is the carrier.
+    expect(
+      (Desk as unknown as { commandContributions: { environment: string[] } })
+        .commandContributions.environment,
+    ).toContain("domain/eternal/duncan-hall/cmd/remodel.yaml");
+    // 2. DormThemes.roleOf discriminates on `instanceof` to pick which
+    //    theme prose slot a fixture fills.
+    expect(MixinApi.hasMixin(Desk, Mixins.Surfaced)).toBe(true);
+  });
+
+  it("the tap has no bespoke class at all — it is already the generic one", () => {
+    // `/obj/UnboundedReceptacle`, same class the bathroom basin uses. Two
+    // rows over one class with different prose IS the archetype pattern;
+    // collapsing them would delete content, not duplication.
+    const tap = parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../../../seeds/domain/eternal/duncan-hall/dorm-fixtures/tap.yaml",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as { class?: string };
+    expect(tap.class).toBe("/obj/UnboundedReceptacle");
+  });
+
+  it("DormRoom composes the four layers whose omission is SILENT", () => {
+    // The bug that bit FurnishableRoom in review: without Populates a
+    // seed's `populates:` is inert and no fixture ever lands; without
+    // Visible its prose is inert; without Exitable nothing can walk in.
+    // Nothing fails loudly. Guarding the dorm against the same class of
+    // mistake costs one test.
+    for (const layer of [
+      Mixins.Populates,
+      Mixins.Visible,
+      Mixins.Detailed,
+      Mixins.Exitable,
+    ]) {
+      expect(MixinApi.hasMixin(DormRoom, layer)).toBe(true);
+    }
   });
 });
