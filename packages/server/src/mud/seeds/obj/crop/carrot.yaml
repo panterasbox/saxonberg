@@ -1,0 +1,22 @@
+# A bunch of carrots — the harvested crop.
+#
+# An ordinary Thing over the SHIPPED `/lib/material/food/root-vegetable`,
+# which already declares edibility and its carb load: the crop needs no
+# new Material, and it is eaten through the shipped metabolism path with
+# no new consumer.
+#
+# It carries a maker's mark and a Grade because `/obj/Crop` composes
+# CraftedMixin — the same stamp a knife off a bench gets. The band comes
+# off the plant's WORST stretch at harvest time, so two bunches that look
+# identical can grade differently, and the one grown by someone who went
+# away for a fortnight is the poorer.
+class: /obj/Crop
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a bunch of carrots
+  primaryKeyword: carrots
+  keywords: [carrot, carrots, bunch, vegetable, veg]
+  longDescription: |
+    A bunch of carrots with the tops still on, tied at the neck with twine and smelling of cold earth.
+  material: /lib/material/food/root-vegetable
+  mass: 0.6

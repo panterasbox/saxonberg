@@ -959,6 +959,16 @@ export const AppSettingKeys = {
   /** Husbandry — nutrient fraction at/below which nutrient satisfaction is
    * 0 (spent soil). */
   husbandryNutrientSpentAt: "husbandry.nutrientSpentAt",
+  /**
+   * Husbandry — the harvest grade ladder. A crop's band is read off the
+   * plant's WORST limiting satisfaction, not its average or its final
+   * condition, so farming rewards your worst moment. Each dial is the
+   * floor for that band; below the lowest, the crop is `poor`.
+   */
+  husbandryGradeFairAt: "husbandry.grade.fairAt",
+  husbandryGradeFineAt: "husbandry.grade.fineAt",
+  husbandryGradeExceptionalAt: "husbandry.grade.exceptionalAt",
+  husbandryGradeMasterfulAt: "husbandry.grade.masterfulAt",
 
   /* ────────────────────────── storm (weather Wave 2) ────────────────────────── */
   /** Storm — Floor surface-bulk puddle litres accrued per rain segment. */

@@ -62,7 +62,11 @@ const PlantBase = PersistableMixin(
 );
 
 export default class Plant extends PlantBase {
-  static persistentFields: string[] = ["seedTemplatePath"];
+  static persistentFields: string[] = [
+    "seedTemplatePath",
+    "harvestTemplatePath",
+    "nutrientDraw",
+  ];
 
   /**
    * The `/obj/seed/…` template a flowering episode mints. Null for a
@@ -78,6 +82,53 @@ export default class Plant extends PlantBase {
 
   public setSeedTemplatePath(value: string | null): void {
     this.seedTemplatePath = value;
+  }
+
+  /**
+   * The `/obj/crop/…` template a harvest mints, mirroring
+   * {@link Plant.seedTemplatePath} exactly (the same
+   * instantiate-don't-resolve Pattern A variant). Null for an ornamental
+   * that yields nothing — a houseplant is not harvestable, and saying so
+   * costs one null.
+   *
+   * @authorable
+   */
+  public harvestTemplatePath: string | null = null;
+
+  public getHarvestTemplatePath(): string | null {
+    return this.harvestTemplatePath;
+  }
+
+  public setHarvestTemplatePath(value: string | null): void {
+    this.harvestTemplatePath = value;
+  }
+
+  /**
+   * Percentage points of nitrogen this crop takes out of the bed when it
+   * is harvested — the export that makes an unfed bed yield worse each
+   * time. Authored per species; 0 for a plant that draws nothing.
+   *
+   * @authorable
+   */
+  public nutrientDraw: number = 0;
+
+  public getNutrientDraw(): number {
+    return this.nutrientDraw;
+  }
+
+  public setNutrientDraw(value: number): void {
+    this.nutrientDraw = Math.max(0, value);
+  }
+
+  /**
+   * Whether this plant can be harvested right now: it must yield
+   * something, be mature, and be alive. Reconciles on read (through
+   * `getGrowthStage`), so an absence that ripened it counts.
+   */
+  public isHarvestable(): boolean {
+    if (!this.harvestTemplatePath) return false;
+    if (this.getGrowthStage() !== "mature") return false;
+    return this.getConditionBand() !== "dead";
   }
 
   /**
