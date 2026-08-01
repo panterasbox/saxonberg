@@ -391,7 +391,7 @@ async function patchStoredEstate(
   ownerPath: string,
   entry: EstateEntry,
 ): Promise<void> {
-  const rec = await PersistedRecord.findByScopeAndOwner(ownerPath, ownerPath);
+  const rec = (await PersistedRecord.findByScope(ownerPath))[0];
   if (!rec) return; // no record yet — the owner has never been captured
   const key = Mixins.Estate;
   const existing = rec.state[key];
@@ -411,10 +411,16 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
 
   // Shared content order — the Container slice's entry order, the indices
   // the Slotted slice references. Built once so both agree; must apply the
-  // SAME HasInteractive filter `ContainerMixin.captureSlice` does, or the
-  // Slotted indices drift from the emitted entries.
+  // SAME two filters `ContainerMixin.captureSlice` does (HasInteractive AND
+  // the D2 stamped-good skip), or the Slotted indices drift from the
+  // emitted entries.
   const order: (Stuff & Containable)[] = MixinApi.isContainer(host)
-    ? host.getContents().filter((item) => !MixinApi.isHasInteractive(item))
+    ? host
+        .getContents()
+        .filter(
+          (item) =>
+            !MixinApi.isHasInteractive(item) && !ChattelApi.isStamped(item),
+        )
     : [];
   const indexMap = new Map<Stuff, number>();
   order.forEach((item, i) => indexMap.set(item, i));
@@ -743,6 +749,101 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
 
 /** Restore one record onto `host` under its owning principal (shared by the
  * keyed and keyless materialize paths). */
+/**
+ * The **room identity** an owned good's `place` names — a host's persistence
+ * scope, plus its per-instance key when it has one (many leased units share
+ * one `DormRoom` template, so the scope alone would collapse them).
+ */
+function placeIdOf(host: Stuff): string {
+  const scope = host.getTemplatePath() ?? "";
+  // Only an EXPLICIT key qualifies — the same rule `captureItem` applies to
+  // a nested host ref. A keyless host's stashed key is scope-DERIVED (the
+  // singleton's self/parcel owner), so folding it in would give one room two
+  // different identities either side of its first capture: the place written
+  // when it was fresh would never match the place looked up after it had
+  // been materialized once.
+  const key =
+    MixinApi.isPersistable(host) && host.isPersistenceKeyExplicit()
+      ? host.getPersistenceKey()
+      : null;
+  return key ? `${scope}#${key}` : scope;
+}
+
+/**
+ * The **room overlay** (D4): after a host has restored its own record —
+ * its fixtures — lay down the owned goods whose `place` names it.
+ *
+ * Order is load-bearing and is the whole decision: fixtures first, so a
+ * placed good can rest on a surface that exists. The host captures nothing
+ * owner-side on the way down; the owner's record is authoritative for
+ * chattel, and a host going dormant simply forgets furniture it never
+ * owned.
+ *
+ * Each good is cloned **as its owner**, not as the host — so provenance and
+ * every principal-based gate resolve to the person whose good it is, in a
+ * room that may belong to somebody else entirely.
+ */
+async function overlayOwnedGoods(host: Stuff): Promise<void> {
+  if (!MixinApi.isContainer(host)) return;
+  const placeId = placeIdOf(host);
+  if (!placeId) return;
+  const placed = await ChattelApi.placedIn(placeId);
+  for (const { chattelId, owner } of placed) {
+    if (owner?.kind !== "player") continue;
+    const ownerHost = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
+    let entry: EstateEntry | null = null;
+    if (ownerHost && MixinApi.isEstate(ownerHost)) {
+      entry = ownerHost.getEstateEntry(chattelId);
+    }
+    if (!entry) entry = await storedEstateEntry(owner.templatePath, chattelId);
+    if (!entry || entry.place !== placeId) continue;
+    const principal = ownerHost ?? host;
+    const good = await ExecutionContextApi.run(
+      host,
+      principal,
+      "chattelOverlay",
+      undefined,
+      async () => {
+        ExecutionContextApi.tagActingAuthor(principal);
+        return PersistableLogicRestoreDetached(entry, host, principal);
+      },
+    );
+    if (good && ownerHost && MixinApi.isEstate(ownerHost)) {
+      ownerHost._putEstateEntry(entry, good);
+    }
+  }
+}
+
+/** Read one estate entry out of an offline owner's stored record. */
+async function storedEstateEntry(
+  ownerPath: string,
+  chattelId: string,
+): Promise<EstateEntry | null> {
+  // By SCOPE, not `(scope, owner)`: a host's record key is scope-DERIVED
+  // unless it was given an explicit one, so the owner column is not
+  // reliably the principal's own path.
+  for (const rec of await PersistedRecord.findByScope(ownerPath)) {
+    const slice = rec.getState()[Mixins.Estate];
+    if (!slice || !("entries" in slice)) continue;
+    const hit = slice.entries.find((e) => e.chattelId === chattelId);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/** `restoreDetached`'s body, reachable from module scope. */
+async function PersistableLogicRestoreDetached(
+  entry: EstateEntry,
+  container: Stuff,
+  principal: Stuff,
+): Promise<Stuff | null> {
+  return restoreItem(
+    { templatePath: entry.templatePath, state: entry.state, placement: {} },
+    container,
+    principal,
+  );
+}
+
 async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void> {
   const principal = principalFor(record.getOwner(), host);
   // Run the restore AS the owning principal: a pushed frame whose acting
@@ -763,6 +864,9 @@ async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void
       await restorePlacement(host, record.getPlace());
     },
   );
+  // Fixtures first, THEN the owned goods placed here (D4). Outside the
+  // principal frame above, because each good is cloned as ITS OWN owner.
+  await overlayOwnedGoods(host);
 }
 
 /**
@@ -828,6 +932,12 @@ export class PersistableLogic extends ApiLogic {
     return captureHostOfImpl(stuff);
   }
 
+  /** See {@link PersistableApi.placeIdOf}. */
+  @CallSecurity(PersistableApiCallers)
+  public placeIdOf(host: Stuff): string {
+    return placeIdOf(host);
+  }
+
   /** See {@link PersistableApi.captureDetached}. */
   @CallSecurity(PersistableApiCallers)
   public captureDetached(item: Stuff): Record<string, MixinSlice> {
@@ -841,16 +951,7 @@ export class PersistableLogic extends ApiLogic {
     container: Stuff,
     principal: Stuff,
   ): Promise<Stuff | null> {
-    const restored = await restoreItem(
-      {
-        templatePath: entry.templatePath,
-        state: entry.state,
-        placement: {},
-      },
-      container,
-      principal,
-    );
-    return restored;
+    return PersistableLogicRestoreDetached(entry, container, principal);
   }
 
   /** See {@link PersistableApi.hasRecord}. */

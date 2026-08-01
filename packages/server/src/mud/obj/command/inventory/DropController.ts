@@ -34,6 +34,7 @@ import { GlobbableApi, type ApplyQuantityResult } from '../../../api/glob';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
+import { ChattelApi } from '../../../api/chattel';
 
 interface DropModel extends CommandModel {
   targets: MqlManyResult;
@@ -181,6 +182,11 @@ export default class DropController extends CommandController<DropModel> {
       );
     }
     ContainmentApi.move(operand, context.location);
+    // Custody moved; title did not. Re-derive where the owner keeps it, so
+    // a dropped good persists on ITS OWNER'S record naming this room —
+    // "I left my book at a friend's" — rather than becoming part of the
+    // room. A no-op for anything unowned. (D8)
+    void ChattelApi.followCustody(operand as unknown as Stuff);
     MessageApi.scene(context.commandGiver)
       .topic('world.perception.inventory')
       .toSelf(Mml.compose`You drop ${Mml.item(operand)}.`)

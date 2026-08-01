@@ -587,6 +587,7 @@ describe("security (AC #8)", () => {
         "captureHostOf",
         "captureDetached",
         "restoreDetached",
+        "placeIdOf",
         "deleteAllFor",
         "hasRecord",
         "materialize",

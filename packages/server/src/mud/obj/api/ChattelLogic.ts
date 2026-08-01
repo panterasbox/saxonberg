@@ -25,6 +25,7 @@ import { ProvenanceApi } from "../../api/provenance";
 import { ParcelApi } from "../../api/parcel";
 import { PersistableApi } from "../../api/persistable";
 import { TemplatePaths } from "../../lib/paths";
+import { ESTATE_INVENTORY } from "../../lib/persistence/PersistenceSlice";
 import type { ChattelOwner } from "../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../lib/chattel/Chattel";
 import type { ChattelStampResult } from "../../api/chattel";
@@ -110,6 +111,42 @@ export class ChattelLogic extends ApiLogic {
    */
   @CallSecurity(ChattelApiCallers)
   public async setPlace(item: Stuff, place: string): Promise<void> {
+    return this.applyPlace(item, place);
+  }
+
+  /**
+   * See {@link ChattelApi.followCustody}. Re-derive where the owner keeps a
+   * good from where it now IS: in its owner's own hands it is `inventory`,
+   * anywhere else it is the nearest persistence host's room identity.
+   *
+   * This is what makes D8 "no new verbs": `drop`/`put`/`get` move custody
+   * through `ContainmentApi` exactly as they always have, then call this,
+   * and title stays put throughout. Taking a good you do not hold title to
+   * is theft — permitted and recoverable — so this deliberately does NOT
+   * check who is acting; it only records where the thing ended up.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async followCustody(item: Stuff): Promise<void> {
+    if (MixinApi.isGlobbable(item) || !MixinApi.isChattel(item)) return;
+    const good = item as Stuff & Chattel;
+    if (!good.getChattelId()) return; // unstamped: nothing owns it
+    const owner = await this.resolveOwner(item);
+    if (owner?.kind !== "player") return;
+    const host = this.nearestHost(item);
+    if (!host) return; // transient space — leave the last placement alone
+    const place =
+      host.getTemplatePath() === owner.templatePath
+        ? ESTATE_INVENTORY
+        : PersistableApi.placeIdOf(host);
+    await this.applyPlace(item, place);
+  }
+
+  /**
+   * The three writes, ungated so a gated sibling can reach them (the
+   * `ChattelRegistry` ungated-privates pattern): the good's own field, the
+   * `chattel` row's by-room index, and a live owner's estate.
+   */
+  private async applyPlace(item: Stuff, place: string): Promise<void> {
     if (MixinApi.isGlobbable(item)) return; // a fungible stack has no place
     if (!MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
@@ -119,6 +156,20 @@ export class ChattelLogic extends ApiLogic {
     const reg = lookupRegistry();
     if (reg) await reg.setPlace(id, place);
     await this.syncEstate(good, place);
+  }
+
+  /**
+   * The nearest persistence host at or outward of `item` — the thing whose
+   * record a placement is expressed against. Hop-capped against a
+   * containment cycle, the `captureHostOf` precedent.
+   */
+  private nearestHost(item: Stuff): Stuff | null {
+    let cur: Stuff | null = item;
+    for (let hops = 0; cur && hops < 32; hops++) {
+      if (cur !== item && MixinApi.isPersistable(cur)) return cur;
+      cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+    }
+    return null;
   }
 
   /** See {@link ChattelApi.placedIn}. */

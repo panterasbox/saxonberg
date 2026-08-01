@@ -117,6 +117,16 @@ export class PersistableApi {
   }
 
   /**
+   * The **room identity** an owned good's `place` names — a host's
+   * persistence scope, plus its per-instance key when it has one. Many
+   * leased units share one room template, so the scope alone would collapse
+   * them into one place.
+   */
+  static placeIdOf(host: Stuff): string {
+    return logic().placeIdOf(host);
+  }
+
+  /**
    * Reconstitute a good from an {@link EstateEntry} into `container`, as
    * `principal` — the room-overlay half of owner-based persistence (D4).
    * Returns the live good, or null when its template no longer resolves.

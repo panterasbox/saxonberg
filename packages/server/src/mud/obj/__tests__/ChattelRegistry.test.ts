@@ -34,6 +34,7 @@ import { ContainmentApi } from "../../api/containment";
 import { PersistableApi } from "../../api/persistable";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { ContainerMixin } from "../../lib/spatial/Container";
+import { EstateMixin } from "../../lib/chattel/Estate";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Idea } from "../../lib/stuff/Idea";
 import PersistentHydrator from "../../lib/persistence/PersistentHydrator";
@@ -56,6 +57,13 @@ class Torch extends Thing {}
 /** A persistable container host (an Avatar / chest stand-in). */
 class Vault extends PersistableMixin(
   ContainerMixin(PostRegistrationMixin(Idea)),
+) {
+  static persistentFields: string[] = [];
+}
+
+/** An OWNER: the same, plus the estate a stamped good persists into (D1). */
+class EstateHolder extends PersistableMixin(
+  EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
   static persistentFields: string[] = [];
 }
@@ -221,9 +229,14 @@ describe("chattel possession core", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/alice" });
   });
 
-  it("ownership survives a persistence round-trip", async () => {
+  it("ownership survives a persistence round-trip — now OWNER-side", async () => {
+    // D2 changed which record carries a stamped good: a foreign container
+    // (this vault) no longer persists it, because someone else holds title.
+    // It rides that owner's ESTATE instead, and the identity + title that
+    // this test has always guarded survive the round-trip unchanged — which
+    // is the criterion, independent of which scope stores it.
     const torch = makeTorch();
-    const alice = makeOwner("alice");
+    const alice = makeStuffAtPath(() => new EstateHolder(), "/obj/Avatar/alice");
     const vault = makeStuffAtPath(() => new Vault(), "/obj/test/vault");
 
     await ChattelApi.stamp(torch, alice);
@@ -232,16 +245,18 @@ describe("chattel possession core", () => {
       torch as unknown as Stuff & Containable,
       vault as unknown as Stuff & Container,
     );
+    await ChattelApi.setPlace(torch, "inventory");
 
-    // Capture the host + its contents, then reincarnate a fresh host — the
-    // capture → evict → materialize round-trip (mirrors logout/reload; the
-    // live clones are unregistered, not destructed, exactly as inventory
-    // evacuates rather than firing onDestruct).
+    // The vault captures WITHOUT the torch (the skip rule), and the flush
+    // hands it to Alice; then Alice round-trips, carrying it.
     await PersistableApi.capture(vault);
+    await PersistableApi.capture(alice);
     for (const item of (vault as unknown as Stuff & Container).getDeepContents())
       StuffApi.unregister(item);
     StuffApi.unregister(vault);
-    const reborn = makeStuffAtPath(() => new Vault(), "/obj/test/vault");
+    StuffApi.unregister(alice);
+
+    const reborn = makeStuffAtPath(() => new EstateHolder(), "/obj/Avatar/alice");
     await PersistableApi.materialize(reborn);
 
     const contents = (reborn as unknown as Stuff & Container).getContents();

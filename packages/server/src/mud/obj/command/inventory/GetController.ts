@@ -24,6 +24,7 @@ import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { ConditionApi } from '../../../api/condition';
 import { Touch } from '../../../lib/perception/Touch';
+import { ChattelApi } from '../../../api/chattel';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
@@ -260,6 +261,10 @@ export default class GetController extends CommandController<GetModel> {
     }
 
     ContainmentApi.move(operand, giver);
+    // Custody returns to a pair of hands; `place` follows to `inventory`.
+    // Picking up a good you do not hold title to is theft — permitted and
+    // recoverable — so this records, it does not refuse. (D8)
+    void ChattelApi.followCustody(operand as unknown as Stuff);
     MessageApi.scene(giver)
       .topic('world.perception.inventory')
       .toSelf(Mml.compose`You pick up ${Mml.item(operand)}.`)

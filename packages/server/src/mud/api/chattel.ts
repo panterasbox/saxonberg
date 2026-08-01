@@ -12,6 +12,7 @@
  */
 
 import { StuffApi } from "./stuff";
+import { MixinApi } from "./mixin";
 import { HotReloadApi } from "./hot-reload";
 import { ChattelLogic } from "../obj/api/ChattelLogic";
 import type { ChattelOwner } from "../lib/chattel/ChattelRecord";
@@ -64,6 +65,23 @@ export class ChattelApi {
   }
 
   /**
+   * Whether someone has been **stamped** as owning this good — a durable
+   * per-instance id is minted only by `stamp`/`transfer`, so a non-empty
+   * id IS the stamp.
+   *
+   * **Synchronous, and that is the point.** The persistence capture walk
+   * cannot await, so the skip rule (D2) needs a stamp test it can run
+   * inline. Keying on the stamp rather than on `ownerOf` as a whole is
+   * also the semantically correct rule: a fixture under a parcel extent is
+   * *owned* but not *stamped*, so it keeps riding its room's record where
+   * it belongs, and only goods that have actually changed hands move to
+   * the owner scope.
+   */
+  public static isStamped(item: Stuff): boolean {
+    return MixinApi.isChattel(item) && item.getChattelId() !== "";
+  }
+
+  /**
    * Record **where the owner keeps** a titled good — a room identity,
    * `'inventory'`, or `'storage'`. The single write path: it sets the
    * good's own field, the `chattel` row's by-room index, and (when the
@@ -76,6 +94,21 @@ export class ChattelApi {
    */
   public static async setPlace(item: Stuff, place: string): Promise<void> {
     return logic().setPlace(item, place);
+  }
+
+  /**
+   * Re-derive a good's placement from where it now **is** — the one call a
+   * custody verb makes after moving something. In its owner's own hands it
+   * becomes `inventory`; anywhere else, the room identity of the nearest
+   * persistence host.
+   *
+   * A no-op for a glob, an unstamped good, or a good in transient space.
+   * Deliberately records rather than judges: taking a good you do not hold
+   * title to is **theft** — permitted, recoverable, never blocked — so this
+   * does not check who is acting.
+   */
+  public static async followCustody(item: Stuff): Promise<void> {
+    return logic().followCustody(item);
   }
 
   /**
