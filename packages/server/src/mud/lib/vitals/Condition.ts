@@ -279,10 +279,12 @@ export interface DyingRecord {
    * consent was given); an environmental death leaves it unset. The ledger
    * never infers consent — the producer that knows it supplies it.
    *
-   * Typed loosely here on purpose: `Condition.ts` is body-state vocabulary
-   * and must not import the accountability ledger's shapes.
+   * **Opaque on purpose.** `Condition.ts` is body-state vocabulary; it
+   * must not import the accountability ledger's shapes, and the body has
+   * no business inspecting attribution it is merely carrying. The death
+   * transition types it on the way out.
    */
-  accountability?: Record<string, unknown>;
+  accountability?: unknown;
 }
 
 export type ActiveCondition =

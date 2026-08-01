@@ -49,6 +49,7 @@ import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ElectricityApi } from '../../api/electricity';
+import { ConditionApi } from '../../api/condition';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
@@ -227,11 +228,7 @@ export interface Vitals {
    * Called by drivers directly on the body (an object-owned mutation, the
    * shipped harm rule), never through an Api.
    */
-  beginDying(
-    cause: string,
-    windowSec?: number,
-    blame?: Record<string, unknown>,
-  ): void;
+  beginDying(cause: string, windowSec?: number, blame?: unknown): void;
   /** Is this body in the rescuable interval before death? */
   isDying(): boolean;
   /** Game-seconds left before the window expires, or `null` if not dying. */
@@ -427,7 +424,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public beginDying(
       cause: string,
       windowSec?: number,
-      blame?: Record<string, unknown>,
+      blame?: unknown,
     ): void {
       const existing = this.dyingRecord();
       if (existing) {
@@ -467,20 +464,17 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * The window ran out. Stamps the ground-truth cause and flips the
-     * lifecycle — the one place a `dying` body becomes a dead one.
+     * The window ran out — route through the single death transition,
+     * which stamps the cause, flips the lifecycle synchronously, and
+     * writes the chronicle deed + the accountability row.
      *
-     * Wave 2 replaces the body of this method with a call to the single
-     * `ConditionApi.die` transition, which also writes the two ledgers.
-     * Until then it does exactly what the seven scattered `applyDeath`
-     * copies used to do, in one place.
+     * Fire-and-forget from this sync reconcile: everything a reader can
+     * observe happens inside `die`'s synchronous prefix, and only the
+     * ledger I/O is deferred. The record's attribution (stamped by
+     * whoever put the body in the window) rides along inside `die`.
      */
     private expireDying(record: DyingRecord): void {
-      const self = this as unknown as Stuff;
-      this.relieve(record);
-      if (!MixinApi.isOrganism(self) || self.isDead()) return;
-      this.setCauseOfDeath(record.cause);
-      self.setLifecycleState('dead');
+      void ConditionApi.die(this as unknown as Stuff, record.cause);
     }
 
     /**

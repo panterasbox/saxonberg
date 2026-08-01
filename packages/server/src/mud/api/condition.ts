@@ -29,6 +29,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { AccountabilityFields } from '../lib/accountability/AccountabilityEvent';
 import type {
   InsultKind,
   Trauma,
@@ -41,6 +42,22 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { InsultKind, Channel } from '../lib/vitals/Condition';
+
+/**
+ * Caller-supplied facts for a death. Everything here is optional because
+ * most deaths have nobody to blame: a body that froze on a mountainside
+ * needs no attribution, and inventing one would sweep environmental harm
+ * into the crime ledger (the wrong blast radius — see accountability.md
+ * § Producers).
+ */
+export interface DeathSpec {
+  /**
+   * A fully-formed accountability row. Combat builds one (it knows the
+   * killer, the terms, the consent); environmental drivers pass nothing
+   * and `die` writes a harmless environmental default.
+   */
+  accountability?: AccountabilityFields;
+}
 export { CHANNELS, Channels } from '../lib/vitals/Condition';
 
 /**
@@ -135,6 +152,35 @@ export class ConditionApi {
    */
   public static inflict(target: Stuff, spec: InflictSpec): InflictOutcome {
     return logic().inflict(target, spec);
+  }
+
+  /**
+   * **The single death transition.** Every lethal driver in the engine
+   * ends here — the nine that could kill a character used to flip
+   * `lifecycleState` themselves, in seven places, three of them
+   * byte-identical copies of each other.
+   *
+   * What it does, in order: stamps the ground-truth cause, clears the
+   * dying record, performs the lifecycle-visible work **synchronously**
+   * (before the first `await`, so a read on the same tick cannot observe a
+   * half-dead body), then writes the two ledgers.
+   *
+   * **The ledgers never infer.** `spec.accountability` is supplied by the
+   * producer that knows the facts — combat knows the killer, the terms and
+   * whether consent was given; hypothermia knows none of that and passes
+   * nothing, so an environmental death records a row that is structurally
+   * incapable of being a crime. This is what lets one call replace seven
+   * without violating accountability's producers-not-a-chokepoint rule.
+   *
+   * Death is **not destruction**: the body persists as a corpse. See
+   * `docs/subsystems/mortality.md`.
+   */
+  public static die(
+    host: Stuff,
+    cause: string,
+    spec?: DeathSpec,
+  ): Promise<void> {
+    return logic().die(host, cause, spec);
   }
 
       }

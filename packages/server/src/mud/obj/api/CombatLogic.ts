@@ -2843,8 +2843,7 @@ function handleDown(
 
   if (!safeIsSentient(victim)) {
     // The cull — a beast is finished by the winning blow.
-    killImpl(victim, "slain");
-    recordDeath(session, attacker, victim);
+    killImpl(victim, "slain", buildDeathRow(session, attacker, victim));
     endWith(session, "death", victim, attacker);
     runResolutionConsumers(session, attacker, victim, true, false);
     return;
@@ -2860,13 +2859,23 @@ function handleDown(
   beginCoup(session, attacker, victim);
 }
 
-/** Pull the death seam (the harm-owned lifecycle flip), naming the cause
- * so a `getCauseOfDeath` read is honest for a combat kill. */
-function killImpl(target: Stuff, cause: string): void {
-  if (MixinApi.isVitals(target) && !target.getCauseOfDeath()) {
-    target.setCauseOfDeath(cause);
-  }
-  if (MixinApi.isOrganism(target)) target.setLifecycleState("dead");
+/**
+ * A deliberate finishing blow — the cull and the coup. Routes through the
+ * single death transition, carrying combat's row so exactly one
+ * accountability row is appended and `deriveBlame` sees precisely what it
+ * saw before.
+ *
+ * Note this does NOT enter the dying window: the cull and the coup are
+ * decisions someone made, not thresholds someone crossed, and the whole
+ * point of the two-stage death is that the second stage is where a person
+ * chooses. By the time we are here, they chose.
+ */
+function killImpl(
+  target: Stuff,
+  cause: string,
+  row: AccountabilityFields,
+): void {
+  void ConditionApi.die(target, cause, { accountability: row });
 }
 
 /** End the fight if trauma has driven a combatant unconscious or dead
@@ -2881,7 +2890,9 @@ function checkVitalsResolution(session: CombatSession): void {
     const c = s.combatant.getConsciousness();
     if (c === "dead") {
       // A death from accumulated trauma mid-fight (the bleed-out path).
-      if (killer) recordDeath(session, killer, s.combatant);
+      // No row is written here: the body went through the dying window,
+      // and `ConditionApi.die` already appended the row stamped onto that
+      // record below. Writing again would double-count the death.
       endWith(session, "death", s.combatant, killer ?? undefined);
       if (killer) {
         runResolutionConsumers(
@@ -2896,6 +2907,19 @@ function checkVitalsResolution(session: CombatSession): void {
     }
     if (c === "unconscious" && !s.down) {
       s.down = true;
+      // Stamp combat's attribution onto the dying record, if the body is
+      // in the window. A bleed-out can finish long after the fight
+      // resolves — by then the session is gone and nobody else knows who
+      // struck the killing blow, so the facts have to ride the record.
+      // `beginDying` is idempotent and only fills blame when it is absent,
+      // so this never rewrites an earlier attribution.
+      if (killer && s.combatant.isDying()) {
+        s.combatant.beginDying(
+          s.combatant.getCauseOfDeath() ?? "wounds",
+          undefined,
+          buildDeathRow(session, killer, s.combatant),
+        );
+      }
       // The attrition down (DECISION F) — same witness as the contest loss.
       dispatchDowned(session, killer ? session.getState(killer) : null, s);
       endWith(session, "incapacitation", s.combatant, killer ?? undefined);
@@ -3374,12 +3398,23 @@ function recordOpening(
  * (the killer's side's formation + role + any directing captain), so a
  * legitimacy consumer can derive command responsibility — recorded, never
  * consulted by the crime rule. */
-function recordDeath(
+/**
+ * Build combat's death row — the facts only combat knows: who struck, on
+ * what terms, whether the victim consented, and which formation/captain
+ * was in force.
+ *
+ * It RETURNS the row rather than writing it. The write now happens inside
+ * `ConditionApi.die`, so exactly one row is appended per death however the
+ * death was reached (the winning blow, the coup, or bleeding out after the
+ * fight resolved). The row's contents are unchanged, which is what keeps
+ * `deriveBlame` byte-identical.
+ */
+function buildDeathRow(
   session: CombatSession,
   killer: Stuff,
   victim: Stuff,
   directedBy = "",
-): void {
+): AccountabilityFields {
   const terms = termsFor(session, killer, victim);
   let formationPath = "";
   try {
@@ -3387,7 +3422,7 @@ function recordDeath(
   } catch {
     /* unbooted party subsystem — no formation fact to record */
   }
-  noteAttribution({
+  return {
     kind: "death",
     sessionId: session.sessionId,
     initiator: terms.initiator,
@@ -3401,7 +3436,7 @@ function recordDeath(
     formationPath,
     killerRole: safeRoleOf(killer),
     directedBy,
-  });
+  };
 }
 
 function blameForImpl(victimId: string): Promise<BlameVerdict | null> {
@@ -3587,8 +3622,11 @@ function completeCoup(
 ): void {
   // Re-check: the victim may have been dragged clear or already died.
   if (!coupEligible(executioner, victim)) return;
-  killImpl(victim, "put to death");
-  recordDeath(session, executioner, victim, directedBy);
+  killImpl(
+    victim,
+    "put to death",
+    buildDeathRow(session, executioner, victim, directedBy),
+  );
   CombatNarration.narrateResolution({
     combatants: [executioner, victim] as [Stuff, Stuff],
     outcome: "death",

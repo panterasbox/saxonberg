@@ -14,6 +14,12 @@ import { TemplatePaths } from '../../lib/paths';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../lib/vitals/Condition';
+import { ChronicleApi } from '../../api/chronicle';
+import { AccountabilityApi } from '../../api/accountability';
+import { SpeciesApi } from '../../api/species';
+import { SecurityApi } from '../../api/security';
+import type { AccountabilityFields } from '../../lib/accountability/AccountabilityEvent';
+import type { DeathSpec } from '../../api/condition';
 import { Channels } from '../../lib/material/Channel';
 import type { Channel } from '../../lib/material/Channel';
 import type { Construction } from '../../lib/material/Construction';
@@ -230,10 +236,118 @@ export class ConditionLogic extends ApiLogic {
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
   }
+  /** See {@link ConditionApi.die}. */
+  @CallSecurity(ConditionApiCallers)
+  public die(host: Stuff, cause: string, spec?: DeathSpec): Promise<void> {
+    return dieImpl(host, cause, spec);
+  }
+
   // The former `afflict` / `relieve` / `conditionsOf` thin forwarders
   // were removed (item-1 antipattern sweep): callers narrow with
   // `MixinApi.isVitals` and call `target.afflict` / `.relieve` /
   // `.getConditions()` directly. `inflict` (the producer above) stays.
+}
+
+/**
+ * Bodies currently mid-transition. `die` does its lifecycle-visible work
+ * synchronously and its ledger writes after an `await`, so a second read
+ * on the same tick can re-enter; the guard is entered in the sync prefix,
+ * never after the await, or the re-entry it exists to stop slips past it.
+ */
+const dying = new Set<string>();
+
+/**
+ * The single death transition (see {@link ConditionApi.die} for the
+ * contract). Module-private so the gated method makes no intra-singleton
+ * self-call.
+ *
+ * Ordering is the substance of this function. Everything that changes what
+ * the world can observe happens BEFORE the first `await`; the ledger
+ * writes come after, because they are I/O and no reader is waiting on
+ * them.
+ */
+async function dieImpl(
+  host: Stuff,
+  cause: string,
+  spec?: DeathSpec,
+): Promise<void> {
+  // ── synchronous prefix ────────────────────────────────────────────
+  if (dying.has(host.stuffId)) return;
+  if (!MixinApi.isOrganism(host) || host.isDead()) return;
+  if (!MixinApi.isVitals(host)) return;
+  dying.add(host.stuffId);
+
+  try {
+    // A dying record may be carrying attribution stamped by whoever put
+    // the body in the window (combat stamps a bleed-out it caused). The
+    // explicit spec wins; otherwise inherit what the record carried.
+    const record = host
+      .getConditions()
+      .find((c) => c.kind === 'dying');
+    const attribution =
+      spec?.accountability ??
+      (record?.kind === 'dying' ? record.accountability : undefined);
+    if (record) host.relieve(record);
+
+    host.setCauseOfDeath(cause);
+    // Death is a lifecycle transition, NOT destruction — the body stays in
+    // the world as a corpse (race.md). Never `StuffApi.destruct` here.
+    host.setLifecycleState('dead');
+
+    // The accountability row is a SYNCHRONOUS fire-and-forget append, and
+    // it stays in the sync prefix deliberately: a consumer that reads the
+    // ledger in the same turn as the killing blow (combat's own coup
+    // choreography does) must not race the write.
+    AccountabilityApi.record(
+      (attribution as AccountabilityFields | undefined) ??
+        environmentalRow(host),
+    );
+
+    // ── async tail ──────────────────────────────────────────────────
+    // Only the chronicle deed, which renders prose and hits Mongo. Nobody
+    // reads it in the same turn.
+    await recordDeathDeed(host, cause);
+  } finally {
+    dying.delete(host.stuffId);
+  }
+}
+
+/** The chronicle deed. No-ops without a durable owner key / connection. */
+async function recordDeathDeed(host: Stuff, cause: string): Promise<void> {
+  try {
+    await ChronicleApi.recordDeed(host, {
+      template: '{{ who | name }} died of {{ cause }}.',
+      vars: { who: host, cause },
+      where: MixinApi.isContainable(host)
+        ? (host.getContainer()?.getTemplatePath() ?? null)
+        : null,
+      tags: ['death'],
+    });
+  } catch {
+    // Fire-and-forget: a ledger write must never block the transition.
+  }
+}
+
+/**
+ * The row for a death nobody is responsible for — cold, hunger, a fall.
+ *
+ * `lethality` is deliberately OMITTED so it defaults to `'non-lethal'`,
+ * which makes an environmental death **structurally incapable** of
+ * deriving as a crime. That is stronger than passing `consented: true`
+ * would be: it does not assert something false about the victim, it simply
+ * records that no lethal terms were imposed by anybody.
+ */
+function environmentalRow(host: Stuff): AccountabilityFields {
+  return {
+    kind: 'death',
+    sessionId: SecurityApi.uuid(),
+    initiator: '',
+    opponent: '',
+    victim: host.getTemplatePath() ?? host.stuffId,
+    killer: '',
+    consented: false,
+    sentient: SpeciesApi.isSentient(host),
+  };
 }
 
 /**
