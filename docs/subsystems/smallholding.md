@@ -477,42 +477,58 @@ rule that landed while it was in flight.
 
 ---
 
-## ⚠ Buying a lot is NOT reachable at char-gen, and the tests must not pretend
+## ⚠ Buying a lot is not reachable at char-gen — and that is the economy
 
-A lot is **4000**; char-gen's onboarding stipend is **20**. The gap is the
-economy working as designed — land is earned, and `issueCash` at char-gen
-is the only conserved way money enters a new character.
+A lot is **4000**; char-gen's onboarding stipend is **20**. Land is
+earned, and `issueCash` at char-gen was for a long time the only
+conserved way money entered a character at all.
 
 The Hinkley e2e briefly closed that gap with a **test-only cash faucet in
-the backend** (`POST /auth/test-fund` → `Backend` → `Application` →
-`issueCash`, 20,000 credits). It was wrong and it is gone. Three reasons,
-in ascending order:
+the backend** (`POST /auth/test-fund`, 126 lines across `Application`,
+`Backend` and `TestAuthRoutes`, handing out 20,000). It was wrong and it
+is gone — see [antipatterns.md § A test-only capability added to the
+BACKEND](../antipatterns.md).
 
-1. It was 126 lines of production backend code no player could reach.
-2. It established a shape — *"when a test needs something, add a backend
-   method and a route"* — that ends in a cheat console.
-3. It handed a test character **1000× the onboarding grant**, which meant
-   the suite was no longer exercising the economy at all.
+**What the suite does instead is what the fiction says.** Exactly one
+authority may add to the money supply: the **Governor of the Central
+Bank**. So the suite becomes that authority and draws the money the way
+the Governor does — `reserve issue <amount>`, behind the shipped
+`requiresGovernor`, over the conserved `issueCash` faucet. The
+`⭐ BUY A LOT` spec asserts both directions: shut to an ordinary
+character, open to the Governor.
 
-`eval` cannot substitute for it: the sandbox exposes exactly five names
-(`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi`, `console`) and adding
-`BankingApi` would give every wizard a money printer **in production**.
+It gets the authority through the **shipped deploy contract**, not a
+seam: `FOUNDER_GOOGLE_EMAIL` names the founder, `OfficeRegistry` reads it
+at boot exactly as in production, and the test-auth seam mints profiles
+at `<handle>@e2e.local` — so pointing one at the other makes a session a
+real founder, holding the founder-default seats. Nothing learns it is a
+test. ⚠ That is **interim**: it grants every founder-default seat when
+the spec wants one, and it is that way only because
+[`office assign` cannot currently seat anybody](./governance.md).
 
-**What replaced it: one lot ships already sold** (`config/parcels.yaml`,
-held by the developer group). The gate is ungated and the cultivation gate
-reads ZONING not title, so a walk-in-and-plant test needs a lot that is
-*sold*, not one it *bought*. The purchase itself keeps its 18 unit tests in
-`TitleVerb.test.ts`, including the funded path; what only a browser can
-prove is the reachability chain, and that needs no money.
+`eval` is not an alternative: its sandbox exposes five names, and adding
+`BankingApi` to reach around a gate in a test adds it for every wizard in
+production.
 
-It is also better content. The lane already says *"Where a lot has been
-taken there is a gate in the fence and, behind it, somebody's roof"* — a
-sentence that described nothing on a fresh world. A subdivision drawn for
-a hundred families that got **one** is the joke; one is not zero.
+**One lot also ships already sold** (`config/parcels.yaml`, held by the
+developer group), which is what lets the walk-in-and-plant specs work
+ground without buying it. It is better content besides — the lane says
+*"Where a lot has been taken there is a gate in the fence and, behind it,
+somebody's roof"*, a sentence that described nothing on a fresh world.
 
-The genuinely better test — a character who **earns** the 4000 through the
-shipped labor market and then buys — is a future economy-integration spec,
-and is slow enough that it should not gate the farm.
+### ⚠ A crop in a bed's slot cannot be targeted
+
+`destruct carrots` → *"no match for carrots"*, standing in the yard, with
+the crop plainly listed. `look at carrot` fails the same way. The plant
+occupies the bed's plant **slot**, and slot occupants appear not to be
+reachable by keyword.
+
+Two consequences, one small and one not. The small one: an e2e cannot
+tidy up after planting, which is why the walk-in spec asserts verb
+**dispatch** rather than outcome. The larger one: a player cannot
+examine, name or interact with the thing growing in their own bed except
+through the verbs that take the *bed* as their target — which is a real
+gap in the cultivation surface, not a test problem.
 
 ## History — what the live drive changed
 

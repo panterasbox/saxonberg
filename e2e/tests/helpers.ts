@@ -206,11 +206,17 @@ export async function sendUntil(
  * `requiresFoundingAuthority` because it genuinely is the founder — not
  * because anything learned it was a test.
  *
+ * ⚠ **INTERIM — this should be based on the OFFICE, not the founder.**
  * Founding authority is deliberately narrow (draft constitution Art. XI):
- * the one power above the office system is the power to **seat and
- * unseat officeholders**. So a spec that needs some in-world capability
- * does not ask the founder to perform it — it asks the founder to seat
- * somebody, and that somebody performs it. See `seatAsGovernor`.
+ * the one power above the office system is the power to seat and unseat
+ * officeholders. Leaning on it for *every* capability a spec needs is
+ * the opposite of that — the founder holds every seat by default, so a
+ * founder session is an all-offices session, and a spec that wanted the
+ * Governorship quietly gets the Prime Ministership too.
+ *
+ * The right shape is: the founder seats an ordinary character in the one
+ * office the spec needs, and that character acts. It is blocked on the
+ * `office assign` defect below, not on a decision.
  */
 export async function openWorldAsFounder(
   browser: Browser,
@@ -226,7 +232,8 @@ export async function openWorldAsFounder(
 }
 
 /*
- * ⚠ There is deliberately NO `seatAsGovernor` helper.
+ * ⚠ There is deliberately NO `seatAsGovernor` helper — and its absence
+ * is why the founder is doing jobs that belong to officeholders.
  *
  * The obvious shape — the founder seats an ordinary character with
  * `office assign <them> central-bank-governor`, and that character does
