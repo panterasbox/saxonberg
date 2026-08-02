@@ -119,7 +119,7 @@ A leaf `extends Idea`. Nine persistent fields:
 
 - `name: string` (e.g., `'universe'`, `'temperate-baseline'`,
   `'quad'`)
-- `_extendsBiomePath: string | null` — Pattern A ref to the parent
+- `_extendsBiomePath: string | null` — an identity ref to the parent
   biome; `null` on the root. `getExtendsBiome()` /
   `setExtendsBiome(value)` resolve via
   `StuffApi.findByTemplatePath` (HMR-safe); `getExtendsBiomePath()`
@@ -168,7 +168,7 @@ are atmospherically transparent (skipped by the chain walk).
 Eleven persistent fields per host (sparse storage):
 
 ```
-_biomePath                                   # Pattern A biome ref
+_biomePath                                   # identity biome ref
 _temperature, _pressure, _humidity,          # five room/vessel-scope
 _gravity, _atmosphere                        # bulk overrides
 _detailTemperatures, _detailPressures,       # five per-detail maps
@@ -514,7 +514,7 @@ cross-cutting setting alongside sound's.
 - [docs/subsystems/light.md](./light.md) — `VisionModality`'s chain-walk
   shape; the receiving-surface area divisor is now derived from
   `cellSize²`.
-- [docs/ref-shapes.md](../ref-shapes.md) — Pattern A for the
+- [docs/ref-shapes.md](../ref-shapes.md) — the identity ref for the
   `_biomePath` and `_extendsBiomePath` refs.
 - [docs/subsystems/shell-environment.md](./shell-environment.md) —
   the universe defaults are NOT settings; the chain's terminal

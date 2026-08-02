@@ -41,7 +41,7 @@ Cross-references:
 | `Boundary` | concrete `Thing` subclass | The two-anchor abstraction for cross-room channels. Just `extends Thing` — `Visible` / `Perceptible` come baked into Thing's default composition. Subclasses (`Window`, `Door`) compose `Sealable` for shutter / closed state. |
 | `BoundaryAnchor` | concrete `Thing` subclass | `Adornment` Thing — the per-side proxy in each host's `getFixtures()`. Two anchors per Boundary. |
 | `Conduit` | TS interface | Channel-shape: `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit`. Boundary subclasses implement (a subset of) these via `getConduits()`. |
-| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` Pattern A; `setAttachedHosts` resolves hosts lazily and installs anchors. |
+| `Window` | concrete `Boundary` subclass | `SealableMixin(Boundary)` implementing `LightConduit + LineOfSight + SmellConduit + SoundConduit`. `baseTransmissivity`, optional one-way `aToBOverride` / `bToAOverride`, `colorTint`. Shutters via `Sealable.open` gate all four channels. Declarative `attachedHosts: [string, string]` identity refs; `setAttachedHosts` resolves hosts lazily and installs anchors. |
 | `BoundaryApi` | static API | `attachExistingBoundary({ boundary, hostA, hostB })`, `create({ factory, hostA, hostB })`, `destruct(boundary)`. |
 
 ## Locks & keys (`lib/lock/`)
@@ -155,7 +155,7 @@ present and describable the moment you're in its source room:
   it's been walked. Describing an exit never resolves anything.
 - **Deferred destination.** The live destination faults in only on
   `resolveDestination()` — the base runs the subclass's
-  `computeDestination()` hook, caches the live ref (Pattern B), and
+  `computeDestination()` hook, caches the live ref (an instance ref), and
   re-materializes after a reap. For **multi-instance** destinations (many
   clones sharing one template) the template path names the *class*, not the
   clone, so resolution goes through the hook, never path lookup.
@@ -694,7 +694,7 @@ scalar-default rule):
   to `0` for the dark side of one-way glass).
 - `bToAOverride: number | null` — same for B→A.
 - `colorTint: ColorTag | null` — stained glass.
-- `attachedHosts: [string, string] | null` — Pattern A. Two
+- `attachedHosts: [string, string] | null` — identity refs. Two
   templatePaths of the hosts this Window connects. The setter
   resolves both paths via `StuffApi.singleton` and installs the
   anchors via `BoundaryApi.attachExistingBoundary`. Per the declarative
@@ -728,7 +728,7 @@ half-attach corruption or mismatched re-attach.
 
 The check `MixinApi.isAdornable(hostA) && MixinApi.isAdornable(hostB)`
 gates the attach so a Window can't be wired to a non-Location host.
-Per `ref-shapes.md` § Pattern A — the runtime keeps the original
+Per `ref-shapes.md` § the identity ref — the runtime keeps the original
 string array; persist-back writes it back unchanged. No marshaller.
 
 ### Exit-kind templates (`/obj/exits/<kind>`)

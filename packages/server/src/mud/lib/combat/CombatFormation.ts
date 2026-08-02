@@ -4,7 +4,7 @@
  * the fallen. One singleton Idea per preset at
  * `/lib/combat/CombatFormation/<name>` (the `LocomotionMode`
  * precedent — authored data, no registry), referenced by **path string**
- * from the party side (ref-shapes Pattern A).
+ * from the party side (a ref-shapes identity ref).
  *
  * The Idea carries only **declared shape**; what a policy token *means*
  * (how `'called'` allocates, what `high-threat` measures) is combat's

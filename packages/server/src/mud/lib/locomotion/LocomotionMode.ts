@@ -7,7 +7,7 @@
  *
  * Mode references on actors / exits / drivables are STRINGS (the
  * templatePath); resolution via `LocomotionApi.modeOf(path)` returns
- * this singleton. See ref-shapes Pattern A (string-by-path).
+ * this singleton. See ref-shapes identity refs (string-by-path).
  *
  * Two parallel vocabularies coexist:
  *   - Full templatePath (`/lib/locomotion/walk`) — what

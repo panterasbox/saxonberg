@@ -314,7 +314,7 @@ would quietly restore the hole.
   direction is always open and runs `SandboxApi.exit`.
 - **`SandboxCrossing`** (`lib/sandbox/`): the door's MECHANISM —
   Thing-tier, chattel-identified, two persistent fields
-  (`linkedSandboxPath`, Pattern A, `''` = unlinked; and
+  (`linkedSandboxPath`, an identity ref, `''` = unlinked; and
   `passageDirection`, the exit label it installs). `onMoved` re-seats
   the passage (the door is wherever the fixture is). Guest access rides
   the shipped parcel grant surface — `revokeUse` carries a direct

@@ -15,10 +15,10 @@
 ## Why it matters more than it looks
 
 Today most cross-object references in the world are **path strings**
-(Pattern A) because most of the world is still singletons. That is a
+(identity refs) because most of the world is still singletons. That is a
 property of a young world, not of the design. As content grows, most
 objects are **clones, instanced all over the place** — and every one of
-those relationships is Pattern B, a live ref, carrying a cleanup
+those relationships is an instance ref — a live ref — carrying a cleanup
 obligation.
 
 So this is not an engine-internals nicety. It is the pattern content
@@ -150,7 +150,7 @@ mechanical one.
    `onDestruct` chain to consult the declaration; watch the residency
    corollary (an R2.1/R2.2 relationship vetoes `canEvict` while its anchor
    lives), which is the part that must not regress.
-4. **Sweep** — find Pattern B fields that are silently missing their rule
+4. **Sweep** — find instance-ref fields that are silently missing their rule
    today. The likely finding is that some exist; the failure is quiet, so
    nobody would have noticed.
 5. **`ref-shapes.md`** graduates from "here is the boilerplate to write" to

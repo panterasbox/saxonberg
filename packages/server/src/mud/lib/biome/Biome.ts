@@ -9,7 +9,7 @@
  * biomes are `Biome` (or `SkyExposedBiome`) leaf templates under them.
  *
  * **Inheritance is explicit.** A biome that wants to inherit defaults
- * from another biome points at it via `_extendsBiomePath` (Pattern A).
+ * from another biome points at it via `_extendsBiomePath` (an identity ref).
  * The chain in `BiomeApi.resolve*For` follows `_extendsBiomePath`
  * refs from leaf upward to the root universe biome (`/lib/biome/universe`,
  * whose `_extendsBiomePath` is `null`). Path-based templatePath-walk
@@ -42,7 +42,7 @@ export default class Biome extends Idea {
   /**
    * Path of the biome this one inherits defaults from. `null` on the
    * root universe biome (and on any deliberately-exotic biome with
-   * no parent). Pattern A: stored as a path string, re-resolved on
+   * no parent). An identity ref: stored as a path string, re-resolved on
    * each read via `StuffApi.findByTemplatePath` (HMR-safe).
    */
   public _extendsBiomePath: string | null = null;
@@ -142,7 +142,7 @@ export default class Biome extends Idea {
   /**
    * Raw-path accessor — `BiomeApi`'s chain walker reads the path
    * directly to avoid re-resolving an instance it doesn't otherwise
-   * need. Per the ref-shapes Pattern A "no raw-path getter unless a
+   * need. Per the ref-shapes identity-ref rule "no raw-path getter unless a
    * real consumer demands it" rule — the consumer is BiomeApi.
    */
   public getExtendsBiomePath(): string | null {

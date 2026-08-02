@@ -32,7 +32,7 @@ lamppost is locally Energized; its plate carries a **maker's mark +
 ## The middle tier (the likely v1)
 
 Not wires, not metering: a **supply reference**. An `Energized`
-fixture may declare its source — a Pattern C resolve-on-read ref
+fixture may declare its source — a resolve-on-read identity ref
 ([ref-shapes.md](../../subsystems/ref-shapes.md)) to a substation —
 and the source's state gates its dependents:
 

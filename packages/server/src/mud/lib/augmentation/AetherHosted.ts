@@ -20,7 +20,7 @@
  * entirely unaffected — it stays free-standing-capable. Only an Idea
  * that opts into this mixin gains the must-be-hosted constraint.
  *
- * **Privacy.** `_host` is a runtime live-ref (Pattern B per
+ * **Privacy.** `_host` is a runtime live-ref (an instance ref per
  * `ref-shapes.md`) — the update is re-created into its host each session
  * (like the implant), never persisted. It is TypeScript `private`, NOT
  * `#`-private: mixin instance state on a proxy-wrapped Stuff host can't

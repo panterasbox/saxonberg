@@ -125,7 +125,7 @@ const CharacterBase = AdvancementMixin(
  */
 export abstract class Character extends CharacterBase {
   /**
-   * Domicile — the address-namespace string (Pattern A) of this
+   * Domicile — the address-namespace string (an identity ref) of this
    * character's home, or `null` when none was ever established. The
    * civics residency read (`GovernmentApi.residentOf`) derives the
    * character's government chain from it.

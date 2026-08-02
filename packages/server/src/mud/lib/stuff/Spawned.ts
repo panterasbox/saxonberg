@@ -3,7 +3,7 @@
  *
  * A `Spawned` thing carries a transient back-pointer to its
  * `Spawner` (the host that created it during this session). The
- * back-pointer is a Pattern B live ref with R2.3 self-heal: if the
+ * back-pointer is an instance (live) ref with R2.3 self-heal: if the
  * Spawner destructs, the next `getSpawner()` clears the slot and
  * returns `null` (rather than handing back a destroyed ref).
  *

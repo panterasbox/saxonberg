@@ -425,7 +425,7 @@ Many lounge instances are clones of one template, so they **share** a
 template path. That is ambiguous for any ref that resolves by
 templatePath — most importantly an `Exit` destination
 (`findByTemplatePath` throws on multi-instance). The fix is honest
-Pattern B: hub and fixture exits between Warren rooms hold a **live ref**
+Instance refs: hub and fixture exits between Warren rooms hold a **live ref**
 (`keepLiveDestination` on `Exit` / `addBidirectionalExit`,
 `Warren.wireHubExit`) rather than a path. No synthetic per-instance paths
 — the instances keep their shared template path, and the exits point at

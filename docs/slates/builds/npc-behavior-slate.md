@@ -151,7 +151,7 @@ See also:
   its own lifecycle/audit**, or **is itself world content other systems
   consume**. A dialogue tree hits all four; chatter lines hit none.
   Mechanically this is **nothing new** — it's the template system's existing
-  **Pattern A path-ref vs inline-field** choice, and **the brain's descriptor
+  **identity path-ref vs inline-field** choice, and **the brain's descriptor
   declares per-field** which is which (a ref field resolves via the same lazy
   path-resolution as everything). Trap: *"contains refs" ≠ "is a ref"* — a
   patrol `route` is inline data whose *elements* are room path-refs; the
@@ -455,7 +455,7 @@ chosen.) **Prototyped on the bar cast** (Mara/Remy/Sloane/Augie/Dave —
    **artifact identity, not size**: a field is a path-ref when it's an
    independent content artifact (reuse / own-editor / own-lifecycle /
    is-world-content), else inline. It's the template system's existing
-   **Pattern A ref vs inline-field** choice, declared **per-field in the
+   **identity ref vs inline-field** choice, declared **per-field in the
    brain descriptor**; *"contains refs" ≠ "is a ref"*; default inline,
    graduate on signal. (CMS: ref → reference-picker + open-in-editor; inline
    → config-form input.) Four homes: **inline-in-owner / own-`Document`-

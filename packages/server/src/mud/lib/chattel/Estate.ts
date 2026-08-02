@@ -120,7 +120,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * chattelId → the live good, when one is loaded. A **live-ref field**
-     * (ref-shapes Pattern B): never persisted, dropped on eviction, and
+     * (a ref-shapes instance ref): never persisted, dropped on eviction, and
      * consulted only to decide whether an entry can be re-captured fresh.
      */
     private _estateLive: Map<string, Stuff> = new Map();

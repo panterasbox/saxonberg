@@ -59,7 +59,7 @@ export abstract class Warren extends Idea {
   /**
    * The member set. Truth of membership — a Location is a member iff it
    * is here, regardless of whether it composes `WarrenMemberMixin`.
-   * Transient (Pattern B). R2.3 prune-on-read in `getMembers`.
+   * Transient (instance refs). R2.3 prune-on-read in `getMembers`.
    */
   private _members: Set<MemberStuff> = new Set();
 
@@ -410,7 +410,7 @@ export abstract class Warren extends Idea {
     const hostEx = this.requireExitable(host);
     const memberEx = this.requireExitable(m);
     const att = this.attachmentFor(m);
-    // Live-ref hub exit (Pattern B): host and member are non-singleton
+    // Live-ref hub exit (an instance ref): host and member are non-singleton
     // clones of one template (a shared templatePath), so path resolution
     // would be ambiguous — hold the live refs directly.
     await hostEx.addBidirectionalExit(memberEx, att.direction, {

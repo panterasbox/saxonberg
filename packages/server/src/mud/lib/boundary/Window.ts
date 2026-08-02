@@ -222,7 +222,7 @@ export default class Window extends WindowBase {
 
   /**
    * Persistent declarative-content field carrying the templatePaths
-   * of the two hosts this Window connects, Pattern A per
+   * of the two hosts this Window connects, identity refs per
    * ref-shapes.md. The setter resolves both paths via
    * `StuffApi.singleton` (lazy-clones absent hosts) and installs the
    * per-side anchors via `BoundaryApi.attachExistingBoundary`.

@@ -61,7 +61,7 @@ and beat counts.
 The seam stays narrow and one-way: combat imports only `PartyApi`
 (`sideOf`/`areAllied` + the new `formationPathOf`/`roleOf`/`isCaptain`
 statics); the party side stores and returns **path strings only**
-(ref-shapes Pattern A) and never imports `lib/combat` — role names are
+(a ref-shapes identity ref) and never imports `lib/combat` — role names are
 validated structurally (a duck-read `getRoles()`).
 
 ## Roles are sets, not seats

@@ -19,7 +19,7 @@
  * are the SOLE writers of the back-ref. `setWarren` is public only so the
  * Warren-side helpers can reach it; normal callers never invoke it.
  *
- * Reference shape: Pattern B live ref with R2.3 self-heal (a destructed
+ * Reference shape: an instance (live) ref with R2.3 self-heal (a destructed
  * Warren reads back as `null`) and R2.4 cleanup (`cleanupOnDestruct`
  * unhooks from the Warren's set via `removeMember`). Models the
  * Spawner/Spawned precedent (`lib/stuff/Spawned.ts`). NOT persisted — the

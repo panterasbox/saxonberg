@@ -108,7 +108,7 @@ backs (can be spilled on / poured into) is universal for those hosts
 A **bulk slot** is `{ material, amount: Quantity<U> }`:
 
 - `material` — a **path-string ref** to a `Material` singleton
-  (Pattern A), resolved on read (HMR-safe).
+  (an identity ref), resolved on read (HMR-safe).
 - `amount` — `Quantity<U>`, persisted via `QuantityMarshaller`. `U` is
   the material's **natural measure** (liquids volume-or-mass, granular
   mass, gas mass-or-moles — *not* always volume, because gas is

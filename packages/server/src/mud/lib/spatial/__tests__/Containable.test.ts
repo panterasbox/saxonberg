@@ -89,7 +89,7 @@ describe('ContainableMixin', () => {
       // rather than "the list is empty".
       const fields = MixinApi.getAllPersistentFields(TestContainable);
       // Containable's two reference fields (`environment`, `_restingOn`)
-      // are both Pattern B live refs. `environment` is rebuilt at
+      // are both instance (live) refs. `environment` is rebuilt at
       // clone time via the `applyContainer` instruction-field path;
       // `_restingOn` resets to null on hydrate by design (see
       // Containable.ts JSDoc on the `_restingOn` field).

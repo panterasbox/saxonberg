@@ -38,7 +38,7 @@ deferred.
 A slot's persistent state (flat fields, per affordance):
 
 - `interiorMaterial` / `surfaceMaterial` — the contained Material's
-  templatePath (Pattern A; resolved on read, HMR-safe), `null` ⇒ empty.
+  templatePath (an identity ref; resolved on read, HMR-safe), `null` ⇒ empty.
 - `interiorAmount` / `surfaceAmount` — `Quantity<'L'>`, marshalled via
   `QuantityMarshaller.pathFor('L')`. Defaults `0 L`.
 - `interiorCapacity` / `surfaceCapacity` — `Quantity<'L'> | null`;

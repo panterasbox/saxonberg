@@ -44,8 +44,6 @@ export default class Lamp extends LampBase {
   /**
    * Live handle onto the day/night schedule; runtime-only bookkeeping so
    * a re-armed schedule can cancel the prior one.
-   *
-   * @runtimeState
    */
   private nightHandle: ClockHandle | null = null;
 

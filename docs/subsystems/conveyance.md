@@ -38,7 +38,7 @@ Public surface (interface):
 - `isDriven(): boolean`
 - `getDriver(): (Stuff & Slottable) | null`
 - `getVehicularMode() / setVehicularMode(LocomotionMode | null)` —
-  Pattern A path-by-string field for the `LocomotionMode` this
+  identity ref (path-by-string) for the `LocomotionMode` this
   conveyance engages when driven. Authoring is required:
   `LocomotionApi.resolveHostMode` throws on a driven host with `null`
   vehicularMode rather than silently walk-traversing. See

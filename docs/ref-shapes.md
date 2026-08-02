@@ -94,7 +94,7 @@ singleton Idea.
 - Comparison is by template identity, not instance identity ("is this
   actor's species `Homo sapiens`?", not "is this *the same instance*
   of the Homo sapiens singleton?").
-- The field is runtime-only OR persisted (Pattern A handles both
+- The field is runtime-only OR persisted (an identity ref handles both
   cleanly).
 
 **Why this shape**: tiny memory; trivial JSON/Mongo round-trip; the
@@ -129,7 +129,7 @@ key authors write, the `getXxx` / `setXxx` method names — uses the
 Examples in current substrate: `container`, `populates`, `destination`,
 `door`, `attachedHosts`. Not `containerPath`, not `attachedHostPaths`.
 
-Reasoning: the Pattern A type signature (`string`) plus the field's
+Reasoning: the identity-ref type signature (`string`) plus the field's
 documentation as a singleton ref already convey "stored as a path";
 the `Path` suffix on the public surface asks readers to re-confirm
 what the type already shows. The bare conceptual name reads more
@@ -268,7 +268,7 @@ interface XxxsOwner {
 }
 ```
 
-Same getter/setter naming as Pattern A — the difference is the
+Same getter/setter naming as an identity ref — the difference is the
 RETURN type, not the method names. A caller writing `obj.getMaterial()`
 doesn't know (or care) whether it's resolved from a stored path or
 returned from a live ref; the contract is the same.
@@ -283,13 +283,14 @@ marshaller-for-live-refs path because no field in `lib/` needs one
 template seeding (and per-character session state, for inventory).
 
 If a relationship genuinely needs to survive saves, it lives one
-layer up: either (a) the field stores a path string (Pattern A or
-C), or (b) a higher-layer mixin owns the persistent shape and
+layer up: either (a) the field stores a path string (an identity
+ref, resolved eagerly or on read), or (b) a higher-layer mixin owns
+the persistent shape and
 hydrates the live refs from that.
 
-### Pattern B sub-flavors (cleanup story)
+### Instance-ref sub-flavors (cleanup story)
 
-Within Pattern B there are four structural sub-flavors,
+Within instance refs there are four structural sub-flavors,
 distinguished by the cleanup rule that applies when one of the two
 sides destructs. These are the **R2.1–R2.4 cleanup rules**:
 
@@ -356,7 +357,7 @@ public getX(): (Stuff & XxxType) | null {
 
 #### R2.4 — Collection symmetric cleanup (framework-enforced)
 
-For any Pattern B collection of live refs (Set/Map of `Stuff & X`),
+For any instance-ref collection of live refs (Set/Map of `Stuff & X`),
 the held side MUST register a framework `static cleanupOnDestruct`
 on its mixin that unhooks itself from every collection it's a
 member of, via the canonical mutation chokepoint
@@ -424,12 +425,12 @@ read via `StuffApi.findByTemplatePath`. **No runtime cache slot.**
   lazy.
 - Construction-time cyclic resolution is a concern.
 
-Pattern C stays **singleton-only**. The "Pattern C generalized to
+Resolve-on-read stays **singleton-only**. The "generalize it to
 instances" idea is dropped under the foundational stuffId
 constraint — a cross-scope ref to a multi-clone instance can't be
 keyed by stuffId (doesn't persist), and a live ref doesn't survive
 target unload. Within-session live refs to non-templated targets
-are Pattern B; cross-reboot is unsupported until full game-state
+are instance refs; cross-reboot is unsupported until full game-state
 dump exists.
 
 ### Field shape
@@ -457,9 +458,9 @@ interface PathRefXxxed {
 ```
 
 The async `resolveXxx()` is an **Exit-specific affordance**, not a
-Pattern C requirement. It exists because Exit destinations may
-trigger zone-load faults during `Mobile.traverse`. Pattern C fields
-that target already-loaded singletons should skip it.
+resolve-on-read requirement. It exists because Exit destinations may
+trigger zone-load faults during `Mobile.traverse`. Resolve-on-read
+fields that target already-loaded singletons should skip it.
 
 ### Existing exemplars
 
@@ -613,7 +614,7 @@ handed to a setter that stores the path, **and then released**. Judge the
 public persistentFields = ['_container'];  // _container is Stuff & Container
 ```
 
-Live refs are runtime-only. Persistence needs either Pattern A/C
+Live refs are runtime-only. Persistence needs either an identity ref
 (store a path) or a higher-layer mixin that owns the persistent
 shape (e.g., a templated `populates` manifest that re-creates the
 relationship at hydrate).
@@ -627,7 +628,7 @@ protected _destination: Stuff & Container;
 
 If the holder and target may load separately (different zones,
 hot-reload), a live ref goes stale or holds a destroyed instance.
-Use Pattern C — store the path, resolve on read.
+Use an identity ref — store the path, resolve on read.
 
 ### B.3 — Holding an asymmetric single without R2.3 self-heal
 
@@ -700,10 +701,10 @@ When introducing a new live-ref field:
    [docs/subsystems/collections.md](./subsystems/collections.md)
    AND register `static cleanupOnDestruct` per R2.4.
 
-When in doubt: Pattern A for singleton Ideas (Material / Species /
-BodyPlan / Clade / LocomotionMode), Pattern B for everything else
-unless you specifically need cross-scope addressability for a
-singleton — in which case Pattern C.
+When in doubt: an **identity** ref for singleton Ideas (Material /
+Species / BodyPlan / Clade / LocomotionMode), an **instance** ref for
+everything else — and when a singleton needs cross-scope
+addressability, an identity ref that resolves on read.
 
 ---
 
