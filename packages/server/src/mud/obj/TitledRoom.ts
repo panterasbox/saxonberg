@@ -47,8 +47,23 @@
  *   3. **Persistence needs no key.** The scope is already unique.
  *      `restoreOrSeed` still supplies the seed-vs-restore branch.
  *
- * See [docs/subsystems/smallholding.md] and
- * [docs/subsystems/persistence.md].
+ * ## vs `FurnishableRoom` — the axis is the GEOMETRY, not the tenure
+ *
+ * The furnishing build's `lib/location/FurnishableRoom` is the same idea
+ * over plain `Location`: a venue-generic persistable room, plus `Reserved`
+ * for a finite indoor `air` budget. These are not two answers to one
+ * question. A yard is **outdoors on a coordinate grid** — it needs
+ * `CartesianCoordinates` and the `getSizeScale()` light denominator, and
+ * it must NOT author an air reserve (absence of one is what "open air"
+ * means to `FireLogic`). An interior room needs the opposite of both.
+ *
+ * So: interior → `FurnishableRoom`; ground under the sky → `TitledRoom`.
+ * A third persistable-room class wants a very good reason, and "a new
+ * archetype" is not one — an archetype is a seed row's prose and
+ * `populates:` set, on whichever of these two the geometry picks.
+ *
+ * See [docs/subsystems/smallholding.md], [docs/subsystems/furnishing.md]
+ * and [docs/subsystems/persistence.md].
  */
 
 import CartesianLocation from "../lib/location/CartesianLocation";

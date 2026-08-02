@@ -79,8 +79,6 @@ describe("LandUses.admitsCultivation — farming's one question", () => {
 });
 
 describe("LandUses — the ceiling half", () => {
-  const m2 = (n: number): Quantity<"m²"> => Quantity.of(n, "m²");
-
   it("gives every use a permissible area band", () => {
     for (const use of LAND_USES) {
       const band = LandUses.areaBandOf(use);
@@ -90,18 +88,18 @@ describe("LandUses — the ceiling half", () => {
 
   it("admits a lot inside the band and refuses one outside", () => {
     // A quarter-acre suburban lot is residential; a 40-hectare one is not.
-    expect(LandUses.admitsArea("residential", m2(1_000))).toBe(true);
-    expect(LandUses.admitsArea("residential", m2(400_000))).toBe(false);
+    expect(LandUses.admitsArea("residential", 1_000)).toBe(true);
+    expect(LandUses.admitsArea("residential", 400_000)).toBe(false);
     // A 3 m² farm is the mis-authoring the band exists to catch.
-    expect(LandUses.admitsArea("agricultural", m2(3))).toBe(false);
-    expect(LandUses.admitsArea("agricultural", m2(50_000))).toBe(true);
+    expect(LandUses.admitsArea("agricultural", 3)).toBe(false);
+    expect(LandUses.admitsArea("agricultural", 50_000)).toBe(true);
   });
 
   it("treats the band as inclusive at both ends", () => {
     const band = LandUses.areaBandOf("residential");
-    expect(LandUses.admitsArea("residential", m2(band.min))).toBe(true);
-    expect(LandUses.admitsArea("residential", m2(band.max))).toBe(true);
-    expect(LandUses.admitsArea("residential", m2(band.min - 1))).toBe(false);
+    expect(LandUses.admitsArea("residential", band.min)).toBe(true);
+    expect(LandUses.admitsArea("residential", band.max)).toBe(true);
+    expect(LandUses.admitsArea("residential", band.min - 1)).toBe(false);
   });
 
   it("admits an UNDECLARED area — area is optional, not defaulted", () => {
@@ -109,6 +107,8 @@ describe("LandUses — the ceiling half", () => {
     // undeclared lot is not a mis-authored one.
     for (const use of LAND_USES) {
       expect(LandUses.admitsArea(use, null)).toBe(true);
+      // 0 is the storage default for "never declared" — same answer.
+      expect(LandUses.admitsArea(use, 0)).toBe(true);
     }
   });
 

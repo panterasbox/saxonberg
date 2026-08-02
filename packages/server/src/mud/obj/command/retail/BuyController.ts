@@ -146,8 +146,11 @@ export default class BuyController extends CommandController<BuyModel> {
     }
     // Pay the authoritative current owner (the consignor — the stamp never
     // moved during consignment); refuse if they've since closed their account.
+    // Only a `player` owner names a payable account; a good resolving to a
+    // parcel/group owner falls back to the listing's recorded consignor.
     const owner = await ChattelApi.ownerOf(item);
-    const consignorKey = owner?.templatePath ?? listing.consignorKey;
+    const consignorKey =
+      owner?.kind === "player" ? owner.templatePath : listing.consignorKey;
     const consignorPrimary = await BankingApi.primaryAccountIdOf(consignorKey);
     if (!consignorPrimary) {
       this.reject(

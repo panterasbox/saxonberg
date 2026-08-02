@@ -226,8 +226,12 @@ unfurnishable.
 
 ### Area is DECLARED, never derived
 
-`ParcelRecord.area: Quantity<'m²'> | null`, set at provision.
-`subdivide` refuses a child outside its effective use's band.
+`ParcelRecord.area: number` (m², `0` = undeclared), set at provision.
+`subdivide` refuses a child outside its effective use's band — measured
+against ground area, never `area × storeys`. It is a plain scalar because
+the furnishing build's `ParcelApi.spaceOf` does arithmetic on it; the
+`Quantity<'m²'>` display banding still exists and wraps it at read time
+(`Quantity.of(area, 'm²').tag('lot')` → `"a quarter-acre lot"`).
 
 **Do not derive it from room geometry.** `Location.getSizeScale()` is m²
 too, but it is a **photometric denominator** (flux ÷ area → lux) with one
@@ -305,6 +309,19 @@ matters: `CartesianLocation` carries six overrides beyond its mixins
 and a hand-built lookalike loses all of them silently. The light one is
 the dangerous omission — a yard would read **36× brighter** than its
 zone says.
+
+> **⚠ `TitledRoom` vs `FurnishableRoom` — the axis is GEOMETRY, not
+> tenure.** The furnishing build's `lib/location/FurnishableRoom`
+> ([furnishing.md](./furnishing.md)) is the same idea over plain
+> `Location`, plus `Reserved` for a finite indoor `air` budget. These are
+> not two answers to one question. A yard is **outdoors on a coordinate
+> grid**: it needs `CartesianCoordinates` and the `getSizeScale()` light
+> denominator, and it must NOT author an air reserve — the absence of one
+> is what "open air" means to `FireLogic`. An interior room needs the
+> opposite of both. So: **interior → `FurnishableRoom`; ground under the
+> sky → `TitledRoom`.** A third persistable-room class wants a very good
+> reason, and "a new archetype" is not one — an archetype is a seed row's
+> prose and `populates:` set, on whichever of the two the geometry picks.
 
 Keeping `CartesianLocation` means keeping `SingletonMixin`, and that is
 the point rather than an obstacle. `LotHolder` mints each room at

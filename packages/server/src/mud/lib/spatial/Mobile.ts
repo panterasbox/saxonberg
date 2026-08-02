@@ -189,8 +189,24 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       return this._engagedModePath === (mode.getTemplatePath() ?? null);
     }
 
-    public onSlotReleased(host: Stuff & Slotted, _slotName: string): void {
-      void _slotName;
+    /**
+     * ⚠ **Super-chain first.** `onSlotReleased` is an optional witness that
+     * MORE THAN ONE composed layer implements — `PosedMixin` uses it to
+     * forget which host's posture slot a body was resting in. A mixin
+     * static/method does not merge: whichever layer is composed OUTERMOST
+     * wins, and `MobileMixin` (in `Character`) is outside `PosedMixin` (in
+     * `Creature`). Without this call, standing up left the sleeper still
+     * recorded as occupying the bed — captured as `posture: stand` with a
+     * live `restingOnPath`, which is contradictory. Found by driving the
+     * world, not by a test.
+     *
+     * The same hazard applies to any future implementor: **call `super`.**
+     */
+    public onSlotReleased(host: Stuff & Slotted, slotName: string): void {
+      const parent = (
+        Base.prototype as { onSlotReleased?: (h: Stuff & Slotted, s: string) => void }
+      ).onSlotReleased;
+      if (typeof parent === 'function') parent.call(this, host, slotName);
       const mode = this.getEngagedMode();
       if (!mode || !mode.getPassthrough()) return;
       const conveyance = mode.getConveyanceMixin();

@@ -118,3 +118,29 @@ the ledger + the one `crime` read.
 
 - `accountability_events` — the append-only ledger (`AccountabilityEvent`,
   one row per attribution act; indexed on `victim` and `sessionId`).
+
+## Death is now the biggest producer (2026-07-31)
+
+[mortality.md](./mortality.md) closed the ledger's largest gap: only combat
+used to write here, so **eight of the nine ways to die left no record that
+anything had happened to anybody**. Every death now appends, through the
+single `ConditionApi.die` transition.
+
+This does **not** make `die` a chokepoint in the sense this doc rejects.
+The rule holds because the ledger still never infers: consent, killer and
+terms are supplied by the producer that knows them. Combat builds its row
+(`buildDeathRow` — the same fields as the old `recordDeath`, now returned
+rather than written, which is what keeps `deriveBlame` byte-identical);
+environmental drivers supply nothing, and `die` writes a row that **omits
+`lethality`**, so it is structurally incapable of deriving as a crime.
+That is stronger than claiming the victim consented to freezing to death.
+
+Attribution rides the dying record, so a bleed-out finishing after the
+fight resolves still names who struck — by then the session is gone.
+
+**`deriveBlame` ignores circle-marked rows.** `circleScope` is now a
+declared persistent field (it was being stamped by the persistence layer
+and then silently dropped, because `fromDocument` only reads declared
+fields) and stripped from field-side documents, so an ordinary row is
+byte-identical to what it was. A killing staged in a private circle is not
+evidence about anyone.

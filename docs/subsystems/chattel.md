@@ -16,16 +16,42 @@ The item carries only its **identity** (a durable id); its **owner** is a
 registry fact, resolved through a facade Api, with the actor derived from
 execution context (never a caller-supplied param).
 
-## `ownerOf(item) = stamp ?? authorOf`
+## `ownerOf(item) = stamp ?? parcel-extent ?? authorOf`
 
-A per-instance **owner-stamp** overrides; absent a stamp, ownership
-defaults to the item's **author** (via the shipped
+A per-instance **owner-stamp** overrides. Absent a stamp, a good whose
+template path falls under a **parcel's extent** resolves to that parcel's
+owner — so a landlord owns the fixtures in a unit they let. Absent both,
+ownership defaults to the item's **author** (via the shipped
 `ProvenanceApi.authorOf(templatePath)` — [provenance.md](./provenance.md)).
-So an unstamped content good resolves cleanly to its author with **no
-world-wide restamp**, and only goods that have actually changed hands
-carry a stamp. `null` for a good that is neither stamped nor authored
-(engine litter). This is a two-rung total chain — the parcel `ownerOf`'s
-(title → self-home → state) analog.
+So an unstamped content good outside any extent resolves cleanly to its
+author with **no world-wide restamp**, exactly as it did before the middle
+rung existed, and only goods that have actually changed hands carry a
+stamp. `null` for a good that is none of the three (engine litter). A
+three-rung total chain — the parcel `ownerOf`'s (title → self-home →
+state) analog.
+
+The parcel rung keys on the **template path, not the location**, which is
+what makes displacement recoverable: a fixture carried out of a unit stays
+titled to the parcel, so it is theft (custody without title), never a
+transfer.
+
+> ⚠ It is built on `ParcelApi.coveringParcelOf`, **not**
+> `ParcelApi.ownerOf` — the latter is *total* (it falls back to the state)
+> and would make the author rung unreachable, silently retitling every
+> authored good in the world.
+
+`ChattelOwner` mirrors `ParcelOwner` so a group-held parcel is
+expressible. **Read-side only**: only the `player` arm is ever stamped, so
+no stored row gains a group owner.
+
+## Where the owner keeps it — `place`
+
+A stamped good also carries a **`place`** (a room identity, `'inventory'`,
+or `'storage'`) and persists **owner-side** rather than with whatever room
+it is standing in. That is the [furnishing](./furnishing.md) subsystem —
+`setPlace` / `followCustody` / `placedIn` / `evictToStorage` / `isStamped`
+on this same facade, the `place` column on the `chattel` row as a by-room
+index, and the estate slice that carries the goods themselves.
 
 ## The durable per-instance id (the crux)
 
@@ -77,7 +103,7 @@ banking ledger, not the ownership registry.
   `release(chattelId)`. Resolves the logic singleton via
   `StuffApi.singletonSync` + `HotReloadApi`. Actor context-derived.
 - **`ChattelLogic`** (`obj/api/ChattelLogic.ts`, `/obj/api/chattel`,
-  `extends ApiLogic`) — the `ownerOf = stamp ?? authorOf` chain, the
+  `extends ApiLogic`) — the `ownerOf = stamp ?? parcel ?? authorOf` chain, the
   glob-refusal invariant, and the **pure degrade** when no registry is
   live (the author fallback still resolves; mutators no-op). Gated
   `FromModule('/api/chattel#ChattelApi')`.
@@ -118,3 +144,19 @@ The property compute/economy (cost-owner, the `Charge`-debtor gap,
 allowance — property slate Phase 1); a general player-facing
 `give`/trade/dispute surface (the `transfer` primitive makes it a thin
 later add); group/corpo owners; fungible-goods ownership.
+
+## Looting a corpse (2026-07-31)
+
+The mortality build deliberately adds **nothing** here.
+
+A dead body's gear moves onto the corpse, and taking it is ordinary
+containment. The record of who took what is the **chain of title this
+subsystem already keeps** — which is why looting mints no
+`accountability_events` row: the ledger would be duplicating a record that
+already exists in the right place, and inventing a kind for theft would
+force a "what is theft" ruling the courts work should make.
+
+The corpse itself carries **no chattel row**. `ChattelMixin` composes at
+the `Thing` tier and a body is a `Creature`; custody of a *body* is a
+different concept, and it belongs to the deferred coroner economy. See
+[mortality.md](./mortality.md).

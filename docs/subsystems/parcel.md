@@ -38,7 +38,8 @@ class ParcelRecord extends Document {
   grants: unknown[];            // INERT 0a seam (0b lease/grant mechanics)
   allowance: unknown | null;    // INERT 0a seam (Phase 1 compute economy)
   landUse: LandUse | null;      // what may be done here; null = inherit
-  area: Quantity<'m²'> | null;  // the declared lot size; null = undeclared
+  area: number;                 // declared ground area, m²; 0 = undeclared
+  storeys: number;              // how many floors stand on it (default 1)
 }
 ```
 
@@ -72,10 +73,17 @@ act: *"this ground is residential, at this size."*
   `ParcelApi.landUseOf(path)` resolves by longest prefix through the
   coverage trie and then up the `parentParcel` chain, answering `wild`
   when nothing claims the ground.
-- **`area`** — a `Quantity<'m²'>`, **declared at provision**.
-  `ParcelRegistry.subdivide` refuses a child outside its effective use's
-  permissible band, which is the whole of "constrained by zoning": one
-  check at mint time, not an ongoing simulation.
+- **`area`** — plain m² as a `number`, **declared at provision**, `0` =
+  undeclared (which is every row that predates the field, and is never
+  policed). `ParcelRegistry.subdivide` refuses a child outside its
+  effective use's permissible band, which is the whole of "constrained by
+  zoning": one check at mint time, not an ongoing simulation. The band is
+  measured against **`area`, not `area × storeys`** — it is a ground-area
+  band, and a four-storey building stands on the same dirt as a
+  one-storey one. Display banding (`"a quarter-acre lot"`) wraps the
+  number at read time via `Quantity.of(area, 'm²').tag('lot')`; the
+  stored field stays a scalar so `spaceOf`'s arithmetic needs no
+  unwrapping.
 
 > **⚠ `wild` admits nothing, and that default is load-bearing.** Most rows
 > in this collection are not ground at all — `/studio`, `/lib/lounge` and
@@ -317,3 +325,28 @@ byte-identical to today's core walk (untitled → `core`); an earlier draft had
 - [property-slate.md](../slates/builds/property-slate.md) — the design surface
   (§A parcel = a Zone + hierarchy, §B separate collection + author≠owner, §K
   dorm = implicit default parcel; and the later phases).
+
+
+## History — the furnishing build (2026-07-31)
+
+Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
+
+- **`ParcelRecord.area`** (m², gross ground) and **`storeys`** (default 1).
+  Declared at provision, **never derived**.
+- **`subdivide` conserves children against `area × storeys`**, not `area`.
+  Multi-storey is why: a 300 m² footprint at four storeys offers ~1200 m²
+  of interior, so a rule written against ground area alone refuses
+  apartments on the second floor. `storeys` rather than a `grossFloorArea`
+  field because the row **already encoded floors** — `slotOfExtent` parses
+  `f<floor>-r<pos>`, built for the dorm.
+- **`ParcelApi.spaceOf`** — the space account: `capacity` (`area ×
+  storeys`), `allocated` (Σ children), `unallocated` and `utilisation`.
+  Reads as **coverage + yard** on a lot and **efficiency + common area** in
+  a building. All derived on read, none stored — a ceiling alone is useless,
+  these are the numbers anybody plans against.
+- **`ParcelApi.workableAreaOf`** = the `unallocated` half, derived on
+  read and never stored. Any child consumes ground whether it is a building
+  or a sub-lot, so a building's **footprint needs no field**: it *is* that
+  building parcel's own `area`.
+- Unmeasured land is not policed — a parcel with no declared area
+  subdivides exactly as it did before these fields existed.

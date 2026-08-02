@@ -708,6 +708,7 @@ function perceivesImpl(
   // Backcompat: a non-concealable or `obvious` thing is always present —
   // everything currently visible stays visible.
   if (!MixinApi.isConcealable(target)) return true;
+
   const level = target.getConcealment();
   if (!ConcealmentLevels.isConcealed(level)) return true;
   // Once found, always seen (the per-viewer discovery belief sticks).

@@ -72,7 +72,6 @@ class TestGiver extends SensorMixin(
 }
 class LitRoom extends AmbientLitMixin(Location) {}
 
-const DAY = 86_400;
 const BASE = 40_000_000;
 let now = BASE;
 function setNow(s: number): void {

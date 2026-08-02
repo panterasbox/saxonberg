@@ -25,6 +25,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import type { CommandContext } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Trauma } from '../../../../lib/vitals/Condition';
+import Condition from '../../../../lib/vitals/Condition';
 
 let captured: string;
 function captureBody(): void {
@@ -137,5 +138,103 @@ describe('AssessController — dressed vs open readout', () => {
     w.bleeding = true;
     await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
     expect(captured.toLowerCase()).toContain('bleeding');
+  });
+});
+
+describe('AssessController — the affliction readout', () => {
+  /** An authored Condition, live at its template path. */
+  function condition(path: string, name: string, signs: string[]): void {
+    const c = makeStuff(() => new Condition());
+    c.setName(name);
+    c.setObservableSigns(signs);
+    stampTemplatePathForTest(c, path);
+  }
+
+  const RECOVERING = '/lib/mortality/conditions/recovering';
+
+  it('shows an affliction that is not a wound at all', async () => {
+    // The gap this closes: the floor route's diminishment lives on the
+    // body as an `affliction`, and `assess` used to render only trauma —
+    // so a freshly re-embodied player read as "unhurt" and the price of
+    // dying was invisible to the person who had just paid it.
+    condition(RECOVERING, 'recovering', ['unsteady', 'hollow']);
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/obj/Avatar/revived');
+    me.afflict({
+      kind: 'affliction',
+      templatePath: RECOVERING,
+      stage: 0,
+      elapsed: 0,
+    });
+
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured.toLowerCase()).toContain('recovering');
+    // Still reports the wound line honestly — an affliction is not a wound.
+    expect(captured).toContain('No visible wounds.');
+  });
+
+  it('an untrained looker sees the SIGN, not the diagnosis', async () => {
+    // Competence buys information: naming the condition is a diagnosis.
+    condition(RECOVERING, 'recovering', ['unsteady', 'hollow']);
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/obj/Avatar/looker');
+    const them = makeStuff(() => new Creature());
+    stampTemplatePathForTest(them, '/obj/Avatar/patient3');
+    them.afflict({
+      kind: 'affliction',
+      templatePath: RECOVERING,
+      stage: 0,
+      elapsed: 0,
+    });
+
+    await makeStuff(() => new AssessController()).execute(
+      targetArg(them),
+      ctxFor(me, null)
+    );
+    expect(captured.toLowerCase()).toContain('unsteady');
+    expect(captured.toLowerCase()).not.toContain('recovering');
+  });
+
+  it('degrades to the path leaf when the Condition Idea is not live', async () => {
+    // Today this is the ONLY path that runs in the real world: condition
+    // seeds are inserted as template rows and nothing clones them into
+    // Ideas, so `findByTemplatePath` answers null for every condition.
+    // The readout must still say something, and must never leak a raw
+    // template path into player-facing prose.
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/obj/Avatar/orphan');
+    me.afflict({
+      kind: 'affliction',
+      templatePath: '/lib/mortality/conditions/recovering',
+      stage: 0,
+      elapsed: 0,
+    });
+
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured.toLowerCase()).toContain('recovering');
+    expect(captured).not.toContain('/lib/mortality');
+    expect(captured).toContain('No visible wounds.');
+  });
+
+  it('the leaf fallback still withholds the diagnosis from the untrained', async () => {
+    // A leaf IS the condition's name, so handing it to a novice would
+    // route around the competence rule the resolved path obeys.
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/obj/Avatar/looker2');
+    const them = makeStuff(() => new Creature());
+    stampTemplatePathForTest(them, '/obj/Avatar/patient4');
+    them.afflict({
+      kind: 'affliction',
+      templatePath: '/lib/mortality/conditions/recovering',
+      stage: 0,
+      elapsed: 0,
+    });
+
+    await makeStuff(() => new AssessController()).execute(
+      targetArg(them),
+      ctxFor(me, null)
+    );
+    expect(captured.toLowerCase()).toContain('unwell');
+    expect(captured.toLowerCase()).not.toContain('recovering');
   });
 });

@@ -957,3 +957,29 @@ Index creation is best-effort (logs and continues on failure).
   positions it. `PersistableApi.captureHostOf` landed as the mutating-act
   capture the whole husbandry family reuses. See
   [husbandry.md](./husbandry.md).
+
+
+## History — the furnishing build (2026-07-31)
+
+The **second persistence scope** landed: owned chattel persists with its
+*owner*, not with the room it stands in. See
+[furnishing.md](./furnishing.md) for the whole model; what changed here:
+
+- **A fourth slice type.** `EstateSlice` joins `FieldsSlice` /
+  `ContainerSlice` / `SlottedSlice` in the `MixinSlice` union.
+- **`restoreSlice` is now invoked.** It was declared on
+  `PersistenceContributor` and collected by `getPersistenceContributors`
+  but never called — `Container` and `Slotted` have explicit passes. It is
+  now dispatched as step (4) of `restoreState`, after the slotted pass, so
+  any layer can carry an async restore hook as originally intended.
+- **`ContainerMixin.captureSlice` skips a second kind of content** — a good
+  someone has been *stamped* as owning. Both skips share ONE filter,
+  because the Container and Slotted slices read one content ordering.
+- **Capture reports what it skipped.** `CaptureContext.noteOwnedGood`, and
+  `captureImpl` flushes each skipped good into its owner's estate after the
+  synchronous state build. Without it, a good in a room going dormant while
+  its owner is offline would be captured by nobody and destroyed with the
+  room.
+- **New Api surface:** `captureDetached` / `restoreDetached` (one non-host
+  good's composed state) and `placeIdOf` (a host's room identity — scope
+  plus its per-instance key **only when explicit**).

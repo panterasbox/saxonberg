@@ -129,7 +129,9 @@ export default class TitleController extends CommandController<TitleModel> {
         if (owner?.kind !== 'player' || owner.templatePath !== me) continue;
         const use = ParcelApi.landUseOf(extent);
         const area = record.getArea();
-        const size = area ? area.tag('lot') : 'an unmeasured piece of ground';
+        const size = area
+          ? Quantity.of(area, 'm²').tag('lot')
+          : 'an unmeasured piece of ground';
         const leaf = extent.slice(extent.lastIndexOf('/') + 1);
         held.push(
           `${leaf} (${where}) — ${size}, zoned ${use}: ` +
@@ -285,10 +287,9 @@ export default class TitleController extends CommandController<TitleModel> {
       extent,
       book.getParentExtent(),
       { kind: 'group', name: 'hinkley-hills' },
-      {
-        landUse: book.getLandUse(),
-        area: Quantity.of(book.getAreaM2(), 'm²'),
-      },
+      book.getAreaM2(),
+      1,
+      book.getLandUse(),
     );
     // …then hand the title over. Two steps, because the chain-of-title
     // log should read "subdivided, then transferred" — which is what

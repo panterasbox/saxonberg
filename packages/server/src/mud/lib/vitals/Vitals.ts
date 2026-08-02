@@ -35,6 +35,8 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { VitalBand, VitalProfile } from '../species/Species';
 import type { BodyPart } from '../species/BodyPlan';
 import type {
@@ -43,11 +45,13 @@ import type {
   SustainedShock,
   SustainedEffect,
   AfflictionRecord,
+  DyingRecord,
 } from './Condition';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ElectricityApi } from '../../api/electricity';
+import { ConditionApi } from '../../api/condition';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
@@ -90,12 +94,49 @@ export const VITAL_SIGNS = [
 
 export type VitalSign = (typeof VITAL_SIGNS)[number];
 
+/**
+ * The **material** fork-slice family — the body-state a corpse inherits:
+ * the vital signs as they stood, the wound map, the cause stamp, and the
+ * anatomy deltas. Together they are what makes a dead body a forensic
+ * record rather than a prop.
+ *
+ * **These slices are fork-only, and that is a load-bearing asymmetry.**
+ * `ForkableMixin.applyForkedState` applies a slice by calling
+ * `mergeSlice_<Name>` ON THE TARGET — so if material state travelled that
+ * way, every `VitalsMixin` host would need a `mergeSlice_Vitals`, corpse
+ * and living body alike, and that method would be exactly the "trusted
+ * mixin escape" the design forbids: one call and a corpse walks again.
+ *
+ * Instead the apply side is {@link Vitals.adoptMaterialState}, gated to the
+ * death choreography and deliberately NOT named `mergeSlice_`. The
+ * consequence is the guarantee: `forkRuntimeState(corpse, newBody)` is a
+ * structural no-op, because there is no applier for it to find. A corpse
+ * is un-reanimatable **by protocol, not by policy** — nobody has to
+ * remember the rule.
+ *
+ * Adding a `mergeSlice_` for any name in this list is the single edit that
+ * silently undoes it. See `docs/antipatterns.md`.
+ */
+export const MATERIAL_FORK_SLICES = [
+  'Vitals',
+  'Trauma',
+  'CauseOfDeath',
+  'Anatomy',
+] as const;
+
 /** The accessible "HP bar" replacement — a derived band, never stored. */
 export type ConditionBand =
   | 'healthy'
   | 'hurt'
   | 'serious'
   | 'critical'
+  /**
+   * Past the point the body recovers from on its own, but not gone — the
+   * rescuable interval. Sits between `critical` and `dead` because that is
+   * exactly where it lives: a floored vital used to read `dead` straight
+   * off the substrate, and now reads `dying` until the clock runs out.
+   */
+  | 'dying'
   | 'dead';
 
 /** A second derived state below death; recoverable. */
@@ -126,6 +167,14 @@ const VITAL_UNITS: Record<VitalSign, Unit> = {
   spo2: '%',
   bloodVolume: 'L',
 };
+
+/**
+ * Only the death choreography may pour material state into a body. The
+ * gate is what stops `adoptMaterialState` from becoming the reanimation
+ * hatch that a `mergeSlice_` would have been — see
+ * {@link MATERIAL_FORK_SLICES}.
+ */
+const ByConditionLogic = SecurityPolicies.FromTemplate('/obj/api/condition');
 
 /** Backing-field name per vital sign (first-class persistent fields). */
 const VITAL_FIELD: Record<VitalSign, string> = {
@@ -204,6 +253,63 @@ export interface Vitals {
   // ---------- death seam (cause-of-death field + postmortem seam) ----------
   getCauseOfDeath(): string | null;
   setCauseOfDeath(value: string | null): void;
+
+  // ---------- the dying clock ----------
+  /**
+   * Enter the dying state: the body has crossed a lethal threshold and the
+   * `windowSec` clock now decides, not the threshold.
+   *
+   * **Idempotent.** A body already dying keeps its first record and its
+   * first window — a second driver piling on does not shorten the story.
+   * The one thing a later call may still do is attach `blame` if none was
+   * recorded yet, so combat can stamp attribution onto a bleed-out that
+   * began before the fight resolved.
+   *
+   * Called by drivers directly on the body (an object-owned mutation, the
+   * shipped harm rule), never through an Api.
+   */
+  beginDying(cause: string, windowSec?: number, blame?: unknown): void;
+  /** Is this body in the rescuable interval before death? */
+  isDying(): boolean;
+  /** Game-seconds left before the window expires, or `null` if not dying. */
+  getDyingRemainingSec(): number | null;
+  /**
+   * Pull the body back from the edge: drop the dying record. Returns
+   * whether there was one.
+   *
+   * **Rescued, not healed** — deliberately. Whatever drove the body under
+   * (the wound, the cold, the toxin) is untouched, so if the threshold is
+   * still crossed the next reconcile re-arms `dying`. Stabilizing someone
+   * in a snowdrift buys them time, not a life.
+   */
+  stabilize(): boolean;
+
+  // ---------- the material fork family (see MATERIAL_FORK_SLICES) ----------
+  forkSlice_Vitals(): unknown;
+  forkSlice_Trauma(): unknown;
+  forkSlice_CauseOfDeath(): unknown;
+  forkSlice_Anatomy(): unknown;
+  /**
+   * Adopt a forked material record onto this body — the corpse side of the
+   * death fork.
+   *
+   * **Not a `mergeSlice_`, on purpose.** See {@link MATERIAL_FORK_SLICES}:
+   * naming it that would put material state back on the Forkable protocol
+   * and make a corpse reanimatable by one ordinary-looking call. Gated to
+   * the death choreography.
+   */
+  adoptMaterialState(slices: Record<string, unknown>): void;
+
+  /**
+   * Write every vital sign back to its species baseline.
+   *
+   * Lives here rather than on `Creature` because the sign→unit and
+   * sign→field maps are module-private to this file. Two consumers: the
+   * snapshot-healing backstop (a body that came back from storage marked
+   * dead) and the death choreography (the body is drained before it is
+   * destructed, so nothing dead ever reaches `holder_snapshots`).
+   */
+  resetVitalsToSpeciesBaseline(): void;
   /**
    * Postmortem-progression seam. Death is living-stop + postmortem-start:
    * living processes freeze and postmortem changes (algor / rigor / livor
@@ -256,7 +362,10 @@ export interface Vitals {
 }
 
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class VitalsMixin extends Base implements Vitals {
+  // A class DECLARATION, not an expression: legacy decorators are only
+  // valid on declarations, and `adoptMaterialState` carries a security
+  // gate. Same shape as the shipped `ChattelMixin`.
+  class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
 
     static persistentFields = [
@@ -354,6 +463,145 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         value;
     }
 
+    // ---------- the dying clock ----------
+
+    /**
+     * The raw record, read straight off storage. Deliberately does NOT
+     * reconcile: the band and consciousness readouts call it from *inside*
+     * `reconcileConditions`' reentrancy guard, and going back through
+     * `getConditions()` there would recurse.
+     */
+    private hasDyingRecord(): boolean {
+      return this.conditions.some((c) => c.kind === 'dying');
+    }
+
+    private dyingRecord(): DyingRecord | null {
+      for (const c of this.conditions) if (c.kind === 'dying') return c;
+      return null;
+    }
+
+    public beginDying(
+      cause: string,
+      windowSec?: number,
+      blame?: unknown,
+    ): void {
+      const existing = this.dyingRecord();
+      if (existing) {
+        // Already dying: keep the first cause and the first window — a
+        // second driver piling on does not shorten the story. Attribution
+        // may still land, so combat can stamp a bleed-out it caused.
+        if (blame && !existing.accountability) existing.accountability = blame;
+        return;
+      }
+      const record: DyingRecord = {
+        kind: 'dying',
+        cause,
+        windowSec: windowSec ?? HARM_DEFAULTS.DYING_WINDOW_SEC_DEFAULT,
+        elapsed: 0,
+      };
+      if (blame) record.accountability = blame;
+      this.afflict(record);
+    }
+
+    public isDying(): boolean {
+      this.reconcileConditions();
+      return this.hasDyingRecord();
+    }
+
+    public getDyingRemainingSec(): number | null {
+      this.reconcileConditions();
+      const record = this.dyingRecord();
+      if (!record) return null;
+      return Math.max(0, record.windowSec - record.elapsed);
+    }
+
+    public stabilize(): boolean {
+      const record = this.dyingRecord();
+      if (!record) return false;
+      this.relieve(record);
+      return true;
+    }
+
+    /**
+     * The window ran out — route through the single death transition,
+     * which stamps the cause, flips the lifecycle synchronously, and
+     * writes the chronicle deed + the accountability row.
+     *
+     * Fire-and-forget from this sync reconcile: everything a reader can
+     * observe happens inside `die`'s synchronous prefix, and only the
+     * ledger I/O is deferred. The record's attribution (stamped by
+     * whoever put the body in the window) rides along inside `die`.
+     */
+    private expireDying(record: DyingRecord): void {
+      void ConditionApi.die(this as unknown as Stuff, record.cause);
+    }
+
+    // ---------- the material fork family ----------
+
+    public forkSlice_Vitals(): unknown {
+      const out: Record<string, number> = {};
+      for (const sign of VITAL_SIGNS) {
+        out[sign] = (
+          this as unknown as Record<string, Quantity<Unit>>
+        )[VITAL_FIELD[sign]]!.rawValue();
+      }
+      return out;
+    }
+
+    public forkSlice_Trauma(): unknown {
+      // The wound map as it stood, minus the dying record — the clock is
+      // resolved by the transition, and a corpse is not still dying.
+      return structuredClone(
+        this.conditions.filter((c) => c.kind !== 'dying'),
+      );
+    }
+
+    public forkSlice_CauseOfDeath(): unknown {
+      return { causeOfDeath: this.causeOfDeath };
+    }
+
+    public forkSlice_Anatomy(): unknown {
+      return structuredClone(this.bodyPartDeltas);
+    }
+
+    @CallSecurity(ByConditionLogic)
+    @Final
+    @Unshadowable
+    public adoptMaterialState(slices: Record<string, unknown>): void {
+      const vitals = slices.Vitals as Record<string, number> | undefined;
+      if (vitals) {
+        for (const sign of VITAL_SIGNS) {
+          const raw = vitals[sign];
+          if (typeof raw === 'number') {
+            this.setVitalSign(sign, Quantity.of(raw, VITAL_UNITS[sign]));
+          }
+        }
+      }
+      const trauma = slices.Trauma as ActiveCondition[] | undefined;
+      if (Array.isArray(trauma)) this.conditions = structuredClone(trauma);
+      const cod = slices.CauseOfDeath as
+        | { causeOfDeath: string | null }
+        | undefined;
+      if (cod) this.causeOfDeath = cod.causeOfDeath;
+      const anatomy = slices.Anatomy as
+        | Record<string, BodyPartDelta>
+        | undefined;
+      if (anatomy) this.bodyPartDeltas = structuredClone(anatomy);
+    }
+
+    /**
+     * Every sign back to its species baseline. Degrades to the universe
+     * default profile when no species resolves (a fresh dev DB, a fixture),
+     * because the callers — snapshot healing and the death drain — must not
+     * throw on a body whose species is missing.
+     */
+    public resetVitalsToSpeciesBaseline(): void {
+      for (const sign of VITAL_SIGNS) {
+        const baseline = this.getVitalBand(sign).baseline;
+        this.setVitalSign(sign, Quantity.of(baseline, VITAL_UNITS[sign]));
+      }
+    }
+
     /**
      * The survivable band for a sign — from the host's species
      * `vitalProfile`, or the universe default. Requires `OrganismMixin`
@@ -378,9 +626,8 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * The accessible band over blood-volume fraction + vitals-out-of-
      * band. Reserves and trauma fold additional
      * load in at the marked seam. A corpse (`lifecycleState: 'dead'`)
-     * reads `dead`; otherwise the band reflects the *substrate* — it
-     * can read `critical` from a floored vital with NO lifecycle
-     * transition (the deferred driver owns transitions).
+     * reads `dead`; a body inside the rescuable window reads `dying`;
+     * otherwise the band reflects the *substrate*.
      */
     public getConditionBand(): ConditionBand {
       this.reconcileConditions();
@@ -389,12 +636,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
       }
       if (self.getLifecycleState() === 'dead') return 'dead';
+      if (this.hasDyingRecord()) return 'dying';
 
       const bvBand = this.getVitalBand('bloodVolume');
       const bv = this._bloodVolume.rawValue();
-      // Blood volume at/below its survivable floor is a lethal
-      // substrate state — the reading shows it (no transition here).
-      if (bv <= bvBand.survivableMin) return 'dead';
+      // Blood volume at/below its survivable floor reads `dying`, not
+      // `dead`: the clock kills, never the threshold. (This returned
+      // `dead` before the driver existed — a rescued body would otherwise
+      // still read as a corpse.)
+      if (bv <= bvBand.survivableMin) return 'dying';
 
       let severity = 0;
       const bvFraction = bvBand.baseline > 0 ? bv / bvBand.baseline : 1;
@@ -440,6 +690,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         throw new Error('VitalsMixin requires OrganismMixin (lifecycle state)');
       }
       if (self.getLifecycleState() === 'dead') return 'dead';
+      // Dying IS incapacitation. Without this, six of the nine drivers
+      // leave a dying body walking and talking: this readout only knows
+      // about blood volume, SpO₂ and head trauma, so a body dying of cold,
+      // heat, hunger, thirst, toxin or electrocution reads `conscious`
+      // right up to the moment it dies. Placed before those reads so the
+      // cause makes no difference to the answer.
+      if (this.hasDyingRecord()) return 'unconscious';
 
       const bvBand = this.getVitalBand('bloodVolume');
       const bvFraction =
@@ -612,11 +869,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         (c): c is AfflictionRecord =>
           c.kind === 'affliction' && c.magicOrigin !== undefined,
       );
+      const dyings = this.conditions.filter(
+        (c): c is DyingRecord => c.kind === 'dying',
+      );
       if (
         traumas.length === 0 &&
         shocks.length === 0 &&
         sustained.length === 0 &&
-        decayingMagic.length === 0
+        decayingMagic.length === 0 &&
+        dyings.length === 0
       ) {
         return;
       }
@@ -751,17 +1012,48 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (t.severity <= HARM_DEFAULTS.CLEARED_SEVERITY) this.relieve(t);
         }
 
+        // ── the dying clock ────────────────────────────────────────────
+        // DELIBERATELY UNLIKE EVERY ARM ABOVE. This one does NOT re-stamp
+        // on `linkdead` and does NOT bail on the far-past guard. Both of
+        // those exist so that being away never costs you anything — which
+        // is right for hunger and wounds, and catastrophic here: a body
+        // that has crossed a lethal threshold would stop dying the moment
+        // its player disconnected, making Alt-F4 a cure for death.
+        //
+        // If you are "fixing" this by copying the `if (linkdead)` block
+        // from above, stop: that IS the bug. A body dies on schedule
+        // whether or not anyone is watching; the answer to "I crashed
+        // while bleeding out" is a medic, not a network stack.
+        //
+        // The far-past guard is skipped for the same reason. Elsewhere a
+        // huge elapsed gap produces an absurd result, so it is dropped;
+        // here a huge gap produces the CORRECT result — you were dying,
+        // nobody came, and the reading resolves that when someone finally
+        // looks.
+        for (const d of dyings) {
+          if (d.tickedAt === undefined) {
+            d.tickedAt = nowS;
+            continue;
+          }
+          const dyingElapsed = nowS - d.tickedAt;
+          d.tickedAt = nowS;
+          if (dyingElapsed <= 0) continue; // clock ran backwards only
+          d.elapsed += dyingElapsed;
+          if (d.elapsed >= d.windowSec) this.expireDying(d);
+        }
+
         // Bleed → death floor. `getConsciousness()` already reads a low
         // blood volume as `unconscious`, so the conscious → unconscious
         // waypoint falls out for free — harm writes only the death sign.
         const floor = this.getVitalBand('bloodVolume').survivableMin;
         if (this._bloodVolume.rawValue() <= floor) {
-          if (
-            MixinApi.isOrganism(self) &&
-            self.getLifecycleState() !== 'dead'
-          ) {
-            this.setCauseOfDeath('exsanguination');
-            self.setLifecycleState('dead');
+          if (MixinApi.isOrganism(self) && !self.isDead()) {
+            // Enter the window, don't end it — the clock kills from here,
+            // which is what makes a medic able to matter.
+            this.beginDying(
+              'exsanguination',
+              HARM_DEFAULTS.EXSANGUINATION_DYING_WINDOW_SEC,
+            );
           }
         }
 
@@ -775,10 +1067,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (
             this._heartRate.rawValue() <= hrFloor &&
             MixinApi.isOrganism(self) &&
-            self.getLifecycleState() !== 'dead'
+            !self.isDead()
           ) {
-            this.setCauseOfDeath('electrocution');
-            self.setLifecycleState('dead');
+            this.beginDying(
+              'electrocution',
+              HARM_DEFAULTS.ELECTROCUTION_DYING_WINDOW_SEC,
+            );
           }
         }
       } finally {
@@ -940,5 +1234,6 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.conditions.splice(i, 1);
       return true;
     }
-  };
+  }
+  return VitalsMixin;
 }

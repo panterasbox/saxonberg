@@ -333,7 +333,7 @@ describe('title', () => {
 
     const record = await ParcelApi.coveringParcelOf(LOT2);
     expect(record?.getLandUse()).toBe('residential');
-    expect(record?.getArea()?.value).toBe(1000);
+    expect(record?.getArea()).toBe(1000);
     // …and it is therefore ground a bed may stand on.
     expect(ParcelApi.cultivationScaleAt(LOT2)).toBe('bed');
   });

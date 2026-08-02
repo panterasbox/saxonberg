@@ -16,6 +16,7 @@ examples:
     note: Defuse a trap you've spotted
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

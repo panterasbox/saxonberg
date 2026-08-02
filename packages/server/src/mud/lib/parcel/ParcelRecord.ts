@@ -32,10 +32,8 @@
 
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
-import { QuantityMarshaller } from "../persistence/QuantityMarshaller";
 import { LandUses } from "./LandUse";
 import type { LandUse } from "./LandUse";
-import type { Quantity } from "../quantity";
 import type { GroupRef } from "../social/GroupProvider";
 
 /**
@@ -73,24 +71,41 @@ export interface UnitSlot {
   pos: number;
 }
 
+/**
+ * A parcel's **space account** — capacity, what is spoken for, what is
+ * left, and the ratio between them. Every field derives on read; none is
+ * stored.
+ *
+ * Reads as **site coverage** on a lot (allocated = its buildings'
+ * footprints, unallocated = the yard) and as **efficiency** in a building
+ * (allocated = its units' floor area, unallocated = common area — the
+ * corridors, cores and stairs you had to build to reach the units).
+ */
+export interface ParcelSpace {
+  /** `area × storeys` — the ceiling, and the least interesting number. */
+  capacity: number;
+  /** Declared by the children: footprints on a lot, floor area in a building. */
+  allocated: number;
+  /** `capacity − allocated` — the yard, or the common area. */
+  unallocated: number;
+  /** `allocated ÷ capacity`, 0..1. Coverage on a lot, efficiency in a building. */
+  utilisation: number;
+}
+
 export class ParcelRecord extends Document {
   static collectionName = Collections.Parcels;
   static persistentFields = [
     "extent",
     "zonePath",
+    "area",
+    "storeys",
     "owner",
     "parentParcel",
     "grants",
     "allowance",
     "keyway",
     "landUse",
-    "area",
   ];
-
-  /** Field-marshaller bindings — `area` round-trips as `{ value, unit }`. */
-  static fieldMarshallers = {
-    area: QuantityMarshaller.pathFor("m²"),
-  };
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
   extent: string = "";
@@ -100,6 +115,39 @@ export class ParcelRecord extends Document {
 
   /** The typed title holder (group or individual player). */
   owner: ParcelOwner | null = null;
+
+  /**
+   * The parcel's **gross ground area**, m². Declared at provision, **never
+   * derived** — deriving it from room geometry would make placeholder rooms
+   * load-bearing and promote a lighting constant into a land-tenure fact
+   * (`getSizeScale()` is `cellSize²` with exactly one consumer, the vision
+   * walk dividing flux into lux). 0 means "not declared", which is every
+   * parcel that predates this field.
+   *
+   * ⚠ Build-2 (Hinkley Hills) declares this same field; the declarations
+   * are deliberately identical so the merge is trivial.
+   */
+  area: number = 0;
+
+  /**
+   * How many **storeys** stand on this parcel. Default 1, which is every
+   * ground parcel and is behaviour-identical to not having the field.
+   *
+   * The multi-storey correction (D17). Two different quantities get called
+   * "area": **ground** area is conserved (children ≤ parent), **floor**
+   * area is not — it is multiplied by storeys. A 300 m² footprint at four
+   * storeys offers ~1200 m² of interior to subdivide into units, so a
+   * conservation rule written against `area` alone would refuse apartments
+   * at `subdivide` on the second floor. The ceiling is `area × storeys`.
+   *
+   * `storeys` rather than a `grossFloorArea` field because **the row
+   * already encodes floors**: `slotOfExtent` parses a trailing
+   * `f<floor>-r<pos>` ("the extent IS the slot"), built for the dorm. The
+   * vertical dimension was already in the extent grammar with no area
+   * semantics attached; this gives it some. Unequal floor plates are the
+   * LOD ladder's problem, not v1's.
+   */
+  storeys: number = 1;
 
   /** The parent parcel's `extent` (the sparse-hierarchy edge), or null. */
   parentParcel: string | null = null;
@@ -124,19 +172,6 @@ export class ParcelRecord extends Document {
    */
   landUse: LandUse | null = null;
 
-  /**
-   * The lot's declared area — the *ceiling* half of a zoning act, and the
-   * number phase 4's fields and phase 5's stocking rate divide by.
-   *
-   * **Declared at provision, never derived from room geometry.** Rooms are
-   * an abstraction; making their dimensions load-bearing would mint
-   * placeholder rooms to satisfy spatial constraints, and would promote a
-   * lighting constant (`getSizeScale()` is a photometric denominator) into
-   * a land-tenure fact. A structure's draw on its parcel is its authored
-   * blueprint footprint, not a sum over its rooms.
-   */
-  area: Quantity<"m²"> | null = null;
-
   getExtent(): string {
     return this.extent;
   }
@@ -153,15 +188,6 @@ export class ParcelRecord extends Document {
    */
   setLandUse(use: LandUse | string | null): void {
     this.landUse = use === null ? null : LandUses.parse(use);
-  }
-
-  /** The declared area, or null when undeclared. */
-  getArea(): Quantity<"m²"> | null {
-    return this.area;
-  }
-
-  setArea(area: Quantity<"m²"> | null): void {
-    this.area = area;
   }
 
   getKeyway(): string {
@@ -258,6 +284,24 @@ export class ParcelRecord extends Document {
     const match = /^\/home\/([^/]+)\//.exec(path);
     if (!match) return null;
     return { kind: "player", templatePath: `/home/${match[1]}` };
+  }
+
+  getArea(): number {
+    return this.area;
+  }
+
+  getStoreys(): number {
+    return this.storeys > 0 ? this.storeys : 1;
+  }
+
+  /**
+   * The **floor** area available to subdivide out of this parcel:
+   * `area × storeys`. For every ground parcel (`storeys: 1`) this is just
+   * its area, so nothing changes; for a building it is what lets four
+   * storeys let four times the footprint.
+   */
+  getGrossFloorArea(): number {
+    return this.getArea() * this.getStoreys();
   }
 
   /** The one parcel claiming exactly `extent`, or null. */

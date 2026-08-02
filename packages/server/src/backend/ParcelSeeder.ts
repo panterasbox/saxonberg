@@ -30,7 +30,6 @@ import {
   type ParcelOwner,
 } from "../mud/lib/parcel/ParcelRecord";
 import { LandUses } from "../mud/lib/parcel/LandUse";
-import { Quantity } from "../mud/lib/quantity";
 
 interface ParcelSeedEntry {
   extent: string;
@@ -78,11 +77,7 @@ export class ParcelSeeder {
       record.owner = entry.owner;
       record.parentParcel = entry.parentParcel ?? null;
       record.setLandUse(entry.landUse ?? null);
-      record.setArea(
-        typeof entry.areaM2 === "number"
-          ? Quantity.of(entry.areaM2, "m²")
-          : null,
-      );
+      record.area = typeof entry.areaM2 === "number" ? entry.areaM2 : 0;
       await record.save();
       inserted++;
     }

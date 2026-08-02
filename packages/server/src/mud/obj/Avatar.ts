@@ -50,6 +50,7 @@ import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../lib/party/PartyMember";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
+import type { MortalArc } from "../lib/mortality/MortalArc";
 import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
@@ -59,6 +60,7 @@ import type { CommandContributions } from "../api/command";
 import type Interactive from "./Interactive";
 import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
+import { EstateMixin } from "../lib/chattel/Estate";
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -117,15 +119,19 @@ export interface AvatarInitContext {
 // persists through the universal spine (see docs/subsystems/persistence.md):
 // its record carries its declared fields, its carried inventory (Container
 // slice), its worn gear (Slotted slice), and its own spawn/recall location
-// (`place`). `shouldPersist()` (below) gates guests out.
+// (`place`), plus its ESTATE — the stamped goods it holds title to wherever
+// they sit, which is what lets furniture stay in a room the avatar is not in.
+// `shouldPersist()` (below) gates guests out.
 const AvatarBase = PersistableMixin(
-  ForkableMixin(
-    PostRegistrationMixin(
-      HasInteractiveMixin(
-        AetherMixin(
-          NotifyPolicyMixin(
-            ContactsMixin(
-              PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+  EstateMixin(
+    ForkableMixin(
+      PostRegistrationMixin(
+        HasInteractiveMixin(
+          AetherMixin(
+            NotifyPolicyMixin(
+              ContactsMixin(
+                PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+              ),
             ),
           ),
         ),
@@ -168,6 +174,39 @@ export default class Avatar extends AvatarBase {
    * [docs/requirements/multilocation-lounge-requirements.md].
    */
   static instructionFields = ["startLocation"];
+
+  /**
+   * Persistent fields declared by Avatar itself (collected up the chain by
+   * `MixinApi.getAllPersistentFields`).
+   *
+   * `mortalArc` is the identity's position in the death arc, and it is the
+   * **only** durable record that a player is dead. Deliberately NOT
+   * `lifecycleState: 'dead'` on the body: see [MortalArc](../lib/mortality/MortalArc.ts)
+   * for why those two behave oppositely.
+   */
+  static persistentFields = ["mortalArc"];
+
+  /**
+   * The identity's death-arc position, or `null` while embodied and alive.
+   *
+   * Written only by the death choreography and cleared only by
+   * re-embodiment. Public because the `Hydrator` reflects into persistent
+   * fields by name; other Stuff use the method surface below.
+   */
+  public mortalArc: MortalArc | null = null;
+
+  public getMortalArc(): MortalArc | null {
+    return this.mortalArc;
+  }
+
+  public setMortalArc(value: MortalArc | null): void {
+    this.mortalArc = value;
+  }
+
+  /** Is this identity between death and re-embodiment? */
+  public isDeceased(): boolean {
+    return this.mortalArc !== null;
+  }
 
   /**
    * Phase 2 applier for `data.startLocation`. The avatar's spawn/recall
@@ -358,6 +397,10 @@ export default class Avatar extends AvatarBase {
     if (spineKey) {
       if (hasSnapshot) {
         await PersistableApi.materialize(this, spineKey);
+        // A snapshot may never hand back a body that cannot act again.
+        // Runs BEFORE the loadout re-provision below, which reads restored
+        // gear and must not race the heal.
+        await this.reconcileMortalState(spineKey);
         // Re-provision the session-scoped born-with floor on top of the
         // restored gear. Idempotent: the restored implant keeps the
         // cranial slot (the loadout's occupancy guard skips the
@@ -372,13 +415,62 @@ export default class Avatar extends AvatarBase {
   }
 
   /**
+   * The terminal backstop that makes "a snapshot never hands back an
+   * unusable body" unfalsifiable.
+   *
+   * A body whose snapshot carries `lifecycleState: 'dead'` cannot act:
+   * `requiresAnimate` refuses `say`, `go`, `get` — forever, on every
+   * subsequent login, because the dead state is itself persisted. That was
+   * a live defect. Nothing in this build writes that state to a player
+   * snapshot any more (the death choreography drains the body first and
+   * records the arc on the identity instead), so reaching this method at
+   * all means a record predates the fix or something upstream regressed.
+   * Either way the only honest exit is to heal it — and to heal the
+   * *record*, not just the instance, so the next login is clean too.
+   *
+   * Deliberately kept forever rather than deleted once the arc ships: it
+   * costs one field read on a live path and it is what makes the invariant
+   * hold against code that hasn't been written yet.
+   */
+  private async reconcileMortalState(spineKey: string): Promise<void> {
+    if (this.getLifecycleState() !== "dead") return;
+
+    console.warn(
+      `Avatar.reconcileMortalState: healing a snapshot that restored ` +
+        `${this.getPresentation()} (${spineKey}) as dead — a player body ` +
+        `must never persist a dead lifecycle.`,
+    );
+
+    this.setLifecycleState("alive");
+    this.setCauseOfDeath(null);
+    this.resetVitalsToSpeciesBaseline();
+    for (const condition of [...this.getConditions()]) {
+      this.relieve(condition);
+    }
+
+    await ChronicleApi.recordDeed(this, {
+      template: "{{ who | name }} returned to the world.",
+      vars: { who: this },
+      tags: ["death", "recovery"],
+    });
+
+    await PersistableApi.capture(this, spineKey);
+  }
+
+  /**
    * Persistence opt-out (the spine's `shouldPersist` hook). A guest is
    * throwaway and persists nothing — the single point (alongside the
    * `save()` guard) that makes "zero guest persistence" hold across
    * materialize / capture / autosave / onDestruct.
+   *
+   * Chains to `super` so `PersistableMixin.markForRevert()` is real for an
+   * Avatar. Without the chain the revert flag is dead here, and the death
+   * choreography — which drains the body and marks it for revert *before*
+   * destructing it — would let the capture-on-destruct backstop write the
+   * drained body back over a good snapshot.
    */
   public override shouldPersist(): boolean {
-    return !this.isGuest;
+    return !this.isGuest && super.shouldPersist();
   }
 
   /**
@@ -533,19 +625,18 @@ export default class Avatar extends AvatarBase {
       clientState: this.snapshotClientState(),
       reactionPrefs: {
         intensity:
-          ShellApi.resolveSetting<
-            "off" | "subtle" | "normal" | "vivid"
-          >(this, "social.react.intensity") ?? "normal",
+          ShellApi.resolveSetting<"off" | "subtle" | "normal" | "vivid">(
+            this,
+            "social.react.intensity",
+          ) ?? "normal",
         alwaysAggregate:
           ShellApi.resolveSetting<boolean>(
             this,
             "social.react.alwaysAggregate",
           ) ?? false,
         muteChannels:
-          ShellApi.resolveSetting<boolean>(
-            this,
-            "social.react.muteChannels",
-          ) ?? false,
+          ShellApi.resolveSetting<boolean>(this, "social.react.muteChannels") ??
+          false,
       },
     };
     // First arrival (just created in char-gen) gets a fresh greeting;
@@ -599,10 +690,13 @@ export default class Avatar extends AvatarBase {
     // (the socket coming home from a circle). Nobody heard them leave,
     // so nobody hears them come back — symmetric with `onLinkdead`.
     if (this.parked) return;
-    EventApi.emit(reconnect ? Events.PlayerReconnected : Events.PlayerLoggedIn, {
-      playerId: this.getPlayerId(),
-      userId: interactive.getUserId() ?? "",
-    });
+    EventApi.emit(
+      reconnect ? Events.PlayerReconnected : Events.PlayerLoggedIn,
+      {
+        playerId: this.getPlayerId(),
+        userId: interactive.getUserId() ?? "",
+      },
+    );
   }
 
   /**

@@ -30,6 +30,11 @@ const V1_QUANTITY_UNITS: ReadonlyArray<Unit> = [
   'K',
   'Pa',
   '%',
+  // The vital-sign units. Needed by any test that round-trips a body
+  // through the persistence spine — a Creature stores heart rate in `bpm`
+  // and blood pressure in `mmHg`.
+  'bpm',
+  'mmHg',
   'm/s²',
   'm',
   'm³',

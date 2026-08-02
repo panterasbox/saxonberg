@@ -32,7 +32,6 @@ import { AdvancementApi } from '../../../api/advancement';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Growing } from '../../../lib/husbandry/Growing';
 import {
-  PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,
   type Cultivable,
 } from '../../../lib/husbandry/Cultivable';

@@ -78,6 +78,8 @@ import type { Constructed } from '../lib/material/Constructed';
 import type { Organism } from '../lib/species/Organism';
 import type { Sexed } from '../lib/character/Sexed';
 import type { Vitals } from '../lib/vitals/Vitals';
+import type { Postmortem } from '../lib/mortality/Postmortem';
+import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
@@ -115,6 +117,7 @@ import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Globbable } from '../lib/stuff/Globbable';
 import type { Chattel } from '../lib/chattel/Chattel';
+import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
 import type { ConsignmentShelf } from '../lib/retail/Consignment';
 import type { Bulkable } from '../lib/bulk/Bulkable';
@@ -871,6 +874,22 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Vitals);
   }
 
+  /**
+   * A participant with no body that can act on matter — a shade today,
+   * and the deferred prison skin later.
+   */
+  public static isIncorporeal(obj: Stuff): obj is Stuff & Incorporeal {
+    return this.hasMixin(obj, Mixins.Incorporeal);
+  }
+
+  /**
+   * A body that runs a postmortem clock — decay, forensic readability, and
+   * the "don't collect me yet" eviction veto.
+   */
+  public static isPostmortem(obj: Stuff): obj is Stuff & Postmortem {
+    return this.hasMixin(obj, Mixins.Postmortem);
+  }
+
   public static isReserved(obj: Stuff): obj is Stuff & Reserved {
     return this.hasMixin(obj, Mixins.Reserved);
   }
@@ -994,6 +1013,11 @@ export class MixinApi {
   /** A movable good carrying a durable per-instance chattel identity. */
   public static isChattel(obj: Stuff): obj is Stuff & Chattel {
     return this.hasMixin(obj, Mixins.Chattel);
+  }
+
+  /** A principal whose record carries the goods it holds title to. */
+  public static isEstate(obj: Stuff): obj is Stuff & Estate {
+    return this.hasMixin(obj, Mixins.Estate);
   }
 
   /** An object that restores itself on the game-time reset sweep. */

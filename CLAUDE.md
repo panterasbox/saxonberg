@@ -84,6 +84,7 @@ behavior. Read the relevant doc before editing in its area.
   - [parcel.md](./docs/subsystems/parcel.md) — real-property title: ParcelRecord + chain-of-title, ParcelRegistry, `ownerOf`, `subdivide`/`transfer`
   - [sandbox.md](./docs/subsystems/sandbox.md) — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary, the wire-body crossing + wardrobe door, the Forkable substrate, jurisdiction-targeted eval
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
+  - [furnishing.md](./docs/subsystems/furnishing.md) — owner-based persistence: `place`, the estate slice, the host skip rule, the room overlay; FurnishableRoom + the four archetypes; acreage (ground vs floors)
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
@@ -134,6 +135,7 @@ behavior. Read the relevant doc before editing in its area.
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
+  - [mortality.md](./docs/subsystems/mortality.md) — the dying arc: the rescuable `dying` clock (which does NOT freeze on linkdead), the single `ConditionApi.die` transition, the corpse as a forensic Creature, the shade (`undead`, `requiresEmbodied`), `reembody` + the `passage` floor
   - [materials-response.md](./docs/subsystems/materials-response.md) — `response = f(mechanism, material, construction)`: Channel vocab, resist/deliver grids, emergent layered armor
   - [combat.md](./docs/subsystems/combat.md) — the fight: sessions, poise, gambits, terms, narration; multi-party CombatGraph; feint + fog; weapon playstyle; the gym
   - [combat-hooks.md](./docs/subsystems/combat-hooks.md) — wizard-facing combat extension grammar: three `@hook` surfaces, the augment carrier, the influence bridge, species vocabulary

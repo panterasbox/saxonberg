@@ -1,0 +1,21 @@
+# The toilet — PROSE, and that is the finished design, not a stub.
+#
+# The toilet paradox, both halves at once: a residence WITHOUT one reads
+# broken and every player will look for it, while modelling what a toilet is
+# FOR would be the worst return on effort in the corpus. So this satisfies
+# the first and refuses the second, on purpose and in writing (D13).
+#
+# It composes NO capability mixin — no slot, no surface, no container, no
+# bulk. A test asserts that, so the decision is enforced rather than
+# remembered. If you are here to "finish" it: don't.
+#
+# A fixture by encumbrance, like the pantry chest (the anvil rule).
+class: /lib/stuff/Thing
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a toilet
+  primaryKeyword: toilet
+  keywords: [toilet, lavatory, wc]
+  longDescription: |
+    A plain porcelain toilet with a wooden seat and a cistern mounted high on the wall, its chain hanging within easy reach.
+  mass: 70

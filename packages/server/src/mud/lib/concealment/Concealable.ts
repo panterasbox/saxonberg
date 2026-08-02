@@ -68,6 +68,7 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public concealment: ConcealmentLevel = 'obvious';
 
+
     /**
      * The authored hint / "tell" surfaced to a viewer who nearly perceives
      * this thing (via `PerceptionApi.hintsFor` → the room render). Left

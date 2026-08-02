@@ -31,8 +31,6 @@ import { Quantity } from "../../lib/quantity";
 import { ParcelEvent } from "../../lib/parcel/ParcelEvent";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
 import { Document } from "../../lib/persistence/Document";
-import { QuantityMarshaller } from "../../lib/persistence/QuantityMarshaller";
-import type { Marshaller } from "../../lib/persistence/Marshaller";
 import {
   makeStuffAtPath,
   withRootContext,
@@ -101,24 +99,6 @@ function installStore(): void {
     isConnected: () => true,
   } as unknown as PersistenceManager);
 
-  // `ParcelRecord.area` carries a QuantityMarshaller, so every
-  // `ParcelRecord.find()` now preloads it. Stand up a real m² marshaller
-  // rather than a no-op resolver: the area round-trip is a thing this
-  // suite asserts, and a stub would assert nothing.
-  const m2Path = QuantityMarshaller.pathFor("m²");
-  const m2Marshaller = makeStuffAtPath(
-    () => new QuantityMarshaller<"m²">(),
-    m2Path,
-  );
-  // `unit` is protected + persistent (the seed's `data:` block sets it in
-  // production). A cast-write is the test seam for standing one up without
-  // the template pipeline.
-  (m2Marshaller as unknown as { unit: string }).unit = "m²";
-  const resolve = (path: string): Marshaller<unknown, unknown> | undefined =>
-    path === m2Path
-      ? (m2Marshaller as unknown as Marshaller<unknown, unknown>)
-      : undefined;
-  Document.setMarshallerResolver(resolve, async (path) => resolve(path));
 }
 
 function seedParcel(entry: {
@@ -138,10 +118,7 @@ function seedParcel(entry: {
     grants: [],
     allowance: null,
     landUse: entry.landUse ?? null,
-    area:
-      typeof entry.areaM2 === "number"
-        ? Quantity.of(entry.areaM2, "m²").toJSON()
-        : null,
+    area: entry.areaM2 ?? 0,
   });
 }
 
@@ -733,7 +710,7 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
       "/domain/terminus/general-store",
     );
     expect(record?.getLandUse()).toBeNull();
-    expect(record?.getArea()).toBeNull();
+    expect(record?.getArea()).toBe(0);
     expect(ParcelApi.landUseOf("/domain/terminus/general-store")).toBe(
       "commercial",
     );
@@ -761,7 +738,7 @@ describe("ParcelRecord — land use and area on the row", () => {
     expect(record.getLandUse()).toBeNull();
   });
 
-  it("⭐ area round-trips as a Quantity<'m²'> through the marshaller", async () => {
+  it("⭐ area round-trips, and bands for display", async () => {
     seedParcel({
       extent: "/domain/hills/lot-1",
       owner: { kind: "group", name: "core" },
@@ -772,11 +749,9 @@ describe("ParcelRecord — land use and area on the row", () => {
 
     const record = await ParcelApi.coveringParcelOf("/domain/hills/lot-1");
     const area = record?.getArea();
-    expect(area).not.toBeNull();
-    expect(area!.unit).toBe("m²");
-    expect(area!.value).toBe(1_200);
+    expect(area).toBe(1_200);
     // …and it bands for display rather than showing the raw figure.
-    expect(area!.tag("lot")).toBe("a quarter-acre lot");
+    expect(Quantity.of(area!, "m²").tag("lot")).toBe("a quarter-acre lot");
   });
 });
 
@@ -799,15 +774,9 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
         childPath,
         parentExtent,
         { kind: "group", name: "core" },
-        opts
-          ? {
-              landUse: opts.landUse ?? null,
-              area:
-                typeof opts.areaM2 === "number"
-                  ? Quantity.of(opts.areaM2, "m²")
-                  : null,
-            }
-          : undefined,
+        opts?.areaM2 ?? 0,
+        1,
+        opts?.landUse ?? null,
       );
     });
   }
@@ -827,7 +796,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
 
     const child = await ParcelApi.coveringParcelOf("/domain/hills/lot-1");
     expect(child?.getLandUse()).toBe("residential");
-    expect(child?.getArea()?.value).toBe(1_200);
+    expect(child?.getArea()).toBe(1_200);
   });
 
   it("⭐ refuses a lot outside its use's area band, naming both", async () => {
@@ -878,7 +847,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
 
     const child = await ParcelApi.coveringParcelOf("/domain/lounge/east-wing");
     expect(child?.getLandUse()).toBeNull();
-    expect(child?.getArea()).toBeNull();
+    expect(child?.getArea()).toBe(0);
     // …and it still inherits, so the walk is unaffected.
     expect(ParcelApi.landUseOf("/domain/lounge/east-wing")).toBe("wild");
   });
@@ -897,7 +866,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
     await boot();
 
     const before = (await ParcelApi.coveringParcelOf("/domain/hills"))!;
-    expect(before.getArea()!.value).toBe(1_200);
+    expect(before.getArea()).toBe(1_200);
 
     // Stand up zones inside the parcel — the closest thing to "adding
     // rooms" the title layer can even observe.
@@ -905,6 +874,6 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
     makeStuffAtPath(() => new FolderZone(), "/domain/hills/shed");
 
     const after = (await ParcelApi.coveringParcelOf("/domain/hills"))!;
-    expect(after.getArea()!.value).toBe(1_200);
+    expect(after.getArea()).toBe(1_200);
   });
 });

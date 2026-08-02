@@ -26,6 +26,8 @@ options:
   to:
     type: string
     description: "Stop-condition: first-blood, yield, incapacitation, or death."
+validators:
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

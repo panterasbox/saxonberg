@@ -1,0 +1,34 @@
+# The tub — the bathroom's ONE affordance, and the reason the room is not
+# decoration (D13).
+#
+# `PosturedMixin` already carries both authored attributes and both already
+# have live consumers: `restQuality` (metabolism's coupled recovery) and
+# `warmth` (ThermalRegulation reads it off the seat whose posture slot the
+# body occupies). A campfire log-seat authors both today; a tub is exactly
+# that shape. Zero code.
+#
+# The honest caveat: `warmth` is a CONSTANT slot attribute refreshed on
+# occupy/leave, so an authored-warm tub is "always warm" — the same small
+# lie the shipped campfire seat already tells. The alternative is a cold tub
+# nobody uses; if hot water is ever modelled, this is one field.
+class: /obj/Chair
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a bathtub
+  primaryKeyword: tub
+  keywords: [tub, bath, bathtub]
+  longDescription: |
+    A deep enamelled tub on four squat feet, big enough to lie back in, with a brass tap at one end and a chain on the plug.
+  restQuality: 1.4
+  warmth: 4
+  mass: 120
+  staticSlots:
+    - name: 'lie:1'
+      accepts: SlottableMixin
+      capacity: 1
+      postures: [lie, sit]
+      userFacingDetail: basin
+  details:
+    basin:
+      keywords: [basin, enamel, water]
+      description: Smooth enamel, cool to the touch, with a faint ring where the water usually sits.

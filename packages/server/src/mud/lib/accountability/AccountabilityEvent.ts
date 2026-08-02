@@ -127,6 +127,20 @@ export interface AccountabilityFields {
 
 export default class AccountabilityEvent extends Document {
   static collectionName = Collections.AccountabilityEvents;
+  /**
+   * The epistemic wire mark the persistence layer stamps on a row written
+   * from circle context (sandbox.md's PASS(mark) row).
+   *
+   * Declared here for one reason: `Document.fromDocument` only reads
+   * DECLARED persistent fields, so without this the mark was written to
+   * Mongo and then silently dropped on the way back — recorded, and
+   * unreadable by the one consumer that needs it.
+   *
+   * Kept OFF field-side rows by the `toDocument` override below, so an
+   * ordinary row's document is byte-identical to what it was before.
+   */
+  circleScope: string | null = null;
+
   static persistentFields = [
     'kind',
     'sessionId',
@@ -144,6 +158,7 @@ export default class AccountabilityEvent extends Document {
     'directedBy',
     'at',
     'realAt',
+    'circleScope',
   ];
 
   kind: AccountabilityKind = 'opened';
@@ -188,8 +203,34 @@ export default class AccountabilityEvent extends Document {
    *     is no "lethal terms" concept for a snare).
    * `null` when there is no terminal row.
    */
+  /**
+   * Keep `circleScope` off field-side rows.
+   *
+   * The persistence layer stamps the mark itself when a write happens from
+   * circle context; this class never sets it. Emitting an explicit `null`
+   * for ordinary rows would change every document in the collection for no
+   * reason, so it is stripped when absent and an ordinary row's shape stays
+   * exactly what it was.
+   */
+  protected override toDocument(): Record<string, unknown> {
+    const doc = super.toDocument();
+    if (doc.circleScope == null) delete doc.circleScope;
+    return doc;
+  }
+
   static deriveBlame(rows: AccountabilityEvent[]): BlameVerdict | null {
-    const terminal = rows.filter(
+    // A killing staged inside a private circle is not evidence about
+    // anyone. The write-path policy table classifies this collection
+    // PASS(mark): the row persists carrying its `circleScope`, and readers
+    // may lens the mark — so a holodeck death stays a true thing that
+    // happened to you, while being structurally unable to convict you.
+    //
+    // Without this, anyone who could open a circle could manufacture a
+    // crime row against a real identity, because the mark was recorded and
+    // never consulted. Derive-on-read is exactly the right place to fix
+    // that: it re-legislates every row ever written without rewriting one.
+    const field = rows.filter((r) => !r.circleScope);
+    const terminal = field.filter(
       (r) => r.kind === 'death' || r.kind === 'harm',
     );
     if (terminal.length === 0) return null;

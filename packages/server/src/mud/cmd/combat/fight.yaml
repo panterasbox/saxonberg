@@ -86,3 +86,5 @@ subcommands:
       and the moment passes — the fallen is spared.
   yield:
     description: "Concede the fight"
+validators:
+  - /lib/command/validators/requiresEmbodied

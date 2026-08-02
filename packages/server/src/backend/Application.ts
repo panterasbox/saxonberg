@@ -795,19 +795,47 @@ export class Application {
       await user.save();
     }
     // Test-only staff conferral (E2E coverage of the authoring paths:
-    // clone, eval, goto). Joins BOTH axes, because they are genuinely
-    // different capabilities and a test character needs both to author:
-    // `wizards` is code trust (eval / reload / TS-escape), `core` is
-    // content-author scope (the ownership walk `AccessApi.can` runs for
-    // `clone`/`write`). Same member-key rule the `wizard` verb uses;
-    // idempotent. Unreachable outside AUTH_MODE=test.
+    // clone, eval, goto). Joins EVERY managed group, because a test
+    // character needs authority wherever the thing under test lives.
+    //
+    // A GRANT, NOT A BYPASS — deliberately. Nothing in `AccessApi` learns
+    // about test mode: this character is simply a member of the groups
+    // that already hold title, and every downstream check runs the same
+    // walk a player's does. A `if (testMode) return true` short-circuit
+    // inside the access spine would be smaller and much worse, because
+    // tests would then exercise a DIFFERENT authorization path than
+    // players do — and access regressions would become invisible to
+    // exactly the suite meant to catch them. Here, if the rules break,
+    // the tests break.
+    //
+    // The axes are genuinely different capabilities: `wizards` is code
+    // trust (eval / reload / TS-escape), `core` is content-author scope
+    // (the ownership walk `AccessApi.can` runs for `clone`/`write`), and
+    // the per-area groups (`lounge`, …) hold the parcel titles that
+    // jurisdiction-scoped `eval --parcel` resolves against. Joining only
+    // the first two is what made `eval --parcel /domain/lounge` refuse
+    // with "you hold no authority" — the lounge is owned by the `lounge`
+    // group, and the harness would otherwise have to maintain its own map
+    // of which area belongs to whom.
+    //
+    // Same member-key rule the `wizard` verb uses; idempotent.
+    // Unreachable outside AUTH_MODE=test.
     if (wizard && user.playerIds.length > 0) {
       const { GroupApi } = await import('../mud/api/group');
       const { default: Avatar } = await import('../mud/obj/Avatar');
       const reg = await GroupApi.registry();
       const provider = reg.managed();
       const memberKey = Avatar.getTemplatePath(user.playerIds[0]!);
-      for (const groupName of ['wizards', 'core']) {
+      // The managed set AccessRegistry.postRegister seeds. Listed
+      // explicitly rather than enumerated so that adding a group is a
+      // deliberate decision about test authority, not an accident.
+      for (const groupName of [
+        'wizards',
+        'core',
+        'lounge',
+        'streamers',
+        'archwizards',
+      ]) {
         const group = await provider.findByName(groupName);
         if (!group || !group._id) {
           console.warn(

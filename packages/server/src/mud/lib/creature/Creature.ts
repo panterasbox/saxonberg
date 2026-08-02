@@ -55,6 +55,8 @@ import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { SlottableMixin } from '../slot/Slottable';
+import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 
 // Body stack (inner → outer):
@@ -102,7 +104,12 @@ import { Quantity } from '../quantity';
 // carrier — placement is immaterial to the ordered body stack below). It
 // lets a creature carry a concealment level so a lurking beast can be
 // hidden until noticed; inert until authored (see concealment subsystem).
-const CreatureBase = ConcealableMixin(
+// PostmortemMixin wraps everything: it reads only lifecycle + the world
+// clock, so its placement is immaterial to the ordered body stack, and
+// being outermost puts its `canEvict` veto ahead of the others — a corpse
+// objects to being collected before any inner layer gets a say.
+const CreatureBase = PostmortemMixin(
+  ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
     ContainableMixin(
@@ -115,6 +122,16 @@ const CreatureBase = ConcealableMixin(
                   VitalsMixin(
                     ReservedMixin(
                       PosedMixin(
+                        // A body OCCUPIES slots as well as offering them:
+                        // Slotted (above) is the chair's side, Slottable is
+                        // the sitter's. Every posture verb gates on it
+                        // (`requiresSlottable`), and until this composed,
+                        // `lie`/`sit`/`kneel` rejected every actor in the
+                        // game with "you can't fit in a slot" — the
+                        // validator's own docstring asserted actors "are
+                        // always Slottable via Avatar's composition", which
+                        // was never true. Found by driving the world.
+                        SlottableMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
                             SexedMixin(
@@ -123,6 +140,7 @@ const CreatureBase = ConcealableMixin(
                               )
                             )
                           )
+                        )
                         )
                       )
                     )
@@ -134,6 +152,7 @@ const CreatureBase = ConcealableMixin(
         )
       )
     )
+  )
   )
   )
 );

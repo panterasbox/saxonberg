@@ -313,6 +313,13 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       }
       set.add(candidate);
       this.slots.set(slot, set);
+      // Synchronous slot-claim witness — the symmetric twin of
+      // `onSlotReleased`, declared as an optional method on Slottable.
+      // v1 consumer: PosedMixin records WHICH host's posture slot a body
+      // is in, so "you wake where you slept" survives a logout (D10).
+      if (candidate.onSlotOccupied) {
+        candidate.onSlotOccupied(this as unknown as Stuff & Slotted, slot);
+      }
       // Arming witness (combat's instrument seam): a CombatReactive
       // occupant hears its slot claim land, once per slot — through ALL
       // three arming paths (SlotApi.occupyAll, combat's grip swap,

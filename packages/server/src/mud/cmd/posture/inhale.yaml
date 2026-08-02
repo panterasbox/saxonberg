@@ -13,3 +13,4 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied

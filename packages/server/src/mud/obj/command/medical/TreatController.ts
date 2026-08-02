@@ -123,8 +123,12 @@ export default class TreatController extends CommandController<TreatModel> {
       );
     }
 
+    // A body in the dying window is treatable even with no wound to
+    // dress — the thing killing it may be cold, or a toxin, or blood
+    // already lost. Stabilizing is not the same act as dressing.
+    const dying = target.isDying();
     const wound = pickWound(target);
-    if (!wound) {
+    if (!wound && !dying) {
       const who = isSelf ? 'You have' : `${target.getPresentation()} has`;
       return this.fail(context, `${who} no wound to dress.`, 'no-wound');
     }
@@ -145,13 +149,25 @@ export default class TreatController extends CommandController<TreatModel> {
     }
 
     const band = await AdvancementApi.bandFor(giver, 'medicine');
-    const difficulty = difficultyFor(wound);
+    // Pulling someone back from the edge is the hardest thing this verb
+    // does, whatever the wound looks like.
+    const difficulty: Difficulty = dying
+      ? 'formidable'
+      : difficultyFor(wound!);
     const outcome = outcomeFor(band, dressing.getDressingQuality());
 
-    // Mechanical effect: dress it (arrest the bleed, begin the clot) and
-    // spend the item. The dressed wound heals to clear on the next read
-    // (reconcile-on-read — no tick to arm).
-    TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
+    // Mechanical effect: dress the wound (arrest the bleed, begin the
+    // clot) and spend the item. The dressed wound heals to clear on the
+    // next read (reconcile-on-read — no tick to arm).
+    if (wound) TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
+
+    // The stabilization: pull them out of the dying window. RESCUED, NOT
+    // HEALED — whatever drove them under is untouched, so a body still
+    // below its threshold re-enters the window on the next reconcile.
+    // Stabilizing someone in a snowdrift buys them time, not a life.
+    const stabilized =
+      dying && outcome !== 'failure' ? target.stabilize() : false;
+
     await StuffApi.destruct(dressing);
 
     // Mint the graded deed into the treater's Transcript (the ActSignature).
@@ -160,6 +176,36 @@ export default class TreatController extends CommandController<TreatModel> {
       difficulty,
       outcome,
     });
+
+    if (stabilized) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          isSelf
+            ? Mml.compose`You drag yourself back from the edge.`
+            : Mml.compose`You drag ${Mml.name(target)} back from the edge.`
+        )
+        .toPeers(
+          isSelf
+            ? Mml.compose`${Mml.name(giver)} drags themselves back from the edge.`
+            : Mml.compose`${Mml.name(giver)} drags ${Mml.name(target)} back from the edge.`
+        )
+        .send();
+      return;
+    }
+
+    if (!wound) {
+      // Dying, and the attempt was not good enough to hold them.
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          isSelf
+            ? Mml.compose`You can't stop it.`
+            : Mml.compose`You can't hold ${Mml.name(target)}.`
+        )
+        .send();
+      return;
+    }
 
     const selfLine = isSelf
       ? Mml.compose`You dress the ${wound.type} on your ${siteWord(wound)}.`

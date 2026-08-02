@@ -45,6 +45,7 @@ import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { ChattelApi } from '../../api/chattel';
 import {
   MqlSubscriptionApi,
   REF_FIELDS,
@@ -149,13 +150,30 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       ctx: CaptureContext,
     ): ContainerSlice {
       const container = host as Stuff & Container;
-      // A live player avatar (HasInteractive) is a transient occupant, never
-      // a host's persistent content — it persists itself, under its own
-      // record. Skipping it here keeps the shared content index (which the
-      // Slotted slice references) aligned with the emitted entries.
-      const contents = container
-        .getContents()
-        .filter((item) => !MixinApi.isHasInteractive(item));
+      // Two skips, one filter — they must produce the SINGLE ordering the
+      // Slotted slice indexes into, so they cannot be separate passes.
+      //
+      // 1. A live player avatar (HasInteractive) is a transient occupant,
+      //    never a host's persistent content — it persists itself, under
+      //    its own record.
+      // 2. A good someone has been STAMPED as owning persists owner-side
+      //    too, in that owner's estate (D2). An unstamped fixture — the
+      //    dorm's bed, a let unit's range, litter — captures here exactly
+      //    as it always has, which is why the rule keys on the stamp and
+      //    not on `ownerOf`: a fixture under a parcel extent is *owned* but
+      //    not *stamped*, and belongs to its room's record.
+      //
+      // The skipped goods are reported so `PersistableLogic` can flush them
+      // into their owners' estates after this synchronous walk. Dropping
+      // one here without reporting it would destroy it with the host.
+      const contents = container.getContents().filter((item) => {
+        if (MixinApi.isHasInteractive(item)) return false;
+        if (ChattelApi.isStamped(item)) {
+          ctx.noteOwnedGood(item);
+          return false;
+        }
+        return true;
+      });
       const entries: ContentEntry[] = contents.map((item) => {
         const placement: Placement = {};
         const restingOn = item.getRestingOn();

@@ -29,6 +29,15 @@ import { HotReloadApi } from "./hot-reload";
 import { PersistableLogic } from "../obj/api/PersistableLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
+import type {
+  MixinSlice,
+  EstateEntry,
+} from "../lib/persistence/PersistenceSlice";
+
+export type {
+  EstateEntry,
+  EstateSlice,
+} from "../lib/persistence/PersistenceSlice";
 
 const LOGIC_PATH = "/obj/api/persistable";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -116,6 +125,42 @@ export class PersistableApi {
    */
   static restoreOrSeed(host: Stuff, key: string): Promise<boolean> {
     return logic().restoreOrSeed(host, key);
+  }
+
+  /**
+   * Capture one **non-host** Stuff's composed state, detached from any
+   * record — the shape a {@link ContentEntry} nests and an
+   * {@link EstateEntry} carries. Synchronous, because the capture walk is.
+   *
+   * The seam owner-based persistence needs: a good whose `place` is not its
+   * owner's own container is not in anybody's container slice, so its state
+   * has to be taken directly at the moment it moves.
+   */
+  static captureDetached(item: Stuff): Record<string, MixinSlice> {
+    return logic().captureDetached(item);
+  }
+
+  /**
+   * The **room identity** an owned good's `place` names — a host's
+   * persistence scope, plus its per-instance key when it has one. Many
+   * leased units share one room template, so the scope alone would collapse
+   * them into one place.
+   */
+  static placeIdOf(host: Stuff): string {
+    return logic().placeIdOf(host);
+  }
+
+  /**
+   * Reconstitute a good from an {@link EstateEntry} into `container`, as
+   * `principal` — the room-overlay half of owner-based persistence (D4).
+   * Returns the live good, or null when its template no longer resolves.
+   */
+  static restoreDetached(
+    entry: EstateEntry,
+    container: Stuff,
+    principal: Stuff,
+  ): Promise<Stuff | null> {
+    return logic().restoreDetached(entry, container, principal);
   }
 
   /**

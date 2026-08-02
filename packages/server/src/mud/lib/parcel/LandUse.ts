@@ -63,8 +63,6 @@
  * mints one.
  */
 
-import type { Quantity } from "../quantity";
-
 /**
  * The six land uses. Closed — see the module doc. Order is presentational
  * (roughly most-built to least), not ordinal: unlike a `GradeBand` these
@@ -195,13 +193,18 @@ export class LandUses {
   }
 
   /**
-   * Whether `area` sits inside `use`'s band (inclusive). A null area is
-   * permitted — area is optional, and an undeclared lot is not a
-   * mis-authored one.
+   * Whether `area` (m²) sits inside `use`'s band, inclusive.
+   *
+   * ⚠ **Unmeasured land is not policed.** `0` — and `null` — mean *nobody
+   * declared a size*, which is not the same as *a lot of size zero*, so
+   * both pass. That is the shipped convention on `ParcelRecord.area` and
+   * the reason every parcel predating the field keeps behaving exactly as
+   * it did; it is also what keeps a hermit's unmeasured clearing out of
+   * the zoning system entirely.
    */
-  public static admitsArea(use: LandUse, area: Quantity<"m²"> | null): boolean {
-    if (area === null) return true;
+  public static admitsArea(use: LandUse, area: number | null): boolean {
+    if (area === null || area <= 0) return true;
     const band = SPECS[use].areaBand;
-    return area.value >= band.min && area.value <= band.max;
+    return area >= band.min && area <= band.max;
   }
 }

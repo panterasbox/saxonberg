@@ -2,6 +2,21 @@
 # seeded into each DormRoom via its `populates:` data. A rest surface; generic
 # label, no Named. Its personalized prose is captured/restored per-room by
 # the persistence spine (the theme overlay).
+#
+# The `lie:1` slot and `restQuality` are what make SLEEP-AS-LOGOUT reachable
+# in the residence every player actually has. Metabolism recovers by
+# `posture × restQuality` on a reconcile-on-read clock, so logging off lying
+# here earns the multiplier across the offline gap; logging off standing in
+# the street earns 1.0. The delta is the whole mechanic.
+#
+# `restQuality: 1.5` — a university-issue single with a thin mattress. Better
+# than the floor, well short of the 2.0 you get from a bed you chose and
+# bought yourself (`/obj/fixture/bed`). The ladder should be visible from the
+# bottom rung.
+#
+# The slot spec is DATA, not code — the class supplies the capability and the
+# seed supplies the shape, which is why this retrofit needed no `class:`
+# change and therefore no migration of the live per-unit records.
 class: /domain/eternal/duncan-hall/Bed
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
@@ -9,3 +24,17 @@ data:
   primaryKeyword: bed
   longDescription: |
     A university-issue single bed — a steel frame, a thin mattress, a folded blanket squared off at the foot.
+  restQuality: 1.5
+  staticSlots:
+    - name: 'lie:1'
+      accepts: SlottableMixin
+      capacity: 1
+      postures: [lie, sit]
+      userFacingDetail: mattress
+  details:
+    mattress:
+      keywords: [mattress, blanket, sheets, bedding]
+      description: A thin mattress under a folded blanket, squared off at the foot the way the porters leave them.
+    frame:
+      keywords: [frame, steel, springs]
+      description: A steel frame with a wire base that complains if you move.

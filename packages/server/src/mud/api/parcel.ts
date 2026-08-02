@@ -25,7 +25,6 @@ import {
 } from "../lib/parcel/ParcelRecord";
 import { LandUses } from "../lib/parcel/LandUse";
 import type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
-import type { Quantity } from "../lib/quantity";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
@@ -47,7 +46,11 @@ function logic(): ParcelLogic {
   );
 }
 
-export type { ParcelOwner } from "../lib/parcel/ParcelRecord";
+export type {
+  ParcelOwner,
+  ParcelSpace,
+} from "../lib/parcel/ParcelRecord";
+import type { ParcelSpace } from "../lib/parcel/ParcelRecord";
 export {
   LandUses,
   LAND_USES,
@@ -106,9 +109,18 @@ export class ParcelApi {
     childPath: string,
     parentExtent: string,
     owner: ParcelOwner,
-    opts?: { landUse?: LandUse | null; area?: Quantity<"m²"> | null },
+    area = 0,
+    storeys = 1,
+    landUse: LandUse | null = null,
   ): Promise<ParcelRecord | null> {
-    return logic().subdivide(childPath, parentExtent, owner, opts);
+    return logic().subdivide(
+      childPath,
+      parentExtent,
+      owner,
+      area,
+      storeys,
+      landUse,
+    );
   }
 
   /**
@@ -133,6 +145,36 @@ export class ParcelApi {
    */
   public static cultivationScaleAt(path: string): CultivationScale {
     return LandUses.admitsCultivation(logic().landUseOf(path));
+  }
+
+  /**
+   * A parcel's **space account** — capacity, what is spoken for, what is
+   * left, and the ratio. All derived on read; nothing stored.
+   *
+   * A ceiling on its own is useless — nobody plans against a maximum. These
+   * are the numbers that answer real questions, and they read differently
+   * by tier because `area` means ground for a child of a lot and floor for
+   * a child of a building:
+   *
+   * - on a **lot** — `allocated` is its buildings' footprints,
+   *   `unallocated` is the **yard**, `utilisation` is **site coverage**;
+   * - in a **building** — `allocated` is its units' floor area,
+   *   `unallocated` is the **common area** (corridors, cores, stairs),
+   *   `utilisation` is **efficiency**.
+   *
+   * A building that has let 100% of its gross floor reports zero common
+   * area, which is visibly absurd — this does not forbid it, it shows it.
+   */
+  public static async spaceOf(extent: string): Promise<ParcelSpace> {
+    return logic().spaceOf(extent);
+  }
+
+  /**
+   * The unallocated half of {@link ParcelApi.spaceOf} on its own — the
+   * yard on a lot, the common area in a building.
+   */
+  public static async workableAreaOf(extent: string): Promise<number> {
+    return (await logic().spaceOf(extent)).unallocated;
   }
 
   /**
