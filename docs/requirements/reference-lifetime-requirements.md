@@ -41,6 +41,7 @@ field declares everything about itself.
 | D3 | **Build-time error** when a field is both persistent and a live ref | Persisted live refs do not exist in the substrate; mirrors the `@Final` validator throwing at registration |
 | D4 | **Residency: regression tests only** | The `canEvict` vetoes are not mechanical (see R6); pin them, do not derive them |
 | D5 | **Fix all 21 sweep sites** | The mechanism without the fixes leaves the bugs it exists to prevent |
+| D7 | **W7c registries: finish the read-side prune, don't declare a rule** | A registry keyed by a live Stuff is an *index*, not a reference — it doesn't own its keys (`owned` wrong) and `Interactive` must not grow a back-ref (`symmetric` wrong). Also fixes the real leak: `Interactive.onDestruct` never calls `teardownSubstrateState`, which the three registries rely on |
 | D6 | **No decorators** | Verified: legacy decorators are invalid on any member of a class *expression* (TS1206 — field and method alike), and 105 mixins return class expressions. Not a field-vs-method issue. ES decorators do permit it, but migrating decorator modes is a separate build (call-security is legacy + `emitDecoratorMetadata`, which has no ES equivalent). |
 
 ## Scope
@@ -108,13 +109,30 @@ with it, so they are one shape — an **identity** ref. B is an
   and `MixinApi.pascalCase` already resolve against.
 - Collected up the prototype chain, own-property only, exactly as
   `getAllPersistentFields` does today.
-- **Merge rule: concrete-class-first wins**, matching the shipped
-  `getAllFieldMarshallers` (`if (!(k in out))`). A subclass may sharpen a
-  base's declaration; it may not be silently overwritten by it.
+- **Merge rule: PROPERTY-level, first-declaration-wins per property**
+  (concrete class first). **Not field-level** — that was a defect in the
+  first draft of this doc and it loses data. `lib/equipment/Weapon.ts:80`
+  declares a `fieldMarshallers` entry for `mass` while `mass` is
+  *persistent* on `lib/material/Tangible.ts:105`. Field-level first-wins
+  makes Weapon's `{marshaller}` shadow Tangible's `{persistent: true}`
+  and **`mass` stops persisting on every weapon in the game** — silently,
+  inside a 240-file diff. Per-property, booleans first-wins ≡ union;
+  `marshaller` first-wins ≡ today's `getAllFieldMarshallers`;
+  `ref`/`lifetime`/`inverse` first-wins ≡ "a subclass may sharpen".
+- **Key order is load-bearing.** `getAllPersistentFields` returns
+  concrete-first chain order and `PersistentHydrator` Phase 1 applies in
+  that order. Emit keys per class body as `persistentFields` (declared
+  order) → `instructionFields` → `globIdentityFields` → `fieldMarshallers`
+  keys not already emitted, so
+  `Object.keys(merged).filter(k => merged[k].persistent)` reproduces
+  today's array exactly.
 
 ### R2 — Only four statics fold in
 
-Verified counts:
+Verified counts. **193/15/8/3 counts non-test files**; including
+`__tests__` it is 231/16/10/7, and the **union of files declaring any of
+the four is 240** (201 non-test, 39 test) — that is the codemod's real
+input set.
 
 | static | files | field-keyed? | disposition |
 |---|---|---|---|
@@ -149,13 +167,23 @@ field lists from `fieldMeta`.
 
 | rule | declaration | mechanism | when |
 |---|---|---|---|
-| **R2.3** | `lifetime: 'weak'` | getter self-heals: if the slot's target `isDestroyed()`, null the slot and return null | lazy, on read |
+| **R2.3** | `lifetime: 'weak'` | the **proxy get trap** self-heals: if the slot's target `isDestroyed()`, null the slot and return null | lazy, on read |
 | **R2.2** | `lifetime: 'symmetric', inverse: '<field>'` | on destruct, clear this object's back-ref on the other side | eager, on destruct |
 | **R2.1** | `lifetime: 'owned'` | on destruct, `StuffApi.destruct` each held object | eager, on destruct |
 
 An **identity** ref takes no lifetime: it re-resolves from its path on
 read, so it cannot dangle. `identity` + `lifetime` is a build-time error
 (R7).
+
+**Read-side self-heal is the DEFAULT for every `ref: 'instance'` single
+ref**; axis 2 names only the *destruct-side* rule. The first draft made
+these three mutually exclusive, which the tree contradicts: `Hauler` /
+`Haulable` are symmetric **and** self-heal on read, `Containable` is
+self-heal **and** R2.4, and `Boundary.anchorA/anchorB` are symmetric
+**and** owned on the same two fields. So `weak` means *"no destruct-side
+rule"*, and `symmetric` / `owned` fields self-heal on read as well.
+Scoped to **single refs only** — pruning a Map on every read is O(n) on
+the exit-listing hot path and buys nothing the R2.4 chokepoints don't.
 
 **`owned` is the dangerous declaration** and gets the most scrutiny in
 the sweep. `weak` and `symmetric` fail safe — a leaked reference or a
@@ -182,6 +210,35 @@ Three shape requirements the census forces:
   every object, which is precisely the retention the rule exists to
   avoid.)
 
+### R4b — How `weak` self-heals (was unspecified)
+
+R4 said "the getter self-heals" without naming a mechanism, which decides
+whether the conversion is 6 files or 300. Settled: **the `ProxyApi` get
+trap**.
+
+- A **prototype accessor pair is dead on arrival**: the repo targets
+  ES2022 without `useDefineForClassFields`, so it defaults `true` and
+  class fields become own data properties that **shadow** prototype
+  accessors.
+- A **per-instance accessor install** works with any declaration form,
+  but `ProxyApi.wrap`'s get trap finds `descriptor.get` and routes
+  through the security pipeline with `isGetter: true` — turning a plain
+  field read into a call-security run on the engine's hottest path.
+- The **get trap** costs ~nothing if the weak-field set is computed once
+  per `wrap()` into the handler closure (as `wrapperCache` already is)
+  and guarded with `if (weakFields !== null && weakFields.has(prop))`.
+  For nearly every class the set is `null` and the cost is one `!== null`.
+
+`api/proxy.ts` imports only `SecurityApi`; a value import of `MixinApi`
+would create `proxy → mixin → security → proxy`. **Pass the set in**
+instead — `ProxyApi.wrap(raw, weakFields?)`, computed by the two callers
+in `api/stuff.ts` via a memoized `MixinApi.getWeakRefFields(ctor)`. No
+new Api, no new import edge.
+
+**Known gap, to be documented at the site**: reads on the **raw** target
+(`Stuff.RAW_TARGET`, `ProxyApi.unwrap`, `ResidencyLogic`'s deliberately
+raw sweeps) do not heal.
+
 ### R5 — Where the rules run
 
 `StuffApi.#destructCore` has a **locked five-slot order**. The declared
@@ -197,10 +254,26 @@ before the mixin `cleanupOnDestruct` walk:
 5. destroy()
 ```
 
-After (2) so a hand-written `onDestruct` still sees its children — which
-is how every current R2.1 site is written, and what makes the migration
-incremental rather than a flag day. Before (3) so substrate invariants
-still run last.
+After (2) so a hand-written `onDestruct` still sees its children; before
+(3) so substrate invariants run last.
+
+**Coexistence is direction-dependent** — the first draft claimed "every
+current R2.1 site" is written in `onDestruct`, which is false and would
+have shipped a double-fire. Sites in **`onDestruct`** (slot 2 —
+`Exitable`, `Adornable`, `Boundary`, `Exit`, `Hauler`, `Haulable`,
+`Species`, `Location`, `SandboxCrossing`) run *before* 2.5 and clear
+their slots, so 2.5 no-ops and they may migrate lazily. Sites in
+**`cleanupOnDestruct`** (slot 3 — `Aether`, `Warren`, `Container`,
+`Containable`, `Spawned`, `WarrenMember`, `AetherHosted`, `Slottable`,
+`Slotted`, `Persistable`) run *after* 2.5, so 2.5 would destruct first
+and slot 3 would then walk destroyed objects and throw. **Those must be
+converted atomically** — declaration in and handler out in one commit.
+
+Slot 2.5 therefore also: skips `isDestroyed()` targets, treats
+null/empty as a no-op, clears the holder's slot afterwards, and runs
+**all `symmetric` clears before all `owned` cascades** (an owned cascade
+destroys its targets, so a back-ref clear scheduled after it would
+operate on destroyed objects).
 
 **Exception policy matches slot 3**: log-and-continue per field, with
 field name + stuff id. A throwing cleanup must never prevent `destroy()`.
@@ -229,7 +302,11 @@ At class registration, throw on:
    and cannot dangle.
 3. `lifetime: 'symmetric'` with no `inverse`.
 4. An `inverse` naming a field that does not carry a reciprocal
-   `symmetric` declaration pointing back.
+   `symmetric` declaration pointing back — **same-class pairs only**.
+   A cross-class pair (`Adornment.adornedTo` ↔ `Adornable.fixtureSlots`)
+   lives on two different hosts, and registering one cannot see the
+   other; that case belongs to `lint:field-meta`, which sees the whole
+   tree statically. The first draft conflated the two.
 
 Plus `pnpm lint:field-meta` (CI-gating) for what registration cannot see:
 a legacy static still present after the codemod, and a `fieldMeta` key
