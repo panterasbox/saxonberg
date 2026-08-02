@@ -586,7 +586,10 @@ export class StuffApi {
       Stuff._endConstruction(prevSentinel);
     }
     this.#stampScopeFromContext(raw);
-    const proxy = ProxyApi.wrap(raw);
+    const proxy = ProxyApi.wrap(
+      raw,
+      MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
+    );
     if (MixinApi.isPostRegistration(proxy)) {
       // Don't even register — fail before the half-initialised object
       // can leak into the registry.
@@ -686,7 +689,10 @@ export class StuffApi {
     // the object by `stuffId` (including hydration's own self-resolving
     // hooks) sees the proxy. Holding the raw in the registry would
     // bypass interception for those callers — the decision is forced.
-    const proxy = ProxyApi.wrap(raw);
+    const proxy = ProxyApi.wrap(
+      raw,
+      MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
+    );
     this.register(proxy);
 
     try {

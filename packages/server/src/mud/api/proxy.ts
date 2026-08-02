@@ -135,7 +135,10 @@ export class ProxyApi {
    * through the interceptor pipeline. Property writes pass through
    * unchanged (no `set` trap in v1).
    */
-  public static wrap<T extends Stuff>(stuff: T): T {
+  public static wrap<T extends Stuff>(
+    stuff: T,
+    weakFields?: ReadonlySet<string> | null
+  ): T {
     // Per-target wrapper cache so repeated `obj.foo` reads return
     // the same function reference. Otherwise every method access
     // allocates a new wrapper, which breaks `obj.foo === obj.foo`
@@ -144,6 +147,17 @@ export class ProxyApi {
     // Keyed/valued by the bound method functions, cached by identity.
     type Fn = (...args: never[]) => unknown;
     const wrapperCache = new WeakMap<Fn, Fn>();
+
+    // The class's `ref: 'instance'` fields, hoisted into the handler
+    // closure exactly as `wrapperCache` is — computed once per wrap,
+    // never per read. `null` for nearly every class, which makes the
+    // hot-path cost of the whole mechanism one `!== null`.
+    //
+    // Passed IN rather than looked up here: `api/proxy.ts` imports only
+    // `SecurityApi`, and a value import of `MixinApi` would close the
+    // cycle proxy → mixin → security → proxy. The two callers in
+    // `api/stuff.ts` hold both and do the lookup.
+    const weak = weakFields ?? null;
 
     const handler: ProxyHandler<T> = {
       get(target, prop, receiver) {
@@ -176,6 +190,31 @@ export class ProxyApi {
         }
 
         const value = Reflect.get(target, prop, receiver);
+
+        // R2.3 self-heal. A slot declared `ref: 'instance'` that holds a
+        // destroyed Stuff reads as `null`, and the slot is cleared so
+        // the next read is free.
+        //
+        // Arity is decided HERE, at heal time, not declared: `fieldMeta`
+        // carries no single-vs-collection marker and one cannot be
+        // inferred from `lifetime` (`Exitable.exits` is an owned Map;
+        // `Boundary.anchorA` is an owned single). So this branches on
+        // the runtime value and heals only a lone Stuff that answers
+        // `isDestroyed()`. An Array/Set/Map is left alone — pruning a
+        // collection on every read is O(n) on the exit-listing hot path
+        // and buys nothing the R2.4 chokepoints don't already give.
+        if (weak !== null && typeof prop === 'string' && weak.has(prop)) {
+          const held = value as { isDestroyed?: () => boolean } | null;
+          if (
+            held !== null &&
+            typeof held === 'object' &&
+            typeof held.isDestroyed === 'function' &&
+            held.isDestroyed()
+          ) {
+            (target as unknown as Record<string, unknown>)[prop] = null;
+            return null;
+          }
+        }
 
         if (typeof value !== 'function') {
           // Non-method properties (instance fields, computed values

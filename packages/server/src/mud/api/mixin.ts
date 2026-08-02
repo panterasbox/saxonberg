@@ -1453,6 +1453,46 @@ export class MixinApi {
   }
 
   /**
+   * The `ref: 'instance'` fields of a class, or `null` when it has none
+   * — the set the proxy get-trap consults to self-heal a destroyed
+   * target on read.
+   *
+   * **Every** single instance ref self-heals on read; the `lifetime`
+   * axis names only the *destruct-side* rule. That is not a
+   * simplification: three shipped sites already carry two rules at once
+   * (`Hauler`/`Haulable` are symmetric AND self-heal, `Containable`
+   * is self-heal AND R2.4, `Boundary`'s anchors are symmetric AND
+   * owned), so making the axes exclusive would contradict the tree.
+   * `weak` therefore means "no destruct-side rule", not "the only one
+   * that heals".
+   *
+   * Returns `null` rather than an empty set on purpose: the trap's hot
+   * path is a single `!== null`, and for nearly every class in the game
+   * that is the whole cost.
+   *
+   * Memoized on constructor identity, which is HMR-correct — a reloaded
+   * module yields a fresh constructor and therefore a fresh entry.
+   */
+  public static getWeakRefFields(
+    constructor: AnyConstructor
+  ): ReadonlySet<string> | null {
+    const cached = MixinApi.#weakRefFields.get(constructor);
+    if (cached !== undefined) return cached;
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    const fields = Object.keys(meta).filter(
+      (f) => meta[f]!.ref === 'instance'
+    );
+    const result = fields.length > 0 ? new Set(fields) : null;
+    MixinApi.#weakRefFields.set(constructor, result);
+    return result;
+  }
+
+  static #weakRefFields = new WeakMap<
+    AnyConstructor,
+    ReadonlySet<string> | null
+  >();
+
+  /**
    * Reference-axis validation, run once per class at registration.
    *
    * These are not style rules. Each names a combination that cannot be
