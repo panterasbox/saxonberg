@@ -352,7 +352,7 @@ interface Engaged {
 ```
 
 The map is **runtime-only** — `_engagements` is deliberately NOT in
-`persistentFields`. A reloaded actor wakes up with no live
+`fieldMeta`'s persistent entries. A reloaded actor wakes up with no live
 engagements (no timers to recover, no subscriptions to re-stitch).
 Mirrors `Mobile._engagedModePath`'s runtime-only treatment.
 

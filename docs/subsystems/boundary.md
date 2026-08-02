@@ -260,7 +260,7 @@ undefined.
 ### Declarative exits: `applyExits` instruction field
 
 `exits` is an **instruction field** on `ExitableMixin` (declared via
-`static instructionFields = ['exits']`) — its YAML data is a
+`exits: { instruction: true }` in `fieldMeta`) — its YAML data is a
 declaration applied to produce the runtime `exits: Map<string, Exit>`
 collection, not stored as a value. The applier consumes a
 `Record<string, ExitInstruction>` and installs each entry:
@@ -471,7 +471,7 @@ leaving the boolean world. See commit `17add9a5`.
 ### `DoorBearingMixin`
 
 `lib/boundary/DoorBearing.ts`. Adds `door: Door | null`
-(runtime-only, NOT in `persistentFields`), `getDoor()`, default
+(runtime-only, NOT in `fieldMeta`'s persistent entries), `getDoor()`, default
 `setDoor()`. Bound to `Stuff & Exitable`. Composed by
 `ExitableVessel` so its synthesized `'in'`/`'out'` exits can
 pull the carried door at template/clone time.
@@ -550,7 +550,7 @@ getFixtureLightSources(): (Stuff & Adornment)[];
 ### Declarative adornments: `applyAdornments` instruction field
 
 `adornments` is an **instruction field** on `AdornableMixin` (declared
-via `static instructionFields = ['adornments']`) — the `applyExits` /
+via `adornments: { instruction: true }`) — the `applyExits` /
 `applyPopulates` precedent applied to fixtures. Its YAML data is an
 array of `AdornmentSpec` entries (a bare `template` path, or
 `{ template, slot }` for a meaningful slot name). The Hydrator's

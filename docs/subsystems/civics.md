@@ -97,7 +97,7 @@ Modeled on real municipal residency-by-domicile: nothing confers
 residency, no rows are stamped — `residentOf` derives the chain from
 the character's home address. `Character` carries the sparse
 `_domicileAddress` (Pattern-A address string, on the Avatar snapshot
-via `persistentFields`). **Persists-until-replaced is structural**: the
+via `fieldMeta`'s persistent entries). **Persists-until-replaced is structural**: the
 setter ignores clearing writes; a new home overwrites; losing a
 dwelling leaves it standing (homelessness is no dwelling, not no civic
 identity — asserted in the residence suite: unprovision leaves the

@@ -209,7 +209,7 @@ matrix-invariant violation. Regression tests live in
 
 ### Declarative-content `container:`
 
-`ContainableMixin` declares `static instructionFields = ['container']`
+`ContainableMixin` declares `container: { instruction: true }`
 plus an `applyContainer(path)` Phase 2 applier. When the source
 template's `data` block carries a `container: /some/singleton-target`
 string, the Hydrator resolves the target via `StuffApi.singleton(path)`
@@ -562,7 +562,7 @@ ripples through both layers. See
 ### `engagedMode` and the slot-release witness
 
 `MobileMixin` carries a runtime-only `_engagedModePath: string | null`
-field (NOT in `persistentFields` — a reloaded actor wakes up
+field (NOT in `fieldMeta`'s persistent entries — a reloaded actor wakes up
 unengaged). `getEngagedMode()` resolves it via the singleton cache;
 `setEngagedMode(mode)` stores `mode.getTemplatePath()`.
 `isEngagedIn(mode | name)` is polymorphic — accepts either the
@@ -686,7 +686,7 @@ self-rearranging chambers) can produce many instances per template.
 ## Persistence Notes
 
 The spatial subsystem is mostly auto-persistent through
-`persistentFields`:
+`fieldMeta`'s persistent entries:
 
 - `CartesianCoordinatesMixin`: `coordinates`.
 - `SphericalCoordinatesMixin`: `coordinates`, `radius`.
@@ -697,7 +697,7 @@ The spatial subsystem is mostly auto-persistent through
 
 One intentional non-persistent:
 
-- **`Containable.environment`** is NOT in `persistentFields` (see
+- **`Containable.environment`** is NOT in `fieldMeta`'s persistent entries (see
   `Containable.ts:71-76`). It's a reference to another Stuff; the
   classes that compose Containable must declare a custom
   `persistenceHandler` to choose how to serialize the reference.

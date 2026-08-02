@@ -89,7 +89,7 @@ The substrate exercises every reference pattern from
 [ref-shapes.md](../ref-shapes.md):
 
 - **`_engagedModePath`** on Mobile — an identity ref (string-by-path).
-  Runtime-only (NOT in `persistentFields`): a reloaded actor wakes up
+  Runtime-only (NOT in `fieldMeta`'s persistent entries): a reloaded actor wakes up
   unengaged. The mode singleton itself persists by templatePath in the
   domain collection.
 - **`_vehicularModePath`** on Drivable — an identity ref (string-by-path).

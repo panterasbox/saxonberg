@@ -59,7 +59,12 @@ shapes are distinct classes:
 // lib/social/Channel.ts
 export class Channel extends Document {
   static collectionName = 'channels';
-  static persistentFields = ['name', 'kind', 'subject', 'procedure'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    kind: { persistent: true },
+    subject: { persistent: true },
+    procedure: { persistent: true },
+  };
 
   name: string = '';
   kind: ChannelKind = 'player-created';

@@ -1,10 +1,15 @@
 # Reference-lifetime slate — declare how long a ref holds
 
-> **BUILT** (2026-08-02). Shipped as `static fieldMeta` with the
-> two-axis model. Two claims here were corrected by the build: there
-> are **four** field-keyed statics, not six, and the codemod's input
-> set was 245 files / 283 class bodies. See
-> [ref-shapes.md](../../ref-shapes.md) for the doctrine as shipped.
+> **BUILT, WITH A TAIL** (2026-08-02) — hence `tails/`. Shipped as
+> `static fieldMeta` with the two-axis model; see
+> [ref-shapes.md](../../ref-shapes.md) for the doctrine as shipped and
+> its **Known gaps** section for the tail (four undeclared instance-ref
+> sites, the six held-side R2.4 unhooks, and the identity axis being
+> declared nowhere yet).
+>
+> Two claims here were corrected by the build: there are **four**
+> field-keyed statics, not six, and the codemod's input set was 245
+> files / 283 class bodies, not 231.
 
 > **Status: design captured 2026-08-01, not built.** Surfaced during the
 > mortality build, from one small question — *why does `MortalArc` store a

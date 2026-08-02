@@ -88,7 +88,9 @@ relabel.
 Storage is a single persistent field:
 
 ```ts
-static persistentFields = ['_contacts'];
+static fieldMeta: FieldMeta = {
+  _contacts: { persistent: true },
+};
 _contacts: ContactEntry[] = [];
 ```
 

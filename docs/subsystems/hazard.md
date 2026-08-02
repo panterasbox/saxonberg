@@ -27,7 +27,7 @@ inter-Stuff methods-only contract.
 
 `HazardMixin` (`lib/hazard/Hazard.ts`, `_mixinName = 'HazardMixin'`)
 carries the authored descriptor fields (all `@authorable`;
-`persistentFields` = `hazardState`, `trigger`, `delivery`,
+`fieldMeta`'s persistent entries = `hazardState`, `trigger`, `delivery`,
 `traverseConsequence`, `groundTriggered`, `dropDestination`,
 `springMessage`):
 

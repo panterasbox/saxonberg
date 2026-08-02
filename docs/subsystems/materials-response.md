@@ -35,7 +35,7 @@ picks its *shape*:
   `hardness` (`Quantity<'MPa'>`, indentation hardness) and `toughness`
   (`Quantity<'MJ/m³'>`, energy absorbed before fracture), siblings of the
   existing `density`/`specificHeat` (strict-unit accessors, marshaller
-  binding, `persistentFields`). The *height* a material lends the response
+  binding, `fieldMeta`'s persistent entries). The *height* a material lends the response
   curve. Materials stay content (packs supply the roster + values); this is
   their mechanism-response face. **Not** the old 0–1 `resistance.<type>`
   scalars (that convention is dead).

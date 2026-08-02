@@ -101,6 +101,43 @@ value, and a legacy static coming back.
 
 ---
 
+## Known gaps — sites not yet declared
+
+The reference-lifetime build declared 16 fields and left a tail. None of
+these is a live bug: every one already guards on `isDestroyed()` at its
+readers, which is why they sorted to the bottom of the sweep. They are
+recorded here rather than in a plan doc because the plan is retired and
+this file is the live reference.
+
+**Instance refs still relying on a hand-written guard** (each wants a
+`weak` declaration and its guard deleted):
+
+- `SandboxCrossingExit.crossing`
+- `ExitableVessel.outCache` / `entryCache` — note these pair a live
+  `Exit` with a **stuffId invalidation stamp** (`outCacheEnvId`), which
+  is not a reference: it is compared for equality and never resolved.
+- `LoungeWarren._reapTimers`
+- `DormWarren._unitsByKey` / `_corridorsByFloor` / `_doorsByKey`
+
+**Held-side R2.4 unhooks not folded into declarations** — `Containable`,
+`Spawned`, `WarrenMember`, `AetherHosted`, `Slottable`, `Slotted`. All
+six are `cleanupOnDestruct`-form, so each must convert **atomically**
+(slot 3 runs after slot 2.5, so a declaration left alongside its handler
+would have 2.5 destruct first and the handler then walk destroyed
+objects). Each also needs its unhook separated from surrounding policy:
+`Containable`'s goes through `ContainmentApi.move`, the chokepoint, and
+`Slotted`/`Slottable`'s `onSlotReleased` notification is policy by the
+`owned` audit's own step 4.
+
+**`ref: 'identity'` is declared nowhere yet**, and that is expected
+rather than an omission: the framework attaches no behaviour to the
+identity axis — a path resolved on read cannot dangle, so there is
+nothing to enforce. The declaration is documentation-only there today.
+It IS validated (`identity` + any `lifetime` throws), so declaring one
+is safe whenever the documentation value is wanted.
+
+---
+
 ## Identity refs (was: Pattern A — string-stored singleton ref)
 
 **Stores**: a `string` (templatePath or short name) identifying a

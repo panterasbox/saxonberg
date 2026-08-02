@@ -26,7 +26,12 @@ base lives at `lib/stuff/Template.ts`:
 ```typescript
 abstract class Template extends Document {
   static collectionName = 'domain';
-  static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
+  static fieldMeta: FieldMeta = {
+    path: { persistent: true },
+    class: { persistent: true },
+    hydratorClass: { persistent: true },
+    data: { persistent: true },
+  };
 
   path: string = '';
   class: string = '';
@@ -207,7 +212,7 @@ too.
 Two distinct field shapes ride on the Hydrator's two-phase dispatch
 (per `feedback_property_vs_instruction_fields`):
 
-- **Property fields** — declared in `static persistentFields = [...]`.
+- **Property fields** — declared `{ persistent: true }` in `fieldMeta`.
   Data IS the field's value: `setX(v); assert(getX() === v)`.
   Symmetric on shape. Side effects on the setter (e.g., `setCoords`
   registers with the zone) don't change the field's identity. Shape:
@@ -215,8 +220,8 @@ Two distinct field shapes ride on the Hydrator's two-phase dispatch
   `get x / set x` for shape invariants, public methods
   `getX()` / `setX()` for the inter-Stuff contract. Hydrator
   dispatch: Phase 1 — `setX` if defined, else bracket-assign.
-- **Instruction fields** — declared in `static instructionFields = [...]`
-  (new sibling to `persistentFields`). The data is a **recipe**
+- **Instruction fields** — declared `{ instruction: true }` in `fieldMeta`
+  (new sibling to `fieldMeta`'s persistent entries). The data is a **recipe**
   consumed to produce or modify *separately-named* runtime state —
   no "value" to set/get on the spec, only a verb's argument. The
   canonical example is `exits` on `ExitableMixin`: the YAML data is

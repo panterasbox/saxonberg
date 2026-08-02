@@ -53,6 +53,192 @@
     ]
   },
   {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
+    "index": 0,
+    "className": "Base",
+    "persistentFields": [
+      "age",
+      "mass"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
+    "index": 1,
+    "className": "Middle",
+    "persistentFields": [
+      "colour"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
+    "index": 2,
+    "className": "Leaf",
+    "persistentFields": [
+      "balance"
+    ],
+    "fieldMarshallers": {
+      "mass": "'/lib/quantity/kg'"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
+    "index": 4,
+    "className": "Sharpened",
+    "persistentFields": [],
+    "fieldMarshallers": {
+      "mass": "'/lib/quantity/g'"
+    },
+    "instructionFields": [
+      "mass"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
+    "index": 5,
+    "className": "RefBase",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
+    "index": 6,
+    "className": "RefLeaf",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 0,
+    "className": "Bad",
+    "persistentFields": [
+      "_container"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 1,
+    "className": "Fine",
+    "persistentFields": [
+      "_speciesPath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 2,
+    "className": "Bad",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 3,
+    "className": "Bad",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 4,
+    "className": "Bad",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 5,
+    "className": "Bad",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 6,
+    "className": "Fine",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 7,
+    "className": "Fine",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 8,
+    "className": "Base",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 9,
+    "className": "Sub",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 10,
+    "className": "Offender",
+    "persistentFields": [
+      "_slot"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
+    "index": 11,
+    "className": "Plain",
+    "persistentFields": [
+      "age",
+      "mass"
+    ],
+    "fieldMarshallers": {
+      "mass": "'/lib/quantity/kg'"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
     "file": "packages/server/src/mud/api/__tests__/mql-subscription.displayName.test.ts",
     "index": 0,
     "className": "NamedThing",
@@ -101,6 +287,98 @@
     "file": "packages/server/src/mud/api/__tests__/prompt.format.test.ts",
     "index": 1,
     "className": "Plain",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/proxy.weakRef.test.ts",
+    "index": 1,
+    "className": "Holder",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/proxy.weakRef.test.ts",
+    "index": 2,
+    "className": "Plain",
+    "persistentFields": [
+      "age"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 1,
+    "className": "OwnerSingle",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 2,
+    "className": "OwnerMap",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 3,
+    "className": "OwnerSet",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 4,
+    "className": "SideA",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 5,
+    "className": "SideB",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 6,
+    "className": "BothOrder",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 7,
+    "className": "Weak",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
+    "index": 8,
+    "className": "Exploding",
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
@@ -570,6 +848,33 @@
     "instructionFields": [
       "adornments"
     ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Adornment.ts",
+    "index": 0,
+    "className": "AdornmentMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Boundary.ts",
+    "index": 0,
+    "className": "Boundary",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/DoorBearing.ts",
+    "index": 0,
+    "className": "DoorBearingMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
     "globIdentityFields": []
   },
   {
@@ -1746,6 +2051,15 @@
     "globIdentityFields": []
   },
   {
+    "file": "packages/server/src/mud/lib/location/WarrenMember.ts",
+    "index": 0,
+    "className": "WarrenMemberMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
     "file": "packages/server/src/mud/lib/locomotion/Climbable.ts",
     "index": 0,
     "className": "ClimbableMixin",
@@ -1964,6 +2278,15 @@
       "height",
       "status"
     ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/message/Aether.ts",
+    "index": 0,
+    "className": "AetherMixin",
+    "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
     "globIdentityFields": []
@@ -2589,6 +2912,15 @@
     "globIdentityFields": []
   },
   {
+    "file": "packages/server/src/mud/lib/slot/Hauler.ts",
+    "index": 0,
+    "className": "HaulerMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
     "file": "packages/server/src/mud/lib/slot/Mountable.ts",
     "index": 0,
     "className": "MountableMixin",
@@ -3093,6 +3425,15 @@
       "savedProps",
       "savedPropMarshallers"
     ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Spawned.ts",
+    "index": 0,
+    "className": "SpawnedMixin",
+    "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
     "globIdentityFields": []

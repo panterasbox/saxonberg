@@ -20,7 +20,7 @@ code-execution surface.
 
 A form needs, per field, its *type shape* and whether it is author-facing.
 The engine had neither as machine-readable data (a mixin declares fields as
-a bare `static persistentFields: string[]` — names only). The Studio derives
+a bare name list). The Studio derives
 both without a hand-authored parallel schema:
 
 - **Classification** (`@authorable` vs `@runtimeState`) is an **inline TSDoc
@@ -93,7 +93,7 @@ instance (`findByTemplatePath(contextPath)` else the first
 instance it reads class defaults off a guarded throwaway
 `StuffApi.create`. `valueSource` records `instance` / `resolution-chain` /
 `class-default`. Field ownership uses **own statics only**
-(`hasOwnProperty`) so an inherited `static instructionFields` isn't
+(`hasOwnProperty`) so an inherited an `instruction` entry in `fieldMeta` isn't
 mis-attributed to a subclass mixin.
 
 REST: `GET /api/studio/describe|blueprints|blueprint|mixins`,

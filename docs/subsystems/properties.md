@@ -220,7 +220,10 @@ the persistent hydrator. No subclass changes required. Pass
 ```typescript
 class Avatar extends PropertiedMixin(SomeBase) {
   // savedProps is auto-persisted
-  static persistentFields = ['name', 'location' /* ... */];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    location: { persistent: true },
+  };
 }
 ```
 

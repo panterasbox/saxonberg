@@ -53,9 +53,15 @@ to the `Collections` enum). The shape is deliberately flat:
 ```typescript
 export class Emote extends Document {
   static collectionName = 'emotes';
-  static persistentFields = [
-    'verb', 'aliases', 'grammar', 'echo', 'emoji', 'tags', 'valence',
-  ];
+  static fieldMeta: FieldMeta = {
+    verb: { persistent: true },
+    aliases: { persistent: true },
+    grammar: { persistent: true },
+    echo: { persistent: true },
+    emoji: { persistent: true },
+    tags: { persistent: true },
+    valence: { persistent: true },
+  };
 
   verb: string = '';
   aliases: string[] = [];

@@ -74,7 +74,7 @@ a single existing override.
 ### One signal — recency (`lastTouched`)
 
 A coarse, transient `lastTouched` timestamp on `Stuff` base (never
-persisted, not in `persistentFields`; resets to construction time on
+persisted, not in `fieldMeta`'s persistent entries; resets to construction time on
 every clone/hydrate). `touch()` / `getLastTouched()` are the surface.
 The security gate calls `touch()` on the raw target after **every
 successful non-getter method dispatch** — being *used* is being touched,
