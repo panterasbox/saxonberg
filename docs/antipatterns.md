@@ -2501,6 +2501,60 @@ verb.** When a build's value is player-facing, drive it — boot the server,
 query the collection, type the command. Every defect above cost minutes to
 find that way and was invisible to 7,300 passing tests.
 
+## A test-only capability added to the BACKEND
+
+When an e2e needs a capability the game gates — money, an item, a clock
+position — the tempting fix is a new backend method plus a route behind
+`AUTH_MODE=test`. It is gated, it is honest about being test-only, and it
+is **still wrong**, because of what it does to the two things around it.
+
+It corrupts the test: a character handed 20,000 credits against char-gen's
+20-credit stipend is no longer exercising the economy, it is skipping it.
+And it corrupts the backend: one seam invites the next
+(`test-give-item`, `test-set-time`), and the layer that is supposed to do
+I/O grows a cheat console one justified addition at a time.
+
+The Hinkley build shipped exactly this — 126 lines across `Application`,
+`Backend` and `TestAuthRoutes` so an e2e could buy a 4000-credit lot — and
+then removed it.
+
+### BAD (a channel that exists nowhere in the game)
+
+```typescript
+// Application.ts — public, test-gated, and reachable by no player
+public async fundTestCharacter(userId: string, fundsMinor: number) { … }
+// Backend.ts — a pass-through
+public async handleTestFunding(userId: string, fundsMinor: number) { … }
+// TestAuthRoutes.ts — POST /auth/test-fund
+```
+
+### GOOD (arrange the WORLD so the capability is not needed)
+
+```yaml
+# config/parcels.yaml — one lot ships already sold.
+# The gate is ungated and the cultivation gate reads ZONING, not title,
+# so a walk-in-and-plant test needs a lot that IS sold, not one it bought.
+- extent: /domain/terminus/hinkley-hills/lots/lot-1
+  parentParcel: /domain/terminus/hinkley-hills
+  owner: { kind: group, name: hinkley-hills }
+```
+
+**The ladder, in order — take the first rung that works:**
+
+1. **Does the test actually need the capability?** Split it. The half a
+   browser uniquely proves (is it *reachable*) is rarely the half that
+   needs the gated thing; the other half usually has unit coverage already.
+2. **Can the seeded world provide it?** A fixture in content costs nothing
+   at runtime and is often better content besides.
+3. **Can the test EARN it** through a shipped player path? Slowest, best,
+   and the right shape for an integration spec.
+4. **Only then** a harness seam — and put it in the harness, not in three
+   layers of production code.
+
+**Not a way out:** widening the `eval` sandbox. Its allowlist is five
+names, and anything added to reach around a gate in a test is added for
+every wizard **in production**.
+
 ## A static exit whose destination is a SHARED room template
 
 An `exits:` entry names a template path, and the engine resolves it with

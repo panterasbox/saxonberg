@@ -75,11 +75,36 @@ parcels:
   # declares otherwise. ~24 hectares of surveyed paddock: a hundred
   # quarter-acre lots' worth, which is the joke the empty stakes tell.
   #
-  # Individual LOTS are deliberately absent — `title buy` mints them.
+  # Individual LOTS are minted by `title buy` — with ONE exception below.
   - extent: /domain/terminus/hinkley-hills
     owner: { kind: group, name: hinkley-hills }
     landUse: residential
     areaM2: 240000
+
+  # ⭐ lot-1 — the one lot that was taken before you got here.
+  #
+  # It makes the lane's own prose TRUE on a fresh world: "Where a lot has
+  # been taken there is a gate in the fence and, behind it, somebody's
+  # roof." Without this the lane describes a gate that only exists after
+  # somebody buys, so the first player to walk up the road is told about
+  # a house that isn't there. A subdivision drawn for a hundred families
+  # that got one is the whole joke, and one is not zero.
+  #
+  # Held by the developer group rather than a player: nobody is home, and
+  # the parcel layer has no notion of an absent owner. Selling it on is a
+  # later beat (there is no resale path yet).
+  #
+  # It is also what lets the e2e suite work a yard WITHOUT money. The gate
+  # is ungated and the cultivation gate reads ZONING, not title, so a
+  # walk-in-and-plant test needs a lot that is SOLD, not a lot it bought
+  # — and buying one needs 4000 credits against char-gen's 20-credit
+  # stipend. That gap is the economy working as designed; a test-only cash
+  # faucet in the backend was the wrong way to close it.
+  - extent: /domain/terminus/hinkley-hills/lots/lot-1
+    parentParcel: /domain/terminus/hinkley-hills
+    owner: { kind: group, name: hinkley-hills }
+    landUse: residential
+    areaM2: 1000
 
   # Duncan Hall's dorms wing — the parent parcel the leased unit parcels
   # subdivide under (…/dorms/f<n>-r<p>). Owned by the managed `duncan-hall`

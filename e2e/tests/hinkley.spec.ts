@@ -27,35 +27,27 @@ const REGISTRY = '/domain/terminus/registry/office';
 const LANE = '/domain/terminus/hinkley-hills/lane';
 
 /**
- * `lot-5` is RESERVED: no test ever buys it, so "an unsold lot has no
- * gate" stays true however many times this suite runs.
- */
-const RESERVED = 'lot-5';
-
-/**
- * Read the plat book and return a lot nobody has bought yet.
+ * The lot that ships already sold — seeded in `config/parcels.yaml`, held
+ * by the developer group. It is what makes the lane's prose true on a
+ * fresh world, and it is how this suite works a yard WITHOUT money.
  *
- * Land is finite and a sale is permanent, so a spec that hard-codes
- * `lot-1` passes exactly once per world and fails on every re-run. This
- * is also just what a player does: read the board, pick one that is
- * going. Throws (rather than skipping) when the subdivision has sold
- * out — that is a signal to widen the plat, not to quietly pass.
+ * ⚠ **No test here buys a lot, and that is deliberate.** A lot is 4000
+ * credits against char-gen's 20-credit stipend, so a purchase needs
+ * either a cash faucet (there was one, in the backend; it was wrong and
+ * is gone) or a character who has EARNED it (a good future spec, and a
+ * slow one that couples this to employment). Meanwhile the sale itself
+ * has 18 unit tests in `TitleVerb.test.ts` including the funded path.
+ *
+ * What only a browser can prove is the REACHABILITY chain — the gate
+ * hangs, `populates` fires, the verbs dispatch — and that needs a lot
+ * that is sold, not a lot this suite bought. A pre-sold lot gives it,
+ * and makes the whole suite idempotent as a bonus: nothing is consumed,
+ * so it can run against a live world forever.
  */
-async function availableLot(page: import('@playwright/test').Page) {
-  await sendUntil(page, 'title list', page.getByText(/lot-\d/i).first());
-  const text = await page.locator('body').innerText();
-  for (const line of text.split('\n')) {
-    const match = /^\s*(lot-\d+)\s+—\s+(.*)$/.exec(line);
-    if (!match) continue;
-    const [, leaf, rest] = match;
-    if (leaf === RESERVED || /sold/i.test(rest!)) continue;
-    return leaf!;
-  }
-  throw new Error(
-    'availableLot: every Hinkley lot is sold — widen the plat book, or ' +
-      'reset the parcels collection.'
-  );
-}
+const SOLD_LOT = 'lot-1';
+
+/** A lot nobody has taken — nothing must open onto it. */
+const UNSOLD_LOT = 'lot-5';
 
 test('the suburb is reachable and the lane describes the empty lots', async ({
   browser,
@@ -115,38 +107,12 @@ test('⭐ an UNSOLD lot has no gate — the lane only opens what sold', async ({
     wizard: true,
   });
   try {
-    // The reserved lot is never bought. Nothing should open onto it.
+    // Nothing in this suite buys, so every lot but SOLD_LOT is open ground.
     await sendUntil(
       page,
-      `go ${RESERVED}`,
+      `go ${UNSOLD_LOT}`,
       page.getByText(/can't walk that way/i).first()
     );
-  } finally {
-    await close();
-  }
-});
-
-test('⭐ BUY A LOT — the sale, and the gate it hangs on the lane', async ({
-  browser,
-}) => {
-  const { page, close } = await openWorldAs(browser, 'hh-buy', {
-    startLocation: REGISTRY,
-    wizard: true,
-    fundsMinor: 20_000,
-  });
-  try {
-    const lot = await availableLot(page);
-
-    await sendUntil(
-      page,
-      `title buy ${lot}`,
-      page.getByText(/is yours|registrar writes the row/i).first()
-    );
-
-    // ⭐ The title is real, and it reads its area band and its zoning.
-    await sendUntil(page, 'title', page.getByText(new RegExp(lot, 'i')).first());
-    await expect(page.getByText(/quarter-acre lot/i).first()).toBeVisible();
-    await expect(page.getByText(/residential/i).first()).toBeVisible();
   } finally {
     await close();
   }
@@ -155,50 +121,31 @@ test('⭐ BUY A LOT — the sale, and the gate it hangs on the lane', async ({
 test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', async ({
   browser,
 }) => {
-  // Buy first, from the counter, as a player must.
-  let lot = '';
-  const buyer = await openWorldAs(browser, 'hh-own', {
-    startLocation: REGISTRY,
-    wizard: true,
-    fundsMinor: 20_000,
-  });
-  try {
-    // A FRESH lot, always: `populates` only fires on a first
-    // provisioning, so a re-bought lot would have whatever the last
-    // owner left — which is exactly how it should behave, and useless
-    // for asserting that the yard comes with its kit.
-    lot = await availableLot(buyer.page);
-    await sendUntil(
-      buyer.page,
-      `title buy ${lot}`,
-      buyer.page.getByText(/is yours|registrar writes the row/i).first()
-    );
-  } finally {
-    await buyer.close();
-  }
-
   const { page, close } = await openWorldAs(browser, 'hh-work', {
     startLocation: LANE,
     wizard: true,
   });
   try {
     // ⭐ The gate is hanging, named for the lot.
-    await sendUntil(page, 'look', page.getByText(new RegExp(lot, 'i')).first());
+    await sendUntil(page, 'look', page.getByText(new RegExp(SOLD_LOT, 'i')).first());
     // `go` is one-way, so it must NOT ride `sendUntil` (a re-send after a
     // successful move just bounces off a wall). Arrival prints movement
     // prose, not a room description — the `look` is what shows the yard.
-    await runCommand(page, `go ${lot}`);
+    await runCommand(page, `go ${SOLD_LOT}`);
     await page.waitForTimeout(3000);
     await sendUntil(page, 'look', page.getByText(/yard behind the house/i).first());
 
-    // ⭐ `populates` fired on first provisioning: the bed, the water
-    // source, and the CAN — `water` is tool-conferred, so a yard without
-    // one is ground you cannot work.
+    // ⭐ `populates` fired on first provisioning. Asserted on the two
+    // FIXTURES only: the yard also ships a watering can, but a portable
+    // is a bad witness — the first session that pockets it removes it
+    // from the room forever, and this lot is never re-provisioned. That
+    // the seed ships one is a content claim, checked against the seed in
+    // `domain/terminus/hinkley-hills/__tests__`.
     await expect(page.getByText(/raised garden bed/i).first()).toBeVisible();
     await expect(page.getByText(/standpipe/i).first()).toBeVisible();
-    await expect(page.getByText(/watering can/i).first()).toBeVisible();
 
-    await runCommand(page, 'get can');
+    // So bring our own, the way the wizard brings the soil and the seed.
+    await runCommand(page, 'clone /obj/vessel/watering-can');
     await runCommand(page, 'clone /obj/vessel/soil-sack');
     await runCommand(page, 'clone /obj/seed/carrot');
     await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
@@ -272,10 +219,9 @@ test('the sale refuses cleanly when the buyer cannot cover it', async ({
     wizard: true,
   });
   try {
-    const lot = await availableLot(page);
     await sendUntil(
       page,
-      `title buy ${lot}`,
+      `title buy ${UNSOLD_LOT}`,
       page.getByText(/can't cover/i).first()
     );
 

@@ -477,6 +477,43 @@ rule that landed while it was in flight.
 
 ---
 
+## ⚠ Buying a lot is NOT reachable at char-gen, and the tests must not pretend
+
+A lot is **4000**; char-gen's onboarding stipend is **20**. The gap is the
+economy working as designed — land is earned, and `issueCash` at char-gen
+is the only conserved way money enters a new character.
+
+The Hinkley e2e briefly closed that gap with a **test-only cash faucet in
+the backend** (`POST /auth/test-fund` → `Backend` → `Application` →
+`issueCash`, 20,000 credits). It was wrong and it is gone. Three reasons,
+in ascending order:
+
+1. It was 126 lines of production backend code no player could reach.
+2. It established a shape — *"when a test needs something, add a backend
+   method and a route"* — that ends in a cheat console.
+3. It handed a test character **1000× the onboarding grant**, which meant
+   the suite was no longer exercising the economy at all.
+
+`eval` cannot substitute for it: the sandbox exposes exactly five names
+(`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi`, `console`) and adding
+`BankingApi` would give every wizard a money printer **in production**.
+
+**What replaced it: one lot ships already sold** (`config/parcels.yaml`,
+held by the developer group). The gate is ungated and the cultivation gate
+reads ZONING not title, so a walk-in-and-plant test needs a lot that is
+*sold*, not one it *bought*. The purchase itself keeps its 18 unit tests in
+`TitleVerb.test.ts`, including the funded path; what only a browser can
+prove is the reachability chain, and that needs no money.
+
+It is also better content. The lane already says *"Where a lot has been
+taken there is a gate in the fence and, behind it, somebody's roof"* — a
+sentence that described nothing on a fresh world. A subdivision drawn for
+a hundred families that got **one** is the joke; one is not zero.
+
+The genuinely better test — a character who **earns** the 4000 through the
+shipped labor market and then buys — is a future economy-integration spec,
+and is slow enough that it should not gate the farm.
+
 ## History — what the live drive changed
 
 The build shipped green on ~1700 unit tests and was **unreachable**. Four
