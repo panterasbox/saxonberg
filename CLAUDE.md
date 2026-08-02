@@ -188,6 +188,41 @@ behavior. Read the relevant doc before editing in its area.
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
 
+## ⚠ Worktrees — read before committing
+
+Four worktrees (`master`, `build-1/2/3`) share one bare repo at
+`../.bare`. **They share branch refs but have separate working trees.**
+
+> **Two worktrees on the same branch is a data-loss bug, not an
+> inconvenience.** A commit from one moves the other's `HEAD` while
+> leaving its files untouched; the second worktree is then a stale tree
+> with a current HEAD, and `git add -A` from it records **everything it
+> is missing as a deletion**. On 2026-08-02 this produced three commits
+> that deleted up to 158 files each, with commit messages that said
+> nothing about it.
+
+**The rules:**
+
+1. **Never `git add -A` / `git commit -a`.** Stage by name. This alone
+   makes the failure impossible.
+2. **One branch, one worktree.** Never check out a branch a sibling
+   worktree already holds — `git worktree list` shows who has what.
+   The `master` worktree should sit **detached** at `origin/master` when
+   a build worktree is on `master`.
+3. **Check before you commit:**
+   `git rev-list --left-right --count origin/master...HEAD` — a non-zero
+   **left** number means you are behind.
+
+**Enforcement** — a tracked hook blocks all three failure modes:
+
+```bash
+git config core.hooksPath .githooks   # once per clone; config is not tracked
+```
+
+It refuses a commit when the branch is checked out in two worktrees, when
+a commit deletes files while behind upstream, or when it deletes more
+than ten files. Deliberate bulk deletion: `SAXONBERG_ALLOW=1 git commit`.
+
 ## Development Commands
 
 ### Package Management

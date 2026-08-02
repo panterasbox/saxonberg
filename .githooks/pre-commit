@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Saxonberg pre-commit guard.
+#
+# Exists because on 2026-08-02 three commits in one day recorded mass
+# deletions nobody intended — 158 source files in the worst case — with
+# commit messages that gave no hint of it.
+#
+# Root cause: two worktrees had `master` checked out at once. They share
+# one branch ref but have separate working trees, so a commit from one
+# moves the other's HEAD while leaving its files behind. The second
+# worktree is then instantly "stale tree, current HEAD", and `git add -A`
+# records everything it is missing as a deletion.
+#
+# Escape hatch (use deliberately, never reflexively):
+#   SAXONBERG_ALLOW=1 git commit ...
+set -uo pipefail
+
+die() { echo ""; echo "  ✖ pre-commit: $*" >&2; echo "" >&2; exit 1; }
+warn() { echo "  ⚠ pre-commit: $*" >&2; }
+
+[ "${SAXONBERG_ALLOW:-0}" = "1" ] && { warn "SAXONBERG_ALLOW=1 — guards bypassed"; exit 0; }
+
+branch=$(git symbolic-ref --quiet --short HEAD || true)
+
+# ── 1. THE ROOT CAUSE: same branch checked out in more than one worktree ──
+if [ -n "$branch" ]; then
+  dupes=$(git worktree list --porcelain \
+          | awk -v b="refs/heads/$branch" '/^worktree /{w=$2} /^branch /{if($2==b) print w}')
+  n=$(printf '%s\n' "$dupes" | grep -c . || true)
+  if [ "$n" -gt 1 ]; then
+    echo "" >&2
+    echo "  Branch '$branch' is checked out in $n worktrees:" >&2
+    printf '    %s\n' $dupes >&2
+    echo "" >&2
+    echo "  They share one ref and have separate trees, so a commit from" >&2
+    echo "  either one silently staleness-poisons the other." >&2
+    die "put this worktree on its own branch first (git switch -c <name>)"
+  fi
+fi
+
+# ── 2. THE SIGNATURE: deleting files while behind upstream ──
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)
+[ -z "$upstream" ] && upstream="origin/master"
+behind=0
+if git rev-parse --verify --quiet "$upstream" >/dev/null; then
+  behind=$(git rev-list --count "HEAD..$upstream" 2>/dev/null || echo 0)
+fi
+dels=$(git diff --cached --diff-filter=D --name-only | grep -c . || true)
+
+if [ "$behind" -gt 0 ] && [ "$dels" -gt 0 ]; then
+  echo "" >&2
+  echo "  HEAD is $behind commit(s) behind $upstream, and this commit" >&2
+  echo "  deletes $dels file(s). That is exactly the stale-worktree" >&2
+  echo "  signature: on a behind tree, 'add -A' records everything you" >&2
+  echo "  are missing as a deletion." >&2
+  echo "" >&2
+  git diff --cached --diff-filter=D --name-only | head -10 | sed 's/^/    − /' >&2
+  [ "$dels" -gt 10 ] && echo "    … and $((dels - 10)) more" >&2
+  die "pull/rebase first, then re-stage by name"
+fi
+
+# ── 3. MASS DELETION, even when up to date ──
+if [ "$dels" -gt 10 ]; then
+  echo "" >&2
+  echo "  This commit deletes $dels files:" >&2
+  git diff --cached --diff-filter=D --name-only | head -10 | sed 's/^/    − /' >&2
+  echo "    … and $((dels - 10)) more" >&2
+  die "if deliberate, re-run with SAXONBERG_ALLOW=1"
+fi
+
+[ "$behind" -gt 0 ] && warn "HEAD is $behind commit(s) behind $upstream — stage by name, not with -A"
+[ "$dels" -gt 0 ] && warn "this commit deletes $dels file(s)"
+exit 0
