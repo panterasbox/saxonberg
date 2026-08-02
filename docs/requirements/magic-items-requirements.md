@@ -54,6 +54,11 @@ land first; waves 2–7 are independently shippable in the order given.
 - Metabolism keeps its existing front door: an ingested substance
   reaches body chemistry through the shipped `ingest` seam, whether it
   came from a mug or a flask.
+- **`read` decomposes into perceive + decode**, and every written thing
+  carries a **modality** (inked · embossed · both). Wave 6 consumes it
+  for books.
+- Use-verbs come from **capability mixins**, never from item
+  declarations — and conferral never hides a verb from the parser.
 
 **Wave 3 — charge, decay, and the item economy.**
 
@@ -537,12 +542,68 @@ fill them; a maker economy that can only refill found objects is
 half a market. Shell inflation is harmless (D7), so nothing is lost by
 allowing it.
 
-### D23 — Use-verbs are conferred by the item
+### D23 — **Capabilities** confer verbs; items don't
 
-Consistent with the affordance model: instruments confer verbs. A wand
-confers its use verb, a book confers `study`, a potion confers `quaff`.
-`recharge` and `study` are standalone verbs because they are diegetic
-acts, not subcommands of an administrative surface.
+The universal-versus-conferred framing is a false choice. Repetition
+only arises if *items* declare verbs. If the **capability mixin**
+declares it, the verb is written once in core and every member gets it
+free — a potion never says *"I grant quaff"*, it is `Bulkable` and
+potable, and that is sufficient.
+
+Surfacing stays contextual, so the affordance list remains a live signal
+of what is actionable here. That is the discoverability win, and it
+costs nothing because the affordance machinery already computes
+reachability.
+
+> **⚠ Conferral controls the affordance LIST, never the PARSER.**
+
+If `drink` is unlisted because nothing here is drinkable, typing `drink`
+must still answer *"there is nothing to drink"* — never *"unknown
+command."* Hiding from a list is helpful; hiding from the parser teaches
+players that verbs evaporate, which is worse than never listing them.
+
+Under this rule the three verbs that looked different are one mechanism
+with different populations: **`zap`** is conferred by *charged +
+directed* (wands today; braced kinetic staves once ranged lands; mounted
+emplacements after), **`quaff`** by *potable bulk*, **`read`** by
+*bearing marks*. `zap` looks conferred and `quaff` looks universal only
+because their capabilities have very different memberships.
+
+**Content authors never declare a use-verb.** They compose a mixin and
+the verb follows. `recharge` and `study` remain standalone verbs,
+because they are diegetic acts rather than subcommands.
+
+### D33 — `read` decomposes into perceive + decode, and written things carry a modality
+
+`read` is not a flavour of `look`. Looking is one sense channel
+resolving; reading is **perception plus symbolic decoding**, and the two
+come apart in both directions — a sighted illiterate perceives and
+cannot decode; a reader of embossed text decodes fine through a
+different channel.
+
+> **read = perceive(the marks) + decode(the script)**
+
+So a written thing carries a **modality**: inked (visual), embossed
+(tactile), or both. A cheap property, and what falls out of it is
+mechanical rather than gestural:
+
+- **A tactile book is readable in the dark** — a real advantage worth
+  paying for on an expedition, not a courtesy.
+- A character without functioning sight is not excluded from the
+  spellbook economy, and the mechanic that includes them is the same one
+  that makes dark-reading work.
+- It composes with what is already shipped: `senses.md` owns the
+  modality vocabulary and light already gates visual perception
+  per-viewer. No new machinery.
+
+**Literacy is out of scope for v1** — everyone reads the common script.
+The decomposition leaves the seam in place, and the spellbook
+comprehension floor (D14) is already a decoding gate in all but name, so
+literacy would slot into `decode` without disturbing `perceive`.
+
+Modality belongs in this build rather than a later one because it is a
+property on **every written thing** and is expensive to retrofit once
+scrolls, books, labels, and signage all exist without it.
 
 ### D24 — A scroll of identify writes a class into memory
 
@@ -847,6 +908,13 @@ phase reads against.
    proportionally scaled graded effect and no threshold effect below its
    minimum; splitting, dilution, and spilling are covered.
 5. A scroll costs the reader's reserve and is destroyed on use.
+5a. A use-verb is declared once on its capability mixin and no item
+    template declares one. A verb unlisted for lack of an affordance is
+    still **parseable** and answers with a reason, never with
+    *unknown command*.
+5b. `read` resolves as perceive-then-decode. An **embossed** text is
+    readable in darkness; an **inked** one is not. A test covers both
+    modalities against the same reader and the same light level.
 
 **Wave 3 — charge, decay, economy**
 
