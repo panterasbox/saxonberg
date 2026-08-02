@@ -43,10 +43,14 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'HaulerMixin';
 
     static fieldMeta: FieldMeta = {
-      // The hitch coupling, hauler side. Symmetric with
-      // `Haulable._hauledBy`; self-heals on read as every instance ref
-      // does.
-      _hauling: { ref: 'instance', lifetime: 'weak' },
+      // The hitch coupling, hauler side. The reciprocal clear on
+      // destruct is DECLARED — `hitch`/`unhitch` stay, because they are
+      // the atomic setter pair, not cleanup.
+      _hauling: {
+        ref: 'instance',
+        lifetime: 'symmetric',
+        inverse: '_hauledBy',
+      },
     };
 
     /** Live ref to the hitched cart — runtime-only, never persisted. */
@@ -77,10 +81,5 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getHauledCart()?.getDraftLoad() ?? Quantity.of(0, 'kg');
     }
 
-    /** R2.2 reciprocal clear — let go of the cart before chaining super. */
-    public onDestruct(): void {
-      this.unhitch();
-      super.onDestruct();
-    }
   };
 }

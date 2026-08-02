@@ -244,7 +244,16 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * `applyExits` and `feedback_property_vs_instruction_fields`.
      */
     static fieldMeta: FieldMeta = {
-      exits: { instruction: true, authorable: true },
+      // One name, two lives: an authored instruction at hydrate
+      // (`applyExits` installs from the spec) and a live
+      // `Map<string, Exit>` at runtime. `owned` is the runtime half —
+      // an outbound Exit of a destroyed room has no remaining reader.
+      exits: {
+        instruction: true,
+        authorable: true,
+        ref: 'instance',
+        lifetime: 'owned',
+      },
     };
 
     /**
@@ -761,18 +770,16 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * the Location-level zone detach).
      */
     onDestruct(): void {
-      const outbound = [...this.exits.values()];
-
-      for (const exit of outbound) {
+      // POLICY only. The cascade and the map-clearing are DECLARED
+      // (`exits: { ref: 'instance', lifetime: 'owned' }`) and belong to
+      // slot 2.5 — doing either here as well would leave 2.5 an empty
+      // map and silently destruct nothing.
+      for (const exit of this.exits.values()) {
         const inverse = exit.getInverse();
         if (inverse) {
           inverse.setBlocked(true);
         }
       }
-      for (const exit of outbound) {
-        StuffApi.destruct(exit as unknown as Stuff);
-      }
-      this.exits.clear();
       this._pendingVerify.clear();
 
       // Chain to super — Location overrides onDestruct to detach

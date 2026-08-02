@@ -110,7 +110,11 @@ export function HaulableMixin<
       handedness: { persistent: true, authorable: true },
       passageMode: { persistent: true, authorable: true },
       // The hitch coupling, cart side — runtime-only, never persisted.
-      _hauledBy: { ref: 'instance', lifetime: 'weak' },
+      _hauledBy: {
+        ref: 'instance',
+        lifetime: 'symmetric',
+        inverse: '_hauling',
+      },
     };
 
     /**
@@ -209,14 +213,5 @@ export function HaulableMixin<
       this._hauledBy = hauler;
     }
 
-    /**
-     * R2.2 reciprocal clear: a destructing cart tells its hauler to let
-     * go (which clears both sides via `unhitch`), then chains super.
-     */
-    public onDestruct(): void {
-      const hauler = this.getHauledBy();
-      if (hauler) hauler.unhitch();
-      super.onDestruct();
-    }
   };
 }

@@ -571,6 +571,8 @@ function lint(): void {
       true,
       ts.ScriptKind.TS
     );
+    const inTests =
+      file.includes(`${sep}__tests__${sep}`) || file.endsWith(".test.ts");
     const at = (n: ts.Node) =>
       `${relPath(file)}:${sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1}`;
 
@@ -657,6 +659,13 @@ function lint(): void {
             }
 
             // 4. The axis rules (R7), statically checkable per entry.
+            //
+            // Skipped under `__tests__`: the validator's own tests must
+            // be able to WRITE a contradiction in order to prove
+            // registration rejects it. The rules above — unknown
+            // property, malformed value, a legacy static coming back —
+            // still apply everywhere, because no test needs those.
+            if (inTests) continue;
             const refVal = seen.get("ref");
             const refText =
               refVal && ts.isStringLiteral(refVal) ? refVal.text : null;

@@ -890,7 +890,9 @@ export class StuffApi {
 
     const targetsOf = (value: unknown): Stuff[] => {
       if (value === null || value === undefined) return [];
-      if (Array.isArray(value)) return value as Stuff[];
+      // Snapshot, never the live array: a target's own cleanup may
+      // splice itself out of this very collection mid-cascade.
+      if (Array.isArray(value)) return [...value] as Stuff[];
       if (value instanceof Set) return [...value] as Stuff[];
       if (value instanceof Map) return [...value.values()] as Stuff[];
       return [value as Stuff];
