@@ -332,3 +332,82 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
     expect(placed.map((p) => p.chattelId)).toEqual([t.getChattelId()]);
   });
 });
+
+describe("release drops the owner's estate entry — the resurrection bug", () => {
+  /**
+   * Releasing a title used to GC the durable row and the index entry and
+   * stop there, leaving the owner holding an estate entry for a good that
+   * no longer existed. `captureSlice` finds such an entry not-live and
+   * carries it forward verbatim (correct for a merely *unloaded* good —
+   * see "an entry whose good is not live is carried forward verbatim"
+   * above, which is the counter-case this fix must not break), so the dead
+   * good landed in the durable slice and `restoreSlice` re-minted it.
+   * `Estate._dropEstateEntry` existed for precisely this and had zero
+   * callers anywhere in the tree.
+   */
+
+  /**
+   * `ChattelMixin.onDestruct` releases through a fire-and-forget dynamic
+   * `import()`, so `destruct` returns before the title is gone. Two
+   * macrotask ticks settle the import + the release chain. (Eventual
+   * consistency is fine in production — capture happens far later — but a
+   * test that asserts synchronously would just be testing the scheduler.)
+   */
+  async function flushRelease(): Promise<void> {
+    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0));
+  }
+
+  it("a destroyed good does not come back on the next load", async () => {
+    const torch = makeTorch();
+    const alice = makeOwner();
+    await ChattelApi.stamp(torch, alice);
+    await ChattelApi.setPlace(torch, ESTATE_INVENTORY);
+    const chattelId = torch.getChattelId();
+    expect(alice.getEstateEntry(chattelId)).not.toBeNull();
+
+    // Consume it.
+    await StuffApi.destruct(torch);
+    await flushRelease();
+
+    // The entry is gone from the live estate...
+    expect(alice.getEstateEntry(chattelId)).toBeNull();
+
+    // ...so it cannot reach the durable slice, and nothing re-mints it.
+    await PersistableApi.capture(alice);
+    StuffApi.clearAll();
+    await boot();
+    const fresh = makeOwner();
+    await PersistableApi.materialize(fresh);
+    expect(fresh.getEstateEntry(chattelId)).toBeNull();
+    expect(
+      (fresh as unknown as Container)
+        .getContents()
+        .some((c) => (c as Stuff).getTemplatePath() === TORCH_PATH),
+    ).toBe(false);
+  });
+
+  it("the title row and the estate entry go together, not one or the other", async () => {
+    // Both halves of a release. Asserting both keeps a future change that
+    // drops only the row from silently re-opening this.
+    const torch = makeTorch();
+    const alice = makeOwner();
+    await ChattelApi.stamp(torch, alice);
+    // The estate entry is written by `setPlace`, NOT by `stamp` — without
+    // this the estate assertion below passes on a world where the entry
+    // never existed, which is how the first draft of this test went green
+    // against the unfixed code.
+    await ChattelApi.setPlace(torch, ESTATE_INVENTORY);
+    const chattelId = torch.getChattelId();
+    // Guard the assertions below against being vacuous: both halves must
+    // exist before a release can be shown to remove them.
+    expect(col("chattel").find((d) => d.chattelId === chattelId)).toBeDefined();
+    expect(alice.getEstateEntry(chattelId)).not.toBeNull();
+
+    await StuffApi.destruct(torch);
+    await flushRelease();
+
+    expect(col("chattel").find((d) => d.chattelId === chattelId)).toBeUndefined();
+    expect(alice.getEstateEntry(chattelId)).toBeNull();
+  });
+});

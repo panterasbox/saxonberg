@@ -281,12 +281,59 @@ export class ChattelLogic extends ApiLogic {
     return { ok: true, chattelId: id };
   }
 
-  /** See {@link ChattelApi.release}. */
+  /**
+   * See {@link ChattelApi.release}.
+   *
+   * Releasing a title has **two** halves, and shipping only the first one
+   * made destroyed goods come back. The registry half GCs the durable row
+   * and the index entry. The estate half drops the owner's entry for that
+   * good — and without it the owner's `_estate` map keeps an entry whose
+   * good no longer exists, `Estate.captureSlice` finds it not-live and
+   * carries it into the durable slice **verbatim**, and `restoreSlice`
+   * re-mints it on next load. Because `_chattelId` is persistent, the
+   * resurrected good even came back carrying the id of a title row that
+   * had been deleted. Eat a carrot, log out, log back in, carrot's there.
+   *
+   * `Estate._dropEstateEntry` existed for exactly this and had **zero
+   * callers** anywhere in the tree. This is the call it was waiting for.
+   *
+   * Order matters: read the owner off the index BEFORE `reg.release`
+   * deletes it, or there is nothing left to attribute the drop to.
+   */
   @CallSecurity(ChattelApiCallers)
   public async release(chattelId: string): Promise<void> {
     if (!chattelId) return;
     const reg = lookupRegistry();
-    if (reg) await reg.release(chattelId);
+    if (!reg) return;
+    const owner = reg.ownerOf(chattelId);
+    await reg.release(chattelId);
+    this.dropFromOwnerEstate(owner, chattelId);
+  }
+
+  /**
+   * Drop a released good from its owner's live estate.
+   *
+   * **Only reaches a LOADED owner**, and that is a real limit rather than
+   * an oversight: an offline owner's estate lives in `holder_snapshots`,
+   * not in memory, so there is no map here to edit. A good destroyed while
+   * its owner is offline still resurrects on their next login.
+   *
+   * The obvious total fix — have `Estate.restoreSlice` skip any entry
+   * whose title row is gone — was deliberately NOT taken here. It cannot
+   * distinguish "no title, the good was released" from "the registry has
+   * not rebuilt its index yet", and getting that wrong at restore time
+   * deletes every possession a player owns. A duplicated carrot is a far
+   * cheaper bug than an emptied inventory, so the backstop belongs in a
+   * change that can prove the registry is warm before restore runs, not
+   * in an isolated fix.
+   */
+  private dropFromOwnerEstate(
+    owner: ChattelOwner | null,
+    chattelId: string,
+  ): void {
+    if (owner?.kind !== "player") return;
+    const host = StuffApi.findByTemplatePath(owner.templatePath);
+    if (host && MixinApi.isEstate(host)) host._dropEstateEntry(chattelId);
   }
 
   /** Mint-on-first-stamp: reuse an existing id, else mint + server-write it. */
