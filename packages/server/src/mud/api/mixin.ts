@@ -19,7 +19,7 @@
  * ```
  */
 
-import type { MixinName } from '../lib/mixin';
+import type { MixinName, FieldMeta } from '../lib/mixin';
 import { Mixins } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
@@ -156,6 +156,9 @@ import { SecurityApi } from './security';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin';
+// The face speaks these in `getAllFieldMeta`'s signature, so it
+// re-exports them (the projection's re-export rule for `mud/api/`).
+export type { FieldMeta, FieldMetaEntry } from '../lib/mixin';
 
 /**
  * Any class-like constructor MixinApi may be asked to inspect.
@@ -499,6 +502,69 @@ export class MixinApi {
     return field.length === 0
       ? field
       : field[0]!.toUpperCase() + field.slice(1);
+  }
+
+  /**
+   * Collect `static fieldMeta` from every layer of the prototype chain —
+   * the one collector the four legacy ones become derivations of.
+   *
+   * Mirrors {@link getAllPersistentFields}'s four invariants exactly:
+   * the same loop guard, `hasOwnProperty` at each level (the static is
+   * inherited, so a subclass declaring its own would otherwise mask the
+   * ancestry), a type guard on the value, and a terminal dedupe — here
+   * expressed as first-write-wins into the accumulator rather than a
+   * `Set`, because entries merge rather than collapse.
+   *
+   * **The merge is PROPERTY-level, first-declaration-wins per property**,
+   * walking concrete class first. Not field-level. The distinction is
+   * load-bearing rather than pedantic: `Weapon` declares a marshaller for
+   * `mass` while `Tangible` declares `mass` persistent, so field-level
+   * shadowing would make `Weapon`'s `{ marshaller }` replace
+   * `{ persistent: true }` outright and **`mass` would stop persisting on
+   * every weapon in the game** — silently. Per property: booleans
+   * first-wins is a union (nothing declares `false`), `marshaller`
+   * first-wins reproduces `getAllFieldMarshallers`, and
+   * `ref`/`lifetime`/`inverse` first-wins is "a subclass may sharpen".
+   *
+   * **Key order is load-bearing.** Keys land in first-seen order, which
+   * is concrete-first chain order — so
+   * `Object.keys(meta).filter((k) => meta[k].persistent)` reproduces
+   * `getAllPersistentFields` exactly, including the order
+   * `PersistentHydrator` Phase 1 applies fields in.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns One merged entry per declared field, in chain order
+   */
+  public static getAllFieldMeta(constructor: AnyConstructor): FieldMeta {
+    const out: FieldMeta = {};
+    let current: unknown = constructor;
+
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & { fieldMeta?: FieldMeta };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'fieldMeta') &&
+        c.fieldMeta &&
+        typeof c.fieldMeta === 'object'
+      ) {
+        for (const [field, entry] of Object.entries(c.fieldMeta)) {
+          if (!entry || typeof entry !== 'object') continue;
+          const existing = out[field];
+          if (!existing) {
+            out[field] = { ...entry };
+            continue;
+          }
+          // Fill only what no nearer layer already said.
+          for (const [prop, value] of Object.entries(entry)) {
+            if (!(prop in existing)) {
+              (existing as Record<string, unknown>)[prop] = value;
+            }
+          }
+        }
+      }
+      current = Object.getPrototypeOf(current);
+    }
+
+    return out;
   }
 
   /**
