@@ -331,14 +331,22 @@ Both axes then apply to derived content exactly as to prose:
 Stuff, so there is nothing on the page to walk from. The **namespace
 tree** gets `FolderZone` stamps under `/wiki/<namespace>`, and
 `resolveWikiNamespaceZone` mirrors the shipped
-`AccessRegistry.resolveSourceFolderZone` walk. `accessGroups` then
-propagate down the tree with filesystem-ACL semantics.
+`AccessRegistry.resolveSourceFolderZone` walk. ⚠ **Corrected 2026-08-02:** the slate's `accessGroups` propagation
+describes machinery **removed in property phase 0a** — `ownerGroup` /
+`accessGroups` are gone from `Zone`, and title now lives in the gated
+`parcels` collection. Namespace ownership is therefore a **parcel row**
+(`config/parcels.yaml`) over `/wiki/<namespace>`, resolved by
+`ParcelApi.ownerOf`'s longest-prefix walk. See the plan's D-3 for the
+protection ladder that replaces per-namespace `accessGroups`.
 
 Only the namespace is anchored, and only for access.
 
 ### D11 — Open at the root, moderated by rollback
 
-The edit floor is a broad all-signed-in-players group on `/wiki`.
+⚠ **Corrected:** there is no "all signed-in players" group, and a parcel
+has exactly one owner. The floor is a `protection` field on the
+namespace zone (`anyone` / `editors` / `moderators`) resolved by the
+shipped `Zone.lookupField` inheritance walk, with `anyone` at `/wiki`.
 Community maintenance is the point; the revision log plus owner-role
 rollback and delete is the net. A curated group per namespace is just a
 different `accessGroups` value — no code.
@@ -986,7 +994,8 @@ state.
 30. `docs/subsystems/wiki.md` owns the model, the component/template
     contract, the permission anchoring and the markup additions.
 31. `CLAUDE.md` gains a map entry and two collection lines;
-    `architecture.md` gains `DocumentedMixin` and the component category.
+    `architecture.md` gains the wiki-component category. (⚠ **No mixin** —
+    `DocumentedMixin` was withdrawn in D7; this build adds none.)
 
 **Authoring loop**
 
@@ -1005,8 +1014,8 @@ state.
     surfaces its subject's `illustration` with no authoring.
 40. The wiki references assets **by key only** and defines no upload path
     of its own.
-41. An asset that is not promoted past `pending` is **not served** into a
-    rendered page.
+41. An asset that is not promoted past `draft` is **not served** into a
+    rendered page. (⚠ `MediaAsset.status` is `'draft' | 'approved'`.)
 42. Uploaded and generated provenance are distinguishable on the row, so
     a page can say which it is showing.
 
