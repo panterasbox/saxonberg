@@ -36,20 +36,21 @@ import { SingletonMixin } from "../lib/stuff/Singleton";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { LandUses, type LandUse } from "../lib/parcel/LandUse";
 import type { VetoResult } from "../lib/errors";
+import type { FieldMeta } from "../lib/mixin";
 
 const PlatBookBase = SingletonMixin(PostRegistrationMixin(Idea));
 
 export default class PlatBook extends PlatBookBase {
-  static persistentFields: string[] = [
-    "label",
-    "parentExtent",
-    "lotBranch",
-    "lots",
-    "priceMinor",
-    "areaM2",
-    "landUse",
-    "holderPath",
-  ];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+    parentExtent: { persistent: true },
+    lotBranch: { persistent: true },
+    lots: { persistent: true },
+    priceMinor: { persistent: true },
+    areaM2: { persistent: true },
+    landUse: { persistent: true },
+    holderPath: { persistent: true },
+  };
 
   /**
    * What to call this subdivision — "Hinkley Hills". A plain label

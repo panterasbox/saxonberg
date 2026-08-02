@@ -15,7 +15,7 @@
  * containers, and we need the Stuff identity for exit messaging.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -247,7 +247,9 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      *
      * @authorable
      */
-    static instructionFields = ['exits'];
+    static fieldMeta: FieldMeta = {
+      exits: { instruction: true },
+    };
 
     /**
      * Projection field for live subscriptions. Reads

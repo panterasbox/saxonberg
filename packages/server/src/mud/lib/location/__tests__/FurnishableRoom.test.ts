@@ -62,7 +62,7 @@ describe("FurnishableRoom", () => {
     const room = makeStuffAtPath(() => new FurnishableRoom(), ROOM_PATH);
     // The seam stewardship's condition and the mirror's readings will use:
     // a room carries declared fields, not merely a container slice.
-    expect(FurnishableRoom.persistentFields).toContain("postedAs");
+    expect(MixinApi.getAllPersistentFields(FurnishableRoom)).toContain("postedAs");
     expect(room.getPostedAs()).toBe(UNRESTRICTED);
   });
 

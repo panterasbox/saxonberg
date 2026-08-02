@@ -13,6 +13,7 @@ import { ContainableMixin } from '../Containable';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
+import { MixinApi } from '../../../api/mixin';
 
 // Concrete test item class — needs ContainableMixin to live in a Container.
 class ConcreteStuff extends ContainableMixin(Idea) {
@@ -142,9 +143,17 @@ describe('ContainerMixin (via ContainmentApi.move)', () => {
   });
 
   describe('persistence', () => {
-    it('does NOT declare persistentFields (complex type)', () => {
-      const fields = (TestContainer as { persistentFields?: unknown }).persistentFields;
-      expect(fields).toBeUndefined();
+    it('does NOT declare `contents` persistent (complex type)', () => {
+      // Asserted through the accessor rather than off the class's own
+      // static, which is what the pre-`fieldMeta` form did. The
+      // accessor aggregates the whole chain, so "declares nothing" is
+      // no longer expressible as an empty result — `contents` being
+      // absent from it is the claim that was always meant: the
+      // container's contents are serialized by `captureSlice`, not by
+      // the field path.
+      expect(MixinApi.getAllPersistentFields(TestContainer)).not.toContain(
+        'contents'
+      );
     });
   });
 });

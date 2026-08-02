@@ -46,7 +46,7 @@
 
 import type { PopulateSpec, Populates } from "../stuff/Populates";
 import type { CommandContributions } from "../../api/command";
-import { Mixins, type MixinConstructor } from "../mixin";
+import { Mixins, type MixinConstructor, type FieldMeta } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
@@ -191,12 +191,12 @@ export function CultivableMixin<
     };
 
     /** The soil's own checkpoint travels with the ground it belongs to. */
-    static persistentFields = [
-      "soilClockStamp",
-      "_soilMeanMoisture",
-      "fixedGround",
-      "landRequirementM2",
-    ];
+    static fieldMeta: FieldMeta = {
+      soilClockStamp: { persistent: true },
+      _soilMeanMoisture: { persistent: true },
+      fixedGround: { persistent: true },
+      landRequirementM2: { persistent: true },
+    };
 
     /**
      * Is this ground, or a container of soil?

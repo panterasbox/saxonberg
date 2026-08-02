@@ -15,7 +15,7 @@
  * is single-slot.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { Slottable } from './Slottable';
@@ -51,9 +51,9 @@ export function WearableMixin<
 >(Base: TBase) {
   return class WearableMixin extends Base {
     static _mixinName = 'WearableMixin';
-    static persistentFields = ['slotClaims', 'clo'];
-    static fieldMarshallers = {
-      clo: QuantityMarshaller.pathFor('clo'),
+    static fieldMeta: FieldMeta = {
+      slotClaims: { persistent: true },
+      clo: { persistent: true, marshaller: QuantityMarshaller.pathFor('clo') },
     };
 
     /**

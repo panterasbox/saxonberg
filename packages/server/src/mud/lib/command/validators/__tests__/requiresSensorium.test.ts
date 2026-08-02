@@ -35,6 +35,7 @@ import { CommandGiverMixin } from '../../CommandGiver';
 import { NamedMixin } from '../../../description/Named';
 import { PerceptibleMixin } from '../../../description/Perceptible';
 import { buildAllModalities } from '../../../perception/modalities/__tests__/test-helpers';
+import type { FieldMeta } from '../../../mixin';
 
 const Base = OrganismMixin(
   ContainerMixin(
@@ -46,7 +47,7 @@ const Base = OrganismMixin(
   ),
 );
 class OrganismGiver extends Base {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 function withTemplatePath<T extends Stuff>(obj: T, path: string): T {

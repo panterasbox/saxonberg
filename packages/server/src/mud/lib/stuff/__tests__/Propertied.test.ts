@@ -16,12 +16,13 @@ import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Quantity } from '../../quantity';
+import type { FieldMeta } from '../../mixin';
 
 // Test class with PropertiedMixin.
 // Subclass-level test seams: `peekSavedProps()` / `peekTransientProps()`
 // expose the protected mixin storage so assertions can inspect it.
 class PropertiedThing extends PropertiedMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   public peekSavedProps(): Record<string, unknown> | undefined {
     return this.savedProps as Record<string, unknown> | undefined;
   }

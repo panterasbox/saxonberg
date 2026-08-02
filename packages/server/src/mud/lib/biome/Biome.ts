@@ -33,6 +33,7 @@ import { Idea } from '../stuff/Idea';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
+import type { FieldMeta } from '../mixin';
 
 export default class Biome extends Idea {
   /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
@@ -95,27 +96,18 @@ export default class Biome extends Idea {
   /** Ambient smell MML. Same shape as `_ambientSoundMml`. */
   protected _ambientSmellMml: string | null = null;
 
-  static persistentFields = [
-    'name',
-    '_extendsBiomePath',
-    '_defaultTemperature',
-    '_defaultPressure',
-    '_defaultHumidity',
-    '_defaultWind',
-    '_defaultGravity',
-    '_defaultAtmosphere',
-    '_defaultAmbientSoundLevel',
-    '_ambientSoundMml',
-    '_ambientSmellMml',
-  ];
-
-  static fieldMarshallers = {
-    _defaultTemperature: QuantityMarshaller.pathFor('K'),
-    _defaultPressure: QuantityMarshaller.pathFor('Pa'),
-    _defaultHumidity: QuantityMarshaller.pathFor('%'),
-    _defaultWind: QuantityMarshaller.pathFor('m/s'),
-    _defaultGravity: QuantityMarshaller.pathFor('m/s²'),
-    _defaultAmbientSoundLevel: QuantityMarshaller.pathFor('dB'),
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    _extendsBiomePath: { persistent: true },
+    _defaultTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
+    _defaultPressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa') },
+    _defaultHumidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
+    _defaultWind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s') },
+    _defaultGravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²') },
+    _defaultAtmosphere: { persistent: true },
+    _defaultAmbientSoundLevel: { persistent: true, marshaller: QuantityMarshaller.pathFor('dB') },
+    _ambientSoundMml: { persistent: true },
+    _ambientSmellMml: { persistent: true },
   };
 
   // ---------- name ----------

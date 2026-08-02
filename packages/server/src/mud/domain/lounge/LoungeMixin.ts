@@ -29,7 +29,7 @@
  * persistence spine's `PersistableLogic.capturePlacement`).
  */
 
-import type { MixinConstructor } from '../../lib/mixin';
+import type { MixinConstructor, FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -75,7 +75,9 @@ export function LoungeMixin<
      * live affiliation is `WarrenMember.getWarren()`).
      * @authorable ref:Template
      */
-    static instructionFields = ['warren'];
+    static fieldMeta: FieldMeta = {
+      warren: { instruction: true },
+    };
 
     /**
      * Composition constraint: LoungeMixin requires WarrenMemberMixin on

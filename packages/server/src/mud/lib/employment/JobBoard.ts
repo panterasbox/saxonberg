@@ -18,11 +18,12 @@ import Thing from "../stuff/Thing";
 import { DetailedMixin } from "../description/Detailed";
 import { MqlApi } from "../../api/mql";
 import type { CommandContext, CommandContributions } from "../../api/command";
+import type { FieldMeta } from "../mixin";
 
 const JobBoardBase = DetailedMixin(Thing);
 
 export default class JobBoard extends JobBoardBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /** Resolve the board a `job` command works off (the `Stock.resolveIn`
    * precedent): the affording `commandSource` fast-path, else the first

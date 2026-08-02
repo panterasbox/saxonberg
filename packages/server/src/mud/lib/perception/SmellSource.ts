@@ -29,7 +29,7 @@
  * only.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
@@ -61,7 +61,10 @@ export function SmellSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SmellSourceMixin extends Base {
     static _mixinName = 'SmellSourceMixin';
 
-    static persistentFields = ['emittedConcentration', 'odorIdentity'];
+    static fieldMeta: FieldMeta = {
+      emittedConcentration: { persistent: true },
+      odorIdentity: { persistent: true },
+    };
 
     /**
      * Backing storage for the emitted ppm scalar.

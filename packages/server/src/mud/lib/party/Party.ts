@@ -42,6 +42,7 @@ import { CallSecurity } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { PartyRecord } from "./PartyRecord";
 import type { PartyMember } from "./PartyMember";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The party's own mutation surface: the party acting on itself (its
@@ -66,17 +67,17 @@ const PartySurface = SecurityPolicies.AnyOf(
 export const DEFAULT_FORMATION_PATH = "/lib/combat/CombatFormation/default";
 
 export class Party extends Idea {
-  static persistentFields = [
-    "name",
-    "founderId",
-    "captainId",
-    "memberIds",
-    "combatSide",
-    "durable",
-    "channelRef",
-    "formationPath",
-    "roleAssignments",
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    founderId: { persistent: true },
+    captainId: { persistent: true },
+    memberIds: { persistent: true },
+    combatSide: { persistent: true },
+    durable: { persistent: true },
+    channelRef: { persistent: true },
+    formationPath: { persistent: true },
+    roleAssignments: { persistent: true },
+  };
 
   /** Party fields are MQL-projectable — a party is queryable by member,
    * side, captain, and name like any other Stuff. */

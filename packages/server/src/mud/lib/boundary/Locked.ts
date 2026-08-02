@@ -30,7 +30,7 @@
  * `door.setLocked(true)`, `door.isLocked()`, `data: { locked: true }`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 /**
  * Public shape added by LockableMixin. `isLocked()` (predicate getter) /
@@ -48,7 +48,9 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LockableMixin extends Base {
     static _mixinName = 'LockableMixin';
 
-    static persistentFields = ['locked'];
+    static fieldMeta: FieldMeta = {
+      locked: { persistent: true },
+    };
 
     /**
      * Backing storage; access via `isLocked()` / `setLocked()`.

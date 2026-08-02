@@ -21,6 +21,7 @@
  */
 
 import { Document } from '../persistence/Document';
+import type { FieldMeta } from '../mixin';
 
 export type GroupRole = 'owner' | 'admin' | 'member';
 
@@ -32,12 +33,12 @@ const VALID_ROLES: ReadonlySet<GroupRole> = new Set([
 
 export class Group extends Document {
   static collectionName = 'groups';
-  static persistentFields = [
-    'name',
-    'owner',
-    'memberIds',
-    'memberRoles',
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    owner: { persistent: true },
+    memberIds: { persistent: true },
+    memberRoles: { persistent: true },
+  };
 
   /** Human-readable name. Unique-indexed at the collection level. */
   name: string = '';

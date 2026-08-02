@@ -17,7 +17,7 @@
  * each read (HMR-safe, no cached instance).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Construction } from './Construction';
 import { MECHANICAL_CHANNELS } from './Channel';
 import type { MechanicalChannel } from './Channel';
@@ -39,7 +39,9 @@ export interface Constructed {
 export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConstructedMixin extends Base implements Constructed {
     static _mixinName = 'ConstructedMixin';
-    static persistentFields = ['constructionForm'];
+    static fieldMeta: FieldMeta = {
+      constructionForm: { persistent: true },
+    };
 
     /**
      * The construction form word; empty = unset (no construction). Authored

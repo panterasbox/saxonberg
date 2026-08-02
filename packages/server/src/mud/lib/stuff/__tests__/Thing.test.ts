@@ -8,6 +8,7 @@ import { StuffApi } from '../../../api/stuff';
 import Location from '../Location';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { MixinApi } from '../../../api/mixin';
 
 describe('Thing', () => {
   let thing: Thing;
@@ -91,8 +92,8 @@ describe('Thing', () => {
 
   describe('Static persistentFields', () => {
     it('should declare persistent fields', () => {
-      expect(Thing.persistentFields).toBeDefined();
-      expect(Array.isArray(Thing.persistentFields)).toBe(true);
+      expect(MixinApi.getAllPersistentFields(Thing)).toBeDefined();
+      expect(Array.isArray(MixinApi.getAllPersistentFields(Thing))).toBe(true);
     });
   });
 });

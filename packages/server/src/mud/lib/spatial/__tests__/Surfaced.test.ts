@@ -59,7 +59,7 @@ describe('SurfacedMixin', () => {
     });
 
     it('declares the field as persistent', () => {
-      const fields = (TestSurface as { persistentFields?: string[] }).persistentFields;
+      const fields = MixinApi.getAllPersistentFields(TestSurface);
       expect(fields).toContain('userFacingDetail');
     });
   });

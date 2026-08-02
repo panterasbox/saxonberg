@@ -27,7 +27,7 @@
  * the open/closed naming layer over `getState()` / `setState()`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
@@ -47,7 +47,9 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SealableMixin extends BistateMixin(Base) {
     static _mixinName = 'SealableMixin';
 
-    static persistentFields = ['open'];
+    static fieldMeta: FieldMeta = {
+      open: { persistent: true },
+    };
 
     /** Predicate getter. */
     isOpen(): boolean {

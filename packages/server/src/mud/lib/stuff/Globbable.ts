@@ -39,7 +39,7 @@
  *     `static globIdentityFields = [...Coin.globIdentityFields, 'mintMark']`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
@@ -106,7 +106,18 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public quantity: number = 1;
 
-    static persistentFields = ['quantity'];
+    /**
+     * Subset of `persistentFields` that defines glob identity. Two
+     * stacks of the same templatePath merge iff every field listed
+     * here has equal values on both sides.
+     *
+     * Default `[]` means strict template-fungibility — every instance
+     * of the host class merges with every other (modulo shadows /
+     * adornments).
+     */
+    static fieldMeta: FieldMeta = {
+      quantity: { persistent: true },
+    };
 
     /**
      * Live-query subscribable field. `dependsOnFields` defaults to
@@ -120,17 +131,6 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
         read: (stuff) => (stuff as unknown as Globbable).getQuantity(),
       },
     ];
-
-    /**
-     * Subset of `persistentFields` that defines glob identity. Two
-     * stacks of the same templatePath merge iff every field listed
-     * here has equal values on both sides.
-     *
-     * Default `[]` means strict template-fungibility — every instance
-     * of the host class merges with every other (modulo shadows /
-     * adornments).
-     */
-    static globIdentityFields: string[] = [];
 
     /**
      * One-time composition check, run by `MixinApi.assertComposable`

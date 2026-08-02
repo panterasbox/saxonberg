@@ -16,7 +16,7 @@
  * same surface as every graded input.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Grade } from './Grade';
 
 export interface Graded {
@@ -32,7 +32,9 @@ export function GradedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class GradedMixin extends Base implements Graded {
     static _mixinName = 'GradedMixin';
 
-    static persistentFields = ['gradeBand'];
+    static fieldMeta: FieldMeta = {
+      gradeBand: { persistent: true },
+    };
 
     /**
      * The band word; default `'fair'` (a neutral middle).

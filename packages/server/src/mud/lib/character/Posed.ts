@@ -15,7 +15,7 @@
  * from there.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Postures } from '../slot/Postured';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from '../slot/Slotted';
@@ -34,7 +34,11 @@ export interface Posed {
 export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PosedMixin extends Base {
     static _mixinName = 'PosedMixin';
-    static persistentFields = ['posture', 'restingOnPath', 'restingSlot'];
+    static fieldMeta: FieldMeta = {
+      posture: { persistent: true },
+      restingOnPath: { persistent: true },
+      restingSlot: { persistent: true },
+    };
 
     /**
      * The posture verbs, on the SELF affordance surface — an actor that has

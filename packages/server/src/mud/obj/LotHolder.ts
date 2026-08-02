@@ -70,15 +70,16 @@ import LotGateExit from "./LotGateExit";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type { VetoResult } from "../lib/errors";
+import type { FieldMeta } from "../lib/mixin";
 
 const LotHolderBase = SingletonMixin(PostRegistrationMixin(Idea));
 
 export default class LotHolder extends LotHolderBase {
-  static persistentFields: string[] = [
-    "roomTemplate",
-    "streetPath",
-    "parentExtent",
-  ];
+  static fieldMeta: FieldMeta = {
+    roomTemplate: { persistent: true },
+    streetPath: { persistent: true },
+    parentExtent: { persistent: true },
+  };
 
   /**
    * The room template cloned per sold lot. Hinkley's is a yard; another

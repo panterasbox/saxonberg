@@ -25,6 +25,7 @@ import Thing from '../../../lib/stuff/Thing';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { Time } from '../../../lib/time/Time';
 import type { CommandContributions } from '../../../api/command';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const CrossingLogBase = DetailedMixin(Thing);
 
@@ -62,7 +63,10 @@ export default class CrossingLog extends CrossingLogBase {
    */
   public startingCount = 0;
 
-  static persistentFields = ['marks', 'startingCount'];
+  static fieldMeta: FieldMeta = {
+    marks: { persistent: true },
+    startingCount: { persistent: true },
+  };
 
   /**
    * Append one mark. `reading` is a minute-of-day number from a

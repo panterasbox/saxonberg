@@ -6,6 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import BodyPlan from '../BodyPlan';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { MixinApi } from '../../../api/mixin';
 
 describe('BodyPlan — respiration fields', () => {
   it('defaults to air-breathing and respiring', () => {
@@ -43,7 +44,7 @@ describe('BodyPlan — respiration fields', () => {
   });
 
   it('declares the new fields as persistent', () => {
-    const fields = BodyPlan.persistentFields;
+    const fields = MixinApi.getAllPersistentFields(BodyPlan);
     expect(fields).toContain('breathableMedia');
     expect(fields).toContain('respires');
   });

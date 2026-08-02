@@ -26,6 +26,7 @@
 
 import { Idea } from "../stuff/Idea";
 import { TemplatePathPrefixes } from "../paths";
+import type { FieldMeta } from "../mixin";
 
 /**
  * One seat of a government: a named reference to a department position.
@@ -81,15 +82,15 @@ export default class Government extends Idea {
   /** The seat roster ((department, position) references). */
   public seats: GovernmentSeat[] = [];
 
-  static persistentFields = [
-    "key",
-    "displayName",
-    "description",
-    "charter",
-    "treasury",
-    "departments",
-    "seats",
-  ];
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    displayName: { persistent: true },
+    description: { persistent: true },
+    charter: { persistent: true },
+    treasury: { persistent: true },
+    departments: { persistent: true },
+    seats: { persistent: true },
+  };
 
   public getKey(): string {
     return this.key;

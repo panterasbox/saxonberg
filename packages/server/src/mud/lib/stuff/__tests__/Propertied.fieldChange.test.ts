@@ -15,9 +15,13 @@ import { Stuff } from '../Stuff';
 import { PropertyChangedEvent } from '../../events/PropertyChangedEvent';
 import { FieldChangedEvent } from '../../events/FieldChangedEvent';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { FieldMeta } from '../../mixin';
 
 class PropThing extends PropertiedMixin(Idea) {
-  static persistentFields = ['savedProps', 'savedPropMarshallers'];
+  static fieldMeta: FieldMeta = {
+    savedProps: { persistent: true },
+    savedPropMarshallers: { persistent: true },
+  };
 }
 
 async function bootRegistry(): Promise<void> {

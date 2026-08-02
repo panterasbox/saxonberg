@@ -20,7 +20,7 @@
  * from world state (the fulfilling bartender) — never from the wire.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
@@ -86,7 +86,11 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CraftedMixin extends GradedMixin(Base) {
     static _mixinName = 'CraftedMixin';
 
-    static persistentFields = ['maker', 'recipe', 'craftedAt'];
+    static fieldMeta: FieldMeta = {
+      maker: { persistent: true },
+      recipe: { persistent: true },
+      craftedAt: { persistent: true },
+    };
 
     /**
      * The maker's durable templatePath; empty until stamped.

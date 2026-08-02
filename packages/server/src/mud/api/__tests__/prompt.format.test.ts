@@ -21,6 +21,7 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import type { FieldMeta } from '../../lib/mixin';
 
 // A giver with Environment + Focused + CommandGiver. Real Avatars
 // have all three; we compose the minimum here.
@@ -36,7 +37,7 @@ class TestGiver extends SensorMixin(
 
 // Plain Idea with no Environment / Focused.
 class Plain extends Idea {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 describe('prompt.format — setting registration', () => {

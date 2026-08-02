@@ -15,11 +15,15 @@
 
 import Thing from "../lib/stuff/Thing";
 import { DetailedMixin } from "../lib/description/Detailed";
+import type { FieldMeta } from "../lib/mixin";
 
 const SeedBase = DetailedMixin(Thing);
 
 export default class Seed extends SeedBase {
-  static persistentFields: string[] = ["growsIntoPath", "_speciesPath"];
+  static fieldMeta: FieldMeta = {
+    growsIntoPath: { persistent: true },
+    _speciesPath: { persistent: true },
+  };
 
   /**
    * The `/obj/plant/…` template this seed mints when planted.

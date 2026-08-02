@@ -23,7 +23,7 @@
  * See docs/subsystems/thermal.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
@@ -58,7 +58,10 @@ export function MeltableMixin<TBase extends MixinConstructor<Stuff>>(
   class MeltableMixin extends Base implements Meltable {
     static _mixinName = 'MeltableMixin';
 
-    static persistentFields = ['meltPhase', 'latentAbsorbedJ'];
+    static fieldMeta: FieldMeta = {
+      meltPhase: { persistent: true },
+      latentAbsorbedJ: { persistent: true },
+    };
 
     /**
      * The object's phase.

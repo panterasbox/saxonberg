@@ -18,7 +18,7 @@
  * deliberately distinct to avoid collision.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
@@ -60,7 +60,10 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class DrivableMixin extends Base {
     static _mixinName = 'DrivableMixin';
-    static persistentFields = ['controllerSlot', '_vehicularModePath'];
+    static fieldMeta: FieldMeta = {
+      controllerSlot: { persistent: true },
+      _vehicularModePath: { persistent: true },
+    };
 
     /**
      * Default `'driver:1'` (not `'mount:1'`) — distinct from

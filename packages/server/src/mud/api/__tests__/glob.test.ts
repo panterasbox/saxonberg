@@ -29,19 +29,19 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
+import type { FieldMeta } from '../../lib/mixin';
 
 // Test class — Globbable + Containable + Named so we can stuff
 // instances into containers and pull display names through
 // formatName.
 class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
-  static persistentFields = [
-    'quantity',
-    'name',
-    'tarnished',
-    'denomination',
-  ];
-  static globIdentityFields = ['tarnished', 'denomination'];
+  static fieldMeta: FieldMeta = {
+    quantity: { persistent: true },
+    name: { persistent: true },
+    tarnished: { persistent: true, globIdentity: true },
+    denomination: { persistent: true, globIdentity: true },
+  };
 
   public tarnished: boolean = false;
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';

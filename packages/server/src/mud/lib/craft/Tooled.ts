@@ -16,7 +16,7 @@
  * Composed on a `Thing` (Tangible + Visible) — see `ToolItem.ts`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
@@ -36,7 +36,9 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ToolMixin extends Base implements Tooled {
     static _mixinName = 'ToolMixin';
 
-    static persistentFields = ['capabilities'];
+    static fieldMeta: FieldMeta = {
+      capabilities: { persistent: true },
+    };
 
     /**
      * The capabilities this tool offers — bare kind strings (shorthand

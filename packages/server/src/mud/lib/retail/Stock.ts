@@ -27,6 +27,7 @@ import type { CommandContext, CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
+import type { FieldMeta } from "../mixin";
 
 /** One authored stock line: what to shelve, how deep, and any brand. */
 export interface StockLine {
@@ -43,7 +44,9 @@ const StockBase = ResettableMixin(
 );
 
 export default class Stock extends StockBase {
-  static persistentFields = ["stockLines"];
+  static fieldMeta: FieldMeta = {
+    stockLines: { persistent: true },
+  };
 
   /** Boot-stock the shelf to par (then the reset sweep maintains it). */
   public override async postRegister(context?: unknown): Promise<void> {

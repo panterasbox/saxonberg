@@ -11,17 +11,21 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Document } from '../Document';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
+import type { FieldMeta } from '../../mixin';
 
 class Widget extends Document {
   static collectionName = 'widgets';
-  static persistentFields = ['name', 'count'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    count: { persistent: true },
+  };
   name: string = '';
   count: number = 0;
 }
 
 class NamelessWidget extends Document {
   // Deliberately no collectionName set.
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 interface PMStubs {
@@ -302,8 +306,10 @@ describe('Document', () => {
 
     class BoxWidget extends Document {
       static collectionName = 'boxes';
-      static persistentFields = ['label', 'box'];
-      static fieldMarshallers = { box: MARSHALLER_PATH };
+      static fieldMeta: FieldMeta = {
+        label: { persistent: true },
+        box: { persistent: true, marshaller: MARSHALLER_PATH },
+      };
       label: string = '';
       box: Boxed | null = null;
     }

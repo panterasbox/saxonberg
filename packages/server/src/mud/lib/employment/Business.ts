@@ -27,7 +27,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import { CallSecurity } from '../security/decorators';
@@ -105,13 +105,13 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
   class BusinessMixin extends Base implements Business {
     static _mixinName = 'BusinessMixin';
 
-    static persistentFields = [
-      'proprietorPath',
-      'positions',
-      'rosterSlots',
-      'operatingLocations',
-      'banksAt',
-    ];
+    static fieldMeta: FieldMeta = {
+      proprietorPath: { persistent: true },
+      positions: { persistent: true },
+      rosterSlots: { persistent: true },
+      operatingLocations: { persistent: true },
+      banksAt: { persistent: true },
+    };
 
     /**
      * templatePath of the proprietor (a replaceable edge). Empty = vacant.

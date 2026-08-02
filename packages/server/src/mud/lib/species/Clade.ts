@@ -28,6 +28,7 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type Species from './Species';
 import type { VetoResult } from '../errors';
+import type { FieldMeta } from '../mixin';
 
 /** Taxonomic ranks the v1 build recognizes. */
 export type CladeRank =
@@ -54,7 +55,10 @@ export default class Clade extends SingletonMixin(PropertiedMixin(Zone)) {
    */
   protected species: Set<Species> = new Set();
 
-  static persistentFields = ['name', 'rank'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    rank: { persistent: true },
+  };
 
   public getRank(): CladeRank { return this.rank; }
   public setRank(value: CladeRank): void { this.rank = value; }

@@ -32,6 +32,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 /**
  * The signal sources that feed renown. Open vocabulary.
@@ -86,16 +87,16 @@ export interface RenownEventFields {
 
 export default class RenownEvent extends Document {
   static collectionName = Collections.RenownEvents;
-  static persistentFields = [
-    'subject',
-    'source',
-    'kind',
-    'signal',
-    'locality',
-    'groups',
-    'at',
-    'realAt',
-  ];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    source: { persistent: true },
+    kind: { persistent: true },
+    signal: { persistent: true },
+    locality: { persistent: true },
+    groups: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   /** Durable subject id (what the signal is about) — indexed. */
   subject = "";

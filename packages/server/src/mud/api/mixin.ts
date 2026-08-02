@@ -196,7 +196,8 @@ export interface PersistenceContributor {
 interface MixinClass {
   _mixinName?: string;
   name?: string;
-  persistentFields?: string[];
+  /** The unified field-metadata static. Was four parallel statics. */
+  fieldMeta?: FieldMeta;
   /**
    * Modalities a mixin contributes to the sensorium when active.
    * Declared here (a known mixin static marker) so consumers —
@@ -254,8 +255,10 @@ export class MixinApi {
     const fields: string[] = [];
 
     for (const mixin of mixins) {
-      if (mixin.persistentFields && Array.isArray(mixin.persistentFields)) {
-        fields.push(...mixin.persistentFields);
+      if (mixin.fieldMeta && typeof mixin.fieldMeta === 'object') {
+        for (const [field, entry] of Object.entries(mixin.fieldMeta)) {
+          if (entry?.persistent === true) fields.push(field);
+        }
       }
     }
 
@@ -415,25 +418,10 @@ export class MixinApi {
   public static getAllFieldMarshallers(
     constructor: AnyConstructor
   ): Record<string, string> {
+    const meta = MixinApi.getAllFieldMeta(constructor);
     const out: Record<string, string> = {};
-    let current: unknown = constructor;
-
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass & {
-        fieldMarshallers?: Record<string, string>;
-      };
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'fieldMarshallers') &&
-        c.fieldMarshallers &&
-        typeof c.fieldMarshallers === 'object'
-      ) {
-        for (const [k, v] of Object.entries(c.fieldMarshallers)) {
-          // First declaration wins — concrete-class walked first, so
-          // subclass overrides base.
-          if (!(k in out) && typeof v === 'string') out[k] = v;
-        }
-      }
-      current = Object.getPrototypeOf(current);
+    for (const [field, entry] of Object.entries(meta)) {
+      if (typeof entry.marshaller === 'string') out[field] = entry.marshaller;
     }
 
     return out;
@@ -570,31 +558,18 @@ export class MixinApi {
   /**
    * Get all persistent fields (from mixins and every class in the chain).
    *
-   * Walks the prototype chain and collects `persistentFields` declared at
-   * every level — mixins carry them as static arrays, and concrete classes
-   * do too. Since a subclass that declares its own `persistentFields` shadows
-   * the parent's static in JS, we need `hasOwnProperty` at each level to
-   * pick up contributions from the whole ancestry (Stuff → Idea → Location → …).
+   * A thin derivation of {@link getAllFieldMeta} — the chain walk, the
+   * `hasOwnProperty` guard and the dedupe all live there now. The
+   * signature is unchanged so the ~50 call sites did not move, and key
+   * order is preserved (fieldMeta keys are collected concrete-first), so
+   * this returns the same array in the same order it always did.
    *
    * @param constructor - The class constructor to inspect
    * @returns Array of all persistent field names (deduplicated)
    */
   public static getAllPersistentFields(constructor: AnyConstructor): string[] {
-    const fields: string[] = [];
-    let current: unknown = constructor;
-
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass;
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'persistentFields') &&
-        Array.isArray(c.persistentFields)
-      ) {
-        fields.push(...c.persistentFields);
-      }
-      current = Object.getPrototypeOf(current);
-    }
-
-    return Array.from(new Set(fields));
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.persistent === true);
   }
 
   /**
@@ -603,7 +578,7 @@ export class MixinApi {
    * that contributes serialization. Each entry names the layer (its
    * `_mixinName` or class name — the key its slice lands under in a
    * {@link PersistedRecord}'s `state`), that layer's OWN declared
-   * `persistentFields` (the default-slice fields — NOT the aggregated
+   * persistent `fieldMeta` entries (the default-slice fields — NOT the aggregated
    * chain, so each layer's slice is independent), and its optional
    * `captureSlice` / `restoreSlice` hooks (present on `Container` /
    * `Slotted`, which serialize non-field state).
@@ -639,11 +614,20 @@ export class MixinApi {
         ? c._mixinName
         : undefined;
       const key = ownMixinName || c.name;
-      const ownFields =
-        Object.prototype.hasOwnProperty.call(c, 'persistentFields') &&
-        Array.isArray(c.persistentFields)
-          ? c.persistentFields
-          : [];
+      // This walk deliberately keeps its own per-LAYER traversal rather
+      // than reading the flattened `getAllFieldMeta` map: it needs each
+      // layer's own `_mixinName` ownership (the key its slice lands
+      // under in a PersistedRecord), which flattening loses. Only the
+      // field list moves to `fieldMeta`.
+      const ownMeta =
+        Object.prototype.hasOwnProperty.call(c, 'fieldMeta') &&
+        c.fieldMeta &&
+        typeof c.fieldMeta === 'object'
+          ? c.fieldMeta
+          : null;
+      const ownFields = ownMeta
+        ? Object.keys(ownMeta).filter((f) => ownMeta[f]?.persistent === true)
+        : [];
       const hasCapture =
         Object.prototype.hasOwnProperty.call(c, 'captureSlice') &&
         typeof c.captureSlice === 'function';
@@ -1266,19 +1250,8 @@ export class MixinApi {
    * @returns Array of all instruction field names (deduplicated)
    */
   public static getAllInstructionFields(constructor: AnyConstructor): string[] {
-    const fields: string[] = [];
-    let current: unknown = constructor;
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass & { instructionFields?: string[] };
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'instructionFields') &&
-        Array.isArray(c.instructionFields)
-      ) {
-        fields.push(...c.instructionFields);
-      }
-      current = Object.getPrototypeOf(current);
-    }
-    return Array.from(new Set(fields));
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.instruction === true);
   }
 
   /**
@@ -1373,19 +1346,8 @@ export class MixinApi {
    * every glob-identity field has equal values.
    */
   public static getAllGlobIdentityFields(constructor: AnyConstructor): string[] {
-    const fields: string[] = [];
-    let current: unknown = constructor;
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass & { globIdentityFields?: string[] };
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'globIdentityFields') &&
-        Array.isArray(c.globIdentityFields)
-      ) {
-        fields.push(...c.globIdentityFields);
-      }
-      current = Object.getPrototypeOf(current);
-    }
-    return Array.from(new Set(fields));
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.globIdentity === true);
   }
 
   /**

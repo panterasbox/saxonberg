@@ -16,22 +16,23 @@
  */
 
 import { Document } from "../persistence/Document";
+import type { FieldMeta } from "../mixin";
 
 export const PARTIES_COLLECTION = "parties";
 
 export class PartyRecord extends Document {
   static collectionName = PARTIES_COLLECTION;
-  static persistentFields = [
-    "path",
-    "name",
-    "founderId",
-    "captainId",
-    "memberIds",
-    "combatSide",
-    "channelRef",
-    "formationPath",
-    "roleAssignments",
-  ];
+  static fieldMeta: FieldMeta = {
+    path: { persistent: true },
+    name: { persistent: true },
+    founderId: { persistent: true },
+    captainId: { persistent: true },
+    memberIds: { persistent: true },
+    combatSide: { persistent: true },
+    channelRef: { persistent: true },
+    formationPath: { persistent: true },
+    roleAssignments: { persistent: true },
+  };
 
   /** The live Party Idea's `templatePath` — the durable join key. */
   path: string = "";

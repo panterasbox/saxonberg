@@ -26,7 +26,7 @@
  * See docs/subsystems/fire.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
 import type { Reserved } from '../reserve';
@@ -107,13 +107,13 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
   class CombustibleMixin extends Base implements Combustible {
     static _mixinName = 'CombustibleMixin';
 
-    static persistentFields = [
-      'burning',
-      'charMaterialPath',
-      'structural',
-      'burnClockStamp',
-      'burnedThrough',
-    ];
+    static fieldMeta: FieldMeta = {
+      burning: { persistent: true },
+      charMaterialPath: { persistent: true },
+      structural: { persistent: true },
+      burnClockStamp: { persistent: true },
+      burnedThrough: { persistent: true },
+    };
 
     /**
      * The active Burning state (decomposed flat form), or null when out.

@@ -37,7 +37,7 @@
  */
 
 import type { MessageFrame } from '@saxonberg/types';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
@@ -113,7 +113,10 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /** The declarative spec list — pure data, persisted as-is. */
-    static persistentFields = ['behaviors', 'dispositions'];
+    static fieldMeta: FieldMeta = {
+      behaviors: { persistent: true },
+      dispositions: { persistent: true },
+    };
     /** @authorable */
     public behaviors: BehaviorSpec[] = [];
 

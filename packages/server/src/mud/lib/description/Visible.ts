@@ -16,7 +16,7 @@
  * ```
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
@@ -119,11 +119,11 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.
      */
-    static persistentFields = [
-      'shortDescription',
-      'longDescription',
-      'illustration',
-    ];
+    static fieldMeta: FieldMeta = {
+      shortDescription: { persistent: true },
+      longDescription: { persistent: true },
+      illustration: { persistent: true },
+    };
 
     /**
      * Markup-augmenter contribution. `senseStripAugmenter` reads the

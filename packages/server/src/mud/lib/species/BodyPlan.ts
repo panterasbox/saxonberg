@@ -32,6 +32,7 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import type { SlotSpec } from '../slot/Slotted';
 import type { SenseChannel } from '../description/Perceiver';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Anatomy descriptor for a sensory apparatus. Capability (range,
@@ -200,18 +201,18 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected respires: boolean = true;
 
-  static persistentFields = [
-    'name',
-    'slots',
-    'locomotionModes',
-    'defaultLocomotionMode',
-    'sensoryPorts',
-    'bodyParts',
-    'baseMass',
-    'thermalStrategy',
-    'breathableMedia',
-    'respires',
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    slots: { persistent: true },
+    locomotionModes: { persistent: true },
+    defaultLocomotionMode: { persistent: true },
+    sensoryPorts: { persistent: true },
+    bodyParts: { persistent: true },
+    baseMass: { persistent: true },
+    thermalStrategy: { persistent: true },
+    breathableMedia: { persistent: true },
+    respires: { persistent: true },
+  };
 
   public getName(): string { return this.name; }
   public setName(value: string): void { this.name = value; }

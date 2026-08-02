@@ -21,6 +21,7 @@ import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
+import type { FieldMeta } from '../../lib/mixin';
 
 const LoungeBase = PostRegistrationMixin(
   ExitableMixin(
@@ -29,7 +30,7 @@ const LoungeBase = PostRegistrationMixin(
 );
 
 export default class Lounge extends LoungeBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /**
    * Wire any inverse exit pointers (host fixtures are imperatively

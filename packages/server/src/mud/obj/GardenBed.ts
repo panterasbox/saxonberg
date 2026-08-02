@@ -40,6 +40,7 @@ import { ContainerMixin } from "../lib/spatial/Container";
 import { PopulatesMixin } from "../lib/stuff/Populates";
 import { ReservedMixin } from "../lib/reserve";
 import { CultivableMixin } from "../lib/husbandry/Cultivable";
+import type { FieldMeta } from "../lib/mixin";
 
 // The same stack the pot composes — a bed is a pot with a bigger N.
 const GardenBedBase = CultivableMixin(
@@ -51,5 +52,5 @@ const GardenBedBase = CultivableMixin(
 );
 
 export default class GardenBed extends GardenBedBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

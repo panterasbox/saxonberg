@@ -14,6 +14,7 @@
 
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
+import type { FieldMeta } from "../mixin";
 
 export const CONTRACT_EVENT_KINDS = [
   "posted",
@@ -29,16 +30,16 @@ export type ContractEventKind = (typeof CONTRACT_EVENT_KINDS)[number];
 
 export class ContractEvent extends Document {
   static collectionName = Collections.ContractEvents;
-  static persistentFields = [
-    "contractId",
-    "event",
-    "actor",
-    "counterparty",
-    "txId",
-    "memo",
-    "at",
-    "realAt",
-  ];
+  static fieldMeta: FieldMeta = {
+    contractId: { persistent: true },
+    event: { persistent: true },
+    actor: { persistent: true },
+    counterparty: { persistent: true },
+    txId: { persistent: true },
+    memo: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   contractId = "";
   event: ContractEventKind = "posted";

@@ -23,7 +23,7 @@
  * a bare field on `Location`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
 export interface Addressable {
@@ -45,7 +45,9 @@ export function AddressableMixin<TBase extends MixinConstructor<Stuff>>(
   return class AddressableMixin extends Base implements Addressable {
     static _mixinName = 'AddressableMixin';
 
-    static persistentFields = ['_address'];
+    static fieldMeta: FieldMeta = {
+      _address: { persistent: true },
+    };
 
     /**
      * Declared address path in the namespace, or `null`. Sparse —

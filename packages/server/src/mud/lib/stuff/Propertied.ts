@@ -68,7 +68,7 @@
  * ```
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Stuff } from './Stuff';
 import { SecurityApi } from '../../api/security';
 import { Unshadowable } from '../security/decorators';
@@ -453,7 +453,10 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * survives restarts without requiring the host class to re-
      * declare the binding for every prop name.
      */
-    static persistentFields = ['savedProps', 'savedPropMarshallers'];
+    static fieldMeta: FieldMeta = {
+      savedProps: { persistent: true },
+      savedPropMarshallers: { persistent: true },
+    };
 
     /**
      * Persistent properties — STORED SHAPE. Host-internal storage;

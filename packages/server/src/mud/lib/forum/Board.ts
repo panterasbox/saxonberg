@@ -17,18 +17,19 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export type BoardOrganizer = 'popularity' | 'argument';
 
 export default class Board extends Document {
   static collectionName = Collections.ForumBoards;
-  static persistentFields = [
-    'subject',
-    'organizer',
-    'name',
-    'description',
-    'override',
-  ];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    organizer: { persistent: true },
+    name: { persistent: true },
+    description: { persistent: true },
+    override: { persistent: true },
+  };
 
   /** The `_id` of the {@link Subject} this board manifests. */
   subject = '';

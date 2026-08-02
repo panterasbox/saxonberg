@@ -30,7 +30,7 @@
  * `docs/subsystems/metabolism.md`.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Reserved } from "../reserve";
@@ -347,14 +347,14 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MetabolicMixin extends Base implements Metabolic {
     static _mixinName = "MetabolicMixin";
 
-    static persistentFields = [
-      "digestionPools",
-      "solidVolume",
-      "liquidVolume",
-      "toxinBurdens",
-      "metabolicClockStamp",
-      "lastMealLabel",
-    ];
+    static fieldMeta: FieldMeta = {
+      digestionPools: { persistent: true },
+      solidVolume: { persistent: true },
+      liquidVolume: { persistent: true },
+      toxinBurdens: { persistent: true },
+      metabolicClockStamp: { persistent: true },
+      lastMealLabel: { persistent: true },
+    };
 
     /** @runtimeState */
     public digestionPools: Record<string, number> = {};

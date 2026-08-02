@@ -37,7 +37,7 @@
  * EnvironmentMixin's schema-on-mixin walk).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Environment, SettingsSchemaEntry } from './Environment';
 import { SettingTypes } from './Environment';
@@ -178,7 +178,10 @@ export function WorkspaceMixin<
      * but persist across logins so the avatar's session resumes
      * where it left off.
      */
-    static persistentFields = ['contentCwd', 'sourceCwd'];
+    static fieldMeta: FieldMeta = {
+      contentCwd: { persistent: true },
+      sourceCwd: { persistent: true },
+    };
 
     /**
      * Workspace-tier settings. `workspace.editor` and

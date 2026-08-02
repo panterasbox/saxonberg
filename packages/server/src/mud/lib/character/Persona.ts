@@ -23,7 +23,7 @@
  * perceive.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 
@@ -38,7 +38,10 @@ export interface Persona {
 export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PersonaMixin extends Base {
     static _mixinName = 'PersonaMixin';
-    static persistentFields = ['bio', 'aspiration'];
+    static fieldMeta: FieldMeta = {
+      bio: { persistent: true },
+      aspiration: { persistent: true },
+    };
 
     /**
      * Self-only verbs Persona affords. `chronicle` is a zero-arg

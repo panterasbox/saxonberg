@@ -26,7 +26,7 @@
  * `docs/subsystems/encumbrance.md`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import { Vessel } from '../stuff/Vessel';
@@ -104,7 +104,11 @@ export function HaulableMixin<
 >(Base: TBase) {
   return class HaulableMixin extends Base implements Haulable {
     static _mixinName = 'HaulableMixin';
-    static persistentFields = ['draftFactor', 'handedness', 'passageMode'];
+    static fieldMeta: FieldMeta = {
+      draftFactor: { persistent: true },
+      handedness: { persistent: true },
+      passageMode: { persistent: true },
+    };
 
     /**
      * Rolling-resistance × mechanical-advantage coupling (`0..1`). The

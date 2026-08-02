@@ -15,7 +15,7 @@
  * `SubjectCatalogue`; this mixin is the raw keyed store it delegates to.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { SubjectSurface } from './Subject';
 
 /** Per-subject subscription: one `follow` toggle + a per-surface mute set. */
@@ -51,7 +51,9 @@ export function SubjectSubscriberMixin<TBase extends MixinConstructor>(
      * `ContactsMixin._contacts` precedent. Default `{}` hydrates legacy
      * avatar docs (no field) cleanly.
      */
-    static persistentFields = ['_subjectSubscriptions'];
+    static fieldMeta: FieldMeta = {
+      _subjectSubscriptions: { persistent: true },
+    };
 
     /** @runtimeState */
     _subjectSubscriptions: Record<string, SubjectSubscription> = {};

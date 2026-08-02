@@ -21,6 +21,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../backend/PersistenceManager';
+import type { FieldMeta } from '../../lib/mixin';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -76,25 +77,25 @@ function classPathToAbs(classPath: string): string {
 class SpawnTreasury extends SingletonMixin(
   ContainableMixin(ContainerMixin(Idea))
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 // Singleton Containable that declares `data.container` to land
 // itself in the treasury.
 class SpawnSword extends SingletonMixin(ContainableMixin(Idea)) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 // Non-singleton Containable (a clone-per-need item).
 class SpawnPotion extends ContainableMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 // Singleton Container + Populates parent (the library / spawner).
 class SpawnLibrary extends SingletonMixin(
   PopulatesMixin(ContainableMixin(ContainerMixin(Idea)))
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 function registerTestClasses(): void {

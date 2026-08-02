@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { User } from '../User';
+import { MixinApi } from '../../../api/mixin';
 
 describe('User', () => {
   describe('collectionName', () => {
@@ -19,23 +20,23 @@ describe('User', () => {
 
   describe('persistentFields', () => {
     it('should include googleProfileId', () => {
-      expect(User.persistentFields).toContain('googleProfileId');
+      expect(MixinApi.getAllPersistentFields(User)).toContain('googleProfileId');
     });
 
     it('should include twitchProfileId (the second provider FK)', () => {
-      expect(User.persistentFields).toContain('twitchProfileId');
+      expect(MixinApi.getAllPersistentFields(User)).toContain('twitchProfileId');
     });
 
     it('should include kickProfileId (the third provider FK)', () => {
-      expect(User.persistentFields).toContain('kickProfileId');
+      expect(MixinApi.getAllPersistentFields(User)).toContain('kickProfileId');
     });
 
     it('should include playerIds (authoritative character-ownership list)', () => {
-      expect(User.persistentFields).toContain('playerIds');
+      expect(MixinApi.getAllPersistentFields(User)).toContain('playerIds');
     });
 
     it('should be exactly the provider FKs + playerIds', () => {
-      expect(User.persistentFields).toEqual([
+      expect(MixinApi.getAllPersistentFields(User)).toEqual([
         'googleProfileId',
         'twitchProfileId',
         'kickProfileId',

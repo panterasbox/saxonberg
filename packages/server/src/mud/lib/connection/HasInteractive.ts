@@ -25,7 +25,7 @@
  * payload) lives on `Application` + `Avatar.enter` respectively.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
 import type Interactive from '../../obj/Interactive';
@@ -377,7 +377,9 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       if (s?.clientState) this._clientState = { ...s.clientState };
     }
 
-    static persistentFields = ['_clientState'];
+    static fieldMeta: FieldMeta = {
+      _clientState: { persistent: true },
+    };
 
     public getInteractives(): ReadonlySet<Interactive> {
       return this.interactives;

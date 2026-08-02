@@ -40,7 +40,7 @@
  * - keywords: string[] (auto-persisted via setter)
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -102,11 +102,11 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the accessor pairs below (Phase 1: setter; Phase 2: bracket-
      * assign via the public-shape setter).
      */
-    static persistentFields = [
-      'keywords',
-      'autoDeriveKeywords',
-      'primaryKeyword',
-    ];
+    static fieldMeta: FieldMeta = {
+      keywords: { persistent: true },
+      autoDeriveKeywords: { persistent: true },
+      primaryKeyword: { persistent: true },
+    };
 
     /**
      * Live-query projection for `primaryKeyword`. Lives on the mixin

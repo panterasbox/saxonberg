@@ -33,7 +33,7 @@
  * `voltage: 120` or `voltage: "50 kV"`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
@@ -61,10 +61,8 @@ export function EnergizedMixin<TBase extends MixinConstructor>(Base: TBase) {
   {
     static _mixinName = 'EnergizedMixin';
 
-    static persistentFields = ['voltage'];
-
-    static fieldMarshallers = {
-      voltage: VOLTAGE_MARSHALLER,
+    static fieldMeta: FieldMeta = {
+      voltage: { persistent: true, marshaller: VOLTAGE_MARSHALLER },
     };
 
     /**

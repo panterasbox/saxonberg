@@ -3,6 +3,7 @@ import { Idea } from '../../stuff/Idea';
 import PersistentHydrator from '../PersistentHydrator';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { FieldMeta } from '../../mixin';
 
 /**
  * Tests for the two-phase dispatch behavior introduced in the
@@ -16,7 +17,9 @@ import { makeStuff } from '../../security/__tests__/test-setup';
  */
 
 class PropertyFieldBacking extends Idea {
-  static persistentFields = ['name'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+  };
 
   public name: string = '';
   public calls: string[] = [];
@@ -28,13 +31,17 @@ class PropertyFieldBacking extends Idea {
 }
 
 class BracketAssignBacking extends Idea {
-  static persistentFields = ['rawField'];
+  static fieldMeta: FieldMeta = {
+    rawField: { persistent: true },
+  };
   public rawField: number = 0;
   // No setRawField method — exercises the bracket-assign fallback.
 }
 
 class AsyncSetterBacking extends Idea {
-  static persistentFields = ['flag'];
+  static fieldMeta: FieldMeta = {
+    flag: { persistent: true },
+  };
   public flag: string = '';
   public sideEffectFired: boolean = false;
 
@@ -48,7 +55,9 @@ class AsyncSetterBacking extends Idea {
 }
 
 class ThrowingSetterBacking extends Idea {
-  static persistentFields = ['oops'];
+  static fieldMeta: FieldMeta = {
+    oops: { persistent: true },
+  };
 
   public async setOops(_value: unknown): Promise<void> {
     await Promise.resolve();
@@ -57,7 +66,9 @@ class ThrowingSetterBacking extends Idea {
 }
 
 class InstructionFieldBacking extends Idea {
-  static instructionFields = ['exits'];
+  static fieldMeta: FieldMeta = {
+    exits: { instruction: true },
+  };
   public appliedSpecs: unknown[] = [];
 
   public async applyExits(spec: unknown): Promise<void> {
@@ -67,13 +78,17 @@ class InstructionFieldBacking extends Idea {
 }
 
 class MisconfiguredInstructionBacking extends Idea {
-  static instructionFields = ['missingApplier'];
+  static fieldMeta: FieldMeta = {
+    missingApplier: { instruction: true },
+  };
   // Deliberately no applyMissingApplier method.
 }
 
 class MixedFieldBacking extends Idea {
-  static persistentFields = ['name'];
-  static instructionFields = ['exits'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    exits: { instruction: true },
+  };
   public order: string[] = [];
   public name: string = '';
 

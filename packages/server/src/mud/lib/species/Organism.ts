@@ -20,7 +20,7 @@
  * compose `SexedMixin` (e.g. v1 plants) get `null`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Species from './Species';
 
@@ -44,7 +44,11 @@ export interface Organism {
 export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class OrganismMixin extends Base {
     static _mixinName = 'OrganismMixin';
-    static persistentFields = ['_speciesPath', 'age', 'lifecycleState'];
+    static fieldMeta: FieldMeta = {
+      _speciesPath: { persistent: true },
+      age: { persistent: true },
+      lifecycleState: { persistent: true },
+    };
 
     /**
      * Path to the Species singleton this organism belongs to. Resolved

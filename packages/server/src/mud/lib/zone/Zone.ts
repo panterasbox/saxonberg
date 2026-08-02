@@ -30,6 +30,7 @@
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
+import type { FieldMeta } from '../mixin';
 
 // `ZoneApi` is statically imported because it owns the field-walk
 // orchestration (`ZoneApi.getEnclosingZone`) that `lookupAncestorField`
@@ -53,7 +54,10 @@ export abstract class Zone extends Idea {
    *  wire", which routes quarantined code down the governed path
    *  (found live: `eval` inside a circle ran GOVERNED). See the
    *  ownership-removal note below. */
-  static persistentFields: string[] = ['name', 'wire'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    wire: { persistent: true },
+  };
 
   // Ownership/access fields (`ownerGroup` / `accessGroups` /
   // `ownerGroupName`) were REMOVED in property phase 0a. Title now lives in

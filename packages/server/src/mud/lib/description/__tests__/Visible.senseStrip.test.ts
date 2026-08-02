@@ -35,6 +35,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
+import type { FieldMeta } from '../../mixin';
 
 function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
   stampTemplatePathForTest(obj, path);
@@ -42,11 +43,11 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 }
 
 class VisibleDetailedThing extends DetailedMixin(VisibleMixin(Thing)) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 class OrganismActor extends OrganismMixin(Thing) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 function makeViewerWithSensorium(channels: SenseChannel[]): Stuff {

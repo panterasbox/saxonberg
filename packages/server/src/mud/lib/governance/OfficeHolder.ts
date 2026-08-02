@@ -18,10 +18,14 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export class OfficeHolder extends Document {
   static collectionName = Collections.OfficeHolders;
-  static persistentFields = ['officeKey', 'holderId'];
+  static fieldMeta: FieldMeta = {
+    officeKey: { persistent: true },
+    holderId: { persistent: true },
+  };
 
   /**
    * The join key to `OFFICE_APPARATUS` (e.g. `'prime-minister'`).

@@ -49,6 +49,7 @@ import type { Slotted } from "../lib/slot/Slotted";
 import type { Bulkable } from "../lib/bulk/Bulkable";
 import type { Difficulty } from "../lib/advancement/ActSignature";
 import type { Cultivable } from "../lib/husbandry/Cultivable";
+import type { FieldMeta } from "../lib/mixin";
 
 // PersistableMixin OUTERMOST — the documented host rule.
 const PlantBase = PersistableMixin(
@@ -62,11 +63,11 @@ const PlantBase = PersistableMixin(
 );
 
 export default class Plant extends PlantBase {
-  static persistentFields: string[] = [
-    "seedTemplatePath",
-    "harvestTemplatePath",
-    "nutrientDraw",
-  ];
+  static fieldMeta: FieldMeta = {
+    seedTemplatePath: { persistent: true },
+    harvestTemplatePath: { persistent: true },
+    nutrientDraw: { persistent: true },
+  };
 
   /**
    * The `/obj/seed/…` template a flowering episode mints. Null for a

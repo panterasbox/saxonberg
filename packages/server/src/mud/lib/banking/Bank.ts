@@ -23,7 +23,7 @@
  * diegetic limit the central bank's branch-float makes meaningful.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
@@ -98,7 +98,11 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class BankMixin extends Base implements Bank {
     static _mixinName = "BankMixin";
 
-    static persistentFields = ["corpoKey", "terms", "bank"];
+    static fieldMeta: FieldMeta = {
+      corpoKey: { persistent: true },
+      terms: { persistent: true },
+      bank: { persistent: true },
+    };
 
     /**
      * The banking verb surface lights up wherever this counter is present in

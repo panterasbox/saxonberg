@@ -25,20 +25,21 @@
 
 import { Document } from '../persistence/Document';
 import type { EmoteGrammar } from './EmoteGrammar';
+import type { FieldMeta } from '../mixin';
 
 export type EmoteEcho = 'default' | 'always' | 'never';
 
 export class Emote extends Document {
   static collectionName = 'emotes';
-  static persistentFields = [
-    'verb',
-    'aliases',
-    'grammar',
-    'echo',
-    'emoji',
-    'tags',
-    'valence',
-  ];
+  static fieldMeta: FieldMeta = {
+    verb: { persistent: true },
+    aliases: { persistent: true },
+    grammar: { persistent: true },
+    echo: { persistent: true },
+    emoji: { persistent: true },
+    tags: { persistent: true },
+    valence: { persistent: true },
+  };
 
   /** Canonical verb word; unique-indexed at the collection level. */
   verb: string = '';

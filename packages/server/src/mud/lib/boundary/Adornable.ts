@@ -37,7 +37,7 @@
  * `containment.ts`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Adornment } from './Adornment';
@@ -107,7 +107,9 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      *
      * @authorable
      */
-    static instructionFields = ['adornments'];
+    static fieldMeta: FieldMeta = {
+      adornments: { instruction: true },
+    };
 
     /**
      * Phase 2 applier — clone each adornment template and attach it as a

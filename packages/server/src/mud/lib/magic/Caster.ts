@@ -26,7 +26,7 @@
  * body-side state + reads. See docs/subsystems/magic.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import { CommandApi } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
@@ -139,7 +139,9 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Active only when conferred (Species.innateMixins / an augment). */
     static _augmentGated = true;
 
-    static persistentFields = ['facultyClockStamp'];
+    static fieldMeta: FieldMeta = {
+      facultyClockStamp: { persistent: true },
+    };
 
     /** @runtimeState Last faculty reconcile, in-session game-seconds. */
     public facultyClockStamp = 0;

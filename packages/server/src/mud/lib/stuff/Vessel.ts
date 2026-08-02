@@ -42,6 +42,7 @@
 import { ContainerMixin } from '../spatial/Container';
 import { AtmosphericMixin } from '../biome/Atmospheric';
 import Thing from './Thing';
+import type { FieldMeta } from '../mixin';
 
 // A Vessel is a Thing (matter — describable / Tangible / Wet / Containable)
 // that additionally holds things (Container) with an interior climate
@@ -59,7 +60,9 @@ export class Vessel extends VesselBase {
    */
   private _transmissionFactor: number = 1.0;
 
-  static persistentFields: string[] = ['transmissionFactor'];
+  static fieldMeta: FieldMeta = {
+    transmissionFactor: { persistent: true },
+  };
 
   /**
    * Accessor pair owns the per-field invariant (the project rule);

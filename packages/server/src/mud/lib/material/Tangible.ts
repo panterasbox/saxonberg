@@ -41,7 +41,7 @@
  * required.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
 import { Quantity } from '../quantity';
@@ -102,11 +102,18 @@ export interface Tangible {
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class TangibleMixin extends Base {
     static _mixinName = 'TangibleMixin';
-    static persistentFields = [
-      '_materialPath',
-      '_detailMaterialPaths',
-      'mass',
-    ];
+    /**
+     * Field-marshaller binding. `mass` round-trips via the kg-bound
+     * QuantityMarshaller; the runtime accessor pair stays strict on
+     * `Quantity<'kg'>`. Authoring-shape coercion (`mass: heavy`,
+     * `mass: "12000 g"`, bare numeric) lives in the marshaller's
+     * `fromStored` and only runs on the persistence path.
+     */
+    static fieldMeta: FieldMeta = {
+      _materialPath: { persistent: true },
+      _detailMaterialPaths: { persistent: true },
+      mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg') },
+    };
 
     /**
      * Live-query subscribable fields.
@@ -158,17 +165,6 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
     ];
-
-    /**
-     * Field-marshaller binding. `mass` round-trips via the kg-bound
-     * QuantityMarshaller; the runtime accessor pair stays strict on
-     * `Quantity<'kg'>`. Authoring-shape coercion (`mass: heavy`,
-     * `mass: "12000 g"`, bare numeric) lives in the marshaller's
-     * `fromStored` and only runs on the persistence path.
-     */
-    static fieldMarshallers = {
-      mass: QuantityMarshaller.pathFor('kg'),
-    };
 
     /**
      * Runtime mass storage as a `Quantity<'kg'>`. The marshaller

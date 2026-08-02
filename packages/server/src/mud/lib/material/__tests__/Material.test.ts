@@ -89,8 +89,8 @@ describe('Material', () => {
   });
 
   it('binds a QuantityMarshaller path for electricalConductivity', () => {
-    expect(Material.fieldMarshallers.electricalConductivity).toBeDefined();
-    expect(Material.fieldMarshallers.electricalConductivity).toBe(
+    expect(MixinApi.getAllFieldMarshallers(Material).electricalConductivity).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).electricalConductivity).toBe(
       '/lib/persistence/QuantityMarshaller/S-per-m',
     );
   });
@@ -107,10 +107,10 @@ describe('Material', () => {
     // Declarative marshaller binding (the density/specificHeat precedent);
     // the per-unit marshaller absorbs authoring shapes at the persistence
     // boundary. Assert the field→marshaller path is wired for both units.
-    expect(Material.fieldMarshallers.hardness).toBeDefined();
-    expect(Material.fieldMarshallers.toughness).toBeDefined();
-    expect(Material.fieldMarshallers.hardness).not.toBe(
-      Material.fieldMarshallers.toughness,
+    expect(MixinApi.getAllFieldMarshallers(Material).hardness).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).toughness).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).hardness).not.toBe(
+      MixinApi.getAllFieldMarshallers(Material).toughness,
     );
   });
 
@@ -158,12 +158,12 @@ describe('Material', () => {
   });
 
   it('binds QuantityMarshaller paths for the fire / phase-change props', () => {
-    expect(Material.fieldMarshallers.autoignitionTemperature).toBeDefined();
-    expect(Material.fieldMarshallers.heatOfCombustion).toBeDefined();
-    expect(Material.fieldMarshallers.meltingPoint).toBeDefined();
-    expect(Material.fieldMarshallers.latentHeatOfFusion).toBeDefined();
-    expect(Material.fieldMarshallers.boilingPoint).toBeDefined();
-    expect(Material.fieldMarshallers.latentHeatOfVaporization).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).autoignitionTemperature).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).heatOfCombustion).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).meltingPoint).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).latentHeatOfFusion).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).boilingPoint).toBeDefined();
+    expect(MixinApi.getAllFieldMarshallers(Material).latentHeatOfVaporization).toBeDefined();
   });
 
   it('composes SingletonMixin and PropertiedMixin', () => {

@@ -22,7 +22,7 @@
  * re-wear / re-wield / re-mount each session.
  */
 
-import type { MixinConstructor, MixinName } from '../mixin';
+import type { MixinConstructor, MixinName, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
@@ -168,7 +168,9 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class SlottedMixin extends Base {
     static _mixinName = 'SlottedMixin';
-    static persistentFields = ['staticSlots'];
+    static fieldMeta: FieldMeta = {
+      staticSlots: { persistent: true },
+    };
 
     /**
      * Authoring data — only used by the default `getSlotNames` /

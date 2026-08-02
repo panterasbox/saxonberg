@@ -19,6 +19,7 @@ import { NavigationApi } from '../../api/navigation';
 import type Location from '../stuff/Location';
 import { MixinApi } from '../../api/mixin';
 import { SingletonMixin } from '../stuff/Singleton';
+import type { FieldMeta } from '../mixin';
 
 /** Compose a grid key from integer cell coordinates. */
 function gridKey(x: number, y: number, z: number): string {
@@ -66,7 +67,10 @@ export default class CartesianZone extends SingletonMixin(SpatialZone) {
     return room ? here === room : true;
   }
 
-  static persistentFields = ['name', 'cellSize'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    cellSize: { persistent: true },
+  };
 
   /**
    * Place a location at a grid cell.

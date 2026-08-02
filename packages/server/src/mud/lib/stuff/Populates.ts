@@ -33,7 +33,7 @@
  * Phase 2.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -84,7 +84,9 @@ export function PopulatesMixin<
      *
      * @authorable
      */
-    static instructionFields = ['populates'];
+    static fieldMeta: FieldMeta = {
+      populates: { instruction: true },
+    };
 
     /**
      * Phase 2 applier. See class docstring for dispatch semantics.

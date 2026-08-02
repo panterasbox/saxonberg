@@ -50,7 +50,7 @@ import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import { Mixins } from '../mixin';
+import { Mixins, type FieldMeta } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -181,16 +181,16 @@ export default class Exit extends ConcealableMixin(Idea) {
    * (direction / source / destination) are deliberately absent:
    * they're bind-owned, never authored data.
    */
-  static persistentFields = [
-    'messageIn',
-    'messageOut',
-    'media',
-    'wheelPassable',
-    'blocked',
-    'muffled',
-    'noFollow',
-    'oneWay',
-  ];
+  static fieldMeta: FieldMeta = {
+    messageIn: { persistent: true },
+    messageOut: { persistent: true },
+    media: { persistent: true },
+    wheelPassable: { persistent: true },
+    blocked: { persistent: true },
+    muffled: { persistent: true },
+    noFollow: { persistent: true },
+    oneWay: { persistent: true },
+  };
 
   protected direction: string;
   public getDirection(): string { return this.direction; }

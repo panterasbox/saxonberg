@@ -25,13 +25,14 @@ import {
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import type { Stuff } from '../../stuff/Stuff';
 import type { MessageFrame } from '@saxonberg/types';
+import type { FieldMeta } from '../../mixin';
 
 // An attuned, embodied actor: Slotted (carries the implant) + Aether
 // (the host) + Sensor (hears its own self frame) + Named + Organism.
 class AttunedActor extends SlottedMixin(
   AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Thing)))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   override staticSlots = [
     { name: 'cranial', accepts: 'SlottableMixin' as const },
   ];

@@ -29,6 +29,7 @@ import { StuffApi } from '../../api/stuff';
 import { MqlApi } from '../../api/mql';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
+import type { FieldMeta } from '../mixin';
 
 /**
  * The list of identifiers exposed inside the sandbox context. A list
@@ -101,7 +102,9 @@ export default class EvalScript extends Idea {
    */
   private _compiled: CompiledSandbox | null = null;
 
-  static persistentFields: string[] = ['code'];
+  static fieldMeta: FieldMeta = {
+    code: { persistent: true },
+  };
 
   public setCode(code: string): void {
     this.code = code;

@@ -35,6 +35,7 @@ import { ContainerMixin } from "../lib/spatial/Container";
 import { PopulatesMixin } from "../lib/stuff/Populates";
 import { ReservedMixin } from "../lib/reserve";
 import { CultivableMixin } from "../lib/husbandry/Cultivable";
+import type { FieldMeta } from "../lib/mixin";
 
 export { PLANT_SLOT } from "../lib/husbandry/Cultivable";
 
@@ -50,5 +51,5 @@ const PlantPotBase = CultivableMixin(
 );
 
 export default class PlantPot extends PlantPotBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

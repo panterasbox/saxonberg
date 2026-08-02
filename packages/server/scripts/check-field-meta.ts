@@ -11,9 +11,11 @@
  *                the `fieldMeta` codemod: a per-class-body syntactic
  *                assertion that nothing was dropped, reordered or
  *                mangled, independent of the runtime.
- *   --lint       CI gate for what class registration cannot see.
- *                (Lands with the codemod; see docs/plans/
- *                reference-lifetime-plan.md W2.)
+ *   --lint       CI gate for what neither class registration nor the
+ *                golden master can see: a legacy static coming back, and
+ *                any malformed or self-contradictory `fieldMeta` entry.
+ *                Registration only validates classes it actually loads;
+ *                this sees the whole tree.
  *
  * The point of the single file is that `--snapshot` and `--verify` share
  * ONE extractor. The extractor reads whichever shape a class body
@@ -416,6 +418,201 @@ function serialize(records: ClassRecord[]): string {
   return JSON.stringify(records, null, 2) + "\n";
 }
 
+/** The property names a `fieldMeta` entry may carry (mirrors FieldMetaEntry). */
+const KNOWN_PROPS = new Set([
+  "persistent",
+  "marshaller",
+  "instruction",
+  "globIdentity",
+  "ref",
+  "lifetime",
+  "inverse",
+  "authorable",
+  "authorPicker",
+  "runtimeState",
+]);
+const TRUE_ONLY = new Set([
+  "persistent",
+  "instruction",
+  "globIdentity",
+  "authorable",
+  "runtimeState",
+]);
+const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
+const REF_VALUES = new Set(["identity", "instance"]);
+const LIFETIME_VALUES = new Set(["weak", "symmetric", "owned"]);
+
+/**
+ * The CI gate — what neither class registration nor the golden master
+ * can see.
+ *
+ * Registration validates a class it actually loads; this sees the whole
+ * tree statically, including classes no test ever constructs. The golden
+ * master proves the codemod preserved meaning; this proves the shape
+ * stays legal afterwards.
+ */
+function lint(): void {
+  const files: string[] = [];
+  walk(MUD_ROOT, files);
+  files.sort();
+  const problems: string[] = [];
+
+  for (const file of files) {
+    const source = readFileSync(file, "utf8");
+    if (
+      !source.includes("fieldMeta") &&
+      !ARRAY_STATICS.some((s) => source.includes(s)) &&
+      !OBJECT_STATICS.some((s) => source.includes(s))
+    ) {
+      continue;
+    }
+    const sf = ts.createSourceFile(
+      file,
+      source,
+      ts.ScriptTarget.ES2022,
+      true,
+      ts.ScriptKind.TS
+    );
+    const at = (n: ts.Node) =>
+      `${relPath(file)}:${sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1}`;
+
+    const visit = (node: ts.Node): void => {
+      if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) {
+        for (const m of node.members) {
+          if (!ts.isPropertyDeclaration(m) || !isStatic(m)) continue;
+          const name = memberName(m.name);
+          if (!name) continue;
+
+          // 1. A legacy static came back.
+          if (
+            (ARRAY_STATICS as readonly string[]).includes(name) ||
+            (OBJECT_STATICS as readonly string[]).includes(name)
+          ) {
+            problems.push(
+              `${at(m)}  legacy static \`${name}\` — folded into ` +
+                `\`static fieldMeta\`; see docs/ref-shapes.md`
+            );
+            continue;
+          }
+          if (name !== "fieldMeta" || !m.initializer) continue;
+
+          const init = unwrap(m.initializer);
+          if (!ts.isObjectLiteralExpression(init)) continue;
+          for (const p of init.properties) {
+            if (!ts.isPropertyAssignment(p)) continue;
+            const field = memberName(p.name);
+            const entry = unwrap(p.initializer);
+            if (!field || !ts.isObjectLiteralExpression(entry)) continue;
+
+            const seen = new Map<string, ts.Expression>();
+            for (const attr of entry.properties) {
+              if (!ts.isPropertyAssignment(attr)) continue;
+              const key = memberName(attr.name);
+              if (!key) continue;
+              const val = unwrap(attr.initializer);
+              seen.set(key, val);
+
+              // 2. Unknown property.
+              if (!KNOWN_PROPS.has(key)) {
+                problems.push(
+                  `${at(attr)}  \`${field}.${key}\` is not a FieldMetaEntry ` +
+                    `property`
+                );
+                continue;
+              }
+              // 3. Value shapes.
+              if (
+                TRUE_ONLY.has(key) &&
+                val.kind !== ts.SyntaxKind.TrueKeyword
+              ) {
+                problems.push(
+                  `${at(attr)}  \`${field}.${key}\` must be \`true\` ` +
+                    `(absence is how you say false)`
+                );
+              }
+              if (STRING_PROPS.has(key) && !ts.isStringLiteral(val)) {
+                // A marshaller is an expression by design; only
+                // `inverse` / `authorPicker` must be literals.
+                if (key !== "marshaller") {
+                  problems.push(
+                    `${at(attr)}  \`${field}.${key}\` must be a string literal`
+                  );
+                }
+              }
+              if (
+                key === "ref" &&
+                (!ts.isStringLiteral(val) || !REF_VALUES.has(val.text))
+              ) {
+                problems.push(
+                  `${at(attr)}  \`${field}.ref\` must be 'identity' or 'instance'`
+                );
+              }
+              if (
+                key === "lifetime" &&
+                (!ts.isStringLiteral(val) || !LIFETIME_VALUES.has(val.text))
+              ) {
+                problems.push(
+                  `${at(attr)}  \`${field}.lifetime\` must be 'weak', ` +
+                    `'symmetric' or 'owned'`
+                );
+              }
+            }
+
+            // 4. The axis rules (R7), statically checkable per entry.
+            const refVal = seen.get("ref");
+            const refText =
+              refVal && ts.isStringLiteral(refVal) ? refVal.text : null;
+            if (refText === "instance" && seen.has("persistent")) {
+              problems.push(
+                `${at(p)}  \`${field}\` is both \`ref: 'instance'\` and ` +
+                  `\`persistent\` — a stuffId does not survive a reboot, so ` +
+                  `there is nothing durable to write down. See ` +
+                  `docs/ref-shapes.md`
+              );
+            }
+            if (refText === "identity" && seen.has("lifetime")) {
+              problems.push(
+                `${at(p)}  \`${field}\` is \`ref: 'identity'\` with a ` +
+                  `\`lifetime\` — an identity ref re-resolves on read and ` +
+                  `cannot dangle. See docs/ref-shapes.md`
+              );
+            }
+            const lifeVal = seen.get("lifetime");
+            const lifeText =
+              lifeVal && ts.isStringLiteral(lifeVal) ? lifeVal.text : null;
+            // Deliberately NOT checked here: "lifetime requires ref" and
+            // "symmetric requires inverse". Both are properties of the
+            // MERGED entry, and the merge is property-level across the
+            // prototype chain — a base may declare `ref: 'instance'`
+            // while a subclass sharpens it with a `lifetime`, which is
+            // legal and which this per-class-body scan would flag as a
+            // false positive. Those belong to the registration
+            // validator, which holds the constructor and can therefore
+            // see the whole chain. The checks kept above are the ones
+            // that are wrong no matter what any other layer says.
+            void lifeText;
+          }
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    ts.forEachChild(sf, visit);
+  }
+
+  if (problems.length > 0) {
+    console.error(
+      `check-field-meta --lint: ${problems.length} problem` +
+        `${problems.length === 1 ? "" : "s"}:`
+    );
+    for (const p of problems) console.error(`  ${p}`);
+    process.exit(1);
+  }
+  console.log(
+    `check-field-meta --lint: clean (${files.length} files scanned; no ` +
+      `legacy statics, every fieldMeta entry well-formed).`
+  );
+}
+
 const mode = process.argv[2] ?? "--verify";
 
 if (mode === "--snapshot") {
@@ -456,10 +653,25 @@ if (mode === "--snapshot") {
       diffs.push(`  CHANGED  ${k} (${now.className})\n    before: ${JSON.stringify(r)}\n    after:  ${JSON.stringify(now)}`);
     }
   }
+  // An ADDED record is reported but not fatal, and the asymmetry is
+  // principled rather than convenient. The golden master's claim is
+  // "nothing was LOST or ALTERED" — a class body appearing where there
+  // was none can only mean new code arrived (W1's own test fixtures are
+  // the first case). A codemod that duplicated a body would still be
+  // caught: every record after the duplicate shifts index, so the
+  // className comparison fails as CHANGED.
+  const added: string[] = [];
   for (const [k, r] of after) {
-    if (!before.has(k)) diffs.push(`  ADDED    ${k} (${r.className})`);
+    if (!before.has(k)) added.push(`  ADDED    ${k} (${r.className})`);
   }
   reportCensus(records);
+  if (added.length > 0) {
+    console.log(
+      `\n  ${added.length} class ${added.length === 1 ? "body" : "bodies"} ` +
+        `added since the golden master (not a failure — new code):`
+    );
+    for (const a of added) console.log(a);
+  }
   if (diffs.length > 0) {
     console.error(
       `\ncheck-field-meta --verify: ${diffs.length} class ` +
@@ -469,10 +681,12 @@ if (mode === "--snapshot") {
     process.exit(1);
   }
   console.log(`  --verify clean: ${records.length} class bodies match the golden master.`);
+} else if (mode === "--lint") {
+  lint();
 } else {
   console.error(
-    `check-field-meta: unknown mode '${mode}'. Expected --snapshot or --verify.\n` +
-      `(--lint lands with the codemod; see docs/plans/reference-lifetime-plan.md W2.)`
+    `check-field-meta: unknown mode '${mode}'. ` +
+      `Expected --snapshot, --verify or --lint.`
   );
   process.exit(1);
 }

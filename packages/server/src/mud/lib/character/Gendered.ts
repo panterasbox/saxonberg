@@ -13,7 +13,7 @@
  */
 
 import { Pronouns } from '@saxonberg/types';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 /**
  * Mixin that adds pronoun properties.
@@ -35,7 +35,9 @@ export function GenderedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.
      */
-    static persistentFields = ['pronouns'];
+    static fieldMeta: FieldMeta = {
+      pronouns: { persistent: true },
+    };
 
     /** @authorable */
     protected pronouns: Pronouns = Pronouns.They;

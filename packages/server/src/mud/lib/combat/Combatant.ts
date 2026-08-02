@@ -22,7 +22,7 @@
  * See docs/subsystems/combat.md.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
@@ -138,11 +138,11 @@ export interface Combatant {
 export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CombatantMixin extends Base implements Combatant {
     static _mixinName = "CombatantMixin";
-    static persistentFields = [
-      "naturalAttackChannel",
-      "standingLethality",
-      "standingStopCondition",
-    ];
+    static fieldMeta: FieldMeta = {
+      naturalAttackChannel: { persistent: true },
+      standingLethality: { persistent: true },
+      standingStopCondition: { persistent: true },
+    };
 
     /**
      * The **legacy single-attack fallback** — the innate attack channel:

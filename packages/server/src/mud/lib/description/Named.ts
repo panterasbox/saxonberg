@@ -76,7 +76,7 @@
  * shadow chain.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
   MqlSubscriptionApi,
@@ -132,13 +132,13 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * objects — the generic Hydrator copy works without a custom
      * persistenceHandler.
      */
-    static persistentFields = [
-      'honorific',
-      'name',
-      'surname',
-      'nameSuffix',
-      'alternateNames',
-    ];
+    static fieldMeta: FieldMeta = {
+      honorific: { persistent: true },
+      name: { persistent: true },
+      surname: { persistent: true },
+      nameSuffix: { persistent: true },
+      alternateNames: { persistent: true },
+    };
 
     /**
      * Live-query subscribable fields. The descriptor's

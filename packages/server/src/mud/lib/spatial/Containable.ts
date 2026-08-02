@@ -26,7 +26,7 @@
  *     may be `null` for first-placement / final-detach edges.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { Container } from './Container';
 import type { Surfaced } from './Surfaced';
@@ -175,7 +175,9 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * declaration accessor; the live `getContainer()` ref is the
      * only runtime getter.
      */
-    static instructionFields = ['container'];
+    static fieldMeta: FieldMeta = {
+      container: { instruction: true },
+    };
 
     /**
      * Framework cleanup (R2.4 collection-symmetric). When a

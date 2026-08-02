@@ -15,7 +15,7 @@
  * [docs/requirements/social-graph-requirements.md].
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import {
   SettingTypes,
@@ -68,7 +68,9 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
      * plain-JSON objects (the `ContactsMixin._contacts` precedent), so no
      * marshaller is needed.
      */
-    static persistentFields = ["_notifyRules"];
+    static fieldMeta: FieldMeta = {
+      _notifyRules: { persistent: true },
+    };
 
     /**
      * The global verbosity dial — schema-on-mixin (declared here, not on

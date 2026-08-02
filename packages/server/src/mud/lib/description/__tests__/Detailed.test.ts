@@ -7,13 +7,14 @@ import { DetailedMixin, type Detail, type DetailMap } from '../Detailed';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
+import type { FieldMeta } from '../../mixin';
 
 // Test class with DetailedMixin.
 // Subclass-level test seams: `peekDetails()` / `seedDetails()` expose
 // the protected mixin storage so assertions can inspect / replace the
 // internal Map directly.
 class DetailedThing extends DetailedMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   public peekDetails(): DetailMap { return this.details; }
   public seedDetails(map: DetailMap): void { this.details = map; }
 }

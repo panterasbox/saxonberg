@@ -13,7 +13,7 @@
  * shelf would drop consigned items on a server bounce.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
@@ -53,7 +53,9 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
   class ConsignmentShelfMixin extends Base implements ConsignmentShelf {
     static _mixinName = "ConsignmentShelfMixin";
 
-    static persistentFields = ["consignmentListings"];
+    static fieldMeta: FieldMeta = {
+      consignmentListings: { persistent: true },
+    };
 
     /** The active brokerage listings on this shelf. @runtimeState */
     public consignmentListings: ConsignmentListing[] = [];

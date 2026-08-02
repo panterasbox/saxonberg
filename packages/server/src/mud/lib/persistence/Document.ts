@@ -15,14 +15,18 @@
  *
  * Subclasses must declare:
  *   - `static collectionName: string`
- *   - `static persistentFields?: string[]`  (fields copied to/from the doc)
+ *   - `static fieldMeta: FieldMeta` — the fields copied to/from the doc
+ *     are its `{ persistent: true }` entries
  *
  * Construction is a plain `new T()` — no `StuffApi.create`:
  *
  * ```typescript
  * class User extends Document {
  *   static collectionName = 'users';
- *   static persistentFields = ['googleProfileId', 'playerIds'];
+ *   static fieldMeta: FieldMeta = {
+ *     googleProfileId: { persistent: true },
+ *     playerIds: { persistent: true },
+ *   };
  *   googleProfileId = '';
  *   playerIds: string[] = [];
  * }
@@ -76,7 +80,10 @@ let preloadMarshaller: AsyncMarshallerResolver = () => {
  */
 export interface DocumentConstructor {
   collectionName: string;
-  persistentFields?: string[];
+  // No `persistentFields` here: the field list is read through
+  // `MixinApi.getAllPersistentFields` (see `persistentFieldsFor` below),
+  // which now derives it from `static fieldMeta`. The old member was
+  // already dead — nothing consulted it.
   getAllPersistentFields?(): string[];
   new (...args: unknown[]): Document;
 }
@@ -140,7 +147,7 @@ export class Document {
   /**
    * Convert this object to a plain document for MongoDB.
    *
-   * Marshallers (declared via `static fieldMarshallers` on a mixin or
+   * Marshallers (declared as a `marshaller` entry in `fieldMeta` on a mixin or
    * class) intercept their assigned fields: the runtime value-object
    * value is passed through `marshaller.toStored` before being written
    * into the doc. Fields without a marshaller pass through bracket-read

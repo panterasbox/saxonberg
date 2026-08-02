@@ -23,6 +23,7 @@
 
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The transaction kind — the closed ledger vocabulary, runtime-validated
@@ -162,19 +163,19 @@ export interface LedgerEntryFields {
 
 export default class LedgerEntry extends Document {
   static collectionName = Collections.BankLedger;
-  static persistentFields = [
-    "kind",
-    "fromAccount",
-    "toAccount",
-    "amount",
-    "memo",
-    "category",
-    "actor",
-    "locality",
-    "txId",
-    "at",
-    "realAt",
-  ];
+  static fieldMeta: FieldMeta = {
+    kind: { persistent: true },
+    fromAccount: { persistent: true },
+    toAccount: { persistent: true },
+    amount: { persistent: true },
+    memo: { persistent: true },
+    category: { persistent: true },
+    actor: { persistent: true },
+    locality: { persistent: true },
+    txId: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   /** The transaction kind. */
   kind: LedgerKind = "transfer";

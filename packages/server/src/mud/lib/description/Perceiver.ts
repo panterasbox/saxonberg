@@ -27,7 +27,7 @@
  * any reachable Visible as the target at execution time.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
 import type { AnyConstructor } from '../../api/mixin';
@@ -105,7 +105,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * No persistent fields. Perception is verb-shape only v1.
      */
-    static persistentFields: string[] = [];
+    static fieldMeta: FieldMeta = {};
 
     /**
      * Verbs of perception. `self` only — the perceiver issues these.

@@ -19,7 +19,7 @@
  * verbs are global commands gated per-fork — it does not "grant a verb".
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Sensor } from "../message/Sensor";
@@ -111,17 +111,16 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
   return class FastTravelMixin extends Base implements FastTravel {
     static _mixinName = "FastTravelMixin";
 
-    static persistentFields = [
-      "directionality",
-      "selectedDestinationRef",
-      "status",
-      "advanceMode",
-      "cycleInterval",
-      "surcharge",
-    ];
-
     /** `routes` is authored content applied once at hydrate (Phase 2). */
-    static instructionFields = ["routes"];
+    static fieldMeta: FieldMeta = {
+      directionality: { persistent: true },
+      selectedDestinationRef: { persistent: true },
+      status: { persistent: true },
+      advanceMode: { persistent: true },
+      cycleInterval: { persistent: true },
+      surcharge: { persistent: true },
+      routes: { instruction: true },
+    };
 
     /** The `register` verb surfaces only for actors at a node. */
     static commandContributions: CommandContributions = {

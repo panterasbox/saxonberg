@@ -22,7 +22,7 @@
  * record re-floors its born-with node). Session-durable in v1.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import {
   Credential,
@@ -64,7 +64,9 @@ export function CredentialWalletMixin<TBase extends MixinConstructor<Stuff>>(
      * Persistent — the held credentials. Hydrated through the `credentials`
      * accessor (Phase 1 setter / Phase 2 bracket-assign).
      */
-    static persistentFields = ["credentials"];
+    static fieldMeta: FieldMeta = {
+      credentials: { persistent: true },
+    };
 
     /**
      * The credential kinds a fresh instance is born holding (empty records).

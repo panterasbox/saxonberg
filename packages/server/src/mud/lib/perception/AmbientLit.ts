@@ -18,7 +18,7 @@
  * ergonomics; storage is always primitive scalars.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Quantity } from '../quantity';
 
 /** Public shape added by AmbientLitMixin. */
@@ -45,10 +45,10 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class AmbientLitMixin extends Base {
     static _mixinName = 'AmbientLitMixin';
 
-    static persistentFields = [
-      'ambientIntensity',
-      'ambientColorTemperature',
-    ];
+    static fieldMeta: FieldMeta = {
+      ambientIntensity: { persistent: true },
+      ambientColorTemperature: { persistent: true },
+    };
 
     /**
      * Backing storage for the lumen scalar.

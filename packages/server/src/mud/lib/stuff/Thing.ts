@@ -37,6 +37,7 @@ import { VisibleMixin } from '../description/Visible';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { WetMixin } from '../wetness/Wet';
 import { ChattelMixin } from '../chattel/Chattel';
+import type { FieldMeta } from '../mixin';
 
 // ChattelMixin composes at the movable-good tier so every Thing carries a
 // durable per-instance identity its unspoofable ownership can be keyed
@@ -55,7 +56,7 @@ const ThingBase = ChattelMixin(
 );
 
 export default class Thing extends ThingBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   constructor() {
     super();

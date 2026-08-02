@@ -11,6 +11,7 @@ import AddressRegistry from "../../../obj/AddressRegistry";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
 import { AddressApi } from "../../../api/address";
+import { MixinApi } from "../../../api/mixin";
 import {
   makeStuff,
   makeStuffAtPath,
@@ -52,7 +53,7 @@ describe("Locality._governmentKey", () => {
   });
 
   it("is carried in persistentFields for hydration", () => {
-    expect(Locality.persistentFields).toContain("_governmentKey");
+    expect(MixinApi.getAllPersistentFields(Locality)).toContain("_governmentKey");
   });
 
   it("a government-less Locality resolves coverage exactly as before", () => {

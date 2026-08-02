@@ -42,6 +42,7 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { Lethality, StopCondition } from '../combat/CombatTerms';
+import type { FieldMeta } from '../mixin';
 
 /** The kind of attribution row. Closed vocabulary (four writers). */
 export type AccountabilityKind = 'opened' | 'violated' | 'death' | 'harm';
@@ -141,25 +142,25 @@ export default class AccountabilityEvent extends Document {
    */
   circleScope: string | null = null;
 
-  static persistentFields = [
-    'kind',
-    'sessionId',
-    'initiator',
-    'opponent',
-    'victim',
-    'killer',
-    'lethality',
-    'stopCondition',
-    'consented',
-    'sentient',
-    'locality',
-    'formationPath',
-    'killerRole',
-    'directedBy',
-    'at',
-    'realAt',
-    'circleScope',
-  ];
+  static fieldMeta: FieldMeta = {
+    kind: { persistent: true },
+    sessionId: { persistent: true },
+    initiator: { persistent: true },
+    opponent: { persistent: true },
+    victim: { persistent: true },
+    killer: { persistent: true },
+    lethality: { persistent: true },
+    stopCondition: { persistent: true },
+    consented: { persistent: true },
+    sentient: { persistent: true },
+    locality: { persistent: true },
+    formationPath: { persistent: true },
+    killerRole: { persistent: true },
+    directedBy: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+    circleScope: { persistent: true },
+  };
 
   kind: AccountabilityKind = 'opened';
   /** The producing session's id — indexed (a fight's whole chain). */

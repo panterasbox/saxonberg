@@ -16,11 +16,12 @@ import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
+import type { FieldMeta } from '../../lib/mixin';
 
 const OffstageBase = SingletonMixin(
   PostRegistrationMixin(DetailedMixin(VisibleMixin(Location)))
 );
 
 export default class Offstage extends OffstageBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

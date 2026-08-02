@@ -31,7 +31,7 @@
  * mixin chain for the schema default.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
@@ -230,7 +230,9 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    static persistentFields = ['persistentStore'];
+    static fieldMeta: FieldMeta = {
+      persistentStore: { persistent: true },
+    };
 
     /**
      * Shell-tier settings the substrate owns. The substrate

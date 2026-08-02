@@ -17,7 +17,7 @@
  * See docs/subsystems/fire.md + thermal.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
@@ -99,14 +99,14 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
       peers: [],
     };
 
-    static persistentFields = [
-      'burnTemperatureK',
-      'bellowsMultiplier',
-      'bellowsActive',
-      'lit',
-      'fuelBurnRatePerMin',
-      'furnaceFuelClockStamp',
-    ];
+    static fieldMeta: FieldMeta = {
+      burnTemperatureK: { persistent: true },
+      bellowsMultiplier: { persistent: true },
+      bellowsActive: { persistent: true },
+      lit: { persistent: true },
+      fuelBurnRatePerMin: { persistent: true },
+      furnaceFuelClockStamp: { persistent: true },
+    };
 
     /** The base held temperature (K) while lit + fuelled. @authorable */
     public burnTemperatureK: number = FURNACE_DEFAULTS.DEFAULT_BURN_TEMPERATURE_K;

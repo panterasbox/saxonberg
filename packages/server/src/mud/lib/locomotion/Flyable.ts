@@ -7,7 +7,7 @@
  * against an actor's `FLIGHT_CAPABILITY_PROP`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Propertied } from '../stuff/Propertied';
 import { type Enablement } from './Enablement';
@@ -30,7 +30,10 @@ export function FlyableMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class FlyableMixin extends Base implements Enablement {
     static _mixinName = 'FlyableMixin';
-    static persistentFields = ['axes', 'difficulty'];
+    static fieldMeta: FieldMeta = {
+      axes: { persistent: true },
+      difficulty: { persistent: true },
+    };
 
     /** @authorable */
     public axes: string[] = [];

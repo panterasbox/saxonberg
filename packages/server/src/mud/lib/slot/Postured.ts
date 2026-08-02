@@ -18,7 +18,7 @@
  * Verbs and validators import `Postures` from this module.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from './Slotted';
 
@@ -74,7 +74,10 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
   return class PosturedMixin extends Base {
     static _mixinName = 'PosturedMixin';
 
-    static persistentFields = ['restQuality', 'warmth'];
+    static fieldMeta: FieldMeta = {
+      restQuality: { persistent: true },
+      warmth: { persistent: true },
+    };
 
     /**
      * Recovery multiplier for a body at rest on this host. Default

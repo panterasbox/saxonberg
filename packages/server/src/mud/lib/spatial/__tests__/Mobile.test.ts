@@ -147,6 +147,7 @@ import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import Exit from '../../boundary/Exit';
 import { ContainmentApi } from '../../../api/containment';
+import { MixinApi } from '../../../api/mixin';
 
 const MountSlottedBase = MountableMixin(SlottedMixin(Idea));
 class TestMount extends MountSlottedBase {}
@@ -209,11 +210,10 @@ describe('Mobile.engagedMode', () => {
 
   describe('not persistent', () => {
     it('_engagedModePath is not in persistentFields', () => {
-      // MobileMixin extends ContainableMixin which has its own
-      // persistentFields; _engagedModePath should not appear on the
+      // MobileMixin extends ContainableMixin which declares its own
+      // persistent fields; _engagedModePath should not appear on the
       // composed list (runtime-only by design).
-      const cls = MobileObject as unknown as { persistentFields?: string[] };
-      const fields = cls.persistentFields ?? [];
+      const fields = MixinApi.getAllPersistentFields(MobileObject);
       expect(fields).not.toContain('_engagedModePath');
     });
   });

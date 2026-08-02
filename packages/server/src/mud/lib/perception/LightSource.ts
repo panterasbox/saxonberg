@@ -32,7 +32,7 @@
  * only.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
@@ -72,10 +72,10 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LightSourceMixin extends Base {
     static _mixinName = 'LightSourceMixin';
 
-    static persistentFields = [
-      'emittedIntensity',
-      'emittedColorTemperature',
-    ];
+    static fieldMeta: FieldMeta = {
+      emittedIntensity: { persistent: true },
+      emittedColorTemperature: { persistent: true },
+    };
 
     /** Backing storage for the emitted flux scalar (lumens). */
     private _emittedIntensity: number = 0;

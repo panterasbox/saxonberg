@@ -35,7 +35,7 @@
  * hydrate is honoured wholesale), so no mixin constructor is needed.
  */
 
-import type { MixinConstructor } from '../../../lib/mixin';
+import type { MixinConstructor, FieldMeta } from '../../../lib/mixin';
 import { TimekeepingMixin } from '../../../lib/time/Timekeeping';
 import { ReservedMixin, Reserve, type Reserved } from '../../../lib/reserve';
 import { Time } from '../../../lib/time/Time';
@@ -120,13 +120,13 @@ export function MechanicalMovementMixin<TBase extends MixinConstructor>(
      */
     public springStamp = 0;
 
-    static persistentFields = [
-      'setTo',
-      'setAt',
-      'rate',
-      'runSeconds',
-      'springStamp',
-    ];
+    static fieldMeta: FieldMeta = {
+      setTo: { persistent: true },
+      setAt: { persistent: true },
+      rate: { persistent: true },
+      runSeconds: { persistent: true },
+      springStamp: { persistent: true },
+    };
 
     /**
      * The face reading: reconcile the mainspring, then compose

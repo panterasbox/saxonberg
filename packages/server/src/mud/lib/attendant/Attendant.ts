@@ -24,7 +24,7 @@
  * unstaffed), **attendDurationMs** (0 = instant), and the diegetic **skin**.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { SchedulerApi } from "../../api/scheduler";
 import { MessageApi } from "../../api/message";
@@ -122,14 +122,14 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
   class AttendantMixin extends Base implements Attendant {
     static _mixinName = "AttendantMixin";
 
-    static persistentFields = [
-      "discipline",
-      "serverPositionKeys",
-      "staffingPolicy",
-      "attendDurationMs",
-      "skin",
-      "businessPath",
-    ];
+    static fieldMeta: FieldMeta = {
+      discipline: { persistent: true },
+      serverPositionKeys: { persistent: true },
+      staffingPolicy: { persistent: true },
+      attendDurationMs: { persistent: true },
+      skin: { persistent: true },
+      businessPath: { persistent: true },
+    };
 
     /** @authorable */
     public discipline: ServiceDiscipline = "line";

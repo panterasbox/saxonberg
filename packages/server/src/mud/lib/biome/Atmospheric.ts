@@ -31,7 +31,7 @@
  * `BiomeApi.findByPath` (HMR-safe).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
@@ -139,35 +139,27 @@ export function AtmosphericMixin<
   return class AtmosphericMixin extends Base implements Atmospheric {
     static _mixinName = 'AtmosphericMixin';
 
-    static persistentFields = [
-      '_biomePath',
-      '_temperature',
-      '_pressure',
-      '_humidity',
-      '_wind',
-      '_gravity',
-      '_atmosphere',
-      '_detailTemperatures',
-      '_detailPressures',
-      '_detailHumidities',
-      '_detailWinds',
-      '_detailGravities',
-      '_detailAtmospheres',
-      '_weatherPin',
-    ];
-
     /**
      * Field-marshaller bindings for the five Quantity-typed bulk
      * fields. The per-detail maps round-trip via standard JSON
      * (`Quantity.toJSON` / `fromJSON`) — `Record<string, Quantity<U>>`
      * serializes natively without a map marshaller.
      */
-    static fieldMarshallers = {
-      _temperature: QuantityMarshaller.pathFor('K'),
-      _pressure: QuantityMarshaller.pathFor('Pa'),
-      _humidity: QuantityMarshaller.pathFor('%'),
-      _wind: QuantityMarshaller.pathFor('m/s'),
-      _gravity: QuantityMarshaller.pathFor('m/s²'),
+    static fieldMeta: FieldMeta = {
+      _biomePath: { persistent: true },
+      _temperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
+      _pressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa') },
+      _humidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
+      _wind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s') },
+      _gravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²') },
+      _atmosphere: { persistent: true },
+      _detailTemperatures: { persistent: true },
+      _detailPressures: { persistent: true },
+      _detailHumidities: { persistent: true },
+      _detailWinds: { persistent: true },
+      _detailGravities: { persistent: true },
+      _detailAtmospheres: { persistent: true },
+      _weatherPin: { persistent: true },
     };
 
     // ---------- storage ----------

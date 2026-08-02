@@ -13,12 +13,20 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { ChattelOwner } from "./ChattelRecord";
+import type { FieldMeta } from "../mixin";
 
 export type ChattelEventKind = "mint" | "transfer" | "released";
 
 export class ChattelEvent extends Document {
   static collectionName = Collections.ChattelEvents;
-  static persistentFields = ["chattelId", "event", "from", "to", "actor", "at"];
+  static fieldMeta: FieldMeta = {
+    chattelId: { persistent: true },
+    event: { persistent: true },
+    from: { persistent: true },
+    to: { persistent: true },
+    actor: { persistent: true },
+    at: { persistent: true },
+  };
 
   chattelId: string = "";
   event: ChattelEventKind = "transfer";

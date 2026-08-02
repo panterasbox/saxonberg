@@ -27,6 +27,7 @@ import { ContainerMixin } from "../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../lib/spatial/Containable";
 import { PostRegistrationMixin } from "../../../lib/stuff/PostRegistration";
 import { makeStuffAtPath } from "../../../lib/security/__tests__/test-setup";
+import type { FieldMeta } from "../../../lib/mixin";
 
 /* ─────────────────────────── fixtures ──────────────────────────────── */
 
@@ -34,7 +35,9 @@ import { makeStuffAtPath } from "../../../lib/security/__tests__/test-setup";
 class Room extends PersistableMixin(
   ContainerMixin(PostRegistrationMixin(Idea)),
 ) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -49,7 +52,9 @@ class Room extends PersistableMixin(
 class KeyedChest extends PersistableMixin(
   ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -61,7 +66,9 @@ class KeyedChest extends PersistableMixin(
 
 // A plain non-host content item.
 class Trinket extends ContainableMixin(Idea) {
-  static persistentFields = ["tag"];
+  static fieldMeta: FieldMeta = {
+    tag: { persistent: true },
+  };
   tag = "";
   getTag(): string {
     return this.tag;

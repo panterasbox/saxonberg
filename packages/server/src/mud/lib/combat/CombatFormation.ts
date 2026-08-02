@@ -26,6 +26,7 @@
 
 import { Idea } from "../stuff/Idea";
 import { SingletonMixin } from "../stuff/Singleton";
+import type { FieldMeta } from "../mixin";
 
 /** How a member under this formation picks its exchange target. */
 export type AllocationKind = "sustain" | "called" | "primary";
@@ -96,17 +97,17 @@ export class CombatFormation extends SingletonMixin(Idea) {
     coupCall: "engaged",
   });
 
-  static persistentFields = [
-    "name",
-    "roles",
-    "allocation",
-    "primaryRole",
-    "protectsRoles",
-    "interceptorRoles",
-    "interceptTrigger",
-    "coupRight",
-    "coupCall",
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    roles: { persistent: true },
+    allocation: { persistent: true },
+    primaryRole: { persistent: true },
+    protectsRoles: { persistent: true },
+    interceptorRoles: { persistent: true },
+    interceptTrigger: { persistent: true },
+    coupRight: { persistent: true },
+    coupCall: { persistent: true },
+  };
 
   /** Short name (`'vanguard'`); the templatePath is
    * `/lib/combat/CombatFormation/<name>`. */

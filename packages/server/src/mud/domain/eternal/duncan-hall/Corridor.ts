@@ -21,13 +21,14 @@ import { VisibleMixin } from '../../../lib/description/Visible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import type { VetoResult } from '../../../lib/errors';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const CorridorBase = ExitableMixin(
   DetailedMixin(VisibleMixin(PostRegistrationMixin(Location))),
 );
 
 export default class Corridor extends CorridorBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /**
    * Never culled by residency: a corridor is not a Warren member, so it does

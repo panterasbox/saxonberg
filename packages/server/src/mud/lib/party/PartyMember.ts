@@ -23,7 +23,7 @@
  * cleanup when no live Party Idea exists to act.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import {
   CallSecurity,
@@ -89,7 +89,9 @@ const ByInvitingParty = SecurityPolicies.AnyOf(
 export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
   class PartyMemberMixin extends Base implements PartyMember {
     static _mixinName = "PartyMemberMixin";
-    static persistentFields = ["activePartyPath"];
+    static fieldMeta: FieldMeta = {
+      activePartyPath: { persistent: true },
+    };
 
     /** The `party` verb — a party-capable actor's whole party surface. */
     static commandContributions: CommandContributions = {

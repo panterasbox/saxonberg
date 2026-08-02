@@ -41,7 +41,7 @@ describe('SealableMixin', () => {
 
   it('declares persistent field "open" (noun form)', () => {
     expect(
-      (TestSealable as unknown as { persistentFields?: string[] }).persistentFields
+      MixinApi.getAllPersistentFields(TestSealable)
     ).toContain('open');
   });
 

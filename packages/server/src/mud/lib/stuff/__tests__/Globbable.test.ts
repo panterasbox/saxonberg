@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { MixinApi } from '../../../api/mixin';
-import { Mixins } from '../../mixin';
+import { Mixins, type FieldMeta } from '../../mixin';
 import { Idea } from '../Idea';
 import { Stuff } from '../Stuff';
 import { Shadow } from '../Shadow';
@@ -23,8 +23,11 @@ import {
 
 class Coin extends GlobbableMixin(Idea) {
   static _mixinName = 'Coin';
-  static persistentFields = ['quantity', 'tarnished', 'denomination'];
-  static globIdentityFields = ['tarnished', 'denomination'];
+  static fieldMeta: FieldMeta = {
+    quantity: { persistent: true },
+    tarnished: { persistent: true, globIdentity: true },
+    denomination: { persistent: true, globIdentity: true },
+  };
 
   public tarnished: boolean = false;
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
@@ -184,8 +187,10 @@ describe('GlobbableMixin', () => {
     it('throws when globIdentityFields is not a subset of persistentFields', () => {
       class Misdeclared extends GlobbableMixin(Idea) {
         static _mixinName = 'Misdeclared';
-        static persistentFields = ['quantity'];
-        static globIdentityFields = ['notPersisted'];
+        static fieldMeta: FieldMeta = {
+          quantity: { persistent: true },
+          notPersisted: { globIdentity: true },
+        };
       }
       expect(() => makeStuff(() => new Misdeclared())).toThrow(
         /globIdentityFields entry 'notPersisted' is not in persistentFields/

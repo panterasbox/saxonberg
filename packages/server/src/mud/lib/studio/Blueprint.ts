@@ -36,21 +36,22 @@
 import { Document } from '../persistence/Document';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import type { BlueprintKind } from '@saxonberg/types';
+import type { FieldMeta } from '../mixin';
 
 export class Blueprint extends Document {
   static collectionName = 'blueprints';
-  static persistentFields = [
-    'blueprintId',
-    'signature',
-    'name',
-    'baseClass',
-    'mixinNames',
-    'kind',
-    'classPath',
-    'parent',
-    'blessed',
-    'description',
-  ];
+  static fieldMeta: FieldMeta = {
+    blueprintId: { persistent: true },
+    signature: { persistent: true },
+    name: { persistent: true },
+    baseClass: { persistent: true },
+    mixinNames: { persistent: true },
+    kind: { persistent: true },
+    classPath: { persistent: true },
+    parent: { persistent: true },
+    blessed: { persistent: true },
+    description: { persistent: true },
+  };
 
   /** Durable id; unique-indexed. Stable across rename. */
   blueprintId: string = '';

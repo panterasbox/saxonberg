@@ -24,6 +24,7 @@
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
+import type { FieldMeta } from '../mixin';
 
 export type NoiseLevel = 'silent' | 'quiet' | 'normal' | 'loud';
 
@@ -140,20 +141,20 @@ export class LocomotionMode extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected medium: string | null = null;
 
-  static persistentFields = [
-    'name',
-    'speed',
-    'noiseLevel',
-    'bodyProfile',
-    'groundContact',
-    'requiresBodyPlanMode',
-    'requiresPosture',
-    'costMultiplier',
-    'passthrough',
-    'conveyanceMixin',
-    'enablementMixin',
-    'medium',
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    speed: { persistent: true },
+    noiseLevel: { persistent: true },
+    bodyProfile: { persistent: true },
+    groundContact: { persistent: true },
+    requiresBodyPlanMode: { persistent: true },
+    requiresPosture: { persistent: true },
+    costMultiplier: { persistent: true },
+    passthrough: { persistent: true },
+    conveyanceMixin: { persistent: true },
+    enablementMixin: { persistent: true },
+    medium: { persistent: true },
+  };
 
   public getName(): string {
     return this.name;

@@ -22,7 +22,7 @@
  * read the band, never the raw field.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { ConcealmentLevel } from './ConcealmentLevel';
 import { ConcealmentLevels } from './ConcealmentLevel';
 
@@ -58,7 +58,10 @@ export interface Concealable {
 export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConcealableMixin extends Base implements Concealable {
     static _mixinName = 'ConcealableMixin';
-    static persistentFields = ['concealment', 'concealmentHint'];
+    static fieldMeta: FieldMeta = {
+      concealment: { persistent: true },
+      concealmentHint: { persistent: true },
+    };
 
     /**
      * The concealment band; `'obvious'` (the default) = not concealed.

@@ -20,19 +20,20 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import { SecurityApi } from '../../api/security';
+import type { FieldMeta } from '../mixin';
 
 /** The stored `scope` sentinel — participation is Compact-wide only. */
 export const PARTICIPATION_WIDE = '*';
 
 export default class ParticipationStanding extends Document {
   static collectionName = Collections.Participation;
-  static persistentFields = [
-    'subject',
-    'scope',
-    'value',
-    'recomputedAt',
-    'recomputedRealAt',
-  ];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    scope: { persistent: true },
+    value: { persistent: true },
+    recomputedAt: { persistent: true },
+    recomputedRealAt: { persistent: true },
+  };
 
   /** Durable subject id the standing is about. */
   subject = '';

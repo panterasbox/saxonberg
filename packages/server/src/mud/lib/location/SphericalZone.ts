@@ -15,6 +15,7 @@ import { SpatialZone } from '../zone/SpatialZone';
 import type Location from '../stuff/Location';
 import { SingletonMixin } from '../stuff/Singleton';
 import { MixinApi } from '../../api/mixin';
+import type { FieldMeta } from '../mixin';
 
 /** Round a focus tuple to 2 decimals — good enough for authoring tooling. */
 function focusKey(coords: [number, number, number]): string {
@@ -51,7 +52,9 @@ export default class SphericalZone extends SingletonMixin(SpatialZone) {
     return location ? here === location : true;
   }
 
-  static persistentFields = ['name'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+  };
 
   public override addLocation(location: Location): void {
     if (!MixinApi.isSphericalCoordinates(location)) {

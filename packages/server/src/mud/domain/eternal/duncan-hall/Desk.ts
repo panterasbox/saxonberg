@@ -10,11 +10,12 @@ import Thing from '../../../lib/stuff/Thing';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { SurfacedMixin } from '../../../lib/spatial/Surfaced';
 import type { CommandContributions } from '../../../api/command';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const DeskBase = SurfacedMixin(DetailedMixin(Thing));
 
 export default class Desk extends DeskBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /**
    * The desk carries the room's personalization surface: while you're in

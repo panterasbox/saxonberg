@@ -40,6 +40,7 @@ import { installV1QuantityMarshallers } from "../../persistence/__tests__/quanti
 import { ESTATE_INVENTORY, ESTATE_STORAGE } from "../../persistence/PersistenceSlice";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../../spatial/Container";
+import type { FieldMeta } from "../../mixin";
 
 const TORCH_PATH = "/obj/test/Torch";
 const ALICE_PATH = "/obj/Avatar/alice";
@@ -51,7 +52,7 @@ class Torch extends Thing {}
 class Owner extends PersistableMixin(
   EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 interface Doc extends Record<string, unknown> {

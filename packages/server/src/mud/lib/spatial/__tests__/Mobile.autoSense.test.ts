@@ -18,6 +18,7 @@ import { NamedMixin } from '../../description/Named';
 import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { ExecuteCommandOpts } from '../../../api/command';
+import type { FieldMeta } from '../../mixin';
 
 const Base = MobileMixin(
   ContainerMixin(
@@ -30,7 +31,7 @@ const Base = MobileMixin(
 );
 
 class CapturingMobile extends Base {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   public forced: Array<{ text: string; forced: boolean }> = [];
   public override async executeCommand(
     text: string,

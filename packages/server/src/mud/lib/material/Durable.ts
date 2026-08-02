@@ -19,7 +19,7 @@
  * Composed on a `Thing` (or any Stuff). Opt-in repair is a later increment.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 
@@ -61,7 +61,9 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class DurableMixin extends Base implements Durable {
     static _mixinName = 'DurableMixin';
 
-    static persistentFields = ['condition'];
+    static fieldMeta: FieldMeta = {
+      condition: { persistent: true },
+    };
 
     /**
      * 0..1 wear gauge; default pristine.

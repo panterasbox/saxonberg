@@ -16,7 +16,7 @@
  * masking host in v1.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 /**
  * What a covering presents in place of the wearer's identity. `covers`
@@ -54,7 +54,11 @@ export function DisguiseBearingMixin<TBase extends MixinConstructor>(
   return class DisguiseBearingMixin extends Base implements DisguiseBearing {
     static _mixinName = 'DisguiseBearingMixin';
 
-    static persistentFields = ['appearsAs', 'covers', 'masksIdentity'];
+    static fieldMeta: FieldMeta = {
+      appearsAs: { persistent: true },
+      covers: { persistent: true },
+      masksIdentity: { persistent: true },
+    };
 
     /** @authorable The masked presentation ("a hooded figure"). */
     public appearsAs: string = '';

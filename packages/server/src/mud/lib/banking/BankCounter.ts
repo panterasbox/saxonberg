@@ -18,13 +18,16 @@ import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { DialogueEffectRegistry } from "../npc/DialogueEffects";
 import { BankMixin } from "./Bank";
 import { BANK_CIRCLE_EFFECT } from "./BankDialogueEffect";
+import type { FieldMeta } from "../mixin";
 
 const BankCounterBase = BankMixin(
   DetailedMixin(PostRegistrationMixin(Vessel)),
 );
 
 export default class BankCounter extends BankCounterBase {
-  static persistentFields = ["corpoKey"];
+  static fieldMeta: FieldMeta = {
+    corpoKey: { persistent: true },
+  };
 
   /**
    * A bank standing up registers banking's dialogue effects — the

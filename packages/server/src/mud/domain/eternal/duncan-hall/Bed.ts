@@ -31,9 +31,10 @@ import { DetailedMixin } from '../../../lib/description/Detailed';
 import { SurfacedMixin } from '../../../lib/spatial/Surfaced';
 import { SlottedMixin } from '../../../lib/slot/Slotted';
 import { PosturedMixin } from '../../../lib/slot/Postured';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const BedBase = PosturedMixin(SlottedMixin(SurfacedMixin(DetailedMixin(Thing))));
 
 export default class Bed extends BedBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

@@ -25,7 +25,7 @@
  */
 
 import type { AbortReason } from '@saxonberg/types';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { HazardDelivery, type HazardDeliveryOptions } from './HazardDelivery';
 import {
@@ -111,16 +111,16 @@ export interface Hazard {
 export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HazardMixin extends Base implements Hazard {
     static _mixinName = 'HazardMixin';
-    static persistentFields = [
-      'hazardState',
-      'trigger',
-      'delivery',
-      'traverseConsequence',
-      'groundTriggered',
-      'dropDestination',
-      'springMessage',
-      'placedBy',
-    ];
+    static fieldMeta: FieldMeta = {
+      hazardState: { persistent: true },
+      trigger: { persistent: true },
+      delivery: { persistent: true },
+      traverseConsequence: { persistent: true },
+      groundTriggered: { persistent: true },
+      dropDestination: { persistent: true },
+      springMessage: { persistent: true },
+      placedBy: { persistent: true },
+    };
 
     /**
      * The state axis — `'armed'` fires, `'sprung'` is spent (one-shot v1),

@@ -50,6 +50,7 @@ import { StatusMixin } from '../status/Status';
 import { EmployedMixin } from '../employment/Employed';
 import { CombatantMixin } from '../combat/Combatant';
 import { HidingMixin } from '../concealment/Hiding';
+import type { FieldMeta } from '../mixin';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -137,7 +138,9 @@ export abstract class Character extends CharacterBase {
    */
   protected _domicileAddress: string | null = null;
 
-  static persistentFields = ['_domicileAddress'];
+  static fieldMeta: FieldMeta = {
+    _domicileAddress: { persistent: true },
+  };
 
   public getDomicileAddress(): string | null {
     return this._domicileAddress;

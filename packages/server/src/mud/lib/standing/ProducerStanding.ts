@@ -22,19 +22,20 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import { SecurityApi } from '../../api/security';
+import type { FieldMeta } from '../mixin';
 
 /** The stored `scope` sentinel — producer is Compact-wide only. */
 export const PRODUCER_WIDE = '*';
 
 export default class ProducerStanding extends Document {
   static collectionName = Collections.Producer;
-  static persistentFields = [
-    'subject',
-    'scope',
-    'value',
-    'recomputedAt',
-    'recomputedRealAt',
-  ];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    scope: { persistent: true },
+    value: { persistent: true },
+    recomputedAt: { persistent: true },
+    recomputedRealAt: { persistent: true },
+  };
 
   /** Durable author id the standing is about. */
   subject = '';

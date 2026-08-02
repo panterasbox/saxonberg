@@ -26,7 +26,7 @@ import { buildAllModalities } from '../../lib/perception/modalities/__tests__/te
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 class AvatarLike extends SlottedMixin(AetherMixin(OrganismMixin(Thing))) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   // staticSlots is consulted by Slotted to know what slot names exist.
   // The test's cranial slot accepts SlottableMixin (the AetherImplant
   // composes it via AugmentMixin → SlottableMixin → TangibleMixin → Thing).
@@ -109,7 +109,7 @@ describe('PerceptionApi.sensorium — augment-conferred ESP modalities', () => {
 
 import { AetherHostedMixin } from '../../lib/augmentation/AetherHosted';
 import { Idea } from '../../lib/stuff/Idea';
-import type { MixinConstructor } from '../../lib/mixin';
+import type { MixinConstructor, FieldMeta } from '../../lib/mixin';
 
 // A synthetic (non-gated) mixin that grants a modality — no real update
 // grants one in v1, so this proves the generalization point without a

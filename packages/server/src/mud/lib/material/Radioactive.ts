@@ -39,7 +39,7 @@
  * as every other Material cross-reference.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
 
@@ -76,7 +76,11 @@ export interface Radioactive {
 export function RadioactiveMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class RadioactiveMixin extends Base {
     static _mixinName = 'RadioactiveMixin';
-    static persistentFields = ['halfLife', 'decayMode', '_decayProductPath'];
+    static fieldMeta: FieldMeta = {
+      halfLife: { persistent: true },
+      decayMode: { persistent: true },
+      _decayProductPath: { persistent: true },
+    };
 
     /**
      * Half-life in years. 0 default reads as "not yet authored" — the

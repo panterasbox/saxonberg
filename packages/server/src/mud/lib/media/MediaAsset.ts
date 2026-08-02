@@ -19,24 +19,25 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export type MediaAssetStatus = 'draft' | 'approved';
 
 export class MediaAsset extends Document {
   static collectionName = Collections.MediaAssets;
-  static persistentFields = [
-    'key',
-    'sourcePath',
-    'sourceContentHash',
-    'prompt',
-    'model',
-    'size',
-    'quality',
-    'styleVersion',
-    'width',
-    'height',
-    'status',
-  ];
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    sourcePath: { persistent: true },
+    sourceContentHash: { persistent: true },
+    prompt: { persistent: true },
+    model: { persistent: true },
+    size: { persistent: true },
+    quality: { persistent: true },
+    styleVersion: { persistent: true },
+    width: { persistent: true },
+    height: { persistent: true },
+    status: { persistent: true },
+  };
 
   /** Bucket-relative S3 key — the join to `Visible.illustration`. */
   key: string = '';

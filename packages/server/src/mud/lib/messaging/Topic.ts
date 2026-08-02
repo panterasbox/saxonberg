@@ -22,6 +22,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { TemplatePathPrefixes } from '../paths';
+import type { FieldMeta } from '../mixin';
 
 export default class Topic extends Idea {
   /**
@@ -49,7 +50,12 @@ export default class Topic extends Idea {
   /** Authored prose description. Non-empty. */
   public description: string = '';
 
-  static persistentFields = ['topic', 'family', 'label', 'description'];
+  static fieldMeta: FieldMeta = {
+    topic: { persistent: true },
+    family: { persistent: true },
+    label: { persistent: true },
+    description: { persistent: true },
+  };
 
   public getTopic(): string {
     return this.topic;

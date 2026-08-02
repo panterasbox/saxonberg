@@ -33,6 +33,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 /**
  * The fields a caller supplies to mint one chronicle entry — the
@@ -68,17 +69,17 @@ export interface ChronicleClaimSeed {
 
 export default class ChronicleEntry extends Document {
   static collectionName = Collections.Chronicles;
-  static persistentFields = [
-    'owner',
-    'kind',
-    'when',
-    'order',
-    'where',
-    'who',
-    'text',
-    'tags',
-    'key',
-  ];
+  static fieldMeta: FieldMeta = {
+    owner: { persistent: true },
+    kind: { persistent: true },
+    when: { persistent: true },
+    order: { persistent: true },
+    where: { persistent: true },
+    who: { persistent: true },
+    text: { persistent: true },
+    tags: { persistent: true },
+    key: { persistent: true },
+  };
 
   /** Durable owner key (the character's `templatePath`) — indexed. */
   owner = '';

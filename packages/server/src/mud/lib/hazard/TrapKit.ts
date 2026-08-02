@@ -13,9 +13,12 @@
  */
 
 import Thing from '../stuff/Thing';
+import type { FieldMeta } from '../mixin';
 
 export default class TrapKit extends Thing {
-  static persistentFields = ['trapTemplate'];
+  static fieldMeta: FieldMeta = {
+    trapTemplate: { persistent: true },
+  };
 
   /**
    * The template path of the `/obj/traps/` generic this kit deploys (cloned

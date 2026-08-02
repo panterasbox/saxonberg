@@ -20,6 +20,7 @@
 import { Document } from '../persistence/Document';
 import { EncryptedStringMarshaller } from '../persistence/EncryptedStringMarshaller';
 import type { TwitchProfile as ITwitchProfile } from '@saxonberg/types';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Twitch OAuth profile data (persistent, token-bearing). A Document —
@@ -33,27 +34,21 @@ export class TwitchProfile extends Document implements ITwitchProfile {
 
   /**
    * Persistent fields for auto-sync.
-   */
-  static persistentFields = [
-    'twitchUserId',
-    'login',
-    'displayName',
-    'email',
-    'rawProfile',
-    'accessToken',
-    'refreshToken',
-    'expiresAt',
-    'scopes',
-  ];
-
-  /**
+   *
    * Encrypt the two bearer-token fields at rest. The marshaller's
    * `toStored` / `fromStored` run inside `Document.toDocument` /
    * `fromDocument`, so plaintext never reaches Mongo.
    */
-  static fieldMarshallers = {
-    accessToken: EncryptedStringMarshaller.templatePath,
-    refreshToken: EncryptedStringMarshaller.templatePath,
+  static fieldMeta: FieldMeta = {
+    twitchUserId: { persistent: true },
+    login: { persistent: true },
+    displayName: { persistent: true },
+    email: { persistent: true },
+    rawProfile: { persistent: true },
+    accessToken: { persistent: true, marshaller: EncryptedStringMarshaller.templatePath },
+    refreshToken: { persistent: true, marshaller: EncryptedStringMarshaller.templatePath },
+    expiresAt: { persistent: true },
+    scopes: { persistent: true },
   };
 
   /**

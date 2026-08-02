@@ -21,6 +21,7 @@ import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
 import { HotReloadApi } from '../../api/hot-reload';
 import { Quantity } from '../../lib/quantity';
 import { Mixins } from '../../lib/mixin';
+import type { FieldMeta } from '../../lib/mixin';
 import { StudioError } from '../../api/studio';
 import { Blueprint } from '../../lib/studio/Blueprint';
 import { Idea } from '../../lib/stuff/Idea';
@@ -1192,34 +1193,30 @@ export class StudioLogic extends ApiLogic {
 
   /**
    * The `_mixinName` of the first effective mixin (leaf-first) whose **own**
-   * static `persistentFields` / `instructionFields` declares `field` — the
+   * `fieldMeta` declares `field` as persistent or instruction — the
    * declaring layer, for classification + attribution. `null` for a field
    * owned by a base (non-mixin) class.
    *
-   * Reads OWN statics only (`hasOwnProperty`): a subclass mixin inherits an
-   * ancestor mixin's static arrays through the prototype chain, so a plain
-   * `m.instructionFields` would mis-attribute a field to the wrong (outer)
-   * mixin and read the wrong classification.
+   * Reads the OWN static only (`hasOwnProperty`): a subclass mixin inherits
+   * an ancestor mixin's `fieldMeta` through the prototype chain, so a plain
+   * `m.fieldMeta` would mis-attribute a field to the wrong (outer) mixin
+   * and read the wrong classification.
    */
   private ownerMixinOf(
     mixins: ReadonlyArray<{
       _mixinName?: string;
       name?: string;
-      persistentFields?: string[];
+      fieldMeta?: FieldMeta;
     }>,
     field: string,
     _instructionSet: Set<string>
   ): string | null {
-    const ownArray = (m: object, key: string): string[] =>
-      Object.prototype.hasOwnProperty.call(m, key) &&
-      Array.isArray((m as Record<string, unknown>)[key])
-        ? ((m as Record<string, string[]>)[key] as string[])
-        : [];
     for (const m of mixins) {
-      if (
-        ownArray(m, 'persistentFields').includes(field) ||
-        ownArray(m, 'instructionFields').includes(field)
-      ) {
+      if (!Object.prototype.hasOwnProperty.call(m, 'fieldMeta')) continue;
+      const meta = m.fieldMeta;
+      if (!meta || typeof meta !== 'object') continue;
+      const entry = meta[field];
+      if (entry?.persistent === true || entry?.instruction === true) {
         return m._mixinName ?? m.name ?? '<anonymous>';
       }
     }

@@ -43,15 +43,16 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type Avatar from '../../obj/Avatar';
 import SandboxCrossingExit from './SandboxCrossingExit';
+import type { FieldMeta } from '../mixin';
 
 /** Fallback exit label when a skin declares none. */
 const DEFAULT_PASSAGE_DIRECTION = 'crossing';
 
 export default class SandboxCrossing extends Thing {
-  static persistentFields: string[] = [
-    'linkedSandboxPath',
-    'passageDirection',
-  ];
+  static fieldMeta: FieldMeta = {
+    linkedSandboxPath: { persistent: true },
+    passageDirection: { persistent: true },
+  };
 
   /**
    * The circle this door opens onto (Pattern A path string; empty =

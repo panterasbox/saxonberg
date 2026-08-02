@@ -22,6 +22,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export type ForumEventKind =
   | 'board-created'
@@ -56,16 +57,16 @@ export interface ForumEventPayload {
 
 export default class ForumEvent extends Document {
   static collectionName = Collections.ForumEvents;
-  static persistentFields = [
-    'subject',
-    'board',
-    'thread',
-    'entry',
-    'kind',
-    'actor',
-    'at',
-    'data',
-  ];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    board: { persistent: true },
+    thread: { persistent: true },
+    entry: { persistent: true },
+    kind: { persistent: true },
+    actor: { persistent: true },
+    at: { persistent: true },
+    data: { persistent: true },
+  };
 
   subject = '';
   board = '';

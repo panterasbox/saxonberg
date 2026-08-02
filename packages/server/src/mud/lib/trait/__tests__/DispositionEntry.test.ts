@@ -6,6 +6,7 @@
 import { describe, it, expect } from "vitest";
 import DispositionEntry from "../DispositionEntry";
 import { Collections } from "../../../../backend/PersistenceManager";
+import { MixinApi } from "../../../api/mixin";
 
 describe("DispositionEntry", () => {
   it("targets the disposition_events collection", () => {
@@ -16,7 +17,7 @@ describe("DispositionEntry", () => {
   });
 
   it("persists owner/kind/when/disposition/valence/tags", () => {
-    expect(DispositionEntry.persistentFields).toEqual([
+    expect(MixinApi.getAllPersistentFields(DispositionEntry)).toEqual([
       "owner",
       "kind",
       "when",

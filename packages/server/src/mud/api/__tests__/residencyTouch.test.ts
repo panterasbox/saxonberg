@@ -24,6 +24,7 @@ import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { MixinApi } from '../mixin';
 
 class TouchProbe extends Idea {
   public called = 0;
@@ -144,7 +145,7 @@ describe('residency dispatch-touch', () => {
 
   it('lastTouched is not a persistent field', () => {
     const fields =
-      (Stuff as unknown as { persistentFields?: string[] }).persistentFields ??
+      MixinApi.getAllPersistentFields(Stuff) ??
       [];
     expect(fields).not.toContain('lastTouched');
   });

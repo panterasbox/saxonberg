@@ -20,6 +20,7 @@
 import { Document } from '../persistence/Document';
 import { EncryptedStringMarshaller } from '../persistence/EncryptedStringMarshaller';
 import type { KickProfile as IKickProfile } from '@saxonberg/types';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Kick OAuth profile data (persistent, token-bearing). A Document —
@@ -33,28 +34,22 @@ export class KickProfile extends Document implements IKickProfile {
 
   /**
    * Persistent fields for auto-sync.
-   */
-  static persistentFields = [
-    'kickUserId',
-    'slug',
-    'displayName',
-    'email',
-    'broadcasterUserId',
-    'rawProfile',
-    'accessToken',
-    'refreshToken',
-    'expiresAt',
-    'scopes',
-  ];
-
-  /**
+   *
    * Encrypt the two bearer-token fields at rest. The marshaller's
    * `toStored` / `fromStored` run inside `Document.toDocument` /
    * `fromDocument`, so plaintext never reaches Mongo.
    */
-  static fieldMarshallers = {
-    accessToken: EncryptedStringMarshaller.templatePath,
-    refreshToken: EncryptedStringMarshaller.templatePath,
+  static fieldMeta: FieldMeta = {
+    kickUserId: { persistent: true },
+    slug: { persistent: true },
+    displayName: { persistent: true },
+    email: { persistent: true },
+    broadcasterUserId: { persistent: true },
+    rawProfile: { persistent: true },
+    accessToken: { persistent: true, marshaller: EncryptedStringMarshaller.templatePath },
+    refreshToken: { persistent: true, marshaller: EncryptedStringMarshaller.templatePath },
+    expiresAt: { persistent: true },
+    scopes: { persistent: true },
   };
 
   /**

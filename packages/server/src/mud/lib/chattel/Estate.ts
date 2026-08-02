@@ -49,7 +49,7 @@
  * book instead of leaving it at your friend's.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
@@ -109,7 +109,7 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
      * byte-identical to its pre-estate record — the slice is emitted only
      * when there is something in it.
      */
-    static persistentFields: string[] = [];
+    static fieldMeta: FieldMeta = {};
 
     /**
      * chattelId → entry. Transient (rebuilt by `restoreSlice`), because the
