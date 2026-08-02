@@ -10,6 +10,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
+import { METABOLIC_DEFAULTS } from "../Metabolic";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
@@ -118,6 +119,15 @@ describe("MetabolicMixin cascade — reserves → conditions", () => {
     // Past dehydration's lethal accrual (8 game-hours) but before
     // starvation's (24) — so the body dies of thirst first.
     advance(c, 31000);
+    // Crossing the threshold now opens the DYING window rather than
+    // killing outright (the clock kills, not the threshold), and the
+    // window names the cause it will stamp.
+    expect(c.isDying()).toBe(true);
+    expect(c.getConditionBand()).toBe("dying");
+
+    // Run the window out — thirst is what finishes it.
+    advance(c, METABOLIC_DEFAULTS.DYING_WINDOW_SEC + 60);
     expect(c.getCauseOfDeath()).toBe("dehydration");
+    expect(c.getConditionBand()).toBe("dead");
   });
 });

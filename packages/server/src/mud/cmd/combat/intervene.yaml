@@ -12,6 +12,8 @@ examples:
     note: Stop the fighter about to finish a downed foe
   - cmd: stay the stroke
     note: A downed friend is about to be executed — step in
+validators:
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

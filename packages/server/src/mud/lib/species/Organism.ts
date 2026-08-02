@@ -36,6 +36,8 @@ export interface Organism {
   isDead(): boolean;
   isUndead(): boolean;
   isPowered(): boolean;
+  /** Runs living processes? Neither `!isDead()` nor `isAlive()` — see impl. */
+  isLivingBody(): boolean;
   getSex(): string | null;
 }
 
@@ -65,7 +67,26 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `'destroyed'`). Initial value lives on the leaf template's
      * `data` per slate. Empty default keeps unhydrated test fixtures
      * trivially constructable.
-     * @runtimeState
+     *
+     * **This field IS persisted** — it is declared in `persistentFields`
+     * above, so `PersistableApi.capture` writes it and `materialize`
+     * restores it. (It formerly carried an `@runtimeState` tag, which is a
+     * doc marker only and filters nothing; the tag read as a promise the
+     * persistence layer never made.)
+     *
+     * The consequence a persistence host must respect: **a player body must
+     * never let `'dead'` round-trip.** A restored dead body cannot act —
+     * `requiresAnimate` refuses every verb — and the state is itself
+     * persisted, so the next login restores it again, forever. A host that
+     * can die records its death on its *identity* instead (see
+     * `Avatar.mortalArc` and `lib/mortality/MortalArc.ts`), which always has
+     * a way back. Non-player organisms are unaffected: a dead plant or beast
+     * legitimately persists as dead, because nothing is waiting to re-enter
+     * it.
+     *
+     * Reading it: a survival driver asking "should I run?" wants
+     * `isLivingBody()`, which is neither `isAlive()` nor `!isDead()` — see
+     * that predicate for why both of the obvious spellings are wrong.
      */
     public lifecycleState: string = '';
 
@@ -90,6 +111,28 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
      * directly for the organism-state reading). */
     public isAlive(): boolean { return this.lifecycleState === 'alive'; }
     public isDead(): boolean { return this.lifecycleState === 'dead'; }
+
+    /**
+     * Does this body run **living processes** — metabolism, respiration,
+     * thermoregulation? The question every survival driver actually asks.
+     *
+     * It is deliberately neither of the two obvious spellings:
+     *
+     * - **not `!isDead()`** — `undead` is animate without being alive, so a
+     *   shade would starve, suffocate, and freeze. That was the bug this
+     *   predicate exists to prevent.
+     * - **not `isAlive()`** — `lifecycleState` defaults to the empty string,
+     *   and an unhydrated body (a fixture, a partially-constructed clone)
+     *   carries it. The drivers have always treated unset as living, and
+     *   flipping that silently switches metabolism off for anything whose
+     *   state was never authored.
+     *
+     * So: everything runs living processes except the two states that
+     * explicitly mean it does not.
+     */
+    public isLivingBody(): boolean {
+      return this.lifecycleState !== 'dead' && this.lifecycleState !== 'undead';
+    }
     public isUndead(): boolean { return this.lifecycleState === 'undead'; }
     public isPowered(): boolean { return this.lifecycleState === 'powered'; }
 

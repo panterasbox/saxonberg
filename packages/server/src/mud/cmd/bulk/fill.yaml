@@ -15,6 +15,7 @@ examples:
     note: Top a vessel up from a source
 validators:
   - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

@@ -116,6 +116,13 @@ export const THERMAL_DEFAULTS = {
   THERMAL_LETHAL_SEC: 3 * 3600,
   /** Hysteresis: clear a thermal condition once core re-enters this margin (K). */
   CONDITION_CLEAR_MARGIN_K: 2,
+
+  /**
+   * Dying window (game-seconds) for hypo/hyperthermia. The longest of the
+   * driver windows on purpose: a body lost to cold is the classic case
+   * where someone can still reach you.
+   */
+  DYING_WINDOW_SEC: 300,
 } as const;
 
 /** Atmosphere medium tags a `barrier` override may carry. */

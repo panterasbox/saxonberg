@@ -24,6 +24,7 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/mustHaveDressing
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

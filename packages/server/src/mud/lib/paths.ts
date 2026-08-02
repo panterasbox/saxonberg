@@ -75,6 +75,10 @@ export const TemplatePaths = {
   metabolismStarvation: "/lib/metabolism/conditions/starvation",
   metabolismDehydration: "/lib/metabolism/conditions/dehydration",
   metabolismCollapse: "/lib/metabolism/conditions/collapse",
+  /** The body a player's death leaves behind (mortality.md). */
+  mortalityCorpse: "/lib/mortality/corpse",
+  /** What coming back the cheap way costs you (mortality.md). */
+  mortalityRecovering: "/lib/mortality/conditions/recovering",
 
   // Thermal cascade conditions — spawned/cleared by the thermoregulation
   // reconcile when driven `coreTemperature` crosses the survivable band.

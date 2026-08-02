@@ -29,6 +29,7 @@ import { StuffApi } from "../api/stuff";
 import { AppApi } from "../api/app";
 import { AppSettingKeys } from "../lib/config/AppSettings";
 import { ConnectionApi } from "../api/connection";
+import { ConditionApi } from "../api/condition";
 import { PlayerApi } from "../api/player";
 import { SandboxApi } from "../api/sandbox";
 import { MessageApi } from "../api/message";
@@ -357,8 +358,14 @@ export default class Login extends LoginBase {
     }
 
     const avatars = await PlayerApi.loadAvatarsForUser(user);
-    const avatar = avatars.find((a) => a.getPlayerId() === playerId);
-    if (!avatar) return false;
+    const restored = avatars.find((a) => a.getPlayerId() === playerId);
+    if (!restored) return false;
+    // An identity between bodies comes back as a shade, not as a fresh
+    // body — logging out is not an escape hatch from death. Returns the
+    // restored avatar untouched for the living.
+    const avatar = (await ConditionApi.embodyForSession(
+      restored,
+    )) as typeof restored;
     ConnectionApi.transfer(this.interactive, avatar);
     console.info(`Login: User connected - ${avatar.getFullName()}`);
     await avatar.enter(this.interactive);

@@ -213,15 +213,7 @@ export class SandboxApi {
     return logic().handleWireQuit(wireBody);
   }
 
-  /**
-   * Death inside: reap the dead vessel, re-mint a fresh one at the
-   * entry room (the parked body untouched). A direct witness call from
-   * the death seam — no new global event.
-   */
-  public static respawnWireBody(wireBody: Avatar): Promise<Avatar | null> {
-    return logic().respawnWireBody(wireBody);
-  }
-
+  
   /** The circle's entry room (test/inspection surface). @internal */
   public static entryRoomForScope(scope: string): Stuff | null {
     return logic().entryRoomForScope(scope);

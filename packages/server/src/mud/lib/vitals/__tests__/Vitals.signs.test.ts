@@ -136,10 +136,12 @@ describe('VitalsMixin — derived readouts reflect substrate, never transition',
     expect(creature.getLifecycleState()).toBe(before);
   });
 
-  it('blood volume at/below the floor reads dead — still NO lifecycle change', () => {
+  it('blood volume at/below the floor reads dying — still NO lifecycle change', () => {
     const creature = makeStuff(() => new Creature());
     creature.setVitalSign('bloodVolume', Quantity.of(2, 'L'));
-    expect(creature.getConditionBand()).toBe('dead');
+    // `dying`, not `dead`: a floored vital opens the rescuable window
+    // rather than ending the story (see Vitals.death-seam).
+    expect(creature.getConditionBand()).toBe('dying');
     expect(creature.getLifecycleState()).not.toBe('dead');
   });
 

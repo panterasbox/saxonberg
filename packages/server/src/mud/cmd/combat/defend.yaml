@@ -19,6 +19,8 @@ examples:
     note: Cover up and weather the next blow
   - cmd: defend the wanderer
     note: Take a foe off a hard-pressed ally
+validators:
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

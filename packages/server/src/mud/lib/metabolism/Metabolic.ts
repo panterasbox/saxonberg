@@ -234,6 +234,12 @@ export const METABOLIC_DEFAULTS = {
   Q10_COEFFICIENT: 2.5,
   /** Reference core temperature (K) at which the Q10 multiplier is 1. */
   Q10_REFERENCE_TEMP_K: 310,
+  /**
+   * Dying window (game-seconds) for starvation / dehydration / toxin.
+   * Generous: these are slow deaths, and the last stretch of one should be
+   * long enough that help is a real possibility.
+   */
+  DYING_WINDOW_SEC: 600,
 } as const;
 
 /**
@@ -468,6 +474,19 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // the predicate so `isLinkdead` is a typed call, not a duck-type.
       const self = this as unknown as Stuff;
       if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
+        this.metabolicClockStamp = nowS;
+        return;
+      }
+
+      // A body that does not run living processes does not metabolize.
+      // There was no lifecycle guard here at all, so a corpse went on
+      // burning fuel and an `undead` body (a shade) would starve. The test
+      // is `isLivingBody()` — neither `!isDead()` (which misses undead) nor
+      // `isAlive()` (which would switch metabolism off for every body whose
+      // state was never hydrated). Re-stamp so a body that returns to life
+      // doesn't then integrate the whole gap it spent not living.
+      const organism = this as unknown as MetabolicHost;
+      if (!organism.isLivingBody()) {
         this.metabolicClockStamp = nowS;
         return;
       }
@@ -724,7 +743,10 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
           record.elapsed += elapsedSec;
           const lethal = LETHAL_SEC[effect];
           if (lethal !== undefined && record.elapsed >= lethal) {
-            this.applyDeath(effect);
+            (this as unknown as MetabolicHost).beginDying(
+              effect,
+              METABOLIC_DEFAULTS.DYING_WINDOW_SEC,
+            );
             return;
           }
         } else {
@@ -801,13 +823,6 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** Flip the death seam: cause-of-death + lifecycle, once. */
-    protected applyDeath(cause: string): void {
-      const self = this as unknown as MetabolicHost;
-      if (self.getLifecycleState() === "dead") return;
-      self.setCauseOfDeath(cause);
-      self.setLifecycleState("dead");
-    }
 
     protected findAffliction(path: string): AfflictionRecord | null {
       const self = this as unknown as MetabolicHost;

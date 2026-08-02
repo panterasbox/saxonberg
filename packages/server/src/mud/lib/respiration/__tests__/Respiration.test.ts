@@ -125,8 +125,17 @@ describe('RespirationMixin — the crisis core', () => {
     expect(c.getConsciousness()).toBe('unconscious');
     expect(c.getLifecycleState()).not.toBe('dead');
 
-    // Sustained anoxia drives the death seam.
+    // Sustained anoxia opens the DYING window — the clock kills from
+    // here, not the threshold, so a rescuer has this long to reach them.
     tick(80);
+    expect(c.isDying()).toBe(true);
+    expect(c.getLifecycleState()).not.toBe('dead');
+
+    // Nobody comes. (`tick` counts emission intervals, not seconds, and
+    // `getLifecycleState` does not reconcile — the band read is what
+    // drives the clock forward and resolves the expiry.)
+    tick(120);
+    expect(c.getConditionBand()).toBe('dead');
     expect(c.getLifecycleState()).toBe('dead');
     expect(c.getCauseOfDeath()).toBe('asphyxiation');
   });

@@ -33,6 +33,9 @@ import { ExecutionContextApi, OMNI_SCOPE } from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import { SecurityError } from '../lib/security/errors';
+// Type-only: erased at compile, so it adds no runtime edge to the
+// bootstrap cycle this module otherwise keeps clear of.
+import type { Stuff } from '../lib/stuff/Stuff';
 
 /**
  * Late-binding handle to ShadowApi. We deliberately do NOT
@@ -694,6 +697,93 @@ export class SecurityApi {
     'onLinkRestored',
   ]);
 
+  /** Containment-walk cap for the jurisdiction test — insurance, not policy. */
+  static readonly #JURISDICTION_WALK_CAP = 32;
+
+  /**
+   * Is `path` at or beneath `bound`? Segment-wise, so `/domain/lounge`
+   * does not swallow `/domain/loungewear`.
+   */
+  static #underExtent(path: string, bound: string): boolean {
+    return path === bound || path.startsWith(`${bound}/`);
+  }
+
+  /**
+   * One enclosure hop, on the RAW object.
+   *
+   * Two deliberate departures from house style, both forced by where this
+   * code sits — inside the gate itself:
+   *
+   *   - **Duck-typed**, not `MixinApi.isContainable`: `api/mixin.ts`
+   *     imports THIS module, so the boundary sits below the mixin
+   *     registry and cannot ask it anything.
+   *   - **Unwrapped**, not called through the proxy: dispatching
+   *     `getContainer()` on a proxy would re-enter the gate we are
+   *     currently deciding, and the enclosure of an out-of-extent
+   *     receiver is exactly the call that would be denied. The walk has
+   *     to read the world without asking permission to.
+   *
+   * `getContainer()` may write (`R2.3` clears a slot pointing at a
+   * destroyed container). That is an idempotent cleanup the next
+   * ordinary read would do anyway, and it touches a plain field rather
+   * than re-entering dispatch — but it is why this calls the method
+   * instead of reading `environment`: the self-heal is the contract.
+   */
+  static #enclosureOf(raw: Stuff): Stuff | null {
+    const get = (raw as unknown as { getContainer?: () => unknown })
+      .getContainer;
+    if (typeof get !== 'function') return null;
+    const next = get.call(raw);
+    return next === null || next === undefined
+      ? null
+      : ProxyApi.unwrap(next as Stuff);
+  }
+
+  /**
+   * Is this FIELD receiver inside the governed run's jurisdiction?
+   *
+   * A jurisdiction is a **place**, and there are three ways to be in one:
+   *
+   *   1. **You are content of it** — your `templatePath` sits under the
+   *      bound. Rooms, fixtures, the eval scratch. For path-addressed
+   *      content lineage and location coincide, which is why the first
+   *      cut of this check tested only the path.
+   *   2. **You are standing in it** — an enclosure up your containment
+   *      chain is under the bound. An avatar's `templatePath` is
+   *      `/obj/Avatar/<id>`: its IDENTITY, which says nothing about where
+   *      it is. Judging a person's whereabouts by their lineage denied a
+   *      governed eval the one receiver it most obviously covers — the
+   *      wizard's own body, standing in the parcel they hold title to.
+   *      Same for every clone: a corpse in the lounge is lineage
+   *      `/lib/mortality/corpse` and location `/domain/lounge`.
+   *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
+   *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
+   *      and *then* stamps its path, so at the instant of the stamp rules
+   *      1 and 2 both answer no; without this, `eval <code>` could not
+   *      execute a single statement in a field jurisdiction, because the
+   *      first thing it does is mint. A newborn has no prior existence
+   *      for a jurisdiction to protect.
+   */
+  static #inJurisdiction(target: Stuff, bound: string): boolean {
+    const path = target.getTemplatePath();
+    if (path !== null && SecurityApi.#underExtent(path, bound)) return true;
+
+    let enclosure = SecurityApi.#enclosureOf(target);
+    const placed = enclosure !== null;
+    for (let hop = 0; enclosure !== null; hop++) {
+      if (hop >= SecurityApi.#JURISDICTION_WALK_CAP) return false;
+      const enclosingPath = enclosure.getTemplatePath();
+      if (
+        enclosingPath !== null &&
+        SecurityApi.#underExtent(enclosingPath, bound)
+      ) {
+        return true;
+      }
+      enclosure = SecurityApi.#enclosureOf(enclosure);
+    }
+    return path === null && !placed;
+  }
+
   /**
    * The **read aperture** across the circle boundary: run `fn` under an
    * omni root when — and only when — `a` and `b` sit on opposite sides.
@@ -1004,12 +1094,11 @@ export class SecurityApi {
           SecurityApi.#INBOUND_TRANSPORT_METHODS.has(ctx.prop));
       if (!pass && bctx.bound !== null && rcvScope === ctxScope) {
         // Jurisdiction bound (governed eval, Decision K): a FIELD
-        // receiver under the bound's extent is in-jurisdiction —
-        // writes are real inside, denied outside. Rare path; allowed
-        // to be O(path length).
+        // receiver inside the bound's extent is in-jurisdiction —
+        // writes are real inside, denied outside. Rare path (only a
+        // governed root sets a bound); allowed to be O(depth).
         if (rcvScope === null) {
-          const path = ctx.target.getTemplatePath();
-          pass = path !== null && path.startsWith(bctx.bound);
+          pass = SecurityApi.#inJurisdiction(ctx.target, bctx.bound);
         }
       }
       if (!pass) {
