@@ -345,13 +345,41 @@ For paired bidirectional refs (both sides hold each other), each
 side's setter atomically updates both sides; each side's
 `onDestruct` clears the back-ref on the other.
 
-- **Mechanism**: eager via setter; eager on destruct.
-- **Enforcement**: convention. Failure on one side is recoverable
-  from the other side's surviving reference.
-- **Exemplars**: `Boundary` ↔ `BoundaryAnchor`, `Exit` ↔ `Door`,
-  `Adornment` ↔ `Adornable`, `Hauler` ↔ `Haulable` (the hitched-cart
-  coupling — `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
-  [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)).
+**Declare it**, naming the field on the other side:
+
+```ts
+static fieldMeta: FieldMeta = {
+  _hauling: { ref: 'instance', lifetime: 'symmetric', inverse: '_hauledBy' },
+};
+```
+
+- **Mechanism**: eager via setter; eager on destruct, in slot 2.5.
+- **Enforcement**: framework. `symmetric` with no `inverse` throws at
+  registration, and a same-class `inverse` that does not point back
+  throws too. A *cross-class* pair is the whole-tree lint's job —
+  registering one host cannot see the other.
+- **All symmetric clears run before all owned cascades** within 2.5, so
+  a host that is both (see `Boundary`) clears back-refs while its owned
+  targets are still alive.
+- **Exemplars**: `Hauler` ↔ `Haulable` (the hitched-cart coupling —
+  `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
+  [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)),
+  `Exit.inverse` (which was half-symmetric until this was declared).
+
+> **Two sites this rule does NOT cover, and why.**
+>
+> **`Adornment.adornedTo` ↔ `Adornable.fixtureSlots` is not a symmetric
+> pair**, though this doc asserted it was — and asserted it while the
+> Adornment half did not exist in code at all. `fixtureSlots` is
+> `owned`, a field carries exactly one lifetime, and the holder
+> destructs its fixtures anyway. The back-ref only needs to stop
+> dangling when a fixture dies standalone, which is `weak`.
+>
+> **`BoundaryAnchor.boundary` is not expressible.** The reciprocal slot
+> is `anchorA` *or* `anchorB` depending on which side the anchor sits,
+> and `inverse` names exactly one field; `Boundary._clearAnchor` is
+> side-agnostic by design. It stays hand-written rather than acquiring a
+> wrong declaration.
 
 #### R2.3 — Read-side self-heal (declared)
 
@@ -437,10 +465,16 @@ for the static-shape convention.
 | `Containable` | `_restingOn` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed surface reads null |
 | `Slotted` | `slots` | R2.4 (holder side) | Runtime-only; active vacate fires `onSlotReleased` |
 | `Slottable` | (none — held side) | R2.4 | Static cleanup walks every host |
-| `Adornable` | `fixtureSlots` | R2.1 (owning cascade) | Holder destructs each fixture |
-| `Exitable` | `exits` | R2.1 (owning cascade) | Holder destructs each outbound Exit |
-| `Boundary` ↔ `BoundaryAnchor` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Adornable` | `fixtureSlots` | `owned` (declared) | Holder destructs each fixture |
+| `Adornment` | `adornedTo` | `weak` (declared) | **Not** the symmetric pair this table used to claim — see below |
+| `Exitable` | `exits` | `owned` (declared) | Holder destructs each outbound Exit; the `setBlocked` pre-pass stays policy |
+| `Boundary` | `anchorA` / `anchorB` | `owned` (declared) | `detach()` deliberately NOT called on destruct — it nulls the slots |
+| `BoundaryAnchor` | `boundary` | hand-written | **Not expressible**: the reciprocal slot is `anchorA` *or* `anchorB` by side, and `inverse` names one field |
 | `Exit` ↔ `Door` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Exit` | `inverse` | `symmetric` (declared) | Was HALF-symmetric — cleared on its own destruct, never on its partner's |
+| `Exit` | `source` / `_destination` | `weak` (declared) | |
+| `DoorBearing` | `door` | `weak` (declared) | The mixin had no destruct hook at all |
+| `Aether` | `_hostedUpdates` | `owned` (declared) | Converted atomically from `cleanupOnDestruct` |
 | `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 (declared) | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
 | `Spawner` | `_spawned` | R2.4 (held side via `Spawned`) | Runtime-only; transient |
 | `Spawned` | `_spawner` | R2.3 (declared) + R2.4 | `{ ref: 'instance', lifetime: 'weak' }` + static unhook |

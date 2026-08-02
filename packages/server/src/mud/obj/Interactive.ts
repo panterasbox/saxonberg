@@ -170,6 +170,25 @@ export default class Interactive extends Idea {
 
   public onDestruct(): void {
     ConnectionApi.detach(this);
+    // ⚠ This call was MISSING, and the three Interactive-keyed
+    // registries rely on it.
+    //
+    // `MqlSubscriptionRegistry`, `ForumSubscriptionRegistry` and
+    // `ReactionRegistry` are all keyed by a live `Interactive`. They are
+    // indexes, not references — they do not own their keys, and
+    // `Interactive` must not grow a back-ref to them — so no `lifetime`
+    // declaration is the right answer for any of the three. What they
+    // DO need is for a destructed key to be swept, and
+    // `teardownSubstrateState` is the sweep. It was wired to the
+    // disconnect path only, so an `Interactive` that was destructed
+    // without disconnecting first left three registry entries behind
+    // pointing at a dead key.
+    //
+    // Idempotent (each `cancelAllFor*` is a no-op on an unknown
+    // Interactive), so the disconnect path calling it first costs
+    // nothing.
+    this.teardownSubstrateState();
+    super.onDestruct();
   }
 
   public toString(): string {

@@ -202,6 +202,12 @@ export default class LotHolder extends LotHolderBase {
     if (cached && !cached.isDestroyed()) {
       return { room: cached, firstTime: false };
     }
+    // Prune, don't merely skip. Every reader guarded on `isDestroyed()`
+    // and none of them ever deleted the key, and this is a
+    // process-lifetime singleton — so a reaped room's entry was retained
+    // for the life of the process. Not a correctness bug (no dangling
+    // ref escaped) but an unbounded retention leak.
+    if (cached) this._roomsByLot.delete(lotExtent);
     // MINT AN IDENTITY rather than sharing the source template's. The
     // room is a singleton-shaped cartesian room, so lot 2's yard has to
     // BE lot 2's yard — `asTemplatePath` is the identity-doctrine channel
@@ -289,6 +295,11 @@ export default class LotHolder extends LotHolderBase {
   /** The live room for a lot if one is standing, else null. */
   public liveRoomFor(lotExtent: string): Stuff | null {
     const cached = this._roomsByLot.get(lotExtent);
-    return cached && !cached.isDestroyed() ? cached : null;
+    if (!cached) return null;
+    if (cached.isDestroyed()) {
+      this._roomsByLot.delete(lotExtent);
+      return null;
+    }
+    return cached;
   }
 }

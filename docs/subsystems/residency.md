@@ -39,6 +39,17 @@ and the seeding [residency-slate.md](../slates/builds/residency-slate.md).
 
 Deliberately small: **one method, one signal, one sweep.**
 
+> **The veto roster stays hand-written, deliberately.** The
+> reference-lifetime build declares field lifetimes (`weak` /
+> `symmetric` / `owned`) and it is tempting to derive the eviction
+> vetoes from them — a holder of `owned` targets vetoes, and so on. It
+> does not, because the two shipped vetoes that matter both carry
+> case-specific carve-outs a mechanical rule would flatten:
+> `Container.canEvict` does NOT veto on contents when the host is
+> `Persistable` (its contents are captured before the cull), and
+> `Exit.canEvict` does not veto for an unbound post-clone exit. Both are
+> pinned by regression tests so the build could prove they did not move.
+
 ### One method — `Stuff.canEvict`, default cull, override to prevent
 
 The decision is fully inverted: the sweep asks, the object decides.

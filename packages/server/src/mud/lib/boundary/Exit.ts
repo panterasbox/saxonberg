@@ -182,6 +182,17 @@ export default class Exit extends ConcealableMixin(Idea) {
    * they're bind-owned, never authored data.
    */
   static fieldMeta: FieldMeta = {
+    // The three reference fields. `source` and `_destination` are
+    // `weak`: an Exit outlives neither endpoint conceptually, but it
+    // does not own them either — the room owns the exit, not the
+    // reverse (`Exitable.exits` is the `owned` side).
+    source: { ref: 'instance', lifetime: 'weak' },
+    _destination: { ref: 'instance', lifetime: 'weak' },
+    // `inverse` was HALF-symmetric: cleared on its own destruct, never
+    // on its partner's, so destructing one exit left the other pointing
+    // at a dead Exit. Declaring it makes the relationship whole — a
+    // behaviour change, which is why it is here and not in W6.
+    inverse: { ref: 'instance', lifetime: 'symmetric', inverse: 'inverse' },
     messageIn: { persistent: true },
     messageOut: { persistent: true },
     media: { persistent: true },

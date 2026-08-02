@@ -17,7 +17,7 @@
  * door directly to `addBidirectionalExit`).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Exitable } from './Exitable';
 import type Door from './Door';
@@ -46,6 +46,14 @@ export function DoorBearingMixin<TBase extends MixinConstructor<Stuff & Exitable
      * The defining door for this bearer's synthesized exits. `null`
      * means no door — synthesized exits will pass freely.
      */
+    static fieldMeta: FieldMeta = {
+      // This mixin has no destruct hook at ALL, so before the
+      // declaration a destroyed Door stayed readable here forever.
+      // `weak`: the bearer does not own the door (a door is shared
+      // between two bearers), it just stops pointing at a dead one.
+      door: { ref: 'instance', lifetime: 'weak' },
+    };
+
     protected door: Door | null = null;
 
     getDoor(): Door | null {
