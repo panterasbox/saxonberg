@@ -236,6 +236,32 @@ moves; `house` (venue-owner) authority is a separate concern, untouched.
   *generic* "requires office X" validator (deferred to the second
   office-gated verb — v1 uses the specific `requiresGovernor`).
 
+
+## ⚠ Open: `office assign` cannot find an online player
+
+Reported 2026-08-02, not yet diagnosed.
+
+`office assign <player> <office>` answers **"No such player."** for a
+character that is demonstrably online in a second live session.
+Reproduced with a randomised handle and with a plain one (`grover`), so
+it is not name tokenisation. The subcommand's `target` arg is
+`type: object`, `scope: "online"`.
+
+If it reproduces outside the e2e harness, the consequence is large: this
+is governance's **only** handoff verb, so no seat can ever be filled and
+every office in the game is permanently stuck on its founder default.
+Everything downstream of `holdsOffice` — `requiresGovernor`, the civics
+roster, the whole seats-as-positions story — would be describing a
+handoff that cannot happen.
+
+**Live consequence today.** The e2e suite needs the
+`central-bank-governor` seat to exercise `reserve issue`, cannot obtain
+it, and therefore runs as the **founder** instead — which holds every
+founder-default seat at once. That is a blunter instrument than the
+design intends and is marked INTERIM at `e2e/tests/helpers.ts`; the
+intended shape (seat one ordinary character in one office) returns as
+soon as this is fixed.
+
 ## History
 
 - The build first enforced the founder gate on `assign`/`vacate`

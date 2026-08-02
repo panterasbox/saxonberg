@@ -2,7 +2,9 @@ verbs: [reserve]
 controller: /obj/command/banking/ReserveController
 description: "Central bank — mint / supply (Governor-gated)"
 help: |
-  The central-bank surface. `reserve mint <amount>` mints subsidy into the
+  The central-bank surface. `reserve issue <amount>` draws fresh currency
+  into your own hands — the only authority in the world that can add to
+  the money supply. `reserve mint <amount>` mints subsidy into the
   present venue's account — a logged, visible, accountable faucet that covers
   the deficit-as-target P&L. `reserve supply` reads the money supply and the
   reconciliation audit. Governor-gated: you must hold the
@@ -12,6 +14,12 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresGovernor
 subcommands:
+  issue:
+    description: "Draw fresh physical currency into your own hands"
+    args:
+      - name: amount
+        type: string
+        required: true
   mint:
     description: "Mint subsidy into the present venue's account"
     args:

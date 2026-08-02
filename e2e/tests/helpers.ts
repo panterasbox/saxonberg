@@ -145,6 +145,9 @@ export async function openWorldAs(
   opts: {
     startLocation?: string;
     wizard?: boolean;
+    /** Reuse a handle already minted by `mintSession` (the seat-then-enter
+     *  flow: a character must EXIST before the founder can seat it). */
+    handle?: string;
   } = {}
 ): Promise<{
   page: Page;
@@ -154,7 +157,7 @@ export async function openWorldAs(
   close: () => Promise<void>;
 }> {
   const { state, handle } = await mintSession({
-    handle: uniqueHandle(prefix),
+    handle: opts.handle ?? uniqueHandle(prefix),
     withCharacter: true,
     startLocation: opts.startLocation,
     wizard: opts.wizard,
@@ -191,3 +194,59 @@ export async function sendUntil(
     await expect(locator).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout });
 }
+
+/**
+ * Open a world session as **the founder** — the fixed handle
+ * `playwright.config.ts` names in `FOUNDER_GOOGLE_EMAIL`.
+ *
+ * This is how the suite obtains in-world authority, and the shape is the
+ * whole point: nothing here is test-only. `FOUNDER_GOOGLE_EMAIL` is the
+ * shipped deploy contract, `OfficeRegistry` reads it at boot exactly as
+ * it does in production, and the resulting session passes
+ * `requiresFoundingAuthority` because it genuinely is the founder — not
+ * because anything learned it was a test.
+ *
+ * ⚠ **INTERIM — this should be based on the OFFICE, not the founder.**
+ * Founding authority is deliberately narrow (draft constitution Art. XI):
+ * the one power above the office system is the power to seat and unseat
+ * officeholders. Leaning on it for *every* capability a spec needs is
+ * the opposite of that — the founder holds every seat by default, so a
+ * founder session is an all-offices session, and a spec that wanted the
+ * Governorship quietly gets the Prime Ministership too.
+ *
+ * The right shape is: the founder seats an ordinary character in the one
+ * office the spec needs, and that character acts. It is blocked on the
+ * `office assign` defect below, not on a decision.
+ */
+export async function openWorldAsFounder(
+  browser: Browser,
+  opts: { startLocation?: string } = {}
+) {
+  const { state } = await mintSession({
+    handle: 'founder',
+    withCharacter: true,
+    startLocation: opts.startLocation,
+  });
+  const { context, page } = await enterWorld(browser, state);
+  return { page, context, close: () => context.close() };
+}
+
+/*
+ * ⚠ There is deliberately NO `seatAsGovernor` helper — and its absence
+ * is why the founder is doing jobs that belong to officeholders.
+ *
+ * The obvious shape — the founder seats an ordinary character with
+ * `office assign <them> central-bank-governor`, and that character does
+ * the minting — does not work, and the reason looks like a real defect
+ * rather than a harness quirk: the subcommand's `target` arg is
+ * `scope: "online"`, and it resolves NO second session. Two live
+ * sessions, both entered, `office assign <handle> …` from the founder →
+ * **"No such player."** Reproduced with a randomised handle and with a
+ * plain one (`grover`), so it is not name tokenisation.
+ *
+ * If that is what it looks like, governance's only handoff verb cannot
+ * seat anybody, and every office in the game is stuck on its founder
+ * default. Worth its own look; routed around here rather than papered
+ * over, because a helper that hid it would hide it from the next reader
+ * too.
+ */
