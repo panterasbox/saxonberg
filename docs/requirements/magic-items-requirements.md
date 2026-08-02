@@ -808,11 +808,20 @@ Unidentified items need a pool of descriptors to draw from. These are
 **name banks** — the same concept `name_banks` already ships for
 char-gen, delivered the same way, as a content pack.
 
-**Depth.** For a class with N item types you need N descriptors live,
-**2N** during a transition window, and — to keep a descriptor retired
-for K generations before reuse — roughly **N × (K + 1)**. At N = 20 and
-**K = 3** that is ~80, which no single flat list of colours can supply
-without descending into *pale blue* versus *light blue*.
+**The reuse delay.** When a descriptor stops being used it returns to
+the pool. `descriptorReuseDelay` is **how many rotations it waits there
+before it may mean something else** — how long before *blue* is allowed
+to come back as the poison.
+
+**Set to 3.** Low values make the *"you once knew blue to mean
+healing"* hedge (D28) a common sight; high values make it rare and cost
+vocabulary.
+
+**Depth follows from it.** A class with N item types needs N descriptors
+live, **2N** during a transition window, and roughly
+**N × (reuseDelay + 1)** overall — about **80** at N = 20. No flat list
+of colours supplies that without descending into *pale blue* versus
+*light blue*.
 
 So **every bank is the product of two orthogonal axes**: ten words on
 each gives a hundred distinguishable descriptors from twenty authored
@@ -1047,8 +1056,8 @@ phase reads against.
     material name, keyword, or appearance word — and fails in both
     directions, so adding a *material* that collides with a shipped
     descriptor is caught too.
-25. Each bank is deep enough for `N × (K + 1)` at the agreed K, and no
-    descriptor axis names a material.
+25. Each bank is deep enough for `N × (descriptorReuseDelay + 1)`, and
+    no descriptor axis names a material.
 
 **Wave 6 — spellbooks and memory**
 

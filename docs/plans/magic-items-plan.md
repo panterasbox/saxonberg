@@ -7,8 +7,9 @@ here.
 
 > **⛔ BLOCKED — no code until the lib/obj migration lands** (§12).
 > Whoever picks up wave 1 must write it against **post-refactor paths**.
-> The one strand that can proceed meanwhile is the materials pack and
-> then the descriptor banks, which makes **`K` (Q6) the live blocker.**
+> The one strand that can proceed meanwhile is the **materials pack**,
+> then the **descriptor banks** — in that order, because the banks need
+> a stable materials vocabulary to be checked against.
 
 Q2 (thrown carriers) and Q5 (subsystem folders) are resolved in §11 with
 five smaller ones; §13 records what requirements D34 changed after this
@@ -551,11 +552,16 @@ unchanged.
 `docs/subsystems/magic-items.md` in those words so nobody later "fixes"
 it by querying `holder_snapshots`.
 
-**⚠ Q6 — `K` (D32). STILL OPEN.** Provisional at 3. The 10×10 product
-supplies N×(K+1) ≈ 80 comfortably and could carry K=4 (100) without
-re-authoring, but not beyond. **Confirm before the banks are authored** —
-it is the one number that decides whether the authored word count is
-right.
+**Q6 — the reuse delay (D32). ✅ SET TO 3**, and renamed from `K`, which
+was a poor name for something an author has to reason about. It is *how
+many rotations a descriptor waits before it may mean something else*.
+
+Worth noting the earlier framing overstated this: **the authoring cost
+is the same at 3 or 4** — two lists of ten words per class, whose
+product is a hundred descriptors, covers `N × (delay + 1)` at either
+value. It only starts costing vocabulary at 5+, or if a class grows past
+~20 item types. So this was never the blocker; the materials vocabulary
+is.
 
 ## 12. ⚠ Dependency: the lib/obj taxonomy refactor (build-1, in flight)
 
@@ -625,9 +631,9 @@ already wants them early:
 Sequence them: **materials stable → banks authored → the lint gates
 both directions.**
 
-> ⚠ **This promotes `K` (Q6) from a nicety to a blocker.** The banks are
-> now the only magic-items work that can proceed, and they cannot be
-> authored without it.
+> The **materials pack is the real prerequisite** here — the banks are
+> checked against that vocabulary in both directions, so authoring them
+> against a moving target means redoing the lint's fixtures.
 
 ## 13. Added after planning — D34, and what it costs
 
