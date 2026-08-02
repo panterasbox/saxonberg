@@ -44,7 +44,21 @@ export default defineConfig({
   // job variables in the pipeline.
   webServer: [
     {
-      command: 'AUTH_MODE=test pnpm --filter @saxonberg/server dev',
+      // ⭐ `FOUNDER_GOOGLE_EMAIL` is the SHIPPED deploy contract for who
+      // the founder is (OfficeRegistry reads it at boot), and the
+      // test-auth seam mints synthetic Google profiles at
+      // `<handle>@e2e.local`. Pointing it at a fixed handle therefore
+      // makes one e2e session a REAL founder — holding the
+      // founder-default seats, passing `requiresFoundingAuthority` for
+      // the same reason a real founder's session does.
+      //
+      // That is how this suite gets in-world authority: no test-only
+      // backend seam, no widened sandbox. A capability a test needs is a
+      // capability somebody in the fiction has, reached the way they
+      // reach it. See `founderSession` in tests/helpers.ts.
+      command:
+        'AUTH_MODE=test FOUNDER_GOOGLE_EMAIL=founder@e2e.local ' +
+        'pnpm --filter @saxonberg/server dev',
       url: `${SERVER_URL}/`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

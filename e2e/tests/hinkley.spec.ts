@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { openWorldAs, runCommand, sendUntil } from './helpers';
+import {
+  openWorldAs,
+  openWorldAsFounder,
+  runCommand,
+  sendUntil,
+} from './helpers';
 
 /**
  * Hinkley Hills — the farm, driven through a real browser.
@@ -46,8 +51,35 @@ const LANE = '/domain/terminus/hinkley-hills/lane';
  */
 const SOLD_LOT = 'lot-1';
 
-/** A lot nobody has taken — nothing must open onto it. */
+/** A lot nobody may take — nothing must ever open onto it. */
 const UNSOLD_LOT = 'lot-5';
+
+/**
+ * A lot nobody has bought yet, read off the plat book the way a player
+ * reads it.
+ *
+ * ⚠ **The purchase spec CONSUMES one**, permanently — a sale is a sale,
+ * there is no resale path, and pretending otherwise would be a worse
+ * test than an exhausting one. Hence the wide plat: the book carries far
+ * more stakes than the suite will ever use, which is also the truer
+ * picture of a subdivision drawn for a hundred families that got one.
+ * Every other spec here consumes nothing.
+ */
+async function availableLot(page: import('@playwright/test').Page) {
+  await sendUntil(page, 'title list', page.getByText(/lot-\d/i).first());
+  const text = await page.locator('body').innerText();
+  for (const line of text.split('\n')) {
+    const match = /^\s*(lot-\d+)\s+—\s+(.*)$/.exec(line);
+    if (!match) continue;
+    const [, leaf, rest] = match;
+    if (leaf === UNSOLD_LOT || /sold/i.test(rest!)) continue;
+    return leaf!;
+  }
+  throw new Error(
+    'availableLot: every Hinkley lot is sold — widen the plat book in ' +
+      'plat-book.yaml, or clear the `parcels` rows under …/lots/.'
+  );
+}
 
 test('the suburb is reachable and the lane describes the empty lots', async ({
   browser,
@@ -150,6 +182,14 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     await runCommand(page, 'clone /obj/seed/carrot');
     await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
 
+    // ⭐ Clear the slot BEFORE planting, not after. The lot is PRE-SOLD,
+    // so its yard is never re-provisioned and a crop persists between
+    // runs — and a full bed fails the plant step, which is the step that
+    // would have cleaned up. Front-loading it is what makes this spec
+    // idempotent. Harmless when the bed is already empty.
+    await runCommand(page, 'destruct carrots');
+    await page.waitForTimeout(2000);
+
     await runCommand(page, 'pour sack into bed');
     await page.waitForTimeout(1500);
 
@@ -186,6 +226,66 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
   }
 });
 
+test('⭐ BUY A LOT — minted by the one office allowed to mint', async ({
+  browser,
+}) => {
+  // ⭐ The money leg, end to end, with NO test-only anything.
+  //
+  // A lot is 4000 and char-gen's onboarding stipend is 20, so this needs
+  // currency that does not exist yet — and in this world exactly one
+  // authority may create it: the Governor of the Central Bank. So the
+  // suite becomes that authority, the way the fiction says you become
+  // it. `FOUNDER_GOOGLE_EMAIL` (the shipped deploy contract, set in
+  // playwright.config.ts) names a founder; the founder holds the
+  // founder-default seats; the Governorship is one of them.
+  //
+  // Every gate on the path is the real one — `requiresGovernor` on the
+  // draw, the conserved `issueCash` faucet under it, the banking settle
+  // chokepoint under the sale. Nothing here knows it is a test.
+  const ordinary = await openWorldAs(browser, 'hh-nogov', {
+    startLocation: REGISTRY,
+    wizard: true,
+  });
+  try {
+    // ⭐ The reserve is SHUT to everyone else. This is the assertion that
+    // makes the rest of the test mean something.
+    await sendUntil(
+      ordinary.page,
+      'reserve issue 6000',
+      ordinary.page.getByText(/must hold the Governor/i).first()
+    );
+  } finally {
+    await ordinary.close();
+  }
+
+  const { page, close } = await openWorldAsFounder(browser, {
+    startLocation: REGISTRY,
+  });
+  try {
+    const lot = await availableLot(page);
+
+    // ⭐ …and it opens for the Governor. Same verb, same validator.
+    await sendUntil(
+      page,
+      'reserve issue 6000',
+      page.getByText(/fresh currency into your hands/i).first()
+    );
+
+    await sendUntil(
+      page,
+      `title buy ${lot}`,
+      page.getByText(/is yours|registrar writes the row/i).first()
+    );
+
+    // ⭐ The title is real, and reads its area band and its zoning.
+    await sendUntil(page, 'title', page.getByText(new RegExp(lot, 'i')).first());
+    await expect(page.getByText(/quarter-acre lot/i).first()).toBeVisible();
+    await expect(page.getByText(/residential/i).first()).toBeVisible();
+  } finally {
+    await close();
+  }
+});
+
 test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
   browser,
 }) => {
@@ -198,6 +298,14 @@ test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
     await runCommand(page, 'clone /obj/vessel/soil-sack');
     await runCommand(page, 'clone /obj/seed/carrot');
     await sendUntil(page, 'look', page.getByText(/garden bed/i).first());
+
+    // ⭐ Clear the slot BEFORE planting, not after. The lot is PRE-SOLD,
+    // so its yard is never re-provisioned and a crop persists between
+    // runs — and a full bed fails the plant step, which is the step that
+    // would have cleaned up. Front-loading it is what makes this spec
+    // idempotent. Harmless when the bed is already empty.
+    await runCommand(page, 'destruct carrots');
+    await page.waitForTimeout(2000);
 
     await runCommand(page, 'pour sack into bed');
     await page.waitForTimeout(1500);

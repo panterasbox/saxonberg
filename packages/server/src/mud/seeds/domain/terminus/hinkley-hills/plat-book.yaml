@@ -15,28 +15,52 @@ data:
   # The district these lots are subdivided out of — the parcel row seeded
   # in config/parcels.yaml.
   parentExtent: /domain/terminus/hinkley-hills
-  # Twelve stakes. Enough that the empty ones read as a subdivision that
-  # did not fill rather than a menu — and enough that a land market has
-  # somewhere to go, since a sale is PERMANENT: every lot sold is gone
-  # from this book forever, in a live world and in the e2e suite alike.
+  # Forty stakes. The lane's joke is a subdivision drawn for a hundred
+  # families that got one, so a long row of empty numbers IS the content
+  # — and a sale is PERMANENT (there is no resale path), so the book has
+  # to carry more than anyone will buy. The e2e purchase spec consumes
+  # one per run; every other spec consumes nothing.
   lots:
-    [
-      lot-1,
-      lot-2,
-      lot-3,
-      lot-4,
-      lot-5,
-      lot-6,
-      lot-7,
-      lot-8,
-      lot-9,
-      lot-10,
-      lot-11,
-      lot-12,
-    ]
-  # Lots hang off their own FolderZone branch (see lots.yaml) so the
-  # non-cardinal `lot-1` gate off the lane crosses a zone boundary.
-  lotBranch: lots
+    - lot-1
+    - lot-2
+    - lot-3
+    - lot-4
+    - lot-5
+    - lot-6
+    - lot-7
+    - lot-8
+    - lot-9
+    - lot-10
+    - lot-11
+    - lot-12
+    - lot-13
+    - lot-14
+    - lot-15
+    - lot-16
+    - lot-17
+    - lot-18
+    - lot-19
+    - lot-20
+    - lot-21
+    - lot-22
+    - lot-23
+    - lot-24
+    - lot-25
+    - lot-26
+    - lot-27
+    - lot-28
+    - lot-29
+    - lot-30
+    - lot-31
+    - lot-32
+    - lot-33
+    - lot-34
+    - lot-35
+    - lot-36
+    - lot-37
+    - lot-38
+    - lot-39
+    - lot-40
   # A real sum for an early character and nowhere near a fortune.
   priceMinor: 4000
   # 1000 m² — a quarter-acre, which is what the `lot` tag-table calls it.
