@@ -1,14 +1,14 @@
 # Magic items — implementation plan
 
 Phase 2 for [magic-items-requirements.md](../requirements/magic-items-requirements.md)
-(7 waves, 33 decisions D1–D33, 40 acceptance criteria). This plan says
+(7 waves, 34 decisions D1–D34, 41 acceptance criteria). This plan says
 **how**; the requirements say what and why, and are not re-litigated
 here.
 
-Three open questions need the user before the waves they belong to are
-scoped: **Q2** (thrown carriers — a premise in the requirements turned
-out to be false), **Q5** (two new subsystem folders), **Q6** (`K`).
-Everything else carries a recommendation.
+**One open question remains — Q6 (`K`).** Q2 (thrown carriers) and Q5
+(subsystem folders) are resolved in §11, along with five smaller ones;
+§12 records what requirements D34 changed after this plan was written.
+
 
 ---
 
@@ -77,7 +77,7 @@ shows it too costly per decision, the fallback is to fold the count into
 every object once) and cache per-region per-sweep. Start with MQL: no
 allowlist edit, no new exception.
 
-Shape: `lib/magicitem/Census.ts`, `censusFor(regionKey, censusKey)`.
+Shape: `lib/residency/Census.ts`, `censusFor(regionKey, censusKey)`.
 Both channels consult it. `Stock.reset()` already reads on-hand before
 topping to par — that is the pattern, generalized from per-shelf to
 per-region. Authored placement **counts and spends nothing**, as D30
@@ -179,8 +179,8 @@ Neither invents a category.
 
 | File | Category |
 |---|---|
-| `lib/magicitem/Consumable.ts` | Mixin — ⚠ new subsystem folder, see **Q5** |
-| `lib/magicitem/Potable.ts` | Mixin — the `Bulkable`-composed potion leg (D4) |
+| `lib/magic/Consumable.ts` | Mixin |
+| `lib/magic/Potable.ts` | Mixin — the `Bulkable`-composed potion leg (D4) |
 | `lib/description/Marked.ts` | Mixin — D33: `{text, modality}`; modality vocabulary reused from `lib/perception/`, not re-declared |
 | `lib/magic/Dose.ts` | Named value-object — the graded/threshold split, pure |
 | `cmd/perception/read.yaml` + `obj/command/perception/ReadController.ts` | Command YAML + Controller |
@@ -229,9 +229,9 @@ change to the failure branch only, never alter successful binds.**
 
 | File | Category |
 |---|---|
-| `lib/magicitem/Charged.ts` | Mixin — charge as a `Reserve` (kJ) + reconcile-on-read decay + passive-draw flag |
-| `lib/magicitem/Focus.ts` | Mixin — pattern rot on its slower schedule |
-| `lib/magicitem/Charge.ts` | Named value-object — `decayed`, `equilibrium`, `standbyDrain`. **Pure**, and what AC 6's convergence test drives |
+| `lib/magic/Charged.ts` | Mixin — charge as a `Reserve` (kJ) + reconcile-on-read decay + passive-draw flag |
+| `lib/magic/Focus.ts` | Mixin — pattern rot on its slower schedule |
+| `lib/magic/Charge.ts` | Named value-object — `decayed`, `equilibrium`, `standbyDrain`. **Pure**, and what AC 6's convergence test drives |
 | `cmd/magic/recharge.yaml` + `obj/command/magic/RechargeController.ts` | D23 standalone diegetic verb |
 
 ### The D10 decision, made explicitly
@@ -292,8 +292,8 @@ outside `MetabolicMixin` before starting.
 
 | File | Category |
 |---|---|
-| `lib/blessing/Blessing.ts` | Named value-object — **direct copy of the `Grade` shape**: ascending band tuple, private ordinal, `of()`/`isBand()`, persisted as the band word. ⚠ new folder, **Q5** |
-| `lib/blessing/Blessable.ts` | Mixin — opt-in per template |
+| `lib/magic/Blessing.ts` | Named value-object — **direct copy of the `Grade` shape**: ascending band tuple, private ordinal, `of()`/`isBand()`, persisted as the band word |
+| `lib/magic/Blessable.ts` | Mixin — opt-in per template |
 
 `scale(potency, lo, hi)` and `pick(potency, steps[])` are **statics on
 `Blessing`**, not a third file.
@@ -436,10 +436,10 @@ wave 3 coupled to metabolism. **Land it last and re-run both suites.**
 
 | File | Category |
 |---|---|
-| `lib/magicitem/Circulating.ts` | Mixin — the two tag sets + `censusKey()`. Worn by every item class so books, potions and wands all count |
+| `lib/residency/Circulating.ts` | Mixin — the two tag sets + `censusKey()`. Worn by every item class so books, potions and wands all count |
 | `lib/magic/PriceList.ts` | Static holder — the arcane price list as code. **Spawn weight = inverse of stored labour**; multi-effect takes the max cell. Doubles as the authoring check for content rule 1 |
-| `lib/magicitem/Census.ts` | Static holder over the MQL query. **Not a new Api tier** |
-| `lib/magicitem/SpawnTable.ts` | Named value-object — the weighted draw; consults `Census`, declines at target |
+| `lib/residency/Census.ts` | Static holder over the MQL query. **Not a new Api tier** |
+| `lib/residency/SpawnTable.ts` | Named value-object — the weighted draw; consults `Census`, declines at target |
 
 ### Modified
 
@@ -498,49 +498,80 @@ functions.
 
 ---
 
-## 11. Open questions
+## 11. Questions — resolved 2026-08-02
 
-**⚠ Q2 — thrown carriers. A requirements premise is false.**
-There is **no `throw` verb and no ranged delivery model in the
-codebase** *(verified)*. The only thing wearing that name is
-`MagicLogic.deliverAt`, documented as a placeholder awaiting the ranged
-build — which is a slate, not shipped. D17 says "no new interface," but
-AC 35 requires a thrown potion to break and spill. Either wave 7 mints a
-minimal `throw` (new surface D17 disclaims), or **AC 35 defers with the
-ranged build.** *Needs a decision before wave 7 is scoped.*
+All but one are settled. Recorded here so the resolutions travel with
+the plan.
 
-**⚠ Q5 — two new subsystem folders**: `lib/magicitem/` (~6 files) and
-`lib/blessing/` (2). CLAUDE.md requires this be surfaced, and standing
-guidance prefers fewer directories. Alternatives: fold both into
-`lib/magic/` (which then mixes the casting spine with the item tier), or
-blessing into `magicitem/` (but BUC will later serve holy water, altars
-and alignment, which are not magic items). *Recommend both, as named.*
+**Q2 — thrown carriers. ✅ DEFERRED.** The requirements premise was
+false: no `throw` verb and no delivery model exist *(verified)*.
+Requirements D17 is corrected — the delivery half goes to the ranged
+build; only the **route** declaration (oral · contact · vapour) lands
+here, because retrofitting it across every potion later is expensive.
+AC 35 rewritten accordingly.
 
-**⚠ Q6 — `K` (D32).** Provisional at 3. The 10×10 product supplies
-N×(K+1) ≈ 80 comfortably and could carry K=4 (100) without re-authoring,
-but not beyond. *Confirm before the banks are authored.*
+**Q5 — new subsystem folders. ✅ NONE MINTED.**
 
-**Q1 — `quaff` vs `drink`.** `BulkableMixin` already contributes
-`drink`/`sip`. *Recommend `quaff` as an alias in `drink.yaml`'s `verbs:`
-list*, unless it is meant to be distinct (full-dose one-shot vs
-measured).
+| Was proposed | Lands in | Why |
+|---|---|---|
+| `lib/magicitem/` | **`lib/magic/`** | it all rides the same disciplines |
+| `lib/blessing/` | **`lib/magic/`** | not worth a folder for two files |
+| `Census` · `SpawnTable` · `Circulating` | **`lib/residency/`** | the spawn sweep is the **third self-maintenance sweep**, next to eviction and reset; distribution is not magic and will outgrow `lib/magic/` |
+| `Marked` · `Labelled` | **`lib/description/`** (unchanged) | neither is magic — a signpost bears marks, labels serve storage and shops |
 
-**Q3 — the turnover seed.** *Recommend accept* — it stores a position,
-not an appearance, so D26 holds.
+On BUC's home specifically: a BUC-bearing thing is **an object**, **used**,
+**with a gradable potency**. Rooms and NPCs fail the second test, so not
+`lib/stuff/`; and material is *what a thing is made of*, a different
+kind of fact, so not there either. Our own reform defines BUC as *a
+potency level on the item's own **effect axis*** — and an effect axis is
+magic's. That scopes it to `lib/magic/` by definition rather than by
+convenience. A cursed *mundane* blade, if ever wanted, is a different
+mechanic (a curse condition on an item).
 
-**Q4 — what "`pnpm lint` fails" means for AC 24.** Root `pnpm lint` is
-ESLint only; the CI-gating scripts run as separate steps. *Recommend
-`lint:descriptors` as a sibling wired into the CI lint job*, matching
-every existing precedent.
+**Q1 — `quaff`. ✅** Alias in `drink.yaml`'s `verbs:` list; no second
+view.
 
-**Q7 — where `Labelled` lives.** *Recommend `lib/description/`* — labels
-serve storage, shops and gifts, not only identification.
+**Q3 — turnover seed. ✅** Persisted `turnoverSeed`, minted at clone
+time, excluded from `globIdentityFields`. It stores a *position*, not an
+appearance, so D26 holds.
 
-**Q8 — the census's semantic boundary.** *Recommend accept*, and write
-the framing into `docs/subsystems/magic-items.md` in those words so
-nobody later "fixes" it by querying `holder_snapshots`.
+**Q4 — AC 24 wiring. ✅** `lint:descriptors` as a sibling script in the
+CI `lint` job, matching every existing precedent. Root `pnpm lint` is
+unchanged.
 
----
+**Q7 — `Labelled`. ✅** `lib/description/`.
+
+**Q8 — census semantics. ✅** Accepted, and the framing goes into
+`docs/subsystems/magic-items.md` in those words so nobody later "fixes"
+it by querying `holder_snapshots`.
+
+**⚠ Q6 — `K` (D32). STILL OPEN.** Provisional at 3. The 10×10 product
+supplies N×(K+1) ≈ 80 comfortably and could carry K=4 (100) without
+re-authoring, but not beyond. **Confirm before the banks are authored** —
+it is the one number that decides whether the authored word count is
+right.
+
+## 12. Added after planning — D34, and what it costs
+
+**Requirements D34** landed after this plan was written and changes two
+things in it.
+
+**The rule:** *a conferred verb keys on what the holder can SEE, never
+on what is hidden.* Verbs key on **kind**, effects key on **class**.
+
+- **Wave 2's `IdentifyScroll` change is a deletion, not a relocation.**
+  The plan said its `commandContributions` moves to a capability mixin.
+  It doesn't — **there is no `identify` verb at all.** A scroll affords
+  `read`; the identify effect fires through reading it. Otherwise the
+  affordance identifies the scroll for free.
+- **Wave 3 gains a constraint:** a **depleted** charged item must still
+  afford its verb and fail audibly. If a flat wand stopped affording
+  `zap`, the affordance list would be a free charge meter — and charge is
+  meant to need an instrument.
+
+New acceptance criterion **5c** covers all three cases (identify scroll,
+per-class verb variation, depleted wand). Treat it as an invariant that
+will regress silently the first time someone adds a convenience.
 
 ## Critical files
 

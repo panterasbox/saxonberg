@@ -115,7 +115,7 @@ land first; waves 2–7 are independently shippable in the order given.
   and gates both injection channels.
 - Deliberate placement is a **declared par on a resettable holder**;
   random placement is the weighted table.
-- Thrown effect-carriers deliver through the shipped ranged seam.
+- Potions declare a **route**; thrown delivery itself defers (D17).
 
 ## Non-goals
 
@@ -127,9 +127,11 @@ land first; waves 2–7 are independently shippable in the order given.
   follow-up. See D21.
 - **Traps and NPC powers.** The spine serves them; neither is built
   here. Hazard already ships its own delivery.
-- **Guns and the ranged build.** Wave 7 consumes the ranged seam for
-  thrown carriers only. Kinetic charged items are gun-shaped (D6) and
-  wait for [ranged-slate.md](../slates/builds/ranged-slate.md).
+- **Anything ranged, including thrown carriers.** There is no `throw`
+  verb and no delivery model shipped, so D17 defers the whole delivery
+  half to [ranged-slate.md](../slates/builds/ranged-slate.md) — along
+  with kinetic charged items, which are gun-shaped by D6. Only the
+  **route** declaration lands here.
 - **The materials content pack.** Expanding the material taxonomy to a
   full working set is its own piece of work (see D32) — parallel, not a
   blocker, but the descriptor banks cannot be authored blind against a
@@ -468,19 +470,30 @@ Books are objects with weight and location:
 - Players can write books; a defective specification produces a failed
   cast and is self-defending, per the inquiry substrate.
 
-### D17 — Thrown potions ride the ranged delivery seam
+### D17 — Thrown carriers **defer to the ranged build**; route is declared now
 
-No new interface. The ranged mode delivers the carrier, the vessel
-breaks as a real container (its material decides whether it does), and
-the contents discharge as bulk. This is the same leg as the documented
-ranged-integration seam.
+**Corrected 2026-08-02.** This decision originally said thrown potions
+ride *"the shipped ranged seam"* and therefore need no new interface.
+**That premise was false.** There is no `throw` verb and no ranged
+delivery model in the codebase (verified); `MagicLogic.deliverAt` is an
+explicit placeholder awaiting a build that is still a slate. So the
+choice was between minting a `throw` verb this build disclaimed wanting,
+or deferring.
 
-Two properties this build owns:
+**Deferred.** Inventing throwing now means designing arc, accuracy, and
+range bands badly and redoing them when the ranged build lands, and
+nothing else in this build depends on it.
 
-- **Route-appropriateness.** A potion declares whether it acts orally,
-  on contact, or as vapour. An ingestion-only potion is a wasted flask
-  when thrown, which kills the throw-everything case without a rule.
-- **Splash derives from volume**, not from an authored radius.
+**What is declared now, because retrofitting it later is expensive:**
+
+- **Route.** Every potion declares whether it acts **orally**, **on
+  contact**, or **as vapour**. Cheap now, and it means the ranged build
+  inherits a populated field rather than having to revisit every potion.
+  It is also the thing that will kill the throw-everything case without
+  a rule: an ingestion-only potion is a wasted flask.
+
+Splash-from-volume and vessel-breakage-by-material go with the delivery
+half, to the ranged build.
 
 ### D18 — Item polymorph is semblance, not transformation
 
@@ -572,6 +585,10 @@ because their capabilities have very different memberships.
 **Content authors never declare a use-verb.** They compose a mixin and
 the verb follows. `recharge` and `study` remain standalone verbs,
 because they are diegetic acts rather than subcommands.
+
+⚠ **Constrained by D34** — conferral must key on the *visible kind*,
+never on hidden class or state, or the affordance list becomes an
+identification channel.
 
 ### D33 — `read` decomposes into perceive + decode, and written things carry a modality
 
@@ -856,6 +873,48 @@ wand *is* brass, honestly and permanently — which tells you real things
 spell it holds. An item then carries two independent readable facts
 instead of one mystery label.
 
+### D34 — An affordance may never vary with hidden state
+
+D23 has a hole. If an identify scroll affords an `identify` verb, then
+the verb appearing in your list **tells you what you are holding** — the
+scroll identifies itself for free, and the whole unidentified-consumable
+mechanic collapses. The same failure as BUC leaking through merge
+behaviour: hidden state escaping through a channel nobody thought of as
+a channel.
+
+The rule:
+
+> **A conferred verb keys on what the holder can SEE, never on what is
+> hidden.**
+
+Appearance derives from class, so the **kind** (potion · scroll · wand ·
+ring) is always visible while the **class** (*which* scroll) is hidden.
+Therefore: **verbs key on kind, effects key on class.**
+
+Three consequences, each of which would otherwise ship as a bug:
+
+- **There is no `identify` verb.** A scroll affords **`read`**, like
+  every written thing, and what happens when you read it is the effect.
+  That is NetHack's model, and it makes identify scrolls structurally
+  identical to every other consumable rather than a special case.
+  ⚠ `lib/identification/IdentifyScroll.ts` currently declares
+  `commandContributions: { inventory: ['perception/identify.yaml'] }`
+  *(verified)* — that declaration is **deleted**, not relocated.
+- **No per-class verb variation.** If a fire wand afforded `scorch` and
+  a lightning wand `shock`, the verb list would identify them. Every
+  wand affords the same `zap`.
+- **A depleted wand still affords `zap`.** If a flat item stopped
+  affording its verb, the affordance list would become **a free charge
+  meter** — and charge is meant to be readable only with an instrument.
+  Zapping a dead wand fails audibly instead. The affordance reflects the
+  kind, never the state.
+
+**Where a general identification act does live:** the identification
+slate's instrument path (`analyze X with Y`), which is a character-level
+capacity whose *means* is a **visible tool** — a lens, an assay kit. No
+leak, because you know what your own lens is. Same shape as `read`:
+universal verb, contextual affordance, always parseable.
+
 ## Constraints
 
 - **The eight content-authoring rules** in `arcane-science.md` bind this
@@ -912,6 +971,12 @@ phase reads against.
     template declares one. A verb unlisted for lack of an affordance is
     still **parseable** and answers with a reason, never with
     *unknown command*.
+5c. **No affordance varies with hidden state (D34).** Tests assert: an
+    unidentified identify-scroll affords exactly what any other scroll
+    affords and no `identify` verb exists; two wands of different class
+    afford an identical verb set; and a **depleted** wand still affords
+    `zap` and fails audibly. A viewer's affordance list must be
+    derivable from visible kind alone.
 5b. `read` resolves as perceive-then-decode. An **embossed** text is
     readable in darkness; an **inked** one is not. A test covers both
     modalities against the same reader and the same light level.
@@ -1008,9 +1073,9 @@ phase reads against.
     decline to add when regional stock is at target. A test asserts
     authored placement suppresses random spawning in the same region and
     not globally.
-35. A thrown potion delivers through the ranged seam, breaks according
-    to its vessel's material, and spills; an ingestion-only potion
-    produces no effect when thrown.
+35. Every potion declares a **route** (oral · contact · vapour) and the
+    field is populated across the roster. *(The delivery half — throwing,
+    vessel breakage, splash — defers to the ranged build with D17.)*
 
 **Across the build**
 
