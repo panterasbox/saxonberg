@@ -402,6 +402,188 @@ effects are conferred capabilities or pull-modifier conditions, both supported.
   · reflection/conflict/aggravate → combat+behavior · change(sex) → SexedMixin ·
   adornment → regard.
 
+## Charge, decay, and the durable-goods problem
+
+> **Design pass 2026-08-02**, resolving the item model against
+> [arcane-science.md](../../arcane-science.md) and the *"a wand is stored
+> labour"* thesis in [discovery-slate.md](./discovery-slate.md) Part 2.
+> This section settles **what an item physically is**, and answers the
+> question the roster cannot dodge: *consumables self-limit, but
+> non-consumables accumulate forever — what stops that?*
+>
+> **The effect roster is deliberately NOT here.** A comprehensive pass
+> over which effects to employ comes later; this is the substrate that
+> roster will hang on.
+
+### The question the thesis leaves open: who is the endpoint?
+
+The postulate says the caster's body is always one end of a transfer.
+*Stored labour* says who **paid** — it does not say where the energy is
+**now**, or who the endpoint is at the moment of use. Answer that and the
+taxonomy falls out with **no second exemption**:
+
+> **A charged item is a battery.** A maker moved energy into it; it holds
+> that energy by **ordinary means**; using it releases it. The magic was
+> in getting it there and in the specification — never in the storage.
+
+So storage obeys ordinary energy density, and everything true of
+batteries is true here.
+
+| Class | Supplies | Endpoint at use | Bounded by | Runs out |
+|---|---|---|---|---|
+| **Charged** — wand, orb, *and wearables* | energy **+** specification | **the item** | energy density | yes, and it self-discharges |
+| **Focus** — rod, lens, staff | specification only | **you** | your reserve | see *pattern rot* below |
+| **Consumable** — potion, scroll | one packaged act | varies | one use | by construction |
+
+Which lands on NetHack's wands / rings / potions+scrolls from physics
+rather than from convention.
+
+### The endpoint decides who absorbs the reaction
+
+Because momentum and waste heat land on **whichever body is the
+endpoint**, the classes have *opposite* ergonomics — derived, not
+authored:
+
+- A **focus** that shoves recoils onto **you** (≈ 2.4 m/s for a 200 J
+  shove). A focus that cools **cooks you**.
+- A **charged** item's reaction lands on **the item**. A cold wand heats
+  and cracks. A 100 g wand delivering 200 J of kinetic energy recoils at
+  **1.7 km/s** — it disintegrates.
+
+> **Kinetic charged items cannot be wand-shaped.** The recoil has to run
+> through a braced stock into the ground, which is to say they are
+> **gun-shaped, for exactly the reason guns are.** This is where this
+> build and the ranged build meet.
+
+A useful inversion falls out: a **spark wand is safer than casting
+spark**, because the wand is in the circuit and you are not.
+
+### The numbers
+
+100 g of energetic solid at ~3 MJ/kg holds **≈ 300 kJ** — about **2.5
+full mid-caster reserves**, or **8.5 firebolt charges**. The same
+thermodynamics that caps a caster caps an item; a wand cannot be
+arbitrarily potent.
+
+Self-discharge at 3%/month: **69% after a year, 2.6% after a decade,
+nothing after fifty.**
+
+> **The ruins are full of dead wands.** Ancient *charged* items are duds.
+> That inverts the usual artifact trope and it is canon-compatible — it
+> is why the heirlooms are rings and blades rather than wands.
+
+### The durable-goods answer: bound the charge, not the shells
+
+A depleted wand is a paperweight with a socket. So **the item count is
+the wrong quantity to bound**; the right one is *charged* capability,
+which is a flow.
+
+**Throttling inflow cannot work.** Without decay, stock grows without
+bound — 10/month is 1,200 in a decade at any throttle. With decay,
+`dS/dt = inflow − d·S`, so stock settles at **`S* = inflow / d`**:
+
+| decay | equilibrium at 10/month |
+|---|---|
+| 1%/mo | 1,000 |
+| 3%/mo | 333 |
+| 10%/mo | 100 |
+
+> **Decay converts unbounded accumulation into a tunable equilibrium** —
+> two dials whose *ratio* is the answer, rather than one dial that only
+> changes the slope.
+
+**Leakage and use are two different bounds.** A 300 kJ wand leaking
+3%/month sheds 9 kJ; one firebolt costs 35 kJ — **four months of leakage
+in a single shot.** Leakage bounds *idle* capability (hoards rot); use
+bounds *active* capability.
+
+**The real cap is caster-hours.** A mid caster regenerates 300 W ≈
+**1,080 kJ per working hour** = 3.6 wands or 31 shots; a four-hour shift
+yields ~14 wands/day.
+
+| working chargers | supportable |
+|---|---|
+| 5 | ~600 shots/day |
+| 20 | ~2,500 shots/day |
+| 100 | ~12,000 shots/day |
+
+> **Capability in circulation is bounded by caster-hours, not by item
+> count** — and it is self-balancing, since more players means more
+> chargers *and* more demand.
+
+Three consequences worth keeping:
+
+- **Recharging is a service**, so competence stays valuable when items
+  are common: a recurring business rather than a one-time sale (the
+  *everything is a business* doctrine).
+- **You find shells; you buy charge.** Wealth cannot corner the found
+  channel, because what money buys is caster-labour, which is capped —
+  exactly the guard the discovery slate asks for.
+- **Shell inflation becomes harmless**, so distribution can stay
+  generous and a newcomer's found wand keeps its upset value.
+
+### Wearables are charged too — and they are the worst case
+
+*(Revises "Rings & amulets — the clean class" above: the augment/slot
+wiring is unchanged, but a ring now carries a charge and confers its
+mixin only **while charged**.)*
+
+An always-on wearable draws continuously, which is **standby power**:
+
+| passive draw | flattens 300 kJ in |
+|---|---|
+| 0.05 W | 69 days |
+| 0.5 W | 7 days |
+| 2 W | **1.7 days** |
+
+> **Always-on is the expensive mode.** A triggered wand lasts months; a
+> worn ring of warmth dies in a week.
+
+A real tactical choice, and it bites hardest on exactly the class most
+prone to inflation — because people *wear* rings and *stow* wands.
+
+It also sharpens the cursed state: **cursed is not merely "the release
+gate won't free the slot" — it is stuck on you *and discharging into
+you.*** A full 300 kJ dumped into a 70 kg body is **+1.2 K of core
+temperature**.
+
+### Foci perish too — pattern rot
+
+A specification-only focus has no energy to leak, so it looks immortal.
+It is not, and the reason is already in the science rather than invented
+for the occasion.
+
+Kell's Partition: a **binding** is a state held away from equilibrium.
+An impressed specification is exactly that — **a pattern that does work
+cannot be at equilibrium**, which is roughly the definition of a
+machine — so it relaxes. Stored information rots: magnetic domains
+relax, tape prints through, DNA degrades. Same second law, no new
+exemption, and it hands the curriculum **archival decay** for free.
+
+> **Magic perishes. Matter doesn't.**
+
+Eternal steel keeps its perfection because what was willed into it is
+**structure**, and a good crystal is thermodynamically *stable* — it is
+not being maintained, it simply is. A focus's pattern is the unstable
+kind, which is precisely why it does something. So the ruins hold
+**perfect blades and faded rings**, and *found-and-reworked* means
+re-impressing as much as re-forging.
+
+### What it costs to build
+
+No new machinery:
+
+- a **charge** field on the item — a `Reserve` instance (shipped);
+- **reconcile-on-read decay** (the husbandry/metabolism pattern);
+- a **`recharge`** action moving mana from a caster into an item;
+- a **passive-draw** flag for wearables (always-on vs triggered);
+- two AppSettings dials per class: **inflow** and **decay**.
+
+Open for the roster pass: per-cell charge costs (they derive from the
+price list), whether shells are craftable or only found, and whether a
+focus's pattern can be *refreshed* by the same `recharge` path or needs
+a distinct re-impressing act.
+
 ## Gap roundup — the build work-list (ranked)
 
 The payoff of the walk: "implement NetHack items" resolves to a small set of
