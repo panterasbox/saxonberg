@@ -707,6 +707,11 @@ export default class Exit extends ConcealableMixin(Idea) {
     }
     // Setter detaches us from the door's `attachedTo` set.
     this.door = null;
+    // Chain. `Stuff.onDestruct` is a no-op terminal, so this costs
+    // nothing today — but a witness that does not chain silently
+    // amputates every layer beneath it, which is exactly the collision
+    // class master's antipattern entry was added for.
+    super.onDestruct();
   }
 
   /**

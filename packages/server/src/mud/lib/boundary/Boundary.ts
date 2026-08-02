@@ -224,5 +224,6 @@ export class Boundary extends Thing {
     for (const anchor of orphaned) {
       StuffApi.destruct(anchor as unknown as Stuff);
     }
+    super.onDestruct();
   }
 }

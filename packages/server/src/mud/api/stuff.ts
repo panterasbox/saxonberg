@@ -829,6 +829,10 @@ export class StuffApi {
    * Slot order (locked by the ref-shapes design):
    *   1. `canDestruct` witness (force ignores veto).
    *   2. `onDestruct` user witness — subclass-customizable.
+   *   2.5 DECLARED REFERENCE CLEANUP — the `lifetime` axis of
+   *      `fieldMeta`: `symmetric` back-ref clears, then `owned`
+   *      cascades. After (2) so a hand-written `onDestruct` still sees
+   *      its children; before (3) so substrate invariants run last.
    *   3. Mixin-registry cleanup walk: each mixin's static
    *      `cleanupOnDestruct(proxy)`, most-derived-first.
    *      Substrate-invariant cleanup; subclass overrides cannot
@@ -841,6 +845,123 @@ export class StuffApi {
    * continues; `destroy()` always runs. The caller of
    * `StuffApi.destruct` never sees cleanup-handler failures.
    */
+  /**
+   * Slot 2.5 — run the declared `lifetime` rules for a destructing
+   * holder.
+   *
+   * **All `symmetric` clears run before all `owned` cascades**, and that
+   * ordering is specified rather than incidental: an owned cascade
+   * destroys its targets, so a back-ref clear scheduled after it would
+   * be operating on destroyed objects.
+   *
+   * Deliberately forgiving, because it has to coexist with the
+   * hand-written cleanup it is replacing:
+   *
+   *   - a null / empty / absent slot is a no-op;
+   *   - a target that is already destroyed is skipped;
+   *   - the holder's own slot is cleared afterwards;
+   *   - exceptions are logged per field and the loop continues, exactly
+   *     as the slot-3 mixin walk does — a throwing cleanup must never
+   *     prevent `destroy()`.
+   *
+   * ⚠ That forgiveness cuts both ways, and it is the single most
+   * important thing to know when converting a site. It makes an
+   * UN-migrated site inert (2.5 finds the slot already cleared by the
+   * hand-written body and no-ops) — but it makes a HALF-migrated one
+   * silently inert too. `Boundary.onDestruct` collects its anchors,
+   * calls `detach()` (which nulls both slots), then destructs them:
+   * declare `anchorA`/`anchorB` as `owned` while leaving that body
+   * alone and 2.5 sees null slots, no-ops, and **the anchors are never
+   * destructed at all**. No error. Converting a site means deleting
+   * BOTH the cascade and the slot-clearing from the hand-written body.
+   *
+   * Direction matters for migration order, too. A site written in
+   * `onDestruct` (slot 2) runs BEFORE this and may be converted in two
+   * steps; a site written in `cleanupOnDestruct` (slot 3) runs AFTER,
+   * so declaring it without removing the handler would have 2.5 destruct
+   * first and slot 3 then walk destroyed objects. Those convert
+   * atomically.
+   */
+  static #applyDeclaredRefCleanup(object: Stuff): void {
+    const meta = MixinApi.getAllFieldMeta(
+      object.constructor as AnyConstructor
+    );
+    const holder = object as unknown as Record<string, unknown>;
+
+    const targetsOf = (value: unknown): Stuff[] => {
+      if (value === null || value === undefined) return [];
+      if (Array.isArray(value)) return value as Stuff[];
+      if (value instanceof Set) return [...value] as Stuff[];
+      if (value instanceof Map) return [...value.values()] as Stuff[];
+      return [value as Stuff];
+    };
+    /** Empty the holder's own slot, preserving its container shape. */
+    const clearSlot = (field: string): void => {
+      const slot = holder[field];
+      if (slot instanceof Set || slot instanceof Map) slot.clear();
+      else if (Array.isArray(slot)) slot.length = 0;
+      else holder[field] = null;
+    };
+    const isLive = (t: unknown): t is Stuff => {
+      const s = t as { isDestroyed?: () => boolean } | null;
+      return (
+        s !== null &&
+        typeof s === 'object' &&
+        typeof s.isDestroyed === 'function' &&
+        !s.isDestroyed()
+      );
+    };
+
+    const entries = Object.entries(meta).filter(
+      ([, e]) => e.ref === 'instance' && e.lifetime
+    );
+
+    // Pass 1 — symmetric back-ref clears.
+    for (const [field, entry] of entries) {
+      if (entry.lifetime !== 'symmetric' || !entry.inverse) continue;
+      try {
+        const inverse = entry.inverse;
+        for (const target of targetsOf(holder[field]).filter(isLive)) {
+          const other = target as unknown as Record<string, unknown>;
+          const back = other[inverse];
+          if (back instanceof Set) back.delete(object);
+          else if (back instanceof Map) {
+            for (const [k, v] of back) if (v === object) back.delete(k);
+          } else if (Array.isArray(back)) {
+            const i = back.indexOf(object);
+            if (i >= 0) back.splice(i, 1);
+          } else if (back === object) {
+            other[inverse] = null;
+          }
+        }
+        clearSlot(field);
+      } catch (err) {
+        console.error(
+          `StuffApi: declared symmetric cleanup for '${field}' on ` +
+            `${object.stuffId} threw`,
+          err
+        );
+      }
+    }
+
+    // Pass 2 — owned cascades.
+    for (const [field, entry] of entries) {
+      if (entry.lifetime !== 'owned') continue;
+      try {
+        for (const target of targetsOf(holder[field]).filter(isLive)) {
+          StuffApi.destruct(target);
+        }
+        clearSlot(field);
+      } catch (err) {
+        console.error(
+          `StuffApi: declared owned cleanup for '${field}' on ` +
+            `${object.stuffId} threw`,
+          err
+        );
+      }
+    }
+  }
+
   static #destructCore(object: Stuff, force: boolean): void {
     if (!object) {
       throw new Error('StuffApi.destruct(): Invalid object');
@@ -854,6 +975,9 @@ export class StuffApi {
     // touch `this`. After `destroy()` marks `_isDestroyed`, every
     // proxy method call throws `DestroyedObjectError`.
     callDestructHook(object, 'onDestruct');
+
+    // Slot 2.5 — the declared reference cleanup.
+    StuffApi.#applyDeclaredRefCleanup(object);
 
     // Framework cleanup walk. Mixin authors register a static
     // `cleanupOnDestruct(stuff)` on the mixin class for invariant-
