@@ -60,6 +60,17 @@ export interface Slottable {
    * same shape.
    */
   onSlotReleased?(host: Stuff & Slotted, slotName: string): void;
+  /**
+   * Optional synchronous witness — this candidate has just been placed in
+   * `host`'s `slotName`. The symmetric twin of {@link onSlotReleased},
+   * firing from the same `Slotted.occupy` chokepoint (so every arming path
+   * reaches it: `SlotApi.occupyAll`, combat's grip swap, persistence
+   * restore). v1 consumer: `PosedMixin` records which host's posture slot a
+   * body occupies, so an avatar wakes where it slept.
+   *
+   * @hook
+   */
+  onSlotOccupied?(host: Stuff & Slotted, slotName: string): void;
 }
 
 export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(

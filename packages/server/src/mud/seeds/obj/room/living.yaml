@@ -1,0 +1,36 @@
+# The LIVING ROOM — AUDIENCE (D16). The fourth kind of answer, and the one
+# this build has the most direct stake in.
+#
+# The other three archetypes are TASK rooms, each justified by an affordance
+# — you sleep, you cook, you wash. This one has no task, and that is the
+# definition rather than a deficiency: it is the room you bring a visitor
+# into. Which makes it where the build's own thesis becomes legible. A
+# residence "whose character is the objects you played for" only has
+# character if something can perceive it: furniture in a bedroom is for you,
+# furniture in a living room is for whoever walks in.
+#
+# ⚠ IT SHIPS EMPTY ON PURPOSE. Every other archetype comes with built-ins
+# the landlord fitted; this one comes with a floor and light. The empty room
+# is the invitation, and pre-furnishing it would pre-empt the player's only
+# job here. The shipped lounge settles the point: the flagship social space
+# seeds NO seating objects at all — "mismatched armchairs and a sagging
+# couch" is prose, and nobody has ever missed them. The difference is not
+# the room, it is the relation: the lounge's chairs are prose because nobody
+# owns them; yours are objects because you bought them and put them there.
+#
+# No television, either — `watch` names a streamer and fills the cockpit
+# embed from anywhere, so a TV object would model nothing. That completes
+# the LOD ladder from the far end: the toilet is prose because its function
+# is not worth modelling, the television because its function is ALREADY
+# modelled. One rule — a fixture becomes an object only when something
+# reads it.
+class: /lib/location/FurnishableRoom
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a living room
+  primaryKeyword: living
+  keywords: [living, lounge, sitting, room]
+  longDescription: |
+    A bare front room with good light and a rug someone left behind. Nothing else — yet.
+  ambientIntensity: 40
+  ambientColorTemperature: 5200

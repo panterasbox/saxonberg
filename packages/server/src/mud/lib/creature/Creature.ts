@@ -55,6 +55,7 @@ import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { SlottableMixin } from '../slot/Slottable';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 
@@ -121,6 +122,16 @@ const CreatureBase = PostmortemMixin(
                   VitalsMixin(
                     ReservedMixin(
                       PosedMixin(
+                        // A body OCCUPIES slots as well as offering them:
+                        // Slotted (above) is the chair's side, Slottable is
+                        // the sitter's. Every posture verb gates on it
+                        // (`requiresSlottable`), and until this composed,
+                        // `lie`/`sit`/`kneel` rejected every actor in the
+                        // game with "you can't fit in a slot" — the
+                        // validator's own docstring asserted actors "are
+                        // always Slottable via Avatar's composition", which
+                        // was never true. Found by driving the world.
+                        SlottableMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
                             SexedMixin(
@@ -129,6 +140,7 @@ const CreatureBase = PostmortemMixin(
                               )
                             )
                           )
+                        )
                         )
                       )
                     )

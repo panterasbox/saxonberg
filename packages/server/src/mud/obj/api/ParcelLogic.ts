@@ -9,6 +9,7 @@ import { TemplatePaths } from "../../lib/paths";
 import {
   ParcelRecord,
   type ParcelOwner,
+  type ParcelSpace,
 } from "../../lib/parcel/ParcelRecord";
 import type { GroupRef } from "../../lib/social/GroupProvider";
 import type ParcelRegistry from "../ParcelRegistry";
@@ -86,9 +87,22 @@ export class ParcelLogic extends ApiLogic {
     childPath: string,
     parentExtent: string,
     owner: ParcelOwner,
+    area = 0,
+    storeys = 1,
   ): Promise<ParcelRecord | null> {
     const reg = lookupRegistry();
-    return reg ? reg.subdivide(childPath, parentExtent, owner) : null;
+    return reg
+      ? reg.subdivide(childPath, parentExtent, owner, area, storeys)
+      : null;
+  }
+
+  /** See {@link ParcelApi.spaceOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public async spaceOf(extent: string): Promise<ParcelSpace> {
+    const reg = lookupRegistry();
+    return reg
+      ? reg.spaceOf(extent)
+      : { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
   }
 
   /** See {@link ParcelApi.transfer}. */

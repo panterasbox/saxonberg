@@ -82,7 +82,10 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // You consign what you own (authoritative via ownerOf, not custody).
     const consignorKey = giver.getTemplatePath();
     const owner = await ChattelApi.ownerOf(item);
-    if (!owner || owner.templatePath !== consignorKey) {
+    if (
+      owner?.kind !== "player" ||
+      owner.templatePath !== consignorKey
+    ) {
       this.reject(giver, context, Mml.compose`${Mml.item(item)} isn't yours to sell.`, {
         kind: "controller-rejected",
         reason: "not-owner",

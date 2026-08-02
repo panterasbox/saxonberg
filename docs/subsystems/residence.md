@@ -367,3 +367,32 @@ the floor corridor first (best-effort).
   `docs/plans/apartment-plan.md`. (The dorm build's own requirements + plan
   retired at merge — this doc is the live reference.)
 </content>
+
+
+## History — the furnishing build (2026-07-31)
+
+The dorm gained the thing that makes a residence mechanically worth having:
+**its bed is lieable.** It was a `Surfaced` prop you could set things ON
+but could not lie IN, which stopped being harmless once sleep-as-logout
+shipped — the dorm is the residence every player currently has, and a
+mechanic nobody can reach is not shipped.
+
+`Bed` is now `Postured → Slotted → Surfaced → Detailed → Thing`.
+`Surfaced` is **kept, not replaced**: the two are orthogonal — `Surfaced`
+is what rests ON the bed, the posture slot is who rests IN it. The seed
+authors a `lie:1` slot and `restQuality: 1.5`, deliberately the **bottom
+rung** against the 2.0 of a bed you chose and bought.
+
+**No `class:` path changed**, which is what made this a seed edit rather
+than a migration of every live per-unit record: the capability landed on
+the class, the slot spec landed as data.
+
+> The dorm fixtures are **not** duplication of the new generic ones, and a
+> test pins why. The tap already uses `/obj/UnboundedReceptacle`; the desk
+> is a `Surface` *plus* the affordance carrier for `remodel` *plus* a theme
+> discriminant (`DormThemes.roleOf` switches on `instanceof`); the same
+> holds for the footlocker and the bed, and `DormRoom` carries
+> `WarrenMember`, the theme overlay and the population witness.
+
+A dorm room is itself an **archetype** — a bedsit, the
+[furnishing](./furnishing.md) four collapsed into one room.

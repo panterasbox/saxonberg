@@ -225,7 +225,7 @@ describe("BuyController — buy that stamps", () => {
 
     expect(torch.getContainer()).toBe(giver);
     const owner = await ChattelApi.ownerOf(torch);
-    expect(owner?.templatePath).toBe("/obj/Avatar/pat");
+    expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/pat" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(stock.onHand(TORCH)).toBe(0);
     expect(BankingApi.reconcile().balanced).toBe(true);
@@ -254,9 +254,10 @@ describe("BuyController — buy that stamps", () => {
     );
 
     expect(torch.getContainer()).toBe(giver);
-    expect((await ChattelApi.ownerOf(torch))?.templatePath).toBe(
-      "/obj/Avatar/cash",
-    );
+    expect(await ChattelApi.ownerOf(torch)).toEqual({
+      kind: "player",
+      templatePath: "/obj/Avatar/cash",
+    });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(BankingApi.reconcile().balanced).toBe(true);
   });
@@ -295,7 +296,7 @@ describe("BuyController — buy that stamps", () => {
 
     expect(pot.getContainer()).toBe(giver);
     const owner = await ChattelApi.ownerOf(pot as never);
-    expect(owner?.templatePath).toBe("/obj/Avatar/gardener");
+    expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/gardener" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(8);
     expect(stock.onHand(POT)).toBe(0);
     expect(BankingApi.reconcile().balanced).toBe(true);

@@ -173,9 +173,10 @@ describe("Consignment — sell loop over real ownership", () => {
       ),
     );
     expect(torch.getContainer()).toBe(shelf); // custody → shop
-    expect((await ChattelApi.ownerOf(torch))?.templatePath).toBe(
-      "/obj/Avatar/alice",
-    ); // ownership stays with Alice
+    expect(await ChattelApi.ownerOf(torch)).toEqual({
+      kind: "player",
+      templatePath: "/obj/Avatar/alice",
+    }); // ownership stays with Alice
     expect(shelf.activeListingCount("/obj/Avatar/alice")).toBe(1);
 
     // Bob buys it (Alice is offline — payout is a pure DB read).
@@ -190,7 +191,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     // commission = round(8 * 0.15) = 1; remainder = 7.
     expect(torch.getContainer()).toBe(bob); // custody → buyer
-    expect((await ChattelApi.ownerOf(torch))?.templatePath).toBe("/obj/Avatar/bob"); // stamp → buyer
+    expect((await ChattelApi.ownerOf(torch))).toEqual({ kind: "player", templatePath: "/obj/Avatar/bob" }); // stamp → buyer
     expect(BankingApi.balanceOf(bobAcct).minor).toBe(92); // 100 − 8
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(7); // remainder
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(1); // commission
@@ -271,7 +272,7 @@ describe("Consignment — sell loop over real ownership", () => {
       makeStuff(() => new ReclaimController()).execute({ thing: "torch" }, ctx(alice, loc, shelf, "reclaim")),
     );
     expect(torch.getContainer()).toBe(alice); // custody back
-    expect((await ChattelApi.ownerOf(torch))?.templatePath).toBe("/obj/Avatar/alice");
+    expect((await ChattelApi.ownerOf(torch))).toEqual({ kind: "player", templatePath: "/obj/Avatar/alice" });
     expect(shelf.activeListingCount("/obj/Avatar/alice")).toBe(0);
   });
 });

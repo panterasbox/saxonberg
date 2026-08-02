@@ -573,10 +573,21 @@ describe("security (AC #8)", () => {
     // The fork protocol (sandbox build) is RUNTIME state movement, not a
     // record-store write path: forkRuntimeState/mergeRuntimeState never
     // touch `holder_snapshots`.
+    //
+    // captureDetached/restoreDetached (furnishing build) are the
+    // owner-based-persistence seams: they capture/reconstitute ONE non-host
+    // good's composed state, the shape an estate entry carries. Neither
+    // reads or writes a record — the estate they serve is a slice inside
+    // the owner's record, written by the same gated `capture` as everything
+    // else. So the invariant this test guards (no raw record write on the
+    // Api) is unchanged.
     expect(surface.sort()).toEqual(
       [
         "capture",
         "captureHostOf",
+        "captureDetached",
+        "restoreDetached",
+        "placeIdOf",
         "deleteAllFor",
         "hasRecord",
         "materialize",

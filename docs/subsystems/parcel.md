@@ -274,3 +274,28 @@ byte-identical to today's core walk (untitled → `core`); an earlier draft had
 - [property-slate.md](../slates/builds/property-slate.md) — the design surface
   (§A parcel = a Zone + hierarchy, §B separate collection + author≠owner, §K
   dorm = implicit default parcel; and the later phases).
+
+
+## History — the furnishing build (2026-07-31)
+
+Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
+
+- **`ParcelRecord.area`** (m², gross ground) and **`storeys`** (default 1).
+  Declared at provision, **never derived**.
+- **`subdivide` conserves children against `area × storeys`**, not `area`.
+  Multi-storey is why: a 300 m² footprint at four storeys offers ~1200 m²
+  of interior, so a rule written against ground area alone refuses
+  apartments on the second floor. `storeys` rather than a `grossFloorArea`
+  field because the row **already encoded floors** — `slotOfExtent` parses
+  `f<floor>-r<pos>`, built for the dorm.
+- **`ParcelApi.spaceOf`** — the space account: `capacity` (`area ×
+  storeys`), `allocated` (Σ children), `unallocated` and `utilisation`.
+  Reads as **coverage + yard** on a lot and **efficiency + common area** in
+  a building. All derived on read, none stored — a ceiling alone is useless,
+  these are the numbers anybody plans against.
+- **`ParcelApi.workableAreaOf`** = the `unallocated` half, derived on
+  read and never stored. Any child consumes ground whether it is a building
+  or a sub-lot, so a building's **footprint needs no field**: it *is* that
+  building parcel's own `area`.
+- Unmeasured land is not policed — a parcel with no declared area
+  subdivides exactly as it did before these fields existed.

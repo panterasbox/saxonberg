@@ -47,7 +47,10 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
 
     // You reclaim what you own (custody is with the shop; ownership is yours).
     const owner = await ChattelApi.ownerOf(item);
-    if (!owner || owner.templatePath !== giver.getTemplatePath()) {
+    if (
+      owner?.kind !== "player" ||
+      owner.templatePath !== giver.getTemplatePath()
+    ) {
       this.reject(giver, context, Mml.compose`${Mml.item(item)} isn't yours to take.`, {
         kind: "controller-rejected",
         reason: "not-owner",

@@ -60,6 +60,7 @@ import type { CommandContributions } from "../api/command";
 import type Interactive from "./Interactive";
 import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
+import { EstateMixin } from "../lib/chattel/Estate";
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -118,15 +119,19 @@ export interface AvatarInitContext {
 // persists through the universal spine (see docs/subsystems/persistence.md):
 // its record carries its declared fields, its carried inventory (Container
 // slice), its worn gear (Slotted slice), and its own spawn/recall location
-// (`place`). `shouldPersist()` (below) gates guests out.
+// (`place`), plus its ESTATE — the stamped goods it holds title to wherever
+// they sit, which is what lets furniture stay in a room the avatar is not in.
+// `shouldPersist()` (below) gates guests out.
 const AvatarBase = PersistableMixin(
-  ForkableMixin(
-    PostRegistrationMixin(
-      HasInteractiveMixin(
-        AetherMixin(
-          NotifyPolicyMixin(
-            ContactsMixin(
-              PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+  EstateMixin(
+    ForkableMixin(
+      PostRegistrationMixin(
+        HasInteractiveMixin(
+          AetherMixin(
+            NotifyPolicyMixin(
+              ContactsMixin(
+                PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+              ),
             ),
           ),
         ),
@@ -620,19 +625,18 @@ export default class Avatar extends AvatarBase {
       clientState: this.snapshotClientState(),
       reactionPrefs: {
         intensity:
-          ShellApi.resolveSetting<
-            "off" | "subtle" | "normal" | "vivid"
-          >(this, "social.react.intensity") ?? "normal",
+          ShellApi.resolveSetting<"off" | "subtle" | "normal" | "vivid">(
+            this,
+            "social.react.intensity",
+          ) ?? "normal",
         alwaysAggregate:
           ShellApi.resolveSetting<boolean>(
             this,
             "social.react.alwaysAggregate",
           ) ?? false,
         muteChannels:
-          ShellApi.resolveSetting<boolean>(
-            this,
-            "social.react.muteChannels",
-          ) ?? false,
+          ShellApi.resolveSetting<boolean>(this, "social.react.muteChannels") ??
+          false,
       },
     };
     // First arrival (just created in char-gen) gets a fresh greeting;
@@ -686,10 +690,13 @@ export default class Avatar extends AvatarBase {
     // (the socket coming home from a circle). Nobody heard them leave,
     // so nobody hears them come back — symmetric with `onLinkdead`.
     if (this.parked) return;
-    EventApi.emit(reconnect ? Events.PlayerReconnected : Events.PlayerLoggedIn, {
-      playerId: this.getPlayerId(),
-      userId: interactive.getUserId() ?? "",
-    });
+    EventApi.emit(
+      reconnect ? Events.PlayerReconnected : Events.PlayerLoggedIn,
+      {
+        playerId: this.getPlayerId(),
+        userId: interactive.getUserId() ?? "",
+      },
+    );
   }
 
   /**

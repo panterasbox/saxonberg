@@ -88,8 +88,48 @@ export interface SlottedSlice {
   worn: Array<{ index: number; slots: string[] }>;
 }
 
+/**
+ * Where an owned good sits, from its owner's point of view — the D1
+ * `place` vocabulary. Either one of the two sentinels or a **room
+ * identity** (a room's persistence scope).
+ */
+export const ESTATE_INVENTORY = "inventory";
+export const ESTATE_STORAGE = "storage";
+
+/**
+ * One good in an owner's **estate**: a good they hold title to that the
+ * owner's record — not the room it happens to stand in — is authoritative
+ * for. `state` is the good's captured composition, exactly the shape a
+ * non-host {@link ContentEntry} nests, so restore re-uses one path.
+ *
+ * `place` routes the restore: `inventory` clones into the owner's own
+ * container, `storage` clones **nothing** (an owned-but-unplaced good has
+ * no presence in the world — that is what makes storage free), and a room
+ * identity defers to that room's materialize.
+ */
+export interface EstateEntry {
+  chattelId: string;
+  templatePath: string;
+  state: Record<string, MixinSlice>;
+  place: string;
+}
+
+/**
+ * `EstateMixin`'s slice — every stamped good its host holds title to,
+ * wherever it sits. The counterpart to the {@link ContainerSlice}'s skip
+ * rule: a host's contents slice drops goods someone has been *stamped* as
+ * owning, and this is where they persist instead.
+ */
+export interface EstateSlice {
+  entries: EstateEntry[];
+}
+
 /** The tagged union stored under each layer key in a record's `state`. */
-export type MixinSlice = FieldsSlice | ContainerSlice | SlottedSlice;
+export type MixinSlice =
+  | FieldsSlice
+  | ContainerSlice
+  | SlottedSlice
+  | EstateSlice;
 
 /**
  * A Containable top-level host's own durable spawn/recall location — the
@@ -122,6 +162,15 @@ export interface CaptureContext {
    * worn item by position without a second capture.
    */
   indexOf(item: unknown): number;
+  /**
+   * Report a good this host **skipped** because someone is stamped as
+   * owning it (the D2 skip rule). Capture is synchronous and cannot write
+   * to another principal's record, so the skipped goods are collected here
+   * and flushed into their owners' estates by `PersistableLogic` after the
+   * state build — the only path by which a good standing in a room that
+   * goes dormant, whose owner is offline, is captured by anybody at all.
+   */
+  noteOwnedGood(item: unknown): void;
 }
 
 /**

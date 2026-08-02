@@ -64,6 +64,37 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     return this.index.get(chattelId) ?? null;
   }
 
+  /**
+   * Record where the owner keeps a titled good — the **by-room index**
+   * half of a `place` write (the good's own field is the other half, and
+   * `ChattelLogic.setPlace` writes both in one call). A no-op for a good
+   * with no title on file: an unstamped good has no owner to keep it.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async setPlace(chattelId: string, place: string): Promise<void> {
+    if (!this.index.has(chattelId)) return;
+    const record = await ChattelRecord.findByChattelId(chattelId);
+    if (!record) return;
+    record.place = place;
+    await record.save();
+  }
+
+  /** Every titled good the index says is placed in `place`. */
+  @CallSecurity(ChattelApiCallers)
+  public async placedIn(place: string): Promise<ChattelRecord[]> {
+    return ChattelRecord.findByPlace(place);
+  }
+
+  /**
+   * Every titled good placed at or **under** `placePrefix` — a whole unit's
+   * worth, across all its rooms. The lease-end sweep's input.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async placedUnder(placePrefix: string): Promise<ChattelRecord[]> {
+    const all = await ChattelRecord.findAll();
+    return all.filter((r) => r.place.startsWith(placePrefix));
+  }
+
   /** Establish title — the initial stamp (a `mint` event). */
   @CallSecurity(ChattelApiCallers)
   public async stamp(chattelId: string, owner: ChattelOwner): Promise<void> {
