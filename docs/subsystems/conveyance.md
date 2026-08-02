@@ -228,6 +228,34 @@ surfaces at move time. Validators `mustBeHaulable` / `mustBeHauler`.
 - **Multi-actor coordination** (sailboat with crew) — beyond
   Drivable; activity-slate territory.
 
+### ⚠ Known defect: `teleport` does not ripple
+
+**The conveyance ripple and the haulage tow both live in
+`Mobile.traverse` only.** `Mobile.teleport` is a bare
+`ContainmentApi.move` plus narration, so today:
+
+- **teleport while mounted → the mount stays behind**;
+- **teleport while hitched → the cart stays behind**, silently.
+
+This is an **oversight, not a policy** (surfaced 2026-07-31 by the
+"can freight ride the TPA?" question — see
+[freight-slate](../slates/builds/freight-slate.md) § *The TPA
+question*). The intended rule:
+
+> **Teleport ripples what is *on* you and refuses what you are
+> *attached to* — and says why.**
+
+Worn gear and carried contents come along (otherwise teleport strips
+the traveller); being **mounted or hitched refuses the ride** with an
+honest message, per the enforcement slate's wall-mode-honesty rail.
+**Silent failure is the part to kill.**
+
+Note that this is a *ripple* defect only — it is **not** what keeps
+vehicles off the TPA network. Two independent gates already do that:
+`teleport` is verb-gated `requiresAnimate`, and travel clearance lives
+in an **aether-hosted** wallet a vehicle cannot host
+([fasttravel.md](./fasttravel.md) § *Identity-bound clearance*).
+
 ## Cross-references
 
 - [slot.md](./slot.md) — substrate, Detail-targeted resolution.

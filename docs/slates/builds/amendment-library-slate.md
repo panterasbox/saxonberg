@@ -188,3 +188,365 @@ a blank constitution — the on-ramp the whole reframing is for.
   module provenance and curation transparent in the archive, so a popular-but-
   bad module can't masquerade as vetted.
 - **A full surface doc** — graduates to `docs/subsystems/` once a slice ships.
+
+---
+
+## The US-amendment walk (2026-07-31)
+
+A gap-finding exercise: the US Constitution's amendments, amendment by
+amendment, against this platform. Three outcomes — **KERNEL** (already
+guaranteed, not a module), **HAVE** (already in the catalog above), and
+**GAP** (a drafting candidate). The exercise's value is the gaps; the
+kernel findings are almost more interesting.
+
+### Already kernel (do not draft these — they exist)
+
+- **Petition (1A)** — the **open floor IS the petition right**: anyone
+  may put a proposal down, and every decision starts there. Built.
+- **Self-incrimination (5A)** — the intrinsic/social split
+  ([enforcement-slate](./enforcement-slate.md)) is **stronger than the
+  original**: traits are not merely privileged, they are
+  **inadmissible**. No court subpoenas who you are.
+- **Involuntary servitude (13A)**, in part — **exit is bedrock**;
+  nobody can be bound to stay. What remains draftable is indenture
+  *within* the world (below).
+
+### Already in the catalog
+
+Speech (*free political expression*) · due process · privacy ·
+property · term limits · judiciary knobs · representation.
+
+### The gaps — drafting candidates
+
+| Amdt | Module | Note |
+|---|---|---|
+| **1** | **press freedom** | the big one — see [press-slate](./press-slate.md) |
+| **1** | **religion: establishment** | may a locality fund/require a faith from its treasury? |
+| **1** | **religion: free exercise** | may it *ban* a practice? The hard case already exists: sentient sacrifice is designed as evil — the exact shape of a real free-exercise conflict, made safe by fictional pantheons |
+| **1** | **assembly** | may a committee bar gatherings on public land, given venues are property? |
+| **2** | **arms** | offered, never imposed (ranged-slate) |
+| **3** | **quartering** | may the state billet officers in your rooms? Real given officer quarters + the allowance cascade |
+| **4** | **search standard** | when may a guard search person, home, inventory? Sharpens *privacy* with the evidence firewall |
+| **5** | **takings** | may the polity take a parcel, with compensation? The registry makes it concrete |
+| **6** | **speedy trial** | ⚠ **pressing** — async justice can strand someone *forever* with no clock |
+| **6** | **confrontation** | pairs directly with the testimony model (face your accuser's claim) |
+| **6** | **counsel** | makes **advocacy a profession** |
+| **7** | **civil jury** | contract disputes — escrow + clauses already supply the docket |
+| **8** | **punishment ceiling** | perma-death? total forfeiture? indefinite confinement? Answers [prison-slate](./prison-slate.md)'s open ceiling |
+| **10** | **reserved powers** | the federalism statement; partly in the tenure module, deserves its own |
+| **13** | **no irrevocable contract** | debt bondage / indenture: a contract must never alienate exit |
+| **14** | **incorporation + equal protection** | ⚠ **structurally the biggest**: does the floor bind *localities* or only the Compact? And may a locality discriminate by clade — the allegory with teeth |
+| **15/19/26** | **suffrage by category** | may standing be barred by species or origin? Same allegory, different clause |
+| **16** | **taxation power** | does a locality have one, in what forms? |
+| **18/21** | **prohibition + repeal** | the best teaching pair in the document — a ban that failed and was *undone*; smuggling already emerges mechanically |
+| **23** | **capital representation** | do the City of Saxonberg's residents vote? DC's exact problem, on Compact land ([saxonberg-city-slate](./saxonberg-city-slate.md)) |
+| **25** | **succession & incapacity** | ⚠ **pressing** — the PM goes linkdead. Not hypothetical in an online polity |
+| **27** | **officer pay** | self-dealing on salary; the budget lines exist |
+
+**Added by the press/secrecy pass (2026-07-31):**
+
+| — | Module | Note |
+|---|---|---|
+| **1A-adjacent** | **classification / transparency** | who may seal official records, for how long, under what review — and the FOIA path (request → refusal → appeal). *Seal, don't hide*: existence public, content withheld ([press-slate](./press-slate.md)) |
+| **1A-adjacent** | **private association** | any group's private comms as a *right*, symmetric — distinct from state classification, which is a *power*. Required so in-game politics stays in-game rather than migrating to Discord |
+| **conflict** | **source protection ⊗ confrontation** | a catalog-level *conflict* entry, not a module: the press module's privilege and the confrontation clause's right genuinely oppose |
+
+**Three flagged as urgent rather than fun:** *speedy trial* and
+*succession* are operational problems an online polity will hit early,
+and *incorporation* decides whether every other module binds one layer
+or two — it should be settled before the catalog grows.
+
+## The executive veto (module — added 2026-07-31)
+
+**(User: "a veto power for the PM — it ensures things that are
+technically challenging or risky to enforce have a higher bar to
+clear.")** Note the rationale: this is a **feasibility veto**, not
+the usual balance-of-power one — and it suits this world, because
+**the executive really is the engineering org that must build and
+enforce the thing**, so it is the party that knows the cost.
+"Governing is shipping software" makes the veto *engineering
+pushback on a spec* — and "unenforceable" is a legitimate veto
+reason in real practice too.
+
+**It bites hardest exactly where intended:** on **directives** (the
+CR class in [legal-code-slate](./legal-code-slate.md)) — the
+instruments that create executive work. Self-executing instruments
+(parameters, prohibitions) burden the executive far less, so the
+feasibility argument is weaker there, and the asymmetry shows
+naturally.
+
+**Overridable by supermajority is the "higher bar"** — technically
+risky things need *more consensus*, never prohibition. Sits in the
+existing **Executive modules** group beside term limits,
+constructive-no-confidence tuning, and investiture thresholds.
+
+### Two flavors, and the reason to split them
+
+| | Says | Override |
+|---|---|---|
+| **Return for cause** | "this cannot be built as written — here is the cost and the risk" | lower bar; often just a redraft |
+| **Veto** | "I object" | higher bar — the political one |
+
+**With a single veto, every objection gets dressed as feasibility.**
+Forcing the PM to declare which — **on the record** — is an
+accountability gain, and a PM whose technical objections repeatedly
+prove false becomes visible. That is the check on the check.
+
+### Open
+
+- **Does it reach amendments?** Usually not — constitutional change
+  typically bypasses the executive, and welding something above
+  ordinary law argues for that.
+- **The override threshold in a three-chamber system** — 2-of-3 is
+  the ordinary bar, so an override presumably wants supermajorities
+  *within* chambers rather than a fourth body.
+
+### The mechanic, settled: a veto RAISES THE THRESHOLD (added 2026-07-31)
+
+Worked in [legal-code-slate § The veto window](./legal-code-slate.md).
+A veto does **not** kill a bill — the bill stays on the floor and keeps
+accumulating, and enacts if support crosses the **override bar**. So:
+
+- **there is no override ceremony to design** — the override *is* the
+  same continuous accumulation against a higher line;
+- the bar uses **units already in hand** — breadth 3, depth +X, or both;
+- **a veto makes a law harder, never impossible.**
+
+**Which is where the two flavors land: technical and political
+objections raise the bar by *different amounts*, on the record** — and
+a PM whose technical objections keep proving false is visible in the
+docket. Rails: **one veto per bill** (the raise persists), and the
+charter declares **which instrument types are vetoable**. *Return for
+cause* is untouched — it sends a bill back to the proposal stage
+instead of raising its bar, which is exactly the difference between
+return and veto.
+
+### The pocket veto is excluded by construction (added 2026-07-31)
+
+Worth knowing before drafting override rules: **enactment has no human
+actor.** The governance sweep owns crossing detection, hold-through
+expiry, and enactment, so the pipeline is **crossing (machine) → veto
+window (human *may* act) → enactment (machine)** — see
+[legal-code-slate § The sweep](./legal-code-slate.md).
+
+> **The executive's power is to *stop*, never to *complete*.** So an
+> office cannot quietly kill a law by declining to act on it: **no act
+> was ever required.** The pocket veto exists only if a charter
+> explicitly grants one — which makes it an *available lego*, never a
+> silent default.
+
+A real institutional pathology excluded **by construction rather than
+by rule**, and it reads well diegetically: *the legislature's assent is
+the act; enactment is a consequence, not a ceremony.*
+
+### ⚠ Cross-module interaction: veto × sunset
+
+**Vetoing a *renewal* is far more powerful than vetoing an
+enactment**, because with a sunset in play the executive need not
+overcome the status quo — **the status quo is already death.** A PM
+who wants a law gone can simply decline its renewal and run out the
+clock. Exactly how real shutdown politics works, and any polity
+adopting both modules should be able to see it coming. **This is
+what the catalog's conflict/dependency metadata is for.**
+
+## The roll: disenfranchisement by inactivity (module — added 2026-07-31)
+
+**(User, 2026-07-31.)** A **lego**, not a kernel default — because it
+is *the* historically abused mechanism, and the point of the library
+is that abusable things get argued about rather than assumed.
+
+Designed in full in
+[legal-code-slate § The roll](./legal-code-slate.md). The short form:
+
+- **What it does** — after a declared window of inactivity, a member
+  leaves the **roll** (the `totalStanding` denominator that `turnout`
+  and `support` are measured against). **Standing is untouched**;
+  return re-enfranchises **immediately and automatically**.
+- **What it insures against** — without it, a churning population
+  makes quorum unreachable and the only remedy is **lowering
+  `vote.quorum`**, a **one-way ratchet** held by the very group a low
+  quorum empowers. The fix belongs on the denominator (automatic,
+  neutral), not the threshold (discretionary, irreversible).
+- **The load-bearing rail** — **restoration must never be
+  discretionary.** The instant re-enfranchisement requires someone's
+  decision, the module is a suppression tool. Also: notice before
+  removal; affects the roll and *nothing* else.
+- **⚠ Decay keeps running while off the roll**, or the module
+  resurrects the park-and-return exploit. Shape:
+  **re-enfranchisement is instant, re-empowerment is earned.**
+
+**Catalog metadata:**
+
+| Field | Value |
+|---|---|
+| **Axis** | franchise / eligibility |
+| **Parameter** | the inactivity window (organic law) |
+| **Depends on** | a standing-based electorate (any conviction-weighted chamber) |
+| **Conflicts with** | opt-in registration (an alternative that starts degraded rather than degrading slowly) |
+| **Tier** | organic — the window is tunable; the mechanism is structural |
+
+**Why it belongs in the library specifically:** roll maintenance is
+genuinely necessary *and* genuinely abused, and the whole fight is
+**"how long is prolonged, and who decides?"** The sympathetic case is
+concrete — the **seasonal player**, hard in winter and gone all
+summer — so a legislature setting the window is having the real
+argument, not a costumed one.
+
+## Elections (module — added 2026-07-31)
+
+**Elections are a lego, never a kernel feature.** The kernel's
+executive is **parliamentary**: the PM holds office by commanding the
+confidence of a majority of chambers, and direct election would make a
+**president with a rival mandate** — see
+[cooperative-slate § How the prime minister is chosen](./cooperative-slate.md).
+
+So the module never reaches the PM. It offers **elected seats** in the
+three places a polity might legitimately want them:
+
+| Target | Notes |
+|---|---|
+| **chamber-internal representative seats** | Art. IV §6 already lets a chamber create them; the *emergent* alternative is delegation, which needs nothing built |
+| **the apparatus offices** (the five seats) | the constitution's default is PM appointment — *legitimacy is the PM's, competence is the institutions'* |
+| **locality governments** | where Tiebout does the arguing |
+
+**Catalog metadata:**
+
+| Field | Value |
+|---|---|
+| **Axis** | selection method |
+| **Parameters** | term length, eligibility, whether terms are limited |
+| **Depends on** | an office to fill (governance's seat apparatus) |
+| **Conflicts with** | *emergent representation* via delegation (both can exist; they compete for the same job) |
+| **Never applies to** | the Prime Minister — kernel-fixed as confidence-held |
+
+> **The pedagogy is the point: let a polity elect its central bank
+> governor and find out.** Electing regulators is a real and widely
+> criticized design, and **discovering why beats being told** — the
+> library's whole thesis, with a worked example.
+
+## Free movement of goods (module — added 2026-07-31)
+
+**The Commerce Clause, and the failure that produced it.** Out of the
+[freight slate](./freight-slate.md)'s tollgate design: if every
+locality may toll goods crossing its border, **trade fragments** —
+exactly the failure the Articles of Confederation had, and exactly why
+the Commerce Clause exists.
+
+- **What it does** — bars **discriminatory tolls and internal
+  tariffs** at the Compact tier: a locality may charge for *use of
+  infrastructure it owns* (a turnpike, a bridge), but may not charge
+  goods **because of where they come from or go**.
+- **The distinction that carries it** — **cost recovery vs. barrier to
+  trade.** A weight-based toll on a road you maintain is the former (a
+  heavy wagon really does more damage); a levy on *foreign* grain is
+  the latter. The line is drawn by *what the charge varies with*, which
+  is legible in the toll's own parameters.
+- **Why it belongs in the library rather than the kernel** — **a polity
+  that does not adopt it gets to discover why it exists.** That is the
+  library's whole thesis, attached to one of the genuinely important
+  lessons in federalism.
+
+**Catalog metadata:**
+
+| Field | Value |
+|---|---|
+| **Axis** | inter-jurisdictional commerce |
+| **Tier** | Compact-level (it binds *localities*, so a locality cannot adopt it for itself) |
+| **Depends on** | jurisdiction (the coverage walk) + parcel title — both shipped |
+| **Conflicts with** | locality revenue modules that rely on transit levies |
+| **Pairs with** | rate caps on chokepoint tolls (the small-scale antitrust response — historically real for turnpikes) |
+
+> **The pedagogy: the argument for adopting it is invisible until
+> somebody defects.** One locality tolls its neighbour's grain, the
+> neighbour retaliates, and the case for a common rule writes itself —
+> in the docket, out of real acts.
+
+### Sibling: the common-carrier duty (added 2026-07-31)
+
+**Same principle, pointed at a facility instead of a border.** From
+[freight-slate § The depot as a business](./freight-slate.md): a
+**depot's** monopoly is not geographic but a **network effect**
+(everyone consolidates where everyone else does), so **a rival cannot
+break it** — a depot with no traffic is useless. Which changes the
+remedy:
+
+> **The turnpike gets a RATE CAP. The depot gets a DUTY TO SERVE ALL
+> COMERS ON EQUAL TERMS.**
+
+**Non-discrimination rather than price control** — historically the
+elevator cases and then the ICC. Worth carrying as its own small module
+beside *Free movement of goods*, because **the pair teaches that the
+remedy has to match the SHAPE of the monopoly**: geographic monopolies
+are disciplined by price, network monopolies by access.
+
+## Statutory right-of-way (module — added 2026-07-31)
+
+**The holdout problem, and LULU inverted.** Out of the utilities pass
+([delivery-slate § Distribution](./delivery-slate.md)): distribution
+networks follow **rights-of-way**, because the road corridor is the only
+continuous, publicly-controlled land you can run a main along. But a
+line still has to cross **private** ground somewhere.
+
+- **What it does** — grants a chartered utility the right to run
+  distribution across private land **with compensation**, rather than
+  by negotiated consent parcel-by-parcel.
+- **The problem it solves** — **the holdout.** *Everybody* wants the
+  water, and **one landowner can block a whole district** by refusing.
+  Consent-only is not a neutral default; it hands a veto to whoever is
+  most stubborn or most opportunistic.
+- **The symmetry worth teaching** — this is **LULU inverted**
+  ([zoning-slate](./zoning-slate.md)): LULU is *nobody* will host the
+  thing everyone needs; holdout is *anyone* can block the thing everyone
+  needs. **Same collective-action failure, opposite sign**, both
+  resolving **upward**, both with **compensation** as the honest
+  mechanism.
+- **Why it is a lego, not kernel** — it is a genuine taking, and a
+  polity that values absolute title should be able to **decline it** and
+  discover what unserved districts feel like.
+
+**Catalog metadata:**
+
+| Field | Value |
+|---|---|
+| **Axis** | property vs. infrastructure |
+| **Parameters** | compensation basis; which services qualify; whether a route must be *least-intrusive* |
+| **Depends on** | parcel title + a chartered provider |
+| **Pairs with** | the **LULU siting/compensation** module (the inverse case) |
+| **Conflicts with** | an absolute-title property module |
+
+> **Both halves are the same lesson from opposite ends: some goods
+> cannot be assembled by consent alone, and the honest answer is not
+> force but *force plus payment*.**
+
+## Full faith and credit (module — added 2026-07-31)
+
+**Does a Terminus deed mean anything in Hinkley Hills?** A judgment? A
+marriage? A charter? Out of the notary decomposition
+([insurance-slate § the notary](./insurance-slate.md)), which found
+that cross-jurisdiction recognition is **constitutional, not
+notarial** — there is no job here, there is a rule.
+
+- **What it does** — obliges a locality to **recognise instruments,
+  titles and judgments** validly made in another.
+- **Why it matters immediately** — a **suburb next door** makes it
+  concrete rather than theoretical: **the first cross-border deed is
+  the test case**, and freight makes cross-border *contracts* routine.
+- **The failure without it** — every locality is an island: deeds do not
+  travel, judgments are unenforceable one street over, and a debtor
+  escapes by moving. **Forum-shopping and evasion by relocation** are
+  the emergent pathologies, and they are *exactly* what the doctrine
+  was written to stop.
+- **The honest tension** — recognition also **imports** the other
+  polity's choices. A locality that bans a practice must still honour a
+  neighbour's instrument enacting it. **That is the whole real
+  argument**, and it is a good one to make players have.
+
+**Catalog metadata:**
+
+| Field | Value |
+|---|---|
+| **Axis** | inter-jurisdictional recognition |
+| **Tier** | Compact-level (it binds *localities*) |
+| **Depends on** | the parcel registry + the document tree + jurisdiction |
+| **Pairs with** | **Free movement of goods** (the commerce half) — this is the **instruments** half |
+| **Partial adoptions** | recognise *titles* but not *judgments*; recognise but with a **local registration** step (the apostille shape) |

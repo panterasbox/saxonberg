@@ -1,0 +1,112 @@
+==[ AmmoCode Documentation ]==================================================
+
+This is the technical reference for AmmoCode objects to be used with GunCode
+and MagazineCode.
+
+AmmoCode inherits NewGlobCode, which inherits NewThingCode, so functions like
+set_value(), set_gettable(), and such are all defined and declared in
+new_thing.c or new_glob.c
+
+Any questions, bug reports, spelling corrections, or enhancement requests
+should be addressed to Deathdealer.
+
+=====[ Set Functions ]========================================================
+
+void set_max_damage( int max )
+
+     Used to set the ammo's maximum damage per shot.
+     Default: 5
+
+
+void set_min_damage( int min )
+
+     Used to set the ammo's minimum damage per shot.
+     Default: 3
+
+
+void set_damage( int min, int max )
+
+     This function merely passes <min> and <max> to the corresponing function
+     above, but it is included for its usefulness.
+     
+
+void set_ammo_type( string type )
+
+     Used to set the ammunition type of the round.  Any gun or magazine the
+     ammo is meant to be loaded into must have a matching <type>.
+     Default: ".22 caliber"
+
+
+void set_damage_type( string type )
+
+     Used to set the ammo's damage type when a hit is scored in combat.
+     Default: "piercing"
+
+void set_jam_chance( int jam )
+
+     Used to set the ammo's extra jam chance when being fired from a gun.
+     Bullets that perform special functions or do excessive amounts of
+     damage should have a higher <jam> chance as they will tend to be
+     oddly shaped or bulkier than standard rounds.
+     Default: 0
+
+
+void set_extra_delay( int delay )
+
+     Used to set the bullets extra combat delay when loading into a gun or
+     magazine.  If the round is large, oddly shaped, or particularly heavy it
+     will tend to be more difficult to load, the extra <delay> will reflect
+     this.
+     Default: 0
+
+
+=====[ Query Functions ]======================================================
+
+int query_max_damage()
+
+     Returns the rounds maximum damage.
+
+
+int query_min_damage()
+
+     Returns the rounds minimum damage.
+
+
+string query_ammo_type()
+
+     Returns the rounds ammo type.
+
+
+string query_damage_type()
+
+     Returns the rounds damage type.
+
+
+int query_jam_chance()
+
+     Returns the rounds extra chance of jamming when be fired from a gun.
+
+
+int query_extra_delay()
+
+     Returns the rounds extra combat delay when being loaded into a gun or
+     magazine.
+
+
+=====[ Optional Functions ]===================================================
+
+void extra_hit( object attacker, object target )
+
+     Overload this function if you want the round to do something special
+     when it hits a target (ie, poison them, set them on fire, knock them
+     down, etc...).
+
+
+void extra_message( object attacker, object target )
+
+     Overload this function when you want the round to print out an additional
+     combat message when fired.  For instance, a magazine might have tracers
+     loaded as the last few rounds to let the gun wielder know that they will
+     need to reload the weapon soon.
+
+==[ EOF ]=====================================================================

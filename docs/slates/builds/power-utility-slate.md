@@ -47,6 +47,21 @@ and the source's state gates its dependents:
   the current model remains the honest default; the ref is
   opt-in per fixture.
 
+> **⭐ The physical layer above the ref (added 2026-07-31)** —
+> [delivery-slate § Distribution](./delivery-slate.md) resolves how
+> supply actually *reaches* a point: **coverage is legal, connection is
+> physical.** The prefix claim stays the **franchise area**; the
+> **distribution network is edge attributes on exits** (which exits
+> carry which service), so connectivity derives from a walk — the same
+> trick as freight's emergent road network, with **zero new topology**.
+> The payoff for this slate: **the supply ref can only fail wholesale,
+> but a network fails locally and directionally** — the line to
+> Wharfside is cut and *only Wharfside* goes dark, which is what gives
+> the storm contract's work orders **a place to be** and the linemen
+> **somewhere to go.** Utilities follow the road because of
+> **rights-of-way**, which makes the easement (and the **holdout
+> problem**) a live political object.
+
 Open middle-tier questions: does the ref carry anything besides
 on/off (a voltage the source sets? sag/brownout states?); does the
 conduction walk ever traverse the ref (probably not — it's a

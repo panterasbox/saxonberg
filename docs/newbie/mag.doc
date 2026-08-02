@@ -1,0 +1,158 @@
+==[ MagazineCode Documentation ]==============================================
+
+This is the technical documentation for MagazineCode for use with GunCode
+based weapons and AmmoCode base rounds.
+
+MagazineCode inherits NewThingCode, so functions like set_value(),
+set_weight(), and the like can be found in new_thing.c
+
+Any questions, bug reports, spelling corrections, or enhancement requests
+should be addressed to Deathdealer.
+
+=====[ Set Functions ]========================================================
+
+void set_capacity( int cap )
+
+     Used to set the number of rounds the magazine can hold.
+     Default: 7
+
+
+void set_ammo_type( string type )
+
+     Used to set the ammunition type of the magazine.  Any ammo that is
+     meant to be loaded into the magazine must have the same <type>.
+     Default: ".22 caliber"
+
+
+void set_mag_type( string type )
+
+     Used to set the magazine type.  Any gun the magazine is meant to be
+     used with must have the same <type>.
+     Default: ".22 automatic"
+
+void set_jam_chance( int jam )
+
+     Used to set the extra jam chance when rounds are being fed into a gun
+     from the magazine.  High capacity clips or oddly shaped magazines will
+     tend to have a higher chance of jamming.
+     Default: 1
+
+
+void set_op_delay( int delay )
+
+     Used to set the combat delay for loading a round into the magazine.
+     Large bulky magazines, or clips with odd feeding mechanisms should have
+     a higher operational delay to reflect the additional difficulty in using
+     them.
+     Default: 2
+
+
+void set_slot_delay( int delay )
+
+     Used to set the additional comabt delay when the magazine is loaded into
+     a gun.  Simple clips will tend to have smaller slotting delays than
+     awkward and cumbersome belts of ammunition, for instance.
+     Default: 1
+
+
+void set_queue( int queue )
+
+     Used to set if the magazine holds rounds as a stack or a queue.  A normal
+     clip for gun is a stack (you push rounds on to it), a belt of ammo for
+     a large machine gun is a queue (you add more rounds to the end of it).
+     Default: 0 (stack)
+
+
+=====[ Query Functions ]======================================================
+
+int query_capacity()
+
+     Returns the number of rounds the magazine can hold.
+
+
+string query_ammo_type()
+
+     Returns the type of rounds the magazine can hold.
+
+
+string query_mag_type()
+
+     Returns the magazine type.
+
+
+int query_jam_chance()
+
+     Returns the extra chance of jamming when feeding rounds into a gun.
+
+
+int query_op_delay()
+
+     Returns the combat delay for loading rounds into the magazine.
+
+
+int query_slot_delay()
+
+     Returns the extra combat delay for loading the magazine into a gun.
+
+
+int query_queue()
+
+     Returns if the magazine is queue based (1), or stack based (0).
+
+object *query_ammo()
+
+     Returns the ammo objects currently loaded in the magazine.
+
+
+object query_shot()
+
+     Returns the next shot that will be loaded into a gun.
+
+
+int query_shots()
+
+     Returns the number of shots currently left in the magazine.
+
+
+int query_value()
+
+     Returns the value of the magazine plus the value of any ammunition
+     currently contained in it.
+
+
+int query_weight()
+
+     Returns the weight of the magazine, plus the weight of any ammunition
+     currently contained in it.
+
+
+=====[ Utility Functions ]====================================================
+
+varargs void fill_with( string filename, int num )
+
+     Call this function in extra_create() when you want to fill the magazine
+     with a specific ammunition object (otherwise the magazine will start out
+     empty).  <num> is an optional argument if you want to specify the number
+     of rounds to add, otherwise <num> will default to the magazines capacity.
+     
+     Example:
+     
+     extra_create() {
+       ...
+       fill_with( "/obj/weapon/gun/ammo/223_tracer", 3 );
+       fill_with( "/obj/weapon/gun/ammo/223" );
+       ... }
+       
+     This would put three tracer rounds in the magazine (to be fired last
+     unless the queue flag is set), and then fill the magazine to capacity
+     with normal .223 rounds.
+
+
+=====[ Optional Functions ]===================================================
+
+int extra_jam( object gun )
+
+     Overload this function if you want something special to happen to the
+     magazine in the event of a gun jam.
+
+==[ EOF ]=====================================================================

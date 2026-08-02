@@ -563,3 +563,111 @@ This slate boils down to:
 
 The scripting tail, the LLM brain, combat/defend, and state-triggers wait
 for their own waves.
+
+---
+
+## NPC schedules — derive the crowd, simulate the cast (2026-07-31)
+
+**Captured out of the innkeeper pass**
+([insurance-slate § the innkeeper](./insurance-slate.md)), which came
+out **conditional on this**: *the inn is a real vocation iff the world
+has a rhythm.* This is the rhythm — and it is far cheaper than it
+sounds, because most of it already ships.
+
+### ⭐⭐⭐ A schedule is a claim about POPULATION, not about individuals
+
+The naive build gives every NPC a timetable and walks them around:
+expensive, fragile, and exactly how Radiant-AI-style schedules break.
+
+But look at what is actually wanted — **shops shut, streets empty, the
+watch out, the inn busy.** *None of that requires Gus to walk home.* It
+requires **the aggregate to change.**
+
+> **Derive the crowd; simulate the cast.**
+
+Which is the standing rule that **NPCs are expensive carves** — you
+cannot afford everyone and you do not need to.
+
+### ⭐⭐⭐⭐ And the schedule already exists: it is the SHIFT ROSTER
+
+[employment.md](../../subsystems/employment.md) ships **positions,
+rosters, shifts, and on-shift capability conferral.** Therefore:
+
+> **A shop is closed at night because nobody is rostered — not because
+> of a new scheduling system.**
+
+**NPC schedules are employment shifts respecting the clock.** No new
+substrate.
+
+**⭐⭐ And it makes OPENING HOURS A BUSINESS STRATEGY.** A player-owned
+shop chooses its hours and pays for them — night trade against night
+wages — so the 24-hour city is **something you build**, not a default.
+The inn's *"we are the one place open"* becomes **literally a rostering
+choice**, not a carve-out.
+
+### ⭐⭐⭐ The ambient crowd is PROSE, not objects
+
+The shipped room-spec doctrine already says it: **prose for bulk, Stuff
+for few, NPCs for a full session.** A busy common room is **described**
+as busy; the people you can talk to are the carved handful.
+
+**And ProseApi can read the clock**, so **a room's description varying
+by hour is nearly free** — a very cheap way to make the world feel like
+it has a rhythm, with no simulation behind it.
+
+### The cast, and why it will not break
+
+Named NPCs get real schedules and *are* seen in transit. Three rules:
+
+- ⭐ **The schedule is a PREFERENCE, not a command.** Brains are
+  strategies, not scripts — an NPC *wants* to be home by dark and
+  **copes** if it cannot.
+- ⭐ **Failure is diegetic.** One who cannot get home **sleeps in the
+  stable.** Content, not an error.
+- ⭐⭐⭐ **OBSERVABILITY IS THE OPTIMIZATION BOUNDARY** — if nobody can
+  perceive a transition, do not simulate it; move them.
+
+> **Third instance of that principle today**, after the **governance
+> sweep** (a backstop for what nobody watched) and the **emission
+> model** (compute at the query point). Worth holding as a general rule:
+> **simulate what someone can see; derive the rest.**
+
+⚠ Note the boundary: this is **not** a licence to fork the movement
+path. The freight rule — *the journey issues the same `traverse` a
+player would* — governs **observed** motion. Snapping an **unobserved**
+NPC is an observability optimization, and the two must not be confused.
+
+### ⭐⭐⭐ Night's gameplay is three shipped systems intersecting
+
+**Nobody has to design "night gameplay."** It falls out of:
+
+| System | Contribution |
+|---|---|
+| **light** | genuinely darker, per-viewer, via `signalAt` |
+| **concealment** | viewer-aware, so stealth genuinely works better |
+| **schedules** | **fewer witnesses on the street** |
+
+**Darker, harder to see, and nobody watching** — a crime window nobody
+authored, and it makes concealment matter at a specific **time** rather
+than only in specific **places**.
+
+### ⚠ The 12× clock changes the framing — and adds a tuning risk
+
+At 12× a game day is **~2 real hours**, so night comes round roughly
+hourly.
+
+> **Night is a PULSE, not a demographic.** Everyone experiences it,
+> every session.
+
+That is **stronger** demand for the inn than *"people who play at odd
+hours"* — but it introduces a real risk: **if everything shuts for an
+hour of real time every two hours, that is simply annoying.**
+
+Three mitigations, and the third closes the loop:
+
+1. **stagger the hours** — not everything closes at once;
+2. **essential services stay open** — the ones a player cannot route
+   around;
+3. ⭐ **the inn is the always-open fallback** — so **the innkeeper is
+   justified from the TUNING side as well as the fiction side.** It
+   exists because the world needs somewhere that never closes.

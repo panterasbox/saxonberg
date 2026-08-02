@@ -9,6 +9,10 @@
 > both — it's the world-population substrate.
 
 See also:
+⭐ **[discovery-slate](./discovery-slate.md) (2026-08-02) — the DESIGN layer
+above this mechanism**: what the weights are actually based on, who may
+tune what, and how far the substrate extends (foraging · consumables ·
+creature spawn · ore as the zero-inflow case) ·
 [magic-items-slate](./magic-items-slate.md) (the two consumers: BUC blessing
 sampled at spawn; create-monster = a player-triggered spawn) ·
 [content-packs.md](../../subsystems/content-packs.md) (content-as-data; the

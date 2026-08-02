@@ -102,6 +102,22 @@ up close.
 Corner / no-face; **the visual builds the machine one piece per beat**, so that by the
 Close the whole apparatus is on screen at once.
 
+Frames live in `exports/` (regenerated 2026-07-28 to match the rerecorded
+narration — the old `ch1-01-hub` "routes through one point" frame drew the
+anti-concentration open the 2026-07-25 revision removed, and is retired).
+Per-beat frame map:
+
+| Beat | Frames |
+|---|---|
+| 0 | `ch1-01-selforg` (communities self-organize; the deciding sits empty) → `ch1-02-whyagame` (aim a game at governing — graveyard line omitted; that's Ch 2 Beat 3). Data/reach tail can reuse `ch2-14-reach`. |
+| ① | EVE nod = **camera / b-roll moment** (no generated card) → `ch1-02b-genre` (MMO anchor → MUD in text) → `ch1-03-rings` (three contributors) → `ch1-03b-wall` (the self-enforcing rule — Ch 5's enforce frame at altitude) → `ch1-04-fork` |
+| ② | `ch1-05-openfloor` (now labels the two proposals: in-game gun control / nerf an NPC −10%) |
+| ③ | `ch1-06-graph-attach` → `ch1-07-graph-answered` → `ch1-08-graph-open` |
+| ④ | `ch1-09-chambers` (2-of-3). If the beat needs more than the rings, reuse `ch3-08-counts` (same crowd, three readings) and `ch3-09-money` (the coin stops at its own count). |
+| ⑤ | `ch1-10-model-leg` → `ch1-11-model-exec` → `ch1-12-model-jud` → `ch1-13/14/15-pipeline-*` |
+| ⑥ | `ch1-16-model-record` |
+| Close | `ch1-17-fill` → `ch1-18-dial` → `ch1-19-next` (end card) |
+
 - **0 — corner.** Familiar communities (a livestream + chat, a Discord) already
   self-organize — people making their own rules, keeping their own order. The gap: they
   *hang out*, but few take part in the *deciding* (ballots/roles present, unused). → a

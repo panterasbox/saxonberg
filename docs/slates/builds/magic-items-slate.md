@@ -11,6 +11,15 @@
 > walk.
 
 See also:
+⭐ **[discovery-slate](./discovery-slate.md) (2026-08-02) — HOW THESE GET
+INTO THE WORLD**: the distribution algorithm (stock = accumulation −
+withdrawal), *authors describe / the world weighs*, **rarity derives from
+the grid cell via the arcane price list**, effect-tags vs material-tags,
+concealment-as-a-vector, and the almanac as the readable face. Read it
+before spec'ing the catalog — **it decides what an item must declare.** ·
+[pharma-slate](./pharma-slate.md) (**potions and scrolls are pharma's
+product line**; the credence-good thesis covers the whole consumable
+category) ·
 [identification-slate](../tails/identification-slate.md) (**the sibling
 axis** — item *identity*, "a blue potion" → "a potion of healing", the
 deductive class-level game; BUC is the orthogonal *instance* axis) ·

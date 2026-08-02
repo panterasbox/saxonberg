@@ -200,6 +200,102 @@ sophistication, keep the shape.**
 
 ---
 
+### ⭐⭐⭐⭐ Revisited 2026-08-02 — emote valence was a PLACEHOLDER
+
+**(User: *"that whole valence thing was half thought out. it was more a
+placeholder for me because I didn't have any other ideas at the time of
+ways we could measure standing at the consumer level. now we have much
+more game built out so there's more surface to read from."*)**
+
+⭐ **The architecture already hedged for this.** `renown.md`: the log
+stores the **"raw, pre-valence signal (no score) so re-legislating the
+value-function"** is possible. **Swapping what feeds consumer standing is
+the change the raw log was BUILT to allow** — not a retrofit.
+
+#### The principle that demotes reactions
+
+> **Approval is EXPRESSED. Preference is REVEALED. REVEALED BEATS
+> EXPRESSED.**
+
+An emote reaction is **cheap talk** — free to give, free to withhold,
+socially reflexive, and it measures **approval of one act** rather than
+anything about the person. A reasonable placeholder when it was the only
+handle; **not the spine now that better ones exist.**
+
+#### ⭐⭐⭐⭐ The strongest signal: someone chose you AGAIN
+
+> **One interaction is an accident. The second is a choice.**
+
+**Repeat engagement is the strongest measure in any real system** —
+retention beats rating everywhere, because it costs something and cannot
+be performed. Derivable from logs shipped across every subsystem added
+since renown: parties re-formed, tables returned to, contracts re-let,
+shops revisited.
+
+#### ⭐⭐⭐ Contacts — and why they resolve their own farming problem
+
+Adding someone to a contact list is **deliberate, private, revealed** —
+*I want to be able to find this person* — and it is owner-only, so it
+cannot be farmed by asking publicly. Against the obvious reciprocal-farm
+objection:
+
+> **A contact is a CLAIM. An interaction is a DEED. Standing rides
+> deeds.**
+
+The chronicle's own distinction, applied to social measurement: an unused
+contact is a claim nobody acted on, so it decays to nothing — which is
+just **standing measures a RATE, not a total**, holding as always.
+
+#### ⭐⭐⭐⭐ Employment history (user)
+
+The richest untapped surface, and it **splits across two stocks**:
+
+> **The WAGE is for what you made. The TIP is for who you were.**
+
+The employer pays for output (**producer**); the customer tips for service
+(**consumer**). Same job, two signals, two stocks.
+
+- ⭐⭐⭐⭐ **Tips are the purest revealed preference in the game** —
+  voluntary, costly, individual, given *after* the fact. Better than a
+  contact and better than a repeat, because **expressing it costs money.**
+  ⚠ **Counted as DISTINCT TIPPERS PER BUCKET, never as amount** — the
+  established *credit per patron per bucket* fix, which kills the whale
+  problem and is *also true*: twenty small tips mean more than one large
+  one.
+- **Being re-rostered** is producer-side repeat; **being asked for by
+  name** is consumer-side.
+- ⭐⭐⭐ **An employment record is the only social signal with an
+  INSTITUTION'S MONEY behind it** — not self-declared, not a friend's
+  opinion, but a business's revealed decision with a payment attached.
+  **That is what makes a CV worth anything in life**, and it is the
+  LinkedIn-flank thesis appearing mechanically.
+- ⭐ **Tenure is the hardest signal to fake**, because it costs time that
+  cannot be compressed.
+
+#### The revised feed
+
+| Signal | Why it is honest |
+|---|---|
+| ⭐ **repeat interaction** | the strongest — **cannot be performed** |
+| ⭐ **tips, counted by distinct tipper** | revealed preference **with a price** |
+| ⭐ **contacts, weighted by USE** | revealed intent, privately given |
+| **tenure / re-rostering** | third-party attested, time-costly |
+| **being sought** | attendant queues, party invitations, asked for by name |
+| **reception** (shipped) | being heard — weak but real |
+| **reactions / valence** (shipped) | ⬇ **demoted to a small term — kept as texture, not spine** |
+
+⚠ **Keep OUT of consumer standing**: forum popularity and sales volume are
+**producer** signals. Consumer standing is **play** standing — whether
+people value your **presence**, not your **output**. Mixing them
+**collapses two of the three stocks into one.**
+
+⭐ **This does not disturb [mind-slate](./mind-slate.md)'s emote reading** —
+that is of *the actor's own distribution*, not of anyone's approval.
+**Different axis; a good sign both readings are real** rather than one
+being a reinterpretation of the other.
+
+---
+
 ## NPCs
 
 - An NPC's charisma is the **quality of its authored voice** (content,

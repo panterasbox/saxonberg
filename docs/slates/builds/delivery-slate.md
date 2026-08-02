@@ -233,6 +233,137 @@ bring a place onto the grid.
   carrier finishes. **Flat in v1**; regional sorting hubs are a later
   refinement.
 
+> **⭐ Why mail is hub-and-spoke and freight is not (2026-07-31).** The
+> trunk design above *is* hub-and-spoke, and correctly so — see
+> [freight-slate § Topology](./freight-slate.md). Hub-and-spoke is an
+> **economic** result, not a topological one: **N origins and N
+> destinations need N² direct routes or 2N through a hub**, and the hub
+> costs a detour to buy **load factor**. **The switch is CAPACITY** —
+> the same line that separates mail from freight for the TPA. **Mail is
+> small and fragmented, so it always consolidates**; a full wagonload
+> goes direct. Which also makes the world's three networks genuinely
+> distinct objects: a **utility** is a tree rooted at a source with
+> intrinsic direction, **freight** is a sourceless bidirectional O-D
+> matrix, and the **TPA** is an authored directed graph where distance
+> costs nothing.
+
+### Distribution — coverage is legal, connection is physical (2026-07-31)
+
+**(Out of the freight/transport session: *"most of that flows under the
+same road network that transport would use, I presume."*)** Correct —
+and the section above left the hole in exactly the right shape.
+
+Coverage as designed is deliberately **non-spatial** (a prefix claim +
+the nearest-ancestor walk). Real distribution is intensely spatial, and
+it follows roads for one reason: **rights-of-way.** The road corridor is
+continuous, publicly-controlled land — the only kind you can run a main
+along without negotiating with a hundred owners.
+
+The two are **not** in conflict; they answer different questions, and
+real utilities have exactly this split:
+
+| Question | Mechanism |
+|---|---|
+| *Am I entitled to service here?* | **prefix coverage** — the **franchise area**, a legal fact. **Unchanged from the design above.** |
+| *Is service actually reaching me right now?* | **the network walk** — a physical fact |
+
+That is **service available vs. service connected** (which is why
+connection fees exist). And the design already anticipated it: presence
+is *"provider exists **and** up **and** the point isn't cut."*
+
+> **The `cut` flag becomes DERIVED rather than stamped** — *is there an
+> intact path from a source to here?*
+
+#### ⭐⭐ Lines are edge attributes on exits
+
+Same trick as [freight-slate](./freight-slate.md)'s emergent road
+network: **you do not author a pipe network.** Mark **which exits carry
+which service**, and connectivity derives from the walk. **Zero new
+topology.**
+
+And it buys what prefix coverage never can — **a line is a thing at a
+place**: diggable, cuttable, tappable, repairable, with an actual
+location.
+
+> **Prefix coverage can only fail wholesale; a network fails locally
+> and directionally.**
+
+Either Terminus has power, or **the line to Wharfside is cut and only
+Wharfside is dark.** The difference between an *announcement* and an
+*event* — and it gives the storm contract's work orders somewhere to
+**be**, and the linemen somewhere to **go**.
+
+#### ⭐ The easement is where it turns political
+
+The **road owner controls the corridor.** A turnpike trust owns the
+road; the water company needs a main under it. So either a **negotiated
+easement**, or a **statutory right-of-way** — which is what real law
+grants, precisely because negotiating with every landowner is
+impossible.
+
+> **⭐⭐ The honest argument for compulsory easements is the HOLDOUT
+> PROBLEM — which is LULU inverted.** LULU: *nobody* wants the abattoir.
+> Holdout: **everybody wants the water, and one landowner can block a
+> whole district.** Two collective-action failures with opposite signs,
+> both resolving upward, both with **compensation** as the honest
+> mechanism. (Module in
+> [amendment-library-slate](./amendment-library-slate.md); the LULU half
+> is in [zoning-slate](./zoning-slate.md).)
+
+**And "digging up the road" is a real conflict between two businesses** —
+**measurable**, because road quality is a number (exit `speed`). *"The
+utility trashed my turnpike"* is a **provable claim**, not a grievance.
+
+#### ⭐ Topology differs by service, and the differences are legible
+
+| Service | Topology |
+|---|---|
+| water · sewer · power · gas · line | **follows the road** |
+| **the aether** | **radiates from towers** — a different topology entirely |
+| **sewage** | **flows downhill** — directional |
+
+So **you can be on the aether and off the water main**: frontier towns
+with information and no plumbing, which is exactly the modern rural
+pattern. And sewage is a **third consumer of the "downstream of"
+relation** (with effluent nuisance and the water channel in
+[zoning-slate](./zoning-slate.md)) — **build it once.** The outfall,
+incidentally, is a LULU.
+
+#### ⭐⭐ The unifying concept: natural monopoly
+
+The **turnpike trust and the utility are the same business** — high
+fixed cost, low marginal cost, one network serving everyone more
+cheaply than two could. That is *why* roads, water, power and rail are
+**rate-regulated rather than competitive**, and why the toll schedule
+being a **`parameter` clause in law** generalizes directly to **the
+tariff**.
+
+> **The polity learns "natural monopoly" by meeting it three times** —
+> the turnpike, the utility, and then the freight corpo, which is when
+> someone finally notices it is a *pattern* and legislates the general
+> rule.
+
+> **⭐⭐ And the three BUSINESSES teach three different monopoly SHAPES**
+> — completed in [sanitation-slate § The salvage yard as a
+> business](./sanitation-slate.md). The **turnpike**'s power is
+> **geographic** → **rate cap**; the **depot**'s is a **network
+> effect** → **common carrier / non-discrimination**; the
+> **salvage-and-materials** arm's is **vertical integration** (own the
+> mines *and* the scrapyards) → **structural separation**. *Three
+> monopolies, three remedies — a polity that meets all three has been
+> taught competition policy by living in it.*
+>
+> **And a fourth business teaches the flip side: the SECOND-HAND MARKET
+> has no monopoly shape at all**, because its inventory is
+> **non-fungible and locally sourced** — you cannot corner a market
+> where every unit is different. **Monopoly needs fungibility and
+> scale; uniqueness defends competition.**
+
+⚠ **Boundary:** **metering and per-parcel billing belong to the
+property/residences build** (service to titled property, the
+invoice-the-owners loop). **Design the network; let them own the
+invoice.**
+
 ### The carrier (post) — almost all delegation
 
 The maximally-simulated corner turns out to be the **cheapest**, because

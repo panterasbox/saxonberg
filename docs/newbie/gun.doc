@@ -1,0 +1,276 @@
+==[ GunCode Documentation ]===================================================
+
+This file will hopefully serve as all the technical reference anyone will
+ever need to write gun based weapons.  First allow me to explain the
+differences between energy guns and "normal" guns:
+
+EGunCode guns use energy to fire beams, plasma, lasers, lightning bolts,
+etc.  The energy comes from either internal batteries in the gun, or power
+cell objects.  The damage is controlled by the gun, each shot taking a
+certain amount of energy to fire.  Different guns will do different damage
+and require different amounts of energy per shot, thus, the same power cell
+will not always fire the same number of shots in different guns.
+  -- See also: CellCode
+
+GunCode guns use bullets (or other projectiles) for ammunition.  Each
+projectile is a seperate object and the damage dealt during combat is
+controlled primarily by the projectile objects.  The same projectile fired
+from multiple guns will tend do similar amounts of damage.  Projectiles can
+be stored in the gun itself (ie., a revolver) or in a seperate magazine
+(ie., a clip-fed assualt rifle).  The same magazine in different weapons
+will always contain the same number of shots.
+  -- See also: AmmoCode, MagazineCode
+
+GunCode inherits NewWeaponCode, so all functions like set_proficiency() and
+set_handed() are contained in NewWeaponCode.  
+
+Any questions, bug reports, spelling corrections, or enhancement requests
+should be addressed to Deathdealer.
+
+=====[ Set Functions ]========================================================
+
+void set_mag_fed( int mf )
+
+     Used to set whether or not the gun is magazine fed or stores ammo itself.
+     Default: 1
+
+
+void set_capacity( int cap )
+
+     Used to set the number of rounds the magazine can hold.  Magazine fed
+     guns cannot hold rounds internally and ignore any set capacity.
+     Default: 0
+
+
+void set_ammo_type( string type )
+
+     Used to set the ammunition type of the magazine.  Any ammo that is
+     meant to be loaded into the magazine must have the same <type>.
+     Default: see set_mag_type
+
+
+void set_mag_type( string type )
+
+     Used to set the magazine type.  Any gun the magazine is meant to be
+     used with must have the same <type>.
+     Default: ".22 automatic"
+
+void set_jam_chance( int jam )
+
+     Used to set the extra jam chance when rounds are being fed into the gun.
+     Guns with complex feed systems and high rates of fire will tend to jam
+     more often.
+     Default: 1
+
+     NOTE: jam percentage goes up by 1 for every round fired when the gun is
+     used in burst mode, regardless of the set jam_chance.
+
+
+void set_jam_delay( int delay )
+
+     Used to set combat delay for unjamming a jammed round.  Guns with
+     complex feed mechanisms and high rates of fire will tend to have higher
+     jam delays.
+     Default: 4
+
+void set_op_delay( int delay )
+
+     Used to set the combat delay for loading a round or magazine into the gun.
+     Guns with guns with complex feed systems (belt fed, for instance) will
+     tend to have higher delays than guns that are easier to operate (a
+     standard magazine fed gun).
+     Default: 1
+
+
+void set_queue( int queue )
+
+     Used to set if the gun holds rounds as a stack or a queue.  A normal
+     clip for gun is a stack (you push rounds on to it), a belt of ammo for
+     a large machine gun is a queue (you add more rounds to the end of it).
+     Guns that are magazine fed don't care if they are queue or not, as the
+     magazine determines it.
+     Default: 0 (stack)
+
+
+void set_recoil( int recoil )
+
+     Used to set the negative hit bonus per round of ammunition fired during
+     a burst.  Guns that fire very powerful rounds or fire them at very high
+     velocities will tend to have higher recoil.  Recoil does not matter when
+     the gun is fired in single-shot mode.
+     Default: 1
+
+
+void set_burst( int burst )
+
+     Used to set the number of shots the gun can fire during a single combat
+     round when in burst mode.  Guns with very high burst rates will tend to
+     jam more.
+     Default: 1
+
+
+void set_switchable( int switchable )
+
+     Used to set if a gun can be switched between single-shot and burst modes.
+     1 is switchable, 0 is not.
+     Default: 0
+
+
+void set_mode( int mode )
+
+     Used to set starting mode of a gun.  0 is single-shot, 1 is burst-fire.
+     Default: 0
+     
+     NOTE: if burst number is not 2 or greater, mode cannot be set to burst
+     fire.
+
+
+void set_reliability( int reliability )
+
+     Used to set the guns basic reliability.  As the gun gets used on combat,
+     it will age and become more likely to jam.  Guns that do large amounts of
+     damage should generally have lower reliability ratings.  Reliability can
+     be set anywhere from 1 (very very very low) to 200.
+     Default: 100
+
+=====[ Query Functions ]======================================================
+
+int query_max_damage( object who )
+
+     Returns calculated max damage, including proficiency and stat bonuses
+     for <who>, minus the minimum damage for the gun.
+
+
+int query_capacity()
+
+     Returns the number of rounds the gun can hold.
+
+
+string query_ammo_type()
+
+     Returns the type of rounds the gun can hold.
+
+
+string query_mag_type()
+
+     Returns the magazine type the gun can hold.
+
+
+int query_jam_chance()
+
+     Returns the extra chance of jamming when feeding rounds into the gun.
+
+
+int query_op_delay()
+
+     Returns the combat delay for loading a round or a magazine into the gun.
+
+
+int query_queue()
+
+     Returns if the gun is queue based (1), or stack based (0).
+
+object *query_ammo()
+
+     Returns the ammo objects currently loaded in the magazine.
+
+
+object query_shot()
+
+     Returns the next shot that will be fired from the gun.
+
+
+int query_shots()
+
+     Returns the number of shots currently left in the gun.
+
+
+int query_switchable()
+
+     Returns 1 if the gun can mode switch between single-shot and burst,
+     0 if it cannot.
+
+
+int query_mode()
+
+     Returns 1 if the gun is in burst mode, 0 if in single-shot.
+
+
+int query_reliability()
+
+     Returns the guns reliability factor.
+
+
+int query_shots_fired()
+
+     Returns the number of shots fired from the gun.
+     NOTE: This is not an absolutely correct number, as it can be
+     modified and reduced by maintenance on the gun.  It is only the
+     number of shots used when calculating reliability based effects.
+
+
+int query_value()
+
+     Returns the value of the gun plus the value of any magazine or ammo
+     currently contained in it.
+
+
+int query_weight()
+
+     Returns the weight of the gun, plus the weight of any magazine or ammo
+     currently contained in it.
+
+
+=====[ Utility Functions ]====================================================
+
+varargs void fill_with( string filename, int num )
+
+     Call this function in extra_create() when you want to fill the gun
+     with a specific ammunition object (otherwise the gun will start out
+     empty).  <num> is an optional argument if you want to specify the number
+     of rounds to add, otherwise <num> will default to the guns capacity.
+     
+     Example:
+     
+     extra_create() {
+       ...
+       fill_with( "/obj/weapon/gun/ammo/223_tracer", 3 );
+       fill_with( "/obj/weapon/gun/ammo/223" );
+       ... }
+       
+     This would put three tracer rounds in the gun (to be fired last
+     unless the queue flag is set), and then fill the gun to capacity
+     with normal .223 rounds.
+
+
+=====[ Optional Functions ]===================================================
+
+int extra_jam( object gun )
+
+     Overload this function if you want something special to happen to the
+     magazine in the event of a gun jam.
+
+
+void extra_hit( object attacker, object target, int roll, int dam )
+
+     Overload this function when you want the gun to do something special
+     when a shot fired from it hits the target.
+
+
+=====[ Functions called in wielder ]==========================================
+
+void reload_gun( object gun )
+
+     This function is called in the wielding monster or player when the gun
+     runs out of ammo.  It can be used to make a monster re-load a gun when
+     needed, or switch to an alternate weapon, or whatever else you want.
+
+
+void gun_jammed( object gun )
+
+     This function is called in the the wielding monster or player in the
+     event of a gun jam.  It can be used to make the monster un-jam the gun,
+     switch to a backup weapon un-jam the gun or whatever else you might want
+     to have it do.
+
+==[ EOF ]=====================================================================

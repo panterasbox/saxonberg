@@ -143,6 +143,37 @@ remake.
 
 ---
 
+## The LinkedIn flank (leverage, added 2026-07-30)
+
+LinkedIn Learning is a direct study.com competitor — and Saxonberg's
+chronicle/advancement substrate is a **LinkedIn-killer primitive**:
+the professional profile LinkedIn *pretends* to be, produced as a
+byproduct of play. Four structural advantages over the incumbent:
+
+1. **Deeds with receipts vs. claims** — résumés are self-authored,
+   endorsements are reciprocity theater; the chronicle/transcript
+   draws deed-vs-claim at the schema level (witnessed, receipted,
+   derive-on-read). The mirror-with-receipts IS what a profile page
+   has always pretended to be.
+2. **Fun vs. chore** — nobody wants to be on LinkedIn; it's a
+   between-jobs performance. The participation engine accrues the
+   profile as a byproduct of wanting to show up. Their engagement
+   problem is our foundation.
+3. **Earned memory vs. connection spam** — per-viewer recognition,
+   regard from behavior, durable contacts.
+4. **Transacted vs. asserted work history** — employment, wages,
+   contracts, escrow: the work happened on the ledger.
+
+**Why this is study.com leverage, not a hazard:** the megacorp can
+stand up its own game-shaped credential world with its own models —
+eventually. Study.com can be **first** to wield this one: partnering
+with Saxonberg flanks LinkedIn Learning with an asset LinkedIn cannot
+copy quickly (an honest world compounds; content can be generated,
+provenance can't). First-mover on the seam = the urgency argument in
+the room. This is deck/conversation material — the *videos* keep the
+no-competitor rule (V3 carries exactly one unnamed sentence); the
+named, four-point version lives here and in any investor context.
+
 ## Go-to-market alternatives
 
 Models, lightest first. Not mutually exclusive — A is the on-ramp to
