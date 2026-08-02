@@ -1,0 +1,3650 @@
+[
+  {
+    "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
+    "index": 0,
+    "className": "SpawnTreasury",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
+    "index": 1,
+    "className": "SpawnSword",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
+    "index": 2,
+    "className": "SpawnPotion",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
+    "index": 3,
+    "className": "SpawnLibrary",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/glob.test.ts",
+    "index": 0,
+    "className": "Coin",
+    "persistentFields": [
+      "quantity",
+      "name",
+      "tarnished",
+      "denomination"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": [
+      "tarnished",
+      "denomination"
+    ]
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mql-subscription.displayName.test.ts",
+    "index": 0,
+    "className": "NamedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mql-subscription.displayName.test.ts",
+    "index": 1,
+    "className": "Plain",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mql-subscription.focus.test.ts",
+    "index": 1,
+    "className": "PlainNamed",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/mql-subscription.projection.test.ts",
+    "index": 0,
+    "className": "PlainNamed",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/perception.sensorium.augment.test.ts",
+    "index": 0,
+    "className": "AvatarLike",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/prompt.format.test.ts",
+    "index": 1,
+    "className": "Plain",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/template.snapshotRestore.test.ts",
+    "index": 0,
+    "className": "TestHost",
+    "persistentFields": [
+      "nickname",
+      "level"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
+    "index": 0,
+    "className": "SingletonContainerTarget",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
+    "index": 1,
+    "className": "NonSingletonContainerTarget",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
+    "index": 2,
+    "className": "ContainableSource",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
+    "index": 3,
+    "className": "NonContainableSource",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Bed.ts",
+    "index": 0,
+    "className": "Bed",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Corridor.ts",
+    "index": 0,
+    "className": "Corridor",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Desk.ts",
+    "index": 0,
+    "className": "Desk",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/duncan-hall/DormRoom.ts",
+    "index": 0,
+    "className": "DormRoom",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Footlocker.ts",
+    "index": 0,
+    "className": "Footlocker",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/university-avenue/CrossingLog.ts",
+    "index": 0,
+    "className": "CrossingLog",
+    "persistentFields": [
+      "marks",
+      "startingCount"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/eternal/university-avenue/MechanicalMovement.ts",
+    "index": 0,
+    "className": "MechanicalMovementMixin",
+    "persistentFields": [
+      "setTo",
+      "setAt",
+      "rate",
+      "runSeconds",
+      "springStamp"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/lounge/Bar.ts",
+    "index": 0,
+    "className": "Bar",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/lounge/GlassAlley.ts",
+    "index": 0,
+    "className": "GlassAlley",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/lounge/Lounge.ts",
+    "index": 0,
+    "className": "Lounge",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/lounge/LoungeMixin.ts",
+    "index": 0,
+    "className": "LoungeMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "warren"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/domain/lounge/Offstage.ts",
+    "index": 0,
+    "className": "Offstage",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/accountability/AccountabilityEvent.ts",
+    "index": 0,
+    "className": "AccountabilityEvent",
+    "persistentFields": [
+      "kind",
+      "sessionId",
+      "initiator",
+      "opponent",
+      "victim",
+      "killer",
+      "lethality",
+      "stopCondition",
+      "consented",
+      "sentient",
+      "locality",
+      "formationPath",
+      "killerRole",
+      "directedBy",
+      "at",
+      "realAt",
+      "circleScope"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/address/Addressable.ts",
+    "index": 0,
+    "className": "AddressableMixin",
+    "persistentFields": [
+      "_address"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/address/Locality.ts",
+    "index": 0,
+    "className": "Locality",
+    "persistentFields": [
+      "name",
+      "_address",
+      "_weatherPin",
+      "_climateLean",
+      "_governmentKey"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/advancement/Discipline.ts",
+    "index": 0,
+    "className": "Discipline",
+    "persistentFields": [
+      "key",
+      "channel",
+      "label",
+      "description",
+      "iscedf",
+      "requires",
+      "specializes",
+      "synergizes",
+      "conferrals"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/advancement/TranscriptEntry.ts",
+    "index": 0,
+    "className": "TranscriptEntry",
+    "persistentFields": [
+      "owner",
+      "kind",
+      "when",
+      "discipline",
+      "difficulty",
+      "outcome",
+      "tags"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/attendant/AttendancePoint.ts",
+    "index": 0,
+    "className": "AttendancePoint",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/attendant/Attendant.ts",
+    "index": 0,
+    "className": "AttendantMixin",
+    "persistentFields": [
+      "discipline",
+      "serverPositionKeys",
+      "staffingPolicy",
+      "attendDurationMs",
+      "skin",
+      "businessPath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/attendant/Ticket.ts",
+    "index": 0,
+    "className": "Ticket",
+    "persistentFields": [
+      "pointPath",
+      "number"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/banking/AccountBalance.ts",
+    "index": 0,
+    "className": "AccountBalance",
+    "persistentFields": [
+      "accountId",
+      "owner",
+      "bank",
+      "bankPath",
+      "corpoKey",
+      "isPrimary",
+      "isActive",
+      "balance"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/banking/Bank.ts",
+    "index": 0,
+    "className": "BankMixin",
+    "persistentFields": [
+      "corpoKey",
+      "terms",
+      "bank"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/banking/BankCounter.ts",
+    "index": 0,
+    "className": "BankCounter",
+    "persistentFields": [
+      "corpoKey"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/banking/LedgerEntry.ts",
+    "index": 0,
+    "className": "LedgerEntry",
+    "persistentFields": [
+      "kind",
+      "fromAccount",
+      "toAccount",
+      "amount",
+      "memo",
+      "category",
+      "actor",
+      "locality",
+      "txId",
+      "at",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/banking/SupplyAggregate.ts",
+    "index": 0,
+    "className": "SupplyAggregate",
+    "persistentFields": [
+      "minted",
+      "drained"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/behavior/Behaved.ts",
+    "index": 0,
+    "className": "BehavedMixin",
+    "persistentFields": [
+      "behaviors",
+      "dispositions"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/belief/BeliefDocument.ts",
+    "index": 0,
+    "className": "BeliefDocument",
+    "persistentFields": [
+      "viewerId",
+      "realm",
+      "referent",
+      "knownAs",
+      "firstSeen",
+      "lastSeen",
+      "payload"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/biome/Atmospheric.ts",
+    "index": 0,
+    "className": "AtmosphericMixin",
+    "persistentFields": [
+      "_biomePath",
+      "_temperature",
+      "_pressure",
+      "_humidity",
+      "_wind",
+      "_gravity",
+      "_atmosphere",
+      "_detailTemperatures",
+      "_detailPressures",
+      "_detailHumidities",
+      "_detailWinds",
+      "_detailGravities",
+      "_detailAtmospheres",
+      "_weatherPin"
+    ],
+    "fieldMarshallers": {
+      "_gravity": "QuantityMarshaller.pathFor('m/s²')",
+      "_humidity": "QuantityMarshaller.pathFor('%')",
+      "_pressure": "QuantityMarshaller.pathFor('Pa')",
+      "_temperature": "QuantityMarshaller.pathFor('K')",
+      "_wind": "QuantityMarshaller.pathFor('m/s')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/biome/Biome.ts",
+    "index": 0,
+    "className": "Biome",
+    "persistentFields": [
+      "name",
+      "_extendsBiomePath",
+      "_defaultTemperature",
+      "_defaultPressure",
+      "_defaultHumidity",
+      "_defaultWind",
+      "_defaultGravity",
+      "_defaultAtmosphere",
+      "_defaultAmbientSoundLevel",
+      "_ambientSoundMml",
+      "_ambientSmellMml"
+    ],
+    "fieldMarshallers": {
+      "_defaultAmbientSoundLevel": "QuantityMarshaller.pathFor('dB')",
+      "_defaultGravity": "QuantityMarshaller.pathFor('m/s²')",
+      "_defaultHumidity": "QuantityMarshaller.pathFor('%')",
+      "_defaultPressure": "QuantityMarshaller.pathFor('Pa')",
+      "_defaultTemperature": "QuantityMarshaller.pathFor('K')",
+      "_defaultWind": "QuantityMarshaller.pathFor('m/s')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Adornable.ts",
+    "index": 0,
+    "className": "AdornableMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "adornments"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Exit.ts",
+    "index": 0,
+    "className": "Exit",
+    "persistentFields": [
+      "messageIn",
+      "messageOut",
+      "media",
+      "wheelPassable",
+      "blocked",
+      "muffled",
+      "noFollow",
+      "oneWay"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Exitable.ts",
+    "index": 0,
+    "className": "ExitableMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "exits"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Locked.ts",
+    "index": 0,
+    "className": "LockableMixin",
+    "persistentFields": [
+      "locked"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Switchable.ts",
+    "index": 0,
+    "className": "SwitchableMixin",
+    "persistentFields": [
+      "on"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/boundary/Window.ts",
+    "index": 0,
+    "className": "Window",
+    "persistentFields": [
+      "baseTransmissivity",
+      "aToBOverride",
+      "bToAOverride",
+      "colorTint",
+      "attachedHosts"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/bulk/Bulkable.ts",
+    "index": 1,
+    "className": "BulkableMixin",
+    "persistentFields": [
+      "interiorBulk",
+      "surfaceBulk",
+      "interiorMaterial",
+      "interiorPayload",
+      "interiorAmount",
+      "interiorCapacity",
+      "surfaceMaterial",
+      "surfacePayload",
+      "surfaceAmount",
+      "surfaceCapacity",
+      "closure"
+    ],
+    "fieldMarshallers": {
+      "interiorAmount": "VOLUME_MARSHALLER",
+      "interiorCapacity": "VOLUME_MARSHALLER",
+      "surfaceAmount": "VOLUME_MARSHALLER",
+      "surfaceCapacity": "VOLUME_MARSHALLER"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/bulletin/Bulletin.ts",
+    "index": 0,
+    "className": "Bulletin",
+    "persistentFields": [
+      "bulletinId",
+      "realm",
+      "kind",
+      "headline",
+      "body",
+      "author",
+      "publishedAt",
+      "pinned",
+      "expiresAt",
+      "retracted"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/character/Character.ts",
+    "index": 0,
+    "className": "Character",
+    "persistentFields": [
+      "_domicileAddress"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/character/Gendered.ts",
+    "index": 0,
+    "className": "GenderedMixin",
+    "persistentFields": [
+      "pronouns"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/character/Persona.ts",
+    "index": 0,
+    "className": "PersonaMixin",
+    "persistentFields": [
+      "bio",
+      "aspiration"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/character/Posed.ts",
+    "index": 0,
+    "className": "PosedMixin",
+    "persistentFields": [
+      "posture",
+      "restingOnPath",
+      "restingSlot"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/character/Sexed.ts",
+    "index": 0,
+    "className": "SexedMixin",
+    "persistentFields": [
+      "sex"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/Chattel.ts",
+    "index": 0,
+    "className": "ChattelMixin",
+    "persistentFields": [
+      "_chattelId",
+      "_place"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/ChattelEvent.ts",
+    "index": 0,
+    "className": "ChattelEvent",
+    "persistentFields": [
+      "chattelId",
+      "event",
+      "from",
+      "to",
+      "actor",
+      "at"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/ChattelRecord.ts",
+    "index": 0,
+    "className": "ChattelRecord",
+    "persistentFields": [
+      "chattelId",
+      "owner",
+      "titledAt",
+      "place"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/Estate.ts",
+    "index": 0,
+    "className": "EstateMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/__tests__/Estate.test.ts",
+    "index": 1,
+    "className": "Owner",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts",
+    "index": 1,
+    "className": "Room",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts",
+    "index": 2,
+    "className": "Person",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts",
+    "index": 3,
+    "className": "Sleeper",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/chronicle/ChronicleEntry.ts",
+    "index": 0,
+    "className": "ChronicleEntry",
+    "persistentFields": [
+      "owner",
+      "kind",
+      "when",
+      "order",
+      "where",
+      "who",
+      "text",
+      "tags",
+      "key"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/civics/Government.ts",
+    "index": 0,
+    "className": "Government",
+    "persistentFields": [
+      "key",
+      "displayName",
+      "description",
+      "charter",
+      "treasury",
+      "departments",
+      "seats"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/combat/CombatFormation.ts",
+    "index": 0,
+    "className": "CombatFormation",
+    "persistentFields": [
+      "name",
+      "roles",
+      "allocation",
+      "primaryRole",
+      "protectsRoles",
+      "interceptorRoles",
+      "interceptTrigger",
+      "coupRight",
+      "coupCall"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/combat/Combatant.ts",
+    "index": 0,
+    "className": "CombatantMixin",
+    "persistentFields": [
+      "naturalAttackChannel",
+      "standingLethality",
+      "standingStopCondition"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/command/validators/__tests__/requiresSensorium.test.ts",
+    "index": 0,
+    "className": "OrganismGiver",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/commerce/Menu.ts",
+    "index": 0,
+    "className": "CommerceMenu",
+    "persistentFields": [
+      "offeredRecipes"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/commerce/PricedOffer.ts",
+    "index": 0,
+    "className": "PricedOfferMixin",
+    "persistentFields": [
+      "prices"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/comms/__tests__/Comms.test.ts",
+    "index": 0,
+    "className": "AttunedActor",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/concealment/Concealable.ts",
+    "index": 0,
+    "className": "ConcealableMixin",
+    "persistentFields": [
+      "concealment",
+      "concealmentHint"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/concealment/Hiding.ts",
+    "index": 0,
+    "className": "HidingMixin",
+    "persistentFields": [
+      "hiding",
+      "hiddenLevel"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/config/AppSettings.ts",
+    "index": 0,
+    "className": "AppSettings",
+    "persistentFields": [
+      "values"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/connection/HasInteractive.ts",
+    "index": 0,
+    "className": "HasInteractiveMixin",
+    "persistentFields": [
+      "_clientState"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/corpo/Brand.ts",
+    "index": 0,
+    "className": "Brand",
+    "persistentFields": [
+      "key",
+      "name",
+      "owner",
+      "category",
+      "positioning",
+      "descriptor"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/corpo/Branded.ts",
+    "index": 0,
+    "className": "BrandedMixin",
+    "persistentFields": [
+      "_brandKey"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/corpo/Corpo.ts",
+    "index": 0,
+    "className": "Corpo",
+    "persistentFields": [
+      "key",
+      "label",
+      "sector",
+      "ethos",
+      "aesthetic",
+      "temperament",
+      "description",
+      "rivals"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/craft/Crafted.ts",
+    "index": 0,
+    "className": "CraftedMixin",
+    "persistentFields": [
+      "maker",
+      "recipe",
+      "craftedAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/craft/Graded.ts",
+    "index": 0,
+    "className": "GradedMixin",
+    "persistentFields": [
+      "gradeBand"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/craft/Recipe.ts",
+    "index": 0,
+    "className": "Recipe",
+    "persistentFields": [
+      "recipeId",
+      "name",
+      "keywords",
+      "inputSlots",
+      "toolCapabilities",
+      "outputTemplate",
+      "outputMaterial",
+      "baseGradeBand",
+      "requiresHeatK",
+      "outputApplication",
+      "outputPortionL",
+      "outputAppearance",
+      "difficulty",
+      "discipline"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/craft/Tooled.ts",
+    "index": 0,
+    "className": "ToolMixin",
+    "persistentFields": [
+      "capabilities"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/credential/CredentialWallet.ts",
+    "index": 0,
+    "className": "CredentialWalletMixin",
+    "persistentFields": [
+      "credentials"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/Detailed.ts",
+    "index": 0,
+    "className": "DetailedMixin",
+    "persistentFields": [
+      "details"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "details"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/Named.ts",
+    "index": 0,
+    "className": "NamedMixin",
+    "persistentFields": [
+      "honorific",
+      "name",
+      "surname",
+      "nameSuffix",
+      "alternateNames"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/Perceiver.ts",
+    "index": 0,
+    "className": "PerceiverMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/Perceptible.ts",
+    "index": 0,
+    "className": "PerceptibleMixin",
+    "persistentFields": [
+      "keywords",
+      "autoDeriveKeywords",
+      "primaryKeyword"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/Visible.ts",
+    "index": 0,
+    "className": "VisibleMixin",
+    "persistentFields": [
+      "shortDescription",
+      "longDescription",
+      "illustration"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Detailed.fieldChange.test.ts",
+    "index": 0,
+    "className": "DetailedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Detailed.test.ts",
+    "index": 0,
+    "className": "DetailedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Named.fieldChange.test.ts",
+    "index": 0,
+    "className": "NamedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Named.test.ts",
+    "index": 0,
+    "className": "NamedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Visible.fieldChange.test.ts",
+    "index": 0,
+    "className": "VisibleThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Visible.senseStrip.test.ts",
+    "index": 0,
+    "className": "VisibleDetailedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/description/__tests__/Visible.senseStrip.test.ts",
+    "index": 1,
+    "className": "OrganismActor",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/disguise/Disguise.ts",
+    "index": 0,
+    "className": "DisguiseBearingMixin",
+    "persistentFields": [
+      "appearsAs",
+      "covers",
+      "masksIdentity"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/document/StoredDocument.ts",
+    "index": 0,
+    "className": "StoredDocument",
+    "persistentFields": [
+      "path",
+      "owner",
+      "kind",
+      "data"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/electricity/Energized.ts",
+    "index": 0,
+    "className": "EnergizedMixin",
+    "persistentFields": [
+      "voltage"
+    ],
+    "fieldMarshallers": {
+      "voltage": "VOLTAGE_MARSHALLER"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/employment/Business.ts",
+    "index": 0,
+    "className": "BusinessMixin",
+    "persistentFields": [
+      "proprietorPath",
+      "positions",
+      "rosterSlots",
+      "operatingLocations",
+      "banksAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/employment/ContractEvent.ts",
+    "index": 0,
+    "className": "ContractEvent",
+    "persistentFields": [
+      "contractId",
+      "event",
+      "actor",
+      "counterparty",
+      "txId",
+      "memo",
+      "at",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/employment/ContractRecord.ts",
+    "index": 0,
+    "className": "ContractRecord",
+    "persistentFields": [
+      "contractId",
+      "state",
+      "boardPath",
+      "issuer",
+      "issuerAccountId",
+      "claimMode",
+      "claimant",
+      "clause",
+      "rewardMinor",
+      "escrowAccountId",
+      "postedAt",
+      "postingExpiresAt",
+      "claimedAt",
+      "claimExpiresAt",
+      "settledBy",
+      "closedAt",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/employment/Employed.ts",
+    "index": 0,
+    "className": "EmployedMixin",
+    "persistentFields": [
+      "employments"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/employment/JobBoard.ts",
+    "index": 0,
+    "className": "JobBoard",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/equipment/Weapon.ts",
+    "index": 0,
+    "className": "Weapon",
+    "persistentFields": [
+      "balanceFactor",
+      "length"
+    ],
+    "fieldMarshallers": {
+      "length": "QuantityMarshaller.pathFor('m')",
+      "mass": "QuantityMarshaller.pathFor('kg')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/fasttravel/FastTravel.ts",
+    "index": 0,
+    "className": "FastTravelMixin",
+    "persistentFields": [
+      "directionality",
+      "selectedDestinationRef",
+      "status",
+      "advanceMode",
+      "cycleInterval",
+      "surcharge"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "routes"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/fire/Combustible.ts",
+    "index": 0,
+    "className": "CombustibleMixin",
+    "persistentFields": [
+      "burning",
+      "charMaterialPath",
+      "structural",
+      "burnClockStamp",
+      "burnedThrough"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/fire/Furnace.ts",
+    "index": 0,
+    "className": "FurnaceMixin",
+    "persistentFields": [
+      "burnTemperatureK",
+      "bellowsMultiplier",
+      "bellowsActive",
+      "lit",
+      "fuelBurnRatePerMin",
+      "furnaceFuelClockStamp"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/forum/Board.ts",
+    "index": 0,
+    "className": "Board",
+    "persistentFields": [
+      "subject",
+      "organizer",
+      "name",
+      "description",
+      "override"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/forum/Entry.ts",
+    "index": 0,
+    "className": "Entry",
+    "persistentFields": [
+      "board",
+      "parent",
+      "relation",
+      "author",
+      "title",
+      "body",
+      "editedAt",
+      "subject",
+      "state",
+      "up",
+      "down"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/forum/ForumEvent.ts",
+    "index": 0,
+    "className": "ForumEvent",
+    "persistentFields": [
+      "subject",
+      "board",
+      "thread",
+      "entry",
+      "kind",
+      "actor",
+      "at",
+      "data"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/forum/Subject.ts",
+    "index": 0,
+    "className": "Subject",
+    "persistentFields": [
+      "title",
+      "owner",
+      "groupRef",
+      "lifecycleClass",
+      "state",
+      "manifestations",
+      "grain",
+      "parentSubject",
+      "boardScopedName"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/forum/SubjectSubscriber.ts",
+    "index": 0,
+    "className": "SubjectSubscriberMixin",
+    "persistentFields": [
+      "_subjectSubscriptions"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/forum/Vote.ts",
+    "index": 0,
+    "className": "Vote",
+    "persistentFields": [
+      "entry",
+      "voter",
+      "value"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/governance/OfficeHolder.ts",
+    "index": 0,
+    "className": "OfficeHolder",
+    "persistentFields": [
+      "officeKey",
+      "holderId"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/hazard/Hazard.ts",
+    "index": 0,
+    "className": "HazardMixin",
+    "persistentFields": [
+      "hazardState",
+      "trigger",
+      "delivery",
+      "traverseConsequence",
+      "groundTriggered",
+      "dropDestination",
+      "springMessage",
+      "placedBy"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/hazard/TrapKit.ts",
+    "index": 0,
+    "className": "TrapKit",
+    "persistentFields": [
+      "trapTemplate"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/husbandry/Cultivable.ts",
+    "index": 0,
+    "className": "CultivableMixin",
+    "persistentFields": [
+      "soilClockStamp",
+      "_soilMeanMoisture",
+      "fixedGround",
+      "landRequirementM2"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/husbandry/Growing.ts",
+    "index": 0,
+    "className": "GrowingMixin",
+    "persistentFields": [
+      "growthClockStamp",
+      "_vigor",
+      "_maturity",
+      "growthStage",
+      "_flowering",
+      "_seedSet",
+      "_lastLux",
+      "_worstLimiting",
+      "profile"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/identification/Identifiable.ts",
+    "index": 0,
+    "className": "IdentifiableMixin",
+    "persistentFields": [
+      "identifiedName"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/identity/GoogleProfile.ts",
+    "index": 0,
+    "className": "GoogleProfile",
+    "persistentFields": [
+      "googleId",
+      "email",
+      "displayName",
+      "givenName",
+      "familyName",
+      "photoUrl",
+      "rawProfile"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/identity/KickProfile.ts",
+    "index": 0,
+    "className": "KickProfile",
+    "persistentFields": [
+      "kickUserId",
+      "slug",
+      "displayName",
+      "email",
+      "broadcasterUserId",
+      "rawProfile",
+      "accessToken",
+      "refreshToken",
+      "expiresAt",
+      "scopes"
+    ],
+    "fieldMarshallers": {
+      "accessToken": "EncryptedStringMarshaller.templatePath",
+      "refreshToken": "EncryptedStringMarshaller.templatePath"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/identity/TwitchProfile.ts",
+    "index": 0,
+    "className": "TwitchProfile",
+    "persistentFields": [
+      "twitchUserId",
+      "login",
+      "displayName",
+      "email",
+      "rawProfile",
+      "accessToken",
+      "refreshToken",
+      "expiresAt",
+      "scopes"
+    ],
+    "fieldMarshallers": {
+      "accessToken": "EncryptedStringMarshaller.templatePath",
+      "refreshToken": "EncryptedStringMarshaller.templatePath"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/identity/User.ts",
+    "index": 0,
+    "className": "User",
+    "persistentFields": [
+      "googleProfileId",
+      "twitchProfileId",
+      "kickProfileId",
+      "playerIds"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/CartesianCoordinates.ts",
+    "index": 0,
+    "className": "CartesianCoordinatesMixin",
+    "persistentFields": [
+      "coordinates"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/CartesianLocation.ts",
+    "index": 0,
+    "className": "CartesianLocation",
+    "persistentFields": [
+      "coords"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/CartesianZone.ts",
+    "index": 0,
+    "className": "CartesianZone",
+    "persistentFields": [
+      "name",
+      "cellSize"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/FurnishableRoom.ts",
+    "index": 0,
+    "className": "FurnishableRoom",
+    "persistentFields": [
+      "postedAs"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/SphericalCoordinates.ts",
+    "index": 0,
+    "className": "SphericalCoordinatesMixin",
+    "persistentFields": [
+      "coordinates",
+      "radius"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/SphericalLocation.ts",
+    "index": 0,
+    "className": "SphericalLocation",
+    "persistentFields": [
+      "focus"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/location/SphericalZone.ts",
+    "index": 0,
+    "className": "SphericalZone",
+    "persistentFields": [
+      "name"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/locomotion/Climbable.ts",
+    "index": 0,
+    "className": "ClimbableMixin",
+    "persistentFields": [
+      "axes",
+      "difficulty"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/locomotion/Flyable.ts",
+    "index": 0,
+    "className": "FlyableMixin",
+    "persistentFields": [
+      "axes",
+      "difficulty"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/locomotion/LocomotionMode.ts",
+    "index": 0,
+    "className": "LocomotionMode",
+    "persistentFields": [
+      "name",
+      "speed",
+      "noiseLevel",
+      "bodyProfile",
+      "groundContact",
+      "requiresBodyPlanMode",
+      "requiresPosture",
+      "costMultiplier",
+      "passthrough",
+      "conveyanceMixin",
+      "enablementMixin",
+      "medium"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/locomotion/Swimmable.ts",
+    "index": 0,
+    "className": "SwimmableMixin",
+    "persistentFields": [
+      "axes",
+      "difficulty"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/magic/Caster.ts",
+    "index": 0,
+    "className": "CasterMixin",
+    "persistentFields": [
+      "facultyClockStamp"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/magic/Spell.ts",
+    "index": 0,
+    "className": "Spell",
+    "persistentFields": [
+      "spellId",
+      "name",
+      "verb",
+      "noun",
+      "requiredBand",
+      "cost",
+      "castSeconds",
+      "targeting",
+      "effects",
+      "durationSeconds",
+      "description"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/material/Constructed.ts",
+    "index": 0,
+    "className": "ConstructedMixin",
+    "persistentFields": [
+      "constructionForm"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/material/Durable.ts",
+    "index": 0,
+    "className": "DurableMixin",
+    "persistentFields": [
+      "condition"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/material/Keen.ts",
+    "index": 0,
+    "className": "KeenMixin",
+    "persistentFields": [
+      "keenness"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/material/Material.ts",
+    "index": 0,
+    "className": "Material",
+    "persistentFields": [
+      "name",
+      "appearance",
+      "density",
+      "thermalConductivity",
+      "specificHeat",
+      "hardness",
+      "toughness",
+      "electricalConductivity",
+      "waterAbsorptionCapacity",
+      "autoignitionTemperature",
+      "heatOfCombustion",
+      "meltingPoint",
+      "latentHeatOfFusion",
+      "boilingPoint",
+      "latentHeatOfVaporization",
+      "edibility",
+      "nutrients",
+      "nutrientAmounts",
+      "toxicity",
+      "tags",
+      "composition",
+      "symbol",
+      "atomicNumber",
+      "formula",
+      "molarMass",
+      "biologicalSource"
+    ],
+    "fieldMarshallers": {
+      "autoignitionTemperature": "QuantityMarshaller.pathFor('K')",
+      "boilingPoint": "QuantityMarshaller.pathFor('K')",
+      "density": "QuantityMarshaller.pathFor('kg/m³')",
+      "electricalConductivity": "QuantityMarshaller.pathFor('S/m')",
+      "hardness": "QuantityMarshaller.pathFor('MPa')",
+      "heatOfCombustion": "QuantityMarshaller.pathFor('MJ/kg')",
+      "latentHeatOfFusion": "QuantityMarshaller.pathFor('J/kg')",
+      "latentHeatOfVaporization": "QuantityMarshaller.pathFor('J/kg')",
+      "meltingPoint": "QuantityMarshaller.pathFor('K')",
+      "molarMass": "QuantityMarshaller.pathFor('g/mol')",
+      "specificHeat": "QuantityMarshaller.pathFor('J/(kg·K)')",
+      "thermalConductivity": "QuantityMarshaller.pathFor('W/(m·K)')",
+      "toughness": "QuantityMarshaller.pathFor('MJ/m³')",
+      "waterAbsorptionCapacity": "QuantityMarshaller.pathFor('%')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/material/Radioactive.ts",
+    "index": 0,
+    "className": "RadioactiveMixin",
+    "persistentFields": [
+      "halfLife",
+      "decayMode",
+      "_decayProductPath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/material/Tangible.ts",
+    "index": 0,
+    "className": "TangibleMixin",
+    "persistentFields": [
+      "_materialPath",
+      "_detailMaterialPaths",
+      "mass"
+    ],
+    "fieldMarshallers": {
+      "mass": "QuantityMarshaller.pathFor('kg')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/media/MediaAsset.ts",
+    "index": 0,
+    "className": "MediaAsset",
+    "persistentFields": [
+      "key",
+      "sourcePath",
+      "sourceContentHash",
+      "prompt",
+      "model",
+      "size",
+      "quality",
+      "styleVersion",
+      "width",
+      "height",
+      "status"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/messaging/Topic.ts",
+    "index": 0,
+    "className": "Topic",
+    "persistentFields": [
+      "topic",
+      "family",
+      "label",
+      "description"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/metabolism/Metabolic.ts",
+    "index": 0,
+    "className": "MetabolicMixin",
+    "persistentFields": [
+      "digestionPools",
+      "solidVolume",
+      "liquidVolume",
+      "toxinBurdens",
+      "metabolicClockStamp",
+      "lastMealLabel"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/mortality/Postmortem.ts",
+    "index": 0,
+    "className": "PostmortemMixin",
+    "persistentFields": [
+      "diedAtGameSec"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/parcel/ParcelEvent.ts",
+    "index": 0,
+    "className": "ParcelEvent",
+    "persistentFields": [
+      "extent",
+      "event",
+      "from",
+      "to",
+      "actor",
+      "at"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/parcel/ParcelRecord.ts",
+    "index": 0,
+    "className": "ParcelRecord",
+    "persistentFields": [
+      "extent",
+      "zonePath",
+      "area",
+      "storeys",
+      "owner",
+      "parentParcel",
+      "grants",
+      "allowance",
+      "keyway",
+      "landUse"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/party/Party.ts",
+    "index": 0,
+    "className": "Party",
+    "persistentFields": [
+      "name",
+      "founderId",
+      "captainId",
+      "memberIds",
+      "combatSide",
+      "durable",
+      "channelRef",
+      "formationPath",
+      "roleAssignments"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/party/PartyMember.ts",
+    "index": 0,
+    "className": "PartyMemberMixin",
+    "persistentFields": [
+      "activePartyPath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/party/PartyRecord.ts",
+    "index": 0,
+    "className": "PartyRecord",
+    "persistentFields": [
+      "path",
+      "name",
+      "founderId",
+      "captainId",
+      "memberIds",
+      "combatSide",
+      "channelRef",
+      "formationPath",
+      "roleAssignments"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/AmbientLit.ts",
+    "index": 0,
+    "className": "AmbientLitMixin",
+    "persistentFields": [
+      "ambientIntensity",
+      "ambientColorTemperature"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/LightSource.ts",
+    "index": 0,
+    "className": "LightSourceMixin",
+    "persistentFields": [
+      "emittedIntensity",
+      "emittedColorTemperature"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/Modality.ts",
+    "index": 0,
+    "className": "Modality",
+    "persistentFields": [
+      "name",
+      "family",
+      "modality"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/Scryable.ts",
+    "index": 0,
+    "className": "ScryableMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/SmellSource.ts",
+    "index": 0,
+    "className": "SmellSourceMixin",
+    "persistentFields": [
+      "emittedConcentration",
+      "odorIdentity"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/SoundSource.ts",
+    "index": 0,
+    "className": "SoundSourceMixin",
+    "persistentFields": [
+      "emittedAmplitude",
+      "character"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/perception/__tests__/Perception.test.ts",
+    "index": 0,
+    "className": "PerceiverThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/PersistedRecord.ts",
+    "index": 0,
+    "className": "PersistedRecord",
+    "persistentFields": [
+      "scope",
+      "owner",
+      "state",
+      "place"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/QuantityMarshaller.ts",
+    "index": 0,
+    "className": "QuantityMarshaller",
+    "persistentFields": [
+      "unit"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/Document.test.ts",
+    "index": 0,
+    "className": "Widget",
+    "persistentFields": [
+      "name",
+      "count"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/Document.test.ts",
+    "index": 1,
+    "className": "NamelessWidget",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/Document.test.ts",
+    "index": 3,
+    "className": "BoxWidget",
+    "persistentFields": [
+      "label",
+      "box"
+    ],
+    "fieldMarshallers": {
+      "box": "MARSHALLER_PATH"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/Marshaller.test.ts",
+    "index": 2,
+    "className": "WalletMixin",
+    "persistentFields": [
+      "wallet"
+    ],
+    "fieldMarshallers": {
+      "wallet": "MoneyBagMarshaller.templatePath"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/Marshaller.test.ts",
+    "index": 5,
+    "className": "NoMarshallers",
+    "persistentFields": [
+      "plain"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 0,
+    "className": "PropertyFieldBacking",
+    "persistentFields": [
+      "name"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 1,
+    "className": "BracketAssignBacking",
+    "persistentFields": [
+      "rawField"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 2,
+    "className": "AsyncSetterBacking",
+    "persistentFields": [
+      "flag"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 3,
+    "className": "ThrowingSetterBacking",
+    "persistentFields": [
+      "oops"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 4,
+    "className": "InstructionFieldBacking",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "exits"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 5,
+    "className": "MisconfiguredInstructionBacking",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "missingApplier"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/PersistentHydrator.test.ts",
+    "index": 6,
+    "className": "MixedFieldBacking",
+    "persistentFields": [
+      "name"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "exits"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 0,
+    "className": "RoomHost",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 1,
+    "className": "MultiRoom",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 2,
+    "className": "ContentChest",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 4,
+    "className": "Trinket",
+    "persistentFields": [
+      "tag"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 5,
+    "className": "HostChest",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 6,
+    "className": "MovableHost",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 8,
+    "className": "AvatarLike",
+    "persistentFields": [
+      "callsign"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
+    "index": 10,
+    "className": "Garment",
+    "persistentFields": [
+      "tag"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/reserve.ts",
+    "index": 1,
+    "className": "ReservedMixin",
+    "persistentFields": [
+      "reserves"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/respiration/Respiration.ts",
+    "index": 0,
+    "className": "RespirationMixin",
+    "persistentFields": [
+      "respirationClockStamp"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/retail/Consignment.ts",
+    "index": 0,
+    "className": "ConsignmentShelfMixin",
+    "persistentFields": [
+      "consignmentListings"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/retail/ConsignmentShelf.ts",
+    "index": 0,
+    "className": "ConsignmentShelf",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/retail/Stock.ts",
+    "index": 0,
+    "className": "Stock",
+    "persistentFields": [
+      "stockLines"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/sandbox/CircleFloor.ts",
+    "index": 0,
+    "className": "CircleFloor",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/sandbox/SandboxCrossing.ts",
+    "index": 0,
+    "className": "SandboxCrossing",
+    "persistentFields": [
+      "linkedSandboxPath",
+      "passageDirection"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/script/EvalScript.ts",
+    "index": 0,
+    "className": "EvalScript",
+    "persistentFields": [
+      "code"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/shell/Alias.ts",
+    "index": 0,
+    "className": "AliasMixin",
+    "persistentFields": [
+      "aliases"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/shell/Author.ts",
+    "index": 0,
+    "className": "AuthorMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/shell/Environment.ts",
+    "index": 0,
+    "className": "EnvironmentMixin",
+    "persistentFields": [
+      "persistentStore"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/shell/Workspace.ts",
+    "index": 0,
+    "className": "WorkspaceMixin",
+    "persistentFields": [
+      "contentCwd",
+      "sourceCwd"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Drivable.ts",
+    "index": 0,
+    "className": "DrivableMixin",
+    "persistentFields": [
+      "controllerSlot",
+      "_vehicularModePath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Foldable.ts",
+    "index": 0,
+    "className": "FoldableMixin",
+    "persistentFields": [
+      "folded"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Haulable.ts",
+    "index": 0,
+    "className": "HaulableMixin",
+    "persistentFields": [
+      "draftFactor",
+      "handedness",
+      "passageMode"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Mountable.ts",
+    "index": 0,
+    "className": "MountableMixin",
+    "persistentFields": [
+      "mountSlot"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Postured.ts",
+    "index": 0,
+    "className": "PosturedMixin",
+    "persistentFields": [
+      "restQuality",
+      "warmth"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Slotted.ts",
+    "index": 0,
+    "className": "SlottedMixin",
+    "persistentFields": [
+      "staticSlots"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Wearable.ts",
+    "index": 0,
+    "className": "WearableMixin",
+    "persistentFields": [
+      "slotClaims",
+      "clo"
+    ],
+    "fieldMarshallers": {
+      "clo": "QuantityMarshaller.pathFor('clo')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/slot/Wieldable.ts",
+    "index": 0,
+    "className": "WieldableMixin",
+    "persistentFields": [
+      "slotClaims"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/social/Channel.ts",
+    "index": 0,
+    "className": "Channel",
+    "persistentFields": [
+      "name",
+      "kind",
+      "subject",
+      "procedure"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/social/Contacts.ts",
+    "index": 0,
+    "className": "ContactsMixin",
+    "persistentFields": [
+      "_contacts"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/social/Emote.ts",
+    "index": 0,
+    "className": "Emote",
+    "persistentFields": [
+      "verb",
+      "aliases",
+      "grammar",
+      "echo",
+      "emoji",
+      "tags",
+      "valence"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/social/Group.ts",
+    "index": 0,
+    "className": "Group",
+    "persistentFields": [
+      "name",
+      "owner",
+      "memberIds",
+      "memberRoles"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/social/NotifyPolicy.ts",
+    "index": 0,
+    "className": "NotifyPolicyMixin",
+    "persistentFields": [
+      "_notifyRules"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/Containable.ts",
+    "index": 0,
+    "className": "ContainableMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "container"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/Sealable.ts",
+    "index": 0,
+    "className": "SealableMixin",
+    "persistentFields": [
+      "open"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/Surface.ts",
+    "index": 0,
+    "className": "Surface",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/Surfaced.ts",
+    "index": 0,
+    "className": "SurfacedMixin",
+    "persistentFields": [
+      "userFacingDetail"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/__tests__/Containable.test.ts",
+    "index": 3,
+    "className": "SingletonContainer",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/__tests__/Container.skip-rule.test.ts",
+    "index": 1,
+    "className": "Room",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/__tests__/Container.skip-rule.test.ts",
+    "index": 2,
+    "className": "Owner",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/spatial/__tests__/Mobile.autoSense.test.ts",
+    "index": 0,
+    "className": "CapturingMobile",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/species/BodyPlan.ts",
+    "index": 0,
+    "className": "BodyPlan",
+    "persistentFields": [
+      "name",
+      "slots",
+      "locomotionModes",
+      "defaultLocomotionMode",
+      "sensoryPorts",
+      "bodyParts",
+      "baseMass",
+      "thermalStrategy",
+      "breathableMedia",
+      "respires"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/species/Clade.ts",
+    "index": 0,
+    "className": "Clade",
+    "persistentFields": [
+      "name",
+      "rank"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/species/NameBank.ts",
+    "index": 0,
+    "className": "NameBank",
+    "persistentFields": [
+      "key",
+      "given",
+      "surname",
+      "style"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/species/Organism.ts",
+    "index": 0,
+    "className": "OrganismMixin",
+    "persistentFields": [
+      "_speciesPath",
+      "age",
+      "lifecycleState"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/species/Species.ts",
+    "index": 0,
+    "className": "Species",
+    "persistentFields": [
+      "binomial",
+      "commonNames",
+      "_bodyPlanPath",
+      "_parentCladePath",
+      "_defaultMaterialPath",
+      "lifecycleStates",
+      "sexDeterminationSystem",
+      "reproductiveMode",
+      "lifespanMin",
+      "lifespanMax",
+      "circadianBand",
+      "diet",
+      "visionProfile",
+      "olfactoryProfile",
+      "vitalProfile",
+      "facultyProfile",
+      "nameBankKeys",
+      "innateMixins",
+      "sentient",
+      "naturalAttacks",
+      "affordedGambits"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/AuthoringEvent.ts",
+    "index": 0,
+    "className": "AuthoringEvent",
+    "persistentFields": [
+      "path",
+      "author",
+      "kind",
+      "at",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/ParticipationEvent.ts",
+    "index": 0,
+    "className": "ParticipationEvent",
+    "persistentFields": [
+      "subject",
+      "bucket",
+      "kind",
+      "at",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/ParticipationStanding.ts",
+    "index": 0,
+    "className": "ParticipationStanding",
+    "persistentFields": [
+      "subject",
+      "scope",
+      "value",
+      "recomputedAt",
+      "recomputedRealAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/Position.ts",
+    "index": 0,
+    "className": "Position",
+    "persistentFields": [
+      "subject",
+      "stock",
+      "target",
+      "yea",
+      "nay",
+      "since",
+      "realSince"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/ProducerEvent.ts",
+    "index": 0,
+    "className": "ProducerEvent",
+    "persistentFields": [
+      "author",
+      "actor",
+      "zonePath",
+      "weight",
+      "bucket",
+      "kind",
+      "at",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/ProducerStanding.ts",
+    "index": 0,
+    "className": "ProducerStanding",
+    "persistentFields": [
+      "subject",
+      "scope",
+      "value",
+      "recomputedAt",
+      "recomputedRealAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/RenownEvent.ts",
+    "index": 0,
+    "className": "RenownEvent",
+    "persistentFields": [
+      "subject",
+      "source",
+      "kind",
+      "signal",
+      "locality",
+      "groups",
+      "at",
+      "realAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/standing/RenownStanding.ts",
+    "index": 0,
+    "className": "RenownStanding",
+    "persistentFields": [
+      "subject",
+      "scope",
+      "value",
+      "recomputedAt",
+      "recomputedRealAt"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/status/Status.ts",
+    "index": 0,
+    "className": "StatusMixin",
+    "persistentFields": [
+      "authoredStatus"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/studio/Blueprint.ts",
+    "index": 0,
+    "className": "Blueprint",
+    "persistentFields": [
+      "blueprintId",
+      "signature",
+      "name",
+      "baseClass",
+      "mixinNames",
+      "kind",
+      "classPath",
+      "parent",
+      "blessed",
+      "description"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Fixture.ts",
+    "index": 0,
+    "className": "FixtureMixin",
+    "persistentFields": [
+      "seatIn"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Globbable.ts",
+    "index": 0,
+    "className": "GlobbableMixin",
+    "persistentFields": [
+      "quantity"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Location.ts",
+    "index": 0,
+    "className": "Location",
+    "persistentFields": [
+      "suppressesMagic"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Populates.ts",
+    "index": 0,
+    "className": "PopulatesMixin",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "populates"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Propertied.ts",
+    "index": 1,
+    "className": "PropertiedMixin",
+    "persistentFields": [
+      "savedProps",
+      "savedPropMarshallers"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Template.ts",
+    "index": 0,
+    "className": "Template",
+    "persistentFields": [
+      "path",
+      "class",
+      "hydratorClass",
+      "data"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Thing.ts",
+    "index": 0,
+    "className": "Thing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/Vessel.ts",
+    "index": 0,
+    "className": "Vessel",
+    "persistentFields": [
+      "transmissionFactor"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Globbable.test.ts",
+    "index": 0,
+    "className": "Coin",
+    "persistentFields": [
+      "quantity",
+      "tarnished",
+      "denomination"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": [
+      "tarnished",
+      "denomination"
+    ]
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Globbable.test.ts",
+    "index": 7,
+    "className": "Misdeclared",
+    "persistentFields": [
+      "quantity"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": [
+      "notPersisted"
+    ]
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
+    "index": 0,
+    "className": "SingletonContainerTest",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
+    "index": 1,
+    "className": "NonSingletonContainerTest",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
+    "index": 2,
+    "className": "PopulatesHostTest",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Propertied.fieldChange.test.ts",
+    "index": 0,
+    "className": "PropThing",
+    "persistentFields": [
+      "savedProps",
+      "savedPropMarshallers"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Propertied.test.ts",
+    "index": 0,
+    "className": "PropertiedThing",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/thermal/Meltable.ts",
+    "index": 0,
+    "className": "MeltableMixin",
+    "persistentFields": [
+      "meltPhase",
+      "latentAbsorbedJ"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/thermal/Thermal.ts",
+    "index": 0,
+    "className": "ThermalMixin",
+    "persistentFields": [
+      "stampedTemperatureK",
+      "thermalClockStamp",
+      "lastAmbientK",
+      "barrier"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/thermal/ThermalRegulation.ts",
+    "index": 0,
+    "className": "ThermalRegulationMixin",
+    "persistentFields": [
+      "setpointK",
+      "effectiveAmbientK",
+      "cachedHumidity",
+      "thermalRegStamp"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/time/WorldClockState.ts",
+    "index": 0,
+    "className": "WorldClockState",
+    "persistentFields": [
+      "elapsedGameTimeS",
+      "scale",
+      "lastShutdownRealMs"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/trait/DispositionEntry.ts",
+    "index": 0,
+    "className": "DispositionEntry",
+    "persistentFields": [
+      "owner",
+      "kind",
+      "when",
+      "disposition",
+      "valence",
+      "tags"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/vitals/Condition.ts",
+    "index": 0,
+    "className": "Condition",
+    "persistentFields": [
+      "name",
+      "signature",
+      "progression",
+      "resolution",
+      "observableSigns",
+      "contagion",
+      "toxinBehavior",
+      "mentalBands"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/vitals/Dressing.ts",
+    "index": 0,
+    "className": "DressingMixin",
+    "persistentFields": [
+      "dressingQuality"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/vitals/Vitals.ts",
+    "index": 0,
+    "className": "VitalsMixin",
+    "persistentFields": [
+      "_coreTemperature",
+      "_heartRate",
+      "_respiratoryRate",
+      "_bloodPressureSystolic",
+      "_bloodPressureDiastolic",
+      "_spo2",
+      "_bloodVolume",
+      "causeOfDeath",
+      "bodyPartDeltas",
+      "conditions"
+    ],
+    "fieldMarshallers": {
+      "_bloodPressureDiastolic": "QuantityMarshaller.pathFor('mmHg')",
+      "_bloodPressureSystolic": "QuantityMarshaller.pathFor('mmHg')",
+      "_bloodVolume": "QuantityMarshaller.pathFor('L')",
+      "_coreTemperature": "QuantityMarshaller.pathFor('K')",
+      "_heartRate": "QuantityMarshaller.pathFor('bpm')",
+      "_respiratoryRate": "QuantityMarshaller.pathFor('bpm')",
+      "_spo2": "QuantityMarshaller.pathFor('%')"
+    },
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/wetness/Wet.ts",
+    "index": 0,
+    "className": "WetMixin",
+    "persistentFields": [
+      "_saturation",
+      "wetnessClockStamp"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/lib/zone/Zone.ts",
+    "index": 0,
+    "className": "Zone",
+    "persistentFields": [
+      "name",
+      "wire"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/Avatar.ts",
+    "index": 0,
+    "className": "Avatar",
+    "persistentFields": [
+      "mortalArc"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [
+      "startLocation"
+    ],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/Coin.ts",
+    "index": 0,
+    "className": "Coin",
+    "persistentFields": [
+      "denomination"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": [
+      "denomination"
+    ]
+  },
+  {
+    "file": "packages/server/src/mud/obj/Crop.ts",
+    "index": 0,
+    "className": "Crop",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/GardenBed.ts",
+    "index": 0,
+    "className": "GardenBed",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/LotHolder.ts",
+    "index": 0,
+    "className": "LotHolder",
+    "persistentFields": [
+      "roomTemplate",
+      "streetPath",
+      "parentExtent"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/Plant.ts",
+    "index": 0,
+    "className": "Plant",
+    "persistentFields": [
+      "seedTemplatePath",
+      "harvestTemplatePath",
+      "nutrientDraw"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/PlantPot.ts",
+    "index": 0,
+    "className": "PlantPot",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/PlatBook.ts",
+    "index": 0,
+    "className": "PlatBook",
+    "persistentFields": [
+      "label",
+      "parentExtent",
+      "lotBranch",
+      "lots",
+      "priceMinor",
+      "areaM2",
+      "landUse",
+      "holderPath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/Seed.ts",
+    "index": 0,
+    "className": "Seed",
+    "persistentFields": [
+      "growsIntoPath",
+      "_speciesPath"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/__tests__/ChattelRegistry.test.ts",
+    "index": 1,
+    "className": "Vault",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/__tests__/ChattelRegistry.test.ts",
+    "index": 2,
+    "className": "EstateHolder",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/api/__tests__/PersistableKeyedNesting.test.ts",
+    "index": 0,
+    "className": "Room",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/api/__tests__/PersistableKeyedNesting.test.ts",
+    "index": 1,
+    "className": "KeyedChest",
+    "persistentFields": [
+      "label"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/api/__tests__/PersistableKeyedNesting.test.ts",
+    "index": 2,
+    "className": "Trinket",
+    "persistentFields": [
+      "tag"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/inventory/__tests__/DropController.test.ts",
+    "index": 1,
+    "className": "Coin",
+    "persistentFields": [
+      "quantity",
+      "name",
+      "denomination"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": [
+      "denomination"
+    ]
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/inventory/__tests__/GetController.test.ts",
+    "index": 1,
+    "className": "Coin",
+    "persistentFields": [
+      "quantity",
+      "name",
+      "denomination"
+    ],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": [
+      "denomination"
+    ]
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/FeelController.test.ts",
+    "index": 1,
+    "className": "ReceivingGiver",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/FeelController.test.ts",
+    "index": 2,
+    "className": "TestLocation",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/ListenController.test.ts",
+    "index": 0,
+    "className": "ReceivingGiver",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/ListenController.test.ts",
+    "index": 1,
+    "className": "TestLocation",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/SenseController.test.ts",
+    "index": 0,
+    "className": "ReceivingGiver",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/SenseController.test.ts",
+    "index": 1,
+    "className": "TestLocation",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/SmellController.test.ts",
+    "index": 0,
+    "className": "ReceivingGiver",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/SmellController.test.ts",
+    "index": 1,
+    "className": "TestLocation",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/TasteController.test.ts",
+    "index": 0,
+    "className": "ReceivingGiver",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/perception/__tests__/TasteController.test.ts",
+    "index": 1,
+    "className": "TestLocation",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  },
+  {
+    "file": "packages/server/src/mud/obj/command/social/__tests__/DmController.test.ts",
+    "index": 0,
+    "className": "Actor",
+    "persistentFields": [],
+    "fieldMarshallers": {},
+    "instructionFields": [],
+    "globIdentityFields": []
+  }
+]

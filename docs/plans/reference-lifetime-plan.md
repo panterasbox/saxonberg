@@ -182,15 +182,80 @@ raw sweeps) do not heal.
 
 ### Verified counts
 
-**Re-measured 2026-08-02** (post furnishing + Hinkley Hills): 200/15/8/3
-non-test, 241/17/10/7 including `__tests__`, and the **union of all files
-declaring any of the four is 250** (208 non-test, 42 test) — that is the
-codemod's input set. Earlier figures of 193 and 240 in this doc and the
-requirements' Risks section are pre-merge and stale.
+**Superseded by the W0 golden master — see "W0 landed" below.** Every
+count in these docs was produced by `grep -l`, which counts a file that
+merely *mentions* an identifier in a JSDoc comment. The AST census run in
+W0 is the authority now: the codemod's input set is **245 files / 283
+class bodies**, not 250 files.
+
+The stale figures, kept so they are recognized rather than re-derived:
+200/15/8/3 non-test, 241/17/10/7 including `__tests__`, union 250.
 
 **Line numbers in both docs are approximate** — roughly a quarter drift
 by 2-25 lines after the merges. Treat every `file:line` as "find the
 named symbol in this file", never as a literal offset.
+
+## W0 landed (2026-08-02) — what the ground truth actually says
+
+W0 is complete: `scripts/check-field-meta.ts` (`--snapshot` / `--verify`),
+the golden master at `scripts/__fixtures__/field-meta-golden.json`, the
+two residency carve-outs, and
+`lib/stuff/__tests__/refLifetime.pins.test.ts` (14 pins). Five findings,
+two of which change later waves.
+
+**1. The real input set is 245 files / 283 class bodies.** The AST census
+reconciles exactly against an independent count of declaration *lines* —
+276 `persistentFields`, 13 `fieldMarshallers`, 11 `instructionFields`, 7
+`globIdentityFields` — so nothing was skipped. The docs' file counts were
+inflated by JSDoc mentions: `fieldMarshallers` is 13 files (not 17),
+`instructionFields` 9 (not 10), `globIdentityFields` 6 (not 7).
+
+**The unit of work is the class body, not the file.** 19 files hold more
+than one declaring class body (one holds 8), and 23 class bodies declare
+more than one of the four statics — those 23 are where the merge is
+non-trivial *within a single body*. 72 class bodies across 53 files carry
+a wholly empty record and become `fieldMeta = {}`.
+
+**2. ⚠ `pnpm format` does not exist, and must not be invented.** W2 ended
+with "then `pnpm format` over exactly the touched files". There is no
+`format` script in any package.json and **no prettier config anywhere in
+the repo** — `.prettierrc.js`, which CLAUDE.md's Code Style section
+cites, is not in the tree. The repo is hand-formatted and its quote style
+is **mixed by area**. Running prettier with no config would renormalize
+quotes and rewrap lines across 245 files of the highest-consequence
+subsystem in the tree, and would do it inside the one commit whose entire
+value is being mechanically verifiable. **The step is deleted** (below);
+the codemod emits text in each file's own style, which it gets for free
+by copying initializers as source text.
+
+**3. ⚠ `--verify` must compare marshaller keys order-insensitively.**
+Each array is read back as a filter over the single emitted key sequence,
+so a field in two sets is pinned to its first-emitted position. Measured
+across the tree, exactly one array shifts: `Weapon.fieldMarshallers`,
+declared `[mass, length]`, read back `[length, mass]` because `length` is
+also persistent. `persistentFields` — the load-bearing order — is
+preserved by construction. Marshaller order is not load-bearing
+(`marshallerPaths[field]` is a lookup), so the golden master stores those
+keys sorted and the other three arrays stay strictly ordered. Without
+this, `--verify` reds on `Weapon.ts`, the very file F2 names as the
+permanent test case, and the tempting mid-codemod fix is to edit the
+golden master.
+
+**4. Four of the six W6 sites have NO existing destruct coverage.** W6 is
+introduced as the wave where "did the mechanism reproduce the behaviour?"
+has an existing answer. For `Exitable.exits`, `Adornable.fixtureSlots`,
+`Boundary`'s anchors and `Aether._hostedUpdates` it does not — nothing in
+the tree tested them before W0. The pins are not a second opinion for
+those four; they are the only oracle, which is exactly why they assert
+`isDestroyed()` on the cascade rather than slot emptiness.
+
+**5. The self-heal pins need a synthesised stale ref.** On the normal
+path the R2.4 chokepoints clear the slot eagerly and the self-heal branch
+never runs, so four of the six pins stamp a destroyed Stuff into the slot
+by cast. That is the tree's existing idiom
+(`Container.destruct.test.ts`, `Haulable.test.ts`), not a new one. Each
+pin asserts both observables — the read returns null AND the slot is
+cleared — because W4b must preserve both.
 
 ## Decisions on the escalated questions
 
@@ -315,7 +380,10 @@ guarantee than within-wave bisectability. **Keep D2 as written.**
    accessor already; this is what makes acceptance criterion 1
    achievable.
 
-Then `pnpm format` over exactly the touched files.
+**Do NOT run a formatter afterwards.** There is no `format` script and no
+prettier config in this repo; quote style is mixed by area and
+hand-maintained. The codemod copies initializers as **source text**, so
+each file keeps its own style for free — see W0 finding 2.
 
 **Validation** — three passes, because 240 files of persistence is not
 reviewable as one blob:

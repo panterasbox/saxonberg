@@ -36,7 +36,12 @@ property of the target**, so it is declared, never inferred.
    the tree.** The golden master (plan W0/W2) is the entire safety story;
    do not weaken it.
 
-**Status: not started.** No code has been written. W0 is next.
+**Status: W0 landed** (2026-08-02) — the golden master, the two residency
+carve-outs and the 14 reference-lifetime pins. **Read the plan's "W0
+landed" section before any later wave**: it supersedes every count in
+this doc (the real input set is 245 files / 283 class bodies, not 250
+files), deletes W2's `pnpm format` step, and records that four of the six
+W6 sites had no destruct coverage at all before the pins. W0b is next.
 
 ## The gap
 
@@ -186,20 +191,19 @@ with it, so they are one shape — an **identity** ref. B is an
 
 ### R2 — Only four statics fold in
 
-Verified counts, **re-measured 2026-08-02 after the furnishing and
-Hinkley-Hills merges**. Non-test files as tabled; including `__tests__`
-it is 241/17/10/7, and the **union of files declaring any of the four is
-250** — the codemod's real input set. (Pre-merge those figures were
-193/15/8/3 and a union of 240; the two builds added ~10 files, which
-moves no structural conclusion.) `@authorable` is now 75 files,
-`@runtimeState` 39.
+Counts below are **superseded by the W0 AST census** — they were produced
+by `grep -l`, which counts a file that only *mentions* an identifier in a
+comment. The authority is `scripts/__fixtures__/field-meta-golden.json`:
+**245 files, 283 class bodies**, and per-static *declaration* counts of
+276 / 13 / 11 / 7 (reconciled against an independent line count, so
+nothing was skipped). The disposition column is unaffected.
 
-| static | files | field-keyed? | disposition |
+| static | declarations (files) | field-keyed? | disposition |
 |---|---|---|---|
-| `persistentFields` | 200 | ✅ | → `{ persistent: true }` |
-| `fieldMarshallers` | 15 | ✅ | → `{ marshaller: '…' }` |
-| `instructionFields` | 8 | ✅ | → `{ instruction: true }` |
-| `globIdentityFields` | 3 | ✅ | → `{ globIdentity: true }` |
+| `persistentFields` | 276 (240) | ✅ | → `{ persistent: true }` |
+| `fieldMarshallers` | 13 (13) | ✅ | → `{ marshaller: '…' }` |
+| `instructionFields` | 11 (9) | ✅ | → `{ instruction: true }` |
+| `globIdentityFields` | 7 (6) | ✅ | → `{ globIdentity: true }` |
 | `commandContributions` | — | ❌ | keyed by *audience* (`{self, peers}`) — leave |
 | `settings` | — | ❌ | keyed by *setting key* (`'shell.interpolate-vars'`) — leave |
 | `subscribableFields` | — | ❌ | virtual projections carrying a `read` fn, not instance fields — leave |
