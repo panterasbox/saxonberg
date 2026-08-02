@@ -760,6 +760,92 @@ it just no longer has a live thing to describe.
 
 ---
 
+## Diffs are over SOURCE, and they are spoiler-gated
+
+### Why source
+
+The same reason the index is (Q1): a **render is per-reader**, so a diff
+of two renders is per-reader too — uncacheable, and worse, misleading,
+because it would show the reader's *view* changing when the page did not.
+
+Source is also what was edited, what is stored on the revision, and what
+a reviewer needs in order to judge an edit. So `wiki diff` is a
+**word-level diff over MML source**.
+
+**Not a structural tree diff.** Tree-diffing is a research-grade problem
+(move-vs-edit detection, stable node identity) for marginal benefit over
+prose that is already paragraph-shaped. If snippet invocations later make
+source diffs noisy, the cheap fix is normalising whitespace before
+diffing — not a tree algorithm.
+
+### ⚠ A diff is a spoiler bypass unless it is gated
+
+This is easy to miss and it defeats the whole reveal model.
+
+A revision body contains levelled fragments. If history and diff render
+ungated, then a reader who cannot see a level-3 section **can still read
+it in the diff** — or, only slightly better, can see *that* it changed,
+which is itself information ("something about the boss fight was
+rewritten"). History becomes the hole in a wall the renderer carefully
+built.
+
+So **every revision-facing surface applies the same gate as reading**:
+`history`, `diff`, and the conflict response (A3). Above the reader's
+ceiling, a changed fragment is **absent** — not redacted, not
+placeholdered as "1 change hidden", because a redaction marker is itself
+the leak in miniature.
+
+> The governing principle, now stated once for all of it: **renders are
+> per-reader and ephemeral; every durable operation — storing, indexing,
+> diffing, citing — is over source.** Gating is applied at the moment of
+> delivery, in one place, every time.
+
+---
+
+## Change notification — the wiki emits, it does not deliver
+
+A commons with no *what changed since I looked* is hard to maintain, so
+watching pages is a real requirement. It is **not a wiki feature**.
+
+### There is no durable notification substrate today
+
+Four things look adjacent and none of them is this:
+
+| | why not |
+|---|---|
+| `NotifyPolicy` / `notify` | attention rules keyed on a **group ref** — a *who* axis. A watchlist is a *what* axis. |
+| MQL subscriptions | live reactive panes, per-`Interactive`, torn down on disconnect |
+| forum subscriptions | same shape, same teardown |
+| `Bulletin` | staff→everyone broadcast, not per-user, not subject-keyed |
+| the `*_events` ledgers | durable **records**, with no delivery |
+
+Nothing answers *"what happened to the things I care about while I was
+away."* And the wiki is far from the only claimant: a gig accepted, a
+consignment sold, a crop ready, a lease expiring, a reply to your post.
+
+### What the wiki requires of it
+
+- **Emit a change event** on publish, carrying the page, the actor, the
+  revision and the edit summary. One event per published revision;
+  drafts emit nothing.
+- **A watch is a subscription to a subject** — a page, a namespace, or
+  (the interesting one) *a template path*, so "tell me when anything
+  about oak changes" spans the article and the thing itself.
+- **Delivery, batching, digesting and read-state are the substrate's**,
+  not the wiki's. The wiki must not grow an inbox.
+- ⚠ **Notification is a spoiler surface.** "Page X changed" leaks that a
+  page exists and is being worked on; a summary can leak more. Events
+  carry the level of what changed, and delivery gates on it — the same
+  rule as diff, applied at a different edge.
+
+> **This is the third shared substrate the wiki depends on and does not
+> own** — with media ingest (M3) and the search port (Q1). That is a
+> signal rather than a complaint: the wiki is the first consumer to need
+> all three at once, which makes it an excellent forcing function and a
+> poor place to build any of them.
+
+---
+
 ## Maintenance surfaces
 
 The reports that keep a wiki from rotting, all derivable from the link
@@ -984,10 +1070,26 @@ state.
 65. An article whose subject template is deleted still renders, shows an
     inline note where the panel was, and appears in `wiki dangling`.
 
-**Gates**
+**Diff + history**
 
-66. `pnpm test`, `pnpm lint`, the ten script lints, type-clean.
-67. Tests cover every criterion above that is not a doc claim.
+66. `wiki diff` is a word-level diff over source.
+67. ⭐ A fragment above the reader's capability is **absent** from
+    `history`, `diff` and the conflict response — not redacted, not
+    counted. Asserted on the payload.
+68. A reader cannot learn *that* an over-ceiling fragment changed.
+
+**Notification**
+
+69. Publishing emits one change event carrying page, actor, revision and
+    summary; a draft emits none.
+70. The wiki stores no per-user read-state and grows no inbox.
+71. A change event carries the level of what changed, so delivery can
+    gate on it.
+
+**Gates
+
+72. `pnpm test`, `pnpm lint`, the ten script lints, type-clean.
+73. Tests cover every criterion above that is not a doc claim.
 
 ---
 
@@ -1020,6 +1122,9 @@ Neither is solved here, and both are shared:
   Wants its own doc, written with the CMS.
 - ⭐ **The search port** (Q1) — a shared substrate over wiki, help,
   forums and docs. The wiki is one producer and one consumer of it.
+- ⭐ **Durable notification** — subject-keyed subscriptions with delivery,
+  batching and read-state. **Does not exist today** in any form; the
+  wiki emits events and consumes nothing.
 
 ## Cross-references
 
