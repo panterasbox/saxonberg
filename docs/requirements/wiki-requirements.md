@@ -951,7 +951,7 @@ state.
 50. Backlinks, wanted pages and orphans are derivable.
 51. An article whose subject template no longer exists is reported.
 
-**Components + templates**
+**Components + snippets**
 
 54. A component receives **no reader identity and no capability
     ceiling** — asserted on the contract, so gating cannot migrate into
