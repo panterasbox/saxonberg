@@ -647,14 +647,57 @@ catalog, not the books.** New stock does not cause a rush, it causes a
 the risky and valuable thing. The pacing is a labour cost rather than a
 rule.
 
+### D30a — Authored stock counts; census-gate rather than allocation
+
+D7's `S* = inflow/d` assumes **one** inflow. Deliberate placement is a
+second, unmetered one, so an author placing twenty wands silently pushes
+the world past target and the algorithm never notices.
+
+**The census counts every item in circulation regardless of how it got
+there**, and both the reset sweep and the random spawner consult
+regional stock and decline to add when it is at target. Authored
+placement does not *spend* anything — it simply **counts**, and the
+random channel backs off on its own.
+
+**No allocation, no budget, no new economy.** An allocation would be a
+new resource needing an owner, a ledger, and administration, and the
+corrective already exists: **decay**. An over-filled area becomes an
+area full of dead shells, which D7 establishes are harmless. An author
+who floods deliberately and repeatedly is a content-review problem,
+which is where it belongs.
+
+The census binds at **the scope the spawn decision is made** — regional,
+not global. A global census would let one author's hoard starve the
+world; global stock drives only the slow decay-side equilibrium.
+
+*(Do not squat on `ParcelRecord.allowance` — it exists already and is
+the inert Phase-1 compute-economy seam.)*
+
+**Open item the planner must settle first:** does residency's cold-tail
+eviction remove an item from **circulation** or only from **memory**? If
+it destroys, a live count *is* the census and this is cheap. If it only
+unloads, the census must reach into persistence and is a different
+problem. That answer decides how the census is built.
+
 ### D30 — Both placement channels are supported, for every item class
 
 Stated explicitly because it is currently implied. Content authors need
 both, and neither is a special case of the other:
 
-- **Deliberate placement** — the shipped `populates:` template field. A
-  specific item on a specific shelf, authored.
+- **Deliberate placement** — a **declared par on a `ResettableMixin`
+  holder**, which the reset sweep tops toward. This is the explicit
+  channel for anything economy-bearing, and it is not new: retail's
+  `Stock` already does exactly this (*"`reset()` tops each line back to
+  par"*). Par is a **target**, so a taken item is replaced only when the
+  holder is below par — which closes the infinite-faucet hole that a
+  clone-time cascade would open.
 - **Random draw** — the weighted table of D21.
+
+**`populates:` is deliberately NOT the injection mechanism here.** It
+stays what it is — a clone-time cascade for set dressing, bottles on a
+back-bar — and its meaning is not redefined, because it has existing
+non-magic consumers and because an event is the wrong shape for a
+stock target.
 
 Note the three things that wear the word *distribution* and are
 distinct: `populates:` (deliberate, shipped), the spawn table (what a
