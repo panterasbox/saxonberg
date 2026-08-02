@@ -27,8 +27,8 @@ per-viewer class-memory substrate — **now in scope**, see D24–D29).
 
 ## Goals
 
-Six waves. Wave 1 is a precondition for everything after it and should
-land first; waves 2–6 are independently shippable in the order given.
+Seven waves. Wave 1 is a precondition for everything after it and should
+land first; waves 2–7 are independently shippable in the order given.
 
 **Wave 1 — the trigger-agnostic effect spine.**
 
@@ -68,20 +68,27 @@ land first; waves 2–6 are independently shippable in the order given.
 - **Mana recovery spends satiation and hydration**, closing a live
   first-law hole.
 
-**Wave 4 — the two knowledge axes, and the condition/shadow line.**
+**Wave 4 — BUC and the condition/shadow line.**
 
 - Blessed / uncursed / cursed is a **potency level on the item's own
   effect axis**, per the slate's settled model.
-- **Identification** — per-viewer memory of item *classes*, keyed by
-  appearance, with appearance **derived** from the class and a rotating
-  generation so the mechanic stays live in a shared world.
-- Players can **label** any item or container.
 - A sustained effect records whether it is held by a **live host** or
   bought as a **fixed term**, and behaves accordingly.
 - Condition application has a **veto layer**, so immunity and
   resistance are expressible.
 
-**Wave 5 — spellbooks and memory.**
+**Wave 5 — identification.**
+
+- Per-viewer memory of item *classes*, keyed by appearance, with
+  appearance **derived** from the class and a rotating generation so the
+  mechanic stays live in a shared world.
+- **Descriptor banks** exist, one per class, deep enough to sustain
+  rotation, and provably disjoint from the materials vocabulary.
+- Players can **label** any item or container.
+- Consumables glob; anything with continuous per-instance state does
+  not; and merge behaviour leaks no hidden state.
+
+**Wave 6 — spellbooks and memory.**
 
 - Reading a spellbook mints a **known-of claim**; it never touches
   competence.
@@ -91,12 +98,18 @@ land first; waves 2–6 are independently shippable in the order given.
   specification has decayed.
 - Books are physical: they have weight, they can be shelved, and a
   personal library is worth the trip to the public one that it saves.
+- Books are **identified items** (wave 5), so what a book teaches is
+  itself something you must learn.
 
-**Wave 6 — distribution.**
+**Wave 7 — distribution.**
 
 - An item declares the two tag sets distribution needs, and rarity
   **derives** from the grid cell via the arcane price list rather than
   from an authored table.
+- A **census** counts everything in circulation regardless of origin,
+  and gates both injection channels.
+- Deliberate placement is a **declared par on a resettable holder**;
+  random placement is the weighted table.
 - Thrown effect-carriers deliver through the shipped ranged seam.
 
 ## Non-goals
@@ -109,9 +122,13 @@ land first; waves 2–6 are independently shippable in the order given.
   follow-up. See D21.
 - **Traps and NPC powers.** The spine serves them; neither is built
   here. Hazard already ships its own delivery.
-- **Guns and the ranged build.** Wave 6 consumes the ranged seam for
+- **Guns and the ranged build.** Wave 7 consumes the ranged seam for
   thrown carriers only. Kinetic charged items are gun-shaped (D6) and
   wait for [ranged-slate.md](../slates/builds/ranged-slate.md).
+- **The materials content pack.** Expanding the material taxonomy to a
+  full working set is its own piece of work (see D32) — parallel, not a
+  blocker, but the descriptor banks cannot be authored blind against a
+  vocabulary that is still moving.
 - **True polymorph / body-swap** — deferred to
   `presence-hollowing-slate.md`. See D18.
 - **Altars, consecration, and sanctity** — fixtures, and they belong
@@ -647,7 +664,7 @@ catalog, not the books.** New stock does not cause a rush, it causes a
 the risky and valuable thing. The pacing is a labour cost rather than a
 rule.
 
-### D30a — Authored stock counts; census-gate rather than allocation
+### D30 — Authored stock counts; census-gate rather than allocation
 
 D7's `S* = inflow/d` assumes **one** inflow. Deliberate placement is a
 second, unmetered one, so an author placing twenty wands silently pushes
@@ -679,7 +696,7 @@ it destroys, a live count *is* the census and this is cheap. If it only
 unloads, the census must reach into persistence and is a different
 problem. That answer decides how the census is built.
 
-### D30 — Both placement channels are supported, for every item class
+### D31 — Both placement channels are supported, for every item class
 
 Stated explicitly because it is currently implied. Content authors need
 both, and neither is a special case of the other:
@@ -706,6 +723,77 @@ slate's stock model (how much is available — accumulation minus
 withdrawal). Discovery states the split itself: **authors write the
 table, the world computes the stock.** This build ships the table and
 `populates:`; the stock model is its own build.
+
+### D32 — Descriptor banks: two decorative axes, never material
+
+Unidentified items need a pool of descriptors to draw from. These are
+**name banks** — the same concept `name_banks` already ships for
+char-gen, delivered the same way, as a content pack.
+
+**Depth.** For a class with N item types you need N descriptors live,
+**2N** during a transition window, and — to keep a descriptor retired
+for K generations before reuse — roughly **N × (K + 1)**. At N = 20 and
+**K = 3** that is ~80, which no single flat list of colours can supply
+without descending into *pale blue* versus *light blue*.
+
+So **every bank is the product of two orthogonal axes**: ten words on
+each gives a hundred distinguishable descriptors from twenty authored
+words, and each word stays meaningful. Scrolls are the free case —
+arbitrary text, unbounded.
+
+| Class | Axis A | Axis B |
+|---|---|---|
+| Potions | **colour** | clarity — *clear, cloudy, murky, effervescent, viscous, smoky* |
+| Wands | ornament — *runed, banded, spiked, forked, knotted, twisted, notched, fluted, whorled, plain* | proportion — *long, short, slender, stubby, tapered, crooked, straight, heavy, thin, curved* |
+| Rings | band form | marking |
+| Amulets | shape | marking |
+| Spellbooks | condition — *dog-eared, stained, mottled, faded, tattered, warped, worn* | cover marking |
+| Scrolls | arbitrary text | — |
+
+**One strict global rule: a colour word means a potion.** Not for
+disambiguation — the noun already does that — but for rotation hygiene
+and prose that reads cleanly. Other banks may share vocabulary across
+classes, because the noun disambiguates.
+
+**⚠ Descriptor axes must be decorative, never material.** Material is a
+**closed curated set with real physical consequences**
+(`response = f(mechanism, material, construction)`), so a descriptor
+naming one is either a lie in the model or an unintended constraint on
+manufacture — and the closed set is nowhere near deep enough to feed a
+pool anyway.
+
+The collision surface is wider than material *names*: `Material` also
+carries **`keywords`** and **`appearance`**, and keywords drive the
+parser's material resolution. So a collision is a **parser ambiguity
+bug**, not a stylistic wobble — if *amber* is both a wand descriptor and
+a material keyword, `look at amber` has two answers.
+
+The invariant, therefore:
+
+> descriptor banks ∩ (material **names** ∪ **keywords** ∪ **appearance**
+> words) = ∅
+
+**Enforced by a lint, CI-gating** — the same shape as
+`check-boundary-exemptions.ts`, which exists precisely because two sets
+must stay disjoint and the build is the right place to check it. A
+runtime check would fail in front of a player; the CMS may warn while
+authoring, but cannot guarantee, since packs install by other paths.
+
+**The lint must run on material additions too**, not only descriptor
+additions. Adding *amber* as a gemstone years later can retroactively
+collide with a shipped descriptor, and that is the direction nobody
+thinks to check.
+
+Authoring trap to state explicitly in the bank content: the tempting
+words are material claims in disguise — **gilded, vellum, leathery,
+cloth, crystal, glassy, waxen, iron-bound**. Every one asserts a
+substance.
+
+**What this buys:** material stays true, fixed, and **orthogonal**. A
+wand *is* brass, honestly and permanently — which tells you real things
+(it conducts, it will not burn) and tells you **nothing** about which
+spell it holds. An item then carries two independent readable facts
+instead of one mystery label.
 
 ## Constraints
 
@@ -736,8 +824,12 @@ table, the world computes the stock.** This build ships the table and
   masterable.
 - **Banding is presentation.** Player-facing surfaces speak bands and
   prose; raw kilojoules are not the player interface.
-
 ## Acceptance criteria
+
+Grouped by wave. Concrete and checkable — this is what the finalize
+phase reads against.
+
+**Wave 1 — the effect spine**
 
 1. `executeEffect` and its executors take an explicit context; no
    executor reads a bare `caster`. Tests cover an effect whose origin,
@@ -748,82 +840,119 @@ table, the world computes the stock.** This build ships the table and
    row names the actor.
 3. A spell is usable through both the casting path and an item path from
    one authored definition, with no duplicated effect data.
+
+**Wave 2 — consumables**
+
 4. A potion is a `Bulkable` whose partial consumption produces a
    proportionally scaled graded effect and no threshold effect below its
    minimum; splitting, dilution, and spilling are covered.
-5. Charge is a `Reserve` that decays on read; a test asserts stock
+5. A scroll costs the reader's reserve and is destroyed on use.
+
+**Wave 3 — charge, decay, economy**
+
+6. Charge is a `Reserve` that decays on read; a test asserts stock
    converges to `inflow/decay` rather than growing without bound.
-6. A charged item absorbs its own recoil and waste heat; a test asserts a
-   caster using a shove-focus is displaced and a caster using a braced
+7. A charged item absorbs its own recoil and waste heat; a test asserts
+   a caster using a shove-focus is displaced and a caster using a braced
    charged item is not.
-7. `recharge` moves energy from a caster's mana into an item's charge
+8. `recharge` moves energy from a caster's mana into an item's charge
    and is refused when the caster lacks it.
-8. A worn always-on item depletes measurably faster than the same item
+9. A worn always-on item depletes measurably faster than the same item
    used as a trigger.
-9. **Mana recovery consumes satiation and hydration**; a starved caster
-   does not refill. A test asserts recovery halts with an empty
-   satiation pool.
-10. A cursed charged item cannot be removed and transfers heat to its
+10. **Mana recovery consumes satiation and hydration**; a starved caster
+    does not refill. A test asserts recovery halts with an empty
+    satiation pool.
+11. A focus's pattern decays on its own slower schedule and is refreshed
+    through the same `recharge` path.
+
+**Wave 4 — BUC and conditions**
+
+12. A cursed charged item cannot be removed and transfers heat to its
     wearer.
-11. A sustained effect from a charged host is renewable while charged; a
+13. A sustained effect from a charged host is renewable while charged; a
     term-bought one expires and cannot be renewed. Both survive
     save/reload and re-materialize their shadow.
-12. Reading a spellbook mints an idempotent known-of claim and writes no
-    Transcript entry; a test asserts competence is unchanged.
-13. A character below a book's comprehension floor forms a **defective
-    specification**: casting it costs measurably more than the correct
-    copy, and re-studying at sufficient competence replaces it.
-13a. A viewer's identification memory is per-viewer and keyed by
-    appearance; a scroll of identify writes a class record and produces
-    no message-only side effect. `knownAttributes` carries the state and
-    no 0–1 scalar is stored.
-13b. Appearance is **derived** — no appearance is persisted on an
+14. A condition can be vetoed at application, so an immunity conferred
+    by a worn item refuses it.
+
+**Wave 5 — identification**
+
+15. Identification memory is per-viewer and keyed by appearance; a
+    scroll of identify writes a class record and produces no
+    message-only side effect. `knownAttributes` carries the state and no
+    0–1 scalar is stored.
+16. Appearance is **derived** — no appearance is persisted on an
     instance. An item stashed across a generation change re-renders on
-    retrieval, and a test asserts no withdrawal sweep is required for
-    correctness.
-13c. Two items of the same class at different points in a transition
+    retrieval, and no withdrawal sweep is required for correctness.
+17. Two items of the same class at different points in a transition
     window render with different descriptors; a viewer may hold valid
     records for both simultaneously.
-13d. A record learned in a prior generation displays as a hedge, never
-    as an assertion, once its descriptor is reissued.
-13e. A player can label any item or container, and the label survives a
+18. A record learned in a prior generation displays as a hedge, never as
+    an assertion, once its descriptor is reissued.
+19. A player can label any item or container, and the label survives a
     generation change.
-13f. An unidentified spellbook does not reveal what it teaches; a test
-    asserts reading one below the comprehension floor yields the
-    defective copy rather than a refusal.
-13g. Both placement channels work for every item class: a `populates:`
-    declaration places a specific item, and the weighted table produces
-    a random draw.
-13h. Consumables glob and anything with continuous per-instance state
+20. Consumables glob and anything with continuous per-instance state
     (charge, pattern decay) does not. `globIdentityFields` is class +
     BUC-bucket; the rendered-appearance comparison lives in
     `canMergeWith`.
-13i. Two unknown-BUC items merge regardless of their true state; BUC
+21. Two unknown-BUC items merge regardless of their true state; BUC
     resolves on reveal and the revealed item splits into its bucket. A
     test asserts merge behaviour leaks no BUC information.
-13j. A labelled item does not auto-merge on arrival.
-13k. A stack flips appearance as a unit at its own window position, and
+22. A labelled item does not auto-merge on arrival.
+23. A stack flips appearance as a unit at its own window position, and
     folds into the already-flipped stack on next contact.
-14. A faded spell costs more mana and never fails for fading alone;
+24. **`pnpm lint` fails** when a descriptor bank collides with any
+    material name, keyword, or appearance word — and fails in both
+    directions, so adding a *material* that collides with a shipped
+    descriptor is caught too.
+25. Each bank is deep enough for `N × (K + 1)` at the agreed K, and no
+    descriptor axis names a material.
+
+**Wave 6 — spellbooks and memory**
+
+26. Reading a spellbook mints an idempotent known-of claim and writes no
+    Transcript entry; a test asserts competence is unchanged.
+27. A character below a book's comprehension floor forms a **defective
+    specification**: casting it costs measurably more than the correct
+    copy, and re-studying at sufficient competence replaces it.
+28. An unidentified spellbook does not reveal what it teaches; a test
+    asserts reading one below the comprehension floor yields the
+    defective copy rather than a refusal.
+29. A faded spell costs more mana and never fails for fading alone;
     casting restores sharpness; an amnesia effect removes claims and
     leaves competence intact.
-15. Fade rate responds to maturity, to competence in the relevant
-    Disciplines, and to specification complexity — and is unaffected by
-    which book taught it.
-16. Studying is an interruptible activity whose duration falls as
+30. Fade rate responds to maturity, to competence in the relevant
+    Disciplines, to specification complexity, and to interference from
+    similar specifications — and is unaffected by which book taught it.
+31. Studying is an interruptible activity whose duration falls as
     sharpness rises.
-17. A thrown potion delivers through the ranged seam, breaks according to
-    its vessel's material, and spills; an ingestion-only potion produces
-    no effect when thrown.
-18. Item rarity derives from the grid cell via the price list; no
+
+**Wave 7 — distribution**
+
+32. Item rarity derives from the grid cell via the price list; no
     authored rarity table exists in the codebase.
-19. `docs/subsystems/magic-items.md` exists and documents the three
-    classes, the charge economy, the memory loop, and the effect
-    context.
-20. `arcane-science.md` and `magic-items-slate.md` both record the
+33. Both placement channels work for every item class: a **declared par
+    on a resettable holder** places a specific item and is topped toward
+    par rather than re-cloned, and the weighted table produces a random
+    draw. `populates:` is unchanged and is not used as the injection
+    path for economy-bearing items.
+34. The census counts authored and random stock alike, and both channels
+    decline to add when regional stock is at target. A test asserts
+    authored placement suppresses random spawning in the same region and
+    not globally.
+35. A thrown potion delivers through the ranged seam, breaks according
+    to its vessel's material, and spills; an ingestion-only potion
+    produces no effect when thrown.
+
+**Across the build**
+
+36. `docs/subsystems/magic-items.md` exists and documents the three
+    classes, the charge economy, the memory loop, the identification
+    substrate, and the effect context.
+37. `arcane-science.md` and `magic-items-slate.md` both record the
     polymorph resolution (D18); the slate's rings section records the
     charge revision (D8).
-21. `pnpm lint` and the full suite pass; no new `no-restricted-syntax`
+38. `pnpm lint` and the full suite pass; no new `no-restricted-syntax`
     exception is added.
 
 ## Cross-references
