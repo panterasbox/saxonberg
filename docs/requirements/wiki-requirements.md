@@ -414,29 +414,36 @@ reads. The request is editorial metadata; the generation stays offline
 and deliberate, because it costs money and style consistency is
 curated.
 
-### M3 — ⚠ Community upload, and why it is a build of its own
+### M3 — ⚠ Upload is a SHARED ingest, not a wiki feature
 
-There is **no runtime write path to S3**, and the import boundary means
-mudlib code cannot have one — this is a backend concern by construction.
-A community wiki whose authors cannot add a screenshot is a real
-limitation, so the design carries it rather than pretending otherwise:
+Three producers want to put bytes in one bucket: the **wiki** (article
+images), the **CMS** (setting a template's `illustration`), and
+`illustrate.ts`, which today writes to S3 out-of-band. Designing an
+upload path inside the wiki would be the second of three, and the one
+that records provenance differently from the other two.
 
-- **Route + credentials** in the backend tier, never the mudlib.
-- **Type allowlist** (png/jpeg/webp), **byte cap**, **dimension cap**,
-  all rejected server-side; never trust a declared content-type.
-- **Provenance is a discriminator on `MediaAsset`.** The existing fields
-  (`prompt`, `model`, `styleVersion`, `sourceContentHash`) describe a
-  *generated* asset. A human upload needs `uploader`, `uploadedAt`,
-  `originalFilename` and a declared source/licence. Additive, and the
-  two kinds must stay distinguishable — an uploaded image must never be
-  mistaken for a curated render.
-- **Moderation is nearly free**: `MediaAsset.status` already exists, so an
-  upload lands `pending` and a moderator promotes it. Nothing unreviewed
-  is ever served.
-- **Rate-limited per uploader**, and gated on the editor group, so the
-  abuse surface is bounded by an existing membership decision.
+So **the wiki consumes a shared media-ingest surface and does not define
+it.** What the wiki requires of it:
 
----
+- a **key** it can put in `<image>`, resolved by the client exactly as
+  `Visible.illustration` already is;
+- **nothing unreviewed is ever served** — `MediaAsset.status` already
+  exists, so ingest lands `pending` and a moderator promotes;
+- **provenance distinguishes an upload from a generated render**, so a
+  community screenshot is never mistaken for a curated illustration;
+- **the editor group gates who may upload**, so the abuse surface is
+  bounded by a membership decision that already exists.
+
+What ingest owns, and why it cannot live here: the route and S3
+credentials sit in the **backend tier** (the import boundary forbids the
+mudlib from reaching S3 at all), as do the server-side type allowlist,
+byte cap, dimension cap, and per-uploader rate limit. Routing
+`illustrate.ts` through the same path is the prize — one writer, one
+provenance model, instead of two writers to one bucket where only one is
+visible to the runtime.
+
+> **This wants its own design doc**, shared with the CMS. It is named
+> here as a dependency, not solved here.
 
 ## Search, and why the index is over SOURCE
 
@@ -454,6 +461,41 @@ materials; the oak article is found by its prose.
 
 That also makes indexing cheap: no resolver runs, and an edit reindexes
 one document.
+
+### S1 — A port, not an engine
+
+Search cross-cuts wiki, help, forums and docs, so what needs designing
+now is the **port** — index a fragment, remove a document, query with
+filters, return results grouped by source. The engine behind it is
+swappable and should not be chosen for a corpus that does not exist yet.
+
+**Back it with Mongo text indexes initially.** Weak at stemming and
+relevance, entirely adequate for hundreds to low thousands of documents,
+and available today with no new infrastructure. **Atlas Search is the
+natural upgrade** — Lucene-backed, no new box, already where the data is
+(⚠ verify the shared-tier index-count limits on M0 before depending on
+it).
+
+**Do not stand up SOLR or a sidecar engine**, for three reasons in
+ascending order of weight:
+
+1. **Deployment.** A JVM — or even a light Rust engine — is a second
+   stateful service with its own backup, restore and upgrade story, on
+   one small box already shared with a stateful game server.
+2. **A sync pipeline** is a second source of truth that can drift, and
+   drift in a search index looks like missing content rather than an
+   error.
+3. ⭐ **Spoiler containment.** The index must hold fragments *with* their
+   capability levels and filter at query time — so an external engine
+   becomes a **second home for spoiler content**, one debug endpoint or
+   misconfigured query away from leaking what the server carefully
+   omitted. Keeping the index inside the database already trusted with
+   that data means it never gets a second home.
+
+What must be right from day one is the **index shape** — fragment,
+source-kind, capability level — because that is what the callers are
+written against. The engine underneath can change; the shape cannot,
+cheaply.
 
 ---
 
@@ -670,12 +712,12 @@ state.
 
 39. `<image key="…">` resolves an existing asset; a subject-bound page
     surfaces its subject's `illustration` with no authoring.
-40. An upload is rejected for disallowed type, oversize bytes, or
-    oversize dimensions — decided server-side, never from a declared
-    content-type.
-41. An uploaded asset lands `status: pending` and is **not served** until
-    promoted.
-42. Uploaded and generated provenance are distinguishable on the row.
+40. The wiki references assets **by key only** and defines no upload path
+    of its own.
+41. An asset that is not promoted past `pending` is **not served** into a
+    rendered page.
+42. Uploaded and generated provenance are distinguishable on the row, so
+    a page can say which it is showing.
 
 **Search**
 
@@ -683,6 +725,8 @@ state.
     it.
 44. A fragment above the searcher's capability is not returned, and does
     not influence ranking.
+44a. The wiki talks to a **search port**, not to an engine — swapping the
+    backing store changes no wiki code, asserted by a fake port in tests.
 
 **Citations**
 
@@ -723,8 +767,21 @@ build order has to respect:
 - **Anchors must be sticky before anything cites them**, or the first
   citations are the ones that break.
 - **Upload is separable**: reference-only media (M1, M2) has no
-  dependency on the upload path (M3), so the wall can be hit later
-  without redesign.
+  dependency on ingest (M3), so the wiki can ship complete against
+  existing assets and gain uploads whenever the shared ingest lands.
+- **Search needs the index SHAPE, not the engine.** Fragment,
+  source-kind and capability level are what callers are written against;
+  the backing store can change afterwards.
+
+## Named dependencies on other designs
+
+Neither is solved here, and both are shared:
+
+- ⭐ **Media ingest** (M3) — one route, one provenance model, one
+  moderation queue, serving the wiki, the CMS, and `illustrate.ts`.
+  Wants its own doc, written with the CMS.
+- ⭐ **The search port** (S1) — a shared substrate over wiki, help,
+  forums and docs. The wiki is one producer and one consumer of it.
 
 ## Cross-references
 
