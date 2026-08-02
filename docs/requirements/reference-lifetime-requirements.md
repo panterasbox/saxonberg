@@ -4,6 +4,40 @@
 > Source slate: [reference-lifetime-slate.md](../slates/builds/reference-lifetime-slate.md).
 > Retired at the pre-merge sweep.
 
+## Start here (orientation for a cold read)
+
+Read in this order: **this doc** → [the two axes in
+ref-shapes.md](../ref-shapes.md#the-two-axes) → [the
+plan](../plans/reference-lifetime-plan.md). The plan's *Findings* section
+(F1–F6) records four places this doc was wrong and was corrected — read
+those before trusting any wave.
+
+**In one paragraph.** A `Stuff` field pointing at another `Stuff` has two
+axes: `ref` — `identity` ("what kind of thing", stores a templatePath,
+persistable, re-resolves so it cannot dangle) vs `instance` ("this
+particular object", stores a live ref, never persistable because
+`stuffId` does not survive a reboot) — and, for instance refs only,
+`lifetime` — `weak` (self-heal on read), `symmetric` + `inverse` (each
+side clears the other on destruct), `owned` (holder destructs it). Both
+live in a new field-keyed `static fieldMeta` that also absorbs four
+existing statics. Axis 1's discriminator is **the holder's meaning, not a
+property of the target**, so it is declared, never inferred.
+
+**Three things that will bite:**
+
+1. **`owned` is the only lifetime that destroys.** `Container.contents`
+   looks exactly like the shipped `owned` exemplars and must NOT be
+   declared `owned` (it evacuates outward first). Run the six-step audit
+   in the plan before every `owned`, and write the result into that
+   commit message.
+2. **The census is a lead, not a verdict.** It has been wrong twice
+   already (2 of 21 sites). Read every site at its own call sites.
+3. **The codemod is 250 files of the highest-consequence subsystem in
+   the tree.** The golden master (plan W0/W2) is the entire safety story;
+   do not weaken it.
+
+**Status: not started.** No code has been written. W0 is next.
+
 ## The gap
 
 Two problems, one shape.
@@ -58,7 +92,7 @@ field declares everything about itself.
 | D2 | **Big-bang codemod first**, then the rules | One shape in the tree at any moment; no dual-read path to build and later remove |
 | D3 | **Build-time error** when a field is both persistent and a live ref | Persisted live refs do not exist in the substrate; mirrors the `@Final` validator throwing at registration |
 | D4 | **Residency: regression tests only** | The `canEvict` vetoes are not mechanical (see R6); pin them, do not derive them |
-| D5 | **Fix all 21 sweep sites** | The mechanism without the fixes leaves the bugs it exists to prevent |
+| D5 | **Fix every unruled site** (R8 + R12) | The mechanism without the fixes leaves the bugs it exists to prevent |
 | D7 | **W7c registries: finish the read-side prune, don't declare a rule** | A registry keyed by a live Stuff is an *index*, not a reference — it doesn't own its keys (`owned` wrong) and `Interactive` must not grow a back-ref (`symmetric` wrong). Also fixes the real leak: `Interactive.onDestruct` never calls `teardownSubstrateState`, which the three registries rely on |
 | D8 | **Fold `@authorable` + `@runtimeState` into `fieldMeta`**; delete the source scan | They ARE field metadata (172 + 78 sites), and `StudioLogic.scanClassification` reads them by walking the source tree as TEXT and regex-binding JSDoc to identifiers — with underscore-insensitive name *guessing* because it cannot tell which field a comment belongs to. Shipping "one field-keyed structure" while leaving 250 declarations in comments the runtime greps would be the same disease with a worse mechanism. It also makes the tag **checkable**: `@runtimeState` currently lies about `Organism.lifecycleState`, which is persisted |
 | D9 | **Fold the held-side R2.4 unhooks into the declaration** | A second route for declaring a reference relationship leaves "one way" two-thirds true. **Six of the ten** `cleanupOnDestruct` sites qualify (see R10) — the other four are policy, not cascade |
@@ -73,10 +107,11 @@ field declares everything about itself.
 - A codemod converting the **four genuinely field-keyed statics** to it,
   and deleting them.
 - `MixinApi.getAllFieldMeta(ctor)` — one collector replacing four.
-- The `ref` key: `'weak'` (R2.3), `'symmetric'` (R2.2), `'owned'` (R2.1),
-  enforced by the framework at destruct/read.
+- The two reference axes on `fieldMeta` — `ref: 'identity' | 'instance'`
+  and, for instance refs, `lifetime: 'weak' | 'symmetric' | 'owned'` —
+  enforced by the framework at read (self-heal) and destruct (slot 2.5).
 - Build-time validation (D3) + a `pnpm lint:field-meta` gate.
-- The sweep: a rule declared for all 21 unruled sites.
+- The sweep: a rule declared for every unruled site (R8 + R12).
 - `ref-shapes.md` graduates from "boilerplate to write" to "rule to
   declare".
 
@@ -337,6 +372,59 @@ Plus `pnpm lint:field-meta` (CI-gating) for what registration cannot see:
 a legacy static still present after the codemod, and a `fieldMeta` key
 that matches no declared field on the class.
 
+### R8 — The sweep (D5)
+
+A rule declared for every unruled site. The original census found 21;
+**two of those were wrong** (`Shade.shadeSpecies` / `WireBody.wireSpecies`
+— see below), and the post-merge census added three more (R12), so treat
+R8 + R12 as the list and the count as incidental. Notable:
+
+- **`Adornment.adornedTo`** → `symmetric` with `Adornable.fixtureSlots`.
+  Closes the documented-but-absent R2.2 pair.
+- **`Interactive.holder` ↔ `HasInteractive.interactives`** → `symmetric`.
+  Both directions are currently uncovered.
+- **`Exit.source`, `Exit._destination`** → `weak`; **`Exit.inverse`** →
+  `symmetric` (today it is half-symmetric: cleared on its own destruct,
+  not on its partner's).
+- **`DoorBearing.door`** → `weak` (the mixin has no destruct hook at all).
+- **`ChannelCatalogue.subjectsRef`** → **Pattern C** (resolve-on-read).
+  A cached live ref to a Stuff singleton with no invalidation — the
+  genuine instance of the replacement hazard below.
+- **`Shade.shadeSpecies` and `WireBody.wireSpecies` are NOT sweep
+  sites.** The census called them A.4; that was wrong and is recorded
+  here so it is not re-raised. Both are **constructor parameters**, held
+  only until `postRegister` hands them to `setSpecies()` — and
+  `OrganismMixin` stores species as `_speciesPath`, re-resolving through
+  `findByTemplatePath` on every `getSpecies()` call (the shape its own
+  doc marks LOCKED and "HMR-safe; no instance cache"). The durable
+  reference is already Pattern C. Leave both alone.
+- The three `Interactive`-keyed registries (`MqlSubscriptionRegistry`,
+  `ForumSubscriptionRegistry`, `ReactionRegistry`) and the `domain/`
+  caches (`DormWarren`, `LoungeWarren`) → per-case; several want the
+  read-side prune they already half-implement.
+
+### R9 — Documentation
+
+- `ref-shapes.md` — **rewritten to the two-axis model** (done during the
+  requirements phase; the doc is the design authority, so settling the
+  doctrine was design work, not implementation). Patterns A/B/C are
+  retired in favour of identity/instance + lifetime; the decision matrix
+  is now two ordered questions; A.4 is restated around the property that
+  actually matters. Remaining build tasks in that file: R2.1–R2.3
+  restated as declarations at each rule, the exemplar table updated, the
+  **`getRestingOn()` exemplar added** (a second R2.3 site in
+  `Containable.ts` the doc omits), and the false `Adornment ↔ Adornable`
+  claim corrected.
+- Every other doc that speaks the A/B/C vocabulary needs its terms
+  updated — `CLAUDE.md`'s ref-shapes map entry names "Pattern A/B/C"
+  explicitly, and the subsystem docs reference the pattern letters.
+  Sweep the `docs/` tree for `Pattern A`/`Pattern B`/`Pattern C`.
+- Fix the stale comment at `Containable.ts:210-212`, which references a
+  `_restingOnPath` field and a `static persistentFields` that do not
+  exist in that file.
+- `architecture.md`: `fieldMeta` in the field-metadata section.
+- `residency.md`: note that the veto roster stays hand-written and why.
+
 ### R10 — Which R2.4 unhooks fold in (D9)
 
 "Fold R2.4 in" is **not** a blanket conversion of all ten
@@ -434,56 +522,6 @@ instance refs at all, and `Plant` actively *removed* a concrete
 `PlantPot` ref in this range in favour of a `Cultivable` type import. The
 new code is mostly on the right side of the line.
 
-### R8 — The sweep (D5)
-
-A rule declared for all 21 unruled sites from the census. Notable:
-
-- **`Adornment.adornedTo`** → `symmetric` with `Adornable.fixtureSlots`.
-  Closes the documented-but-absent R2.2 pair.
-- **`Interactive.holder` ↔ `HasInteractive.interactives`** → `symmetric`.
-  Both directions are currently uncovered.
-- **`Exit.source`, `Exit._destination`** → `weak`; **`Exit.inverse`** →
-  `symmetric` (today it is half-symmetric: cleared on its own destruct,
-  not on its partner's).
-- **`DoorBearing.door`** → `weak` (the mixin has no destruct hook at all).
-- **`ChannelCatalogue.subjectsRef`** → **Pattern C** (resolve-on-read).
-  A cached live ref to a Stuff singleton with no invalidation — the
-  genuine instance of the replacement hazard below.
-- **`Shade.shadeSpecies` and `WireBody.wireSpecies` are NOT sweep
-  sites.** The census called them A.4; that was wrong and is recorded
-  here so it is not re-raised. Both are **constructor parameters**, held
-  only until `postRegister` hands them to `setSpecies()` — and
-  `OrganismMixin` stores species as `_speciesPath`, re-resolving through
-  `findByTemplatePath` on every `getSpecies()` call (the shape its own
-  doc marks LOCKED and "HMR-safe; no instance cache"). The durable
-  reference is already Pattern C. Leave both alone.
-- The three `Interactive`-keyed registries (`MqlSubscriptionRegistry`,
-  `ForumSubscriptionRegistry`, `ReactionRegistry`) and the `domain/`
-  caches (`DormWarren`, `LoungeWarren`) → per-case; several want the
-  read-side prune they already half-implement.
-
-### R9 — Documentation
-
-- `ref-shapes.md` — **rewritten to the two-axis model** (done during the
-  requirements phase; the doc is the design authority, so settling the
-  doctrine was design work, not implementation). Patterns A/B/C are
-  retired in favour of identity/instance + lifetime; the decision matrix
-  is now two ordered questions; A.4 is restated around the property that
-  actually matters. Remaining build tasks in that file: R2.1–R2.3
-  restated as declarations at each rule, the exemplar table updated, the
-  **`getRestingOn()` exemplar added** (a second R2.3 site in
-  `Containable.ts` the doc omits), and the false `Adornment ↔ Adornable`
-  claim corrected.
-- Every other doc that speaks the A/B/C vocabulary needs its terms
-  updated — `CLAUDE.md`'s ref-shapes map entry names "Pattern A/B/C"
-  explicitly, and the subsystem docs reference the pattern letters.
-  Sweep the `docs/` tree for `Pattern A`/`Pattern B`/`Pattern C`.
-- Fix the stale comment at `Containable.ts:210-212`, which references a
-  `_restingOnPath` field and a `static persistentFields` that do not
-  exist in that file.
-- `architecture.md`: `fieldMeta` in the field-metadata section.
-- `residency.md`: note that the veto roster stays hand-written and why.
-
 ## Acceptance criteria
 
 1. `static fieldMeta` exists; the four legacy statics are **gone from the
@@ -497,8 +535,9 @@ A rule declared for all 21 unruled sites from the census. Notable:
    every shipped R2.1/R2.2 site.
 5. A field both `persistent` and `ref` throws at registration, naming the
    field and pointing at ref-shapes.md.
-6. All 21 sweep sites carry a rule; each has a test proving the dangling
-   ref is cleared.
+6. Every site in R8 + R12 carries a rule or a recorded reason it needs
+   none; each behaviour change has a test proving the dangling ref is
+   cleared.
 7. Residency regression tests pass unchanged before and after.
 8. Full suite green in chunks; type-clean; all lint gates green.
 
