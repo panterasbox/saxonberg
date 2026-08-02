@@ -445,6 +445,21 @@ between things, which is what makes a room out here read as a yard.
 
 ---
 
+## The cultivation verbs are EMBODIED acts
+
+`plant`, `water`, `feed`, `harvest` and `repot` all carry
+`requiresEmbodied` alongside `requiresAnimate`. Pulling a carrot and
+turning compost into a bed are acts on **matter**, and a shade has no
+hands for either — see [mortality.md](./mortality.md).
+
+That is not a free-floating stylistic choice: `cmd/__tests__/
+embodied-tagging.test.ts` **enforces** it over every verb in the
+material categories, and it caught `harvest` and `feed` untagged at
+merge time. The two builds were developed in parallel, so neither side's
+suite could see the gap until they were in one tree — a reminder that a
+build's own green suite says nothing about the verbs it added meeting a
+rule that landed while it was in flight.
+
 ## Deferred seams
 
 - **Nothing fills the bed's moisture from the sky.** Rain and real
@@ -459,6 +474,38 @@ between things, which is what makes a room out here read as a yard.
   both this build and the parallel apartment build decline them.
 - **Perennials.** A harvest ends the plant; re-fruiting is a later
   question.
+
+---
+
+## History — what the live drive changed
+
+The build shipped green on ~1700 unit tests and was **unreachable**. Four
+defects lived entirely between "a passing test" and "a feature a player
+can get to", and every one of them is downstream of a single decision:
+minting a room per lot (`b0cf1df4`; the merge that preceded it is
+`725b2629`).
+
+| what the suite saw | what a browser saw |
+|---|---|
+| the lane had an exit north | it pointed at the **shared yard template**, which stood the template up as an unowned yard on nobody's lot — and then collided with the minted identities |
+| `TitledRoom` composed correctly | a per-lot room cannot be a `CartesianLocation` at all, and as one the yard read **16.7 lux** — under a carrot's light floor |
+| exits were added | a non-cardinal `lot-1` gate needs a *spatial, authored* zone the lots do not otherwise have |
+| `water` had a controller and a test | nothing in the yard **conferred** it — the can was missing |
+
+Three lessons worth keeping, none of them about farming:
+
+1. **A verb with a passing controller test can still be untypable.** This
+   build hit that twice (five verbs in `3fe79102`, `water` here). The
+   affordance chain — contributed → in scope → parseable → conferred by
+   something present — is not exercised by a controller test.
+2. **Retiring a one-week-old class is cheap; keeping it is not.**
+   `TitledRoom` existed for days and was already a near-twin of the
+   furnishing build's `FurnishableRoom`. The geometry argument that
+   justified it turned out to be the argument *against* it.
+3. **The engine's refusals were right every time.** The singleton guard,
+   the cardinal-exit rule and the spatial-zone resolver each blocked
+   something that genuinely should not work. None of them needed a
+   change; the content did.
 
 ---
 

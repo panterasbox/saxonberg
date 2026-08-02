@@ -2501,6 +2501,91 @@ verb.** When a build's value is player-facing, drive it — boot the server,
 query the collection, type the command. Every defect above cost minutes to
 find that way and was invisible to 7,300 passing tests.
 
+## A static exit whose destination is a SHARED room template
+
+An `exits:` entry names a template path, and the engine resolves it with
+`StuffApi.singleton` — which **creates the template as a live place** if
+nothing is there. That is correct for a singleton room and quietly wrong
+for a template that exists to be cloned per instance.
+
+Hinkley Lane authored `north -> /domain/…/hinkley-hills/yard`, the shared
+template every sold lot's yard is minted from. Walking north stood the
+*template* up as an unowned yard on nobody's lot, that any player could
+enter and cultivate — and it then collided with the minted per-lot
+identities at the singleton guard. No unit test could see it: the exit
+map was correct, the destination resolved, the room described itself.
+
+It was also never expressible. A subdivision has N lots and N rooms, and
+no one static exit can mean "yours".
+
+### BAD (one authored edge, N possible destinations)
+
+```yaml
+# lane.yaml — names the template every lot clones from
+exits:
+  north:
+    destination: /domain/terminus/hinkley-hills/yard
+```
+
+### GOOD (the provisioner installs one deferred edge per instance)
+
+```typescript
+// LotHolder.ensureGate — hung as lots sell, re-hung at boot from the
+// title registry, directioned by the lot's own leaf.
+const gate = StuffApi.createSync(
+  () => new LotGateExit(street, this, lotExtent, direction),
+);
+await street.addExit(gate);
+```
+
+`DeferredDestinationExit` is the base — the destination faults in on
+traversal, so a street with a dozen sold lots materializes no rooms until
+someone walks through a gate. `DormDoor` is the shipped precedent.
+
+**The tell:** if a room's template is cloned more than once, nothing may
+author a static exit *to* it. Ask "how many live rooms could this edge
+mean?" — if the answer is not exactly one, the edge belongs to whatever
+mints the instances.
+
+## A per-instance minted room composed as a `CartesianLocation`
+
+A room minted per instance (`StuffApi.clone(path, { asTemplatePath })`)
+**cannot be a member of a shared cartesian grid**: N instances would
+occupy one coordinate. The grid enforces this, but only at the moment you
+try to hang a semantic exit — `CartesianLocation.addExit` refuses a
+non-cardinal direction between two rooms in the same zone — so the
+mistake surfaces far from its cause.
+
+Two consequences make it worth catching at design time, not at `addExit`:
+
+- **`getSizeScale()` is the zone's `cellSize²`**, and it is a photometric
+  denominator. A yard in a `cellSize: 6` zone divided its 600-flux open
+  sky by 36 m² and read **16.7 lux** — under the light floor its own crop
+  needed. Plain `Location`'s flat 1.0 was the correct answer, arrived at
+  by accident.
+- The instance is **outdoors-shaped in every way except the grid**, which
+  makes the grid look like the natural fit right up until it isn't.
+
+### BAD
+
+```typescript
+// one template, N minted identities, all at coords (-1, 1, 0)
+export default class TitledRoom extends PersistableMixin(CartesianLocation) {}
+```
+
+### GOOD
+
+```typescript
+// FurnishableRoom = Persistable → … → Populates → Location.
+// Venue-generic, not singleton-shaped, no grid membership.
+class: /lib/location/FurnishableRoom
+```
+
+Instances that need a semantic exit still need a **zone** of their own —
+one authored `SpatialZone` above all of them (`resolveZoneForPath` skips
+folders and cannot see a minted zone at all). See
+[zone.md](./subsystems/zone.md).
+
 ## An optional witness implemented by more than one composed layer
 
 Mixin statics and methods **do not merge**. When two layers of one

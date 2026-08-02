@@ -79,6 +79,34 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
   }
 });
 
+test('the TPA carries a route to the suburb, priced as a commute', async ({
+  browser,
+}) => {
+  // The suburb has to be REACHABLE, and the departure gate is how. What
+  // this pins is that the route is WIRED: an unregistered traveller is
+  // turned back by the shipped registration gate ("reach it another way
+  // and `register` first") and NOT by "no route here goes to 'hinkley'",
+  // which is what a missing route says. Those two refusals look alike in
+  // a transcript and mean opposite things — the second one is how a
+  // stale terminal row hides a dead route.
+  //
+  // NOT a wizard: `teleport` is dual-mode and the privileged fork
+  // self-powers past the TPA entirely.
+  const { page, close } = await openWorldAs(browser, 'hh-board', {
+    startLocation: '/domain/terminus/terminal/departure-gate-a',
+  });
+  try {
+    await sendUntil(
+      page,
+      'teleport hinkley',
+      page.getByText(/haven't registered that destination/i).first()
+    );
+    await expect(page.getByText(/no route here goes to/i)).toHaveCount(0);
+  } finally {
+    await close();
+  }
+});
+
 test('⭐ an UNSOLD lot has no gate — the lane only opens what sold', async ({
   browser,
 }) => {

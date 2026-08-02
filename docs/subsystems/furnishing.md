@@ -237,6 +237,17 @@ without `Visible` its prose is inert; without `Exitable` you cannot walk
 in. The shipped dorm room already had exactly this stack, which is why it
 is mirrored rather than re-derived.
 
+> **⭐ It is also the class OUTDOOR titled ground uses.** The Hinkley
+> Hills build minted a near-twin for a lot's yard
+> (`TitledRoom = PersistableMixin(CartesianLocation)`) and then retired
+> it for this one — see [smallholding.md](./smallholding.md). The
+> deciding constraint was that a room minted **per lot** cannot be a grid
+> member (N lots, one coordinate), and losing `CartesianLocation` also
+> lost the `cellSize²` light denominator that was dividing a yard's open
+> sky down to 16.7 lux. So "venue-generic" is stronger than it reads: not
+> just bank-bathroom-and-bar-kitchen, but *any* room that is one instance
+> among many at its own identity, indoors or out.
+
 ### The dorm bed
 
 Sleep-as-logout is the reason a residence is worth having, and the dorm is

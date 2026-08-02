@@ -20,6 +20,10 @@ examples:
     note: Take the crop; the plant is spent
 validators:
   - /lib/command/validators/requiresAnimate
+  # Pulling a carrot and turning compost into a bed are both acts on
+  # MATTER — a shade has no hands for either. Sibling of `water`/`plant`,
+  # and enforced by `cmd/__tests__/embodied-tagging.test.ts`.
+  - /lib/command/validators/requiresEmbodied
 args:
   - name: target
     type: object

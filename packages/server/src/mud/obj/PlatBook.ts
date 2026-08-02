@@ -166,6 +166,16 @@ export default class PlatBook extends PlatBookBase {
     this.areaM2 = Math.max(0, value);
   }
 
+  public getLotBranch(): string {
+    return this.lotBranch;
+  }
+
+  /** Trailing/leading slashes are stripped — the branch is one segment,
+   *  and an authored `/lots/` would double the separator in every extent. */
+  public setLotBranch(value: string): void {
+    this.lotBranch = value.replace(/^\/+|\/+$/g, "");
+  }
+
   public getLandUse(): LandUse {
     return this.landUse;
   }

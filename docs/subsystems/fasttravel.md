@@ -324,3 +324,26 @@ Captured in `docs/slates/tails/fast-travel-slate.md`:
   *standard + health*, never topology.
 - **Cross-restart credential durability** (above).
 - Richer targeting, fares/access tiers, and disruption events.
+
+Two things found by driving the Hinkley Hills commute route
+(2026-08-01), both **behaviour, not bugs**, and both worth knowing:
+
+- **Nobody actually sees a departures board.** The verb help says a bare
+  `teleport` reads one, and neither caller reaches it: a **wizard**
+  self-powers past the TPA fork entirely, and an **unregistered**
+  traveller is stopped by the registration gate before the board renders.
+  So the board is currently only visible to a player who is already
+  registered for the selected route — which is the audience least in need
+  of it. Whether an unregistered traveller should be shown the routes
+  they cannot yet take (a *timetable* is public; a *ticket* is not) is a
+  design question this doc does not answer.
+- **⚠ A stale terminal row silently deletes a route, and the refusal
+  lies.** `SeederManager` is insert-only, so adding a route to a terminal
+  that already has a row in `domain` leaves the live network on the old
+  list. `teleport <kw>` then answers **"no route here goes to '<kw>'"** —
+  which is *also* what an unauthored route says. The two are
+  indistinguishable in a transcript, and the good outcome (the
+  registration gate) is the one that proves the route is really wired.
+  When a route is added to an existing terminal, the row has to be
+  re-seeded — content-pack reconcile does this, a bare dev restart does
+  not.

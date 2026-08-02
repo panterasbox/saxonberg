@@ -241,7 +241,7 @@ export default class WaterController extends CommandController<WaterModel> {
     const host = plant.getOccupiedHost();
     if (!host || !MixinApi.isCultivable(host)) return null;
     if (!MixinApi.isReserved(host)) return null;
-    return host as unknown as Stuff & Cultivable & Reserved;
+    return host;
   }
 
   /** The first carried holder with a liquid in it, or null. */

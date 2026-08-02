@@ -217,13 +217,13 @@ export default class FeedController extends CommandController<FeedModel> {
    */
   private resolveGround(named: Stuff): (Stuff & Cultivable & Reserved) | null {
     if (MixinApi.isCultivable(named) && MixinApi.isReserved(named)) {
-      return named as unknown as Stuff & Cultivable & Reserved;
+      return named;
     }
     if (!MixinApi.isSlottable(named)) return null;
     const host = named.getOccupiedHost();
     if (!host || !MixinApi.isCultivable(host)) return null;
     if (!MixinApi.isReserved(host)) return null;
-    return host as unknown as Stuff & Cultivable & Reserved;
+    return host;
   }
 
   /** The first carried holder with compost in it, or null. */

@@ -168,6 +168,21 @@ and path-based — `ZoneApi.resolveZoneForPath` walks template ancestry
 without loading the destination room. See
 [`spatial.md`](./spatial.md) for the full Location-side detail.
 
+> **⚠ Content that needs a semantic exit needs a zone, and two things
+> about that zone are easy to get wrong.** Both were hit live by the
+> Hinkley lot gate (`lot-1` off a cartesian street — see
+> [smallholding.md](./smallholding.md)):
+>
+> - **It must be SPATIAL.** A `FolderZone` is skipped by the resolver, so
+>   the destination lands back in the enclosing spatial zone and the exit
+>   is refused anyway — with an error naming the *parent's* zone, which
+>   reads as if the branch you authored does not exist.
+> - **It must be an AUTHORED template row.** The walk reads template
+>   ancestry in Mongo, so a zone *minted* at runtime through
+>   `asTemplatePath` is invisible to it. One authored branch zone above N
+>   minted children is the shape; a zone per minted child is not
+>   available at all.
+
 ## Folder/leaf invariant
 
 The persistence chokepoint validates: a node with descendants must

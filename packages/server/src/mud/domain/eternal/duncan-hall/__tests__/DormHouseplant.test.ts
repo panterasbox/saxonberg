@@ -1042,8 +1042,12 @@ describe('the dorm houseplant — durability', () => {
         'wilting',
       ),
     );
-    (pot as unknown as { soilClockStamp: number }).soilClockStamp =
-      checkpointStamp;
+    // The pot's clock cursor is public (`Hydrator` reflects into it), so
+    // this is a plain write, not a cast through the contract. Winding it
+    // back is HOW you simulate a restart: production restores the stamp
+    // from the record, and there is no other seam that puts a pot's soil
+    // clock where a checkpoint left it.
+    pot.soilClockStamp = checkpointStamp;
     const restored = makeStuffAtPath(
       () => new Plant(),
       '/obj/plant/peace-lily',
