@@ -61,6 +61,21 @@ See also:
   [message-rendering.md](../../subsystems/message-rendering.md) — the MML
   the page body is authored in; the renderer + click model the viewer
   reuses; the `<mql>` sleeper tag the embed palette extends.
+- [college-slate.md](./college-slate.md) § *The wiki — the commons the
+  courses read from* — **the education-vertical consumer.**
+  *study.com : Wikipedia :: our courses : our wiki.* It adds the
+  **source ladder** (papers = primary and re-runnable · wiki =
+  tertiary synthesis · course = pedagogical path), the rule that **a
+  course cites and never restates** (so a wiki edit never staleness a
+  lesson; the syllabus is the adaptation surface), and
+  contribution-as-coursework. **Three deltas to this slate:** (1) keep
+  primary sources OUT of the wiki — the library holds papers with
+  provenance and replication, the wiki cites them, and merging the
+  tiers collapses the ladder; (2) **the "assessment integrity" open
+  item can close** — procedurally generated items are wiki-proof by
+  construction (per-student seeds, computed keys), so no spoiler
+  gating is needed for the machine-graded half; (3) if lessons cite
+  pages, **slug stability and redirects become load-bearing.**
 - [persistence-architecture-slate.md](../tails/persistence-architecture-slate.md)
   — `WikiPage` is a plain `Document` (no Stuff overhead).
 - [docs/subsystems/grouping.md](../../subsystems/grouping.md) +
@@ -374,7 +389,15 @@ the newcomer/SEO angle without a populated wiki.
   spoiler controls). Owned by [help-slate.md](./help-slate.md), not this
   slate.
 - **Assessment integrity** — flagged by the spoiler slate as a separate
-  assessment-system problem; not here.
+  assessment-system problem; not here. **Now resolved by
+  [college-slate.md](./college-slate.md):** procedurally generated exam
+  items are wiki-proof *by construction* (per-student seeds, keys
+  computed by running the subsystem), so a complete wiki cannot devalue
+  the machine-graded credential and **no spoiler gating is required for
+  integrity.** The human-graded half (essay, viva) relies on the
+  ordinary defences instead. The two concerns are orthogonal — spoiler
+  tiers stay a *play-experience* feature, which is what they were
+  always for.
 
 ---
 

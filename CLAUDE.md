@@ -35,6 +35,11 @@ behavior. Read the relevant doc before editing in its area.
   legacy per-player Avatar row's retirement being tracked work;
   template inheritance does not exist)
 - [docs/vision.md](./docs/vision.md) — product vision
+- [docs/arcane-science.md](./docs/arcane-science.md) — the invented-but-
+  honest science of magic (one postulate, the laws, the price list) +
+  **8 binding content-authoring rules** any magic content must obey
+- [docs/compact-political-science.md](./docs/compact-political-science.md)
+  — the Compact as teachable political science; the sibling course
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
 - [docs/deployment.md](./docs/deployment.md) — deployment & infra:
   single Lightsail box + Caddy/Let's Encrypt + Mongo Atlas, GitLab CI

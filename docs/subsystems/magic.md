@@ -11,6 +11,18 @@ including the caster standing in the same pool
 ([electricity.md](./electricity.md)); fear is a real condition gated by
 the target's live Composure.
 
+> **Authoring magic content? Read
+> [docs/arcane-science.md](../arcane-science.md) first.** It carries
+> the fiction's physics — the one postulate, the laws, the price
+> list — and **8 binding content-authoring rules** that govern what a
+> spell may cost and what an effect may claim (costs are energy
+> committed in kJ, derivable from the price list; effects author
+> energy *delivered*, never outcomes; a new noun needs a real physical
+> register; momentum is conserved; if it can't be dimensionally
+> analyzed it doesn't ship). Those rules exist so the magic system can
+> be *taught as a college course* — a spell authored off the price
+> list silently makes the curriculum a lie.
+
 Design source: `docs/slates/deferred-rpg/capability-magic-slate.md`
 Part IV (the locked model). Consumers this build deliberately does NOT
 include: the inquiry substrate (discovery/publishing), the magic-items
