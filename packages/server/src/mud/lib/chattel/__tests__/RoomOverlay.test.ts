@@ -49,6 +49,7 @@ import PosturedChair from "../../../obj/Chair";
 import type { Containable } from "../../spatial/Containable";
 import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
+import type { FieldMeta } from "../../mixin";
 
 const CHAIR_PATH = "/obj/test/Chair";
 const ROOM_PATH = "/domain/test/Room";
@@ -57,19 +58,19 @@ const BOB_PATH = "/obj/Avatar/bob";
 
 class Chair extends Thing {}
 class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 class Person extends PersistableMixin(
   EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 /** A sleeper: Posed + Slottable + Containable, an Avatar reduced to D10. */
 class Sleeper extends PersistableMixin(
   PosedMixin(SlottableMixin(ContainableMixin(PostRegistrationMixin(Idea)))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 const BED_PATH = "/obj/fixture/bed";

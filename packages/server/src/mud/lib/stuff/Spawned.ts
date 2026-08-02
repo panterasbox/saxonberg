@@ -3,7 +3,8 @@
  *
  * A `Spawned` thing carries a transient back-pointer to its
  * `Spawner` (the host that created it during this session). The
- * back-pointer is a Pattern B live ref with R2.3 self-heal: if the
+ * back-pointer is an instance (live) ref, declared
+ * `{ ref: 'instance' }` so the framework's R2.3 self-heal applies: if the
  * Spawner destructs, the next `getSpawner()` clears the slot and
  * returns `null` (rather than handing back a destroyed ref).
  *
@@ -19,7 +20,7 @@
  * chain).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { Spawner } from './Spawner';
 
@@ -50,6 +51,12 @@ export function SpawnedMixin<TBase extends MixinConstructor<Stuff>>(
   return class SpawnedMixin extends Base {
     static _mixinName = 'SpawnedMixin';
 
+    static fieldMeta: FieldMeta = {
+      // Live back-pointer to the Spawner. Self-heals on read; the
+      // destruct-side unhook is R2.4 (`cleanupOnDestruct` below).
+      _spawner: { ref: 'instance', lifetime: 'weak' },
+    };
+
     /**
      * R2.4 framework cleanup. Unhook from the Spawner's collection
      * on destruct. The canonical chokepoint
@@ -78,11 +85,6 @@ export function SpawnedMixin<TBase extends MixinConstructor<Stuff>>(
     private _spawner: (Stuff & Spawner) | null = null;
 
     public getSpawner(): (Stuff & Spawner) | null {
-      if (this._spawner === null) return null;
-      if (this._spawner.isDestroyed()) {
-        this._spawner = null;
-        return null;
-      }
       return this._spawner;
     }
 

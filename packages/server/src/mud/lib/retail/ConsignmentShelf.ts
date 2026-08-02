@@ -19,13 +19,14 @@ import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "./Consignment";
 import { MqlApi } from "../../api/mql";
 import type { CommandContext, CommandContributions } from "../../api/command";
+import type { FieldMeta } from "../mixin";
 
 const ConsignmentShelfBase = PersistableMixin(
   ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),
 );
 
 export default class ConsignmentShelf extends ConsignmentShelfBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /** Resolve the consignment shelf a `consign`/`reclaim`/`buy` works off. */
   static resolveIn(context: CommandContext): ConsignmentShelf | null {

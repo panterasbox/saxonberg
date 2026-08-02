@@ -16,7 +16,7 @@
  * ```
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
@@ -119,11 +119,11 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.
      */
-    static persistentFields = [
-      'shortDescription',
-      'longDescription',
-      'illustration',
-    ];
+    static fieldMeta: FieldMeta = {
+      shortDescription: { persistent: true, authorable: true },
+      longDescription: { persistent: true, authorable: true },
+      illustration: { persistent: true, authorable: true },
+    };
 
     /**
      * Markup-augmenter contribution. `senseStripAugmenter` reads the
@@ -185,11 +185,11 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
-    /** @authorable Brief description, shown with an article ("a heavy iron door"). */
+    /** Brief description, shown with an article ("a heavy iron door"). */
     protected shortDescription: string = '';
-    /** @authorable Detailed examine text. */
+    /** Detailed examine text. */
     protected longDescription: string = '';
-    /** @authorable Bucket-relative media key for this thing's illustration. */
+    /** Bucket-relative media key for this thing's illustration. */
     protected illustration: string | null = null;
 
     getShortDescription(): string {

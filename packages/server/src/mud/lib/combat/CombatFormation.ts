@@ -4,7 +4,7 @@
  * the fallen. One singleton Idea per preset at
  * `/lib/combat/CombatFormation/<name>` (the `LocomotionMode`
  * precedent — authored data, no registry), referenced by **path string**
- * from the party side (ref-shapes Pattern A).
+ * from the party side (a ref-shapes identity ref).
  *
  * The Idea carries only **declared shape**; what a policy token *means*
  * (how `'called'` allocates, what `high-threat` measures) is combat's
@@ -26,6 +26,7 @@
 
 import { Idea } from "../stuff/Idea";
 import { SingletonMixin } from "../stuff/Singleton";
+import type { FieldMeta } from "../mixin";
 
 /** How a member under this formation picks its exchange target. */
 export type AllocationKind = "sustain" | "called" | "primary";
@@ -96,17 +97,17 @@ export class CombatFormation extends SingletonMixin(Idea) {
     coupCall: "engaged",
   });
 
-  static persistentFields = [
-    "name",
-    "roles",
-    "allocation",
-    "primaryRole",
-    "protectsRoles",
-    "interceptorRoles",
-    "interceptTrigger",
-    "coupRight",
-    "coupCall",
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    roles: { persistent: true },
+    allocation: { persistent: true },
+    primaryRole: { persistent: true },
+    protectsRoles: { persistent: true },
+    interceptorRoles: { persistent: true },
+    interceptTrigger: { persistent: true },
+    coupRight: { persistent: true },
+    coupCall: { persistent: true },
+  };
 
   /** Short name (`'vanguard'`); the templatePath is
    * `/lib/combat/CombatFormation/<name>`. */

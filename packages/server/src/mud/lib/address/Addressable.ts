@@ -23,7 +23,7 @@
  * a bare field on `Location`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
 export interface Addressable {
@@ -45,13 +45,14 @@ export function AddressableMixin<TBase extends MixinConstructor<Stuff>>(
   return class AddressableMixin extends Base implements Addressable {
     static _mixinName = 'AddressableMixin';
 
-    static persistentFields = ['_address'];
+    static fieldMeta: FieldMeta = {
+      _address: { persistent: true, authorable: true, authorPicker: 'Template' },
+    };
 
     /**
      * Declared address path in the namespace, or `null`. Sparse —
      * `null` is the common case and the resolve-walk falls through it
      * to a containment ancestor or the spatial zone.
-     * @authorable ref:Template
      */
     public _address: string | null = null;
 

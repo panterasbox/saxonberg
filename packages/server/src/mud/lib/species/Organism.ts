@@ -20,7 +20,7 @@
  * compose `SexedMixin` (e.g. v1 plants) get `null`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Species from './Species';
 
@@ -44,20 +44,22 @@ export interface Organism {
 export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class OrganismMixin extends Base {
     static _mixinName = 'OrganismMixin';
-    static persistentFields = ['_speciesPath', 'age', 'lifecycleState'];
+    static fieldMeta: FieldMeta = {
+      _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
+      age: { persistent: true, authorable: true },
+      lifecycleState: { persistent: true, runtimeState: true },
+    };
 
     /**
      * Path to the Species singleton this organism belongs to. Resolved
      * lazily on each getSpecies() call so HMR replacement is observed
      * immediately.
-     * @authorable ref:Species
      */
     public _speciesPath: string | null = null;
 
     /**
      * Years (or species-appropriate units; v1 doesn't enforce). 0 at
      * birth/clone-time. Aging is deferred to follow-on builds.
-     * @authorable
      */
     public age: number = 0;
 

@@ -33,6 +33,7 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { Stock } from './InfluenceStanding';
+import type { FieldMeta } from '../mixin';
 
 /**
  * A read view of a held position: its stored split plus the **derived**
@@ -50,15 +51,15 @@ export interface ConvictionPosition {
 
 export default class Position extends Document {
   static collectionName = Collections.Positions;
-  static persistentFields = [
-    'subject',
-    'stock',
-    'target',
-    'yea',
-    'nay',
-    'since',
-    'realSince',
-  ];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    stock: { persistent: true },
+    target: { persistent: true },
+    yea: { persistent: true },
+    nay: { persistent: true },
+    since: { persistent: true },
+    realSince: { persistent: true },
+  };
 
   /** Holder's durable id (the standing key) — indexed with stock + target. */
   subject = '';

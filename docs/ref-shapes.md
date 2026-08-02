@@ -1,30 +1,144 @@
 # Ref shapes — how Stuff references other Stuff
 
-Saxonberg has multiple ways a `Stuff` field can reference another
-`Stuff`. This doc names the patterns, says when to use each, and
-spells out the method-surface conventions so call sites stay
-predictable across the codebase.
+Saxonberg has one way a `Stuff` field references another `Stuff`, and
+it has **two axes**. This doc gives the model, the method-surface
+conventions, and the antipatterns.
 
-Three reference shapes. Choose based on three axes:
+## The two axes
 
-- **Singleton or instance?** Is the target one canonical Idea per
-  templatePath (Material, Species, BodyPlan, LocomotionMode), or a
-  specific runtime instance (this chair, that NPC)?
-- **Runtime or persisted?** Does the field reset on clone/hydrate,
-  or does it survive across saves?
-- **Frequent or rare access?** Does code read the target's
-  properties in hot paths, or occasionally through an Api?
+**Axis 1 — what are you pointing at?** This is a question about *your
+own meaning*, not about the target:
 
-Foundational constraint: **`stuffId` (the per-instance stamp) does
-not persist across reboots.** Persistent cross-reboot refs must key
-off `templatePath` (singletons) or template authoring, not instance
-identity. Live Stuff refs are therefore **transient by definition**
-— either runtime-only or, when they need cross-save survival, owned
-by a higher-layer mixin that rebuilds the relationship at hydrate.
+| you mean | you store | persistable? |
+|---|---|---|
+| **identity** — "what kind of thing" (`my species is human`) | a `templatePath` string | **yes** |
+| **instance** — "this particular object" (`the room I am in`) | a **live ref** | **never** |
+
+The discriminator is **not** a property of the target. A room has a
+perfectly good unique templatePath, and you still hold it as an
+*instance* when you mean "the one I'm standing in". A species would
+still be an *identity* ref if somehow two existed. Only the author
+knows which question the field is asking — which is exactly why it is
+**declared**, not inferred (see `fieldMeta` below).
+
+**Axis 2 — what happens when it dies?** Applies to **instance refs
+only**; an identity ref re-resolves from its path, so it cannot dangle
+and needs no rule.
+
+| lifetime | meaning |
+|---|---|
+| `weak` | the getter self-heals — null the slot when the target is destroyed |
+| `symmetric` | paired both ways; each side clears the other's back-ref on destruct |
+| `owned` | the holder's lifetime bounds the target's; destruct cascades |
+
+### The foundational constraint
+
+**`stuffId` does not survive a reboot.** Everything above follows from
+it:
+
+- An identity ref persists, because a `templatePath` is stable.
+- An instance ref **cannot** persist. Not by convention — there is
+  nothing durable to write down. Persisting an instance *relationship*
+  is done **structurally** (containment capture / a `populates`
+  manifest rebuilds it at hydrate), never by storing a reference.
+- Declaring a field both `instance` and `persistent` is therefore a
+  build-time error, not a style violation.
+
+### Live ref, not stuffId
+
+For an instance ref, **store the live ref, not the `stuffId` string.**
+They name the same thing; the live ref is the one that has already
+paid for the lookup. A stuffId handle is what you reach for when the
+lifetime mechanism is missing — it is stringly-typed, loses narrowing,
+and is weak only by convention (nothing stops a caller caching the
+resolved object anyway).
+
+### Declaring it
+
+Both axes live in one field-keyed declaration:
+
+```ts
+static fieldMeta = {
+  _speciesPath: { ref: 'identity', persistent: true },
+  _container:   { ref: 'instance', lifetime: 'weak' },
+  _hauling:     { ref: 'instance', lifetime: 'symmetric', inverse: '_hauledBy' },
+  exits:        { ref: 'instance', lifetime: 'owned' },
+};
+```
+
+The invalid combinations are checked **at class registration**, and
+throw naming the field and the class:
+
+- `instance` with `persistent` — nothing durable to write down;
+- `identity` with any `lifetime` — it re-resolves and cannot dangle;
+- a `lifetime` with no `ref: 'instance'`;
+- `symmetric` with no `inverse`;
+- an `inverse` this class declares that does not point back.
+
+Validation runs on the **merged** metadata, so a base declaring
+`ref: 'instance'` and a subclass sharpening it with a `lifetime` is
+legal and is judged as one entry. A *cross-class* pair
+(`Adornment.adornedTo` ↔ `Adornable.fixtureSlots`) lives on two hosts
+and registration of one cannot see the other — that reciprocity belongs
+to `pnpm lint:field-meta`, which sees the whole tree statically. The
+same lint carries the rules that are wrong within a single class body
+whatever other layers say: an unknown entry property, a malformed
+value, and a legacy static coming back.
+
+> **Historical note.** This doc previously described *three* patterns:
+> A (string-stored singleton), B (live ref), and C (path-resolved
+> cross-scope singleton). A and C stored the **identical thing** — a
+> templatePath string — and differed only in what the getter did with
+> it (compare vs resolve), which is a usage decision, not a
+> representation. They are one thing: an **identity** ref. B is an
+> **instance** ref. The letters have been swept out of the docs and the
+> source comments; they survive only in the section headers below (as
+> `was: Pattern X` signposts) and in the R2.x rule labels, which are
+> still how the cleanup rules are referred to across the tree.
+>
+> Unrelated collision: `slot.md` has its own Pattern A/B/C — how a host
+> *provides* slots. That taxonomy is untouched.
 
 ---
 
-## Pattern A — string-stored singleton ref
+## Known gaps — sites not yet declared
+
+The reference-lifetime build declared 16 fields and left a tail. None of
+these is a live bug: every one already guards on `isDestroyed()` at its
+readers, which is why they sorted to the bottom of the sweep. They are
+recorded here rather than in a plan doc because the plan is retired and
+this file is the live reference.
+
+**Instance refs still relying on a hand-written guard** (each wants a
+`weak` declaration and its guard deleted):
+
+- `SandboxCrossingExit.crossing`
+- `ExitableVessel.outCache` / `entryCache` — note these pair a live
+  `Exit` with a **stuffId invalidation stamp** (`outCacheEnvId`), which
+  is not a reference: it is compared for equality and never resolved.
+- `LoungeWarren._reapTimers`
+- `DormWarren._unitsByKey` / `_corridorsByFloor` / `_doorsByKey`
+
+**Held-side R2.4 unhooks not folded into declarations** — `Containable`,
+`Spawned`, `WarrenMember`, `AetherHosted`, `Slottable`, `Slotted`. All
+six are `cleanupOnDestruct`-form, so each must convert **atomically**
+(slot 3 runs after slot 2.5, so a declaration left alongside its handler
+would have 2.5 destruct first and the handler then walk destroyed
+objects). Each also needs its unhook separated from surrounding policy:
+`Containable`'s goes through `ContainmentApi.move`, the chokepoint, and
+`Slotted`/`Slottable`'s `onSlotReleased` notification is policy by the
+`owned` audit's own step 4.
+
+**`ref: 'identity'` is declared nowhere yet**, and that is expected
+rather than an omission: the framework attaches no behaviour to the
+identity axis — a path resolved on read cannot dangle, so there is
+nothing to enforce. The declaration is documentation-only there today.
+It IS validated (`identity` + any `lifetime` throws), so declaring one
+is safe whenever the documentation value is wanted.
+
+---
+
+## Identity refs (was: Pattern A — string-stored singleton ref)
 
 **Stores**: a `string` (templatePath or short name) identifying a
 singleton Idea.
@@ -37,7 +151,7 @@ singleton Idea.
 - Comparison is by template identity, not instance identity ("is this
   actor's species `Homo sapiens`?", not "is this *the same instance*
   of the Homo sapiens singleton?").
-- The field is runtime-only OR persisted (Pattern A handles both
+- The field is runtime-only OR persisted (an identity ref handles both
   cleanly).
 
 **Why this shape**: tiny memory; trivial JSON/Mongo round-trip; the
@@ -72,7 +186,7 @@ key authors write, the `getXxx` / `setXxx` method names — uses the
 Examples in current substrate: `container`, `populates`, `destination`,
 `door`, `attachedHosts`. Not `containerPath`, not `attachedHostPaths`.
 
-Reasoning: the Pattern A type signature (`string`) plus the field's
+Reasoning: the identity-ref type signature (`string`) plus the field's
 documentation as a singleton ref already convey "stored as a path";
 the `Path` suffix on the public surface asks readers to re-confirm
 what the type already shows. The bare conceptual name reads more
@@ -164,7 +278,7 @@ semantics across all singleton refs.
 
 ---
 
-## Pattern B — live Stuff reference
+## Instance refs (was: Pattern B — live Stuff reference)
 
 **Stores**: a direct reference to the live target Stuff object.
 
@@ -211,7 +325,7 @@ interface XxxsOwner {
 }
 ```
 
-Same getter/setter naming as Pattern A — the difference is the
+Same getter/setter naming as an identity ref — the difference is the
 RETURN type, not the method names. A caller writing `obj.getMaterial()`
 doesn't know (or care) whether it's resolved from a stored path or
 returned from a live ref; the contract is the same.
@@ -226,13 +340,14 @@ marshaller-for-live-refs path because no field in `lib/` needs one
 template seeding (and per-character session state, for inventory).
 
 If a relationship genuinely needs to survive saves, it lives one
-layer up: either (a) the field stores a path string (Pattern A or
-C), or (b) a higher-layer mixin owns the persistent shape and
+layer up: either (a) the field stores a path string (an identity
+ref, resolved eagerly or on read), or (b) a higher-layer mixin owns
+the persistent shape and
 hydrates the live refs from that.
 
-### Pattern B sub-flavors (cleanup story)
+### Instance-ref sub-flavors (cleanup story)
 
-Within Pattern B there are four structural sub-flavors,
+Within instance refs there are four structural sub-flavors,
 distinguished by the cleanup rule that applies when one of the two
 sides destructs. These are the **R2.1–R2.4 cleanup rules**:
 
@@ -267,39 +382,84 @@ For paired bidirectional refs (both sides hold each other), each
 side's setter atomically updates both sides; each side's
 `onDestruct` clears the back-ref on the other.
 
-- **Mechanism**: eager via setter; eager on destruct.
-- **Enforcement**: convention. Failure on one side is recoverable
-  from the other side's surviving reference.
-- **Exemplars**: `Boundary` ↔ `BoundaryAnchor`, `Exit` ↔ `Door`,
-  `Adornment` ↔ `Adornable`, `Hauler` ↔ `Haulable` (the hitched-cart
-  coupling — `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
-  [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)).
-
-#### R2.3 — Asymmetric single self-heal
-
-For a single live ref where the target doesn't track the holder
-back, the public getter MUST self-heal on `isDestroyed`:
+**Declare it**, naming the field on the other side:
 
 ```ts
+static fieldMeta: FieldMeta = {
+  _hauling: { ref: 'instance', lifetime: 'symmetric', inverse: '_hauledBy' },
+};
+```
+
+- **Mechanism**: eager via setter; eager on destruct, in slot 2.5.
+- **Enforcement**: framework. `symmetric` with no `inverse` throws at
+  registration, and a same-class `inverse` that does not point back
+  throws too. A *cross-class* pair is the whole-tree lint's job —
+  registering one host cannot see the other.
+- **All symmetric clears run before all owned cascades** within 2.5, so
+  a host that is both (see `Boundary`) clears back-refs while its owned
+  targets are still alive.
+- **Exemplars**: `Hauler` ↔ `Haulable` (the hitched-cart coupling —
+  `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
+  [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)),
+  `Exit.inverse` (which was half-symmetric until this was declared).
+
+> **Two sites this rule does NOT cover, and why.**
+>
+> **`Adornment.adornedTo` ↔ `Adornable.fixtureSlots` is not a symmetric
+> pair**, though this doc asserted it was — and asserted it while the
+> Adornment half did not exist in code at all. `fixtureSlots` is
+> `owned`, a field carries exactly one lifetime, and the holder
+> destructs its fixtures anyway. The back-ref only needs to stop
+> dangling when a fixture dies standalone, which is `weak`.
+>
+> **`BoundaryAnchor.boundary` is not expressible.** The reciprocal slot
+> is `anchorA` *or* `anchorB` depending on which side the anchor sits,
+> and `inverse` names exactly one field; `Boundary._clearAnchor` is
+> side-agnostic by design. It stays hand-written rather than acquiring a
+> wrong declaration.
+
+#### R2.3 — Read-side self-heal (declared)
+
+**You no longer write this.** Declare the field and the framework does
+it:
+
+```ts
+static fieldMeta: FieldMeta = {
+  _x: { ref: 'instance', lifetime: 'weak' },
+};
+
 public getX(): (Stuff & XxxType) | null {
-  if (this._x === null) return null;
-  if (this._x.isDestroyed()) {
-    this._x = null;
-    return null;
-  }
-  return this._x;
+  return this._x;      // that's the whole getter
 }
 ```
 
-- **Mechanism**: lazy self-heal.
-- **Enforcement**: in-code; the getter does it inline.
-- **Exemplars**: `Containable.getContainer()` (when the Container
-  destructs without first evacuating — backstop for S1/S2),
-  `Spawned.getSpawner()`.
+Every `ref: 'instance'` field self-heals on read, whatever its
+`lifetime` — axis 2 names only the *destruct-side* rule, so `weak`
+means "no destruct-side rule", not "the only one that heals".
+
+- **Mechanism**: the `ProxyApi` get trap. The weak-field set is hoisted
+  into the handler closure once per `wrap()`, so the cost on a class
+  with no instance refs is a single `!== null`.
+- **Arity is decided at heal time, not declared.** The trap heals a
+  slot holding a lone Stuff that answers `isDestroyed()`, and leaves
+  `Array` / `Set` / `Map` alone — walking a collection on every read is
+  O(n) on hot paths and buys nothing the R2.4 chokepoints don't. A
+  collection gets a destruct-side rule instead.
+- **⚠ Reads on the RAW target do not heal.** The trap is the mechanism,
+  so `Stuff.RAW_TARGET` / `ProxyApi.unwrap` and the deliberately-raw
+  residency sweeps see the un-healed slot. A site that chooses raw
+  carries its own `isDestroyed()` guard — `ResidencyLogic` is the
+  worked example.
+- **Exemplars**: `Containable.getContainer()` (the backstop for a
+  Container destructed without first evacuating — S1/S2),
+  **`Containable.getRestingOn()`** (a destroyed supporting surface),
+  `Spawned.getSpawner()`, `Hauler.getHauledCart()`,
+  `Haulable.getHauledBy()`, `WarrenMember.getWarren()`. All six were
+  hand-written; all six are now one-line reads.
 
 #### R2.4 — Collection symmetric cleanup (framework-enforced)
 
-For any Pattern B collection of live refs (Set/Map of `Stuff & X`),
+For any instance-ref collection of live refs (Set/Map of `Stuff & X`),
 the held side MUST register a framework `static cleanupOnDestruct`
 on its mixin that unhooks itself from every collection it's a
 member of, via the canonical mutation chokepoint
@@ -338,21 +498,29 @@ for the static-shape convention.
 | Site | Field | Cleanup rule | Notes |
 |---|---|---|---|
 | `Container` | `contents` | R2.4 (Container side) | Runtime-only; evacuates on destruct |
-| `Containable` | `_container` (`environment`) | R2.3 + R2.4 (held side) | Runtime-only; self-heal getter + framework cleanup |
+| `Containable` | `environment` | R2.3 (declared) + R2.4 (held side) | `{ ref: 'instance', lifetime: 'weak' }` + framework cleanup |
+| `Containable` | `_restingOn` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed surface reads null |
 | `Slotted` | `slots` | R2.4 (holder side) | Runtime-only; active vacate fires `onSlotReleased` |
 | `Slottable` | (none — held side) | R2.4 | Static cleanup walks every host |
-| `Adornable` | `fixtureSlots` | R2.1 (owning cascade) | Holder destructs each fixture |
-| `Exitable` | `exits` | R2.1 (owning cascade) | Holder destructs each outbound Exit |
-| `Boundary` ↔ `BoundaryAnchor` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
+| `Adornable` | `fixtureSlots` | `owned` (declared) | Holder destructs each fixture |
+| `Adornment` | `adornedTo` | `weak` (declared) | **Not** the symmetric pair this table used to claim — see below |
+| `Exitable` | `exits` | `owned` (declared) | Holder destructs each outbound Exit; the `setBlocked` pre-pass stays policy |
+| `Boundary` | `anchorA` / `anchorB` | `owned` (declared) | `detach()` deliberately NOT called on destruct — it nulls the slots |
+| `BoundaryAnchor` | `boundary` | hand-written | **Not expressible**: the reciprocal slot is `anchorA` *or* `anchorB` by side, and `inverse` names one field |
 | `Exit` ↔ `Door` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
-| `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 self-heal getters | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
+| `Exit` | `inverse` | `symmetric` (declared) | Was HALF-symmetric — cleared on its own destruct, never on its partner's |
+| `Exit` | `source` / `_destination` | `weak` (declared) | |
+| `DoorBearing` | `door` | `weak` (declared) | The mixin had no destruct hook at all |
+| `Aether` | `_hostedUpdates` | `owned` (declared) | Converted atomically from `cleanupOnDestruct` |
+| `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 (declared) | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
 | `Spawner` | `_spawned` | R2.4 (held side via `Spawned`) | Runtime-only; transient |
-| `Spawned` | `_spawner` | R2.3 + R2.4 | Self-heal getter + static unhook |
+| `Spawned` | `_spawner` | R2.3 (declared) + R2.4 | `{ ref: 'instance', lifetime: 'weak' }` + static unhook |
+| `WarrenMember` | `_warren` | R2.3 (declared) + R2.4 | `{ ref: 'instance', lifetime: 'weak' }` + static unhook |
 | `Clade` | `species` | R2.4 (held side via `Species`) | `Species.onDestruct` chains the unhook |
 
 ---
 
-## Pattern C — path-resolved cross-scope ref (singleton-only)
+## Identity refs, resolved on read (was: Pattern C)
 
 **Stores**: a templatePath string. The getter resolves on every
 read via `StuffApi.findByTemplatePath`. **No runtime cache slot.**
@@ -367,12 +535,12 @@ read via `StuffApi.findByTemplatePath`. **No runtime cache slot.**
   lazy.
 - Construction-time cyclic resolution is a concern.
 
-Pattern C stays **singleton-only**. The "Pattern C generalized to
+Resolve-on-read stays **singleton-only**. The "generalize it to
 instances" idea is dropped under the foundational stuffId
 constraint — a cross-scope ref to a multi-clone instance can't be
 keyed by stuffId (doesn't persist), and a live ref doesn't survive
 target unload. Within-session live refs to non-templated targets
-are Pattern B; cross-reboot is unsupported until full game-state
+are instance refs; cross-reboot is unsupported until full game-state
 dump exists.
 
 ### Field shape
@@ -400,9 +568,9 @@ interface PathRefXxxed {
 ```
 
 The async `resolveXxx()` is an **Exit-specific affordance**, not a
-Pattern C requirement. It exists because Exit destinations may
-trigger zone-load faults during `Mobile.traverse`. Pattern C fields
-that target already-loaded singletons should skip it.
+resolve-on-read requirement. It exists because Exit destinations may
+trigger zone-load faults during `Mobile.traverse`. Resolve-on-read
+fields that target already-loaded singletons should skip it.
 
 ### Existing exemplars
 
@@ -414,24 +582,40 @@ that target already-loaded singletons should skip it.
 
 ## Decision matrix
 
-| Question | Pattern A | Pattern B | Pattern C |
+Two questions, in order.
+
+**1. What am I pointing at?**
+
+| | identity ref | instance ref |
+|---|---|---|
+| You mean | "what kind of thing" | "this particular object" |
+| Stores | a `templatePath` string | a live ref |
+| Persists? | yes | **never** (stuffId is ephemeral) |
+| Survives target hot-reload replacement? | yes — re-resolves | no |
+| Read cost | a lookup (cache only with a real reason) | direct |
+| Construction-time cycles | handled (resolve is deferred) | may not have the ref yet |
+| Comparison | path equality, honest across reload | reference equality |
+
+If the field would be **persisted**, the answer is identity — there is
+no other option, because an instance reference has nothing durable to
+write down.
+
+**2. If instance — what happens when the target dies?**
+
+| | `weak` | `symmetric` | `owned` |
 |---|---|---|---|
-| Target is a singleton (one per path)? | Best fit | OK | Best fit when cross-scope |
-| Target is a specific instance? | Wrong shape | Best fit (within-scope) | Wrong shape (singleton-only) |
-| Field is runtime-only? | Cheap (no marshaller) | Required (live refs are transient) | Cheap |
-| Field is persisted? | Trivial (string) | Not supported — use Pattern A/C or move up a layer | Trivial (string) |
-| Frequent property access? | One Api call per read | Direct | One Api call per read |
-| Hot-reload stability of target? | Best (path stable) | Risk of stale (R2.3 self-heal compensates) | Best (re-resolves) |
-| Construction-time cyclic deps? | No issue | Issue (may not have ref yet) | Handles |
+| Target tracks me back? | no | yes | no (I bound its life) |
+| On its destruct | my getter nulls the slot on next read | it clears my back-ref eagerly | n/a |
+| On my destruct | nothing | I clear its back-ref | I destruct it |
+| Needs `inverse`? | no | **yes** | no |
+| Failure if you get it wrong | a dangling ref (recoverable) | one stale back-ref (recoverable from the other side) | **destroys a live object you did not own** |
 
-**Default to Pattern A for singletons.** Promote to Pattern C only
-when the target lives across load scopes AND the field's holder
-shouldn't hold a live ref.
-
-**Default to Pattern B for instances.** Patterns A and C are wrong
-for non-singleton instances because "the templatePath of this chair"
-isn't a meaningful identifier — chairs are clones, each with its own
-runtime identity.
+`owned` is the dangerous one — it is the only lifetime that *destroys*
+something, so it is the one to be sure about. Note that
+`Container.cleanupOnDestruct` is deliberately **not** a plain `owned`
+cascade: it evacuates contents to the outer container first and
+destructs only as a last resort. An `owned` declaration means "this
+thing has no existence without me", not merely "I hold it".
 
 ## Antipatterns
 
@@ -481,31 +665,70 @@ Add a raw setter only when a real caller is forced to a string
 write (e.g., a YAML loader that wants to defer singleton resolution
 until later in bootstrap).
 
-### A.4 — Storing live refs to singletons
+### A.4 — Holding an *identity* question as an *instance* ref
 
 ```ts
-// WRONG: live ref to a singleton
-protected _material: Material | null;  // direct ref
+// WRONG: the field means "what material is this made of" —
+// an identity question — but stores a live ref.
+protected _material: Material | null;
 ```
 
-Singletons should be referenced by path, not by live ref. Reasons:
+**This entry used to say "singletons should be referenced by path."
+That framing was wrong**, and it invited a fair objection: a singleton
+and a clone are both just `Stuff`, so why would the target's instance
+count change how you point at it? It doesn't. What matters is which
+question the *field* is asking (see [The two axes](#the-two-axes)).
 
-- Hot-reload churns the live singleton; live refs go stale.
-- Persistence needs a marshaller even though the target has a stable
-  path.
-- Path comparison (`a._materialPath === b._materialPath`) is honest;
-  live-ref comparison may surprise after reload.
+`_material` means *"what kind of matter is this"* — identity. Store the
+templatePath. `_container` means *"the specific room I am in"* —
+instance. Store the live ref. Neither choice is read off the target.
 
-Use Pattern A.
+The concrete failure when an identity question is held as an instance
+ref is **replacement, not destruction**:
+
+- Code hot-reload works by destructing a cached singleton so the next
+  call **lazy-re-creates it at the same templatePath with a new
+  stuffId** (see [hot-reload.md](./subsystems/hot-reload.md)).
+- A live ref across that self-heals to `null` — and the relationship is
+  gone **permanently**, even though a perfectly good instance now
+  exists under exactly the name you meant.
+- An identity ref re-resolves the path and finds it.
+
+That is the whole hazard, and it is why `weak` cannot substitute for
+getting axis 1 right: self-healing to `null` is the *correct* answer
+for an instance that died, and the *wrong* answer for an identity whose
+current holder was swapped.
+
+> **Not a hazard**: `TemplateApi.restoreFromTemplate` (content go-live)
+> mutates the existing instance and **preserves its stuffId**, so it
+> does not strand a live ref. Only code hot-reload replaces the object.
+> The older version of this entry overstated this.
+
+**Not an instance of this antipattern**: a live ref held *genuinely
+transiently* — a constructor parameter consumed during `postRegister`,
+handed to a setter that stores the path, **and then released**. Judge the
+**durable** field, not every variable that briefly holds an object.
+
+> The emphasis on *released* is load-bearing, and `Shade`/`WireBody` are
+> the worked example. Both take a `species` ctor argument and hand it to
+> `setSpecies()` — so the durable field is `OrganismMixin._speciesPath`,
+> correctly an identity ref. They used to retain the ctor's live
+> `Species` for the object's whole life, which made the carve-out true
+> of the *pattern* but not of those two sites; both now null the slot
+> the moment `setSpecies()` returns.
 
 ### B.1 — Persisting a live ref
 
 ```ts
-// WRONG: live refs are transient by definition
-public persistentFields = ['_container'];  // _container is Stuff & Container
+// WRONG: live refs are transient by definition. This now THROWS at
+// class registration — `ref: 'instance'` with `persistent` is a
+// build-time error, not a style violation.
+static fieldMeta: FieldMeta = {
+  _container: { ref: 'instance', persistent: true },
+};
 ```
 
-Live refs are runtime-only. Persistence needs either Pattern A/C
+Live refs are runtime-only. Persistence needs either an identity ref
 (store a path) or a higher-layer mixin that owns the persistent
 shape (e.g., a templated `populates` manifest that re-creates the
 relationship at hydrate).
@@ -519,7 +742,7 @@ protected _destination: Stuff & Container;
 
 If the holder and target may load separately (different zones,
 hot-reload), a live ref goes stale or holds a destroyed instance.
-Use Pattern C — store the path, resolve on read.
+Use an identity ref — store the path, resolve on read.
 
 ### B.3 — Holding an asymmetric single without R2.3 self-heal
 
@@ -531,19 +754,21 @@ public getCage(): (Stuff & Cage) | null {
 ```
 
 When the holder doesn't get framework cleanup notification (the
-target doesn't track who points at it), the holder must self-heal
-on read:
+target doesn't track who points at it), the read must self-heal —
+which you get by **declaring** the field, not by writing it:
 
 ```ts
+static fieldMeta: FieldMeta = {
+  _cage: { ref: 'instance', lifetime: 'weak' },
+};
+
 public getCage(): (Stuff & Cage) | null {
-  if (this._cage === null) return null;
-  if (this._cage.isDestroyed()) {
-    this._cage = null;
-    return null;
-  }
-  return this._cage;
+  return this._cage;      // the trap does the rest
 }
 ```
+
+So the "wrong" version above is now wrong only by omission: the getter
+body is right, and what is missing is the declaration.
 
 ### B.4 — Holding a collection of live refs without R2.4 symmetric cleanup
 
@@ -587,15 +812,16 @@ When introducing a new live-ref field:
 1. Pick the field name: `_xxx` (private, no suffix).
 2. The field is runtime-only — do NOT add to `persistentFields`.
 3. Implement `getXxx(): Xxx` and `setXxx(value: Xxx)`. For
-   asymmetric singles, fold R2.3 self-heal into the getter.
+   asymmetric singles, declare `{ ref: 'instance' }` — the R2.3
+   self-heal is framework-run, not hand-written.
 4. For collections, follow the patterns in
    [docs/subsystems/collections.md](./subsystems/collections.md)
    AND register `static cleanupOnDestruct` per R2.4.
 
-When in doubt: Pattern A for singleton Ideas (Material / Species /
-BodyPlan / Clade / LocomotionMode), Pattern B for everything else
-unless you specifically need cross-scope addressability for a
-singleton — in which case Pattern C.
+When in doubt: an **identity** ref for singleton Ideas (Material /
+Species / BodyPlan / Clade / LocomotionMode), an **instance** ref for
+everything else — and when a singleton needs cross-scope
+addressability, an identity ref that resolves on read.
 
 ---
 

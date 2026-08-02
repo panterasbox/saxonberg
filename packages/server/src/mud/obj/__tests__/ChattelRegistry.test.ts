@@ -46,6 +46,7 @@ import { installV1QuantityMarshallers } from "../../lib/persistence/__tests__/qu
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
+import type { FieldMeta } from "../../lib/mixin";
 
 /* ─────────────────────────── fixtures ─────────────────────────── */
 
@@ -58,14 +59,14 @@ class Torch extends Thing {}
 class Vault extends PersistableMixin(
   ContainerMixin(PostRegistrationMixin(Idea)),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 /** An OWNER: the same, plus the estate a stamped good persists into (D1). */
 class EstateHolder extends PersistableMixin(
   EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 /* ─────────────────────────── PM mock ─────────────────────────── */

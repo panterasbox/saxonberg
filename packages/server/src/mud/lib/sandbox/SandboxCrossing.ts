@@ -16,7 +16,7 @@
  * A `Thing`-tier fixture (Chattel identity rides the Thing base), with
  * one persistent field:
  *
- *   - `linkedSandboxPath` (Pattern A path string; `''` = unlinked): the
+ *   - `linkedSandboxPath` (identity ref, a path string; `''` = unlinked): the
  *     circle this door opens onto. An unlinked wardrobe links on first
  *     enter to that enterer's own circle (`/home/<playerId>`) — the
  *     authoring ladder, literally: clone one, place it, step in.
@@ -43,19 +43,20 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type Avatar from '../../obj/Avatar';
 import SandboxCrossingExit from './SandboxCrossingExit';
+import type { FieldMeta } from '../mixin';
 
 /** Fallback exit label when a skin declares none. */
 const DEFAULT_PASSAGE_DIRECTION = 'crossing';
 
 export default class SandboxCrossing extends Thing {
-  static persistentFields: string[] = [
-    'linkedSandboxPath',
-    'passageDirection',
-  ];
+  static fieldMeta: FieldMeta = {
+    linkedSandboxPath: { persistent: true, runtimeState: true },
+    passageDirection: { persistent: true },
+  };
 
   /**
-   * The circle this door opens onto (Pattern A path string; empty =
-   * unlinked, links on first enter). @runtimeState persisted.
+   * The circle this door opens onto (identity ref, a path string; empty =
+   * unlinked, links on first enter). persisted.
    */
   protected linkedSandboxPath: string = '';
 

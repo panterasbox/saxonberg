@@ -31,6 +31,7 @@ import { Document } from '../persistence/Document';
 import { PersistApi } from '../../api/persist';
 import { type AnyConstructor } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Doc shape we pull off the `domain` collection. The `class` field drives
@@ -40,7 +41,12 @@ type DomainDoc = Record<string, unknown> & { class?: unknown };
 
 export abstract class Template extends Document {
   static collectionName = 'domain';
-  static persistentFields = ['path', 'class', 'hydratorClass', 'data'];
+  static fieldMeta: FieldMeta = {
+    path: { persistent: true },
+    class: { persistent: true },
+    hydratorClass: { persistent: true },
+    data: { persistent: true },
+  };
 
   /** Canonical path identifier (e.g. `/obj/Avatar/abc123`, `/narnia/castle`). */
   path: string = '';

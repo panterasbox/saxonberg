@@ -9,6 +9,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../backend/PersistenceManager';
+import type { FieldMeta } from '../../lib/mixin';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -51,19 +52,19 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
 // Test class shapes used for the loadClassByPath stub.
 class SingletonContainerTarget extends SingletonMixin(ContainerMixin(Idea)) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 class NonSingletonContainerTarget extends ContainerMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 class ContainableSource extends ContainableMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 class NonContainableSource extends Idea {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 function stubLoadClassByPath() {

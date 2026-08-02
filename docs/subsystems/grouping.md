@@ -231,7 +231,12 @@ The managed provider's persistent shape:
 ```ts
 export class Group extends Document {
   static collectionName = 'groups';
-  static persistentFields = ['name', 'owner', 'memberIds', 'memberRoles'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    owner: { persistent: true },
+    memberIds: { persistent: true },
+    memberRoles: { persistent: true },
+  };
 
   name: string = '';
   owner: string = '';                  // owner's playerId

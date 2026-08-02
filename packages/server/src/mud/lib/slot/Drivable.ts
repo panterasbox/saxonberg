@@ -18,7 +18,7 @@
  * deliberately distinct to avoid collision.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
@@ -49,7 +49,7 @@ export interface Drivable {
    * required: `LocomotionApi.resolveHostMode` throws on a Drivable
    * with `null` vehicularMode — surfacing the content-author bug
    * rather than silently walk-traversing a wheeled vehicle. Stored as
-   * templatePath (ref-shapes Pattern A).
+   * templatePath (a ref-shapes identity ref).
    */
   getVehicularMode(): LocomotionMode | null;
   setVehicularMode(value: LocomotionMode | null): void;
@@ -60,15 +60,16 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class DrivableMixin extends Base {
     static _mixinName = 'DrivableMixin';
-    static persistentFields = ['controllerSlot', '_vehicularModePath'];
+    static fieldMeta: FieldMeta = {
+      controllerSlot: { persistent: true, authorable: true },
+      _vehicularModePath: { persistent: true, authorable: true, authorPicker: 'Template' },
+    };
 
     /**
      * Default `'driver:1'` (not `'mount:1'`) — distinct from
      * `Mountable.mountSlot`'s default so a Stuff composing both
      * Mountable and Drivable doesn't collide rider and driver on the
      * same slot name. Authors can override to any `<role>:N` form.
-     *
-     * @authorable
      */
     public controllerSlot: string = 'driver:1';
 
@@ -80,8 +81,6 @@ export function DrivableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * traversal flows always go through that resolver, so authoring
      * vehicularMode at template-time is mandatory for any Drivable
      * that's expected to actually be driven.
-     *
-     * @authorable ref:Template
      */
     protected _vehicularModePath: string | null = null;
 

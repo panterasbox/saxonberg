@@ -8,6 +8,7 @@ import Discipline, { DISCIPLINE_CHANNELS } from "../Discipline";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
 import { makeStuff } from "../../security/__tests__/test-setup";
+import { MixinApi } from "../../../api/mixin";
 
 const newDiscipline = (): Discipline => makeStuff(() => new Discipline());
 
@@ -70,8 +71,8 @@ describe("Discipline", () => {
   });
 
   it("declares its persistent fields", () => {
-    expect(Discipline.persistentFields).toContain("key");
-    expect(Discipline.persistentFields).toContain("channel");
-    expect(Discipline.persistentFields).toContain("conferrals");
+    expect(MixinApi.getAllPersistentFields(Discipline)).toContain("key");
+    expect(MixinApi.getAllPersistentFields(Discipline)).toContain("channel");
+    expect(MixinApi.getAllPersistentFields(Discipline)).toContain("conferrals");
   });
 });

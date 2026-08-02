@@ -59,6 +59,7 @@ import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
+import type { FieldMeta } from '../mixin';
 
 /**
  * One constituent in a mixture / alloy. `materialPath` is the
@@ -546,55 +547,38 @@ export default class Material extends SingletonMixin(
    */
   protected biologicalSource: BiologicalSource | null = null;
 
-  static persistentFields = [
-    'name',
-    'appearance',
-    'density',
-    'thermalConductivity',
-    'specificHeat',
-    'hardness',
-    'toughness',
-    'electricalConductivity',
-    'waterAbsorptionCapacity',
-    'autoignitionTemperature',
-    'heatOfCombustion',
-    'meltingPoint',
-    'latentHeatOfFusion',
-    'boilingPoint',
-    'latentHeatOfVaporization',
-    'edibility',
-    'nutrients',
-    'nutrientAmounts',
-    'toxicity',
-    'tags',
-    'composition',
-    'symbol',
-    'atomicNumber',
-    'formula',
-    'molarMass',
-    'biologicalSource',
-  ];
-
   /**
    * Field-marshaller bindings. The persistence pipeline routes
    * hydration / save through these marshallers; setters stay
    * strict on the runtime value type.
    */
-  static fieldMarshallers = {
-    density: QuantityMarshaller.pathFor('kg/m³'),
-    thermalConductivity: QuantityMarshaller.pathFor('W/(m·K)'),
-    specificHeat: QuantityMarshaller.pathFor('J/(kg·K)'),
-    hardness: QuantityMarshaller.pathFor('MPa'),
-    toughness: QuantityMarshaller.pathFor('MJ/m³'),
-    electricalConductivity: QuantityMarshaller.pathFor('S/m'),
-    waterAbsorptionCapacity: QuantityMarshaller.pathFor('%'),
-    autoignitionTemperature: QuantityMarshaller.pathFor('K'),
-    heatOfCombustion: QuantityMarshaller.pathFor('MJ/kg'),
-    meltingPoint: QuantityMarshaller.pathFor('K'),
-    latentHeatOfFusion: QuantityMarshaller.pathFor('J/kg'),
-    boilingPoint: QuantityMarshaller.pathFor('K'),
-    latentHeatOfVaporization: QuantityMarshaller.pathFor('J/kg'),
-    molarMass: QuantityMarshaller.pathFor('g/mol'),
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    appearance: { persistent: true },
+    density: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg/m³') },
+    thermalConductivity: { persistent: true, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
+    specificHeat: { persistent: true, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
+    hardness: { persistent: true, marshaller: QuantityMarshaller.pathFor('MPa') },
+    toughness: { persistent: true, marshaller: QuantityMarshaller.pathFor('MJ/m³') },
+    electricalConductivity: { persistent: true, marshaller: QuantityMarshaller.pathFor('S/m') },
+    waterAbsorptionCapacity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
+    autoignitionTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
+    heatOfCombustion: { persistent: true, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
+    meltingPoint: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
+    latentHeatOfFusion: { persistent: true, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    boilingPoint: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
+    latentHeatOfVaporization: { persistent: true, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    edibility: { persistent: true },
+    nutrients: { persistent: true },
+    nutrientAmounts: { persistent: true },
+    toxicity: { persistent: true },
+    tags: { persistent: true },
+    composition: { persistent: true },
+    symbol: { persistent: true },
+    atomicNumber: { persistent: true },
+    formula: { persistent: true },
+    molarMass: { persistent: true, marshaller: QuantityMarshaller.pathFor('g/mol') },
+    biologicalSource: { persistent: true },
   };
 
   public getName(): string { return this.name; }

@@ -46,6 +46,7 @@ import type {
 import type { SmellConduit } from './SmellConduit';
 import type { SoundConduit } from './SoundConduit';
 import type { ColorTag } from '../perception/Light';
+import type { FieldMeta } from '../mixin';
 
 const WindowBase = SealableMixin(Boundary);
 
@@ -62,13 +63,13 @@ interface DirectionalOverrides {
  * provides the method implementations the wrappers delegate to.
  */
 export default class Window extends WindowBase {
-  static persistentFields = [
-    'baseTransmissivity',
-    'aToBOverride',
-    'bToAOverride',
-    'colorTint',
-    'attachedHosts',
-  ];
+  static fieldMeta: FieldMeta = {
+    baseTransmissivity: { persistent: true },
+    aToBOverride: { persistent: true },
+    bToAOverride: { persistent: true },
+    colorTint: { persistent: true },
+    attachedHosts: { persistent: true },
+  };
 
   /**
    * 0..1, default 1.0. The pass-through factor when the window is
@@ -221,7 +222,7 @@ export default class Window extends WindowBase {
 
   /**
    * Persistent declarative-content field carrying the templatePaths
-   * of the two hosts this Window connects, Pattern A per
+   * of the two hosts this Window connects, identity refs per
    * ref-shapes.md. The setter resolves both paths via
    * `StuffApi.singleton` (lazy-clones absent hosts) and installs the
    * per-side anchors via `BoundaryApi.attachExistingBoundary`.

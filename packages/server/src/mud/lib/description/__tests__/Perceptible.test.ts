@@ -12,6 +12,7 @@ import {
   MqlSubscriptionApi,
   REF_FIELDS,
 } from '../../../api/mql-subscription';
+import { MixinApi } from '../../../api/mixin';
 
 // Test class with PerceptibleMixin
 const PerceptibleBase = PerceptibleMixin(Idea);
@@ -245,8 +246,7 @@ describe('PerceptibleMixin', () => {
 
   describe('Persistent field registration', () => {
     it('should register keywords as persistent field', () => {
-      const persistentFields = (TestObject as { persistentFields?: string[] })
-        .persistentFields;
+      const persistentFields = MixinApi.getAllPersistentFields(TestObject);
 
       expect(persistentFields).toContain('keywords');
     });
@@ -434,7 +434,7 @@ describe('PerceptibleMixin', () => {
     });
 
     it('registers primaryKeyword as a persistent field', () => {
-      const persistentFields = (TestObject as unknown as { persistentFields: string[] }).persistentFields;
+      const persistentFields = MixinApi.getAllPersistentFields(TestObject);
       expect(persistentFields).toContain('primaryKeyword');
     });
   });

@@ -9,7 +9,7 @@
  * biomes are `Biome` (or `SkyExposedBiome`) leaf templates under them.
  *
  * **Inheritance is explicit.** A biome that wants to inherit defaults
- * from another biome points at it via `_extendsBiomePath` (Pattern A).
+ * from another biome points at it via `_extendsBiomePath` (an identity ref).
  * The chain in `BiomeApi.resolve*For` follows `_extendsBiomePath`
  * refs from leaf upward to the root universe biome (`/lib/biome/universe`,
  * whose `_extendsBiomePath` is `null`). Path-based templatePath-walk
@@ -33,6 +33,7 @@ import { Idea } from '../stuff/Idea';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
+import type { FieldMeta } from '../mixin';
 
 export default class Biome extends Idea {
   /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
@@ -41,7 +42,7 @@ export default class Biome extends Idea {
   /**
    * Path of the biome this one inherits defaults from. `null` on the
    * root universe biome (and on any deliberately-exotic biome with
-   * no parent). Pattern A: stored as a path string, re-resolved on
+   * no parent). An identity ref: stored as a path string, re-resolved on
    * each read via `StuffApi.findByTemplatePath` (HMR-safe).
    */
   public _extendsBiomePath: string | null = null;
@@ -95,27 +96,18 @@ export default class Biome extends Idea {
   /** Ambient smell MML. Same shape as `_ambientSoundMml`. */
   protected _ambientSmellMml: string | null = null;
 
-  static persistentFields = [
-    'name',
-    '_extendsBiomePath',
-    '_defaultTemperature',
-    '_defaultPressure',
-    '_defaultHumidity',
-    '_defaultWind',
-    '_defaultGravity',
-    '_defaultAtmosphere',
-    '_defaultAmbientSoundLevel',
-    '_ambientSoundMml',
-    '_ambientSmellMml',
-  ];
-
-  static fieldMarshallers = {
-    _defaultTemperature: QuantityMarshaller.pathFor('K'),
-    _defaultPressure: QuantityMarshaller.pathFor('Pa'),
-    _defaultHumidity: QuantityMarshaller.pathFor('%'),
-    _defaultWind: QuantityMarshaller.pathFor('m/s'),
-    _defaultGravity: QuantityMarshaller.pathFor('m/s²'),
-    _defaultAmbientSoundLevel: QuantityMarshaller.pathFor('dB'),
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    _extendsBiomePath: { persistent: true },
+    _defaultTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
+    _defaultPressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa') },
+    _defaultHumidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
+    _defaultWind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s') },
+    _defaultGravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²') },
+    _defaultAtmosphere: { persistent: true },
+    _defaultAmbientSoundLevel: { persistent: true, marshaller: QuantityMarshaller.pathFor('dB') },
+    _ambientSoundMml: { persistent: true },
+    _ambientSmellMml: { persistent: true },
   };
 
   // ---------- name ----------
@@ -150,7 +142,7 @@ export default class Biome extends Idea {
   /**
    * Raw-path accessor — `BiomeApi`'s chain walker reads the path
    * directly to avoid re-resolving an instance it doesn't otherwise
-   * need. Per the ref-shapes Pattern A "no raw-path getter unless a
+   * need. Per the ref-shapes identity-ref rule "no raw-path getter unless a
    * real consumer demands it" rule — the consumer is BiomeApi.
    */
   public getExtendsBiomePath(): string | null {

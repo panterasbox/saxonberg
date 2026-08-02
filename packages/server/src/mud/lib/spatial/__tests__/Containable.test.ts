@@ -18,6 +18,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
+import type { FieldMeta } from '../../mixin';
 
 // Concrete test environment class — needs ContainerMixin to be an environment
 class ConcreteStuff extends ContainerMixin(Idea) {
@@ -81,14 +82,19 @@ describe('ContainableMixin', () => {
   });
 
   describe('persistence', () => {
-    it('declares no persistent fields — environment and restingOn are both live refs', () => {
-      const fields = (TestContainable as { persistentFields?: string[] }).persistentFields;
+    it('neither environment nor restingOn is persistent — both are live refs', () => {
+      // Through the accessor (the class's own static is gone with the
+      // `fieldMeta` fold). The accessor aggregates the chain, so the
+      // claim is stated as "neither reference field is persistent"
+      // rather than "the list is empty".
+      const fields = MixinApi.getAllPersistentFields(TestContainable);
       // Containable's two reference fields (`environment`, `_restingOn`)
-      // are both Pattern B live refs. `environment` is rebuilt at
+      // are both instance (live) refs. `environment` is rebuilt at
       // clone time via the `applyContainer` instruction-field path;
       // `_restingOn` resets to null on hydrate by design (see
       // Containable.ts JSDoc on the `_restingOn` field).
-      expect(fields ?? []).toEqual([]);
+      expect(fields).not.toContain('environment');
+      expect(fields).not.toContain('_restingOn');
     });
   });
 });
@@ -177,7 +183,7 @@ describe('ContainableMixin.restingOn', () => {
 
 // Singleton + Container test class for applyContainer targets.
 class SingletonContainer extends SingletonMixin(ContainerMixin(Idea)) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 describe('ContainableMixin.applyContainer', () => {

@@ -37,6 +37,7 @@ import type {
   ClimateLean,
   WeatherPin,
 } from '../weather/WeatherType';
+import type { FieldMeta } from '../mixin';
 
 export default class Locality extends PostRegistrationMixin(Idea) {
   /** Display name (e.g. `'Narnia'`, `'Cair Paravel'`). */
@@ -80,13 +81,13 @@ export default class Locality extends PostRegistrationMixin(Idea) {
    */
   protected _governmentKey: string | null = null;
 
-  static persistentFields = [
-    'name',
-    '_address',
-    '_weatherPin',
-    '_climateLean',
-    '_governmentKey',
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    _address: { persistent: true },
+    _weatherPin: { persistent: true },
+    _climateLean: { persistent: true },
+    _governmentKey: { persistent: true },
+  };
 
   // ---------- name ----------
 

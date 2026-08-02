@@ -16,10 +16,14 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
+import type { FieldMeta } from "../mixin";
 
 export default class SupplyAggregate extends Document {
   static collectionName = Collections.BankSupply;
-  static persistentFields = ["minted", "drained"];
+  static fieldMeta: FieldMeta = {
+    minted: { persistent: true },
+    drained: { persistent: true },
+  };
 
   /** Cumulative minted minor units (faucet). */
   minted = 0;

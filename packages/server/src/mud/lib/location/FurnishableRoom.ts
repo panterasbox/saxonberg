@@ -55,6 +55,7 @@ import { PostRegistrationMixin } from "../stuff/PostRegistration";
 import { ReservedMixin } from "../reserve";
 import { CallSecurity, Final } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
+import type { FieldMeta } from "../mixin";
 
 /** The default posted designation — the room says nothing about who it is for. */
 export const UNRESTRICTED = "unrestricted";
@@ -68,7 +69,9 @@ const FurnishableRoomBase = PersistableMixin(
 );
 
 export default class FurnishableRoom extends FurnishableRoomBase {
-  static persistentFields: string[] = ["postedAs"];
+  static fieldMeta: FieldMeta = {
+    postedAs: { persistent: true, authorable: true },
+  };
 
   /**
    * **What the sign on the door says** — `unisex`, `gendered`, `staff`,
@@ -101,8 +104,6 @@ export default class FurnishableRoom extends FurnishableRoomBase {
    * Free text rather than an enum is also what keeps the defamiliarisation
    * route open: a posted vocabulary that is not the real-world one is what
    * makes a legislature's argument playable rather than a re-enactment.
-   *
-   * @authorable
    */
   public postedAs: string = UNRESTRICTED;
 

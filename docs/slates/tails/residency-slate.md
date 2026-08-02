@@ -31,7 +31,7 @@ preserve, because we only cull what's already been abandoned.
   `StuffApi.destruct`**, driven by a different trigger and gated by one
   extra consent hook.
 - [ref-shapes.md](../../ref-shapes.md) — the three reference shapes and
-  the **R2.1–R2.4** cleanup rules for live-ref (Pattern B) fields. The
+  the **R2.1–R2.4** cleanup rules for live-ref (instance) fields. The
   reassurance that lets us skip any refcount: a culled object goes
   through the *ordinary* destruct choreography, so R2.4's
   framework-enforced `cleanupOnDestruct` unhooks it from collections,

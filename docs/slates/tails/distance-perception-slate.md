@@ -27,7 +27,7 @@ Seeding facts (verified in source, 2026-07-28):
 ## The four patterns
 
 1. **Vista references (landmark at distance).** A `Detail` entry
-   that *references* a remote Stuff (Pattern C resolve-on-read,
+   that *references* a remote Stuff (a resolve-on-read identity ref,
    per ref-shapes) and composes authored framing prose with the
    subject's live face — generalizing the clock-tower hack into a
    declarative authoring form. State-bearing landmarks read live;
@@ -83,6 +83,6 @@ This is recorded as a constraint in
 - [subsystems/concealment.md](../../subsystems/concealment.md) —
   bands, the honest-fog seams the peek must respect
 - [subsystems/ref-shapes.md](../../subsystems/ref-shapes.md) —
-  Pattern C resolve-on-read (the vista-reference shape)
+  resolve-on-read identity ref (the vista-reference shape)
 - [subsystems/boundary.md](../../subsystems/boundary.md) —
   Door/Window, the conduit seams

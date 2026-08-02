@@ -12,7 +12,7 @@ Pieces:
   declaration. Adds `quantity: number`, the inter-Stuff contract
   methods (`getQuantity` / `setQuantity` / `canMergeWith` /
   `canSplit` / `onSplit` / `onMerged`), and the
-  `globIdentityFields` static.
+  `fieldMeta`'s globIdentity entries static.
 - **`Mixins.Globbable` / `MixinApi.isGlobbable`** — registry constant
   and predicate, same pattern as every other mixin.
 - **`GlobbableApi`** (`api/glob.ts`) — `split`, `merge`, `canMerge`,
@@ -65,13 +65,20 @@ to 1.
 
 ### `globIdentityFields ⊂ persistentFields`
 
-A class declares a (possibly empty) subset of its `persistentFields`
+A class declares a (possibly empty) subset of its `fieldMeta`'s persistent entries
 that defines glob identity:
 
 ```ts
 class Coin extends GlobbableMixin(Thing) {
-  static persistentFields = ['tarnished', 'denomination', 'lastTouchedAt'];
-  static globIdentityFields = ['tarnished', 'denomination'];
+  static fieldMeta: FieldMeta = {
+    tarnished: { persistent: true },
+    denomination: { persistent: true },
+    lastTouchedAt: { persistent: true },
+  };
+  static fieldMeta: FieldMeta = {
+    tarnished: { globIdentity: true },
+    denomination: { globIdentity: true },
+  };
   // ...
 }
 ```
@@ -82,10 +89,12 @@ Two stacks of `Coin` merge iff:
 2. Neither side has shadows.
 3. Neither side has attached adornments.
 4. Equal values for every field in the **union** of both classes'
-   `globIdentityFields`.
+   `fieldMeta`'s globIdentity entries.
 
 Subclasses extend the parent's list:
-`static globIdentityFields = [...Coin.globIdentityFields, 'mintMark']`.
+a `{ globIdentity: true }` entry per field; a subclass adds its own
+rather than spreading the parent's, because `getAllFieldMeta` already
+unions up the chain.
 
 The framework verifies `globIdentityFields ⊂ persistentFields` at
 class-registration time via `MixinApi.assertComposable` —
@@ -373,8 +382,16 @@ To compose Globbable on a host:
 ```ts
 class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
-  static persistentFields = ['quantity', 'name', 'denomination', 'tarnished'];
-  static globIdentityFields = ['denomination', 'tarnished'];
+  static fieldMeta: FieldMeta = {
+    quantity: { persistent: true },
+    name: { persistent: true },
+    denomination: { persistent: true },
+    tarnished: { persistent: true },
+  };
+  static fieldMeta: FieldMeta = {
+    denomination: { globIdentity: true },
+    tarnished: { globIdentity: true },
+  };
 
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
   public tarnished: boolean = false;

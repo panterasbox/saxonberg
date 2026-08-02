@@ -16,12 +16,17 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export type VoteValue = 'up' | 'down';
 
 export default class Vote extends Document {
   static collectionName = Collections.ForumVotes;
-  static persistentFields = ['entry', 'voter', 'value'];
+  static fieldMeta: FieldMeta = {
+    entry: { persistent: true },
+    voter: { persistent: true },
+    value: { persistent: true },
+  };
 
   /** The voted-on `Entry` `_id`. */
   entry = '';

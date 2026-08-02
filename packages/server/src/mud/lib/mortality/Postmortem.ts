@@ -25,7 +25,7 @@
  * `canEvict` defers to `super`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Organism } from '../species/Organism';
 import type { EvictionContext } from '../stuff/Stuff';
@@ -57,9 +57,10 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
   class PostmortemMixin extends Base implements Postmortem {
     static _mixinName = 'PostmortemMixin';
 
-    static persistentFields = ['diedAtGameSec'];
+    static fieldMeta: FieldMeta = {
+      diedAtGameSec: { persistent: true, runtimeState: true },
+    };
 
-    /** @runtimeState */
     public diedAtGameSec = 0;
 
     public markDeceasedAt(gameSec: number): void {

@@ -60,7 +60,7 @@ stamp, that survives the persistence round-trip. `ChattelMixin`
 (`lib/chattel/Chattel.ts`) contributes:
 
 - **`_chattelId`** — a declared **persistent field** (empty until minted).
-  Because it is in `persistentFields`, the drift-guarded capture/restore
+  Because it is in `fieldMeta`'s persistent entries, the drift-guarded capture/restore
   ([persistence.md](./persistence.md)) re-applies it: the id rides the
   Avatar-inventory (or consignment-shelf) snapshot, and the registry row
   is independently durable in Mongo. A stamped good, logged out and back,

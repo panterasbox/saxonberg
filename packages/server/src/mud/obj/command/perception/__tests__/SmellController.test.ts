@@ -45,6 +45,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 import type { Focused } from '../../../../lib/command/Focused';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
+import type { FieldMeta } from '../../../../lib/mixin';
 
 const ReceivingGiverBase = OrganismMixin(
   ContainerMixin(
@@ -57,7 +58,7 @@ const ReceivingGiverBase = OrganismMixin(
 );
 
 class ReceivingGiver extends ReceivingGiverBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   public received: Array<{ topic: string; body: string }> = [];
   protected override handleMessage(msg: unknown): void {
     const frame = msg as { topic: string; body: string };
@@ -68,7 +69,7 @@ class ReceivingGiver extends ReceivingGiverBase {
 class TestLocation extends ContainerMixin(
   DetailedMixin(VisibleMixin(NamedMixin(PerceptibleMixin(Idea)))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 interface Fixture {

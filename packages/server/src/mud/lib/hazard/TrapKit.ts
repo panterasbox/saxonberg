@@ -13,13 +13,16 @@
  */
 
 import Thing from '../stuff/Thing';
+import type { FieldMeta } from '../mixin';
 
 export default class TrapKit extends Thing {
-  static persistentFields = ['trapTemplate'];
+  static fieldMeta: FieldMeta = {
+    trapTemplate: { persistent: true, authorable: true },
+  };
 
   /**
    * The template path of the `/obj/traps/` generic this kit deploys (cloned
-   * by `arm`). Authored on the kit's seed. @authorable
+   * by `arm`). Authored on the kit's seed.
    */
   public trapTemplate = '/obj/traps/step-dart';
 

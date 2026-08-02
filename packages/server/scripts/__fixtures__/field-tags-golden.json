@@ -1,0 +1,1277 @@
+{
+  "AddressableMixin": {
+    "authorable": [
+      "_address",
+      "address"
+    ],
+    "runtime": [],
+    "refs": {
+      "_address": "Template",
+      "address": "Template"
+    }
+  },
+  "AdornableMixin": {
+    "authorable": [
+      "_adornments",
+      "_applyAdornments",
+      "_fieldMeta",
+      "adornments",
+      "applyAdornments",
+      "fieldMeta"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "AdornmentMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AdvancementMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AetherHostedMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AetherMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AliasMixin": {
+    "authorable": [],
+    "runtime": [
+      "_aliases",
+      "aliases"
+    ],
+    "refs": {}
+  },
+  "AmbientLitMixin": {
+    "authorable": [
+      "_ambientColorTemperature",
+      "_ambientIntensity",
+      "ambientColorTemperature",
+      "ambientIntensity"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "AroundDeleteHookMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AroundSaveHookMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AtmosphericMixin": {
+    "authorable": [
+      "_atmosphere",
+      "_biomePath",
+      "_detailAtmospheres",
+      "_detailGravities",
+      "_detailHumidities",
+      "_detailPressures",
+      "_detailTemperatures",
+      "_detailWinds",
+      "_gravity",
+      "_humidity",
+      "_pressure",
+      "_temperature",
+      "_weatherPin",
+      "_wind",
+      "atmosphere",
+      "biomePath",
+      "detailAtmospheres",
+      "detailGravities",
+      "detailHumidities",
+      "detailPressures",
+      "detailTemperatures",
+      "detailWinds",
+      "gravity",
+      "humidity",
+      "pressure",
+      "temperature",
+      "weatherPin",
+      "wind"
+    ],
+    "runtime": [],
+    "refs": {
+      "_biomePath": "Biome",
+      "biomePath": "Biome"
+    }
+  },
+  "AttendantMixin": {
+    "authorable": [
+      "_attendDurationMs",
+      "_businessPath",
+      "_discipline",
+      "_serverPositionKeys",
+      "_skin",
+      "_staffingPolicy",
+      "attendDurationMs",
+      "businessPath",
+      "discipline",
+      "serverPositionKeys",
+      "skin",
+      "staffingPolicy"
+    ],
+    "runtime": [
+      "_leases",
+      "_queue",
+      "leases",
+      "queue"
+    ],
+    "refs": {
+      "_businessPath": "Business",
+      "businessPath": "Business"
+    }
+  },
+  "AudibleMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AugmentMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "AuthorMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "BankMixin": {
+    "authorable": [
+      "_bank",
+      "_corpoKey",
+      "_terms",
+      "bank",
+      "corpoKey",
+      "terms"
+    ],
+    "runtime": [
+      "_disbursing",
+      "disbursing"
+    ],
+    "refs": {
+      "_corpoKey": "Corpo",
+      "corpoKey": "Corpo"
+    }
+  },
+  "BehavedMixin": {
+    "authorable": [
+      "_behaviors",
+      "_dispositions",
+      "behaviors",
+      "dispositions"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "BeliefStoreMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "BodyPlanSlotsMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "BrandedMixin": {
+    "authorable": [
+      "_brandKey",
+      "brandKey"
+    ],
+    "runtime": [],
+    "refs": {
+      "_brandKey": "Brand",
+      "brandKey": "Brand"
+    }
+  },
+  "BulkableMixin": {
+    "authorable": [
+      "_closure",
+      "_interiorBulk",
+      "_interiorCapacity",
+      "_interiorMaterial",
+      "_surfaceBulk",
+      "_surfaceCapacity",
+      "_surfaceMaterial",
+      "closure",
+      "interiorBulk",
+      "interiorCapacity",
+      "interiorMaterial",
+      "surfaceBulk",
+      "surfaceCapacity",
+      "surfaceMaterial"
+    ],
+    "runtime": [
+      "_interiorAmount",
+      "_interiorPayload",
+      "_surfaceAmount",
+      "_surfacePayload",
+      "interiorAmount",
+      "interiorPayload",
+      "surfaceAmount",
+      "surfacePayload"
+    ],
+    "refs": {
+      "_interiorMaterial": "Material",
+      "_surfaceMaterial": "Material",
+      "interiorMaterial": "Material",
+      "surfaceMaterial": "Material"
+    }
+  },
+  "BusinessMixin": {
+    "authorable": [
+      "_banksAt",
+      "_operatingLocations",
+      "_positions",
+      "_proprietorPath",
+      "_rosterSlots",
+      "banksAt",
+      "operatingLocations",
+      "positions",
+      "proprietorPath",
+      "rosterSlots"
+    ],
+    "runtime": [],
+    "refs": {
+      "_banksAt": "Template",
+      "_operatingLocations": "Template",
+      "_proprietorPath": "Template",
+      "banksAt": "Template",
+      "operatingLocations": "Template",
+      "proprietorPath": "Template"
+    }
+  },
+  "CartesianCoordinatesMixin": {
+    "authorable": [
+      "_coordinates",
+      "coordinates"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "CasterMixin": {
+    "authorable": [],
+    "runtime": [
+      "_facultyClockStamp",
+      "facultyClockStamp"
+    ],
+    "refs": {}
+  },
+  "ChattelMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "ClimbableMixin": {
+    "authorable": [
+      "_axes",
+      "_difficulty",
+      "axes",
+      "difficulty"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "CombatReactiveMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "CombatantMixin": {
+    "authorable": [
+      "_naturalAttackChannel",
+      "_standingLethality",
+      "_standingStopCondition",
+      "naturalAttackChannel",
+      "standingLethality",
+      "standingStopCondition"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "CombustibleMixin": {
+    "authorable": [
+      "_charMaterialPath",
+      "_structural",
+      "charMaterialPath",
+      "structural"
+    ],
+    "runtime": [
+      "_burnClockStamp",
+      "_burnedThrough",
+      "_burning",
+      "burnClockStamp",
+      "burnedThrough",
+      "burning"
+    ],
+    "refs": {}
+  },
+  "CommandGiverMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "CommsMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "ConcealableMixin": {
+    "authorable": [
+      "_concealment",
+      "_concealmentHint",
+      "concealment",
+      "concealmentHint"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "ConsignmentShelfMixin": {
+    "authorable": [],
+    "runtime": [
+      "_consignmentListings",
+      "consignmentListings"
+    ],
+    "refs": {}
+  },
+  "ConstructedMixin": {
+    "authorable": [
+      "_constructionForm",
+      "constructionForm"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "ContactsMixin": {
+    "authorable": [],
+    "runtime": [
+      "_contacts",
+      "contacts"
+    ],
+    "refs": {}
+  },
+  "ContainableMixin": {
+    "authorable": [
+      "_applyContainer",
+      "_container",
+      "applyContainer",
+      "container"
+    ],
+    "runtime": [
+      "_environment",
+      "environment"
+    ],
+    "refs": {
+      "_applyContainer": "Template",
+      "_container": "Template",
+      "applyContainer": "Template",
+      "container": "Template"
+    }
+  },
+  "ContainerMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "CraftedMixin": {
+    "authorable": [],
+    "runtime": [
+      "_craftedAt",
+      "_maker",
+      "_recipe",
+      "craftedAt",
+      "maker",
+      "recipe"
+    ],
+    "refs": {}
+  },
+  "CredentialWalletMixin": {
+    "authorable": [],
+    "runtime": [
+      "_credentials",
+      "credentials"
+    ],
+    "refs": {}
+  },
+  "DetailedMixin": {
+    "authorable": [
+      "_details",
+      "details"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "DisguisableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "DisguiseBearingMixin": {
+    "authorable": [
+      "_appearsAs",
+      "_covers",
+      "_masksIdentity",
+      "appearsAs",
+      "covers",
+      "masksIdentity"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "DoorBearingMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "DressingMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "DrivableMixin": {
+    "authorable": [
+      "_controllerSlot",
+      "_vehicularModePath",
+      "controllerSlot",
+      "vehicularModePath"
+    ],
+    "runtime": [],
+    "refs": {
+      "_vehicularModePath": "Template",
+      "vehicularModePath": "Template"
+    }
+  },
+  "DurableMixin": {
+    "authorable": [],
+    "runtime": [
+      "_condition",
+      "condition"
+    ],
+    "refs": {}
+  },
+  "EmployedMixin": {
+    "authorable": [],
+    "runtime": [
+      "_employments",
+      "employments"
+    ],
+    "refs": {}
+  },
+  "EnergizedMixin": {
+    "authorable": [
+      "_voltage",
+      "voltage"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "EngagedMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "EnvironmentMixin": {
+    "authorable": [],
+    "runtime": [
+      "_persistentStore",
+      "persistentStore"
+    ],
+    "refs": {}
+  },
+  "EstateMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "ExitableMixin": {
+    "authorable": [
+      "_applyExits",
+      "_exits",
+      "_fieldMeta",
+      "applyExits",
+      "exits",
+      "fieldMeta"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "FastTravelMixin": {
+    "authorable": [
+      "_advanceMode",
+      "_cycleInterval",
+      "_directionality",
+      "_routes",
+      "_surcharge",
+      "advanceMode",
+      "cycleInterval",
+      "directionality",
+      "routes",
+      "surcharge"
+    ],
+    "runtime": [
+      "_selectedDestinationRef",
+      "_status",
+      "selectedDestinationRef",
+      "status"
+    ],
+    "refs": {}
+  },
+  "FixtureMixin": {
+    "authorable": [
+      "_seatIn",
+      "seatIn"
+    ],
+    "runtime": [],
+    "refs": {
+      "_seatIn": "Template",
+      "seatIn": "Template"
+    }
+  },
+  "FlyableMixin": {
+    "authorable": [
+      "_axes",
+      "_difficulty",
+      "axes",
+      "difficulty"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "FocusedMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "FoldableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "ForumsMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "FurnaceMixin": {
+    "authorable": [
+      "_bellowsMultiplier",
+      "_burnTemperatureK",
+      "_fuelBurnRatePerMin",
+      "bellowsMultiplier",
+      "burnTemperatureK",
+      "fuelBurnRatePerMin"
+    ],
+    "runtime": [
+      "_bellowsActive",
+      "_furnaceFuelClockStamp",
+      "_lit",
+      "bellowsActive",
+      "furnaceFuelClockStamp",
+      "lit"
+    ],
+    "refs": {}
+  },
+  "GenderedMixin": {
+    "authorable": [
+      "_pronouns",
+      "pronouns"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "GlobbableMixin": {
+    "authorable": [
+      "_quantity",
+      "quantity"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "GradedMixin": {
+    "authorable": [
+      "_gradeBand",
+      "gradeBand"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "GrowingMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "HasInteractiveMixin": {
+    "authorable": [],
+    "runtime": [
+      "_clientState",
+      "clientState"
+    ],
+    "refs": {}
+  },
+  "HaulableMixin": {
+    "authorable": [
+      "_draftFactor",
+      "_handedness",
+      "_passageMode",
+      "draftFactor",
+      "handedness",
+      "passageMode"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "HaulerMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "HazardMixin": {
+    "authorable": [
+      "_delivery",
+      "_dropDestination",
+      "_groundTriggered",
+      "_hazardState",
+      "_placedBy",
+      "_springMessage",
+      "_traverseConsequence",
+      "_trigger",
+      "delivery",
+      "dropDestination",
+      "groundTriggered",
+      "hazardState",
+      "placedBy",
+      "springMessage",
+      "traverseConsequence",
+      "trigger"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "HidingMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "IdentifiableMixin": {
+    "authorable": [
+      "_identifiedName",
+      "identifiedName"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "IncorporealMixin": {
+    "authorable": [],
+    "runtime": [
+      "_revocationReason",
+      "revocationReason"
+    ],
+    "refs": {}
+  },
+  "KeenMixin": {
+    "authorable": [],
+    "runtime": [
+      "_keenness",
+      "keenness"
+    ],
+    "refs": {}
+  },
+  "LightSourceMixin": {
+    "authorable": [
+      "_emittedColorTemperature",
+      "_emittedIntensity",
+      "emittedColorTemperature",
+      "emittedIntensity"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "LoadBearingMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "LockableMixin": {
+    "authorable": [
+      "_locked",
+      "locked"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "LoungeMixin": {
+    "authorable": [
+      "_applyWarren",
+      "_fieldMeta",
+      "_warren",
+      "applyWarren",
+      "fieldMeta",
+      "warren"
+    ],
+    "runtime": [],
+    "refs": {
+      "_applyWarren": "Template",
+      "_fieldMeta": "Template",
+      "_warren": "Template",
+      "applyWarren": "Template",
+      "fieldMeta": "Template",
+      "warren": "Template"
+    }
+  },
+  "MakerMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "ManualBuildMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "MechanicalMovementMixin": {
+    "authorable": [
+      "_rate",
+      "_setAt",
+      "_setTo",
+      "rate",
+      "setAt",
+      "setTo"
+    ],
+    "runtime": [
+      "_runSeconds",
+      "_springStamp",
+      "runSeconds",
+      "springStamp"
+    ],
+    "refs": {}
+  },
+  "MeltableMixin": {
+    "authorable": [],
+    "runtime": [
+      "_latentAbsorbedJ",
+      "_meltPhase",
+      "latentAbsorbedJ",
+      "meltPhase"
+    ],
+    "refs": {}
+  },
+  "MetabolicMixin": {
+    "authorable": [],
+    "runtime": [
+      "_digestionPools",
+      "_lastMealLabel",
+      "_liquidVolume",
+      "_metabolicClockStamp",
+      "_solidVolume",
+      "_toxinBurdens",
+      "digestionPools",
+      "lastMealLabel",
+      "liquidVolume",
+      "metabolicClockStamp",
+      "solidVolume",
+      "toxinBurdens"
+    ],
+    "refs": {}
+  },
+  "MobileMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "MountableMixin": {
+    "authorable": [
+      "_mountSlot",
+      "mountSlot"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "NamedMixin": {
+    "authorable": [
+      "_alternateNames",
+      "_honorific",
+      "_name",
+      "_nameSuffix",
+      "_surname",
+      "alternateNames",
+      "honorific",
+      "name",
+      "nameSuffix",
+      "surname"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "NotifyPolicyMixin": {
+    "authorable": [],
+    "runtime": [
+      "_notifyRules",
+      "notifyRules"
+    ],
+    "refs": {}
+  },
+  "NutritionLabelMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "OrganismMixin": {
+    "authorable": [
+      "_age",
+      "_speciesPath",
+      "age",
+      "speciesPath"
+    ],
+    "runtime": [
+      "_lifecycleState",
+      "lifecycleState"
+    ],
+    "refs": {
+      "_speciesPath": "Species",
+      "speciesPath": "Species"
+    }
+  },
+  "PartyMemberMixin": {
+    "authorable": [],
+    "runtime": [
+      "_activePartyPath",
+      "_pendingInvitePartyPath",
+      "activePartyPath",
+      "pendingInvitePartyPath"
+    ],
+    "refs": {}
+  },
+  "PerceiverMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "PerceptibleMixin": {
+    "authorable": [
+      "_autoDeriveKeywords",
+      "_keywords",
+      "_primaryKeyword",
+      "autoDeriveKeywords",
+      "keywords",
+      "primaryKeyword"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "PerceptionMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "PersistableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "PersonaMixin": {
+    "authorable": [
+      "_aspiration",
+      "_bio",
+      "aspiration",
+      "bio"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "PopulatesMixin": {
+    "authorable": [
+      "_applyPopulates",
+      "_fieldMeta",
+      "_populates",
+      "applyPopulates",
+      "fieldMeta",
+      "populates"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "PosedMixin": {
+    "authorable": [
+      "_posture",
+      "posture"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "PostRegistrationMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "PostmortemMixin": {
+    "authorable": [],
+    "runtime": [
+      "_diedAtGameSec",
+      "diedAtGameSec"
+    ],
+    "refs": {}
+  },
+  "PosturedMixin": {
+    "authorable": [
+      "_restQuality",
+      "_warmth",
+      "restQuality",
+      "warmth"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "PricedOfferMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "PropertiedMixin": {
+    "authorable": [],
+    "runtime": [
+      "_savedPropMarshallers",
+      "_savedProps",
+      "savedPropMarshallers",
+      "savedProps"
+    ],
+    "refs": {}
+  },
+  "RadioactiveMixin": {
+    "authorable": [
+      "_decayMode",
+      "_decayProductPath",
+      "_halfLife",
+      "decayMode",
+      "decayProductPath",
+      "halfLife"
+    ],
+    "runtime": [],
+    "refs": {
+      "_decayProductPath": "Material",
+      "decayProductPath": "Material"
+    }
+  },
+  "ReservedMixin": {
+    "authorable": [],
+    "runtime": [
+      "_reserves",
+      "reserves"
+    ],
+    "refs": {}
+  },
+  "ResettableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "RespirationMixin": {
+    "authorable": [],
+    "runtime": [
+      "_respirationClockStamp",
+      "respirationClockStamp"
+    ],
+    "refs": {}
+  },
+  "ScryableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SealableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SeatedDrivableMixin": {
+    "authorable": [
+      "_controllerSlot",
+      "_vehicularModePath",
+      "controllerSlot",
+      "vehicularModePath"
+    ],
+    "runtime": [],
+    "refs": {
+      "_vehicularModePath": "Template",
+      "vehicularModePath": "Template"
+    }
+  },
+  "SensorMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SexedMixin": {
+    "authorable": [
+      "_sex",
+      "sex"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SingletonMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SkyExposedMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SlottableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SlottedMixin": {
+    "authorable": [
+      "_staticSlots",
+      "staticSlots"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SmellSourceMixin": {
+    "authorable": [
+      "_emittedConcentration",
+      "_odorIdentity",
+      "emittedConcentration",
+      "odorIdentity"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SoulMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SoundSourceMixin": {
+    "authorable": [
+      "_character",
+      "_emittedAmplitude",
+      "character",
+      "emittedAmplitude"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SpawnedMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SpawnerMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "SphericalCoordinatesMixin": {
+    "authorable": [
+      "_coordinates",
+      "_radius",
+      "coordinates",
+      "radius"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "StatusMixin": {
+    "authorable": [
+      "_authoredStatus",
+      "authoredStatus"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SubjectSubscriberMixin": {
+    "authorable": [],
+    "runtime": [
+      "_subjectSubscriptions",
+      "subjectSubscriptions"
+    ],
+    "refs": {}
+  },
+  "SurfacedMixin": {
+    "authorable": [
+      "_userFacingDetail",
+      "userFacingDetail"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SwimmableMixin": {
+    "authorable": [
+      "_axes",
+      "_difficulty",
+      "axes",
+      "difficulty"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "SwitchableMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "TangibleMixin": {
+    "authorable": [
+      "_detailMaterialPaths",
+      "_mass",
+      "_materialPath",
+      "detailMaterialPaths",
+      "mass",
+      "materialPath"
+    ],
+    "runtime": [],
+    "refs": {
+      "_detailMaterialPaths": "Material",
+      "_materialPath": "Material",
+      "detailMaterialPaths": "Material",
+      "materialPath": "Material"
+    }
+  },
+  "ThermalMixin": {
+    "authorable": [
+      "_barrier",
+      "barrier"
+    ],
+    "runtime": [
+      "_lastAmbientK",
+      "_stampedTemperatureK",
+      "_thermalClockStamp",
+      "lastAmbientK",
+      "stampedTemperatureK",
+      "thermalClockStamp"
+    ],
+    "refs": {}
+  },
+  "ThermalRegulationMixin": {
+    "authorable": [
+      "_setpointK",
+      "setpointK"
+    ],
+    "runtime": [
+      "_cachedHumidity",
+      "_effectiveAmbientK",
+      "_thermalRegStamp",
+      "cachedHumidity",
+      "effectiveAmbientK",
+      "thermalRegStamp"
+    ],
+    "refs": {}
+  },
+  "TimekeepingMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "ToolMixin": {
+    "authorable": [
+      "_capabilities",
+      "capabilities"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "UnboundedSourceMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "VisibleMixin": {
+    "authorable": [
+      "_illustration",
+      "_longDescription",
+      "_shortDescription",
+      "illustration",
+      "longDescription",
+      "shortDescription"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "VitalsMixin": {
+    "authorable": [],
+    "runtime": [
+      "_bloodPressureDiastolic",
+      "_bloodPressureSystolic",
+      "_bloodVolume",
+      "_bodyPartDeltas",
+      "_causeOfDeath",
+      "_conditions",
+      "_coreTemperature",
+      "_heartRate",
+      "_respiratoryRate",
+      "_spo2",
+      "bloodPressureDiastolic",
+      "bloodPressureSystolic",
+      "bloodVolume",
+      "bodyPartDeltas",
+      "causeOfDeath",
+      "conditions",
+      "coreTemperature",
+      "heartRate",
+      "respiratoryRate",
+      "spo2"
+    ],
+    "refs": {}
+  },
+  "VocalMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "WarrenMemberMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "WearableMixin": {
+    "authorable": [
+      "_clo",
+      "_slotClaims",
+      "clo",
+      "slotClaims"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "WetMixin": {
+    "authorable": [],
+    "runtime": [],
+    "refs": {}
+  },
+  "WieldableMixin": {
+    "authorable": [
+      "_slotClaims",
+      "slotClaims"
+    ],
+    "runtime": [],
+    "refs": {}
+  },
+  "WorkspaceMixin": {
+    "authorable": [],
+    "runtime": [
+      "_contentCwd",
+      "_sourceCwd",
+      "contentCwd",
+      "sourceCwd"
+    ],
+    "refs": {}
+  }
+}

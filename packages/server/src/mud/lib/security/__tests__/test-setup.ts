@@ -24,6 +24,7 @@
 import type { Stuff } from '../../stuff/Stuff';
 import { Stuff as StuffClass } from '../../stuff/Stuff';
 import { ProxyApi } from '../../../api/proxy';
+import { MixinApi, type AnyConstructor } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
 // SecurityApi installs its proxy interceptor in a static initializer
@@ -48,7 +49,10 @@ export function makeStuff<T extends Stuff>(factory: () => T): T {
   } finally {
     StuffClass._endConstruction(prevSentinel);
   }
-  const proxy = ProxyApi.wrap(raw);
+  const proxy = ProxyApi.wrap(
+    raw,
+    MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
+  );
   StuffApi.register(proxy);
   return proxy;
 }
@@ -112,7 +116,10 @@ export function makeStuffAtPath<T extends Stuff>(
   } finally {
     StuffClass._endConstruction(prevSentinel);
   }
-  const proxy = ProxyApi.wrap(raw);
+  const proxy = ProxyApi.wrap(
+    raw,
+    MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
+  );
   StuffClass._stampTemplatePath(proxy, path);
   StuffApi.register(proxy);
   return proxy;

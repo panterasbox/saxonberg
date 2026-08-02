@@ -37,7 +37,7 @@
  */
 
 import type { MessageFrame } from '@saxonberg/types';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
@@ -113,8 +113,10 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /** The declarative spec list — pure data, persisted as-is. */
-    static persistentFields = ['behaviors', 'dispositions'];
-    /** @authorable */
+    static fieldMeta: FieldMeta = {
+      behaviors: { persistent: true, authorable: true },
+      dispositions: { persistent: true, authorable: true },
+    };
     public behaviors: BehaviorSpec[] = [];
 
     /**
@@ -125,7 +127,6 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
      * derive-don't-track (it came from a seeded history, not a stat). The
      * behavior→trait edge this introduces is the same one the trait-aware
      * brains already establish.
-     * @authorable
      */
     public dispositions: ClaimSeed[] = [];
 

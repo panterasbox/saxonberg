@@ -33,7 +33,7 @@
  * `docs/subsystems/thermal.md`.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Tangible } from "../material/Tangible";
 import type { Containable } from "../spatial/Containable";
@@ -182,20 +182,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ThermalMixin extends Base implements Thermal {
     static _mixinName = "ThermalMixin";
 
-    static persistentFields = [
-      "stampedTemperatureK",
-      "thermalClockStamp",
-      "lastAmbientK",
-      "barrier",
-    ];
+    static fieldMeta: FieldMeta = {
+      stampedTemperatureK: { persistent: true, runtimeState: true },
+      thermalClockStamp: { persistent: true, runtimeState: true },
+      lastAmbientK: { persistent: true, runtimeState: true },
+      barrier: { persistent: true, authorable: true },
+    };
 
-    /** @runtimeState */
     public stampedTemperatureK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
-    /** @runtimeState */
     public thermalClockStamp = 0;
-    /** @runtimeState */
     public lastAmbientK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
-    /** @authorable */
     public barrier: string | null = null;
 
     /**

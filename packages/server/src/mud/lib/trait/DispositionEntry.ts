@@ -36,6 +36,7 @@
 
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The fields that compose one disposition row. `disposition` / `valence`
@@ -55,14 +56,14 @@ export interface DispositionEntryFields {
 
 export default class DispositionEntry extends Document {
   static collectionName = Collections.DispositionEvents;
-  static persistentFields = [
-    "owner",
-    "kind",
-    "when",
-    "disposition",
-    "valence",
-    "tags",
-  ];
+  static fieldMeta: FieldMeta = {
+    owner: { persistent: true },
+    kind: { persistent: true },
+    when: { persistent: true },
+    disposition: { persistent: true },
+    valence: { persistent: true },
+    tags: { persistent: true },
+  };
 
   /** Durable owner key (the character's `templatePath`) — indexed. */
   owner = "";

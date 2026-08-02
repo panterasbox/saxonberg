@@ -39,13 +39,16 @@ class** — it does not extend `Idea`/`Stuff`. There is no proxy, no
 registry membership, no security gate, and no lifecycle. It carries
 only the CRUD + serialization surface (`save` / `delete` / `findById` /
 `find` / `toDocument` / `fromDocument`), the `createdAt` / `updatedAt`
-timestamps, and the static `collectionName` / `persistentFields`
+timestamps, and the static `collectionName` / `fieldMeta`'s persistent entries
 contract.
 
 ```typescript
 class User extends Document {
   static collectionName = 'users';
-  static persistentFields = ['googleProfileId', 'playerIds'];
+  static fieldMeta: FieldMeta = {
+    googleProfileId: { persistent: true },
+    playerIds: { persistent: true },
+  };
 
   googleProfileId: string = '';
   playerIds: string[] = [];
@@ -63,7 +66,7 @@ await user.delete(); // deletes the row — no registry/destruct cascade
 Subclass contract:
 
 - **`static collectionName: string`** — required. Throws if missing.
-- **`static persistentFields?: string[]`** — class-local fields to copy
+- **`static fieldMeta`'s `{ persistent: true }` entries** — fields to copy
   to/from the document. Mixin-contributed fields are picked up
   automatically (see "Field aggregation" below).
 
@@ -97,8 +100,8 @@ asset (the doc you clone game-world objects from — see
 
 `Document.getAllFields()` returns the union of:
 
-1. The class's own `static persistentFields`.
-2. Every `static persistentFields` declared by mixins in the prototype
+1. The class's own a `persistent` entry in `fieldMeta`.
+2. Every a `persistent` entry in `fieldMeta` declared by mixins in the prototype
    chain.
 
 The walk is centralised in `MixinApi.getAllPersistentFields(constructor)`
@@ -262,7 +265,10 @@ Canonical example — `AmbientLitMixin`:
 
 ```ts
 class AmbientLitMixin {
-  static persistentFields = ['ambientIntensity', 'ambientColorTemperature'];
+  static fieldMeta: FieldMeta = {
+    ambientIntensity: { persistent: true },
+    ambientColorTemperature: { persistent: true },
+  };
 
   // Stored scalars — accessor pairs validate primitive shape:
   protected set ambientIntensity(v: number) {
@@ -330,14 +336,16 @@ hot-swap without restarting the server. Stateless by contract;
 
 ### Wire-up
 
-The mixin declares `static fieldMarshallers` mapping the persistent
+The mixin declares a `marshaller` entry in `fieldMeta` mapping the persistent
 field name to the marshaller's templatePath:
 
 ```ts
 class WalletMixin {
-  static persistentFields = ['wallet'];
-  static fieldMarshallers = {
-    wallet: '/lib/persistence/MoneyBagMarshaller',
+  static fieldMeta: FieldMeta = {
+    wallet: {
+      persistent: true,
+      marshaller: '/lib/persistence/MoneyBagMarshaller',
+    },
   };
 
   // Setter is STRICT on the runtime type — by the time the
@@ -408,10 +416,9 @@ encoded form (composite units encode `'/'` → `'-per-'`).
 
 ```ts
 class Material extends ... {
-  static persistentFields = [..., 'density', 'molarMass'];
-  static fieldMarshallers = {
-    density:   QuantityMarshaller.pathFor('kg/m³'),
-    molarMass: QuantityMarshaller.pathFor('g/mol'),
+  static fieldMeta: FieldMeta = {
+    density:   { persistent: true, marshaller: QuantityMarshaller.pathFor('kg/m³') },
+    molarMass: { persistent: true, marshaller: QuantityMarshaller.pathFor('g/mol') },
   };
   // Strict accessor pair on Quantity<U>; the marshaller
   // absorbed coercion at the persistence boundary.
@@ -518,7 +525,7 @@ Capture is **composed per-mixin**, mirroring `getAllPersistentFields`:
 `_mixinName` only — so a concrete subclass doesn't borrow its base mixin's
 slice key) and yields one descriptor per contributing layer. Each layer
 either runs its `captureSlice` hook or contributes the **default slice** (its
-own declared `persistentFields`, marshalled to stored form). Three slice
+own declared `fieldMeta`'s persistent entries, marshalled to stored form). Three slice
 shapes:
 
 - **default** (`{ fields }`) — every ordinary mixin (`Graded`, `Propertied`,
@@ -554,7 +561,7 @@ composes three defenses:
    allowlist** entry in `execution-context.ts` (the
    `SchedulerRegistry`/`EventSubscriptions` precedent).
 2. **Drift guard** — a default slice's fields are filtered to the cloned
-   class's declared `persistentFields` before hydration, so a forged record
+   class's declared `fieldMeta`'s persistent entries before hydration, so a forged record
    cannot inject `class`/`hydratorClass`/`brain` (Template-level, never
    persistent fields) nor any undeclared key. Fields hydrate through the
    standard two-phase `PersistentHydrator` (prefers the invariant-enforcing
@@ -762,7 +769,7 @@ Each class declares its own collection name to:
 - Make collection names discoverable from the class definition.
 - Enable type-safe CRUD without per-call configuration.
 
-### Why explicit `persistentFields`?
+### Why explicit `fieldMeta`'s persistent entries?
 
 While we could scan all properties, explicit declaration:
 
@@ -923,7 +930,7 @@ Index creation is best-effort (logs and continues on failure).
   build). The universal `PersistableMixin`/`PersistableApi`/`PersistableLogic`
   substrate landed, and Avatar migrated off the per-player-template
   `snapshotToTemplate` persist-back onto it — so carried inventory and worn
-  gear now survive logout (they were lost before; only `persistentFields`
+  gear now survive logout (they were lost before; only `fieldMeta`'s persistent entries
   persisted). The load-bearing shifts: the durable-location capture (the
   `WarrenMember` recall reconciliation) moved from `TemplateLogic.snapshotToTemplate`
   onto `PersistableLogic.capturePlacement` (`PersistedRecord.place`);

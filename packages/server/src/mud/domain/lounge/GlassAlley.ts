@@ -28,6 +28,7 @@ import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { MixinApi } from '../../api/mixin';
 import { ConditionApi } from '../../api/condition';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { FieldMeta } from '../../lib/mixin';
 
 const GlassAlleyBase = SingletonMixin(
   PostRegistrationMixin(
@@ -38,7 +39,7 @@ const GlassAlleyBase = SingletonMixin(
 );
 
 export default class GlassAlley extends GlassAlleyBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /**
    * The insult a foot takes from the broken glass — an `edge`. A bare foot

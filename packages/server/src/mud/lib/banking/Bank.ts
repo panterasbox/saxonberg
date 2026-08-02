@@ -23,7 +23,7 @@
  * diegetic limit the central bank's branch-float makes meaningful.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
@@ -98,7 +98,11 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class BankMixin extends Base implements Bank {
     static _mixinName = "BankMixin";
 
-    static persistentFields = ["corpoKey", "terms", "bank"];
+    static fieldMeta: FieldMeta = {
+      corpoKey: { persistent: true, authorable: true, authorPicker: 'Corpo' },
+      terms: { persistent: true, authorable: true },
+      bank: { persistent: true, authorable: true },
+    };
 
     /**
      * The banking verb surface lights up wherever this counter is present in
@@ -113,7 +117,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /**
      * The bank's corpo affiliation key.
-     * @authorable ref:Corpo
      */
     public corpoKey = "";
 
@@ -126,7 +129,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * corpo behind it — the `Brand.owner === ''` precedent). Your account
      * exists at the BANK; a branch is a service point of it (till physics
      * stay per-branch).
-     * @authorable
      */
     public bank = "";
 
@@ -146,7 +148,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /**
      * The authored fee/minimum schedule (seed `data.terms`), round-tripped
      * through the raw `terms` field. Absent → the fee-free default.
-     * @authorable
      */
     public terms: TermsData = {};
 
@@ -178,7 +179,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * removal of cash-like coin from the vault is vetoed. (Non-cash items, if
      * ever placed here, are unrestricted.) The sibling of the exclusive lease
      * and the common-pool quota — the third anti-grief guard.
-     * @runtimeState
      */
     private _disbursing = false;
 

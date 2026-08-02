@@ -11,7 +11,7 @@
  * and `AliasMixin`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { SettingsSchemaEntry } from './Environment';
 import { SettingTypes } from './Environment';
@@ -30,7 +30,7 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
      * No persistent fields v1 — the mixin contributes verbs and
      * schema only, not stored state.
      */
-    static persistentFields: string[] = [];
+    static fieldMeta: FieldMeta = {};
 
     /**
      * Eval-side knobs declared as session-lifetime settings so they

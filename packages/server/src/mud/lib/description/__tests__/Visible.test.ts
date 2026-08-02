@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { VisibleMixin } from '../Visible';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Idea } from "../../stuff/Idea";
+import { MixinApi } from '../../../api/mixin';
 
 // Test class that uses VisibleMixin
 class TestVisible extends VisibleMixin(Idea) {
@@ -63,8 +64,7 @@ describe('VisibleMixin', () => {
 
   describe('persistent fields', () => {
     it('should declare shortDescription and longDescription as persistent fields', () => {
-      const fields = (TestVisible as { persistentFields?: string[] })
-        .persistentFields;
+      const fields = MixinApi.getAllPersistentFields(TestVisible);
       expect(fields).toContain('shortDescription');
       expect(fields).toContain('longDescription');
     });

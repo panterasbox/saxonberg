@@ -34,6 +34,7 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { Difficulty, Outcome } from "./ActSignature";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The fields that compose one Transcript row. `discipline` / `difficulty`
@@ -53,15 +54,15 @@ export interface TranscriptEntryFields {
 
 export default class TranscriptEntry extends Document {
   static collectionName = Collections.Transcripts;
-  static persistentFields = [
-    "owner",
-    "kind",
-    "when",
-    "discipline",
-    "difficulty",
-    "outcome",
-    "tags",
-  ];
+  static fieldMeta: FieldMeta = {
+    owner: { persistent: true },
+    kind: { persistent: true },
+    when: { persistent: true },
+    discipline: { persistent: true },
+    difficulty: { persistent: true },
+    outcome: { persistent: true },
+    tags: { persistent: true },
+  };
 
   /** Durable owner key (the character's `templatePath`) — indexed. */
   owner = "";

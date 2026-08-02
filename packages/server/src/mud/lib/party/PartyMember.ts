@@ -23,7 +23,7 @@
  * cleanup when no live Party Idea exists to act.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import {
   CallSecurity,
@@ -89,7 +89,9 @@ const ByInvitingParty = SecurityPolicies.AnyOf(
 export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
   class PartyMemberMixin extends Base implements PartyMember {
     static _mixinName = "PartyMemberMixin";
-    static persistentFields = ["activePartyPath"];
+    static fieldMeta: FieldMeta = {
+      activePartyPath: { persistent: true, runtimeState: true },
+    };
 
     /** The `party` verb — a party-capable actor's whole party surface. */
     static commandContributions: CommandContributions = {
@@ -103,16 +105,12 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
      * The active party Idea's `templatePath`, or `''` when partyless.
      * Persisted: a player rejoins their active party across sessions.
      * Combat's `sideOf` resolves this through the Stuff graph.
-     *
-     * @runtimeState
      */
     public activePartyPath: string = "";
 
     /**
      * An outstanding invite's party `templatePath`, or `''`. Transient by
      * nature (an invite that outlives a restart is stale), not persisted.
-     *
-     * @runtimeState
      */
     public pendingInvitePartyPath: string = "";
 

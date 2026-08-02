@@ -233,7 +233,7 @@ The line is composed from the **tactical state** so the feed reads as a
 
 The **flavor lookup** (`lib/combat/CombatFlavor.ts`) is a `{aspect, key,
 channel, outcome}` table (`aspect ∈ material | species | gear | biome`) —
-**NOT** fields on `Material` (which has a closed `persistentFields` list,
+**NOT** fields on `Material` (which has a closed `fieldMeta`'s persistent entries list,
 and one lookup serves material *and* species/gear/biome fragments layered by
 generality). A miss is the common case and costs nothing — the frame is
 always complete without a fragment (graceful default). Build 1 realises the

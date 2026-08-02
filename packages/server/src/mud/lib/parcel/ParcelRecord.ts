@@ -35,6 +35,7 @@ import { Collections } from "../persistence/Collections";
 import { LandUses } from "./LandUse";
 import type { LandUse } from "./LandUse";
 import type { GroupRef } from "../social/GroupProvider";
+import type { FieldMeta } from "../mixin";
 
 /**
  * A parcel's title holder — a typed principal, resolved by the access
@@ -94,18 +95,18 @@ export interface ParcelSpace {
 
 export class ParcelRecord extends Document {
   static collectionName = Collections.Parcels;
-  static persistentFields = [
-    "extent",
-    "zonePath",
-    "area",
-    "storeys",
-    "owner",
-    "parentParcel",
-    "grants",
-    "allowance",
-    "keyway",
-    "landUse",
-  ];
+  static fieldMeta: FieldMeta = {
+    extent: { persistent: true },
+    zonePath: { persistent: true },
+    area: { persistent: true },
+    storeys: { persistent: true },
+    owner: { persistent: true },
+    parentParcel: { persistent: true },
+    grants: { persistent: true },
+    allowance: { persistent: true },
+    keyway: { persistent: true },
+    landUse: { persistent: true },
+  };
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
   extent: string = "";

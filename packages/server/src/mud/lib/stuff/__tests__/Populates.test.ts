@@ -9,6 +9,7 @@ import PersistentHydrator from '../../persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import type { FieldMeta } from '../../mixin';
 
 /**
  * PopulatesMixin tests — exercises the Phase-2 cascade end-to-end via
@@ -72,13 +73,13 @@ const SingletonContainerBase = SingletonMixin(
   ContainableMixin(ContainerMixin(Idea))
 );
 class SingletonContainerTest extends SingletonContainerBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 // Non-singleton Container.
 const NonSingletonContainerBase = ContainableMixin(ContainerMixin(Idea));
 class NonSingletonContainerTest extends NonSingletonContainerBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 // A populating Container (composes Populates + Container + Containable;
@@ -87,7 +88,7 @@ const PopulatesHostBase = PopulatesMixin(
   ContainableMixin(ContainerMixin(Idea))
 );
 class PopulatesHostTest extends PopulatesHostBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 describe('PopulatesMixin', () => {

@@ -359,7 +359,7 @@ controls inner text only.
 Quantity values round-trip through the persistence boundary as
 `{ value, unit }` JSON. Two adoption shapes:
 
-### First-class fields — `static fieldMarshallers`
+### First-class fields — a `marshaller` entry in `fieldMeta`
 
 A class with a `Quantity<U>`-typed field declares the marshaller
 binding next to its persistent fields:
@@ -368,10 +368,9 @@ binding next to its persistent fields:
 class Material extends ... {
   private _density: Quantity<'kg/m³'> = Quantity.of(0, 'kg/m³');
 
-  static persistentFields = [..., 'density', 'molarMass'];
-  static fieldMarshallers = {
-    density:   QuantityMarshaller.pathFor('kg/m³'),
-    molarMass: QuantityMarshaller.pathFor('g/mol'),
+  static fieldMeta: FieldMeta = {
+    density:   { persistent: true, marshaller: QuantityMarshaller.pathFor('kg/m³') },
+    molarMass: { persistent: true, marshaller: QuantityMarshaller.pathFor('g/mol') },
   };
 
   // accessor pair; setter strict on Quantity
@@ -536,7 +535,7 @@ numerically). See [biome.md](./biome.md) for the breakpoints.
 - [race.md § Material substrate](./race.md#material-substrate) —
   `density`, `molarMass`, `mass`.
 - [persistence.md § Marshaller framework](./persistence.md#marshaller-framework)
-  — Marshaller base class, `static fieldMarshallers`, lazy resolution.
+  — Marshaller base class, a `marshaller` entry in `fieldMeta`, lazy resolution.
 - [messaging.md](./messaging.md) — `Mml.compose` lazy evaluation,
   `Scene.send` per-recipient body materialization (the substrate
   the viewer-threading rests on).

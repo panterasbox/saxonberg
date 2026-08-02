@@ -60,7 +60,7 @@ like `Biome` / `Material` / `Species`, hanging under `/lib/address/`.
 ## Declaring an address — `AddressableMixin`
 
 Composed onto `Location` (`AddressableMixin(AtmosphericMixin(…))`). A
-sparse, optional `_address: string | null` declaration (Pattern A,
+sparse, optional `_address: string | null` declaration (an identity ref,
 modeled on `AtmosphericMixin._biomePath`); `null` is the common case
 and costs one field. **Resolution is not the mixin's job** —
 `getAddress()` returns the raw declared string; turning it into a
@@ -238,6 +238,6 @@ simplification.
   step.
 - [access.md](./access.md) — the facade → logic-singleton → registry
   three-tier this mirrors.
-- [ref-shapes.md](../ref-shapes.md) — Pattern A for the `_address`
+- [ref-shapes.md](../ref-shapes.md) — the identity ref for the `_address`
   declaration.
 - `lib/collections/PathTrie` — the coverage-index machinery.

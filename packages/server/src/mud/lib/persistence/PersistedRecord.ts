@@ -31,10 +31,16 @@
 
 import { Document } from "./Document";
 import type { MixinSlice, HostPlacement } from "./PersistenceSlice";
+import type { FieldMeta } from "../mixin";
 
 export class PersistedRecord extends Document {
   static collectionName = "holder_snapshots";
-  static persistentFields = ["scope", "owner", "state", "place"];
+  static fieldMeta: FieldMeta = {
+    scope: { persistent: true },
+    owner: { persistent: true },
+    state: { persistent: true },
+    place: { persistent: true },
+  };
 
   /** The host's singleton `templatePath` — identity + re-clone base. */
   scope: string = "";

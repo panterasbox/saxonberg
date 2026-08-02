@@ -32,7 +32,7 @@
  * `docs/subsystems/respiration.md`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import type { Vitals } from '../vitals/Vitals';
@@ -154,7 +154,9 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class RespirationMixin extends Base implements Respiration {
     static _mixinName = 'RespirationMixin';
 
-    static persistentFields = ['respirationClockStamp'];
+    static fieldMeta: FieldMeta = {
+      respirationClockStamp: { persistent: true, runtimeState: true },
+    };
 
     /**
      * Contextual affordances — surface `inhale` / `exhale` on the self
@@ -170,7 +172,6 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The only persisted field — the drain's elapsed anchor.
-     * @runtimeState
      */
     public respirationClockStamp = 0;
 

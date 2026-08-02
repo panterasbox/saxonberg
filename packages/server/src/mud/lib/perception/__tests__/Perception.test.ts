@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionMixin } from '../Perception';
 import { Idea } from '../../stuff/Idea';
-import { Mixins } from '../../mixin';
+import { Mixins, type FieldMeta } from '../../mixin';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
@@ -17,7 +17,7 @@ import type { Container } from '../../spatial/Container';
 import { LIGHT_BANDS } from '../Light';
 
 class PerceiverThing extends PerceptionMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 // Stand-in location — Perception's defaults treat `loc` as opaque, so a

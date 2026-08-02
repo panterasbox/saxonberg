@@ -36,35 +36,32 @@ import { SingletonMixin } from "../lib/stuff/Singleton";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { LandUses, type LandUse } from "../lib/parcel/LandUse";
 import type { VetoResult } from "../lib/errors";
+import type { FieldMeta } from "../lib/mixin";
 
 const PlatBookBase = SingletonMixin(PostRegistrationMixin(Idea));
 
 export default class PlatBook extends PlatBookBase {
-  static persistentFields: string[] = [
-    "label",
-    "parentExtent",
-    "lotBranch",
-    "lots",
-    "priceMinor",
-    "areaM2",
-    "landUse",
-    "holderPath",
-  ];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true, authorable: true },
+    parentExtent: { persistent: true, authorable: true },
+    lotBranch: { persistent: true, authorable: true },
+    lots: { persistent: true, authorable: true },
+    priceMinor: { persistent: true, authorable: true },
+    areaM2: { persistent: true, authorable: true },
+    landUse: { persistent: true, authorable: true },
+    holderPath: { persistent: true, authorable: true, authorPicker: 'Template' },
+  };
 
   /**
    * What to call this subdivision — "Hinkley Hills". A plain label
    * rather than `NamedMixin`: proper names belong to characters, and
    * this is a record, not somebody.
-   *
-   * @authorable
    */
   public label: string = "";
 
   /**
    * The district extent lots are subdivided OUT of — the parcel row that
    * already exists, and that a sold lot becomes a child of.
-   *
-   * @authorable
    */
   public parentExtent: string = "";
 
@@ -72,8 +69,6 @@ export default class PlatBook extends PlatBookBase {
    * The lot leaf names this subdivision sells. Leaves, not full extents:
    * the extent is `parentExtent/<lotBranch>/<leaf>`, so a book cannot
    * accidentally offer ground its district does not cover.
-   *
-   * @authorable
    */
   public lots: string[] = [];
 
@@ -91,15 +86,13 @@ export default class PlatBook extends PlatBookBase {
    *
    * Empty flattens it back to `parentExtent/<leaf>` for a subdivision
    * whose district is not a grid.
-   *
-   * @authorable
    */
   public lotBranch: string = "lots";
 
-  /** Price of one lot, in minor units. @authorable */
+  /** Price of one lot, in minor units. */
   public priceMinor: number = 0;
 
-  /** Declared area of one lot, in m². @authorable */
+  /** Declared area of one lot, in m². */
   public areaM2: number = 0;
 
   /**
@@ -107,17 +100,13 @@ export default class PlatBook extends PlatBookBase {
    * vocabulary on the setter, so a typo fails at seed time rather than
    * reading as `wild` — and therefore as "nothing may be grown here" —
    * much later and much less obviously.
-   *
-   * @authorable
    */
   public landUse: LandUse = "residential";
 
   /**
    * The {@link LotHolder} that stands ground up when a lot here sells.
-   * A path rather than a live ref (Pattern A): the book is reference
+   * A path rather than a live ref (an identity ref): the book is reference
    * data, and naming the mechanism keeps the two swappable.
-   *
-   * @authorable ref:Template
    */
   public holderPath: string = "";
 

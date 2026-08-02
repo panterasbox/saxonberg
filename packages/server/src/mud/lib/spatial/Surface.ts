@@ -15,9 +15,10 @@
 import Thing from '../stuff/Thing';
 import { DetailedMixin } from '../description/Detailed';
 import { SurfacedMixin } from './Surfaced';
+import type { FieldMeta } from '../mixin';
 
 const SurfaceBase = SurfacedMixin(DetailedMixin(Thing));
 
 export default class Surface extends SurfaceBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

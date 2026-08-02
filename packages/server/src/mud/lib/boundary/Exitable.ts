@@ -15,7 +15,7 @@
  * containers, and we need the Stuff identity for exit messaging.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -99,8 +99,6 @@ export interface Exitable {
    *   a template's `exits` field. **Instruction applier** — consumes a
    *   declaration to produce derived runtime state; no paired getter
    *   (not a property). Per-direction idempotent across re-clone.
-   *
-   * @authorable
    */
   applyExits(map: Record<string, ExitInstruction>): Promise<void>;
   verifyOutboundExits(): void;
@@ -244,10 +242,19 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * installs the runtime entries — no paired getter for the spec
      * (the runtime `exits: Map<string, Exit>` has its own API). See
      * `applyExits` and `feedback_property_vs_instruction_fields`.
-     *
-     * @authorable
      */
-    static instructionFields = ['exits'];
+    static fieldMeta: FieldMeta = {
+      // One name, two lives: an authored instruction at hydrate
+      // (`applyExits` installs from the spec) and a live
+      // `Map<string, Exit>` at runtime. `owned` is the runtime half —
+      // an outbound Exit of a destroyed room has no remaining reader.
+      exits: {
+        instruction: true,
+        authorable: true,
+        ref: 'instance',
+        lifetime: 'owned',
+      },
+    };
 
     /**
      * Projection field for live subscriptions. Reads
@@ -763,18 +770,16 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * the Location-level zone detach).
      */
     onDestruct(): void {
-      const outbound = [...this.exits.values()];
-
-      for (const exit of outbound) {
+      // POLICY only. The cascade and the map-clearing are DECLARED
+      // (`exits: { ref: 'instance', lifetime: 'owned' }`) and belong to
+      // slot 2.5 — doing either here as well would leave 2.5 an empty
+      // map and silently destruct nothing.
+      for (const exit of this.exits.values()) {
         const inverse = exit.getInverse();
         if (inverse) {
           inverse.setBlocked(true);
         }
       }
-      for (const exit of outbound) {
-        StuffApi.destruct(exit as unknown as Stuff);
-      }
-      this.exits.clear();
       this._pendingVerify.clear();
 
       // Chain to super — Location overrides onDestruct to detach

@@ -24,7 +24,7 @@
  * unstaffed), **attendDurationMs** (0 = instant), and the diegetic **skin**.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { SchedulerApi } from "../../api/scheduler";
 import { MessageApi } from "../../api/message";
@@ -122,37 +122,29 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
   class AttendantMixin extends Base implements Attendant {
     static _mixinName = "AttendantMixin";
 
-    static persistentFields = [
-      "discipline",
-      "serverPositionKeys",
-      "staffingPolicy",
-      "attendDurationMs",
-      "skin",
-      "businessPath",
-    ];
+    static fieldMeta: FieldMeta = {
+      discipline: { persistent: true, authorable: true },
+      serverPositionKeys: { persistent: true, authorable: true },
+      staffingPolicy: { persistent: true, authorable: true },
+      attendDurationMs: { persistent: true, authorable: true },
+      skin: { persistent: true, authorable: true },
+      businessPath: { persistent: true, authorable: true, authorPicker: 'Business' },
+    };
 
-    /** @authorable */
     public discipline: ServiceDiscipline = "line";
-    /** @authorable */
     public serverPositionKeys: string[] = [];
-    /** @authorable */
     public staffingPolicy: StaffingPolicy = "close";
-    /** @authorable */
     public attendDurationMs = 0;
-    /** @authorable */
     public skin: Record<string, string> = {};
-    /** @authorable ref:Business */
     public businessPath = "";
 
     /**
      * Waiting customer keys, ordered. Runtime-only — a queue is a live,
      * in-session thing (the residency `_engagements` precedent).
-     * @runtimeState
      */
     private _queue: string[] = [];
     /**
      * Active durative leases (server-attention holds), keyed by customer.
-     * @runtimeState
      */
     private _leases = new Map<string, AttendanceEngagement>();
 

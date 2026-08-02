@@ -25,7 +25,7 @@
  */
 
 import type { AbortReason } from '@saxonberg/types';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { HazardDelivery, type HazardDeliveryOptions } from './HazardDelivery';
 import {
@@ -111,31 +111,31 @@ export interface Hazard {
 export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HazardMixin extends Base implements Hazard {
     static _mixinName = 'HazardMixin';
-    static persistentFields = [
-      'hazardState',
-      'trigger',
-      'delivery',
-      'traverseConsequence',
-      'groundTriggered',
-      'dropDestination',
-      'springMessage',
-      'placedBy',
-    ];
+    static fieldMeta: FieldMeta = {
+      hazardState: { persistent: true, authorable: true },
+      trigger: { persistent: true, authorable: true },
+      delivery: { persistent: true, authorable: true },
+      traverseConsequence: { persistent: true, authorable: true },
+      groundTriggered: { persistent: true, authorable: true },
+      dropDestination: { persistent: true, authorable: true },
+      springMessage: { persistent: true, authorable: true },
+      placedBy: { persistent: true, authorable: true },
+    };
 
     /**
      * The state axis — `'armed'` fires, `'sprung'` is spent (one-shot v1),
-     * `'disarmed'` is defused. @authorable
+     * `'disarmed'` is defused.
      */
     public hazardState: HazardState = 'armed';
 
-    /** The trigger axis. @authorable */
+    /** The trigger axis. */
     public trigger: HazardTrigger = 'traversal';
 
     /**
      * The delivery — what/how-hard/where the spring inflicts. Constructed
      * from the authored seed value by {@link setDelivery}. Defaults to a
      * benign no-site zero-energy delivery so an un-authored hazard is
-     * inert. @authorable
+     * inert.
      */
     public delivery: HazardDelivery = new HazardDelivery({
       channel: 'blunt',
@@ -143,14 +143,14 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       siteSelector: [],
     });
 
-    /** The movement veto/redirect on a traversal spring. @authorable */
+    /** The movement veto/redirect on a traversal spring. */
     public traverseConsequence: TraverseConsequence = 'none';
 
     /**
      * A ground-laid contact hazard (the default) is **cleared** when the
      * mover crosses in an `air` / `water` medium (flying / swimming over
      * it). Author `false` for a hazard that catches every medium (a
-     * ceiling deadfall). @authorable
+     * ceiling deadfall).
      */
     public groundTriggered = true;
 
@@ -158,7 +158,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      * The `drop` consequence's authored "below" destination — a template
      * path to the location the mover falls into. NOT computed geometry: a
      * designer names where down is. Left unset, a `drop` inflicts the fall
-     * blunt but relocates no one. @authorable
+     * blunt but relocates no one.
      */
     public dropDestination?: string;
 
@@ -166,7 +166,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Optional authored line the victim sees when this hazard springs (a
      * flavor override, e.g. "A poisoned needle drives up through the slab!").
      * Left blank, a generic spring line is used. Witnesses always get a
-     * generic "…springs a hidden trap." @authorable
+     * generic "…springs a hidden trap."
      */
     public springMessage = '';
 
@@ -178,7 +178,6 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      * this placer, from which `crime` derives (harm to a non-consenting
      * sentient). Stamped at deploy; survives the placed clone's persistence
      * so the absent placer is still on the hook when the victim springs it.
-     * @authorable
      */
     public placedBy = '';
 

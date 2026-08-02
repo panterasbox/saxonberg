@@ -30,7 +30,7 @@
  * Operational reference (graduated at sweep): `docs/subsystems/thermal.md`.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Containable } from "../spatial/Containable";
 import type { Reserved } from "../reserve";
@@ -112,20 +112,16 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
   return class ThermalRegulationMixin extends Base implements ThermalRegulation {
     static _mixinName = "ThermalRegulationMixin";
 
-    static persistentFields = [
-      "setpointK",
-      "effectiveAmbientK",
-      "cachedHumidity",
-      "thermalRegStamp",
-    ];
+    static fieldMeta: FieldMeta = {
+      setpointK: { persistent: true, authorable: true },
+      effectiveAmbientK: { persistent: true, runtimeState: true },
+      cachedHumidity: { persistent: true, runtimeState: true },
+      thermalRegStamp: { persistent: true, runtimeState: true },
+    };
 
-    /** @authorable */
     public setpointK: number = THERMAL_DEFAULTS.SETPOINT_K;
-    /** @runtimeState */
     public effectiveAmbientK: number = THERMAL_DEFAULTS.SETPOINT_K;
-    /** @runtimeState */
     public cachedHumidity = 50;
-    /** @runtimeState */
     public thermalRegStamp = 0;
 
     /** Reentry guard (TypeScript `private` per the proxy constraint). */

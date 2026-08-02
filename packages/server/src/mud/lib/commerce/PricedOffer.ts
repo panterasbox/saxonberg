@@ -11,7 +11,7 @@
  * parity.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 
 /** The public price-list surface a priced-offer venue exposes. */
 export interface PricedOffer {
@@ -27,7 +27,9 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
   class PricedOfferMixin extends Base implements PricedOffer {
     static _mixinName = "PricedOfferMixin";
 
-    static persistentFields = ["prices"];
+    static fieldMeta: FieldMeta = {
+      prices: { persistent: true },
+    };
 
     /**
      * Authored flat prices per offer key, in minor units (the venue's

@@ -32,6 +32,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
+import type { FieldMeta } from '../../../../lib/mixin';
 
 // Compose a giver that's both CommandGiver and Container — drop's
 // inventory check needs it.
@@ -43,8 +44,11 @@ class TestGiver extends SensorMixin(
 
 class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
-  static persistentFields = ['quantity', 'name', 'denomination'];
-  static globIdentityFields = ['denomination'];
+  static fieldMeta: FieldMeta = {
+    quantity: { persistent: true },
+    name: { persistent: true },
+    denomination: { persistent: true, globIdentity: true },
+  };
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
 }
 

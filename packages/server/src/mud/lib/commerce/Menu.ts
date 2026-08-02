@@ -23,6 +23,7 @@ import { PricedOfferMixin } from './PricedOffer';
 import { MqlApi } from '../../api/mql';
 import type { CommandContext, CommandContributions } from '../../api/command';
 import { CraftingApi } from '../../api/crafting';
+import type { FieldMeta } from '../mixin';
 
 // Thing already composes Visible + Perceptible + Tangible + Containable;
 // PricedOfferMixin supplies the shared `prices` list + `priceFor`.
@@ -30,7 +31,9 @@ const CommerceMenuBase = PricedOfferMixin(DetailedMixin(Thing));
 
 export default class CommerceMenu extends CommerceMenuBase {
   // `prices` rides in via PricedOfferMixin; only the offer list is local.
-  static persistentFields = ['offeredRecipes'];
+  static fieldMeta: FieldMeta = {
+    offeredRecipes: { persistent: true },
+  };
 
   /**
    * The commerce surface — every menu, any venue: read the offer, order

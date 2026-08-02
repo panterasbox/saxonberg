@@ -28,7 +28,7 @@
  * is the cross-cutting entry point invoked by `CommandGiverMixin.executeCommand`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { CommandLineApi } from '../../api/command-line';
@@ -219,7 +219,9 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (s?.aliases) this.aliases = { ...s.aliases };
     }
 
-    static persistentFields = ['aliases'];
+    static fieldMeta: FieldMeta = {
+      aliases: { persistent: true, runtimeState: true },
+    };
 
     /**
      * Player-facing `alias` command, contributed via the `self` slot
@@ -243,7 +245,6 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Optional + default `{}`. Matches the legacy-tolerant
      * Propertied.savedProps pattern so existing avatar docs without
      * the field hydrate cleanly.
-     * @runtimeState
      */
     aliases?: Record<string, string | null> = {};
 

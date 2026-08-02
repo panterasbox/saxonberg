@@ -40,8 +40,7 @@ describe('SwitchableMixin', () => {
 
   it('declares persistent field "on" (noun form)', () => {
     expect(
-      (TestSwitchable as unknown as { persistentFields?: string[] })
-        .persistentFields
+      MixinApi.getAllPersistentFields(TestSwitchable)
     ).toContain('on');
   });
 });

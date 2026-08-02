@@ -10,7 +10,7 @@
  * A horse may use `'back:1'` resolved from its bodyPlan.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
@@ -27,9 +27,10 @@ export function MountableMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 ) {
   return class MountableMixin extends Base {
     static _mixinName = 'MountableMixin';
-    static persistentFields = ['mountSlot'];
+    static fieldMeta: FieldMeta = {
+      mountSlot: { persistent: true, authorable: true },
+    };
 
-    /** @authorable */
     public mountSlot: string = 'mount:1';
 
     public getMountSlot(): string {

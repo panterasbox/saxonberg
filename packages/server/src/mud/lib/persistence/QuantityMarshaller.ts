@@ -27,6 +27,7 @@ import { Marshaller } from './Marshaller';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { TemplatePaths } from '../paths';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Storage shape. The canonical form is `{ value, unit }` — what
@@ -84,7 +85,9 @@ export class QuantityMarshaller<U extends Unit = Unit> extends Marshaller<
    */
   protected unit: U = 'kg' as U;
 
-  static persistentFields = ['unit'];
+  static fieldMeta: FieldMeta = {
+    unit: { persistent: true },
+  };
 
   public getUnit(): U {
     return this.unit;

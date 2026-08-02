@@ -47,8 +47,7 @@ describe('FoldableMixin', () => {
 
   it('declares persistent field "folded" (noun form)', () => {
     expect(
-      (TestFoldable as unknown as { persistentFields?: string[] })
-        .persistentFields
+      MixinApi.getAllPersistentFields(TestFoldable)
     ).toContain('folded');
   });
 });

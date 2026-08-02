@@ -26,6 +26,7 @@ import { TemplatePathPrefixes } from '../paths';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Effect, EffectFamily } from './Effect';
 import type { MagicNoun, MagicVerb } from './Grid';
+import type { FieldMeta } from '../mixin';
 
 /** What a cast aims at (`any` = object or creature, target optional). */
 export const SPELL_TARGETINGS = [
@@ -91,17 +92,17 @@ export default class Spell extends Idea {
   /** Authored prose. */
   public description: string = '';
 
-  static persistentFields = [
-    'spellId',
-    'name',
-    'verb',
-    'noun',
-    'requiredBand',
-    'cost',
-    'castSeconds',
-    'targeting',
-    'effects',
-    'durationSeconds',
-    'description',
-  ];
+  static fieldMeta: FieldMeta = {
+    spellId: { persistent: true },
+    name: { persistent: true },
+    verb: { persistent: true },
+    noun: { persistent: true },
+    requiredBand: { persistent: true },
+    cost: { persistent: true },
+    castSeconds: { persistent: true },
+    targeting: { persistent: true },
+    effects: { persistent: true },
+    durationSeconds: { persistent: true },
+    description: { persistent: true },
+  };
 }

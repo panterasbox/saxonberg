@@ -18,7 +18,7 @@
  *     materializes anything.
  *   - **Deferred destination.** The live `Stuff` behind the exit is faulted in
  *     only on `resolveDestination()` (traversal), cached as a within-session
- *     live ref (Pattern B), and re-materialized after a reap.
+ *     live ref (an instance ref), and re-materialized after a reap.
  *
  * `destinationTemplatePath` is the destination's **class** template — accurate
  * and eager (a real path, never a placeholder), so a map can label the edge
@@ -54,7 +54,7 @@ export interface DeferredDestinationOptions {
 }
 
 export default abstract class DeferredDestinationExit extends Exit {
-  /** Cached live destination (Pattern B live ref); re-resolved after a reap. */
+  /** Cached live destination (an instance live ref); re-resolved after a reap. */
   private live: (Stuff & Container) | null = null;
 
   constructor(opts: DeferredDestinationOptions) {

@@ -964,7 +964,7 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
 - [persistence.md](./persistence.md) — the `Document` track that
   `User`, `GoogleProfile`, and `TwitchProfile` ride on; the
   `EncryptedStringMarshaller` (token fields encrypted at rest) rides the
-  `fieldMarshallers` seam there
+  `fieldMeta`'s marshaller entries seam there
 - [broadcast-patronage-track.md](../tracks/broadcast-patronage-track.md)
   — this multi-provider build is Phase 1 of the go-live track (the
   keystone the Twitch chat relay and capital→stake ledger depend on)

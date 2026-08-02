@@ -11,7 +11,7 @@
  * in inventory before being wielded).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
 import type { CommandContributions } from '../../api/command';
@@ -33,7 +33,9 @@ export function WieldableMixin<
 >(Base: TBase) {
   return class WieldableMixin extends Base {
     static _mixinName = 'WieldableMixin';
-    static persistentFields = ['slotClaims'];
+    static fieldMeta: FieldMeta = {
+      slotClaims: { persistent: true, authorable: true },
+    };
 
     /**
      * A wieldable in inventory affords `wield`; once in hand it affords
@@ -49,7 +51,6 @@ export function WieldableMixin<
       peers: [],
     };
 
-    /** @authorable */
     public slotClaims: Record<string, string[]> = {};
 
     public getSlotClaims(): Readonly<Record<string, readonly string[]>> {

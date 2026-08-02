@@ -29,7 +29,7 @@
  * (it places only itself, never other objects).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { Containable } from '../spatial/Containable';
 import { ContainmentApi } from '../../api/containment';
@@ -50,9 +50,10 @@ export function FixtureMixin<
     static _mixinName = 'FixtureMixin';
 
     /** The seat target path (a Warren or a singleton location). */
-    static persistentFields = ['seatIn'];
+    static fieldMeta: FieldMeta = {
+      seatIn: { persistent: true, authorable: true, authorPicker: 'Template' },
+    };
 
-    /** @authorable ref:Template */
     private _seatIn: string | null = null;
 
     getSeatIn(): string | null {

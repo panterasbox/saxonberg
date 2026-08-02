@@ -627,15 +627,17 @@ For the rare case where a field genuinely doesn't decompose
 substructure is the data), authors write a `Marshaller` (an Idea-
 shaped Stuff at `lib/persistence/Marshaller.ts`) that owns the
 runtime↔stored conversion. The mixin declares
-`static fieldMarshallers = { fieldName: marshallerTemplatePath }`
-and the persistence framework applies it transparently around the
-bracket-assign.
+a `marshaller` entry in `fieldMeta` (`fieldName: { marshaller:
+marshallerTemplatePath }`) and the persistence framework applies it
+transparently around the bracket-assign.
 
 ### BAD (object-shaped storage with a union setter)
 
 ```typescript
 class AmbientLitMixin {
-  static persistentFields = ['ambientLight'];
+  static fieldMeta: FieldMeta = {
+    ambientLight: { persistent: true },
+  };
   // The setter accepts BOTH a runtime Light AND the raw doc shape
   // because the hydrator's bracket-assign drops a plain object in.
   setAmbientLight(value: Light | LightDataShape): void {
@@ -653,7 +655,10 @@ opaque blob in MongoDB.
 
 ```typescript
 class AmbientLitMixin {
-  static persistentFields = ['ambientIntensity', 'ambientColorTemperature'];
+  static fieldMeta: FieldMeta = {
+    ambientIntensity: { persistent: true },
+    ambientColorTemperature: { persistent: true },
+  };
 
   protected _ambientIntensity = 0;
   protected _ambientColorTemperature: number | null = null;
@@ -700,8 +705,12 @@ class MoneyBagMarshaller extends Marshaller<MoneyBag, Record<string, number>> {
 }
 
 class WalletMixin {
-  static persistentFields = ['wallet'];
-  static fieldMarshallers = { wallet: MoneyBagMarshaller.templatePath };
+  static fieldMeta: FieldMeta = {
+    wallet: {
+      persistent: true,
+      marshaller: MoneyBagMarshaller.templatePath,
+    },
+  };
 
   // Setter is STRICT — the marshaller has already produced a MoneyBag
   // by the time the bracket-assign hits this setter on hydrate.
@@ -866,7 +875,7 @@ go through `checkAccess`; the property is enumerable via
 Structural state — what a `Door` *is* — stays a class field
 (`open`, `lockKey`, `keywords`). Persistent fields a class needs at
 all times, with shape that's part of the type, are still declared as
-fields and listed in `static persistentFields`.
+fields and listed in a `persistent` entry in `fieldMeta`.
 
 Props handle the dynamic, per-instance, possibly-protected,
 possibly-transient state on top of that — quest flags, capabilities,
@@ -1312,7 +1321,7 @@ prototype links.
   Decompose value-object runtime types into named scalar fields;
   the getter reconstructs. For the rare field that genuinely
   doesn't decompose (variable-key maps, structured composites),
-  declare a `Marshaller` and register it in `static fieldMarshallers`
+  declare a `Marshaller` and register it in a `marshaller` entry in `fieldMeta`
   on the mixin. Strict setters always.
 - Don't cast `super.hook` to `(... | undefined)?.call(this)` to
   chain an optionally-inherited method. Declare a no-op terminal
@@ -2333,7 +2342,7 @@ snapshot too — so a value that was supposed to be frozen silently moves, and
 the bug surfaces as *state that quietly reverted* rather than as a crash.
 
 This bit the persistence spine for real. `captureFields` copied every declared
-`persistentFields` value into the record, and for a scalar that is a copy —
+`fieldMeta`'s persistent entries value into the record, and for a scalar that is a copy —
 but a `reserves` record, a `details` map, a `keywords` array is a **reference
 to the host's own live object**. Capture is documented as *the last
 synchronous block before the save* precisely so concurrent triggers each write

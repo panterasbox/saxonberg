@@ -32,7 +32,7 @@
  * only.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
@@ -72,10 +72,10 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class LightSourceMixin extends Base {
     static _mixinName = 'LightSourceMixin';
 
-    static persistentFields = [
-      'emittedIntensity',
-      'emittedColorTemperature',
-    ];
+    static fieldMeta: FieldMeta = {
+      emittedIntensity: { persistent: true, authorable: true },
+      emittedColorTemperature: { persistent: true, authorable: true },
+    };
 
     /** Backing storage for the emitted flux scalar (lumens). */
     private _emittedIntensity: number = 0;
@@ -88,7 +88,7 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (negative, NaN, non-number) crashes loudly. Public API uses
      * the typed `getEmittedFlux` / `setEmittedFlux` pair.
      *
-     * @authorable Emitted luminous flux (lumens, ≥ 0).
+     * Emitted luminous flux (lumens, ≥ 0).
      */
     protected get emittedIntensity(): number {
       return this._emittedIntensity;
@@ -108,7 +108,7 @@ export function LightSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (looked up via `Quantity.parse(s, 'K')` against the registered
      * KELVIN_TAGS table). Stored canonically as `number | null`.
      *
-     * @authorable Emitted color temperature (Kelvin; null = unset).
+     * Emitted color temperature (Kelvin; null = unset).
      */
     protected get emittedColorTemperature(): number | null {
       return this._emittedColorTemperature;

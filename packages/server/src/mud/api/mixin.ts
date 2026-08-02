@@ -19,7 +19,7 @@
  * ```
  */
 
-import type { MixinName } from '../lib/mixin';
+import type { MixinName, FieldMeta } from '../lib/mixin';
 import { Mixins } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
@@ -156,6 +156,9 @@ import { SecurityApi } from './security';
 
 // Re-export Mixins constants for convenience
 export { Mixins } from '../lib/mixin';
+// The face speaks these in `getAllFieldMeta`'s signature, so it
+// re-exports them (the projection's re-export rule for `mud/api/`).
+export type { FieldMeta, FieldMetaEntry } from '../lib/mixin';
 
 /**
  * Any class-like constructor MixinApi may be asked to inspect.
@@ -193,7 +196,8 @@ export interface PersistenceContributor {
 interface MixinClass {
   _mixinName?: string;
   name?: string;
-  persistentFields?: string[];
+  /** The unified field-metadata static. Was four parallel statics. */
+  fieldMeta?: FieldMeta;
   /**
    * Modalities a mixin contributes to the sensorium when active.
    * Declared here (a known mixin static marker) so consumers —
@@ -251,8 +255,10 @@ export class MixinApi {
     const fields: string[] = [];
 
     for (const mixin of mixins) {
-      if (mixin.persistentFields && Array.isArray(mixin.persistentFields)) {
-        fields.push(...mixin.persistentFields);
+      if (mixin.fieldMeta && typeof mixin.fieldMeta === 'object') {
+        for (const [field, entry] of Object.entries(mixin.fieldMeta)) {
+          if (entry?.persistent === true) fields.push(field);
+        }
       }
     }
 
@@ -412,25 +418,10 @@ export class MixinApi {
   public static getAllFieldMarshallers(
     constructor: AnyConstructor
   ): Record<string, string> {
+    const meta = MixinApi.getAllFieldMeta(constructor);
     const out: Record<string, string> = {};
-    let current: unknown = constructor;
-
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass & {
-        fieldMarshallers?: Record<string, string>;
-      };
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'fieldMarshallers') &&
-        c.fieldMarshallers &&
-        typeof c.fieldMarshallers === 'object'
-      ) {
-        for (const [k, v] of Object.entries(c.fieldMarshallers)) {
-          // First declaration wins — concrete-class walked first, so
-          // subclass overrides base.
-          if (!(k in out) && typeof v === 'string') out[k] = v;
-        }
-      }
-      current = Object.getPrototypeOf(current);
+    for (const [field, entry] of Object.entries(meta)) {
+      if (typeof entry.marshaller === 'string') out[field] = entry.marshaller;
     }
 
     return out;
@@ -502,33 +493,83 @@ export class MixinApi {
   }
 
   /**
+   * Collect `static fieldMeta` from every layer of the prototype chain —
+   * the one collector the four legacy ones become derivations of.
+   *
+   * Mirrors {@link getAllPersistentFields}'s four invariants exactly:
+   * the same loop guard, `hasOwnProperty` at each level (the static is
+   * inherited, so a subclass declaring its own would otherwise mask the
+   * ancestry), a type guard on the value, and a terminal dedupe — here
+   * expressed as first-write-wins into the accumulator rather than a
+   * `Set`, because entries merge rather than collapse.
+   *
+   * **The merge is PROPERTY-level, first-declaration-wins per property**,
+   * walking concrete class first. Not field-level. The distinction is
+   * load-bearing rather than pedantic: `Weapon` declares a marshaller for
+   * `mass` while `Tangible` declares `mass` persistent, so field-level
+   * shadowing would make `Weapon`'s `{ marshaller }` replace
+   * `{ persistent: true }` outright and **`mass` would stop persisting on
+   * every weapon in the game** — silently. Per property: booleans
+   * first-wins is a union (nothing declares `false`), `marshaller`
+   * first-wins reproduces `getAllFieldMarshallers`, and
+   * `ref`/`lifetime`/`inverse` first-wins is "a subclass may sharpen".
+   *
+   * **Key order is load-bearing.** Keys land in first-seen order, which
+   * is concrete-first chain order — so
+   * `Object.keys(meta).filter((k) => meta[k].persistent)` reproduces
+   * `getAllPersistentFields` exactly, including the order
+   * `PersistentHydrator` Phase 1 applies fields in.
+   *
+   * @param constructor - The class constructor to inspect
+   * @returns One merged entry per declared field, in chain order
+   */
+  public static getAllFieldMeta(constructor: AnyConstructor): FieldMeta {
+    const out: FieldMeta = {};
+    let current: unknown = constructor;
+
+    while (current && current !== Object && (current as MixinClass).prototype) {
+      const c = current as MixinClass & { fieldMeta?: FieldMeta };
+      if (
+        Object.prototype.hasOwnProperty.call(c, 'fieldMeta') &&
+        c.fieldMeta &&
+        typeof c.fieldMeta === 'object'
+      ) {
+        for (const [field, entry] of Object.entries(c.fieldMeta)) {
+          if (!entry || typeof entry !== 'object') continue;
+          const existing = out[field];
+          if (!existing) {
+            out[field] = { ...entry };
+            continue;
+          }
+          // Fill only what no nearer layer already said.
+          for (const [prop, value] of Object.entries(entry)) {
+            if (!(prop in existing)) {
+              (existing as Record<string, unknown>)[prop] = value;
+            }
+          }
+        }
+      }
+      current = Object.getPrototypeOf(current);
+    }
+
+    return out;
+  }
+
+  /**
    * Get all persistent fields (from mixins and every class in the chain).
    *
-   * Walks the prototype chain and collects `persistentFields` declared at
-   * every level — mixins carry them as static arrays, and concrete classes
-   * do too. Since a subclass that declares its own `persistentFields` shadows
-   * the parent's static in JS, we need `hasOwnProperty` at each level to
-   * pick up contributions from the whole ancestry (Stuff → Idea → Location → …).
+   * A thin derivation of {@link getAllFieldMeta} — the chain walk, the
+   * `hasOwnProperty` guard and the dedupe all live there now. The
+   * signature is unchanged so the ~50 call sites did not move, and key
+   * order is preserved (fieldMeta keys are collected concrete-first), so
+   * this returns the same array in the same order it always did.
    *
    * @param constructor - The class constructor to inspect
    * @returns Array of all persistent field names (deduplicated)
    */
   public static getAllPersistentFields(constructor: AnyConstructor): string[] {
-    const fields: string[] = [];
-    let current: unknown = constructor;
-
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass;
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'persistentFields') &&
-        Array.isArray(c.persistentFields)
-      ) {
-        fields.push(...c.persistentFields);
-      }
-      current = Object.getPrototypeOf(current);
-    }
-
-    return Array.from(new Set(fields));
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.persistent === true);
   }
 
   /**
@@ -537,7 +578,7 @@ export class MixinApi {
    * that contributes serialization. Each entry names the layer (its
    * `_mixinName` or class name — the key its slice lands under in a
    * {@link PersistedRecord}'s `state`), that layer's OWN declared
-   * `persistentFields` (the default-slice fields — NOT the aggregated
+   * persistent `fieldMeta` entries (the default-slice fields — NOT the aggregated
    * chain, so each layer's slice is independent), and its optional
    * `captureSlice` / `restoreSlice` hooks (present on `Container` /
    * `Slotted`, which serialize non-field state).
@@ -573,11 +614,20 @@ export class MixinApi {
         ? c._mixinName
         : undefined;
       const key = ownMixinName || c.name;
-      const ownFields =
-        Object.prototype.hasOwnProperty.call(c, 'persistentFields') &&
-        Array.isArray(c.persistentFields)
-          ? c.persistentFields
-          : [];
+      // This walk deliberately keeps its own per-LAYER traversal rather
+      // than reading the flattened `getAllFieldMeta` map: it needs each
+      // layer's own `_mixinName` ownership (the key its slice lands
+      // under in a PersistedRecord), which flattening loses. Only the
+      // field list moves to `fieldMeta`.
+      const ownMeta =
+        Object.prototype.hasOwnProperty.call(c, 'fieldMeta') &&
+        c.fieldMeta &&
+        typeof c.fieldMeta === 'object'
+          ? c.fieldMeta
+          : null;
+      const ownFields = ownMeta
+        ? Object.keys(ownMeta).filter((f) => ownMeta[f]?.persistent === true)
+        : [];
       const hasCapture =
         Object.prototype.hasOwnProperty.call(c, 'captureSlice') &&
         typeof c.captureSlice === 'function';
@@ -1200,19 +1250,8 @@ export class MixinApi {
    * @returns Array of all instruction field names (deduplicated)
    */
   public static getAllInstructionFields(constructor: AnyConstructor): string[] {
-    const fields: string[] = [];
-    let current: unknown = constructor;
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass & { instructionFields?: string[] };
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'instructionFields') &&
-        Array.isArray(c.instructionFields)
-      ) {
-        fields.push(...c.instructionFields);
-      }
-      current = Object.getPrototypeOf(current);
-    }
-    return Array.from(new Set(fields));
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.instruction === true);
   }
 
   /**
@@ -1307,19 +1346,8 @@ export class MixinApi {
    * every glob-identity field has equal values.
    */
   public static getAllGlobIdentityFields(constructor: AnyConstructor): string[] {
-    const fields: string[] = [];
-    let current: unknown = constructor;
-    while (current && current !== Object && (current as MixinClass).prototype) {
-      const c = current as MixinClass & { globIdentityFields?: string[] };
-      if (
-        Object.prototype.hasOwnProperty.call(c, 'globIdentityFields') &&
-        Array.isArray(c.globIdentityFields)
-      ) {
-        fields.push(...c.globIdentityFields);
-      }
-      current = Object.getPrototypeOf(current);
-    }
-    return Array.from(new Set(fields));
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    return Object.keys(meta).filter((f) => meta[f]!.globIdentity === true);
   }
 
   /**
@@ -1407,6 +1435,7 @@ export class MixinApi {
    */
   public static assertComposable(constructor: AnyConstructor): void {
     if (this.#validatedClasses.has(constructor)) return;
+    MixinApi.#validateFieldMeta(constructor);
     let current: unknown = constructor;
     while (current && current !== Object && (current as MixinClass).prototype) {
       const c = current as MixinClass & {
@@ -1421,6 +1450,120 @@ export class MixinApi {
       current = Object.getPrototypeOf(current);
     }
     this.#validatedClasses.add(constructor);
+  }
+
+  /**
+   * The `ref: 'instance'` fields of a class, or `null` when it has none
+   * — the set the proxy get-trap consults to self-heal a destroyed
+   * target on read.
+   *
+   * **Every** single instance ref self-heals on read; the `lifetime`
+   * axis names only the *destruct-side* rule. That is not a
+   * simplification: three shipped sites already carry two rules at once
+   * (`Hauler`/`Haulable` are symmetric AND self-heal, `Containable`
+   * is self-heal AND R2.4, `Boundary`'s anchors are symmetric AND
+   * owned), so making the axes exclusive would contradict the tree.
+   * `weak` therefore means "no destruct-side rule", not "the only one
+   * that heals".
+   *
+   * Returns `null` rather than an empty set on purpose: the trap's hot
+   * path is a single `!== null`, and for nearly every class in the game
+   * that is the whole cost.
+   *
+   * Memoized on constructor identity, which is HMR-correct — a reloaded
+   * module yields a fresh constructor and therefore a fresh entry.
+   */
+  public static getWeakRefFields(
+    constructor: AnyConstructor
+  ): ReadonlySet<string> | null {
+    const cached = MixinApi.#weakRefFields.get(constructor);
+    if (cached !== undefined) return cached;
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    const fields = Object.keys(meta).filter(
+      (f) => meta[f]!.ref === 'instance'
+    );
+    const result = fields.length > 0 ? new Set(fields) : null;
+    MixinApi.#weakRefFields.set(constructor, result);
+    return result;
+  }
+
+  static #weakRefFields = new WeakMap<
+    AnyConstructor,
+    ReadonlySet<string> | null
+  >();
+
+  /**
+   * Reference-axis validation, run once per class at registration.
+   *
+   * These are not style rules. Each names a combination that cannot be
+   * made to work, so the honest place to find out is registration —
+   * loudly, naming the field and the class — rather than a silent
+   * mis-persist or a dangling ref discovered months later.
+   *
+   * Checked on the MERGED metadata, which is why it lives here and not
+   * in `lint:field-meta`: the merge is property-level up the prototype
+   * chain, so a base may declare `ref: 'instance'` and a subclass
+   * sharpen it with a `lifetime`. Only a walk that holds the
+   * constructor can see the result. The static lint carries the
+   * complementary rules — the ones that are wrong within a single class
+   * body no matter what any other layer says.
+   *
+   * Rule 4 is deliberately **same-class only**. A cross-class pair
+   * (`Adornment.adornedTo` ↔ `Adornable.fixtureSlots`) lives on two
+   * different hosts, and registering one cannot see the other; that case
+   * belongs to `lint:field-meta`, which sees the whole tree statically.
+   */
+  static #validateFieldMeta(constructor: AnyConstructor): void {
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    const name = (constructor as { name?: string }).name ?? '<anonymous>';
+    const fail = (field: string, why: string): never => {
+      throw new Error(
+        `${name}.fieldMeta['${field}']: ${why}. See docs/ref-shapes.md.`
+      );
+    };
+
+    for (const [field, entry] of Object.entries(meta)) {
+      if (entry.ref === 'instance' && entry.persistent) {
+        fail(
+          field,
+          `an instance ref cannot be persistent — a stuffId does not ` +
+            `survive a reboot, so there is nothing durable to write down ` +
+            `(an IDENTITY ref with persistent: true is the normal case)`
+        );
+      }
+      if (entry.ref === 'identity' && entry.lifetime) {
+        fail(
+          field,
+          `an identity ref takes no lifetime — it re-resolves from its ` +
+            `path on read, so it cannot dangle`
+        );
+      }
+      if (entry.lifetime && entry.ref !== 'instance') {
+        fail(
+          field,
+          `declares lifetime '${entry.lifetime}' without ref: 'instance' ` +
+            `— a lifetime is the destruct-side rule for an instance ref`
+        );
+      }
+      if (entry.lifetime === 'symmetric' && !entry.inverse) {
+        fail(
+          field,
+          `is symmetric with no 'inverse' — the framework cannot find ` +
+            `what to clear on the other side`
+        );
+      }
+      // Same-class reciprocity. A cross-class inverse is invisible from
+      // here and is left to the whole-tree lint; an inverse naming a
+      // field this class DOES declare must point back.
+      const other = entry.inverse ? meta[entry.inverse] : undefined;
+      if (entry.inverse && other && other.lifetime !== 'symmetric') {
+        fail(
+          field,
+          `names inverse '${entry.inverse}', which this class declares ` +
+            `but not as symmetric — a symmetric pair must be reciprocal`
+        );
+      }
+    }
   }
 
   static #validatedClasses = new WeakSet<AnyConstructor>();

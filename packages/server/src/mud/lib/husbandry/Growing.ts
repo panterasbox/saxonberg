@@ -35,7 +35,7 @@
  * a time cap. See docs/subsystems/husbandry.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import { MixinApi } from '../../api/mixin';
@@ -265,17 +265,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
   return class GrowingMixin extends Base implements Growing {
     static _mixinName = 'GrowingMixin';
 
-    static persistentFields = [
-      'growthClockStamp',
-      '_vigor',
-      '_maturity',
-      'growthStage',
-      '_flowering',
-      '_seedSet',
-      '_lastLux',
-      '_worstLimiting',
-      'profile',
-    ];
+    static fieldMeta: FieldMeta = {
+      growthClockStamp: { persistent: true },
+      _vigor: { persistent: true },
+      _maturity: { persistent: true },
+      growthStage: { persistent: true },
+      _flowering: { persistent: true },
+      _seedSet: { persistent: true },
+      _lastLux: { persistent: true },
+      _worstLimiting: { persistent: true },
+      profile: { persistent: true },
+    };
 
     /** Derived condition + cause lines appended to the long description. */
     static markupAugmenters: MarkupAugmenter[] = [conditionAugmenter];

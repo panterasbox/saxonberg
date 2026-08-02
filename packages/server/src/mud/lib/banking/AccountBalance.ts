@@ -19,19 +19,20 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
+import type { FieldMeta } from "../mixin";
 
 export default class AccountBalance extends Document {
   static collectionName = Collections.BankAccounts;
-  static persistentFields = [
-    "accountId",
-    "owner",
-    "bank",
-    "bankPath",
-    "corpoKey",
-    "isPrimary",
-    "isActive",
-    "balance",
-  ];
+  static fieldMeta: FieldMeta = {
+    accountId: { persistent: true },
+    owner: { persistent: true },
+    bank: { persistent: true },
+    bankPath: { persistent: true },
+    corpoKey: { persistent: true },
+    isPrimary: { persistent: true },
+    isActive: { persistent: true },
+    balance: { persistent: true },
+  };
 
   /** Durable, opaque ledger key. */
   accountId = "";

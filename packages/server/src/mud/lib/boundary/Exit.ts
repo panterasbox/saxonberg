@@ -19,13 +19,13 @@
  *
  * Destination storage shape:
  *
- *   - **Pattern C** (cross-zone, singleton-by-templatePath): only
+ *   - **Identity ref, resolved on read** (cross-zone, singleton-by-templatePath): only
  *     `_destinationPath` is set. The getter resolves on every call
  *     via `StuffApi.findByTemplatePath` — O(1) hashtable lookup, no
  *     runtime cache. If the target zone isn't loaded yet, the sync
  *     getter throws and the caller must `await
  *     exit.resolveDestination()` to fault in the zone.
- *   - **Pattern B** (within-session live ref to a non-templated
+ *   - **Instance ref** (within-session live ref to a non-templated
  *     Location): `_destination` is set; resolution returns it
  *     directly. The S11 case: "Within-session, a live ref works as
  *     long as the target's zone stays loaded."
@@ -50,7 +50,7 @@ import type Door from './Door';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import { Mixins } from '../mixin';
+import { Mixins, type FieldMeta } from '../mixin';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -108,9 +108,9 @@ export interface ExitOptions {
   destination?: Stuff & Container;
   destinationPath?: string;
   /**
-   * Keep `destination` as a within-session **live ref** (Pattern B) even
+   * Keep `destination` as a within-session **live ref** (an instance ref) even
    * when it carries a templatePath, instead of degrading to path
-   * resolution (Pattern C). Required for exits between non-singleton
+   * resolution (an identity ref). Required for exits between non-singleton
    * runtime clones that SHARE a template path (e.g. Warren members):
    * path resolution would be ambiguous (`findByTemplatePath` throws on
    * multi-instance). Default false (the historical path-preferring
@@ -181,16 +181,27 @@ export default class Exit extends ConcealableMixin(Idea) {
    * (direction / source / destination) are deliberately absent:
    * they're bind-owned, never authored data.
    */
-  static persistentFields = [
-    'messageIn',
-    'messageOut',
-    'media',
-    'wheelPassable',
-    'blocked',
-    'muffled',
-    'noFollow',
-    'oneWay',
-  ];
+  static fieldMeta: FieldMeta = {
+    // The three reference fields. `source` and `_destination` are
+    // `weak`: an Exit outlives neither endpoint conceptually, but it
+    // does not own them either — the room owns the exit, not the
+    // reverse (`Exitable.exits` is the `owned` side).
+    source: { ref: 'instance', lifetime: 'weak' },
+    _destination: { ref: 'instance', lifetime: 'weak' },
+    // `inverse` was HALF-symmetric: cleared on its own destruct, never
+    // on its partner's, so destructing one exit left the other pointing
+    // at a dead Exit. Declaring it makes the relationship whole — a
+    // behaviour change, which is why it is here and not in W6.
+    inverse: { ref: 'instance', lifetime: 'symmetric', inverse: 'inverse' },
+    messageIn: { persistent: true },
+    messageOut: { persistent: true },
+    media: { persistent: true },
+    wheelPassable: { persistent: true },
+    blocked: { persistent: true },
+    muffled: { persistent: true },
+    noFollow: { persistent: true },
+    oneWay: { persistent: true },
+  };
 
   protected direction: string;
   public getDirection(): string { return this.direction; }
@@ -216,7 +227,7 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
-   * Within-session live ref (Pattern B). Set when the Exit was
+   * Within-session live ref (an instance ref). Set when the Exit was
    * constructed with a runtime-only Container (no templatePath) or
    * when `setDestination` was called with such a Container. The
    * getter prefers this over the path-resolution path.
@@ -227,7 +238,7 @@ export default class Exit extends ConcealableMixin(Idea) {
   private _destination: (Stuff & Container) | null;
 
   /**
-   * Destination templatePath (Pattern C). Set when the Exit was
+   * Destination templatePath (an identity ref, resolved on read). Set when the Exit was
    * authored with a templated destination. The getter resolves on
    * every call via `StuffApi.findByTemplatePath` — no runtime cache.
    *
@@ -241,7 +252,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    * Host-internal getter.
    *
    * Resolution order:
-   *   1. `_destination` (live ref) — present for Pattern B and for
+   *   1. `_destination` (live ref) — present for an instance ref and for
    *      Pattern-C-with-direct-live-ref constructor calls.
    *   2. `_destinationPath` resolved via `StuffApi.findByTemplatePath`
    *      — re-resolved every call, no cache.
@@ -267,8 +278,8 @@ export default class Exit extends ConcealableMixin(Idea) {
 
   /**
    * Setter accepts a live Container. Stamps `_destinationPath` from
-   * the target's templatePath if available (Pattern C), else stores
-   * the ref in `_destination` (Pattern B within-session). NEVER
+   * the target's templatePath if available (an identity ref), else stores
+   * the ref in `_destination` (an instance ref, within-session). NEVER
    * caches a previous path-resolution into the live-ref slot — that
    * was the rule the ref-shapes design dropped.
    *
@@ -520,7 +531,7 @@ export default class Exit extends ConcealableMixin(Idea) {
     this._destinationPath = opts.destinationPath ?? null;
     if (opts.destination) {
       if (opts.keepLiveDestination) {
-        // Pattern B: hold the live ref directly regardless of any
+        // Instance ref: hold the live ref directly regardless of any
         // templatePath. For exits between non-singleton runtime clones
         // that share a template path (Warren members), path resolution
         // would be ambiguous, so we keep the ref.
@@ -680,7 +691,7 @@ export default class Exit extends ConcealableMixin(Idea) {
   /**
    * Return the destination's templatePath. Returns `null` only when
    * the Exit was constructed with a live-ref destination that itself
-   * has no templatePath (the within-session Pattern B case).
+   * has no templatePath (the within-session instance-ref case).
    * Used by the mutual-exit verifier to identify the destination
    * by path.
    */
@@ -707,6 +718,11 @@ export default class Exit extends ConcealableMixin(Idea) {
     }
     // Setter detaches us from the door's `attachedTo` set.
     this.door = null;
+    // Chain. `Stuff.onDestruct` is a no-op terminal, so this costs
+    // nothing today — but a witness that does not chain silently
+    // amputates every layer beneath it, which is exactly the collision
+    // class master's antipattern entry was added for.
+    super.onDestruct();
   }
 
   /**

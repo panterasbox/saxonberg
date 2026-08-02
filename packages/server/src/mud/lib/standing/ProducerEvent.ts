@@ -28,6 +28,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Provenance of a producer signal. Open vocabulary; `engagement` (a
@@ -60,16 +61,16 @@ export interface ProducerEventFields {
 
 export default class ProducerEvent extends Document {
   static collectionName = Collections.ProducerEvents;
-  static persistentFields = [
-    'author',
-    'actor',
-    'zonePath',
-    'weight',
-    'bucket',
-    'kind',
-    'at',
-    'realAt',
-  ];
+  static fieldMeta: FieldMeta = {
+    author: { persistent: true },
+    actor: { persistent: true },
+    zonePath: { persistent: true },
+    weight: { persistent: true },
+    bucket: { persistent: true },
+    kind: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   /** Durable author id (the routing key) — indexed. */
   author = '';

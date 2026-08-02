@@ -15,7 +15,7 @@
  * from there.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Postures } from '../slot/Postured';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from '../slot/Slotted';
@@ -34,7 +34,11 @@ export interface Posed {
 export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PosedMixin extends Base {
     static _mixinName = 'PosedMixin';
-    static persistentFields = ['posture', 'restingOnPath', 'restingSlot'];
+    static fieldMeta: FieldMeta = {
+      posture: { persistent: true, authorable: true },
+      restingOnPath: { persistent: true },
+      restingSlot: { persistent: true },
+    };
 
     /**
      * The posture verbs, on the SELF affordance surface — an actor that has
@@ -65,7 +69,6 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
       peers: [],
     };
 
-    /** @authorable */
     public posture: string = Postures.Stand;
 
     /**
@@ -109,6 +112,19 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * @hook
      */
     public onSlotOccupied(host: Stuff & Slotted, slotName: string): void {
+      // Chain FIRST. `onSlotOccupied`/`onSlotReleased` are optional
+      // witnesses on `Slottable`, and mixin methods do not merge — the
+      // outermost layer silently REPLACES an inner one. That is how
+      // `PosedMixin.onSlotReleased` came to never fire (MobileMixin is
+      // composed further out), leaving a sleeper who stood up still
+      // recorded as occupying the bed. This mixin is currently the sole
+      // implementor of `onSlotOccupied`, which is exactly when the
+      // reflex is cheapest to install.
+      (
+        Base.prototype as unknown as {
+          onSlotOccupied?: (h: Stuff & Slotted, s: string) => void;
+        }
+      ).onSlotOccupied?.call(this, host, slotName);
       const bearing =
         MixinApi.isPostured(host) &&
         host.getAcceptedPostures(slotName).length > 0;
@@ -124,6 +140,15 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * @hook
      */
     public onSlotReleased(_host: Stuff & Slotted, slotName: string): void {
+      // Same chaining reflex as `onSlotOccupied` above. `super.x?.()` is
+      // not expressible here (the base is generic, and `super` is not an
+      // expression), so the chain goes through the base prototype —
+      // which is exactly what `super` would resolve to.
+      (
+        Base.prototype as unknown as {
+          onSlotReleased?: (h: Stuff & Slotted, s: string) => void;
+        }
+      ).onSlotReleased?.call(this, _host, slotName);
       if (slotName !== this.restingSlot) return;
       this.restingOnPath = '';
       this.restingSlot = '';

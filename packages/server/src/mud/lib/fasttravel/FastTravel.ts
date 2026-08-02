@@ -19,7 +19,7 @@
  * verbs are global commands gated per-fork — it does not "grant a verb".
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
 import type { Sensor } from "../message/Sensor";
@@ -111,28 +111,25 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
   return class FastTravelMixin extends Base implements FastTravel {
     static _mixinName = "FastTravelMixin";
 
-    static persistentFields = [
-      "directionality",
-      "selectedDestinationRef",
-      "status",
-      "advanceMode",
-      "cycleInterval",
-      "surcharge",
-    ];
-
     /** `routes` is authored content applied once at hydrate (Phase 2). */
-    static instructionFields = ["routes"];
+    static fieldMeta: FieldMeta = {
+      directionality: { persistent: true, authorable: true },
+      selectedDestinationRef: { persistent: true, runtimeState: true },
+      status: { persistent: true, runtimeState: true },
+      advanceMode: { persistent: true, authorable: true },
+      cycleInterval: { persistent: true, authorable: true },
+      surcharge: { persistent: true, authorable: true },
+      routes: { instruction: true, authorable: true },
+    };
 
     /** The `register` verb surfaces only for actors at a node. */
     static commandContributions: CommandContributions = {
       environment: ["movement/register.yaml"],
     };
 
-    /** @authorable Which travel direction this terminal permits. */
+    /** Which travel direction this terminal permits. */
     private _directionality: Directionality = "both";
-    /** @runtimeState */
     private _selectedDestinationRef: string | null = null;
-    /** @runtimeState */
     private _status = "operational";
     /**
      * The node's **arrival surcharge** (minor units; 0 = none): a charge this
@@ -140,14 +137,10 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
      * the route's own `fee`. Collected by the Business operating THIS node's
      * arrival room (the destination operator), the mirror of the route fee's
      * departure attribution. Optional, like the fee.
-     * @authorable
      */
     private _surcharge = 0;
-    /** @authorable */
     private _advanceMode: AdvanceMode = "manual";
-    /** @authorable */
     private _cycleInterval: string | null = null;
-    /** @authorable */
     private _routes = new Map<string, TravelRoute>();
     private _clockHandles: ClockHandle[] = [];
 

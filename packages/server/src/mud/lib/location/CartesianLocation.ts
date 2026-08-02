@@ -34,6 +34,7 @@ import { Quantity } from '../quantity';
 import type CartesianZone from './CartesianZone';
 import type Exit from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
+import type { FieldMeta } from '../mixin';
 
 // CartesianLocation is singleton-shaped: every cartesian room is
 // uniquely identified by its template path (a `[x,y,z]` cell in a
@@ -54,7 +55,9 @@ const CartesianLocationBase = SingletonMixin(
 );
 
 export default class CartesianLocation extends CartesianLocationBase {
-  static persistentFields = ['coords'];
+  static fieldMeta: FieldMeta = {
+    coords: { persistent: true },
+  };
 
   /**
    * Tightened cardinal rule per zone-architecture-slate § The

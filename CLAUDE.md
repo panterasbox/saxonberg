@@ -21,10 +21,11 @@ behavior. Read the relevant doc before editing in its area.
   architecture, Manager vs Api, mixin organization, file structure
 - [docs/antipatterns.md](./docs/antipatterns.md) — patterns to avoid,
   with the correct alternative for each (lookup-table style)
-- [docs/ref-shapes.md](./docs/ref-shapes.md) — three reference shapes
-  for fields pointing at other Stuff (Pattern A path-string for
-  singletons, Pattern B live ref for within-session instances,
-  Pattern C resolve-on-read for cross-scope singletons), the
+- [docs/ref-shapes.md](./docs/ref-shapes.md) — how a field points at
+  other Stuff, declared in `static fieldMeta` on two axes (`ref` —
+  **identity** path-string vs **instance** live ref — and, for
+  instance refs, `lifetime` — weak/symmetric/owned, enforced by the
+  proxy get trap and destruct slot 2.5), the
   R2.1–R2.4 cleanup rules for live-ref fields, method-surface
   conventions, exemplars, antipatterns; the **identity/lineage/backing
   doctrine** (class=lineage, templatePath=identity — kind for content,

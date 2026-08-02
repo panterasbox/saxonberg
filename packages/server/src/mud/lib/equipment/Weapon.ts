@@ -47,6 +47,7 @@ import {
 import type { DeliveryForm } from '../material/Construction';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
+import type { FieldMeta } from '../mixin';
 
 // CraftedMixin (which composes GradedMixin) replaces the bare GradedMixin:
 // a weapon can be a recipe output — its persisted `gradeBand` + grade
@@ -72,19 +73,16 @@ export default class Weapon extends WeaponBase {
    * this field — it is kept only so older rows hydrate unchanged (removing a
    * `persistentField` is the breaking move; keeping it is inert). A weapon
    * that truly wants a hand-set number is the reserved consumer.
-   *
-   * @authorable
    */
   public balanceFactor: number = 1;
-
-  static persistentFields = ['balanceFactor', 'length'];
 
   // `mass` restated identically so the static type extends `Tangible`'s
   // `{ mass }` (the marshaller map unions across the prototype chain, first
   // declaration wins — an identical restatement is a no-op at runtime).
-  static fieldMarshallers = {
-    mass: QuantityMarshaller.pathFor('kg'),
-    length: QuantityMarshaller.pathFor('m'),
+  static fieldMeta: FieldMeta = {
+    balanceFactor: { persistent: true, authorable: true },
+    length: { persistent: true, marshaller: QuantityMarshaller.pathFor('m'), authorable: true },
+    mass: { marshaller: QuantityMarshaller.pathFor('kg') },
   };
 
   /**
@@ -94,8 +92,6 @@ export default class Weapon extends WeaponBase {
    * it from the delivery form × mass, so a bare form still yields a working
    * profile (the universe-default rule). Round-trips via the m-bound
    * `QuantityMarshaller`; the accessor pair stays strict on `Quantity<'m'>`.
-   *
-   * @authorable
    */
   private _length: Quantity<'m'> = Quantity.of(0, 'm');
 

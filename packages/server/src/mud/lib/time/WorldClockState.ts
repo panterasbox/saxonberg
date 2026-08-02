@@ -18,14 +18,15 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export class WorldClockState extends Document {
   static collectionName = Collections.WorldState;
-  static persistentFields = [
-    'elapsedGameTimeS',
-    'scale',
-    'lastShutdownRealMs',
-  ];
+  static fieldMeta: FieldMeta = {
+    elapsedGameTimeS: { persistent: true },
+    scale: { persistent: true },
+    lastShutdownRealMs: { persistent: true },
+  };
 
   /** Elapsed game-time in seconds at snapshot. */
   elapsedGameTimeS = 0;

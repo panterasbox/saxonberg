@@ -17,13 +17,21 @@
 
 import { Document } from "../persistence/Document";
 import type { ParcelOwner } from "./ParcelRecord";
+import type { FieldMeta } from "../mixin";
 
 /** The kind of title event a row records. */
 export type ParcelEventKind = "subdivide" | "transfer";
 
 export class ParcelEvent extends Document {
   static collectionName = "parcel_events";
-  static persistentFields = ["extent", "event", "from", "to", "actor", "at"];
+  static fieldMeta: FieldMeta = {
+    extent: { persistent: true },
+    event: { persistent: true },
+    from: { persistent: true },
+    to: { persistent: true },
+    actor: { persistent: true },
+    at: { persistent: true },
+  };
 
   /** The parcel's `extent` (the title this event concerns). */
   extent: string = "";

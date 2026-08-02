@@ -45,7 +45,7 @@
  * domain method, and adds a row here.
  */
 
-import type { MixinConstructor } from './mixin';
+import type { MixinConstructor, FieldMeta } from './mixin';
 import { Quantity } from './quantity';
 import type { Unit } from './quantity';
 
@@ -161,9 +161,10 @@ export function ReservedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ReservedMixin extends Base implements Reserved {
     static _mixinName = 'ReservedMixin';
 
-    static persistentFields = ['reserves'];
+    static fieldMeta: FieldMeta = {
+      reserves: { persistent: true, runtimeState: true },
+    };
 
-    /** @runtimeState */
     public reserves: Record<string, ReserveStored> = {};
 
     public getReserve(key: string): Reserve | undefined {

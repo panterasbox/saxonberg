@@ -35,7 +35,7 @@
  * hydrate is honoured wholesale), so no mixin constructor is needed.
  */
 
-import type { MixinConstructor } from '../../../lib/mixin';
+import type { MixinConstructor, FieldMeta } from '../../../lib/mixin';
 import { TimekeepingMixin } from '../../../lib/time/Timekeeping';
 import { ReservedMixin, Reserve, type Reserved } from '../../../lib/reserve';
 import { Time } from '../../../lib/time/Time';
@@ -85,48 +85,38 @@ export function MechanicalMovementMixin<TBase extends MixinConstructor>(
 
     /**
      * Clock-face minute-of-day the movement was last set to.
-     *
-     * @authorable
      */
     public setTo = 0;
 
     /**
      * Game-time (seconds) at which the movement was last set — the drift
      * anchor. Seed it in the past to make the movement already-wrong.
-     *
-     * @authorable
      */
     public setAt = 0;
 
     /**
      * Drift multiplier applied to running elapsed time.
-     *
-     * @authorable
      */
     public rate: number = MOVEMENT.DEFAULT_RATE;
 
     /**
      * Accumulated game-seconds the movement has actually run since it was
      * last set — grows lazily, freezes when the mainspring floors.
-     *
-     * @runtimeState
      */
     public runSeconds = 0;
 
     /**
      * Game-time (seconds) of the last mainspring reconcile; 0 = unseeded.
-     *
-     * @runtimeState
      */
     public springStamp = 0;
 
-    static persistentFields = [
-      'setTo',
-      'setAt',
-      'rate',
-      'runSeconds',
-      'springStamp',
-    ];
+    static fieldMeta: FieldMeta = {
+      setTo: { persistent: true, authorable: true },
+      setAt: { persistent: true, authorable: true },
+      rate: { persistent: true, authorable: true },
+      runSeconds: { persistent: true, runtimeState: true },
+      springStamp: { persistent: true, runtimeState: true },
+    };
 
     /**
      * The face reading: reconcile the mainspring, then compose

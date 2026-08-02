@@ -40,7 +40,7 @@
  * - keywords: string[] (auto-persisted via setter)
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -102,11 +102,11 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the accessor pairs below (Phase 1: setter; Phase 2: bracket-
      * assign via the public-shape setter).
      */
-    static persistentFields = [
-      'keywords',
-      'autoDeriveKeywords',
-      'primaryKeyword',
-    ];
+    static fieldMeta: FieldMeta = {
+      keywords: { persistent: true, authorable: true },
+      autoDeriveKeywords: { persistent: true, authorable: true },
+      primaryKeyword: { persistent: true, authorable: true },
+    };
 
     /**
      * Live-query projection for `primaryKeyword`. Lives on the mixin
@@ -137,7 +137,6 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Backing storage; access via the `keywords` accessor pair.
-     * @authorable
      */
     private _keywords: string[] = [];
 
@@ -150,7 +149,6 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (e.g., a "scroll of resurrection" where you want just `'scroll'`,
      * not `['scroll', 'of', 'resurrection']` — though "of" would be
      * dropped as a stop word anyway, "resurrection" wouldn't).
-     * @authorable
      */
     protected autoDeriveKeywords: boolean = true;
 
@@ -244,7 +242,6 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * prefers a `set<Field>` method), so an authored-but-invalid value
      * in a template is logged + dropped at clone time rather than
      * silently sitting in the slot waiting to confuse a renderer.
-     * @authorable
      */
     protected primaryKeyword?: string;
 

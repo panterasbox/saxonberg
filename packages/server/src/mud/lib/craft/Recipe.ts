@@ -29,6 +29,7 @@
 
 import { Document } from '../persistence/Document';
 import { Grade } from './Grade';
+import type { FieldMeta } from '../mixin';
 
 /**
  * One input slot, by constraint. `category` is a Material classification tag
@@ -67,22 +68,22 @@ export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
 export class Recipe extends Document {
   static collectionName = 'recipes';
-  static persistentFields = [
-    'recipeId',
-    'name',
-    'keywords',
-    'inputSlots',
-    'toolCapabilities',
-    'outputTemplate',
-    'outputMaterial',
-    'baseGradeBand',
-    'requiresHeatK',
-    'outputApplication',
-    'outputPortionL',
-    'outputAppearance',
-    'difficulty',
-    'discipline',
-  ];
+  static fieldMeta: FieldMeta = {
+    recipeId: { persistent: true },
+    name: { persistent: true },
+    keywords: { persistent: true },
+    inputSlots: { persistent: true },
+    toolCapabilities: { persistent: true },
+    outputTemplate: { persistent: true },
+    outputMaterial: { persistent: true },
+    baseGradeBand: { persistent: true },
+    requiresHeatK: { persistent: true },
+    outputApplication: { persistent: true },
+    outputPortionL: { persistent: true },
+    outputAppearance: { persistent: true },
+    difficulty: { persistent: true },
+    discipline: { persistent: true },
+  };
 
   /** Canonical id; unique-indexed at the collection level. */
   recipeId: string = '';

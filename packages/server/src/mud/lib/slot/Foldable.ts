@@ -23,7 +23,7 @@
  * the folded/unfolded naming layer over `getState()` / `setState()`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
@@ -42,7 +42,9 @@ export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class FoldableMixin extends BistateMixin(Base) {
     static _mixinName = 'FoldableMixin';
 
-    static persistentFields = ['folded'];
+    static fieldMeta: FieldMeta = {
+      folded: { persistent: true },
+    };
 
     /** Predicate getter. */
     isFolded(): boolean {

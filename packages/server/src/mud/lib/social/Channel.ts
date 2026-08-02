@@ -27,6 +27,7 @@
  */
 
 import { Document } from '../persistence/Document';
+import type { FieldMeta } from '../mixin';
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
 
@@ -39,12 +40,12 @@ export type ChannelProcedure = 'free' | 'rules-of-order';
 
 export class Channel extends Document {
   static collectionName = 'channels';
-  static persistentFields = [
-    'name',
-    'kind',
-    'subject',
-    'procedure',
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    kind: { persistent: true },
+    subject: { persistent: true },
+    procedure: { persistent: true },
+  };
 
   /** Human-readable name. Unique-indexed at the collection level. */
   name: string = '';

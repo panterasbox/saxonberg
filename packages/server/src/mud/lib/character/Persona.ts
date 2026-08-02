@@ -23,7 +23,7 @@
  * perceive.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { SettingTypes, type SettingsSchemaEntry } from '../shell/Environment';
 
@@ -38,7 +38,10 @@ export interface Persona {
 export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PersonaMixin extends Base {
     static _mixinName = 'PersonaMixin';
-    static persistentFields = ['bio', 'aspiration'];
+    static fieldMeta: FieldMeta = {
+      bio: { persistent: true, authorable: true },
+      aspiration: { persistent: true, authorable: true },
+    };
 
     /**
      * Self-only verbs Persona affords. `chronicle` is a zero-arg
@@ -111,13 +114,11 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Claimed narrative prose. Seeded at char-gen; editable later.
-     * @authorable
      */
     public bio: string = '';
 
     /**
      * Closed-choice origin/aspiration key (or null if unset).
-     * @authorable
      */
     public aspiration: string | null = null;
 

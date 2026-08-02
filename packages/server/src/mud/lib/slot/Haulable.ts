@@ -22,11 +22,12 @@
  *
  * The hitch coupling is a Pattern-B live ref (`_hauledBy` here ↔
  * `_hauling` on `HaulerMixin`), a symmetric R2.2 pair with an R2.3
- * self-heal backstop in the getter. See `docs/ref-shapes.md` and
+ * self-heal backstop, declared on the field rather than written into
+ * the getter. See `docs/ref-shapes.md` and
  * `docs/subsystems/encumbrance.md`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import { Vessel } from '../stuff/Vessel';
@@ -104,14 +105,22 @@ export function HaulableMixin<
 >(Base: TBase) {
   return class HaulableMixin extends Base implements Haulable {
     static _mixinName = 'HaulableMixin';
-    static persistentFields = ['draftFactor', 'handedness', 'passageMode'];
+    static fieldMeta: FieldMeta = {
+      draftFactor: { persistent: true, authorable: true },
+      handedness: { persistent: true, authorable: true },
+      passageMode: { persistent: true, authorable: true },
+      // The hitch coupling, cart side — runtime-only, never persisted.
+      _hauledBy: {
+        ref: 'instance',
+        lifetime: 'symmetric',
+        inverse: '_hauling',
+      },
+    };
 
     /**
      * Rolling-resistance × mechanical-advantage coupling (`0..1`). The
      * pushing-side analog of `Vessel.transmissionFactor` — accessor pair
      * owns the invariant (the project rule), `setDraftFactor` delegates.
-     *
-     * @authorable
      */
     private _draftFactor: number = 0.05;
 
@@ -142,8 +151,6 @@ export function HaulableMixin<
 
     /**
      * Hands the haul claims when hitched by hand (1 or 2; default 2).
-     *
-     * @authorable
      */
     private _handedness: number = 2;
 
@@ -172,8 +179,6 @@ export function HaulableMixin<
      * `LocomotionApi.exitAllowsMode(exit, this)`; `wheeled` is admitted
      * by any `media: ['ground']` exit and refused by vertical/water/air.
      * `LocomotionApi.modeOf` accepts either name or path form.
-     *
-     * @authorable
      */
     public passageMode: string = 'wheeled';
 
@@ -194,17 +199,13 @@ export function HaulableMixin<
 
     /**
      * The hauler hitched to this cart. Live ref (runtime-only — a
-     * reloaded cart wakes up unhitched). Pattern-B R2.3 self-heal:
+     * reloaded cart wakes up unhitched). Declared instance ref, so the
+     * R2.3 self-heal applies:
      * clears the slot if the hauler destructed without our witness.
      */
     private _hauledBy: (Stuff & Hauler) | null = null;
 
     public getHauledBy(): (Stuff & Hauler) | null {
-      if (this._hauledBy === null) return null;
-      if (this._hauledBy.isDestroyed()) {
-        this._hauledBy = null;
-        return null;
-      }
       return this._hauledBy;
     }
 
@@ -212,14 +213,5 @@ export function HaulableMixin<
       this._hauledBy = hauler;
     }
 
-    /**
-     * R2.2 reciprocal clear: a destructing cart tells its hauler to let
-     * go (which clears both sides via `unhitch`), then chains super.
-     */
-    public onDestruct(): void {
-      const hauler = this.getHauledBy();
-      if (hauler) hauler.unhitch();
-      super.onDestruct();
-    }
   };
 }

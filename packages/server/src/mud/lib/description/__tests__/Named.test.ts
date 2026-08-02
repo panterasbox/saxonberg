@@ -7,9 +7,10 @@ import { NamedMixin, type AlternateName } from '../Named';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { FieldMeta } from '../../mixin';
 
 class NamedThing extends NamedMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 describe('NamedMixin', () => {

@@ -21,6 +21,7 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The blessed application-setting keys. Consumers reference these constants
@@ -1132,7 +1133,9 @@ export type AppSettingKey =
 
 export class AppSettings extends Document {
   static collectionName = Collections.AppSettings;
-  static persistentFields = ["values"];
+  static fieldMeta: FieldMeta = {
+    values: { persistent: true },
+  };
 
   /**
    * The open key/value bag — the ONLY persistent field, forever. An

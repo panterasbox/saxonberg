@@ -20,6 +20,7 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { ClauseData } from "./Clause";
+import type { FieldMeta } from "../mixin";
 
 /** The lifecycle vocabulary. */
 export const CONTRACT_STATES = [
@@ -48,25 +49,25 @@ export interface ContractParty {
 
 export class ContractRecord extends Document {
   static collectionName = Collections.Contracts;
-  static persistentFields = [
-    "contractId",
-    "state",
-    "boardPath",
-    "issuer",
-    "issuerAccountId",
-    "claimMode",
-    "claimant",
-    "clause",
-    "rewardMinor",
-    "escrowAccountId",
-    "postedAt",
-    "postingExpiresAt",
-    "claimedAt",
-    "claimExpiresAt",
-    "settledBy",
-    "closedAt",
-    "realAt",
-  ];
+  static fieldMeta: FieldMeta = {
+    contractId: { persistent: true },
+    state: { persistent: true },
+    boardPath: { persistent: true },
+    issuer: { persistent: true },
+    issuerAccountId: { persistent: true },
+    claimMode: { persistent: true },
+    claimant: { persistent: true },
+    clause: { persistent: true },
+    rewardMinor: { persistent: true },
+    escrowAccountId: { persistent: true },
+    postedAt: { persistent: true },
+    postingExpiresAt: { persistent: true },
+    claimedAt: { persistent: true },
+    claimExpiresAt: { persistent: true },
+    settledBy: { persistent: true },
+    closedAt: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   /** Durable gig id (server-minted uuid) — the escrow account keys on it. */
   contractId = "";

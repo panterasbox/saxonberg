@@ -25,6 +25,7 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { ExitableMixin } from '../boundary/Exitable';
 import { PopulatesMixin } from '../stuff/Populates';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
+import type { FieldMeta } from '../mixin';
 
 const CircleFloorBase = PostRegistrationMixin(
   PopulatesMixin(
@@ -33,5 +34,5 @@ const CircleFloorBase = PostRegistrationMixin(
 );
 
 export default class CircleFloor extends CircleFloorBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

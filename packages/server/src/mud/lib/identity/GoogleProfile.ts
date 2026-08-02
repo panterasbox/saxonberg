@@ -9,6 +9,7 @@
 
 import { Document } from '../persistence/Document';
 import type { GoogleProfile as IGoogleProfile } from '@saxonberg/types';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Google OAuth profile data (persistent). A Document — plain persisted
@@ -23,15 +24,15 @@ export class GoogleProfile extends Document implements IGoogleProfile {
   /**
    * Persistent fields for auto-sync.
    */
-  static persistentFields = [
-    'googleId',
-    'email',
-    'displayName',
-    'givenName',
-    'familyName',
-    'photoUrl',
-    'rawProfile',
-  ];
+  static fieldMeta: FieldMeta = {
+    googleId: { persistent: true },
+    email: { persistent: true },
+    displayName: { persistent: true },
+    givenName: { persistent: true },
+    familyName: { persistent: true },
+    photoUrl: { persistent: true },
+    rawProfile: { persistent: true },
+  };
 
   /**
    * Google profile ID (unique identifier from Google).

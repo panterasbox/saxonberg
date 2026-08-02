@@ -26,7 +26,7 @@
  * See docs/subsystems/fire.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
 import type { Reserved } from '../reserve';
@@ -107,26 +107,24 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
   class CombustibleMixin extends Base implements Combustible {
     static _mixinName = 'CombustibleMixin';
 
-    static persistentFields = [
-      'burning',
-      'charMaterialPath',
-      'structural',
-      'burnClockStamp',
-      'burnedThrough',
-    ];
+    static fieldMeta: FieldMeta = {
+      burning: { persistent: true, runtimeState: true },
+      charMaterialPath: { persistent: true, authorable: true },
+      structural: { persistent: true, authorable: true },
+      burnClockStamp: { persistent: true, runtimeState: true },
+      burnedThrough: { persistent: true, runtimeState: true },
+    };
 
     /**
      * The active Burning state (decomposed flat form), or null when out.
      *
-     * @runtimeState Written by the gated `FireLogic` + reconcile-on-read.
+     * Written by the gated `FireLogic` + reconcile-on-read.
      */
     public burning: BurningStored | null = null;
 
     /**
      * The `Material` path this object becomes when it burns out — ash / char
      * (embers then cool as passive Thermal). Null = leaves its material as-is.
-     *
-     * @authorable
      */
     public charMaterialPath: string | null = null;
 
@@ -134,23 +132,17 @@ export function CombustibleMixin<TBase extends MixinConstructor<Stuff>>(
      * A **structural** combustible — a door, a rope bridge — that DESTRUCTS on
      * burn-through rather than charring in place. Content decides the
      * after-state (a burned exit) via the `hasBurnedThrough` seam.
-     *
-     * @authorable
      */
     public structural: boolean = false;
 
     /**
      * Game-time (seconds) of the last fuel reconcile; 0 = unseeded.
-     *
-     * @runtimeState
      */
     public burnClockStamp = 0;
 
     /**
      * A structural object has burned through — latched for the fire tick to
      * destruct (destruct from the reconcile-on-read path is unsafe).
-     *
-     * @runtimeState
      */
     public burnedThrough = false;
 

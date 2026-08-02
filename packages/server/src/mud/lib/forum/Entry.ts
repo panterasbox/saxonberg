@@ -27,6 +27,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 export type EntryRelation =
   | 'reply'
@@ -37,19 +38,19 @@ export type EntryState = 'active' | 'locked';
 
 export default class Entry extends Document {
   static collectionName = Collections.ForumEntries;
-  static persistentFields = [
-    'board',
-    'parent',
-    'relation',
-    'author',
-    'title',
-    'body',
-    'editedAt',
-    'subject',
-    'state',
-    'up',
-    'down',
-  ];
+  static fieldMeta: FieldMeta = {
+    board: { persistent: true },
+    parent: { persistent: true },
+    relation: { persistent: true },
+    author: { persistent: true },
+    title: { persistent: true },
+    body: { persistent: true },
+    editedAt: { persistent: true },
+    subject: { persistent: true },
+    state: { persistent: true },
+    up: { persistent: true },
+    down: { persistent: true },
+  };
 
   /** The `_id` of the owning {@link Board}. */
   board = '';

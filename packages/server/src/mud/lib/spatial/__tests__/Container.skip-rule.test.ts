@@ -33,6 +33,7 @@ import { installV1QuantityMarshallers } from "../../persistence/__tests__/quanti
 import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../Container";
 import type { Containable } from "../Containable";
+import type { FieldMeta } from "../../mixin";
 
 const TORCH_PATH = "/obj/test/Torch";
 const ROOM_PATH = "/domain/test/Room";
@@ -42,13 +43,13 @@ class Torch extends Thing {}
 
 /** A room: a persistable container with no estate of its own. */
 class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 /** An owner: a persistable container that carries an estate. */
 class Owner extends PersistableMixin(
   EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 interface Doc extends Record<string, unknown> {

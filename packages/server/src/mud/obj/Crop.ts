@@ -30,9 +30,10 @@
 import Thing from "../lib/stuff/Thing";
 import { DetailedMixin } from "../lib/description/Detailed";
 import { CraftedMixin } from "../lib/craft/Crafted";
+import type { FieldMeta } from "../lib/mixin";
 
 const CropBase = CraftedMixin(DetailedMixin(Thing));
 
 export default class Crop extends CropBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

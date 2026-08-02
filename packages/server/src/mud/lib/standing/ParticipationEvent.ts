@@ -33,6 +33,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Provenance of a participation signal. Open vocabulary; `command` (a
@@ -59,7 +60,13 @@ export interface ParticipationEventFields {
 
 export default class ParticipationEvent extends Document {
   static collectionName = Collections.ParticipationEvents;
-  static persistentFields = ['subject', 'bucket', 'kind', 'at', 'realAt'];
+  static fieldMeta: FieldMeta = {
+    subject: { persistent: true },
+    bucket: { persistent: true },
+    kind: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   /** Durable subject id (the giver's `templatePath`) — indexed. */
   subject = '';

@@ -26,7 +26,10 @@ A mixin is a function:
 function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class NamedMixin extends Base {
     static _mixinName = 'NamedMixin';
-    static persistentFields = ['name', 'surname', /* ... */];
+    static fieldMeta: FieldMeta = {
+      name: { persistent: true },
+      surname: { persistent: true },
+    };
 
     name: string = '';
     surname?: string;
@@ -106,7 +109,7 @@ every other Api.
 |---|---|---|
 | `queryMixins(ctor)` | `MixinClass[]` | Walk the prototype chain, collect every layer marked with `_mixinName`. The primitive every other helper builds on. |
 | `hasMixin(ctor, name)` | `boolean` | "Does this constructor's chain include the named mixin?" Use with `Mixins.X` constants. |
-| `getMixinFields(ctor)` | `string[]` | Union of every `static persistentFields` declared on a mixin in the chain. |
+| `getMixinFields(ctor)` | `string[]` | Union of every a `persistent` entry in `fieldMeta` declared on a mixin in the chain. |
 | `getAllPersistentFields(ctor)` | `string[]` | Like `getMixinFields`, but also walks **classes** in the chain (not just mixin layers). The function the persistence pipeline actually calls. |
 | `is{Container,Named,Sensor,…}(obj)` | `obj is Stuff & X` | Narrowing predicate per registered mixin — the dominant runtime detector. |
 
@@ -175,7 +178,7 @@ return class FooMixin extends Base {
 from "this prototype is the regular class hierarchy" by looking for an
 own `_mixinName` static. Forget it and the layer is invisible — it
 contributes fields/methods, but no introspection notices it, no
-persistence aggregator picks up its `persistentFields`, no command
+persistence aggregator picks up its `fieldMeta`'s persistent entries, no command
 discovery picks up its `commandProvider`.
 
 The string value MUST appear in the `Mixins` registry in
@@ -220,7 +223,7 @@ specific static. Three are recognized today:
 
 | Static | Read by | What it contributes |
 |---|---|---|
-| `static persistentFields: string[]` | `PersistentHydrator`, `Document.toDocument` | Field names to round-trip through the persistence pipeline |
+| `static fieldMeta: FieldMeta` | `PersistentHydrator`, `Document.toDocument`, `StudioLogic` | Everything a field declares about itself — `persistent` / `marshaller` / `instruction` / `globIdentity` / `authorable` / `runtimeState`, plus the `ref` + `lifetime` reference axes |
 | `static commandProvider: CommandProviderRegistry` | `CommandGiverMixin.getAvailableCommands` | YAML command files exposed when this mixin is in scope |
 | `static _mixinName: string` | `MixinApi.queryMixins` | Identity (above) |
 | `static cleanupOnDestruct(stuff: Stuff): void` | `StuffApi.destruct` dispatcher | Substrate-invariant cleanup when an instance of this mixin destructs (see below) |
@@ -301,7 +304,9 @@ export interface Foo {
 export function FooMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class FooMixin extends Base {
     static _mixinName = 'FooMixin';
-    static persistentFields = ['someField'];          // optional
+    static fieldMeta: FieldMeta = {
+      someField: { persistent: true },
+    };          // optional
     static commandProvider = { self: ['foo.yaml'], }; // optional
 
     someField: string = '';
@@ -578,7 +583,7 @@ consumers are:
 - `CommandGiverMixin.getAvailableCommands` — walks every mixin on
   self, inventory, environment, peers and pulls `commandProvider` off
   each layer.
-- `MixinApi.getMixinFields` — walks and pulls `persistentFields`.
+- `MixinApi.getMixinFields` — walks and pulls `fieldMeta`'s persistent entries.
 
 ```typescript
 for (const mixin of MixinApi.queryMixins(self.constructor)) {
@@ -596,10 +601,10 @@ The infrastructure is small because the *integrations* with other
 subsystems do the heavy lifting. Each integration is one consumer
 reading one well-known mixin static.
 
-### Persistence — `static persistentFields` and `static instructionFields`
+### Persistence — a `persistent` entry in `fieldMeta` and an `instruction` entry in `fieldMeta`
 
 The standard hydrator walks every mixin and class in the chain,
-collects every `persistentFields` / `instructionFields` declaration,
+collects every `fieldMeta`'s persistent entries / `fieldMeta`'s instruction entries declaration,
 and runs a **two-phase dispatch** over the template's `data` blob
 (see [templates.md § The Hydrator Contract](./templates.md#the-hydrator-contract)):
 
@@ -620,7 +625,7 @@ for (const field of MixinApi.getAllInstructionFields(ctor)) {
 ```
 
 A mixin author who adds a new persistent field declares it once on the
-mixin's `persistentFields` static. Every class that composes the mixin
+mixin's `fieldMeta`'s persistent entries static. Every class that composes the mixin
 — present or future — round-trips the field automatically. Same for
 `Document` records: `Document.getAllFields()` calls the same
 aggregator, so auth records also pick up mixin contributions.
@@ -629,7 +634,7 @@ The `setX` method (or the bracket-assign fallback through an accessor
 pair) fires per-field invariants during hydrate. **Instruction fields**
 — declarations consumed to produce derived runtime state via an
 `applyX` method (e.g., `exits` on `ExitableMixin`) — are declared
-in `static instructionFields = [...]` and require the applier method;
+as `{ instruction: true }` in `fieldMeta`, and require the applier method;
 the absence of `applyX` for a declared instruction field is a
 configuration error. See
 [antipatterns.md § Per-Field Invariants
@@ -638,7 +643,7 @@ for the pattern.
 
 A mixin that owns complex state (a `Set<Stuff>`, a typed graph) and
 can't round-trip via plain JSON copy declines to declare the field in
-`persistentFields` — see `ContainerMixin.inventory`. The composing
+`fieldMeta`'s persistent entries — see `ContainerMixin.inventory`. The composing
 class either doesn't persist it or supplies a custom Hydrator subclass.
 
 ### Commands — `static commandProvider`
@@ -1003,7 +1008,7 @@ implementation strategy.
 
 Two of the three known statics aggregate across the chain:
 
-- `persistentFields` aggregates because hydration touches every layer
+- `fieldMeta`'s persistent entries aggregates because hydration touches every layer
   that owns state.
 - `commandProvider` aggregates because every layer in scope can
   contribute commands.
@@ -1027,7 +1032,7 @@ contribute or whether one wins.
   `hasMixin` rule and migration recipes.
 - [persistence.md § Field
   Aggregation](./persistence.md#field-aggregation) — how
-  `persistentFields` rides the chain through `Document` and the
+  `fieldMeta`'s persistent entries rides the chain through `Document` and the
   Hydrator.
 - [templates.md](./templates.md) — `PersistentHydrator` and how the
   clone pipeline calls `getAllPersistentFields`.

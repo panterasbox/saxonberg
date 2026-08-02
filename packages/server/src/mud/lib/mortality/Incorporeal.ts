@@ -50,7 +50,6 @@ export function IncorporealMixin<TBase extends MixinConstructor<Stuff>>(
       peers: [],
     };
 
-    /** @runtimeState */
     public revocationReason = 'Your hand passes through it.';
 
     public getRevocationReason(): string {

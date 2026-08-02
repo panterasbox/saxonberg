@@ -42,6 +42,7 @@ import { CallSecurity } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { PartyRecord } from "./PartyRecord";
 import type { PartyMember } from "./PartyMember";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The party's own mutation surface: the party acting on itself (its
@@ -60,23 +61,23 @@ const PartySurface = SecurityPolicies.AnyOf(
  * path string, never null/`''`, so the exchange loop has no null branch
  * and "solo" is not a concept (the `sideOf` solo-rung / locomotion
  * universe-`walk` mirror). A plain string constant: the party side speaks
- * formation **paths** only (ref-shapes Pattern A) and never imports
+ * formation **paths** only (a ref-shapes identity ref) and never imports
  * `lib/combat`.
  */
 export const DEFAULT_FORMATION_PATH = "/lib/combat/CombatFormation/default";
 
 export class Party extends Idea {
-  static persistentFields = [
-    "name",
-    "founderId",
-    "captainId",
-    "memberIds",
-    "combatSide",
-    "durable",
-    "channelRef",
-    "formationPath",
-    "roleAssignments",
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true, authorable: true },
+    founderId: { persistent: true, authorable: true },
+    captainId: { persistent: true, authorable: true },
+    memberIds: { persistent: true, authorable: true },
+    combatSide: { persistent: true, authorable: true },
+    durable: { persistent: true, runtimeState: true },
+    channelRef: { persistent: true, authorable: true },
+    formationPath: { persistent: true, authorable: true },
+    roleAssignments: { persistent: true, authorable: true },
+  };
 
   /** Party fields are MQL-projectable — a party is queryable by member,
    * side, captain, and name like any other Stuff. */
@@ -89,15 +90,15 @@ export class Party extends Idea {
     { name: "formationPath", read: (s) => (s as Party).getFormationPath() },
   ];
 
-  /** @authorable */ public name: string = "";
-  /** @authorable */ public founderId: string = "";
-  /** @authorable */ public captainId: string = "";
-  /** @authorable */ public memberIds: string[] = [];
-  /** @authorable */ public combatSide: string = "";
-  /** @runtimeState */ public durable: boolean = false;
-  /** @authorable */ public channelRef: string = "";
-  /** @authorable */ public formationPath: string = "";
-  /** @authorable */ public roleAssignments: Record<string, string> = {};
+  /** */ public name: string = "";
+  /** */ public founderId: string = "";
+  /** */ public captainId: string = "";
+  /** */ public memberIds: string[] = [];
+  /** */ public combatSide: string = "";
+  /** */ public durable: boolean = false;
+  /** */ public channelRef: string = "";
+  /** */ public formationPath: string = "";
+  /** */ public roleAssignments: Record<string, string> = {};
 
   /** A managed object, never residency-culled while it lives (a durable
    * dormant crew stays resident so `muster` can find it). */

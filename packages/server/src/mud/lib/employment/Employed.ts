@@ -22,7 +22,7 @@
  * `MakerMixin` goes active — and an off-shift one's goes inert.
  */
 
-import { Mixins, type MixinConstructor } from '../mixin';
+import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -89,13 +89,14 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
   class EmployedMixin extends Base implements Employed {
     static _mixinName = 'EmployedMixin';
 
-    static persistentFields = ['employments'];
+    static fieldMeta: FieldMeta = {
+      employments: { persistent: true, runtimeState: true },
+    };
 
     /**
      * Stored employment records (plain data). Sparse: `null` on an
      * unemployed Character (nothing written to the doc). Wrapped into
      * `Employment` value objects on read.
-     * @runtimeState
      */
     public employments: EmploymentData[] | null = null;
 

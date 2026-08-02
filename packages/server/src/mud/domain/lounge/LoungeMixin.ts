@@ -29,7 +29,7 @@
  * persistence spine's `PersistableLogic.capturePlacement`).
  */
 
-import type { MixinConstructor } from '../../lib/mixin';
+import type { MixinConstructor, FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -49,8 +49,6 @@ export interface Lounge {
    * Instruction-field applier for the declared `warren` seed path.
    * Resolves (or lazily creates, for a stray clone) the Warren singleton
    * and self-registers via the Warren-owned `addMember`.
-   *
-   * @authorable ref:Template
    */
   applyWarren(warrenPath: string): Promise<void>;
 }
@@ -73,9 +71,10 @@ export function LoungeMixin<
      * Declared-warren seed. Consumed once by Phase 2 of the Hydrator —
      * an instruction field, not a stored property (no paired getter; the
      * live affiliation is `WarrenMember.getWarren()`).
-     * @authorable ref:Template
      */
-    static instructionFields = ['warren'];
+    static fieldMeta: FieldMeta = {
+      warren: { instruction: true, authorable: true, authorPicker: 'Template' },
+    };
 
     /**
      * Composition constraint: LoungeMixin requires WarrenMemberMixin on

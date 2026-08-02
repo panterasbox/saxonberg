@@ -9,7 +9,7 @@
  * Persistence: `coordinates` is auto-persisted via `persistentFields`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 /** Public shape added by CartesianCoordinatesMixin. */
 export interface CartesianCoordinates {
@@ -26,9 +26,10 @@ export interface CartesianCoordinates {
 export function CartesianCoordinatesMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CartesianCoordinatesMixin extends Base {
     static _mixinName = 'CartesianCoordinatesMixin';
-    static persistentFields = ['coordinates'];
+    static fieldMeta: FieldMeta = {
+      coordinates: { persistent: true, authorable: true },
+    };
 
-    /** @authorable */
     protected coordinates: [number, number, number] = [0, 0, 0];
 
     getCoordinates(): [number, number, number] {

@@ -76,7 +76,7 @@
  * shadow chain.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
   MqlSubscriptionApi,
@@ -132,13 +132,13 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * objects — the generic Hydrator copy works without a custom
      * persistenceHandler.
      */
-    static persistentFields = [
-      'honorific',
-      'name',
-      'surname',
-      'nameSuffix',
-      'alternateNames',
-    ];
+    static fieldMeta: FieldMeta = {
+      honorific: { persistent: true, authorable: true },
+      name: { persistent: true, authorable: true },
+      surname: { persistent: true, authorable: true },
+      nameSuffix: { persistent: true, authorable: true },
+      alternateNames: { persistent: true, authorable: true },
+    };
 
     /**
      * Live-query subscribable fields. The descriptor's
@@ -158,15 +158,15 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
-    /** @authorable Formal address prefix ("Dr.", "Sir", "Captain"). */
+    /** Formal address prefix ("Dr.", "Sir", "Captain"). */
     protected honorific?: string;
-    /** @authorable The casual-register proper name (the field 95% of callers want). */
+    /** The casual-register proper name (the field 95% of callers want). */
     protected name: string = '';
-    /** @authorable Family / second name. */
+    /** Family / second name. */
     protected surname?: string;
-    /** @authorable Post-nominal suffix ("Jr.", "III", "Esq."). */
+    /** Post-nominal suffix ("Jr.", "III", "Esq."). */
     protected nameSuffix?: string;
-    /** @authorable Typed extra names (nicknames, titles, credentials). */
+    /** Typed extra names (nicknames, titles, credentials). */
     protected alternateNames: AlternateName[] = [];
 
     getHonorific(): string | undefined { return this.honorific; }

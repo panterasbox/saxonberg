@@ -18,6 +18,7 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { Quantity } from '../quantity';
 import type SphericalZone from './SphericalZone';
 import type { Stuff } from '../stuff/Stuff';
+import type { FieldMeta } from '../mixin';
 
 // SphericalLocation is singleton-shaped — same rationale as
 // `CartesianLocation`: every authored location is unique-by-path.
@@ -108,7 +109,9 @@ export default class SphericalLocation extends SphericalLocationBase {
     radius: number;
   } | null = null;
 
-  static persistentFields = ['focus'];
+  static fieldMeta: FieldMeta = {
+    focus: { persistent: true },
+  };
 
   public getFocus(): {
     rho: number;

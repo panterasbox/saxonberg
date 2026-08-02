@@ -265,7 +265,7 @@ template write funnels through `saveTemplate` except `PackLogic`
 that path. Avatar persist-back no longer writes the `domain` collection at
 all — it captures runtime state into the separate `holder_snapshots` store
 via the self-persistence spine, which drift-guards fields to declared
-`persistentFields` (never an author-named `class`/`hydratorClass`/`brain`
+`fieldMeta`'s persistent entries (never an author-named `class`/`hydratorClass`/`brain`
 string) and reconstitutes items only through the gated `StuffApi.clone` — so
 it cannot forge a code-naming field. See
 [persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable).

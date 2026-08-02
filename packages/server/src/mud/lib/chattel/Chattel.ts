@@ -24,7 +24,7 @@
  * glob's `_chattelId` stays empty and it is owned-by-possession.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
@@ -59,7 +59,10 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
   class ChattelMixin extends Base implements Chattel {
     static _mixinName = "ChattelMixin";
 
-    static persistentFields = ["_chattelId", "_place"];
+    static fieldMeta: FieldMeta = {
+      _chattelId: { persistent: true },
+      _place: { persistent: true },
+    };
 
     /**
      * The durable per-instance id. Empty until minted by the chattel

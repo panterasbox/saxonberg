@@ -15,7 +15,7 @@
  * `'none'`). The setter rejects values outside that set.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 
@@ -46,9 +46,10 @@ const VALID_SEX_BY_SYSTEM: Record<string, readonly string[]> = {
 export function SexedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SexedMixin extends Base {
     static _mixinName = 'SexedMixin';
-    static persistentFields = ['sex'];
+    static fieldMeta: FieldMeta = {
+      sex: { persistent: true, authorable: true },
+    };
 
-    /** @authorable */
     public sex: string | null = null;
 
     public getSex(): string | null { return this.sex; }

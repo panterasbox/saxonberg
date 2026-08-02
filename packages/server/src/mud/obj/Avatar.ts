@@ -61,6 +61,7 @@ import type Interactive from "./Interactive";
 import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
 import { EstateMixin } from "../lib/chattel/Estate";
+import type { FieldMeta } from "../lib/mixin";
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -172,10 +173,7 @@ export default class Avatar extends AvatarBase {
    * Hydrator's Phase 2 auto-dispatches any declared instruction field, so
    * the declaration alone wires it. See
    * [docs/requirements/multilocation-lounge-requirements.md].
-   */
-  static instructionFields = ["startLocation"];
-
-  /**
+   *
    * Persistent fields declared by Avatar itself (collected up the chain by
    * `MixinApi.getAllPersistentFields`).
    *
@@ -184,7 +182,10 @@ export default class Avatar extends AvatarBase {
    * `lifecycleState: 'dead'` on the body: see [MortalArc](../lib/mortality/MortalArc.ts)
    * for why those two behave oppositely.
    */
-  static persistentFields = ["mortalArc"];
+  static fieldMeta: FieldMeta = {
+    mortalArc: { persistent: true },
+    startLocation: { instruction: true },
+  };
 
   /**
    * The identity's death-arc position, or `null` while embodied and alive.

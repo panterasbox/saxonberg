@@ -19,7 +19,7 @@ A small platform service — **not** in-world Stuff:
 
 - **`Bulletin`** (`lib/bulletin/Bulletin.ts`) — a reference-data
   `Document` in the `bulletins` collection (the `Recipe`/`Emote`
-  precedent: `static collectionName`/`persistentFields`, plain getters,
+  precedent: `static collectionName`/`fieldMeta`'s persistent entries, plain getters,
   **never cloned, not a template**). Carries `bulletinId` (unique),
   `realm`, `kind`, MML `headline` + `body`, `author` (the publisher's
   durable `templatePath` — a stored identity string, **not** an

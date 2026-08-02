@@ -34,11 +34,12 @@ import { buildAllModalities } from '../../../../lib/perception/modalities/__test
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { MessageFrame } from '@saxonberg/types';
 import type { MqlManyResult } from '../../../../api/mql';
+import type { FieldMeta } from '../../../../lib/mixin';
 
 class Actor extends SlottedMixin(
   AetherMixin(SensorMixin(NamedMixin(OrganismMixin(Thing)))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   override staticSlots = [
     { name: 'cranial', accepts: 'SlottableMixin' as const },
   ];

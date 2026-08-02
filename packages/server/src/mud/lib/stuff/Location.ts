@@ -27,6 +27,7 @@ import { AtmosphericMixin } from '../biome/Atmospheric';
 import { AddressableMixin } from '../address/Addressable';
 import { AmbientLitMixin } from '../perception/AmbientLit';
 import { Suppressions, type MagicSuppression } from '../magic/Suppression';
+import type { FieldMeta } from '../mixin';
 
 // A Location represents *space*, not *matter* — so it is NOT `Tangible`
 // (rooms have no material or mass; nothing ever read them). "Made of matter"
@@ -46,7 +47,9 @@ const LocationBase = AddressableMixin(
 );
 
 export default class Location extends LocationBase {
-  static persistentFields: string[] = ['suppressesMagic'];
+  static fieldMeta: FieldMeta = {
+    suppressesMagic: { persistent: true },
+  };
 
   /**
    * The anti-magic field this place carries, or `null` (the overwhelming

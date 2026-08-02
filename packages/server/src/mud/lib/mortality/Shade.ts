@@ -60,23 +60,33 @@ export default class Shade extends IncorporealMixin(Avatar) {
    * fork that would otherwise carry species runs after `postRegister` —
    * exactly too late for the body plan the loadout walks.
    */
-  constructor(playerId?: string, species?: Species | null) {
+  constructor(playerId: string, species: Species | null) {
     super();
-    if (playerId) this.shadePlayerId = playerId;
-    if (species) this.shadeSpecies = species;
+    this.shadePlayerId = playerId;
+    this.shadeSpecies = species;
   }
 
   public override async postRegister(
     context?: ShadeInitContext,
   ): Promise<void> {
-    if (this.shadeSpecies) this.setSpecies(this.shadeSpecies);
+    if (this.shadeSpecies) {
+      this.setSpecies(this.shadeSpecies);
+      // Then LET GO — same reasoning as `WireBody`. `OrganismMixin`
+      // keeps species as `_speciesPath` and re-resolves on every read;
+      // retaining the live `Species` here would shadow that
+      // authoritative field with an instance ref for the shade's whole
+      // life. The ctor slot exists to survive until `setSpecies`, and
+      // no longer.
+      this.shadeSpecies = null;
+    }
     // Run the Avatar lifecycle WITHOUT a playerId: registration happens
     // in the death choreography, deliberately AFTER the old body has been
     // unregistered and destructed. Registering here would collide with
     // the body that is still being drained.
-    const playerId = context?.playerId ?? this.shadePlayerId;
+    //
+    // No merge with `context.playerId`: the constructor now requires
+    // `playerId`, so `shadePlayerId` is authoritative already.
     await super.postRegister({ ...context, playerId: undefined });
-    if (playerId) this.shadePlayerId = playerId;
     this.setLifecycleState('undead');
   }
 

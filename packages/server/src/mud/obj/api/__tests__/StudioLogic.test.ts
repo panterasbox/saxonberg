@@ -2,8 +2,8 @@
  * StudioLogic.describeClass — the gated composition read.
  *
  * Covers the three load-bearing properties:
- *   1. Multi-mixin join — every `@authorable` field of the effective mixin
- *      set surfaces with a `typeShape`; a `@runtimeState` persistent field
+ *   1. Multi-mixin join — every `authorable` field of the effective mixin
+ *      set surfaces with a `typeShape`; a `runtimeState` persistent field
  *      (ReservedMixin.reserves) is absent.
  *   2. Resolution chain — a field whose effective value comes from the
  *      instance's zone `lookupField` reports `valueSource: 'resolution-chain'`.
@@ -11,7 +11,8 @@
  *      parameter to substitute.
  *
  * Classification comes from the source scan of the mixin declarations (the
- * `@authorable`/`@runtimeState` markers), never a caller-passed list;
+ * `authorable`/`runtimeState` entries in `fieldMeta`), never a
+ * caller-passed list;
  * the backing class is stubbed via `StuffApi.loadClassByPath`. No Mongo, no
  * live world.
  */
@@ -42,7 +43,7 @@ import {
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
 // A real multi-mixin composition: Named + Visible + Detailed (authorable
-// fields) over Reserved (whose `reserves` field is @runtimeState).
+// fields) over Reserved (whose `reserves` field is runtimeState).
 class StudioTestThing extends ReservedMixin(
   DetailedMixin(VisibleMixin(NamedMixin(Idea)))
 ) {}
@@ -111,7 +112,7 @@ describe('StudioLogic.describeClass — multi-mixin join', () => {
     expect(byName.get('details')!.kind).toBe('instruction');
     expect(byName.get('name')!.kind).toBe('property');
 
-    // The @runtimeState persistent field is ABSENT.
+    // The runtimeState persistent field is ABSENT.
     expect(byName.has('reserves')).toBe(false);
 
     // Effective values read off the live instance.

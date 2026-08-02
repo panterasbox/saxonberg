@@ -64,7 +64,9 @@ export interface NotifyPolicy {
   removeNotifyRule(groupRef: GroupRef): boolean;
   reorderNotifyRule(groupRef, anchor, where: 'above'|'below'): boolean;
 }
-static persistentFields = ['_notifyRules'];
+static fieldMeta: FieldMeta = {
+  _notifyRules: { persistent: true },
+};
 _notifyRules: NotifyRule[] = [];
 ```
 

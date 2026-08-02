@@ -71,10 +71,10 @@ export default class WireBody extends Avatar {
    * it impossible to build one by accident (the `Interactive`
    * precedent for runtime-only objects).
    */
-  constructor(playerId?: string, species?: Species | null) {
+  constructor(playerId: string, species: Species | null) {
     super();
-    if (playerId) this.wirePlayerId = playerId;
-    if (species) this.wireSpecies = species;
+    this.wirePlayerId = playerId;
+    this.wireSpecies = species;
   }
 
   public override async postRegister(
@@ -82,15 +82,28 @@ export default class WireBody extends Avatar {
   ): Promise<void> {
     // Anatomy FIRST — `super.postRegister` runs the default loadout,
     // which needs a body plan to slot the implant into.
-    if (this.wireSpecies) this.setSpecies(this.wireSpecies);
+    if (this.wireSpecies) {
+      this.setSpecies(this.wireSpecies);
+      // Then LET GO. `OrganismMixin` stores species as `_speciesPath`
+      // and re-resolves through `findByTemplatePath` on every read, so
+      // that field — not this one — is the durable reference. Holding
+      // the live `Species` for the vessel's whole life would shadow the
+      // authoritative path with an instance ref that a hot reload can
+      // strand. The ctor slot is a hand-off, and this is the hand-off
+      // completing; ref-shapes.md's A.4 carve-out for it only holds
+      // while it is genuinely transient.
+      this.wireSpecies = null;
+    }
     // Run the Avatar lifecycle WITHOUT a playerId: PlayerApi
     // registration is keyed on it (the parked avatar keeps the slot),
     // and the spine is gated off by shouldPersist() anyway. The
     // default-loadout floor (implant + aether apps) still installs —
     // minted under the circle root, so it is circle-born.
-    const playerId = context?.playerId ?? this.wirePlayerId;
+    //
+    // `wirePlayerId` needs no merge with `context.playerId`: the
+    // constructor now requires it, so it is already authoritative
+    // before this runs.
     await super.postRegister({ ...context, playerId: undefined });
-    if (playerId) this.wirePlayerId = playerId;
   }
 
   /** A vessel persists nothing — the guest gate, verbatim. */

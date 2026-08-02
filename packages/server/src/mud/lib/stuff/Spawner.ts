@@ -1,7 +1,7 @@
 /**
  * SpawnerMixin — within-session dynamic-spawn tracking.
  *
- * A `Spawner` holds a runtime Pattern B collection of live refs to
+ * A `Spawner` holds a runtime collection of instance (live) refs to
  * the instances it has spawned during the current session. Pattern:
  * a monster-spawner room, a necromancer summoning skeletons, a
  * production vessel producing items.

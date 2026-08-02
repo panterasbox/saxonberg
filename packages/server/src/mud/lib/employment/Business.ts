@@ -27,7 +27,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { PostRegistrationMixin } from '../stuff/PostRegistration';
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import { CallSecurity } from '../security/decorators';
@@ -105,35 +105,31 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
   class BusinessMixin extends Base implements Business {
     static _mixinName = 'BusinessMixin';
 
-    static persistentFields = [
-      'proprietorPath',
-      'positions',
-      'rosterSlots',
-      'operatingLocations',
-      'banksAt',
-    ];
+    static fieldMeta: FieldMeta = {
+      proprietorPath: { persistent: true, authorable: true, authorPicker: 'Template' },
+      positions: { persistent: true, authorable: true },
+      rosterSlots: { persistent: true, authorable: true },
+      operatingLocations: { persistent: true, authorable: true, authorPicker: 'Template' },
+      banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
+    };
 
     /**
      * templatePath of the proprietor (a replaceable edge). Empty = vacant.
-     * @authorable ref:Template
      */
     public proprietorPath: string = '';
 
     /**
      * Authored positions, stored raw; wrapped on read.
-     * @authorable
      */
     public positions: PositionData[] = [];
 
     /**
      * Roster assignments, stored raw; wrapped on read.
-     * @authorable
      */
     public rosterSlots: RosterAssignment[] = [];
 
     /**
      * Locations this Business operates in (templatePaths).
-     * @authorable ref:Template
      */
     public operatingLocations: string[] = [];
 
@@ -145,7 +141,6 @@ export function BusinessMixin<TBase extends MixinConstructor>(Base: TBase) {
      * default. Empty = not authored — the business cannot open an
      * operating account (an authoring error, refused loudly at
      * `EmploymentApi.operatingAccountOf`).
-     * @authorable ref:Template
      */
     public banksAt: string = '';
 

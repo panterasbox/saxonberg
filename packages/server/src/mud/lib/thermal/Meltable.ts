@@ -23,7 +23,7 @@
  * See docs/subsystems/thermal.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
@@ -58,20 +58,21 @@ export function MeltableMixin<TBase extends MixinConstructor<Stuff>>(
   class MeltableMixin extends Base implements Meltable {
     static _mixinName = 'MeltableMixin';
 
-    static persistentFields = ['meltPhase', 'latentAbsorbedJ'];
+    static fieldMeta: FieldMeta = {
+      meltPhase: { persistent: true, runtimeState: true },
+      latentAbsorbedJ: { persistent: true, runtimeState: true },
+    };
 
     /**
      * The object's phase.
      *
-     * @runtimeState Written by the gated `ThermalLogic`.
+     * Written by the gated `ThermalLogic`.
      */
     public meltPhase: MeltPhase = 'solid';
 
     /**
      * Latent heat (J) absorbed toward the pending transition — the plateau
      * accumulator (`0 …  mass × latentHeatOfFusion`).
-     *
-     * @runtimeState
      */
     public latentAbsorbedJ = 0;
 

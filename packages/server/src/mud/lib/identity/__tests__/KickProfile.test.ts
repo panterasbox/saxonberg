@@ -14,6 +14,7 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { PersistApi } from '../../../api/persist';
 import { installEncryptedStringMarshaller } from '../../persistence/__tests__/encrypted-string-marshaller-test-helpers';
+import { MixinApi } from '../../../api/mixin';
 
 const VALID_KEY = crypto.randomBytes(32).toString('base64');
 
@@ -74,14 +75,14 @@ describe('KickProfile', () => {
 
   it('collection + persistent fields + marshaller declarations', () => {
     expect(KickProfile.collectionName).toBe('kick_profiles');
-    expect(KickProfile.persistentFields).toContain('accessToken');
-    expect(KickProfile.persistentFields).toContain('refreshToken');
-    expect(KickProfile.persistentFields).toContain('slug');
-    expect(KickProfile.persistentFields).toContain('broadcasterUserId');
-    expect(KickProfile.fieldMarshallers.accessToken).toBe(
+    expect(MixinApi.getAllPersistentFields(KickProfile)).toContain('accessToken');
+    expect(MixinApi.getAllPersistentFields(KickProfile)).toContain('refreshToken');
+    expect(MixinApi.getAllPersistentFields(KickProfile)).toContain('slug');
+    expect(MixinApi.getAllPersistentFields(KickProfile)).toContain('broadcasterUserId');
+    expect(MixinApi.getAllFieldMarshallers(KickProfile).accessToken).toBe(
       '/lib/persistence/EncryptedStringMarshaller'
     );
-    expect(KickProfile.fieldMarshallers.refreshToken).toBe(
+    expect(MixinApi.getAllFieldMarshallers(KickProfile).refreshToken).toBe(
       '/lib/persistence/EncryptedStringMarshaller'
     );
   });

@@ -24,6 +24,7 @@
 
 import { Idea } from "../stuff/Idea";
 import { TemplatePathPrefixes } from "../paths";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The runtime descriptor the catalogue caches — a plain projection of a
@@ -57,14 +58,14 @@ export default class Brand extends Idea {
   /** Authored flavor / descriptor line. */
   public descriptor: string = "";
 
-  static persistentFields = [
-    "key",
-    "name",
-    "owner",
-    "category",
-    "positioning",
-    "descriptor",
-  ];
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    name: { persistent: true },
+    owner: { persistent: true },
+    category: { persistent: true },
+    positioning: { persistent: true },
+    descriptor: { persistent: true },
+  };
 
   public getKey(): string {
     return this.key;

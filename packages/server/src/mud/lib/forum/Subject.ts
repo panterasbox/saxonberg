@@ -32,6 +32,7 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { GroupRef } from '../social/GroupProvider';
+import type { FieldMeta } from '../mixin';
 
 /**
  * The four forum/chat surfaces a subject can light up. A subject lights
@@ -58,17 +59,17 @@ export type SubjectGrain = 'venue' | 'topic';
 
 export default class Subject extends Document {
   static collectionName = Collections.ForumSubjects;
-  static persistentFields = [
-    'title',
-    'owner',
-    'groupRef',
-    'lifecycleClass',
-    'state',
-    'manifestations',
-    'grain',
-    'parentSubject',
-    'boardScopedName',
-  ];
+  static fieldMeta: FieldMeta = {
+    title: { persistent: true },
+    owner: { persistent: true },
+    groupRef: { persistent: true },
+    lifecycleClass: { persistent: true },
+    state: { persistent: true },
+    manifestations: { persistent: true },
+    grain: { persistent: true },
+    parentSubject: { persistent: true },
+    boardScopedName: { persistent: true },
+  };
 
   /** Addressing handle. Flat-global + unique for venues; board-scoped for topics. */
   title = '';

@@ -37,7 +37,7 @@
  * `containment.ts`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Adornment } from './Adornment';
@@ -87,8 +87,6 @@ export interface Adornable {
    *   getter (the live fixtures are read via `getFixtures()`). Fixtures
    *   are runtime-only, so this re-runs and rebuilds them on every
    *   hydrate (the `BoundaryAnchor` reconstruction model).
-   *
-   * @authorable
    */
   applyAdornments(specs: AdornmentSpec[]): Promise<void>;
 }
@@ -104,10 +102,13 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      * an array of `AdornmentSpec` entries; Phase 2 clones each and
      * attaches it as a fixture. The `applyExits` / `applyPopulates`
      * precedent — declarative content over the imperative `addFixture`.
-     *
-     * @authorable
      */
-    static instructionFields = ['adornments'];
+    static fieldMeta: FieldMeta = {
+      adornments: { instruction: true, authorable: true },
+      // The live fixture map. A fixture has no existence apart from the
+      // host it adorns, so the holder's death is the fixture's death.
+      fixtureSlots: { ref: 'instance', lifetime: 'owned' },
+    };
 
     /**
      * Phase 2 applier — clone each adornment template and attach it as a
@@ -303,16 +304,13 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     }
 
     /**
-     * Tear down every fixture before chaining to super. A fixture's
-     * own `onDestruct` is responsible for unhooking from any
-     * Boundary it's an anchor of — see `BoundaryAnchor`.
+     * Fixture teardown is DECLARED (`fixtureSlots: { ref: 'instance',
+     * lifetime: 'owned' }`), so slot 2.5 destructs each fixture and
+     * clears the map. A fixture's own `onDestruct` is still responsible
+     * for unhooking from any Boundary it's an anchor of — see
+     * `BoundaryAnchor`.
      */
     onDestruct(): void {
-      const toDestroy = Array.from(this.fixtureSlots.values());
-      for (const f of toDestroy) {
-        StuffApi.destruct(f as unknown as Stuff);
-      }
-      this.fixtureSlots.clear();
       super.onDestruct();
     }
   };

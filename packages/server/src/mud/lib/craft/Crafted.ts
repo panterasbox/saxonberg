@@ -20,7 +20,7 @@
  * from world state (the fulfilling bartender) — never from the wire.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
@@ -57,7 +57,7 @@ export interface CraftedStamp {
 }
 
 export interface Crafted extends Graded {
-  /** The maker's durable templatePath (Pattern A path-string ref). */
+  /** The maker's durable templatePath (identity ref (path string)). */
   getMaker(): string;
   setMaker(value: string): void;
   /** The recipe id this was made from. */
@@ -86,24 +86,22 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CraftedMixin extends GradedMixin(Base) {
     static _mixinName = 'CraftedMixin';
 
-    static persistentFields = ['maker', 'recipe', 'craftedAt'];
+    static fieldMeta: FieldMeta = {
+      maker: { persistent: true, runtimeState: true },
+      recipe: { persistent: true, runtimeState: true },
+      craftedAt: { persistent: true, runtimeState: true },
+    };
 
     /**
      * The maker's durable templatePath; empty until stamped.
-     *
-     * @runtimeState
      */
     public maker: string = '';
     /**
      * The recipe id; empty until stamped.
-     *
-     * @runtimeState
      */
     public recipe: string = '';
     /**
      * Game-clock seconds of the craft; 0 until stamped.
-     *
-     * @runtimeState
      */
     public craftedAt: number = 0;
 

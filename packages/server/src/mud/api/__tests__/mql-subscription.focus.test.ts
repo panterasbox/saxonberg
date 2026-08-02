@@ -17,13 +17,14 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
+import type { FieldMeta } from '../../lib/mixin';
 
 class Axe extends DetailedMixin(VisibleMixin(NamedMixin(Thing))) {
   static _mixinName = 'Axe';
 }
 
 class PlainNamed extends NamedMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 describe('MQL subscription — projectFocus', () => {

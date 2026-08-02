@@ -18,6 +18,7 @@
  */
 
 import { Document } from '../persistence/Document';
+import type { FieldMeta } from '../mixin';
 
 /** Merged pools resolved from one or more name banks. */
 export interface NamePools {
@@ -28,7 +29,12 @@ export interface NamePools {
 
 export class NameBank extends Document {
   static collectionName = 'name_banks';
-  static persistentFields = ['key', 'given', 'surname', 'style'];
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    given: { persistent: true },
+    surname: { persistent: true },
+    style: { persistent: true },
+  };
 
   /** Unique bank key (`common`, `dwarvish`, `elvish`, …). */
   public key: string = '';

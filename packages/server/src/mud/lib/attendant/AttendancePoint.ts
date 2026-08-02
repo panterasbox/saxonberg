@@ -13,9 +13,10 @@ import Thing from "../stuff/Thing";
 import { VisibleMixin } from "../description/Visible";
 import { DetailedMixin } from "../description/Detailed";
 import { AttendantMixin } from "./Attendant";
+import type { FieldMeta } from "../mixin";
 
 const AttendancePointBase = AttendantMixin(DetailedMixin(VisibleMixin(Thing)));
 
 export default class AttendancePoint extends AttendancePointBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

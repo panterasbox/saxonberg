@@ -26,7 +26,7 @@
  * independently.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from './Containable';
@@ -66,7 +66,9 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'SurfacedMixin';
 
-    static persistentFields = ['userFacingDetail'];
+    static fieldMeta: FieldMeta = {
+      userFacingDetail: { persistent: true, authorable: true },
+    };
 
     /**
      * Composition-time check: hosts composing SurfacedMixin MUST
@@ -85,7 +87,6 @@ export function SurfacedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** @authorable */
     protected userFacingDetail: string | undefined = undefined;
 
     getResting(): readonly (Stuff & Containable)[] {

@@ -49,6 +49,7 @@ import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "./quantity-marshaller-test-helpers";
 import { Quantity } from "../../quantity";
 import { QuantityMarshaller } from "../QuantityMarshaller";
+import type { FieldMeta } from "../../mixin";
 
 /* ─────────────────────────── test fixtures ─────────────────────────── */
 
@@ -57,7 +58,9 @@ import { QuantityMarshaller } from "../QuantityMarshaller";
 class RoomHost extends PersistableMixin(
   PopulatesMixin(ContainerMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -74,7 +77,9 @@ class RoomHost extends PersistableMixin(
 class MultiRoom extends PersistableMixin(
   ContainerMixin(PostRegistrationMixin(Idea)),
 ) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -87,7 +92,9 @@ class MultiRoom extends PersistableMixin(
 // A generic (non-host) content chest: Container ⊕ Containable, carrying
 // per-instance state. NOT persistable — nests in a host's record.
 class ContentChest extends ContainerMixin(ContainableMixin(Idea)) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -105,7 +112,9 @@ class GadgetChest extends GradedMixin(
 
 // A trinket — Containable leaf with one field. Rests inside chests.
 class Trinket extends ContainableMixin(Idea) {
-  static persistentFields = ["tag"];
+  static fieldMeta: FieldMeta = {
+    tag: { persistent: true },
+  };
   tag = "";
   getTag(): string {
     return this.tag;
@@ -120,7 +129,9 @@ class Trinket extends ContainableMixin(Idea) {
 class HostChest extends PersistableMixin(
   ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -135,7 +146,9 @@ class HostChest extends PersistableMixin(
 class MovableHost extends PersistableMixin(
   ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea))),
 ) {
-  static persistentFields = ["label"];
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
   label = "";
   getLabel(): string {
     return this.label;
@@ -164,7 +177,9 @@ class AvatarLike extends PersistableMixin(
     SlottedMixin(ContainerMixin(ContainableMixin(PostRegistrationMixin(Idea)))),
   ),
 ) {
-  static persistentFields = ["callsign"];
+  static fieldMeta: FieldMeta = {
+    callsign: { persistent: true },
+  };
   callsign = "";
   getCallsign(): string {
     return this.callsign;
@@ -179,7 +194,9 @@ class AvatarLike extends PersistableMixin(
 // A Slotted host (worn-gear demo) + a Slottable garment.
 class Wearer extends SlottedMixin(ContainerMixin(PostRegistrationMixin(Idea))) {}
 class Garment extends SlottableMixin(ContainableMixin(Idea)) {
-  static persistentFields = ["tag"];
+  static fieldMeta: FieldMeta = {
+    tag: { persistent: true },
+  };
   tag = "";
   getTag(): string {
     return this.tag;

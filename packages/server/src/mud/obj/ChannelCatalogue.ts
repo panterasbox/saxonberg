@@ -98,7 +98,6 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   private byName: Map<string, Channel> | null = null;
   private byHandle: Map<string, AdHocChannel> = new Map();
   private history: Map<string, MessageFrame[]> = new Map();
-  private subjectsRef: SubjectCatalogue | null = null;
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.warmCache();
@@ -119,9 +118,24 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
   // --- Subject-layer access -----------------------------------------
 
-  /** The peer SubjectCatalogue singleton (sync; throws if unregistered). */
+  /**
+   * The peer SubjectCatalogue singleton (sync; throws if unregistered).
+   *
+   * Resolved on EVERY call and deliberately not cached. This used to
+   * hold a live ref with no invalidation, which is the A.4 replacement
+   * hazard exactly: a hot reload mints a fresh `SubjectCatalogue`, and
+   * the stale cached ref would keep this catalogue pointed at the dead
+   * one for the rest of the process.
+   *
+   * Note this is one of the cases where `weak` would be the WRONG rule
+   * rather than a weaker one. A weak ref heals to `null` — permanently,
+   * because nothing re-populates the cache — so a hot reload that
+   * produced a perfectly good replacement would leave this reading
+   * nothing at all. The question the field asks is "which catalogue",
+   * an identity question, and the answer is a path resolved on read.
+   * `findByTemplatePath` is an O(1) hashtable lookup.
+   */
   private subjectsSync(): SubjectCatalogue {
-    if (this.subjectsRef) return this.subjectsRef;
     const s = StuffApi.findByTemplatePath<SubjectCatalogue>(SUBJECTS_PATH);
     if (!s) {
       throw new Error(
@@ -129,19 +143,17 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
           '(bootstrap order: SubjectCatalogue must precede ChannelCatalogue).',
       );
     }
-    this.subjectsRef = s;
     return s;
   }
 
+  /**
+   * Async twin of {@link subjectsSync} — faults the singleton in when it
+   * is not registered yet. Also uncached, for the same reason.
+   */
   private async requireSubjects(): Promise<SubjectCatalogue> {
-    if (this.subjectsRef) return this.subjectsRef;
     const sync = StuffApi.findByTemplatePath<SubjectCatalogue>(SUBJECTS_PATH);
-    if (sync) {
-      this.subjectsRef = sync;
-      return sync;
-    }
-    this.subjectsRef = await StuffApi.singleton<SubjectCatalogue>(SUBJECTS_PATH);
-    return this.subjectsRef;
+    if (sync) return sync;
+    return StuffApi.singleton<SubjectCatalogue>(SUBJECTS_PATH);
   }
 
   /** Resolve the Subject a channel manifests, or null. */

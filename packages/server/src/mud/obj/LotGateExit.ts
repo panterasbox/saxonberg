@@ -46,10 +46,26 @@ import DeferredDestinationExit from "../lib/boundary/DeferredDestinationExit";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type LotHolder from "./LotHolder";
+import { StuffApi } from "../api/stuff";
 
 export default class LotGateExit extends DeferredDestinationExit {
-  /** The provisioner that stands this lot's room up. */
-  private holder: LotHolder;
+  /**
+   * The provisioner that stands this lot's room up — held as a PATH,
+   * resolved on read.
+   *
+   * `LotHolder` composes `SingletonMixin` and is path-addressable, so
+   * "which provisioner" is an identity question. Holding the live
+   * instance was the A.4 shape: an identity question in an instance
+   * representation. The same build answers it correctly twice elsewhere
+   * (`PlatBook.holderPath`, `TitleController.holderFor`), so this was
+   * the outlier rather than the convention.
+   *
+   * Low severity in practice — `LotHolder.canEvict` refuses eviction,
+   * so only a hot reload or a torn-down test world could strand it —
+   * but the point of declaring reference shapes is not having to make
+   * that argument per field.
+   */
+  private holderPath: string;
 
   /** The lot's parcel extent — the provisioning key and the title key. */
   private lotExtent: string;
@@ -72,7 +88,7 @@ export default class LotGateExit extends DeferredDestinationExit {
       // path lands in the lot's own zone.
       destinationTemplatePath: holder.identityFor(lotExtent),
     });
-    this.holder = holder;
+    this.holderPath = holder.getTemplatePath() ?? '';
     this.lotExtent = lotExtent;
     // The default movement prose is compass-shaped — "You leave to the
     // north" — and a lot leaf makes nonsense of it ("You leave to the
@@ -90,7 +106,13 @@ export default class LotGateExit extends DeferredDestinationExit {
 
   /** Materialize (or re-materialize) the lot's room. */
   protected override async computeDestination(): Promise<Stuff & Container> {
-    const { room } = await this.holder.provision(this.lotExtent);
+    const holder = StuffApi.findByTemplatePath<LotHolder>(this.holderPath);
+    if (!holder) {
+      throw new Error(
+        `LotGateExit: LotHolder '${this.holderPath}' is not registered.`,
+      );
+    }
+    const { room } = await holder.provision(this.lotExtent);
     return room as Stuff & Container;
   }
 }

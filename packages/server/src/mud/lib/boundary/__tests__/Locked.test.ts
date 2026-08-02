@@ -56,8 +56,7 @@ describe('LockableMixin', () => {
 
   it('declares persistent field "locked" (noun form)', () => {
     expect(
-      (TestLockable as unknown as { persistentFields?: string[] })
-        .persistentFields
+      MixinApi.getAllPersistentFields(TestLockable)
     ).toContain('locked');
   });
 

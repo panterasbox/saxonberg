@@ -25,6 +25,7 @@ import Thing from '../../../lib/stuff/Thing';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { Time } from '../../../lib/time/Time';
 import type { CommandContributions } from '../../../api/command';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const CrossingLogBase = DetailedMixin(Thing);
 
@@ -48,8 +49,6 @@ export default class CrossingLog extends CrossingLogBase {
    * minute-of-day reading (from a timepiece); `null` is an untimed tick
    * (no readable timepiece was in the marker's sight). **Never who —
    * only when.** See the loud class comment.
-   *
-   * @authorable
    */
   public marks: Array<number | null> = [];
 
@@ -57,12 +56,13 @@ export default class CrossingLog extends CrossingLogBase {
    * Souls seen across before this record began — the pre-history count
    * folded into the total so a freshly-seeded log already reads "1,247
    * souls seen across". The live `marks` accumulate on top of it.
-   *
-   * @authorable
    */
   public startingCount = 0;
 
-  static persistentFields = ['marks', 'startingCount'];
+  static fieldMeta: FieldMeta = {
+    marks: { persistent: true, authorable: true },
+    startingCount: { persistent: true, authorable: true },
+  };
 
   /**
    * Append one mark. `reading` is a minute-of-day number from a

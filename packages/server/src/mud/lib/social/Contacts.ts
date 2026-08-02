@@ -23,7 +23,7 @@
  * future refinement.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 
 /**
@@ -99,7 +99,9 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * per-entry state appears, the upgrade path is a marshaller-backed
      * `Set<ContactEntry>` runtime.
      */
-    static persistentFields = ['_contacts'];
+    static fieldMeta: FieldMeta = {
+      _contacts: { persistent: true, runtimeState: true },
+    };
 
     static commandContributions: CommandContributions = {
       // `group` rides alongside `contacts` here: both are personal-
@@ -118,7 +120,6 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent storage. Default `[]` matches the Alias.aliases
      * legacy-tolerant pattern — existing avatar docs without the
      * field hydrate cleanly.
-     * @runtimeState
      */
     _contacts: ContactEntry[] = [];
 

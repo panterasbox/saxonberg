@@ -19,6 +19,7 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { PersistApi } from '../../../api/persist';
 import { installEncryptedStringMarshaller } from '../../persistence/__tests__/encrypted-string-marshaller-test-helpers';
+import { MixinApi } from '../../../api/mixin';
 
 const VALID_KEY = crypto.randomBytes(32).toString('base64');
 
@@ -81,12 +82,12 @@ describe('TwitchProfile', () => {
 
   it('collection + persistent fields + marshaller declarations', () => {
     expect(TwitchProfile.collectionName).toBe('twitch_profiles');
-    expect(TwitchProfile.persistentFields).toContain('accessToken');
-    expect(TwitchProfile.persistentFields).toContain('refreshToken');
-    expect(TwitchProfile.fieldMarshallers.accessToken).toBe(
+    expect(MixinApi.getAllPersistentFields(TwitchProfile)).toContain('accessToken');
+    expect(MixinApi.getAllPersistentFields(TwitchProfile)).toContain('refreshToken');
+    expect(MixinApi.getAllFieldMarshallers(TwitchProfile).accessToken).toBe(
       '/lib/persistence/EncryptedStringMarshaller'
     );
-    expect(TwitchProfile.fieldMarshallers.refreshToken).toBe(
+    expect(MixinApi.getAllFieldMarshallers(TwitchProfile).refreshToken).toBe(
       '/lib/persistence/EncryptedStringMarshaller'
     );
   });

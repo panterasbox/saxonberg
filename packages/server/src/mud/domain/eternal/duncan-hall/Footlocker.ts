@@ -15,9 +15,10 @@
 
 import { Vessel } from '../../../lib/stuff/Vessel';
 import { DetailedMixin } from '../../../lib/description/Detailed';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const FootlockerBase = DetailedMixin(Vessel);
 
 export default class Footlocker extends FootlockerBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }

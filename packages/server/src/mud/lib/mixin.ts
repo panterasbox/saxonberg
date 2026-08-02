@@ -21,6 +21,91 @@
 export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstract new (...args: any[]) => T);
 
 /**
+ * What ONE field declares about itself.
+ *
+ * `static fieldMeta` inverts the old arrangement. Field metadata used to
+ * live in four parallel statics — `persistentFields`, `fieldMarshallers`,
+ * `instructionFields`, `globIdentityFields` — each keyed by field name,
+ * so answering "what is true of this field?" meant consulting four
+ * places and adding a fifth concern meant adding a fifth static. Here
+ * each field is a key and everything about it is its value.
+ *
+ * Declared per class body and collected up the prototype chain by
+ * {@link MixinApi.getAllFieldMeta}, own-property only, concrete class
+ * first. **The merge is PROPERTY-level, not field-level**: a subclass
+ * declaring `{ marshaller }` for a field its base declares
+ * `{ persistent: true }` for gets both. Field-level shadowing would
+ * silently drop the base's declaration — `Weapon`/`Tangible` `mass` is
+ * the live case, and it would have stopped persisting.
+ *
+ * Lives here rather than in `api/` so 200+ `lib/` mixins can annotate a
+ * static without importing out of the Api tier.
+ */
+export interface FieldMetaEntry {
+  /** Round-trips through persistence. Was `static persistentFields`. */
+  persistent?: true;
+  /**
+   * TemplatePath of the Marshaller that converts this field to and from
+   * stored form. Was `static fieldMarshallers`.
+   */
+  marshaller?: string;
+  /**
+   * Applied by an `apply<Field>` method at hydrate Phase 2 rather than
+   * assigned. Was `static instructionFields`.
+   */
+  instruction?: true;
+  /**
+   * Participates in glob stack identity — two globs merge only when
+   * every such field is equal. Was `static globIdentityFields`.
+   */
+  globIdentity?: true;
+
+  /**
+   * **Axis 1** — what this field points at when it points at other
+   * Stuff.
+   *
+   * `identity` stores a templatePath ("what kind of thing"), is
+   * persistable, and re-resolves on read, so it cannot dangle.
+   * `instance` stores a live ref ("this particular object") and is
+   * never persistable, because `stuffId` does not survive a reboot.
+   *
+   * The discriminator is **the holder's meaning, not a property of the
+   * target** — "the room I am in" is an instance ref even though rooms
+   * have unique paths. That is why it is declared and not inferred.
+   */
+  ref?: 'identity' | 'instance';
+  /**
+   * **Axis 2** — what happens to the target when this holder destructs.
+   * Instance refs only; an identity ref re-resolves and cannot dangle.
+   *
+   * Read-side self-heal is the DEFAULT for every single instance ref, so
+   * this names only the *destruct-side* rule: `weak` means "none",
+   * `symmetric` clears the named {@link inverse} on the other side, and
+   * `owned` destructs the target.
+   *
+   * `owned` is the dangerous one — it means "this has no existence
+   * without me", NOT "I hold it". `Container.contents` looks exactly
+   * like the shipped `owned` exemplars and must never be declared one.
+   */
+  lifetime?: 'weak' | 'symmetric' | 'owned';
+  /** The reciprocal field on the other side. Required for `symmetric`. */
+  inverse?: string;
+
+  /** Author-editable in the Studio. Was the `@authorable` TSDoc tag. */
+  authorable?: true;
+  /** Studio picker type for an authorable ref. Was `@authorable ref:<T>`. */
+  authorPicker?: string;
+  /**
+   * Engine-written rather than author-editable. Was `@runtimeState`.
+   * A **subset** of `persistent`, not a contradiction with it.
+   */
+  runtimeState?: true;
+}
+
+/** One class body's field declarations, keyed by instance field name. */
+export type FieldMeta = Record<string, FieldMetaEntry>;
+
+/**
  * Mixin name constants.
  * Use these constants instead of string literals when checking for mixins.
  */

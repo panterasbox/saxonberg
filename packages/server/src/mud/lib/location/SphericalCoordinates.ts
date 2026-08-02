@@ -9,7 +9,7 @@
  * Persistence: `coordinates` and `radius` are auto-persisted.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 /** Public shape added by SphericalCoordinatesMixin. */
 export interface SphericalCoordinates {
@@ -28,19 +28,18 @@ export interface SphericalCoordinates {
 export function SphericalCoordinatesMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SphericalCoordinatesMixin extends Base {
     static _mixinName = 'SphericalCoordinatesMixin';
-    static persistentFields = ['coordinates', 'radius'];
+    static fieldMeta: FieldMeta = {
+      coordinates: { persistent: true, authorable: true },
+      radius: { persistent: true, authorable: true },
+    };
 
     /**
      * [rho, theta, phi] — radial distance + two angles.
-     *
-     * @authorable
      */
     protected coordinates: [number, number, number] = [0, 0, 0];
 
     /**
      * Sphere radius. Default 1.0 makes a unit sphere.
-     *
-     * @authorable
      */
     protected radius: number = 1.0;
 

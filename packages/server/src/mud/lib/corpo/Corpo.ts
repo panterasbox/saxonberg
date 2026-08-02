@@ -30,6 +30,7 @@
 
 import { Idea } from "../stuff/Idea";
 import { TemplatePathPrefixes } from "../paths";
+import type { FieldMeta } from "../mixin";
 
 /**
  * The runtime descriptor the catalogue caches — a plain projection of a
@@ -69,16 +70,16 @@ export default class Corpo extends Idea {
   /** Rival Corpo `key`s (the `rivals` edge). */
   public rivals: string[] = [];
 
-  static persistentFields = [
-    "key",
-    "label",
-    "sector",
-    "ethos",
-    "aesthetic",
-    "temperament",
-    "description",
-    "rivals",
-  ];
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    label: { persistent: true },
+    sector: { persistent: true },
+    ethos: { persistent: true },
+    aesthetic: { persistent: true },
+    temperament: { persistent: true },
+    description: { persistent: true },
+    rivals: { persistent: true },
+  };
 
   public getKey(): string {
     return this.key;

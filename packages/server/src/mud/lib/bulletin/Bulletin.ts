@@ -28,6 +28,7 @@
  */
 
 import { Document } from '../persistence/Document';
+import type { FieldMeta } from '../mixin';
 
 /** Which broadcast realm a bulletin belongs to. */
 export type BulletinRealm = 'ooc' | 'world';
@@ -48,18 +49,18 @@ export const BULLETIN_KINDS: readonly BulletinKind[] = [
 
 export class Bulletin extends Document {
   static collectionName = 'bulletins';
-  static persistentFields = [
-    'bulletinId',
-    'realm',
-    'kind',
-    'headline',
-    'body',
-    'author',
-    'publishedAt',
-    'pinned',
-    'expiresAt',
-    'retracted',
-  ];
+  static fieldMeta: FieldMeta = {
+    bulletinId: { persistent: true },
+    realm: { persistent: true },
+    kind: { persistent: true },
+    headline: { persistent: true },
+    body: { persistent: true },
+    author: { persistent: true },
+    publishedAt: { persistent: true },
+    pinned: { persistent: true },
+    expiresAt: { persistent: true },
+    retracted: { persistent: true },
+  };
 
   /** Canonical id; unique-indexed at the collection level. */
   bulletinId: string = '';

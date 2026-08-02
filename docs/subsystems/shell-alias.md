@@ -309,7 +309,7 @@ Tombstones (null values) round-trip through MongoDB cleanly as JSON
 null.
 
 `aliasesSession` is a plain `Record<string, string>` and is NOT in
-`persistentFields`. Transient: dies with the in-memory host
+`fieldMeta`'s persistent entries. Transient: dies with the in-memory host
 instance. Reconnects to a still-live Avatar see the warm shell.
 
 Tombstones never auto-cleanup. If a default is later removed from

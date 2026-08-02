@@ -1022,10 +1022,43 @@ Caches, helpers, and ordinary internal state do NOT qualify. When
 introducing `#` in domain code, leave a one-line comment explaining
 which case applies.
 
-**Hard constraint**: persistent fields (anything in `persistentFields`
-or contributed by a mixin's persistent field set) cannot be `#` — the
-`Hydrator` reflects into them and `#` slots are unreachable from
-outside the class body.
+**Hard constraint**: persistent fields (anything declared
+`{ persistent: true }` in `fieldMeta`, at any layer of the chain)
+cannot be `#` — the `Hydrator` reflects into them and `#` slots are
+unreachable from outside the class body.
+
+### Field metadata is ONE static
+
+Everything a field declares about itself lives in `static fieldMeta`,
+keyed by instance field name:
+
+```ts
+static fieldMeta: FieldMeta = {
+  mass:         { persistent: true, marshaller: QuantityMarshaller.pathFor('kg') },
+  container:    { instruction: true, authorable: true },
+  _speciesPath: { ref: 'identity', persistent: true },
+  exits:        { ref: 'instance', lifetime: 'owned' },
+};
+```
+
+It replaced four parallel field-keyed statics (`fieldMeta`'s persistent entries,
+`fieldMeta`'s marshaller entries, `fieldMeta`'s instruction entries, `fieldMeta`'s globIdentity entries) and the
+`@authorable` / `@runtimeState` TSDoc tags that a source scan used to
+grep for. Collected by `MixinApi.getAllFieldMeta`, up the prototype
+chain, own-property only, **merging PROPERTIES independently** —
+first-declaration-wins per property, concrete class first — so a
+subclass adding a `marshaller` to a field its base declared persistent
+gets both.
+
+The `ref` / `lifetime` axes are the reference model; see
+[ref-shapes.md](./ref-shapes.md). Invalid combinations throw at class
+registration, and `pnpm lint:field-meta` carries the whole-tree rules
+registration cannot see.
+
+**Class-level statics did NOT fold in.** `commandContributions`,
+`settings`, `subscribableFields` and `markupAugmenters` are keyed by
+audience / setting key / virtual projection / nothing — not by field —
+so they are a different question and stay separate.
 
 ## Bands vs Numbers — presentation default, not security veil
 

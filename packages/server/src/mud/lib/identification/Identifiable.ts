@@ -21,7 +21,7 @@
  * healing) reuses this shape by design but ships no content here.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 export interface Identifiable {
   /** The true type name revealed on identification ("a potion of healing"). */
@@ -33,9 +33,11 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class IdentifiableMixin extends Base implements Identifiable {
     static _mixinName = 'IdentifiableMixin';
 
-    static persistentFields = ['identifiedName'];
+    static fieldMeta: FieldMeta = {
+      identifiedName: { persistent: true, authorable: true },
+    };
 
-    /** @authorable The true type name revealed on identification. */
+    /** The true type name revealed on identification. */
     public identifiedName: string = '';
 
     getIdentifiedName(): string {

@@ -16,7 +16,7 @@
  *     resolve; you simply wake up where you left.
  *
  * The target circle resolves LIVE through the carrying fixture
- * (within-session ref, Pattern B — re-minted with the exit on every
+ * (within-session instance ref — re-minted with the exit on every
  * placement): an unlinked, unowned door opens onto whoever enters.
  */
 

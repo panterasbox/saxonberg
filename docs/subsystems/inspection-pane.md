@@ -174,7 +174,7 @@ setPrimaryKeyword(value: string | undefined): void;
 ```
 
 A persistent `primaryKeyword` field on `PerceptibleMixin`
-(added to `static persistentFields`). The **primary keyword** is
+(added to a `persistent` entry in `fieldMeta`). The **primary keyword** is
 the *guaranteed-resolvable handle* an MML affordance can click —
 `look <primaryKeyword>` is the canonical disambiguator.
 

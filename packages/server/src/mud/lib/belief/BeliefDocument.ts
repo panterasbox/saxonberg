@@ -19,18 +19,19 @@
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { BeliefRecord, BeliefPayload } from './BeliefStore';
+import type { FieldMeta } from '../mixin';
 
 export default class BeliefDocument extends Document {
   static collectionName = Collections.Beliefs;
-  static persistentFields = [
-    'viewerId',
-    'realm',
-    'referent',
-    'knownAs',
-    'firstSeen',
-    'lastSeen',
-    'payload',
-  ];
+  static fieldMeta: FieldMeta = {
+    viewerId: { persistent: true },
+    realm: { persistent: true },
+    referent: { persistent: true },
+    knownAs: { persistent: true },
+    firstSeen: { persistent: true },
+    lastSeen: { persistent: true },
+    payload: { persistent: true },
+  };
 
   /** Durable owner key (the viewer's `templatePath`). */
   viewerId = '';

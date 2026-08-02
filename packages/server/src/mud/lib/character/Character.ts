@@ -50,6 +50,7 @@ import { StatusMixin } from '../status/Status';
 import { EmployedMixin } from '../employment/Employed';
 import { CombatantMixin } from '../combat/Combatant';
 import { HidingMixin } from '../concealment/Hiding';
+import type { FieldMeta } from '../mixin';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -124,7 +125,7 @@ const CharacterBase = AdvancementMixin(
  */
 export abstract class Character extends CharacterBase {
   /**
-   * Domicile — the address-namespace string (Pattern A) of this
+   * Domicile — the address-namespace string (an identity ref) of this
    * character's home, or `null` when none was ever established. The
    * civics residency read (`GovernmentApi.residentOf`) derives the
    * character's government chain from it.
@@ -137,7 +138,9 @@ export abstract class Character extends CharacterBase {
    */
   protected _domicileAddress: string | null = null;
 
-  static persistentFields = ['_domicileAddress'];
+  static fieldMeta: FieldMeta = {
+    _domicileAddress: { persistent: true },
+  };
 
   public getDomicileAddress(): string | null {
     return this._domicileAddress;

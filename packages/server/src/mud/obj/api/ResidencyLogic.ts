@@ -109,8 +109,12 @@ function presenceWalkImpl(): Set<string> {
     // circle silently turned off residency keep-alive for the whole
     // world. Per-holder, so the aperture stays as narrow as the reach.
     SecurityApi.projectAcross(holder, undefined, () => {
+      // `holder` may be raw here, so the proxy self-heal need not have
+      // run — see `isInPresentRoom`. A destroyed room keeps nothing
+      // alive, so drop it rather than touching it.
       const room = (holder as Stuff & Containable).getContainer();
-      if (room === null || !MixinApi.isContainer(room)) return;
+      if (room === null || room.isDestroyed()) return;
+      if (!MixinApi.isContainer(room)) return;
       if (visited.has(room.stuffId)) return;
       visited.add(room.stuffId);
       ProxyApi.unwrap(room).touch();
@@ -122,13 +126,27 @@ function presenceWalkImpl(): Set<string> {
   return visited;
 }
 
-/** Whether `raw` sits (at any depth) inside one of the present rooms. */
+/**
+ * Whether `raw` sits (at any depth) inside one of the present rooms.
+ *
+ * ⚠ This walk runs on RAW targets by design (enumeration must never
+ * count as a touch), and the `ref: 'instance'` self-heal lives in the
+ * proxy get trap — so it does NOT run here. `getContainer()` on a raw
+ * object can therefore hand back a destroyed container, where before
+ * the reference-lifetime build the getter's own hand-written heal
+ * caught it on any receiver.
+ *
+ * The explicit `isDestroyed()` break restores that. It is the honest
+ * shape: the raw-target gap is a property of reading raw, so the site
+ * that chooses raw carries the guard rather than every getter carrying
+ * a duplicate of the framework rule.
+ */
 function isInPresentRoom(raw: Stuff, presentRooms: Set<string>): boolean {
   if (presentRooms.size === 0) return false;
   let node: Stuff | null = MixinApi.isContainable(raw)
     ? (raw as Stuff & Containable).getContainer()
     : null;
-  while (node !== null) {
+  while (node !== null && !node.isDestroyed()) {
     if (presentRooms.has(node.stuffId)) return true;
     node = MixinApi.isContainable(node)
       ? (node as Stuff & Containable).getContainer()

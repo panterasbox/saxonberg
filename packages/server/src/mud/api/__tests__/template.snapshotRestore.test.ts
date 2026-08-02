@@ -20,6 +20,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../backend/PersistenceManager';
+import type { FieldMeta } from '../../lib/mixin';
 
 type Doc = Record<string, unknown> & {
   _id?: string;
@@ -63,7 +64,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
 // Test class with a couple of persistent fields and Containable shape.
 class TestHost extends ContainableMixin(Idea) {
-  static persistentFields = ['nickname', 'level'];
+  static fieldMeta: FieldMeta = {
+    nickname: { persistent: true },
+    level: { persistent: true },
+  };
   public nickname: string = 'default';
   public level: number = 1;
 }

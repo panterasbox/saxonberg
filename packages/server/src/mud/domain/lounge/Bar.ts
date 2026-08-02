@@ -19,6 +19,7 @@ import { ExitableMixin } from '../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
+import type { FieldMeta } from '../../lib/mixin';
 
 // `PopulatesMixin` lets the bar stock itself declaratively from the seed's
 // `populates:` list on hydration — the crafting fixtures (back-bar, bottles
@@ -37,7 +38,7 @@ const BarBase = SingletonMixin(
 );
 
 export default class Bar extends BarBase {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   public override async postRegister(_context?: unknown): Promise<void> {
     this.verifyOutboundExits();

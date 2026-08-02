@@ -33,7 +33,7 @@
  * discipline.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -114,7 +114,10 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class WetMixin extends Base implements Wet {
     static _mixinName = 'WetMixin';
 
-    static persistentFields = ['_saturation', 'wetnessClockStamp'];
+    static fieldMeta: FieldMeta = {
+      _saturation: { persistent: true },
+      wetnessClockStamp: { persistent: true },
+    };
 
     /** Derived wetness band line appended to the host's long description. */
     static markupAugmenters: MarkupAugmenter[] = [wetnessAugmenter];

@@ -36,7 +36,7 @@
  * The emotes-slate build should honor this composition gate.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CommandApi } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
@@ -141,6 +141,15 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
     // sealed chokepoints (`hostUpdate`/`unhostUpdate`) are the sole
     // mutators, and this collection — not the per-update back-ref — is
     // the source of truth for membership.
+    static fieldMeta: FieldMeta = {
+      // A hosted update cannot exist unhosted (see `unhostUpdate`,
+      // which destructs on removal), so the host owns them. Converted
+      // ATOMICALLY from `cleanupOnDestruct`: that slot runs AFTER 2.5,
+      // so leaving the handler in place would have 2.5 destruct first
+      // and the handler then walk destroyed objects.
+      _hostedUpdates: { ref: 'instance', lifetime: 'owned' },
+    };
+
     private _hostedUpdates: (Stuff & AetherHosted)[] = [];
 
     getHostedUpdates(): readonly (Stuff & AetherHosted)[] {
@@ -201,21 +210,6 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
      * host. No command-delta is fired — the host's recency stack dies
      * with it.
      */
-    static cleanupOnDestruct(host: Stuff): void {
-      const h = host as Stuff & AetherHost;
-      for (const u of [...h.getHostedUpdates()]) {
-        try {
-          u.setHost(null);
-          StuffApi.destruct(u);
-        } catch (err) {
-          console.error(
-            `AetherMixin.cleanupOnDestruct: failed to destruct hosted ` +
-              `update ${u.stuffId} for host ${host.stuffId}`,
-            err,
-          );
-        }
-      }
-    }
   }
   return AetherMixin;
 }

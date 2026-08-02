@@ -32,6 +32,7 @@ import { PropertiedMixin } from '../stuff/Propertied';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Sensor } from '../message/Sensor';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Propagation physics shape. `'field'` = walks containment + Boundary
@@ -104,7 +105,11 @@ export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected modality: string = '';
 
-  static persistentFields = ['name', 'family', 'modality'];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    family: { persistent: true },
+    modality: { persistent: true },
+  };
 
   public getName(): string {
     return this.name;

@@ -37,6 +37,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import Thing from '../../../../lib/stuff/Thing';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
+import type { FieldMeta } from '../../../../lib/mixin';
 
 class ThermalMug extends ThermalMixin(Thing) {
   static _mixinName = 'ThermalMugFeel';
@@ -52,7 +53,7 @@ const Base = OrganismMixin(
   ),
 );
 class ReceivingGiver extends Base {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
   public received: Array<{ topic: string; body: string }> = [];
   protected override handleMessage(msg: unknown): void {
     const frame = msg as { topic: string; body: string };
@@ -62,7 +63,7 @@ class ReceivingGiver extends Base {
 class TestLocation extends ContainerMixin(
   DetailedMixin(VisibleMixin(NamedMixin(PerceptibleMixin(Idea)))),
 ) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
   stampTemplatePathForTest(obj, path);

@@ -20,7 +20,7 @@
  * Narrow via `MixinApi.isKeen`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 
@@ -68,12 +68,12 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class KeenMixin extends Base implements Keen {
     static _mixinName = 'KeenMixin';
 
-    static persistentFields = ['keenness'];
+    static fieldMeta: FieldMeta = {
+      keenness: { persistent: true, runtimeState: true },
+    };
 
     /**
      * 0..1 edge gauge; default fully keen.
-     *
-     * @runtimeState
      */
     private _keenness: number = 1;
 

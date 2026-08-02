@@ -34,6 +34,7 @@ import { Faculty } from '../magic/Faculty';
 import type { NaturalAttackSpec } from '../combat/NaturalAttack';
 import { NaturalAttack } from '../combat/NaturalAttack';
 import { NameBank } from './NameBank';
+import type { FieldMeta } from '../mixin';
 
 /** A suggested character name (given + optional surname). */
 export interface SuggestedName {
@@ -273,8 +274,6 @@ export default class Species extends SingletonMixin(
    * to the legacy single-attack `CombatantMixin.naturalAttackChannel`.
    * See docs/subsystems/combat-hooks.md § the species vocabulary and
    * docs/subsystems/race.md.
-   *
-   * @authorable
    */
   protected naturalAttacks: NaturalAttackSpec[] = [];
 
@@ -286,34 +285,32 @@ export default class Species extends SingletonMixin(
    * `affordedByShield`); the instrument gate still stands (satisfied by
    * a natural attack), and unknown keys are inert. See
    * docs/subsystems/combat-hooks.md § the species vocabulary.
-   *
-   * @authorable
    */
   protected affordedGambits: string[] = [];
 
-  static persistentFields = [
-    'binomial',
-    'commonNames',
-    '_bodyPlanPath',
-    '_parentCladePath',
-    '_defaultMaterialPath',
-    'lifecycleStates',
-    'sexDeterminationSystem',
-    'reproductiveMode',
-    'lifespanMin',
-    'lifespanMax',
-    'circadianBand',
-    'diet',
-    'visionProfile',
-    'olfactoryProfile',
-    'vitalProfile',
-    'facultyProfile',
-    'nameBankKeys',
-    'innateMixins',
-    'sentient',
-    'naturalAttacks',
-    'affordedGambits',
-  ];
+  static fieldMeta: FieldMeta = {
+    binomial: { persistent: true },
+    commonNames: { persistent: true },
+    _bodyPlanPath: { persistent: true },
+    _parentCladePath: { persistent: true },
+    _defaultMaterialPath: { persistent: true },
+    lifecycleStates: { persistent: true },
+    sexDeterminationSystem: { persistent: true },
+    reproductiveMode: { persistent: true },
+    lifespanMin: { persistent: true },
+    lifespanMax: { persistent: true },
+    circadianBand: { persistent: true },
+    diet: { persistent: true },
+    visionProfile: { persistent: true },
+    olfactoryProfile: { persistent: true },
+    vitalProfile: { persistent: true },
+    facultyProfile: { persistent: true },
+    nameBankKeys: { persistent: true },
+    innateMixins: { persistent: true },
+    sentient: { persistent: true },
+    naturalAttacks: { persistent: true, authorable: true },
+    affordedGambits: { persistent: true, authorable: true },
+  };
   // `shortDescription` / `longDescription` (the species' generic
   // appearance) come from VisibleMixin's own persistentFields. The
   // bespoke `defaultDescription` field was subsumed into

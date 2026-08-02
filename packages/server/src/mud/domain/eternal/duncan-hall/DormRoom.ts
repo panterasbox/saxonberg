@@ -37,6 +37,7 @@ import { MixinApi } from '../../../api/mixin';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const DormRoomBase = PersistableMixin(
   WarrenMemberMixin(
@@ -70,7 +71,7 @@ export default class DormRoom extends DormRoomBase {
    * DATA in the seed and laid down once by the spine's `seedBornWith` — no
    * imperative install code lives here.
    */
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 
   /**
    * Population witness (folded in — no separate mixin, since `DormRoom` is a

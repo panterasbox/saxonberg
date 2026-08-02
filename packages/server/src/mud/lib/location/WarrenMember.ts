@@ -19,7 +19,8 @@
  * are the SOLE writers of the back-ref. `setWarren` is public only so the
  * Warren-side helpers can reach it; normal callers never invoke it.
  *
- * Reference shape: Pattern B live ref with R2.3 self-heal (a destructed
+ * Reference shape: an instance (live) ref, declared `{ ref: 'instance' }`
+ * so the R2.3 self-heal is framework-run (a destructed
  * Warren reads back as `null`) and R2.4 cleanup (`cleanupOnDestruct`
  * unhooks from the Warren's set via `removeMember`). Models the
  * Spawner/Spawned precedent (`lib/stuff/Spawned.ts`). NOT persisted — the
@@ -32,6 +33,7 @@ import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Warren } from './Warren';
+import type { FieldMeta } from '../mixin';
 
 /**
  * Public shape provided by WarrenMemberMixin.
@@ -58,6 +60,12 @@ export function WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Contain
 ) {
   return class WarrenMemberMixin extends Base {
     static _mixinName = 'WarrenMemberMixin';
+
+    static fieldMeta: FieldMeta = {
+      // Back-ref to the owning Warren. Self-heals on read; the
+      // destruct-side unhook is R2.4 (`cleanupOnDestruct` below).
+      _warren: { ref: 'instance', lifetime: 'weak' },
+    };
 
     /**
      * Residency veto: a live Warren member stays resident — culling a
@@ -95,18 +103,13 @@ export function WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Contain
     }
 
     /**
-     * Live ref back-pointer. Transient — not in `persistentFields`.
+     * Live ref back-pointer. Transient — never persisted.
      * TypeScript `private` (not `#`) per the domain-code default — the
      * mixin proxy receiver can't reach `#`-private slots.
      */
     private _warren: (Stuff & Warren) | null = null;
 
     public getWarren(): (Stuff & Warren) | null {
-      if (this._warren === null) return null;
-      if ((this._warren as unknown as Stuff).isDestroyed()) {
-        this._warren = null;
-        return null;
-      }
       return this._warren;
     }
 

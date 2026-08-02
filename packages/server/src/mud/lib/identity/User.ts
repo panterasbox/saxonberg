@@ -12,6 +12,7 @@
 
 import { Document } from '../persistence/Document';
 import type { AuthProvider, User as IUser } from '@saxonberg/types';
+import type { FieldMeta } from '../mixin';
 
 export class User extends Document implements IUser {
   static collectionName = 'users';
@@ -29,12 +30,12 @@ export class User extends Document implements IUser {
   /**
    * Persistent fields copied to/from the MongoDB document.
    */
-  static persistentFields = [
-    'googleProfileId',
-    'twitchProfileId',
-    'kickProfileId',
-    'playerIds',
-  ];
+  static fieldMeta: FieldMeta = {
+    googleProfileId: { persistent: true },
+    twitchProfileId: { persistent: true },
+    kickProfileId: { persistent: true },
+    playerIds: { persistent: true },
+  };
 
   /**
    * Map a provider to its FK field name — the single source of truth

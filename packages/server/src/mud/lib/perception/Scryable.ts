@@ -20,7 +20,7 @@
  * shape before content lands.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Visible } from '../description/Visible';
 import type { VetoResult } from '../errors';
@@ -64,7 +64,7 @@ export function ScryableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * with bound-zone state, a crystal ball with focus history) add
      * their own persistent fields when they land.
      */
-    static persistentFields: string[] = [];
+    static fieldMeta: FieldMeta = {};
 
     /**
      * Default-permissive predicate. Override in concrete instrument

@@ -23,6 +23,7 @@
 
 import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
+import type { FieldMeta } from '../mixin';
 
 /** Provenance of an authoring act. Open vocabulary; `save` is the v1 kind. */
 export type AuthoringEventKind = 'save';
@@ -46,7 +47,13 @@ export interface AuthoringEventFields {
 
 export default class AuthoringEvent extends Document {
   static collectionName = Collections.AuthoringEvents;
-  static persistentFields = ['path', 'author', 'kind', 'at', 'realAt'];
+  static fieldMeta: FieldMeta = {
+    path: { persistent: true },
+    author: { persistent: true },
+    kind: { persistent: true },
+    at: { persistent: true },
+    realAt: { persistent: true },
+  };
 
   /** The authored template path — indexed (derive authorship of a path). */
   path = '';

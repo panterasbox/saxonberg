@@ -68,7 +68,7 @@ Stuff (one of seven top-level branches — see architecture.md)
   ├── Location                      (Adornable + Container — the container host; concrete rooms in location.md)
   ├── Thing                         (ContainableMixin(Stuff))
   │     ├── Boundary                (Visible + Perceptible)            ← see light.md
-  │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` Pattern A)
+  │     │     ├── Window            (Sealable + Light/Sight/Smell/Sound Conduits; `attachedHosts` identity refs)
   │     │     └── Door              (Sealable + Light/Sight/Movement/Sound/Smell Conduits)  ← retrofit
   │     └── BoundaryAnchor          (Adornment)                         ← see light.md
   ├── Vessel                        (Tangible + Atmospheric + Container + Containable)
@@ -209,7 +209,7 @@ matrix-invariant violation. Regression tests live in
 
 ### Declarative-content `container:`
 
-`ContainableMixin` declares `static instructionFields = ['container']`
+`ContainableMixin` declares `container: { instruction: true }`
 plus an `applyContainer(path)` Phase 2 applier. When the source
 template's `data` block carries a `container: /some/singleton-target`
 string, the Hydrator resolves the target via `StuffApi.singleton(path)`
@@ -294,7 +294,7 @@ collections are independent and non-overlapping.
 ### `Containable.restingOn`
 
 `Containable` carries `_restingOn: (Stuff & Surfaced) | null`
-as a **runtime-only Pattern B live ref**. The accessor
+as a **runtime-only instance ref**. The accessor
 `getRestingOn()` returns the ref with an R2.3 self-heal (clear
 on destructed supporter); the privileged setter
 `_setRestingOn(surface)` is gated by
@@ -304,7 +304,7 @@ reachable only from `ContainmentApi.placeOn` /
 
 Not persisted: on server restart, an apple's container is
 preserved (the apple is still in the room) but the on-surface
-relationship resets. The tradeoff is intentional. Pattern A
+relationship resets. The tradeoff is intentional. An identity-ref
 templatePath stamping would persist cross-restart, but only
 resolves unambiguously for singleton supporters — which
 constrains the natural sandbox case of multiple identical
@@ -312,7 +312,7 @@ chairs / tables authored in a single area. The cross-restart
 loss is small (items reappear in their container, just without
 on-surface precision); when content earns persistent
 on-surface state, that build picks the right shape (likely
-Pattern B with stuffId stamping at save time).
+an instance ref with stuffId stamping at save time).
 
 ### `ContainmentApi.placeOn(item, surface)`
 
@@ -562,7 +562,7 @@ ripples through both layers. See
 ### `engagedMode` and the slot-release witness
 
 `MobileMixin` carries a runtime-only `_engagedModePath: string | null`
-field (NOT in `persistentFields` — a reloaded actor wakes up
+field (NOT in `fieldMeta`'s persistent entries — a reloaded actor wakes up
 unengaged). `getEngagedMode()` resolves it via the singleton cache;
 `setEngagedMode(mode)` stores `mode.getTemplatePath()`.
 `isEngagedIn(mode | name)` is polymorphic — accepts either the
@@ -686,7 +686,7 @@ self-rearranging chambers) can produce many instances per template.
 ## Persistence Notes
 
 The spatial subsystem is mostly auto-persistent through
-`persistentFields`:
+`fieldMeta`'s persistent entries:
 
 - `CartesianCoordinatesMixin`: `coordinates`.
 - `SphericalCoordinatesMixin`: `coordinates`, `radius`.
@@ -697,7 +697,7 @@ The spatial subsystem is mostly auto-persistent through
 
 One intentional non-persistent:
 
-- **`Containable.environment`** is NOT in `persistentFields` (see
+- **`Containable.environment`** is NOT in `fieldMeta`'s persistent entries (see
   `Containable.ts:71-76`). It's a reference to another Stuff; the
   classes that compose Containable must declare a custom
   `persistenceHandler` to choose how to serialize the reference.

@@ -18,7 +18,7 @@
  * mixins here. See docs/subsystems/harm.md.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 
 export interface Dressing {
   /** Dressing quality, 0 (filthy) .. 1 (clean/sterile). Grades outcome. */
@@ -33,7 +33,9 @@ export function DressingMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class DressingMixin extends Base implements Dressing {
     static _mixinName = 'DressingMixin';
 
-    static persistentFields = ['dressingQuality'];
+    static fieldMeta: FieldMeta = {
+      dressingQuality: { persistent: true },
+    };
 
     /** 0..1 quality gauge; default clean. */
     private _dressingQuality: number = DEFAULT_QUALITY;

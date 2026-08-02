@@ -17,7 +17,7 @@
  * values change.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
@@ -42,11 +42,14 @@ export interface SoundSourceObserver {
 export function SoundSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SoundSourceMixin extends Base {
     static _mixinName = 'SoundSourceMixin';
-    static persistentFields = ['emittedAmplitude', 'character'];
+    static fieldMeta: FieldMeta = {
+      emittedAmplitude: { persistent: true, authorable: true },
+      character: { persistent: true, authorable: true },
+    };
 
-    /** @authorable Backing storage for the emitted dB scalar. */
+    /** Backing storage for the emitted dB scalar. */
     private _emittedAmplitude: number = 0;
-    /** @authorable Backing storage for the sound character string. */
+    /** Backing storage for the sound character string. */
     private _character: string = '';
 
     protected get emittedAmplitude(): number {

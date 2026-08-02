@@ -37,7 +37,7 @@
  * EnvironmentMixin's schema-on-mixin walk).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Environment, SettingsSchemaEntry } from './Environment';
 import { SettingTypes } from './Environment';
@@ -178,7 +178,10 @@ export function WorkspaceMixin<
      * but persist across logins so the avatar's session resumes
      * where it left off.
      */
-    static persistentFields = ['contentCwd', 'sourceCwd'];
+    static fieldMeta: FieldMeta = {
+      contentCwd: { persistent: true, runtimeState: true },
+      sourceCwd: { persistent: true, runtimeState: true },
+    };
 
     /**
      * Workspace-tier settings. `workspace.editor` and
@@ -290,14 +293,12 @@ export function WorkspaceMixin<
      * than reading `workspace.home` at construction time — the
      * Hydrator hasn't loaded settings yet at the moment fields
      * default-initialise.
-     * @runtimeState
      */
     public contentCwd: string = DEFAULT_HOME;
 
     /**
      * Persistent cwd in the source tree. Same defaulting story as
      * `contentCwd`.
-     * @runtimeState
      */
     public sourceCwd: string = DEFAULT_HOME;
 

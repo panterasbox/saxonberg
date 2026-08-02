@@ -28,7 +28,7 @@
  * only the name it hangs off bends around recognition).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -88,9 +88,10 @@ export function StatusMixin<TBase extends MixinConstructor>(Base: TBase) {
     // Only the authored default persists; the runtime value is active
     // state (re-set by the verb / behavior each session), like an
     // imposed disguise.
-    static persistentFields = ['authoredStatus'];
+    static fieldMeta: FieldMeta = {
+      authoredStatus: { persistent: true, authorable: true },
+    };
 
-    /** @authorable */
     public authoredStatus: string = '';
     private _runtimeStatus: string | null = null;
 

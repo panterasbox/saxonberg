@@ -28,7 +28,7 @@ find-then-save upsert for the idempotent case.
 
 `lib/chronicle/ChronicleEntry.ts` is a plain `Document` (not Stuff): the
 row **is** the entry. It mirrors `BeliefDocument` — `static
-collectionName = Collections.Chronicles`, `static persistentFields`,
+collectionName = Collections.Chronicles`, a `persistent` entry in `fieldMeta`,
 public scalar/array fields the `Hydrator` reflects into by name.
 
 One document per entry, **never a growing array** (the `ContactsMixin`

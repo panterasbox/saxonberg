@@ -13,9 +13,10 @@ import EventRegistry from '../../../obj/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { FieldChangedEvent } from '../../events/FieldChangedEvent';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import type { FieldMeta } from '../../mixin';
 
 class NamedThing extends NamedMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 async function bootRegistry(): Promise<void> {

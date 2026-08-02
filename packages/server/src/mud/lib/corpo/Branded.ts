@@ -28,7 +28,7 @@
  * `AuthoringEvent` provenance ledger (real-world template authorship).
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import { Mixins } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import { CorpoApi } from "../../api/corpo";
@@ -54,13 +54,13 @@ export interface Branded {
 export function BrandedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class BrandedMixin extends Base implements Branded {
     static _mixinName = "BrandedMixin";
-    static persistentFields = ["_brandKey"];
+    static fieldMeta: FieldMeta = {
+      _brandKey: { persistent: true, authorable: true, authorPicker: 'Brand' },
+    };
 
     /**
      * The durable brand `key` (e.g. `'volk'`). Empty = unbranded. Resolved
      * to its `Brand` / `Corpo` lazily on each read via `CorpoApi`.
-     *
-     * @authorable ref:Brand
      */
     public _brandKey: string = "";
 

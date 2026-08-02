@@ -41,7 +41,7 @@
  * required.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
 import { Quantity } from '../quantity';
@@ -102,11 +102,18 @@ export interface Tangible {
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class TangibleMixin extends Base {
     static _mixinName = 'TangibleMixin';
-    static persistentFields = [
-      '_materialPath',
-      '_detailMaterialPaths',
-      'mass',
-    ];
+    /**
+     * Field-marshaller binding. `mass` round-trips via the kg-bound
+     * QuantityMarshaller; the runtime accessor pair stays strict on
+     * `Quantity<'kg'>`. Authoring-shape coercion (`mass: heavy`,
+     * `mass: "12000 g"`, bare numeric) lives in the marshaller's
+     * `fromStored` and only runs on the persistence path.
+     */
+    static fieldMeta: FieldMeta = {
+      _materialPath: { persistent: true, authorable: true, authorPicker: 'Material' },
+      _detailMaterialPaths: { persistent: true, authorable: true, authorPicker: 'Material' },
+      mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg'), authorable: true },
+    };
 
     /**
      * Live-query subscribable fields.
@@ -160,22 +167,9 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     ];
 
     /**
-     * Field-marshaller binding. `mass` round-trips via the kg-bound
-     * QuantityMarshaller; the runtime accessor pair stays strict on
-     * `Quantity<'kg'>`. Authoring-shape coercion (`mass: heavy`,
-     * `mass: "12000 g"`, bare numeric) lives in the marshaller's
-     * `fromStored` and only runs on the persistence path.
-     */
-    static fieldMarshallers = {
-      mass: QuantityMarshaller.pathFor('kg'),
-    };
-
-    /**
      * Runtime mass storage as a `Quantity<'kg'>`. The marshaller
      * delivers a Quantity instance on hydrate; in-process callers
      * use `getMass` / `setMass`.
-     *
-     * @authorable
      */
     private _mass: Quantity<'kg'> = Quantity.of(0, 'kg');
 
@@ -201,7 +195,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * each `getMaterial()` call so HMR replacement is observed
      * immediately.
      *
-     * @authorable ref:Material Pattern-A path-string reference to the
+     * Pattern-A path-string reference to the
      *   default Material singleton (resolve-on-read).
      */
     public _materialPath: string | null = null;
@@ -211,8 +205,6 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Material's templatePath. Stored as a plain `Record` (not a
      * `Map`) so default JSON serialization handles it without a
      * marshaller.
-     *
-     * @authorable ref:Material
      */
     public _detailMaterialPaths: Record<string, string> = {};
 

@@ -70,15 +70,16 @@ import LotGateExit from "./LotGateExit";
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type { VetoResult } from "../lib/errors";
+import type { FieldMeta } from "../lib/mixin";
 
 const LotHolderBase = SingletonMixin(PostRegistrationMixin(Idea));
 
 export default class LotHolder extends LotHolderBase {
-  static persistentFields: string[] = [
-    "roomTemplate",
-    "streetPath",
-    "parentExtent",
-  ];
+  static fieldMeta: FieldMeta = {
+    roomTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
+    streetPath: { persistent: true, authorable: true, authorPicker: 'Template' },
+    parentExtent: { persistent: true },
+  };
 
   /**
    * The room template cloned per sold lot. Hinkley's is a yard; another
@@ -95,8 +96,6 @@ export default class LotHolder extends LotHolderBase {
    * refuses a non-cardinal direction between two rooms in the same zone,
    * which is exactly the `lot-1` gate. A yard is reached through a gate,
    * not by a grid step.
-   *
-   * @authorable ref:Template
    */
   public roomTemplate: string = "";
 
@@ -111,8 +110,6 @@ export default class LotHolder extends LotHolderBase {
    * and a static `north → <the shared room template>` names the template
    * itself — which then materializes as an unowned yard on nobody's lot.
    * Empty = no street wiring (a subdivision reached some other way).
-   *
-   * @authorable ref:Template
    */
   public streetPath: string = "";
 
@@ -205,6 +202,12 @@ export default class LotHolder extends LotHolderBase {
     if (cached && !cached.isDestroyed()) {
       return { room: cached, firstTime: false };
     }
+    // Prune, don't merely skip. Every reader guarded on `isDestroyed()`
+    // and none of them ever deleted the key, and this is a
+    // process-lifetime singleton — so a reaped room's entry was retained
+    // for the life of the process. Not a correctness bug (no dangling
+    // ref escaped) but an unbounded retention leak.
+    if (cached) this._roomsByLot.delete(lotExtent);
     // MINT AN IDENTITY rather than sharing the source template's. The
     // room is a singleton-shaped cartesian room, so lot 2's yard has to
     // BE lot 2's yard — `asTemplatePath` is the identity-doctrine channel
@@ -292,6 +295,11 @@ export default class LotHolder extends LotHolderBase {
   /** The live room for a lot if one is standing, else null. */
   public liveRoomFor(lotExtent: string): Stuff | null {
     const cached = this._roomsByLot.get(lotExtent);
-    return cached && !cached.isDestroyed() ? cached : null;
+    if (!cached) return null;
+    if (cached.isDestroyed()) {
+      this._roomsByLot.delete(lotExtent);
+      return null;
+    }
+    return cached;
   }
 }

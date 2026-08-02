@@ -30,12 +30,14 @@ import { GlobbableMixin } from "../lib/stuff/Globbable";
 import { DEFAULT_CURRENCY } from "../lib/banking/Money";
 import { Coinage } from "../lib/banking/Coinage";
 import { Quantity } from "../lib/quantity";
+import type { FieldMeta } from "../lib/mixin";
 
 const CoinBase = GlobbableMixin(Thing);
 
 export default class Coin extends CoinBase {
-  static persistentFields = ["denomination"];
-  static globIdentityFields = ["denomination"];
+  static fieldMeta: FieldMeta = {
+    denomination: { persistent: true, globIdentity: true },
+  };
 
   /** The coin's denomination (its identity / kind). v1: `'credit'`. */
   public denomination: string = DEFAULT_CURRENCY;

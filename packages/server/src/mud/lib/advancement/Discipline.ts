@@ -30,6 +30,7 @@
 import { Idea } from "../stuff/Idea";
 import { TemplatePathPrefixes } from "../paths";
 import type { CompetenceBandName } from "./CompetenceBand";
+import type { FieldMeta } from "../mixin";
 
 /**
  * Which channel of learning a Discipline lives on — the procedural /
@@ -106,17 +107,17 @@ export default class Discipline extends Idea {
   /** Band-gated verb conferrals (the knowing→doing seam). */
   public conferrals: ConferralRule[] = [];
 
-  static persistentFields = [
-    "key",
-    "channel",
-    "label",
-    "description",
-    "iscedf",
-    "requires",
-    "specializes",
-    "synergizes",
-    "conferrals",
-  ];
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    channel: { persistent: true },
+    label: { persistent: true },
+    description: { persistent: true },
+    iscedf: { persistent: true },
+    requires: { persistent: true },
+    specializes: { persistent: true },
+    synergizes: { persistent: true },
+    conferrals: { persistent: true },
+  };
 
   public getKey(): string {
     return this.key;

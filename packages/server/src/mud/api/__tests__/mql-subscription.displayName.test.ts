@@ -17,13 +17,14 @@ import { ShadowChangedEvent } from '../../lib/events/ShadowChangedEvent';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import type { FieldMeta } from '../../lib/mixin';
 
 class NamedThing extends NamedMixin(Idea) {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 class Plain extends Idea {
-  static persistentFields: string[] = [];
+  static fieldMeta: FieldMeta = {};
 }
 
 describe('MQL subscription — displayName on Stuff', () => {

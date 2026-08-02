@@ -33,7 +33,7 @@
  * Phase 2.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
@@ -64,8 +64,6 @@ export interface Populates {
    *   a template's `populates` field. **Instruction applier** — consumes
    *   the spec during hydration to spawn/populate; the spec is not
    *   retained and there is no paired getter (not a property).
-   *
-   * @authorable
    */
   applyPopulates(specs: PopulateSpec[]): Promise<void>;
 }
@@ -81,10 +79,10 @@ export function PopulatesMixin<
      * is an array of templatePath strings; Phase 2 dispatches by
      * source-template singleton-shape and moves the resulting
      * instance into self.
-     *
-     * @authorable
      */
-    static instructionFields = ['populates'];
+    static fieldMeta: FieldMeta = {
+      populates: { instruction: true, authorable: true },
+    };
 
     /**
      * Phase 2 applier. See class docstring for dispatch semantics.

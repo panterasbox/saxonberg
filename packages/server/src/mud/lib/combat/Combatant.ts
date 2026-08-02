@@ -22,7 +22,7 @@
  * See docs/subsystems/combat.md.
  */
 
-import type { MixinConstructor } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
@@ -138,11 +138,11 @@ export interface Combatant {
 export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CombatantMixin extends Base implements Combatant {
     static _mixinName = "CombatantMixin";
-    static persistentFields = [
-      "naturalAttackChannel",
-      "standingLethality",
-      "standingStopCondition",
-    ];
+    static fieldMeta: FieldMeta = {
+      naturalAttackChannel: { persistent: true, authorable: true },
+      standingLethality: { persistent: true, authorable: true },
+      standingStopCondition: { persistent: true, authorable: true },
+    };
 
     /**
      * The **legacy single-attack fallback** — the innate attack channel:
@@ -153,8 +153,6 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      * engine synthesizes this channel as a one-entry `{key: 'natural'}`
      * list, byte-preserving pre-vocabulary behavior. Kept as the simple
      * one-channel surface (field and behavior unchanged).
-     *
-     * @authorable
      */
     public naturalAttackChannel: string = "";
 
@@ -166,11 +164,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      * an NPC isn't an Environment, so a duelist authors its posture here
      * instead (`'lethal'` / `'death'`). Empty = no authored posture (the
      * frictionless non-lethal default).
-     *
-     * @authorable
      */
     public standingLethality: string = "";
-    /** @authorable */
     public standingStopCondition: string = "";
 
     getStandingLethality(): string {

@@ -13,11 +13,15 @@
 import Thing from "../stuff/Thing";
 import { VisibleMixin } from "../description/Visible";
 import { DetailedMixin } from "../description/Detailed";
+import type { FieldMeta } from "../mixin";
 
 const TicketBase = DetailedMixin(VisibleMixin(Thing));
 
 export default class Ticket extends TicketBase {
-  static persistentFields = ["pointPath", "number"];
+  static fieldMeta: FieldMeta = {
+    pointPath: { persistent: true },
+    number: { persistent: true },
+  };
 
   /** The service point this ticket claims a place at (its templatePath). */
   public pointPath = "";

@@ -6,7 +6,7 @@ import PersistentHydrator from '../PersistentHydrator';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';
-import type { MixinConstructor } from '../../mixin';
+import type { MixinConstructor, FieldMeta } from '../../mixin';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -69,9 +69,8 @@ function registerMarshaller<T extends Marshaller<unknown, unknown>>(
 function WalletMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class WalletMixin extends Base {
     static _mixinName = 'WalletMixin';
-    static persistentFields = ['wallet'];
-    static fieldMarshallers = {
-      wallet: MoneyBagMarshaller.templatePath,
+    static fieldMeta: FieldMeta = {
+      wallet: { persistent: true, marshaller: MoneyBagMarshaller.templatePath },
     };
 
     private _wallet: MoneyBag = MoneyBag.empty();
@@ -140,7 +139,9 @@ describe('Marshaller framework', () => {
 
     it('returns an empty map when no marshallers are declared', () => {
       class NoMarshallers extends Idea {
-        static persistentFields = ['plain'];
+        static fieldMeta: FieldMeta = {
+          plain: { persistent: true },
+        };
       }
       const marshallers = MixinApi.getAllFieldMarshallers(NoMarshallers);
       expect(marshallers).toEqual({});

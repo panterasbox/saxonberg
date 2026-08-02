@@ -22,7 +22,7 @@
  * calls `BoundaryApi.attachExistingBoundary` after clone time.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Adornable } from './Adornable';
 import { SlottableMixin } from '../slot/Slottable';
@@ -45,6 +45,18 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
      * Stuff references go through custom persistenceHandlers (see
      * `Containable.environment` for the precedent).
      */
+    static fieldMeta: FieldMeta = {
+      // `weak`, NOT the symmetric pair `ref-shapes.md` claimed.
+      // `Adornable.fixtureSlots` is already `owned` (W6), and a field
+      // carries ONE lifetime — declaring this side symmetric as well is
+      // not expressible under the schema or the validator. The holder
+      // owns its fixtures and destructs them; this back-ref only needs
+      // to stop dangling when a fixture is destroyed standalone, which
+      // is exactly what `weak` says. The doc's exemplar table is
+      // corrected rather than the code bent to match it.
+      adornedTo: { ref: 'instance', lifetime: 'weak' },
+    };
+
     protected adornedTo: (Stuff & Adornable) | null = null;
 
     getAdornedTo(): (Stuff & Adornable) | null {

@@ -28,10 +28,16 @@
  */
 
 import { Document } from "../persistence/Document";
+import type { FieldMeta } from "../mixin";
 
 export class StoredDocument extends Document {
   static collectionName = "documents";
-  static persistentFields = ["path", "owner", "kind", "data"];
+  static fieldMeta: FieldMeta = {
+    path: { persistent: true },
+    owner: { persistent: true },
+    kind: { persistent: true },
+    data: { persistent: true },
+  };
 
   /** Canonical path key (owner/scope encoded; e.g. `/home/iris/scripts/wave`). */
   path: string = "";

@@ -43,6 +43,7 @@ import type { Conduit, BoundarySide } from './Conduit';
 import type { BoundaryAnchor } from './BoundaryAnchor';
 import type { Adornable } from './Adornable';
 import { StuffApi } from '../../api/stuff';
+import type { FieldMeta } from '../mixin';
 
 export class Boundary extends Thing {
   /**
@@ -59,6 +60,16 @@ export class Boundary extends Thing {
    * Public read access goes through `getAnchorA()` / `getAnchorB()` /
    * `getAnchors()`. Mutation is `BoundaryApi`'s job.
    */
+  static fieldMeta: FieldMeta = {
+    // An anchor exists only to surface THIS boundary on one host; it
+    // has no meaning once the boundary is gone, so the boundary's death
+    // is the anchor's death. The `detach()` policy (removing each
+    // anchor from its host's fixtures) stays hand-written in
+    // `onDestruct` — see the note there for why it must not null these.
+    anchorA: { ref: 'instance', lifetime: 'owned' },
+    anchorB: { ref: 'instance', lifetime: 'owned' },
+  };
+
   protected anchorA: BoundaryAnchor | null = null;
   protected anchorB: BoundaryAnchor | null = null;
 
@@ -217,12 +228,19 @@ export class Boundary extends Thing {
    * destructs them.
    */
   public onDestruct(): void {
-    const orphaned: BoundaryAnchor[] = [];
-    if (this.anchorA) orphaned.push(this.anchorA);
-    if (this.anchorB) orphaned.push(this.anchorB);
-    this.detach();
-    for (const anchor of orphaned) {
-      StuffApi.destruct(anchor as unknown as Stuff);
+    // POLICY only: unhook each anchor from the host it adorns.
+    //
+    // This deliberately does NOT call `detach()` any more. The cascade
+    // and the slot-clearing are declared (`anchorA`/`anchorB` are
+    // `{ ref: 'instance', lifetime: 'owned' }`) and belong to slot 2.5 —
+    // and `detach()` nulls both slots, so calling it here would leave
+    // 2.5 nothing to destruct and the anchors would silently survive.
+    // The fixture removal is the genuinely extra work and stays.
+    for (const anchor of [this.anchorA, this.anchorB]) {
+      if (!anchor) continue;
+      const host = anchor.getAdornedTo();
+      if (host) host.removeFixture(anchor);
     }
+    super.onDestruct();
   }
 }

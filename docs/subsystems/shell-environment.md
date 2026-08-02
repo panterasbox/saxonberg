@@ -261,13 +261,13 @@ syntax yet).
 ## Persistence
 
 `persistentStore` is a plain `Record<string, unknown>` listed in
-`static persistentFields = ['persistentStore']`. The `?` modifier and
+`persistentStore: { persistent: true }` in `fieldMeta`. The `?` modifier and
 `= {}` initializer match the legacy-tolerant pattern from
 `Propertied.savedProps` — existing avatar docs without the field
 hydrate cleanly (the Hydrator skips fields not present in `data`,
 the constructor default fills in).
 
-`sessionStore` is plain — not in `persistentFields` — so the Hydrator
+`sessionStore` is plain — not in `fieldMeta`'s persistent entries — so the Hydrator
 ignores it. No special clear hook on disconnect: the store dies when
 the host instance does. Reconnects to a still-live Avatar see the
 warm shell.
@@ -357,7 +357,7 @@ Two sources, with synthetic winning on collision:
 - **Synthetic** — read-only, declared by mixins via static
   `syntheticVars: SyntheticVarEntry[]`. Same composition-driven
   pattern as `static settings`, `static commandContributions`,
-  `static persistentFields`. `ShellApi.lookupSyntheticVar` walks
+  a `persistent` entry in `fieldMeta`. `ShellApi.lookupSyntheticVar` walks
   the giver's mixin chain on each expansion; first match wins.
 
   v1 ships exactly one entry: **`$focus`** on `FocusedMixin`,

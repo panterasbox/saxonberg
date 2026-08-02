@@ -19,20 +19,41 @@ describe('LocomotionMode', () => {
       expect(MixinApi.hasMixin(mode, Mixins.Propertied)).toBe(true);
     });
 
-    it('has the expected persistentFields list', () => {
-      expect(LocomotionMode.persistentFields).toEqual([
-        'name',
-        'speed',
-        'noiseLevel',
-        'bodyProfile',
-        'groundContact',
-        'requiresBodyPlanMode',
-        'requiresPosture',
-        'costMultiplier',
-        'passthrough',
-        'conveyanceMixin',
-        'enablementMixin',
-        'medium',
+    // This assertion used to read the class's OWN `persistentFields`
+    // static. `getAllPersistentFields` aggregates the whole chain, so
+    // it also answers `savedProps` / `savedPropMarshallers` from
+    // `PropertiedMixin` — the two are not the same question. Both are
+    // asserted, which makes the test stricter than it was.
+    const OWN = [
+      'name',
+      'speed',
+      'noiseLevel',
+      'bodyProfile',
+      'groundContact',
+      'requiresBodyPlanMode',
+      'requiresPosture',
+      'costMultiplier',
+      'passthrough',
+      'conveyanceMixin',
+      'enablementMixin',
+      'medium',
+    ];
+
+    it('declares exactly the expected fields (class shape)', () => {
+      expect(Object.keys(LocomotionMode.fieldMeta)).toEqual(OWN);
+      for (const f of OWN) {
+        expect(LocomotionMode.fieldMeta[f]).toEqual({ persistent: true });
+      }
+    });
+
+    it('the composed list is own-first, then inherited — the key order the Hydrator relies on', () => {
+      // `PersistentHydrator` Phase 1 applies fields in this order, and
+      // `getAllFieldMeta` collects keys concrete-class-first. That the
+      // class's own twelve lead, in declared order, is the guarantee.
+      expect(MixinApi.getAllPersistentFields(LocomotionMode)).toEqual([
+        ...OWN,
+        'savedProps',
+        'savedPropMarshallers',
       ]);
     });
 

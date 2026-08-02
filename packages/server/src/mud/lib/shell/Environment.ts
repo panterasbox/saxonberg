@@ -31,7 +31,7 @@
  * mixin chain for the schema default.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
@@ -230,7 +230,9 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    static persistentFields = ['persistentStore'];
+    static fieldMeta: FieldMeta = {
+      persistentStore: { persistent: true, runtimeState: true },
+    };
 
     /**
      * Shell-tier settings the substrate owns. The substrate
@@ -278,7 +280,6 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Schema-declared persistent overrides. Optional + default `{}`
      * matches the legacy-tolerant Propertied.savedProps pattern, so
      * existing avatar docs don't need migration.
-     * @runtimeState
      */
     persistentStore?: Record<string, unknown> = {};
 

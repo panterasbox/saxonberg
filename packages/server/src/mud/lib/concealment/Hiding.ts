@@ -30,7 +30,7 @@
  * that lives on the gated `PerceptionApi` engine, never here.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Concealable } from './Concealable';
 import type { ConcealmentLevel } from './ConcealmentLevel';
 import { ConcealmentLevels } from './ConcealmentLevel';
@@ -62,7 +62,10 @@ export function HidingMixin<TBase extends MixinConstructor<Concealable>>(
 ) {
   return class HidingMixin extends Base implements Hiding {
     static _mixinName = 'HidingMixin';
-    static persistentFields = ['hiding', 'hiddenLevel'];
+    static fieldMeta: FieldMeta = {
+      hiding: { persistent: true },
+      hiddenLevel: { persistent: true },
+    };
 
     /** Whether the actor is currently hidden. Persistent (survives a save
      * so a reconnect restores the state the avatar logged off in). */

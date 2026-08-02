@@ -109,7 +109,7 @@ The axis is genuinely neutral, and the shipped consumers prove it. Beyond
 
 `moisture` is the first reserve **authored entirely in a template's `data`**
 rather than installed by a constructor — the whole keyed Record is one
-`persistentFields` entry, so a plant's root-zone capacity is content. It is
+`fieldMeta`'s persistent entries entry, so a plant's root-zone capacity is content. It is
 also the first with a real-units capacity that is neither `%` nor `pt`.
 
 > ⚠ **`Wet.ts` used to claim this axis is "biological (Creature-coupled)"**

@@ -73,7 +73,10 @@ in detail.
 ```typescript
 class User extends Document {
   static collectionName = 'users';
-  static persistentFields = ['googleProfileId', 'playerIds'];
+  static fieldMeta: FieldMeta = {
+    googleProfileId: { persistent: true },
+    playerIds: { persistent: true },
+  };
   googleProfileId: string = '';
   playerIds: string[] = [];
 }
@@ -138,7 +141,7 @@ Avatar's template doc carries every mixin-declared persistent field as
 ```
 
 Runtime-only pointers (`user`, `interactives`) are NOT in
-`persistentFields`. They're stamped from the clone context (`user`) or
+`fieldMeta`'s persistent entries. They're stamped from the clone context (`user`) or
 established as connections come and go (`interactives`).
 
 ## The Clone Pipeline (Brief)
@@ -201,7 +204,7 @@ const avatar = await StuffApi.clone<Avatar>(
 ```
 
 `avatar.user` is re-established every login from the context. It is
-NOT in `persistentFields` — User isn't part of Avatar's persistent
+NOT in `fieldMeta`'s persistent entries — User isn't part of Avatar's persistent
 state (ownership lives on `User.playerIds`).
 
 The context is `unknown` at the API surface. Subclasses narrow it to

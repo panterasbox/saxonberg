@@ -11,7 +11,7 @@
  * (default 1) against `host.difficulty` (when non-null).
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Propertied } from '../stuff/Propertied';
 import { type Enablement } from './Enablement';
@@ -37,11 +37,12 @@ export function ClimbableMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   return class ClimbableMixin extends Base implements Enablement {
     static _mixinName = 'ClimbableMixin';
-    static persistentFields = ['axes', 'difficulty'];
+    static fieldMeta: FieldMeta = {
+      axes: { persistent: true, authorable: true },
+      difficulty: { persistent: true, authorable: true },
+    };
 
-    /** @authorable */
     public axes: string[] = [];
-    /** @authorable */
     public difficulty: number | null = null;
 
     public getAxes(): readonly string[] {

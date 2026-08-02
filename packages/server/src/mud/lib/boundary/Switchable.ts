@@ -24,7 +24,7 @@
  * the on/off naming layer over `getState()` / `setState()`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { BistateMixin, type BistateInternal } from '../Bistate';
 
 /**
@@ -43,7 +43,9 @@ export function SwitchableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SwitchableMixin extends BistateMixin(Base) {
     static _mixinName = 'SwitchableMixin';
 
-    static persistentFields = ['on'];
+    static fieldMeta: FieldMeta = {
+      on: { persistent: true },
+    };
 
     /** Predicate getter. */
     isOn(): boolean {

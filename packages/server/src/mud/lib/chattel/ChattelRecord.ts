@@ -22,6 +22,7 @@ import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { GroupRef } from "../social/GroupProvider";
 import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
+import type { FieldMeta } from "../mixin";
 
 /**
  * Who owns a chattel. The union mirrors `ParcelOwner` structurally (it is
@@ -42,7 +43,12 @@ export type ChattelOwner =
 
 export class ChattelRecord extends Document {
   static collectionName = Collections.Chattel;
-  static persistentFields = ["chattelId", "owner", "titledAt", "place"];
+  static fieldMeta: FieldMeta = {
+    chattelId: { persistent: true },
+    owner: { persistent: true },
+    titledAt: { persistent: true },
+    place: { persistent: true },
+  };
 
   /** The durable per-instance id this title is keyed on. */
   chattelId: string = "";

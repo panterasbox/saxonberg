@@ -9,6 +9,7 @@ import Thing from '../Thing';
 import Location from '../Location';
 import Exit from '../../boundary/Exit';
 import { ContainerMixin } from '../../spatial/Container';
+import { PersistableMixin } from '../../persistence/Persistable';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { WarrenMemberMixin } from '../../location/WarrenMember';
 import { BehavedMixin } from '../../behavior/Behaved';
@@ -24,6 +25,8 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 const IDLE: EvictionContext = { idleMs: 9_000_000_000, reason: 'idle' };
 
 class Box extends ContainerMixin(Thing) {}
+/** The persistence-spine carve-out: a container that persists itself. */
+class PersistentBox extends PersistableMixin(ContainerMixin(Thing)) {}
 class Holder extends HasInteractiveMixin(ContainerMixin(Thing)) {}
 class Bot extends BehavedMixin(Thing) {}
 class MemberRoom extends WarrenMemberMixin(Location) {}
@@ -50,6 +53,28 @@ describe('residency veto roster', () => {
 
     ContainmentApi.move(thing, null);
     expect(box.canEvict(IDLE)).toEqual({ ok: true }); // emptied → cullable
+  });
+
+  // Regression pin for the reference-lifetime build (requirements R6).
+  // The veto roster is deliberately NOT derived from the declarations —
+  // both of the carve-outs below are case-specific and a mechanical rule
+  // would flatten them. This build only proves they did not move.
+  it('Container: a PERSISTABLE host does not veto on contents (spine carve-out)', () => {
+    const plain = makeStuff(() => new Box());
+    const host = makeStuff(() => new PersistentBox());
+    const thing = makeStuff(() => new Thing());
+    const other = makeStuff(() => new Thing());
+    expect(host.canEvict(IDLE)).toEqual({ ok: true }); // empty → cullable
+
+    ContainmentApi.move(thing, host);
+    ContainmentApi.move(other, plain);
+
+    // Same state, opposite verdicts — that difference IS the carve-out.
+    // The sweep awaits `PersistableApi.capture` before culling, so a
+    // persistable host's contents are already written down and it may
+    // evict and re-materialize on next reference.
+    expect(plain.canEvict(IDLE).ok).toBe(false);
+    expect(host.canEvict(IDLE)).toEqual({ ok: true });
   });
 
   it('Containable: vetoes while inside an interactive holder', () => {
@@ -109,6 +134,16 @@ describe('residency veto roster', () => {
 
     StuffApi.destruct(source);
     expect(exit.canEvict(IDLE)).toEqual({ ok: true }); // orphaned → cullable
+  });
+
+  // The second R6 carve-out, and the baseline for a specific equivalence
+  // claim: once `Exit.source` is declared `weak` the read self-heals, so
+  // `!this.source` will catch BOTH branches and the `isDestroyed()` arm
+  // goes dead. This pin has to exist BEFORE that change or the evidence
+  // that the two branches were ever distinguishable is gone.
+  it('Exit: an unbound kind clone (never bound, no source) is cullable', () => {
+    const exit = makeStuff(() => new Exit());
+    expect(exit.canEvict(IDLE)).toEqual({ ok: true });
   });
 
   it('Registry singleton (TopicCatalogue) vetoes', () => {

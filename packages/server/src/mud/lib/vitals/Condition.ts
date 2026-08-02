@@ -32,6 +32,7 @@ import type { ToxinBehavior } from '../metabolism/Metabolic';
 import type { Channel } from '../material/Channel';
 import type { MagicProvenance } from '../magic/Grid';
 import type { ResistBand } from '../magic/Resist';
+import type { FieldMeta } from '../mixin';
 
 // ---------- the active-condition vocabulary ----------
 
@@ -567,16 +568,16 @@ export default class Condition extends SingletonMixin(
    */
   protected mentalBands: ResistBand[] | null = null;
 
-  static persistentFields = [
-    'name',
-    'signature',
-    'progression',
-    'resolution',
-    'observableSigns',
-    'contagion',
-    'toxinBehavior',
-    'mentalBands',
-  ];
+  static fieldMeta: FieldMeta = {
+    name: { persistent: true },
+    signature: { persistent: true },
+    progression: { persistent: true },
+    resolution: { persistent: true },
+    observableSigns: { persistent: true },
+    contagion: { persistent: true },
+    toxinBehavior: { persistent: true },
+    mentalBands: { persistent: true },
+  };
 
   public getName(): string {
     return this.name;

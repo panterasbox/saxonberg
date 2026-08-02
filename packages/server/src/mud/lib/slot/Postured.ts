@@ -18,7 +18,7 @@
  * Verbs and validators import `Postures` from this module.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from './Slotted';
 
@@ -74,7 +74,10 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
   return class PosturedMixin extends Base {
     static _mixinName = 'PosturedMixin';
 
-    static persistentFields = ['restQuality', 'warmth'];
+    static fieldMeta: FieldMeta = {
+      restQuality: { persistent: true, authorable: true },
+      warmth: { persistent: true, authorable: true },
+    };
 
     /**
      * Recovery multiplier for a body at rest on this host. Default
@@ -82,8 +85,6 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * `> 1` speeds recovery (a comfortable bed), values in `(0, 1)` are
      * legal but reserved (a cramped perch). Per-field invariant on the
      * setter (finite, `> 0`).
-     *
-     * @authorable
      */
     public restQuality: number = 1.0;
 
@@ -105,8 +106,6 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
      * Warming bonus (Kelvin, additive to a slot-occupant's effective
      * ambient). Default `0` (neutral). Per-field invariant on the setter
      * (finite, `>= 0`).
-     *
-     * @authorable
      */
     public warmth: number = 0;
 

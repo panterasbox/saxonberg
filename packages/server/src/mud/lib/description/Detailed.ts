@@ -31,7 +31,7 @@
  * ```
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
@@ -192,10 +192,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Persistent fields declared by this mixin.
      * Used by PersistApi for automatic synchronization.
-     */
-    static persistentFields = ['details'];
-
-    /**
+     *
      * Instruction-field applier roster. `details` is consumed by
      * `applyDetails` (Phase 2 of PersistentHydrator). The
      * declarative YAML shape (a plain object keyed by detail name)
@@ -206,7 +203,9 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * and break `getDetailEntries`); the applier resets the Map up
      * front to undo that.
      */
-    static instructionFields = ['details'];
+    static fieldMeta: FieldMeta = {
+      details: { persistent: true, instruction: true, authorable: true },
+    };
 
     /**
      * Markup-augmenter contribution. The wrapper-style augmenter
@@ -254,7 +253,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Hierarchical detail map. Host-internal storage; external callers
      * go through `getDetail` / `setDetail` / `removeDetail`.
      *
-     * @authorable Instruction field — the declarative `details:` map is
+     * Instruction field — the declarative `details:` map is
      *   consumed by `applyDetails` (Phase-2 hydrator dispatch); the
      *   composer edits the applier's payload shape, not this runtime Map.
      */

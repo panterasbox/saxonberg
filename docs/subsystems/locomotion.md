@@ -88,15 +88,15 @@ accepts both forms too.
 The substrate exercises every reference pattern from
 [ref-shapes.md](../ref-shapes.md):
 
-- **`_engagedModePath`** on Mobile — Pattern A (string-by-path).
-  Runtime-only (NOT in `persistentFields`): a reloaded actor wakes up
+- **`_engagedModePath`** on Mobile — an identity ref (string-by-path).
+  Runtime-only (NOT in `fieldMeta`'s persistent entries): a reloaded actor wakes up
   unengaged. The mode singleton itself persists by templatePath in the
   domain collection.
-- **`_vehicularModePath`** on Drivable — Pattern A (string-by-path).
+- **`_vehicularModePath`** on Drivable — an identity ref (string-by-path).
   Persistent: a horse-drawn wagon ships with `vehicularMode: wheeled`
   in its template and round-trips through saves.
 - **`defaultLocomotionMode`** on BodyPlan — short name string
-  (Pattern A variant with no leading slash). Resolved by
+  (an identity ref with no leading slash). Resolved by
   `LocomotionApi.defaultModeFor` when no explicit setting is set.
 
 ## LocomotionApi surface
@@ -362,5 +362,5 @@ content slate that pulls on it.
   witness shape.
 - [race.md](./race.md) — `BodyPlan.locomotionModes` +
   `defaultLocomotionMode`.
-- [ref-shapes.md](../ref-shapes.md) — Pattern A path-by-string for
+- [ref-shapes.md](../ref-shapes.md) — identity refs (path-by-string) for
   mode references on actor / drivable.
