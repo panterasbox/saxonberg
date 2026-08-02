@@ -48,6 +48,7 @@ export class TestAuthRoutes {
             withCharacter?: unknown;
             startLocation?: unknown;
             wizard?: unknown;
+            fundsMinor?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -63,6 +64,12 @@ export class TestAuthRoutes {
           : undefined;
       // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
       const wizard = body?.wizard === true;
+      // Test-only cash faucet — an economy verb (`title buy`) cannot be
+      // driven past its funds check by a character with no money.
+      const fundsMinor =
+        typeof body?.fundsMinor === 'number' && body.fundsMinor > 0
+          ? body.fundsMinor
+          : 0;
 
       void backend.handleTestAuthentication(
         handle,
@@ -85,7 +92,8 @@ export class TestAuthRoutes {
         },
         withCharacter,
         startLocation,
-        wizard
+        wizard,
+        fundsMinor
       );
     });
 

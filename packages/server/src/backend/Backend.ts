@@ -436,7 +436,8 @@ export class Backend implements IBackend {
     done: (error: unknown, user?: { id: string }) => void,
     withCharacter = false,
     startLocation?: string,
-    wizard = false
+    wizard = false,
+    fundsMinor = 0
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('Backend: test authentication is disabled'));
@@ -458,7 +459,13 @@ export class Backend implements IBackend {
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter)
-            await app.provisionTestCharacter(id, handle, startLocation, wizard);
+            await app.provisionTestCharacter(
+              id,
+              handle,
+              startLocation,
+              wizard,
+              fundsMinor
+            );
           return id;
         }
       );

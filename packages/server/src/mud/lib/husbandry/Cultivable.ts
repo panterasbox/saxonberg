@@ -45,6 +45,7 @@
  */
 
 import type { PopulateSpec, Populates } from "../stuff/Populates";
+import type { CommandContributions } from "../../api/command";
 import { Mixins, type MixinConstructor } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
@@ -161,6 +162,33 @@ export function CultivableMixin<
 >(Base: TBase) {
   return class CultivableMixin extends Base implements Cultivable {
     static _mixinName = Mixins.Cultivable;
+
+    /**
+     * **A reachable bed IS a garden.** The working verbs ride the
+     * instrument, and for cultivation the instrument is the ground you
+     * work — the same relationship a cooking pot has to `cook`/`stir`
+     * ("reachable heat + a pot IS a kitchen — no venue flag").
+     *
+     * `water` is deliberately NOT here: it rides the watering can
+     * through the capability table, because there the instrument is the
+     * thing carrying the water rather than the thing receiving it. `feed`
+     * has no such tool — you work compost in by hand — so it rides the
+     * ground like the rest.
+     *
+     * Collected by the affordance walk (`collectBucketDefs` →
+     * `MixinApi.queryMixins`), the `PerceiverMixin` shape.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      environment: [
+        "inventory/plant.yaml",
+        "inventory/repot.yaml",
+        "inventory/harvest.yaml",
+        "bulk/feed.yaml",
+      ],
+      inventory: [],
+      peers: [],
+    };
 
     /** The soil's own checkpoint travels with the ground it belongs to. */
     static persistentFields = [

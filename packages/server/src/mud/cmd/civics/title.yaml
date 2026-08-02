@@ -43,9 +43,15 @@ subcommands:
       title row and the chain-of-title event. You must be at the
       Registry — this is paperwork, and paperwork happens at a counter.
     args:
+      # GREEDY: a player types `title buy lot 2`, which is two tokens.
+      # A single-token string arg refuses that shape outright ("doesn't
+      # match any known command shape"), and the examples below would be
+      # lying. Greedy takes the rest of the line, and `PlatBook.extentFor`
+      # normalises `lot 2` / `lot-2` / `2` alike.
       - name: lot
         type: string
         required: true
+        greedy: true
     examples:
       - cmd: title buy lot 2
         note: The whole transaction, in one act

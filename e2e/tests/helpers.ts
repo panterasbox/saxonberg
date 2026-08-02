@@ -52,6 +52,9 @@ export async function mintSession(
      * `clone`/`eval`/`goto` axis. Test-auth only; the server adds the
      * character to the managed `wizards` group. */
     wizard?: boolean;
+    /** Test-only cash faucet, in minor units — an economy verb cannot be
+     * driven past its funds check by a character with no money. */
+    fundsMinor?: number;
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -67,6 +70,7 @@ export async function mintSession(
             ? { startLocation: opts.startLocation }
             : {}),
           ...(opts.wizard ? { wizard: true } : {}),
+          ...(opts.fundsMinor ? { fundsMinor: opts.fundsMinor } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -142,7 +146,11 @@ export async function enterWorld(
 export async function openWorldAs(
   browser: Browser,
   prefix = 'world',
-  opts: { startLocation?: string; wizard?: boolean } = {}
+  opts: {
+    startLocation?: string;
+    wizard?: boolean;
+    fundsMinor?: number;
+  } = {}
 ): Promise<{
   page: Page;
   context: BrowserContext;
@@ -155,6 +163,7 @@ export async function openWorldAs(
     withCharacter: true,
     startLocation: opts.startLocation,
     wizard: opts.wizard,
+    fundsMinor: opts.fundsMinor,
   });
   const { context, page } = await enterWorld(browser, state);
   return { page, context, handle, state, close: () => context.close() };

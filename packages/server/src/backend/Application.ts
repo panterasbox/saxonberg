@@ -774,7 +774,8 @@ export class Application {
     userId: string,
     name = 'Tester',
     startLocation?: string,
-    wizard = false
+    wizard = false,
+    fundsMinor = 0
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       throw new Error('Application.provisionTestCharacter: test-only');
@@ -818,6 +819,36 @@ export class Application {
           await group.save();
           provider.fireChange(group._id);
         }
+      }
+    }
+
+    // Test-only cash faucet. An economy feature cannot be driven
+    // end-to-end by a character with no money, and `title buy` is one:
+    // without this the sale can only ever be observed REFUSING. Uses the
+    // shipped `issueCash` faucet rather than a bespoke mint, so the coins
+    // are real (denominated, massed, encumbrance-bearing) and the ledger
+    // stays conserved. Mirrors `wizard` above: opt-in, and unreachable
+    // outside AUTH_MODE=test.
+    if (fundsMinor > 0 && user.playerIds.length > 0) {
+      const { BankingApi } = await import('../mud/api/banking');
+      const { StuffApi } = await import('../mud/api/stuff');
+      const { Money } = await import('../mud/lib/banking/Money');
+      const { default: Avatar } = await import('../mud/obj/Avatar');
+      const path = Avatar.getTemplatePath(user.playerIds[0]!);
+      const avatar = StuffApi.findByTemplatePath(path);
+      if (avatar) {
+        try {
+          await BankingApi.issueCash(
+            avatar as never,
+            Money.of(fundsMinor)
+          );
+        } catch (err) {
+          console.warn('provisionTestCharacter: cash faucet failed:', err);
+        }
+      } else {
+        console.warn(
+          `provisionTestCharacter: no live avatar at ${path} to fund`
+        );
       }
     }
   }

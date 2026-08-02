@@ -75,6 +75,12 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // holding title over a subdivision) — a public read like the two
         // above; the one mutation (channel ensure) is idempotent.
         'system/committee.yaml',
+        // The `title` verb (civics) — what ground you hold and what is
+        // for sale. Universal for the same reason `government` is: your
+        // own holdings are a self-read, and a plat book is public. The
+        // one act that changes anything (`title buy`) gates itself on
+        // standing at the Registry counter.
+        'civics/title.yaml',
       ],
       environment: [],
       inventory: [],
