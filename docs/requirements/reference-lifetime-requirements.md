@@ -27,6 +27,24 @@ clones — and every clone relationship is Pattern B, carrying a cleanup
 obligation. This is the pattern content authors will follow thousands of
 times; it should not be one they can get wrong by forgetting four lines.
 
+**1b. Hand-written witnesses silently collide.** Master gained an
+antipattern entry on 2026-08-01 — *"An optional witness implemented by
+more than one composed layer"* — after `PosedMixin.onSlotReleased` was
+found never to fire, because `MobileMixin` is composed further out and
+**mixin methods do not merge: the outermost wins and the inner one is
+silently replaced.** A sleeper stood up and stayed recorded as occupying
+the bed.
+
+That is the same failure the mortality build hit (three drivers sharing a
+protected `applyDeath` on one host, the outermost shadowing the other
+two), which makes it a recurring class rather than an incident. It is
+also **a second, independent argument for this build**: `fieldMeta` is a
+*static*, collected per-layer by a `hasOwnProperty` prototype walk, so
+two layers declaring cleanup for their own fields cannot shadow each
+other the way two `onDestruct` bodies can. Moving cleanup from
+hand-written witnesses to declarations does not merely remove
+boilerplate — **it removes a whole collision class.**
+
 **2. Field metadata is scattered across parallel statics.** Adding a
 seventh (`referenceFields`) would deepen the problem the build is
 supposed to fix. Invert instead: one field-keyed structure where each
@@ -44,7 +62,7 @@ field declares everything about itself.
 | D7 | **W7c registries: finish the read-side prune, don't declare a rule** | A registry keyed by a live Stuff is an *index*, not a reference — it doesn't own its keys (`owned` wrong) and `Interactive` must not grow a back-ref (`symmetric` wrong). Also fixes the real leak: `Interactive.onDestruct` never calls `teardownSubstrateState`, which the three registries rely on |
 | D8 | **Fold `@authorable` + `@runtimeState` into `fieldMeta`**; delete the source scan | They ARE field metadata (172 + 78 sites), and `StudioLogic.scanClassification` reads them by walking the source tree as TEXT and regex-binding JSDoc to identifiers — with underscore-insensitive name *guessing* because it cannot tell which field a comment belongs to. Shipping "one field-keyed structure" while leaving 250 declarations in comments the runtime greps would be the same disease with a worse mechanism. It also makes the tag **checkable**: `@runtimeState` currently lies about `Organism.lifecycleState`, which is persisted |
 | D9 | **Fold the held-side R2.4 unhooks into the declaration** | A second route for declaring a reference relationship leaves "one way" two-thirds true. **Six of the ten** `cleanupOnDestruct` sites qualify (see R10) — the other four are policy, not cascade |
-| D10 | **Fix the two missing `super.onDestruct()` calls here** | `Exit` and `Boundary`, two lines each, and W6 converts both files anyway. A known-broken destruct chain inside code this build is rewriting invites blaming the wrong commit |
+| D10 | **Fix the two missing `super.onDestruct()` calls here** | `Exit` and `Boundary`, two lines each, and W6 converts both files anyway. A known-broken destruct chain inside code this build is rewriting invites blaming the wrong commit. **Now backed by repo doctrine**: master's new witness-collision antipattern names this exact contract ("a subclass `onDestruct` calls `super.onDestruct()`") |
 | D6 | **No decorators** | Verified: legacy decorators are invalid on any member of a class *expression* (TS1206 — field and method alike), and 105 mixins return class expressions. Not a field-vs-method issue. ES decorators do permit it, but migrating decorator modes is a separate build (call-security is legacy + `emitDecoratorMetadata`, which has no ES equivalent). |
 
 ## Scope
@@ -133,21 +151,24 @@ with it, so they are one shape — an **identity** ref. B is an
 
 ### R2 — Only four statics fold in
 
-Verified counts. **193/15/8/3 counts non-test files**; including
-`__tests__` it is 231/16/10/7, and the **union of files declaring any of
-the four is 240** (201 non-test, 39 test) — that is the codemod's real
-input set.
+Verified counts, **re-measured 2026-08-02 after the furnishing and
+Hinkley-Hills merges**. Non-test files as tabled; including `__tests__`
+it is 241/17/10/7, and the **union of files declaring any of the four is
+250** — the codemod's real input set. (Pre-merge those figures were
+193/15/8/3 and a union of 240; the two builds added ~10 files, which
+moves no structural conclusion.) `@authorable` is now 75 files,
+`@runtimeState` 39.
 
 | static | files | field-keyed? | disposition |
 |---|---|---|---|
-| `persistentFields` | 193 | ✅ | → `{ persistent: true }` |
+| `persistentFields` | 200 | ✅ | → `{ persistent: true }` |
 | `fieldMarshallers` | 15 | ✅ | → `{ marshaller: '…' }` |
 | `instructionFields` | 8 | ✅ | → `{ instruction: true }` |
 | `globIdentityFields` | 3 | ✅ | → `{ globIdentity: true }` |
-| `commandContributions` | 55 | ❌ | keyed by *audience* (`{self, peers}`) — leave |
-| `settings` | 12 | ❌ | keyed by *setting key* (`'shell.interpolate-vars'`) — leave |
-| `subscribableFields` | 14 | ❌ | virtual projections carrying a `read` fn, not instance fields — leave |
-| `markupAugmenters` | 11 | ❌ | a list of functions — leave |
+| `commandContributions` | — | ❌ | keyed by *audience* (`{self, peers}`) — leave |
+| `settings` | — | ❌ | keyed by *setting key* (`'shell.interpolate-vars'`) — leave |
+| `subscribableFields` | — | ❌ | virtual projections carrying a `read` fn, not instance fields — leave |
+| `markupAugmenters` | — | ❌ | a list of functions — leave |
 
 The slate said "six statics". It was wrong; four are field-keyed. Correct
 the slate at sweep time.
@@ -365,6 +386,53 @@ is genuinely never loaded, that is itself a finding.
 `Organism.lifecycleState`, which is persisted (found during the mortality
 build). Once folded, `runtimeState: true` alongside `persistent: true` is
 a build-time error (R7), so the contradiction becomes unrepresentable.
+
+### R12 — Findings from the post-merge census (2026-08-02)
+
+Re-censused after furnishing + Hinkley Hills merged. Three findings, all
+folded into this build.
+
+**R12.1 — A destroyed chattel good RESURRECTS. Verified, not reported.**
+`Estate._dropEstateEntry` is the declared prune point for a released or
+destroyed good. It is fully gated, documented — and has **zero call
+sites anywhere, including tests**. The destruct path stops short of it:
+`ChattelMixin.onDestruct` → `ChattelApi.release` → `ChattelLogic.release`
+→ `ChattelRegistry.release`, which deletes the Mongo title row and the
+index entry **and returns**.
+
+Consequence, traced through both halves: `Estate.captureSlice` iterates
+`getEstateEntries()` (reading `_estate`, which nothing prunes), finds the
+good no longer live, takes the `: entry` branch and writes the entry into
+the durable slice **verbatim**. `restoreSlice` re-mints any `inventory`
+entry through `ctx.restoreItem`. Because `_chattelId` is persistent, the
+resurrected good carries a chattel id whose title row was deleted — so it
+returns **and** returns with a dangling title reference. Eat a carrot,
+log out, log back in, the carrot is in your pack.
+
+Exactly the class of bug this build exists to prevent, so it is fixed
+here (W7) rather than filed. The correct form is a
+**`ChattelMixin.cleanupOnDestruct`** — framework-enforced, so a subclass
+`onDestruct` that forgets to chain cannot bypass it.
+
+**R12.2 — `LotGateExit.holder` (`obj/LotGateExit.ts:52`)** stores a live
+`LotHolder`, which composes `SingletonMixin` and is path-addressable.
+Identity question, instance representation — A.4. The same build does it
+correctly twice elsewhere (`PlatBook.holderPath:122`,
+`TitleController.holderFor:111`), so this is the outlier, not the
+convention. Low severity (`LotHolder.canEvict` refuses eviction, so only
+a hot-reload or torn-down test world strands it); one-line fix to
+`holderPath` + resolve in `computeDestination`. → W7a.
+
+**R12.3 — `LotHolder._roomsByLot` (`obj/LotHolder.ts:128`)** — all three
+readers guard on `isDestroyed()` but none `delete` the stale key, and
+`LotHolder` is a process-lifetime singleton. Not a correctness bug (no
+dangling ref escapes); a **retention leak**. → W7a, two `delete` calls.
+
+Also noted, needing no change: `GardenBed`, `Crop`, `PlantPot`,
+`PlatBook`, `LandUse`, `FurnishableRoom` and `Cultivable` hold **no**
+instance refs at all, and `Plant` actively *removed* a concrete
+`PlantPot` ref in this range in favour of a `Cultivable` type import. The
+new code is mostly on the right side of the line.
 
 ### R8 — The sweep (D5)
 

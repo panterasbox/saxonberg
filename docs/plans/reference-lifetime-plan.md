@@ -381,10 +381,15 @@ Semantics:
 Lands inert: no class declares a `lifetime`, so the loop body never
 executes on a real object.
 
-### W5b — `super.onDestruct()` (D10)
+### W5b — The witness-chaining wave (D10 + R12)
 
-Two lines. `lib/boundary/Exit.ts:703` and `lib/boundary/Boundary.ts:219`
-never chain. Landing it *before* W6 converts those two files means the
+Four sites, all the same reflex. `lib/boundary/Exit.ts:703` and
+`lib/boundary/Boundary.ts:219` never chain `super.onDestruct()`. Plus
+two found by the post-merge census, in the file that was the *victim* of
+master's new witness-collision antipattern:
+`lib/character/Posed.ts:126` (`onSlotReleased`) and `:111`
+(`onSlotOccupied` — a brand-new channel, currently the sole implementor,
+which is exactly when the reflex is cheapest to install). Landing it *before* W6 converts those two files means the
 chain is correct when the declarations arrive, and a W6 regression cannot
 be confused with this pre-existing break.
 
@@ -422,7 +427,11 @@ all).
 Unruled sites come **last**: unlike W6 they have no oracle, so each needs
 its own new test (criterion 6). Three commits by risk class.
 
-**W7a — `weak`-only (fails safe).** `Exit.source`, `Exit._destination`,
+**W7a — `weak`-only (fails safe).** Plus the two post-merge census
+findings: `LotGateExit.holder` → an **identity** ref (`holderPath` +
+resolve in `computeDestination`, matching `PlatBook`/`TitleController` in
+the same build), and `LotHolder._roomsByLot` → two `delete` calls to
+close the retention leak. Then `Exit.source`, `Exit._destination`,
 `DoorBearing.door`, `SandboxCrossingExit.crossing`,
 `ExitableVessel.outCache`/`entryCache`, `LoungeWarren._reapTimers`,
 `DormWarren._unitsByKey`/`_corridorsByFloor`/`_doorsByKey`. Assert the
@@ -434,6 +443,13 @@ its own new test (criterion 6). Three commits by risk class.
 uncovered today).
 
 **W7c — judgement calls.**
+- **`Estate` / chattel resurrection (R12.1)** — the highest-severity item
+  in the sweep and a live data bug on master. Add
+  `ChattelMixin.cleanupOnDestruct` calling the owner's
+  `_dropEstateEntry`, so the prune is framework-enforced rather than
+  relying on a subclass remembering to chain. Test both halves: destroy a
+  titled good, capture, restore, assert it does **not** come back and no
+  entry survives carrying a dead `_chattelId`.
 - `ChannelCatalogue.subjectsRef` → **identity ref, resolve-on-read**, not
   a lifetime. It is the A.4 replacement hazard exactly: `weak` would heal
   to `null` permanently across a hot-reload that already produced a good
