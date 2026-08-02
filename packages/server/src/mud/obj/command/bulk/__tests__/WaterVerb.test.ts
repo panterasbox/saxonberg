@@ -15,10 +15,8 @@ import Plant from '../../../Plant';
 import PlantPot, { PLANT_SLOT } from '../../../PlantPot';
 import Material from '../../../../lib/material/Material';
 import { Reserve } from '../../../../lib/reserve';
-import {
-  MOISTURE_RESERVE_KEY,
-  type GrowthProfileData,
-} from '../../../../lib/husbandry/Growing';
+import { type GrowthProfileData } from '../../../../lib/husbandry/Growing';
+import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../lib/husbandry/Cultivable';
 import { ToolCapabilities } from '../../../../lib/craft/ToolCapability';
 import { Quantity } from '../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
@@ -118,15 +116,6 @@ function makePlant(): Plant {
     p.setLastAmbientK(295);
     p.setLifecycleState('alive');
     p.setProfile(lilyProfile());
-    p.setReserve(
-      new Reserve(
-        MOISTURE_RESERVE_KEY,
-        Quantity.of(1, 'L'),
-        Quantity.of(1, 'L'),
-        'cultivation',
-        'wilting',
-      ),
-    );
     return p;
   }, freshPath('/obj/plant/_water'));
 }
@@ -141,6 +130,16 @@ function makePot(soil = 3): PlantPot {
     pot.setStaticSlots([
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: 1 },
     ]);
+    // Phase 2: the WATER lives in the ground, not the plant.
+    pot.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(1, 'L'),
+        Quantity.of(1, 'L'),
+        'cultivation',
+        'wilting',
+      ),
+    );
     return pot;
   }, freshPath('/obj/pot/_water'));
 }
@@ -278,7 +277,7 @@ describe('water <plant>', () => {
   }
 
   it('raises soil moisture and debits the can', async () => {
-    const { giver, room, plant } = scene();
+    const { giver, room, plant, pot } = scene();
     const can = makeCan(2);
     ContainmentApi.move(can, giver);
     dryOut(plant, 6); // ~0.48 L transpired
@@ -292,7 +291,11 @@ describe('water <plant>', () => {
     // The can kept the rest: only the headroom moved.
     expect(can.getBulkAmount('interior').rawValue()).toBeGreaterThan(1.4);
     expect(can.getBulkAmount('interior').rawValue()).toBeLessThan(1.6);
-    expect(captured).toContain(plant);
+    // ⭐ The act captures the GROUND, not the plant. Since phase 2 the
+    // litres land in the pot's moisture reserve, so capturing only the
+    // plant would durably record everything about this act except the
+    // water — the watering would not survive a restart.
+    expect(captured).toContain(pot);
   });
 
   it('naming the POT waters its occupant — a player types both', async () => {
@@ -306,7 +309,7 @@ describe('water <plant>', () => {
     await ctrl.execute(model(one(pot, 'pot')), makeContext(giver, room));
 
     expect(plant.getSoilMoisture()).toBeGreaterThan(before);
-    expect(captured).toContain(plant);
+    expect(captured).toContain(pot);
   });
 
   it('watering an EMPTY pot says there is nothing planted in it', async () => {

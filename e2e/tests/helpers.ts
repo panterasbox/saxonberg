@@ -142,7 +142,11 @@ export async function enterWorld(
 export async function openWorldAs(
   browser: Browser,
   prefix = 'world',
-  opts: { startLocation?: string; wizard?: boolean } = {}
+  opts: {
+    startLocation?: string;
+    wizard?: boolean;
+    fundsMinor?: number;
+  } = {}
 ): Promise<{
   page: Page;
   context: BrowserContext;
@@ -157,6 +161,24 @@ export async function openWorldAs(
     wizard: opts.wizard,
   });
   const { context, page } = await enterWorld(browser, state);
+  // AFTER entry, never before: at provision time the avatar is a
+  // database row, so `issueCash` has nothing to hand coins to. The
+  // request rides the page's own cookies, so it funds THIS session's
+  // character, and it throws on the server rather than warning — an
+  // unfunded character just watches purchases refuse, which is the
+  // exact false negative a funded test is written to rule out.
+  if (opts.fundsMinor) {
+    const res = await page.request.post(`${SERVER_URL}/auth/test-fund`, {
+      data: { fundsMinor: opts.fundsMinor },
+      headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
+    });
+    if (!res.ok()) {
+      throw new Error(
+        `openWorldAs: funding ${handle} failed: ${res.status()} ` +
+          `${await res.text()}`
+      );
+    }
+  }
   return { page, context, handle, state, close: () => context.close() };
 }
 

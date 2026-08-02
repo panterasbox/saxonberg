@@ -1,0 +1,45 @@
+# The Hinkley Hills stop — where the line from town lets out.
+#
+# Outdoor and SkyExposed, which is doing real work rather than set
+# dressing: it is the first room in the build where the light is the sky's
+# rather than a lamp's, and a crop needs a great deal more of it than a
+# houseplant does. Everything about the suburb's growing conditions comes
+# down to being out here instead of in there.
+class: /lib/location/CartesianLocation
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: the Hinkley Hills stop
+  primaryKeyword: stop
+  _address: terminus/hinkley-hills/stop
+  _biomePath: /lib/biome/outdoor/baseline
+  # Outdoor daylight, STATIC for now — the same placeholder the Duncan
+  # Hall steps carry, and it becomes a computed value when CelestialApi
+  # drives light. 600 lux is open sky on an ordinary day: well past the
+  # 120 a carrot wants, and twenty times what satisfies a houseplant.
+  # That gap IS the reason to garden out here rather than on a sill.
+  ambientIntensity: 600
+  ambientColorTemperature: 5800
+  longDescription: |
+    A concrete apron at the end of the line, one bench, and a sign on a post reading HINKLEY HILLS in letters that were confident about it. The rails stop here because the survey did.
+
+    West the ground rises into the lots — a grid of stakes and string over grass nobody has cut since it was drawn, with a made road running up the middle of it and nothing at all on either side yet. Behind you the city sits low and close on the flat, near enough to walk back to and far enough that nobody there can see what you plant.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    west:
+      destination: /domain/terminus/hinkley-hills/lane
+  details:
+    sign:
+      keywords: [sign, post, letters]
+      description: |
+        HINKLEY HILLS, routed into a board and painted white, on a post set in its own small pour of concrete. Underneath, smaller and newer: LOTS AVAILABLE — ENQUIRE AT THE CITY REGISTRY.
+    city:
+      keywords: [city, terminus, skyline]
+      description: |
+        Terminus from outside it, which is a thing few of its residents ever see: a low dense mass on the flat, roofs pressed together the whole way to the water, without a garden anywhere in it.
+    bench:
+      keywords: [bench, apron, concrete, rails]
+      description: |
+        One bench, weathered silver, facing the wrong way — towards the lots rather than the rails. Somebody sat here a long time deciding.

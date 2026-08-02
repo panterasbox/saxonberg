@@ -19,13 +19,15 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
+import { ParcelApi } from '../../../api/parcel';
+import { LandUses } from '../../../lib/parcel/LandUse';
 import { Mml } from '../../../api/mml';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
 import Seed from '../../Seed';
-import PlantPot, { PLANT_SLOT } from '../../PlantPot';
+import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
@@ -79,7 +81,7 @@ export default class PlantController extends CommandController<PlantModel> {
       });
       return;
     }
-    if (!(target instanceof PlantPot)) {
+    if (!MixinApi.isCultivable(target)) {
       const detail = `${target.getPresentation()} is not a pot`;
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -92,6 +94,64 @@ export default class PlantController extends CommandController<PlantModel> {
       });
       return;
     }
+    // ⭐ THE LAND-USE GATE. Cultivating GROUND is the parcel's business:
+    // a bed on the Registry's civic floor is refused, and the refusal
+    // names the use rather than saying "no". A POT is exempt — it is
+    // furniture you carry, and a houseplant on a windowsill in a rented
+    // office is not agriculture.
+    if (target.isFixedGround()) {
+      // WHERE the bed stands, not what template it came from: every bed
+      // clones from `/obj/bed/garden`, so the template path would zone
+      // every bed in the world identically. The parcel that governs it
+      // is the one covering the ROOM it is in.
+      //
+      // ⚠ And the room's own PERSISTENCE KEY wins over its template path
+      // when it has one. A room cloned once per lot shares its template
+      // path with every other lot's, so the template path resolves to the
+      // DISTRICT — right today only because every Hinkley lot is zoned
+      // alike. The key is the lot's parcel extent, which is the parcel
+      // that actually governs this ground.
+      const site = MixinApi.isContainable(target)
+        ? target.getContainer()
+        : null;
+      const keyed =
+        site && MixinApi.isPersistable(site)
+          ? site.getPersistenceKey()
+          : null;
+      const where = keyed ?? site?.getTemplatePath() ?? '';
+
+      // ⚠ UNPARCELLED GROUND IS NOT POLICED. `landUseOf` is total and
+      // answers `wild` for ground nobody has claimed — but "nobody has
+      // zoned this" is not the same statement as "this is zoned against
+      // you", and treating it as one breaks the hermit: a shack and a
+      // garden in an unparcelled forest must work with zero numbers.
+      //
+      // So the gate asks whether a parcel COVERS this ground at all
+      // before it asks what that parcel permits. The abstract path
+      // branches stay protected, because they DO have rows: `/studio`
+      // and `/lib/lounge` are covered, declare no use, and therefore
+      // still answer `wild` → refused.
+      //
+      // Same principle as the acreage check degrading on unmeasured
+      // land: measure nothing, police nothing.
+      const covering = await ParcelApi.coveringParcelOf(where);
+      const use = ParcelApi.landUseOf(where);
+      if (covering && !LandUses.permitsAnyCultivation(use)) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(
+            Mml.compose`Nothing may be grown on this ground — it is zoned for ${LandUses.summaryOf(use)}.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'land-use-forbids-cultivation',
+          detail: `${where || 'nowhere'} is zoned ${use}, which admits no cultivation`,
+        });
+        return;
+      }
+    }
+
     if (!target.hasSoil()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -157,6 +217,9 @@ export default class PlantController extends CommandController<PlantModel> {
 
     // Contents FIRST, then the slot — see the class docstring.
     ContainmentApi.move(plant, target);
+    // Settle the ground's water window before the arrival counts toward
+    // its demand — a bed that sat empty must not be billed for the gap.
+    target.reconcileSoil();
     target.occupy(plant, PLANT_SLOT);
     StuffApi.destruct(seed);
 

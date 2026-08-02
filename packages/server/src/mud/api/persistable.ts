@@ -104,6 +104,30 @@ export class PersistableApi {
   }
 
   /**
+   * **The keyed-holder ground pattern.** Key `host` to `key`, then either
+   * restore its `(scope, key)` record or lay down its born-with fixtures
+   * and capture them. The scope is the host's own `templatePath`, derived
+   * exactly as {@link PersistableApi.capture} derives it.
+   *
+   * This is the decision every multi-instance holder makes — a
+   * `DormWarren` per leased unit, a smallholding per titled lot. It lives
+   * here because the alternative is each holder hand-rolling the same six
+   * lines and getting the branch subtly wrong: capturing on the restore
+   * path, re-seeding a room that already had contents, or forgetting to
+   * stash the key so the next keyless re-capture writes a second record.
+   *
+   * Returns `true` when an existing record was restored, `false` when the
+   * host was seeded fresh — so a caller can tell a first provision from a
+   * re-entry and wire exits, announce, or bill accordingly.
+   *
+   * Throws when `host` does not compose `PersistableMixin`: that is a
+   * programming error at the call site, not a user-reachable path.
+   */
+  static restoreOrSeed(host: Stuff, key: string): Promise<boolean> {
+    return logic().restoreOrSeed(host, key);
+  }
+
+  /**
    * Capture one **non-host** Stuff's composed state, detached from any
    * record — the shape a {@link ContentEntry} nests and an
    * {@link EstateEntry} carries. Synchronous, because the capture walk is.

@@ -1,0 +1,33 @@
+verbs: [harvest]
+controller: /obj/command/inventory/HarvestController
+description: "Take the crop off a mature plant"
+help: |
+  Take the crop off a plant that has finished growing. What you get goes
+  straight into your hands, and the plant itself is done — a harvest ends
+  it, so there is nothing left in the bed afterwards but a free place and
+  poorer soil.
+
+  The crop's quality is read off the plant's WORST stretch, not its
+  average and not the state it finished in. A plant you let go dry for a
+  fortnight and then nursed back looks perfectly healthy at harvest and
+  still grades badly. Attention is the input; you cannot buy the band
+  back at the end.
+
+  Harvesting takes nitrogen out of the ground with it. An unfed bed
+  yields worse each time round — `feed` is what puts it back.
+examples:
+  - cmd: harvest the carrots
+    note: Take the crop; the plant is spent
+validators:
+  - /lib/command/validators/requiresAnimate
+  # Pulling a carrot and turning compost into a bed are both acts on
+  # MATTER — a shade has no hands for either. Sibling of `water`/`plant`,
+  # and enforced by `cmd/__tests__/embodied-tagging.test.ts`.
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible

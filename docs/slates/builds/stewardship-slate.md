@@ -1,5 +1,15 @@
 # Stewardship slate — land use, the allowance cascade, and the residence ladder
 
+> **⭐ PARTLY SHIPPED (2026-08-01).** Hinkley Hills took the **land-use
+> enabler** out of this slate and built it: the closed six-entry
+> vocabulary on `ParcelRecord`, the longest-prefix resolve, and the
+> cultivation gate that reads it — see
+> [smallholding.md](../../subsystems/smallholding.md) and
+> [parcel.md](../../subsystems/parcel.md). What remains here is unbuilt:
+> the **allowance cascade** (still an inert field), the **residence
+> ladder** and its ascent gate, and zoning as an act of *governance*
+> rather than a fact on a row.
+
 > **Status: design captured 2026-07-31, not built.** The layer between the
 > shipped [parcel](../../subsystems/parcel.md) title and the activity systems
 > that sit on land — [farming](./farming-slate.md),

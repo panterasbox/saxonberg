@@ -1,0 +1,46 @@
+# Hinkley Hills' plat book — the CATALOGUE half: what is for sale and on
+# what terms. An instance of the general `/obj/PlatBook`, because selling
+# subdivided ground crosses localities and only these particular lots are
+# Hinkley's.
+#
+# What physically appears when a lot sells is deliberately NOT here — it
+# is the LotHolder named below. The two are split because the catalogue
+# grows outward as land becomes a market (terms, demand pricing,
+# auctions) while provisioning is the piece most likely to be swapped
+# wholesale for minted-per-residence templates.
+class: /obj/PlatBook
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  label: Hinkley Hills
+  # The district these lots are subdivided out of — the parcel row seeded
+  # in config/parcels.yaml.
+  parentExtent: /domain/terminus/hinkley-hills
+  # Twelve stakes. Enough that the empty ones read as a subdivision that
+  # did not fill rather than a menu — and enough that a land market has
+  # somewhere to go, since a sale is PERMANENT: every lot sold is gone
+  # from this book forever, in a live world and in the e2e suite alike.
+  lots:
+    [
+      lot-1,
+      lot-2,
+      lot-3,
+      lot-4,
+      lot-5,
+      lot-6,
+      lot-7,
+      lot-8,
+      lot-9,
+      lot-10,
+      lot-11,
+      lot-12,
+    ]
+  # Lots hang off their own FolderZone branch (see lots.yaml) so the
+  # non-cardinal `lot-1` gate off the lane crosses a zone boundary.
+  lotBranch: lots
+  # A real sum for an early character and nowhere near a fortune.
+  priceMinor: 4000
+  # 1000 m² — a quarter-acre, which is what the `lot` tag-table calls it.
+  areaM2: 1000
+  # Residential: admits a garden bed, refuses a field.
+  landUse: residential
+  holderPath: /domain/terminus/hinkley-hills/lot-holder

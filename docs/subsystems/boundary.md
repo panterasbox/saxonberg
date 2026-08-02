@@ -164,7 +164,35 @@ The base owns the fault-in lifecycle; subclasses supply only
 `computeDestination()` + their own `canTraverse` (passability varies —
 a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
 (a unit's room) and `FloorStairExit` (a floor's corridor) — see
-[residence.md](./residence.md).
+[residence.md](./residence.md) — and `obj/LotGateExit` (a sold lot's
+yard, hung on the street by `LotHolder`; see
+[smallholding.md](./smallholding.md)).
+
+`LotGateExit` is the case where the eager path is **exact** rather than a
+class name: each lot's room is minted at its own identity, so the stored
+`destinationTemplatePath` is that identity. That matters beyond honesty —
+it is the path `CartesianLocation.addExit` resolves the destination ZONE
+from when deciding whether a non-cardinal direction is admissible.
+
+#### Non-cardinal exits are a ZONE boundary, not a naming choice
+
+`CartesianLocation.addExit` refuses a non-cardinal direction when source
+and destination resolve to the **same** zone. Content hits this the
+moment a street wants a gate per lot: `lot-1` is not a compass bearing,
+and it cannot be one (a second lot would collide on `north`).
+
+The refusal is the right answer and the fix is upstream — the
+destinations belong in a zone of their own, because N lots cannot share
+one grid coordinate. Two traps when you author that zone:
+
+- It must be a **`SpatialZone`** (in practice a `CartesianZone`).
+  `ZoneApi.resolveZoneForPath` returns only spatial zones and walks
+  straight past a `FolderZone`, so a folder leaves every room back in the
+  parent's zone — the exact failure you were fixing.
+- It must be an **authored template row**, not a minted identity.
+  `resolveZoneForPath` walks template ancestry in Mongo, and a minted
+  path has no row in `domain`. One authored branch zone covers N minted
+  children; a per-child zone cannot be minted at all.
 
 #### `addExit` is async
 

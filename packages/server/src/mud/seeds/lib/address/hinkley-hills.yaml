@@ -1,0 +1,26 @@
+# Hinkley Hills — the suburb, and the first place in the game where a
+# player can hold ground of their own.
+#
+# A LOCALITY tier under the realm, beside the city rather than inside it:
+# `terminus/hinkley-hills`, not `terminus/city/hinkley-hills`. That is the
+# whole geographic argument in one address. Terminus is a dense city built
+# by people who wanted no governing, and it has no room for a garden; the
+# Hills are what happens at its edge when someone wants one anyway —
+# surveyed, staked, and mostly still empty.
+#
+# It governs ITSELF (`_governmentKey: hinkley-hills`) rather than
+# deferring to the city. That is the Tiebout point made concrete: a second
+# polity a short walk away, with different rules and a different tax on
+# your attention, so leaving is a real option long before anyone writes a
+# law worth leaving over.
+#
+# MUST live under `seeds/lib/address/` — AddressRegistry.postRegister
+# eagerly clones every Locality template so its prefix is in the trie at
+# boot. A `domain/`-homed seed would never register, and the departures
+# board would fall back to a generic label.
+class: /lib/address/Locality
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  name: Hinkley Hills
+  _address: terminus/hinkley-hills
+  _governmentKey: hinkley-hills

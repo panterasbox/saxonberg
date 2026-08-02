@@ -18,7 +18,8 @@ import PlantPot, { PLANT_SLOT } from '../PlantPot';
 import Seed from '../Seed';
 import Material from '../../lib/material/Material';
 import { Reserve } from '../../lib/reserve';
-import { MOISTURE_RESERVE_KEY, type GrowthProfileData } from '../../lib/husbandry/Growing';
+import { type GrowthProfileData } from '../../lib/husbandry/Growing';
+import { SOIL_MOISTURE_RESERVE_KEY } from '../../lib/husbandry/Cultivable';
 import { Quantity } from '../../lib/quantity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -108,15 +109,6 @@ function makePlant(
     p.setLifecycleState('alive');
     p.setProfile(profile);
     if (opts.seedPath) p.setSeedTemplatePath(opts.seedPath);
-    p.setReserve(
-      new Reserve(
-        MOISTURE_RESERVE_KEY,
-        Quantity.of(1, 'L'),
-        Quantity.of(1, 'L'),
-        'cultivation',
-        'wilting',
-      ),
-    );
     return p;
   }, path);
 }
@@ -134,6 +126,18 @@ function makePot(soil: number, capacity = soil): PlantPot {
     pot.setStaticSlots([
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: 1 },
     ]);
+    // Phase 2: the WATER lives in the ground, not the plant. A pot is a
+    // bed with one slot, so it holds the moisture reserve its occupant
+    // drinks from. Full at the start, as the plant's own reserve was.
+    pot.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(1, 'L'),
+        Quantity.of(1, 'L'),
+        'cultivation',
+        'wilting',
+      ),
+    );
     return pot;
   }, `/obj/pot/_test-${potSeq}`);
 }
@@ -435,15 +439,6 @@ describe('Plant — the growing object', () => {
       p.setLastAmbientK(295);
       p.setLifecycleState('alive');
       p.setProfile(lilyProfile());
-      p.setReserve(
-        new Reserve(
-          MOISTURE_RESERVE_KEY,
-          Quantity.of(1, 'L'),
-          Quantity.of(1, 'L'),
-          'cultivation',
-          'wilting',
-        ),
-      );
       return p;
     }, '/obj/plant/shared');
     const b = makeStuffAtPath(() => {
@@ -452,15 +447,6 @@ describe('Plant — the growing object', () => {
       p.setLastAmbientK(295);
       p.setLifecycleState('alive');
       p.setProfile(lilyProfile());
-      p.setReserve(
-        new Reserve(
-          MOISTURE_RESERVE_KEY,
-          Quantity.of(1, 'L'),
-          Quantity.of(1, 'L'),
-          'cultivation',
-          'wilting',
-        ),
-      );
       return p;
     }, '/obj/plant/shared');
     const potA = makePot(3);
@@ -497,7 +483,7 @@ describe('Plant — the growing object', () => {
     expect(clay.getContents()).toContain(p);
     expect(clay.getOccupant(PLANT_SLOT)).toBe(p);
     expect(p.getOccupiedHost()).toBe(clay);
-    expect(p.getPot()).toBe(clay);
+    expect(p.getBed()).toBe(clay);
     expect(clay.getContents().indexOf(p)).toBeGreaterThanOrEqual(0);
   });
 });

@@ -39,6 +39,8 @@ import { Group } from "../lib/social/Group";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import { ParcelRecord, type ParcelOwner } from "../lib/parcel/ParcelRecord";
 import { ParcelEvent } from "../lib/parcel/ParcelEvent";
+import { LandUses, type LandUse } from "../lib/parcel/LandUse";
+import type { Quantity } from "../lib/quantity";
 import type { VetoResult } from "../lib/errors";
 import type { Stuff } from "../lib/stuff/Stuff";
 
@@ -85,6 +87,42 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   @CallSecurity(ParcelApiCallers)
   public coveringParcelOf(path: string): ParcelRecord | null {
     return this.coveringImpl(path);
+  }
+
+  /**
+   * What may be done on the ground at `path` — the longest-prefix land-use
+   * read. Resolve the covering parcel, then walk `parentParcel` upward for
+   * the first row that declares a use; ground nothing claims answers
+   * `wild`.
+   *
+   * `wild` admits nothing, which makes the default **fail-closed**: most
+   * parcel rows are path-branch titles over the template tree (`/studio`,
+   * `/lib/lounge`), not ground, and none of them should read as cultivable
+   * merely because nobody thought to zone them.
+   *
+   * A read — no `assertFieldMutation`. The five mutators below carry it.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public landUseOf(path: string): LandUse {
+    return this.landUseOfImpl(path);
+  }
+
+  /** Ungated internal — `subdivide` resolves the parent's use with it. */
+  private landUseOfImpl(path: string): LandUse {
+    let record = this.coveringImpl(path);
+    // Bounded by construction: `parentParcel` edges point strictly upward
+    // through the sparse hierarchy. The seen-set is belt-and-braces
+    // against a hand-edited cycle in the collection.
+    const seen = new Set<string>();
+    while (record) {
+      const use = record.getLandUse();
+      if (use !== null) return use;
+      const parent = record.getParentParcel();
+      if (parent === null || seen.has(parent)) break;
+      seen.add(parent);
+      record = this.coverage.exact(parent)[0] ?? null;
+    }
+    return "wild";
   }
 
   /**
@@ -142,6 +180,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    * child zone itself is minted by the caller (the controller) before this
    * — storage-only here. Idempotent-ish: a duplicate extent overwrites the
    * row but still logs the event (genesis is expected once).
+   *
+   * `area`/`storeys` declare the child's extent (0 = unmeasured, the
+   * pre-field default) and `landUse` its zoning (null = inherit). **This
+   * is where zoning constrains a lot** — an area outside the effective
+   * use's permissible band is refused, naming both. One check at mint
+   * time, not a simulation.
    */
   @CallSecurity(ParcelApiCallers)
   public async subdivide(
@@ -150,6 +194,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     owner: ParcelOwner,
     area = 0,
     storeys = 1,
+    landUse: LandUse | null = null,
   ): Promise<ParcelRecord> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
@@ -177,6 +222,28 @@ export default class ParcelRegistry extends ParcelRegistryBase {
         }
       }
     }
+    // ── zoning: the USE half of the same act (living-world phase 2) ──
+    // The conservation check above asks "does it fit"; this asks "is a
+    // lot this size sane for what it is FOR". The effective use is the
+    // declared one, else whatever the parent's chain already says, and
+    // it is checked BEFORE anything is touched so a refusal leaves
+    // neither a row nor a mutated live record behind.
+    //
+    // ⚠ Measured against `area`, NOT `area × storeys`: the band is a
+    // GROUND-area band, and a four-storey building stands on the same
+    // dirt as a one-storey one. Multiplying would refuse a modest tower
+    // for being a large lot.
+    const effectiveUse =
+      landUse ??
+      (parentExtent.length > 0 ? this.landUseOfImpl(parentExtent) : "wild");
+    if (!LandUses.admitsArea(effectiveUse, area)) {
+      const band = LandUses.areaBandOf(effectiveUse);
+      throw new RangeError(
+        `ParcelRegistry.subdivide: ${area} m² is outside the permissible ` +
+          `area for ${effectiveUse} ground (${band.min}–${band.max} m²)`,
+      );
+    }
+
     // Reuse the live trie handle if one already claims this extent (the
     // trie keys on object identity — a fresh DB load would leave a stale
     // duplicate); else a fresh row.
@@ -190,6 +257,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.parentParcel = parentExtent.length > 0 ? parentExtent : null;
     record.area = area;
     record.storeys = storeys;
+    record.setLandUse(landUse);
     await record.save();
     await this.appendEvent("subdivide", childPath, null, owner);
     this.reindex(childPath, record);

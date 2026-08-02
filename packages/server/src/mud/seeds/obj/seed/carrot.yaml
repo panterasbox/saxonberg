@@ -1,0 +1,13 @@
+# A packet of carrot seed. Same discrete-Thing shape as the houseplant
+# seeds (never Globbable) — it names the plant it grows into and carries
+# no variation of its own.
+class: /obj/Seed
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  shortDescription: a packet of carrot seed
+  primaryKeyword: seed
+  keywords: [seed, seeds, packet, "carrot seed"]
+  longDescription: |
+    A paper packet with the corner torn off, holding more of the tiny ridged seeds than anyone could count.
+  growsIntoPath: /obj/plant/carrot
+  _speciesPath: /lib/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota

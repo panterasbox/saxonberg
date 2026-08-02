@@ -31,6 +31,9 @@
  */
 
 import { Document } from "../persistence/Document";
+import { Collections } from "../persistence/Collections";
+import { LandUses } from "./LandUse";
+import type { LandUse } from "./LandUse";
 import type { GroupRef } from "../social/GroupProvider";
 
 /**
@@ -90,7 +93,7 @@ export interface ParcelSpace {
 }
 
 export class ParcelRecord extends Document {
-  static collectionName = "parcels";
+  static collectionName = Collections.Parcels;
   static persistentFields = [
     "extent",
     "zonePath",
@@ -101,6 +104,7 @@ export class ParcelRecord extends Document {
     "grants",
     "allowance",
     "keyway",
+    "landUse",
   ];
 
   /** The path this parcel claims — the coverage-index key (longest-prefix). */
@@ -158,8 +162,32 @@ export class ParcelRecord extends Document {
    *  re-minted each provision so old keys stop matching). Empty = unlocked/none. */
   keyway: string = "";
 
+  /**
+   * What may be done on this ground — the capability half of a zoning act.
+   * `null` = **inherit** from the covering parcel (`ParcelApi.landUseOf`
+   * walks upward); ground nothing claims answers `wild`, which admits
+   * nothing. Declared here in the gated `parcels` collection and never on
+   * an editable zone template — it gates behaviour, so it is access-check
+   * data. See `LandUse.ts`.
+   */
+  landUse: LandUse | null = null;
+
   getExtent(): string {
     return this.extent;
+  }
+
+  /** This parcel's OWN declared use, or null when it inherits. */
+  getLandUse(): LandUse | null {
+    return this.landUse;
+  }
+
+  /**
+   * Declare this parcel's use. Validates against the closed vocabulary —
+   * an unknown use throws naming the offending value. `null` restores
+   * inheritance.
+   */
+  setLandUse(use: LandUse | string | null): void {
+    this.landUse = use === null ? null : LandUses.parse(use);
   }
 
   getKeyway(): string {

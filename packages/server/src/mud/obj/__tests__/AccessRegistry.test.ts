@@ -20,6 +20,7 @@ import { GroupApi } from "../../api/group";
 import { StuffApi } from "../../api/stuff";
 import { SecurityError } from "../../lib/security/errors";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
+import { Document } from "../../lib/persistence/Document";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 
 interface Doc extends Record<string, unknown> {
@@ -105,6 +106,13 @@ async function bootRegistry(): Promise<AccessRegistry> {
  *  `parcels` rows in the shared store). Property 0a repointed the author
  *  scope + `can` onto it. */
 async function bootParcelRegistry(): Promise<ParcelRegistry> {
+  // `ParcelRecord.area` carries a QuantityMarshaller, so warming the
+  // coverage index preloads it. No row here declares an area (null skips
+  // the marshaller), so a no-op resolver suffices.
+  Document.setMarshallerResolver(
+    () => undefined,
+    async () => undefined,
+  );
   const reg = makeStuffAtPath(
     () => new ParcelRegistry(),
     "/obj/ParcelRegistry",

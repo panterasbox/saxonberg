@@ -20,9 +20,10 @@ import type { MqlOneResult } from '../../../api/mql';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ContainmentApi } from '../../../api/containment';
+import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
-import PlantPot, { PLANT_SLOT } from '../../PlantPot';
+import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
 const TOPIC = 'world.narration.action';
@@ -75,20 +76,20 @@ export default class RepotController extends CommandController<RepotModel> {
       });
       return;
     }
-    if (!(target instanceof PlantPot)) {
+    if (!MixinApi.isCultivable(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You can't plant anything in ${Mml.item(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'not-a-pot',
-        detail: `${target.getPresentation()} is not a pot`,
+        reason: 'not-cultivable',
+        detail: `${target.getPresentation()} is not ground you can plant in`,
       });
       return;
     }
 
-    const origin = subject.getPot();
+    const origin = subject.getBed();
     if (origin === target) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -149,6 +150,15 @@ export default class RepotController extends CommandController<RepotModel> {
     // of the plant as it stands.
     const difficulty = subject.transplantDifficulty();
 
+    // Settle BOTH grounds' water windows before the plant changes hands.
+    // Each bed drains by the demand of whoever is standing in it, so the
+    // window that just ended has to be drawn at the old membership: the
+    // origin owes this plant's share of it, and the destination — which
+    // may have sat empty for weeks — owes nothing and must not be made
+    // retroactively thirsty by an arrival. (`vacate` settles the origin
+    // itself; the destination is settled here because only the caller
+    // knows this is a transplant rather than a persistence re-seat.)
+    target.reconcileSoil();
     if (origin) origin.vacate(PLANT_SLOT, subject);
     ContainmentApi.move(subject, target);
     target.occupy(subject, PLANT_SLOT);

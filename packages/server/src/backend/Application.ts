@@ -849,5 +849,49 @@ export class Application {
       }
     }
   }
+
+  /**
+   * Test-only cash faucet: put `fundsMinor` of real, spendable money on
+   * the user's first character. **Requires the avatar to be LIVE** —
+   * call it after the session has entered the world, never at provision
+   * time (see `Backend.handleTestFunding`).
+   *
+   * Uses the shipped `BankingApi.issueCash` rather than a bespoke mint,
+   * so the coins are denominated, massed and encumbrance-bearing, and
+   * the ledger's conservation invariant holds exactly as it does for a
+   * player withdrawal. The only thing "test" about this money is that
+   * nobody earned it.
+   *
+   * Throws on every failure path. A warn-and-continue here would show
+   * up downstream as a purchase refusing for lack of funds, which is
+   * indistinguishable from the bug a funded test is written to catch.
+   */
+  public async fundTestCharacter(
+    userId: string,
+    fundsMinor: number
+  ): Promise<void> {
+    if (process.env.AUTH_MODE !== 'test') {
+      throw new Error('Application.fundTestCharacter: test-only');
+    }
+    const user = await User.findById(userId);
+    if (!user || user.playerIds.length === 0) {
+      throw new Error(
+        `Application.fundTestCharacter: no character for user ${userId}`
+      );
+    }
+    const { BankingApi } = await import('../mud/api/banking');
+    const { StuffApi } = await import('../mud/api/stuff');
+    const { Money } = await import('../mud/lib/banking/Money');
+    const { default: Avatar } = await import('../mud/obj/Avatar');
+    const path = Avatar.getTemplatePath(user.playerIds[0]!);
+    const avatar = StuffApi.findByTemplatePath(path);
+    if (!avatar) {
+      throw new Error(
+        `Application.fundTestCharacter: no LIVE avatar at ${path} — ` +
+          `fund after the session has entered the world, not at provision`
+      );
+    }
+    await BankingApi.issueCash(avatar as never, Money.of(fundsMinor));
+  }
 }
 

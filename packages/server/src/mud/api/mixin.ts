@@ -86,6 +86,7 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Growing } from '../lib/husbandry/Growing';
+import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
 import type { Furnace } from '../lib/fire/Furnace';
@@ -911,6 +912,22 @@ export class MixinApi {
 
   public static isGrowing(obj: Stuff): obj is Stuff & Growing {
     return this.hasMixin(obj, Mixins.Growing);
+  }
+
+  /**
+   * Ground that holds plants — a pot (N = 1) or a garden bed (N > 1).
+   * The narrowing that replaced `instanceof PlantPot` across the
+   * cultivation verbs.
+   *
+   * Narrows to the WHOLE composed surface, not just `Cultivable`:
+   * `CultivableMixin`'s base constraint already requires Container +
+   * Bulkable + Slotted, so a cultivable provably has them, and a caller
+   * that needs `occupy`/`vacate` should not have to narrow twice.
+   */
+  public static isCultivable(
+    obj: Stuff
+  ): obj is Stuff & Cultivable & Container & Bulkable & Slotted {
+    return this.hasMixin(obj, Mixins.Cultivable);
   }
 
   public static isCombustible(obj: Stuff): obj is Stuff & Combustible {

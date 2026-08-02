@@ -248,6 +248,18 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // corridors / doors reconstitute lazily on entry. It faults in the lobby
   // singleton itself, so no dependsOn.
   { templatePath: '/domain/eternal/duncan-hall/dorm-warren' },
+  // Hinkley Hills' plat book + its provisioner. Boot-warmed because the
+  // `title` verb ENUMERATES live books (`world:[class.PlatBook]`) rather
+  // than naming one, so a book that is only a row in `domain` is a book
+  // nobody can buy from: `title list` reads "the plat book is empty" and
+  // every lot is unreachable. The holder is warmed with it because the
+  // book names it by path and a sale resolves it at that moment.
+  //
+  // Nothing else pulls these in — a subdivision has no room that
+  // `populates:` its own catalogue, which is exactly why they need to be
+  // here rather than cascading like the Terminus hub does.
+  { templatePath: '/domain/terminus/hinkley-hills/plat-book' },
+  { templatePath: '/domain/terminus/hinkley-hills/lot-holder' },
   // Terminus TPA terminals are NOT manifest entries — the whole hub
   // cascade-loads lazily from the single lounge root: the lounge terminal's
   // `armNetwork` resolves its route to the Terminus **arrival** terminal,

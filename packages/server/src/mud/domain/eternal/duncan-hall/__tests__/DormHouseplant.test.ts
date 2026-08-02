@@ -29,6 +29,9 @@ import Desk from '../Desk';
 import Footlocker from '../Footlocker';
 import Plant from '../../../../obj/Plant';
 import PlantPot, { PLANT_SLOT } from '../../../../obj/PlantPot';
+import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../lib/husbandry/Cultivable';
+import { Reserve } from '../../../../lib/reserve';
+import { Quantity } from '../../../../lib/quantity';
 import Seed from '../../../../obj/Seed';
 import WateringCan from '../../../../obj/WateringCan';
 import WaterController from '../../../../obj/command/bulk/WaterController';
@@ -502,7 +505,7 @@ describe('the dorm houseplant — content and placement', () => {
     expect(pot!.getSoilVolume()).toBeGreaterThan(0);
     expect(pot!.getOccupant(PLANT_SLOT)).toBe(plant);
     expect(pot!.getContents()).toContain(plant);
-    expect(plant!.getPot()).toBe(pot);
+    expect(plant!.getBed()).toBe(pot);
 
     // Resting on the desk (the `onto:` populate spec).
     expect(pot!.getRestingOn()).toBe(desk);
@@ -969,7 +972,7 @@ describe('the dorm houseplant — durability', () => {
 
     const transient = makeStuff(() => new Location());
     ContainmentApi.move(pot, transient);
-    expect(plant.getPot()).toBe(pot);
+    expect(plant.getBed()).toBe(pot);
 
     // Cull the transient room. Nothing captured it, so nothing wrote a
     // record: `ContainerMixin.cleanupOnDestruct` has nowhere to evacuate a
@@ -979,7 +982,7 @@ describe('the dorm houseplant — durability', () => {
     StuffApi.destruct(transient);
     expect(pot.isDestroyed()).toBe(true);
     expect(transient.isDestroyed()).toBe(true);
-    expect(plant.getPot()).toBeNull(); // its slot went with the pot
+    expect(plant.getBed()).toBeNull(); // its slot went with the pot
 
     const records = col('holder_snapshots');
     expect(
@@ -999,23 +1002,52 @@ describe('the dorm houseplant — durability', () => {
     const unit = seedUnit(1, 1);
     const room = await w.admit(unit);
     const plant = plantIn(room)!;
+    const pot = potIn(room)!;
     const key = plant.getPersistenceKey()!;
 
-    // Dry it out, then capture the checkpoint.
+    // Part-dry it, then capture the checkpoint. Deliberately NOT bone dry:
+    // the assertion below is that ten more elapsed days leave it drier
+    // still, which needs somewhere left to fall.
     plant.getVigor();
-    setNow(10 * DAY);
+    setNow(3 * DAY);
     const dryMoisture = plant.getSoilMoisture();
-    expect(dryMoisture).toBeLessThan(0.35);
+    expect(dryMoisture).toBeLessThan(1);
+    expect(dryMoisture).toBeGreaterThan(0);
     await PersistableApi.capture(plant, key);
     const checkpointStamp = plant.growthClockStamp;
+    // Since phase 2 the WATER is the pot's, so a faithful restart has to
+    // check the pot back in too — restoring the plant alone would restore
+    // half the world and leave it rooted in nothing.
+    const potMoistureAtCheckpoint = pot
+      .getReserve(SOIL_MOISTURE_RESERVE_KEY)!
+      .current.rawValue();
 
     // Water it — and DO NOT capture (the crash-before-capture case).
     plant.waterPlant(1);
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
+    // The crash takes the plant with it — vacate its place so the
+    // restored instance can take it back.
+    pot.vacate(PLANT_SLOT, plant);
     StuffApi.unregister(plant);
 
-    // Restart, ten game-days later, restoring from that record.
+    // Restart, ten game-days later, restoring from that record — the
+    // plant back into a pot rolled back to its checkpoint water.
     setNow(20 * DAY);
+    pot.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        pot.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity,
+        Quantity.of(potMoistureAtCheckpoint, 'L'),
+        'cultivation',
+        'wilting',
+      ),
+    );
+    // The pot's clock cursor is public (`Hydrator` reflects into it), so
+    // this is a plain write, not a cast through the contract. Winding it
+    // back is HOW you simulate a restart: production restores the stamp
+    // from the record, and there is no other seam that puts a pot's soil
+    // clock where a checkpoint left it.
+    pot.soilClockStamp = checkpointStamp;
     const restored = makeStuffAtPath(
       () => new Plant(),
       '/obj/plant/peace-lily',
@@ -1023,7 +1055,11 @@ describe('the dorm houseplant — durability', () => {
     restored.setPersistenceKey(key);
     await PersistableApi.materialize(restored, key);
     // The record put the clock cursor back where the checkpoint left it…
+    // (asserted BEFORE re-seating: being placed is an environment change,
+    // and a reconcile is exactly what that is supposed to trigger.)
     expect(restored.growthClockStamp).toBe(checkpointStamp);
+    ContainmentApi.move(restored, pot);
+    pot.occupy(restored, PLANT_SLOT);
 
     // (a) The watering is LOST — an intervention cannot be re-derived.
     // (b) The elapsed TIME is not: state derives from that clock stamp, so
@@ -1036,11 +1072,15 @@ describe('the dorm houseplant — durability', () => {
     expect(restored.growthClockStamp).toBeGreaterThan(checkpointStamp);
 
     // Now re-run WITH the capture wired (what the `water` verb actually
-    // does) and the watering survives the same restart.
+    // does) and the watering survives the same restart. Since phase 2 the
+    // litres land in the POT, so the capture that has to happen is the
+    // ground's — which is what WaterController now does.
     restored.waterPlant(1);
     await PersistableApi.captureHostOf(restored);
+    await PersistableApi.captureHostOf(pot);
     const wetMoisture = restored.getSoilMoisture();
     expect(wetMoisture).toBeGreaterThan(afterRollback);
+    pot.vacate(PLANT_SLOT, restored);
     StuffApi.unregister(restored);
 
     const restored2 = makeStuffAtPath(
@@ -1049,6 +1089,8 @@ describe('the dorm houseplant — durability', () => {
     );
     restored2.setPersistenceKey(key);
     await PersistableApi.materialize(restored2, key);
+    ContainmentApi.move(restored2, pot);
+    pot.occupy(restored2, PLANT_SLOT);
     expect(restored2.getSoilMoisture()).toBeCloseTo(wetMoisture, 4);
   });
 

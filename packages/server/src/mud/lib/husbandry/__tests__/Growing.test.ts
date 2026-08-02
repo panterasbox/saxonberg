@@ -8,11 +8,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
-import {
-  GrowingMixin,
-  MOISTURE_RESERVE_KEY,
-  type GrowthProfileData,
-} from '../Growing';
+import { GrowingMixin, type GrowthProfileData } from '../Growing';
+import { SOIL_MOISTURE_RESERVE_KEY } from '../Cultivable';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { ThermalMixin } from '../../thermal/Thermal';
@@ -22,11 +19,27 @@ import { Quantity, type Unit } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import '../../../obj/WorldClockRegistry';
 
+/**
+ * The mixin under test, in isolation. Since phase 2 the WATER lives in the
+ * ground rather than the plant, so this fixture plays **both** roles: it
+ * holds the moisture reserve and implements the soil seams against it,
+ * standing in for the `Cultivable` a real plant would be rooted in.
+ *
+ * Keeping the reserve here is deliberate — it lets every existing
+ * assertion about the growth CURVE (drain rate, wilt ramp, step cap, death
+ * latch) go on saying exactly what it said, which is the point of a
+ * storage move: the fixtures move, the assertions do not. The bed's own
+ * drain/competition behaviour is proven separately in GardenBed.test.ts.
+ */
 class GrowFixture extends GrowingMixin(ReservedMixin(Thing)) {
   /** Test lever for the light window (no perception substrate here). */
   public luxOverride = 0;
   /** Test lever for the pot seam (null = unpotted). */
   public rootOverride: number | null = null;
+  /** Test lever for the nutrient seam (null = ground declares none). */
+  public nutrientOverride: number | null = null;
+  /** When false, the fixture stands in for an UNROOTED plant. */
+  public rootedInSoil = true;
   public floweringLatches = 0;
 
   protected override sampleLux(): number {
@@ -35,9 +48,66 @@ class GrowFixture extends GrowingMixin(ReservedMixin(Thing)) {
   protected override rootRoom(): number | null {
     return this.rootOverride;
   }
+  protected override nutrientLevel(): number | null {
+    return this.nutrientOverride;
+  }
   protected override onFloweringLatched(): void {
     this.floweringLatches += 1;
   }
+
+  // ── the soil seams, backed by this fixture's own reserve ──
+
+  protected override soilMoisture(): number | null {
+    if (!this.rootedInSoil) return null;
+    const reserve = this.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+    if (!reserve) return null;
+    const capacity = reserve.capacity.rawValue();
+    if (capacity <= 0) return null;
+    return reserve.current.rawValue() / capacity;
+  }
+
+  /**
+   * Drain-then-report, the shape a real bed's `reconcileSoil` has: the
+   * ground consumes its occupants' demand over the elapsed window and
+   * reports the MEAN across it. Called once per plant reconcile.
+   */
+  protected override meanSoilMoisture(): number | null {
+    if (!this.rootedInSoil) return null;
+    const reserve = this.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+    if (!reserve) return null;
+    const capacity = reserve.capacity.rawValue();
+    if (capacity <= 0) return null;
+    const nowS = now;
+    const elapsed = Math.max(0, nowS - this._soilStamp);
+    this._soilStamp = nowS;
+    const start = reserve.current.rawValue();
+    const draw =
+      this.waterDemandPerGameDay() * (elapsed / DAY) * this.testWarmth;
+    const end = Math.max(0, start - draw);
+    if (draw > 0) this.adjustReserve(
+      SOIL_MOISTURE_RESERVE_KEY,
+      Quantity.of(-(start - end), 'L'),
+    );
+    const startF = start / capacity;
+    const endF = end / capacity;
+    if (draw <= 0) return startF;
+    return end > 0 ? (startF + endF) / 2 : (startF * (start / draw)) / 2;
+  }
+
+  protected override waterTheSoil(litres: number): number {
+    const reserve = this.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+    if (!reserve) return 0;
+    const headroom = reserve.capacity.rawValue() - reserve.current.rawValue();
+    const applied = Math.min(litres, Math.max(0, headroom));
+    if (applied <= 0) return 0;
+    this.adjustReserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(applied, 'L'));
+    return applied;
+  }
+
+  /** The soil's own stamp — the fixture's stand-in for the bed's. */
+  public _soilStamp = BASE;
+  /** Warmth multiplier the stand-in soil applies (1 = neutral). */
+  public testWarmth = 1;
 }
 
 /** Counts moisture drains — one per reconcile step (the step-cap proof). */
@@ -57,16 +127,6 @@ class LinkdeadFixture extends GrowingMixin(
   }
 }
 
-class ThrowingThermalFixture extends GrowingMixin(
-  ReservedMixin(ThermalMixin(Thing)),
-) {
-  protected override sampleLux(): number {
-    return 0;
-  }
-  public override getTemperature(): Quantity<'K'> {
-    throw new Error('thermal read unavailable');
-  }
-}
 
 const DAY = 86_400; // game-seconds per game-day
 // A realistic game-time base — production clocks never sit at exactly 0, so
@@ -99,7 +159,7 @@ function installMoisture(
 ): void {
   t.setReserve(
     new Reserve(
-      MOISTURE_RESERVE_KEY,
+      SOIL_MOISTURE_RESERVE_KEY,
       Quantity.of(capacity, 'L'),
       Quantity.of(current, 'L'),
       'cultivation',
@@ -376,15 +436,4 @@ describe('GrowingMixin — the growth model', () => {
     expect(dry).toContain('The soil is dry.');
   });
 
-  it('warmthMultiplier degrades gracefully when the Thermal read throws', () => {
-    const thermal = makeStuff(() => new ThrowingThermalFixture());
-    installMoisture(thermal);
-    thermal.setProfile(profile());
-    const plain = fixture();
-    thermal.getVigor();
-    plain.getVigor();
-    setNow(3 * DAY);
-    // A throwing Thermal reads the neutral multiplier — same drain.
-    expect(thermal.getSoilMoisture()).toBeCloseTo(plain.getSoilMoisture(), 6);
-  });
 });

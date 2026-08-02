@@ -1,5 +1,17 @@
 # Property slate (working doc) — possession, real estate, and the two scarcities
 
+> **⭐ PARTLY SHIPPED.** The title substrate this slate called for is
+> built ([parcel.md](../../subsystems/parcel.md)), and Hinkley Hills gave
+> it the **verb it lacked** plus the first market for it: `title` /
+> `title list` / `title buy` over a `PlatBook` catalogue and a
+> `LotHolder` provisioner, with the sale riding banking's settle
+> chokepoint — see
+> [smallholding.md](../../subsystems/smallholding.md). Chattel shipped
+> too ([chattel.md](../../subsystems/chattel.md)). Still unbuilt and the
+> reason this slate stays: the **compute-allowance** scarcity (the field
+> is inert), **dormancy-as-reclamation**, the author↔owner un-fusing, and
+> real-estate mechanics above a single lot (resale, leases, valuation).
+
 > **Status: design explored deep across a full session; not yet requirements.**
 > The foundational substrate under pets, ranching, farming, and the economy +
 > governance tiers: **who owns what, where the boundaries are, and what it costs

@@ -143,7 +143,10 @@ describe("Terminus content standup (real seeds)", () => {
     const gateA = StuffApi.findByTemplatePath<Stuff & FastTravel>(TERMINALS[1]!)!;
     expect(gateA.getDirectionality()).toBe("departure");
     expect(gateA.getStatus()).toBe("operational");
-    expect(gateA.getRoutes().size).toBe(2);
+    // Three routes: the free lounge return, the paid newbie-wilds line,
+    // and the cheap hop out to Hinkley Hills (living-world phase 2 — a
+    // commuter suburb has to be an ordinary arrangement, not a penalty).
+    expect(gateA.getRoutes().size).toBe(3);
 
     // The two dead gates are out of service.
     for (const dead of [TERMINALS[2]!, TERMINALS[3]!]) {

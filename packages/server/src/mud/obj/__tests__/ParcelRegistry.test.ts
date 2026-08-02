@@ -26,8 +26,11 @@ import { StuffApi } from "../../api/stuff";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { SecurityError } from "../../lib/security/errors";
 import { ParcelRecord, type ParcelOwner } from "../../lib/parcel/ParcelRecord";
+import { LandUses, type LandUse } from "../../lib/parcel/LandUse";
+import { Quantity } from "../../lib/quantity";
 import { ParcelEvent } from "../../lib/parcel/ParcelEvent";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
+import { Document } from "../../lib/persistence/Document";
 import {
   makeStuffAtPath,
   withRootContext,
@@ -95,6 +98,7 @@ function installStore(): void {
     delete: del,
     isConnected: () => true,
   } as unknown as PersistenceManager);
+
 }
 
 function seedParcel(entry: {
@@ -102,11 +106,36 @@ function seedParcel(entry: {
   zonePath?: string;
   owner: ParcelOwner;
   parentParcel?: string | null;
+  landUse?: LandUse | null;
+  areaM2?: number;
 }): void {
   col("parcels").push({
     _id: `seed-${++idCounter}`,
     extent: entry.extent,
     zonePath: entry.zonePath ?? entry.extent,
+    owner: entry.owner,
+    parentParcel: entry.parentParcel ?? null,
+    grants: [],
+    allowance: null,
+    landUse: entry.landUse ?? null,
+    area: entry.areaM2 ?? 0,
+  });
+}
+
+/**
+ * Seed a row the way a record written BEFORE land use existed looks: no
+ * `landUse` / `area` keys at all. There is live parcel data, so the
+ * backward-compatible load is a real requirement, not a hypothetical.
+ */
+function seedLegacyParcel(entry: {
+  extent: string;
+  owner: ParcelOwner;
+  parentParcel?: string | null;
+}): void {
+  col("parcels").push({
+    _id: `seed-${++idCounter}`,
+    extent: entry.extent,
+    zonePath: entry.extent,
     owner: entry.owner,
     parentParcel: entry.parentParcel ?? null,
     grants: [],
@@ -552,5 +581,299 @@ describe("AccessApi — can / canMutateZone over a parcel-owned slice (regressio
     expect(await AccessApi.canMutateZone(makeAvatar("stranger"), zone)).toBe(false);
     // and content-access falls to core membership.
     expect(await AccessApi.can(makeAvatar("coreowner"), "write", zone)).toBe(true);
+  });
+});
+
+describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  it("answers a parcel's own declared use", async () => {
+    seedParcel({
+      extent: "/domain/terminus/registry",
+      owner: { kind: "group", name: "terminus" },
+      landUse: "civic",
+    });
+    await boot();
+
+    expect(ParcelApi.landUseOf("/domain/terminus/registry")).toBe("civic");
+  });
+
+  it("inherits a covering parcel's use for ground inside it", async () => {
+    seedParcel({
+      extent: "/domain/terminus/registry",
+      owner: { kind: "group", name: "terminus" },
+      landUse: "civic",
+    });
+    await boot();
+
+    // No row of its own — the coverage trie's longest prefix answers.
+    expect(ParcelApi.landUseOf("/domain/terminus/registry/office")).toBe(
+      "civic",
+    );
+  });
+
+  it("⭐ walks parentParcel upward when the nearest row declares nothing", async () => {
+    seedParcel({
+      extent: "/domain/hills",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+    });
+    seedParcel({
+      extent: "/domain/hills/lot-1",
+      owner: { kind: "player", templatePath: "/obj/Avatar/alice" },
+      parentParcel: "/domain/hills",
+      landUse: null, // explicit "inherit"
+    });
+    await boot();
+
+    expect(ParcelApi.landUseOf("/domain/hills/lot-1")).toBe("residential");
+  });
+
+  it("an explicit child use OVERRIDES its parent's", async () => {
+    seedParcel({
+      extent: "/domain/hills",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+    });
+    seedParcel({
+      extent: "/domain/hills/back-forty",
+      owner: { kind: "group", name: "core" },
+      parentParcel: "/domain/hills",
+      landUse: "agricultural",
+    });
+    await boot();
+
+    expect(ParcelApi.landUseOf("/domain/hills/back-forty")).toBe("agricultural");
+    expect(ParcelApi.landUseOf("/domain/hills")).toBe("residential");
+  });
+
+  it("unclaimed ground answers wild", async () => {
+    await boot();
+    expect(ParcelApi.landUseOf("/domain/nowhere")).toBe("wild");
+  });
+
+  it("⭐ a path-branch row with no use answers wild — so cultivation is refused", async () => {
+    // /studio and /lib/lounge are titles over the TEMPLATE TREE, not
+    // ground. They must not read as cultivable merely because nobody
+    // thought to zone them. This is the fail-closed default in situ.
+    seedParcel({ extent: "/studio", owner: { kind: "group", name: "core" } });
+    seedParcel({
+      extent: "/lib/lounge",
+      owner: { kind: "group", name: "lounge" },
+    });
+    await boot();
+
+    expect(ParcelApi.landUseOf("/studio")).toBe("wild");
+    expect(ParcelApi.landUseOf("/studio/some-group")).toBe("wild");
+    expect(ParcelApi.landUseOf("/lib/lounge")).toBe("wild");
+    expect(ParcelApi.cultivationScaleAt("/studio")).toBe("none");
+    expect(ParcelApi.cultivationScaleAt("/lib/lounge")).toBe("none");
+  });
+
+  it("reports the cultivation scale for zoned ground", async () => {
+    seedParcel({
+      extent: "/domain/hills",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+    });
+    seedParcel({
+      extent: "/domain/farmland",
+      owner: { kind: "group", name: "core" },
+      landUse: "agricultural",
+    });
+    await boot();
+
+    expect(ParcelApi.cultivationScaleAt("/domain/hills/yard")).toBe("bed");
+    expect(ParcelApi.cultivationScaleAt("/domain/farmland")).toBe("field");
+  });
+
+  it("⭐ a record written before land use existed loads and inherits", async () => {
+    // There IS live parcel data. A row with no `landUse` key at all must
+    // load cleanly and answer by inheritance, not throw or read as junk.
+    seedParcel({
+      extent: "/domain/terminus",
+      owner: { kind: "group", name: "terminus" },
+      landUse: "commercial",
+    });
+    seedLegacyParcel({
+      extent: "/domain/terminus/general-store",
+      owner: { kind: "group", name: "terminus" },
+      parentParcel: "/domain/terminus",
+    });
+    await boot();
+
+    const record = await ParcelApi.coveringParcelOf(
+      "/domain/terminus/general-store",
+    );
+    expect(record?.getLandUse()).toBeNull();
+    expect(record?.getArea()).toBe(0);
+    expect(ParcelApi.landUseOf("/domain/terminus/general-store")).toBe(
+      "commercial",
+    );
+  });
+});
+
+describe("ParcelRecord — land use and area on the row", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  it("refuses an unknown land use on the setter path, naming it", () => {
+    const record = new ParcelRecord();
+    expect(() => record.setLandUse("recreational")).toThrow(/recreational/);
+    expect(record.getLandUse()).toBeNull();
+  });
+
+  it("accepts null to restore inheritance", () => {
+    const record = new ParcelRecord();
+    record.setLandUse("civic");
+    expect(record.getLandUse()).toBe("civic");
+    record.setLandUse(null);
+    expect(record.getLandUse()).toBeNull();
+  });
+
+  it("⭐ area round-trips, and bands for display", async () => {
+    seedParcel({
+      extent: "/domain/hills/lot-1",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+      areaM2: 1_200,
+    });
+    await boot();
+
+    const record = await ParcelApi.coveringParcelOf("/domain/hills/lot-1");
+    const area = record?.getArea();
+    expect(area).toBe(1_200);
+    // …and it bands for display rather than showing the raw figure.
+    expect(Quantity.of(area!, "m²").tag("lot")).toBe("a quarter-acre lot");
+  });
+});
+
+describe("ParcelApi.subdivide — zoning constrains the lot", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  async function subdivide(
+    childPath: string,
+    parentExtent: string,
+    opts?: { landUse?: LandUse | null; areaM2?: number },
+  ) {
+    const actor = makeAvatar("dave");
+    return withRootContext(null, "test", () => {
+      ExecutionContextApi.tagActingAuthor(actor);
+      return ParcelApi.subdivide(
+        childPath,
+        parentExtent,
+        { kind: "group", name: "core" },
+        opts?.areaM2 ?? 0,
+        1,
+        opts?.landUse ?? null,
+      );
+    });
+  }
+
+  it("stamps the declared use and area on the child row", async () => {
+    seedParcel({
+      extent: "/domain/hills",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+    });
+    await boot();
+
+    await subdivide("/domain/hills/lot-1", "/domain/hills", {
+      landUse: "residential",
+      areaM2: 1_200,
+    });
+
+    const child = await ParcelApi.coveringParcelOf("/domain/hills/lot-1");
+    expect(child?.getLandUse()).toBe("residential");
+    expect(child?.getArea()).toBe(1_200);
+  });
+
+  it("⭐ refuses a lot outside its use's area band, naming both", async () => {
+    seedParcel({
+      extent: "/domain/hills",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+    });
+    await boot();
+
+    const band = LandUses.areaBandOf("residential");
+    await expect(
+      subdivide("/domain/hills/absurd", "/domain/hills", {
+        landUse: "residential",
+        areaM2: band.max + 1,
+      }),
+    ).rejects.toThrow(/residential/);
+
+    // …and NOTHING was written — a refusal leaves no row behind.
+    expect(await ParcelApi.coveringParcelOf("/domain/hills/absurd")).toBe(
+      (await ParcelApi.coveringParcelOf("/domain/hills")),
+    );
+  });
+
+  it("checks the band against the INHERITED use when none is declared", async () => {
+    seedParcel({
+      extent: "/domain/farmland",
+      owner: { kind: "group", name: "core" },
+      landUse: "agricultural",
+    });
+    await boot();
+
+    // 3 m² is fine for a civic bench and absurd for a farm; the child
+    // declares no use, so agricultural's band is the one that applies.
+    await expect(
+      subdivide("/domain/farmland/sliver", "/domain/farmland", { areaM2: 3 }),
+    ).rejects.toThrow(/agricultural/);
+  });
+
+  it("leaves use and area untouched when opts is omitted (existing callers)", async () => {
+    seedParcel({
+      extent: "/domain/lounge",
+      owner: { kind: "group", name: "lounge" },
+    });
+    await boot();
+
+    await subdivide("/domain/lounge/east-wing", "/domain/lounge");
+
+    const child = await ParcelApi.coveringParcelOf("/domain/lounge/east-wing");
+    expect(child?.getLandUse()).toBeNull();
+    expect(child?.getArea()).toBe(0);
+    // …and it still inherits, so the walk is unaffected.
+    expect(ParcelApi.landUseOf("/domain/lounge/east-wing")).toBe("wild");
+  });
+
+  it("⭐ nothing reconciles area against rooms", async () => {
+    // The guard against someone later 'helpfully' deriving parcel area
+    // from room geometry. A parcel's area is a DECLARED land-tenure fact;
+    // Location.getSizeScale() is a photometric denominator. Adding,
+    // removing or resizing rooms inside a parcel must not move it.
+    seedParcel({
+      extent: "/domain/hills",
+      owner: { kind: "group", name: "core" },
+      landUse: "residential",
+      areaM2: 1_200,
+    });
+    await boot();
+
+    const before = (await ParcelApi.coveringParcelOf("/domain/hills"))!;
+    expect(before.getArea()).toBe(1_200);
+
+    // Stand up zones inside the parcel — the closest thing to "adding
+    // rooms" the title layer can even observe.
+    makeStuffAtPath(() => new FolderZone(), "/domain/hills/yard");
+    makeStuffAtPath(() => new FolderZone(), "/domain/hills/shed");
+
+    const after = (await ParcelApi.coveringParcelOf("/domain/hills"))!;
+    expect(after.getArea()).toBe(1_200);
   });
 });

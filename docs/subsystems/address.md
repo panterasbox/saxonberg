@@ -188,6 +188,20 @@ claimed address:
 | `/lib/address/narnia` | `narnia` | root Region (coverage fallback) |
 | `/lib/address/cair-paravel` | `narnia/castle` | nested longest-prefix winner |
 | `/lib/address/lantern-waste` | `narnia/wild` | sibling discrimination + null-outside-tree |
+| `/lib/address/hinkley-hills` | `terminus/hinkley-hills` | a **sibling of the city, not a child** — a suburb beside Terminus rather than inside it, with a `_governmentKey` of its own |
+
+### The suburb tier (living-world phase 2)
+
+`hinkley-hills` claims `terminus/hinkley-hills`, deliberately **not**
+`terminus/city/hinkley-hills`. The address IS the geographic argument: the
+city is dense and has no room for a garden, and the Hills are what happens
+at its edge. Everything addressed `terminus/hinkley-hills/...` resolves
+there rather than to the municipal corporation.
+
+It carries its own `_governmentKey`, so the two are separate jurisdictions
+a short walk apart — which is what makes *leaving* a real option long
+before there is a law worth leaving over. See
+[civics.md](./civics.md) and [smallholding.md](./smallholding.md).
 
 ## Verb
 

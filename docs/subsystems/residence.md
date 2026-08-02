@@ -137,10 +137,17 @@ placeholder — so the edge reads honestly before it's been walked:
   [boundary.md](./boundary.md).
 
 `admit(unitKey)` returns the cached live room, else clones a `DormRoom`
-(`createMemberSerialized`) → stashes its key → **D1 restore-or-seed**
-(`hasRecord` ? `materialize(room, unitKey)` : `seedBornWith()` [lay down the
-declared `populates:` fixtures] + `capture(room, unitKey)`) → wires the return
-leg → caches. `ensureFloor(n)`
+(`createMemberSerialized`) → **`PersistableApi.restoreOrSeed(room,
+unitKey)`** → wires the return leg → caches.
+
+> The restore-or-seed decision itself is **no longer dorm code**. It was
+> extracted to the spine in living-world phase 2 (`restoreOrSeed`: key the
+> host, then restore its record or lay the declared `populates:` fixtures
+> down and capture them) because a smallholding needed the same six lines
+> per titled lot. What still makes this a dorm is the Warren membership,
+> the hub-exit wiring and the cache. See
+> [persistence.md § the keyed-holder ground pattern](./persistence.md) and
+> [smallholding.md](./smallholding.md). `ensureFloor(n)`
 clones the corridor, wires `down` to the floor below (lobby for n=1, else
 `ensureFloor(n-1)`, `keepLiveDestination` between clones), installs the `up`
 `FloorStairExit`, and clones the `DormDoor`s for the units whose slot is on

@@ -1,0 +1,18 @@
+# The Hinkley Hills terminal — the suburb's link to town.
+#
+# `directionality: both`, unlike the city's split arrival/departure gates:
+# out here one post does both jobs, which is what a suburb stop looks
+# like. The fare is 5 — cheap enough that living out here and working in
+# town is a real arrangement rather than a penalty, which is the whole
+# premise of a commuter suburb.
+class: /domain/common/tpa/TpaTerminal
+hydratorClass: /lib/persistence/PersistentHydrator
+data:
+  seatIn: /domain/terminus/hinkley-hills/arrival
+  shortDescription: a Teleport Authority post
+  keywords: [post, terminal, tpa, hinkley]
+  directionality: both
+  status: operational
+  routes:
+    - to: /domain/terminus/terminal/arrival-terminal
+      fee: 5

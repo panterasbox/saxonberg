@@ -89,6 +89,54 @@ export class TestAuthRoutes {
       );
     });
 
+    /**
+     * Test-only cash faucet. **Separate from `/auth/test-login` on
+     * purpose, and called AFTER the browser is in-world**: at provision
+     * time the avatar is a database row, not a live object, so an
+     * `issueCash` there has nothing to hand coins to. That is not a
+     * detail worth papering over with a retry — the money has to land on
+     * the same live avatar the player is driving.
+     *
+     * An economy verb (`title buy`) cannot be driven past its funds
+     * check by a character with no money, so without this the sale can
+     * only ever be observed REFUSING. Uses the shipped `issueCash`
+     * faucet, so the coins are real (denominated, massed,
+     * encumbrance-bearing) and the ledger stays conserved.
+     *
+     * Fails LOUDLY (500) rather than warning: a silent no-op here reads
+     * downstream as "the sale refused", which is a false negative in the
+     * exact test that exists to prove it does not.
+     */
+    app.post('/auth/test-fund', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const userId = (
+        req.session as { passport?: { user?: { id?: string } } } | undefined
+      )?.passport?.user?.id;
+      if (!userId) {
+        res.status(401).json({ error: 'not authenticated' });
+        return;
+      }
+      const body = req.body as { fundsMinor?: unknown } | undefined;
+      const fundsMinor =
+        typeof body?.fundsMinor === 'number' && body.fundsMinor > 0
+          ? body.fundsMinor
+          : 0;
+      if (fundsMinor === 0) {
+        res.status(400).json({ error: 'fundsMinor must be a positive number' });
+        return;
+      }
+      void backend
+        .handleTestFunding(userId, fundsMinor)
+        .then(() => res.json({ funded: fundsMinor }))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-fund failed:', err);
+          res.status(500).json({ error: String(err) });
+        });
+    });
+
     console.warn(
       'TestAuthRoutes: ⚠  /auth/test-login is MOUNTED (test auth). Never in production.'
     );

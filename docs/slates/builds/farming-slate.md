@@ -1,5 +1,25 @@
 # Farming slate (working doc)
 
+> **⭐ PARTLY SHIPPED (2026-08-01) — do not re-plan the first two phases.**
+> Living-world phases 1 and 2 took the on-ramp and the first real ground
+> out of this slate and built them:
+>
+> - **the growth model** (reconcile-on-read over game-time, the
+>   limiting-factor expression, the checkpoint) →
+>   [husbandry.md](../../subsystems/husbandry.md);
+> - **the N-slot bed on ground you own, shared soil, the harvest and its
+>   weakest-link grade, soil nitrogen, and land use** →
+>   [smallholding.md](../../subsystems/smallholding.md).
+>
+> Two of this slate's own claims were **overtaken by the build** and the
+> subsystem docs are right where they disagree: soil reserves landed as
+> **two** (moisture + nitrogen) rather than six, and water is held by the
+> **ground**, not the plant. What remains here is genuinely unbuilt and
+> is why the slate stays: **winter**, **perennials/orchards**, the
+> **field-room** and grazing, the **environment-control axis**
+> (greenhouse → hydroponics), **genetics**, sun→ambient light, and the
+> spoilage dependency.
+
 > **Revised 2026-07-31 (the husbandry-family sessions).** Farming was re-read
 > against [ranching](./ranching-slate.md) and [pets](./pets-slate.md), and
 > against the **actual clock and substrate**. Four changes, in descending

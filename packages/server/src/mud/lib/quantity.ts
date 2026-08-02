@@ -40,6 +40,11 @@ export type Unit =
   | 'kg' | 'g'
   // Length / distance
   | 'm' | 'km' | 'cm' | 'mm'
+  // Area — land tenure (a parcel's declared extent). Deliberately NOT
+  // derived from room geometry: `Location.getSizeScale()` is m² too, but
+  // it is a photometric denominator (flux ÷ area → lux), not a spatial
+  // model. See docs/subsystems/parcel.md § Area is declared.
+  | 'm²'
   // Volume
   | 'm³'
   // Liquid volume (bulk substrate — `cup`/`mL` join the vitals `L`
@@ -157,6 +162,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   km: ARITHMETIC_OPS,
   cm: ARITHMETIC_OPS,
   mm: ARITHMETIC_OPS,
+  'm²': ARITHMETIC_OPS,
   s: ARITHMETIC_OPS,
   ms: ARITHMETIC_OPS,
   K: ARITHMETIC_OPS,
@@ -345,6 +351,21 @@ function ensureDefaultRegistrations(): void {
     { tag: 'very-drunk', threshold: 0.15 },
     { tag: 'incapacitated', threshold: 0.25 },
     { tag: 'life-threatening', threshold: 0.4 },
+  ]);
+
+  // Land area: the band words `title` shows instead of a raw m² figure
+  // (the lux-band mechanism again — a player hears "a quarter-acre lot",
+  // not "1012 m²"). Thresholds are round metric numbers chosen to land
+  // near the customary sizes they name: 1000 m² ≈ ¼ acre, 4000 ≈ 1 acre,
+  // 10000 = 1 hectare ≈ 2½ acres.
+  Quantity.registerTagTable('m²', 'lot', [
+    { tag: 'a patch', threshold: 0 },
+    { tag: 'a small lot', threshold: 200 },
+    { tag: 'a quarter-acre lot', threshold: 1_000 },
+    { tag: 'an acre', threshold: 4_000 },
+    { tag: 'a smallholding', threshold: 10_000 },
+    { tag: 'an estate', threshold: 100_000 },
+    { tag: 'a tract', threshold: 1_000_000 },
   ]);
 }
 

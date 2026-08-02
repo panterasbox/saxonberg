@@ -778,6 +778,26 @@ settings:
     value: "0.03"
   - key: husbandry.warmthReferenceK
     value: "295"
+  # Soil nutrient (phase 2) — the fourth limiting factor's ramp. Soil at or
+  # above `nutrientHappyAt` is not a constraint; at or below
+  # `nutrientSpentAt` it is a total one. A pot authors no nitrogen reserve
+  # at all, so a houseplant never sees this axis.
+  - key: husbandry.nutrientHappyAt
+    value: "0.5"
+  - key: husbandry.nutrientSpentAt
+    value: "0.05"
+  # The harvest grade ladder — floors on the plant's WORST limiting
+  # satisfaction over its whole life. `masterful` needs a plant that was
+  # never meaningfully short of anything, which is the intended difficulty:
+  # one forgotten fortnight costs a band and cannot be nursed back.
+  - key: husbandry.grade.fairAt
+    value: "0.35"
+  - key: husbandry.grade.fineAt
+    value: "0.6"
+  - key: husbandry.grade.exceptionalAt
+    value: "0.8"
+  - key: husbandry.grade.masterfulAt
+    value: "0.95"
   # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
   # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
   - key: storm.puddle.accrualLitersPerSegment

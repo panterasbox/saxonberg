@@ -23,6 +23,8 @@ import {
   ParcelRecord,
   type ParcelOwner,
 } from "../lib/parcel/ParcelRecord";
+import { LandUses } from "../lib/parcel/LandUse";
+import type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
 import type { GroupRef } from "../lib/social/GroupProvider";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
@@ -49,6 +51,12 @@ export type {
   ParcelSpace,
 } from "../lib/parcel/ParcelRecord";
 import type { ParcelSpace } from "../lib/parcel/ParcelRecord";
+export {
+  LandUses,
+  LAND_USES,
+  CULTIVATION_SCALES,
+} from "../lib/parcel/LandUse";
+export type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
 
 export class ParcelApi {
   /**
@@ -103,8 +111,40 @@ export class ParcelApi {
     owner: ParcelOwner,
     area = 0,
     storeys = 1,
+    landUse: LandUse | null = null,
   ): Promise<ParcelRecord | null> {
-    return logic().subdivide(childPath, parentExtent, owner, area, storeys);
+    return logic().subdivide(
+      childPath,
+      parentExtent,
+      owner,
+      area,
+      storeys,
+      landUse,
+    );
+  }
+
+  /**
+   * What may be done on the ground at `path` — the longest-prefix land-use
+   * read (explicit row → its `parentParcel` chain → `wild`). Total: every
+   * path answers.
+   *
+   * `wild` admits **nothing**, so the default is fail-closed. Most parcel
+   * rows are path-branch titles over the template tree (`/studio`,
+   * `/lib/lounge`) rather than ground, and none of them should read as
+   * cultivable merely because nobody zoned them.
+   */
+  public static landUseOf(path: string): LandUse {
+    return logic().landUseOf(path);
+  }
+
+  /**
+   * How much cultivation the ground at `path` admits — `none` · `bed` ·
+   * `field`. The one question farming asks of zoning; sugar over
+   * {@link ParcelApi.landUseOf} so a caller need not import the vocabulary
+   * to ask it.
+   */
+  public static cultivationScaleAt(path: string): CultivationScale {
+    return LandUses.admitsCultivation(logic().landUseOf(path));
   }
 
   /**

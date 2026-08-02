@@ -1,0 +1,41 @@
+verbs: [feed]
+controller: /obj/command/bulk/FeedController
+description: "Work compost into a bed's soil"
+help: |
+  Work compost into the soil of a garden bed, putting back the nitrogen
+  a crop took out of it. You need something holding compost — a sack is
+  what it comes in — and you feed by hand, so there is no tool to buy.
+
+  Only as much goes in as the soil can take; the rest stays in the sack.
+  Naming a plant works as well as naming the bed it stands in.
+
+  A pot holds no nitrogen at all, so there is nothing to feed on a
+  windowsill — a houseplant is never short of it. Beds are different:
+  every harvest exports some, and an unfed bed yields worse each time.
+examples:
+  - cmd: feed the bed
+    note: Work compost in from whatever you're carrying
+  - cmd: feed the bed with the sack
+    note: Name the source explicitly
+  - cmd: feed the carrots
+    note: Naming a plant feeds the ground it stands in
+validators:
+  - /lib/command/validators/requiresAnimate
+  # Pulling a carrot and turning compost into a bed are both acts on
+  # MATTER — a shade has no hands for either. Sibling of `water`/`plant`,
+  # and enforced by `cmd/__tests__/embodied-tagging.test.ts`.
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible
+  - name: source
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [with, from]
+    validators:
+      - /lib/command/validators/mustBeVisible

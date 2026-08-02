@@ -160,7 +160,13 @@ export class Document {
       if (!(field in this)) continue;
       const value = self[field];
       const path = marshallerPaths[field];
-      if (path) {
+      // An absent value has nothing to marshal — a null/undefined field
+      // stores as null and rehydrates as null (see `fromDocument`). Every
+      // marshaller speaks a value-object contract (`toStored` takes an
+      // instance), so handing it a null would throw; the alternative is
+      // every marshaller growing its own null branch. This is what makes
+      // an OPTIONAL marshalled field (`ParcelRecord.area`) expressible.
+      if (path && value !== null && value !== undefined) {
         const marshaller = resolveMarshaller(path);
         if (!marshaller) {
           throw new Error(
@@ -168,6 +174,8 @@ export class Document {
           );
         }
         doc[field] = marshaller.toStored(value);
+      } else if (path) {
+        doc[field] = null;
       } else {
         doc[field] = value;
       }
@@ -199,7 +207,9 @@ export class Document {
       if (!(field in doc)) continue;
       const raw = doc[field];
       const path = marshallerPaths[field];
-      if (path) {
+      // Symmetric with `toDocument`: a stored null rehydrates as null
+      // rather than being handed to a marshaller that expects a value.
+      if (path && raw !== null && raw !== undefined) {
         const marshaller = resolveMarshaller(path);
         if (!marshaller) {
           throw new Error(
@@ -207,6 +217,8 @@ export class Document {
           );
         }
         self[field] = marshaller.fromStored(raw);
+      } else if (path) {
+        self[field] = null;
       } else {
         self[field] = raw;
       }

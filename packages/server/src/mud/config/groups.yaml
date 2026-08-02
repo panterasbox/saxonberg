@@ -25,3 +25,14 @@ groups:
       # dorms-agent gate in ProvisionController. She no longer enrolls herself.
       - id: /domain/eternal/duncan-hall/npc/katie
         role: member
+
+  - name: hinkley-hills
+    # The Improvement District — the suburb's own body, holding
+    # /domain/terminus/hinkley-hills in parcels.yaml until lots are sold
+    # out of it. Deliberately EMPTY of members: the District has no staff
+    # and no agents, and a group with nobody in it is the honest shape for
+    # a government that exists only on paper. Owner `system`, matching
+    # ParcelRegistry's mint-or-find so this seed and the lazy owner-ref
+    # resolution converge on one group.
+    owner: system
+    members: []

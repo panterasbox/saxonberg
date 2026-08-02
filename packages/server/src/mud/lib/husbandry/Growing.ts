@@ -69,7 +69,12 @@ export type ConditionBand =
   | 'dead';
 
 /** The named limiting factor, or null when nothing is limiting. */
-export type LimitingFactor = 'water' | 'light' | 'root' | null;
+export type LimitingFactor =
+  | 'water'
+  | 'light'
+  | 'root'
+  | 'nutrient'
+  | null;
 
 /**
  * The authored reaction norm — how THIS plant responds to the three
@@ -93,9 +98,6 @@ export interface GrowthProfileData {
   /** Cumulative well-kept game-days to reach each post-seedling stage. */
   daysToStage: { young: number; established: number; mature: number };
 }
-
-/** The host's root-zone moisture reserve key (theme `cultivation`). */
-export const MOISTURE_RESERVE_KEY = 'moisture';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 /** Containment hops the light sample climbs before giving up. */
@@ -132,8 +134,28 @@ export interface Growing {
   getGrowthStage(): GrowthStage;
   /** Whether the plant is currently flowering (reconciles on read). */
   isFlowering(): boolean;
-  /** Root-zone moisture as a fraction `[0, 1]` (reconciles on read). */
+  /**
+   * Root-zone moisture as a fraction `[0, 1]` (reconciles on read).
+   * Reads the SOIL the plant is rooted in — phase 2 moved the water out
+   * of the plant and into the ground. An unrooted plant reads 0.
+   */
   getSoilMoisture(): number;
+  /**
+   * Litres this plant transpires per game-day at neutral warmth — a
+   * **pure, non-reconciling** read of the authored profile.
+   *
+   * ⚠ The soil sums this across its occupants to drain itself. It must
+   * never reconcile: the soil's reconcile calls it, and a reconcile here
+   * would read the soil's moisture, which would re-enter the soil.
+   */
+  waterDemandPerGameDay(): number;
+  /**
+   * The WORST limiting satisfaction this plant has ever recorded — a
+   * monotone minimum, seeded at 1. Harvest quality reads it, which is
+   * what makes farming reward your worst moment rather than your
+   * average: a plant nursed back looks fine and still grades badly.
+   */
+  getWorstLimiting(): number;
   /**
    * Water the plant: reconcile, then credit the moisture reserve up to its
    * headroom. Returns the litres actually absorbed (0 when dead or when no
@@ -168,6 +190,7 @@ export interface Growing {
   _flowering: boolean;
   _seedSet: boolean;
   _lastLux: number;
+  _worstLimiting: number;
   profile: GrowthProfileData | null;
 }
 
@@ -195,6 +218,7 @@ const CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
   water: 'The soil is dry.',
   light: 'It is not getting enough light.',
   root: 'It has outgrown its pot.',
+  nutrient: 'The soil is spent.',
 };
 
 /**
@@ -249,6 +273,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       '_flowering',
       '_seedSet',
       '_lastLux',
+      '_worstLimiting',
       'profile',
     ];
 
@@ -269,6 +294,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public _seedSet = false;
     /** The lux the open window is integrated with (segmented at moves). */
     public _lastLux = 0;
+    /**
+     * Monotone minimum of the limiting satisfaction over this plant's
+     * whole life; 1 until the first reconcile touches it. The quality
+     * substrate — see {@link Growing.getWorstLimiting}.
+     */
+    public _worstLimiting = 1;
     /** The authored reaction norm (see {@link GrowthProfileData}). */
     public profile: GrowthProfileData | null = null;
 
@@ -313,7 +344,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getSoilMoisture(): number {
       if (!this._reconcilingGrowth) this.reconcileGrowth();
-      return this.moistureFraction();
+      return this.soilMoisture() ?? 0;
+    }
+
+    public waterDemandPerGameDay(): number {
+      // PURE — no reconcile. The soil calls this while draining itself.
+      return this.profile?.litresPerGameDay ?? 0;
+    }
+
+    public getWorstLimiting(): number {
+      if (!this._reconcilingGrowth) this.reconcileGrowth();
+      return clamp01(this._worstLimiting);
     }
 
     public getProfile(): GrowthProfileData | null {
@@ -327,35 +368,36 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public getLimitingFactor(): LimitingFactor {
       if (!this._reconcilingGrowth) this.reconcileGrowth();
       if (this.isGrowthDead() || !this.profile) return null;
-      const satWater = this.satWater();
-      // The cause line answers "why is it unhappy *now*", so the light term
+      // The cause line answers "why is it unhappy *now*", so every term
       // is sampled live rather than read off the last integrated window —
       // move a plant into the dark and it says so immediately, before the
       // dark hours have accrued.
+      const satWater = this.satWater(this.soilMoisture());
       const satLight = this.satLight(this.sampleLux());
       const satRoot = this.satRoot();
-      const limiting = Math.min(satWater, satLight, satRoot);
+      const satNutrient = this.satNutrient();
+      const limiting = Math.min(satWater, satLight, satRoot, satNutrient);
       if (limiting >= dial(AppSettingKeys.husbandryGoodAt, 0.6)) return null;
-      if (satWater <= satLight && satWater <= satRoot) return 'water';
-      if (satLight <= satRoot) return 'light';
-      return 'root';
+      if (limiting === satWater) return 'water';
+      if (limiting === satLight) return 'light';
+      if (limiting === satRoot) return 'root';
+      return 'nutrient';
     }
 
     // ---------- interventions ----------
 
+    /**
+     * Water the plant — which since phase 2 means **watering the ground it
+     * is rooted in**. The verb surface is unchanged (`water <plant>` still
+     * works) but the litres land in the soil, where every occupant shares
+     * them. An unrooted plant absorbs nothing, because nothing is holding
+     * water for it.
+     */
     public waterPlant(litres: number): number {
       if (!Number.isFinite(litres) || litres <= 0) return 0;
       if (!this._reconcilingGrowth) this.reconcileGrowth();
       if (this.isGrowthDead()) return 0;
-      const reserved = this.asReserved();
-      const reserve = reserved.getReserve(MOISTURE_RESERVE_KEY);
-      if (!reserve) return 0;
-      const headroom =
-        reserve.capacity.rawValue() - reserve.current.rawValue();
-      const applied = Math.min(litres, Math.max(0, headroom));
-      if (applied <= 0) return 0;
-      reserved.adjustReserve(MOISTURE_RESERVE_KEY, Quantity.of(applied, 'L'));
-      return applied;
+      return this.waterTheSoil(litres);
     }
 
     // ---------- reconcile-on-read (the lazy integrate) ----------
@@ -375,9 +417,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       if (this.isGrowthDead()) return; // terminal
 
       // First touch: seed the stamp + the light window; integrate nothing.
+      //
+      // ⚠ Seed the GROUND's stamp in the same breath. The soil owns its
+      // own checkpoint and seeds it lazily on first read — so a bed that
+      // nobody has looked at would otherwise stamp itself at the moment
+      // of the first read and skip the whole elapsed window, handing this
+      // plant a full reserve it should long since have drunk. A plant's
+      // clock and its ground's clock start together or neither is honest.
       if (this.growthClockStamp === 0) {
         this.growthClockStamp = nowS;
         this._lastLux = this.sampleLux();
+        this.soilMoisture();
         return;
       }
 
@@ -405,15 +455,26 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         const tau = dial(AppSettingKeys.husbandryVigorTauSec, 3_801_600);
         const goodAt = dial(AppSettingKeys.husbandryGoodAt, 0.6);
         const deathAt = dial(AppSettingKeys.husbandryDeathAt, 0.12);
-        const warmth = this.transpirationWarmth();
-        // Sampled once before the loop — the pot cannot change mid-window —
-        // and re-sampled on a stage advance (root demand is per-stage).
+        // Sampled once before the loop — the ground cannot change
+        // mid-window — and re-sampled on a stage advance (root demand is
+        // per-stage).
         let satRoot = this.satRoot();
         const satLight = this.satLight(this._lastLux);
+        // WATER is now a per-window sample too, exactly like light. The
+        // soil owns the drain and reconciles on its own stamp; asking it
+        // here is what triggers that, and the MEAN it reports is the
+        // right figure for a window this plant is integrating whole.
+        const satWater = this.satWater(this.meanSoilMoisture());
+        const satNutrient = this.satNutrient();
 
         for (let i = 0; i < steps; i++) {
-          this.drainMoisture(dt, warmth);
-          const limiting = Math.min(this.satWater(), satLight, satRoot);
+          const limiting = Math.min(
+            satWater,
+            satLight,
+            satRoot,
+            satNutrient,
+          );
+          if (limiting < this._worstLimiting) this._worstLimiting = limiting;
           // Exponential relaxation toward the limiting satisfaction; the
           // factor is clamped so an oversized dt cannot overshoot.
           const k = Math.min(dt / tau, 1);
@@ -452,6 +513,50 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     protected rootRoom(): number | null {
       return null;
+    }
+
+    /**
+     * The moisture fraction of the ground this plant is rooted in, or
+     * `null` when it is rooted in nothing. Default `null`; the concrete
+     * host overrides to read its bed.
+     *
+     * Phase 2 moved water OUT of the plant and into the soil. The
+     * objection phase 1 recorded — that it "splits one checkpoint across
+     * two objects" — is answered by giving the soil a checkpoint of its
+     * own: the bed owns a stamp and a reconcile, and **the plant only
+     * reads**. Two self-contained checkpoints, not one shared one.
+     */
+    protected soilMoisture(): number | null {
+      return null;
+    }
+
+    /**
+     * The MEAN moisture across the window being integrated — what the
+     * reconcile loop should use, since it is closing a whole window at
+     * once. Defaults to the instantaneous read.
+     */
+    protected meanSoilMoisture(): number | null {
+      return this.soilMoisture();
+    }
+
+    /**
+     * The nutrient fraction of the ground, or `null` when the ground
+     * declares none. Default `null` → `satNutrient` is 1, so **a pot is
+     * unchanged**: a houseplant is never nutrient-limited because a pot
+     * authors no nitrogen reserve.
+     */
+    protected nutrientLevel(): number | null {
+      return null;
+    }
+
+    /**
+     * Pour `litres` into the ground this plant is rooted in; returns what
+     * was absorbed. Default 0 — nothing is holding water for an unrooted
+     * plant. The concrete host overrides to credit its bed.
+     */
+    protected waterTheSoil(litres: number): number {
+      void litres;
+      return 0;
     }
 
     /**
@@ -501,45 +606,33 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return light ? light.intensity.rawValue() : 0;
     }
 
-    /** The host's `Reserved` face; throws with a clear error when absent. */
-    private asReserved() {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isReserved(self)) {
-        throw new Error(
-          'GrowingMixin: host must compose ReservedMixin (the root-zone ' +
-            "'moisture' reserve lives there)",
-        );
-      }
-      return self;
-    }
-
-    /** Root-zone moisture fraction; 0 when no reserve is authored. */
-    private moistureFraction(): number {
-      const reserve = this.asReserved().getReserve(MOISTURE_RESERVE_KEY);
-      if (!reserve) return 0;
-      const cap = reserve.capacity.rawValue();
-      if (cap <= 0) return 0;
-      return clamp01(reserve.current.rawValue() / cap);
-    }
-
-    private drainMoisture(dtSec: number, warmth: number): void {
-      const profile = this.profile;
-      if (!profile) return;
-      const reserved = this.asReserved();
-      if (!reserved.hasReserve(MOISTURE_RESERVE_KEY)) return;
-      const litres =
-        profile.litresPerGameDay * (dtSec / SECONDS_PER_GAME_DAY) * warmth;
-      if (litres <= 0) return;
-      reserved.adjustReserve(MOISTURE_RESERVE_KEY, Quantity.of(-litres, 'L'));
-    }
-
-    private satWater(): number {
+    /**
+     * Water satisfaction from a soil-moisture fraction. `null` (unrooted)
+     * reads **0**: husbandry.md already said an unpotted plant "is
+     * already in trouble via water, since nothing can hold moisture for
+     * it" — since phase 2 that sentence is the mechanism rather than a
+     * gloss, because there is no private reserve to fall back on.
+     */
+    private satWater(fraction: number | null): number {
       const profile = this.profile;
       if (!profile) return 1;
+      if (fraction === null) return 0;
+      return ramp(fraction, profile.moistureWiltAt, profile.moistureHappyAt);
+    }
+
+    /**
+     * Nutrient satisfaction — the fourth limiting factor, and the one a
+     * houseplant never sees: a pot authors no nitrogen reserve, so the
+     * seam reads `null` and this returns 1. Only ground that declares
+     * nutrient can be limited by it.
+     */
+    private satNutrient(): number {
+      const level = this.nutrientLevel();
+      if (level === null) return 1;
       return ramp(
-        this.moistureFraction(),
-        profile.moistureWiltAt,
-        profile.moistureHappyAt,
+        level,
+        dial(AppSettingKeys.husbandryNutrientSpentAt, 0.05),
+        dial(AppSettingKeys.husbandryNutrientHappyAt, 0.5),
       );
     }
 
@@ -638,24 +731,6 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return this._vigor <= 0 && this.growthClockStamp !== 0;
     }
 
-    /**
-     * Transpiration accelerant from the host's own temperature (sync):
-     * warmer than the reference transpires faster; at or below it,
-     * neutral. Gracefully neutral when Thermal is absent or throws.
-     */
-    private transpirationWarmth(): number {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isThermal(self)) return 1;
-      try {
-        const tempK = self.getTemperature().rawValue();
-        const refK = dial(AppSettingKeys.husbandryWarmthReferenceK, 295);
-        const factor = dial(AppSettingKeys.husbandryWarmthFactor, 0.03);
-        const excess = tempK - refK;
-        return excess > 0 ? 1 + excess * factor : 1;
-      } catch {
-        return 1;
-      }
-    }
 
     /** Game-seconds now, or `null` when no world clock (pre-boot / tests). */
     private growthNowSeconds(): number | null {

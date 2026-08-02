@@ -470,6 +470,40 @@ export class Backend implements IBackend {
   }
 
   /**
+   * Test-only cash faucet — hand a **live, in-world** avatar real money.
+   *
+   * Separate from {@link Backend.handleTestAuthentication} because of
+   * when it must run: at provision time the avatar is a database row,
+   * not a live object, so there is nothing to hand coins to. The caller
+   * (`/auth/test-fund`) invokes this only after the browser has entered
+   * the world.
+   *
+   * Same double gate as the auth seam: hard-refuses unless
+   * `AUTH_MODE === 'test'`, and the route that reaches it is only
+   * mounted in test mode. `runRoot` lives here because only
+   * `backend/**` may push call frames.
+   *
+   * Throws — never a silent no-op. Downstream an unfunded character
+   * simply sees a purchase refuse, which is exactly the false negative
+   * the funded test exists to rule out.
+   */
+  public async handleTestFunding(
+    userId: string,
+    fundsMinor: number
+  ): Promise<void> {
+    if (process.env.AUTH_MODE !== 'test') {
+      throw new Error('Backend: test funding is disabled');
+    }
+    if (!this.application) {
+      throw new Error('Backend: Application not initialized');
+    }
+    const app = this.application;
+    await ExecutionContextApi.runRoot(Backend, 'handleTestFunding', () =>
+      app.fundTestCharacter(userId, fundsMinor)
+    );
+  }
+
+  /**
    * Get count of active WebSocket connections.
    */
   public getConnectionCount(): number {
