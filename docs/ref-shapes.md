@@ -1,30 +1,87 @@
 # Ref shapes — how Stuff references other Stuff
 
-Saxonberg has multiple ways a `Stuff` field can reference another
-`Stuff`. This doc names the patterns, says when to use each, and
-spells out the method-surface conventions so call sites stay
-predictable across the codebase.
+Saxonberg has one way a `Stuff` field references another `Stuff`, and
+it has **two axes**. This doc gives the model, the method-surface
+conventions, and the antipatterns.
 
-Three reference shapes. Choose based on three axes:
+## The two axes
 
-- **Singleton or instance?** Is the target one canonical Idea per
-  templatePath (Material, Species, BodyPlan, LocomotionMode), or a
-  specific runtime instance (this chair, that NPC)?
-- **Runtime or persisted?** Does the field reset on clone/hydrate,
-  or does it survive across saves?
-- **Frequent or rare access?** Does code read the target's
-  properties in hot paths, or occasionally through an Api?
+**Axis 1 — what are you pointing at?** This is a question about *your
+own meaning*, not about the target:
 
-Foundational constraint: **`stuffId` (the per-instance stamp) does
-not persist across reboots.** Persistent cross-reboot refs must key
-off `templatePath` (singletons) or template authoring, not instance
-identity. Live Stuff refs are therefore **transient by definition**
-— either runtime-only or, when they need cross-save survival, owned
-by a higher-layer mixin that rebuilds the relationship at hydrate.
+| you mean | you store | persistable? |
+|---|---|---|
+| **identity** — "what kind of thing" (`my species is human`) | a `templatePath` string | **yes** |
+| **instance** — "this particular object" (`the room I am in`) | a **live ref** | **never** |
+
+The discriminator is **not** a property of the target. A room has a
+perfectly good unique templatePath, and you still hold it as an
+*instance* when you mean "the one I'm standing in". A species would
+still be an *identity* ref if somehow two existed. Only the author
+knows which question the field is asking — which is exactly why it is
+**declared**, not inferred (see `fieldMeta` below).
+
+**Axis 2 — what happens when it dies?** Applies to **instance refs
+only**; an identity ref re-resolves from its path, so it cannot dangle
+and needs no rule.
+
+| lifetime | meaning |
+|---|---|
+| `weak` | the getter self-heals — null the slot when the target is destroyed |
+| `symmetric` | paired both ways; each side clears the other's back-ref on destruct |
+| `owned` | the holder's lifetime bounds the target's; destruct cascades |
+
+### The foundational constraint
+
+**`stuffId` does not survive a reboot.** Everything above follows from
+it:
+
+- An identity ref persists, because a `templatePath` is stable.
+- An instance ref **cannot** persist. Not by convention — there is
+  nothing durable to write down. Persisting an instance *relationship*
+  is done **structurally** (containment capture / a `populates`
+  manifest rebuilds it at hydrate), never by storing a reference.
+- Declaring a field both `instance` and `persistent` is therefore a
+  build-time error, not a style violation.
+
+### Live ref, not stuffId
+
+For an instance ref, **store the live ref, not the `stuffId` string.**
+They name the same thing; the live ref is the one that has already
+paid for the lookup. A stuffId handle is what you reach for when the
+lifetime mechanism is missing — it is stringly-typed, loses narrowing,
+and is weak only by convention (nothing stops a caller caching the
+resolved object anyway).
+
+### Declaring it
+
+Both axes live in one field-keyed declaration:
+
+```ts
+static fieldMeta = {
+  _speciesPath: { ref: 'identity', persistent: true },
+  _container:   { ref: 'instance', lifetime: 'weak' },
+  _hauling:     { ref: 'instance', lifetime: 'symmetric', inverse: '_hauledBy' },
+  exits:        { ref: 'instance', lifetime: 'owned' },
+};
+```
+
+The invalid combinations — `identity` with a `lifetime`, `instance`
+with `persistent`, `symmetric` without an `inverse` — are checked at
+class registration.
+
+> **Historical note.** This doc previously described *three* patterns:
+> A (string-stored singleton), B (live ref), and C (path-resolved
+> cross-scope singleton). A and C stored the **identical thing** — a
+> templatePath string — and differed only in what the getter did with
+> it (compare vs resolve), which is a usage decision, not a
+> representation. They are one thing: an **identity** ref. B is an
+> **instance** ref. The old names still appear in code comments and in
+> the R2.x rule labels below; they mean what the table above says.
 
 ---
 
-## Pattern A — string-stored singleton ref
+## Identity refs (was: Pattern A — string-stored singleton ref)
 
 **Stores**: a `string` (templatePath or short name) identifying a
 singleton Idea.
@@ -164,7 +221,7 @@ semantics across all singleton refs.
 
 ---
 
-## Pattern B — live Stuff reference
+## Instance refs (was: Pattern B — live Stuff reference)
 
 **Stores**: a direct reference to the live target Stuff object.
 
@@ -352,7 +409,7 @@ for the static-shape convention.
 
 ---
 
-## Pattern C — path-resolved cross-scope ref (singleton-only)
+## Identity refs, resolved on read (was: Pattern C)
 
 **Stores**: a templatePath string. The getter resolves on every
 read via `StuffApi.findByTemplatePath`. **No runtime cache slot.**
@@ -414,24 +471,40 @@ that target already-loaded singletons should skip it.
 
 ## Decision matrix
 
-| Question | Pattern A | Pattern B | Pattern C |
+Two questions, in order.
+
+**1. What am I pointing at?**
+
+| | identity ref | instance ref |
+|---|---|---|
+| You mean | "what kind of thing" | "this particular object" |
+| Stores | a `templatePath` string | a live ref |
+| Persists? | yes | **never** (stuffId is ephemeral) |
+| Survives target hot-reload replacement? | yes — re-resolves | no |
+| Read cost | a lookup (cache only with a real reason) | direct |
+| Construction-time cycles | handled (resolve is deferred) | may not have the ref yet |
+| Comparison | path equality, honest across reload | reference equality |
+
+If the field would be **persisted**, the answer is identity — there is
+no other option, because an instance reference has nothing durable to
+write down.
+
+**2. If instance — what happens when the target dies?**
+
+| | `weak` | `symmetric` | `owned` |
 |---|---|---|---|
-| Target is a singleton (one per path)? | Best fit | OK | Best fit when cross-scope |
-| Target is a specific instance? | Wrong shape | Best fit (within-scope) | Wrong shape (singleton-only) |
-| Field is runtime-only? | Cheap (no marshaller) | Required (live refs are transient) | Cheap |
-| Field is persisted? | Trivial (string) | Not supported — use Pattern A/C or move up a layer | Trivial (string) |
-| Frequent property access? | One Api call per read | Direct | One Api call per read |
-| Hot-reload stability of target? | Best (path stable) | Risk of stale (R2.3 self-heal compensates) | Best (re-resolves) |
-| Construction-time cyclic deps? | No issue | Issue (may not have ref yet) | Handles |
+| Target tracks me back? | no | yes | no (I bound its life) |
+| On its destruct | my getter nulls the slot on next read | it clears my back-ref eagerly | n/a |
+| On my destruct | nothing | I clear its back-ref | I destruct it |
+| Needs `inverse`? | no | **yes** | no |
+| Failure if you get it wrong | a dangling ref (recoverable) | one stale back-ref (recoverable from the other side) | **destroys a live object you did not own** |
 
-**Default to Pattern A for singletons.** Promote to Pattern C only
-when the target lives across load scopes AND the field's holder
-shouldn't hold a live ref.
-
-**Default to Pattern B for instances.** Patterns A and C are wrong
-for non-singleton instances because "the templatePath of this chair"
-isn't a meaningful identifier — chairs are clones, each with its own
-runtime identity.
+`owned` is the dangerous one — it is the only lifetime that *destroys*
+something, so it is the one to be sure about. Note that
+`Container.cleanupOnDestruct` is deliberately **not** a plain `owned`
+cascade: it evacuates contents to the outer container first and
+destructs only as a last resort. An `owned` declaration means "this
+thing has no existence without me", not merely "I hold it".
 
 ## Antipatterns
 
@@ -481,22 +554,51 @@ Add a raw setter only when a real caller is forced to a string
 write (e.g., a YAML loader that wants to defer singleton resolution
 until later in bootstrap).
 
-### A.4 — Storing live refs to singletons
+### A.4 — Holding an *identity* question as an *instance* ref
 
 ```ts
-// WRONG: live ref to a singleton
-protected _material: Material | null;  // direct ref
+// WRONG: the field means "what material is this made of" —
+// an identity question — but stores a live ref.
+protected _material: Material | null;
 ```
 
-Singletons should be referenced by path, not by live ref. Reasons:
+**This entry used to say "singletons should be referenced by path."
+That framing was wrong**, and it invited a fair objection: a singleton
+and a clone are both just `Stuff`, so why would the target's instance
+count change how you point at it? It doesn't. What matters is which
+question the *field* is asking (see [The two axes](#the-two-axes)).
 
-- Hot-reload churns the live singleton; live refs go stale.
-- Persistence needs a marshaller even though the target has a stable
-  path.
-- Path comparison (`a._materialPath === b._materialPath`) is honest;
-  live-ref comparison may surprise after reload.
+`_material` means *"what kind of matter is this"* — identity. Store the
+templatePath. `_container` means *"the specific room I am in"* —
+instance. Store the live ref. Neither choice is read off the target.
 
-Use Pattern A.
+The concrete failure when an identity question is held as an instance
+ref is **replacement, not destruction**:
+
+- Code hot-reload works by destructing a cached singleton so the next
+  call **lazy-re-creates it at the same templatePath with a new
+  stuffId** (see [hot-reload.md](./subsystems/hot-reload.md)).
+- A live ref across that self-heals to `null` — and the relationship is
+  gone **permanently**, even though a perfectly good instance now
+  exists under exactly the name you meant.
+- An identity ref re-resolves the path and finds it.
+
+That is the whole hazard, and it is why `weak` cannot substitute for
+getting axis 1 right: self-healing to `null` is the *correct* answer
+for an instance that died, and the *wrong* answer for an identity whose
+current holder was swapped.
+
+> **Not a hazard**: `TemplateApi.restoreFromTemplate` (content go-live)
+> mutates the existing instance and **preserves its stuffId**, so it
+> does not strand a live ref. Only code hot-reload replaces the object.
+> The older version of this entry overstated this.
+
+**Not an instance of this antipattern**: a live ref held *transiently*
+— a constructor parameter consumed during `postRegister` and handed to
+a setter that stores the path. `Shade`/`WireBody` take a `species`
+argument this way; the durable field underneath is
+`OrganismMixin._speciesPath`, which is already an identity ref. Judge
+the **durable** field, not every variable that briefly holds an object.
 
 ### B.1 — Persisting a live ref
 
