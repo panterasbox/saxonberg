@@ -588,6 +588,26 @@ Afterwards the old descriptor stops appearing and the record quietly
 stops mattering — knowledge is never invalidated, only its
 applicability fades.
 
+**Interaction with globbing.** A stack is one Stuff with one instance
+id, therefore **one** window position — so a merged stack flips as a
+unit rather than flask by flask. That is the correct behaviour once
+named: **a stack is a batch, and batches turn over as batches**, which
+is how a real stock changeover works. Staggering happens *across*
+stacks, and since most items in the world live in stacks that is ample.
+
+Three consequences the planner must respect:
+
+- **The appearance check belongs in `canMergeWith`, not in
+  `globIdentityFields`.** Identity fields are `⊂ persistentFields` and
+  appearance is *derived*, so it cannot be one. Identity stays **class +
+  BUC-bucket** (both persistent); the veto seam compares rendered
+  appearance.
+- **The window is self-healing.** Once a stack passes its flip point,
+  the merge-on-arrival ripple folds it into the already-flipped stack on
+  next contact.
+- Merging shifts an absorbed item's flip moment to the survivor's. This
+  is invisible and confers nothing; it needs no guard.
+
 ### D28 — Records carry the generation they were learned in; players can label anything
 
 The descriptor pool is finite, so a descriptor is eventually **reissued
@@ -731,6 +751,16 @@ table, the world computes the stock.** This build ships the table and
 13g. Both placement channels work for every item class: a `populates:`
     declaration places a specific item, and the weighted table produces
     a random draw.
+13h. Consumables glob and anything with continuous per-instance state
+    (charge, pattern decay) does not. `globIdentityFields` is class +
+    BUC-bucket; the rendered-appearance comparison lives in
+    `canMergeWith`.
+13i. Two unknown-BUC items merge regardless of their true state; BUC
+    resolves on reveal and the revealed item splits into its bucket. A
+    test asserts merge behaviour leaks no BUC information.
+13j. A labelled item does not auto-merge on arrival.
+13k. A stack flips appearance as a unit at its own window position, and
+    folds into the already-flipped stack on next contact.
 14. A faded spell costs more mana and never fails for fading alone;
     casting restores sharpness; an amnesia effect removes claims and
     leaves competence intact.
