@@ -91,7 +91,10 @@ other's job."
 ## Visual cue sheet
 
 Corner default; **no-face** for the split + pipeline + branch builds. Client never
-shown. (Carried from `chapter-4.md`.)
+shown. (Carried from `chapter-4.md`.) Frames = the beat-tagged `CH5` list in
+`slide-generator.py`; `ch5-07-wizard` wording synced 2026-07-28 to the rerecorded
+Beat 2 ("not just executives — wizards" / "the rule becomes part of the world's
+reality").
 
 - **1 — corner.** A decision sitting as inert "words on a page," then a nudge: it has
   to *run*.

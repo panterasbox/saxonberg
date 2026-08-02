@@ -1,4 +1,4 @@
-# Ch 6 (re-record) — "Don't trust, verify"
+# Ch 6 (re-record) — "The Record — Don't Trust, Verify"
 
 > **Re-record sequence** (see [rerecord-outline.md](./rerecord-outline.md)) — the
 > deep-dive expansion of Ch 1's ⑥ "and all of it is written down." Content source:

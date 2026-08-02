@@ -64,7 +64,7 @@ established.
   legible, hashable, forkable).
 - **Content source:** `chapter-0.md`.
 
-### Ch 3 — The chambers and their currency *(expands Ch 1 ④ — merged)*
+### Ch 3 — The Chambers — Earning a Voice *(expands Ch 1 ④ — merged)*
 - **Opens on:** "three groups — won't one capture the others? And inside a
   chamber, can't you hoard or fake your way up?"
 - **Closes with:** co-equal non-convertible chambers force a cross-class
@@ -82,7 +82,7 @@ established.
 - **Anchors:** Art. I §§2–5, Art. III §2, Art. IV §3.
 - **Content source:** `chapter-1.md` (old "Three voices") + `chapter-2.md`.
 
-### Ch 4 — The argument, not the crowd *(expands Ch 1 ③)*
+### Ch 4 — The Argument Map — Not the Crowd *(expands Ch 1 ③)*
 - **Opens on:** "won't the loudest steamroll the debate?"
 - **Closes with:** argument is judged by structure, not popularity or reputation;
   influence touches only the final vote.
@@ -106,7 +106,7 @@ established.
 - **Anchors:** Art. I §7, Art. V, Art. VI.
 - **Content source:** `chapter-4.md`.
 
-### Ch 6 — Don't trust, verify *(expands Ch 1 ⑥)*
+### Ch 6 — The Record — Don't Trust, Verify *(expands Ch 1 ⑥)*
 - **Opens on:** "how do I know the numbers are honest / the rules were followed?"
 - **Closes with:** the record's integrity is independent of its keeper.
 - **Payload:** hash-chained, signed, externally anchored, replicated;
@@ -117,7 +117,7 @@ established.
 - **Anchors:** Art. I §6, Art. VII.
 - **Content source:** `chapter-5.md`.
 
-### Ch 7 — A dial on an honest floor *(expands Ch 1's close)*
+### Ch 7 — The Dial — Operator to Republic *(expands Ch 1's close)*
 - **Opens on:** "the operator still holds power — isn't this just benevolent
   dictatorship?"
 - **Closes with:** every community deserves an honest floor and a real exit; what

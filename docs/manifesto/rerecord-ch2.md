@@ -110,7 +110,9 @@ keeps taking in more."
 - **The "why a game" mechanism** (Schell / experience-machine → immersion →
   caring → participation-as-reward) is the substance under this — full write-up in
   `chapter-0.md` § "Design substance."
-- **Visuals:** re-derive the cue sheet for these 4 beats; the old 7-beat cue sheet
-  in `chapter-0.md` § "Visual cue sheet" is source material (origin motifs, the
-  apathy-graveyard empty-rooms, the participation contrast, the content→record
-  collapse). Not yet re-cut.
+- **Visuals:** the cue sheet lives as the beat-tagged `CH2` list in
+  `slide-generator.py` (14 frames in `exports/`). Beat 1's rewritten *puzzle* open
+  is a camera moment; `ch2-01/-02` carry its tail (the hours go to games, not
+  governing) — `ch1-01-selforg` can be reused under the "people organize themselves
+  all the time" lines if a visual is wanted there. `ch2-03` is Beat 3's graveyard;
+  Beat 4 = `ch2-08/-09`; Beat 5 = `ch2-10`–`ch2-14`.

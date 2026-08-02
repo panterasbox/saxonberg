@@ -1,4 +1,8 @@
-# Ch 3 (re-record) — "The chambers and their currency"
+# Ch 3 (re-record) — "The Chambers — Earning a Voice"
+
+> *(retitled 2026-07-30 for post-Ch1 wayfinding; was "The chambers
+> and their currency" — "currency" predated the locked term
+> "standing.")*
 
 > **Re-record sequence** (see [rerecord-outline.md](./rerecord-outline.md)) — the
 > deep-dive expansion of Ch 1's ④ "three chambers decide," **merged** with the old
@@ -12,7 +16,7 @@
 > **Opens on:** "won't one force capture the others? and inside a count, can't you
 > hoard or fake your way up?" **Closes:** co-equal, non-convertible chambers force a
 > cross-class coalition; standing is earned and conferred, never owned or minted.
-> Hands to Ch 4 (the argument, not the crowd).
+> Hands to Ch 4 (the argument map).
 >
 > **Its own video in the playlist — length relaxed.**
 
@@ -191,6 +195,8 @@ cash out" ·
   RESOLVED (2026-07-16):** Ch 1 was rebuilt in `rerecord-ch1.md`, and its Close drops the
   old "built to give itself away" auto-handover for the **dial** framing ("opens up as far
   and as fast as the founder chooses — nobody forced"), matching Ch 7.
-- **Visuals:** re-derive the cue sheet from the source files' sheets (`chapter-1.md`
-  = three-meter person / 2-of-3 hero / firewall-whale; `chapter-2.md` = conferred-by-
-  others ghost-accounts / conviction-weight-over-time). Not yet re-cut.
+- **Visuals:** the cue sheet lives as the beat-tagged `CH3` list in
+  `slide-generator.py` (16 frames in `exports/`). Beat 3's rewritten money beat gets
+  two frames: `ch3-09-money` (stops at its own count) then **`ch3-09b-stake`**
+  (added 2026-07-28 for the not-a-security sentence — negations only, "as the law
+  stands today"; see the two-rails note above).

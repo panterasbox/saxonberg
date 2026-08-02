@@ -103,6 +103,41 @@ def f_rings(lit=False,title="three kinds of contributor",cap="none can be pulled
     if lit: g+=[CT(1500,520,"2 of 3",44,GREEN,weight="bold"),CT(1500,575,"= PASS",30,GREEN)]
     g+=[CT(830,1010,cap,34,WHITE)]; return g
 
+# ── Beat 0: self-organizing is constant; participation in the deciding is scarce ──
+def f_selforg():
+    g=[CT(960,110,"online, communities already run themselves",38,SOFT)]
+    import random; random.seed(11)
+    clusters=[(420,380,"a stream and its chat"),(960,350,"a Discord and its mods"),(1450,380,"a group and its norms")]
+    for (cx,cy,lab) in clusters:
+        for i in range(16):
+            a=random.random()*2*math.pi; rr=40+random.random()*90
+            g+=[person(cx+rr*math.cos(a),cy+rr*math.sin(a)*0.75,9,STEEL,0.9)]
+        for a in (0.9,2.4):  # a couple of mods keeping order
+            g+=[person(cx+60*math.cos(a),cy+60*math.sin(a)*0.75,11,AMBER)]
+        g+=[R(cx-80,cy+120,160,44,GREEN,2),CT(cx,cy+149,"their rules",20,GREEN)]
+        g+=[CT(cx,cy+210,lab,20,SOFT)]
+    g+=[CT(960,660,"their own rules, their own order — self-organizing is constant",26,SOFT)]
+    for x in (640,960,1280): g+=seat(x,830,False)
+    g+=[CT(960,930,"the deciding itself — the seats sit there, barely taken up",24,DIM)]
+    g+=[CT(960,972,"the hard part is participation:",30,WHITE)]
+    g+=[CT(960,1014,"people doing the deciding, not just the hanging out",30,WHITE)]
+    return g
+
+# ── Beat ①: the genre card — MMO is the anchor, MUD gets defined ──
+def f_genre():
+    g=[CT(960,105,"the form you know: an MMO — a big, open, multiplayer, role-playing world",32,SOFT)]
+    g+=[R(280,240,520,380,STEEL,3),CT(540,225,"an MMO — you see it",24,SOFT)]
+    g+=[PATH("M 300 500 C 420 400, 560 420, 660 470 S 760 500, 780 490",STEEL,2,op=0.6)]
+    for (px,py) in [(380,540),(450,560),(520,530),(600,565),(680,540),(430,470),(560,500),(650,470)]:
+        g+=[person(px,py,10,STEEL)]
+    g+=ARR(830,430,1080,430,SOFT,4)+[CT(955,395,"same world",22,SOFT)]
+    g+=[R(1110,240,560,380,GREEN,3),CT(1390,225,"a MUD — the same world, in text",24,SOFT)]
+    lines=["The Lounge.","A worn brass door stands open","to the north. Six players are","here, arguing about a law.","","> go north"]
+    for i,ln in enumerate(lines): g+=[T(1150,304+i*48,ln,24,GREEN if ln.startswith(">") else SOFT,mono=True)]
+    g+=[CT(960,760,"just as sprawling, multiplayer, role-playing — you read it, and type back",28,WHITE)]
+    g+=[CT(960,820,"this is a modern one",26,AMBER)]
+    return g
+
 # ── Beat ①: the code/judgment fork (sets up Ch 5 executive) ──
 def f_fork():
     g=[CT(860,120,"not every rule reduces to code",40,SOFT), L(860,190,860,330,WHITE,4)]
@@ -359,6 +394,17 @@ def f_money_stops():
     g+=[CT(1300,470,"moves the",26,GREEN),CT(1300,510,"funders' count",26,GREEN),CT(1300,610,"— and no further",24,SOFT)]
     g+=[CT(860,940,"the loudest funder in the room. not a maker, not a player, not a winner.",30,WHITE)]
     return g
+def f_stake():  # the not-a-security line — negations only; the constraint located in present law
+    g=[CT(960,110,"and that voice is stake — not an investment",38,SOFT)]
+    g+=[R(300,300,520,300,GREEN,4),CT(560,280,"what funding buys",22,SOFT)]
+    g+=[C(430,430,26,AMBER,3,DARK),CT(430,440,"$",28,AMBER)]
+    g+=ARR(470,430,570,430,GREEN,4)
+    g+=[CT(690,420,"a VOICE",30,GREEN,weight="bold"),CT(690,465,"in capital's chamber",22,SOFT)]
+    g+=[R(1100,300,520,300,CORAL,3),CT(1360,280,"what it isn't",22,SOFT)]
+    for i,lab in enumerate(["no shares","no dividends","nothing to cash out"]):
+        g+=[CT(1360,390+i*70,lab,28,CORAL)]
+    g+=[CT(960,760,"as the law stands today — a stake in the place, not equity in it",30,WHITE)]
+    return g
 def f_qq(stage=2):  # builds: the equation → the two zero-cases
     g=[CT(860,110,"standing = how much you contribute × how much others value it",36,SOFT)]; y=240; bh=200
     g+=BAR(300,y,150,bh,0.7,STEEL)+[CT(375,y+bh+40,"QUANTITY",24,STEEL,weight="bold"),CT(375,y+bh+74,"how much",20,SOFT)]
@@ -413,6 +459,7 @@ CH3=[
                                cap="no one wins alone")),                     # 2  2-of-3 to pass
  ("ch3-08-counts", f_counts()),                                               # 2  same crowd, three readings
  ("ch3-09-money", f_money_stops()),                                           # 3  money stops at its own count
+ ("ch3-09b-stake", f_stake()),                                                # 3  a voice, not an investment — as the law stands today
  ("ch3-10-qq-equation", f_qq(1)),                                             # 4  standing = quantity × quality
  ("ch3-11-qq-zero", f_qq(2)),                                                 # 4  …zero of either, and it's zero
  ("ch3-12-conferral", f_conferral()),                                         # 4  conferred by others
@@ -965,8 +1012,19 @@ CH1=[
  ("ch1-19-next", f_next()),                                            # end card: keep watching → chapters 2-7
 ]
 
+def check_keepout(name,svg):
+    # Cam keep-out (see header): nothing load-bearing past x>1500 AND y>820.
+    import re as _re
+    for m in _re.finditer(r'<text x="([\d.]+)" y="([\d.]+)" fill="[^"]*" font-size="(\d+)" font-family="([^"]*)"[^>]*text-anchor="(\w+)"[^>]*>([^<]*)</text>',svg):
+        x,y,size,fam,anchor,txt=float(m.group(1)),float(m.group(2)),int(m.group(3)),m.group(4),m.group(5),m.group(6)
+        w=len(txt)*(0.60 if "Mono" in fam else 0.52)*size
+        x1={"middle":x+w/2,"end":x}.get(anchor,x+w)
+        if x1>1500 and y>820:
+            print(f"  WARN {name}: text enters cam corner (x1~{x1:.0f}, y={y:.0f}): {txt[:50]!r}")
+
 def emit(name,parts):
     svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">'+"\n".join(parts)+'</svg>'
+    check_keepout(name,svg)
     sp=os.path.join(OUT_SVG,name+".svg"); open(sp,"w").write(svg); pp=os.path.join(OUT_PNG,name+".png")
     r=subprocess.run(["convert","-background","none","-density","192",sp,pp],check=False,capture_output=True)
     if r.returncode!=0 or not os.path.exists(pp):

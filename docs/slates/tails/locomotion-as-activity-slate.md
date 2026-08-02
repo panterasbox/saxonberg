@@ -10,8 +10,23 @@ slate sketches is the **consumer side**: what locomotion looks like
 when it earns a slot in the engagement framework, and the
 infrastructure changes that decision pulls along.
 
-> **Status: deferred.** v1 keeps walking, climbing, etc. synchronous
-> and instant. Game responsiveness is a selling point; durative
+> **⭐ UPDATE 2026-07-31 — the consumer arrived, and it is FREIGHT.**
+> [freight-slate § The Journey](../builds/freight-slate.md) is the home
+> this slate has been waiting for, and it resolves the deferral without
+> reversing it: **pedestrian movement stays synchronous; *vehicular*
+> movement becomes durative.** So the responsiveness argument below is
+> preserved intact — walking one room is a step, driving a wagon to the
+> next town is a journey. Design landed there: a `SustainedEngagement`
+> with a per-leg `ScheduledEmission` (respiration's shape, not a
+> `DurativeActivity` — a journey's duration is not trustworthy up
+> front); **arrival is a completion, not an abort**; the journey
+> **issues the same `traverse` a player would** rather than moving
+> anything itself; and it takes the **`hands`** slot, which is what
+> makes *you cannot drive and fight* — and therefore the escort job —
+> fall out of the shipped slot vocabulary.
+
+> **Status: deferred *for pedestrians*.** v1 keeps walking, climbing,
+> etc. synchronous and instant. Game responsiveness is a selling point; durative
 > movement only earns its slot when content design calls for it
 > (sneak as a stealth mechanic with detection windows, climb as a
 > skill-check arc with mid-event interrupts, long-corridor

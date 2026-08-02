@@ -53,6 +53,10 @@ behavior. Read the relevant doc before editing in its area.
   retirement rules at sweep time. Skills under `.claude/skills/`
   (`/requirements`, `/mr-iterate`, `/finalize`) are thin entry
   points to phases of this loop.
+- [docs/vocations.md](./docs/vocations.md) — the vocations &
+  industries register: the demand test, the five criteria for a real
+  vocation, four gap-finding methods, and the shipped/designed/gap
+  matrix by chain position
 - [docs/mql-grammar.md](./docs/mql-grammar.md) — MQL grammar
   reference for players / authors writing queries (seeds, chain
   operators, filters, pronouns, examples)

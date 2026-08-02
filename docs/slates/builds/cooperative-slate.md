@@ -401,6 +401,141 @@ representative seats the Consumer House creates — never on the directly-
 exercised resource. The temporal cap on *direct* influence is the
 regen-ceiling (and, under conviction voting, the time-to-build).
 
+### RESOLVED (2026-07-31): the kernel's conviction rule shipped — **no pool**
+
+The section above defers one thing: *"under allocation you don't
+deplete, so recurring-rate would gate your current allocatable weight
+rather than a refill rate; **to be worked out as the kernel's
+conviction rule is specified.**"* It is now specified, and it went
+further than allocation:
+
+> **`hold` is full weight, no pool.** Every position spends the
+> holder's **whole** standing scalar and never consults their other
+> targets. Listed in [influence.md](../../subsystems/influence.md) as
+> an **entrenched invariant** — *"code, never keys."*
+
+So there is **no reservoir, no cap, and no regeneration rate.** The
+two-markers design (lifetime total → cap; recurring rate → regen) has
+nothing left to attach to, and the draft constitution's Art. IV §2 —
+which still describes "a capped, regenerating reservoir with
+continuous allocation" — is now the stale half. (The knock-on for
+Art. IV §4's *sponsoring allocation* and *survival floor* is worked in
+[legal-code-slate § The passage rule](./legal-code-slate.md).)
+
+**The recommendation is to keep no-pool**, because a reservoir is a
+*simulated* scarcity stacked on a real one — **attention** — and a
+budget turns politics into portfolio management, which is swing-voter
+leverage moved one level up. It is also what keeps the system
+**scale-invariant** (below).
+
+#### The markers survive by splitting, not by merging
+
+The two markers were doing **two different jobs** that a single
+reservoir forced together. Under no-pool they separate cleanly, and
+each lands somewhere that already exists:
+
+| Old marker | Job | New home |
+|---|---|---|
+| **lifetime total** (never decays) | permanent **honor** — your place in the project's history | the **chronicle** ([chronicle.md](../../subsystems/chronicle.md)) — the append-only identity ledger, which is exactly what durable, unspendable recognition *is* |
+| **recurring rate** | current **voice** | **standing** — which is already a decayed rate, not a total |
+
+> **Honor is durable and belongs to the record; voice is a rate and
+> belongs to standing.** They stop fighting over one number because
+> they stop being the same system.
+
+And all three original cases still fall out, with no reservoir
+machinery:
+
+- **steady subscriber** — credits every bucket, sits at a stable
+  standing; still *the most powerful per dollar because sustained*;
+- **one-time whale** — credits once, spikes, decays. **A moment in the
+  sun, not a throne** — and permanently honored in the chronicle;
+- **lapsed contributor** — voice fades, **honor is untouched**.
+  *Stop the faucet; never drain the tank* — preserved exactly.
+
+## Standing inflation — mostly a non-problem, and where it *is* real
+
+**(User, 2026-07-31: "we just keep minting more and more… the number
+will just go up up up with no end.")** Checked against the shipped
+faucets. The premise does not hold for the two built stocks, and the
+reasons are worth recording because they are load-bearing.
+
+### The faucets are decayed accumulators with **hard rate caps**
+
+| Stock | Cap mechanism | Consequence |
+|---|---|---|
+| **participation** | append is find-or-skip on `{subject, bucket}` — **one credit per time-bucket**, ever | input rate capped by the **wall clock**; steady state ≈ `halfLife / (bucket · ln2)` |
+| **renown** | **log-saturated** — `receptionValence × ln(1 + Σ decayed)` — *on top of* decay | bounded twice |
+| **consumer** | `max(0, renown) × participation` | bounded × bounded |
+| **producer** | find-or-skip on `{author, actor, bucket}` — one credit per *engaging player* per bucket; influence.md annotates the line **"(anti-inflation)"** | capped by **audience-hours** |
+
+> **Standing measures a rate, not a total.** It fills to a level set by
+> what you are doing *lately* and stops. **A five-year veteran playing
+> ten hours a week has the same participation standing as a six-month
+> player at ten hours a week** — the same property that makes every
+> chamber a chamber of the currently present, seen from another side.
+
+### And passage is scale-invariant anyway
+
+`support = tally / totalStanding(stock)`. Double everyone's standing
+and both sides double. **This is where the inflation question touches
+the pool question:** no-pool means standing is *only ever compared to
+other standing*, so absolute magnitude never appears anywhere. A
+reservoir reintroduces absolute numbers — how big is my pool,
+regenerating how fast, in units of what — and with them a permanent
+tuning burden. **Resolving toward no-pool is itself the inflation
+fix.**
+
+### Where the exposure is actually real — three places
+
+**1. Bands are the one absolute surface.** `influence.bandThresholds`
+is *"reused, **stock-agnostic**"* — fixed cutoffs, while everything
+else in the system is a ratio. If typical standing drifts for any
+reason (bucket-width tuning, half-life changes, population effects on
+producer), bands stop discriminating and everyone reads top-tier. And
+**bands are the only thing players ever see** (register D6 — never raw
+scalars), so this is the failure that would actually be visible. Fix:
+percentile-relative bands, or accept re-tuning as organic law.
+
+**2. The real worry is *concentration*, not inflation.** The genuine
+growth vector: **content is durable, but engagement with it decays.**
+An author's *draw rate* scales with catalog size, and catalog
+accumulates monotonically forever. Total producer standing stays
+capped by audience-hours — nobody engages more than 24 hours a day —
+but the **share** can concentrate arbitrarily.
+
+> **Ratios are immune to inflation and fully exposed to share.** An
+> author holding 30% of producer standing holds 30% of the make
+> chamber by themselves.
+
+So the metric to instrument is **the top decile's share of each
+stock**, not any absolute number. A query, not a mechanic. (This is
+the quantitative face of § *Anti-oligarchy by construction* below —
+the qualitative argument there needs this number to be checkable.)
+
+**3. Capital is the only faucet with no natural cap.** Consumer is
+rate-capped by **hours in a day**; producer by **audience-hours**;
+capital by **nothing, because money has no bucket.** That asymmetry —
+not squeamishness about money — is the principled argument for capping
+it explicitly.
+
+### The capital faucet that falls out of symmetry
+
+Build it like the two that shipped: **credit per patron per bucket,
+not per dollar.**
+
+- a one-time $1,000 whale credits **one bucket**;
+- $5/month for a year credits **twelve months of buckets**.
+
+Which makes *"recurring donations are the actual model"* **structural
+rather than asserted**, using the mechanism already shipped twice — and
+it is the no-pool translation of the two markers above. Tier may
+weight a bucket, but **the weight must saturate per patron**, or the
+uncapped axis walks back in through the side door.
+
+*(Line-item, not pillar: this is one honest consequence of the faucet's
+shape, not the design's headline claim.)*
+
 ### Anti-oligarchy by construction
 
 Because influence regenerates only through *continued* contribution,
@@ -629,6 +764,13 @@ reform per vote.
 
 ### Delegation is already built — it's allocation pointed at a person
 
+> ⚠ **Written under the reservoir. The premise no longer holds** — with
+> **no pool** there is no allocation to point. The *conclusions* below
+> (per-topic/per-chamber, instant revocability, transitivity, "this is
+> how the Consumer House goes representational") all survive; the
+> *mechanic* is re-derived in **§ Delegation, re-derived for no-pool**
+> two sections down, and it comes out better.
+
 **Liquid delegation is the same mechanic as conviction voting.**
 Conviction voting parks influence on a *proposal*; delegation parks it on
 a *person* who votes it for you — a delegate is just another thing you
@@ -687,6 +829,326 @@ instant revocation, the sortition judiciary (party-proof by
 construction), and the cross-chamber bridging requirement. The protective
 function of parties (coordination) is kept; the pathological form (the
 captured, ossified machine) is designed against.
+
+## Delegation, re-derived for no-pool (2026-07-31)
+
+The prior sections describe delegation as *allocation pointed at a
+person*. With **no pool** there is no allocation, so the mechanic has
+to be rebuilt. The rebuild is smaller, cheaper, and has better
+properties.
+
+### Delegation steers; it never transfers
+
+> **Your delegate does not receive your standing.** You keep your own
+> `Position` row, at your own full weight, in your own stock — the
+> delegate supplies only its **direction**.
+
+Nothing pools, nothing moves, and **the tally formula does not change
+at all.** This is not bookkeeping: it means **there is no
+accumulated-weight object anywhere in the data** — no row reading
+*"Alice holds 30% of the play chamber."* Concentration is real in
+effect, but the weight is structurally always yours and always one
+command from coming home.
+
+### The conviction clock — the question answered, and cheaply
+
+Do **not** write follower rows when a delegate takes a position (write
+amplification proportional to the following). Derive it:
+
+```
+effectiveRealSince = max(yourDelegationSince, delegateRow.realSince)
+```
+
+One `max()`, no stored copies, **derive-on-read** like everything
+else. It answers the slate's open question — *does a delegated stake
+inherit your `realSince`?* — with **neither**: the clock starts when
+**both** facts became true.
+
+| Case | Result | Why it matters |
+|---|---|---|
+| Alice has held yea 3 weeks; you delegate **today** | `max(today, 3wk)` = today → **conviction 0** | closes an otherwise-fatal exploit: a hub **renting out matured conviction** on the eve of a crossing |
+| Alice **flips** | her `realSince` resets → so does yours | a delegate cannot bank ramp through churn |
+| you delegated 3 weeks ago, Alice takes the position **today** | starts today | you cannot accrue conviction on a position that did not exist |
+
+Two properties fall out of that one line:
+
+1. **Delegation is slow, exactly like everything else.** A hub that
+   gains a thousand followers today moves the tally by **nothing**
+   today — they all ramp over the build period. **The anti-buzzer
+   property extends to delegation for free.**
+2. **A volatile delegate is mechanically weak.** Every flip resets
+   every follower's clock, so a delegate who changes position
+   constantly has an enormous nominal bloc and near-zero real weight.
+   **The delegation market rewards consistency, not activity** — and
+   nobody had to design it.
+
+### Delegation is a default, not a transfer
+
+**Your own explicit position always wins.** Resolution order:
+
+> **explicit position → delegate's position → absent.**
+
+So you can defect on one bill without leaving the bloc, at **zero
+mechanical cost** — which is exactly Art. IV §6's *"no caucus binds a
+member's vote,"* obtained structurally rather than by rule.
+
+One new verb, `follow` (clear an override, revert to the delegate);
+`hold`/`flip`/`abstain` become overrides, and `drop` means *"not
+voting here even though my delegate is."*
+
+### Scope: per-stock now, per-topic second
+
+**Per-stock is free** — positions are already partitioned three ways,
+so *the delegation graph is already three graphs* and "expertise is by
+domain" is satisfied with no new data.
+
+**Per-topic needs bills classified, and there is an attack in it:**
+⚠ **if the proposer picks a bill's topic, the proposer chooses whose
+followers auto-vote on it.** The fix is that topic comes from **the
+Code's subject placement** — the taxonomy that already exists, where
+mis-filing is visible and reorganization is itself an enactment — and
+**never** from the proposer's free choice.
+
+### Chains, quorum, and the tie-back
+
+Chains resolve **at read time**; cycles resolve to *absent* and should
+**tell the people in them**; a depth cap is cheap insurance.
+
+**Delegated positions count for quorum** — you are present *through*
+your delegate; that is what delegation is. Which makes this the answer
+to the apathy problem in
+[legal-code-slate § The roll](./legal-code-slate.md):
+
+> **The play chamber cannot be asked to read bills, but it can be
+> asked to pick someone once. Delegation is how a mass chamber reaches
+> quorum at all.**
+
+### Two corrections to § The two real dangers
+
+**Drop the cap on delegated weight.** It made sense under *transfer*;
+under *steering* it means telling follower #501 their vote does not
+count because too many other people picked the same delegate — **a
+disenfranchisement wearing an anti-oligarchy costume**, which silently
+discards real standing. Since the weight is structurally always the
+follower's own, the honest remedies are **transparency** (the graph is
+public, like positions — and hub concentration is a story the press
+can run) and **the top-delegate share metric** (§ *Standing
+inflation*, where share — not size — was already identified as the
+thing to instrument).
+
+**Keep re-affirmation, but it must refresh `affirmedAt`, never
+`since`** — otherwise renewing your delegation resets your own
+conviction, which is backwards. Note the heavy overlap with the
+**disenfranchisement amendment**: if the roll ships, inactive
+delegators leave the denominator anyway and cannot be farmed as a
+zombie bloc, so re-affirmation becomes belt-and-braces rather than
+load-bearing.
+
+### Three smaller calls
+
+- **No consent required to follow** someone (requiring acceptance
+  turns brands back into membership orgs) — but a delegate may **opt
+  out of receiving followers** entirely.
+- **Delegation covers positions only, never tabling.** Sponsoring a
+  bill is an *act*, not a position.
+- **"The Consumer House goes representational" needs nothing built
+  beyond this.** Representation is **emergent**, not structural. A
+  chamber may still legislate actual seats with terms as a bylaw —
+  that is a different object.
+
+### Where it lives
+
+**On `ConvictionApi`**, beside `hold`/`flip`/`drop`/`abstain` — it is
+part of how positions resolve, so it rides the existing facade rather
+than minting one. Storage is one small collection:
+`{subject, stock, delegate, since, affirmedAt}`.
+
+## Synthetic constituents — delegating to an institution
+
+**(User, 2026-07-31: "an institution voting and people delegate to the
+institution not a specific citizen.")** Already named twice in the
+design, and the substrate is already built.
+
+- **The constitution calls it a caucus** — Art. IV §6: *"Constituencies
+  may **caucus** to form an opt-in position, but no caucus binds a
+  member's vote."*
+- **§ Caucuses above already says the quiet part** — *"Voting as a bloc
+  is members choosing to align with the caucus's position — which is
+  just **delegation** (delegate your capital-influence to the caucus
+  line, revocably)."*
+- **And the reference type exists: `GroupRef`** — grouping is already a
+  facade over pluggable providers yielding typed refs. So **the
+  delegation target is a `GroupRef`**, with a person being one ref kind
+  among several. Nothing new to invent.
+
+### Steering is what makes it trivial
+
+Because a delegate supplies *direction* rather than receiving weight,
+**the delegate needs no standing of its own.** An institution can hold
+a position; it simply cannot hold standing. So the tally needs **no
+special case**: the institution's `Position` row exists,
+`standingOf(groupRef)` is **zero**, and it therefore contributes zero
+to both `tally` and `quorumWeight` **automatically**.
+
+> **An institution votes with zero weight. Its power is entirely
+> borrowed and entirely revocable.**
+
+Consequence: **an institution with no followers is literally nothing**,
+so creating one needs **no gate and no anti-spam cost.**
+*Impersonation* is the only real exposure, and that is the existing
+mark/brand substrate's job ([corpo.md](../../subsystems/corpo.md)).
+
+### Any existing institution can publish positions
+
+Guilds, businesses, houses, ad-hoc coalitions — **zero new object
+types.** And **endorsement** is the honest word for it: *the Smiths'
+Guild endorses; three hundred of its members follow the endorsement.*
+
+### Members ≠ followers — and keeping them apart is the whole thing
+
+| | **Members** | **Followers** |
+|---|---|---|
+| what they do | **decide** the platform | **copy** it |
+| how many | whatever the charter says (possibly one) | unlimited |
+| consent | joining is mutual | **unconsenting, instantly revocable** |
+| overlap | need not be followers | **need not be members** |
+
+Conflating them is exactly the membership-org error that *"parties are
+delegation brands, not membership orgs"* rejects. It also yields the
+best dynamic in the section:
+
+> **Capture the members, inherit the followers — until they notice.**
+
+A hostile takeover of a caucus is genuinely good content, and it is
+**visible**, because the platform sits on an append-only roll like
+everything else. **The flip notice is the accountability surface** —
+when your caucus changes position you are told, and that is the moment
+the borrowed power can be pulled back.
+
+### Who decides the platform: the charter, already designed
+
+The enactment check's **three resolvers** map straight onto the party
+taxonomy — same machinery, one level down, exactly like every other
+charter:
+
+| Resolver | Reads as |
+|---|---|
+| **sole** | a **personal brand** — and one that can outlive its founder |
+| **body** | one member, one vote |
+| **chambers** | conviction-weighted internally |
+
+### Platform stability is priced
+
+A caucus that flips resets **every follower's** conviction clock. So
+an institution chasing the news carries an enormous following and
+near-zero weight:
+
+> **You cannot drift and be powerful at the same time.**
+
+### Two smaller calls
+
+- **Institutions may delegate to institutions** — same cycle
+  detection; a small caucus endorsing a coalition's line.
+- **Following is per-stock**, so a guild can be credible on
+  `producer` and ignored on `consumer`. **Strictly better than real
+  parties.**
+
+## Surfacing — the flip notice and the ticker
+
+Both were one-liners in the sections above. They are **two different
+objects**, and the split is the design.
+
+> **News is about the world; the flip notice is about you.**
+
+The bulletin substrate is a **staff→player broadcast** — a *shared*
+artifact where everyone sees the same headlines, which is what makes it
+a commons and makes press coverage meaningful. Personal notices cannot
+live there without either polluting everyone's feed or making the
+ticker per-viewer, which destroys the shared-ness. **Two surfaces, two
+jobs** — the same rule § *Three surfaces, three jobs* already applies
+to argument maps.
+
+### The flip notice rides `NotifyPolicy`, not the bulletin
+
+[social-graph.md](../../subsystems/social-graph.md) already has
+attention rules and the `notify` verb, so the notice inherits
+**volume-tuning for free** — which matters more here than usual: if it
+spams, people mute it, and **a muted accountability surface is a dead
+one.**
+
+**Phrase it as what happened to *you*, not what your delegate did.**
+
+> *"Your position on the Arms Ordinance reset to zero — the Growth
+> Caucus flipped."*
+
+More honest, more actionable, and it yields a filter for free: **if you
+had overridden that bill, your row did not move, so there is no
+notice.** Suppression falls out of the mechanic instead of needing a
+rule.
+
+### Loudness = the conviction destroyed
+
+A flip at 5% conviction is a whisper; a flip at 95% costs three weeks
+and deserves a bang.
+
+> **`notice weight = standing × conviction_lost`** — computable
+> exactly, self-tuning, **no authored thresholds and no editorial
+> judgment.** The notice is as loud as the loss.
+
+### Three tiers, all with shipped homes
+
+| Tier | What | Home |
+|---|---|---|
+| **ambient** | the live gauge — always available, **never pushed** | inspection pane + live MQL subscription |
+| **digest** | flips, platform changes, new positions — batched | the **aggregate + cadence-flush** shape [reactions](../../subsystems/reactions.md) already uses |
+| **interrupt** | a crossing imminent on a bill you carry; a **high-conviction** flip | pushed note / ticker |
+
+### ⚠ Auto-generated headlines would make the press redundant
+
+The [press slate](./press-slate.md)'s thesis is that *"anyone can
+check"* becomes *"nobody does"* without a press. **If the ticker
+auto-reports every crossing, the omniscient feed makes the vocation
+pointless before it ships.** Three layers, and the top one is already a
+named tree candidate:
+
+| Layer | Character | Status |
+|---|---|---|
+| **the record** | queryable, complete, **never pushed** — total transparency, machine-provided | the Roll + MQL, already designed |
+| **the docket** | an *unedited* chronological feed of governance events; public, boring, complete | **nobody reads the Federal Register — that is the point, and precisely why journalism exists** |
+| **the ticker** | a **publication**, therefore it has a **publisher** | wants `bulletins → /feed/<publisher>/`, already floated in [legal-code-slate § Sibling candidates](./legal-code-slate.md) |
+
+**So you subscribe to a publisher.** The Compact runs the default one;
+players run others. A press outlet becomes mechanically real as *a
+publisher whose ticker you can subscribe to* — which makes partisan
+press possible, bias possible, and the record always there to check
+against, **with no new mechanism.**
+
+> **The rule that protects the vocation: the default feed reports
+> *events*, never *significance*.** "Bill X crossed threshold in the
+> Play chamber" — never *"Landmark arms bill advances."* The machine
+> can report facts; **only a person can say why it matters.**
+
+### Inline stance stays — with context, not friction
+
+Carry the bill's one-line summary and a link to the argument map.
+Voting off a headline is **self-correcting anyway** — a careless
+position still needs a build period to matter. And **yes, a
+publisher's ticker may carry the stance button too**: that is exactly
+what real media does, it is visible, and pretending otherwise would be
+the dishonest option.
+
+### Two rails
+
+- **Notices inform; they never incentivize.** No *"log in to keep your
+  standing"* nags — that is **taxing absence**, which Law 2 prohibits
+  outright. The **disenfranchisement warning** sits right on this line
+  and stays on the right side of it because it fires **once** and names
+  a **specific** consequence, rather than pleading generally.
+- **Push what serves the person notified; never what serves someone
+  else's leverage over them.** Concretely: **do not notify a delegate
+  that "Bob defected on bill X."** The data is public and queryable,
+  but *pushing* it is **building a whip.** Same distinction as the
+  record/docket split, applied to people.
 
 ---
 
@@ -790,11 +1252,27 @@ two things:
 - **Engagement-optional — never tax the apolitical.** Mandatory voting or
   punishing non-participation is *taxing absence* (Law 2's exact
   prohibition) and the fastest way to make a casual quit. Non-voting must
-  be *safe and represented*: conviction/parked-influence + **liquid
-  delegation** make *not actively voting still participation* — your weight
-  stays deployed, or your delegate carries it. Set a delegate **once**, be
-  represented forever, effortlessly. Apathy channels; it doesn't
-  disenfranchise.
+  be *safe and represented*: conviction + **liquid delegation** make
+  *not actively voting still participation* — your delegate carries the
+  direction while your own standing carries the weight. Apathy
+  channels; it doesn't disenfranchise.
+
+  > ⚠ **Correction (2026-07-31), and it matters.** This bullet used to
+  > promise *"set a delegate once, be represented forever,
+  > effortlessly,"* on the reasoning that undeployed influence decays
+  > while *"a standing delegation persists."* That was true under the
+  > **pool** — decay hit influence you had not deployed. Under the
+  > shipped model **standing decays with inactivity, full stop**, and
+  > having a delegate set does not keep it alive. The honest
+  > restatement is better for a game anyway:
+  >
+  > **Delegation relieves you of attention, not of presence. Presence
+  > is the price; attention is not.**
+  >
+  > Which is the same sentence decay, the roll amendment
+  > ([legal-code-slate](./legal-code-slate.md)), and delegation have
+  > each been saying separately: we want you *playing* — we just do
+  > not want to make you read legislation.
 - **Engagement-rewarding — make governance *fun content*, not a chore.**
   The thing a game has that a DAO doesn't: politics can be *gameplay.* EVE
   Online's player politics — coalitions, betrayals, campaigns — are its
@@ -804,11 +1282,13 @@ two things:
 
 The specific tools for "people don't vote":
 
-- **Decay self-selects the engaged electorate.** Undelegated, unparked
-  influence fades (stop-the-faucet, never drain-the-tank — not a penalty).
-  But a *standing delegation persists*, so only the truly-absent (neither
-  vote nor delegate) fade, which is correct. Tune decay *slow* and
-  delegation *sticky* so casuals never hit a cliff and bolt.
+- **Decay self-selects the engaged electorate.** Standing fades with
+  **inactivity** (stop-the-faucet, never drain-the-tank — not a
+  penalty), so only the truly absent fade, which is correct. Tune decay
+  *slow* and delegation *sticky* so casuals never hit a cliff and bolt.
+  ⚠ **A standing delegation does NOT keep standing alive** — see the
+  correction under *Engagement-optional* above; delegation channels
+  attention, decay measures presence, and they are different axes.
 - **Quorum for high-stakes turns disengagement protective.** Amendments
   and big changes require a participation quorum; too checked-out an
   electorate and the measure *fails to status quo.* A disengaged
@@ -1139,6 +1619,103 @@ During design the founder is PM trivially (sole Producer + 51% Capital =
 that 51% of *one* chamber doesn't secure it, a majority of *chambers*
 does, so even the PM-ship rides the honest 2-of-3 structure, not a
 personal clause.
+
+### Confidence, expressed in the shipped substrate (2026-07-31)
+
+"Live, recomputed continuously" has an **exact realization under
+conviction, with no new mechanism**:
+
+> **Confidence is a permanently open constructive-no-confidence
+> target.**
+
+Nobody continuously *proves* they still have support — a government
+falls when a motion **carries**, exactly as in Westminster. The PM is
+installed by **investiture** (a discrete bill) and holds until a
+no-confidence tally **crosses** by the ordinary passage rule.
+
+And because the motion must **name a successor**, the target is really
+*"replace the PM with X"* — so **several rival successors accumulate in
+parallel**, all visible on the gauge, and **the first to cross wins.**
+A genuinely good political object and first-rate spectacle; the
+**cooldown** above is what stops it thrashing.
+
+### Succession — the gap was *disappearance*, not removal
+
+Constructive no-confidence covers **removal**. It does not cover a PM
+who quits, is banned, or never logs in again: nobody named a successor
+because **nobody moved.**
+
+The floor is already shipped —
+[governance.md](../../subsystems/governance.md): **a vacated office
+reverts to the founder default**, so the government never runs
+ownerless. But a founder holding it by default has **no mandate**, so
+that is a **caretaker**, not a PM. Which gives a clean mechanical
+expression of a real convention:
+
+> **A caretaker may execute, but may not veto.**
+
+Caretaker governments do not make new policy — and here that is not a
+norm anyone enforces, it is a power they simply **lack**. Everything
+else keeps running.
+
+### The deputy — duties, never the mandate
+
+A PM cannot be present for every veto window, so they may name a
+**deputy** who acts in their absence. The design question is whether
+the deputy is in the line of succession, and the answer is firmly no:
+
+> **A deputy inherits the duties, never the mandate. You may hand over
+> the desk; you may not hand over the mandate.**
+
+The US Vice-President model hands the office to someone **the
+legislature never invested**, contradicting *"the PM holds office by
+commanding confidence."* Here legitimacy comes from the chambers and
+**cannot be transferred by the person holding it** — a deputy acts
+until the legislature invests someone. The contrast is exactly the sort
+the pedagogy wants.
+
+### "Running mates" — what the instinct actually maps to
+
+There is no ticket and no PM election, but **two real things** carry
+the same intent, and **neither needs a mechanic**:
+
+- **The shadow cabinet.** A PM candidate publishing their intended
+  deputy and institution heads **before** investiture is the
+  parliamentary analogue — pure content, a document.
+- **The caucus as ticket.** A caucus whose platform includes *"we back
+  X for PM"* **is** a ticket, emergently, riding § *Synthetic
+  constituents*. No ballot needed.
+
+### Elections are a lego, not a kernel feature
+
+The PM must **not** be directly elected — that makes a president with a
+rival mandate (above). But elections legitimately belong in three
+places, all of them
+[amendment-library](./amendment-library-slate.md) material rather than
+kernel:
+
+1. **chamber-internal representative seats** — Art. IV §6 already lets
+   a chamber create them;
+2. **the apparatus offices** (the five seats);
+3. **locality governments** — where Tiebout does the arguing.
+
+(2) is **good pedagogy on purpose: let a polity elect its central bank
+governor and find out.** Electing regulators is a real and widely
+criticized design, and **discovering why beats being told.**
+
+### One consistency worth noting
+
+Three floors now rest on the same principle, and **no admin override
+was invented at any of them:**
+
+| Failure | Floor |
+|---|---|
+| a vacated office | reverts to the **founder default** (shipped) |
+| a deadlocked committee | resolves upward to **the Compact** |
+| a deadlocked Compact | **the amendment path** + the founder default |
+
+Each is a **declared floor reached by the same rule**, not an
+exception.
 
 ### Institutions, not hierarchies
 
@@ -1719,6 +2296,22 @@ The historical resonance is the admin-abuse case: every MUD's admin
 controlled the logs, so abuse was *deniable* — dupes erased, grants
 scrubbed, "what database edit?" Tamper-evidence + independence is the
 fix: the admin can still *act*, but can no longer make it *unprovable.*
+
+> **Build-level design → [record-integrity-slate](./record-integrity-slate.md)
+> (2026-07-31).** The guarantee above is specified and entrenched, and
+> **implemented nowhere** — every ledger is append-only *by
+> convention.* Four findings from that pass are worth carrying here:
+> **(1) a hash chain the operator can recompute is theater** — anchoring
+> is the load-bearing part, not chaining; **(2) anchoring defeats
+> revision, but only *member self-audit* defeats fabrication** — and
+> **dormant accounts being off the roll is what forces a forger onto
+> accounts with humans watching them** (a third consumer for the
+> disenfranchisement amendment); **(3) the acid test is *if the
+> verification runs on our box, it isn't verification*** — so the
+> integrity branch's attestations are **conveniences, never
+> authorities**; and **(4) tamper-evidence guarantees the record, never
+> the law** — a bad rule honestly executed and faithfully recorded is a
+> *political* failure, and the two get conflated constantly.
 
 ---
 

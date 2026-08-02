@@ -1,4 +1,4 @@
-# Ch 7 (re-record) — "A dial on an honest floor"
+# Ch 7 (re-record) — "The Dial — Operator to Republic"
 
 > **Re-record sequence** (see [rerecord-outline.md](./rerecord-outline.md)) — the
 > deep-dive expansion of Ch 1's close ("the structure is built to give itself away").

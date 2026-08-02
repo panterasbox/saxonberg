@@ -36,6 +36,21 @@ only the means). Each video:
    end, in their vocabulary. The value proposition is embodied by
    the experience, not argued alongside it.
 
+**Map every beat back to the student (user, 2026-07-29).** At the
+core of every video is one person: a learner who wants to learn new
+things and apply them in an engaging, dynamic environment. The
+internal shorthand is *a Skinner box for surprise and delight, with
+a pedagogical bend* — engagement engineering owned plainly, with the
+transformation gate as its conscience (never say "Skinner box" in a
+video). Practically: each script should be checkable beat-by-beat
+for where the learner is standing in it — a world beat earns its
+place by provoking the learner's question; a creator beat by
+building what the learner meets; the loop is curiosity → study →
+the world visibly gives way to what you learned. (V4's Act II
+rewrite briefly dropped its one student line — "you study because
+your character needs it" — and it had to be restored; treat that
+line-class as load-bearing.)
+
 The design lenses ([docs/lenses/](./lenses/README.md)) are the
 analysis toolkit: each video's brief names the two or three lenses
 that govern its experience, and the script is checked against them.
@@ -82,12 +97,23 @@ Corollary rules:
 
 ## Register
 
-Inherited whole from the game-intro series: reference-doc tone,
-real figures, assert-don't-defend, philosophy as the recurring "why"
-bolted to what's on screen, no overclaimed novelty. The
-differentiator is honesty depth — the game's physics runs on the
-real models the coursework teaches, so knowledge is load-bearing
-rather than decorative.
+**Revised (user, 2026-07-29): these are a pitch, and the shape is
+the product demo.** The manifesto was functional — matter-of-fact,
+reference register. This track optimizes for **cool**
+(the north star): Apple-product-demo energy, where the structure is
+**drilling in** — each beat reveals another dimension of the product
+the viewer didn't know was there, and the wonder comes from the
+reveals themselves, not from adjectives. Don't go overboard: no
+hype vocabulary, no superlatives — the demo cadence carries the
+excitement, the content stays plainly true.
+
+Retained from the game-intro series (these are constraints on the
+pitch, not a competing tone): real figures, assert-don't-defend,
+philosophy bolted to what's on screen, no overclaimed novelty,
+build-state honesty. The differentiator is honesty depth — the
+game's physics runs on the real models the coursework teaches, so
+knowledge is load-bearing rather than decorative — and the demo
+structure exists to make that depth *felt* as successive reveals.
 
 ## The seam (context all videos share)
 
@@ -113,14 +139,61 @@ the standalone game into a vertical product:
 ## The roster
 
 Rules (settled 2026-07-28): **no committed count** — a video exists
-when there's meaningful content for it; **under five minutes** each;
+when there's meaningful content for it; **~five minutes as a soft
+target, not a ceiling** (revised 2026-07-29: viewers who want it
+faster watch at 1.5–2× — don't cut content for the clock; trims are
+an edit-room call);
 **each video is one distinct experience** — overlap is allowed (and
-necessary) only for the core-principle slices that recur; content is
+necessary) only for the core-principle slices that recur;
+**each marquee subsystem appears in exactly ONE video** (user,
+2026-07-29 — electricity had crept into three; it now belongs to
+the storm contract alone, V4 is chemistry+thermal, V1 is the
+foundry; the tell to watch for is shipped-depth gravity — the
+best-built showpiece pulling every script toward itself);
+**examples run on verticals the viewer recognizes, one owner
+each** (user, 2026-07-29): the spine's course example is gen-ed
+STEM (general chemistry — the College Saver credit core), the
+test-prep verticals live in their own cohort cuts (health→#5,
+trades→#6, teacher→#7, accounting→#8, TOEFL→#9, ASVAB→#10) — no
+niche curricula (the V1 draft briefly named a materials-science
+course; wrong altitude for their userbase). Consequence for V2:
+its months-in-the-role stage should be a NON-medical role (the
+aid-post staging note predates this rule — health belongs to #5); content is
 picked with the lens work weighing in (the load-bearing ed-tech
 lenses per video are named). Series *order* is an interest-curve
 decision made later, separate from this list's grouping. Status
 honesty per the standing rule: built or fully-designed both qualify;
 anything leaning on unbuilt systems is marked HELD.
+
+### The science map (pick examples from here, not from what's best-built)
+
+The matter well (chemistry / thermodynamics / electricity /
+materials-response) is the deepest-modeled because `Tangible` =
+matter — but it is not the only science the world models at demo
+grade, and examples should spread (user, 2026-07-29). The
+inventory, with each science's natural video:
+
+- **Chemistry & thermodynamics** — V1 (the foundry) + V4 (the
+  fountain / the frost wand); the matter well's own showcases.
+- **Physiology** — vitals, metabolism, respiration, trauma → #5
+  (gallery flood).
+- **Meteorology & astronomy** — weather field, celestial calendar,
+  barometric pressure → V6 (storm contract; second science beside
+  its electricity).
+- **Psychology & epistemics** — traits from behavioral evidence,
+  per-viewer belief/recognition, regard → **V2 is the psychology
+  video** (the character as honest evidence about the human); its
+  months-in-the-role stage needs no medicine.
+- **Economics** — conserved money, wages, rent, contracts, social
+  capital measured → **V3 is the economics video** (a
+  customer-lifetime story is a household economy).
+- **Linguistics** — #9 (TOEFL) + V5's medium thread.
+- **CS/logic** — scripting/MQL → the held Duncan Hall video.
+
+Honesty caveat for all scripts: **space is a containment graph,
+not geometry** — no kinematics, no ballistics, no trajectory
+demos (the altimeter works because pressure is a field value at a
+place, not because space is modeled).
 
 ### Spine (the four, each framed against one of the four execs)
 
@@ -139,13 +212,34 @@ gamer-adjacent cut if it earns a slot later).
    applications, so this is the *integration story told as a user
    journey.* The wall honestly hit → real study on the real
    platform → the verified final → the return; the conferral fires
-   and the knowledge is load-bearing (real Ohm's law). *Tone:*
+   and the knowledge is load-bearing (real calorimetry at the
+   Hearthworks foundry — Q = mc∆T + mL is the shipped model).
+   *Tone:*
    product walkthrough — show the seam as a product surface (where
    her catalog appears in-world, what event crosses, what state
    changes), zero architecture talk. *Lenses:* fantasy, curiosity
    (Rico), essential-experience, transformation. *Exec read:*
    completion felt from inside; the whole integration is consuming
-   events you already record. **Ready.**
+   events you already record. **SCRIPT DRAFTED**
+   ([education-video-scripts.md](./education-video-scripts.md),
+   2026-07-29 — working title "The wall"): the melt refused at
+   the Hearthworks foundry → bands/Rico turn (wage stakes) →
+   study.com general-chemistry thermochemistry chapter as claim →
+   identity-verified final crosses with conditions → the conferral
+   ceremony (the beat doubles as the threshold-ceremony
+   micro-build's spec) → the return (the pour holds through the
+   latent-heat plateau). Moved twice 2026-07-29: off the
+   substation (subsystem allocation), then off temper-metallurgy
+   onto calorimetry (recognizable-vertical rule — gen-ed STEM,
+   their credit core; and Q = mc∆T + mL is the shipped model where
+   quench-hardening never was). The foundry wall rides the
+   smithing recipe branch — the launch worklist's #1 economy item,
+   so the video and the top backlog build are the same work.
+   Shoot-prep todos: mock issuer adapter (the standing #1
+   cross-cutting build), in-world course surface staging, the
+   ceremony beat, the melt task. Accuracy rail: their final is
+   **identity-verified, not proctored** — never say proctored of
+   their product.
 2. **Playing the part** — framed for **Chris Mancini (chief growth
    officer)**: personalization and marketing applications. Act 1
    absorbs Arrival's thesis — from the first hour, every choice is
@@ -162,7 +256,34 @@ gamer-adjacent cut if it earns a slot later).
    self profile no survey could collect. *Lenses:* fantasy,
    the-avatar, cheatability, endogenous-value, transformation (the
    claim ships with its alignment conditions — the script gate).
-   **Ready.**
+   **SCRIPT DRAFTED — third pass 2026-07-29**
+   ([education-video-scripts.md](./education-video-scripts.md),
+   working title "The mirror with receipts"). Pass 1 made
+   psychology the *subject* and lost the learner (produced the
+   thesis-first craft rule); pass 2 over-fit the bar (vocational
+   reading, thin economics). Pass 3: **the degree-finisher**,
+   named — twenty-six, works days, finishing a real course load
+   (statistics/chemistry/composition) one evening chapter at a
+   time; the bar is life texture, not curriculum. New structural
+   spine: **the supply-chain beat** ("look upstream": rum ←
+   distilling ← cane farm ← titled land ← forged tools, every
+   link a balanced transaction — *a market laid out link by link
+   is a course catalog*, and she stands at the last link). Then
+   then **the drift** (every link is a door: bartending →
+   winemaking → the perfect grape — a different academic track,
+   found not assigned; aspiration drift promoted into the script
+   with the chain as its mechanism), the learning record +
+   cause-lines (demand attribution, transfer observed), the
+   social half, the mirror with receipts, the conditional claim,
+   and the growth read: **matchmaking** (intake said hospitality,
+   behavior says viticulture), churn + diegetic rescue,
+   **breadth-as-TAM** (every pursuit representable — every niche
+   curiosity is a segment), closing on the authored-instrument
+   insight. The supply-chain motif is introduced and owned here;
+   V3/#8 may reprise at their angles.
+   Leans hardest of all five on the **demo world** + the beat-3
+   traversal stations (the transform-chain builds). Alignment
+   condition + privacy ceiling load-bearing.
 3. **The long transcript** — framed for **Michael Shmeir
    (president & COO)**: the whole business, told as one customer's
    three years. He oversees every function (product reports to
@@ -183,9 +304,36 @@ gamer-adjacent cut if it earns a slot later).
    through community — the company's whole dashboard, embodied in
    one person who stayed. *Lenses:* essential-experience (both
    essences in one arc), interest-curve (the career tier),
-   endogenous-value, transformation. **Ready** (the wishbook's
-   closing vignette, promoted).
-4. **The honest world** — framed for **Adrian Ridner (founder &
+   endogenous-value, transformation. *Closing-read garnish
+   (2026-07-30):* one **unnamed** LinkedIn sentence — "the profile
+   she walks out with is the one every professional network has
+   promised and never delivered — built by living, not by
+   claiming." One line-item, never named, never a pillar; the
+   full competitor thesis is investor-pitch material, not this
+   track. **SCRIPT DRAFTED — fifth founding, 2026-07-30**
+   ([education-video-scripts.md](./education-video-scripts.md),
+   working title "Any seat in the house"): **the demo carries the
+   argument** (rule: if a beat needs a card, rewrite until the
+   app can show it). A first-person on-camera dare: **three seats
+   in three specialties before noon** — the foundry (the mixed
+   roster held; the simulated worker STANDS DOWN as the presenter
+   clocks in — the moment; the honest crucible fumble), the
+   counting house (forty seconds — the repeat is the proof), the
+   vineyard (narrow on purpose) → the turn over a held roster
+   ("seats ration because seats are people"; the economy
+   load-balances across whoever shows up, whatever they're
+   curious about) → the incentive loop (paid same afternoon, the
+   chapter, the band — no badges, proxies corrupt) → **applied
+   hours** + the unnamed mission nod. Button: "Three doors before
+   noon. And it was Tuesday." **The three-doors demo build**
+   (joinable seats, mixed rosters, stand-down-on-claim; counting
+   house net-new) is named content — and doubles as the reusable
+   LIVE sales demo (walk any exec through their own three doors).
+   **LLM-thread allocation:** V4/Ridner = defensive (the moat);
+   V3/Shmeir = offensive (the product); no shared sentences.
+   Retired foundings + their rules in the script notes; the deck
+   pool holds the salvage. Theory beats #7/#8 still flagged to
+   V5/deck.
    CEO)**: broad strategy and ed-tech positioning. Lifting the
    curtain, elevated to the category thesis: one fountain twice
    (`look`, then `analyze`), the textbook check that holds — then
@@ -214,7 +362,10 @@ wishbook vignettes as videos; same world, pitched by wish)
    about having a body, this one is about being the medic).
 6. **The storm contract** (trades) — the flooded cell, the sky-read
    deadline, real Ohm's law under pressure. *Lenses:* fantasy,
-   emergence (weather→wetness→circuit). **Ready** once contracts
+   emergence (weather→wetness→circuit). **Sole owner of the
+   electricity showcase** (allocation rule, 2026-07-29): the
+   flooded cell, the conductivity ladder, and the brine beat all
+   live here and nowhere else. **Ready** once contracts
    merge (MR !149); shootable today with a posted gig faked as a
    notice.
 7. **The Tuesday seminar** (teacher cert) — teaching pays,
@@ -318,15 +469,15 @@ experience, not padding for four — see video 5.
   open (sixty seconds, not an act); the NPC-reads-as-person beat
   (#4) is staged in a conversation, one line at most. Writing
   practice (#5) moves to video 5.
-- **Video 3 (Long Transcript / Shmeir)** — theory beats: #7, #8
-  (both quick visual beats). The #7 beat, staged right, carries the
-  per-activity floor without a word of narration: her lunch-break
-  phone session shows a *fight resolving in the stream* or a forum
-  argument scrolled on the bus — not just chat — then the same
-  evening at her desk with the panels lit. One activity's floor and
-  ceiling, same day, same world. #8: year-one prose reread in year
-  three. UGC/authoring (#6) moves to video 5, where it belongs with
-  the maker arc.
+- **Video 3 (Not a Poster / Shmeir)** — theory beats: **#7 and #8
+  are ORPHANED by the 2026-07-30 re-founding** (the three-years
+  arc that staged them retired to the deck). Reassign: #7 (the
+  per-activity mobile floor — the phone/desk cut) and #8 (text
+  doesn't age — the year-one reread) move to **V5** if its arc can
+  stage them, else the deck. The re-founded V3 carries no numbered
+  medium-thread beats; its words-doctrine content is the ceremony
+  (recognition spoken, witnessed, kept). UGC/authoring (#6) stays
+  in video 5.
 - **Video 4 (Honest World / Ridner)** — theory beats: #9, #11,
   #12 with #10's downside owned in a single line ("text is
   serial; that's what the panels are for"). Closing line: the
@@ -387,6 +538,16 @@ Four lenses read specifically for this track
 / [interest-curve](./lenses/interest-curve.md) /
 [the-pitch](./lenses/the-pitch.md)) yield the working rules:
 
+- **Every script writes its thesis line FIRST** (added 2026-07-29,
+  after the V2 miss): one sentence — *what this teaches, and why
+  the exec cares* — checked against both philosophy docs
+  ([design-philosophy.md](./design-philosophy.md) /
+  [interaction-philosophy.md](./interaction-philosophy.md)) before
+  any beat is written. The V2 first draft became game-design-
+  interesting and education-irrelevant because no such line
+  existed; the substrate (psychology) had displaced the subject
+  (the learner). If a draft's acts can't each point at one of the
+  two docs, it has drifted.
 - **Every video names its moment before scripting** — a video is one
   top-ten moment made as powerful as film allows; the ranked
   moment list lives in the moments entry and doubles as the
@@ -426,12 +587,15 @@ can produce the footage. Per video:
   threshold-ceremony micro-build already flagged in the moments
   entry). **Needs: mock issuer adapter + one authored ceremony
   beat.**
-- **V2 Playing the Part — systems shipped, content thin, texture
-  missing.** Traits/bands/chronicle all demonstrable; char-gen cold
-  open shootable. The medic *role* needs its stage: the aid-post
-  rounds are a wishbook loop, not authored content. And "months in
-  the role among peers" needs a world with bodies and history in
-  it. **Needs: aid-post content beat + the demo world (below).**
+- **V2 Playing the Part — SCRIPT DRAFTED; systems shipped, texture
+  is the gap.** Traits/bands/chronicle/recognition all demonstrable
+  (`traits`/`score`/`chronicle` verbs shipped); char-gen cold open
+  shootable; the role is now the **Dave's Bar barkeep** (the
+  aid-post staging retired with the vertical rule — health belongs
+  to #5), and the bar's systems (employment, attendant, banking
+  till) are shipped. What remains is "months in the role among
+  peers" — a world with bodies and history in it. **Needs: the
+  demo world (below), hardest of the five.**
 - **V3 Long Transcript — montage-friendly but three soft spots.**
   The year-three "apartment on a titled floor" outruns the built
   residence ladder (dorm exists; apartments don't — reframe or
@@ -441,13 +605,35 @@ can produce the footage. Per video:
   is responsive on paper, but nobody has framed a phone session
   for camera. **Needs: adapter (shared), mobile-floor check, one
   reframe decision.**
-- **V4 Honest World — most shootable.** Analyze surfaces are
-  shipped; the widening montage (species/materials/nutrition) is
-  real data. Small authoring: a fountain with an honest acoustic
-  profile and the textbook-checkable fact chosen. One script-gate
-  item: the AI-participants beat stays design-level (no LLM
-  participant exists — the deferred LLM slate). **Needs: one
-  authored object + fact selection.**
+- **V4 Honest World — most shootable. SCRIPT DRAFTED**
+  ([education-video-scripts.md](./education-video-scripts.md),
+  2026-07-29). Fact selected: the periodic-table check (bronze
+  spout → composition 0.88 Cu → copper Cu·29·**63.546 g/mol**),
+  with the conductivity ladder (water 0.01 → salt water 5 →
+  copper 6.0×10⁷ S/m) as the widening/load-bearing beat — all
+  shipped base-library seed values, zero code changes to render.
+  One script-gate item: the AI-participants beat stays design-level
+  (no LLM participant exists — the deferred LLM slate).
+  **Killer-app act added (2026-07-29):** Act II flips the viewer
+  into the creator's chair — author `silver.yaml` (facts → derived
+  weapon handling, melting, the silver-beats-copper thermal
+  check), then author an **artifact: the silver wand of frost**
+  (concept-data per the capability-magic slate's item envelope —
+  its own showcase example; the closed effect vocabulary — *"you
+  can invent magic; you can't invent lies"*, the titular moment),
+  finale = the **fountain bookend**: freeze the minute-one
+  fountain solid at exactly the 273 K its file promised.
+  (Electricity removed per the allocation rule — V4 is
+  chemistry+thermal end to end.) Build-state never selects
+  content: the **item-effect envelope** (already the
+  extensibility audit's #1 bridge) joins the build list with this
+  video as its consumer. **Shoot-prep todos:
+  (a) the fountain seed** (granite basin + bronze spout + water);
+  **(b) `silver.yaml` + a silver-dagger template; (c) the
+  item-effect envelope build + the wand concept-data;
+  (d) optional:** water's `formula`/`molarMass` (`H₂O` / `18.015`)
+  — the YAML leaves them unset "until a consumer needs them" and
+  this video is the consumer.
 - **V5 Made of Words — early beats fully real.** Click→ghost
   command→type→script are shipped and filmable now; the
   write-a-room + publish beat runs on shipped CMS/Studio but needs

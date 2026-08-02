@@ -1,4 +1,4 @@
-# Ch 4 (re-record) — "The argument, not the crowd"
+# Ch 4 (re-record) — "The Argument Map — Not the Crowd"
 
 > **Re-record sequence** (see [rerecord-outline.md](./rerecord-outline.md)) — the
 > deep-dive expansion of Ch 1's ③ "it gets argued." Content source:
