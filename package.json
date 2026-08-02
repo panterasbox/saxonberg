@@ -14,6 +14,7 @@
     "dev:server": "pnpm --filter @saxonberg/server dev",
     "dev:client": "pnpm --filter @saxonberg/client dev",
     "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
+    "dev:clean": "node packages/server/scripts/dev-preflight.mjs --all",
     "docs": "pnpm run docs:server && pnpm run docs:project",
     "docs:server": "pnpm --filter @saxonberg/server run docs",
     "docs:project": "pnpm --filter @saxonberg/server run docs:project",

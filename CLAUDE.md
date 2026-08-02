@@ -203,7 +203,23 @@ pnpm install:all      # monorepo-specific install
 pnpm dev              # run client and server concurrently
 pnpm dev:server       # server only (cd packages/server && pnpm dev)
 pnpm dev:client       # client only (cd packages/client && pnpm dev)
+pnpm dev:clean        # kill every stale Saxonberg dev process, then stop
 ```
+
+**Dev servers are self-cleaning.** `dev:server` and `dev:client` each run
+`scripts/dev-preflight.mjs` first, which kills any stale dev process of
+the same kind before claiming its port. This is not tidiness — `pnpm dev`
+builds a five-deep chain (`concurrently` → `pnpm --filter` → `sh -c` →
+`tsx watch` → node) and **nothing in it forwards a signal reliably**, so
+killing or losing anything above `tsx watch` re-parents the supervisor to
+init where it survives indefinitely, holding its port, its child and its
+file watchers. Measured once: ten stacked launches, 21 orphans, the
+oldest 12.3 hours, one child at 1.6 GB. The preflight cannot stop an
+orphan being made; it stops orphans **accumulating**.
+
+It never kills on the strength of a port alone — a process must also be
+inside a Saxonberg checkout. A foreign holder of 2010/5173 is reported
+and the launch aborts rather than starting into `EADDRINUSE`.
 
 ### Build / Test / Quality
 
