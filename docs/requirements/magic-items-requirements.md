@@ -21,7 +21,9 @@ durable-goods problem* section) ·
 [discovery-slate.md](../slates/builds/discovery-slate.md) (distribution,
 *a wand is stored labour*, rarity from the grid cell) ·
 [ranged-slate.md](../slates/builds/ranged-slate.md) (thrown
-effect-carriers).
+effect-carriers) ·
+[identification-slate.md](../slates/tails/identification-slate.md) (the
+per-viewer class-memory substrate — **now in scope**, see D24–D29).
 
 ## Goals
 
@@ -66,10 +68,14 @@ land first; waves 2–6 are independently shippable in the order given.
 - **Mana recovery spends satiation and hydration**, closing a live
   first-law hole.
 
-**Wave 4 — BUC and the condition/shadow line.**
+**Wave 4 — the two knowledge axes, and the condition/shadow line.**
 
 - Blessed / uncursed / cursed is a **potency level on the item's own
   effect axis**, per the slate's settled model.
+- **Identification** — per-viewer memory of item *classes*, keyed by
+  appearance, with appearance **derived** from the class and a rotating
+  generation so the mechanic stays live in a shared world.
+- Players can **label** any item or container.
 - A sustained effect records whether it is held by a **live host** or
   bought as a **fixed term**, and behaves accordingly.
 - Condition application has a **veto layer**, so immunity and
@@ -114,9 +120,10 @@ land first; waves 2–6 are independently shippable in the order given.
 - **Artifacts as a roster.** The *shape* (a named focus with provenance)
   falls out of chattel + chronicle + the focus class; naming and
   uniqueness are content, not this build.
-- **The identification axis** — what a blue potion *is* stays with
-  `identification-slate.md`. This build owns BUC, the orthogonal
-  per-instance axis.
+- **The pedagogical identification verticals** — the identification
+  slate's chemistry / biology / physics / geology worked examples are
+  content for those subjects, not this build. This build ships the
+  identification *substrate* and the magic-item consumers of it.
 - **Wishes and luck** — cut and constrained respectively. See D19, D20.
 
 ## Surface decisions
@@ -349,10 +356,21 @@ take a specification on board and not yet execute it, so practice has a
 visible target. Books are not a shortcut past competence — they are
 gated by it at a lower threshold, for a different reason.
 
-**Partial comprehension yields nothing**, but the book reports how far
-short you fall. Partial knowledge is untrue to the fiction and muddies
-the claim ledger; a legible distance reads as a target rather than a
-wall.
+**Reading above the floor does not fail — it produces a defective
+specification the reader believes is correct.** A bad copy costs far
+more mana than it should and behaves oddly. That is honest (half-
+understanding is worse than none, precisely because you don't know
+you're wrong), it is **legible** (the efficiency is visibly off, the
+same signal fade uses), and it is **recoverable** (re-study once
+competent replaces it cleanly).
+
+It is also the same shape as the overreach paper — correct within what
+you understood, wrong past it.
+
+This is what gives the library teeth. Gorging on books above your level
+is not free-but-useless; it fills your head with copies that cost you on
+every cast until you fix them. It also makes a **trustworthy teacher**
+valuable, since what they sell is *not getting a bad copy*.
 
 ### D15 — Memory fades as cost, never as failure
 
@@ -387,6 +405,14 @@ book**, and varies on three axes, each with a real basis:
    twice, which makes **breadth expensive and depth cheap** — and items
    are the counterweight that buys breadth without the upkeep.
 3. **Specification complexity** — more to hold, faster to lose.
+4. **Interference** — similar specifications degrade each other, and
+   similarity is exactly our case since spells in neighbouring grid
+   cells are the most alike things a holder could carry. This is the
+   **repertoire limiter**: there is no slot count and nothing forbids
+   reading every book in the library, but the more you hold the hazier
+   they all get, so you settle at the repertoire you can afford. A broad
+   generalist is permanently mediocre across their whole list; a
+   specialist's few are razor-sharp.
 
 ### D16 — Study is an activity; books are physical
 
@@ -501,6 +527,123 @@ confers its use verb, a book confers `study`, a potion confers `quaff`.
 `recharge` and `study` are standalone verbs because they are diegetic
 acts, not subcommands of an administrative surface.
 
+### D24 — A scroll of identify writes a class into memory
+
+It is a `sense` effect targeting an item whose result is a **write to
+the viewer's belief store**, not a message. It does not examine
+anything cleverly and it is not oracular: it is the **paid shortcut
+past experiment** — the thing you buy instead of drinking the unknown
+flask and finding out.
+
+Identification is **per-viewer memory of item classes**, keyed by
+appearance, per the identification slate. This build ships the
+substrate and the magic-item consumers of it.
+
+### D25 — No `identificationLevel` scalar; `knownAttributes` is the state
+
+The slate's `identificationLevel: 0..1` is dropped. A stored percentage
+of knowing is exactly the shape this codebase avoids — competence bands
+derive, renown derives, nothing stores a fraction of a fact.
+
+**`knownAttributes` is the state and any band derives from it.** You
+know facts; how identified something is falls out of which facts you
+hold.
+
+### D26 — Appearance is derived, not stored
+
+An item's appearance resolves on read from **(class, generation)**.
+Nothing stores an appearance on the instance.
+
+This is the decision that removes an entire subsystem. Because there is
+only ever one live generation, the build needs **no withdrawal sweep**,
+no generation on the signature, no two-live-generations transition, no
+ownership veto, and no secondhand-market heirloom hazard. A stashed
+potion re-renders on retrieval.
+
+The accepted cost is the incongruity: a player's out-of-character memory
+outruns their character's, so a flask they *know* is healing comes back
+unlabelled. That is a normal roguelike situation and D28 gives the
+player a fix.
+
+A consequence: **all current-generation items of a class look
+identical.** Per-instance visual variation is closed off deliberately.
+
+### D27 — Turnover is a per-item transition window, staggered across classes
+
+A hard changeover is visible and reads as a glitch. So an item's
+appearance derives from its **stable position within a transition
+window** (hashed from its instance id): before that point the old
+descriptor, after it the new one.
+
+Nothing flips at once. Each item changes at *its* moment across weeks,
+and classes are staggered against each other, so there is never a day
+the world visibly turns over. The shape it produces is one everyone
+recognizes — **old and new stock coexisting on the shelf during a
+changeover** — which makes it both gradual and explicable.
+
+During the window a viewer may hold **two valid records for one class**
+(blue *and* green are healing). That is honest, and it is a gentle
+onramp: you learn the new descriptor while the old is still around.
+Afterwards the old descriptor stops appearing and the record quietly
+stops mattering — knowledge is never invalidated, only its
+applicability fades.
+
+### D28 — Records carry the generation they were learned in; players can label anything
+
+The descriptor pool is finite, so a descriptor is eventually **reissued
+meaning something else**. That is the one moment a stale record could
+assert something false.
+
+Each record is stamped with the generation it was learned in, and the
+display hedges rather than lies:
+
+| Record | Shows as |
+|---|---|
+| current generation | *a potion of healing* |
+| **prior** generation | *a blue potion — you once knew blue to mean healing* |
+| none | *a blue potion* |
+
+One field, no sweep, and it only does work in the rare case.
+
+Separately, **players can label any item or container.** Built as a
+general annotation rather than a potions feature — it serves storage,
+shops, and gifts too — and it means a careful player's stash survives a
+rotation with their own names intact.
+
+### D29 — Spellbooks are identified items, and that is the pacing
+
+Interference (D15) limits what a reader can *hold*; it does nothing
+about knowing which books are worth reading. If a shelf reads
+*"Spellbook of Firebolt"*, there is no discovery left.
+
+So books carry appearance and identity on the same axis as potions. An
+unlabelled book is *a dog-eared book*, and reading an unidentified one
+is **a gamble against your own comprehension floor** — with the bad copy
+(D14) as the losing outcome, unchosen.
+
+Which puts the library in the right place: **a library's product is the
+catalog, not the books.** New stock does not cause a rush, it causes a
+**cataloguing backlog**, and early access to uncatalogued material is
+the risky and valuable thing. The pacing is a labour cost rather than a
+rule.
+
+### D30 — Both placement channels are supported, for every item class
+
+Stated explicitly because it is currently implied. Content authors need
+both, and neither is a special case of the other:
+
+- **Deliberate placement** — the shipped `populates:` template field. A
+  specific item on a specific shelf, authored.
+- **Random draw** — the weighted table of D21.
+
+Note the three things that wear the word *distribution* and are
+distinct: `populates:` (deliberate, shipped), the spawn table (what a
+random draw yields — `spawn-distribution-slate.md`), and the discovery
+slate's stock model (how much is available — accumulation minus
+withdrawal). Discovery states the split itself: **authors write the
+table, the world computes the stock.** This build ships the table and
+`populates:`; the stock model is its own build.
+
 ## Constraints
 
 - **The eight content-authoring rules** in `arcane-science.md` bind this
@@ -564,8 +707,30 @@ acts, not subcommands of an administrative surface.
     save/reload and re-materialize their shadow.
 12. Reading a spellbook mints an idempotent known-of claim and writes no
     Transcript entry; a test asserts competence is unchanged.
-13. A character below a book's comprehension floor gains nothing and is
-    told the distance.
+13. A character below a book's comprehension floor forms a **defective
+    specification**: casting it costs measurably more than the correct
+    copy, and re-studying at sufficient competence replaces it.
+13a. A viewer's identification memory is per-viewer and keyed by
+    appearance; a scroll of identify writes a class record and produces
+    no message-only side effect. `knownAttributes` carries the state and
+    no 0–1 scalar is stored.
+13b. Appearance is **derived** — no appearance is persisted on an
+    instance. An item stashed across a generation change re-renders on
+    retrieval, and a test asserts no withdrawal sweep is required for
+    correctness.
+13c. Two items of the same class at different points in a transition
+    window render with different descriptors; a viewer may hold valid
+    records for both simultaneously.
+13d. A record learned in a prior generation displays as a hedge, never
+    as an assertion, once its descriptor is reissued.
+13e. A player can label any item or container, and the label survives a
+    generation change.
+13f. An unidentified spellbook does not reveal what it teaches; a test
+    asserts reading one below the comprehension floor yields the
+    defective copy rather than a refusal.
+13g. Both placement channels work for every item class: a `populates:`
+    declaration places a specific item, and the weighted table produces
+    a random draw.
 14. A faded spell costs more mana and never fails for fading alone;
     casting restores sharpness; an amnesia effect removes claims and
     leaves competence intact.
@@ -615,6 +780,5 @@ the comprehension/teaching relationship)
 [belief.md](../subsystems/belief.md)
 
 **Deferred to** — `presence-hollowing-slate.md` (body-swap) ·
-`spawn-distribution-slate.md` (summoning) ·
-`identification-slate.md` (the identity axis) ·
-`pharma-slate.md` (the consumable product line)
+`spawn-distribution-slate.md` (summoning, and the stock model's own
+build) · `pharma-slate.md` (the consumable product line)
