@@ -353,27 +353,44 @@ side's setter atomically updates both sides; each side's
   coupling — `hauler._hauling` ↔ `cart._hauledBy`, runtime-only; see
   [conveyance.md § Haulage](./subsystems/conveyance.md#haulage--pulling-a-cart)).
 
-#### R2.3 — Asymmetric single self-heal
+#### R2.3 — Read-side self-heal (declared)
 
-For a single live ref where the target doesn't track the holder
-back, the public getter MUST self-heal on `isDestroyed`:
+**You no longer write this.** Declare the field and the framework does
+it:
 
 ```ts
+static fieldMeta: FieldMeta = {
+  _x: { ref: 'instance', lifetime: 'weak' },
+};
+
 public getX(): (Stuff & XxxType) | null {
-  if (this._x === null) return null;
-  if (this._x.isDestroyed()) {
-    this._x = null;
-    return null;
-  }
-  return this._x;
+  return this._x;      // that's the whole getter
 }
 ```
 
-- **Mechanism**: lazy self-heal.
-- **Enforcement**: in-code; the getter does it inline.
-- **Exemplars**: `Containable.getContainer()` (when the Container
-  destructs without first evacuating — backstop for S1/S2),
-  `Spawned.getSpawner()`.
+Every `ref: 'instance'` field self-heals on read, whatever its
+`lifetime` — axis 2 names only the *destruct-side* rule, so `weak`
+means "no destruct-side rule", not "the only one that heals".
+
+- **Mechanism**: the `ProxyApi` get trap. The weak-field set is hoisted
+  into the handler closure once per `wrap()`, so the cost on a class
+  with no instance refs is a single `!== null`.
+- **Arity is decided at heal time, not declared.** The trap heals a
+  slot holding a lone Stuff that answers `isDestroyed()`, and leaves
+  `Array` / `Set` / `Map` alone — walking a collection on every read is
+  O(n) on hot paths and buys nothing the R2.4 chokepoints don't. A
+  collection gets a destruct-side rule instead.
+- **⚠ Reads on the RAW target do not heal.** The trap is the mechanism,
+  so `Stuff.RAW_TARGET` / `ProxyApi.unwrap` and the deliberately-raw
+  residency sweeps see the un-healed slot. A site that chooses raw
+  carries its own `isDestroyed()` guard — `ResidencyLogic` is the
+  worked example.
+- **Exemplars**: `Containable.getContainer()` (the backstop for a
+  Container destructed without first evacuating — S1/S2),
+  **`Containable.getRestingOn()`** (a destroyed supporting surface),
+  `Spawned.getSpawner()`, `Hauler.getHauledCart()`,
+  `Haulable.getHauledBy()`, `WarrenMember.getWarren()`. All six were
+  hand-written; all six are now one-line reads.
 
 #### R2.4 — Collection symmetric cleanup (framework-enforced)
 
@@ -416,16 +433,18 @@ for the static-shape convention.
 | Site | Field | Cleanup rule | Notes |
 |---|---|---|---|
 | `Container` | `contents` | R2.4 (Container side) | Runtime-only; evacuates on destruct |
-| `Containable` | `_container` (`environment`) | R2.3 + R2.4 (held side) | Runtime-only; self-heal getter + framework cleanup |
+| `Containable` | `environment` | R2.3 (declared) + R2.4 (held side) | `{ ref: 'instance', lifetime: 'weak' }` + framework cleanup |
+| `Containable` | `_restingOn` | R2.3 (declared) | `{ ref: 'instance', lifetime: 'weak' }`; a destroyed surface reads null |
 | `Slotted` | `slots` | R2.4 (holder side) | Runtime-only; active vacate fires `onSlotReleased` |
 | `Slottable` | (none — held side) | R2.4 | Static cleanup walks every host |
 | `Adornable` | `fixtureSlots` | R2.1 (owning cascade) | Holder destructs each fixture |
 | `Exitable` | `exits` | R2.1 (owning cascade) | Holder destructs each outbound Exit |
 | `Boundary` ↔ `BoundaryAnchor` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
 | `Exit` ↔ `Door` | both sides | R2.2 (symmetric) | Convention-based reciprocal clear |
-| `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 self-heal getters | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
+| `Hauler` ↔ `Haulable` | `_hauling` / `_hauledBy` | R2.2 (symmetric) + R2.3 (declared) | `hitch`/`unhitch` atomic; `onDestruct` reciprocal clear; runtime-only |
 | `Spawner` | `_spawned` | R2.4 (held side via `Spawned`) | Runtime-only; transient |
-| `Spawned` | `_spawner` | R2.3 + R2.4 | Self-heal getter + static unhook |
+| `Spawned` | `_spawner` | R2.3 (declared) + R2.4 | `{ ref: 'instance', lifetime: 'weak' }` + static unhook |
+| `WarrenMember` | `_warren` | R2.3 (declared) + R2.4 | `{ ref: 'instance', lifetime: 'weak' }` + static unhook |
 | `Clade` | `species` | R2.4 (held side via `Species`) | `Species.onDestruct` chains the unhook |
 
 ---
@@ -620,18 +639,22 @@ handed to a setter that stores the path, **and then released**. Judge the
 **durable** field, not every variable that briefly holds an object.
 
 > The emphasis on *released* is load-bearing, and `Shade`/`WireBody` are
-> the cautionary example rather than the clean one. Both take a `species`
-> ctor argument and hand it to `setSpecies()` — so the durable field is
-> `OrganismMixin._speciesPath`, correctly an identity ref — but neither
-> ever nulls the ctor field, so a live `Species` ref is retained for the
-> object's whole life. The carve-out applies to the *pattern*; those two
-> sites do not yet satisfy it.
+> the worked example. Both take a `species` ctor argument and hand it to
+> `setSpecies()` — so the durable field is `OrganismMixin._speciesPath`,
+> correctly an identity ref. They used to retain the ctor's live
+> `Species` for the object's whole life, which made the carve-out true
+> of the *pattern* but not of those two sites; both now null the slot
+> the moment `setSpecies()` returns.
 
 ### B.1 — Persisting a live ref
 
 ```ts
-// WRONG: live refs are transient by definition
-public persistentFields = ['_container'];  // _container is Stuff & Container
+// WRONG: live refs are transient by definition. This now THROWS at
+// class registration — `ref: 'instance'` with `persistent` is a
+// build-time error, not a style violation.
+static fieldMeta: FieldMeta = {
+  _container: { ref: 'instance', persistent: true },
+};
 ```
 
 Live refs are runtime-only. Persistence needs either an identity ref
@@ -660,19 +683,21 @@ public getCage(): (Stuff & Cage) | null {
 ```
 
 When the holder doesn't get framework cleanup notification (the
-target doesn't track who points at it), the holder must self-heal
-on read:
+target doesn't track who points at it), the read must self-heal —
+which you get by **declaring** the field, not by writing it:
 
 ```ts
+static fieldMeta: FieldMeta = {
+  _cage: { ref: 'instance', lifetime: 'weak' },
+};
+
 public getCage(): (Stuff & Cage) | null {
-  if (this._cage === null) return null;
-  if (this._cage.isDestroyed()) {
-    this._cage = null;
-    return null;
-  }
-  return this._cage;
+  return this._cage;      // the trap does the rest
 }
 ```
+
+So the "wrong" version above is now wrong only by omission: the getter
+body is right, and what is missing is the declaration.
 
 ### B.4 — Holding a collection of live refs without R2.4 symmetric cleanup
 
@@ -716,7 +741,8 @@ When introducing a new live-ref field:
 1. Pick the field name: `_xxx` (private, no suffix).
 2. The field is runtime-only — do NOT add to `persistentFields`.
 3. Implement `getXxx(): Xxx` and `setXxx(value: Xxx)`. For
-   asymmetric singles, fold R2.3 self-heal into the getter.
+   asymmetric singles, declare `{ ref: 'instance' }` — the R2.3
+   self-heal is framework-run, not hand-written.
 4. For collections, follow the patterns in
    [docs/subsystems/collections.md](./subsystems/collections.md)
    AND register `static cleanupOnDestruct` per R2.4.

@@ -22,7 +22,8 @@
  *
  * The hitch coupling is a Pattern-B live ref (`_hauledBy` here ↔
  * `_hauling` on `HaulerMixin`), a symmetric R2.2 pair with an R2.3
- * self-heal backstop in the getter. See `docs/ref-shapes.md` and
+ * self-heal backstop, declared on the field rather than written into
+ * the getter. See `docs/ref-shapes.md` and
  * `docs/subsystems/encumbrance.md`.
  */
 
@@ -108,6 +109,8 @@ export function HaulableMixin<
       draftFactor: { persistent: true, authorable: true },
       handedness: { persistent: true, authorable: true },
       passageMode: { persistent: true, authorable: true },
+      // The hitch coupling, cart side — runtime-only, never persisted.
+      _hauledBy: { ref: 'instance', lifetime: 'weak' },
     };
 
     /**
@@ -192,17 +195,13 @@ export function HaulableMixin<
 
     /**
      * The hauler hitched to this cart. Live ref (runtime-only — a
-     * reloaded cart wakes up unhitched). Pattern-B R2.3 self-heal:
+     * reloaded cart wakes up unhitched). Declared instance ref, so the
+     * R2.3 self-heal applies:
      * clears the slot if the hauler destructed without our witness.
      */
     private _hauledBy: (Stuff & Hauler) | null = null;
 
     public getHauledBy(): (Stuff & Hauler) | null {
-      if (this._hauledBy === null) return null;
-      if (this._hauledBy.isDestroyed()) {
-        this._hauledBy = null;
-        return null;
-      }
       return this._hauledBy;
     }
 

@@ -175,6 +175,10 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static fieldMeta: FieldMeta = {
       container: { instruction: true, authorable: true, authorPicker: 'Template' },
+      // Both reference fields are instance refs, so both self-heal on
+      // read. Neither is persistent — see the field docs below.
+      environment: { ref: 'instance', lifetime: 'weak' },
+      _restingOn: { ref: 'instance', lifetime: 'weak' },
     };
 
     /**
@@ -220,8 +224,8 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Runtime-only auxiliary support pointer — an instance (live) ref.
      * Holds a direct reference to the supporting Surfaced host
      * (null when no support). Not persistent; resets to
-     * null on hydrate. R2.3 self-heal in `getRestingOn` clears the
-     * slot if the supporter has been destructed.
+     * null on hydrate. Declared `{ ref: 'instance' }`, so the R2.3
+     * self-heal clears the slot when the supporter is destructed.
      *
      * An instance ref was chosen over identity templatePath stamping because
      * non-singleton surfaces (e.g., multiple identical tables in a
@@ -276,18 +280,18 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Get the current container.
      *
-     * R2.3 self-heal: if `environment` points at a destroyed
-     * Container (a path bypassed the eager evacuation in
-     * `Container.cleanupOnDestruct`), clear the slot and return
-     * `null`. Cheap one-liner backstop for S1 / S8.
+     * R2.3 self-heal is DECLARED, not written here: `environment` is
+     * `{ ref: 'instance' }` in `fieldMeta`, so the proxy get trap nulls
+     * the slot and yields `null` when the container has been destroyed
+     * (a path that bypassed the eager evacuation in
+     * `Container.cleanupOnDestruct`). This body is a plain read.
+     *
+     * Caveat worth knowing: the heal lives in the proxy, so a read on
+     * the RAW target does not get it. `ResidencyLogic` walks raw by
+     * design and carries its own `isDestroyed()` guard for that.
      */
     getContainer(): (Stuff & Container) | null {
-      const env = this.environment;
-      if (env !== null && env.isDestroyed()) {
-        this.environment = null;
-        return null;
-      }
-      return env;
+      return this.environment;
     }
 
     /**
@@ -312,9 +316,10 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Resolve the auxiliary `restingOn` pointer. An instance (live) ref;
-     * R2.3 self-heal clears the slot if the supporting surface has
-     * been destructed since the last set.
+     * Resolve the auxiliary `restingOn` pointer. An instance (live) ref
+     * declared `{ ref: 'instance' }` in `fieldMeta`, so the R2.3
+     * self-heal runs in the proxy get trap: a supporter destructed
+     * since the last set reads as `null` and the slot is cleared.
      *
      * Returns `null` when no support OR the supporter has been
      * destructed. The caller can't tell the two apart from the
@@ -322,12 +327,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * same observable as a stale ref.
      */
     getRestingOn(): (Stuff & Surfaced) | null {
-      const ref = this._restingOn;
-      if (ref !== null && (ref as Stuff).isDestroyed()) {
-        this._restingOn = null;
-        return null;
-      }
-      return ref;
+      return this._restingOn;
     }
 
     /**

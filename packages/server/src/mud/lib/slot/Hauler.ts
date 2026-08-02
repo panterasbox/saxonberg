@@ -13,12 +13,13 @@
  *
  * The hitch coupling is a Pattern-B live ref (`_hauling` here ↔
  * `_hauledBy` on `HaulableMixin`), a symmetric R2.2 pair with an R2.3
- * self-heal getter. `hitch`/`unhitch` keep both sides atomic; `onDestruct`
+ * self-heal, which is now DECLARED (`{ ref: 'instance' }`) rather than
+ * written into the getter. `hitch`/`unhitch` keep both sides atomic; `onDestruct`
  * clears the back-ref. The ref is **runtime-only** (not persisted) — a
  * reloaded hauler wakes up un-hitched. See `docs/ref-shapes.md`.
  */
 
-import type { MixinConstructor } from '../mixin';
+import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Quantity } from '../quantity';
 import type { Stuff } from '../stuff/Stuff';
 import type { Haulable } from './Haulable';
@@ -41,15 +42,17 @@ export function HaulerMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HaulerMixin extends Base implements Hauler {
     static _mixinName = 'HaulerMixin';
 
+    static fieldMeta: FieldMeta = {
+      // The hitch coupling, hauler side. Symmetric with
+      // `Haulable._hauledBy`; self-heals on read as every instance ref
+      // does.
+      _hauling: { ref: 'instance', lifetime: 'weak' },
+    };
+
     /** Live ref to the hitched cart — runtime-only, never persisted. */
     private _hauling: (Stuff & Haulable) | null = null;
 
     public getHauledCart(): (Stuff & Haulable) | null {
-      if (this._hauling === null) return null;
-      if (this._hauling.isDestroyed()) {
-        this._hauling = null;
-        return null;
-      }
       return this._hauling;
     }
 
