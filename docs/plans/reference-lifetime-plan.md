@@ -5,6 +5,39 @@
 > Produced by the Plan subagent 2026-08-01, then amended with the four
 > decisions it escalated (see "Decisions on the escalated questions").
 
+## A cold-read pass ran against these docs (2026-08-02)
+
+A reviewer with no context read all three documents and spot-checked
+every concrete claim against the tree. It found **three blockers**, all
+now corrected in place:
+
+- **`runtimeState` + `persistent` is the NORMAL case, not an error.**
+  `StudioLogic` derives `runtimeState` as a *filter over*
+  `persistentFields`. The rule an earlier draft specified would have
+  thrown at registration on ~48 classes, and the exemplar cited for it
+  (`Organism.lifecycleState`) no longer carries the tag at all. One of
+  D8's four arguments is gone; the other three stand.
+- **The W6 `owned` conversions would have destructed nothing.** See the
+  slot-2.5 trap box below — the same slot-clearing that makes an
+  un-migrated site inert makes a *half*-migrated one silently inert too.
+- **`Species` ↔ `Clade` is not convertible** — `_parentCladePath` is a
+  persistent identity ref, so any lifetime on it throws under R7's own
+  rule 2. Row removed from W6.
+
+Plus: `Adornment.adornedTo` was specified as both `owned` and
+`symmetric` (resolved to `weak`); `Exit.inverse` sat in the
+fidelity-only wave despite being a behaviour change (moved to W7b);
+`getWeakRefFields` could not know a field's arity (resolved by branching
+on the runtime value); W5b was missing from the sequencing block; and
+several counts and line numbers were stale.
+
+**The base rate is worth knowing**: the reviewer verified far more than
+it faulted — the six self-heal getters, the ten `cleanupOnDestruct`
+sites, `Container`'s evacuate-first behaviour, the `Weapon`/`Tangible`
+`mass` hazard, the five-slot destruct order, the missing `super`
+chains, and every count in R2 all checked out. The structure held; the
+details did not.
+
 ## Findings that changed the requirements
 
 The plan pass verified the census and the requirements against the tree
@@ -85,6 +118,28 @@ treats null/empty as no-op, and clears the slot afterwards. That makes
 un-migrated `onDestruct` sites provably inert and downgrades a missed
 `cleanupOnDestruct` site from a throw to a skip.
 
+> ### ⚠ The trap this creates — read before converting any W6 site
+>
+> The property that makes an un-migrated site inert is exactly what makes
+> a **half-migrated** site silently do nothing. `Boundary.onDestruct`
+> collects its anchors, calls `detach()` (which nulls both slots), then
+> destructs them. Declare `anchorA`/`anchorB` as `owned` while leaving
+> that body alone and the slots are already null when 2.5 runs — 2.5
+> no-ops, and **the anchors are never destructed at all.** No error, and
+> the pins only catch it if they assert the cascade rather than the
+> absence of a dangling ref.
+>
+> Same shape at `Exitable.exits` (`this.exits.clear()` at :777) and
+> `Adornable.fixtureSlots` (`this.fixtureSlots.clear()` at :315).
+>
+> **So converting a site means deleting BOTH the cascade and the
+> slot-clearing from the hand-written body** — the framework clears the
+> slot itself, after processing. What stays hand-written is only the
+> genuinely extra work: `Exitable`'s `inverse.setBlocked(true)`
+> pre-pass, `Boundary`'s `detach()` **policy** (which must then be
+> re-ordered to run *without* nulling the slots, or 2.5 loses its
+> targets — check this before writing the commit).
+
 ### F5 (GAP) — R4 never said *how* `weak` self-heals
 
 Determines whether W4 is 6 files or 300. Investigated:
@@ -127,9 +182,15 @@ raw sweeps) do not heal.
 
 ### Verified counts
 
-193/15/8/3 is correct **for non-test files**; including `__tests__` it is
-231/16/10/7, and the **union of all files declaring any of the four is
-240** (201 non-test, 39 test).
+**Re-measured 2026-08-02** (post furnishing + Hinkley Hills): 200/15/8/3
+non-test, 241/17/10/7 including `__tests__`, and the **union of all files
+declaring any of the four is 250** (208 non-test, 42 test) — that is the
+codemod's input set. Earlier figures of 193 and 240 in this doc and the
+requirements' Risks section are pre-merge and stale.
+
+**Line numbers in both docs are approximate** — roughly a quarter drift
+by 2-25 lines after the merges. Treat every `file:line` as "find the
+named symbol in this file", never as a literal offset.
 
 ## Decisions on the escalated questions
 
@@ -164,8 +225,21 @@ Everything the build must not change gets an assertion first.
   covers `Container` non-empty and `Exit` live-source. Add the two
   carve-outs R6 names and it misses: a `Persistable` container with
   contents **not** vetoing, and an unbound `Exit` being cullable.
-- `lib/stuff/__tests__/refLifetime.pins.test.ts` — new. One `it` per
-  shipped site asserting *current* behaviour through the public surface.
+- `lib/stuff/__tests__/refLifetime.pins.test.ts` — new. **"Shipped site"
+  is ambiguous across four different lists in these docs, and these pins
+  are the ENTIRE oracle for W6, so enumerate it here**: the six R2.3
+  self-heal getters (`Containable.environment`, `Containable._restingOn`,
+  `Spawned._spawner`, `Hauler._hauling`, `Haulable._hauledBy`,
+  `WarrenMember._warren`) plus the six W6 conversion targets
+  (`Hauler`/`Haulable` as a pair, `BoundaryAnchor.boundary`,
+  `Exitable.exits`, `Adornable.fixtureSlots`, `Boundary.anchorA/anchorB`,
+  `Aether._hostedUpdates`) plus `Container.contents` as the
+  must-not-change control.
+
+  **Each pin must assert the CASCADE, not merely the absence of a
+  dangling ref** — per the slot-2.5 trap above, a half-migrated `owned`
+  site leaves no dangling ref *and* destructs nothing. A pin that only
+  checks "no dangling ref" passes in both worlds.
 
 **Risk**: pinning wrong behaviour freezes a bug. Write every pin from the
 *doc's* claim; a pin that fails on master is a **finding**, not a reason
@@ -261,8 +335,19 @@ reviewable as one blob:
 Re-runnability: pure AST → text-range edits, no state, plus a `--check`
 mode. Running twice must be a no-op.
 
-**Gate**: `lint:field-meta` (CI-gating) failing on a surviving legacy
-static or a `fieldMeta` key matching no declared field/accessor.
+**Gate**: `lint:field-meta` is a **third mode of the same script** —
+`scripts/check-field-meta.ts --lint` beside `--snapshot` and `--verify`,
+so one file owns all knowledge of the shape. Add it to
+`packages/server/package.json` **and forward it from the root**: the root
+`pnpm lint` is eslint only and forwards just 3 of the server's 10
+`lint:*` scripts, so a gate that is not forwarded does not run in CI. It
+fails on a surviving legacy static, or a `fieldMeta` key matching no
+declared field/accessor on the class.
+
+**Chunked test protocol** (no script exists; this is the literal
+invocation): `npx vitest run src/mud/api`, `… src/mud/obj`,
+`… src/mud/lib`, and `… src/mud/cmd src/mud/domain src/backend
+src/services`. Never `pnpm test` in one pass on this box.
 
 **Verified by**: `--verify` clean · four chunks · `pnpm build` ·
 `pnpm lint` · `pnpm e2e` · re-run is a no-op.
@@ -403,12 +488,12 @@ the oracle. One relationship per commit.
 |---|---|---|---|---|
 | 1 | `Hauler._hauling` ↔ `Haulable._hauledBy` | `onDestruct` | `symmetric` mutual | Cleanest pair in the tree. `hitch`/`unhitch` stay — atomic setter, not cleanup |
 | 2 | `BoundaryAnchor.boundary` | `onDestruct` :124 | `symmetric` | |
-| 3 | `Exit.inverse` | `onDestruct` :703 | `symmetric` | Today **half**-symmetric; declaring makes it whole — a real behaviour change, needs a new test not just a pin |
+| ~~3~~ | `Exit.inverse` | — | **MOVED TO W7b** | Declaring it makes a today-asymmetric relationship whole. That is a behaviour change with no existing behaviour to pin, which is W7's definition, not W6's — leaving it here would break the bisect story ("a bisect landing on W6 is a fidelity bug"). |
 | 4 | `Exitable.exits` | `onDestruct` :765 | `owned` (Map) | The `inverse.setBlocked(true)` pre-pass stays hand-written |
 | 5 | `Adornable.fixtureSlots` | `onDestruct` :310 | `owned` (Map) | |
 | 6 | `Boundary.anchorA/anchorB` | `onDestruct` :219 | `owned` | Symmetric **and** owned (F3). `detach()` stays hand-written — a policy chokepoint |
 | 7 | `Aether._hostedUpdates` | **`cleanupOnDestruct` :204** | `owned` | **Atomic** per F4. The `setHost(null)` pre-clear becomes `symmetric` on `AetherHosted._host`, ordered before the cascade (Q4) |
-| 8 | `Species` → `Clade.species` :564 | `onDestruct` | `symmetric` | Concrete class, not a mixin |
+| ~~8~~ | ~~`Species` → `Clade.species`~~ | — | **NOT CONVERTIBLE** | `Species` holds `_parentCladePath` (`Species.ts:134`) — a **persistent identity ref**, resolved via `findByTemplatePath`. A lifetime on it throws under R7 rule 2, and the Clade side cannot declare `symmetric` against a non-reciprocal field (rule 4). There is also nothing to reproduce: `Species.ts:557` records that `Clade.addSpecies` is called only by tests and is "a no-op for production". Leave alone; it is already the correct shape. |
 
 **W6b — the six held-side R2.4 unhooks (D9).** `Containable` (:194),
 `Spawned` (:67), `WarrenMember` (:89), `AetherHosted` (:85), `Slottable`
@@ -437,10 +522,22 @@ close the retention leak. Then `Exit.source`, `Exit._destination`,
 `DormWarren._unitsByKey`/`_corridorsByFloor`/`_doorsByKey`. Assert the
 `Exit.canEvict` equivalence (F6) rather than deleting silently.
 
-**W7b — new `symmetric` pairs.** `Adornment.adornedTo` ↔
-`Adornable.fixtureSlots` (closes the pair ref-shapes has been claiming);
-`Interactive.holder` ↔ `HasInteractive.interactives` (both directions
-uncovered today).
+**W7b — the back-ref wave.**
+
+- **`Adornment.adornedTo` → `weak`, NOT a `symmetric` pair.**
+  `Adornable.fixtureSlots` is already `owned` (W6 #5), and a field
+  carries **one** lifetime — declaring it `symmetric` as well is not
+  expressible under R1's schema or R7's rules. The holder owns its
+  fixtures and destructs them; the fixture's back-ref only needs to stop
+  dangling when a fixture is destroyed standalone, which is exactly
+  `weak`. This still closes the gap — but **correct `ref-shapes.md`'s
+  exemplar table**, which calls this an R2.2 pair, rather than bending
+  the code to match the doc.
+- **`Exit.inverse` → `symmetric`** (moved down from W6 #3: declaring it
+  makes a today-asymmetric relationship whole, so it is a behaviour
+  change needing its own test, not a pin).
+- **`Interactive.holder` ↔ `HasInteractive.interactives`** → `symmetric`;
+  both directions are uncovered today.
 
 **W7c — judgement calls.**
 - **`Estate` / chattel resurrection (R12.1)** — the highest-severity item
@@ -498,7 +595,8 @@ W3   R7 validation               inert
 W4a  weak mechanism              inert
 W4b  the 6 shipped self-heals    behaviour-preserving
 W5   slot 2.5 engine             inert
-W6   the 8 shipped correct sites behaviour-preserving   (fidelity proof)
+W5b  witness chaining            4 super-chain calls (MUST precede W6)
+W6   the 6 shipped correct sites behaviour-preserving   (fidelity proof)
 W7   the 21 unruled sites        BEHAVIOUR CHANGE       (a/b/c by risk)
 ```
 

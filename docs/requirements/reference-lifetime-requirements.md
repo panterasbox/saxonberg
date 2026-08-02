@@ -94,7 +94,7 @@ field declares everything about itself.
 | D4 | **Residency: regression tests only** | The `canEvict` vetoes are not mechanical (see R6); pin them, do not derive them |
 | D5 | **Fix every unruled site** (R8 + R12) | The mechanism without the fixes leaves the bugs it exists to prevent |
 | D7 | **W7c registries: finish the read-side prune, don't declare a rule** | A registry keyed by a live Stuff is an *index*, not a reference — it doesn't own its keys (`owned` wrong) and `Interactive` must not grow a back-ref (`symmetric` wrong). Also fixes the real leak: `Interactive.onDestruct` never calls `teardownSubstrateState`, which the three registries rely on |
-| D8 | **Fold `@authorable` + `@runtimeState` into `fieldMeta`**; delete the source scan | They ARE field metadata (172 + 78 sites), and `StudioLogic.scanClassification` reads them by walking the source tree as TEXT and regex-binding JSDoc to identifiers — with underscore-insensitive name *guessing* because it cannot tell which field a comment belongs to. Shipping "one field-keyed structure" while leaving 250 declarations in comments the runtime greps would be the same disease with a worse mechanism. It also makes the tag **checkable**: `@runtimeState` currently lies about `Organism.lifecycleState`, which is persisted |
+| D8 | **Fold `@authorable` + `@runtimeState` into `fieldMeta`**; delete the source scan | They ARE field metadata (185 + 78 sites), and `StudioLogic.scanClassification` reads them by walking the source tree as TEXT and regex-binding JSDoc to identifiers — with underscore-insensitive name *guessing* because it cannot tell which field a comment belongs to. Shipping "one field-keyed structure" while leaving 250 declarations in comments the runtime greps would be the same disease with a worse mechanism. It also makes the tag **checkable**: `@runtimeState` currently lies about `Organism.lifecycleState`, which is persisted |
 | D9 | **Fold the held-side R2.4 unhooks into the declaration** | A second route for declaring a reference relationship leaves "one way" two-thirds true. **Six of the ten** `cleanupOnDestruct` sites qualify (see R10) — the other four are policy, not cascade |
 | D10 | **Fix the two missing `super.onDestruct()` calls here** | `Exit` and `Boundary`, two lines each, and W6 converts both files anyway. A known-broken destruct chain inside code this build is rewriting invites blaming the wrong commit. **Now backed by repo doctrine**: master's new witness-collision antipattern names this exact contract ("a subclass `onDestruct` calls `super.onDestruct()`") |
 | D6 | **No decorators** | Verified: legacy decorators are invalid on any member of a class *expression* (TS1206 — field and method alike), and 105 mixins return class expressions. Not a field-vs-method issue. ES decorators do permit it, but migrating decorator modes is a separate build (call-security is legacy + `emitDecoratorMetadata`, which has no ES equivalent). |
@@ -295,9 +295,20 @@ instead — `ProxyApi.wrap(raw, weakFields?)`, computed by the two callers
 in `api/stuff.ts` via a memoized `MixinApi.getWeakRefFields(ctor)`. No
 new Api, no new import edge.
 
+**Arity is decided at heal time, not declared.** `fieldMeta` carries no
+single-vs-collection marker, and one cannot be inferred from `lifetime`
+(`Exitable.exits` is an `owned` Map; `Boundary.anchorA` is an `owned`
+single). So the trap branches on the **runtime value**: heal it only when
+the slot holds a Stuff that answers `isDestroyed()`; leave `Array`, `Set`
+and `Map` values untouched. That honours F3's "single refs only" without
+a declared arity and without ever walking a collection on read.
+
 **Known gap, to be documented at the site**: reads on the **raw** target
 (`Stuff.RAW_TARGET`, `ProxyApi.unwrap`, `ResidencyLogic`'s deliberately
-raw sweeps) do not heal.
+raw sweeps) do not heal. One consequence to check rather than assume:
+`Exit.canEvict`'s `isDestroyed()` branch is only provably dead if
+`canEvict` runs through the proxy. Verify before claiming the
+equivalence.
 
 ### R5 — Where the rules run
 
@@ -368,6 +379,12 @@ At class registration, throw on:
    other; that case belongs to `lint:field-meta`, which sees the whole
    tree statically. The first draft conflated the two.
 
+**Explicitly NOT a rule:** `runtimeState: true` with `persistent: true`.
+That combination is the *normal* case — `runtimeState` marks a persisted
+field as engine-written rather than author-editable, and `StudioLogic`
+derives it as a filter over `persistentFields`. An earlier draft made it
+an error; it would have thrown on ~48 classes.
+
 Plus `pnpm lint:field-meta` (CI-gating) for what registration cannot see:
 a legacy static still present after the codemod, and a `fieldMeta` key
 that matches no declared field on the class.
@@ -390,14 +407,23 @@ R8 + R12 as the list and the count as incidental. Notable:
 - **`ChannelCatalogue.subjectsRef`** → **Pattern C** (resolve-on-read).
   A cached live ref to a Stuff singleton with no invalidation — the
   genuine instance of the replacement hazard below.
-- **`Shade.shadeSpecies` and `WireBody.wireSpecies` are NOT sweep
-  sites.** The census called them A.4; that was wrong and is recorded
+- **`Shade.shadeSpecies` and `WireBody.wireSpecies` are not A.4 sweep
+  sites — but they are NOT untouched either (W0b).** The census called them A.4; that was wrong and is recorded
   here so it is not re-raised. Both are **constructor parameters**, held
   only until `postRegister` hands them to `setSpecies()` — and
   `OrganismMixin` stores species as `_speciesPath`, re-resolving through
   `findByTemplatePath` on every `getSpecies()` call (the shape its own
   doc marks LOCKED and "HMR-safe; no instance cache"). The durable
-  reference is already Pattern C. Leave both alone.
+  reference is already an identity ref, so there is no lifetime rule to
+  declare.
+
+  **What is still wrong with them** is the ctor field itself: neither
+  `Shade` nor `WireBody` ever nulls it after `postRegister` hands it to
+  `setSpecies()`, so a live `Species` ref is retained for the object's
+  whole life — shadowing the authoritative `_speciesPath`. That is the
+  lifecycle smell D-list item, fixed in **W0b** along with the optional
+  ctor params. An earlier draft of this doc said "leave both alone",
+  which contradicted the plan; the plan is right.
 - The three `Interactive`-keyed registries (`MqlSubscriptionRegistry`,
   `ForumSubscriptionRegistry`, `ReactionRegistry`) and the `domain/`
   caches (`DormWarren`, `LoungeWarren`) → per-case; several want the
@@ -470,10 +496,28 @@ built over registered classes (it describes composable mixins, which are
 in the `Mixins` registry) before deleting the scan. If some tagged class
 is genuinely never loaded, that is itself a finding.
 
-**`@runtimeState` is currently able to lie** — it tags
-`Organism.lifecycleState`, which is persisted (found during the mortality
-build). Once folded, `runtimeState: true` alongside `persistent: true` is
-a build-time error (R7), so the contradiction becomes unrepresentable.
+**`runtimeState` means "persisted, but ENGINE-written" — it is a SUBSET
+of `persistent`, not a contradiction with it.** An earlier draft of this
+doc claimed the opposite and made the combination a build-time error.
+That was wrong twice over, and would have thrown at registration on ~48
+classes (`Thermal`'s three stamps, `Metabolic`'s six, `Propertied.
+savedProps`, `Vitals.conditions`, `Alias.aliases`, `Environment.
+persistentStore`, `Employed.employments`, …). `StudioLogic` settles it:
+
+```ts
+const runtimeState = persistent.filter((f) => classified.runtime.has(f));
+```
+
+The cited exemplar was stale too — `Organism.lifecycleState` no longer
+carries the tag (`Organism.ts:73` reads "It *formerly* carried an
+`@runtimeState` tag"). **There is no validator rule here.** `runtimeState`
++ `persistent` is the normal, expected shape; the tag's job is to tell
+the Studio the field is not author-editable.
+
+This removes one of D8's four arguments. The other three stand on their
+own: the scan is a regex over source text, it *guesses* field names via
+underscore-insensitive candidates, and it is a second mechanism for the
+metadata this build is unifying.
 
 ### R12 — Findings from the post-merge census (2026-08-02)
 
@@ -543,7 +587,7 @@ new code is mostly on the right side of the line.
 
 ## Risks
 
-- **193 files touched by the codemod, and persistence is the
+- **250 files touched by the codemod, and persistence is the
   highest-consequence subsystem in the tree.** The slate explicitly
   warned against bundling this with a behavioural change; D2 overrides
   that. Mitigation: land the codemod as its **own commit**, fully green,

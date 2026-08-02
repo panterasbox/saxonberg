@@ -593,12 +593,18 @@ current holder was swapped.
 > does not strand a live ref. Only code hot-reload replaces the object.
 > The older version of this entry overstated this.
 
-**Not an instance of this antipattern**: a live ref held *transiently*
-— a constructor parameter consumed during `postRegister` and handed to
-a setter that stores the path. `Shade`/`WireBody` take a `species`
-argument this way; the durable field underneath is
-`OrganismMixin._speciesPath`, which is already an identity ref. Judge
-the **durable** field, not every variable that briefly holds an object.
+**Not an instance of this antipattern**: a live ref held *genuinely
+transiently* — a constructor parameter consumed during `postRegister`,
+handed to a setter that stores the path, **and then released**. Judge the
+**durable** field, not every variable that briefly holds an object.
+
+> The emphasis on *released* is load-bearing, and `Shade`/`WireBody` are
+> the cautionary example rather than the clean one. Both take a `species`
+> ctor argument and hand it to `setSpecies()` — so the durable field is
+> `OrganismMixin._speciesPath`, correctly an identity ref — but neither
+> ever nulls the ctor field, so a live `Species` ref is retained for the
+> object's whole life. The carve-out applies to the *pattern*; those two
+> sites do not yet satisfy it.
 
 ### B.1 — Persisting a live ref
 
