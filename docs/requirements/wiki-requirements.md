@@ -445,6 +445,98 @@ visible to the runtime.
 > **This wants its own design doc**, shared with the CMS. It is named
 > here as a dependency, not solved here.
 
+## The component contract
+
+### C1 — ⭐ Components annotate; they never gate
+
+A component receives **no reader identity and no capability ceiling.** It
+returns MML nodes, some of which carry spoiler levels; the pipeline does
+the omission afterwards.
+
+This is the most important rule in the runtime. If components gated, the
+reveal model would be enforced in N places written by N people, and one
+buggy component would leak. With annotation-only there is **exactly one
+gate**, in the pipeline, and a component *cannot* leak because it never
+learns what the reader may see.
+
+### C2 — What a component gets and returns
+
+| | |
+|---|---|
+| **props** | from attributes; JSON-decoded where the declaration says structured |
+| **children** | the raw unresolved MML nodes between the tags — the component decides whether to use, transform or drop them |
+| **context** | the page (for self-reference) and a budget handle. **Not the reader.** |
+| **returns** | MML nodes — never a raw string, which would bypass sanitisation |
+| **async** | yes; it is reaching live sources |
+
+A component that throws yields an **inline error node naming the
+component**, and the rest of the page renders. One broken widget must
+never take down an article.
+
+### C3 — Declaring levels on derived output
+
+Two ways, and a component may use both:
+
+- **per-node**, for a field-by-field panel — each node carries the level
+  from its field's declaration (D9);
+- **a floor for the whole output**, for a component whose very presence
+  is a reveal.
+
+---
+
+## The template language
+
+### T1 — A template IS a page
+
+A template is an ordinary page in the `Template:` namespace, which means
+it inherits **revisions, permissions, history, rollback and protection**
+without a line of new code. There is no second store and no second
+editing path; a template is edited the way an article is.
+
+### T2 — Invocation and parameters
+
+```
+{{Infobox|Oak|class=hardwood}}          positional + named
+{{{class}}}                             a parameter, in the template body
+{{{class|unknown}}}                     with a default
+```
+
+A **missing parameter with no default renders an inline marker**, never
+empty. Silently-empty parameters are how wiki templates rot: the page
+looks fine and the data is gone.
+
+### T3 — Composition and bounds
+
+Templates may nest and may contain components. Expansion runs to fixpoint
+**before** any component resolves (D6), under the depth cap and cycle
+detection in the render budget. A template cannot reach live state except
+through a component, which is the capability line.
+
+---
+
+## Spoiler composition — the MAXIMUM rule
+
+Four things can assign a level to a fragment: the page's frontmatter
+default, an inline tag, a component's declared floor, and a derived
+field's `spoiler`.
+
+> **The effective level of a fragment is the MAXIMUM of every level that
+> applies to it.**
+
+Never the nearest, never the innermost. A level-0 field inside a level-2
+section is **level 2**, because the section's context is itself the
+reveal — knowing that a fact appears *under that heading* is the spoiler,
+whatever the fact is.
+
+Max is also the only rule that composes safely: with any
+nearest-wins scheme, wrapping content in a lower-level container reveals
+it, so a single careless inline tag can unmask a whole subtree.
+
+Capability is then checked once, against the effective level, in the
+pipeline (C1).
+
+---
+
 ## Search, and why the index is over SOURCE
 
 Indexing rendered output is a **spoiler leak by construction**: a render
@@ -536,6 +628,93 @@ than a hang:
 
 **No component may trigger a page render**, which keeps recursion
 impossible rather than merely bounded.
+
+---
+
+## Deletion is soft, with one hard exception
+
+`delete` sets `deletedAt` / `deletedBy`. The page stops resolving for
+readers, stays visible to moderators, and **undelete is clearing a
+field**. Revisions are untouched.
+
+A wiki whose delete is destructive has a revision log that lies: the log
+exists so that no edit is unrecoverable, and hard-deleting the page
+around it is the one edit that is.
+
+**The exception is genuine — purge.** For content that must not exist at
+all (illegal material, doxxing, a leaked secret), a moderator can purge
+a page *and its revisions*. This is the one place "history is sacred"
+loses, and pretending otherwise just means the only available remedy is
+someone with database access doing it by hand, unlogged. Purge is
+moderator-only, irreversible, and recorded as an event even though its
+subject is gone.
+
+---
+
+## Names: slugs, aliases, and collisions
+
+Within a namespace, **slugs and aliases share one name space** — a name
+resolves to at most one page. Claiming a name another page holds is
+refused, and the refusal names the holder rather than saying "taken".
+
+A rename appends the old slug to `aliases` (D2), so the set of names a
+page answers to only grows. A name is released only by deleting the page
+that holds it, which is why release is a moderator act.
+
+---
+
+## The verb surface
+
+One `wiki` verb, subcommand fallthrough, every affordance a command
+(bus-primacy — the client emits these, it does not have private paths):
+
+| | |
+|---|---|
+| `wiki <page>` | read |
+| `wiki search <terms>` | grouped results |
+| `wiki create <page>` | new page, prefilled from a redlink's context |
+| `wiki edit <page> [--section <anchor>]` | opens the structured submission |
+| `wiki history <page>` | revisions, newest first |
+| `wiki diff <page> <a> <b>` | between revisions |
+| `wiki rollback <page> <rev>` | restores, and appends |
+| `wiki move <page> <new-slug>` | rename; old slug becomes an alias |
+| `wiki delete` / `wiki undelete <page>` | soft |
+| `wiki purge <page>` | irreversible; moderator only |
+| `wiki protect <page> <level>` | per-page override |
+| `wiki links <page>` | what links here |
+| `wiki wanted` | redlinks, ranked by demand |
+| `wiki orphans` | pages nothing links to |
+| `wiki dangling` | subjects whose template is gone |
+
+---
+
+## Frontmatter
+
+```yaml
+title:        string          display title (slug is the name)
+subject:      string | null   a path in `domain` (D7)
+spoilerLevel: 0..3            page default; inline tags MAX over it
+tags:         string[]        cross-cutting; no permission meaning
+related:      string[]        sibling pages, for navigation
+```
+
+Namespace and aliases are **not** frontmatter — they are page identity
+and are changed by `move`, which has to maintain the name space (above).
+Putting them in author-editable frontmatter would make a rename a silent
+edit.
+
+---
+
+## When a subject disappears
+
+The CMS renames and deletes templates; articles point at paths; so an
+article will outlive its subject.
+
+**The page still renders.** The prose is the article; the panel was
+always derived. A dangling subject yields an inline note where the panel
+was, the page appears in `wiki dangling`, and nothing 500s. An article
+about a thing that was removed is still a legitimate historical article —
+it just no longer has a live thing to describe.
 
 ---
 
@@ -746,10 +925,43 @@ state.
 50. Backlinks, wanted pages and orphans are derivable.
 51. An article whose subject template no longer exists is reported.
 
+**Components + templates**
+
+54. A component receives **no reader identity and no capability
+    ceiling** — asserted on the contract, so gating cannot migrate into
+    components.
+55. A throwing component yields an inline error naming it, and the rest
+    of the page still renders.
+56. A component returning a raw string rather than nodes is refused.
+57. A template is an ordinary page: it has revisions, history and
+    protection.
+58. A missing parameter with no default renders a visible marker, never
+    empty.
+
+**Spoiler composition**
+
+59. ⭐ A level-0 fragment inside a level-2 section is treated as level 2
+    — the MAXIMUM of every applicable level, never the nearest.
+60. Wrapping content in a lower-level container cannot reveal it.
+
+**Deletion + names**
+
+61. Delete is soft: the page stops resolving, moderators still see it,
+    undelete restores it, revisions are untouched.
+62. Purge removes page and revisions, is moderator-only, and is recorded
+    as an event.
+63. Claiming a name another page holds is refused, naming the holder.
+64. After a move, both the new and old names resolve to the page.
+
+**Subject lifecycle**
+
+65. An article whose subject template is deleted still renders, shows an
+    inline note where the panel was, and appears in `wiki dangling`.
+
 **Gates**
 
-52. `pnpm test`, `pnpm lint`, the ten script lints, type-clean.
-53. Tests cover every criterion above that is not a doc claim.
+66. `pnpm test`, `pnpm lint`, the ten script lints, type-clean.
+67. Tests cover every criterion above that is not a doc claim.
 
 ---
 
