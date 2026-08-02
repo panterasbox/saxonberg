@@ -1,5 +1,11 @@
 # Reference-lifetime slate — declare how long a ref holds
 
+> **BUILT** (2026-08-02). Shipped as `static fieldMeta` with the
+> two-axis model. Two claims here were corrected by the build: there
+> are **four** field-keyed statics, not six, and the codemod's input
+> set was 245 files / 283 class bodies. See
+> [ref-shapes.md](../../ref-shapes.md) for the doctrine as shipped.
+
 > **Status: design captured 2026-08-01, not built.** Surfaced during the
 > mortality build, from one small question — *why does `MortalArc` store a
 > stuffId instead of the object?* — which turned out to be about a gap in

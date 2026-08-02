@@ -842,6 +842,16 @@ if (mode === "--snapshot") {
               entry.properties.some(
                 (a) => ts.isPropertyAssignment(a) && memberName(a.name) === k
               );
+            // Reference fields are out of scope for this proof. The
+            // tag golden was taken at fold time; the reference waves
+            // then ADDED entries for fields that had no `fieldMeta` key
+            // at all (`Containable.environment` is the case). A field
+            // that did not exist here when the golden was taken cannot
+            // have lost a marker — and a reference field is never
+            // persistent, so `runtimeState` on it would be meaningless
+            // anyway (`runtimeState` is a subset of `persistent`).
+            for (const mixin of mixinNames) seenMixins.add(mixin);
+            if (has("ref")) continue;
             const bare = field.replace(/^_/, "");
             const cands = [field, bare, `_${bare}`];
             for (const mixin of mixinNames) {
