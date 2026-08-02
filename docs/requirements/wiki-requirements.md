@@ -45,7 +45,7 @@ rudimentary by decision, not omission.
   a string, and joins against live sources are expressed *in the article*
   and resolved at render.
 - **Authors can extend the wiki without a developer** — parameterised
-  templates, no code.
+  snippets, no code.
 - A **stable citation target**: rename freely, never break a link or a
   course citation.
 - **Revision history** in an append-only log; any edit recoverable.
@@ -171,9 +171,9 @@ components hot-reload and adding one is dropping in a file. **No
 registry object, no new Api** — the same reasoning that makes brains
 path-resolved.
 
-### D6 — Author templates, expanded before components resolve
+### D6 — Author SNIPPETS, expanded before components resolve
 
-A page in the **`Template:` namespace** is a reusable fragment taking
+A page in the **`Snippet:` namespace** is a reusable fragment taking
 parameters, expanded at render:
 
 ```
@@ -184,7 +184,7 @@ This is where most of a wiki's real richness lives — infoboxes, citation
 formats, navboxes — and it is the half authors can extend **without a
 developer**. No code: markup plus substitution.
 
-**The capability line:** templates compose and parameterise; only
+**The capability line:** snippets compose and parameterise; only
 registered components reach live sources. An author can build any
 presentation they like and cannot reach game state except through a
 component a developer wrote.
@@ -193,37 +193,58 @@ Expansion runs **before** component resolution and needs a depth cap and
 cycle detection (a template including itself, or a pair including each
 other). Both are hard failures that render an inline error, never a hang.
 
-### D7 — ⭐ The subject is a TEMPLATE PATH; anything in the game can be documented
+### D7 — ⭐ The subject is a TYPED REFERENCE, because not everything is Stuff
 
-A page's optional `subject` is a **path in the `domain` collection** —
-nothing more:
+A **Template** is a Document describing something abstract, and **every
+Template describes Stuff** — Stuff is the root of that abstraction. The
+things that are *not* Stuff are **other Documents** and **compilation
+units**: YAML files, TypeScript modules, and interfaces — which is what
+a mixin is.
 
+So a subject cannot be a bare `domain` path. That would let the wiki
+document only Stuff, and the case this build started from — *a player
+understanding a thing's architecture as a consumer and as labour* — is a
+**mixin**, which has no `domain` row at all.
+
+The subject is therefore a **kind plus a reference**:
+
+```yaml
+subject: { kind: template, ref: /lib/material/oak }    # Stuff
+subject: { kind: mixin,    ref: CombustibleMixin }     # an interface
+subject: { kind: command,  ref: inventory/plant.yaml } # a YAML unit
+subject: null                                          # lore, a guide
 ```
-subject: "/lib/material/oak"      a material
-subject: "/obj/npc/odile"         somebody's favourite NPC
-subject: "/obj/light/torch"       a generic torch
-subject: "/domain/terminus/registry/office"   a place
-```
 
-Resolution is `path → Template.findByPath → template.class → the backing
-class → its composition`. Which means the architecture panel works for
-**any authored template**, including one with no live instance anywhere
-in the world.
+Each kind resolves its own panel, and they answer genuinely different
+questions:
 
-> **⚠ This withdraws `DocumentedMixin`, proposed earlier in this
-> conversation.** Hooking articles to a mixin on `Material` / `Biome` /
-> `Species` / `Location` was strictly worse: it required a live Stuff (so
-> a torch nobody has lit could not be documented), it touched hundreds of
-> game classes, it enumerated in advance which *kinds* of thing deserve
-> articles, and it put a wiki-shaped marker on game models. A template
-> path needs none of that, and it makes the slate's "no wiki fields on
-> game models" literally rather than nearly true. The mixin *composition
-> panel* is unaffected — that was always about article content, and it
-> now reads the class behind the path.
+| kind | the panel answers | source |
+|---|---|---|
+| `template` | *what is this thing made of* — its class's composition | `Template.findByPath` → `class` → composition |
+| `mixin` | *what does this capability provide, and **what in the world has it*** | `StudioApi.describeMixin` — fields, methods, relations, doc ref |
+| `command` | *what can I type, and what gates it* | the YAML view + its controller |
+
+> ⭐ **The mixin panel's inverse view is the labour-facing one.** A
+> template page asks *what does oak compose?*; a mixin page asks *what
+> composes `Combustible`?* — which is the question **what in this world
+> can burn**, and it cannot be answered from any single template. That
+> inverse is a thing the wiki can do that a help page cannot.
+
+The kind set is **open** — Documents and modules can join later. What
+matters is that a subject is *typed*, so adding a kind adds a resolver
+rather than reinterpreting a string.
+
+> **⚠ This withdraws `DocumentedMixin`,** proposed earlier. Hooking
+> articles to a mixin composed onto game classes was worse: it required a
+> live Stuff (a torch nobody has lit could not be documented), it touched
+> hundreds of classes, it decided in advance which *kinds* of thing
+> deserve articles, and it put a wiki-shaped marker on game models. A
+> typed reference needs none of that — and it reaches mixins and YAML,
+> which a mixin-on-Stuff hook structurally could not.
 
 **At most one canonical article per subject**, so the reverse lookup
-("is this template documented?") is total. A second take on the same
-thing is an ordinary page that links.
+("is this documented?") is total. A second take is an ordinary page that
+links.
 
 ### D8 — Filing is the author's; seeding is ours
 
@@ -373,7 +394,7 @@ honest conflict.
 ### A4 — Preview is free if the pipeline takes a body
 
 **The render pipeline keys on a body, not a page id.** Then preview is
-the same path over unsaved text — templates expanded, components
+the same path over unsaved text — snippets expanded, components
 resolved, spoilers applied — and costs nothing.
 
 If it keys on page id instead, preview becomes a second rendering path,
@@ -484,32 +505,37 @@ Two ways, and a component may use both:
 
 ---
 
-## The template language
+## The snippet language
 
-### T1 — A template IS a page
+> **⚠ Named `Snippet`, not `Template`, deliberately.** A **Template** in
+> this codebase is a Document describing Stuff, and a page's `subject`
+> points at one (D7). A reusable markup fragment describes nothing — two
+> senses of one word, and they would collide exactly where they meet.
 
-A template is an ordinary page in the `Template:` namespace, which means
+### S1 — A snippet IS a page
+
+A snippet is an ordinary page in the `Snippet:` namespace, which means
 it inherits **revisions, permissions, history, rollback and protection**
 without a line of new code. There is no second store and no second
-editing path; a template is edited the way an article is.
+editing path; a snippet is edited the way an article is.
 
-### T2 — Invocation and parameters
+### S2 — Invocation and parameters
 
 ```
 {{Infobox|Oak|class=hardwood}}          positional + named
-{{{class}}}                             a parameter, in the template body
+{{{class}}}                             a parameter, in the snippet body
 {{{class|unknown}}}                     with a default
 ```
 
 A **missing parameter with no default renders an inline marker**, never
-empty. Silently-empty parameters are how wiki templates rot: the page
+empty. Silently-empty parameters are how wiki snippets rot: the page
 looks fine and the data is gone.
 
-### T3 — Composition and bounds
+### S3 — Composition and bounds
 
-Templates may nest and may contain components. Expansion runs to fixpoint
+Snippets may nest and may contain components. Expansion runs to fixpoint
 **before** any component resolves (D6), under the depth cap and cycle
-detection in the render budget. A template cannot reach live state except
+detection in the render budget. A snippet cannot reach live state except
 through a component, which is the capability line.
 
 ---
@@ -554,7 +580,7 @@ materials; the oak article is found by its prose.
 That also makes indexing cheap: no resolver runs, and an edit reindexes
 one document.
 
-### S1 — A port, not an engine
+### Q1 — A port, not an engine
 
 Search cross-cuts wiki, help, forums and docs, so what needs designing
 now is the **port** — index a fragment, remove a document, query with
@@ -620,8 +646,8 @@ than a hang:
 
 | Bound | Why |
 |---|---|
-| template expansion depth | a template including itself |
-| template cycle detection | a pair including each other |
+| snippet expansion depth | a snippet including itself |
+| snippet cycle detection | a pair including each other |
 | components per render | a page with ten thousand of them |
 | per-component timeout | one slow source stalls the page |
 | total output size | expansion bombs |
@@ -692,7 +718,7 @@ One `wiki` verb, subcommand fallthrough, every affordance a command
 
 ```yaml
 title:        string          display title (slug is the name)
-subject:      string | null   a path in `domain` (D7)
+subject:      {kind, ref} | null   a typed reference (D7)
 spoilerLevel: 0..3            page default; inline tags MAX over it
 tags:         string[]        cross-cutting; no permission meaning
 related:      string[]        sibling pages, for navigation
@@ -915,7 +941,7 @@ state.
 
 **Budget**
 
-47. Self-including and mutually-including templates both fail inline.
+47. Self-including and mutually-including snippets both fail inline.
 48. A page exceeding the component count, per-component timeout, or
     output-size bound fails inline rather than hanging.
 49. No component can trigger a page render.
@@ -933,7 +959,7 @@ state.
 55. A throwing component yields an inline error naming it, and the rest
     of the page still renders.
 56. A component returning a raw string rather than nodes is refused.
-57. A template is an ordinary page: it has revisions, history and
+57. A snippet is an ordinary page: it has revisions, history and
     protection.
 58. A missing parameter with no default renders a visible marker, never
     empty.
@@ -992,7 +1018,7 @@ Neither is solved here, and both are shared:
 - ⭐ **Media ingest** (M3) — one route, one provenance model, one
   moderation queue, serving the wiki, the CMS, and `illustrate.ts`.
   Wants its own doc, written with the CMS.
-- ⭐ **The search port** (S1) — a shared substrate over wiki, help,
+- ⭐ **The search port** (Q1) — a shared substrate over wiki, help,
   forums and docs. The wiki is one producer and one consumer of it.
 
 ## Cross-references
