@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Where am I? — run this FIRST in any session, before touching a file.
+#
+# Four worktrees share one bare repo. The failures that cost a day on
+# 2026-08-02 were all visible in five seconds of this output and nobody
+# looked. Answers four questions:
+#
+#   which branch · does anyone else hold it · am I behind · anything unpushed
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not a git repo"; exit 1; }
+
+bold=$'\033[1m'; red=$'\033[31m'; yel=$'\033[33m'; grn=$'\033[32m'; off=$'\033[0m'
+ok=0
+
+branch=$(git symbolic-ref --quiet --short HEAD || echo "")
+head=$(git rev-parse --short HEAD)
+echo ""
+echo "  ${bold}$(basename "$PWD")${off}  ${head}  ${branch:-${yel}(detached)${off}}"
+
+# ── does anyone else hold this branch? ──
+if [ -n "$branch" ]; then
+  holders=$(git worktree list --porcelain \
+            | awk -v b="refs/heads/$branch" '/^worktree /{w=$2} /^branch /{if($2==b) print w}')
+  n=$(printf '%s\n' "$holders" | grep -c . || true)
+  if [ "$n" -gt 1 ]; then
+    echo "  ${red}✖ '$branch' is checked out in $n worktrees — DO NOT COMMIT${off}"
+    printf "      %s\n" $holders
+    echo "      fix: git switch -c <your-own-branch>"
+    ok=1
+  fi
+fi
+
+# ── behind / ahead ──
+git fetch -q origin 2>/dev/null || true
+up=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || echo "origin/master")
+if git rev-parse --verify --quiet "$up" >/dev/null; then
+  read -r behind ahead < <(git rev-list --left-right --count "$up...HEAD" | awk '{print $1, $2}')
+  [ "$behind" -gt 0 ] && { echo "  ${red}✖ $behind behind $up — never 'add -A' from here${off}"; ok=1; }
+  [ "$ahead"  -gt 0 ] && { echo "  ${yel}⚠ $ahead unpushed commit(s) — push before you stop${off}"; ok=1; }
+fi
+
+# ── uncommitted work ──
+dirty=$(git status --porcelain | grep -c . || true)
+if [ "$dirty" -gt 0 ]; then
+  echo "  ${yel}⚠ $dirty uncommitted path(s) — unpushed work is the only kind you can lose${off}"
+  ok=1
+fi
+
+# ── who else is where ──
+echo ""
+echo "  siblings:"
+git worktree list | grep -v '(bare)' | while read -r p h b; do
+  [ "$p" = "$PWD" ] && continue
+  printf "    %-46s %s %s\n" "$(basename "$p")" "$h" "$b"
+done
+
+[ "$ok" -eq 0 ] && echo "" && echo "  ${grn}✔ clean, current, and nobody else holds this branch${off}"
+echo ""

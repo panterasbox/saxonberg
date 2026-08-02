@@ -213,6 +213,30 @@ Four worktrees (`master`, `build-1/2/3`) share one bare repo at
    `git rev-list --left-right --count origin/master...HEAD` — a non-zero
    **left** number means you are behind.
 
+4. ⭐ **Push every turn, not every session.** *Unpushed work is the only
+   kind you can lose* — 826 lines of design sat stranded in a worktree
+   long enough to be swept into somebody else's `add -A`.
+5. **Index files get SWEPT, not raced.** New files (a slate, a subsystem
+   doc) are conflict-free by construction and safe to write from any
+   worktree. **`CLAUDE.md`, `workflow.md`, `roadmap.md`,
+   `slates/README.md`, `launch-worklist.md` are not** — leave the index
+   line to the sweep rather than four sessions racing for it.
+6. **The `master` worktree stays DETACHED and never commits.** Design
+   work goes on a branch like everything else
+   (`git switch -c design/<date>`) — **one extra command, and a mistake
+   becomes a visible diff instead of a silent bad commit on master.**
+
+**Orient first** — the first action of any session, before touching a
+file:
+
+```bash
+./tools/wt-status
+```
+
+Which branch · does anyone else hold it · am I behind · is anything
+unpushed. **Both 2026-08-02 failures were visible in this output and
+nobody looked.**
+
 **Enforcement** — a tracked hook blocks all three failure modes:
 
 ```bash
