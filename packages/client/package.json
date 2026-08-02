@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node ../server/scripts/dev-preflight.mjs 5173 client && vite",
     "build": "vite build",
     "build:types": "tsc",
     "preview": "vite preview",
