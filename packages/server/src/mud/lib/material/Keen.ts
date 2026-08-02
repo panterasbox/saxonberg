@@ -69,13 +69,11 @@ export function KeenMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'KeenMixin';
 
     static fieldMeta: FieldMeta = {
-      keenness: { persistent: true },
+      keenness: { persistent: true, runtimeState: true },
     };
 
     /**
      * 0..1 edge gauge; default fully keen.
-     *
-     * @runtimeState
      */
     private _keenness: number = 1;
 

@@ -46,18 +46,16 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'AmbientLitMixin';
 
     static fieldMeta: FieldMeta = {
-      ambientIntensity: { persistent: true },
-      ambientColorTemperature: { persistent: true },
+      ambientIntensity: { persistent: true, authorable: true },
+      ambientColorTemperature: { persistent: true, authorable: true },
     };
 
     /**
      * Backing storage for the lumen scalar.
-     * @authorable
      */
     private _ambientIntensity: number = 0;
     /**
      * Backing storage for the Kelvin color-temperature scalar.
-     * @authorable
      */
     private _ambientColorTemperature: number | null = null;
 

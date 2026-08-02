@@ -49,8 +49,6 @@ export interface Lounge {
    * Instruction-field applier for the declared `warren` seed path.
    * Resolves (or lazily creates, for a stray clone) the Warren singleton
    * and self-registers via the Warren-owned `addMember`.
-   *
-   * @authorable ref:Template
    */
   applyWarren(warrenPath: string): Promise<void>;
 }
@@ -73,10 +71,9 @@ export function LoungeMixin<
      * Declared-warren seed. Consumed once by Phase 2 of the Hydrator —
      * an instruction field, not a stored property (no paired getter; the
      * live affiliation is `WarrenMember.getWarren()`).
-     * @authorable ref:Template
      */
     static fieldMeta: FieldMeta = {
-      warren: { instruction: true },
+      warren: { instruction: true, authorable: true, authorPicker: 'Template' },
     };
 
     /**

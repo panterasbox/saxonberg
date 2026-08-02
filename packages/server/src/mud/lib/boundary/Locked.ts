@@ -49,13 +49,11 @@ export function LockableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'LockableMixin';
 
     static fieldMeta: FieldMeta = {
-      locked: { persistent: true },
+      locked: { persistent: true, authorable: true },
     };
 
     /**
      * Backing storage; access via `isLocked()` / `setLocked()`.
-     *
-     * @authorable
      */
     private _locked: boolean = false;
 

@@ -51,10 +51,9 @@ export function FixtureMixin<
 
     /** The seat target path (a Warren or a singleton location). */
     static fieldMeta: FieldMeta = {
-      seatIn: { persistent: true },
+      seatIn: { persistent: true, authorable: true, authorPicker: 'Template' },
     };
 
-    /** @authorable ref:Template */
     private _seatIn: string | null = null;
 
     getSeatIn(): string | null {

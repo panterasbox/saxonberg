@@ -162,10 +162,9 @@ export function ReservedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'ReservedMixin';
 
     static fieldMeta: FieldMeta = {
-      reserves: { persistent: true },
+      reserves: { persistent: true, runtimeState: true },
     };
 
-    /** @runtimeState */
     public reserves: Record<string, ReserveStored> = {};
 
     public getReserve(key: string): Reserve | undefined {

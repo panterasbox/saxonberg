@@ -33,13 +33,11 @@ export function GradedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'GradedMixin';
 
     static fieldMeta: FieldMeta = {
-      gradeBand: { persistent: true },
+      gradeBand: { persistent: true, authorable: true },
     };
 
     /**
      * The band word; default `'fair'` (a neutral middle).
-     *
-     * @authorable
      */
     public gradeBand: string = 'fair';
 

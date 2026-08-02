@@ -38,13 +38,11 @@ export function ClimbableMixin<TBase extends MixinConstructor<Stuff>>(
   return class ClimbableMixin extends Base implements Enablement {
     static _mixinName = 'ClimbableMixin';
     static fieldMeta: FieldMeta = {
-      axes: { persistent: true },
-      difficulty: { persistent: true },
+      axes: { persistent: true, authorable: true },
+      difficulty: { persistent: true, authorable: true },
     };
 
-    /** @authorable */
     public axes: string[] = [];
-    /** @authorable */
     public difficulty: number | null = null;
 
     public getAxes(): readonly string[] {

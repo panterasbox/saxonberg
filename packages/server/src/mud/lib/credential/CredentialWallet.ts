@@ -65,7 +65,7 @@ export function CredentialWalletMixin<TBase extends MixinConstructor<Stuff>>(
      * accessor (Phase 1 setter / Phase 2 bracket-assign).
      */
     static fieldMeta: FieldMeta = {
-      credentials: { persistent: true },
+      credentials: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -94,7 +94,6 @@ export function CredentialWalletMixin<TBase extends MixinConstructor<Stuff>>(
     /**
      * Persistence accessor. The getter yields the storable array; the setter
      * rebuilds records from their serialized rows (travel re-floors).
-     * @runtimeState
      */
     get credentials(): SerializedCredential[] {
       return [...this._credentials.values()].map((c) => c.toData());

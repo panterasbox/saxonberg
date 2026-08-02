@@ -69,7 +69,7 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
      * marshaller is needed.
      */
     static fieldMeta: FieldMeta = {
-      _notifyRules: { persistent: true },
+      _notifyRules: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -129,7 +129,6 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent storage. Default `[]` matches the Contacts / Alias
      * legacy-tolerant pattern — existing avatar docs without the field
      * hydrate cleanly.
-     * @runtimeState
      */
     _notifyRules: NotifyRule[] = [];
 

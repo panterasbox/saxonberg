@@ -183,19 +183,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "ThermalMixin";
 
     static fieldMeta: FieldMeta = {
-      stampedTemperatureK: { persistent: true },
-      thermalClockStamp: { persistent: true },
-      lastAmbientK: { persistent: true },
-      barrier: { persistent: true },
+      stampedTemperatureK: { persistent: true, runtimeState: true },
+      thermalClockStamp: { persistent: true, runtimeState: true },
+      lastAmbientK: { persistent: true, runtimeState: true },
+      barrier: { persistent: true, authorable: true },
     };
 
-    /** @runtimeState */
     public stampedTemperatureK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
-    /** @runtimeState */
     public thermalClockStamp = 0;
-    /** @runtimeState */
     public lastAmbientK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
-    /** @authorable */
     public barrier: string | null = null;
 
     /**

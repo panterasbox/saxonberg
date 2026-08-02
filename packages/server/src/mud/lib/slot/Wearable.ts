@@ -52,22 +52,18 @@ export function WearableMixin<
   return class WearableMixin extends Base {
     static _mixinName = 'WearableMixin';
     static fieldMeta: FieldMeta = {
-      slotClaims: { persistent: true },
-      clo: { persistent: true, marshaller: QuantityMarshaller.pathFor('clo') },
+      slotClaims: { persistent: true, authorable: true },
+      clo: { persistent: true, marshaller: QuantityMarshaller.pathFor('clo'), authorable: true },
     };
 
     /**
      * Per-body-plan slot claims. `bodyPlanPath` → ordered list of slot
      * names. Empty / absent = ineligible on that body plan.
-     *
-     * @authorable
      */
     public slotClaims: Record<string, string[]> = {};
 
     /**
      * Thermal insulation contributed when worn (default 0 clo).
-     *
-     * @authorable
      */
     public clo: Quantity<'clo'> = Quantity.of(0, 'clo');
 

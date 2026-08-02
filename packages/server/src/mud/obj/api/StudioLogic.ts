@@ -126,94 +126,7 @@ const ARTIFACT_PATH = join(
   'authorable-fields.json'
 );
 
-/** Per-mixin classification of its declared fields, from the source scan. */
-interface MixinClassification {
-  authorable: Set<string>;
-  runtime: Set<string>;
-  /** field candidate → ref target type, from `@authorable ref:<Type>`. */
-  refs: Map<string, string>;
-}
-
-// ---- source-scan helpers (adapted from the coverage-guard scan) ---------
-
-function walkTsFiles(dir: string, acc: string[]): string[] {
-  for (const e of readdirSync(dir, { withFileTypes: true })) {
-    const p = join(dir, e.name);
-    if (e.isDirectory()) {
-      if (e.name === '__tests__') continue;
-      walkTsFiles(p, acc);
-    } else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) {
-      acc.push(p);
-    }
-  }
-  return acc;
-}
-
-/** Underscore-insensitive candidate names for a declared identifier. */
-function candidates(id: string): Set<string> {
-  const bare = id.replace(/^_/, '');
-  return new Set([id, bare, `_${bare}`]);
-}
-
-/**
- * Scan the mud source tree once, folding each file's `@authorable` /
- * `@runtimeState` markers onto the mixin(s) declared in that file. Mirrors
- * the coverage-guard `scan()` (incl. the `apply<Field>` → field applier
- * mapping and the underscore-insensitive candidates), the classification's
- * source of truth (TypeDoc does not reflect mixin instance fields).
- */
-function scanClassification(): Map<string, MixinClassification> {
-  const byMixin = new Map<string, MixinClassification>();
-  for (const file of walkTsFiles(MUD_ROOT, [])) {
-    const src = readFileSync(file, 'utf8');
-    const mixinNames = [
-      ...src.matchAll(/static\s+_mixinName\s*=\s*['"]([A-Za-z0-9_]+)['"]/g),
-    ].map((m) => m[1]!);
-    if (mixinNames.length === 0) continue;
-
-    const authorable = new Set<string>();
-    const runtime = new Set<string>();
-    const refs = new Map<string, string>();
-    const decl =
-      /\/\*\*([\s\S]*?)\*\/\s*(?:public\s+|private\s+|protected\s+|readonly\s+|static\s+|override\s+|async\s+|get\s+|set\s+)*([A-Za-z_]\w*)/g;
-    let d: RegExpExecArray | null;
-    while ((d = decl.exec(src))) {
-      const body = d[1]!;
-      const id = d[2]!;
-      const targets = new Set(candidates(id));
-      const applier = /^apply([A-Z]\w*)$/.exec(id);
-      if (applier) {
-        const field =
-          applier[1]!.charAt(0).toLowerCase() + applier[1]!.slice(1);
-        for (const c of candidates(field)) targets.add(c);
-      }
-      if (/@authorable\b/.test(body)) {
-        for (const c of targets) authorable.add(c);
-        // `@authorable ref:<Type>` — the reference-picker signal. Sourced
-        // here (not the sparse TypeDoc artifact, which can't see the field).
-        const refMatch = /@authorable\s+ref:([A-Za-z_]\w*)/.exec(body);
-        if (refMatch) for (const c of targets) refs.set(c, refMatch[1]!);
-      }
-      if (/@runtimeState\b/.test(body)) for (const c of targets) runtime.add(c);
-    }
-
-    for (const mixin of mixinNames) {
-      const existing = byMixin.get(mixin);
-      if (existing) {
-        for (const c of authorable) existing.authorable.add(c);
-        for (const c of runtime) existing.runtime.add(c);
-        for (const [c, t] of refs) existing.refs.set(c, t);
-      } else {
-        byMixin.set(mixin, {
-          authorable: new Set(authorable),
-          runtime: new Set(runtime),
-          refs: new Map(refs),
-        });
-      }
-    }
-  }
-  return byMixin;
-}
+// ---- export-source scan helpers ----------------------------------------
 
 /**
  * The acting principal for a Studio op — resolved from the execution
@@ -423,15 +336,18 @@ function fileTopDescription(src: string): TopDescription | undefined {
   return out;
 }
 
-/**
- * Canonical, de-underscored, sorted field names from a classification's
- * underscore-insensitive candidate set (`quantity`/`_quantity` → `quantity`).
- * The best-effort fallback when a mixin can't be composed for a clean read.
- */
-function canonicalFieldNames(set: Set<string>): string[] {
-  const out = new Set<string>();
-  for (const c of set) out.add(c.replace(/^_/, ''));
-  return [...out].sort();
+/** Recursive `.ts` walk, shared by the export-source scan. */
+function walkTsFiles(dir: string, acc: string[]): string[] {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) {
+      if (e.name === '__tests__') continue;
+      walkTsFiles(p, acc);
+    } else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) {
+      acc.push(p);
+    }
+  }
+  return acc;
 }
 
 /**
@@ -658,12 +574,15 @@ function selfIdOf(actor: Stuff | null): string {
  * `StuffApi.singletonSync`. Any module that grabs this singleton and calls
  * a method other than through the Api gets `SecurityError`.
  *
- * Composes `AccessApi`, `StuffApi`, and `MixinApi`. The one piece of state
- * it carries is a lazily-built, cached classification of every registry
- * mixin's fields, from a one-time scan of the mud source tree (the
- * `@authorable` / `@runtimeState` markers) — complete and always available,
- * unlike the sparse TypeDoc-derived `authorable-fields.json` artifact
- * (which is joined in only for its richer type/ref shapes when present).
+ * Composes `AccessApi`, `StuffApi`, and `MixinApi`. Field classification —
+ * which fields are author-editable, which are engine-written, which want a
+ * reference picker — is READ FROM THE DECLARATION, via
+ * `MixinApi.getAllFieldMeta`. It used to be recovered by scanning the mud
+ * source tree as text and regex-binding doc comments to identifiers, with
+ * underscore-insensitive name *guessing* because the scan could not tell
+ * which field a comment belonged to; that is gone. The sparse
+ * TypeDoc-derived `authorable-fields.json` artifact is still joined in for
+ * its richer type/ref shapes when present.
  *
  * The `FromModule` gate is applied per public method.
  *
@@ -671,8 +590,6 @@ function selfIdOf(actor: Stuff | null): string {
  */
 @Unshadowable
 export class StudioLogic extends ApiLogic {
-  /** Cached source-scan classification (built once on first describe). */
-  private classification: Map<string, MixinClassification> | null = null;
   /** Cached artifact enrichment (loaded once; empty when absent). */
   private artifact: AuthorableFieldsArtifact | null = null;
   /** Cached export-source scan (mixin/base name → file), for scaffold imports. */
@@ -696,7 +613,7 @@ export class StudioLogic extends ApiLogic {
       );
     }
 
-    const scan = this.getClassification();
+    const meta = MixinApi.getAllFieldMeta(ctor);
     const artifact = this.getArtifact();
 
     const mixins = MixinApi.queryMixins(ctor);
@@ -717,10 +634,9 @@ export class StudioLogic extends ApiLogic {
 
     const fields: StudioFieldDescriptor[] = [];
     for (const field of allFields) {
+      if (!meta[field]?.authorable) continue;
       const owner = this.ownerMixinOf(mixins, field, instructionSet);
       if (!owner) continue; // a base-class (non-mixin) field — never authorable
-      const classified = scan.get(owner);
-      if (!classified || !classified.authorable.has(field)) continue;
 
       const kind: 'property' | 'instruction' = instructionSet.has(field)
         ? 'instruction'
@@ -747,14 +663,12 @@ export class StudioLogic extends ApiLogic {
       if (enrichment?.enumValues) descriptor.enumValues = enrichment.enumValues;
       if (enrichment?.refShape) descriptor.refShape = enrichment.refShape;
       if (enrichment?.refType) descriptor.refType = enrichment.refType;
-      // Fall back to the source-scan ref (the artifact is sparse for mixin
-      // fields, so `@authorable ref:<Type>` is usually only found here).
-      if (!descriptor.refShape) {
-        const scanRefType = classified.refs.get(field);
-        if (scanRefType) {
-          descriptor.refShape = 'path';
-          descriptor.refType = scanRefType;
-        }
+      // Fall back to the declared picker (the artifact is sparse for
+      // mixin fields, so `authorPicker` is usually the only source).
+      const picker = meta[field]?.authorPicker;
+      if (!descriptor.refShape && picker) {
+        descriptor.refShape = 'path';
+        descriptor.refType = picker;
       }
       if (value !== undefined) descriptor.defaultValue = value;
       fields.push(descriptor);
@@ -773,17 +687,16 @@ export class StudioLogic extends ApiLogic {
     }
 
     const sources = this.getExportSources();
-    const scan = this.getClassification();
 
     // Description + docRef — the always-available source scan (the substance).
     const top = sources.topDescriptions.get(mixinName);
 
     // Contributed fields — reuse describeClass's inference by composing the
-    // mixin over a bare Idea (best-effort; degrades to source-scan names).
+    // mixin over a bare Idea (best-effort; degrades to a static read of
+    // the mixin's own `fieldMeta`).
     const { authorableFields, runtimeState } = await this.describeMixinFields(
       mixinName,
-      sources,
-      scan.get(mixinName)
+      sources
     );
 
     // Enrichment — typed help relations + conferred method names. Empty (never
@@ -1089,16 +1002,14 @@ export class StudioLogic extends ApiLogic {
    * field names + best-effort type shapes through the same machinery
    * `describeClass` uses (`getAll*Fields` + a throwaway class-default read).
    * ANY failure (a mixin that needs a richer base, a throwing constructor)
-   * degrades to the source-scan candidate names with a `json` shape — the
-   * pane is always useful.
+   * degrades to a static read of the mixin's own `fieldMeta` with a `json`
+   * shape — the pane is always useful, and the names are now the declared
+   * ones rather than guessed candidates.
    */
   private async describeMixinFields(
     mixinName: string,
-    sources: ExportSources,
-    classified: MixinClassification | undefined
+    sources: ExportSources
   ): Promise<{ authorableFields: MixinFieldDetail[]; runtimeState: string[] }> {
-    if (!classified) return { authorableFields: [], runtimeState: [] };
-
     const file = sources.mixins.get(mixinName);
     let composed: AnyConstructor | null = null;
     if (file) {
@@ -1119,13 +1030,14 @@ export class StudioLogic extends ApiLogic {
 
     if (composed) {
       try {
+        const meta = MixinApi.getAllFieldMeta(composed);
         const persistent = MixinApi.getAllPersistentFields(composed);
         const instruction = MixinApi.getAllInstructionFields(composed);
         const instructionSet = new Set(instruction);
         const allFields = [...new Set([...persistent, ...instruction])];
         const authorableFields: MixinFieldDetail[] = [];
         for (const field of allFields) {
-          if (!classified.authorable.has(field)) continue;
+          if (!meta[field]?.authorable) continue;
           const { value } = await this.readClassDefault(composed, field);
           authorableFields.push({
             name: field,
@@ -1133,24 +1045,47 @@ export class StudioLogic extends ApiLogic {
             typeShape: inferTypeShape(value) ?? 'json',
           });
         }
-        const runtimeState = persistent.filter((f) =>
-          classified.runtime.has(f)
-        );
+        const runtimeState = persistent.filter((f) => meta[f]?.runtimeState);
         return { authorableFields, runtimeState };
       } catch {
-        // fall through to the source-scan fallback below
+        // fall through to the static fallback below
       }
     }
 
-    // Fallback: canonical names straight from the classification candidate
-    // sets — no live type, so `json` (the raw-JSON widget shape).
-    const authorableFields: MixinFieldDetail[] = canonicalFieldNames(
-      classified.authorable
-    ).map((name) => ({ name, kind: 'property', typeShape: 'json' }));
-    return {
-      authorableFields,
-      runtimeState: canonicalFieldNames(classified.runtime),
-    };
+    // Fallback for a mixin whose factory will not compose over `Idea` or
+    // whose class defaults throw. It used to fall back to the source
+    // scan's CANDIDATE names — guesses, including ones that were never
+    // fields. Now it composes over a bare base purely to read the
+    // `fieldMeta` statics: no instance, no defaults, but the field names
+    // are the declared ones rather than invented.
+    try {
+      const factory = file
+        ? await StuffApi.resolveExport(mudRootedPath(file), mixinName)
+        : null;
+      if (typeof factory !== 'function') {
+        return { authorableFields: [], runtimeState: [] };
+      }
+      const bare = (factory as (b: AnyConstructor) => AnyConstructor)(
+        class {} as unknown as AnyConstructor
+      );
+      const meta = MixinApi.getAllFieldMeta(bare);
+      const instructionSet = new Set(MixinApi.getAllInstructionFields(bare));
+      const authorableFields: MixinFieldDetail[] = Object.entries(meta)
+        .filter(([, e]) => e.authorable)
+        .map(([name]) => ({
+          name,
+          kind: instructionSet.has(name)
+            ? ('instruction' as const)
+            : ('property' as const),
+          typeShape: 'json' as const,
+        }));
+      const runtimeState = Object.entries(meta)
+        .filter(([, e]) => e.persistent && e.runtimeState)
+        .map(([name]) => name);
+      return { authorableFields, runtimeState };
+    } catch {
+      return { authorableFields: [], runtimeState: [] };
+    }
   }
 
   /** Lazily build + cache the export-source scan (mixin/base → file). */
@@ -1171,12 +1106,7 @@ export class StudioLogic extends ApiLogic {
     return StuffApi.singleton<BlueprintCatalogue>(CATALOGUE_PATH);
   }
 
-  /** Lazily build + cache the source-scan classification. */
-  private getClassification(): Map<string, MixinClassification> {
-    if (!this.classification) this.classification = scanClassification();
-    return this.classification;
-  }
-
+  /** Lazily load + cache the TypeDoc enrichment artifact. */
   /** Lazily load + cache the artifact; empty (no fields) when absent. */
   private getArtifact(): AuthorableFieldsArtifact {
     if (!this.artifact) {

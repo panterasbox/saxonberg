@@ -99,9 +99,9 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     static _mixinName = "BankMixin";
 
     static fieldMeta: FieldMeta = {
-      corpoKey: { persistent: true },
-      terms: { persistent: true },
-      bank: { persistent: true },
+      corpoKey: { persistent: true, authorable: true, authorPicker: 'Corpo' },
+      terms: { persistent: true, authorable: true },
+      bank: { persistent: true, authorable: true },
     };
 
     /**
@@ -117,7 +117,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /**
      * The bank's corpo affiliation key.
-     * @authorable ref:Corpo
      */
     public corpoKey = "";
 
@@ -130,7 +129,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * corpo behind it — the `Brand.owner === ''` precedent). Your account
      * exists at the BANK; a branch is a service point of it (till physics
      * stay per-branch).
-     * @authorable
      */
     public bank = "";
 
@@ -150,7 +148,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /**
      * The authored fee/minimum schedule (seed `data.terms`), round-tripped
      * through the raw `terms` field. Absent → the fee-free default.
-     * @authorable
      */
     public terms: TermsData = {};
 
@@ -182,7 +179,6 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * removal of cash-like coin from the vault is vetoed. (Non-cash items, if
      * ever placed here, are unrestricted.) The sibling of the exclusive lease
      * and the common-pool quota — the third anti-grief guard.
-     * @runtimeState
      */
     private _disbursing = false;
 

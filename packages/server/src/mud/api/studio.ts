@@ -105,7 +105,7 @@ function logic(): StudioLogic {
 export class StudioApi {
   /**
    * Describe a backing class for the composer: its effective mixin set
-   * plus, for every author-facing (`@authorable`) field of that set, the
+   * plus, for every author-facing (`authorable`) field of that set, the
    * projected/inferred type shape and the field's effective value + the
    * source it was read from.
    *

@@ -62,18 +62,16 @@ export function SmellSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'SmellSourceMixin';
 
     static fieldMeta: FieldMeta = {
-      emittedConcentration: { persistent: true },
-      odorIdentity: { persistent: true },
+      emittedConcentration: { persistent: true, authorable: true },
+      odorIdentity: { persistent: true, authorable: true },
     };
 
     /**
      * Backing storage for the emitted ppm scalar.
-     * @authorable
      */
     private _emittedConcentration: number = 0;
     /**
      * Backing storage for the odor identity.
-     * @authorable
      */
     private _odorIdentity: string = '';
 

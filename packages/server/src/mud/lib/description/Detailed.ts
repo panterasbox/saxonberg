@@ -204,7 +204,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * front to undo that.
      */
     static fieldMeta: FieldMeta = {
-      details: { persistent: true, instruction: true },
+      details: { persistent: true, instruction: true, authorable: true },
     };
 
     /**
@@ -253,7 +253,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Hierarchical detail map. Host-internal storage; external callers
      * go through `getDetail` / `setDetail` / `removeDetail`.
      *
-     * @authorable Instruction field — the declarative `details:` map is
+     * Instruction field — the declarative `details:` map is
      *   consumed by `applyDetails` (Phase-2 hydrator dispatch); the
      *   composer edits the applier's payload shape, not this runtime Map.
      */

@@ -120,9 +120,9 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Used by PersistApi for automatic synchronization.
      */
     static fieldMeta: FieldMeta = {
-      shortDescription: { persistent: true },
-      longDescription: { persistent: true },
-      illustration: { persistent: true },
+      shortDescription: { persistent: true, authorable: true },
+      longDescription: { persistent: true, authorable: true },
+      illustration: { persistent: true, authorable: true },
     };
 
     /**
@@ -185,11 +185,11 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
-    /** @authorable Brief description, shown with an article ("a heavy iron door"). */
+    /** Brief description, shown with an article ("a heavy iron door"). */
     protected shortDescription: string = '';
-    /** @authorable Detailed examine text. */
+    /** Detailed examine text. */
     protected longDescription: string = '';
-    /** @authorable Bucket-relative media key for this thing's illustration. */
+    /** Bucket-relative media key for this thing's illustration. */
     protected illustration: string | null = null;
 
     getShortDescription(): string {

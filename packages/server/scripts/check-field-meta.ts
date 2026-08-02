@@ -80,6 +80,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_ROOT = join(here, "..");
 const MUD_ROOT = join(SERVER_ROOT, "src", "mud");
 const GOLDEN = join(here, "__fixtures__", "field-meta-golden.json");
+const TAGS_GOLDEN = join(here, "__fixtures__", "field-tags-golden.json");
 
 /** The four field-keyed statics the codemod folds into `fieldMeta`. */
 const ARRAY_STATICS = [
@@ -418,6 +419,103 @@ function serialize(records: ClassRecord[]): string {
   return JSON.stringify(records, null, 2) + "\n";
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// The TSDoc field tags (W2c)
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * `@authorable` / `@runtimeState` as `StudioLogic.scanClassification`
+ * resolves them TODAY — regex over source text, underscore-insensitive
+ * candidate expansion, `apply<Field>` → field mapping, folded onto every
+ * `_mixinName` declared in the same file.
+ *
+ * Replicated here rather than imported because the fold deletes the
+ * original. The golden master must capture the CURRENT resolution,
+ * quirks and all, or the post-fold diff cannot prove equivalence — and
+ * the quirks are the point: the scan *guesses* field names, so where it
+ * and the declaration disagree, the declaration is right and the
+ * difference is a finding to record.
+ */
+interface TagRecord {
+  authorable: string[];
+  runtime: string[];
+  refs: Record<string, string>;
+}
+
+function candidatesOf(id: string): Set<string> {
+  const bare = id.replace(/^_/, "");
+  return new Set([id, bare, `_${bare}`]);
+}
+
+function scanTags(): Record<string, TagRecord> {
+  const byMixin = new Map<
+    string,
+    { authorable: Set<string>; runtime: Set<string>; refs: Map<string, string> }
+  >();
+  const files: string[] = [];
+  walk(MUD_ROOT, files);
+  for (const file of files.sort()) {
+    // scanClassification skips __tests__ and .test.ts.
+    if (file.includes(`${sep}__tests__${sep}`) || file.endsWith(".test.ts")) {
+      continue;
+    }
+    const src = readFileSync(file, "utf8");
+    const mixinNames = [
+      ...src.matchAll(/static\s+_mixinName\s*=\s*['"]([A-Za-z0-9_]+)['"]/g),
+    ].map((m) => m[1]!);
+    if (mixinNames.length === 0) continue;
+
+    const authorable = new Set<string>();
+    const runtime = new Set<string>();
+    const refs = new Map<string, string>();
+    const decl =
+      /\/\*\*([\s\S]*?)\*\/\s*(?:public\s+|private\s+|protected\s+|readonly\s+|static\s+|override\s+|async\s+|get\s+|set\s+)*([A-Za-z_]\w*)/g;
+    let d: RegExpExecArray | null;
+    while ((d = decl.exec(src))) {
+      const body = d[1]!;
+      const id = d[2]!;
+      const targets = new Set(candidatesOf(id));
+      const applier = /^apply([A-Z]\w*)$/.exec(id);
+      if (applier) {
+        const field = applier[1]!.charAt(0).toLowerCase() + applier[1]!.slice(1);
+        for (const c of candidatesOf(field)) targets.add(c);
+      }
+      if (/@authorable\b/.test(body)) {
+        for (const c of targets) authorable.add(c);
+        const refMatch = /@authorable\s+ref:([A-Za-z_]\w*)/.exec(body);
+        if (refMatch) for (const c of targets) refs.set(c, refMatch[1]!);
+      }
+      if (/@runtimeState\b/.test(body)) for (const c of targets) runtime.add(c);
+    }
+
+    for (const mixin of mixinNames) {
+      const existing = byMixin.get(mixin);
+      if (existing) {
+        for (const c of authorable) existing.authorable.add(c);
+        for (const c of runtime) existing.runtime.add(c);
+        for (const [c, t] of refs) existing.refs.set(c, t);
+      } else {
+        byMixin.set(mixin, {
+          authorable: new Set(authorable),
+          runtime: new Set(runtime),
+          refs: new Map(refs),
+        });
+      }
+    }
+  }
+
+  const out: Record<string, TagRecord> = {};
+  for (const key of [...byMixin.keys()].sort()) {
+    const v = byMixin.get(key)!;
+    out[key] = {
+      authorable: [...v.authorable].sort(),
+      runtime: [...v.runtime].sort(),
+      refs: Object.fromEntries([...v.refs.entries()].sort()),
+    };
+  }
+  return out;
+}
+
 /** The property names a `fieldMeta` entry may carry (mirrors FieldMetaEntry). */
 const KNOWN_PROPS = new Set([
   "persistent",
@@ -681,6 +779,113 @@ if (mode === "--snapshot") {
     process.exit(1);
   }
   console.log(`  --verify clean: ${records.length} class bodies match the golden master.`);
+} else if (mode === "--snapshot-tags") {
+  mkdirSync(dirname(TAGS_GOLDEN), { recursive: true });
+  const tags = scanTags();
+  writeFileSync(TAGS_GOLDEN, JSON.stringify(tags, null, 2) + "\n", "utf8");
+  console.log(
+    `check-field-meta --snapshot-tags: ${Object.keys(tags).length} mixins ` +
+      `recorded to ${relPath(TAGS_GOLDEN)}`
+  );
+} else if (mode === "--verify-tags") {
+  // Equivalence proof for the tag fold. The golden holds the scan's
+  // per-mixin sets; here we re-derive them from the declarations and
+  // compare. A candidate the scan produced that matches no declared
+  // field is expected to be absent — that is the guess being dropped —
+  // and is reported rather than failed.
+  const golden = JSON.parse(readFileSync(TAGS_GOLDEN, "utf8")) as Record<
+    string,
+    { authorable: string[]; runtime: string[]; refs: Record<string, string> }
+  >;
+  const files: string[] = [];
+  walk(MUD_ROOT, files);
+  const mismatches: string[] = [];
+  const dropped: string[] = [];
+  const seenMixins = new Set<string>();
+
+  for (const file of files.sort()) {
+    if (file.includes(`${sep}__tests__${sep}`) || file.endsWith(".test.ts")) {
+      continue;
+    }
+    const source = readFileSync(file, "utf8");
+    if (!source.includes("_mixinName") || !source.includes("fieldMeta")) continue;
+    const sf = ts.createSourceFile(
+      file, source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS
+    );
+    const mixinNames = [
+      ...source.matchAll(/static\s+_mixinName\s*=\s*['"]([A-Za-z0-9_]+)['"]/g),
+    ].map((m) => m[1]!);
+    if (mixinNames.length === 0) continue;
+
+    const visit = (node: ts.Node): void => {
+      if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) {
+        for (const m of node.members) {
+          if (!ts.isPropertyDeclaration(m) || !isStatic(m)) continue;
+          if (memberName(m.name) !== "fieldMeta" || !m.initializer) continue;
+          const init = unwrap(m.initializer);
+          if (!ts.isObjectLiteralExpression(init)) continue;
+          for (const p of init.properties) {
+            if (!ts.isPropertyAssignment(p)) continue;
+            const field = memberName(p.name);
+            const entry = unwrap(p.initializer);
+            if (!field || !ts.isObjectLiteralExpression(entry)) continue;
+            const has = (k: string) =>
+              entry.properties.some(
+                (a) => ts.isPropertyAssignment(a) && memberName(a.name) === k
+              );
+            const bare = field.replace(/^_/, "");
+            const cands = [field, bare, `_${bare}`];
+            for (const mixin of mixinNames) {
+              seenMixins.add(mixin);
+              const g = golden[mixin];
+              if (!g) continue;
+              const wantAuthorable = cands.some((c) => g.authorable.includes(c));
+              const wantRuntime = cands.some((c) => g.runtime.includes(c));
+              if (wantAuthorable !== has("authorable")) {
+                mismatches.push(
+                  `  ${relPath(file)} ${mixin}.${field}: authorable ` +
+                    `scan=${wantAuthorable} declared=${has("authorable")}`
+                );
+              }
+              if (wantRuntime !== has("runtimeState")) {
+                mismatches.push(
+                  `  ${relPath(file)} ${mixin}.${field}: runtimeState ` +
+                    `scan=${wantRuntime} declared=${has("runtimeState")}`
+                );
+              }
+            }
+          }
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    ts.forEachChild(sf, visit);
+  }
+
+  for (const [mixin, g] of Object.entries(golden)) {
+    if (!seenMixins.has(mixin)) {
+      const n = g.authorable.length + g.runtime.length;
+      if (n > 0) dropped.push(`  ${mixin}: ${n} tagged candidate(s), no fieldMeta`);
+    }
+  }
+
+  console.log(
+    `check-field-meta --verify-tags: ${Object.keys(golden).length} mixins in ` +
+      `the golden, ${seenMixins.size} carry a fieldMeta.`
+  );
+  if (dropped.length > 0) {
+    console.log(
+      `\n  ${dropped.length} mixin(s) whose tagged candidates match no ` +
+        `declared field — the scan's guess, dropped by the fold:`
+    );
+    for (const d of dropped) console.log(d);
+  }
+  if (mismatches.length > 0) {
+    console.error(`\n  ${mismatches.length} MISMATCH(es):`);
+    for (const m of mismatches) console.error(m);
+    process.exit(1);
+  }
+  console.log(`  clean: every declared field agrees with the scan.`);
 } else if (mode === "--lint") {
   lint();
 } else {

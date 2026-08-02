@@ -59,22 +59,20 @@ export function MeltableMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = 'MeltableMixin';
 
     static fieldMeta: FieldMeta = {
-      meltPhase: { persistent: true },
-      latentAbsorbedJ: { persistent: true },
+      meltPhase: { persistent: true, runtimeState: true },
+      latentAbsorbedJ: { persistent: true, runtimeState: true },
     };
 
     /**
      * The object's phase.
      *
-     * @runtimeState Written by the gated `ThermalLogic`.
+     * Written by the gated `ThermalLogic`.
      */
     public meltPhase: MeltPhase = 'solid';
 
     /**
      * Latent heat (J) absorbed toward the pending transition — the plateau
      * accumulator (`0 …  mass × latentHeatOfFusion`).
-     *
-     * @runtimeState
      */
     public latentAbsorbedJ = 0;
 

@@ -89,10 +89,9 @@ export function StatusMixin<TBase extends MixinConstructor>(Base: TBase) {
     // state (re-set by the verb / behavior each session), like an
     // imposed disguise.
     static fieldMeta: FieldMeta = {
-      authoredStatus: { persistent: true },
+      authoredStatus: { persistent: true, authorable: true },
     };
 
-    /** @authorable */
     public authoredStatus: string = '';
     private _runtimeStatus: string | null = null;
 

@@ -73,8 +73,6 @@ export default class Weapon extends WeaponBase {
    * this field — it is kept only so older rows hydrate unchanged (removing a
    * `persistentField` is the breaking move; keeping it is inert). A weapon
    * that truly wants a hand-set number is the reserved consumer.
-   *
-   * @authorable
    */
   public balanceFactor: number = 1;
 
@@ -82,8 +80,8 @@ export default class Weapon extends WeaponBase {
   // `{ mass }` (the marshaller map unions across the prototype chain, first
   // declaration wins — an identical restatement is a no-op at runtime).
   static fieldMeta: FieldMeta = {
-    balanceFactor: { persistent: true },
-    length: { persistent: true, marshaller: QuantityMarshaller.pathFor('m') },
+    balanceFactor: { persistent: true, authorable: true },
+    length: { persistent: true, marshaller: QuantityMarshaller.pathFor('m'), authorable: true },
     mass: { marshaller: QuantityMarshaller.pathFor('kg') },
   };
 
@@ -94,8 +92,6 @@ export default class Weapon extends WeaponBase {
    * it from the delivery form × mass, so a bare form still yields a working
    * profile (the universe-default rule). Round-trips via the m-bound
    * `QuantityMarshaller`; the accessor pair stays strict on `Quantity<'m'>`.
-   *
-   * @authorable
    */
   private _length: Quantity<'m'> = Quantity.of(0, 'm');
 

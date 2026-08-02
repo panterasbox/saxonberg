@@ -220,7 +220,7 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     static fieldMeta: FieldMeta = {
-      aliases: { persistent: true },
+      aliases: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -245,7 +245,6 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Optional + default `{}`. Matches the legacy-tolerant
      * Propertied.savedProps pattern so existing avatar docs without
      * the field hydrate cleanly.
-     * @runtimeState
      */
     aliases?: Record<string, string | null> = {};
 

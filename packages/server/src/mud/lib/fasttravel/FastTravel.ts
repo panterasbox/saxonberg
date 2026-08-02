@@ -113,13 +113,13 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
 
     /** `routes` is authored content applied once at hydrate (Phase 2). */
     static fieldMeta: FieldMeta = {
-      directionality: { persistent: true },
-      selectedDestinationRef: { persistent: true },
-      status: { persistent: true },
-      advanceMode: { persistent: true },
-      cycleInterval: { persistent: true },
-      surcharge: { persistent: true },
-      routes: { instruction: true },
+      directionality: { persistent: true, authorable: true },
+      selectedDestinationRef: { persistent: true, runtimeState: true },
+      status: { persistent: true, runtimeState: true },
+      advanceMode: { persistent: true, authorable: true },
+      cycleInterval: { persistent: true, authorable: true },
+      surcharge: { persistent: true, authorable: true },
+      routes: { instruction: true, authorable: true },
     };
 
     /** The `register` verb surfaces only for actors at a node. */
@@ -127,11 +127,9 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       environment: ["movement/register.yaml"],
     };
 
-    /** @authorable Which travel direction this terminal permits. */
+    /** Which travel direction this terminal permits. */
     private _directionality: Directionality = "both";
-    /** @runtimeState */
     private _selectedDestinationRef: string | null = null;
-    /** @runtimeState */
     private _status = "operational";
     /**
      * The node's **arrival surcharge** (minor units; 0 = none): a charge this
@@ -139,14 +137,10 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
      * the route's own `fee`. Collected by the Business operating THIS node's
      * arrival room (the destination operator), the mirror of the route fee's
      * departure attribution. Optional, like the fee.
-     * @authorable
      */
     private _surcharge = 0;
-    /** @authorable */
     private _advanceMode: AdvanceMode = "manual";
-    /** @authorable */
     private _cycleInterval: string | null = null;
-    /** @authorable */
     private _routes = new Map<string, TravelRoute>();
     private _clockHandles: ClockHandle[] = [];
 

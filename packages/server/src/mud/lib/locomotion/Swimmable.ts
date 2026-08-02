@@ -31,13 +31,11 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
   return class SwimmableMixin extends Base implements Enablement {
     static _mixinName = 'SwimmableMixin';
     static fieldMeta: FieldMeta = {
-      axes: { persistent: true },
-      difficulty: { persistent: true },
+      axes: { persistent: true, authorable: true },
+      difficulty: { persistent: true, authorable: true },
     };
 
-    /** @authorable */
     public axes: string[] = [];
-    /** @authorable */
     public difficulty: number | null = null;
 
     public getAxes(): readonly string[] {

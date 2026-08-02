@@ -140,10 +140,10 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _augmentGated = true;
 
     static fieldMeta: FieldMeta = {
-      facultyClockStamp: { persistent: true },
+      facultyClockStamp: { persistent: true, runtimeState: true },
     };
 
-    /** @runtimeState Last faculty reconcile, in-session game-seconds. */
+    /** Last faculty reconcile, in-session game-seconds. */
     public facultyClockStamp = 0;
 
     private _reconcilingFaculty = false;

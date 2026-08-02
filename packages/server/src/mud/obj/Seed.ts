@@ -21,22 +21,18 @@ const SeedBase = DetailedMixin(Thing);
 
 export default class Seed extends SeedBase {
   static fieldMeta: FieldMeta = {
-    growsIntoPath: { persistent: true },
-    _speciesPath: { persistent: true },
+    growsIntoPath: { persistent: true, authorable: true, authorPicker: 'Template' },
+    _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
   };
 
   /**
    * The `/obj/plant/…` template this seed mints when planted.
-   *
-   * @authorable ref:Template
    */
   public growsIntoPath: string | null = null;
 
   /**
    * The species this seed belongs to — its own description's business,
    * distinct from the plant template it grows into.
-   *
-   * @authorable ref:Species
    */
   public _speciesPath: string | null = null;
 

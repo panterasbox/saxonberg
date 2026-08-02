@@ -59,15 +59,13 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConcealableMixin extends Base implements Concealable {
     static _mixinName = 'ConcealableMixin';
     static fieldMeta: FieldMeta = {
-      concealment: { persistent: true },
-      concealmentHint: { persistent: true },
+      concealment: { persistent: true, authorable: true },
+      concealmentHint: { persistent: true, authorable: true },
     };
 
     /**
      * The concealment band; `'obvious'` (the default) = not concealed.
      * Authored on seeds that want a hidden thing (`concealment: hidden`).
-     *
-     * @authorable
      */
     public concealment: ConcealmentLevel = 'obvious';
 
@@ -78,8 +76,6 @@ export function ConcealableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `undefined` by default; authored on seeds that want a directed nudge
      * (`concealmentHint: "a draft from the north wall"`). Never names the
      * concealed thing's identity — honest fog.
-     *
-     * @authorable
      */
     public concealmentHint?: string;
 

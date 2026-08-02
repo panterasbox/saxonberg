@@ -123,36 +123,28 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = "AttendantMixin";
 
     static fieldMeta: FieldMeta = {
-      discipline: { persistent: true },
-      serverPositionKeys: { persistent: true },
-      staffingPolicy: { persistent: true },
-      attendDurationMs: { persistent: true },
-      skin: { persistent: true },
-      businessPath: { persistent: true },
+      discipline: { persistent: true, authorable: true },
+      serverPositionKeys: { persistent: true, authorable: true },
+      staffingPolicy: { persistent: true, authorable: true },
+      attendDurationMs: { persistent: true, authorable: true },
+      skin: { persistent: true, authorable: true },
+      businessPath: { persistent: true, authorable: true, authorPicker: 'Business' },
     };
 
-    /** @authorable */
     public discipline: ServiceDiscipline = "line";
-    /** @authorable */
     public serverPositionKeys: string[] = [];
-    /** @authorable */
     public staffingPolicy: StaffingPolicy = "close";
-    /** @authorable */
     public attendDurationMs = 0;
-    /** @authorable */
     public skin: Record<string, string> = {};
-    /** @authorable ref:Business */
     public businessPath = "";
 
     /**
      * Waiting customer keys, ordered. Runtime-only — a queue is a live,
      * in-session thing (the residency `_engagements` precedent).
-     * @runtimeState
      */
     private _queue: string[] = [];
     /**
      * Active durative leases (server-attention holds), keyed by customer.
-     * @runtimeState
      */
     private _leases = new Map<string, AttendanceEngagement>();
 

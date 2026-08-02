@@ -100,25 +100,25 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
     };
 
     static fieldMeta: FieldMeta = {
-      burnTemperatureK: { persistent: true },
-      bellowsMultiplier: { persistent: true },
-      bellowsActive: { persistent: true },
-      lit: { persistent: true },
-      fuelBurnRatePerMin: { persistent: true },
-      furnaceFuelClockStamp: { persistent: true },
+      burnTemperatureK: { persistent: true, authorable: true },
+      bellowsMultiplier: { persistent: true, authorable: true },
+      bellowsActive: { persistent: true, runtimeState: true },
+      lit: { persistent: true, runtimeState: true },
+      fuelBurnRatePerMin: { persistent: true, authorable: true },
+      furnaceFuelClockStamp: { persistent: true, runtimeState: true },
     };
 
-    /** The base held temperature (K) while lit + fuelled. @authorable */
+    /** The base held temperature (K) while lit + fuelled. */
     public burnTemperatureK: number = FURNACE_DEFAULTS.DEFAULT_BURN_TEMPERATURE_K;
-    /** The temperature multiplier applied when the bellows is working. @authorable */
+    /** The temperature multiplier applied when the bellows is working. */
     public bellowsMultiplier: number = 1;
-    /** @runtimeState Is the bellows boosting right now. */
+    /** Is the bellows boosting right now. */
     public bellowsActive = false;
-    /** @runtimeState Is the furnace alight (a Campfire seed starts lit). */
+    /** Is the furnace alight (a Campfire seed starts lit). */
     public lit = true;
-    /** Fuel burn rate (`%`/game-min). @authorable */
+    /** Fuel burn rate (`%`/game-min). */
     public fuelBurnRatePerMin: number = FURNACE_DEFAULTS.DEFAULT_BURN_RATE_PER_MIN;
-    /** @runtimeState Game-time (s) of the last fuel reconcile; 0 = unseeded. */
+    /** Game-time (s) of the last fuel reconcile; 0 = unseeded. */
     public furnaceFuelClockStamp = 0;
 
     private get furnaceHost(): Stuff & Thermal & Reserved {

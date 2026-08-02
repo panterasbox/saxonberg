@@ -26,7 +26,7 @@
  * type-checks the runtime unit and throws TypeError on mismatch —
  * no normalize-at-save hook. Matches `Material.density`'s shape.
  *
- * **Biome reference** is Pattern A: `_biomePath` carries a templatePath
+ * **Biome reference** is an identity ref: `_biomePath` carries a templatePath
  * string; `getBiome()` re-resolves on each call via
  * `BiomeApi.findByPath` (HMR-safe).
  */
@@ -146,53 +146,53 @@ export function AtmosphericMixin<
      * serializes natively without a map marshaller.
      */
     static fieldMeta: FieldMeta = {
-      _biomePath: { persistent: true },
-      _temperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
-      _pressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa') },
-      _humidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-      _wind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s') },
-      _gravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²') },
-      _atmosphere: { persistent: true },
-      _detailTemperatures: { persistent: true },
-      _detailPressures: { persistent: true },
-      _detailHumidities: { persistent: true },
-      _detailWinds: { persistent: true },
-      _detailGravities: { persistent: true },
-      _detailAtmospheres: { persistent: true },
-      _weatherPin: { persistent: true },
+      _biomePath: { persistent: true, authorable: true, authorPicker: 'Biome' },
+      _temperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), authorable: true },
+      _pressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa'), authorable: true },
+      _humidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%'), authorable: true },
+      _wind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s'), authorable: true },
+      _gravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²'), authorable: true },
+      _atmosphere: { persistent: true, authorable: true },
+      _detailTemperatures: { persistent: true, authorable: true },
+      _detailPressures: { persistent: true, authorable: true },
+      _detailHumidities: { persistent: true, authorable: true },
+      _detailWinds: { persistent: true, authorable: true },
+      _detailGravities: { persistent: true, authorable: true },
+      _detailAtmospheres: { persistent: true, authorable: true },
+      _weatherPin: { persistent: true, authorable: true },
     };
 
     // ---------- storage ----------
 
-    /** @authorable ref:Biome Authored biome reference (Pattern A path string). */
+    /** Authored biome reference (identity ref, a path string). */
     public _biomePath: string | null = null;
-    /** @authorable Local room-scope temperature override; `null` falls through the chain. */
+    /** Local room-scope temperature override; `null` falls through the chain. */
     public _temperature: Quantity<'K'> | null = null;
-    /** @authorable Local room-scope pressure override; `null` falls through the chain. */
+    /** Local room-scope pressure override; `null` falls through the chain. */
     public _pressure: Quantity<'Pa'> | null = null;
-    /** @authorable Local room-scope humidity override; `null` falls through the chain. */
+    /** Local room-scope humidity override; `null` falls through the chain. */
     public _humidity: Quantity<'%'> | null = null;
-    /** @authorable Local room-scope wind override; `null` falls through the chain. */
+    /** Local room-scope wind override; `null` falls through the chain. */
     public _wind: Quantity<'m/s'> | null = null;
-    /** @authorable Local room-scope gravity override; `null` falls through the chain. */
+    /** Local room-scope gravity override; `null` falls through the chain. */
     public _gravity: Quantity<'m/s²'> | null = null;
-    /** @authorable Local room-scope atmosphere override; `null` falls through the chain. */
+    /** Local room-scope atmosphere override; `null` falls through the chain. */
     public _atmosphere: string | null = null;
 
-    /** @authorable Per-detail temperature overrides. */
+    /** Per-detail temperature overrides. */
     public _detailTemperatures: Record<string, Quantity<'K'>> = {};
-    /** @authorable Per-detail pressure overrides. */
+    /** Per-detail pressure overrides. */
     public _detailPressures: Record<string, Quantity<'Pa'>> = {};
-    /** @authorable Per-detail humidity overrides. */
+    /** Per-detail humidity overrides. */
     public _detailHumidities: Record<string, Quantity<'%'>> = {};
-    /** @authorable Per-detail wind overrides. */
+    /** Per-detail wind overrides. */
     public _detailWinds: Record<string, Quantity<'m/s'>> = {};
-    /** @authorable Per-detail gravity overrides. */
+    /** Per-detail gravity overrides. */
     public _detailGravities: Record<string, Quantity<'m/s²'>> = {};
-    /** @authorable Per-detail atmosphere overrides. */
+    /** Per-detail atmosphere overrides. */
     public _detailAtmospheres: Record<string, string> = {};
 
-    /** @authorable Scope-tier authored weather pin (`{type,mode}` or null). */
+    /** Scope-tier authored weather pin (`{type,mode}` or null). */
     public _weatherPin: WeatherPin | null = null;
 
     // ---------- biome reference ----------

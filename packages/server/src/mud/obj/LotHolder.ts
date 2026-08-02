@@ -76,8 +76,8 @@ const LotHolderBase = SingletonMixin(PostRegistrationMixin(Idea));
 
 export default class LotHolder extends LotHolderBase {
   static fieldMeta: FieldMeta = {
-    roomTemplate: { persistent: true },
-    streetPath: { persistent: true },
+    roomTemplate: { persistent: true, authorable: true, authorPicker: 'Template' },
+    streetPath: { persistent: true, authorable: true, authorPicker: 'Template' },
     parentExtent: { persistent: true },
   };
 
@@ -96,8 +96,6 @@ export default class LotHolder extends LotHolderBase {
    * refuses a non-cardinal direction between two rooms in the same zone,
    * which is exactly the `lot-1` gate. A yard is reached through a gate,
    * not by a grid step.
-   *
-   * @authorable ref:Template
    */
   public roomTemplate: string = "";
 
@@ -112,8 +110,6 @@ export default class LotHolder extends LotHolderBase {
    * and a static `north → <the shared room template>` names the template
    * itself — which then materializes as an unowned yard on nobody's lot.
    * Empty = no street wiring (a subdivision reached some other way).
-   *
-   * @authorable ref:Template
    */
   public streetPath: string = "";
 

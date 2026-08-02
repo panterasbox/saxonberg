@@ -36,10 +36,9 @@ export function GenderedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Used by PersistApi for automatic synchronization.
      */
     static fieldMeta: FieldMeta = {
-      pronouns: { persistent: true },
+      pronouns: { persistent: true, authorable: true },
     };
 
-    /** @authorable */
     protected pronouns: Pronouns = Pronouns.They;
 
     getPronouns(): Pronouns { return this.pronouns; }

@@ -274,8 +274,6 @@ export default class Species extends SingletonMixin(
    * to the legacy single-attack `CombatantMixin.naturalAttackChannel`.
    * See docs/subsystems/combat-hooks.md § the species vocabulary and
    * docs/subsystems/race.md.
-   *
-   * @authorable
    */
   protected naturalAttacks: NaturalAttackSpec[] = [];
 
@@ -287,8 +285,6 @@ export default class Species extends SingletonMixin(
    * `affordedByShield`); the instrument gate still stands (satisfied by
    * a natural attack), and unknown keys are inert. See
    * docs/subsystems/combat-hooks.md § the species vocabulary.
-   *
-   * @authorable
    */
   protected affordedGambits: string[] = [];
 
@@ -312,8 +308,8 @@ export default class Species extends SingletonMixin(
     nameBankKeys: { persistent: true },
     innateMixins: { persistent: true },
     sentient: { persistent: true },
-    naturalAttacks: { persistent: true },
-    affordedGambits: { persistent: true },
+    naturalAttacks: { persistent: true, authorable: true },
+    affordedGambits: { persistent: true, authorable: true },
   };
   // `shortDescription` / `longDescription` (the species' generic
   // appearance) come from VisibleMixin's own persistentFields. The

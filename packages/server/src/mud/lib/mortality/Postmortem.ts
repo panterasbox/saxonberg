@@ -58,10 +58,9 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = 'PostmortemMixin';
 
     static fieldMeta: FieldMeta = {
-      diedAtGameSec: { persistent: true },
+      diedAtGameSec: { persistent: true, runtimeState: true },
     };
 
-    /** @runtimeState */
     public diedAtGameSec = 0;
 
     public markDeceasedAt(gameSec: number): void {

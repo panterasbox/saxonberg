@@ -100,7 +100,7 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `Set<ContactEntry>` runtime.
      */
     static fieldMeta: FieldMeta = {
-      _contacts: { persistent: true },
+      _contacts: { persistent: true, runtimeState: true },
     };
 
     static commandContributions: CommandContributions = {
@@ -120,7 +120,6 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Persistent storage. Default `[]` matches the Alias.aliases
      * legacy-tolerant pattern — existing avatar docs without the
      * field hydrate cleanly.
-     * @runtimeState
      */
     _contacts: ContactEntry[] = [];
 

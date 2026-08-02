@@ -110,9 +110,9 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `fromStored` and only runs on the persistence path.
      */
     static fieldMeta: FieldMeta = {
-      _materialPath: { persistent: true },
-      _detailMaterialPaths: { persistent: true },
-      mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg') },
+      _materialPath: { persistent: true, authorable: true, authorPicker: 'Material' },
+      _detailMaterialPaths: { persistent: true, authorable: true, authorPicker: 'Material' },
+      mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg'), authorable: true },
     };
 
     /**
@@ -170,8 +170,6 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Runtime mass storage as a `Quantity<'kg'>`. The marshaller
      * delivers a Quantity instance on hydrate; in-process callers
      * use `getMass` / `setMass`.
-     *
-     * @authorable
      */
     private _mass: Quantity<'kg'> = Quantity.of(0, 'kg');
 
@@ -197,7 +195,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * each `getMaterial()` call so HMR replacement is observed
      * immediately.
      *
-     * @authorable ref:Material Pattern-A path-string reference to the
+     * Pattern-A path-string reference to the
      *   default Material singleton (resolve-on-read).
      */
     public _materialPath: string | null = null;
@@ -207,8 +205,6 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Material's templatePath. Stored as a plain `Record` (not a
      * `Map`) so default JSON serialization handles it without a
      * marshaller.
-     *
-     * @authorable ref:Material
      */
     public _detailMaterialPaths: Record<string, string> = {};
 

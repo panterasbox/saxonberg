@@ -454,8 +454,8 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * declare the binding for every prop name.
      */
     static fieldMeta: FieldMeta = {
-      savedProps: { persistent: true },
-      savedPropMarshallers: { persistent: true },
+      savedProps: { persistent: true, runtimeState: true },
+      savedPropMarshallers: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -467,8 +467,6 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the raw record directly without per-key conversion — the
      * marshaller binding lives on `savedPropMarshallers` and runs
      * lazily at access time.
-     *
-     * @runtimeState
      */
     protected savedProps?: Record<string, PropValue> = {};
 
@@ -482,8 +480,6 @@ export function PropertiedMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * Auto-initialized to an empty object; populated by
      * `initProp(prop, { marshaller: '/path' })`.
-     *
-     * @runtimeState
      */
     protected savedPropMarshallers: Record<string, string> = {};
 

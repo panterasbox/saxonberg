@@ -35,7 +35,7 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PosedMixin extends Base {
     static _mixinName = 'PosedMixin';
     static fieldMeta: FieldMeta = {
-      posture: { persistent: true },
+      posture: { persistent: true, authorable: true },
       restingOnPath: { persistent: true },
       restingSlot: { persistent: true },
     };
@@ -69,7 +69,6 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
       peers: [],
     };
 
-    /** @authorable */
     public posture: string = Postures.Stand;
 
     /**

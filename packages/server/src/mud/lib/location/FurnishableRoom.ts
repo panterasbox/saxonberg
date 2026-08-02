@@ -70,7 +70,7 @@ const FurnishableRoomBase = PersistableMixin(
 
 export default class FurnishableRoom extends FurnishableRoomBase {
   static fieldMeta: FieldMeta = {
-    postedAs: { persistent: true },
+    postedAs: { persistent: true, authorable: true },
   };
 
   /**
@@ -104,8 +104,6 @@ export default class FurnishableRoom extends FurnishableRoomBase {
    * Free text rather than an enum is also what keeps the defamiliarisation
    * route open: a posted vocabulary that is not the real-world one is what
    * makes a legislature's argument playable rather than a re-enactment.
-   *
-   * @authorable
    */
   public postedAs: string = UNRESTRICTED;
 

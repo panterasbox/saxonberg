@@ -57,7 +57,7 @@ export interface CraftedStamp {
 }
 
 export interface Crafted extends Graded {
-  /** The maker's durable templatePath (Pattern A path-string ref). */
+  /** The maker's durable templatePath (identity ref (path string)). */
   getMaker(): string;
   setMaker(value: string): void;
   /** The recipe id this was made from. */
@@ -87,27 +87,21 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'CraftedMixin';
 
     static fieldMeta: FieldMeta = {
-      maker: { persistent: true },
-      recipe: { persistent: true },
-      craftedAt: { persistent: true },
+      maker: { persistent: true, runtimeState: true },
+      recipe: { persistent: true, runtimeState: true },
+      craftedAt: { persistent: true, runtimeState: true },
     };
 
     /**
      * The maker's durable templatePath; empty until stamped.
-     *
-     * @runtimeState
      */
     public maker: string = '';
     /**
      * The recipe id; empty until stamped.
-     *
-     * @runtimeState
      */
     public recipe: string = '';
     /**
      * Game-clock seconds of the craft; 0 until stamped.
-     *
-     * @runtimeState
      */
     public craftedAt: number = 0;
 

@@ -37,7 +37,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'ToolMixin';
 
     static fieldMeta: FieldMeta = {
-      capabilities: { persistent: true },
+      capabilities: { persistent: true, authorable: true },
     };
 
     /**
@@ -46,8 +46,6 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `{ kind, rate?, control?, placement? }`, validated against the
      * vocabulary. Persisted exactly as authored; normalization happens
      * on read (`entryFor`), so seeds stay byte-stable.
-     *
-     * @authorable
      */
     public capabilities: (string | CapabilitySpec)[] = [];
 

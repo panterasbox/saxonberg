@@ -114,10 +114,9 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     /** The declarative spec list — pure data, persisted as-is. */
     static fieldMeta: FieldMeta = {
-      behaviors: { persistent: true },
-      dispositions: { persistent: true },
+      behaviors: { persistent: true, authorable: true },
+      dispositions: { persistent: true, authorable: true },
     };
-    /** @authorable */
     public behaviors: BehaviorSpec[] = [];
 
     /**
@@ -128,7 +127,6 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
      * derive-don't-track (it came from a seeded history, not a stat). The
      * behavior→trait edge this introduces is the same one the trait-aware
      * brains already establish.
-     * @authorable
      */
     public dispositions: ClaimSeed[] = [];
 

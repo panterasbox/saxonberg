@@ -29,21 +29,17 @@ export function SphericalCoordinatesMixin<TBase extends MixinConstructor>(Base: 
   return class SphericalCoordinatesMixin extends Base {
     static _mixinName = 'SphericalCoordinatesMixin';
     static fieldMeta: FieldMeta = {
-      coordinates: { persistent: true },
-      radius: { persistent: true },
+      coordinates: { persistent: true, authorable: true },
+      radius: { persistent: true, authorable: true },
     };
 
     /**
      * [rho, theta, phi] — radial distance + two angles.
-     *
-     * @authorable
      */
     protected coordinates: [number, number, number] = [0, 0, 0];
 
     /**
      * Sphere radius. Default 1.0 makes a unit sphere.
-     *
-     * @authorable
      */
     protected radius: number = 1.0;
 

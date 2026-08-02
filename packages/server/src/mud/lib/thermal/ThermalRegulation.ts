@@ -113,19 +113,15 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     static _mixinName = "ThermalRegulationMixin";
 
     static fieldMeta: FieldMeta = {
-      setpointK: { persistent: true },
-      effectiveAmbientK: { persistent: true },
-      cachedHumidity: { persistent: true },
-      thermalRegStamp: { persistent: true },
+      setpointK: { persistent: true, authorable: true },
+      effectiveAmbientK: { persistent: true, runtimeState: true },
+      cachedHumidity: { persistent: true, runtimeState: true },
+      thermalRegStamp: { persistent: true, runtimeState: true },
     };
 
-    /** @authorable */
     public setpointK: number = THERMAL_DEFAULTS.SETPOINT_K;
-    /** @runtimeState */
     public effectiveAmbientK: number = THERMAL_DEFAULTS.SETPOINT_K;
-    /** @runtimeState */
     public cachedHumidity = 50;
-    /** @runtimeState */
     public thermalRegStamp = 0;
 
     /** Reentry guard (TypeScript `private` per the proxy constraint). */

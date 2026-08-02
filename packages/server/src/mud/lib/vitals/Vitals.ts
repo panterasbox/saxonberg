@@ -369,60 +369,50 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'VitalsMixin';
 
     static fieldMeta: FieldMeta = {
-      _coreTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
-      _heartRate: { persistent: true, marshaller: QuantityMarshaller.pathFor('bpm') },
-      _respiratoryRate: { persistent: true, marshaller: QuantityMarshaller.pathFor('bpm') },
-      _bloodPressureSystolic: { persistent: true, marshaller: QuantityMarshaller.pathFor('mmHg') },
-      _bloodPressureDiastolic: { persistent: true, marshaller: QuantityMarshaller.pathFor('mmHg') },
-      _spo2: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-      _bloodVolume: { persistent: true, marshaller: QuantityMarshaller.pathFor('L') },
-      causeOfDeath: { persistent: true },
-      bodyPartDeltas: { persistent: true },
-      conditions: { persistent: true },
+      _coreTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), runtimeState: true },
+      _heartRate: { persistent: true, marshaller: QuantityMarshaller.pathFor('bpm'), runtimeState: true },
+      _respiratoryRate: { persistent: true, marshaller: QuantityMarshaller.pathFor('bpm'), runtimeState: true },
+      _bloodPressureSystolic: { persistent: true, marshaller: QuantityMarshaller.pathFor('mmHg'), runtimeState: true },
+      _bloodPressureDiastolic: { persistent: true, marshaller: QuantityMarshaller.pathFor('mmHg'), runtimeState: true },
+      _spo2: { persistent: true, marshaller: QuantityMarshaller.pathFor('%'), runtimeState: true },
+      _bloodVolume: { persistent: true, marshaller: QuantityMarshaller.pathFor('L'), runtimeState: true },
+      causeOfDeath: { persistent: true, runtimeState: true },
+      bodyPartDeltas: { persistent: true, runtimeState: true },
+      conditions: { persistent: true, runtimeState: true },
     };
 
     // ---------- storage; defaults are the universe-default baselines ----------
-    /** @runtimeState */
     public _coreTemperature: Quantity<'K'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.coreTemperature.baseline,
       'K',
     );
-    /** @runtimeState */
     public _heartRate: Quantity<'bpm'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.heartRate.baseline,
       'bpm',
     );
-    /** @runtimeState */
     public _respiratoryRate: Quantity<'bpm'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.respiratoryRate.baseline,
       'bpm',
     );
-    /** @runtimeState */
     public _bloodPressureSystolic: Quantity<'mmHg'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodPressureSystolic.baseline,
       'mmHg',
     );
-    /** @runtimeState */
     public _bloodPressureDiastolic: Quantity<'mmHg'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodPressureDiastolic.baseline,
       'mmHg',
     );
-    /** @runtimeState */
     public _spo2: Quantity<'%'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.spo2.baseline,
       '%',
     );
-    /** @runtimeState */
     public _bloodVolume: Quantity<'L'> = Quantity.of(
       UNIVERSE_DEFAULT_VITAL_PROFILE.bloodVolume.baseline,
       'L',
     );
 
-    /** @runtimeState */
     public causeOfDeath: string | null = null;
-    /** @runtimeState */
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
-    /** @runtimeState */
     public conditions: ActiveCondition[] = [];
 
     /**

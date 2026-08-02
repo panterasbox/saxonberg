@@ -34,7 +34,7 @@ export function WieldableMixin<
   return class WieldableMixin extends Base {
     static _mixinName = 'WieldableMixin';
     static fieldMeta: FieldMeta = {
-      slotClaims: { persistent: true },
+      slotClaims: { persistent: true, authorable: true },
     };
 
     /**
@@ -51,7 +51,6 @@ export function WieldableMixin<
       peers: [],
     };
 
-    /** @authorable */
     public slotClaims: Record<string, string[]> = {};
 
     public getSlotClaims(): Readonly<Record<string, readonly string[]>> {

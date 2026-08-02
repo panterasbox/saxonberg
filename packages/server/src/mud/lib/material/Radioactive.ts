@@ -77,33 +77,27 @@ export function RadioactiveMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class RadioactiveMixin extends Base {
     static _mixinName = 'RadioactiveMixin';
     static fieldMeta: FieldMeta = {
-      halfLife: { persistent: true },
-      decayMode: { persistent: true },
-      _decayProductPath: { persistent: true },
+      halfLife: { persistent: true, authorable: true },
+      decayMode: { persistent: true, authorable: true },
+      _decayProductPath: { persistent: true, authorable: true, authorPicker: 'Material' },
     };
 
     /**
      * Half-life in years. 0 default reads as "not yet authored" — the
      * mixin is composed onto Materials whose halfLife is meaningful;
      * a zero value during testing should round-trip without crashing.
-     *
-     * @authorable
      */
     public halfLife: number = 0;
 
     /**
      * Empty default for the same reason as `halfLife`. Production
      * materials should set this in the seed `data` block.
-     *
-     * @authorable
      */
     public decayMode: DecayMode | '' = '';
 
     /**
      * Path to the daughter Material singleton. Resolves lazily on
      * each `getDecayProduct()` call via `findByTemplatePath`.
-     *
-     * @authorable ref:Material
      */
     public _decayProductPath: string | null = null;
 

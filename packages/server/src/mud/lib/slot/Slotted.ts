@@ -169,15 +169,13 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
   return class SlottedMixin extends Base {
     static _mixinName = 'SlottedMixin';
     static fieldMeta: FieldMeta = {
-      staticSlots: { persistent: true },
+      staticSlots: { persistent: true, authorable: true },
     };
 
     /**
      * Authoring data — only used by the default `getSlotNames` /
      * `getSlotSpec` implementation. Hosts that override the universe
      * surface (BodyPlanSlots, Adornable) leave this empty.
-     *
-     * @authorable
      */
     public staticSlots: SlotSpec[] = [];
 

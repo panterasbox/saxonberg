@@ -52,10 +52,9 @@ export function SubjectSubscriberMixin<TBase extends MixinConstructor>(
      * avatar docs (no field) cleanly.
      */
     static fieldMeta: FieldMeta = {
-      _subjectSubscriptions: { persistent: true },
+      _subjectSubscriptions: { persistent: true, runtimeState: true },
     };
 
-    /** @runtimeState */
     _subjectSubscriptions: Record<string, SubjectSubscription> = {};
 
     getSubjectSubscription(

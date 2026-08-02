@@ -155,7 +155,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'RespirationMixin';
 
     static fieldMeta: FieldMeta = {
-      respirationClockStamp: { persistent: true },
+      respirationClockStamp: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -172,7 +172,6 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * The only persisted field — the drain's elapsed anchor.
-     * @runtimeState
      */
     public respirationClockStamp = 0;
 

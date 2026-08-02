@@ -39,8 +39,8 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class PersonaMixin extends Base {
     static _mixinName = 'PersonaMixin';
     static fieldMeta: FieldMeta = {
-      bio: { persistent: true },
-      aspiration: { persistent: true },
+      bio: { persistent: true, authorable: true },
+      aspiration: { persistent: true, authorable: true },
     };
 
     /**
@@ -114,13 +114,11 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Claimed narrative prose. Seeded at char-gen; editable later.
-     * @authorable
      */
     public bio: string = '';
 
     /**
      * Closed-choice origin/aspiration key (or null if unset).
-     * @authorable
      */
     public aspiration: string | null = null;
 

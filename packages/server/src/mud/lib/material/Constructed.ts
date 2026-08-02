@@ -40,14 +40,12 @@ export function ConstructedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ConstructedMixin extends Base implements Constructed {
     static _mixinName = 'ConstructedMixin';
     static fieldMeta: FieldMeta = {
-      constructionForm: { persistent: true },
+      constructionForm: { persistent: true, authorable: true },
     };
 
     /**
      * The construction form word; empty = unset (no construction). Authored
      * on armor/weapon seeds (`constructionForm: plate`).
-     *
-     * @authorable
      */
     public constructionForm: string = '';
 

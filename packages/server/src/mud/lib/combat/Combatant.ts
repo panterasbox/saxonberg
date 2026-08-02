@@ -139,9 +139,9 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class CombatantMixin extends Base implements Combatant {
     static _mixinName = "CombatantMixin";
     static fieldMeta: FieldMeta = {
-      naturalAttackChannel: { persistent: true },
-      standingLethality: { persistent: true },
-      standingStopCondition: { persistent: true },
+      naturalAttackChannel: { persistent: true, authorable: true },
+      standingLethality: { persistent: true, authorable: true },
+      standingStopCondition: { persistent: true, authorable: true },
     };
 
     /**
@@ -153,8 +153,6 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      * engine synthesizes this channel as a one-entry `{key: 'natural'}`
      * list, byte-preserving pre-vocabulary behavior. Kept as the simple
      * one-channel surface (field and behavior unchanged).
-     *
-     * @authorable
      */
     public naturalAttackChannel: string = "";
 
@@ -166,11 +164,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      * an NPC isn't an Environment, so a duelist authors its posture here
      * instead (`'lethal'` / `'death'`). Empty = no authored posture (the
      * frictionless non-lethal default).
-     *
-     * @authorable
      */
     public standingLethality: string = "";
-    /** @authorable */
     public standingStopCondition: string = "";
 
     getStandingLethality(): string {

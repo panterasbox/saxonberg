@@ -87,8 +87,6 @@ export interface Adornable {
    *   getter (the live fixtures are read via `getFixtures()`). Fixtures
    *   are runtime-only, so this re-runs and rebuilds them on every
    *   hydrate (the `BoundaryAnchor` reconstruction model).
-   *
-   * @authorable
    */
   applyAdornments(specs: AdornmentSpec[]): Promise<void>;
 }
@@ -104,11 +102,9 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      * an array of `AdornmentSpec` entries; Phase 2 clones each and
      * attaches it as a fixture. The `applyExits` / `applyPopulates`
      * precedent — declarative content over the imperative `addFixture`.
-     *
-     * @authorable
      */
     static fieldMeta: FieldMeta = {
-      adornments: { instruction: true },
+      adornments: { instruction: true, authorable: true },
     };
 
     /**

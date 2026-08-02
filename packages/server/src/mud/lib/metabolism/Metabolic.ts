@@ -348,25 +348,19 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "MetabolicMixin";
 
     static fieldMeta: FieldMeta = {
-      digestionPools: { persistent: true },
-      solidVolume: { persistent: true },
-      liquidVolume: { persistent: true },
-      toxinBurdens: { persistent: true },
-      metabolicClockStamp: { persistent: true },
-      lastMealLabel: { persistent: true },
+      digestionPools: { persistent: true, runtimeState: true },
+      solidVolume: { persistent: true, runtimeState: true },
+      liquidVolume: { persistent: true, runtimeState: true },
+      toxinBurdens: { persistent: true, runtimeState: true },
+      metabolicClockStamp: { persistent: true, runtimeState: true },
+      lastMealLabel: { persistent: true, runtimeState: true },
     };
 
-    /** @runtimeState */
     public digestionPools: Record<string, number> = {};
-    /** @runtimeState */
     public solidVolume = 0;
-    /** @runtimeState */
     public liquidVolume = 0;
-    /** @runtimeState */
     public toxinBurdens: Record<string, number> = {};
-    /** @runtimeState */
     public metabolicClockStamp = 0;
-    /** @runtimeState */
     public lastMealLabel: string | null = null;
 
     /**

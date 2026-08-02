@@ -335,74 +335,56 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     // ---- affordance presence flags (authored per host) ----
     /**
      * Whether this host offers an interior bulk slot.
-     *
-     * @authorable
      */
     public interiorBulk: boolean = false;
     /**
      * Whether this host offers a surface bulk slot.
-     *
-     * @authorable
      */
     public surfaceBulk: boolean = false;
 
     // ---- interior slot ----
     /**
-     * Interior material templatePath (Pattern A). `null` ⇒ empty.
-     *
-     * @authorable ref:Material
+     * Interior material templatePath (an identity ref). `null` ⇒ empty.
      */
     public interiorMaterial: string | null = null;
     /**
      * Interior blend payload (a derived mixture's identity + macros);
      * `null` ⇒ the held substance is exactly its Material row.
-     *
-     * @runtimeState
      */
     public interiorPayload: BulkPayload | null = null;
-    /** @runtimeState */
     private _interiorAmount: Quantity<'L'> = Quantity.of(0, BULK_VOLUME_UNIT);
-    /** @authorable */
     private _interiorCapacity: Quantity<'L'> | null = null;
 
     // ---- surface slot ----
     /**
-     * Surface material templatePath (Pattern A). `null` ⇒ empty.
-     *
-     * @authorable ref:Material
+     * Surface material templatePath (an identity ref). `null` ⇒ empty.
      */
     public surfaceMaterial: string | null = null;
     /**
      * Surface blend payload — the interior's sibling.
-     *
-     * @runtimeState
      */
     public surfacePayload: BulkPayload | null = null;
-    /** @runtimeState */
     private _surfaceAmount: Quantity<'L'> = Quantity.of(0, BULK_VOLUME_UNIT);
-    /** @authorable */
     private _surfaceCapacity: Quantity<'L'> | null = null;
 
     // ---- vessel-inherent state ----
     /**
      * Liquid-retention scale; default `liquidTight`.
-     *
-     * @authorable
      */
     public closure: ClosureLevel = 'liquidTight';
 
     static fieldMeta: FieldMeta = {
-      interiorBulk: { persistent: true },
-      surfaceBulk: { persistent: true },
-      interiorMaterial: { persistent: true },
-      interiorPayload: { persistent: true },
-      interiorAmount: { persistent: true, marshaller: VOLUME_MARSHALLER },
-      interiorCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER },
-      surfaceMaterial: { persistent: true },
-      surfacePayload: { persistent: true },
-      surfaceAmount: { persistent: true, marshaller: VOLUME_MARSHALLER },
-      surfaceCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER },
-      closure: { persistent: true },
+      interiorBulk: { persistent: true, authorable: true },
+      surfaceBulk: { persistent: true, authorable: true },
+      interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
+      interiorPayload: { persistent: true, runtimeState: true },
+      interiorAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
+      interiorCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
+      surfaceMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
+      surfacePayload: { persistent: true, runtimeState: true },
+      surfaceAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
+      surfaceCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
+      closure: { persistent: true, authorable: true },
     };
 
     // ---- accessor pairs (strict-Quantity invariants, Pattern D) ----

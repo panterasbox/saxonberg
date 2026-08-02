@@ -45,7 +45,7 @@ const StockBase = ResettableMixin(
 
 export default class Stock extends StockBase {
   static fieldMeta: FieldMeta = {
-    stockLines: { persistent: true },
+    stockLines: { persistent: true, authorable: true },
   };
 
   /** Boot-stock the shelf to par (then the reset sweep maintains it). */
@@ -54,7 +54,7 @@ export default class Stock extends StockBase {
     await this.reset();
   }
 
-  /** The authored stock lines (what the store carries). @authorable */
+  /** The authored stock lines (what the store carries). */
   public stockLines: StockLine[] = [];
 
   /**

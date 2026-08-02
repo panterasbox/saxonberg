@@ -90,14 +90,13 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'EmployedMixin';
 
     static fieldMeta: FieldMeta = {
-      employments: { persistent: true },
+      employments: { persistent: true, runtimeState: true },
     };
 
     /**
      * Stored employment records (plain data). Sparse: `null` on an
      * unemployed Character (nothing written to the doc). Wrapped into
      * `Employment` value objects on read.
-     * @runtimeState
      */
     public employments: EmploymentData[] | null = null;
 

@@ -62,13 +62,11 @@ export function EnergizedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'EnergizedMixin';
 
     static fieldMeta: FieldMeta = {
-      voltage: { persistent: true, marshaller: VOLTAGE_MARSHALLER },
+      voltage: { persistent: true, marshaller: VOLTAGE_MARSHALLER, authorable: true },
     };
 
     /**
      * The potential this source is held at. Zero-default until authored.
-     *
-     * @authorable
      */
     private _voltage: Quantity<'V'> = Quantity.of(0, 'V');
 

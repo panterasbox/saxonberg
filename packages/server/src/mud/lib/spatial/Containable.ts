@@ -80,8 +80,6 @@ export interface Containable {
    *   cascade). **Instruction applier** — no paired getter (not a
    *   property); idempotent (compare-and-move, no-op when already in
    *   the declared container).
-   *
-   * @authorable ref:Template
    */
   applyContainer(path: string): Promise<void>;
 
@@ -94,16 +92,16 @@ export interface Containable {
    * Null when the item is not on a surface (in a container, in
    * inventory, in an actor's grip, freely in a room).
    *
-   * **Runtime-only** (Pattern B live ref; see
+   * **Runtime-only** (an instance/live ref; see
    * [`docs/ref-shapes.md`](../../../../../docs/ref-shapes.md)).
    * Not persisted: on server restart, the apple's container is
    * preserved but its on-surface relationship resets. The tradeoff
-   * is intentional — Pattern A by templatePath only resolves
+   * is intentional — an identity ref by templatePath only resolves
    * unambiguously for singleton surfaces, which would constrain
    * the natural sandbox case of multiple identical chairs / tables
    * authored in a single area. When sandbox content earns
    * cross-restart on-surface persistence, that build picks the
-   * appropriate persistence shape (likely Pattern B with stuffId
+   * appropriate persistence shape (likely an instance ref with stuffId
    * stamping at save time).
    */
   getRestingOn(): (Stuff & Surfaced) | null;
@@ -176,7 +174,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * only runtime getter.
      */
     static fieldMeta: FieldMeta = {
-      container: { instruction: true },
+      container: { instruction: true, authorable: true, authorPicker: 'Template' },
     };
 
     /**
@@ -206,25 +204,26 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * cross-Stuff references would round-trip badly through the
      * Hydrator's reflection. The container relationship is rebuilt
      * at clone time via the `applyContainer` instruction-field path
-     * (see static `instructionFields` above) or by direct
-     * `ContainmentApi.move` calls after hydration.
+     * (declared `{ instruction: true }` in `fieldMeta` above) or by
+     * direct `ContainmentApi.move` calls after hydration.
      *
-     * Auxiliary `restingOn` is different — it's a Pattern A
-     * path-string (`_restingOnPath`) that DOES persist; see static
-     * `persistentFields` below.
-     *
-     * @runtimeState
+     * The auxiliary `_restingOn` pointer below is the SAME shape, not a
+     * different one. (This comment used to claim it was a persisted
+     * `_restingOnPath` identity ref — there is no such field, and this
+     * mixin declares nothing persistent at all. Both reference fields
+     * here are instance refs; see `_restingOn`'s own note for why
+     * templatePath stamping was rejected for it.)
      */
     protected environment: (Stuff & Container) | null = null;
 
     /**
-     * Runtime-only auxiliary support pointer — Pattern B live ref.
+     * Runtime-only auxiliary support pointer — an instance (live) ref.
      * Holds a direct reference to the supporting Surfaced host
-     * (null when no support). NOT in `persistentFields`; resets to
+     * (null when no support). Not persistent; resets to
      * null on hydrate. R2.3 self-heal in `getRestingOn` clears the
      * slot if the supporter has been destructed.
      *
-     * Pattern B chosen over Pattern A templatePath stamping because
+     * An instance ref was chosen over identity templatePath stamping because
      * non-singleton surfaces (e.g., multiple identical tables in a
      * dining hall) can't be addressed unambiguously by templatePath.
      * The cross-restart loss is small — items reappear in their
@@ -313,7 +312,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Resolve the auxiliary `restingOn` pointer. Pattern B live ref;
+     * Resolve the auxiliary `restingOn` pointer. An instance (live) ref;
      * R2.3 self-heal clears the slot if the supporting surface has
      * been destructed since the last set.
      *
@@ -336,7 +335,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Reachable only from `ContainmentApi.move` /
      * `ContainmentApi.placeOn`. Pass `null` to clear.
      *
-     * Stores the supporting Surfaced ref directly (Pattern B);
+     * Stores the supporting Surfaced ref directly (instance ref);
      * runtime-only — see the field declaration's JSDoc for the
      * persistence rationale.
      */

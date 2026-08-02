@@ -62,13 +62,11 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'DurableMixin';
 
     static fieldMeta: FieldMeta = {
-      condition: { persistent: true },
+      condition: { persistent: true, runtimeState: true },
     };
 
     /**
      * 0..1 wear gauge; default pristine.
-     *
-     * @runtimeState
      */
     private _condition: number = 1;
 

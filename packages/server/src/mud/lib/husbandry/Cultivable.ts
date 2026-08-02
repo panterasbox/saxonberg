@@ -194,8 +194,8 @@ export function CultivableMixin<
     static fieldMeta: FieldMeta = {
       soilClockStamp: { persistent: true },
       _soilMeanMoisture: { persistent: true },
-      fixedGround: { persistent: true },
-      landRequirementM2: { persistent: true },
+      fixedGround: { persistent: true, authorable: true },
+      landRequirementM2: { persistent: true, authorable: true },
     };
 
     /**
@@ -211,8 +211,6 @@ export function CultivableMixin<
      * Authored DATA rather than a class check, so a future planter box
      * that is bolted down needs no new class — and so the rule reads as
      * a property of the thing rather than of its type.
-     *
-     * @authorable
      */
     public fixedGround: boolean = false;
 
@@ -253,8 +251,6 @@ export function CultivableMixin<
      * Crowding is competition for light, water and nutrients, so it
      * belongs to the limiting-factor minimum and nowhere else. Resist
      * reimplementing it as a yield penalty here.
-     *
-     * @authorable
      */
     public landRequirementM2: number = 0;
 

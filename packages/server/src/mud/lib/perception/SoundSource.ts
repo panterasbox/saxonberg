@@ -43,13 +43,13 @@ export function SoundSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SoundSourceMixin extends Base {
     static _mixinName = 'SoundSourceMixin';
     static fieldMeta: FieldMeta = {
-      emittedAmplitude: { persistent: true },
-      character: { persistent: true },
+      emittedAmplitude: { persistent: true, authorable: true },
+      character: { persistent: true, authorable: true },
     };
 
-    /** @authorable Backing storage for the emitted dB scalar. */
+    /** Backing storage for the emitted dB scalar. */
     private _emittedAmplitude: number = 0;
-    /** @authorable Backing storage for the sound character string. */
+    /** Backing storage for the sound character string. */
     private _character: string = '';
 
     protected get emittedAmplitude(): number {

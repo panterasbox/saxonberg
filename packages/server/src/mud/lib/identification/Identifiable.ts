@@ -34,10 +34,10 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'IdentifiableMixin';
 
     static fieldMeta: FieldMeta = {
-      identifiedName: { persistent: true },
+      identifiedName: { persistent: true, authorable: true },
     };
 
-    /** @authorable The true type name revealed on identification. */
+    /** The true type name revealed on identification. */
     public identifiedName: string = '';
 
     getIdentifiedName(): string {

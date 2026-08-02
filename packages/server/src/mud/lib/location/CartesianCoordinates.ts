@@ -27,10 +27,9 @@ export function CartesianCoordinatesMixin<TBase extends MixinConstructor>(Base: 
   return class CartesianCoordinatesMixin extends Base {
     static _mixinName = 'CartesianCoordinatesMixin';
     static fieldMeta: FieldMeta = {
-      coordinates: { persistent: true },
+      coordinates: { persistent: true, authorable: true },
     };
 
-    /** @authorable */
     protected coordinates: [number, number, number] = [0, 0, 0];
 
     getCoordinates(): [number, number, number] {

@@ -177,6 +177,17 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "obj/api/StudioLogic.ts::resolveExport",
     classification: "transitive-safe",
   },
+  // The same resolve, on `describeMixinFields`'s DEGRADED path: when a
+  // mixin factory will not compose over `Idea` (or its class defaults
+  // throw), it composes over a bare base purely to read the `fieldMeta`
+  // statics. Same input, same trust argument — an already-registered
+  // mixin name from the export scan, never an author-named path — and it
+  // instantiates nothing. Replaced the source-scan candidate-name
+  // fallback that the `fieldMeta` fold retired.
+  {
+    site: "obj/api/StudioLogic.ts::resolveExport",
+    classification: "transitive-safe",
+  },
   // container-target mixin validators (does not instantiate).
   {
     site: "obj/api/TemplateLogic.ts::loadClassByPath",

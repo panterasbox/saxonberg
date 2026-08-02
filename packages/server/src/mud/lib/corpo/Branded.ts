@@ -55,14 +55,12 @@ export function BrandedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class BrandedMixin extends Base implements Branded {
     static _mixinName = "BrandedMixin";
     static fieldMeta: FieldMeta = {
-      _brandKey: { persistent: true },
+      _brandKey: { persistent: true, authorable: true, authorPicker: 'Brand' },
     };
 
     /**
      * The durable brand `key` (e.g. `'volk'`). Empty = unbranded. Resolved
      * to its `Brand` / `Corpo` lazily on each read via `CorpoApi`.
-     *
-     * @authorable ref:Brand
      */
     public _brandKey: string = "";
 

@@ -16,7 +16,7 @@
  * A `Thing`-tier fixture (Chattel identity rides the Thing base), with
  * one persistent field:
  *
- *   - `linkedSandboxPath` (Pattern A path string; `''` = unlinked): the
+ *   - `linkedSandboxPath` (identity ref, a path string; `''` = unlinked): the
  *     circle this door opens onto. An unlinked wardrobe links on first
  *     enter to that enterer's own circle (`/home/<playerId>`) — the
  *     authoring ladder, literally: clone one, place it, step in.
@@ -50,13 +50,13 @@ const DEFAULT_PASSAGE_DIRECTION = 'crossing';
 
 export default class SandboxCrossing extends Thing {
   static fieldMeta: FieldMeta = {
-    linkedSandboxPath: { persistent: true },
+    linkedSandboxPath: { persistent: true, runtimeState: true },
     passageDirection: { persistent: true },
   };
 
   /**
-   * The circle this door opens onto (Pattern A path string; empty =
-   * unlinked, links on first enter). @runtimeState persisted.
+   * The circle this door opens onto (identity ref, a path string; empty =
+   * unlinked, links on first enter). persisted.
    */
   protected linkedSandboxPath: string = '';
 

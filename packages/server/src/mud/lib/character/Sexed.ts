@@ -47,10 +47,9 @@ export function SexedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class SexedMixin extends Base {
     static _mixinName = 'SexedMixin';
     static fieldMeta: FieldMeta = {
-      sex: { persistent: true },
+      sex: { persistent: true, authorable: true },
     };
 
-    /** @authorable */
     public sex: string | null = null;
 
     public getSex(): string | null { return this.sex; }

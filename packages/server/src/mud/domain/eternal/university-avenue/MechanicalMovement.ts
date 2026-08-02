@@ -85,47 +85,37 @@ export function MechanicalMovementMixin<TBase extends MixinConstructor>(
 
     /**
      * Clock-face minute-of-day the movement was last set to.
-     *
-     * @authorable
      */
     public setTo = 0;
 
     /**
      * Game-time (seconds) at which the movement was last set — the drift
      * anchor. Seed it in the past to make the movement already-wrong.
-     *
-     * @authorable
      */
     public setAt = 0;
 
     /**
      * Drift multiplier applied to running elapsed time.
-     *
-     * @authorable
      */
     public rate: number = MOVEMENT.DEFAULT_RATE;
 
     /**
      * Accumulated game-seconds the movement has actually run since it was
      * last set — grows lazily, freezes when the mainspring floors.
-     *
-     * @runtimeState
      */
     public runSeconds = 0;
 
     /**
      * Game-time (seconds) of the last mainspring reconcile; 0 = unseeded.
-     *
-     * @runtimeState
      */
     public springStamp = 0;
 
     static fieldMeta: FieldMeta = {
-      setTo: { persistent: true },
-      setAt: { persistent: true },
-      rate: { persistent: true },
-      runSeconds: { persistent: true },
-      springStamp: { persistent: true },
+      setTo: { persistent: true, authorable: true },
+      setAt: { persistent: true, authorable: true },
+      rate: { persistent: true, authorable: true },
+      runSeconds: { persistent: true, runtimeState: true },
+      springStamp: { persistent: true, runtimeState: true },
     };
 
     /**

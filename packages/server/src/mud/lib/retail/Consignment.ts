@@ -54,10 +54,10 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = "ConsignmentShelfMixin";
 
     static fieldMeta: FieldMeta = {
-      consignmentListings: { persistent: true },
+      consignmentListings: { persistent: true, runtimeState: true },
     };
 
-    /** The active brokerage listings on this shelf. @runtimeState */
+    /** The active brokerage listings on this shelf. */
     public consignmentListings: ConsignmentListing[] = [];
 
     /** Mint + record a listing (fresh, collision-resistant id). */
