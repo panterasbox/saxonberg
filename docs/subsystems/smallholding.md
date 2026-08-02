@@ -301,47 +301,90 @@ See [persistence.md](./persistence.md) and [residence.md](./residence.md).
 
 ### ⭐ A lot's room gets an IDENTITY, not a copy
 
-`TitledRoom` is `PersistableMixin(CartesianLocation)` — the shipped
-cartesian room plus the host mixin, and **nothing rebuilt by hand**. That
-matters: `CartesianLocation` carries six overrides beyond its mixins
-(`getSizeScale` = the zone's `cellSize²` light denominator, `getZone`,
-`getVolume`, `getCeilingHeight`, exit reciprocity, and `coords` itself),
-and a hand-built lookalike loses all of them silently. The light one is
-the dangerous omission — a yard would read **36× brighter** than its
-zone says.
+`LotHolder` mints each room at **`<lotExtent>/<leaf>`** through
+`StuffApi.clone`'s `asTemplatePath` channel — the identity doctrine's
+*minted instance with a scheme-derived key*. The shared template is the
+SOURCE; lot 2's yard is its own place.
 
-> **⚠ `TitledRoom` vs `FurnishableRoom` — the axis is GEOMETRY, not
-> tenure.** The furnishing build's `lib/location/FurnishableRoom`
-> ([furnishing.md](./furnishing.md)) is the same idea over plain
-> `Location`, plus `Reserved` for a finite indoor `air` budget. These are
-> not two answers to one question. A yard is **outdoors on a coordinate
-> grid**: it needs `CartesianCoordinates` and the `getSizeScale()` light
-> denominator, and it must NOT author an air reserve — the absence of one
-> is what "open air" means to `FireLogic`. An interior room needs the
-> opposite of both. So: **interior → `FurnishableRoom`; ground under the
-> sky → `TitledRoom`.** A third persistable-room class wants a very good
-> reason, and "a new archetype" is not one — an archetype is a seed row's
-> prose and `populates:` set, on whichever of the two the geometry picks.
-
-Keeping `CartesianLocation` means keeping `SingletonMixin`, and that is
-the point rather than an obstacle. `LotHolder` mints each room at
-**`<lotExtent>/<leaf>`** through `StuffApi.clone`'s `asTemplatePath`
-channel — the identity doctrine's *minted singleton with a
-scheme-derived key*. The shared template is the SOURCE; lot 2's yard is
-its own place.
-
-Sharing one templatePath across N lots broke three things at once, and
-minting fixes all three with no special case:
+Sharing one templatePath across N lots broke two things at once, and
+minting fixes both with no special case:
 
 | | shared template | minted identity |
 |---|---|---|
 | land use | resolved to the **district** — right only because every Hinkley lot is zoned alike | resolves per lot, from the path alone |
 | avatar placement | recorded the shared template — log out in your yard, log back into a fresh one | exact; the dorm needs a Warren for this, an identity gets it free |
-| cartesian room | impossible — N clones of one singleton path collide | fine, so `cellSize²` light stays correct |
 
 Title and durable state still share one identity, because the mint is
 derived FROM the parcel extent. Sell the lot and the garden goes with
 it.
+
+### ⭐ A lot's room is NOT on the street's grid
+
+This is the consequence of minting, and it took a live browser drive to
+find: **the room class cannot be a `CartesianLocation`.**
+
+N lots cannot share one coordinate, so a per-lot room was never a grid
+member — and the grid says so itself. `CartesianLocation.addExit`
+refuses a **non-cardinal** direction between two rooms in the same zone,
+which is exactly the `lot-1` gate off the lane (see *the gate*, below).
+The rule is right; the room was wrong.
+
+So a lot's room is a **`FurnishableRoom`** — the furnishing build's
+venue-generic persistable room ([furnishing.md](./furnishing.md)) — and
+the class this build originally minted for the job (`TitledRoom`,
+`PersistableMixin(CartesianLocation)`) is **retired**. Everything the
+yard needs is already there: it is a persistence host, it composes
+`Populates`, it is not singleton-shaped, and it authors no `air`
+reserve, which is what "outdoors" means to `FireLogic`.
+
+Losing `CartesianLocation` loses `getSizeScale()` = the zone's
+`cellSize²` light denominator, and that turned out to be a **fix, not a
+cost**. Hinkley's zone has `cellSize: 6`, so a cartesian yard divided
+its 600-flux open sky by 36 m² and read **16.7 lux** — under the 120 lux
+a carrot needs to be light-unlimited. `Location`'s flat 1.0 gives the
+600 lux the seed's own comment always claimed. A yard is not a 6 m box.
+
+The lots live in **their own zone**, `<district>/lots`, authored as one
+`CartesianZone` template (`PlatBook.lotBranch`). It must be a *spatial*
+zone, not a `FolderZone`: `ZoneApi.resolveZoneForPath` returns only
+`SpatialZone`s and walks straight past folders, so a folder here would
+put every yard back in the district's zone — the failure it exists to
+fix. One authored row covers every lot, which matters because a minted
+identity has **no row in `domain`** and `resolveZoneForPath` walks
+template ancestry in Mongo: a per-lot zone could not have been minted.
+
+### ⭐ The gate — how you actually reach ground you bought
+
+The lane authored `north → <the yard template>` and that was wrong three
+ways, none of which a unit test could see:
+
+1. It named the **shared source template**, so walking north
+   instantiated the template itself as a place — an unowned yard, on
+   nobody's lot, that anyone could dig.
+2. That live instance then collided with the minted identities at the
+   singleton guard.
+3. It was never expressible anyway. A subdivision has N lots and N
+   rooms; no one static exit can mean "yours".
+
+So the street's exits are **installed by the provisioner**:
+`LotGateExit`, a `DeferredDestinationExit` (the `DormDoor` shape) whose
+`computeDestination` calls `LotHolder.provision(lotExtent)`. Hung as
+lots sell, and re-hung at boot from the title registry
+(`LotHolder.postRegister` → `ParcelApi.childParcelsOf`) so an owner can
+still get home after a restart. Deferred, so a lane with five sold lots
+materializes no yards until somebody walks in.
+
+**Direction is the lot's leaf** — `lot-1`, which is what is stencilled
+on the stake. `north` collides the moment a second lot sells, and no
+compass scheme survives an arbitrary plat. It is non-cardinal, which is
+what forces the separate lots zone above. `go lot-1`; bare `lot-1` is
+cardinal-only sugar.
+
+**Ungated, deliberately.** A yard behind a house is not locked from the
+lane; the house is. A gate that refused non-owners would put a property
+boundary where the fiction has a fence, and trespass is the policing
+layer's question. The dorm's key gate exists because a bedsit door
+genuinely is locked; when these lots grow interiors, *those* get locks.
 
 This is the *minted template per residence* model arriving early — the
 engine already had the channel.

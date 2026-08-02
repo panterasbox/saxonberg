@@ -32,7 +32,7 @@ import GardenBed from '../../../../obj/GardenBed';
 import PlantPot from '../../../../obj/PlantPot';
 import Seed from '../../../../obj/Seed';
 import Plant from '../../../../obj/Plant';
-import TitledRoom from '../../../../obj/TitledRoom';
+import FurnishableRoom from '../../../../lib/location/FurnishableRoom';
 import ParcelRegistry from '../../../../obj/ParcelRegistry';
 import GroupRegistry from '../../../../obj/GroupRegistry';
 import { Reserve } from '../../../../lib/reserve';
@@ -540,10 +540,10 @@ describe('Hinkley Hills — the land-use gate', () => {
     await ParcelApi.rebuildCoverageIndex();
 
     const shared = fresh('/domain/terminus/hinkley-hills/yard');
-    const ok = makeStuffAtPath(() => new TitledRoom(), shared);
+    const ok = makeStuffAtPath(() => new FurnishableRoom(), shared);
     ok.setAmbientFlux(600);
     ok.setPersistenceKey(`${SUBURB}/lot-1`);
-    const banned = makeStuffAtPath(() => new TitledRoom(), fresh(shared));
+    const banned = makeStuffAtPath(() => new FurnishableRoom(), fresh(shared));
     banned.setAmbientFlux(600);
     banned.setPersistenceKey(`${SUBURB}/lot-9`);
 

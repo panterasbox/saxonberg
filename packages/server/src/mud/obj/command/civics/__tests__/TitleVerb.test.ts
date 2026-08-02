@@ -34,6 +34,7 @@ import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
+import { ExitableMixin } from '../../../../lib/boundary/Exitable';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { PersistableMixin } from '../../../../lib/persistence/Persistable';
@@ -64,6 +65,11 @@ class TitleTestRoom extends PersistableMixin(
   static _mixinName = 'TitleTestRoom';
 }
 
+/** The street the lots front onto — needs only exits + containment. */
+class StreetRoom extends ExitableMixin(ContainerMixin(Location)) {
+  static _mixinName = 'TitleTestStreet';
+}
+
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {
@@ -76,9 +82,14 @@ class TestGiver extends SensorMixin(
 
 const REGISTRY_ROOM = '/domain/terminus/registry/office';
 const SUBURB = '/domain/terminus/hinkley-hills';
-const LOT2 = `${SUBURB}/lot-2`;
+// Lots hang off their own zone branch — see PlatBook.lotBranch, and
+// `lots.yaml`: the `lot-N` gate off the lane is non-cardinal, which a
+// cartesian grid admits only across a zone boundary.
+const LOTS = `${SUBURB}/lots`;
+const LOT2 = `${LOTS}/lot-2`;
 const HOLDER_PATH = `${SUBURB}/lot-holder`;
 const BOOK_PATH = `${SUBURB}/plat-book`;
+const STREET_PATH = `${SUBURB}/lane`;
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -179,6 +190,24 @@ function seedSubdivision(): void {
   book.setAreaM2(1000);
   book.setLandUse('residential');
   book.setHolderPath(HOLDER_PATH);
+}
+
+/**
+ * A street for the lots to front onto — a plain exitable room, since the
+ * gate wiring only needs `addExit`/`getExit`. The cartesian zone rule
+ * that forced the separate lots branch is `CartesianLocation`'s, and it
+ * is exercised live in `e2e/tests/hinkley.spec.ts`; what a unit test can
+ * pin is that a gate is hung, named for the lot, exactly once, and only
+ * for lots that sold.
+ */
+function seedStreet(): StreetRoom {
+  const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+  const existing = StuffApi.findByTemplatePath<StreetRoom>(STREET_PATH);
+  const street =
+    existing ?? makeStuffAtPath(() => new StreetRoom(), STREET_PATH);
+  holder.setStreetPath(STREET_PATH);
+  holder.setParentExtent(SUBURB);
+  return street;
 }
 
 async function bootRegistries(): Promise<void> {
@@ -465,13 +494,13 @@ describe('title', () => {
 
     // The sale went through the NEW provisioner…
     expect(reasons(ctx)).not.toContain('insufficient-funds');
-    expect(swapped.minted).toEqual([`${SUBURB}/lot-3`]);
+    expect(swapped.minted).toEqual([`${LOTS}/lot-3`]);
     // …and everything the catalogue owns is unchanged: the title moved,
     // the money moved, the zoning was stamped.
-    const owner = await ParcelApi.ownerOf(`${SUBURB}/lot-3`);
+    const owner = await ParcelApi.ownerOf(`${LOTS}/lot-3`);
     expect(owner.kind).toBe('player');
     expect(settled).toEqual([4000]);
-    const record = await ParcelApi.coveringParcelOf(`${SUBURB}/lot-3`);
+    const record = await ParcelApi.coveringParcelOf(`${LOTS}/lot-3`);
     expect(record?.getLandUse()).toBe('residential');
   });
 
@@ -487,8 +516,65 @@ describe('title', () => {
     const ctx = await run(buyer, room, model('buy', 'lot 4'));
 
     expect(reasons(ctx)).not.toContain('insufficient-funds');
-    const owner = await ParcelApi.ownerOf(`${SUBURB}/lot-4`);
+    const owner = await ParcelApi.ownerOf(`${LOTS}/lot-4`);
     expect(owner.kind).toBe('player');
+  });
+
+  it('⭐ hangs a GATE on the street for the lot, and only for the lot', async () => {
+    // The lane used to author `north -> <the yard template>`, which stood
+    // the shared TEMPLATE up as an unowned place and could only ever mean
+    // one lot. Gates are installed per sale instead, directioned by the
+    // lot's leaf.
+    const street = seedStreet();
+    expect(street.getExit('lot-2')).toBeUndefined();
+
+    const room = registryRoom();
+    await run(buyerIn(room), room, model('buy', 'lot 2'));
+
+    const gate = street.getExit('lot-2');
+    expect(gate).toBeDefined();
+    // Eager on its face — describable without materializing the yard.
+    expect(gate!.getDestinationTemplatePath()).toBe(`${LOT2}/yard`);
+    // …and nothing opens onto a lot nobody bought.
+    expect(street.getExit('lot-3')).toBeUndefined();
+  });
+
+  it('the gate is idempotent — re-provisioning hangs no second one', async () => {
+    const street = seedStreet();
+    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+
+    await holder.ensureGate(LOT2);
+    const first = street.getExit('lot-2');
+    await holder.ensureGate(LOT2);
+    await holder.ensureGate(LOT2);
+
+    expect(street.getExit('lot-2')).toBe(first);
+  });
+
+  it('⭐ re-hangs every sold lot\'s gate at BOOT, materializing nothing', async () => {
+    // A restart leaves the yards in `holder_snapshots` and the street
+    // with no exits. Without this an owner standing on the lane has no
+    // way home. The exits are deferred, so re-hanging must not stand a
+    // single room up.
+    const room = registryRoom();
+    seedStreet();
+    await run(buyerIn(room), room, model('buy', 'lot 2'));
+    await run(buyerIn(room), room, model('buy', 'lot 3'));
+
+    // Simulate the restart: a fresh street, and a holder that has
+    // forgotten every live room.
+    const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
+    holder.forgetLiveRooms();
+    StuffApi.destruct(StuffApi.findByTemplatePath<StreetRoom>(STREET_PATH)!);
+    const street = seedStreet();
+
+    await holder.postRegister();
+
+    expect(street.getExit('lot-2')).toBeDefined();
+    expect(street.getExit('lot-3')).toBeDefined();
+    expect(street.getExit('lot-4')).toBeUndefined();
+    // Deferred: nothing was materialized to answer the question.
+    expect(holder.liveRoomFor(LOT2)).toBeNull();
   });
 
   it('⭐ each lot\'s room is MINTED at its own identity, not shared', async () => {
@@ -499,11 +585,11 @@ describe('title', () => {
     //
     // Minting through `asTemplatePath` fixes all three. Pin the identity.
     const holder = StuffApi.findByTemplatePath<LotHolder>(HOLDER_PATH)!;
-    expect(holder.identityFor(`${SUBURB}/lot-2`)).toBe(
-      `${SUBURB}/lot-2/yard`,
+    expect(holder.identityFor(`${LOTS}/lot-2`)).toBe(
+      `${LOTS}/lot-2/yard`,
     );
-    expect(holder.identityFor(`${SUBURB}/lot-3`)).toBe(
-      `${SUBURB}/lot-3/yard`,
+    expect(holder.identityFor(`${LOTS}/lot-3`)).toBe(
+      `${LOTS}/lot-3/yard`,
     );
 
     const room = registryRoom();
@@ -512,16 +598,16 @@ describe('title', () => {
     await run(buyerIn(room), room, model('buy', 'lot 2'));
     await run(buyerIn(room), room, model('buy', 'lot 3'));
 
-    const two = holder.liveRoomFor(`${SUBURB}/lot-2`);
-    const three = holder.liveRoomFor(`${SUBURB}/lot-3`);
+    const two = holder.liveRoomFor(`${LOTS}/lot-2`);
+    const three = holder.liveRoomFor(`${LOTS}/lot-3`);
     expect(two).not.toBeNull();
     expect(three).not.toBeNull();
     expect(two).not.toBe(three);
 
     // …and each carries its OWN path, so a placement recorded against it
     // points at that lot rather than at a shared template.
-    expect(two!.getTemplatePath()).toBe(`${SUBURB}/lot-2/yard`);
-    expect(three!.getTemplatePath()).toBe(`${SUBURB}/lot-3/yard`);
+    expect(two!.getTemplatePath()).toBe(`${LOTS}/lot-2/yard`);
+    expect(three!.getTemplatePath()).toBe(`${LOTS}/lot-3/yard`);
 
     // ⭐ Which means land use resolves PER LOT from the path alone — no
     // persistence key needed to tell them apart.

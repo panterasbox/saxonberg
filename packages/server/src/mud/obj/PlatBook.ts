@@ -43,6 +43,7 @@ export default class PlatBook extends PlatBookBase {
   static persistentFields: string[] = [
     "label",
     "parentExtent",
+    "lotBranch",
     "lots",
     "priceMinor",
     "areaM2",
@@ -69,12 +70,31 @@ export default class PlatBook extends PlatBookBase {
 
   /**
    * The lot leaf names this subdivision sells. Leaves, not full extents:
-   * the extent is `parentExtent/<leaf>`, so a book cannot accidentally
-   * offer ground its district does not cover.
+   * the extent is `parentExtent/<lotBranch>/<leaf>`, so a book cannot
+   * accidentally offer ground its district does not cover.
    *
    * @authorable
    */
   public lots: string[] = [];
+
+  /**
+   * The branch lots hang off, between the district and the leaf —
+   * `…/hinkley-hills` + `lots` + `lot-1`.
+   *
+   * It exists to keep the lots in a **zone of their own**, and that is
+   * load-bearing rather than tidiness. A street is a cartesian grid, and
+   * a cartesian zone admits a non-cardinal exit (the `lot-1` gate) only
+   * across a zone boundary — correctly, because a lot is not a grid cell
+   * of the street: N lots cannot share one coordinate. One authored
+   * `FolderZone` template at `<parentExtent>/<lotBranch>` puts every lot
+   * on the far side of that boundary, with no per-lot template row.
+   *
+   * Empty flattens it back to `parentExtent/<leaf>` for a subdivision
+   * whose district is not a grid.
+   *
+   * @authorable
+   */
+  public lotBranch: string = "lots";
 
   /** Price of one lot, in minor units. @authorable */
   public priceMinor: number = 0;
@@ -171,12 +191,24 @@ export default class PlatBook extends PlatBookBase {
     const cleaned = raw.trim().toLowerCase().replace(/\s+/g, "-");
     const candidate = /^\d+$/.test(cleaned) ? `lot-${cleaned}` : cleaned;
     if (!this.lots.includes(candidate)) return null;
-    return `${this.parentExtent}/${candidate}`;
+    return this.extentOfLeaf(candidate);
   }
 
   /** Every lot extent this book offers, in authored order. */
   public lotExtents(): string[] {
-    return this.lots.map((l) => `${this.parentExtent}/${l}`);
+    return this.lots.map((l) => this.extentOfLeaf(l));
+  }
+
+  /** The branch lots hang off — `<parentExtent>/<lotBranch>`, or the
+   *  district itself when no branch is configured. */
+  public lotsExtent(): string {
+    return this.lotBranch
+      ? `${this.parentExtent}/${this.lotBranch}`
+      : this.parentExtent;
+  }
+
+  private extentOfLeaf(leaf: string): string {
+    return `${this.lotsExtent()}/${leaf}`;
   }
 
   /** Whether `extent` is a lot this book offers. */

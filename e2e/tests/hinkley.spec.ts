@@ -5,23 +5,57 @@ import { openWorldAs, runCommand, sendUntil } from './helpers';
  * Hinkley Hills — the farm, driven through a real browser.
  *
  * The unit suite proves the model; this proves a PLAYER can reach it.
- * Build-3's three questions, asked live:
- *
- *   1. **Is the class composed?** — the yard is a `TitledRoom`, so its
- *      `populates:` must actually lay the bed and standpipe down.
- *   2. **Is the verb contributed?** — `title`, `plant`, `water`, `feed`
- *      and `harvest` must be dispatchable by typing them, not just
- *      callable from a controller test.
- *   3. **Is the content in the world?** — the Locality, the lane, the
- *      yard and the crop templates must have survived seeding.
- *
  * Every defect this build shipped past a green suite lived between a
- * passing test and a reachable feature, so these assert on what the
- * player is actually shown.
+ * passing test and a reachable feature, and the live drive found four
+ * the suite could not:
+ *
+ *   1. the lane's authored exit named the SHARED yard template, so it
+ *      stood the template up as an unowned place and then collided with
+ *      the minted per-lot identities;
+ *   2. a per-lot room cannot be a `CartesianLocation` at all (N lots,
+ *      one coordinate) — and as one it read 16.7 lux, under a carrot's
+ *      light floor;
+ *   3. the lots needed a spatial zone of their own before the
+ *      non-cardinal `lot-N` gate was admissible;
+ *   4. the yard shipped a bed and a standpipe and no watering can, so
+ *      `water` — a tool-conferred verb — was undispatchable on it.
+ *
+ * So these assert on what the player is actually shown.
  */
 
 const REGISTRY = '/domain/terminus/registry/office';
-const YARD = '/domain/terminus/hinkley-hills/yard';
+const LANE = '/domain/terminus/hinkley-hills/lane';
+
+/**
+ * `lot-5` is RESERVED: no test ever buys it, so "an unsold lot has no
+ * gate" stays true however many times this suite runs.
+ */
+const RESERVED = 'lot-5';
+
+/**
+ * Read the plat book and return a lot nobody has bought yet.
+ *
+ * Land is finite and a sale is permanent, so a spec that hard-codes
+ * `lot-1` passes exactly once per world and fails on every re-run. This
+ * is also just what a player does: read the board, pick one that is
+ * going. Throws (rather than skipping) when the subdivision has sold
+ * out — that is a signal to widen the plat, not to quietly pass.
+ */
+async function availableLot(page: import('@playwright/test').Page) {
+  await sendUntil(page, 'title list', page.getByText(/lot-\d/i).first());
+  const text = await page.locator('body').innerText();
+  for (const line of text.split('\n')) {
+    const match = /^\s*(lot-\d+)\s+—\s+(.*)$/.exec(line);
+    if (!match) continue;
+    const [, leaf, rest] = match;
+    if (leaf === RESERVED || /sold/i.test(rest!)) continue;
+    return leaf!;
+  }
+  throw new Error(
+    'availableLot: every Hinkley lot is sold — widen the plat book, or ' +
+      'reset the parcels collection.'
+  );
+}
 
 test('the suburb is reachable and the lane describes the empty lots', async ({
   browser,
@@ -31,14 +65,10 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
     wizard: true,
   });
   try {
-    // Q3: is the content in the world at all?
-    await sendUntil(
-      page,
-      'look',
-      page.getByText(/Hinkley Hills/i).first()
-    );
-    // The lane, and the unbuilt lots as prose rather than empty rooms.
-    await sendUntil(page, 'west', page.getByText(/Hinkley Lane/i).first());
+    await sendUntil(page, 'look', page.getByText(/Hinkley Hills/i).first());
+    await runCommand(page, 'west');
+    await page.waitForTimeout(2500);
+    await sendUntil(page, 'look', page.getByText(/Hinkley Lane/i).first());
     await sendUntil(
       page,
       'look at lots',
@@ -49,90 +79,133 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
   }
 });
 
-test('⭐ BUY A LOT and walk into the yard — populates is not inert', async ({
+test('⭐ an UNSOLD lot has no gate — the lane only opens what sold', async ({
   browser,
 }) => {
-  // The whole chain, live: pay → subdivide → transfer → provision → walk
-  // in. Q1 is the payoff — the yard's `populates:` only fires through
-  // `seedBornWith` on a FIRST provisioning, so a bed in the room proves
-  // the class is composed AND the keyed-holder branch ran.
-  const { page, close } = await openWorldAs(browser, 'hh-buy', {
-    startLocation: REGISTRY,
+  const { page, close } = await openWorldAs(browser, 'hh-nogate', {
+    startLocation: LANE,
     wizard: true,
-    fundsMinor: 8000,
   });
   try {
-    await sendUntil(page, 'title list', page.getByText(/lot-1/i).first());
-
-    await runCommand(page, 'title buy lot 1');
-    await expect(
-      page.getByText(/is yours|registrar writes the row/i).first()
-    ).toBeVisible({ timeout: 20_000 });
-
-    // ⭐ The title is real.
-    await sendUntil(page, 'title', page.getByText(/lot-1/i).first());
-    await expect(page.getByText(/residential/i).first()).toBeVisible();
-
-    // The room was minted at the LOT's own identity path.
+    // The reserved lot is never bought. Nothing should open onto it.
     await sendUntil(
       page,
-      'goto /domain/terminus/hinkley-hills/lot-1/yard',
-      page.getByText(/yard behind the house/i).first()
+      `go ${RESERVED}`,
+      page.getByText(/can't walk that way/i).first()
     );
-
-    // ⭐ populates fired: the bed and the standpipe are there.
-    await expect(page.getByText(/raised garden bed/i).first()).toBeVisible();
-    await expect(page.getByText(/standpipe/i).first()).toBeVisible();
   } finally {
     await close();
   }
 });
 
-test('⭐ plant a crop on ground you own — the gate PERMITS residential', async ({
+test('⭐ BUY A LOT — the sale, and the gate it hangs on the lane', async ({
   browser,
 }) => {
-  const { page, close } = await openWorldAs(browser, 'hh-plant', {
+  const { page, close } = await openWorldAs(browser, 'hh-buy', {
     startLocation: REGISTRY,
     wizard: true,
-    fundsMinor: 8000,
+    fundsMinor: 20_000,
   });
   try {
-    await sendUntil(page, 'title list', page.getByText(/lot-2/i).first());
-    await runCommand(page, 'title buy lot 2');
-    await expect(
-      page.getByText(/is yours|registrar writes the row/i).first()
-    ).toBeVisible({ timeout: 20_000 });
+    const lot = await availableLot(page);
 
     await sendUntil(
       page,
-      'goto /domain/terminus/hinkley-hills/lot-2/yard',
-      page.getByText(/yard behind the house/i).first()
+      `title buy ${lot}`,
+      page.getByText(/is yours|registrar writes the row/i).first()
     );
 
-    // Q2: the cultivation verbs are afforded by the ground.
+    // ⭐ The title is real, and it reads its area band and its zoning.
+    await sendUntil(page, 'title', page.getByText(new RegExp(lot, 'i')).first());
+    await expect(page.getByText(/quarter-acre lot/i).first()).toBeVisible();
+    await expect(page.getByText(/residential/i).first()).toBeVisible();
+  } finally {
+    await close();
+  }
+});
+
+test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', async ({
+  browser,
+}) => {
+  // Buy first, from the counter, as a player must.
+  let lot = '';
+  const buyer = await openWorldAs(browser, 'hh-own', {
+    startLocation: REGISTRY,
+    wizard: true,
+    fundsMinor: 20_000,
+  });
+  try {
+    // A FRESH lot, always: `populates` only fires on a first
+    // provisioning, so a re-bought lot would have whatever the last
+    // owner left — which is exactly how it should behave, and useless
+    // for asserting that the yard comes with its kit.
+    lot = await availableLot(buyer.page);
+    await sendUntil(
+      buyer.page,
+      `title buy ${lot}`,
+      buyer.page.getByText(/is yours|registrar writes the row/i).first()
+    );
+  } finally {
+    await buyer.close();
+  }
+
+  const { page, close } = await openWorldAs(browser, 'hh-work', {
+    startLocation: LANE,
+    wizard: true,
+  });
+  try {
+    // ⭐ The gate is hanging, named for the lot.
+    await sendUntil(page, 'look', page.getByText(new RegExp(lot, 'i')).first());
+    // `go` is one-way, so it must NOT ride `sendUntil` (a re-send after a
+    // successful move just bounces off a wall). Arrival prints movement
+    // prose, not a room description — the `look` is what shows the yard.
+    await runCommand(page, `go ${lot}`);
+    await page.waitForTimeout(3000);
+    await sendUntil(page, 'look', page.getByText(/yard behind the house/i).first());
+
+    // ⭐ `populates` fired on first provisioning: the bed, the water
+    // source, and the CAN — `water` is tool-conferred, so a yard without
+    // one is ground you cannot work.
+    await expect(page.getByText(/raised garden bed/i).first()).toBeVisible();
+    await expect(page.getByText(/standpipe/i).first()).toBeVisible();
+    await expect(page.getByText(/watering can/i).first()).toBeVisible();
+
+    await runCommand(page, 'get can');
     await runCommand(page, 'clone /obj/vessel/soil-sack');
     await runCommand(page, 'clone /obj/seed/carrot');
     await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
 
     await runCommand(page, 'pour sack into bed');
     await page.waitForTimeout(1500);
-    await runCommand(page, 'plant seed in bed');
-    await page.waitForTimeout(2500);
 
     // ⭐ NOT refused: residential ground admits a bed.
+    await sendUntil(
+      page,
+      'plant seed in bed',
+      page.getByText(/press the seed into the soil/i).first()
+    );
     await expect(page.getByText(/zoned for/i)).toHaveCount(0);
     await expect(page.getByText(/Nothing may be grown/i)).toHaveCount(0);
-    await expect(
-      page.getByText(/I don't understand 'plant'/i)
-    ).toHaveCount(0);
 
-    // …and the crop is in the ground.
-    await sendUntil(page, 'look', page.getByText(/carrot/i).first());
+    // ⭐ Water reaches the soil, through the standpipe and the can.
+    await runCommand(page, 'fill can from standpipe');
+    await page.waitForTimeout(1500);
+    await sendUntil(
+      page,
+      'water bed',
+      page.getByText(/tip the clear water into the soil/i).first()
+    );
 
-    // `feed` dispatches on the ground too.
+    // `feed` dispatches on the ground too (refusing for want of compost
+    // is the right answer, not a parse failure).
     await runCommand(page, 'feed bed');
     await page.waitForTimeout(1500);
     await expect(page.getByText(/I don't understand 'feed'/i)).toHaveCount(0);
+
+    // …and the way back out is the lane.
+    await runCommand(page, 'south');
+    await page.waitForTimeout(2500);
+    await sendUntil(page, 'look', page.getByText(/Hinkley Lane/i).first());
   } finally {
     await close();
   }
@@ -141,8 +214,6 @@ test('⭐ plant a crop on ground you own — the gate PERMITS residential', asyn
 test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
   browser,
 }) => {
-  // The gate biting, live: civic ground admits no cultivation, and the
-  // refusal names the use rather than saying "no".
   const { page, close } = await openWorldAs(browser, 'hh-gate', {
     startLocation: REGISTRY,
     wizard: true,
@@ -168,26 +239,20 @@ test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
 test('the sale refuses cleanly when the buyer cannot cover it', async ({
   browser,
 }) => {
-  // A fresh character has no money, so this is the reachable path today.
-  // It proves the whole chain up to the money leg: parse → resolve the
-  // plat book → price it → refuse without minting a parcel row.
   const { page, close } = await openWorldAs(browser, 'hh-broke', {
     startLocation: REGISTRY,
     wizard: true,
   });
   try {
-    await sendUntil(page, 'title list', page.getByText(/lot-1/i).first());
-    await runCommand(page, 'title buy lot 1');
-    await expect(
-      page.getByText(/can't cover/i).first()
-    ).toBeVisible({ timeout: 15_000 });
-
-    // …and nothing changed hands.
+    const lot = await availableLot(page);
     await sendUntil(
       page,
-      'title',
-      page.getByText(/You hold no ground/i).first()
+      `title buy ${lot}`,
+      page.getByText(/can't cover/i).first()
     );
+
+    // …and nothing changed hands.
+    await sendUntil(page, 'title', page.getByText(/You hold no ground/i).first());
   } finally {
     await close();
   }

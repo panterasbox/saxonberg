@@ -10,6 +10,13 @@
 class: /obj/LotHolder
 hydratorClass: /lib/persistence/PersistentHydrator
 data:
-  # MUST be a persistable, non-singleton room (/obj/TitledRoom or a
-  # subclass) — a plain CartesianLocation persists nothing it holds.
+  # MUST be a persistable room (/lib/location/FurnishableRoom or a
+  # subclass) and NOT a CartesianLocation: a per-lot room cannot be a
+  # member of the district's shared grid.
   roomTemplate: /domain/terminus/hinkley-hills/yard
+  # The street the lots front onto. A gate is hung here per sold lot,
+  # directioned by the lot's leaf (`lot-1`), so `lot-1` walks you in.
+  streetPath: /domain/terminus/hinkley-hills/lane
+  # The subdivision's parcel extent — read at boot to re-hang a gate for
+  # every lot that already sold, so an owner can get home after a restart.
+  parentExtent: /domain/terminus/hinkley-hills

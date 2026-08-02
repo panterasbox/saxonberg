@@ -52,9 +52,6 @@ export async function mintSession(
      * `clone`/`eval`/`goto` axis. Test-auth only; the server adds the
      * character to the managed `wizards` group. */
     wizard?: boolean;
-    /** Test-only cash faucet, in minor units — an economy verb cannot be
-     * driven past its funds check by a character with no money. */
-    fundsMinor?: number;
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -70,7 +67,6 @@ export async function mintSession(
             ? { startLocation: opts.startLocation }
             : {}),
           ...(opts.wizard ? { wizard: true } : {}),
-          ...(opts.fundsMinor ? { fundsMinor: opts.fundsMinor } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -163,9 +159,26 @@ export async function openWorldAs(
     withCharacter: true,
     startLocation: opts.startLocation,
     wizard: opts.wizard,
-    fundsMinor: opts.fundsMinor,
   });
   const { context, page } = await enterWorld(browser, state);
+  // AFTER entry, never before: at provision time the avatar is a
+  // database row, so `issueCash` has nothing to hand coins to. The
+  // request rides the page's own cookies, so it funds THIS session's
+  // character, and it throws on the server rather than warning — an
+  // unfunded character just watches purchases refuse, which is the
+  // exact false negative a funded test is written to rule out.
+  if (opts.fundsMinor) {
+    const res = await page.request.post(`${SERVER_URL}/auth/test-fund`, {
+      data: { fundsMinor: opts.fundsMinor },
+      headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
+    });
+    if (!res.ok()) {
+      throw new Error(
+        `openWorldAs: funding ${handle} failed: ${res.status()} ` +
+          `${await res.text()}`
+      );
+    }
+  }
   return { page, context, handle, state, close: () => context.close() };
 }
 

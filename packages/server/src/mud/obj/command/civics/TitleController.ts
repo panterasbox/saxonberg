@@ -302,6 +302,12 @@ export default class TitleController extends CommandController<TitleModel> {
     const { firstTime } = holder
       ? await holder.provision(extent)
       : { firstTime: true };
+    // …and hang the gate off the street, so there is a way in. Outside
+    // `provision` on purpose: that method is the `@hook` a different
+    // provisioning model replaces wholesale, and the way in must survive
+    // the replacement. Idempotent, and a no-op for a subdivision with no
+    // street configured.
+    if (holder) await holder.ensureGate(extent);
     const leaf = extent.slice(extent.lastIndexOf('/') + 1);
     const where = book.getLabel();
 
