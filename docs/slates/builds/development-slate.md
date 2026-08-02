@@ -223,6 +223,14 @@ real lesson, arriving as a consequence rather than a feature.
 
 ## Open questions
 
+- **Minted identity may already unblock per-room extent.** Build-2 found
+  that `StuffApi.clone(source, { asTemplatePath })` mints a clone at a
+  scheme-derived identity path, so a per-instance room **can** be a
+  `CartesianLocation` — which a Warren-cloned room cannot, and which is why
+  `DormRoom` is non-coordinate. If rooms can be cartesian, they have
+  `cellSize²` area, and **measured efficiency (lettable cells ÷ built
+  cells) becomes computable without any new field.** Worth testing before
+  designing anything else here.
 - **Zone extent.** A zone declares `cellSize` but has **no bounds** — so
   *"floor plate you are permitted to build on but haven't"* is not
   expressible. Vertical potential is (entitlement vs built); horizontal is

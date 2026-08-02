@@ -2414,3 +2414,46 @@ its own silent failure:
 verb.** When a build's value is player-facing, drive it — boot the server,
 query the collection, type the command. Every defect above cost minutes to
 find that way and was invisible to 7,300 passing tests.
+
+## An optional witness implemented by more than one composed layer
+
+Mixin statics and methods **do not merge**. When two layers of one
+composition implement the same optional witness, the **outermost wins** and
+the inner one is silently replaced — no error, no warning, no failing test.
+
+`onSlotReleased` is implemented by `MobileMixin` (clearing `engagedMode` for
+passthrough conveyances) and by `PosedMixin` (forgetting which host's
+posture slot a body was resting in). `Mobile` is composed in `Character`,
+`Posed` in `Creature`, so Mobile is outside and Posed's witness never fired:
+standing up left a sleeper recorded as still occupying the bed, and they
+would have gone on earning that bed's `restQuality` across the offline gap
+from a bed they were not in.
+
+### BAD (replaces whatever the inner layers wanted)
+
+```typescript
+public onSlotReleased(host: Stuff & Slotted, slotName: string): void {
+  const mode = this.getEngagedMode();
+  if (mode?.getPassthrough()) this.setEngagedMode(null);
+}
+```
+
+### GOOD (do your job, but let the chain run first)
+
+```typescript
+public onSlotReleased(host: Stuff & Slotted, slotName: string): void {
+  const parent = (Base.prototype as { onSlotReleased?: (h: Stuff & Slotted, s: string) => void })
+    .onSlotReleased;
+  if (typeof parent === 'function') parent.call(this, host, slotName);
+  // ...then this layer's own concern
+}
+```
+
+**How to spot it before it ships:** grep the witness name across `lib/`
+before implementing one. More than one hit in a single composition is the
+bug. The framework's own override hooks already carry this contract — a
+subclass `onDestruct` calls `super.onDestruct()` — and the optional-witness
+seams deserve the same reflex even though nothing enforces it.
+
+The general rule: **an optional witness is a shared channel, not a slot you
+own.** Write to it as though somebody else already has.

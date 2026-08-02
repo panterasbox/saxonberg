@@ -279,7 +279,22 @@ Four archetypes ship, and they are four *different kinds of answer*:
 | **living** | **audience** | the room you bring a visitor into — and it ships **empty**, because filling it is the point |
 
 They add **zero new classes, mixins or verbs** — a test enumerates the six
-shipped classes every fixture uses. Three of the four will never earn a
+shipped classes every fixture uses.
+
+> ⚠ **The archetypes need a provisioner, and this build does not ship one.**
+> On a persistable host `applyPopulates` only **retains** the specs;
+> `seedBornWith()` lays them down, driven by a provisioning flow
+> (`DormWarren.admit`'s shape: clone → key → `hasRecord ? materialize :
+> seedBornWith`). A bare `clone` never calls it — and cannot, having no unit
+> key to decide with.
+>
+> Verified in a live world: cloning `/obj/room/bathroom` and walking in
+> gives the room's **prose** and **no fixtures at all**. That is correct
+> spine behaviour, not a defect — but the consequence is sharper than
+> "Wave 6 is deferred": **the four archetypes are content that nothing in
+> the world currently instantiates.** The fixtures work individually (a
+> cloned tub accepts `lie`, a cloned toilet exposes nothing), and the
+> assembly waits on the unit Warren. Three of the four will never earn a
 class: spoilage belongs to food and its container, pests to debris plus
 food, cleanliness to items and bodies — none of them to the room.
 

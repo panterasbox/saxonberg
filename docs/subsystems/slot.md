@@ -256,6 +256,15 @@ base (`lib/Bistate.ts`) alongside `Sealable`/`Switchable` in commit
 
 ## History — the furnishing build (2026-07-31)
 
+> ⚠ **A witness implemented by more than one composed layer must
+> super-chain.** `onSlotReleased` is implemented by both `MobileMixin`
+> (engagedMode) and `PosedMixin` (forgetting which host you rested in). A
+> method does not merge — the **outermost** composed layer wins, and
+> `Mobile` (in `Character`) sits outside `Posed` (in `Creature`), so Posed's
+> witness was silently replaced. Standing up left the sleeper recorded as
+> still occupying the bed. `Mobile.onSlotReleased` now calls the parent
+> first; any future implementor must do the same.
+
 **`Slotted.occupy` gained `onSlotOccupied`** — the symmetric twin of the
 shipped `onSlotReleased`, firing from the same chokepoint so every arming
 path reaches it (`SlotApi.occupyAll`, combat's grip swap, persistence

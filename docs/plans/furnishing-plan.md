@@ -232,6 +232,35 @@ class.
 `DormWarren.admit` one tier up (finding 5, on `restoreOrSeed` if it has
 landed). Four things, in order.
 
+> ⭐ **Use minted identity, not a Warren** (from build-2, 2026-08-01).
+> `StuffApi.clone(source, { asTemplatePath })` mints a clone at a
+> scheme-derived identity path — the singleton guard checks the IDENTITY,
+> not the source, so each unit's room lives at `<unitExtent>/<leaf>` and
+> distinct units never collide. It needs **no new machinery**: no template
+> rows authored, no seeder work, the source template is the prototype.
+>
+> Build-2 reports it closing three defects at once, one of which they had
+> reported to us as open: land use resolves **per unit** rather than to the
+> district; an avatar logging out in a minted room returns to **that room**
+> rather than a fresh clone; and — the one that matters most here — a minted
+> room **can be `CartesianLocation`**, because it holds a unique singleton
+> path. A Warren-cloned room cannot, which is why `DormRoom` is
+> non-coordinate.
+>
+> That last point unblocks per-room extent, and with it the measured
+> efficiency the [development slate](../slates/builds/development-slate.md)
+> deferred. **Point provisioning at `asTemplatePath`.**
+>
+> ⚠ And their hard-won rule, which applies to any room class this wave
+> writes: **never hand-rebuild a concrete class's mixin stack to change one
+> layer.** `CartesianLocation` carries six overrides beyond its mixins
+> (`getSizeScale`, `getZone`, `getVolume`, `getCeilingHeight`, exit
+> reciprocity in `addExit`, `coords`); a lookalike drops all of them
+> silently — theirs read 36× brighter than authored because `getSizeScale`
+> fell back to 1.0 instead of `cellSize²`. Subclass it; don't re-assemble
+> it. (`FurnishableRoom` is **not** affected: it composes mixins *over*
+> `Location`, which keeps `Location`'s body — checked.)
+
 **Provision.** Mint a unit sub-parcel via the shipped `subdivide`, grant
 the lease via `grantUse`, materialize *n* rooms empty of movable goods —
 built-in fixtures only, from `populates:` through the shipped

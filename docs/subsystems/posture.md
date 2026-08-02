@@ -190,6 +190,10 @@ scan** — so the bed was gone on restore and `currentRestQuality()` read
 **`restingOnPath`** and **`restingSlot`**, stamped by the new
 `onSlotOccupied` witness for **posture-bearing slots only** (worn, held and
 mount slots are ignored — this remembers where you rest, not what you
-carry) and cleared on release. `PersistableLogic` re-occupies last, after
+carry) and cleared on release — and `MobileMixin.onSlotReleased` had to be taught to
+super-chain, because it sits outside `PosedMixin` and was silently
+replacing that witness (see [slot.md](./slot.md) and
+[antipatterns.md](../antipatterns.md) § *An optional witness implemented
+by more than one composed layer*). `PersistableLogic` re-occupies last, after
 placement and fixtures; every failure degrades to the room floor with no
 error and no teleport.
