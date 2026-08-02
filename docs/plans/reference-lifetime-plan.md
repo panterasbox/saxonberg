@@ -267,6 +267,36 @@ static or a `fieldMeta` key matching no declared field/accessor.
 **Verified by**: `--verify` clean · four chunks · `pnpm build` ·
 `pnpm lint` · `pnpm e2e` · re-run is a no-op.
 
+### W2c — Fold the TSDoc field tags (D8)
+
+Its own commit, its own golden master, after W2 so the two transforms are
+separately bisectable.
+
+- Extend `check-field-meta.ts --snapshot` to also record, per class body,
+  the `@authorable` / `@authorable ref:<T>` / `@runtimeState` markers **as
+  `StudioLogic.scanClassification` currently resolves them** — including
+  its underscore-insensitive candidate expansion and its `apply<Field>` →
+  field mapping. The golden master must capture the *current* resolution,
+  quirks and all, or the diff cannot prove equivalence.
+- Codemod pass 2: fold each marker into the owning field's `fieldMeta`
+  entry (`authorable`, `authorPicker`, `runtimeState`) and **strip the tag
+  from the JSDoc**, leaving the prose.
+- Delete `scanClassification` (`obj/api/StudioLogic.ts:164`), its
+  `walkTsFiles` traversal, and the `authorable-fields.json` cache
+  (:125). The Studio reads `MixinApi.getAllFieldMeta`.
+
+**Verify first, before deleting the scan**: the scan reads *source*, so it
+can see fields on classes that are never loaded, whereas
+`getAllFieldMeta` needs a constructor. Assert the post-fold catalogue is
+set-equal to the pre-fold one; any class present only in the scan is a
+finding to report, not a diff to accept.
+
+**Risk**: the regex scan's name-guessing may bind a tag to a field the
+declaration will bind differently. That is exactly what the golden-master
+diff surfaces — and where it differs, the *declaration* is right and the
+scan was wrong; record each such case in the commit message rather than
+"fixing" the declaration to match.
+
 ### W2b — Doc vocabulary sweep (docs + comments only)
 
 Its own commit so the codemod diff stays pure. 12 subsystem docs,
@@ -351,6 +381,13 @@ Semantics:
 Lands inert: no class declares a `lifetime`, so the loop body never
 executes on a real object.
 
+### W5b — `super.onDestruct()` (D10)
+
+Two lines. `lib/boundary/Exit.ts:703` and `lib/boundary/Boundary.ts:219`
+never chain. Landing it *before* W6 converts those two files means the
+chain is correct when the declarations arrive, and a W6 regression cannot
+be confused with this pre-existing break.
+
 ### W6 — Convert the shipped-correct sites (the fidelity proof)
 
 Correct sites go **first**: they are the only places where "did the
@@ -368,10 +405,17 @@ the oracle. One relationship per commit.
 | 7 | `Aether._hostedUpdates` | **`cleanupOnDestruct` :204** | `owned` | **Atomic** per F4. The `setHost(null)` pre-clear becomes `symmetric` on `AetherHosted._host`, ordered before the cascade (Q4) |
 | 8 | `Species` → `Clade.species` :564 | `onDestruct` | `symmetric` | Concrete class, not a mixin |
 
-**NOT converted**, each with a one-line comment at its site saying so:
-`Container.contents` (evacuates outward), `Warren`/`DormWarren` (elastic
-reaping), `SandboxCrossing` (closeSession), and the held-side R2.4
-unhooks (already framework-enforced; folding R2.4 in is out of scope).
+**W6b — the six held-side R2.4 unhooks (D9).** `Containable` (:194),
+`Spawned` (:67), `WarrenMember` (:89), `AetherHosted` (:85), `Slottable`
+(:83), `Slotted` (:465). All are `cleanupOnDestruct`-form, so **all
+convert atomically** per F4. `Slotted`/`Slottable`'s `onSlotReleased`
+notification is policy and stays hand-written.
+
+**NOT converted**, each with a one-line comment naming the audit step it
+fails: `Container.contents` (evacuates outward — step 4),
+`Warren`/`DormWarren` (elastic reaping — step 4), `SandboxCrossing`
+(closeSession — step 4), `Persistable` (capture; not a reference at
+all).
 
 ### W7 — The 21-site sweep (where behaviour changes)
 
@@ -431,6 +475,7 @@ W0b  WireBody/Shade              4 files             ─┤ no fieldMeta yet
 W1   FieldMeta + collector       additive            ─┘
 ──────────────────────────────────────────────────── bisect line
 W2   THE CODEMOD                 ~250 files, no behaviour change
+W2c  fold the TSDoc tags         ~71 files + delete the source scan
 W2b  doc vocabulary sweep        docs + comments
 ──────────────────────────────────────────────────── bisect line
 W3   R7 validation               inert

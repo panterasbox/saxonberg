@@ -42,6 +42,9 @@ field declares everything about itself.
 | D4 | **Residency: regression tests only** | The `canEvict` vetoes are not mechanical (see R6); pin them, do not derive them |
 | D5 | **Fix all 21 sweep sites** | The mechanism without the fixes leaves the bugs it exists to prevent |
 | D7 | **W7c registries: finish the read-side prune, don't declare a rule** | A registry keyed by a live Stuff is an *index*, not a reference — it doesn't own its keys (`owned` wrong) and `Interactive` must not grow a back-ref (`symmetric` wrong). Also fixes the real leak: `Interactive.onDestruct` never calls `teardownSubstrateState`, which the three registries rely on |
+| D8 | **Fold `@authorable` + `@runtimeState` into `fieldMeta`**; delete the source scan | They ARE field metadata (172 + 78 sites), and `StudioLogic.scanClassification` reads them by walking the source tree as TEXT and regex-binding JSDoc to identifiers — with underscore-insensitive name *guessing* because it cannot tell which field a comment belongs to. Shipping "one field-keyed structure" while leaving 250 declarations in comments the runtime greps would be the same disease with a worse mechanism. It also makes the tag **checkable**: `@runtimeState` currently lies about `Organism.lifecycleState`, which is persisted |
+| D9 | **Fold the held-side R2.4 unhooks into the declaration** | A second route for declaring a reference relationship leaves "one way" two-thirds true. **Six of the ten** `cleanupOnDestruct` sites qualify (see R10) — the other four are policy, not cascade |
+| D10 | **Fix the two missing `super.onDestruct()` calls here** | `Exit` and `Boundary`, two lines each, and W6 converts both files anyway. A known-broken destruct chain inside code this build is rewriting invites blaming the wrong commit |
 | D6 | **No decorators** | Verified: legacy decorators are invalid on any member of a class *expression* (TS1206 — field and method alike), and 105 mixins return class expressions. Not a field-vs-method issue. ES decorators do permit it, but migrating decorator modes is a separate build (call-security is legacy + `emitDecoratorMetadata`, which has no ES equivalent). |
 
 ## Scope
@@ -66,9 +69,10 @@ field declares everything about itself.
   *field* metadata (see R2). Touching them is scope creep.
 - **The residency veto roster stays hand-written** (D4).
 - **Decorator-mode migration** (D6).
-- **TSDoc field tags** (`@authorable`, `@runtimeState`) stay comments.
-  Whether they fold into `fieldMeta` is a real design question, not a
-  mechanical one — defer.
+- **Folding `commandContributions` / `settings` / `subscribableFields` /
+  `markupAugmenters` together.** They are not field-keyed (R2); whether
+  the *class*-level statics deserve their own unification is a separate
+  question this build does not open.
 - No new Api. This rides `MixinApi` and `StuffApi.#destructCore`.
 
 ## Requirements
@@ -311,6 +315,56 @@ At class registration, throw on:
 Plus `pnpm lint:field-meta` (CI-gating) for what registration cannot see:
 a legacy static still present after the codemod, and a `fieldMeta` key
 that matches no declared field on the class.
+
+### R10 — Which R2.4 unhooks fold in (D9)
+
+"Fold R2.4 in" is **not** a blanket conversion of all ten
+`cleanupOnDestruct` statics. The `owned` audit's step 4 is the filter: if
+the handler does anything other than unhook or destruct — moves,
+evacuates, notifies, schedules, conditionally destructs — it is
+**policy**, and policy stays hand-written.
+
+| site | verdict |
+|---|---|
+| `Containable` (:194) `ContainmentApi.move(self, null)` | **fold** — held-side unhook |
+| `Spawned` (:67) `spawner.untrackSpawn(self)` | **fold** |
+| `WarrenMember` (:89) `warren.removeMember(self)` | **fold** |
+| `AetherHosted` (:85) `setHost(null)` + `_dropHostedUpdate` | **fold** — becomes the `symmetric` half of W6 #7 |
+| `Slottable` (:83) / `Slotted` (:465) vacate | **fold** — but the `onSlotReleased` notification is policy and stays |
+| `Container` (:206) evacuates outward, destructs last resort | **keep** — policy |
+| `Aether` (:204) owned cascade + pre-clear | **keep the cascade in W6 #7**; only the pre-clear becomes declarative |
+| `Warren` (:506) elastic-graph reaping | **keep** — policy |
+| `Persistable` (:248) capture | **keep** — not a reference at all |
+
+Each kept site gets a one-line comment at its handler saying which audit
+step it fails, so the next census does not re-raise it.
+
+### R11 — The doc-tag fold (D8)
+
+`fieldMeta` gains:
+
+```ts
+authorable?: true;        // was @authorable
+authorPicker?: string;    // was `@authorable ref:<Type>`
+runtimeState?: true;      // was @runtimeState
+```
+
+`authorPicker`, not a nested `ref`, so it cannot be confused with axis 1.
+
+`StudioLogic.scanClassification` (:164) and its `authorable-fields.json`
+cache are **deleted**; the Studio reads `MixinApi.getAllFieldMeta`.
+
+**Risk to check before committing to it**: the scan reads *source*, so it
+sees fields on classes that may never have been loaded, whereas
+`getAllFieldMeta` needs the constructor. Verify the Studio catalogue is
+built over registered classes (it describes composable mixins, which are
+in the `Mixins` registry) before deleting the scan. If some tagged class
+is genuinely never loaded, that is itself a finding.
+
+**`@runtimeState` is currently able to lie** — it tags
+`Organism.lifecycleState`, which is persisted (found during the mortality
+build). Once folded, `runtimeState: true` alongside `persistent: true` is
+a build-time error (R7), so the contradiction becomes unrepresentable.
 
 ### R8 — The sweep (D5)
 
