@@ -4,6 +4,13 @@ How feature work moves from product idea to merged code in this repo.
 This is the source of truth; the skills under `.claude/skills/` are
 thin entry points that load this doc and set posture for one phase.
 
+> ⚠ **Before any commit, see [CLAUDE.md § Worktrees](../CLAUDE.md).**
+> Four worktrees share one bare repo. **One branch, one worktree**, and
+> **stage by name — never `git add -A`.** Two worktrees on the same branch
+> silently turns the second into a stale tree whose `add -A` records mass
+> deletions; this cost a day on 2026-08-02. A tracked `.githooks/pre-commit`
+> enforces it.
+
 ## Artifact taxonomy
 
 Four kinds of doc artifact, each with a distinct lifetime.
