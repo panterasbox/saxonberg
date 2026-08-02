@@ -7,7 +7,8 @@ here.
 
 **One open question remains — Q6 (`K`).** Q2 (thrown carriers) and Q5
 (subsystem folders) are resolved in §11, along with five smaller ones;
-§12 records what requirements D34 changed after this plan was written.
+§12 flags a collision with the in-flight lib/obj refactor, and §13 records
+what requirements D34 changed after this plan was written.
 
 
 ---
@@ -409,7 +410,7 @@ which D27 already declares invisible. **Q3.**
 | `lib/magic/Memorized.ts` | Mixin — `{sharpness, maturity, stamp, defective}` per spell, reconcile-on-read |
 | `lib/magic/Fade.ts` | Named value-object — the four-axis fade function, **pure**, and the only honest way to test AC 30 |
 | `lib/magic/StudyActivity.ts` | The `CastActivity` shape exactly — slots, interruptible, resolve at completion |
-| `lib/magic/Spellbook.ts` | Stuff — composes `Marked` (W2), `Identifiable` (W5), `Graded` (quality → refresh speed, **not** fade rate), mass |
+| **`obj/magic/Spellbook.ts`** | Stuff — **`obj/`-side, it is cloneable** (§12). Composes `Marked` (W2), `Identifiable` (W5), `Graded` (quality → refresh speed, **not** fade rate), mass |
 | `cmd/magic/study.yaml` + controller | Standalone verb |
 
 ### The one design call
@@ -551,7 +552,65 @@ re-authoring, but not beyond. **Confirm before the banks are authored** —
 it is the one number that decides whether the authored word count is
 right.
 
-## 12. Added after planning — D34, and what it costs
+## 12. ⚠ Dependency: the lib/obj taxonomy refactor (build-1, in flight)
+
+A migration is being specified in build-1 —
+`docs/requirements/lib-obj-taxonomy-requirements.md`, currently
+untracked there. Its rule governs every file this plan creates:
+
+> **`/obj/` holds anything instanceable** — anything a template's
+> `class:` resolves to. **`/lib/` holds substrate that is only ever
+> inherited**: abstract roots, mixins, value objects, and framework
+> machinery.
+>
+> The invariant it makes literally true: **nothing instances `/lib/`**,
+> and **a lint fails when a template's `class:` resolves under `/lib/`.**
+
+### What this corrects in this plan
+
+**`Spellbook.ts` moves to `obj/magic/Spellbook.ts`.** It is a cloneable
+Stuff, so it was in the wrong tree. The refactor already plans an
+**`obj/magic/` cluster** (GlowlightOrb, SparkSource, Spell), so it has a
+home waiting rather than needing a new directory.
+
+**Every concrete item class in the roster** — wands, potions, scrolls,
+rings, amulets — lands in `obj/magic/` with templates mirroring. This
+plan named mixins and value-objects and never named the concrete
+classes; they are `obj/`-side and must be authored there from the start,
+or the new lint fails on our own content.
+
+**Everything else in this plan is correctly placed and does not move.**
+All the mixins (`Consumable`, `Potable`, `Charged`, `Focus`,
+`Blessable`, `Marked`, `Labelled`, `Memorized`, `Circulating`) and all
+the value-objects (`EffectContext`, `CastingProfile`, `Dose`, `Charge`,
+`Blessing`, `Appearance`, `Fade`, `PriceList`, `Census`, `SpawnTable`)
+are inherited-only substrate and stay in `lib/`.
+
+### ⚠ The collision, and it is a real one
+
+**Wave 1 modifies `lib/magic/Spell.ts` and re-authors nine seeds under
+`seeds/lib/magic/Spell/`. The refactor moves that exact class to
+`obj/magic/Spell.ts` and that exact seed tree to `seeds/obj/magic/`.**
+
+Whoever lands second eats the conflict, and it is a rename-plus-edit
+conflict, which is the unpleasant kind. Two options:
+
+- **Let the refactor land first** and do wave 1 against the new paths.
+  Cleanest, and wave 1 is the precondition for everything anyway, so
+  slipping it costs the whole build calendar time.
+- **Land wave 1 first**, accept that the refactor re-points nine seeds
+  and one class it was already re-pointing, and coordinate so the
+  refactor picks up wave 1's shape rather than reverting it.
+
+Wave 1's edit is *within* files the refactor is *moving*, so the second
+option is survivable — a move plus a content edit merges if the mover
+knows to take ours. **It needs a conversation between the two builds
+before either starts, not a merge-time discovery.**
+
+Everything in waves 2–7 is either new files or files the refactor does
+not touch, so the collision is confined to wave 1.
+
+## 13. Added after planning — D34, and what it costs
 
 **Requirements D34** landed after this plan was written and changes two
 things in it.

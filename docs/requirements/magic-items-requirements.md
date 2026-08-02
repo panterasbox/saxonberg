@@ -936,6 +936,15 @@ universal verb, contextual affordance, always parseable.
   from outside.
 - **New mixins land in the `lib/<subsystem>/` that owns the concern.**
   If none fits, propose a subsystem folder — never `lib/mixins/`.
+- **⚠ `/obj/` holds anything instanceable; `/lib/` holds only what is
+  inherited.** Per the in-flight lib/obj taxonomy migration
+  (`lib-obj-taxonomy-requirements.md`, build-1): anything a template's
+  `class:` resolves to is `obj/`-side, and a lint fails when a template
+  resolves under `lib/`. **Every concrete item class in this build —
+  wands, potions, scrolls, rings, amulets, spellbooks — is `obj/`-side**
+  (the migration already plans an `obj/magic/` cluster). Mixins and
+  value-objects stay in `lib/`. This build must not author content that
+  fails that lint.
 - **Reconcile-on-read** for every decaying quantity (charge, pattern,
   sharpness), following the husbandry/metabolism pattern, with the same
   stamp guards.
