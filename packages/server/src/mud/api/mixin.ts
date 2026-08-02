@@ -1435,6 +1435,7 @@ export class MixinApi {
    */
   public static assertComposable(constructor: AnyConstructor): void {
     if (this.#validatedClasses.has(constructor)) return;
+    MixinApi.#validateFieldMeta(constructor);
     let current: unknown = constructor;
     while (current && current !== Object && (current as MixinClass).prototype) {
       const c = current as MixinClass & {
@@ -1449,6 +1450,80 @@ export class MixinApi {
       current = Object.getPrototypeOf(current);
     }
     this.#validatedClasses.add(constructor);
+  }
+
+  /**
+   * Reference-axis validation, run once per class at registration.
+   *
+   * These are not style rules. Each names a combination that cannot be
+   * made to work, so the honest place to find out is registration —
+   * loudly, naming the field and the class — rather than a silent
+   * mis-persist or a dangling ref discovered months later.
+   *
+   * Checked on the MERGED metadata, which is why it lives here and not
+   * in `lint:field-meta`: the merge is property-level up the prototype
+   * chain, so a base may declare `ref: 'instance'` and a subclass
+   * sharpen it with a `lifetime`. Only a walk that holds the
+   * constructor can see the result. The static lint carries the
+   * complementary rules — the ones that are wrong within a single class
+   * body no matter what any other layer says.
+   *
+   * Rule 4 is deliberately **same-class only**. A cross-class pair
+   * (`Adornment.adornedTo` ↔ `Adornable.fixtureSlots`) lives on two
+   * different hosts, and registering one cannot see the other; that case
+   * belongs to `lint:field-meta`, which sees the whole tree statically.
+   */
+  static #validateFieldMeta(constructor: AnyConstructor): void {
+    const meta = MixinApi.getAllFieldMeta(constructor);
+    const name = (constructor as { name?: string }).name ?? '<anonymous>';
+    const fail = (field: string, why: string): never => {
+      throw new Error(
+        `${name}.fieldMeta['${field}']: ${why}. See docs/ref-shapes.md.`
+      );
+    };
+
+    for (const [field, entry] of Object.entries(meta)) {
+      if (entry.ref === 'instance' && entry.persistent) {
+        fail(
+          field,
+          `an instance ref cannot be persistent — a stuffId does not ` +
+            `survive a reboot, so there is nothing durable to write down ` +
+            `(an IDENTITY ref with persistent: true is the normal case)`
+        );
+      }
+      if (entry.ref === 'identity' && entry.lifetime) {
+        fail(
+          field,
+          `an identity ref takes no lifetime — it re-resolves from its ` +
+            `path on read, so it cannot dangle`
+        );
+      }
+      if (entry.lifetime && entry.ref !== 'instance') {
+        fail(
+          field,
+          `declares lifetime '${entry.lifetime}' without ref: 'instance' ` +
+            `— a lifetime is the destruct-side rule for an instance ref`
+        );
+      }
+      if (entry.lifetime === 'symmetric' && !entry.inverse) {
+        fail(
+          field,
+          `is symmetric with no 'inverse' — the framework cannot find ` +
+            `what to clear on the other side`
+        );
+      }
+      // Same-class reciprocity. A cross-class inverse is invisible from
+      // here and is left to the whole-tree lint; an inverse naming a
+      // field this class DOES declare must point back.
+      const other = entry.inverse ? meta[entry.inverse] : undefined;
+      if (entry.inverse && other && other.lifetime !== 'symmetric') {
+        fail(
+          field,
+          `names inverse '${entry.inverse}', which this class declares ` +
+            `but not as symmetric — a symmetric pair must be reciprocal`
+        );
+      }
+    }
   }
 
   static #validatedClasses = new WeakSet<AnyConstructor>();

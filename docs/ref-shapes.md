@@ -66,9 +66,24 @@ static fieldMeta = {
 };
 ```
 
-The invalid combinations — `identity` with a `lifetime`, `instance`
-with `persistent`, `symmetric` without an `inverse` — are checked at
-class registration.
+The invalid combinations are checked **at class registration**, and
+throw naming the field and the class:
+
+- `instance` with `persistent` — nothing durable to write down;
+- `identity` with any `lifetime` — it re-resolves and cannot dangle;
+- a `lifetime` with no `ref: 'instance'`;
+- `symmetric` with no `inverse`;
+- an `inverse` this class declares that does not point back.
+
+Validation runs on the **merged** metadata, so a base declaring
+`ref: 'instance'` and a subclass sharpening it with a `lifetime` is
+legal and is judged as one entry. A *cross-class* pair
+(`Adornment.adornedTo` ↔ `Adornable.fixtureSlots`) lives on two hosts
+and registration of one cannot see the other — that reciprocity belongs
+to `pnpm lint:field-meta`, which sees the whole tree statically. The
+same lint carries the rules that are wrong within a single class body
+whatever other layers say: an unknown entry property, a malformed
+value, and a legacy static coming back.
 
 > **Historical note.** This doc previously described *three* patterns:
 > A (string-stored singleton), B (live ref), and C (path-resolved
@@ -76,8 +91,13 @@ class registration.
 > templatePath string — and differed only in what the getter did with
 > it (compare vs resolve), which is a usage decision, not a
 > representation. They are one thing: an **identity** ref. B is an
-> **instance** ref. The old names still appear in code comments and in
-> the R2.x rule labels below; they mean what the table above says.
+> **instance** ref. The letters have been swept out of the docs and the
+> source comments; they survive only in the section headers below (as
+> `was: Pattern X` signposts) and in the R2.x rule labels, which are
+> still how the cleanup rules are referred to across the tree.
+>
+> Unrelated collision: `slot.md` has its own Pattern A/B/C — how a host
+> *provides* slots. That taxonomy is untouched.
 
 ---
 
