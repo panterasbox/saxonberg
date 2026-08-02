@@ -23,6 +23,23 @@ import { Creature } from "../../creature/Creature";
 import { MixinApi } from "../../../api/mixin";
 import { Mixins } from "../../mixin";
 import Thing from "../../stuff/Thing";
+import { StuffApi } from "../../../api/stuff";
+import { SlotApi } from "../../../api/slot";
+import PosturedChair from "../../../obj/Chair";
+import { makeStuffAtPath } from "../../security/__tests__/test-setup";
+import type { Stuff } from "../../stuff/Stuff";
+import type { Slotted } from "../../slot/Slotted";
+import type { Slottable } from "../../slot/Slottable";
+
+const BED_PATH = "/obj/fixture/bed";
+function makeBed(): PosturedChair {
+  const bed = makeStuffAtPath(() => new PosturedChair(), BED_PATH);
+  bed.setStaticSlots([
+    { name: "lie:1", accepts: "SlottableMixin", capacity: 1, postures: ["lie", "sit"] },
+  ]);
+  bed.setRestQuality(1.5);
+  return bed;
+}
 
 describe("the posture verbs reach a player", () => {
   it("PosedMixin contributes all four on the self surface", () => {
@@ -41,5 +58,41 @@ describe("the posture verbs reach a player", () => {
     expect(MixinApi.hasMixin(Creature, Mixins.Slottable)).toBe(true);
     expect(MixinApi.hasMixin(Creature, Mixins.Slotted)).toBe(true);
     expect(MixinApi.hasMixin(Creature, Mixins.Posed)).toBe(true);
+  });
+});
+
+describe("standing up forgets the bed — across the WHOLE composed stack", () => {
+  it("Mobile's onSlotReleased super-chains to Posed's", async () => {
+    StuffApi.clearAll();
+    // `onSlotReleased` is implemented by more than one layer, and a method
+    // does not merge — the OUTERMOST composed layer wins. MobileMixin (in
+    // Character) is outside PosedMixin (in Creature), so without a super
+    // call Posed's witness never fires and standing up leaves the sleeper
+    // recorded as still in the bed: `posture: stand` with a live
+    // `restingOnPath`, which is contradictory. This is the regression.
+    const { MobileMixin } = await import("../../spatial/Mobile");
+    const { PosedMixin } = await import("../Posed");
+    const { SlottableMixin } = await import("../../slot/Slottable");
+    const { default: Thing } = await import("../../stuff/Thing");
+
+    // Compose in the real order: Mobile OUTSIDE Posed.
+    class Body extends MobileMixin(PosedMixin(SlottableMixin(Thing))) {}
+    const body = makeStuffAtPath(() => new Body(), "/obj/test/ChainBody");
+    const bed = makeBed();
+
+    SlotApi.occupyAll(
+      bed as unknown as Stuff & Slotted,
+      body as unknown as Stuff & Slottable,
+      ["lie:1"],
+    );
+    expect(body.getRestingOnPath()).toBe(BED_PATH);
+
+    (bed as unknown as Slotted).vacate(
+      "lie:1",
+      body as unknown as Stuff & Slottable,
+    );
+    // Mobile's witness ran (its own job is engagedMode) AND Posed's did.
+    expect(body.getRestingOnPath()).toBe("");
+    expect(body.getRestingSlot()).toBe("");
   });
 });
