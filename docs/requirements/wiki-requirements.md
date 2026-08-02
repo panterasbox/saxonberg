@@ -1,7 +1,9 @@
 # Wiki — requirements
 
-> **Status: AGREED 2026-08-02.** Scope closed; no open questions remain
-> for the planner. The implementation shape — file layout, per-wave
+> **Status: AGREED 2026-08-02**, revised same day — the subject became a
+> template path (D7), which withdrew the `DocumentedMixin` hook and
+> generalised the wiki from four content kinds to anything authored.
+> Scope closed; no open questions remain for the planner. The implementation shape — file layout, per-wave
 > contents, test inventory — belongs to `docs/plans/wiki-plan.md` and is
 > deliberately not settled here. Code blocks below are **illustrative of
 > a decision**, never a prescribed signature.
@@ -32,7 +34,9 @@ rudimentary by decision, not omission.
 ## Goals
 
 - **One page model**, whether or not a page documents something in the
-  world. Subject binding is a property of a page, not a second kind.
+  world. Subject binding is a property of a page, not a second kind — and
+  the subject is **any template path**, so anything in the game can have
+  an article.
 - Articles are **rich and composable**: the body is a component tree, not
   a string, and joins against live sources are expressed *in the article*
   and resolved at render.
@@ -47,8 +51,10 @@ rudimentary by decision, not omission.
 - **MML carries long-form prose** — headings, nested lists, tables.
 - The **spoiler read path** holds: over-capability content never crosses
   the wire; over-appetite content arrives tagged.
-- **No new `*Api`.** The Api layer is being reorganised before go-live;
-  this build adds nothing to it.
+- **No new `*Api`**, and **no change to any game class**. The Api layer
+  is being reorganised before go-live; this build adds nothing to it, and
+  documentability is a property of a template path rather than something
+  a class opts into.
 
 ## Non-goals
 
@@ -132,7 +138,7 @@ separate embed mechanism — there are components, and the architecture
 panel is one of them:
 
 ```
-<composition of="/lib/material/oak" />   live mixin architecture
+<composition of="/lib/material/oak" />   live architecture of any template
 <help verb="plant" />                    transclude a command spec
 <mql query="…" />                        live world query
 <infobox>…</infobox>                     pure presentation
@@ -181,35 +187,59 @@ Expansion runs **before** component resolution and needs a depth cap and
 cycle detection (a template including itself, or a pair including each
 other). Both are hard failures that render an inline error, never a hang.
 
-### D7 — ⚠ No `WikiApi`. The article is reached through its subject
+### D7 — ⭐ The subject is a TEMPLATE PATH; anything in the game can be documented
 
-`DocumentedMixin` composes onto the documentable Stuff kinds —
-**`Material`, `Biome`, `Species`, `Location`** — and gives:
+A page's optional `subject` is a **path in the `domain` collection** —
+nothing more:
 
 ```
-subject.getArticle()            the page documenting this, or null
-MixinApi.isDocumented(x)        narrowing
+subject: "/lib/material/oak"      a material
+subject: "/obj/npc/odile"         somebody's favourite NPC
+subject: "/obj/light/torch"       a generic torch
+subject: "/domain/terminus/registry/office"   a place
 ```
 
-The mixin holds **no data**. The *page* points at its subject; the mixin
-resolves by query. So a game model carries zero wiki fields (the slate's
-decoupling rule survives intact) while the wiki is still reached the
-mixin-native way.
+Resolution is `path → Template.findByPath → template.class → the backing
+class → its composition`. Which means the architecture panel works for
+**any authored template**, including one with no live instance anywhere
+in the world.
 
-`Location` is the hook for places. `ParcelRecord` is a `Document`, not a
-Stuff, so titled extents cannot carry the mixin — places are documented
-as Locations, which is the better subject anyway.
+> **⚠ This withdraws `DocumentedMixin`, proposed earlier in this
+> conversation.** Hooking articles to a mixin on `Material` / `Biome` /
+> `Species` / `Location` was strictly worse: it required a live Stuff (so
+> a torch nobody has lit could not be documented), it touched hundreds of
+> game classes, it enumerated in advance which *kinds* of thing deserve
+> articles, and it put a wiki-shaped marker on game models. A template
+> path needs none of that, and it makes the slate's "no wiki fields on
+> game models" literally rather than nearly true. The mixin *composition
+> panel* is unaffected — that was always about article content, and it
+> now reads the class behind the path.
 
-Rendering lives on `WikiPage` itself (`page.render(reader)` → parse →
-expand → resolve → gate → emit). The controller calls the page or the
-subject directly. Nothing is added to the Api layer.
+**At most one canonical article per subject**, so the reverse lookup
+("is this template documented?") is total. A second take on the same
+thing is an ordinary page that links.
 
-### D8 — One page model; the subject is optional
+### D8 — Filing is the author's; seeding is ours
 
-A page has an optional `subject` (a templatePath). Bound pages can use
-`<composition>`; free-standing pages — lore, guides, system pages — are
-identical in every other respect. **System pages are written on demand
-and need no separate mechanism**: a page about a command is a page.
+The subject does **not** determine where a page lives. Namespaces remain
+the access and organisation axis; tags are free-form; a player writing
+about their favourite NPC files it wherever they like. We do not impose a
+taxonomy on community contribution, and the wiki must not require one
+before a page can exist.
+
+**Where the taxonomy IS the thing's identity — materials, biomes — we
+seed deliberately**, because there the structure is not an editorial
+choice, it is the subject matter. Everything else grows organically and
+is reorganised later if it ever needs to be. Over-organising an empty
+wiki is how wikis die.
+
+### D8a — The CMS authors the template; the wiki documents it
+
+Both key on the same `domain` path, which makes the relationship free:
+from a template in the CMS to its article, and from an article to the
+template it documents. The **seam is the shared path** and nothing more —
+no integration work in v1, no coupling in either direction, and neither
+side needs to know the other exists for both to function.
 
 ### D9 — ⭐ Derived fields carry their own spoiler level
 
@@ -336,10 +366,13 @@ anchor). Tags are cross-cutting and carry no permission meaning.
 
 **Subject binding**
 
-5. `DocumentedMixin` composes onto `Material`, `Biome`, `Species` and
-   `Location`; `MixinApi.isDocumented` narrows.
-6. `subject.getArticle()` returns the page documenting it, or null.
-7. **No wiki field is stored on any game model** — asserted.
+5. A page's `subject` may be **any path in `domain`** — a material, an
+   NPC, a torch, a place — and a template with no live instance is
+   documentable.
+6. The reverse lookup (template path → its article, or null) is total,
+   and a subject carries at most one canonical article.
+7. **No wiki field is stored on any game model, and no game class is
+   modified to make it documentable** — asserted.
 
 **Revisions**
 
