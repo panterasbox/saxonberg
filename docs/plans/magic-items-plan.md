@@ -5,10 +5,14 @@ Phase 2 for [magic-items-requirements.md](../requirements/magic-items-requiremen
 **how**; the requirements say what and why, and are not re-litigated
 here.
 
-**One open question remains — Q6 (`K`).** Q2 (thrown carriers) and Q5
-(subsystem folders) are resolved in §11, along with five smaller ones;
-§12 flags a collision with the in-flight lib/obj refactor, and §13 records
-what requirements D34 changed after this plan was written.
+> **⛔ BLOCKED — no code until the lib/obj migration lands** (§12).
+> Whoever picks up wave 1 must write it against **post-refactor paths**.
+> The one strand that can proceed meanwhile is the materials pack and
+> then the descriptor banks, which makes **`K` (Q6) the live blocker.**
+
+Q2 (thrown carriers) and Q5 (subsystem folders) are resolved in §11 with
+five smaller ones; §13 records what requirements D34 changed after this
+plan was written.
 
 
 ---
@@ -96,7 +100,8 @@ W5 identification ── (needs W2 for instances to identify)
 W7 distribution ── (needs W1 tags, W3 decay, W5 classes)
 ```
 
-- **Wave 1 is a hard precondition.** Nothing else starts.
+- **Wave 1 is a hard precondition.** Nothing else starts — and wave 1
+  itself waits on the lib/obj migration (§12).
 - **Waves 2 and 3 are independent** and can run in parallel. Land 2
   first if serial — it is lower risk and produces the first non-cast
   trigger, which is the first real test of the spine.
@@ -586,29 +591,43 @@ the value-objects (`EffectContext`, `CastingProfile`, `Dose`, `Charge`,
 `Blessing`, `Appearance`, `Fade`, `PriceList`, `Census`, `SpawnTable`)
 are inherited-only substrate and stay in `lib/`.
 
-### ⚠ The collision, and it is a real one
+### ✅ Sequencing decided: the refactor lands first
 
-**Wave 1 modifies `lib/magic/Spell.ts` and re-authors nine seeds under
-`seeds/lib/magic/Spell/`. The refactor moves that exact class to
-`obj/magic/Spell.ts` and that exact seed tree to `seeds/obj/magic/`.**
+**Decision (user, 2026-08-02): no code is written for this build until
+the lib/obj migration is done.**
 
-Whoever lands second eats the conflict, and it is a rename-plus-edit
-conflict, which is the unpleasant kind. Two options:
+That removes the collision rather than managing it. Wave 1 would have
+modified `lib/magic/Spell.ts` and re-authored nine seeds under
+`seeds/lib/magic/Spell/` — the exact class and seed tree the refactor
+moves — and a rename-plus-edit is the unpleasant conflict shape. Waiting
+costs calendar time and buys a clean base.
 
-- **Let the refactor land first** and do wave 1 against the new paths.
-  Cleanest, and wave 1 is the precondition for everything anyway, so
-  slipping it costs the whole build calendar time.
-- **Land wave 1 first**, accept that the refactor re-points nine seeds
-  and one class it was already re-pointing, and coordinate so the
-  refactor picks up wave 1's shape rather than reverting it.
+**Consequence for whoever picks wave 1 up:** write it against
+**post-refactor paths**. `obj/magic/Spell.ts` and `seeds/obj/magic/`,
+not the `lib/` paths this plan names. Everything else in the plan is
+unaffected — waves 2–7 touch nothing the refactor moves.
 
-Wave 1's edit is *within* files the refactor is *moving*, so the second
-option is survivable — a move plus a content edit merges if the mover
-knows to take ours. **It needs a conversation between the two builds
-before either starts, not a merge-time discovery.**
+### What can proceed in the meantime
 
-Everything in waves 2–7 is either new files or files the refactor does
-not touch, so the collision is confined to wave 1.
+Two pieces sit outside the refactor's surface entirely, and the plan
+already wants them early:
+
+1. **The materials content pack** — expanding the taxonomy from its
+   current 36 entries to a real working set. Pure content with sourced
+   properties; touches no classes. It is also a **prerequisite** for the
+   next item, since D32 warns the descriptor banks cannot be authored
+   blind against a moving materials vocabulary.
+2. **The descriptor banks + `lint:descriptors`** — the long pole in wave
+   5, and safe to start: a `DescriptorBank` is a `Document`, and the
+   refactor's own decision is that *classes instanced but never stamped
+   stay in `lib/`*, so it is not in the migration's path.
+
+Sequence them: **materials stable → banks authored → the lint gates
+both directions.**
+
+> ⚠ **This promotes `K` (Q6) from a nicety to a blocker.** The banks are
+> now the only magic-items work that can proceed, and they cannot be
+> authored without it.
 
 ## 13. Added after planning — D34, and what it costs
 
