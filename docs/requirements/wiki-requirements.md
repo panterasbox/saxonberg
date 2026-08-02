@@ -1,9 +1,13 @@
 # Wiki — requirements
 
-> **Status: AGREED 2026-08-02**, revised same day — the subject became a
-> template path (D7), which withdrew the `DocumentedMixin` hook and
-> generalised the wiki from four content kinds to anything authored.
-> Scope closed; no open questions remain for the planner. The implementation shape — file layout, per-wave
+> **Status: COMPLETE DESIGN, 2026-08-02.** This is deliberately **not**
+> scoped to a build. Every surface the wiki needs is designed here,
+> including the ones that are expensive; a build scope gets carved out of
+> it when we are ready to build, in whatever state the design is in then.
+>
+> Nothing below is deferred *because it is hard*. The only things absent
+> are the ones permanently rejected (see *Out of scope*) and the ones
+> another slate owns. The implementation shape — file layout, per-wave
 > contents, test inventory — belongs to `docs/plans/wiki-plan.md` and is
 > deliberately not settled here. Code blocks below are **illustrative of
 > a decision**, never a prescribed signature.
@@ -56,7 +60,7 @@ rudimentary by decision, not omission.
   documentability is a property of a template path rather than something
   a class opts into.
 
-## Non-goals
+## Out of scope
 
 - **A rich client.** The shared viewer/search substrate belongs to
   [client-shell-slate.md](../slates/tails/client-shell-slate.md).
@@ -74,7 +78,9 @@ rudimentary by decision, not omission.
 - **Api reference pages.** Forums and chat already carry that
   conversation.
 - **Assessment integrity measures** — closed by the college slate.
-- **Anonymous/public read** — deferred; needs REST, not the command bus.
+- **Anonymous/public read** — designed in *Reading without a session*
+  below; it needs REST rather than the command bus, which is a cost, not
+  a rejection.
 
 ---
 
@@ -326,6 +332,217 @@ anchor). Tags are cross-cutting and carry no permission meaning.
 
 ---
 
+## The authoring loop
+
+The data model was designed before the loop, which is backwards, and it
+left four gaps. Here is the whole path.
+
+### A1 — Edit transport: a structured submission, never a typed command
+
+Typing an MML article into the command bar is absurd, so the **verb
+carries the intent and the body rides the structured channel** — the
+same prompt/structured-arg path a long-form submission already uses.
+`wiki edit <page>` opens; the payload returns; the controller gates it
+exactly as it gates everything else. The command bus stays primary (the
+act is a `wiki edit`), and the body never has to survive tokenisation.
+
+### A2 — Section editing, because it is also the conflict answer
+
+`wiki edit <page> --section <anchor>` edits one heading's span. This is
+Wikipedia's oldest usability feature and its most effective concurrency
+control at once: two people working on different sections of a long
+article never collide, which removes most conflicts rather than
+resolving them.
+
+### A3 — ⚠ Concurrent edits: compare-and-swap on `rev`
+
+**This is a data-model gap, not a client concern.** The page carries a
+monotonically increasing `rev`; an edit submits the `rev` it was based
+on; the server rejects a mismatch.
+
+Without it, last-write-wins **silently destroys** work, and revision
+history does not save you — it faithfully records that B overwrote A,
+and A's edit is still gone. A history that documents the loss is not a
+safety net.
+
+On rejection the server returns the base body, the current body, and the
+submitted body, so the client can show a three-way. **No auto-merge** —
+a wiki edit is prose, and a machine-merged paragraph is worse than an
+honest conflict.
+
+### A4 — Preview is free if the pipeline takes a body
+
+**The render pipeline keys on a body, not a page id.** Then preview is
+the same path over unsaved text — templates expanded, components
+resolved, spoilers applied — and costs nothing.
+
+If it keys on page id instead, preview becomes a second rendering path,
+and second paths drift until preview lies about what saving will do.
+This is the cheapest architectural decision in the document and the one
+most easily got wrong by accident.
+
+### A5 — Drafts and edit summaries
+
+An edit carries an optional **summary** (recorded on the revision — it
+is what makes history readable, and it is one field). A **draft** is a
+revision with `published: false`: the page keeps serving its last
+published body while a long edit is in progress. Same log, one flag, no
+second store.
+
+---
+
+## Media
+
+The pipeline that exists: `MediaAsset` rows in `media_assets` carrying
+generation provenance, `Visible.illustration` holding a
+**bucket-relative key**, and the *client* prepending its configured media
+base URL. Assets are produced offline by `src/tools/illustrate.ts`, which
+renders **from the internal model** and uploads to S3.
+
+### M1 — Referencing an existing asset is free
+
+`<image key="…">` emits a key the client already resolves. And a
+subject-bound article gets its subject's illustration for nothing,
+because the template already carries `illustration` — an article on
+Odile shows Odile without anybody uploading anything.
+
+### M2 — Requesting a generated illustration
+
+An article about a template can ask for one, and `illustrate.ts` already
+renders from the internal model — the same source the composition panel
+reads. The request is editorial metadata; the generation stays offline
+and deliberate, because it costs money and style consistency is
+curated.
+
+### M3 — ⚠ Community upload, and why it is a build of its own
+
+There is **no runtime write path to S3**, and the import boundary means
+mudlib code cannot have one — this is a backend concern by construction.
+A community wiki whose authors cannot add a screenshot is a real
+limitation, so the design carries it rather than pretending otherwise:
+
+- **Route + credentials** in the backend tier, never the mudlib.
+- **Type allowlist** (png/jpeg/webp), **byte cap**, **dimension cap**,
+  all rejected server-side; never trust a declared content-type.
+- **Provenance is a discriminator on `MediaAsset`.** The existing fields
+  (`prompt`, `model`, `styleVersion`, `sourceContentHash`) describe a
+  *generated* asset. A human upload needs `uploader`, `uploadedAt`,
+  `originalFilename` and a declared source/licence. Additive, and the
+  two kinds must stay distinguishable — an uploaded image must never be
+  mistaken for a curated render.
+- **Moderation is nearly free**: `MediaAsset.status` already exists, so an
+  upload lands `pending` and a moderator promotes it. Nothing unreviewed
+  is ever served.
+- **Rate-limited per uploader**, and gated on the editor group, so the
+  abuse surface is bounded by an existing membership decision.
+
+---
+
+## Search, and why the index is over SOURCE
+
+Indexing rendered output is a **spoiler leak by construction**: a render
+is per-reader, so the index either has to exist per-reader (impossible)
+or hold the maximal render and leak everything above the searcher's
+ceiling.
+
+So **the index covers the authored source, with its spoiler tags intact
+and a level per fragment**; the query filters fragments above the
+reader's capability before ranking. Component output is **never
+indexed** — derived content is searched at its source, which is where it
+is authoritative anyway. A material property is found by searching
+materials; the oak article is found by its prose.
+
+That also makes indexing cheap: no resolver runs, and an edit reindexes
+one document.
+
+---
+
+## Citations and stable anchors
+
+The college slate's rule is that **a course cites and never restates**,
+so that a wiki improvement never staleness a lesson. That forces two
+things:
+
+- **A citation names the page, not a revision.** Pinning a revision
+  would freeze the lesson against exactly the improvement the
+  arrangement exists to inherit.
+- **Section anchors must be durable**, because a citation worth making
+  is usually finer than a whole page. Deriving an anchor from heading
+  text is fragile — an editorial rewording silently breaks every
+  citation. So a heading's anchor is **assigned once and sticky**: set
+  explicitly by the author, or minted from the first heading text and
+  then held, surviving later rewording.
+
+`pageId#anchor` is therefore the citable unit, and both halves are
+stable under ordinary editing.
+
+---
+
+## Untrusted input: the render budget
+
+A page is community-authored input that runs a resolver, so the render
+path needs hard bounds, all of which fail with an inline error rather
+than a hang:
+
+| Bound | Why |
+|---|---|
+| template expansion depth | a template including itself |
+| template cycle detection | a pair including each other |
+| components per render | a page with ten thousand of them |
+| per-component timeout | one slow source stalls the page |
+| total output size | expansion bombs |
+
+**No component may trigger a page render**, which keeps recursion
+impossible rather than merely bounded.
+
+---
+
+## Moderation and protection
+
+- **Rollback and delete** by the namespace's owner role — the v1 net,
+  already designed.
+- **Per-page protection** overriding the namespace default (anyone /
+  editors / moderators), for the handful of pages that attract
+  vandalism.
+- **Blocking an editor is a group removal** — free, and it uses the
+  membership machinery that already exists rather than inventing a ban
+  list.
+- **A review queue is deliberately absent.** Open editing plus fast
+  rollback is the wiki-classic bargain, and a queue converts a commons
+  into a submission process. Revisit only if abuse actually appears.
+
+---
+
+## Maintenance surfaces
+
+The reports that keep a wiki from rotting, all derivable from the link
+graph and the subject field:
+
+- **What links here** — backlinks for a page.
+- **Wanted pages** — redlinks ranked by how many pages want them, which
+  is the best authoring to-do list a wiki has.
+- **Orphans** — pages nothing links to.
+- **⚠ Dangling subjects** — articles whose `subject` names a template
+  that no longer exists. The CMS deletes and renames templates, and the
+  wiki points at paths, so this *will* happen. It is the wiki's own
+  version of the shipped gate lint, and without it a stale article
+  quietly documents nothing.
+
+---
+
+## Reading without a session
+
+Public read of level-0 pages is the newcomer and SEO path. It needs a
+**REST surface** rather than the command bus, because there is no
+session to carry a command. The capability ceiling for an anonymous
+reader is the floor — level 0, no components that read live state, no
+subject panels beyond what a logged-out visitor could see anyway.
+
+The data model does not preclude it: a level-0 render needs no session
+state.
+
+---
+
 ## Constraints
 
 - **No new `*Api`.** New surface rides mixins, path-resolved component
@@ -438,23 +655,76 @@ anchor). Tags are cross-cutting and carry no permission meaning.
 31. `CLAUDE.md` gains a map entry and two collection lines;
     `architecture.md` gains `DocumentedMixin` and the component category.
 
+**Authoring loop**
+
+34. An edit submits the `rev` it was based on; a mismatch is **rejected**,
+    and the response carries base / current / submitted bodies.
+35. Two edits to *different sections* of one page both succeed.
+36. Preview renders an unsaved body through the **same** pipeline as a
+    saved one — asserted by rendering identical text both ways and
+    comparing.
+37. A draft revision does not change what the page serves.
+38. An edit summary appears in history.
+
+**Media**
+
+39. `<image key="…">` resolves an existing asset; a subject-bound page
+    surfaces its subject's `illustration` with no authoring.
+40. An upload is rejected for disallowed type, oversize bytes, or
+    oversize dimensions — decided server-side, never from a declared
+    content-type.
+41. An uploaded asset lands `status: pending` and is **not served** until
+    promoted.
+42. Uploaded and generated provenance are distinguishable on the row.
+
+**Search**
+
+43. The index is built from source; a component's output is absent from
+    it.
+44. A fragment above the searcher's capability is not returned, and does
+    not influence ranking.
+
+**Citations**
+
+45. `pageId#anchor` survives a heading rewording.
+46. A citation resolves to the page's current content, not a pinned
+    revision.
+
+**Budget**
+
+47. Self-including and mutually-including templates both fail inline.
+48. A page exceeding the component count, per-component timeout, or
+    output-size bound fails inline rather than hanging.
+49. No component can trigger a page render.
+
+**Maintenance**
+
+50. Backlinks, wanted pages and orphans are derivable.
+51. An article whose subject template no longer exists is reported.
+
 **Gates**
 
-32. `pnpm test`, `pnpm lint`, the ten script lints, type-clean.
-33. Tests cover every criterion above that is not a doc claim.
+52. `pnpm test`, `pnpm lint`, the ten script lints, type-clean.
+53. Tests cover every criterion above that is not a doc claim.
 
 ---
 
-## Sequencing constraints
+## Ordering, for whenever we build
 
-The plan owns the wave breakdown. Two ordering facts bind it:
+Not a scope — the design is complete above. These are the dependencies a
+build order has to respect:
 
-- **Waves touching field metadata must follow build-1's
-  `reference-lifetime` refactor** (D9). The page model, the permission
-  anchoring, the link graph and the MML long-form tags do not, and can
-  proceed against master today.
-- **Template expansion must precede component resolution** (D6), because
-  a template can emit a component.
+- **`rev` and the body-not-id render path are foundational.** Retrofitting
+  either means rewriting every client written against their absence.
+- **Anything reading field metadata follows build-1's
+  `reference-lifetime` refactor** (D9).
+- **Template expansion precedes component resolution** (D6) — a template
+  can emit a component.
+- **Anchors must be sticky before anything cites them**, or the first
+  citations are the ones that break.
+- **Upload is separable**: reference-only media (M1, M2) has no
+  dependency on the upload path (M3), so the wall can be hit later
+  without redesign.
 
 ## Cross-references
 
