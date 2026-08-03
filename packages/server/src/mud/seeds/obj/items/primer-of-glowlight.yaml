@@ -35,3 +35,10 @@ data:
   markForm: inked
   censusKey: spellbook
   materialTags: [paper, board]
+  regionTarget: 2
+  # ⚠ Deliberately NOT self-identifying. Studying an unidentified
+  # book is a gamble against your own comprehension floor (D29), and
+  # the losing outcome is a defective copy you BELIEVE is correct —
+  # so the act cannot also tell you what you got. That is the whole
+  # reason a library's product is the catalog.
+  selfIdentifying: false

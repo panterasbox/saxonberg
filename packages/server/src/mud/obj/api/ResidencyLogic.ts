@@ -25,6 +25,7 @@ import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { ZoneApi } from '../../api/zone';
 import { Census, type WorldCensus } from '../../lib/residency/Census';
 import { SpawnTable, type SpawnCandidate } from '../../lib/residency/SpawnTable';
 import type { Circulating } from '../../lib/residency/Circulating';
@@ -54,10 +55,11 @@ const DEFAULT_RESET_INTERVAL_S = 3_600; // one game-hour
 /** Spawn-sweep cadence — a game-day. *Calibrate at launch.* */
 const DEFAULT_SPAWN_INTERVAL_S = 24 * 3_600;
 /**
- * How many of one census key a region should hold. The `inflow` half of
- * `S* = inflow/d`; charge decay is the other. *Calibrate at launch.*
+ * How much a region's declared `favours` tag multiplies a candidate's
+ * draw weight. The `inflow` half of `S* = inflow/d` is the stock TARGET;
+ * this only shifts WHICH item fills it. *Calibrate at launch.*
  */
-const DEFAULT_SPAWN_REGION_TARGET = 3;
+const DEFAULT_SPAWN_AFFINITY_BOOST = 3;
 const OBSERVE_SAMPLE_CAP = 20;
 
 function readInt(key: string, fallback: number): number {
@@ -220,7 +222,15 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
   if (candidates.length === 0) return report;
 
   for (const region of census.keys()) {
-    const pick = SpawnTable.draw(candidates, census, region);
+    const { stocks, affinity } = await regionStockFor(region);
+    // A zone's declared count wins over the item's baseline.
+    const scoped = candidates.map((c) => {
+      const declared = stocks[c.censusKey];
+      return typeof declared === 'number'
+        ? { ...c, regionTarget: declared }
+        : c;
+    });
+    const pick = SpawnTable.draw(scoped, census, region, { affinity });
     if (!pick) {
       // The region is at target for everything the table could place.
       // This is authored placement suppressing random spawning without
@@ -239,6 +249,49 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
     }
   }
   return report;
+}
+
+/**
+ * **What a region stocks, and what it favours.**
+ *
+ * Both read off the Zone through the ordinary `lookupField` walk (the
+ * `suppressesMagic` / `celestialProfile` precedent), so a parent zone's
+ * declaration covers its descendants and a child can narrow it —
+ * regional stock inherits exactly like every other zone field.
+ *
+ * - `stocks` — `{ censusKey: count }`. Overrides the item's baseline.
+ * - `favours` — material tags this region prefers, which is what finally
+ *   gives `Circulating.materialTags` something to multiply against. A
+ *   mine stocks metal; a grove stocks wood.
+ *
+ * A zone that declares neither leaves every item on its own baseline and
+ * a neutral affinity, so distribution works in un-authored regions
+ * rather than silently placing nothing.
+ */
+async function regionStockFor(region: string): Promise<{
+  stocks: Record<string, number>;
+  affinity: Map<string, number>;
+}> {
+  const empty = { stocks: {}, affinity: new Map<string, number>() };
+  if (!region) return empty;
+  try {
+    const zone = await ZoneApi.resolveZoneForPath(region);
+    if (!zone) return empty;
+    const stocks =
+      (await zone.lookupField<Record<string, number>>('stocks')) ?? {};
+    const favours = (await zone.lookupField<string[]>('favours')) ?? [];
+    const affinity = new Map<string, number>();
+    const boost = readInt(
+      AppSettingKeys.residencySpawnAffinityBoost,
+      DEFAULT_SPAWN_AFFINITY_BOOST,
+    );
+    for (const tag of favours) {
+      if (typeof tag === 'string') affinity.set(tag, boost);
+    }
+    return { stocks, affinity };
+  } catch {
+    return empty;
+  }
 }
 
 /**
@@ -264,10 +317,10 @@ function collectSpawnCandidates(): SpawnCandidate[] {
       censusKey,
       effectTags: c.getEffectTags(),
       materialTags: c.getMaterialTags(),
-      regionTarget: readInt(
-        AppSettingKeys.residencySpawnRegionTarget,
-        DEFAULT_SPAWN_REGION_TARGET,
-      ),
+      // The ITEM's own baseline. A Zone that declares a stock list
+      // overrides it per region (see `regionStockFor`) — "how many
+      // wands this forest holds" is properly a fact about the forest.
+      regionTarget: c.getRegionTarget(),
     });
   }
   return [...byPath.values()];

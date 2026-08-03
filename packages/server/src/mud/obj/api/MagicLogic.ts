@@ -556,6 +556,8 @@ async function dischargeImpl(
     if (report) reports.push(report);
   }
   absorbWasteHeat(ctx, spell);
+  // The working fired, so anything self-evident about it is now known.
+  noteUseIdentification(ctx, item);
   return { ok: true, reports };
 }
 
@@ -1053,18 +1055,31 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
   if (!MixinApi.isBeliefStore(learner) || !signature) {
     return 'The knowing finds nowhere to settle.';
   }
-  // Keyed on templatePath — the CLASS, never the instance. Two flasks
-  // of the same draught are one fact.
-  //
-  // `knownAttributes` is the STATE (requirements D25) — you know facts,
-  // and how identified something is falls out of which facts you hold.
-  // There is deliberately no `identificationLevel` scalar: a stored
-  // percentage of knowing is exactly the shape this codebase avoids.
-  //
-  // `learnedGeneration` is what lets a stale record HEDGE rather than
-  // lie once its descriptor is reissued (D28) — *"you once knew blue to
-  // mean healing"*. One field, no sweep, and it only does work in the
-  // rare case.
+  learnClassOf(learner, target, signature);
+  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, target)}.`;
+}
+
+/**
+ * Write what `learner` now knows about `target`'s CLASS.
+ *
+ * Keyed on templatePath — the class, never the instance. Two flasks of
+ * the same draught are one fact.
+ *
+ * `knownAttributes` is the STATE (D25): you know facts, and how
+ * identified something is falls out of which facts you hold. There is
+ * deliberately no `identificationLevel` scalar — a stored percentage of
+ * knowing is exactly the shape this codebase avoids.
+ *
+ * `learnedGeneration` is what lets a stale record HEDGE rather than lie
+ * once its descriptor is reissued (D28) — *"you once knew blue to mean
+ * healing"*. One field, no sweep, and it only does work in the rare
+ * case.
+ *
+ * Shared by the identify working and by use-identification, because
+ * they teach the same thing by different routes.
+ */
+function learnClassOf(learner: Stuff, target: Stuff, signature: string): void {
+  if (!MixinApi.isBeliefStore(learner)) return;
   const prior = learner.recall(IDENTIFICATION, signature)?.payload as
     | { knownAttributes?: string[] }
     | undefined;
@@ -1080,7 +1095,26 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
     knownAttributes: [...known],
     learnedGeneration: Appearance.currentGeneration().generation,
   });
-  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, target)}.`;
+}
+
+/**
+ * **Use-identification** (the experiment D24's scroll is a shortcut
+ * past): a thing whose author declared it self-evident teaches its
+ * class to whoever just used it.
+ *
+ * ⚠ Called ONLY on a working that actually fired. A refused discharge —
+ * no mark, no charge, suppressed by a ward — teaches nothing, because
+ * otherwise the *failure* becomes an identification channel and you
+ * could identify a wand for free by zapping it at nothing. That is the
+ * D34 leak shape one layer down, and it is why this sits after the
+ * effect loop rather than beside the gates.
+ */
+function noteUseIdentification(ctx: EffectContext, item: Stuff): void {
+  if (!MixinApi.isIdentifiable(item)) return;
+  if (!item.identifiesOnUse()) return;
+  const signature = item.getTemplatePath();
+  if (!signature) return;
+  learnClassOf(ctx.actor, item, signature);
 }
 
 /**

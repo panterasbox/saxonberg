@@ -26,7 +26,16 @@
 import { ConsumableMaterial } from './ConsumableMaterial';
 import { PotableMixin } from '../../lib/magic/Potable';
 import { ArcaneMixin } from '../../lib/magic/Arcane';
+import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 
+/**
+ * `Identifiable` rides the MATERIAL, which is where a potion's identity
+ * already lives: knowing "cerulean means veiling" is a fact about the
+ * draught, not about the flask holding it. So the belief record keys on
+ * the material's path and one identification covers every flask of that
+ * substance — which is the same reason `Potable` is here rather than on
+ * the vessel.
+ */
 export class PotionMaterial extends PotableMixin(
-  ArcaneMixin(ConsumableMaterial),
+  IdentifiableMixin(ArcaneMixin(ConsumableMaterial)),
 ) {}

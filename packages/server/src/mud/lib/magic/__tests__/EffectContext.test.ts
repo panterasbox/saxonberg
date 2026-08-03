@@ -37,10 +37,12 @@ import Species from '../../../obj/species/Species';
 import Room from '../../../obj/location/Room';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
+import { IdentifiableMixin } from '../../identification/Identifiable';
 import { ReservedMixin } from '../../reserve';
 import { EffectContexts } from '../EffectContext';
 import { Suppressions } from '../Suppression';
 import { MagicGrid } from '../Grid';
+import { IDENTIFICATION } from '../../belief/BeliefStore';
 import { MagicEffects } from '../Effect';
 import {
   makeStuff,
@@ -49,7 +51,9 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 /** A magic item: `Thing` + the grid footprint + a tank to spend from. */
-class TestWand extends ChargedMixin(ReservedMixin(ArcaneMixin(Thing))) {}
+class TestWand extends IdentifiableMixin(
+  ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
+) {}
 class TestCharacter extends Character {}
 
 const __filename = fileURLToPath(import.meta.url);
@@ -446,6 +450,89 @@ describe('EffectContext — the four separated jobs', () => {
         { kind: 'emit-field', field: 'light' },
       ]),
     ).toBe(false);
+  });
+
+  // ────────────────── use-identification (the experiment) ──────────────
+
+  it('a SELF-IDENTIFYING item teaches its class when it fires', async () => {
+    // D24 calls the identify scroll "the paid shortcut past experiment —
+    // the thing you buy instead of drinking the unknown flask and
+    // finding out". This is *finding out*: the experiment the scroll is
+    // a shortcut past. Without it the scroll shortcuts nothing.
+    const room = makeRoom();
+    const user = makeActor();
+    const mark = makeActor();
+    ContainmentApi.move(user, room);
+    ContainmentApi.move(mark, room);
+    const wand = makeWand('firebolt', '/obj/test/maker');
+    wand.setDescriptorClass('wand');
+    wand.setIdentifiedName('a wand of firebolt');
+    wand.setIdentifiesOnUse(true);
+    ContainmentApi.move(wand, room);
+    actingAs(user);
+
+    expect(
+      user.recall(IDENTIFICATION, wand.getTemplatePath()!),
+    ).toBeNull();
+
+    const out = await MagicApi.discharge(wand, mark);
+    expect(out.ok).toBe(true);
+    // Firing a lance of true flame tells you what you are holding.
+    const payload = user.recall(IDENTIFICATION, wand.getTemplatePath()!)!
+      .payload as { typeKnown?: boolean; knownAttributes?: string[] };
+    expect(payload.typeKnown).toBe(true);
+    expect(payload.knownAttributes).toContain('type');
+  });
+
+  it('a NON-self-identifying item teaches nothing, however often it fires', async () => {
+    const room = makeRoom();
+    const user = makeActor();
+    const mark = makeActor();
+    ContainmentApi.move(user, room);
+    ContainmentApi.move(mark, room);
+    const wand = makeWand('firebolt', '/obj/test/maker');
+    wand.setDescriptorClass('wand');
+    // Default is false — a permissive default would quietly identify
+    // the whole catalogue on first contact.
+    expect(wand.identifiesOnUse()).toBe(false);
+    ContainmentApi.move(wand, room);
+    actingAs(user);
+
+    for (let i = 0; i < 3; i++) await MagicApi.discharge(wand, mark);
+    expect(user.recall(IDENTIFICATION, wand.getTemplatePath()!)).toBeNull();
+  });
+
+  it('⚠ a REFUSED discharge teaches nothing — failure is not a channel', async () => {
+    // The leak this guards: if a refusal identified the item, you could
+    // learn a wand's class for free by zapping it at nothing, or by
+    // standing in a ward. That is the D34 shape one layer down.
+    const room = makeRoom();
+    const user = makeActor();
+    ContainmentApi.move(user, room);
+    const wand = makeWand('firebolt', '/obj/test/maker');
+    wand.setDescriptorClass('wand');
+    wand.setIdentifiesOnUse(true);
+    ContainmentApi.move(wand, room);
+    actingAs(user);
+
+    // Refused for want of a mark — nothing fired, nothing spent…
+    const refused = await MagicApi.discharge(wand);
+    expect(refused.ok).toBe(false);
+    // …and nothing learned.
+    expect(user.recall(IDENTIFICATION, wand.getTemplatePath()!)).toBeNull();
+
+    // A flat wand likewise: the click must not be a free identification.
+    const flat = makeWand('firebolt', '/obj/test/maker');
+    flat.setDescriptorClass('wand');
+    flat.setIdentifiesOnUse(true);
+    flat.setCapacityKJ(1);
+    flat.spendCharge(1);
+    ContainmentApi.move(flat, room);
+    const mark = makeActor();
+    ContainmentApi.move(mark, room);
+    const dry = await MagicApi.discharge(flat, mark);
+    expect(dry.ok).toBe(false);
+    expect(user.recall(IDENTIFICATION, flat.getTemplatePath()!)).toBeNull();
   });
 
   // ─────────────────────────── AC 3a ───────────────────────────

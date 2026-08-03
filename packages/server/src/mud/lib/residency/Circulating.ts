@@ -38,6 +38,9 @@ import { MixinApi } from '../../api/mixin';
 import { PriceList } from '../magic/PriceList';
 import type { ArcaneAddress } from '../magic/Arcane';
 
+/** An item's baseline stock target when it authors none. */
+const DEFAULT_REGION_TARGET = 3;
+
 export interface Circulating {
   /**
    * What this is made of — weighs **place affinity** (a mine stocks
@@ -69,9 +72,31 @@ export interface Circulating {
    */
   getSpawnWeight(): number;
 
+  /**
+   * **How many of this thing's census key a region should hold** — the
+   * item's own baseline, which a region may override.
+   *
+   * ⚠ This is NOT rarity, and the distinction is what keeps AC 32
+   * intact. Rarity answers *which* item a draw yields and is DERIVED
+   * from the grid cell — an item cannot declare itself common, because
+   * then the economy and the physics could disagree. This answers *how
+   * many should exist*, which is a different quantity and one the
+   * price list says nothing about.
+   *
+   * It is a **default, not the answer**: a Zone that declares a stock
+   * list wins, because "how many wands this forest holds" is properly a
+   * fact about the forest. The item's number is what lets a thing be
+   * placed at all in a region nobody has authored yet.
+   *
+   * *Calibrate at launch* (D21).
+   */
+  getRegionTarget(): number;
+  setRegionTarget(n: number): void;
+
   // ---------- storage (public for the Hydrator) ----------
   materialTags: string[];
   censusKey: string;
+  regionTarget: number;
 }
 
 export function CirculatingMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -81,6 +106,7 @@ export function CirculatingMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       materialTags: { persistent: true, authorable: true },
       censusKey: { persistent: true, authorable: true },
+      regionTarget: { persistent: true, authorable: true },
       // ⚠ There is deliberately NO `effectTags` field. It would be a
       // copy of the `Arcane` footprint, and a copy drifts — which is
       // exactly the failure D35 exists to prevent.
@@ -91,6 +117,9 @@ export function CirculatingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Which stock bucket it counts in. */
     public censusKey: string = '';
+
+    /** The item's own baseline stock target. A Zone's declaration wins. */
+    public regionTarget: number = DEFAULT_REGION_TARGET;
 
     public getMaterialTags(): readonly string[] {
       return this.materialTags;
@@ -119,6 +148,20 @@ export function CirculatingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getSpawnWeight(): number {
       return PriceList.spawnWeightFor(this.getEffectTags());
+    }
+
+    public getRegionTarget(): number {
+      return this.regionTarget;
+    }
+
+    public setRegionTarget(n: number): void {
+      const v = Number(n);
+      if (!Number.isFinite(v) || v < 0) {
+        throw new RangeError(
+          `regionTarget: must be a non-negative number, got '${String(n)}'`,
+        );
+      }
+      this.regionTarget = v;
     }
   };
 }

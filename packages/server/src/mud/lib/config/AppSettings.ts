@@ -411,12 +411,12 @@ export const AppSettingKeys = {
   residencySpawnMode: "residency.spawn.mode",
   /** Residency — spawn-sweep cadence, game-seconds. *Calibrate at launch.* */
   residencySpawnIntervalS: "residency.spawn.intervalS",
-  /** Residency — how many of one census key a REGION should hold. The
-   * `inflow` half of `S* = inflow/d`; charge decay is the other, and it
-   * is their RATIO that settles the world's stock. Regional, never
-   * global: a global target would let one author's hoard starve the
-   * world. *Calibrate at launch.* */
-  residencySpawnRegionTarget: "residency.spawn.regionTarget",
+  /** Residency — how much a region's declared `favours` material tag
+   * multiplies a candidate's draw weight. Shifts WHICH item fills a
+   * region's stock, never how much of it there is (that is the item's
+   * `regionTarget`, overridden by the zone's `stocks`).
+   * *Calibrate at launch.* */
+  residencySpawnAffinityBoost: "residency.spawn.affinityBoost",
 
   /**
    * Retail — the general store. `listingCap` is the per-consignor active-

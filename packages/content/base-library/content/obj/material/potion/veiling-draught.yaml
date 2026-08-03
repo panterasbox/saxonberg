@@ -49,3 +49,13 @@ data:
   dose:
     response: graded
     referenceLitres: 0.25
+  # ── identification (D24/D26) ──
+  # Identity rides the MATERIAL, so one identification covers every
+  # flask of this draught.
+  descriptorClass: potion
+  identifiedName: a veiling draught
+  # ⚠ NOT self-identifying. The features blur and the name slides off —
+  # to WATCHERS. The drinker feels almost nothing, which is exactly the
+  # case where you want to have bought a scroll instead. Contrast the
+  # wand of firebolt, which announces itself.
+  selfIdentifying: false

@@ -35,3 +35,13 @@ data:
   # subsystem to decide whether to suppress this.
   censusKey: wand
   materialTags: [wood, brass]
+  # The item's own baseline; a zone's `stocks` list overrides it.
+  regionTarget: 2
+  # Unidentified until used or identified — a wand has its own
+  # descriptor bank (ornament × proportion).
+  descriptorClass: wand
+  identifiedName: a wand of firebolt
+  # A lance of true flame is not subtle. Firing it once tells you
+  # exactly what you are holding — which is the experiment a scroll
+  # of identify lets you skip paying for.
+  selfIdentifying: true

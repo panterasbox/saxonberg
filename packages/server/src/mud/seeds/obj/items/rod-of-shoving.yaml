@@ -23,3 +23,4 @@ data:
   patternIntegrity: 1
   censusKey: rod
   materialTags: [wood]
+  regionTarget: 2

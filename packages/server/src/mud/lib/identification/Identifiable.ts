@@ -40,6 +40,29 @@ export interface Identifiable {
   setDescriptorClass(value: string): void;
 
   /**
+   * **Does using this teach you what it was?**
+   *
+   * D24 defines the identify scroll as *"the paid shortcut past
+   * experiment — the thing you buy instead of drinking the unknown
+   * flask and finding out."* This is *finding out*: the experiment the
+   * scroll is a shortcut past. Without it the scroll is a shortcut past
+   * nothing.
+   *
+   * **A flag, not a derivation** — deliberately. Whether an outcome is
+   * self-evident is not reliably computable: a healing draught announces
+   * itself, a slow poison does not, and a potion that does nothing at
+   * all is indistinguishable from one that failed. The author knows;
+   * the engine cannot. Same shape as `Marked.markForm`.
+   *
+   * ⚠ It fires **only on a working that actually fired**. A refused
+   * discharge — no mark, no charge, suppressed by a ward — must teach
+   * nothing, or the failure itself becomes an identification channel:
+   * exactly the D34 leak shape, one layer down.
+   */
+  identifiesOnUse(): boolean;
+  setIdentifiesOnUse(value: boolean): void;
+
+  /**
    * This item's stable position in the turnover window, as a persisted
    * seed string. Minted once on first read and never changed — it stores
    * a **position**, not an appearance.
@@ -60,6 +83,7 @@ export interface Identifiable {
   identifiedName: string;
   descriptorClass: string;
   turnoverSeed: string;
+  selfIdentifying: boolean;
 }
 
 export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -69,6 +93,7 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       identifiedName: { persistent: true, authorable: true },
       descriptorClass: { persistent: true, authorable: true },
+      selfIdentifying: { persistent: true, authorable: true },
       // ⚠ Persistent but deliberately NOT a glob-identity field — every
       // item carries a different seed, so keying identity on it would
       // stop stacks merging at all. It records WHEN this item crosses
@@ -82,6 +107,13 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Which descriptor bank to draw the unidentified look from. */
     public descriptorClass: string = '';
 
+    /**
+     * Does using this teach you what it was? Default `false` — most
+     * things reveal nothing, and a permissive default would quietly
+     * identify the whole catalogue on first contact.
+     */
+    public selfIdentifying: boolean = false;
+
     /** Stable window position. Minted lazily; never reassigned. */
     public turnoverSeed: string = '';
 
@@ -91,6 +123,14 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     setIdentifiedName(value: string): void {
       this.identifiedName = value;
+    }
+
+    identifiesOnUse(): boolean {
+      return this.selfIdentifying === true;
+    }
+
+    setIdentifiesOnUse(value: boolean): void {
+      this.selfIdentifying = value === true;
     }
 
     getDescriptorClass(): string {

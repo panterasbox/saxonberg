@@ -296,6 +296,107 @@ describe('CirculatingMixin — reads its footprint, never declares it', () => {
   });
 });
 
+describe('Stock targets — item baseline, region override', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 100000);
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  it('an item carries its OWN baseline target, not one global number', () => {
+    const wand = makeStuff(() => new TestGood());
+    const scroll = makeStuff(() => new TestGood());
+    wand.setCensusKey('wand');
+    wand.setRegionTarget(2);
+    scroll.setCensusKey('scroll');
+    scroll.setRegionTarget(8);
+    // Before this, every census key on the planet targeted the same
+    // number off one dial — a wand and a scroll were equally plentiful
+    // however differently they were meant to stock.
+    expect(wand.getRegionTarget()).toBe(2);
+    expect(scroll.getRegionTarget()).toBe(8);
+    expect(() => wand.setRegionTarget(-1)).toThrow(/non-negative/);
+  });
+
+  it('⚠ target is NOT rarity — an item still cannot declare itself common', () => {
+    // The AC 32 line. Rarity answers WHICH item a draw yields and is
+    // derived from the grid cell; target answers HOW MANY should exist.
+    // Raising a target must not make a dear working commonplace.
+    const dear = makeStuff(() => new TestGood());
+    dear.setDeclaredAddresses([{ verb: 'control', noun: 'mind' }]);
+    dear.setCensusKey('k');
+    const cheap = makeStuff(() => new TestGood());
+    cheap.setDeclaredAddresses([{ verb: 'perceive', noun: 'arcana' }]);
+    cheap.setCensusKey('k2');
+
+    const dearWeight = dear.getSpawnWeight();
+    dear.setRegionTarget(500); // author wants lots of them around
+    // …and the DRAW is unmoved. Stocking more of a thing does not make
+    // any single draw likelier to be that thing.
+    expect(dear.getSpawnWeight()).toBe(dearWeight);
+    expect(dear.getSpawnWeight()).toBeLessThan(cheap.getSpawnWeight());
+  });
+
+  it('a region at its item baseline declines; a higher region target does not', () => {
+    const census = censusOf({ r: { wand: 3 } });
+    const atBaseline = [
+      candidate({ templatePath: '/obj/w', censusKey: 'wand', regionTarget: 3 }),
+    ];
+    expect(SpawnTable.draw(atBaseline, census, 'r')).toBeNull();
+
+    // The same stock, in a region whose zone declares it stocks 6 —
+    // "how many wands this forest holds" is a fact about the forest.
+    const zoneRaised = [
+      candidate({ templatePath: '/obj/w', censusKey: 'wand', regionTarget: 6 }),
+    ];
+    expect(SpawnTable.draw(zoneRaised, census, 'r')).not.toBeNull();
+  });
+
+  it('a zone target of 0 means "this region stocks none of that"', () => {
+    const census = censusOf({});
+    const none = [
+      candidate({ templatePath: '/obj/w', censusKey: 'wand', regionTarget: 0 }),
+    ];
+    // An empty region still declines, because the declared count is nil.
+    expect(SpawnTable.draw(none, census, 'r')).toBeNull();
+  });
+
+  it('place affinity now DOES something — it was inert before', () => {
+    // `SpawnTable.draw` always accepted an affinity map; the sweep never
+    // passed one, so `materialTags` were stored, read, multiplied
+    // against an empty map and did nothing at all.
+    const census = censusOf({});
+    const wooden = candidate({
+      templatePath: '/obj/wood',
+      censusKey: 'a',
+      materialTags: ['wood'],
+    });
+    const iron = candidate({
+      templatePath: '/obj/iron',
+      censusKey: 'b',
+      materialTags: ['iron'],
+    });
+    const grove = new Map([['wood', 3]]);
+
+    // In a grove, the wooden thing dominates the draw…
+    const drawn = SpawnTable.draw([wooden, iron], census, 'r', {
+      affinity: grove,
+      roll: () => 0.6,
+    });
+    expect(drawn?.templatePath).toBe('/obj/wood');
+    // …and with no affinity at all the same roll picks differently,
+    // which is the proof the map is actually consulted.
+    const neutral = SpawnTable.draw([wooden, iron], census, 'r', {
+      roll: () => 0.6,
+    });
+    expect(neutral?.templatePath).toBe('/obj/iron');
+  });
+});
+
 describe('AC35 — every potion declares a route', () => {
   it('the shipped roster is populated', () => {
     if (!existsSync(POTION_DIR)) {

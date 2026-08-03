@@ -31,12 +31,19 @@ import { ReservedMixin } from '../../lib/reserve';
 import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { ChargedMixin } from '../../lib/magic/Charged';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
+import { IdentifiableMixin } from '../../lib/identification/Identifiable';
+import { LabelledMixin } from '../../lib/description/Labelled';
 
 // `ChargedMixin` stores its energy in a `Reserve` rather than a bare
 // number — the same substrate mana, endurance and fuel use — so
 // `ReservedMixin` is its prerequisite and is composed beneath it.
+// `Identifiable` + `Labelled`: a wand is an unidentified item on the
+// same axis as a potion (there is a `wand` descriptor bank), and a
+// player can name their own. Without these the bank had no consumer.
 const WandBase = CirculatingMixin(
-  ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
+  IdentifiableMixin(
+    LabelledMixin(ChargedMixin(ReservedMixin(ArcaneMixin(Thing)))),
+  ),
 );
 
 export default class Wand extends WandBase {}
