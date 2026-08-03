@@ -23,7 +23,8 @@
     "lint:imports": "tsx scripts/check-mud-imports.ts",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
-    "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts"
+    "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
+    "lint:instanceable": "tsx scripts/check-instanceable-placement.ts"
   },
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
