@@ -144,6 +144,13 @@ function autoEscalationFor(kind: Note['kind']): Status | undefined {
       return 'declined';
     case 'controller-error':
       return 'error';
+    // A lost-update guard firing is the command being REFUSED, not the
+    // command erroring: the page is fine, the edit is not applied, and
+    // the author is expected to reapply it. `declined` is what the
+    // client renders as "that didn't go through", which is exactly
+    // right, whereas `error` would read as the wiki being broken.
+    case 'wiki-edit-conflict':
+      return 'declined';
     // match-ambiguous, engagement-*: no escalation
     default:
       return undefined;

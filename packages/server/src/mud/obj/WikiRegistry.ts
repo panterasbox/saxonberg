@@ -59,6 +59,7 @@ import {
   type WikiSubject,
 } from '../lib/wiki/WikiPage';
 import { WikiRevision, type RevisionKind } from '../lib/wiki/WikiRevision';
+import { Sections } from '../lib/wiki/Section';
 
 const WikiRegistryBase = PostRegistrationMixin(Idea);
 
@@ -97,15 +98,25 @@ export class WikiDenied extends Error {
   }
 }
 
-/** Thrown when a submitted `rev` does not match the page's (A3). */
+/**
+ * Thrown when a submitted `rev` does not match the page's (A3).
+ *
+ * Carries both revs and the section (when the edit was section-scoped)
+ * so the controller can build the three-way `wiki-edit-conflict` note
+ * without re-deriving anything. **No auto-merge**: a wiki edit is
+ * prose, and a machine-merged paragraph is worse than an honest
+ * conflict.
+ */
 export class WikiConflict extends Error {
   public readonly baseRev: number;
   public readonly currentRev: number;
-  constructor(baseRev: number, currentRev: number) {
+  public readonly section: string | undefined;
+  constructor(baseRev: number, currentRev: number, section?: string) {
     super(`edit conflict: based on rev ${baseRev}, page is at ${currentRev}`);
     this.name = 'WikiConflict';
     this.baseRev = baseRev;
     this.currentRev = currentRev;
+    this.section = section;
   }
 }
 
@@ -175,6 +186,14 @@ export default class WikiRegistry extends WikiRegistryBase {
   /** A page's revisions, newest first (criterion 9). */
   public async history(pageId: string): Promise<WikiRevision[]> {
     return WikiRevision.findForPage(pageId);
+  }
+
+  /** One revision by number, or null — the diff and conflict input. */
+  public async revisionAt(
+    pageId: string,
+    rev: number,
+  ): Promise<WikiRevision | null> {
+    return WikiRevision.findRev(pageId, rev);
   }
 
   /**
@@ -267,7 +286,9 @@ export default class WikiRegistry extends WikiRegistryBase {
     page.namespace = namespace;
     page.slug = slug;
     page.title = input.title?.trim() || input.slug.trim();
-    page.body = input.body ?? '';
+    // Mint anchors for every heading up front, so the very first
+    // citation to a section is already durable.
+    page.body = Sections.reconcile('', input.body ?? '');
     page.subject = input.subject ?? null;
     page.tags = input.tags ?? [];
     page.related = input.related ?? [];
@@ -293,19 +314,49 @@ export default class WikiRegistry extends WikiRegistryBase {
   public async editPage(
     page: WikiPage,
     body: string,
-    opts: { baseRev?: number; summary?: string; draft?: boolean } = {},
+    opts: {
+      baseRev?: number;
+      summary?: string;
+      draft?: boolean;
+      /** Edit only this section's span, leaving the rest byte-identical. */
+      section?: string;
+    } = {},
   ): Promise<WikiPage> {
     await this.assertMayEdit(page);
     if (opts.baseRev !== undefined && opts.baseRev !== page.getRev()) {
-      throw new WikiConflict(opts.baseRev, page.getRev());
+      throw new WikiConflict(opts.baseRev, page.getRev(), opts.section);
     }
+
+    const prior = page.getBody();
+    let next: string;
+    if (opts.section) {
+      // ⭐ A section edit replaces one byte-range and leaves every
+      // other byte alone. Two edits to DIFFERENT sections therefore
+      // touch disjoint ranges and commute — which is how section
+      // editing removes conflicts rather than resolving them
+      // (criterion 35).
+      const replaced = Sections.replace(prior, opts.section, body);
+      if (replaced === null) {
+        throw new WikiDenied(
+          `no section '${opts.section}' in '${page.getHandle()}'`,
+        );
+      }
+      next = replaced;
+    } else {
+      next = body;
+    }
+    // Sticky anchors: carry the prior body's anchors forward so a
+    // rewording does not break a citation (criterion 45), and mint one
+    // for every heading that still lacks one.
+    next = Sections.reconcile(prior, next);
+
     const published = opts.draft !== true;
     page.rev += 1;
     page.updatedBy = this.actorKey();
     // ⚠ A draft does NOT touch what the page serves (criterion 37).
     // The revision records the proposed text; `page.body` still holds
     // the last published one.
-    if (published) page.body = body;
+    if (published) page.body = next;
     await page.save();
     await this.appendRevision(
       page,
@@ -313,7 +364,7 @@ export default class WikiRegistry extends WikiRegistryBase {
       opts.summary ?? '',
       published,
       null,
-      published ? undefined : body,
+      published ? undefined : next,
     );
     return page;
   }

@@ -80,13 +80,51 @@ subcommands:
         type: string
         required: true
   edit:
-    description: "Revise a page (appends a revision; nothing is overwritten silently)"
+    description: "Revise a page (--section / --summary / --draft / --rev)"
     help: |
       Replace a page's body. The prior text is kept as a revision, so
       an edit is never destructive — see `wiki history`.
 
+      `--section <anchor>` edits one heading's span and leaves the rest
+      of the article untouched. Two people editing different sections
+      of one page never collide, which is the point: it removes
+      conflicts rather than resolving them.
+
+      `--rev <n>` says which revision you started from. If the page has
+      moved on, your edit is refused and you are handed the three
+      versions rather than having yours silently overwrite theirs — or
+      theirs silently overwrite yours.
+
+      `--draft` records what you wrote without publishing it: the page
+      keeps serving its last published text while you work.
+
+      `--summary` is the one line that makes a history readable. Use it.
+
       The frontmatter options change only what you pass.
+    examples:
+      - cmd: wiki edit oak --section uses --summary "add furniture"
+        note: Edit one section, and say why
+      - cmd: wiki edit oak --rev 7
+        note: Refuse the edit if somebody else has changed the page since rev 7
     options:
+      section:
+        short: s
+        type: string
+        field: section
+        description: "Edit only this section's span (its heading anchor)"
+      summary:
+        short: m
+        type: string
+        field: summary
+        description: "One-line note recorded on the revision"
+      draft:
+        type: boolean
+        field: draft
+        description: "Record the edit without publishing it"
+      rev:
+        type: string
+        field: rev
+        description: "The revision you based this on; a mismatch is refused"
       title:
         short: t
         type: string
@@ -202,6 +240,20 @@ subcommands:
       - name: level
         type: string
         required: true
+  preview:
+    description: "Render a body without saving it"
+    help: |
+      See exactly what saving would produce, before you save. Naming a
+      page previews in that page's context — its namespace and
+      frontmatter; naming nothing previews an article that does not
+      exist yet, which is when this is most useful.
+
+      Preview runs the SAME pipeline a saved page runs, so it cannot
+      come to disagree with what saving will do.
+    args:
+      - name: page
+        type: string
+        required: false
   list:
     description: "List pages, optionally in one namespace"
     args:

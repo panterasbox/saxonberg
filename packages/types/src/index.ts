@@ -572,7 +572,48 @@ export interface PromptRefreshNote {
   rendered: string;
 }
 
+/* ---- Wiki ------------------------------------------------------- */
+
+/**
+ * A wiki edit was rejected because the page moved under it — the
+ * compare-and-swap on `rev` (A3).
+ *
+ * ⭐ **No auto-merge, deliberately.** A wiki edit is prose, and a
+ * machine-merged paragraph is worse than an honest conflict: it reads
+ * as somebody's writing and is nobody's. So the server returns the
+ * three bodies and lets a person decide.
+ *
+ * ⚠ **All three bodies are filtered through the same reveal gate as a
+ * reading.** A conflict response is a revision-facing surface, so
+ * without that it is a hole in the wall the renderer built: a reader
+ * who cannot see a level-3 section could read it by provoking a
+ * conflict. Above the reader's ceiling a fragment is *absent* — not
+ * redacted, not counted (criteria 67, 68).
+ *
+ * A new `Note` kind is the sanctioned extension here: the union is
+ * explicitly append-only, and the alternative (a bespoke error shape)
+ * would not ride the dispatch-response envelope at all.
+ */
+export interface WikiEditConflictNote {
+  kind: 'wiki-edit-conflict';
+  /** The page's `namespace:slug` handle. */
+  page: string;
+  /** The section anchor, when the edit was section-scoped. */
+  section?: string;
+  /** The revision the submitted edit was based on. */
+  baseRev: number;
+  /** The revision the page is actually at now. */
+  currentRev: number;
+  /** The body as it stood at `baseRev` — gated. */
+  base: string;
+  /** The body as it stands now — gated. */
+  current: string;
+  /** What the author tried to save — gated. */
+  submitted: string;
+}
+
 export type Note =
+  | WikiEditConflictNote
   | QuantityClampedNote
   | QuantityClampedRejectedNote
   | MatchAmbiguousNote

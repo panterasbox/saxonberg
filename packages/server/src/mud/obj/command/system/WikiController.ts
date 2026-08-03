@@ -37,6 +37,7 @@ import {
   type WikiSubject,
 } from '../../../lib/wiki/WikiPage';
 import { SpoilerLevels, type SpoilerLevel } from '../../../lib/wiki/render';
+import { Sections } from '../../../lib/wiki/Section';
 
 interface WikiModel extends CommandModel {
   page?: string;
@@ -51,6 +52,12 @@ interface WikiModel extends CommandModel {
   spoiler?: string;
   /** The PAGE's default reveal level (`--reveal` on create/edit). */
   reveal?: string;
+  /** Edit one heading's span rather than the whole article (A2). */
+  section?: string;
+  /** The one-line note that makes a history readable (A5). */
+  summary?: string;
+  /** Save unpublished — the page keeps serving its last body (A5). */
+  draft?: boolean;
   tag?: string;
   related?: string;
 }
@@ -84,6 +91,8 @@ export default class WikiController extends CommandController<WikiModel> {
           return await this.executePurge(model, context);
         case 'protect':
           return await this.executeProtect(model, context);
+        case 'preview':
+          return await this.executePreview(model, context);
         case 'list':
           return await this.executeList(model, context);
         default:
@@ -214,21 +223,124 @@ export default class WikiController extends CommandController<WikiModel> {
       await registry.setFrontmatter(page, patch);
     }
 
+    const section = (model.section ?? '').trim().toLowerCase();
+    if (section && !Sections.find(page.getBody(), section)) {
+      return this.fail(
+        context,
+        `No section '${section}' in '${page.getHandle()}'. ` +
+          `Sections here: ${describeSections(page.getBody())}`,
+        'no-such-section',
+      );
+    }
+
+    // Editing a section pre-fills with that section, not the article.
+    const current = section
+      ? (Sections.extract(page.getBody(), section) ?? '')
+      : page.getBody();
     const body = await this.resolveBody(
       model,
       context,
-      'Edit the article:',
-      page.getBody(),
+      section ? `Edit the '${section}' section:` : 'Edit the article:',
+      current,
     );
     if (body === null) {
       // Frontmatter-only edit — the author passed options and no body.
       this.send(context, Mml.compose`\nUpdated '${page.getTitle()}'.\n`);
       return;
     }
-    await registry.editPage(page, body);
+
+    const baseRev = parseRev(model.rev);
+    if (baseRev === 'invalid') {
+      return this.fail(context, '--rev must be a number', 'bad-rev');
+    }
+    try {
+      await registry.editPage(page, body, {
+        ...(baseRev !== undefined ? { baseRev } : {}),
+        ...(model.summary ? { summary: model.summary } : {}),
+        ...(section ? { section } : {}),
+        ...(model.draft === true ? { draft: true } : {}),
+      });
+    } catch (err) {
+      if (err instanceof WikiConflict) {
+        return this.sendConflict(context, page, err, body);
+      }
+      throw err;
+    }
+    const what = model.draft === true ? 'Drafted' : 'Edited';
+    const tail =
+      model.draft === true
+        ? ` The page still serves rev ${page.getRev() - 1}.`
+        : '';
     this.send(
       context,
-      Mml.compose`\nEdited '${page.getTitle()}' — now rev ${String(page.getRev())}.\n`,
+      Mml.compose`\n${what} '${page.getTitle()}' — now rev ${String(page.getRev())}.${tail}\n`,
+    );
+  }
+
+  /**
+   * Render a body through the **same pipeline** a saved page goes
+   * through, without saving (A4, criterion 36).
+   *
+   * Preview costs nothing precisely because the pipeline keys on a
+   * body: there is no second rendering path to drift, so preview
+   * cannot come to lie about what saving will do.
+   */
+  private async executePreview(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const registry = await this.registry();
+    const ref = (model.page ?? '').trim();
+    // A preview may be of an existing page (so it inherits that page's
+    // namespace + frontmatter) or of nothing at all — drafting a page
+    // that does not exist yet is exactly when preview is most useful.
+    const hit = ref ? await registry.resolve(ref) : null;
+    const body = await this.resolveBody(model, context, 'Preview what?');
+    if (!body) return this.fail(context, 'nothing to preview', 'body-required');
+    const rendered = hit
+      ? await this.renderBody(body, hit.page, model)
+      : await this.renderLoose(body, model);
+    this.send(
+      context,
+      Mml.fromMarkup(`\n${Mml.escape('(preview)')}\n\n${rendered}\n`),
+    );
+  }
+
+  /**
+   * Emit the three-way conflict. **All three bodies go through
+   * `redactSource`** — a conflict response is a revision-facing
+   * surface, so without that a reader could read past their ceiling by
+   * provoking one (criteria 67, 68).
+   */
+  private async sendConflict(
+    context: CommandContext,
+    page: WikiPage,
+    err: WikiConflict,
+    submitted: string,
+  ): Promise<void> {
+    const renderer = await StuffApi.singleton<WikiRenderer>(
+      TemplatePaths.wikiRenderer,
+    );
+    const registry = await this.registry();
+    const baseRow = await registry.revisionAt(page._id ?? '', err.baseRev);
+    const [base, current, submittedSafe] = await Promise.all([
+      renderer.redactSource(baseRow?.getBody() ?? ''),
+      renderer.redactSource(page.getBody()),
+      renderer.redactSource(submitted),
+    ]);
+    context.note({
+      kind: 'wiki-edit-conflict',
+      page: page.getHandle(),
+      ...(err.section ? { section: err.section } : {}),
+      baseRev: err.baseRev,
+      currentRev: err.currentRev,
+      base,
+      current,
+      submitted: submittedSafe,
+    });
+    this.send(
+      context,
+      Mml.compose`\n'${page.getTitle()}' changed while you were editing — it is at rev ${String(err.currentRev)}, you started from ${String(err.baseRev)}. Nothing was overwritten. Re-read it and reapply your edit.\n`,
     );
   }
 
@@ -400,6 +512,22 @@ export default class WikiController extends CommandController<WikiModel> {
    * has no way to.
    */
   private async render(page: WikiPage, model: WikiModel): Promise<string> {
+    return this.renderBody(page.getBody(), page, model);
+  }
+
+  /**
+   * Render `body` in `page`'s context — its namespace zone, its
+   * frontmatter default, its id for self-reference.
+   *
+   * ⭐ Preview and a saved read call THIS, with different bodies. That
+   * is the whole of criterion 36, and it is free only because the
+   * pipeline keys on a body rather than a page id (A4).
+   */
+  private async renderBody(
+    body: string,
+    page: WikiPage,
+    model: WikiModel,
+  ): Promise<string> {
     const registry = await this.registry();
     const renderer = await StuffApi.singleton<WikiRenderer>(
       TemplatePaths.wikiRenderer,
@@ -409,7 +537,7 @@ export default class WikiController extends CommandController<WikiModel> {
       model.spoiler !== undefined
         ? (SpoilerLevels.parse(model.spoiler) as SpoilerLevel)
         : undefined;
-    const result = await renderer.render(page.getBody(), {
+    const result = await renderer.render(body, {
       pageId: page._id ?? '',
       spoilerDefault: page.getSpoilerLevel(),
       ...(zone ? { namespaceZone: zone } : {}),
@@ -424,6 +552,43 @@ export default class WikiController extends CommandController<WikiModel> {
       // lookup as everything else, just pinned to its namespace, so
       // it inherits revisions, history, rollback and protection with
       // no second store and no second editing path.
+      resolveSnippet: async (name) => {
+        const { name: leaf } = WikiPage.parseRef(name, SNIPPET_NAMESPACE);
+        const hit = await registry.resolve(`${SNIPPET_NAMESPACE}:${leaf}`);
+        return hit ? hit.page.getBody() : null;
+      },
+    });
+    return result.body;
+  }
+
+  /**
+   * Render a body belonging to no page yet — previewing an article
+   * before it exists, which is when preview is most useful.
+   *
+   * No namespace zone, so the capability ladder answers 0 for a
+   * non-wizard: the fail-closed direction, and correct, since there is
+   * no namespace whose membership could say otherwise.
+   */
+  private async renderLoose(body: string, model: WikiModel): Promise<string> {
+    const registry = await this.registry();
+    const renderer = await StuffApi.singleton<WikiRenderer>(
+      TemplatePaths.wikiRenderer,
+    );
+    const appetite =
+      model.spoiler !== undefined
+        ? (SpoilerLevels.parse(model.spoiler) as SpoilerLevel)
+        : undefined;
+    const result = await renderer.render(body, {
+      ...(model.reveal !== undefined
+        ? { spoilerDefault: SpoilerLevels.parse(model.reveal) }
+        : {}),
+      ...(appetite !== undefined ? { appetite } : {}),
+      resolveLink: async (ref) => {
+        const target = await registry.resolve(ref);
+        return target
+          ? { handle: target.page.getHandle(), title: target.page.getTitle() }
+          : null;
+      },
       resolveSnippet: async (name) => {
         const { name: leaf } = WikiPage.parseRef(name, SNIPPET_NAMESPACE);
         const hit = await registry.resolve(`${SNIPPET_NAMESPACE}:${leaf}`);
@@ -530,6 +695,27 @@ function parseSubject(
   if (!ref) return 'invalid';
   if (!(SUBJECT_KINDS as readonly string[]).includes(kind)) return 'invalid';
   return { kind: kind as SubjectKind, ref };
+}
+
+/**
+ * Parse `--rev`. `undefined` when unpassed (skip the compare-and-swap
+ * — the scripted path), a number when given, `'invalid'` for garbage.
+ * A bare `null` return could not tell "not asked for" from "asked for
+ * nonsense", and silently skipping the check on a typo would turn a
+ * lost-update guard off exactly when somebody was trying to use it.
+ */
+function parseRev(raw: string | undefined): number | undefined | 'invalid' {
+  if (raw === undefined) return undefined;
+  const s = raw.trim();
+  if (!s) return undefined;
+  const n = Number.parseInt(s, 10);
+  return Number.isFinite(n) ? n : 'invalid';
+}
+
+/** A human list of a body's section anchors, for a refusal. */
+function describeSections(body: string): string {
+  const anchors = Sections.list(body).map((s) => s.anchor);
+  return anchors.length ? anchors.join(', ') : '(none)';
 }
 
 /** Split a comma-separated option into trimmed, non-empty entries. */
