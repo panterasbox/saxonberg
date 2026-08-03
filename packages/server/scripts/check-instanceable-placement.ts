@@ -44,8 +44,8 @@ import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 
-/** Flip to true to make this CI-failing (wave 5). */
-const EXIT_ON_FINDINGS = false;
+/** CI-failing. The invariant is enforced by the build, not by review. */
+const EXIT_ON_FINDINGS = true;
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');

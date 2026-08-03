@@ -109,6 +109,10 @@ lint:
     # coming back, and every `fieldMeta` entry well-formed. Registration
     # only validates classes it loads; this sees the whole tree.
     - pnpm -C packages/server lint:field-meta
+    # Nothing instances /lib/: no template's class: resolves to substrate,
+    # no template path lives under /lib/, and hydratorClass is neither
+    # redundant nor missing where there is data to apply.
+    - pnpm -C packages/server lint:instanceable
 
 test:
   extends: [.node, .mr-only]
