@@ -122,62 +122,162 @@ parcel cannot invent a new damage channel, a new material, or a new unit,
 so the worst version of the portable-object problem is foreclosed by the
 materials-response design before any of this ships.
 
-## ⭐⭐⭐ Portable objects — the second kind of crossing
+## ⭐⭐⭐ Portable objects — and a retraction
 
 > **User: "a weapon that's balanced inside its parcel but can be carried
 > out — what's the determination there?"**
 
-The case the ledger test misses. A sword does not accumulate onto a global
-scale; it is a **durable capability that travels**, and it was calibrated
-against the producing parcel's context while operating under the
-consuming parcel's rules.
+The case the ledger test misses: a sword does not accumulate onto a global
+scale; it is a **durable capability that travels.**
 
-### What a parcel can still get wrong — three cases, one of them new
+### ⚠⚠ The retraction — recorded, because the reflex will come back
 
-| | Case | Covered by |
+A first pass answered this with **chattel**: an item that should not leave
+does not leave because the holder does not own it, lent-not-given, with
+MMO soulbinding as precedent. **Rejected, correctly:**
+
+> ⚠⚠ **User: "the whole thing with our game is the laser gun in Westeros
+> — content of different genres can cross over and it all just sorta
+> works."**
+
+> **It solves balance by forbidding the one thing the game is FOR.**
+> Precedent from MMOs is not a recommendation here — those games do not
+> make this promise. ⚠ **"Just make it soulbound" is the reflex to refuse
+> every time it returns.**
+
+### ⭐⭐⭐⭐ The vocabularies are what MAKE crossover work
+
+The same first pass filed the closed vocabularies under *restriction*.
+**They are the opposite.** A laser gun works in Westeros because both are
+expressed as mechanism → channel → material response; nothing
+special-cases the encounter.
+
+> **The shared terms are the INTEROPERABILITY LAYER** — the reason *"it
+> all just sorta works"* is achievable rather than aspirational.
+
+So a portable weapon gets the same treatment: **express it in shared terms
+and let the terms carry it. Never reach for a fence.**
+
+### ⭐⭐⭐⭐⭐ The item is never the problem — the exchange rate is
+
+Walk the failure through. A sword that hits for 50 hits for 50 everywhere;
+outside its parcel it is not *incoherent*, merely *strong*. **That is not
+a crossover problem at all.**
+
+> ⭐⭐ **A sword appropriate as the reward for a 20-hour raid is broken as
+> the reward for a 5-minute tutorial. The item is fine. THE PRICE WAS
+> WRONG.**
+
+> ⭐⭐⭐⭐⭐ **You do not regulate the sword. You regulate the RATE AT WHICH
+> SWORDS APPEAR.** The laser gun crosses freely; what is bounded is how
+> cheaply the parcel produced it.
+
+Which collapses back into Part 1 through the right door — **acquisition is
+a mint**, and a parcel handing out powerful items cheaply is over-minting
+*value*, not smuggling *objects*.
+
+⭐ **Contextual calibration then takes care of itself.** *"3× damage to
+Ice Wraiths"* carried out is a normal sword against everything else —
+self-limiting **because** the context is expressed in shared vocabulary.
+The dangerous item is never the contextual one; it is the **generically
+strong one that was cheap.**
+
+### ⭐⭐⭐⭐ Risk-weight the rate, or the bound is Basel I
+
+> **User: "acquisition is also scaled by risk/reward calculation, so
+> there's multiple factors there."**
+
+Rate-per-hour needs an exemption for dangerous content ⇒ **the denominator
+is wrong** (Part 2 § *The denominator is where all the design is*).
+
+> **Bound the risk-adjusted rate, not the raw rate.**
+
+Exact precedent: **Basel I's flat capital ratio was gamed in precisely
+this direction** — safe lending penalized, risky lending rewarded — and
+**risk-weighted assets were the fix.** The identical correction, already
+made once in the real world.
+
+The denominator is a **composite** built from ledgers that already exist:
+harm taken · death exposure (the dying clock, reembody cost) · resources
+burned (consumables, `Durable` wear) · time · scarcity · party size ·
+execution difficulty.
+
+> **Ship ONE crude denominator and let them fight about the weights.** The
+> first one being wrong is the point — it is *meant* to be amended.
+
+⚠ **The exploit: inflate the denominator** — take unnecessary damage to
+justify a higher rate (the junk-in-risk-weighted-assets scam). Half of it
+is self-honest: bleed for it and you did take the risk. The dishonest half
+is **fake risk** — harm from a source you control, with no real chance of
+death — and measuring *expected cost* does not catch it. But:
+
+> ⭐⭐⭐ **Risk is not expected cost, it is the VARIANCE of outcomes.** Real
+> danger sometimes kills someone; fake danger has a suspiciously tight
+> distribution — **and that anomaly is its own detector.** Same shape as
+> tier misdeclaration, no new machinery — and it folds in execution
+> difficulty for free, since failure rate *is* dispersion.
+
+⚠ **Small-N limit, honestly:** a parcel with three visitors has no
+distribution, so the measure is weakest exactly where oversight is
+thinnest — the same shape as differencing defeating aggregation (Part 7).
+Not fixable by cleverness; it is why an early polity leans on
+**adjudication rather than statistics.**
+
+### What is left for the lint — and what chattel is actually for
+
+| | Case | Answer |
 |---|---|---|
-| 1 | hands out a legal item **too freely** | not an item problem — an **acquisition rate** problem; the mint framing, iff acquisition is metered |
-| 2 | declares novice tier, lets **veterans farm it** | the declaration is a claim; the sweep audits it (Part 3) |
-| 3 | ⭐ combines **legal parts into an illegal whole** — crafting, augments, stacking | **new** — you cannot lint a combination nobody anticipated |
+| 1 | out-of-vocabulary stats | **impossible** — the vocabularies are closed engine code |
+| 2 | declares novice tier, serves veterans | the declaration is a claim; the sweep audits it (Part 3) |
+| 3 | legal parts combined into an **illegal whole** | ⭐ **caught downstream** — outcome-metering, below |
 
 > ⭐⭐⭐ **Declared power is checked at save. Emergent power is caught by
 > the meter.** The lint handles what can be specified; the meter handles
-> what cannot. The same division as throttle-vs-adjudicate, one layer
-> down.
+> what cannot.
 
-### ⭐⭐⭐⭐⭐ But the literal case is a PROPERTY question, not a balance question
+**Chattel survives as FICTION, not as policy.** A gym's practice swords
+being the gym's property is good, true and diegetic — *issued vs. owned*
+is a real thing worth having. It must simply never be **the answer to
+balance**, or it becomes the fence someone reaches for whenever a number
+looks frightening.
 
-*"Balanced inside its parcel"* is not out-of-spec — it is **contextually
-calibrated**, fine for its encounter and broken outside it. No lint
-catches that, because nothing is wrong with the item. MMOs answer with
-**binding**, which is blunt. The shipped primitive is better:
+⭐ **And the one legitimate "cannot leave" already exists and is not about
+power:** the sandbox's **Layer-4 boundary**
+([sandbox.md](../../subsystems/sandbox.md)) — provenance-**taint**. The
+exception that shows the rule: *the only thing that cannot cross is
+something whose ORIGIN is untrusted, never something that is merely
+strong.*
 
-> **An item that should not leave does not leave because THE HOLDER DOES
-> NOT OWN IT** — it is the parcel's chattel, **lent not given**.
-> Diegetically honest (you borrowed the practice sword from the gym),
-> rides `chattel` / `chattel_events`
-> ([chattel.md](../../subsystems/chattel.md)), needs no new gate.
+### ⭐⭐⭐⭐ Meter outcomes, not objects
 
-And it hands the holder a real choice with real consequences:
+The reframe improves the instrumentation ask. Bounding acquisition *looks*
+like it needs an absolute item-power metric — hard, arbitrary, and junk
+bounds if done badly.
 
-| The holder | Consequence |
-|---|---|
-| **transfers title** | it enters the global pool ⇒ **it must be globally legal** |
-| **retains title** | it may be locally calibrated ⇒ **it cannot leave** |
+> **It does not. You never need to know what a sword is worth. You need to
+> notice that players who pass through this parcel subsequently mint
+> competence 3× faster.** A parcel's contribution is a **delta in its
+> visitors' downstream rates.**
 
-> ⭐⭐⭐⭐⭐ **A parcel may make anything it wants, so long as it KEEPS it.
-> Export is what triggers the standard.**
+No item-power metric, no crafting-value model, and **emergent combinations
+are caught for free** — an unanticipated stack shows up in outcomes even
+though no lint could have predicted it.
 
-Which collapses the weapon question back into the general rule — **the
-object crossing IS the crossing.** Interior is yours; the boundary is
-where the Compact begins. The same sentence as everything else in Part 1.
+⚠ **The honest cost is attribution.** Visit ten parcels — which caused the
+delta? Real causal inference, and not clean. The saving grace: **you do
+not need attribution to DETECT an anomaly, only to ACT on one.** Detection
+stays statistical and automatic; the attribution argument is exactly where
+a human adjudicator earns their keep. The ladder again.
 
-⚠ Note this is the **export/import** distinction the first draft elided by
-treating the boundary as one-directional. The real-world shape is
-**mutual recognition by default, harmonized standards where it matters**
-(Cassis de Dijon vs. the harmonized-standards regime) — and item efficacy
-is squarely harmonized, because it is expressed entirely in reserved
-vocabulary.
+⚠ **And not everything valuable is metered.** An item that trivializes a
+puzzle without moving any mint rate is invisible to this. A real hole —
+and the answer is instrumentation, not a fence.
+
+⚠ The **export/import** asymmetry survives the retraction (the first draft
+treated the boundary as one-directional). Real-world shape: **mutual
+recognition by default, harmonized standards where it matters** (Cassis de
+Dijon vs. the harmonized-standards regime). Item efficacy is squarely
+harmonized — it is expressed entirely in reserved vocabulary.
 
 ## ⭐⭐⭐⭐ Federalism is already built — it is the longest-prefix walk
 
@@ -349,6 +449,36 @@ The engine has already normalized the curve.
 
 ⚠ **Reach for the unit before reaching for the carve-out.** Every
 exemption is a lobbying surface — a thing someone campaigns for.
+
+### ⭐⭐⭐⭐⭐ The denominator is where all the design is
+
+The generalization, and **the rule this slate kept rediscovering.** Three
+separate problems, three times the answer was a better divisor:
+
+| Problem | Naive unit | The right denominator |
+|---|---|---|
+| novice vs veteran zones | competence granted | **per band-fraction** — the engine already banded the curve |
+| a portable weapon | the item's power | **per visitor's downstream rate** — meter outcomes, not objects |
+| dangerous vs safe content | rewards per hour | **per unit of risk carried** — Basel's risk-weighting |
+
+> ⭐⭐⭐⭐⭐ **The numerator is always obvious — what got minted. All the
+> contested, political, genuinely hard work is in choosing what to divide
+> by.**
+
+Which yields the pedagogical dividend, and it is a large one:
+
+> ⭐⭐⭐ **The legislature's real debates will be about DENOMINATORS** —
+> exactly like real regulatory politics, where the fight over Basel's risk
+> weights is where every lobbyist went, because that is where the money
+> was.
+
+**Nobody has to author "an interesting policy debate."** Arguing over
+weights *is* the job, and it is the genuinely educational kind of argument
+— it has right and wrong answers that are nonetheless contested.
+
+⭐ **Corollary for build order:** ship one crude denominator per matter.
+The first is *meant* to be wrong, because being amendable is the point
+(Part 7's thermostat).
 
 ---
 
@@ -839,9 +969,14 @@ Small, which is the argument for doing it:
 meaningless without #3, and #3 is meaningless without meters that exist.
 **The instrumentation gates the rest** — see the Part 2 constraint.
 
-⭐ **Portable objects need nothing new**: the chattel primitive ships, and
-the vocabularies half of the enumeration is already closed engine code.
-That case is design work, not build work.
+⭐ **Portable objects need no new gate** — the vocabularies half of the
+enumeration is already closed engine code, and the rest is a denominator
+question, not a mechanism. But #0 grows: outcome-metering needs the stamp
+on **both** the visit and the downstream write, or the delta is not
+attributable to a parcel at all.
+
+⚠ **What #3 must NOT become:** a per-item power metric. Outcome-metering
+exists precisely so no one has to price a sword.
 
 # Open questions
 
@@ -869,12 +1004,12 @@ That case is design work, not build work.
 8. ⚠ **Where does a ledger write land when the act spans parcels?**
    *Leans "where the acting principal stood"* — but it must be declared,
    or it is an arbitrage surface.
-9. **Is retained-chattel calibration bounded at all, or is "it can't
-   leave" sufficient?** A parcel could tune a lent item arbitrarily; the
-   argument that it does not matter is that its *effects* are still
-   metered on that parcel's own rate. *Leans sufficient* — but it is the
-   one place where "keep it and do what you like" and "the meter catches
-   emergent power" have to actually agree.
-10. **Does an item's legality travel with its TEMPLATE or its
-    INSTANCE?** A globally-legal template cloned and then augmented in
-    place is case 3 wearing case 1's clothes.
+9. ⭐ **What is the first crude denominator for each matter?** It is meant
+   to be wrong and amendable — but *"wrong"* and *"junk"* are different,
+   and a junk v1 discredits the whole instrument before anyone amends it.
+10. **How long is the downstream window for outcome-metering?** Too short
+    and slow-burn rewards are invisible; too long and attribution
+    dissolves entirely.
+11. ⚠ **Does risk-as-variance need a floor for low-traffic parcels, or do
+    they simply go unmeasured?** Unmeasured is the honest answer and also
+    the exploitable one — *"stay small to stay invisible"* is a strategy.
