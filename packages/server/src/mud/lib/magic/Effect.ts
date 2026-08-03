@@ -154,6 +154,53 @@ export const EFFECT_KINDS = [
 /** Thin static holder — family derivation + seed validation. */
 export class MagicEffects {
   /**
+   * **Does this effect need a mark to do anything at all?**
+   *
+   * Derived from the kind, like {@link familyOf} — never authored. An
+   * `inject-channel` with nothing to inject into is a no-op; a `conjure`
+   * with no target pools on the floor, which is a perfectly good
+   * outcome.
+   *
+   * Read by the **shape gate**, which runs *before* anything is spent.
+   * Without it, `targeting: 'any'` (which permits a missing target)
+   * lets a working reach its executor, refuse there for want of a mark,
+   * and leave the caster's mana — or a wand's charge — already gone.
+   * Live-driving found exactly that: 45 targetless zaps flattened a
+   * 900 kJ wand as thoroughly as 45 real ones.
+   */
+  public static needsTarget(effect: Effect): boolean {
+    switch (effect.kind) {
+      // These act ON something. With nothing to act on there is no
+      // effect to have, and no reason to charge for one.
+      case 'inject-channel':
+      case 'afflict':
+      case 'move':
+        return true;
+      // These are fine — or better — without a mark. Conjured water
+      // pools on the floor; a sense sweeps the scene; a cloak, a field
+      // and a script all act on the actor or the world.
+      case 'relieve':
+      case 'adjust-reserve':
+      case 'conjure':
+      case 'sense':
+      case 'cloak':
+      case 'emit-field':
+      case 'script':
+        return false;
+    }
+  }
+
+  /**
+   * Does a spell need a mark? True only when **every** effect does — a
+   * spell that would still do *something* useful untargeted is allowed
+   * to fire untargeted, and the effects that wanted a mark report their
+   * own miss.
+   */
+  public static everyEffectNeedsTarget(effects: readonly Effect[]): boolean {
+    return effects.length > 0 && effects.every(MagicEffects.needsTarget);
+  }
+
+  /**
    * The impulse/modifier line, derived from the kind: `emit-field` and
    * `cloak` install a sustained hold (suppressible); everything else is
    * fired-and-released.

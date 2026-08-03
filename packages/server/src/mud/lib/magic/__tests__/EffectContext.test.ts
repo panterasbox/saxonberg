@@ -36,17 +36,20 @@ import { Character } from '../../character/Character';
 import Species from '../../../obj/species/Species';
 import Room from '../../../obj/location/Room';
 import { ArcaneMixin } from '../Arcane';
+import { ChargedMixin } from '../Charged';
+import { ReservedMixin } from '../../reserve';
 import { EffectContexts } from '../EffectContext';
 import { Suppressions } from '../Suppression';
 import { MagicGrid } from '../Grid';
+import { MagicEffects } from '../Effect';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-/** A magic item: nothing but `Thing` + the grid-footprint declaration. */
-class TestWand extends ArcaneMixin(Thing) {}
+/** A magic item: `Thing` + the grid footprint + a tank to spend from. */
+class TestWand extends ChargedMixin(ReservedMixin(ArcaneMixin(Thing))) {}
 class TestCharacter extends Character {}
 
 const __filename = fileURLToPath(import.meta.url);
@@ -384,6 +387,65 @@ describe('EffectContext — the four separated jobs', () => {
     await MagicApi.discharge(wand);
     // Competence derives from deeds; firing a wand teaches nothing.
     expect(credit).not.toHaveBeenCalled();
+  });
+
+  it('a shape refusal costs NOTHING — the gate runs before the spend', async () => {
+    // Found by live-driving, not by the suite: 45 TARGETLESS zaps
+    // flattened a 900 kJ wand exactly as 45 real ones did. `targeting:
+    // 'any'` permits a missing target, so firebolt reached its executor,
+    // refused there for want of a mark, and left the charge already
+    // gone. The shape gate now asks whether EVERY effect needs a mark,
+    // ahead of the spend — and it governs the cast path too, since both
+    // triggers consult the same function.
+    const room = makeRoom();
+    const user = makeActor();
+    ContainmentApi.move(user, room);
+    const wand = makeWand('firebolt', '/obj/test/maker');
+    ContainmentApi.move(wand, room);
+    actingAs(user);
+
+    const before = wand.getStoredKJ();
+    for (let i = 0; i < 20; i++) {
+      const out = await MagicApi.discharge(wand); // no target
+      expect(out.ok).toBe(false);
+      expect(out.refusal).toMatch(/needs a mark/);
+    }
+    // Twenty refusals, nothing spent.
+    expect(wand.getStoredKJ()).toBe(before);
+
+    // …and it still fires when given one.
+    const mark = makeActor();
+    ContainmentApi.move(mark, room);
+    const fired = await MagicApi.discharge(wand, mark);
+    expect(fired.ok).toBe(true);
+    expect(wand.getStoredKJ()).toBeLessThan(before);
+  });
+
+  it('a working that is USEFUL untargeted still fires untargeted', () => {
+    // The gate asks whether EVERY effect needs a mark — a spell that
+    // would still do something is allowed through. Conjured water pools
+    // on the floor; an arcane sight sweeps the scene. Refusing those
+    // would be the opposite bug.
+    expect(
+      MagicEffects.everyEffectNeedsTarget([
+        { kind: 'inject-channel', channel: 'heat', energy: 1 },
+      ]),
+    ).toBe(true);
+    expect(
+      MagicEffects.everyEffectNeedsTarget([
+        { kind: 'conjure', bulkMaterial: 'water' },
+      ]),
+    ).toBe(false);
+    expect(
+      MagicEffects.everyEffectNeedsTarget([{ kind: 'sense', sense: 'detect-magic' }]),
+    ).toBe(false);
+    // Mixed: one effect still does something, so the spell fires.
+    expect(
+      MagicEffects.everyEffectNeedsTarget([
+        { kind: 'inject-channel', channel: 'heat', energy: 1 },
+        { kind: 'emit-field', field: 'light' },
+      ]),
+    ).toBe(false);
   });
 
   // ─────────────────────────── AC 3a ───────────────────────────

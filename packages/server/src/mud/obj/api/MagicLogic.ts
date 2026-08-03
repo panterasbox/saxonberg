@@ -78,6 +78,7 @@ import type {
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { Caster } from '../../lib/magic/Caster';
 import { Faculty } from '../../lib/magic/Faculty';
+import { MagicEffects } from '../../lib/magic/Effect';
 import type { Effect, InjectChannelEffect } from '../../lib/magic/Effect';
 import { MagicGrid, type MagicProvenance } from '../../lib/magic/Grid';
 import { EffectContexts } from '../../lib/magic/EffectContext';
@@ -1207,6 +1208,21 @@ function targetingRefusal(
     case 'object':
       return target ? null : `${spell.name} needs a mark.`;
     case 'any':
+      // `any` means "object or creature, target optional" — and that
+      // optionality is right for a working that still does something
+      // untargeted (conjured water pools on the floor; a sense sweeps
+      // the scene). It is WRONG for one whose every effect acts on a
+      // mark: firebolt with nothing to burn is a no-op, and letting it
+      // through means the executor refuses AFTER the spend leg has
+      // already taken the caster's mana or the wand's charge.
+      //
+      // Found by live-driving: 45 targetless zaps flattened a 900 kJ
+      // wand exactly as 45 real ones did. The gate belongs here, ahead
+      // of the spend, and it governs BOTH triggers because both consult
+      // this one function.
+      if (!target && MagicEffects.everyEffectNeedsTarget(spell.effects)) {
+        return `${spell.name} needs a mark.`;
+      }
       return null;
   }
 }
