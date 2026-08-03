@@ -143,7 +143,7 @@ import { buildMode } from '../../locomotion/__tests__/test-helpers';
 import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import { MountableMixin } from '../../slot/Mountable';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import Exit from '../../boundary/Exit';
 import { ContainmentApi } from '../../../api/containment';
@@ -199,7 +199,7 @@ describe('Mobile.engagedMode', () => {
       const walk = buildMode('walk');
       const m = makeStuff(() => new MobileObject());
       m.setEngagedMode(walk);
-      expect(m.isEngagedIn('/lib/locomotion/walk')).toBe(true);
+      expect(m.isEngagedIn('/obj/LocomotionMode/walk')).toBe(true);
     });
 
     it('returns false when not engaged', () => {

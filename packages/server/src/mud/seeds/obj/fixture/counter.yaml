@@ -2,8 +2,8 @@
 # shipped generic (a shelf, counter, table): items placed on it via
 # `placeOn` keep `container = the room` and gain `restingOn = this`, so they
 # read as being ON the counter rather than as loose room clutter.
-class: /lib/spatial/Surface
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Surface
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a kitchen counter
   primaryKeyword: counter

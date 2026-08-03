@@ -16,8 +16,8 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';
-import BodyPlan from '../../species/BodyPlan';
-import Species from '../../species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../obj/species/Species';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../obj/WorldClockRegistry';
 import { SchedulerApi } from '../../../api/scheduler';

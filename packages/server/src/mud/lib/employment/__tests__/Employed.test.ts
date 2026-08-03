@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { EmployedMixin, type Employed } from '../Employed';
-import BusinessEntity from '../Business';
+import BusinessEntity from '../../../obj/Business';
 import type { EmploymentData } from '../Employment';
 import { StuffApi } from '../../../api/stuff';
 import {

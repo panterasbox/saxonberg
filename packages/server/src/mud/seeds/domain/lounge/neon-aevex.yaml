@@ -2,7 +2,7 @@
 # nothing else. Cool blue glow against the amber; the corpo fault line
 # made literal in light. Attached via the bar's `adornments:` field.
 class: /domain/lounge/NeonSign
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: an aevex zero sign
   keywords: [sign, neon, aevex, zero]

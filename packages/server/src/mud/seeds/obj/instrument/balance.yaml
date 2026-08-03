@@ -1,7 +1,7 @@
 # Balance — handheld balance/scale that grants the `weigh` verb to
 # its carrier.
 class: /obj/instrument/Balance
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a precision balance
   long: A small precision balance with a calibrated dial. Place an object on the pan, take a reading.

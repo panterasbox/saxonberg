@@ -7,7 +7,7 @@
  * extents, from the giver's zone path) → gate to the parent-parcel owner
  * via `AccessApi.canMutateZone` (the covering parcel's owner; group →
  * `'owner'` role, player → identity) → mint the child zone via
- * `TemplateApi.saveTemplate(childPath, '/lib/zone/FolderZone', …)` (the
+ * `TemplateApi.saveTemplate(childPath, '/obj/FolderZone', …)` (the
  * `MkdirController` precedent) → write the child parcel row + genesis
  * chain-of-title event via `ParcelApi.subdivide` (owner inherited from the
  * parent). FolderZone-first — spatial (grid sub-region) carve-outs are a
@@ -86,7 +86,7 @@ export default class SubdivideController extends CommandController<SubdivideMode
 
     // Mint the backing zone (FolderZone-first; spatial carve-out deferred).
     try {
-      await TemplateApi.saveTemplate(childPath, "/lib/zone/FolderZone", {
+      await TemplateApi.saveTemplate(childPath, "/obj/FolderZone", {
         name,
       });
     } catch (err) {

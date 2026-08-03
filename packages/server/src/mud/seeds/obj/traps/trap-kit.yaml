@@ -3,8 +3,8 @@
 # economy in v1); `arm the trap kit` clones its `trapTemplate` (the
 # step-dart), conceals the deployed trap at the placer's own stealth level,
 # stamps who set it, and spends the kit. One kit → one trap.
-class: /lib/hazard/TrapKit
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/TrapKit
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a folded trap kit
   primaryKeyword: kit

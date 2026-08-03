@@ -19,11 +19,11 @@ import '../obj/WorldClockRegistry';
 import { PersistenceManager } from '../../backend/PersistenceManager';
 import { Quantity } from '../lib/quantity';
 import Material from '../lib/material/Material';
-import Condition from '../lib/vitals/Condition';
+import Condition from '../obj/Condition';
 import type { ToxinBehavior } from '../lib/metabolism/Metabolic';
 import { Creature } from '../lib/creature/Creature';
 import GradedReceptacle from '../domain/lounge/GradedReceptacle';
-import ToolItem from '../lib/craft/ToolItem';
+import ToolItem from '../obj/ToolItem';
 import CraftedDrink from '../domain/lounge/CraftedDrink';
 import Menu from '../domain/lounge/Menu';
 import RecipeCatalogue from '../obj/RecipeCatalogue';
@@ -58,7 +58,7 @@ const ALCOHOL: ToxinBehavior = {
     { threshold: 0.08, severity: 2 },
   ],
 };
-const ALCOHOL_PATH = '/lib/metabolism/conditions/alcohol';
+const ALCOHOL_PATH = '/obj/Condition/metabolism/alcohol';
 function ensureAlcoholCondition(): void {
   if (StuffApi.findByTemplatePath(ALCOHOL_PATH)) return;
   makeStuffAtPath(() => {
@@ -69,9 +69,9 @@ function ensureAlcoholCondition(): void {
   }, ALCOHOL_PATH);
 }
 
-const GIN = '/lib/material/spirit/gin';
-const VERMOUTH = '/lib/material/spirit/vermouth';
-const MARTINI_MAT = '/lib/material/cocktail/martini';
+const GIN = '/obj/material/spirit/gin';
+const VERMOUTH = '/obj/material/spirit/vermouth';
+const MARTINI_MAT = '/obj/material/cocktail/martini';
 const GLASS = '/domain/lounge/cocktail-glass';
 const DAVE = '/domain/lounge/dave-test';
 

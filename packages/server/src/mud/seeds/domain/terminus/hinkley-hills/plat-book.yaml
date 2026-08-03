@@ -9,7 +9,7 @@
 # auctions) while provisioning is the piece most likely to be swapped
 # wholesale for minted-per-residence templates.
 class: /obj/PlatBook
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   label: Hinkley Hills
   # The district these lots are subdivided out of — the parcel row seeded

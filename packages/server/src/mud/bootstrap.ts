@@ -67,12 +67,12 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // GovernmentCatalogue singleton — the roster of diegetic governments
   // (plural authored content — never the Compact's face). Warms its
   // descriptor cache in postRegister from the per-Government leaf templates
-  // under `/lib/civics/Government/` in the `domain` collection (the corpo
+  // under `/obj/Government/` in the `domain` collection (the corpo
   // pattern). Resolvable via `GovernmentApi` after this entry's
   // postRegister fires.
   { templatePath: '/obj/GovernmentCatalogue' },
   // SpellCatalogue singleton — the authored spell roster. Warms in
-  // postRegister from the per-Spell leaf templates under `/lib/magic/Spell/`
+  // postRegister from the per-Spell leaf templates under `/obj/magic/Spell/`
   // (the discipline-catalogue pattern), validating every authored effect
   // against the closed Effect union — the structural half of "an Effect
   // primitive exists iff a gated Api already does the work". Read by
@@ -166,7 +166,7 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // AddressRegistry — addressing-substrate singleton holding the
   // PathTrie coverage index (claimed-address-prefix → Locality). Its
   // postRegister eagerly clones the Locality roster under
-  // `/lib/address/` so the index warms at boot. No dependsOn — it
+  // `/obj/Locality/` so the index warms at boot. No dependsOn — it
   // self-clones its roster and leans on no other singleton.
   { templatePath: '/obj/AddressRegistry' },
   // EventSubscriptions — runtime listener registry + bounded history

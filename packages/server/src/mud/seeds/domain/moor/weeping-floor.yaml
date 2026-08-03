@@ -4,7 +4,7 @@
 # modelled storm fills the peat — the source-indifference spine invariant, one
 # floor over from a real sky.
 class: /obj/Floor
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: wet flagstones
   longDescription: Worn flagstones under a spreading skin of rainwater that never quite drains.

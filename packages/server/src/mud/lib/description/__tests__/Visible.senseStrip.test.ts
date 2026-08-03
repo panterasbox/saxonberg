@@ -23,8 +23,8 @@ import {
 } from '../Visible';
 import { DetailedMixin } from '../Detailed';
 import Thing from '../../stuff/Thing';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
 import type { SenseChannel } from '../Perceiver';
 import { Mml } from '../../../api/mml';
@@ -53,7 +53,7 @@ class OrganismActor extends OrganismMixin(Thing) {
 function makeViewerWithSensorium(channels: SenseChannel[]): Stuff {
   const bodyPlan = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    `/lib/body-plans/test-${channels.join('-') || 'sessile'}`,
+    `/obj/species/BodyPlan/test-${channels.join('-') || 'sessile'}`,
   );
   bodyPlan.setSensoryPorts(
     channels.map((ch) => ({
@@ -64,7 +64,7 @@ function makeViewerWithSensorium(channels: SenseChannel[]): Stuff {
   );
   const species = withTemplatePath(
     makeStuff(() => new Species()),
-    `/lib/species/test/${channels.join('-') || 'sessile'}`,
+    `/obj/species/test/${channels.join('-') || 'sessile'}`,
   );
   species.setBodyPlan(bodyPlan);
   const actor = makeStuff(() => new OrganismActor());

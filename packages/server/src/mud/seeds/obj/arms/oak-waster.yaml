@@ -1,5 +1,5 @@
-class: /lib/equipment/Weapon
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Weapon
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: an oak waster
   primaryKeyword: waster
@@ -10,7 +10,7 @@ data:
     butter. Every drill hall keeps a rack of them: it trains the true
     sword's tempo and guard, and the worst it deals is a bruise you'll
     remember to parry next time.
-  _materialPath: /lib/material/wood/oak
+  _materialPath: /obj/material/wood/oak
   # The blunted delivery form: sword-shaped, no edge presented. Blows
   # resolve as blunt (contusions through the tissue fold; a padded jacket
   # absorbs them outright) while the derived playstyle — reach, balance,
@@ -21,4 +21,4 @@ data:
   mass: 1.0
   length: 0.9
   slotClaims:
-    "/lib/body-plans/biped": ["hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:right"]

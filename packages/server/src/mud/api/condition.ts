@@ -33,7 +33,7 @@ import type { AccountabilityFields } from '../lib/accountability/AccountabilityE
 import type {
   InsultKind,
   Trauma,
-} from '../lib/vitals/Condition';
+} from '../obj/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -41,7 +41,7 @@ import { ConditionLogic } from '../obj/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-export type { InsultKind, Channel } from '../lib/vitals/Condition';
+export type { InsultKind, Channel } from '../obj/Condition';
 
 /**
  * Caller-supplied facts for a death. Everything here is optional because
@@ -58,7 +58,7 @@ export interface DeathSpec {
    */
   accountability?: AccountabilityFields;
 }
-export { CHANNELS, Channels } from '../lib/vitals/Condition';
+export { CHANNELS, Channels } from '../obj/Condition';
 
 /**
  * An **energy** insult — a materials-response `Channel` (edge / point /

@@ -12,7 +12,7 @@ import YAML from 'yaml';
 import { EmploymentApi } from '../../../api/employment';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
-import BusinessEntity from '../../../lib/employment/Business';
+import BusinessEntity from '../../../obj/Business';
 import { MakerMixin } from '../../../lib/craft/Maker';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { MixinApi } from '../../../api/mixin';
@@ -49,7 +49,7 @@ class Staff extends MakerMixin(EmployedMixin(Idea)) {
 describe("Dave's Bar — Business seed integrity", () => {
   it('resolves the class and the proprietor edge', () => {
     const doc = loadSeed();
-    expect(doc.class).toBe('/lib/employment/Business');
+    expect(doc.class).toBe('/obj/Business');
     expect(doc.data.proprietorPath).toBe(DAVE);
   });
 

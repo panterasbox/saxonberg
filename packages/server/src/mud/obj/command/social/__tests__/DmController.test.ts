@@ -16,16 +16,16 @@ import {
   type CommandModel,
 } from '../../../../api/command';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
-import Species from '../../../../lib/species/Species';
-import BodyPlan from '../../../../lib/species/BodyPlan';
+import Species from '../../../species/Species';
+import BodyPlan from '../../../species/BodyPlan';
 import { OrganismMixin } from '../../../../lib/species/Organism';
 import { AetherMixin, type AetherHost } from '../../../../lib/message/Aether';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { SlottedMixin } from '../../../../lib/slot/Slotted';
 import Thing from '../../../../lib/stuff/Thing';
-import AetherImplant from '../../../../lib/augmentation/AetherImplant';
-import CommsUpdate from '../../../../lib/comms/CommsUpdate';
+import AetherImplant from '../../../AetherImplant';
+import CommsUpdate from '../../../CommsUpdate';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -59,7 +59,7 @@ let seq = 0;
 function makeActor(name: string, attuned: boolean): Actor & AetherHost {
   const biped = withPath(
     makeStuff(() => new BodyPlan()),
-    `/lib/body-plans/biped-dm-test-${seq}`,
+    `/obj/species/BodyPlan/biped-dm-test-${seq}`,
   );
   biped.setSensoryPorts([
     { modality: 'vision', count: 2, position: 'frontal' },
@@ -68,7 +68,7 @@ function makeActor(name: string, attuned: boolean): Actor & AetherHost {
   biped.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const species = withPath(
     makeStuff(() => new Species()),
-    `/lib/species/animalia/dm-test-${seq}`,
+    `/obj/species/animalia/dm-test-${seq}`,
   );
   seq += 1;
   species.setBodyPlan(biped);

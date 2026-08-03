@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';
 import Biome from '../../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../SkyExposedBiome';
 import Material from '../../../lib/material/Material';
 import { WeatherApi } from '../../../api/weather';
 import { BiomeApi } from '../../../api/biome';
@@ -53,15 +53,15 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 function skyRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;
@@ -75,7 +75,7 @@ function conductiveRod(room: TestRoom): Thing {
     m.setName(`rod-metal-${matSeq}`);
     m.setElectricalConductivity(Quantity.of(5, 'S/m'));
     return m;
-  }, `/lib/material/_strike/metal-${matSeq}`) as unknown as Material;
+  }, `/obj/material/_strike/metal-${matSeq}`) as unknown as Material;
   const rod = makeStuff(() => new Thing());
   rod.setMaterial(mat);
   return rod;

@@ -30,10 +30,10 @@ import {
 } from "../../../lib/security/__tests__/test-setup";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 
-const LEAF = "/lib/location/CartesianLocation";
-const OTHER_LEAF = "/lib/stuff/Thing";
-const FOLDER = "/lib/zone/FolderZone";
-const HYDRATOR = "/lib/persistence/PersistentHydrator";
+const LEAF = "/obj/location/Room";
+const OTHER_LEAF = "/obj/Prop";
+const FOLDER = "/obj/FolderZone";
+const HYDRATOR = "/obj/persistence/PersistentHydrator";
 const OTHER_HYDRATOR = "/lib/persistence/SomeOtherHydrator";
 const PATH = "/domain/gallery/widget";
 const ALICE = "/obj/Avatar/alice";

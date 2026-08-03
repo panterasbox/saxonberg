@@ -363,6 +363,18 @@ discoverability.
   scoped to `mud/api/` author faces: flags faces that speak a named type
   but don't re-export it. Residual gaps are capability/mixin interfaces
   that ride their own concept's face.
+- `pnpm lint:instanceable`
+  (`scripts/check-instanceable-placement.ts`) — **nothing instances
+  `/lib/`.** Six invariants over every template (seeds + both content
+  packs, real YAML parse): no `class:` resolves under `/lib/`; no
+  template path lives under `/lib/`; every `class:` resolves to a real
+  module + export; every `hydratorClass:` resolves to a real template
+  row; no redundant `hydratorClass` (declared with no `data` to apply);
+  and no orphaned `data` (a data block with no `hydratorClass`, whose
+  every key `clone()` silently discards — the dangerous direction).
+  CI-gating. **No exemption list, by design** — a class that belongs in
+  `lib/` is simply never named by a template; if one appears to need an
+  exemption that is a design conversation, not a list edit.
 - `pnpm lint:boundary` (`scripts/check-boundary-exemptions.ts`) — the
   sandbox boundary's exemption lists, checked the way the base-class
   list already is: by the build. Every exempt template path must
@@ -487,7 +499,7 @@ create free-floating helper modules.
 
 | Category | Where | Filename | Purpose |
 |---|---|---|---|
-| Stuff class | `lib/<subsystem>/` or `obj/` | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. |
+| Stuff class | `obj/` if **instanceable**, `lib/<subsystem>/` if **only inherited** | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. See "Instanceable lives in obj/" below. |
 | Mixin | `lib/<subsystem>/` | `PascalCase.ts` (no `Mixin` suffix) | Class-factory mixin; export `FooMixin`, marker `_mixinName = 'FooMixin'`. |
 | Brain | `lib/behavior/` | lowercase `verb.ts` | Path-resolved stateless strategy module for NPC behavior. Sole export `export const brain = class {…}` (a **named class-expression** so the HMR registry retains it), statics `label`/`claims`/`requiresFree`/`act`. No class name, no registry; re-resolved per invocation for HMR. See [behavior.md](./docs/subsystems/behavior.md). |
 | Named value-object / vocabulary / registry | `lib/<subsystem>/` (or top-level `lib/`) | `PascalCase.ts` / lowercase | A substrate primitive that isn't an instanceable Stuff but IS the module's one concept: value class (`Light`, `Quantity`), enum-like vocabulary + its validation array, or a platform registry (`lib/mixin.ts`, `lib/paths.ts`). The home that kills the `types.ts` reflex. |
@@ -615,6 +627,55 @@ reason.
   directory, different leaf; module-id `/obj/api/PartyLogic` ≠ template
   `/obj/api/party`). New code should follow the mirror unless it's an
   Api/logic singleton.
+
+## Instanceable Lives in `obj/`; `lib/` Is Substrate Only
+
+The governing rule for where a Stuff class goes, on **both** axes —
+where the `.ts` file sits, and where its templates live:
+
+> **`/obj/` holds anything instanceable** — anything a template's
+> `class:` resolves to, *including* classes that are further
+> specialized. **`/lib/` holds substrate that is only ever inherited**:
+> abstract roots, mixins, value objects, and framework attachments.
+
+The invariant, and it is literal: **nothing instances `/lib/`.** No
+template's `class:` may name a `/lib/` module, and no template path may
+start `/lib/`. Enforced by `pnpm lint:instanceable`, not by convention.
+
+Inheritance alone does NOT pull a class into `lib/` — `obj/Chair →
+obj/FoldingChair` is ordinary OO and correct. Only classes that are
+*never* instanced belong in `lib/`.
+
+**When a substrate class is also cloned generically, split it.** The
+abstract base stays in `lib/`; a thin concrete subclass in `obj/`
+absorbs the clones, and templates name that. Eight exist:
+`obj/Prop` (← `lib/stuff/Thing`), `obj/location/Room` (←
+`CartesianLocation`), `obj/Corpse` (← `Creature`), and `obj/NPC`,
+`obj/Vessel`, `obj/Exit`, `obj/Material`, `obj/Biome`, which
+deliberately share their base's name (the import aliases it; the module
+registry keys on class identity, not name).
+
+**Placement within `obj/`:** flat at `obj/<Name>.ts` by default. A
+`obj/<cluster>/` directory only where 3+ cohesive classes land together
+— today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
+`corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
+`instrument/`. `material/` is the one cluster that is load-bearing rather
+than cosmetic: `MaterialLogic.boot` keeps a row only when
+`tpl.class.startsWith('/obj/material/')`, so the directory IS the filter. Lowercase content-tree roots under `/obj/` (`gear/`,
+`exits/`, `material/`, `biome/`) are template namespaces whose backing
+classes live elsewhere — that is fine and pre-existing.
+
+**Three named `lib/` residents that are instanced but never stamped**
+— `BoundaryAnchor`, `SandboxCrossingExit`, `LightningStrike` — stay.
+The test is *does an instance carry a template-path stamp*, not *is it
+ever `new`'d*. `Shadow` stays for a different reason: it is a framework
+attachment, riding any Stuff, never template-backed. `ExitableVessel`
+is deferred until a consumer needs a concrete class.
+
+`hydratorClass:` is a **template path**, not a module path, despite
+looking like one. It is optional; when absent **no hydration runs**, so
+never drop it from a template that has a `data:` block — the content
+would be silently discarded. `lint:instanceable` gates both directions.
 
 ## Member Privacy: `#` vs TypeScript Modifiers
 

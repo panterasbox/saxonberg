@@ -12,7 +12,7 @@ import { MixinApi } from "../../api/mixin";
 import { Template } from "../../lib/stuff/Template";
 import { TemplatePaths } from "../../lib/paths";
 import { Character } from "../../lib/character/Character";
-import type { GovernmentDescriptor } from "../../lib/civics/Government";
+import type { GovernmentDescriptor } from "../Government";
 import type { RosterAssignment } from "../../lib/employment/Roster";
 import type { SeatView } from "../../api/government";
 import type GovernmentCatalogue from "../GovernmentCatalogue";

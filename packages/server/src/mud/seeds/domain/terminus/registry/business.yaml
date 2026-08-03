@@ -7,8 +7,8 @@
 # (`schedule: []` — never on shift, so no wage flows yet; real shifts
 # arrive with real city content). Stands up lazily like every Business;
 # `holdsSeat` proves against the authored roster even before standup.
-class: /lib/employment/Business
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   positions:

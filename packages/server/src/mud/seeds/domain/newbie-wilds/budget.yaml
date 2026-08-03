@@ -12,8 +12,8 @@
 # entry, no bespoke terminal hook): the employment engine reads this Business's
 # `operatingLocations` and stands it up on first `businessAt` at that terminal
 # — the arrival surcharge is the trigger.
-class: /lib/employment/Business
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   positions: []

@@ -1,0 +1,28 @@
+# Control — a magic grid verb Discipline (the verb x noun grammar; see
+# docs/subsystems/magic.md). Seeded pure data, harvested by the
+# DisciplineCatalogue at boot. No `conferrals`: the cast/spells verbs ride
+# CasterMixin; per-spell access is a band gate at cast time on BOTH of a
+# cell's axes (competence IS access).
+class: /obj/Discipline
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: magic-control
+  channel: skill
+  label: Control
+  iscedf: "0288"  # ISCED-F 2013 — Inter-disciplinary (an invented science)
+  synergizes:
+    - magic-fire
+    - magic-water
+    - magic-air
+    - magic-earth
+    - magic-light
+    - magic-plant
+    - magic-beast
+    - magic-body
+    - magic-mind
+    - magic-sense
+    - magic-arcana
+    - magic-lightning
+    - magic-storm
+  description: >-
+    Directing what already exists without changing its essence — the shove, the pin, the held door, the steered flow. The operation of command.

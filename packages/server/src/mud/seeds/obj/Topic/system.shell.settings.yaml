@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: system.shell.settings
+  family: system.shell
+  label: Settings
+  description: Output of the settings verb — settings listings and edit confirmations.

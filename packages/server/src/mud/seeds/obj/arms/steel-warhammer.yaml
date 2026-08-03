@@ -1,5 +1,5 @@
-class: /lib/equipment/Weapon
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Weapon
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a steel war-hammer
   primaryKeyword: warhammer
@@ -7,9 +7,9 @@ data:
     A brutal wedge of steel on a long two-handed haft. It is all commitment
     — slow to bring round, punishing to answer, and it breaks a guard by
     main force where a lighter weapon would only be turned.
-  _materialPath: /lib/material/alloy/steel
+  _materialPath: /obj/material/alloy/steel
   _detailMaterialPaths:
-    haft: /lib/material/wood/oak
+    haft: /obj/material/wood/oak
   constructionForm: hafted
   gradeBand: fine
   # The heavy guard-breaker archetype — heavy mass drives high poise damage,
@@ -17,4 +17,4 @@ data:
   mass: 3.2
   length: 1.1
   slotClaims:
-    "/lib/body-plans/biped": ["hand:left", "hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:left", "hand:right"]

@@ -28,8 +28,8 @@
  * ```
  *
  * Templates that need the capability use `class:
- * /lib/material/RadioactiveMaterial`. Templates that don't stay on
- * plain `class: /lib/material/Material`. Future capability mixins
+ * /obj/material/RadioactiveMaterial`. Templates that don't stay on
+ * plain `class: /obj/material/Material`. Future capability mixins
  * (`SuperconductorMixin`, `PiezoelectricMixin`, …) layer the same
  * way — one subclass per composed combination.
  *

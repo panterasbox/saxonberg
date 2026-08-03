@@ -4,7 +4,7 @@
  *
  * The load-bearing one is `wild admits nothing`. See the module doc — the
  * inheritance walk answers `wild` for every parcel row that is not ground
- * (`/studio`, `/lib/lounge`, the `/obj/…` roots), so a `wild` that admitted
+ * (`/studio`, `/obj/lounge`, the `/obj/…` roots), so a `wild` that admitted
  * a bed would open cultivation everywhere nobody thought to close it.
  */
 
@@ -65,7 +65,7 @@ describe("LandUses.admitsCultivation — farming's one question", () => {
   it("⭐ wild admits NOTHING — the fail-closed default", () => {
     // Every parcel row that is not ground answers `wild` through the
     // inheritance walk. If this flips to 'bed', cultivation silently
-    // becomes legal on /studio, /lib/lounge and every unzoned branch.
+    // becomes legal on /studio, /obj/lounge and every unzoned branch.
     expect(LandUses.admitsCultivation("wild")).toBe("none");
     expect(LandUses.permitsAnyCultivation("wild")).toBe(false);
   });
@@ -103,7 +103,7 @@ describe("LandUses — the ceiling half", () => {
   });
 
   it("admits an UNDECLARED area — area is optional, not defaulted", () => {
-    // Path-branch rows (/studio, /lib/lounge) declare no area, and an
+    // Path-branch rows (/studio, /obj/lounge) declare no area, and an
     // undeclared lot is not a mis-authored one.
     for (const use of LAND_USES) {
       expect(LandUses.admitsArea(use, null)).toBe(true);

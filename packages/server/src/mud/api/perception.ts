@@ -13,7 +13,7 @@
  *     mixins via `MixinApi.getActiveMixins` + `_grantsModalities`).
  *   - `canPerceive(viewer, modality)` — predicate over `sensorium`.
  *
- * Modality singletons live at `/lib/perception/modalities/<name>` and
+ * Modality singletons live at `/obj/modalities/<name>` and
  * are bootstrap-cloned. The logic caches a `Map<name, Modality>` keyed
  * by the modality's own `name` to keep `modalityByName` O(1) on hot
  * paths (every `filterMessage`, every single-sense validator);

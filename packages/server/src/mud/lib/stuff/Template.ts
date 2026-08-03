@@ -58,7 +58,7 @@ export abstract class Template extends Document {
    * Optional `Hydrator` class path. When ABSENT, the clone pipeline runs
    * no hydrator and `data` is ignored. Templates that want generic
    * mixin-field copy must opt in by naming
-   * `'/lib/persistence/PersistentHydrator'`.
+   * `'/obj/persistence/PersistentHydrator'`.
    */
   hydratorClass?: string;
 

@@ -15,7 +15,7 @@ import EnrollController from '../EnrollController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Avatar from '../../../Avatar';
-import Species from '../../../../lib/species/Species';
+import Species from '../../../species/Species';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { AppApi } from '../../../../api/app';
@@ -31,7 +31,7 @@ import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 
 const SAPIENS =
-  '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
+  '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
 
 describe('EnrollController.commit → chronicle seeding', () => {
   let login: Login;
@@ -99,7 +99,7 @@ describe('EnrollController.commit → chronicle seeding', () => {
       path: Avatar.SEED_TEMPLATE_PATH,
       class: '/obj/Avatar',
       data: { startLocation: '/domain/lounge/warren' },
-      hydratorClass: '/lib/persistence/PersistentHydrator',
+      hydratorClass: '/obj/persistence/PersistentHydrator',
     } as never);
     vi.spyOn(TemplateApi, 'saveTemplate').mockImplementation(
       async (path: string) => path

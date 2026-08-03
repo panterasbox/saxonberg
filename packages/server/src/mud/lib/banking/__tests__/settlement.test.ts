@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import PaymentCard from "../PaymentCard";
+import PaymentCard from "../../../obj/PaymentCard";
 import Coin from "../../../obj/Coin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";

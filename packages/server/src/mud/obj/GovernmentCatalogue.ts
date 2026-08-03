@@ -5,7 +5,7 @@
  * Lives at `/obj/GovernmentCatalogue`, per the singleton-in-`obj/`
  * convention (the `CorpoCatalogue` / `DisciplineCatalogue` recipe). The
  * cache is transient instance state; the source of truth is the
- * per-`Government` leaf templates under `/lib/civics/Government/` in the
+ * per-`Government` leaf templates under `/obj/Government/` in the
  * `domain` collection. The leaves are pure data, so the catalogue loads
  * descriptors directly from the template docs — never cloning them as
  * live Stuff.
@@ -30,7 +30,7 @@ import { Template } from "../lib/stuff/Template";
 import Government, {
   type GovernmentDescriptor,
   type GovernmentSeat,
-} from "../lib/civics/Government";
+} from "./Government";
 import type { VetoResult } from "../lib/errors";
 import type { EvictionContext } from "../lib/stuff/Stuff";
 

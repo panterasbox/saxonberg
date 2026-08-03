@@ -86,7 +86,7 @@ act: *"this ground is residential, at this size."*
   unwrapping.
 
 > **⚠ `wild` admits nothing, and that default is load-bearing.** Most rows
-> in this collection are not ground at all — `/studio`, `/lib/lounge` and
+> in this collection are not ground at all — `/studio`, `/obj/lounge` and
 > the `/obj/…` roots are path-branch titles over the template tree, and
 > they all answer `wild`. Were `wild` to admit cultivation, it would be
 > legal on every branch nobody thought to zone. Leave those rows unzoned;
@@ -239,7 +239,7 @@ else null), exposed as `ParcelApi.selfHomeOwnerOf`. Both `ownerOf` rung 2 and
 Ownership is declared as gated platform `parcels` seed rows — never on the
 zone seed. `mud/config/parcels.yaml` (installed by the backend `ParcelSeeder`,
 insert-iff-absent on `extent` — the `RecipeSeeder` precedent) carries the two
-migrated areas: **lounge** (`/lib/lounge` + `/domain/lounge` → the managed
+migrated areas: **lounge** (`/obj/lounge` + `/domain/lounge` → the managed
 `lounge` group) and the **Terminus terminal** (`/domain/terminus/terminal` →
 the managed `terminus` group — the first *spatial-zone* ownership stamp,
 validating "parcel = FolderZone *or* spatial zone"). `ownerGroupName` was
@@ -256,7 +256,7 @@ unowned. Idempotent — no world-wide data sweep.
 - **`subdivide <name>`** — carves a titled child out of the parcel governing
   the giver's current location: resolve the governing parcel → gate to its
   owner via `AccessApi.canMutateZone` → mint the child zone via
-  `TemplateApi.saveTemplate(childPath, '/lib/zone/FolderZone', …)` (the
+  `TemplateApi.saveTemplate(childPath, '/obj/FolderZone', …)` (the
   `MkdirController` precedent) → `ParcelApi.subdivide` writes the child row
   (owner inherited, `parentParcel` set) + a genesis event. **FolderZone-
   first** — spatial (grid sub-region) carve-outs are a deferred non-goal.

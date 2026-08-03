@@ -21,7 +21,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import Ingot from '../../../Ingot';
-import ToolItem from '../../../../lib/craft/ToolItem';
+import ToolItem from '../../../ToolItem';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { CapabilitySpec } from '../../../../lib/craft/ToolCapability';
 import {
@@ -154,7 +154,7 @@ describe('rate paces the conferring kind', () => {
 });
 
 describe('the engaged repair', () => {
-  const LEATHER = '/lib/material/_test/pace-leather';
+  const LEATHER = '/obj/material/_test/pace-leather';
 
   function registerLeather(): void {
     makeStuffAtPath(() => {

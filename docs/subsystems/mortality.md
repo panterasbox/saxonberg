@@ -167,8 +167,16 @@ design — see [antipatterns.md](../antipatterns.md).
 
 ## The corpse
 
-The corpse is cloned from the authored template `/lib/mortality/corpse`
-and then configured from the body — the `GlobbableApi.split` shape. What a
+The corpse is cloned from the authored template `/obj/Corpse`, backed by
+**`obj/Corpse.ts`** — a thin concrete subclass of `lib/creature/Creature`.
+The template used to name `Creature` itself, but `Creature` is mid-spine
+substrate (`Agent → Creature → Character`) and the lib/obj taxonomy rule
+is that nothing instances `/lib/`. Giving the corpse its own class also
+says the truer thing: a corpse is a game object with a name, not a
+generic creature. Behavior is unchanged — the forensic-Creature role
+below is exactly as it was.
+
+The clone is then configured from the body — the `GlobbableApi.split` shape. What a
 corpse *is* is authored; whose it *was* is poured in through the gated
 `adoptMaterialState`. A missing template **throws**: a body failing to
 appear where someone died would leave a death with no evidence, no loot and

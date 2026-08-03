@@ -13,8 +13,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AttendantApi } from "../../../api/attendant";
-import AttendancePoint from "../AttendancePoint";
-import Ticket from "../Ticket";
+import AttendancePoint from "../../../obj/AttendancePoint";
+import Ticket from "../../../obj/Ticket";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
 import { SchedulerApi } from "../../../api/scheduler";

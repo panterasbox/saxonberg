@@ -30,7 +30,7 @@ interface ResolvedPack {
 
 /** A parsed `domain`-kind content file. */
 interface DomainFile {
-  /** Derived template path (`/lib/material/spirit/gin`). */
+  /** Derived template path (`/obj/material/spirit/gin`). */
   path: string;
   /** Backing class path. */
   class: string;
@@ -168,7 +168,7 @@ function discover(packRoots?: string[]): ResolvedPack[] {
 
 // --- content walk ----------------------------------------------------------
 
-/** Map a content file to its template path: `content/lib/x.yaml` → `/lib/x`. */
+/** Map a content file to its template path: `content/obj/x.yaml` → `/obj/x`. */
 function fileToTemplatePath(contentRoot: string, file: string): string {
   const rel = relative(contentRoot, file).replace(/\.yaml$/, '');
   return '/' + rel.split(/[\\/]/).join('/');
@@ -194,8 +194,11 @@ function* walkYaml(dir: string): Generator<string> {
 /** Classify a pack's `content/` tree by subdir convention. */
 function readContent(pack: ResolvedPack): PackContent {
   const domain: DomainFile[] = [];
-  const libRoot = join(pack.contentRoot, 'lib');
-  for (const file of walkYaml(libRoot)) {
+  // `content/obj/` — a pack ships CONTENT, and content is instanceable.
+  // Was `content/lib/` before the lib/obj taxonomy refactor; renaming this
+  // is what makes pack rows land outside the substrate namespace.
+  const domainRoot = join(pack.contentRoot, 'obj');
+  for (const file of walkYaml(domainRoot)) {
     const raw = readFileSync(file, 'utf-8');
     const parsed = YAML.parse(raw) as unknown;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {

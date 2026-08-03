@@ -6,7 +6,7 @@
 # few harvests. The scarcity that matters is remembering to do it, not
 # counting sacks.
 class: /obj/Receptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a sack of compost
   primaryKeyword: sack
@@ -15,7 +15,7 @@ data:
     A heavy hessian sack slumped against its own weight, the top rolled shut and the whole thing smelling of warm earth and last year's leaves.
   interiorBulk: true
   interiorCapacity: 20
-  interiorMaterial: /lib/material/bulk/compost
+  interiorMaterial: /obj/material/bulk/compost
   interiorAmount: 20
   # `liquidTight` (the default), NOT `open`: an `open` interior does not
   # RETAIN bulk — a transfer into it drains straight through to the floor.

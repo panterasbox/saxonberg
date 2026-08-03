@@ -34,7 +34,7 @@ import { ParcelApi } from '../../../api/parcel';
 import { StuffApi } from '../../../api/stuff';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import { Mml } from '../../../api/mml';
-import TrapKit from '../../../lib/hazard/TrapKit';
+import TrapKit from '../../TrapKit';
 
 const TOPIC = 'world.narration.action';
 

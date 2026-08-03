@@ -13,12 +13,12 @@ import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
 import { Idea } from '../../../lib/stuff/Idea';
 import Location from '../../../lib/stuff/Location';
-import Floor from '../../../obj/Floor';
-import Armor from '../../../lib/equipment/Armor';
+import Floor from '../../Floor';
+import Armor from '../../equipment/Armor';
 import { Construction } from '../../../lib/material/Construction';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
 import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -28,7 +28,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../Condition';
 
 class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestWire';
@@ -40,7 +40,7 @@ function mkConductor(name: string, conductivity: number): Material {
   const m = makeStuff(() => new Material());
   m.setName(name);
   m.setElectricalConductivity(Quantity.of(conductivity, 'S/m'));
-  stampTemplatePathForTest(m, `/lib/material/test/${name}-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/${name}-${seq++}`);
   return m;
 }
 
@@ -124,20 +124,20 @@ function makeBody(room: Location | null): Creature {
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/lib/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/flesh', mass: 0.5 }],
     },
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     {
       key: 'body.leg.right.foot',
       parent: 'body.leg.right',
-      tissues: [{ tissuePath: '/lib/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/flesh', mass: 0.5 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-elec-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-elec-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/elec-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/elec-${id}`);
 
   const c = makeStuff(() => new Creature());
   c.setSpecies(species);

@@ -36,7 +36,7 @@ import { MixinApi } from "../../api/mixin";
 import { CombatFlavor, type FlavorOutcome } from "./CombatFlavor";
 import type { CombatResolution } from "./CombatSession";
 import type { PoiseBand } from "./Poise";
-import type { Trauma } from "../vitals/Condition";
+import type { Trauma } from "../../obj/Condition";
 
 export const COMBAT_EXCHANGE_TOPIC = "world.combat.exchange";
 

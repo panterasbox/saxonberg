@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.measure-atmosphere
-  family: world.perception.measurement
-  label: Measure Atmosphere
-  description: Output of the measure atmosphere subcommand — medium identification.

@@ -1,0 +1,20 @@
+# Tutor-bot Mk IV — manufactured biped intelligence, the v1 Constructa
+# acceptance entry. Lifecycle is power-state-shaped (powered /
+# unpowered / destroyed). No SexedMixin on instances (sexDeterminationSystem
+# is 'none'). Default material is steel.
+class: /obj/species/Species
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  binomial: Constructa metallica
+  sentient: true
+  commonNames: ["tutor-bot", "robot"]
+  _bodyPlanPath: /obj/species/BodyPlan/biped
+  _parentCladePath: /obj/species/constructa
+  _defaultMaterialPath: /obj/material/alloy/steel
+  lifecycleStates: ["powered", "unpowered", "destroyed"]
+  sexDeterminationSystem: none
+  reproductiveMode: manufactured
+  lifespanMin: 0
+  lifespanMax: 100
+  circadianBand: aperiodic
+  diet: ~

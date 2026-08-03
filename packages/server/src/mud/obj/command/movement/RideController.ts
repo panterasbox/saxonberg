@@ -4,7 +4,7 @@
 
 import { LocomotionControllerBase, type LocomotionModel } from './LocomotionControllerBase';
 import type { CommandContext } from '../../../api/command';
-import type { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
+import type { LocomotionMode } from '../../LocomotionMode';
 import type { TraversalGuard } from '../../../lib/boundary/Exit';
 
 export default class RideController extends LocomotionControllerBase {

@@ -18,7 +18,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../../persistence/PersistentHydrator";
 import { PersistableMixin } from "../../../lib/persistence/Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../../lib/stuff/Idea";

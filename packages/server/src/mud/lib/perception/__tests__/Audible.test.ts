@@ -14,7 +14,7 @@ import { PerceptionApi } from '../../../api/perception';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

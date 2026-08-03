@@ -1,0 +1,25 @@
+# Firebolt — create·fire, the flagship impulse: injects REAL heat. At a
+# body it folds through the covering stack into a burn (armor inversion
+# free); at an object it deposits real thermal joules and real combustion
+# takes over (tryAutoignite → spread, smoke, char) — no magic-side damage
+# path exists. See docs/subsystems/magic.md.
+class: /obj/magic/Spell
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  spellId: firebolt
+  name: Firebolt
+  verb: create
+  noun: fire
+  requiredBand: novice
+  cost: 20
+  castSeconds: 3
+  targeting: any
+  effects:
+    - kind: inject-channel
+      channel: heat
+      energy: 2
+      joules: 900000
+      resist: { axis: channel, intensity: 2 }
+  description: >-
+    A lance of true flame. What it touches, it heats — flesh burns, tinder
+    catches, iron merely warms. The fire it starts is real fire.

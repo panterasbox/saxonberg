@@ -44,7 +44,7 @@ describe('TangibleMixin field change firing', () => {
   it('setMaterial(iron) fires FieldChangedEvent { field: "bulkMaterial" }', async () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/lib/material/iron');
+    stampTemplatePathForTest(iron, '/obj/material/iron');
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
@@ -59,7 +59,7 @@ describe('TangibleMixin field change firing', () => {
   it('setMaterial(steel, "head") fires FieldChangedEvent { field: "detailMaterials" }', async () => {
     await bootRegistry();
     const steel = makeStuff(() => new Material());
-    stampTemplatePathForTest(steel, '/lib/material/steel');
+    stampTemplatePathForTest(steel, '/obj/material/steel');
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
@@ -74,7 +74,7 @@ describe('TangibleMixin field change firing', () => {
   it('re-setting same bulk material noop-skips', async () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/lib/material/iron');
+    stampTemplatePathForTest(iron, '/obj/material/iron');
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
@@ -91,9 +91,9 @@ describe('TangibleMixin field change firing', () => {
   it('setMaterial(null) on a populated bulk + overrides fires both bulkMaterial and detailMaterials', async () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/lib/material/iron');
+    stampTemplatePathForTest(iron, '/obj/material/iron');
     const steel = makeStuff(() => new Material());
-    stampTemplatePathForTest(steel, '/lib/material/steel');
+    stampTemplatePathForTest(steel, '/obj/material/steel');
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     axe.setMaterial(iron);

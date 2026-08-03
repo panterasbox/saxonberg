@@ -51,7 +51,7 @@ describe("Dave's Bar cast seeds", () => {
     // The cast composes behavior as data over a shared class — the thin
     // `NPC`, or `Crafter` (`MakerMixin(NPC)`) for the bar staff, whom the
     // crafting lane made order-fulfillers. Never a per-NPC subclass.
-    const allowed = ['/lib/npc/NPC', '/lib/character/Crafter'];
+    const allowed = ['/obj/NPC', '/obj/Crafter'];
     for (const f of castFiles()) {
       expect(allowed, f).toContain(load(f).class);
     }

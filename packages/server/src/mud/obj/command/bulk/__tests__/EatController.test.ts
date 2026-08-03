@@ -88,7 +88,7 @@ describe("EatController", () => {
     eater = makeStuff(() => new TestEater());
     (eater as unknown as { setName(n: string): void }).setName("bob");
     ContainmentApi.move(eater as never, loc as never);
-    apple = material("/lib/material/food/apple", "apple", true, ["sugar"]);
+    apple = material("/obj/material/food/apple", "apple", true, ["sugar"]);
   });
   afterEach(() => StuffApi.clearAll());
 
@@ -129,7 +129,7 @@ describe("EatController", () => {
   });
 
   it("mustBeEdible rejects a non-edible target and accepts an edible one", () => {
-    const rockMat = material("/lib/material/element/granite", "granite", false, []);
+    const rockMat = material("/obj/material/element/granite", "granite", false, []);
     const rock = edibleItem("a rock", rockMat);
     const fruit = edibleItem("an apple", apple);
     expect(mustBeEdible(one(rock, "rock"), "target", {} as never)).toBeTypeOf(

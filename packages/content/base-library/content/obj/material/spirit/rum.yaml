@@ -1,0 +1,16 @@
+# White rum — a spirit input. Category tag `rum`.
+class: /obj/material/ConsumableMaterial
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: white rum
+  appearance: clear, faintly sweet rum
+  keywords: [rum]
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 19 }
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, rum]
+  composition: []
+  biologicalSource: null

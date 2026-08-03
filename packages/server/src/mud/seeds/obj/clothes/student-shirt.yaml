@@ -1,5 +1,5 @@
-class: /lib/equipment/Garment
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Garment
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a plain student shirt
   primaryKeyword: shirt
@@ -7,4 +7,4 @@ data:
     An unassuming everyday shirt, soft from washing. It says nothing in
     particular about you — which is rather the point of starting over.
   slotClaims:
-    "/lib/body-plans/biped": [torso]
+    "/obj/species/BodyPlan/biped": [torso]

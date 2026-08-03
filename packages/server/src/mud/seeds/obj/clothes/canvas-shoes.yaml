@@ -1,5 +1,5 @@
-class: /lib/equipment/Garment
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Garment
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a pair of canvas shoes
   primaryKeyword: shoes
@@ -7,4 +7,4 @@ data:
     Simple lace-up canvas shoes, broken in at the heel. Good for a long
     day of crossing campus and not much else.
   slotClaims:
-    "/lib/body-plans/biped": [feet]
+    "/obj/species/BodyPlan/biped": [feet]

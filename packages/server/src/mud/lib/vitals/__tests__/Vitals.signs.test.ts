@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
+import Species from '../../../obj/species/Species';
 import Thing from '../../stuff/Thing';
 import {
   VitalsMixin,
@@ -33,7 +33,7 @@ function profiledSpecies(): Species {
     ...UNIVERSE_DEFAULT_VITAL_PROFILE,
     heartRate: { baseline: 50, survivableMin: 25, survivableMax: 200 },
   });
-  stampTemplatePathForTest(species, '/lib/species/test/profiled');
+  stampTemplatePathForTest(species, '/obj/species/test/profiled');
   return species;
 }
 
@@ -100,7 +100,7 @@ describe('VitalsMixin — band lookup', () => {
 
   it('falls back to the universe default when the species has no profile', () => {
     const bare = makeStuff(() => new Species());
-    stampTemplatePathForTest(bare, '/lib/species/test/bare');
+    stampTemplatePathForTest(bare, '/obj/species/test/bare');
     const creature = makeStuff(() => new Creature());
     creature.setSpecies(bare);
     expect(creature.getVitalBand('coreTemperature')).toEqual(

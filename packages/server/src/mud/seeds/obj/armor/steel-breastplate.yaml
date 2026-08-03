@@ -1,5 +1,5 @@
-class: /lib/equipment/Armor
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Armor
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a steel breastplate
   primaryKeyword: breastplate
@@ -8,8 +8,8 @@ data:
     It turns an edge and shrugs a thrust — but a heavy blow rings straight
     through the rigid shell.
   slotClaims:
-    "/lib/body-plans/biped": [torso]
-  _materialPath: /lib/material/alloy/steel
+    "/obj/species/BodyPlan/biped": [torso]
+  _materialPath: /obj/material/alloy/steel
   constructionForm: plate
   gradeBand: fine
   mass: 9

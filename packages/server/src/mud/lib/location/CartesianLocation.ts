@@ -31,7 +31,7 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { NavigationApi } from '../../api/navigation';
 import { ZoneApi } from '../../api/zone';
 import { Quantity } from '../quantity';
-import type CartesianZone from './CartesianZone';
+import type CartesianZone from '../../obj/location/CartesianZone';
 import type Exit from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';

@@ -12,7 +12,7 @@ import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';
 import Floor from '../../Floor';
 import Biome from '../../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../SkyExposedBiome';
 import Material from '../../../lib/material/Material';
 import { EnergizedMixin } from '../../../lib/electricity/Energized';
 import { WeatherApi } from '../../../api/weather';
@@ -56,7 +56,7 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 /** Seed the fresh-water bulk material the puddle fills with (conductivity 0.01). */
@@ -66,15 +66,15 @@ function installFreshWater(): void {
     m.setName('water');
     m.setElectricalConductivity(Quantity.of(0.01, 'S/m'));
     return m;
-  }, '/lib/material/bulk/water');
+  }, '/obj/material/bulk/water');
 }
 
 function skyRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;
@@ -83,9 +83,9 @@ function skyRoom(): TestRoom {
 function indoorRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/indoor/hall');
+  }, '/obj/biome/indoor/hall');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;
@@ -169,7 +169,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
     const floor = dryFloor(room);
     floor.setBulkMaterial(
       'surface',
-      StuffApi.findByTemplatePath<Material>('/lib/material/bulk/water')!,
+      StuffApi.findByTemplatePath<Material>('/obj/material/bulk/water')!,
     );
     floor.setBulkAmount('surface', Quantity.of(30, 'L'));
     await occupy(room);

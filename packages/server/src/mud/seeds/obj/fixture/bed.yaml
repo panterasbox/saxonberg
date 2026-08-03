@@ -9,7 +9,7 @@
 # `/obj/Chair` is the reusable posture-bearing class — the slot spec is
 # authored per seed, which is why a bed needs no class of its own.
 class: /obj/Chair
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a bed
   primaryKeyword: bed

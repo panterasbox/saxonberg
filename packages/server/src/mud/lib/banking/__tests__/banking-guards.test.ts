@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Terms } from "../Terms";
-import BankCounter from "../BankCounter";
+import BankCounter from "../../../obj/BankCounter";
 import Coin from "../../../obj/Coin";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";

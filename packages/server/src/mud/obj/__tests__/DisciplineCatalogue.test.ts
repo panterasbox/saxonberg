@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import DisciplineCatalogue from "../DisciplineCatalogue";
-import Discipline from "../../lib/advancement/Discipline";
+import Discipline from "../Discipline";
 import { StuffApi } from "../../api/stuff";
 import { ShadowApi } from "../../api/shadow";
 import { Template } from "../../lib/stuff/Template";

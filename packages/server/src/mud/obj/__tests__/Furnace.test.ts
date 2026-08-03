@@ -39,7 +39,7 @@ function ironMaterial(): Material {
     m.setMeltingPoint(Quantity.of(1811, 'K'));
     m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
     return m;
-  }, `/lib/material/_test/forge-iron-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/forge-iron-${seq}`) as unknown as Material;
 }
 
 function forge(burnTempK: number, bellowsMult = 1): Forge {

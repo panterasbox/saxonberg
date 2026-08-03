@@ -10,10 +10,10 @@
 # never gives him one; Visible.shortDescription per the NamedMixin rule).
 # Brain-driven in combat by the session's default combatant brain; his
 # `arms` brain takes the knife off the duelling-stone and wields it.
-class: /lib/npc/NPC
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/NPC
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: gentleman
   alternateNames:

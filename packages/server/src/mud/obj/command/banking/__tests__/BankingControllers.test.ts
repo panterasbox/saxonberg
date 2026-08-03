@@ -8,7 +8,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BankController from "../BankController";
-import BankCounter from "../../../../lib/banking/BankCounter";
+import BankCounter from "../../../BankCounter";
 import Coin from "../../../Coin";
 import { BankingApi } from "../../../../api/banking";
 import { ContainerMixin } from "../../../../lib/spatial/Container";

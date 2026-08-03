@@ -5,7 +5,7 @@
  * Lives at `/obj/SpellCatalogue` (the `DisciplineCatalogue` /
  * `CorpoCatalogue` recipe verbatim): the cache is transient instance
  * state; the source of truth is the per-Spell leaf templates under
- * `/lib/magic/Spell/` in the `domain` collection, read directly from
+ * `/obj/magic/Spell/` in the `domain` collection, read directly from
  * `template.data` at boot — never cloned as live Stuff.
  *
  * Warm-time validation is the **structural half of the governing
@@ -27,7 +27,7 @@ import Spell, {
   SPELL_TARGETINGS,
   type SpellDescriptor,
   type SpellTargeting,
-} from '../lib/magic/Spell';
+} from './magic/Spell';
 import { MagicEffects, type Effect } from '../lib/magic/Effect';
 import { MagicGrid } from '../lib/magic/Grid';
 import { CompetenceBand } from '../lib/advancement/CompetenceBand';

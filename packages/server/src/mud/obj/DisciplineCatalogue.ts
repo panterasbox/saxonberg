@@ -6,7 +6,7 @@
  * Lives at `/obj/DisciplineCatalogue`, per the singleton-in-`obj/`
  * convention. The cache is transient instance state; the source of truth
  * is the per-Discipline leaf templates under
- * `/lib/advancement/Discipline/` in the `domain` collection. Discipline
+ * `/obj/Discipline/` in the `domain` collection. Discipline
  * templates are pure data (`key` / `channel` / edges / `conferrals`), so
  * the catalogue loads descriptors directly from the template docs — no
  * need to clone them as live Stuff (the `TopicCatalogue` recipe).
@@ -32,7 +32,7 @@ import Discipline, {
   type DisciplineChannel,
   type DisciplineDescriptor,
   type ConferralRule,
-} from "../lib/advancement/Discipline";
+} from "./Discipline";
 import { CompetenceBand } from "../lib/advancement/CompetenceBand";
 import type { VetoResult } from "../lib/errors";
 import type { EvictionContext } from '../lib/stuff/Stuff';

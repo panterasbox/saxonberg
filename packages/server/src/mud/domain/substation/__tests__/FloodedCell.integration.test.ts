@@ -14,14 +14,14 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import FloodedCell from '../FloodedCell';
-import LiveWire from '../../../lib/electricity/LiveWire';
+import LiveWire from '../../../obj/LiveWire';
 import Floor from '../../../obj/Floor';
-import StunBaton from '../../../lib/electricity/StunBaton';
+import StunBaton from '../../../obj/equipment/StunBaton';
 import { Construction } from '../../../lib/material/Construction';
-import Armor from '../../../lib/equipment/Armor';
+import Armor from '../../../obj/equipment/Armor';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -32,7 +32,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../../obj/Condition';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
 let seq = 0;
@@ -41,13 +41,13 @@ function installSaltWater(): void {
   const m = makeStuff(() => new Material());
   m.setName('salt water');
   m.setElectricalConductivity(Quantity.of(5, 'S/m'));
-  stampTemplatePathForTest(m, '/lib/material/bulk/salt-water');
+  stampTemplatePathForTest(m, '/obj/material/bulk/salt-water');
 }
 function rubber(): Material {
   const m = makeStuff(() => new Material());
   m.setName('rubber');
   m.setElectricalConductivity(Quantity.of(1.0e-13, 'S/m'));
-  stampTemplatePathForTest(m, `/lib/material/test/rubber-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/rubber-${seq++}`);
   return m;
 }
 
@@ -63,7 +63,7 @@ async function makeCell(): Promise<FloodedCell> {
   floor.surfaceBulk = true;
   floor.setBulkMaterial(
     'surface',
-    StuffApi.findByTemplatePath<Material>('/lib/material/bulk/salt-water') ??
+    StuffApi.findByTemplatePath<Material>('/obj/material/bulk/salt-water') ??
       null,
   );
   floor.setBulkAmount('surface', Quantity.of(40, 'L'));
@@ -94,19 +94,19 @@ function makeBody(cell: FloodedCell): Creature {
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/lib/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/flesh', mass: 0.5 }],
     },
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     {
       key: 'body.leg.right.foot',
       parent: 'body.leg.right',
-      tissues: [{ tissuePath: '/lib/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/flesh', mass: 0.5 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/cell-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/cell-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/cell-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/cell-${id}`);
   const c = makeStuff(() => new Creature());
   c.setSpecies(species);
   ContainmentApi.move(c as never, cell as never);

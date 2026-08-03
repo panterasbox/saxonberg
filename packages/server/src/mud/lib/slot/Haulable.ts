@@ -33,7 +33,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { Vessel } from '../stuff/Vessel';
 import type { Container } from '../spatial/Container';
 import type { Tangible } from '../material/Tangible';
-import type { LocomotionMode } from '../locomotion/LocomotionMode';
+import type { LocomotionMode } from '../../obj/LocomotionMode';
 import type { Hauler } from './Hauler';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';

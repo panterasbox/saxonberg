@@ -20,7 +20,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { VetoResult } from '../errors';
-import type Door from './Door';
+import type Door from '../../obj/Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';

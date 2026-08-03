@@ -16,7 +16,7 @@ import { Quantity } from "../../lib/quantity";
 import { MixinApi } from "../../api/mixin";
 import { Mixins } from "../../lib/mixin";
 import { WorldClockApi } from "../../api/worldclock";
-import "../../obj/WorldClockRegistry";
+import "../WorldClockRegistry";
 import {
   makeStuff,
   makeStuffAtPath,
@@ -38,7 +38,7 @@ function wood(): Material {
     m.setSpecificHeat(Quantity.of(2000, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(0.2, "W/(m·K)"));
     return m;
-  }, `/lib/material/_fire/ash-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_fire/ash-${matCounter}`) as unknown as Material;
 }
 
 function campfire(fuelPct: number): Campfire {

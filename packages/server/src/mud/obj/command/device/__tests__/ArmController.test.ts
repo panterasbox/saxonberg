@@ -17,8 +17,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ArmController from '../ArmController';
 import GetController from '../../inventory/GetController';
-import Trap from '../../../../lib/hazard/Trap';
-import TrapKit from '../../../../lib/hazard/TrapKit';
+import Trap from '../../../Trap';
+import TrapKit from '../../../TrapKit';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';

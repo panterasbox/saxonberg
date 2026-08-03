@@ -11,7 +11,7 @@ import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
-import BusinessEntity from '../../../lib/employment/Business';
+import BusinessEntity from '../../Business';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';

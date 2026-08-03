@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.ambient.smell
+  family: world.perception.ambient
+  label: Ambient Smell
+  description: Unbidden olfactory signal — a smell drifting in, a stench rising.

@@ -5,7 +5,7 @@
 # joke and the ache; a real movement-gate would ruin both. Generic object:
 # Visible.shortDescription, never Named.
 class: /obj/Paddle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a STOP paddle
   primaryKeyword: paddle
@@ -13,7 +13,7 @@ data:
   longDescription: |
     A crossing guard's STOP paddle — one moulded octagon of red plastic on a stick, STOP the only word it knows. He never lets the imaginary traffic merely slow; it is always a full stop. The grip is worn pale where his thumb rides it.
   slotClaims:
-    "/lib/body-plans/biped": ["hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:right"]
   details:
     face:
       keywords: [face, stop, letters, red]

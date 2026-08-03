@@ -72,7 +72,7 @@ CRUD goes through the inherited `Document` surface
   dynamic import; validated against an allow-list (below).
 - `hydratorClass` is opt-in. **When absent, no hydrator runs and `data` is
   ignored.** Templates that want generic mixin-field copy must explicitly
-  set `hydratorClass: '/lib/persistence/PersistentHydrator'` (the standard
+  set `hydratorClass: '/obj/persistence/PersistentHydrator'` (the standard
   implementation). Custom hydrators are also class paths under `/lib/`.
 - `data` is pure hydration payload — never carries class paths itself.
 

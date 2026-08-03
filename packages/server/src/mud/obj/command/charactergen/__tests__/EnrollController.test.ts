@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EnrollController from '../EnrollController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
-import Species from '../../../../lib/species/Species';
+import Species from '../../../species/Species';
 import { NameBank } from '../../../../lib/species/NameBank';
 import { StuffApi } from '../../../../api/stuff';
 import { MessageApi } from '../../../../api/message';
@@ -20,7 +20,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { CharGenStatePayload } from '@saxonberg/types';
 
 const SAPIENS_PATH =
-  '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
+  '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
 
 function fakeUser(): unknown {
   return { _id: 'u1', playerIds: [] as string[] };

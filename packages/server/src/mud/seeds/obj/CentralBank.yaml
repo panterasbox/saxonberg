@@ -2,5 +2,4 @@
 # banking substrate. No field state; its mint/drain/float logic lives in
 # BankingLogic and is surfaced (developer-gated) through BankingApi.
 class: /obj/CentralBank
-hydratorClass: /lib/persistence/PersistentHydrator
 data: {}

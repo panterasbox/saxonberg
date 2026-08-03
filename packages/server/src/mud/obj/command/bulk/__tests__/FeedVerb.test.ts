@@ -99,7 +99,7 @@ function compost(): Material {
     m.setSpecificHeat(Quantity.of(1400, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.2, 'W/(m·K)'));
     return m;
-  }, freshPath('/lib/material/_test/compost')) as unknown as Material;
+  }, freshPath('/obj/material/_test/compost')) as unknown as Material;
 }
 
 function tissue(): Material {
@@ -109,7 +109,7 @@ function tissue(): Material {
     m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
     return m;
-  }, freshPath('/lib/material/_test/feed-tissue')) as unknown as Material;
+  }, freshPath('/obj/material/_test/feed-tissue')) as unknown as Material;
 }
 
 function makePlant(): Plant {

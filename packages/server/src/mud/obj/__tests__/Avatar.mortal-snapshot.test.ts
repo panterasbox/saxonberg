@@ -21,9 +21,9 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Avatar from '../Avatar';
-import Species from '../../lib/species/Species';
-import BodyPlan from '../../lib/species/BodyPlan';
-import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
+import Species from '../species/Species';
+import BodyPlan from '../species/BodyPlan';
+import PersistentHydrator from '../persistence/PersistentHydrator';
 import { Document } from '../../lib/persistence/Document';
 import { PersistableApi } from '../../api/persistable';
 import { StuffApi } from '../../api/stuff';
@@ -84,10 +84,10 @@ function logout(avatar: Avatar): void {
 function makeAvatar(playerId: string): Avatar {
   seq += 1;
   const plan = makeStuff(() => new BodyPlan());
-  stampTemplatePathForTest(plan, `/lib/body-plans/mortal-${seq}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/mortal-${seq}`);
   plan.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const species = makeStuff(() => new Species());
-  stampTemplatePathForTest(species, `/lib/species/animalia/mortal-${seq}`);
+  stampTemplatePathForTest(species, `/obj/species/animalia/mortal-${seq}`);
   species.setBodyPlan(plan);
 
   const avatar = makeStuff(() => new Avatar());

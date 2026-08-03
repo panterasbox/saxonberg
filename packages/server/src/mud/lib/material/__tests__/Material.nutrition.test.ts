@@ -97,7 +97,7 @@ describe("NutritionLabelMixin — the inspectable label", () => {
 
   it("appends the profile to the long description for an edible", () => {
     const apple = material(
-      "/lib/material/food/apple",
+      "/obj/material/food/apple",
       "apple",
       true,
       { carb: 20, sugar: 12 },
@@ -112,7 +112,7 @@ describe("NutritionLabelMixin — the inspectable label", () => {
 
   it("omits the profile for a non-edible material", () => {
     const granite = material(
-      "/lib/material/element/granite",
+      "/obj/material/element/granite",
       "granite",
       false,
       {},
@@ -125,7 +125,7 @@ describe("NutritionLabelMixin — the inspectable label", () => {
 
   it("a plain (un-labelled) Thing shows no profile even when edible", () => {
     const apple = material(
-      "/lib/material/food/apple2",
+      "/obj/material/food/apple2",
       "apple",
       true,
       { carb: 20 },

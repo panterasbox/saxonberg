@@ -1,12 +1,12 @@
 # Augie — the Veteran (weekend cover). Semi-retired; patient, wry,
 # generous, a storyteller. Weekends taste different — slower, storied,
 # the old guard. The keeper of the bar's history (and its succession).
-class: /lib/character/Crafter
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Crafter
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Augie
   pronouns: he
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
   lifecycleState: alive
   primaryKeyword: augie
   shortDescription: an old, easy-handed half-orc

@@ -2,8 +2,8 @@
 # axis: a load stowed in a worn pack couples at the worn floor (no held
 # surcharge) and leaves the hands free, versus carrying it loose.
 # transmissionFactor omitted ⇒ 1.0 (a plain pack transmits full weight).
-class: /lib/equipment/Pack
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Pack
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a canvas backpack
   primaryKeyword: backpack
@@ -12,4 +12,4 @@ data:
     a real load without biting into the shoulders.
   mass: 2
   slotClaims:
-    "/lib/body-plans/biped": [torso]
+    "/obj/species/BodyPlan/biped": [torso]

@@ -17,8 +17,8 @@ import {
 } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';
-import BodyPlan from '../../species/BodyPlan';
-import Species from '../../species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../obj/species/Species';
 import Material from '../../material/Material';
 import AirTank from '../../../obj/AirTank';
 import Receptacle from '../../../obj/Receptacle';
@@ -60,7 +60,7 @@ function room(atmosphere: string): TestLocation {
   return r;
 }
 
-const AIR_MATERIAL_PATH = '/lib/material/bulk/air';
+const AIR_MATERIAL_PATH = '/obj/material/bulk/air';
 const BODYPLAN_PATH = '/test/respiration/tank-bodyplan';
 const SPECIES_PATH = '/test/respiration/tank-species';
 

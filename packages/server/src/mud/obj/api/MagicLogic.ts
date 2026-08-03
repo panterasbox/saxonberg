@@ -63,11 +63,11 @@ import { HazardActivity } from '../../lib/hazard/HazardActivity';
 import { SchedulerApi } from '../../api/scheduler';
 import { CompetenceBand } from '../../lib/advancement/CompetenceBand';
 import type { Difficulty } from '../../lib/advancement/ActSignature';
-import Condition from '../../lib/vitals/Condition';
+import Condition from '../Condition';
 import type {
   AfflictionRecord,
   SustainedEffect,
-} from '../../lib/vitals/Condition';
+} from '../Condition';
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { Caster } from '../../lib/magic/Caster';
 import { Faculty } from '../../lib/magic/Faculty';
@@ -75,11 +75,11 @@ import type { Effect, InjectChannelEffect } from '../../lib/magic/Effect';
 import { MagicGrid, type MagicProvenance } from '../../lib/magic/Grid';
 import { Resists } from '../../lib/magic/Resist';
 import { Suppressions, type MagicSuppression } from '../../lib/magic/Suppression';
-import type { SpellDescriptor } from '../../lib/magic/Spell';
+import type { SpellDescriptor } from '../magic/Spell';
 import type SpellCatalogue from '../SpellCatalogue';
 import type Material from '../../lib/material/Material';
 import UnboundedReceptacle from '../UnboundedReceptacle';
-import SparkSource from '../../lib/magic/SparkSource';
+import SparkSource from '../magic/SparkSource';
 import type { FacultyView } from '../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../lib/magic/Caster';
 import type { Reserved } from '../../lib/reserve';
@@ -123,7 +123,7 @@ export interface SpellsView {
 }
 
 /** The bound-emitter and spark-locus template paths. */
-const GLOWLIGHT_ORB_PATH = '/lib/magic/GlowlightOrb';
+const GLOWLIGHT_ORB_PATH = '/obj/magic/GlowlightOrb';
 
 /** Magnitudes not yet worth a dial (the HARM_DEFAULTS precedent). */
 const MAGIC_DEFAULTS = {
@@ -663,7 +663,7 @@ async function execConjure(
   // Bulk conjuration — real litres from a transient unbounded source.
   const materialPath = e.bulkMaterial!.startsWith('/')
     ? e.bulkMaterial!
-    : `/lib/material/bulk/${e.bulkMaterial}`;
+    : `/obj/material/bulk/${e.bulkMaterial}`;
   const material = StuffApi.findByTemplatePath<Material>(materialPath);
   if (!material) return 'The stuff of it will not come.';
   const source = StuffApi.createSync(() => new UnboundedReceptacle());

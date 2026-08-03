@@ -36,7 +36,7 @@ import { CHANNELS } from "../../lib/material/Channel";
 import type { EnergyInflictSpec, ShockInflictSpec } from "../../api/condition";
 import type { ConductionOutcome } from "../../api/electricity";
 import { Quantity } from "../../lib/quantity";
-import Weapon from "../../lib/equipment/Weapon";
+import Weapon from "../equipment/Weapon";
 import type { OutcomeBand } from "../../api/material";
 import type { BrainContext, BrainStatics } from "../../lib/behavior/brain";
 import {
@@ -49,7 +49,7 @@ import {
 import {
   CombatFormation,
   type FormationPolicy,
-} from "../../lib/combat/CombatFormation";
+} from "../CombatFormation";
 import {
   CombatHookContext,
   type CombatConsequence,
@@ -3306,7 +3306,7 @@ function speciesKeyOf(stuff: Stuff): string | undefined {
   const sp = stuff.getSpecies();
   if (!sp) return undefined;
   // Species has no display name; the durable templatePath basename is a
-  // stable flavor key (e.g. `/lib/species/wolf` → `wolf`).
+  // stable flavor key (e.g. `/obj/species/wolf` → `wolf`).
   const path = sp.getTemplatePath();
   return path ? path.split("/").pop()?.toLowerCase() : undefined;
 }

@@ -304,7 +304,7 @@ modes (`ride`) construct the `TraverseActivity` for the
 conveyance host, not the actor.
 
 **New modes: `sneak` and `crawl`.** Templates at
-`/lib/locomotion/sneak` and `/lib/locomotion/crawl` with the
+`/obj/LocomotionMode/sneak` and `/obj/LocomotionMode/crawl` with the
 field values in the duration table above. Sneak uses the
 walk-body (`requiresBodyPlanMode: ['walk']`), crawl too;
 `noiseLevel: 'silent'` for sneak / `'quiet'` for crawl;

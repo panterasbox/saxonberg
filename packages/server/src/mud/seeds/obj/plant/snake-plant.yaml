@@ -7,15 +7,15 @@
 # It ships as the general store's seed, which is how a player comes by a
 # second species. See docs/subsystems/husbandry.md.
 class: /obj/Plant
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a snake plant
   primaryKeyword: "snake plant"
   keywords: ["snake plant", snake, sansevieria, plant, houseplant]
   longDescription: |
     Stiff upright leaves stand in a blade-straight cluster, banded pale and dark like something that would rather not be touched. A snake plant, entirely indifferent to whether anyone remembers it exists.
-  _speciesPath: /lib/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata
-  material: /lib/material/tissue/plant-tissue
+  _speciesPath: /obj/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata
+  material: /obj/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /obj/seed/snake-plant
   # No moisture reserve — the water lives in the ground (see peace-lily).

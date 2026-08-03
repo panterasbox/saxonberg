@@ -43,7 +43,7 @@ function ironMaterial(): Material {
     m.setMeltingPoint(Quantity.of(1811, 'K'));
     m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
     return m;
-  }, `/lib/material/_test/melt-iron-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/melt-iron-${seq}`) as unknown as Material;
 }
 function waterMaterial(): Material {
   seq += 1;
@@ -57,7 +57,7 @@ function waterMaterial(): Material {
     m.setBoilingPoint(Quantity.of(373, 'K'));
     m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
     return m;
-  }, `/lib/material/_test/melt-water-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/melt-water-${seq}`) as unknown as Material;
 }
 
 function floorIn(room: TestRoom): Floor {

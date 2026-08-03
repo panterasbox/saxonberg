@@ -3,7 +3,7 @@
  *
  * Derives altitude from the barometric delta between the actor's
  * local pressure and the root universe biome's sea-level reference
- * (`/lib/biome/_defaultPressure`). Refuses in vacuum (atmospheric
+ * (`/obj/biome/_defaultPressure`). Refuses in vacuum (atmospheric
  * density = 0 — no medium to define altitude against).
  *
  *   altitude = (P_sea − P_local) / (ρ · g)

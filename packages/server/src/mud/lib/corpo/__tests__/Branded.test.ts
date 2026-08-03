@@ -6,10 +6,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import BrandedBottle from "../BrandedBottle";
+import BrandedBottle from "../../../obj/corpo/BrandedBottle";
 import CorpoCatalogue from "../../../obj/CorpoCatalogue";
-import Corpo from "../Corpo";
-import Brand from "../Brand";
+import Corpo from "../../../obj/corpo/Corpo";
+import Brand from "../../../obj/corpo/Brand";
 import Thing from "../../stuff/Thing";
 import { Stuff } from "../../stuff/Stuff";
 import { StuffApi } from "../../../api/stuff";

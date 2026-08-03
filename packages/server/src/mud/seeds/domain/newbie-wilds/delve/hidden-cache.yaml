@@ -6,8 +6,8 @@
 # from a passing mover's world, turned up by a broad `search` of the corridor,
 # then plainly present and takeable. Pure upside — the obvious reward waits in
 # the vault regardless, so no critical content sits behind this perception wall.
-class: /lib/stuff/Thing
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Prop
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a mortar-chinked stash pouch
   primaryKeyword: pouch

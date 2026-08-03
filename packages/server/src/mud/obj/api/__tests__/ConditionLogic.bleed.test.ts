@@ -20,16 +20,16 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { Creature } from '../../../lib/creature/Creature';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
-import type Interactive from '../../../obj/Interactive';
+import type Interactive from '../../Interactive';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../WorldClockRegistry';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
   HARM_DEFAULTS,
   TRAUMA_BEHAVIOR,
-} from '../../../lib/vitals/Condition';
-import type { Trauma } from '../../../lib/vitals/Condition';
+} from '../../Condition';
+import type { Trauma } from '../../Condition';
 
 class TestBody extends HasInteractiveMixin(Creature) {
   static _mixinName = 'TestBody';

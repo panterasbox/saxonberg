@@ -18,7 +18,7 @@ mixins (`Climbable` / `Swimmable` / `Flyable`), the
 | `Walk` / `Climb` / `Swim` / `Fly` / `Ride` / `DriveController` | `obj/command/*.ts` | Concrete controllers — override `modeName()` and (optionally) `composeRejection()` for verb-templated prose |
 
 `LocomotionMode` extends `SingletonMixin(PropertiedMixin(Idea))`. The
-nine v1 modes live at `/lib/locomotion/<name>`.
+nine v1 modes live at `/obj/LocomotionMode/<name>`.
 
 ## Modes (v1)
 
@@ -72,14 +72,14 @@ through — so surfacing/diving re-resolves the air-exchange state.
 The substrate juggles two string vocabularies for the same conceptual
 mode:
 
-- **Full templatePath** (`/lib/locomotion/walk`) — what storage holds
+- **Full templatePath** (`/obj/LocomotionMode/walk`) — what storage holds
   (`Mobile._engagedModePath`, `Drivable._vehicularModePath`).
 - **Short name** (`walk`) — what authoring uses (`Exit.media` →
   medium lookup, `BodyPlan.locomotionModes`, `BodyPlan.defaultLocomotionMode`,
   `LocomotionMode.requiresBodyPlanMode`, Mml prose).
 
 `LocomotionApi.modeOf(nameOrPath)` accepts either form. Internally the
-Api normalizes short names to `/lib/locomotion/<name>` and looks up
+Api normalizes short names to `/obj/LocomotionMode/<name>` and looks up
 the singleton via `StuffApi.findByTemplatePath`. `Mobile.isEngagedIn`
 accepts both forms too.
 
@@ -272,7 +272,7 @@ emission, not the rider's own walk.
 Adding a new mode (e.g., `slither`):
 
 1. Author the singleton seed at `seeds/lib/locomotion/slither.yaml`
-   with `class: /lib/locomotion/LocomotionMode`, the property values,
+   with `class: /obj/LocomotionMode/LocomotionMode`, the property values,
    and the appropriate `medium`.
 2. If the mode needs an enablement scope, create a `*ableMixin` that
    implements `Enablement`, add it to the `Mixins` registry, and set
@@ -321,7 +321,7 @@ content slate that pulls on it.
   walk on `LocomotionApi.emissionAt`.
 - **`run` / `sprint` / `tiptoe` as separate modes.** Verb-as-mode
   pattern extends naturally — each new singleton at
-  `/lib/locomotion/<name>` with shared `requiresBodyPlanMode:
+  `/obj/LocomotionMode/<name>` with shared `requiresBodyPlanMode:
   ['walk']`. Adding the verb is mechanical. Open question whether
   every walk-variant deserves its own mode or whether some
   collapse into a `modifier` parameter on the walk verb; lean

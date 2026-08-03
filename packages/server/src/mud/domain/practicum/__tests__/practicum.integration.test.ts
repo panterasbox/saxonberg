@@ -17,18 +17,18 @@ import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
-import CartesianZone from "../../../lib/location/CartesianZone";
+import CartesianZone from "../../../obj/location/CartesianZone";
 import CartesianLocation from "../../../lib/location/CartesianLocation";
 import Material from "../../../lib/material/Material";
 import Firewood from "../../../obj/Firewood";
 import Floor from "../../../obj/Floor";
-import BodyPlan from "../../../lib/species/BodyPlan";
-import Species from "../../../lib/species/Species";
+import BodyPlan from "../../../obj/species/BodyPlan";
+import Species from "../../../obj/species/Species";
 import { Character } from "../../../lib/character/Character";
 import { HasInteractiveMixin } from "../../../lib/connection/HasInteractive";
-import GlowlightOrb from "../../../lib/magic/GlowlightOrb";
+import GlowlightOrb from "../../../obj/magic/GlowlightOrb";
 import SpellCatalogue from "../../../obj/SpellCatalogue";
-import Spell from "../../../lib/magic/Spell";
+import Spell from "../../../obj/magic/Spell";
 import { Template } from "../../../lib/stuff/Template";
 import { MagicApi } from "../../../api/magic";
 import { AdvancementApi } from "../../../api/advancement";
@@ -52,7 +52,7 @@ class MagicTester extends HasInteractiveMixin(Character) {
 }
 
 const __filename = fileURLToPath(import.meta.url);
-const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../seeds/lib/magic/Spell");
+const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../seeds/obj/magic/Spell");
 
 let seq = 0;
 let real = 0;
@@ -98,7 +98,7 @@ function oak(): Material {
     m.setAutoignitionTemperature(Quantity.of(570, "K"));
     m.setHeatOfCombustion(Quantity.of(16, "MJ/kg"));
     return m;
-  }, `/lib/material/_test/practicum-oak-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/practicum-oak-${seq}`) as unknown as Material;
 }
 
 function saltWater(): Material {
@@ -106,7 +106,7 @@ function saltWater(): Material {
   const m = makeStuff(() => new Material());
   m.setName("salt-water");
   m.setElectricalConductivity(Quantity.of(5, "S/m"));
-  stampTemplatePathForTest(m, `/lib/material/test/practicum-salt-${seq}`);
+  stampTemplatePathForTest(m, `/obj/material/test/practicum-salt-${seq}`);
   return m;
 }
 
@@ -149,15 +149,15 @@ function casterIn(room: CartesianLocation): MagicTester {
     {
       key: "body.leg.left.foot",
       parent: "body.leg.left",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 0.5 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 0.5 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/practicum-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/practicum-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
   species.setFacultyProfile({ depth: "mid", serenity: "mid", composure: "mid" });
   species.setInnateMixins(["CasterMixin"]);
-  stampTemplatePathForTest(species, `/lib/species/test/practicum-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/practicum-${id}`);
   const c = makeStuff(() => new MagicTester());
   c.setSpecies(species);
   stampTemplatePathForTest(c, `/obj/test/practicum-caster-${id}`);

@@ -47,7 +47,7 @@ function consciousGate(c: Creature): string | undefined {
     | undefined;
 }
 
-const STARVATION = "/lib/metabolism/conditions/starvation";
+const STARVATION = "/obj/Condition/metabolism/starvation";
 
 describe("MetabolicMixin cascade — reserves → conditions", () => {
   beforeEach(() => {

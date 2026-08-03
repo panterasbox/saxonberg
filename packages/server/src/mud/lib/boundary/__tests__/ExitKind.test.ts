@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import Exit from '../Exit';
 import { StuffApi } from '../../../api/stuff';
@@ -44,7 +44,7 @@ function mockKindTemplates(): void {
         const t = new LeafTemplate();
         t.path = path;
         t.class = '/lib/boundary/Exit';
-        t.hydratorClass = '/lib/persistence/PersistentHydrator';
+        t.hydratorClass = '/obj/persistence/PersistentHydrator';
         t.data = {
           media: ['ground'],
           messageOut: '{{ mover }} passes through the archway.',
@@ -52,12 +52,12 @@ function mockKindTemplates(): void {
         };
         return t;
       }
-      if (path === '/lib/persistence/PersistentHydrator') {
+      if (path === '/obj/persistence/PersistentHydrator') {
         // The hydrator's own template (the real seed's base case: no
         // hydratorClass — terminates the clone recursion).
         const t = new LeafTemplate();
         t.path = path;
-        t.class = '/lib/persistence/PersistentHydrator';
+        t.class = '/obj/persistence/PersistentHydrator';
         t.data = {};
         return t;
       }
@@ -65,7 +65,7 @@ function mockKindTemplates(): void {
         const t = new LeafTemplate();
         t.path = path;
         t.class = '/lib/boundary/Exit';
-        t.hydratorClass = '/lib/persistence/PersistentHydrator';
+        t.hydratorClass = '/obj/persistence/PersistentHydrator';
         t.data = {
           media: ['ground'],
           wheelPassable: false,

@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.emote
+  family: world
+  label: Emote
+  description: Emoted actions ridden by the ESP channel. Per-emote leaves (e.g., `world.emote.wave`) inherit from this root.

@@ -150,7 +150,7 @@ parcel, then its `parentParcel` chain, then `wild`.
 
 ### ⚠ `wild` admits nothing, and that is load-bearing
 
-**Most parcel rows are not ground at all.** `/studio`, `/lib/lounge` and
+**Most parcel rows are not ground at all.** `/studio`, `/obj/lounge` and
 the `/obj/…` roots are path-branch titles over the template tree, and they
 all answer `wild`. Had `wild` admitted a bed, cultivation would be legal
 on every branch nobody thought to zone. Stewardship's own gloss agrees —
@@ -181,7 +181,7 @@ parcel permits.
 "Nobody has zoned this" is not the same statement as "this is zoned
 against you", and conflating them turns every unclaimed acre in the world
 into red tape. The abstract branches stay protected anyway, because they
-DO carry rows: `/studio` and `/lib/lounge` are covered, declare no use,
+DO carry rows: `/studio` and `/obj/lounge` are covered, declare no use,
 and so still answer `wild` → refused.
 
 Same principle as the acreage check degrading on unmeasured land:
@@ -444,6 +444,27 @@ The zone runs **6 m cells** against the city's 3 — open ground with room
 between things, which is what makes a room out here read as a yard.
 
 ---
+
+
+### Known issue: the pre-sold lot cannot be re-driven
+
+`e2e/tests/hinkley.spec.ts:163` ("WALK IN and WORK IT") is red in-suite
+and green alone, and the cause is content shape rather than test code.
+
+Lot-1 is **pre-sold**, so its yard is provisioned exactly once and never
+reset. Every run that plants leaves a crop behind, the bed's slots fill
+permanently, and the soil bulk sits at capacity — so the drive's
+behaviour depends on the age of the database instead of on the code. A
+crop in a bed slot is also not targetable by keyword (`destruct carrots`
+→ "no match"), so the spec cannot tidy up after itself either.
+
+Two real bugs in that drive were fixed (it never poured the soil it
+cloned the sack for, so nothing planted and there was nothing for
+`water` to water). What remains needs a **content** decision, not a test
+edit: give the drive a lot whose yard it may provision fresh, or make a
+bed resettable. Loosening the assertion was tried and reverted — a
+weaker test that is still red is strictly worse.
+
 
 ## The cultivation verbs are EMBODIED acts
 

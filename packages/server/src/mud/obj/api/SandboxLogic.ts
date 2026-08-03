@@ -29,8 +29,8 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
-import type Avatar from '../../obj/Avatar';
-import type Interactive from '../../obj/Interactive';
+import type Avatar from '../Avatar';
+import type Interactive from '../Interactive';
 
 const SandboxApiCallers = SecurityPolicies.FromModule('/api/sandbox#SandboxApi');
 
@@ -155,7 +155,7 @@ function circleScopeFor(playerId: string): string {
 }
 
 /** The circle entry-room template (generic prose; skinnable later). */
-const CIRCLE_FLOOR_PATH = '/lib/sandbox/CircleFloor';
+const CIRCLE_FLOOR_PATH = '/obj/sandbox/CircleFloor';
 
 /**
  * Lazy circle materialization: ensure the session has its space, minted
@@ -178,7 +178,7 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
     return state.entryRoom;
   }
   const { default: CircleFloor } = await import(
-    '../../lib/sandbox/CircleFloor'
+    '../sandbox/CircleFloor'
   );
   const { default: Location } = await import('../../lib/stuff/Location');
   const { default: SandboxCrossingExit } = await import(
@@ -320,7 +320,7 @@ async function enterImpl(
   // Mint the vessel + fork the slices INSIDE the circle-scoped root —
   // the induction stamps everything (the vessel, its implant floor, the
   // shadow followers) circle-born.
-  const { default: WireBody } = await import('../../lib/sandbox/WireBody');
+  const { default: WireBody } = await import('../sandbox/WireBody');
   // Read the field body's species HERE, in field context: the mint
   // below runs under the circle root, where reading the parked avatar
   // is the cross-boundary dispatch the layers deny. Species is

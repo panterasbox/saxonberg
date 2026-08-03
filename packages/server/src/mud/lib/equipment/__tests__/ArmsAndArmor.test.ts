@@ -1,11 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
-import Armor from '../Armor';
-import Weapon from '../Weapon';
+import Armor from '../../../obj/equipment/Armor';
+import Weapon from '../../../obj/equipment/Weapon';
 import Material from '../../material/Material';
 import Thing from '../../stuff/Thing';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import { Creature } from '../../creature/Creature';
 import { Construction } from '../../material/Construction';
 import { Grade } from '../../craft/Grade';
@@ -24,7 +24,7 @@ function steel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, '/lib/material/alloy/steel');
+  stampTemplatePathForTest(m, '/obj/material/alloy/steel');
   return m;
 }
 
@@ -95,7 +95,7 @@ describe('Weapon — delivery half', () => {
   });
 
   it('can be wielded into a body-plan hand slot', () => {
-    const planPath = '/lib/body-plans/wield-test';
+    const planPath = '/obj/species/BodyPlan/wield-test';
     const plan = makeStuff(() => new BodyPlan());
     plan.setName('wield-test');
     plan.setSlots([
@@ -105,7 +105,7 @@ describe('Weapon — delivery half', () => {
     stampTemplatePathForTest(plan, planPath);
     const species = makeStuff(() => new Species());
     species.setBodyPlan(plan);
-    stampTemplatePathForTest(species, '/lib/species/test/wielder');
+    stampTemplatePathForTest(species, '/obj/species/test/wielder');
     const wielder = makeStuff(() => new Creature());
     wielder.setSpecies(species);
 

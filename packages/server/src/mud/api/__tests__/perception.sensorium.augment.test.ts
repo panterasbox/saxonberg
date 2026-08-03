@@ -11,13 +11,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { StuffApi } from '../stuff';
-import Species from '../../lib/species/Species';
-import BodyPlan from '../../lib/species/BodyPlan';
+import Species from '../../obj/species/Species';
+import BodyPlan from '../../obj/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { AetherMixin } from '../../lib/message/Aether';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import Thing from '../../lib/stuff/Thing';
-import AetherImplant from '../../lib/augmentation/AetherImplant';
+import AetherImplant from '../../obj/AetherImplant';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -43,7 +43,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 function makeAvatarLike(): Stuff {
   const biped = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/lib/body-plans/biped-test',
+    '/obj/species/BodyPlan/biped-test',
   );
   biped.setSensoryPorts([
     { modality: 'vision', count: 2, position: 'frontal' },
@@ -52,7 +52,7 @@ function makeAvatarLike(): Stuff {
   biped.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/animalia/homo-sapiens-test',
+    '/obj/species/animalia/homo-sapiens-test',
   );
   sapiens.setBodyPlan(biped);
   const actor = makeStuff(() => new AvatarLike()) as AvatarLike & {

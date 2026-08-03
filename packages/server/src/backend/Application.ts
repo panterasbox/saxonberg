@@ -39,6 +39,7 @@ import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
 import { KickProfile } from '../mud/lib/identity/KickProfile';
 import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { StuffApi } from '../mud/api/stuff';
+import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
 import Avatar from '../mud/obj/Avatar';
@@ -50,7 +51,7 @@ import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
 import {
   inboundHandlers,
   type InboundClientMessage,
-} from './inbound/index';
+} from './inbound';
 
 /**
  * The OAuth profile shapes the provider-parameterized find-or-create /
@@ -792,6 +793,8 @@ export class Application {
       );
       user.playerIds.push(playerId);
       await user.save();
+    } else if (startLocation) {
+      await this.rehomeTestCharacter(user, startLocation);
     }
     // Test-only staff conferral (E2E coverage of the authoring paths:
     // clone, eval, goto). Joins EVERY managed group, because a test
@@ -849,5 +852,47 @@ export class Application {
       }
     }
   }
-}
 
+  /**
+   * TEST-ONLY: move an EXISTING test character to `startLocation`.
+   *
+   * `startLocation` used to apply only when the character was created,
+   * which quietly made every spec that passes one order-dependent. A
+   * fixed handle (`founder`, `boss`) keeps the character the previous
+   * spec left behind — and the room it left it in — so two sessions that
+   * both asked for the same start room were NOT co-located, and anything
+   * `reachable`-scoped between them failed. The suite saw this as two
+   * tests that pass alone and fail together.
+   *
+   * Rewriting the template row does NOT fix it: an Avatar is
+   * snapshot-backed, so a returning login restores its recorded `place`
+   * and the row is never consulted. Verified directly — a second login
+   * asking for a different room stayed exactly where it was. The live
+   * object is the only thing that decides where `enter` finds you, so
+   * the live object is what moves.
+   *
+   * `applyStartLocation` is the same Phase-2 applier the clone pipeline
+   * uses, so a Warren ref lands in its host and a room ref is
+   * singleton-or-cloned — one landing rule, not a second one for tests.
+   */
+  private async rehomeTestCharacter(
+    user: User,
+    startLocation: string
+  ): Promise<void> {
+    const playerId = user.playerIds[0];
+    if (!playerId) return;
+    let avatar = PlayerApi.findAvatarByPlayerId(playerId);
+    if (!avatar) {
+      // Not resident (evicted, or a cold server). Materializing here is
+      // safe and idempotent: the avatar is keyed by its identity path,
+      // so the `play` that follows finds this same instance.
+      const loaded = await PlayerApi.loadAvatarsForUser(user);
+      avatar = loaded.find((a) => a.getPlayerId() === playerId);
+    }
+    if (!avatar) return;
+    await avatar.applyStartLocation(startLocation);
+    console.info(
+      `Application: re-homed test character ${playerId} to ${startLocation}`
+    );
+  }
+}

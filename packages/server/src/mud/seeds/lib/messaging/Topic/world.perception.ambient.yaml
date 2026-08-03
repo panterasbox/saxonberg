@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.ambient
-  family: world.perception
-  label: Ambient
-  description: Parent topic for unbidden perceptual input — the world fed the actor sensory content without the actor asking. Children per channel (vision / hearing / smell / touch / taste) because ambient events have no verb to name them.

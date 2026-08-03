@@ -22,7 +22,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../Condition';
 
 /** A command frame carrying `giver`, non-forced by default. */
 function cmdFrame(giver: unknown, forced = false) {

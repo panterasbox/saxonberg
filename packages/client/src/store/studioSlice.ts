@@ -394,7 +394,7 @@ function parseData(raw: string): Record<string, unknown> | null {
   return parsed as Record<string, unknown>;
 }
 
-/** The last `/`-segment of a class path (`/lib/banking/PaymentCard` → `PaymentCard`). */
+/** The last `/`-segment of a class path (`/obj/PaymentCard` → `PaymentCard`). */
 export function classNameOf(classPath: string): string {
   const seg = classPath.split("/").filter(Boolean).pop();
   return seg ?? classPath;

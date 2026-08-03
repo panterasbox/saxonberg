@@ -132,7 +132,7 @@ separate embed mechanism — there are components, and the architecture
 panel is one of them:
 
 ```
-<composition of="/lib/material/oak" />   live mixin architecture
+<composition of="/obj/material/oak" />   live mixin architecture
 <help verb="plant" />                    transclude a command spec
 <mql query="…" />                        live world query
 <infobox>…</infobox>                     pure presentation

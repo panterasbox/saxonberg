@@ -11,9 +11,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { MaterialApi } from '../../../api/material';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
-import Armor from '../../../lib/equipment/Armor';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
+import Armor from '../../equipment/Armor';
 import Material from '../../../lib/material/Material';
 import { Construction } from '../../../lib/material/Construction';
 import { StuffApi } from '../../../api/stuff';
@@ -23,7 +23,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../Condition';
 
 let seq = 0;
 
@@ -32,7 +32,7 @@ function steel(): Material {
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
   m.setElectricalConductivity(Quantity.of(6.0e6, 'S/m'));
-  stampTemplatePathForTest(m, `/lib/material/test/steel-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/steel-${seq++}`);
   return m;
 }
 
@@ -48,16 +48,16 @@ function bodied(): Creature {
       key: 'body.torso',
       parent: null,
       tissues: [
-        { tissuePath: '/lib/material/tissue/bone', mass: 8 },
-        { tissuePath: '/lib/material/tissue/flesh', mass: 20 },
+        { tissuePath: '/obj/material/tissue/bone', mass: 8 },
+        { tissuePath: '/obj/material/tissue/flesh', mass: 20 },
       ],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-shock-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-shock-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/shock-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/shock-${id}`);
 
   const c = makeStuff(() => new Creature());
   c.setSpecies(species);

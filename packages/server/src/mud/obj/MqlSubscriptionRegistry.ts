@@ -43,7 +43,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
 import type { CommandGiver } from '../lib/command/CommandGiver';
-import type Interactive from '../obj/Interactive';
+import type Interactive from './Interactive';
 import type { Subscription } from '../api/event';
 import { MixinApi } from '../api/mixin';
 import {

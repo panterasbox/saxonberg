@@ -38,15 +38,15 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, "m/s"));
     b.setDefaultAtmosphere("air");
     return b;
-  }, "/lib/biome/universe");
+  }, "/obj/biome/universe");
 }
 
 function coldRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = "/lib/biome/universe";
+    b._extendsBiomePath = "/obj/biome/universe";
     return b;
-  }, "/lib/biome/indoor/cell");
+  }, "/obj/biome/indoor/cell");
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;

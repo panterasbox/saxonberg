@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
-import { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
+import { LocomotionMode } from '../../obj/LocomotionMode';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import Location from '../../lib/stuff/Location';
 import Exit from '../../lib/boundary/Exit';

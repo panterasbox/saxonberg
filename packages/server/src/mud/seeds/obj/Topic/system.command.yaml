@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: system.command
+  family: system
+  label: Command
+  description: Dispatcher-emitted prose for framework-level command failures — parse errors, MQL failures, validator rejections, controller throws.

@@ -15,8 +15,8 @@
 # Its own generic classes only (CartesianZone / CartesianLocation / Trap /
 # Thing) — zero new code; every trap "kind" is a Trap field combination.
 # See docs/subsystems/concealment.md.
-class: /lib/location/CartesianZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/CartesianZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: The Sunken Delve
   cellSize: 3.0

@@ -1,0 +1,17 @@
+# Fly — non-passthrough, enablement-gated. Faster than walk; airborne
+# (groundContact: none) — pressure plates miss a flying actor.
+class: /obj/LocomotionMode
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: fly
+  speed: 1.5
+  noiseLevel: quiet
+  bodyProfile: horizontal
+  groundContact: none
+  requiresBodyPlanMode: [fly]
+  requiresPosture: []
+  costMultiplier: 0.7
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: FlyableMixin
+  medium: air

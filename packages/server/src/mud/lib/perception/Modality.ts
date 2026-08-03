@@ -2,7 +2,7 @@
  * Modality — singleton Idea describing one category of perception.
  *
  * One canonical instance per templatePath at
- * `/lib/perception/modalities/<name>`. v1 ships seven modalities:
+ * `/obj/modalities/<name>`. v1 ships seven modalities:
  * vision, smell, sound, touch, taste, verbal-esp, emotive-esp.
  *
  * Modeled exactly on `LocomotionMode`: a templated `Idea` singleton

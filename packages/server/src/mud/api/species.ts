@@ -20,8 +20,8 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Organism } from '../lib/species/Organism';
-import type Clade from '../lib/species/Clade';
-import type Species from '../lib/species/Species';
+import type Clade from '../obj/species/Clade';
+import type Species from '../obj/species/Species';
 import type { SpeciesDossier } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';

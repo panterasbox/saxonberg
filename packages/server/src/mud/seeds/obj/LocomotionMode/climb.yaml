@@ -1,0 +1,18 @@
+# Climb — non-passthrough, enablement-gated. Engagement persists while
+# the destination still composes Climbable (or contains a Climbable);
+# otherwise transient.
+class: /obj/LocomotionMode
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: climb
+  speed: 0.5
+  noiseLevel: normal
+  bodyProfile: varied
+  groundContact: partial
+  requiresBodyPlanMode: [climb]
+  requiresPosture: []
+  costMultiplier: 2.0
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: ClimbableMixin
+  medium: vertical

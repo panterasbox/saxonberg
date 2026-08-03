@@ -3,7 +3,7 @@ import WeighController from '../WeighController';
 import { TangibleMixin } from '../../../../lib/material/Tangible';
 import { Quantity } from '../../../../lib/quantity';
 import Thing from '../../../../lib/stuff/Thing';
-import CartesianZone from '../../../../lib/location/CartesianZone';
+import CartesianZone from '../../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';

@@ -19,8 +19,8 @@
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
-import type { CorpoDescriptor } from "../lib/corpo/Corpo";
-import type { BrandDescriptor } from "../lib/corpo/Brand";
+import type { CorpoDescriptor } from "../obj/corpo/Corpo";
+import type { BrandDescriptor } from "../obj/corpo/Brand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CorpoLogic } from "../obj/api/CorpoLogic";

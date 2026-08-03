@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
-import SphericalLocation from '../../location/SphericalLocation';
-import SphericalZone from '../../location/SphericalZone';
+import SphericalLocation from '../../../obj/location/SphericalLocation';
+import SphericalZone from '../../../obj/location/SphericalZone';
 import Exit from '../Exit';
-import Door from '../Door';
+import Door from '../../../obj/Door';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import {

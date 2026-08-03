@@ -9,8 +9,8 @@
 #
 # Carries an `_address` under "The Last Counted Mile" locality prefix so the
 # Terminus board names this destination by its locality (D13).
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the crossroads at the last counted mile
   primaryKeyword: crossroads

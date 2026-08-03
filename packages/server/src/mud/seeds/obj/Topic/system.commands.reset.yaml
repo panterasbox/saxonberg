@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: system.commands.reset
+  family: system.commands
+  label: Reset
+  description: The full command schema has been re-sent — typically after a scope change.

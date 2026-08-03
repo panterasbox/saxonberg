@@ -9,8 +9,8 @@
 # clones each boot); the Business stands up lazily off its operatingLocations.
 # The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
 # day heists/safe-deposit exist, never a speculative empty room now.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the Goodkin banking hall
   primaryKeyword: hall

@@ -12,8 +12,8 @@
 #
 # The banking affiliation (corpoKey: goodkin) lives on the BankCounter fixture,
 # NOT here — a Business has no corpoKey (the map convention).
-class: /lib/employment/Business
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   proprietorPath: ""
   positions:

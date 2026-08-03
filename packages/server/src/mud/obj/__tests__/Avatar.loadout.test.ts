@@ -10,12 +10,12 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Avatar from "../Avatar";
-import Species from "../../lib/species/Species";
-import BodyPlan from "../../lib/species/BodyPlan";
-import AetherImplant from "../../lib/augmentation/AetherImplant";
-import CommsUpdate from "../../lib/comms/CommsUpdate";
-import CredentialWalletUpdate from "../../lib/credential/CredentialWalletUpdate";
-import ForumsUpdate from "../../lib/forum/ForumsUpdate";
+import Species from "../species/Species";
+import BodyPlan from "../species/BodyPlan";
+import AetherImplant from "../AetherImplant";
+import CommsUpdate from "../CommsUpdate";
+import CredentialWalletUpdate from "../CredentialWalletUpdate";
+import ForumsUpdate from "../ForumsUpdate";
 import { StuffApi } from "../../api/stuff";
 import { SpeciesApi } from "../../api/species";
 import { MixinApi } from "../../api/mixin";
@@ -40,7 +40,7 @@ let seq = 0;
 function makeAvatarOfSpecies(innate: string[]): Avatar {
   const biped = withPath(
     makeStuff(() => new BodyPlan()),
-    `/lib/body-plans/biped-loadout-${seq}`,
+    `/obj/species/BodyPlan/biped-loadout-${seq}`,
   );
   biped.setSensoryPorts([
     { modality: "vision", count: 2, position: "frontal" },
@@ -49,7 +49,7 @@ function makeAvatarOfSpecies(innate: string[]): Avatar {
   biped.setSlots([{ name: "cranial", accepts: "SlottableMixin" }]);
   const species = withPath(
     makeStuff(() => new Species()),
-    `/lib/species/animalia/loadout-test-${seq}`,
+    `/obj/species/animalia/loadout-test-${seq}`,
   );
   seq += 1;
   species.setBodyPlan(biped);

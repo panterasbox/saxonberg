@@ -58,7 +58,7 @@ import {
 } from '../../../../api/command';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import Location from '../../../../lib/stuff/Location';
-import PersistentHydrator from '../../../../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../../obj/persistence/PersistentHydrator';
 import { Document } from '../../../../lib/persistence/Document';
 import ParcelRegistry from '../../../../obj/ParcelRegistry';
 import GroupRegistry from '../../../../obj/GroupRegistry';
@@ -71,7 +71,7 @@ import {
   registerMarshallerForTest,
   withRootContext,
 } from '../../../../lib/security/__tests__/test-setup';
-import { QuantityMarshaller } from '../../../../lib/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../../../obj/persistence/QuantityMarshaller';
 import type { Unit } from '../../../../lib/quantity';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
@@ -130,10 +130,10 @@ function addSeed(path: string, file: string): void {
 }
 
 const LILY_SPECIES =
-  '/lib/species/plantae/tracheophyta/liliopsida/alismatales/araceae/' +
+  '/obj/species/plantae/tracheophyta/liliopsida/alismatales/araceae/' +
   'spathiphyllum/wallisii';
 const SNAKE_SPECIES =
-  '/lib/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/' +
+  '/obj/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/' +
   'dracaena/trifasciata';
 
 /**
@@ -172,38 +172,38 @@ function seedDomain(): void {
   addSeed('/obj/vessel/soil-sack', `${SEEDS}obj/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
   addSeed(
-    '/lib/material/bulk/water',
-    `${CONTENT}base-library/content/lib/material/bulk/water.yaml`,
+    '/obj/material/bulk/water',
+    `${CONTENT}base-library/content/obj/material/bulk/water.yaml`,
   );
   addSeed(
-    '/lib/material/bulk/potting-soil',
-    `${CONTENT}base-library/content/lib/material/bulk/potting-soil.yaml`,
+    '/obj/material/bulk/potting-soil',
+    `${CONTENT}base-library/content/obj/material/bulk/potting-soil.yaml`,
   );
   addSeed(
-    '/lib/material/ceramic/ceramic',
-    `${CONTENT}base-library/content/lib/material/ceramic/ceramic.yaml`,
+    '/obj/material/ceramic/ceramic',
+    `${CONTENT}base-library/content/obj/material/ceramic/ceramic.yaml`,
   );
   addSeed(
-    '/lib/material/alloy/steel',
-    `${CONTENT}base-library/content/lib/material/alloy/steel.yaml`,
+    '/obj/material/alloy/steel',
+    `${CONTENT}base-library/content/obj/material/alloy/steel.yaml`,
   );
   addSeed(
-    '/lib/material/tissue/plant-tissue',
-    `${CONTENT}base-library/content/lib/material/tissue/plant-tissue.yaml`,
+    '/obj/material/tissue/plant-tissue',
+    `${CONTENT}base-library/content/obj/material/tissue/plant-tissue.yaml`,
   );
-  addSeed('/lib/body-plans/sessile', `${SEEDS}lib/body-plans/sessile.yaml`);
+  addSeed('/obj/species/BodyPlan/sessile', `${SEEDS}obj/species/BodyPlan/sessile.yaml`);
   addSeed(
-    '/lib/species/plantae',
-    `${CONTENT}species-and-names/content/lib/species/plantae.yaml`,
+    '/obj/species/plantae',
+    `${CONTENT}species-and-names/content/obj/species/plantae.yaml`,
   );
   addSeed(
     LILY_SPECIES,
-    `${CONTENT}species-and-names/content/lib/species/plantae/tracheophyta/` +
+    `${CONTENT}species-and-names/content/obj/species/plantae/tracheophyta/` +
       `liliopsida/alismatales/araceae/spathiphyllum/wallisii.yaml`,
   );
   addSeed(
     SNAKE_SPECIES,
-    `${CONTENT}species-and-names/content/lib/species/plantae/tracheophyta/` +
+    `${CONTENT}species-and-names/content/obj/species/plantae/tracheophyta/` +
       `liliopsida/asparagales/asparagaceae/dracaena/trifasciata.yaml`,
   );
 }
@@ -285,11 +285,11 @@ function installStore(): void {
   // template the test store doesn't hold. The shared
   // `installV1QuantityMarshallers` helper's hand-kept unit list has fallen
   // behind the `Unit` union, so the seed directory is the honest source.
-  for (const file of readdirSync(`${SEEDS}lib/persistence/QuantityMarshaller/`)) {
+  for (const file of readdirSync(`${SEEDS}obj/persistence/QuantityMarshaller/`)) {
     if (!file.endsWith('.yaml')) continue;
     const unit = (
       YAML.parse(
-        readFileSync(`${SEEDS}lib/persistence/QuantityMarshaller/${file}`, 'utf-8'),
+        readFileSync(`${SEEDS}obj/persistence/QuantityMarshaller/${file}`, 'utf-8'),
       ) as { data?: { unit?: string } }
     ).data?.unit as Unit | undefined;
     if (!unit) continue;
@@ -314,19 +314,19 @@ function installStore(): void {
  * until something materializes it (a content pack's job in production).
  */
 async function bootTaxonomy(): Promise<void> {
-  await StuffApi.singleton('/lib/body-plans/sessile');
-  await StuffApi.singleton('/lib/species/plantae');
+  await StuffApi.singleton('/obj/species/BodyPlan/sessile');
+  await StuffApi.singleton('/obj/species/plantae');
   await StuffApi.singleton(LILY_SPECIES);
   await StuffApi.singleton(SNAKE_SPECIES);
   // Materials resolve the same way — `BulkSlot.getMaterial()` and
   // `Tangible.getMaterial()` both walk `findByTemplatePath`, so an
   // unmaterialized row reads as "this holder is empty".
   for (const path of [
-    '/lib/material/bulk/water',
-    '/lib/material/bulk/potting-soil',
-    '/lib/material/ceramic/ceramic',
-    '/lib/material/alloy/steel',
-    '/lib/material/tissue/plant-tissue',
+    '/obj/material/bulk/water',
+    '/obj/material/bulk/potting-soil',
+    '/obj/material/ceramic/ceramic',
+    '/obj/material/alloy/steel',
+    '/obj/material/tissue/plant-tissue',
   ]) {
     await StuffApi.singleton(path);
   }
@@ -431,7 +431,7 @@ function tapIn(room: Stuff & Container): Stuff | null {
           MixinApi.isBulkable(s) &&
           !(s instanceof WateringCan) &&
           !(s instanceof PlantPot) &&
-          s.getBulkMaterialPath('interior') === '/lib/material/bulk/water',
+          s.getBulkMaterialPath('interior') === '/obj/material/bulk/water',
       ) ?? null
   );
 }

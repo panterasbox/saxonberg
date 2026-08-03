@@ -145,42 +145,42 @@ describe('BootstrapManager.run', () => {
   it('expands a templatePathPrefix entry into one clone per descendant', async () => {
     const { calls } = stubClone();
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
-      { path: '/lib/species/animalia/chordata' },
-      { path: '/lib/species/animalia' },
-      { path: '/lib/species/animalia/chordata/mammalia' },
+      { path: '/obj/species/animalia/chordata' },
+      { path: '/obj/species/animalia' },
+      { path: '/obj/species/animalia/chordata/mammalia' },
     ] as unknown as Template[]);
 
     await BootstrapManager.run([
-      { templatePathPrefix: '/lib/species' },
+      { templatePathPrefix: '/obj/species' },
     ]);
 
     // Depth-ascending: shorter paths first so kingdom singletons land
     // before their phyla.
     expect(calls).toEqual([
-      '/lib/species/animalia',
-      '/lib/species/animalia/chordata',
-      '/lib/species/animalia/chordata/mammalia',
+      '/obj/species/animalia',
+      '/obj/species/animalia/chordata',
+      '/obj/species/animalia/chordata/mammalia',
     ]);
   });
 
   it('explicit templatePath wins over a prefix-expansion collision', async () => {
     const { calls } = stubClone();
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
-      { path: '/lib/species/animalia' },
-      { path: '/lib/species/plantae' },
+      { path: '/obj/species/animalia' },
+      { path: '/obj/species/plantae' },
     ] as unknown as Template[]);
 
     // The explicit entry should appear in its declared position, NOT
     // be deduplicated as "duplicate". The prefix expansion skips
-    // `/lib/species/animalia` because it's already covered explicitly.
+    // `/obj/species/animalia` because it's already covered explicitly.
     await BootstrapManager.run([
-      { templatePath: '/lib/species/animalia', awaitInit: async () => {} },
-      { templatePathPrefix: '/lib/species' },
+      { templatePath: '/obj/species/animalia', awaitInit: async () => {} },
+      { templatePathPrefix: '/obj/species' },
     ]);
 
     expect(calls).toEqual([
-      '/lib/species/animalia',
-      '/lib/species/plantae',
+      '/obj/species/animalia',
+      '/obj/species/plantae',
     ]);
   });
 
@@ -189,8 +189,8 @@ describe('BootstrapManager.run', () => {
     await expect(
       BootstrapManager.run([
         {
-          templatePath: '/lib/species/animalia',
-          templatePathPrefix: '/lib/species',
+          templatePath: '/obj/species/animalia',
+          templatePathPrefix: '/obj/species',
         },
       ])
     ).rejects.toThrow(/exactly one of/);
@@ -205,7 +205,7 @@ describe('BootstrapManager.run', () => {
     stubClone();
     await expect(
       BootstrapManager.run([
-        { templatePathPrefix: '/lib/species', dependsOn: ['/obj/A'] },
+        { templatePathPrefix: '/obj/species', dependsOn: ['/obj/A'] },
       ])
     ).rejects.toThrow(/cannot specify dependsOn/);
   });
@@ -234,14 +234,14 @@ describe('BootstrapManager + EventRegistry integration', () => {
           const t = new LeafTemplate();
           t.path = path;
           t.class = '/obj/EventRegistry';
-          t.hydratorClass = '/lib/persistence/PersistentHydrator';
+          t.hydratorClass = '/obj/persistence/PersistentHydrator';
           t.data = {};
           return t;
         }
-        if (path === '/lib/persistence/PersistentHydrator') {
+        if (path === '/obj/persistence/PersistentHydrator') {
           const t = new LeafTemplate();
           t.path = path;
-          t.class = '/lib/persistence/PersistentHydrator';
+          t.class = '/obj/persistence/PersistentHydrator';
           t.data = {};
           return t;
         }

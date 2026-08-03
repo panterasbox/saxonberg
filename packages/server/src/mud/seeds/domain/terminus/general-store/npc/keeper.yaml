@@ -2,12 +2,12 @@
 # the roster: she covers the till unpaid (the proprietor draws no wage), an old
 # hand who's outfitted three generations of delvers and buried some of them.
 # Dry, fair, unsentimental about money and quietly sentimental about the trade.
-class: /lib/npc/NPC
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/NPC
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Odell Marrow
   pronouns: she
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: keeper
   alternateNames: [odell, marrow, owner, proprietor]

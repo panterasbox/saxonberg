@@ -6,8 +6,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import {
@@ -24,11 +24,11 @@ function creatureWithBaseMass(baseMass: number | undefined): Creature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`mass-plan-${n}`);
   if (baseMass !== undefined) plan.setBaseMass(baseMass);
-  stampTemplatePathForTest(plan, `/lib/body-plans/mass-${n}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/mass-${n}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/mass-${n}`);
+  stampTemplatePathForTest(species, `/obj/species/test/mass-${n}`);
 
   const creature = makeStuff(() => new Creature());
   creature.setSpecies(species);

@@ -28,7 +28,7 @@ import EventRegistry from '../../../../obj/EventRegistry';
 import Interactive from '../../../../obj/Interactive';
 import Avatar from '../../../../obj/Avatar';
 import CartesianLocation from '../../../location/CartesianLocation';
-import SandboxCrossing from '../../SandboxCrossing';
+import SandboxCrossing from '../../../../obj/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../SandboxCrossingExit';
 import type { Containable } from '../../../spatial/Containable';
 import type { Container } from '../../../spatial/Container';
@@ -181,7 +181,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         // author a template under the circle namespace — the deliberate save
         await PersistApi.save(Collections.Domain, {
           path: `${SCOPE}/workshop`,
-          class: '/lib/location/CartesianLocation',
+          class: '/obj/location/Room',
         });
         // fight + transact — material ledger rows
         await PersistApi.save(Collections.BankLedger, {
@@ -235,7 +235,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     ]);
     // …the authored edit persists (the deliberate save is the product)…
     expect(store.get(Collections.Domain)).toEqual([
-      { path: `${SCOPE}/workshop`, class: '/lib/location/CartesianLocation' },
+      { path: `${SCOPE}/workshop`, class: '/obj/location/Room' },
     ]);
     // …and the epistemic record exists, wire-marked.
     //

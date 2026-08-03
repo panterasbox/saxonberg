@@ -1,5 +1,4 @@
 # RecipeCatalogue — the singleton that warms the recipe index from the
 # `recipes` collection. No field state; the cache is rebuilt on demand.
 class: /obj/RecipeCatalogue
-hydratorClass: /lib/persistence/PersistentHydrator
 data: {}

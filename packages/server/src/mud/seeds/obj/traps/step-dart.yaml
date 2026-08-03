@@ -5,8 +5,8 @@
 # plus a toxin dose injected past digestion onto the metabolism burden.
 # `hidden` (requirement 4): a walking novice springs it, a sneaking one
 # notices and steps around it (the care-speed demonstrator's walk/sneak case).
-class: /lib/hazard/Trap
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Trap
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a needle-slotted dart plate
   primaryKeyword: dart

@@ -5,8 +5,8 @@
  * Lives at `/obj/CorpoCatalogue`, per the singleton-in-`obj/` convention
  * (the `DisciplineCatalogue` / `TopicCatalogue` recipe). The caches are
  * transient instance state; the source of truth is the per-`Corpo` and
- * per-`Brand` leaf templates under `/lib/corpo/Corpo/` and
- * `/lib/corpo/Brand/` in the `domain` collection. Both leaves are pure data
+ * per-`Brand` leaf templates under `/obj/corpo/Corpo/` and
+ * `/obj/corpo/Brand/` in the `domain` collection. Both leaves are pure data
  * (`key` / edges / `owner`), so the catalogue loads descriptors directly
  * from the template docs — never cloning them as live Stuff.
  *
@@ -32,8 +32,8 @@
 import { Idea } from "../lib/stuff/Idea";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { Template } from "../lib/stuff/Template";
-import Corpo, { type CorpoDescriptor } from "../lib/corpo/Corpo";
-import Brand, { type BrandDescriptor } from "../lib/corpo/Brand";
+import Corpo, { type CorpoDescriptor } from "./corpo/Corpo";
+import Brand, { type BrandDescriptor } from "./corpo/Brand";
 import type { VetoResult } from "../lib/errors";
 import type { EvictionContext } from '../lib/stuff/Stuff';
 

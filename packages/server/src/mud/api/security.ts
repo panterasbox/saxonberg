@@ -660,6 +660,20 @@ export class SecurityApi {
     // after the message has already been composed and echoed to the
     // sender. Read-only: `setParked` is deliberately NOT here.
     'isParked',
+    // The subscription read, for the same reason and one hop earlier.
+    // Delivery walks every recipient and asks "does this person want
+    // this message" — `{followed, mutedSurfaces}` and nothing else. A
+    // speaker standing inside a circle hits the first FIELD-scoped
+    // subscriber and the whole `chat` command dies with a raw
+    // SecurityError.
+    //
+    // This is ROUTING state, not world state: it says who a message
+    // goes to, exactly like `isParked` says which sockets it goes to.
+    // Read-only and deliberately narrow — `setSubjectSubscription` and
+    // `removeSubjectSubscription` are NOT here, so circle code can read
+    // who is listening but cannot make anyone listen.
+    'getSubjectSubscription',
+    'hasSubjectSubscription',
   ]);
 
   /**
@@ -755,7 +769,7 @@ export class SecurityApi {
    *      governed eval the one receiver it most obviously covers — the
    *      wizard's own body, standing in the parcel they hold title to.
    *      Same for every clone: a corpse in the lounge is lineage
-   *      `/lib/mortality/corpse` and location `/domain/lounge`.
+   *      `/obj/Corpse` and location `/domain/lounge`.
    *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
    *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
    *      and *then* stamps its path, so at the instant of the stamp rules

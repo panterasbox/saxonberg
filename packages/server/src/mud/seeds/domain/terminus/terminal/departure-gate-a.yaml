@@ -3,8 +3,8 @@
 # newbie-wilds crossroads. Generic room. Every connection is declared
 # explicitly on both sides (the template is self-describing): the hall lies one
 # cell west.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate A
   primaryKeyword: gate-a

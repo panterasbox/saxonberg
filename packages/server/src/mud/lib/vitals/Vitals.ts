@@ -33,12 +33,12 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
-import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import type { VitalBand, VitalProfile } from '../species/Species';
-import type { BodyPart } from '../species/BodyPlan';
+import type { VitalBand, VitalProfile } from '../../obj/species/Species';
+import type { BodyPart } from '../../obj/species/BodyPlan';
 import type {
   ActiveCondition,
   Trauma,
@@ -46,8 +46,8 @@ import type {
   SustainedEffect,
   AfflictionRecord,
   DyingRecord,
-} from './Condition';
-import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from './Condition';
+} from '../../obj/Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../obj/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ElectricityApi } from '../../api/electricity';

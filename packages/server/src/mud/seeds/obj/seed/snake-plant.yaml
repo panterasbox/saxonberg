@@ -2,7 +2,7 @@
 # second species. Same shape as the peace-lily seed; only the plant it names
 # differs.
 class: /obj/Seed
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a snake plant seed
   primaryKeyword: seed
@@ -10,4 +10,4 @@ data:
   longDescription: |
     A flat pale seed in a paper sleeve, with a pencilled note that reads: hard to kill.
   growsIntoPath: /obj/plant/snake-plant
-  _speciesPath: /lib/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata
+  _speciesPath: /obj/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata

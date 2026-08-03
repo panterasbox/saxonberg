@@ -364,11 +364,11 @@ describe('StuffApi', () => {
       const { vi } = await import('vitest');
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
-          if (path === '/lib/persistence/PersistentHydrator') {
+          if (path === '/obj/persistence/PersistentHydrator') {
             const t = new LeafTemplate();
             t.path = path;
-            t.class = '/lib/persistence/PersistentHydrator';
-            t.hydratorClass = '/lib/persistence/PersistentHydrator';
+            t.class = '/obj/persistence/PersistentHydrator';
+            t.hydratorClass = '/obj/persistence/PersistentHydrator';
             t.data = {};
             return t;
           }
@@ -377,7 +377,7 @@ describe('StuffApi', () => {
       );
 
       await expect(
-        StuffApi.clone('/lib/persistence/PersistentHydrator')
+        StuffApi.clone('/obj/persistence/PersistentHydrator')
       ).rejects.toThrow(/circular template dependency/);
 
       vi.restoreAllMocks();

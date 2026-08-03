@@ -1507,7 +1507,7 @@ A shadow class that composes mixins with persistent fields (e.g.
 ```yaml
 path: /system/buffs/regeneration
 class: /lib/some/Regeneration   # extends Shadow
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   duration: 30
   magnitude: 5
@@ -1676,10 +1676,10 @@ when `-f` is set and access allows."
 Earlier framework drafts treated the Hydrator as a privileged "system
 context" that bypassed policies. The shipped position is the opposite:
 Hydrators are themselves `Stuff`. They have stuffIds, they have a class
-path (`/lib/persistence/PersistentHydrator`), they get pushed onto the
+path (`/obj/persistence/PersistentHydrator`), they get pushed onto the
 call stack like anything else when invoked. Policies that care about
 the hydrator can match on
-`FromModule('/lib/persistence/PersistentHydrator')` or with
+`FromModule('/obj/persistence/PersistentHydrator')` or with
 `{ includeSubclasses: true }`.
 
 Bracket-assignment of persistent fields invokes the field's setter.

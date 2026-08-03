@@ -7,8 +7,8 @@
 # presents only a few felt kg of draft and often stays under the
 # light-load floor, draining no endurance. A dragged sledge would set it
 # high (~0.35); carrying it in your arms is 1.0.
-class: /lib/equipment/Handcart
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Handcart
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a wooden handcart
   primaryKeyword: handcart

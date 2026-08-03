@@ -1,0 +1,31 @@
+# Iron — Fe, atomic number 26. Workhorse metal: dense, hard,
+# ferromagnetic, mediocre fire behavior at room temp. Standard
+# slash/blunt resistance baseline for weapon-grade materials.
+class: /obj/material/Material
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: iron
+  density: 7874
+  specificHeat: 449
+  thermalConductivity: 80
+  # Electrical conductivity (S/m) — a good conductor, ~1×10⁷.
+  electricalConductivity: 1.0e7
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 350
+  toughness: 120
+  # Phase change (thermal): melts at 1811 K (smelting heat — a bellows-fed
+  # forge only), boils at 3134 K; latent heats are the reserve-clamp
+  # plateaus (fusion 247 kJ/kg, vaporization 6.34 MJ/kg).
+  meltingPoint: 1811
+  latentHeatOfFusion: 247000
+  boilingPoint: 3134
+  latentHeatOfVaporization: 6340000
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: [{ type: iron-poisoning, amount: 0 }]
+  tags: ["element", "metal", "ferrous", "magnetic", "crystalline", "conductor"]
+  composition: []
+  symbol: Fe
+  atomicNumber: 26
+  molarMass: 55.845
+  biologicalSource: null

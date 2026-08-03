@@ -10,10 +10,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeWeatherController from '../AnalyzeWeatherController';
 import Location from '../../../../lib/stuff/Location';
-import Locality from '../../../../lib/address/Locality';
+import Locality from '../../../Locality';
 import AddressRegistry from '../../../AddressRegistry';
 import Biome from '../../../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../../SkyExposedBiome';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -92,15 +92,15 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 function skyRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;
@@ -113,7 +113,7 @@ function installRoster(): void {
     l.setName('Cair Paravel');
     l.setAddress('narnia/castle');
     return l;
-  }, '/lib/address/cair-paravel');
+  }, '/obj/Locality/cair-paravel');
   AddressApi.registerLocality(loc);
 }
 

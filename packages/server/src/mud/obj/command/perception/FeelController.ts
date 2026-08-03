@@ -25,7 +25,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ConditionApi } from '../../../api/condition';
-import { TouchModality } from '../../../lib/perception/modalities/TouchModality';
+import { TouchModality } from '../../modalities/TouchModality';
 import { Touch } from '../../../lib/perception/Touch';
 import type { Thermal } from '../../../lib/thermal/Thermal';
 

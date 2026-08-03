@@ -25,7 +25,7 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 | Object | Class | What it is |
 |---|---|---|
 | **Pot** | `/obj/PlantPot` | a `Slotted` fixture with one `plant` slot **and** a bulk interior holding soil. **Its soil volume is the root ceiling.** Two sizes ship. |
-| **Soil** | `/lib/material/bulk/potting-soil` | a bulk `Material`. A sack of it is an ordinary bulk holder; you `pour` it into the pot. |
+| **Soil** | `/obj/material/bulk/potting-soil` | a bulk `Material`. A sack of it is an ordinary bulk holder; you `pour` it into the pot. |
 | **Seed** | `/obj/Seed` | a discrete `Thing` naming the plant template it grows into. Bought, or set by a flowering plant. Consumed on planting. |
 | **Plant** | `/obj/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** |
 

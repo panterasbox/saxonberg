@@ -4,8 +4,8 @@
 # (room-spec three tiers); the clerk is the one full carve, stood up by
 # `populates`. Cross-zone exit pair with the terminal's arrival gate,
 # declared explicitly on both sides (the gate lists `east`→here).
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the Terminus Registry
   primaryKeyword: registry

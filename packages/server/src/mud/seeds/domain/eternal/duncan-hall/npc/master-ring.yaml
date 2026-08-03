@@ -7,8 +7,8 @@
 #
 # The prose matches `Lock.keyDescription('pin-tumbler', master=true)`; the
 # master state lives in the serialized `key` credential row (`masterTechs`).
-class: /lib/lock/Key
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Key
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a heavy ring of master keys
   keywords: [ring, keys, master, key]

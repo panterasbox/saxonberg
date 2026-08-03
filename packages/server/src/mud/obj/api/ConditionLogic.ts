@@ -13,7 +13,7 @@ import { StuffApi } from '../../api/stuff';
 import { TemplatePaths } from '../../lib/paths';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
-import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../lib/vitals/Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../Condition';
 import { MATERIAL_FORK_SLICES } from '../../lib/vitals/Vitals';
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { MortalArc } from '../../lib/mortality/MortalArc';
@@ -36,7 +36,7 @@ import type Material from '../../lib/material/Material';
 import type {
   Trauma,
   TraumaType,
-} from '../../lib/vitals/Condition';
+} from '../Condition';
 import type {
   InflictSpec,
   InflictOutcome,
@@ -586,7 +586,7 @@ async function mintCorpseFrom(
 async function mintShadeFrom(
   avatar: PlayerBody,
 ): Promise<Stuff | null> {
-  const { default: Shade } = await import('../../lib/mortality/Shade');
+  const { default: Shade } = await import('../Shade');
   const species = MixinApi.isOrganism(avatar as unknown as Stuff)
     ? (avatar as unknown as { getSpecies(): never }).getSpecies()
     : null;

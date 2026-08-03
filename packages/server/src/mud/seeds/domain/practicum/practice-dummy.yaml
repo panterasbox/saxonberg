@@ -2,18 +2,18 @@
 # prose): firebolt deposits real joules, tryAutoignite fires, and real
 # combustion (spread / smoke / char) takes over. Cloned fresh each standup.
 class: /obj/Firewood
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a straw practice dummy
   keywords: [dummy, target, straw]
   longDescription: >
     A man-shaped bundle of straw lashed to a post, singed in a dozen old
     places and freshly repaired in two.
-  _materialPath: /lib/material/wood/oak
+  _materialPath: /obj/material/wood/oak
   # Light — a bundle of straw (~1.5 kg), so one competent firebolt's
   # deposit carries it past oak's 570 K autoignition point.
   mass: 1.5
-  charMaterialPath: /lib/material/element/carbon
+  charMaterialPath: /obj/material/element/carbon
   reserves:
     fuel:
       capacityValue: 100

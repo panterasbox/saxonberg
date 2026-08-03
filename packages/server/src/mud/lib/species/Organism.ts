@@ -22,7 +22,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
-import type Species from './Species';
+import type Species from '../../obj/species/Species';
 
 export interface Organism {
   getSpecies(): Species | null;

@@ -26,7 +26,7 @@
  * A parcel with no explicit use inherits its covering parcel's, and
  * `landUseOf` is total: ground nothing claims answers `wild`, which admits
  * nothing. That default is load-bearing, because **most parcel rows are not
- * ground at all** — `/lib/lounge`, `/studio` and the `/obj/…` roots are
+ * ground at all** — `/obj/lounge`, `/studio` and the `/obj/…` roots are
  * path-branch titles over the template tree. They carry rows, declare no
  * use, and must not read as cultivable. Stewardship's own gloss agrees:
  * *"~nothing built; passage and gathering"* is gathering, not farming.

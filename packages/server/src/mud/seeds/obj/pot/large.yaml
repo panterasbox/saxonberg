@@ -4,14 +4,14 @@
 # the first thing a new player has a REASON to buy, and the reason is
 # legible before the purchase.
 class: /obj/PlantPot
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a large clay pot
   primaryKeyword: pot
   keywords: [pot, "large pot", "clay pot", planter]
   longDescription: |
     A deep unglazed pot you would need both arms for, broad enough at the mouth to get a full root ball into without wrecking it.
-  material: /lib/material/ceramic/ceramic
+  material: /obj/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 3
   # `liquidTight` (the default), NOT `open`: an `open` interior does not

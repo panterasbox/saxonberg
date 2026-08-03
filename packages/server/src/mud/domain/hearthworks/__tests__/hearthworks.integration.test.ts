@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../../lib/location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
 import Thing from '../../../lib/stuff/Thing';
 import Material from '../../../lib/material/Material';
@@ -52,7 +52,7 @@ function oak(): Material {
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
     m.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
     return m;
-  }, `/lib/material/_test/hearth-oak-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/hearth-oak-${seq}`) as unknown as Material;
 }
 function iron(): Material {
   seq += 1;
@@ -64,7 +64,7 @@ function iron(): Material {
     m.setMeltingPoint(Quantity.of(1811, 'K'));
     m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
     return m;
-  }, `/lib/material/_test/hearth-iron-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/hearth-iron-${seq}`) as unknown as Material;
 }
 
 function firewood(where: CartesianLocation, massKg: number, wet = false): Firewood {

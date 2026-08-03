@@ -1,0 +1,133 @@
+# Biped — two legs, two prehensile hands, upright. Shared by humans,
+# dwarves, elves, orcs, halflings. Sensory anatomy: two frontal eyes,
+# two lateral ears, one forward nose. Capability variance lives on
+# species, not here.
+class: /obj/species/BodyPlan
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: biped
+  # Whole-body default mass (kg). A Creature of this plan seeds its
+  # getMass() from this unless the instance authors its own mass. Shared
+  # body-size signal (encumbrance carry capacity now; metabolism basal
+  # drain + thermal mass later) — see docs/subsystems/encumbrance.md.
+  baseMass: 70
+  # Slots reference anatomy where they have a home (the slot↔part
+  # relations live on the slot side): `bodyPart` = the part the slot
+  # attaches at (lose it → slot disabled); `covers` = parts an occupant
+  # protects (coverage relation, for armor / hit-location — no consumer
+  # yet). Multi-part wear slots (legs/feet/hands) have no single
+  # `bodyPart`; the cranial bay and neck attach at a part but cover
+  # nothing. See docs/subsystems/vitals.md.
+  slots:
+    - { name: head,           accepts: WearableMixin, covers: [body.head] }
+    - { name: torso,          accepts: WearableMixin, covers: [body.torso] }
+    - { name: legs,           accepts: WearableMixin, covers: [body.leg.left, body.leg.right] }
+    - { name: feet,           accepts: WearableMixin, covers: [body.leg.left.foot, body.leg.right.foot] }
+    - { name: hands,          accepts: WearableMixin, covers: [body.arm.left.hand, body.arm.right.hand] }
+    - { name: 'finger:left',  accepts: WearableMixin, bodyPart: body.arm.left.hand }
+    - { name: 'finger:right', accepts: WearableMixin, bodyPart: body.arm.right.hand }
+    - { name: neck,           accepts: WearableMixin }
+    - { name: 'hand:left',    accepts: WieldableMixin, bodyPart: body.arm.left.hand }
+    - { name: 'hand:right',   accepts: WieldableMixin, bodyPart: body.arm.right.hand }
+    # Belt sheath — a carry slot for a sheathed sidearm (the disarm answer:
+    # `fight draw` fast-switches a weapon from here into a grip). Accepts the
+    # broad SlottableMixin so a weapon can be sheathed here without claiming
+    # it as a wield slot. See docs/subsystems/combat.md (hand-slot economy).
+    - { name: 'sidearm',      accepts: SlottableMixin }
+    # Cranial implant slot — accepts SlottableMixin (the broad
+    # interface every augment composes). The "implant" semantic
+    # lives in the slot's name and the augment's targetSlot field,
+    # not in the validator enum. See docs/subsystems/augmentation.md.
+    - { name: cranial,        accepts: SlottableMixin, bodyPart: body.head }
+  locomotionModes:
+    - walk
+    - climb
+    - swim
+  defaultLocomotionMode: walk
+  sensoryPorts:
+    - { modality: vision, count: 2, position: frontal }
+    - { modality: hearing, count: 2, position: lateral }
+    - { modality: smell, count: 1, position: forward }
+  # Typed anatomy (Vitals substrate). Coarse v1 roster: limbs / head /
+  # torso + heart / lungs. Tissue masses (kg) are the strength substrate;
+  # enablesSlots gates wear/wield; governsVital is the organ→vital
+  # coupling. Stable body.* keys are the trauma-site anchor.
+  bodyParts:
+    - key: body.torso
+      parent: null
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 8 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 12 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 20 }
+    - key: body.head
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 1 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 4 }
+    - key: body.arm.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 1.5 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 3 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 1 }
+    - key: body.arm.left.hand
+      parent: body.arm.left
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 0.4 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 0.3 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 0.3 }
+    - key: body.arm.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 1.5 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 3 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 1 }
+    - key: body.arm.right.hand
+      parent: body.arm.right
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 0.4 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 0.3 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 0.3 }
+    - key: body.leg.left
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 4 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 8 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 3 }
+    - key: body.leg.left.foot
+      parent: body.leg.left
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 0.8 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 0.5 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 0.5 }
+    - key: body.leg.right
+      parent: body.torso
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 4 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 8 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 3 }
+    - key: body.leg.right.foot
+      parent: body.leg.right
+      severable: true
+      tissues:
+        - { tissuePath: /obj/material/tissue/bone, mass: 0.8 }
+        - { tissuePath: /obj/material/tissue/muscle, mass: 0.5 }
+        - { tissuePath: /obj/material/tissue/flesh, mass: 0.5 }
+    - key: body.torso.heart
+      parent: body.torso
+      governsVital: heartRate
+      tissues:
+        - { tissuePath: /obj/material/tissue/muscle, mass: 0.3 }
+    - key: body.torso.lungs
+      parent: body.torso
+      governsVital: respiratoryRate
+      tissues:
+        - { tissuePath: /obj/material/tissue/flesh, mass: 1 }

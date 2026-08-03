@@ -27,7 +27,7 @@ const OLD_ROW = {
   ],
   toolCapabilities: ['mixing-glass'],
   outputTemplate: '/domain/lounge/cocktail-glass',
-  outputMaterial: '/lib/material/cocktail/martini',
+  outputMaterial: '/obj/material/cocktail/martini',
   baseGradeBand: '',
 };
 
@@ -104,7 +104,7 @@ describe('Recipe schema round-trip', () => {
     expect(r.getInputSlots()).toEqual(OLD_ROW.inputSlots);
     expect(r.getToolCapabilities()).toEqual(['mixing-glass']);
     expect(r.getOutputTemplate()).toBe('/domain/lounge/cocktail-glass');
-    expect(r.getOutputMaterial()).toBe('/lib/material/cocktail/martini');
+    expect(r.getOutputMaterial()).toBe('/obj/material/cocktail/martini');
     expect(r.getBaseGrade()).toBeNull();
     // New fields default: no heat gate, bulk application, no ladder row.
     expect(r.getRequiresHeatK()).toBe(0);

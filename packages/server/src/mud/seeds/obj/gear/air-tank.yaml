@@ -4,7 +4,7 @@
 # empties underwater the body falls into the supply-exhausted crisis.
 # Refill via `BulkableApi.transfer` from a dive-shop air source.
 class: /obj/AirTank
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: an air tank
   primaryKeyword: tank
@@ -13,8 +13,8 @@ data:
     a regulator. A gauge on the manifold reads the air remaining.
   mass: 8
   interiorBulk: true
-  interiorMaterial: /lib/material/bulk/air
+  interiorMaterial: /obj/material/bulk/air
   interiorCapacity: 6
   interiorAmount: 6
   slotClaims:
-    "/lib/body-plans/biped": [torso]
+    "/obj/species/BodyPlan/biped": [torso]

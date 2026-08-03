@@ -1,0 +1,16 @@
+# The City of Terminus — the CITY tier of the three-tier chain (realm
+# `terminus` above it, campus `terminus/city/campus` inside it). Declares
+# the municipal government's jurisdiction: the City of Terminus, the young
+# retrofit administration (terminus-city.md §8 — a chartered municipal
+# corporation, commission under charter). Everything addressed
+# `terminus/city/...` that no finer Locality claims resolves here.
+class: /obj/Locality
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  # Display name "Terminus", same as the realm root — the Rome-metonymy
+  # made literal. The departures board names a destination by its
+  # COVERING Locality, which for the arrival gate is now this city tier;
+  # the D13 board label must stay "Terminus".
+  name: Terminus
+  _address: terminus/city
+  _governmentKey: terminus-city

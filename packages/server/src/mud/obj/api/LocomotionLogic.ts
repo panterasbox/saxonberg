@@ -10,7 +10,7 @@ import type { Containable } from '../../lib/spatial/Containable';
 import type { Mobile } from '../../lib/spatial/Mobile';
 import type Exit from '../../lib/boundary/Exit';
 import type { TraversalGuard } from '../../lib/boundary/Exit';
-import { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
+import { LocomotionMode } from '../LocomotionMode';
 import type { Enablement } from '../../lib/locomotion/Enablement';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -42,7 +42,7 @@ const LocomotionApiCallers = SecurityPolicies.AnyOf(
  * it (see hot-reload.md for the in-game demo).
  *
  * All inputs that reference a mode by name accept either the short
- * name (`'walk'`) or the full templatePath (`/lib/locomotion/walk`).
+ * name (`'walk'`) or the full templatePath (`/obj/LocomotionMode/walk`).
  * Internally the logic normalizes to the full path via the
  * module-private `toModePath` free function so the singleton-cache
  * lookup uses the canonical key.
@@ -483,7 +483,7 @@ export class LocomotionLogic extends ApiLogic {
 /** Short name → full path; full path passes through. */
 function toModePath(nameOrPath: string): string {
   if (nameOrPath.startsWith('/')) return nameOrPath;
-  return `/lib/locomotion/${nameOrPath}`;
+  return `/obj/LocomotionMode/${nameOrPath}`;
 }
 
 function checkEnablementScope(

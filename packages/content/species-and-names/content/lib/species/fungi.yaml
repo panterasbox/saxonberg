@@ -1,8 +1,0 @@
-# Fungi — kingdom of saprotrophic eukaryotes. v1 ships no Fungi
-# species; the Clade exists so the taxonomy is complete and content
-# can populate it later without a schema change.
-class: /lib/species/Clade
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: Fungi
-  rank: kingdom

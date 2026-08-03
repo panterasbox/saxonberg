@@ -23,8 +23,8 @@ import {
   CredentialWalletMixin,
   type CredentialWallet,
 } from "../CredentialWallet";
-import CredentialWalletUpdate from "../CredentialWalletUpdate";
-import PaymentCard from "../../banking/PaymentCard";
+import CredentialWalletUpdate from "../../../obj/CredentialWalletUpdate";
+import PaymentCard from "../../../obj/PaymentCard";
 import TravelCard from "../../../domain/common/tpa/TravelCard";
 import { BORN_WITH_TRAVEL_NODES } from "../Credential";
 import { makeStuff } from "../../security/__tests__/test-setup";

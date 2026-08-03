@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.search.locate
-  family: world.perception.search
-  label: Locate
-  description: Output of the locate verb — world-scope where-is lookups.

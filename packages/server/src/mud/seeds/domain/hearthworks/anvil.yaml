@@ -4,8 +4,8 @@
 # reachability: hammer + anvil + heat, wherever they are. The `anvil`
 # capability entry alone confers the smithing verb surface (the
 # capability table — a tool variant is pure seed data).
-class: /lib/craft/ToolItem
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/ToolItem
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the smithy anvil
   primaryKeyword: anvil
@@ -13,5 +13,5 @@ data:
   longDescription: |
     A smithy anvil on a scarred oak stump, its face bright where ten thousand blows have polished it.
   capabilities: [anvil]
-  _materialPath: /lib/material/element/iron
+  _materialPath: /obj/material/element/iron
   mass: 60

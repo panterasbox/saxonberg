@@ -24,8 +24,8 @@
 # is not worth modelling, the television because its function is ALREADY
 # modelled. One rule — a fixture becomes an object only when something
 # reads it.
-class: /lib/location/FurnishableRoom
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/FurnishableRoom
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a living room
   primaryKeyword: living

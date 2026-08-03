@@ -51,7 +51,7 @@ describe("the yard ships the kit that makes it workable", () => {
     // N lots cannot share one coordinate, and a cartesian yard divided
     // its open sky by the zone's cellSize² down to 16.7 lux — under the
     // light floor its own crop needs.
-    expect(yard.class).toBe("/lib/location/FurnishableRoom");
+    expect(yard.class).toBe("/obj/location/FurnishableRoom");
     expect(yard.data?.coords).toBeUndefined();
   });
 });

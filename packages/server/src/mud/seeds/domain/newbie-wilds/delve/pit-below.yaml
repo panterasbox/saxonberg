@@ -3,8 +3,8 @@
 # above is now sprung/one-shot, so re-crossing it does not re-drop you). A
 # fall wounds and delays; it does not strand — the content-discipline rule
 # ("traps redirect but never hard-block") realized as geometry.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the floor of the pit
   primaryKeyword: pit

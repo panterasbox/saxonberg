@@ -1,7 +1,0 @@
-class: /lib/advancement/Discipline
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  key: alcohol-tolerance
-  channel: conditioning
-  label: Alcohol Tolerance
-  description: The body adapts to drink — bounded and bidirectional. The cleanest example of why conditioning is a distinct channel from skill, because you lay off and it fades.

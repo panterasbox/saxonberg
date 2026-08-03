@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.measure-temperature
-  family: world.perception.measurement
-  label: Measure Temperature
-  description: Output of the measure temperature subcommand — Kelvin reading with thermal tag.

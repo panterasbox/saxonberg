@@ -34,7 +34,7 @@ import { LIGHT_BANDS } from '../../lib/perception/Light';
 // registered clone (the RecognitionLogic `canSeeGate` idiom); a *static*
 // value import of a specific modality would drag the whole modality
 // subsystem into this module's eval.
-import type { VisionModality } from '../../lib/perception/modalities/VisionModality';
+import type { VisionModality } from '../modalities/VisionModality';
 import type { SearchDepth } from '../../api/perception';
 
 /** Template-path prefix shared by every modality singleton. */
@@ -294,7 +294,7 @@ export class PerceptionLogic extends ApiLogic {
 /**
  * Modality name list — single source of truth for the
  * `preloadModalities` walk. Stays in step with the seed YAMLs
- * under `seeds/lib/perception/modalities/`.
+ * under `seeds/obj/modalities/`.
  */
 const MODALITY_NAMES: readonly string[] = [
   'vision',

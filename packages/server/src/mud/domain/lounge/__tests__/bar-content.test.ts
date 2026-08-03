@@ -16,7 +16,7 @@ const LOUNGE_DIR = fileURLToPath(
   new URL("../../../seeds/domain/lounge/", import.meta.url)
 );
 const BRAND_DIR = fileURLToPath(
-  new URL("../../../seeds/lib/corpo/Brand/", import.meta.url)
+  new URL("../../../seeds/obj/corpo/Brand/", import.meta.url)
 );
 
 interface Seed {

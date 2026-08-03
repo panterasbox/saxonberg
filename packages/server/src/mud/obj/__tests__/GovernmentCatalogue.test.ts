@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import GovernmentCatalogue from "../GovernmentCatalogue";
-import Government from "../../lib/civics/Government";
+import Government from "../Government";
 import { StuffApi } from "../../api/stuff";
 import { ShadowApi } from "../../api/shadow";
 import { Template } from "../../lib/stuff/Template";

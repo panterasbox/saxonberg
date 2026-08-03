@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import LockController from '../LockController';
 import UnlockController from '../UnlockController';
-import Door from '../../../../lib/boundary/Door';
+import Door from '../../../Door';
 import Location from '../../../../lib/stuff/Location';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';

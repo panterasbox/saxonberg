@@ -1,0 +1,8 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.chat.message
+  communicative: true
+  family: world.chat
+  label: Chat Message
+  description: A post on a chat channel. Channel attribution rides `meta.channelId` and the body's `<chan>` MML region (when authored).

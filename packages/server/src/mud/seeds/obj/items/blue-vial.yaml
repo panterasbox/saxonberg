@@ -1,5 +1,5 @@
-class: /lib/identification/IdentifiableThing
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/IdentifiableThing
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   # The unidentified appearance — what anyone sees until they identify it.
   shortDescription: a blue potion

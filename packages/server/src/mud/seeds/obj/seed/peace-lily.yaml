@@ -7,7 +7,7 @@
 # store's `itemTemplatePath` takes any path, and duplicating it under
 # `goods/` would mean two seeds that grow the same plant and drift apart.
 class: /obj/Seed
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a peace lily seed
   primaryKeyword: seed
@@ -15,4 +15,4 @@ data:
   longDescription: |
     A single dark seed, barely bigger than a peppercorn, in a twist of waxed paper.
   growsIntoPath: /obj/plant/peace-lily
-  _speciesPath: /lib/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii
+  _speciesPath: /obj/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii

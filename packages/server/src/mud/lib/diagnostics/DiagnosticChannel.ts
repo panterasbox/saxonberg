@@ -52,7 +52,7 @@ export class DiagnosticChannel {
     // lounge tree (`/lib/lounge/...` — the lounge is the exemplar zone).
     const zoneSeg = p.match(/\/zones\/([^/]+)\//);
     if (zoneSeg && zoneSeg[1]) return `zone.${zoneSeg[1]}`;
-    const lounge = p.match(/\/(?:lib|domain)\/lounge(?:\/|$)/);
+    const lounge = p.match(/\/(?:lib|obj|domain)\/lounge(?:\/|$)/);
     if (lounge) return "zone.lounge";
 
     // Command controllers/views before the generic lib arm.

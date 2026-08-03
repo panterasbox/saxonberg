@@ -29,7 +29,7 @@ import { ContainmentApi } from '../../../../api/containment';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { ParcelEvent } from '../../../../lib/parcel/ParcelEvent';
 import { Document } from '../../../../lib/persistence/Document';
-import { QuantityMarshaller } from '../../../../lib/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../../persistence/QuantityMarshaller';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { SensorMixin } from '../../../../lib/message/Sensor';

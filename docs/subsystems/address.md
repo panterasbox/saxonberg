@@ -29,14 +29,14 @@ mailing address is not a filesystem path).
 | **templatePath** | engine identity (where the template lives) | the CMS template tree |
 | **zone tree** | spatial integrity + admin taxonomy | `Zone` / `SpatialZone` |
 
-A Locality at templatePath `/lib/address/cair-paravel` claiming address
+A Locality at templatePath `/obj/Locality/cair-paravel` claiming address
 `narnia/castle` is normal and expected; the demonstrative roster pins
 this divergence.
 
 ## The Locality node
 
 `Locality extends PostRegistrationMixin(Idea)` — reference data, a leaf
-like `Biome` / `Material` / `Species`, hanging under `/lib/address/`.
+like `Biome` / `Material` / `Species`, hanging under `/obj/Locality/`.
 
 - **`_address` is the claimed coverage prefix.** A Locality claims
   everything at or under its node; there is no separate coverage field
@@ -123,7 +123,7 @@ reload of `api/address.ts`; a reload of the Registry re-clones and
 - **Eager roster clone.** Leaf Ideas clone lazily, so a Locality's
   self-registration only fires once something clones it. The Registry's
   `postRegister` therefore eagerly clones every Locality template under
-  `/lib/address/` so the index is complete even for never-accessed
+  `/obj/Locality/` so the index is complete even for never-accessed
   Localities. `PathTrie.insert` is idempotent, so the eager insert and a
   Locality's self-registration converge.
 - **v1 simplification (flagged for the delivery build):** the eager
@@ -184,11 +184,11 @@ claimed address:
 
 | templatePath | claims | proves |
 |---|---|---|
-| `/lib/address` (FolderZone) | — | admin/ownership root |
-| `/lib/address/narnia` | `narnia` | root Region (coverage fallback) |
-| `/lib/address/cair-paravel` | `narnia/castle` | nested longest-prefix winner |
-| `/lib/address/lantern-waste` | `narnia/wild` | sibling discrimination + null-outside-tree |
-| `/lib/address/hinkley-hills` | `terminus/hinkley-hills` | a **sibling of the city, not a child** — a suburb beside Terminus rather than inside it, with a `_governmentKey` of its own |
+| `/obj/Locality` (FolderZone) | — | admin/ownership root |
+| `/obj/Locality/narnia` | `narnia` | root Region (coverage fallback) |
+| `/obj/Locality/cair-paravel` | `narnia/castle` | nested longest-prefix winner |
+| `/obj/Locality/lantern-waste` | `narnia/wild` | sibling discrimination + null-outside-tree |
+| `/obj/Locality/hinkley-hills` | `terminus/hinkley-hills` | a **sibling of the city, not a child** — a suburb beside Terminus rather than inside it, with a `_governmentKey` of its own |
 
 ### The suburb tier (living-world phase 2)
 

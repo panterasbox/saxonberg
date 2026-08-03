@@ -9,8 +9,8 @@
 # Stands up **lazily and derived**: no manifest entry, no clerk hook. The
 # employment engine reads this Business's own `operatingLocations` and stands
 # it up on first `businessAt(that fixture)` — the Gate A fare is the trigger.
-class: /lib/employment/Business
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   # The one city position: the terminal clerk. `wageRate` is minor units per

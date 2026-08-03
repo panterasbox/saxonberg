@@ -28,7 +28,7 @@ import type { CompositionEntry } from '../lib/material/Material';
 import type { Channel } from '../lib/material/Channel';
 import type { Construction } from '../lib/material/Construction';
 import type { Grade } from '../lib/craft/Grade';
-import type { TraumaType } from '../lib/vitals/Condition';
+import type { TraumaType } from '../obj/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -325,7 +325,7 @@ export class MaterialApi {
   }
 
   /**
-   * Boot-time roster warm: stand up every authored `/lib/material/**`
+   * Boot-time roster warm: stand up every authored `/obj/material/**`
    * Material as a live singleton so the sync resolve-on-read seams
    * (`Tangible.getMaterial`, bulk slot materials, autoignition,
    * composition expansion) hit from the first frame of live play —

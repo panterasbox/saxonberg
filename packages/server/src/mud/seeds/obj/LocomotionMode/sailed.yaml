@@ -1,0 +1,17 @@
+# Sailed — vehicular mode authored on rowboats / sailboats. Quiet,
+# partial contact with water.
+class: /obj/LocomotionMode
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: sailed
+  speed: 1.5
+  noiseLevel: quiet
+  bodyProfile: upright
+  groundContact: partial
+  requiresBodyPlanMode: []
+  requiresPosture: []
+  costMultiplier: 0.6
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: null
+  medium: water

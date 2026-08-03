@@ -13,7 +13,7 @@
 # A plain, zone-less Location (a social pocket, not a grid cell) — no
 # coordinates, no SingletonMixin (repeated clones are the whole point).
 class: /domain/lounge/Lounge
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   warren: /domain/lounge/warren
   shortDescription: the lounge

@@ -31,7 +31,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../PersistentHydrator";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
@@ -48,7 +48,7 @@ import { HasInteractiveMixin } from "../../connection/HasInteractive";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "./quantity-marshaller-test-helpers";
 import { Quantity } from "../../quantity";
-import { QuantityMarshaller } from "../QuantityMarshaller";
+import { QuantityMarshaller } from "../../../obj/persistence/QuantityMarshaller";
 import type { FieldMeta } from "../../mixin";
 
 /* ─────────────────────────── test fixtures ─────────────────────────── */

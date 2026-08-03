@@ -35,7 +35,7 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
   it("all four exist and share `/lib/location/FurnishableRoom`", () => {
     for (const name of ARCHETYPES) {
       const seed = read(`obj/room/${name}.yaml`);
-      expect(seed.class).toBe("/lib/location/FurnishableRoom");
+      expect(seed.class).toBe("/obj/location/FurnishableRoom");
     }
   });
 
@@ -56,8 +56,8 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       "/obj/Oven", // the range
       "/obj/Chest", // the larder
       "/obj/UnboundedReceptacle", // the basin
-      "/lib/spatial/Surface", // the counter
-      "/lib/stuff/Thing", // the toilet — prose, no capability
+      "/obj/Surface", // the counter
+      "/obj/Prop", // the toilet — prose, no capability
     ]);
     for (const file of readdirSync(join(SEEDS, "obj/fixture"))) {
       const seed = read(`obj/fixture/${file}`);
@@ -155,11 +155,11 @@ describe("the bathroom — PRESENCE (D13)", () => {
   });
 
   it("the toilet does nothing, deliberately — prose, no capability", () => {
-    // Enforced rather than remembered. `/lib/stuff/Thing` is Tangible +
+    // Enforced rather than remembered. `/obj/Prop` is Tangible +
     // Visible + Containable and nothing else: no slot, no surface, no
     // container, no bulk. If you are here to "finish" the toilet: don't.
     const toilet = read("obj/fixture/toilet.yaml");
-    expect(toilet.class).toBe("/lib/stuff/Thing");
+    expect(toilet.class).toBe("/obj/Prop");
     for (const capability of [
       "staticSlots",
       "interiorBulk",

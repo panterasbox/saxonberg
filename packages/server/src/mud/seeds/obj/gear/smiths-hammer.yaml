@@ -2,8 +2,8 @@
 # (smithing makes the hammer smithing needs). Material + mass flow from
 # the consumed stock when forged; this seed is also cloned directly as
 # venue kit.
-class: /lib/craft/ToolItem
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/ToolItem
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a smith's hammer
   primaryKeyword: hammer
@@ -11,5 +11,5 @@ data:
   longDescription: |
     A cross-peen smith's hammer, its face polished bright by work and its haft dark with hand-oil.
   capabilities: [striking]
-  _materialPath: /lib/material/element/iron
+  _materialPath: /obj/material/element/iron
   mass: 1.4

@@ -28,8 +28,8 @@ import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../lib/vitals/Vitals';
 import type { Dressing } from '../../../lib/vitals/Dressing';
-import { TRAUMA_BEHAVIOR } from '../../../lib/vitals/Condition';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import { TRAUMA_BEHAVIOR } from '../../Condition';
+import type { Trauma } from '../../Condition';
 import type { Difficulty, Outcome } from '../../../lib/advancement/ActSignature';
 
 const TOPIC = 'world.narration.action';

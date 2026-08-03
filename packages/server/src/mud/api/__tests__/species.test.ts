@@ -3,8 +3,8 @@ import { SpeciesApi } from '../species';
 import { SpeciesLogic } from '../../obj/api/SpeciesLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Species from '../../lib/species/Species';
-import Clade from '../../lib/species/Clade';
+import Species from '../../obj/species/Species';
+import Clade from '../../obj/species/Clade';
 import { OrganismMixin } from '../../lib/species/Organism';
 import Thing from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
@@ -28,14 +28,14 @@ function setupAnimaliaOrganism(): {
 } {
   const animalia = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/lib/species/animalia'
+    '/obj/species/animalia'
   );
   animalia.setName('Animalia');
   animalia.setRank('kingdom');
 
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+    '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
   );
 
   const organism = makeStuff(() => new OrganismThing());
@@ -46,14 +46,14 @@ function setupAnimaliaOrganism(): {
 function setupConstructaOrganism(): InstanceType<typeof OrganismThing> {
   const constructa = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/lib/species/constructa'
+    '/obj/species/constructa'
   );
   constructa.setName('Constructa');
   constructa.setRank('kingdom');
 
   const robot = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/constructa/metallica/tutor-bot/mk-iv'
+    '/obj/species/constructa/metallica/tutor-bot/mk-iv'
   );
 
   const organism = makeStuff(() => new OrganismThing());
@@ -131,13 +131,13 @@ describe('SpeciesApi', () => {
     it('Plantae: never animate (no Agent surface in v1)', () => {
       const plantae = withTemplatePath(
         makeStuff(() => new Clade()),
-        '/lib/species/plantae'
+        '/obj/species/plantae'
       );
       plantae.setName('Plantae');
       plantae.setRank('kingdom');
       const peace = withTemplatePath(
         makeStuff(() => new Species()),
-        '/lib/species/plantae/.../wallisii'
+        '/obj/species/plantae/.../wallisii'
       );
       const plant = makeStuff(() => new OrganismThing());
       plant.setSpecies(peace);

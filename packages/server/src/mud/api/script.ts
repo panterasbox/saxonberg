@@ -16,7 +16,7 @@
  */
 
 import type { Script } from "../lib/script/ast";
-import type EvalScript from "../lib/script/EvalScript";
+import type EvalScript from "../obj/EvalScript";
 import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
@@ -187,7 +187,7 @@ export class ScriptApi {
    * legitimate caller, and it is itself reachable only behind
    * `AccessApi.isWizard`.
    */
-  @CallSecurity(SecurityPolicies.FromModule("/lib/script/EvalScript"))
+  @CallSecurity(SecurityPolicies.FromModule("/obj/EvalScript"))
   static compileSandboxed(code: string): CompiledSandbox {
     return logic().compileSandboxed(code);
   }
@@ -200,7 +200,7 @@ export class ScriptApi {
    * Gated to `EvalScript` for the same reason as
    * {@link ScriptApi.compileSandboxed}.
    */
-  @CallSecurity(SecurityPolicies.FromModule("/lib/script/EvalScript"))
+  @CallSecurity(SecurityPolicies.FromModule("/obj/EvalScript"))
   static runSandboxed(
     compiled: CompiledSandbox,
     sandbox: Record<string, unknown>,

@@ -15,12 +15,12 @@ import { readFileSync, readdirSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
-import { DISCIPLINE_CHANNELS } from "../Discipline";
+import { DISCIPLINE_CHANNELS } from "../../../obj/Discipline";
 
 const __filename = fileURLToPath(import.meta.url);
 const SEEDS_DIR = join(
   dirname(__filename),
-  "../../../seeds/lib/advancement/Discipline"
+  "../../../seeds/obj/Discipline"
 );
 const CMD_DIR = join(dirname(__filename), "../../../cmd");
 
@@ -36,7 +36,7 @@ function loadAll(): Map<string, DisciplineSeed["data"]> {
     const seed = YAML.parse(
       readFileSync(join(SEEDS_DIR, file), "utf-8")
     ) as DisciplineSeed;
-    expect(seed.class, `${file} wrong class`).toBe("/lib/advancement/Discipline");
+    expect(seed.class, `${file} wrong class`).toBe("/obj/Discipline");
     const key = seed.data?.key as string | undefined;
     expect(key, `${file} missing key`).toBeTruthy();
     byKey.set(key!, seed.data);

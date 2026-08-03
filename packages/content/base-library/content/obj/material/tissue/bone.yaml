@@ -1,0 +1,18 @@
+# Bone — rigid mineralized skeletal tissue, hard and load-bearing.
+# `density` (kg/m³) and `thermalConductivity` (W/(m·K)) are Material's
+# real Quantity fields, authored bare + marshalled. (The combat
+# material-response — `resistance.<type>` — is deferred until the
+# mechanism-of-injury system lands and can model it honestly.)
+class: /obj/material/Material
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: bone
+  density: 1900
+  specificHeat: 1300
+  thermalConductivity: 0.32
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 100
+  toughness: 6
+  edibility: false
+  nutrients: ["calcium"]
+  tags: ["tissue", "animal", "bone", "mineral", "skeletal"]

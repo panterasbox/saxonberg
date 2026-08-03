@@ -24,7 +24,7 @@ interface PackArgs extends CommandModel {
 const OK: PackReconcileResult = {
   packId: 'base-library',
   inserted: [],
-  updated: ['/lib/material/spirit/gin'],
+  updated: ['/obj/material/spirit/gin'],
   adopted: [],
   deleted: [],
   quantityTables: 0,

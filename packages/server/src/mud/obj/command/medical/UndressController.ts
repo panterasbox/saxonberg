@@ -19,8 +19,8 @@ import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../lib/vitals/Vitals';
-import { TRAUMA_BEHAVIOR } from '../../../lib/vitals/Condition';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import { TRAUMA_BEHAVIOR } from '../../Condition';
+import type { Trauma } from '../../Condition';
 
 const TOPIC = 'world.narration.action';
 

@@ -23,7 +23,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
-import type Locality from '../lib/address/Locality';
+import type Locality from '../obj/Locality';
 import { AddressLogic } from '../obj/api/AddressLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';

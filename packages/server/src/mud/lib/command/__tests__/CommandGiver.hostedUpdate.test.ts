@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { CommandGiverMixin } from '../CommandGiver';
 import { AetherMixin } from '../../message/Aether';
-import CommsUpdate from '../../comms/CommsUpdate';
+import CommsUpdate from '../../../obj/CommsUpdate';
 import { Idea } from '../../stuff/Idea';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

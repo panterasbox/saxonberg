@@ -20,7 +20,7 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { CodeNamingFields } from '../../lib/stuff/CodeNamingFields';
 import Avatar from '../Avatar';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../persistence/PersistentHydrator';
 
 const TemplateApiCallers = SecurityPolicies.FromModule('/api/template#TemplateApi'
 );

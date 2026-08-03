@@ -12,7 +12,7 @@ import { ChatApi } from "../../api/chat";
 import { StuffApi } from "../../api/stuff";
 import { AdvancementApi } from "../../api/advancement";
 import { SecurityApi } from "../../api/security";
-import { Party, DEFAULT_FORMATION_PATH } from "../../lib/party/Party";
+import { Party, DEFAULT_FORMATION_PATH } from "../Party";
 import { PartyRecord } from "../../lib/party/PartyRecord";
 import { PartyGroupProvider } from "../../lib/party/PartyGroupProvider";
 import type { PartyOpResult, PartySimpleResult } from "../../api/party";
@@ -532,7 +532,7 @@ async function setFormationImpl(
   if (!trimmed || !/^[a-z][a-z-]*$/.test(trimmed)) {
     return { ok: false, reason: "unknown-formation" };
   }
-  const path = `/lib/combat/CombatFormation/${trimmed}`;
+  const path = `/obj/CombatFormation/${trimmed}`;
   // Await the Idea resident BEFORE accepting, so a mid-fight switch is
   // live by its next beat (the beat's consult is sync findByTemplatePath).
   try {

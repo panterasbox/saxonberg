@@ -17,11 +17,11 @@ import {
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../../lib/stuff/Idea";
 import { Character } from "../../../lib/character/Character";
-import Species from "../../../lib/species/Species";
-import BodyPlan from "../../../lib/species/BodyPlan";
-import Weapon from "../../../lib/equipment/Weapon";
-import Armor from "../../../lib/equipment/Armor";
-import Shield from "../../../lib/equipment/Shield";
+import Species from "../../species/Species";
+import BodyPlan from "../../species/BodyPlan";
+import Weapon from "../../equipment/Weapon";
+import Armor from "../../equipment/Armor";
+import Shield from "../../equipment/Shield";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import Material from "../../../lib/material/Material";
 import { Construction } from "../../../lib/material/Construction";
@@ -46,9 +46,9 @@ import { CombatHookContext } from "../../../lib/combat/CombatHookContext";
 import { CombatReactiveMixin } from "../../../lib/combat/CombatReactive";
 import type { Slotted } from "../../../lib/slot/Slotted";
 import { EnergizedMixin } from "../../../lib/electricity/Energized";
-import StunBaton from "../../../lib/electricity/StunBaton";
+import StunBaton from "../../equipment/StunBaton";
 import type { Channel } from "../../../lib/material/Channel";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../api/event";
 
 /* ───────────────────────── fixtures ───────────────────────── */
@@ -201,7 +201,7 @@ function mat(hardness: number, toughness: number, name: string): Material {
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
-  stampTemplatePathForTest(m, `/lib/material/test/m-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/m-${seq++}`);
   return m;
 }
 const steel = () => mat(600, 200, "steel");
@@ -240,26 +240,26 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/lib/material/tissue/bone", mass: 8 },
-        { tissuePath: "/lib/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
+        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-fighter-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-fighter-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/fighter-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/fighter-${id}`);
 
   const f = makeStuff(() => new (opts.ctor ?? HookedFighter)());
   stampTemplatePathForTest(f, `/test/fighter-${id}`);

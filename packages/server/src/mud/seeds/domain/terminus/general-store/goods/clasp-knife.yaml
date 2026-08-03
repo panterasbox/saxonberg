@@ -5,19 +5,19 @@
 # Wieldable (claims a hand slot — you can `wield` and fight with it). A
 # short, light, plain blade: fast tempo, close range, a fair working grade.
 # A discrete Thing (chattel-stampable, never Globbable).
-class: /lib/equipment/Weapon
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Weapon
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a folding clasp knife
   primaryKeyword: knife
   keywords: [knife, clasp, tool, blade, pocketknife]
   longDescription: |
     A workmanlike clasp knife, the sort that cuts rope and whittles a peg and opens a ration pack — and, unfolded, will hold off a rat or worse in a pinch. The bone handle is worn smooth by someone else's thumb.
-  _materialPath: /lib/material/alloy/steel
+  _materialPath: /obj/material/alloy/steel
   constructionForm: bladed
   gradeBand: fair
   # A small, light folding blade — short reach, quick.
   mass: 0.12
   length: 0.1
   slotClaims:
-    "/lib/body-plans/biped": ["hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:right"]

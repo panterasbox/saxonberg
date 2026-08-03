@@ -5,7 +5,7 @@
 # terminus`; the board DISPLAYS the covering Locality name ("Terminus").
 # No advanceMode → the FastTravelMixin default `manual` applies.
 class: /domain/common/tpa/TpaTerminal
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   seatIn: /domain/terminus/terminal/arrival-gate
   shortDescription: a Teleport Authority terminal

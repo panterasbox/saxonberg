@@ -6,7 +6,7 @@
 # habit into a chore. The dorm gave a houseplant a tap down the corridor
 # for the same reason.
 class: /obj/UnboundedReceptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a standpipe
   primaryKeyword: standpipe
@@ -14,4 +14,4 @@ data:
   longDescription: |
     A galvanised pipe standing out of the grass with a brass tap on top of it, dripping slightly and greening the ground beneath. It was here before the fence was.
   interiorBulk: true
-  interiorMaterial: /lib/material/bulk/water
+  interiorMaterial: /obj/material/bulk/water

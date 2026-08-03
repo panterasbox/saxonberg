@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Armor from '../../equipment/Armor';
+import Armor from '../../../obj/equipment/Armor';
 import Material from '../Material';
 import { Construction } from '../Construction';
 import { StuffApi } from '../../../api/stuff';
@@ -23,7 +23,7 @@ function mat(conductivity: number): Material {
   m.setElectricalConductivity(Quantity.of(conductivity, 'S/m'));
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/lib/material/test/pip-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/pip-${seq++}`);
   return m;
 }
 

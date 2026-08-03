@@ -44,7 +44,7 @@
  * identity carries the capability compose the mixin; everything else
  * stays plain `Material`.
  *
- * Singleton-by-templatePath: every `/lib/material/<...>` template resolves
+ * Singleton-by-templatePath: every `/obj/material/<...>` template resolves
  * to the same instance via `StuffApi.singleton(path)` /
  * `findByTemplatePath`. Cross-references on other Stuff store the path
  * string and re-resolve on each call (HMR-safe — no cached instance).
@@ -55,7 +55,7 @@ import { SingletonMixin } from '../stuff/Singleton';
 import { PropertiedMixin } from '../stuff/Propertied';
 import { PerceptibleMixin } from '../description/Perceptible';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';

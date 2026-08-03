@@ -9,9 +9,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import GovernmentController from "../GovernmentController";
 import GovernmentCatalogue from "../../../GovernmentCatalogue";
-import Government from "../../../../lib/civics/Government";
+import Government from "../../../Government";
 import AddressRegistry from "../../../AddressRegistry";
-import Locality from "../../../../lib/address/Locality";
+import Locality from "../../../Locality";
 import Location from "../../../../lib/stuff/Location";
 import { NPC } from "../../../../lib/npc/NPC";
 import { AddressApi } from "../../../../api/address";
@@ -145,9 +145,9 @@ describe("GovernmentController", () => {
     ShadowApi._clearAllForTesting();
     makeStuffAtPath(() => new AddressRegistry(), "/obj/AddressRegistry");
     await warmCatalogue();
-    installLocality("/lib/address/narnia", "narnia", "narnia-gov");
+    installLocality("/obj/Locality/narnia", "narnia", "narnia-gov");
     installLocality(
-      "/lib/address/cair-paravel",
+      "/obj/Locality/cair-paravel",
       "narnia/castle",
       "castle-gov"
     );

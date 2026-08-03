@@ -9,8 +9,8 @@
 # (stipend 20 / wages 4-6 per game-hour / coinage 1/5/25): a relative ladder a
 # fresh arrival on the 20-credit stipend can shop against. The goods are all
 # discrete Things (never Globbable) so each carries a chattel stamp on buy.
-class: /lib/retail/Stock
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Stock
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the general-store counter
   primaryKeyword: counter

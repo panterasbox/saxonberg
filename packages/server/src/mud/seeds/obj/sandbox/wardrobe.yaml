@@ -9,8 +9,8 @@
 # An unlinked, unowned door opens onto whoever walks through it — clone
 # one, place it, step in (the authoring ladder, literally).
 # See docs/subsystems/sandbox.md.
-class: /lib/sandbox/SandboxCrossing
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/sandbox/SandboxCrossing
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   # The exit label this fixture installs. Skin-specific, hence data —
   # the class is the mechanism, and a turbolift template says

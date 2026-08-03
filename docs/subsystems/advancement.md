@@ -29,7 +29,7 @@ deferred — see [Deferred](#deferred-seams-left-open).
 
 A `Discipline` (`lib/advancement/Discipline.ts`) is a **pure-data leaf
 `Idea`**, mirroring `Topic`: authored as a template under
-`/lib/advancement/Discipline/<key>`, read by the catalogue directly from
+`/obj/Discipline/<key>`, read by the catalogue directly from
 `template.data`, **never cloned as live Stuff**. Fields: `key`, `channel`
 (`skill | knowledge | conditioning` — the procedural / conceptual / bodily
 split), the three typed edge lists, and `conferrals`.

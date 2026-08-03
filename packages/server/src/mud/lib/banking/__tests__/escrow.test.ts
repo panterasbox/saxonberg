@@ -12,7 +12,7 @@ import { BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
-import BankCounter from "../BankCounter";
+import BankCounter from "../../../obj/BankCounter";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import {
   installBankingHarness,

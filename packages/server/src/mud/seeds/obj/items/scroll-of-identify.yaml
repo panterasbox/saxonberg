@@ -1,5 +1,5 @@
-class: /lib/identification/IdentifyScroll
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/IdentifyScroll
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a scroll of identify
   primaryKeyword: scroll

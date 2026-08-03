@@ -34,7 +34,7 @@ options:
     description: "Backing class path for content writes (default /lib/stuff/Idea)"
   hydrator:
     type: string
-    description: "Hydrator class path for content writes (default /lib/persistence/PersistentHydrator); pass empty string to omit"
+    description: "Hydrator class path for content writes (default /obj/persistence/PersistentHydrator); pass empty string to omit"
 payload:
   data:
     type: struct

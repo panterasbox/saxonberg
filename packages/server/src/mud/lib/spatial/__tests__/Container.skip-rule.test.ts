@@ -25,7 +25,7 @@ import { EstateMixin } from "../../chattel/Estate";
 import { ContainerMixin } from "../Container";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../persistence/PersistentHydrator";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import GoController from '../GoController';
-import CartesianZone from '../../../../lib/location/CartesianZone';
+import CartesianZone from '../../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
-import SphericalZone from '../../../../lib/location/SphericalZone';
-import SphericalLocation from '../../../../lib/location/SphericalLocation';
+import SphericalZone from '../../../location/SphericalZone';
+import SphericalLocation from '../../../location/SphericalLocation';
 import ExitableVessel from '../../../../lib/boundary/ExitableVessel';
 import Exit from '../../../../lib/boundary/Exit';
-import Door from '../../../../lib/boundary/Door';
+import Door from '../../../Door';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../../api/containment';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';

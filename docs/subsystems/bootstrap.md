@@ -301,8 +301,8 @@ explicitly NOT here:
   template flow; module info isn't externally consulted yet).
 - **No `templatePathPrefix` entry** in the engine manifest yet.
   Wave-in candidates (when they earn their keep): a
-  `/lib/material/` bulk entry once Material validators need
-  singleton-resolved tag tables; a `/lib/biome/` bulk entry once
+  `/obj/material/` bulk entry once Material validators need
+  singleton-resolved tag tables; a `/obj/biome/` bulk entry once
   per-biome resolvers move into validator preloads. Today the
   preload-on-validator pattern handles every singleton-dependency
   case cheaply enough that the manifest stays at two entries.

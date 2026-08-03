@@ -353,11 +353,19 @@ and fails closed.
 `resolveSourceFolderZone(sourcePath)` walks the source path
 against the template tree most-specific-first:
 
-- `lib/lounge/foo.ts` → tries `/lib/lounge/foo` (no match) →
-  walks up to `/lib/lounge` (match, extant FolderZone) → returns
+- `domain/lounge/Bar.ts` → tries `/domain/lounge/Bar` (no match) →
+  walks up to `/domain/lounge` (match, extant FolderZone) → returns
   it.
 - `lib/security/SecurityPolicies.ts` → walks up → no FolderZone
   match → returns `null` (caller falls through to `'core'`).
+
+The lounge holds **two** titles — `/obj/lounge` (the template
+namespace; `/lib/lounge` before the taxonomy refactor) and
+`/domain/lounge` (the content). Only the `domain/` one has a matching
+*source* directory, so only that one is reachable by this walk. The
+namespace title is live and load-bearing as a `parcels` row; its
+source-tree half has always been vestigial, and no
+`src/mud/lib/lounge/` directory ever existed.
 
 Workspace mutation controllers in source/mirror mode pass the
 resolved zone as the access resource; source paths inherit the

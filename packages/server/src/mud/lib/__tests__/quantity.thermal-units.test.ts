@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Quantity } from '../quantity';
 import { QuantityApi } from '../../api/quantity';
-import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 
 describe('Quantity — thermal units', () => {
   describe('clo (clothing insulation)', () => {
@@ -82,19 +82,19 @@ describe('Quantity — thermal units', () => {
   describe('marshaller path encoding', () => {
     it('encodes J/(kg·K) as J-per-kg-K', () => {
       expect(QuantityMarshaller.pathFor('J/(kg·K)')).toBe(
-        '/lib/persistence/QuantityMarshaller/J-per-kg-K',
+        '/obj/persistence/QuantityMarshaller/J-per-kg-K',
       );
     });
 
     it('encodes m/s as m-per-s', () => {
       expect(QuantityMarshaller.pathFor('m/s')).toBe(
-        '/lib/persistence/QuantityMarshaller/m-per-s',
+        '/obj/persistence/QuantityMarshaller/m-per-s',
       );
     });
 
     it('encodes clo unchanged', () => {
       expect(QuantityMarshaller.pathFor('clo')).toBe(
-        '/lib/persistence/QuantityMarshaller/clo',
+        '/obj/persistence/QuantityMarshaller/clo',
       );
     });
   });

@@ -286,7 +286,7 @@ here on `WieldableMixin` (arming yourself is a combat prerequisite;
 
 ## The demonstrator — the treeline cull
 
-`attack` a brain-driven **wolf** (`/lib/species/wolf` quadruped +
+`attack` a brain-driven **wolf** (`/obj/species/wolf` quadruped +
 `/domain/newbie-wilds/npc/wolf`, a `wolfshead` bounty) in **the treeline**
 (`/domain/newbie-wilds/crossroads/treeline`, off the crossroads hub, reached
 via the char-gen `startLocation` override, no inbound exit wired — content-

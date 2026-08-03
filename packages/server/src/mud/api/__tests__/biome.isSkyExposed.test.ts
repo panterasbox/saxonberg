@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
 import { Vessel } from '../../lib/stuff/Vessel';
 import Biome from '../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../obj/SkyExposedBiome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
 import { StuffApi } from '../stuff';
@@ -26,7 +26,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 describe('BiomeApi.isSkyExposed', () => {
@@ -44,7 +44,7 @@ describe('BiomeApi.isSkyExposed', () => {
   it('returns true for a room whose biome composes SkyExposedMixin', () => {
     const biome = makeStuffAtPath(
       () => new SkyExposedBiome(),
-      '/lib/biome/outdoor/temperate/quad',
+      '/obj/biome/outdoor/temperate/quad',
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(biome);
@@ -54,7 +54,7 @@ describe('BiomeApi.isSkyExposed', () => {
   it('returns false for an indoor biome (plain Biome)', () => {
     const biome = makeStuffAtPath(
       () => new Biome(),
-      '/lib/biome/indoor/academic/classroom',
+      '/obj/biome/indoor/academic/classroom',
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(biome);
@@ -69,7 +69,7 @@ describe('BiomeApi.isSkyExposed', () => {
   it('walks outward through a vessel to the outer Location biome', () => {
     const biome = makeStuffAtPath(
       () => new SkyExposedBiome(),
-      '/lib/biome/outdoor/temperate/quad',
+      '/obj/biome/outdoor/temperate/quad',
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(biome);
@@ -83,11 +83,11 @@ describe('BiomeApi.isSkyExposed', () => {
   it('nearest atmospheric ancestor wins — vessel biome trumps outer room', () => {
     const indoor = makeStuffAtPath(
       () => new Biome(),
-      '/lib/biome/special/vehicle-cabin',
+      '/obj/biome/special/vehicle-cabin',
     );
     const outdoor = makeStuffAtPath(
       () => new SkyExposedBiome(),
-      '/lib/biome/outdoor/temperate/quad',
+      '/obj/biome/outdoor/temperate/quad',
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(outdoor);

@@ -67,7 +67,7 @@ function tissue(): Material {
     m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
     return m;
-  }, `/lib/material/_test/bed-tissue-${matSeq}`) as unknown as Material;
+  }, `/obj/material/_test/bed-tissue-${matSeq}`) as unknown as Material;
 }
 
 /** A thirsty, root-hungry profile — the peace lily's shape. */

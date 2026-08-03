@@ -31,7 +31,7 @@ import Location from '../../../../lib/stuff/Location';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
-import PersistentHydrator from '../../../../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../../obj/persistence/PersistentHydrator';
 import { Document } from '../../../../lib/persistence/Document';
 import ParcelRegistry from '../../../../obj/ParcelRegistry';
 import GroupRegistry from '../../../../obj/GroupRegistry';
@@ -98,7 +98,7 @@ function seedDomain(): void {
   add(FIXTURES[2]!, '/domain/eternal/duncan-hall/Footlocker', {
     shortDescription: 'a footlocker',
   });
-  add('/lib/lock/Key', '/lib/lock/Key', { shortDescription: 'a key' });
+  add('/obj/Key', '/obj/Key', { shortDescription: 'a key' });
 }
 
 function seedUnit(floor: number, pos: number): string {

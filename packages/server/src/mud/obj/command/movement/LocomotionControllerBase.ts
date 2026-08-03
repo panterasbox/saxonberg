@@ -29,7 +29,7 @@ import type Exit from '../../../lib/boundary/Exit';
 import type { TraversalGuard } from '../../../lib/boundary/Exit';
 import ExitableVessel from '../../../lib/boundary/ExitableVessel';
 import { LocomotionApi } from '../../../api/locomotion';
-import type { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
+import type { LocomotionMode } from '../../LocomotionMode';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
@@ -43,7 +43,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
   /**
    * Short name for this verb's mode (e.g. `'climb'`, `'swim'`).
    * `LocomotionApi.modeOfOrThrow` resolves the full templatePath
-   * `/lib/locomotion/<name>` internally — concrete controllers don't
+   * `/obj/LocomotionMode/<name>` internally — concrete controllers don't
    * construct paths.
    */
   protected abstract modeName(context: CommandContext): string;

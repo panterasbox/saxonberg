@@ -1,0 +1,24 @@
+# A spoiled ration — edible (you CAN eat it) but carrying a ptomaine
+# dose. The food declares only the per-serving amount; the rate params
+# (absorption / clearance / band map) live on the ptomaine Condition
+# seed. Eating it routes the carbs to satiation AND the ptomaine dose
+# into the digestion pool, which absorbs into the burden over time —
+# leaving a window to `vomit` it before it absorbs.
+class: /obj/material/ConsumableMaterial
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: spoiled ration
+  appearance: a greying, sour-smelling ration
+  keywords: [ration, food, spoiled]
+  density: 900
+  thermalConductivity: 0.3
+  specificHeat: 2500
+  edibility: true
+  nutrients: [carb]
+  nutrientAmounts:
+    carb: 30000
+  toxicity:
+    - { type: ptomaine, amount: 700 }
+  tags: [food, spoiled]
+  composition: []
+  biologicalSource: null

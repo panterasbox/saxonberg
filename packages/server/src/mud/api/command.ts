@@ -1529,7 +1529,7 @@ export class CommandApi {
    * `requiresAnimateTarget` preload reads the bound Stuff's
    * `_speciesPath`).
    *
-   * MQL path-literal preloading (e.g. ensuring `/lib/species/...`
+   * MQL path-literal preloading (e.g. ensuring `/obj/species/...`
    * referenced in a `:race(...)` filter is live) is NOT covered
    * here; it lands when a verb actually needs it. Today the only
    * preload consumer is `requiresAnimate`.

@@ -17,7 +17,7 @@ import type { ClockHandle } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
 import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { Mixins } from '../../lib/mixin';
-import type { Business } from '../../lib/employment/Business';
+import type { Business } from '../Business';
 import type { Employed } from '../../lib/employment/Employed';
 import {
   Employment,

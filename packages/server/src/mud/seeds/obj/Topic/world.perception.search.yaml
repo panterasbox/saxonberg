@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.search
+  family: world.perception
+  label: Search
+  description: Parent topic for search / lookup results — find / locate verbs. The body carries a result-set (matches, locations) rather than perceptual content of a thing.

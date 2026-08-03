@@ -1,0 +1,42 @@
+# Homo ogrus — fantasy ogre. Same biped anatomy as sapiens, built
+# enormous and slow; the dim-or-gentle heavy, distinct from the disciplined
+# troll. NPC-first. The "dumb brute" framing is persona, played mundane —
+# not a species law. See docs/slates/builds/species-expansion-slate.md.
+class: /obj/species/Species
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  illustration: species/ogrus.png
+  binomial: Homo ogrus
+  sentient: true
+  commonNames: ["ogre"]
+  _bodyPlanPath: /obj/species/BodyPlan/biped
+  _parentCladePath: /obj/species/animalia
+  _defaultMaterialPath: /obj/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 300, survivableMax: 317 }
+    heartRate: { baseline: 56, survivableMin: 24, survivableMax: 190 }
+    respiratoryRate: { baseline: 13, survivableMin: 5, survivableMax: 38 }
+    bloodPressureSystolic: { baseline: 124, survivableMin: 74, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 84, survivableMin: 44, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 8, survivableMin: 5.2, survivableMax: 8 }
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 120
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: dim
+    photopicMax: bright
+    bandShift: -1
+  olfactoryProfile:
+    acuity: normal
+  longDescription: >-
+    An enormous, lumbering figure two heads above the tallest in the room,
+    thick-limbed and heavy-browed, slow of speech and movement, with a
+    blunt, unhurried calm that strangers too easily mistake for dullness.
+  nameBankKeys: ["orcish"]
+  facultyProfile: { depth: low, serenity: low, composure: low }

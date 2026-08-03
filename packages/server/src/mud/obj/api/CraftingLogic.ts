@@ -49,10 +49,10 @@ const CATALOGUE_PATH = '/obj/RecipeCatalogue';
 const EPS = 1e-9;
 
 /** The generic substance an off-spec (recipe-unmatched) build mints. */
-const GENERIC_MIXED_MATERIAL = '/lib/material/cocktail/mixed';
+const GENERIC_MIXED_MATERIAL = '/obj/material/cocktail/mixed';
 
 /** The generic substance every derived cooked blend points at. */
-const GENERIC_COOKED_MATERIAL = '/lib/material/food/cooked';
+const GENERIC_COOKED_MATERIAL = '/obj/material/food/cooked';
 
 /** The portion an off-spec cooked fill lands in the dish (L). */
 const GENERIC_COOKED_PORTION_L = 0.3;

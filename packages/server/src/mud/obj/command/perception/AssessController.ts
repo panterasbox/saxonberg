@@ -21,9 +21,9 @@ import { CombatApi, type CombatAssessResult } from '../../../api/combat';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Vitals, ConditionBand } from '../../../lib/vitals/Vitals';
-import { TRAUMA_BEHAVIOR } from '../../../lib/vitals/Condition';
-import type { Trauma } from '../../../lib/vitals/Condition';
-import type Condition from '../../../lib/vitals/Condition';
+import { TRAUMA_BEHAVIOR } from '../../Condition';
+import type { Trauma } from '../../Condition';
+import type Condition from '../../Condition';
 import { StuffApi } from '../../../api/stuff';
 
 const TOPIC = 'world.narration.action';

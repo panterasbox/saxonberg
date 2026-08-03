@@ -21,7 +21,7 @@ import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
 import { UnboundedSourceMixin } from '../../../../lib/bulk/UnboundedSource';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Thing from '../../../../lib/stuff/Thing';
-import Floor from '../../../../obj/Floor';
+import Floor from '../../../Floor';
 import Location from '../../../../lib/stuff/Location';
 import Material from '../../../../lib/material/Material';
 import { Stuff } from '../../../../lib/stuff/Stuff';
@@ -176,7 +176,7 @@ describe('Bulk verbs — fill / sip / drink', () => {
     actor = makeStuff(() => new TestActor()) as never;
     (actor as unknown as { setName(n: string): void }).setName('bob');
     ContainmentApi.move(actor as never, loc as never);
-    coffee = material('/lib/material/bulk/coffee', 'coffee');
+    coffee = material('/obj/material/bulk/coffee', 'coffee');
     urn = vessel('a coffee urn', { material: coffee, unbounded: true });
     ContainmentApi.move(urn as never, loc as never);
     thermos = vessel('a steel thermos', { capacityL: 0.5 });
@@ -258,8 +258,8 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     actor = makeStuff(() => new TestActor()) as unknown as Stuff;
     (actor as unknown as { setName(n: string): void }).setName('bob');
     ContainmentApi.move(actor as never, loc as never);
-    water = material('/lib/material/bulk/water', 'water');
-    coffee = material('/lib/material/bulk/coffee', 'coffee');
+    water = material('/obj/material/bulk/water', 'water');
+    coffee = material('/obj/material/bulk/coffee', 'coffee');
     waterSrc = vessel('a water tap', { material: water, unbounded: true });
     ContainmentApi.move(waterSrc as never, loc as never);
     mug = vessel('a ceramic mug', { capacityL: 0.35 });
@@ -371,7 +371,7 @@ describe('Bulk verbs — look composes Material.appearance', () => {
     actor = makeStuff(() => new TestActor()) as unknown as Stuff;
     (actor as unknown as { setName(n: string): void }).setName('bob');
     ContainmentApi.move(actor as never, loc as never);
-    water = material('/lib/material/bulk/water', 'water');
+    water = material('/obj/material/bulk/water', 'water');
   });
 
   const markupLong = (s: Stuff): string =>

@@ -73,7 +73,7 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Narnia' },
       },
     ]);
@@ -82,14 +82,14 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     expect(tpl).toBeInstanceOf(ZoneTemplate);
     expect(tpl).toBeInstanceOf(Template);
     expect(tpl).not.toBeInstanceOf(LeafTemplate);
-    expect(tpl!.class).toBe('/lib/location/CartesianZone');
+    expect(tpl!.class).toBe('/obj/location/CartesianZone');
   });
 
   it('findByPath returns a LeafTemplate for non-folder-class docs', async () => {
     installInMemoryStore([
       {
         path: '/narnia/foyer',
-        class: '/lib/location/CartesianLocation',
+        class: '/obj/location/Room',
         data: {},
       },
     ]);
@@ -109,12 +109,12 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/location/SphericalZone',
+        class: '/obj/location/SphericalZone',
         data: {},
       },
       {
         path: '/narnia/plaza',
-        class: '/lib/location/SphericalLocation',
+        class: '/obj/location/SphericalLocation',
         data: {},
       },
     ]);
@@ -128,17 +128,17 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/lib/location/CartesianLocation',
+        class: '/obj/location/Room',
         data: {},
       },
     ]);

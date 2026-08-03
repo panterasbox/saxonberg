@@ -960,7 +960,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           try {
             const { SoulApi } = await import('../../api/soul');
             const { EmoteGrammarRunner } = await import(
-              '../../lib/social/EmoteGrammar'
+              '../social/EmoteGrammar'
             );
             const emote = await SoulApi.resolve(parsed.verb);
             if (emote) {

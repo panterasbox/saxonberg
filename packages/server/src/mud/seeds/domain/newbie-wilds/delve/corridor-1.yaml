@@ -7,8 +7,8 @@
 # concealed cache — BOTH with obvious alternatives (the corridor reaches the
 # vault plainly by going north; the vault holds an obvious reward). Nothing
 # here gates the way on: the dart wounds, it does not block.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a low slab-floored corridor
   primaryKeyword: corridor

@@ -20,7 +20,7 @@ import { WorldClockApi } from "../../../../api/worldclock";
 import { StuffApi } from "../../../../api/stuff";
 import { ContainmentApi } from "../../../../api/containment";
 import { EventApi } from "../../../../api/event";
-import EventRegistry from "../../../../obj/EventRegistry";
+import EventRegistry from "../../../EventRegistry";
 import {
   CommandApi,
   type CommandContext,
@@ -29,13 +29,13 @@ import {
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import { Character } from "../../../../lib/character/Character";
-import Species from "../../../../lib/species/Species";
+import Species from "../../../species/Species";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
 import SpellCatalogue from "../../../SpellCatalogue";
-import Spell from "../../../../lib/magic/Spell";
-import GlowlightOrb from "../../../../lib/magic/GlowlightOrb";
+import Spell from "../../../magic/Spell";
+import GlowlightOrb from "../../../magic/GlowlightOrb";
 import { Template } from "../../../../lib/stuff/Template";
 import {
   makeStuff,
@@ -49,7 +49,7 @@ class Room extends ContainerMixin(ContainableMixin(Idea)) {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  "../../../../seeds/lib/magic/Spell",
+  "../../../../seeds/obj/magic/Spell",
 );
 
 let seq = 0;
@@ -86,7 +86,7 @@ function makeCaster(room: Room): TestCaster {
   const species = makeStuff(() => new Species());
   species.setFacultyProfile({ depth: "mid", serenity: "mid", composure: "mid" });
   species.setInnateMixins(["CasterMixin"]);
-  stampTemplatePathForTest(species, `/lib/species/test/cc-${n}`);
+  stampTemplatePathForTest(species, `/obj/species/test/cc-${n}`);
   const actor = makeStuff(() => new TestCaster());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/cc-${n}`);
@@ -221,7 +221,7 @@ describe("CastController + CastActivity", () => {
     room = makeStuff(() => new Room());
     const caster = makeCaster(room);
     const beastSpecies = makeStuff(() => new Species());
-    stampTemplatePathForTest(beastSpecies, `/lib/species/test/cc-beast`);
+    stampTemplatePathForTest(beastSpecies, `/obj/species/test/cc-beast`);
     const beast = makeStuff(() => new TestCaster());
     beast.setSpecies(beastSpecies);
 

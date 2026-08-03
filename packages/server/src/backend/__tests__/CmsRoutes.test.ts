@@ -120,7 +120,7 @@ describe('CmsRoutes', () => {
           source: 'runtime',
           severity: 'error',
           channel: 'zone.lounge',
-          path: '/lib/lounge/Bar',
+          path: '/obj/lounge/Bar',
           author: null,
           versionId: null,
           code: null,

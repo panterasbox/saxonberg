@@ -6,7 +6,7 @@
 # town is a real arrangement rather than a penalty, which is the whole
 # premise of a commuter suburb.
 class: /domain/common/tpa/TpaTerminal
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   seatIn: /domain/terminus/hinkley-hills/arrival
   shortDescription: a Teleport Authority post

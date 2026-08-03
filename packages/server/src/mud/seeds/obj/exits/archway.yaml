@@ -6,8 +6,8 @@
 # Identity note (ref-shapes.md § Identity, lineage, and backing): the
 # clone's templatePath IS this path — every archway in the world is
 # addressable as a population (`/obj/exits/archway` MQL path seed).
-class: /lib/boundary/Exit
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Exit
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   media: [ground]
   messageOut: "{{ mover }} passes through the archway."

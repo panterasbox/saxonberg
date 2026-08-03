@@ -25,7 +25,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { Quantity } from '../../quantity';
-import { HARM_DEFAULTS } from '../Condition';
+import { HARM_DEFAULTS } from '../../../obj/Condition';
 import { THERMAL_DEFAULTS } from '../../thermal/Thermal';
 import { RESPIRATION_DEFAULTS } from '../../respiration/Respiration';
 import { METABOLIC_DEFAULTS } from '../../metabolism/Metabolic';

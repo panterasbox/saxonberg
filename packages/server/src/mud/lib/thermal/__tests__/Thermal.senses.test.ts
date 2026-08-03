@@ -38,7 +38,7 @@ function glassMaterial(): Material {
     m.setSpecificHeat(Quantity.of(840, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(1.0, "W/(m·K)"));
     return m;
-  }, `/lib/material/_senses/glass-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_senses/glass-${matCounter}`) as unknown as Material;
 }
 
 describe("ThermalMixin — surface-vs-contents (the sensory gate)", () => {

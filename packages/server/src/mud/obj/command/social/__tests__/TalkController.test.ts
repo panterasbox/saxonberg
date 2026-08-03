@@ -36,7 +36,7 @@ import { SchedulerApi } from "../../../../api/scheduler";
 import { PromptApi } from "../../../../api/prompt";
 import { RegardApi } from "../../../../api/regard";
 import { EventApi } from "../../../../api/event";
-import EventRegistry from "../../../../obj/EventRegistry";
+import EventRegistry from "../../../EventRegistry";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import {
   CommandApi,

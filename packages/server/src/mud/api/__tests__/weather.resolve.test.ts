@@ -11,9 +11,9 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
-import Locality from '../../lib/address/Locality';
+import Locality from '../../obj/Locality';
 import Biome from '../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../obj/SkyExposedBiome';
 import AddressRegistry from '../../obj/AddressRegistry';
 import { WeatherApi } from '../weather';
 import { AddressApi } from '../address';
@@ -53,16 +53,16 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(5, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 /** A SkyExposed (weather-eligible) outdoor room. */
 function skyRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;
@@ -72,9 +72,9 @@ function skyRoom(): TestLocation {
 function indoorRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/indoor/hall');
+  }, '/obj/biome/indoor/hall');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;
@@ -205,7 +205,7 @@ describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
       l.setAddress('narnia/moor');
       l.setWeatherPin({ type: 'storm', mode: 'frozen' });
       return l;
-    }, '/lib/address/moor');
+    }, '/obj/Locality/moor');
     AddressApi.registerLocality(moor);
 
     // A room deep under the moor's address — no scope pin of its own.
@@ -224,7 +224,7 @@ describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
       l.setAddress('narnia/moor');
       l.setWeatherPin({ type: 'storm', mode: 'frozen' });
       return l;
-    }, '/lib/address/moor');
+    }, '/obj/Locality/moor');
     AddressApi.registerLocality(moor);
 
     const room = skyRoom();

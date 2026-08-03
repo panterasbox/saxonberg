@@ -29,8 +29,8 @@ import { Construction } from '../../../lib/material/Construction';
 import Material from '../../../lib/material/Material';
 import { Quantity } from '../../../lib/quantity';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Thing from '../../../lib/stuff/Thing';
 import Location from '../../../lib/stuff/Location';
 import Exit from '../../../lib/boundary/Exit';
@@ -44,8 +44,8 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { HARM_DEFAULTS } from '../../../lib/vitals/Condition';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import { HARM_DEFAULTS } from '../../../obj/Condition';
+import type { Trauma } from '../../../obj/Condition';
 import type { CommandContext } from '../../../api/command';
 
 const TICK = HARM_DEFAULTS.TICK_INTERVAL_MS;
@@ -71,7 +71,7 @@ function demoSteel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/lib/material/alloy/steel-demo-${n}`);
+  stampTemplatePathForTest(m, `/obj/material/alloy/steel-demo-${n}`);
   return m;
 }
 
@@ -156,10 +156,10 @@ beforeEach(() => {
   real = 100_000;
   WorldClockApi._setNowProviderForTesting(() => real);
   n++;
-  bodyplanPath = `/lib/body-plans/demo-biped-${n}`;
+  bodyplanPath = `/obj/species/BodyPlan/demo-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/lib/species/demo/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/obj/species/demo/biped-${n}`);
 });
 afterEach(() => {
   vi.restoreAllMocks();

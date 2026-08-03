@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
-import Weapon from '../../equipment/Weapon';
+import Weapon from '../../../obj/equipment/Weapon';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

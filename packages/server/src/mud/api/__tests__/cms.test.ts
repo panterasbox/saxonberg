@@ -113,7 +113,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
 // Real, resolvable class paths: CartesianZone extends Zone (folder);
 // Idea is a non-Zone leaf class.
-const ZONE_CLASS = '/lib/location/CartesianZone';
+const ZONE_CLASS = '/obj/location/CartesianZone';
 const LEAF_CLASS = '/lib/stuff/Idea';
 
 describe('CmsApi — content backend', () => {

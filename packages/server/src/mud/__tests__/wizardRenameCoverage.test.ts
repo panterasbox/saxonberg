@@ -21,7 +21,7 @@ import { readdirSync, readFileSync, statSync } from "fs";
 import { fileURLToPath } from "url";
 import { join } from "path";
 
-const SRC_ROOT = fileURLToPath(new URL("../../", import.meta.url));
+const SRC_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 const EXEMPT_SUFFIXES = [
   // This guard file.

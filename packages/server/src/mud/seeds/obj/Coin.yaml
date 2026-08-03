@@ -7,7 +7,7 @@
 # — the `mass` below is the base-credit value for a bare clone; `Coin.getMass`
 # reads the denomination, so higher denominations are correctly heavier.
 class: /obj/Coin
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a credit coin
   keywords: [coin, coins, credit, cash, money]

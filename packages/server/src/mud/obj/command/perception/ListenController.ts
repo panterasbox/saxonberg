@@ -15,7 +15,7 @@ import type { CommandContext } from '../../../api/command';
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { SoundModality } from '../../../lib/perception/modalities/SoundModality';
+import { SoundModality } from '../../modalities/SoundModality';
 import { Sound } from '../../../lib/perception/Sound';
 import { StuffApi } from '../../../api/stuff';
 

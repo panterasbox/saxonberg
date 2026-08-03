@@ -12,7 +12,7 @@ import { AddressApi } from '../address';
 import { WorldClockApi } from '../worldclock';
 import { StuffApi } from '../stuff';
 import { Quantity } from '../../lib/quantity';
-import Locality from '../../lib/address/Locality';
+import Locality from '../../obj/Locality';
 import Location from '../../lib/stuff/Location';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import {

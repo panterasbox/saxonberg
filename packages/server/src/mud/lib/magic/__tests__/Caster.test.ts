@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
-import Species from "../../species/Species";
+import Species from "../../../obj/species/Species";
 import { Quantity } from "../../quantity";
 import { MixinApi } from "../../../api/mixin";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -33,7 +33,7 @@ function makeActor(profile: FacultyProfile | null, confers = true): TestCharacte
   const species = makeStuff(() => new Species());
   if (profile) species.setFacultyProfile(profile);
   if (confers) species.setInnateMixins(["CasterMixin"]);
-  stampTemplatePathForTest(species, `/lib/species/test/caster-${n}`);
+  stampTemplatePathForTest(species, `/obj/species/test/caster-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   return actor;

@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { Employment } from "../../../lib/employment/Employment";
-import BusinessEntity from "../../../lib/employment/Business";
+import BusinessEntity from "../../Business";
 import { EmployedMixin } from "../../../lib/employment/Employed";
 import { Idea } from "../../../lib/stuff/Idea";
 import { WorldClockApi } from "../../../api/worldclock";

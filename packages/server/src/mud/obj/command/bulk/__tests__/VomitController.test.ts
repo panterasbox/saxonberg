@@ -12,7 +12,7 @@ import VomitController from "../VomitController";
 import { Creature } from "../../../../lib/creature/Creature";
 import { SensorMixin } from "../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../lib/command/CommandGiver";
-import Condition from "../../../../lib/vitals/Condition";
+import Condition from "../../../Condition";
 import Material from "../../../../lib/material/Material";
 import type { ToxinBehavior } from "../../../../lib/metabolism/Metabolic";
 import Location from "../../../../lib/stuff/Location";
@@ -21,7 +21,7 @@ import { Quantity } from "../../../../lib/quantity";
 import { StuffApi } from "../../../../api/stuff";
 import { ContainmentApi } from "../../../../api/containment";
 import { WorldClockApi } from "../../../../api/worldclock";
-import "../../../../obj/WorldClockRegistry";
+import "../../../WorldClockRegistry";
 import { CommandApi, type CommandContext } from "../../../../api/command";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import {
@@ -66,7 +66,7 @@ const ACUTE: ToxinBehavior = {
 };
 
 function ensure(behavior: ToxinBehavior): void {
-  const path = "/lib/metabolism/conditions/" + behavior.toxinType;
+  const path = "/obj/Condition/metabolism/" + behavior.toxinType;
   if (StuffApi.findByTemplatePath(path)) return;
   makeStuffAtPath(() => {
     const c = new Condition();

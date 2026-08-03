@@ -15,7 +15,7 @@ help system will tap the same catalogue.
 
 | File | Role |
 |---|---|
-| `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/lib/messaging/Topic/'`. |
+| `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/obj/Topic/'`. |
 | `obj/TopicCatalogue.ts` | The singleton Idea (`/obj/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
 | `seeds/lib/messaging/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
 | `seeds/obj/TopicCatalogue.yaml` | Singleton seed (`{ class: /obj/TopicCatalogue, data: {} }`). |
@@ -44,7 +44,7 @@ in the DB; `TOPICS` is a code-side autocomplete convenience.
 `Topic` extends `Idea` with four public string fields and per-field
 invariants on the setters (empty strings rejected for `topic`,
 `label`, `description`; `family` accepts `''` for root topics). The
-`TEMPLATE_PATH_PREFIX` constant is `/lib/messaging/Topic/`. Authors
+`TEMPLATE_PATH_PREFIX` constant is `/obj/Topic/`. Authors
 edit topic descriptors through the existing workspace shell —
 there's no `describe-topic` verb.
 
@@ -69,7 +69,7 @@ methods compose its surface:
 
 Cache state lives as a `Map<string, TopicDescriptor> | null` private
 instance field, warmed by `postRegister`'s call to
-`Template.findDescendants('/lib/messaging/Topic/')`. Resolution
+`Template.findDescendants('/obj/Topic/')`. Resolution
 dispatches through the standard call-security gate via
 `StuffApi.findByTemplatePath('/obj/TopicCatalogue')` — there's no
 `TopicCatalogueApi` indirection. Per
@@ -81,7 +81,7 @@ data (`topic` / `family` / `label` / `description`) with no runtime
 behavior, so the catalogue reads `data.*` directly off each
 `Template` doc — no `Topic` Stuff instances are ever cloned at
 boot. The bootstrap manifest carries `/obj/TopicCatalogue`
-but **not** a `templatePathPrefix: '/lib/messaging/Topic/'` entry.
+but **not** a `templatePathPrefix: '/obj/Topic/'` entry.
 Same pattern as species clades / materials / biomes (see the
 preamble in `mud/bootstrap.ts` for the precedent).
 
@@ -142,7 +142,7 @@ Both are singleton Ideas in `obj/` that own a per-X data shape:
 | Aspect | EventRegistry | TopicCatalogue |
 |---|---|---|
 | Content shape | Transient per-event policy closures | Persistent per-topic prose (label, description, family) |
-| Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/lib/messaging/Topic/` |
+| Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/obj/Topic/` |
 | Code-side vocabulary | `Events` enum is the vocabulary | no code-side const — topics are string literals at call sites; descriptors are content |
 | Auto-resolve behavior | `EventApi.on/emit` auto-registers unknown events with the default `emittableBy()` policy | `getDescriptor` auto-falls-back via family inheritance or derived default |
 | Persistence | Empty seed; runtime state is closures | Empty seed; runtime cache reads `Topic` template docs from mongo at boot |
@@ -157,7 +157,7 @@ encoded in the `topic` / `family` fields.
 
 ```yaml
 class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   topic: world.speech.say
   family: world.speech
@@ -186,7 +186,7 @@ capability hung on a topic. See [renown.md](./renown.md).
 2. `BootstrapManager` clones `/obj/TopicCatalogue` (and nothing
    else in the messaging substrate).
 3. `TopicCatalogue.postRegister` reads every Topic template via
-   `Template.findDescendants('/lib/messaging/Topic/')` and warms
+   `Template.findDescendants('/obj/Topic/')` and warms
    the descriptor cache.
 4. Welcome-scene payload composition reads `getSnapshot()` and
    ships it to the client.

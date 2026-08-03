@@ -2,7 +2,7 @@
 # smithing ladder's easy rung (forge one, then cook in it). Portable
 # capital: reachable heat + a pot is a kitchen, anywhere.
 class: /obj/CookPot
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a cook pot
   primaryKeyword: pot
@@ -10,5 +10,5 @@ data:
   longDescription: |
     A deep-bellied iron pot with a bail handle, seasoned black inside. It has boiled a thousand suppers and is ready for the next.
   capabilities: [pot]
-  _materialPath: /lib/material/element/iron
+  _materialPath: /obj/material/element/iron
   mass: 2.5

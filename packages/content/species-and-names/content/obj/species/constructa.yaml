@@ -1,0 +1,9 @@
+# Constructa — kingdom of manufactured intelligences. Robots, golems,
+# arcane automatons. Lifecycle is power-state-shaped (powered /
+# unpowered / destroyed) rather than alive/dead; SpeciesApi.isAnimate
+# treats them as animate when 'powered'.
+class: /obj/species/Clade
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: Constructa
+  rank: kingdom

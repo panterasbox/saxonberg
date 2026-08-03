@@ -1,0 +1,46 @@
+# Homo trollius — fantasy troll. Same biped anatomy as sapiens, built
+# very large and heavy; an indoor, rooted creature (the folkloric
+# sun-shyness made mundane), long-lived and slow to anger. Cast as a
+# *living people*, mundane (§17.D): the "brutish/lowly brute" framing is
+# prejudice, NOT biology — the overlooked-caretaker-caste allegory. See
+# docs/staging/eternal-university/npcs/property-manager.md (Katie) and
+# docs/slates/builds/species-expansion-slate.md.
+class: /obj/species/Species
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  illustration: species/trollius.png
+  binomial: Homo trollius
+  sentient: true
+  commonNames: ["troll"]
+  _bodyPlanPath: /obj/species/BodyPlan/biped
+  _parentCladePath: /obj/species/animalia
+  _defaultMaterialPath: /obj/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 299, survivableMax: 317 }
+    heartRate: { baseline: 60, survivableMin: 26, survivableMax: 200 }
+    respiratoryRate: { baseline: 14, survivableMin: 5, survivableMax: 40 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 7, survivableMin: 4.5, survivableMax: 7 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 300
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: very-dim
+    photopicMax: bright
+    bandShift: -1
+  olfactoryProfile:
+    acuity: normal
+  longDescription: >-
+    A great, broad, heavy-built figure that fills a doorway, slate-grey
+    of hide and slow in the way of something that has always been here
+    and means to stay; immovable, deliberate, with a steady, watchful
+    gaze that reads as a dull brute only to those who never look twice.
+  nameBankKeys: ["common"]
+  facultyProfile: { depth: mid, serenity: low, composure: low }

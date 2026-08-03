@@ -37,7 +37,7 @@ import type { Reserved } from "../reserve";
 import type { Vitals, VitalSign } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Thermal } from "./Thermal";
-import type { AfflictionRecord } from "../vitals/Condition";
+import type { AfflictionRecord } from "../../obj/Condition";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
 import { MixinApi } from "../../api/mixin";

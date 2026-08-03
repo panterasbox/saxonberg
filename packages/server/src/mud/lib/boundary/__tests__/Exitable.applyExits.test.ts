@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
-import Door from '../Door';
+import Door from '../../../obj/Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import {
   makeStuffAtPath,
   makeStuff,
@@ -67,7 +67,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -88,7 +88,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -107,7 +107,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -134,7 +134,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -153,7 +153,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -170,7 +170,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);

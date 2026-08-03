@@ -7,7 +7,7 @@
 # A university-owned fixture: invariant, respawned from template, seeded
 # into each DormRoom via its `populates:` data.
 class: /obj/UnboundedReceptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a corner tap
   primaryKeyword: tap
@@ -15,4 +15,4 @@ data:
   longDescription: |
     A single cold tap over a shallow enamel basin, bolted to the wall in the corner. It runs with a knock and a shudder, and it runs all day.
   interiorBulk: true
-  interiorMaterial: /lib/material/bulk/water
+  interiorMaterial: /obj/material/bulk/water

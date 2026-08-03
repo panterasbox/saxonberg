@@ -27,8 +27,8 @@ import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { Idea } from '../../lib/stuff/Idea';
-import { StuffApi } from '../../api/stuff';
-import { ContainmentApi } from '../../api/containment';
+import { StuffApi } from '../stuff';
+import { ContainmentApi } from '../containment';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -72,7 +72,7 @@ function makeBeing(name: string, appearance: string): Being {
 afterEach(() => {
   // Drop any vision singleton a gate test registered so other tests see
   // the no-modality (gate-permits) baseline.
-  for (const m of StuffApi.findAllByTemplatePath('/lib/perception/modalities/vision')) {
+  for (const m of StuffApi.findAllByTemplatePath('/obj/modalities/vision')) {
     StuffApi.unregister(m);
   }
 });

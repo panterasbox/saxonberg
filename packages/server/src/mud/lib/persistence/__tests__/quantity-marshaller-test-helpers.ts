@@ -16,7 +16,7 @@
  * @internal — do not import from production code.
  */
 
-import { QuantityMarshaller } from '../QuantityMarshaller';
+import { QuantityMarshaller } from '../../../obj/persistence/QuantityMarshaller';
 import { QuantityApi } from '../../../api/quantity';
 import type { Unit } from '../../quantity';
 import { registerMarshallerForTest } from '../../security/__tests__/test-setup';

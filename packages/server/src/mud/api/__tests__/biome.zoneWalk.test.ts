@@ -5,7 +5,7 @@ import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
-import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianZone from '../../obj/location/CartesianZone';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -24,7 +24,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 describe('BiomeApi resolve* — spatial zone step', () => {

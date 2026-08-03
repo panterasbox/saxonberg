@@ -42,7 +42,7 @@
 
 import type { Stuff } from "../stuff/Stuff";
 import type { InflictSpec } from "../../api/condition";
-import type { ActiveCondition } from "../vitals/Condition";
+import type { ActiveCondition } from "../../obj/Condition";
 import type { Channel } from "../material/Channel";
 import type { Quantity, Unit } from "../quantity";
 import type { Energized } from "../electricity/Energized";

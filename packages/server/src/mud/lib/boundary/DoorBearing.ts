@@ -20,7 +20,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Exitable } from './Exitable';
-import type Door from './Door';
+import type Door from '../../obj/Door';
 
 /**
  * Public shape added by DoorBearingMixin.

@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import CartesianLocation from '../CartesianLocation';
-import CartesianZone from '../CartesianZone';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import CartesianZone from '../../../obj/location/CartesianZone';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

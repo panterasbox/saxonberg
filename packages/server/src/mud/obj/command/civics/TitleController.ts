@@ -65,8 +65,8 @@ import { Money } from '../../../lib/banking/Money';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MqlApi } from '../../../api/mql';
-import PlatBook from '../../../obj/PlatBook';
-import type LotHolder from '../../../obj/LotHolder';
+import PlatBook from '../../PlatBook';
+import type LotHolder from '../../LotHolder';
 
 const TOPIC = 'world.narration.action';
 

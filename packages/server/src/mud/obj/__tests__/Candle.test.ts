@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianZone from '../location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import Material from '../../lib/material/Material';
@@ -46,7 +46,7 @@ function waxMaterial(): Material {
     m.setHeatOfCombustion(Quantity.of(42, 'MJ/kg'));
     m.setWaterAbsorptionCapacity(Quantity.of(15, '%')); // the wick soaks
     return m;
-  }, `/lib/material/_test/candle-wax-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/candle-wax-${seq}`) as unknown as Material;
 }
 
 function candle(where?: Stuff): Candle {

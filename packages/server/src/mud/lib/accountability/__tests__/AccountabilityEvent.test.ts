@@ -200,7 +200,7 @@ describe("deriveBlame — command responsibility (the formation facts)", () => {
   it("an unlawful DIRECTED kill: the striker holds the deed, the commander the responsibility", () => {
     const v = AccountabilityEvent.deriveBlame([
       deathRow({
-        formationPath: "/lib/combat/CombatFormation/master-apprentice",
+        formationPath: "/obj/CombatFormation/master-apprentice",
         killerRole: "apprentice",
         directedBy: "/obj/Avatar/master",
       }),

@@ -1,5 +1,5 @@
-class: /lib/equipment/Weapon
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Weapon
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a leather whip
   primaryKeyword: whip
@@ -9,7 +9,7 @@ data:
     whip cannot be brought back to guard its wielder, and a man who gets
     inside it turns all that length into so much dead cord. Its real work is
     done wrapped round a wrist or an ankle, not swung.
-  _materialPath: /lib/material/organic/leather
+  _materialPath: /obj/material/organic/leather
   constructionForm: whip
   gradeBand: fine
   # The long-reach extreme — the authored length puts it at `long` reach (it
@@ -18,4 +18,4 @@ data:
   mass: 0.6
   length: 2.5
   slotClaims:
-    "/lib/body-plans/biped": ["hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:right"]

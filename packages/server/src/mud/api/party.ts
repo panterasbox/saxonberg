@@ -17,15 +17,15 @@
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
-import type { Party } from "../lib/party/Party";
+import type { Party } from "../obj/Party";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { PartyLogic } from "../obj/api/PartyLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-export type { Party } from "../lib/party/Party";
-export { DEFAULT_FORMATION_PATH } from "../lib/party/Party";
+export type { Party } from "../obj/Party";
+export { DEFAULT_FORMATION_PATH } from "../obj/Party";
 
 /**
  * The per-fight alignment key. Equality means allied. Never null: a

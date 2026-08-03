@@ -1,0 +1,27 @@
+# Leather — tanned hide. A tough, flexible worked-organic sheet: soft
+# (low hardness — an edge bites it) but tough for its softness (it
+# spreads and absorbs a blow). The material a hide jerkin is cut from.
+class: /obj/material/Material
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: leather
+  appearance: supple tanned leather
+  keywords: [leather, hide]
+  density: 900
+  specificHeat: 1900
+  thermalConductivity: 0.14
+  # Mechanical response: soft but tough-for-its-softness (MPa / MJ·m⁻³).
+  hardness: 20
+  toughness: 10
+  # Electrical conductivity (S/m) — dry leather insulates (~1×10⁻⁹);
+  # a hide jerkin adds real series resistance (the armor inversion).
+  electricalConductivity: 1.0e-9
+  # Water absorption capacity (% of dry mass, ASTM D570): leather takes water moderately.
+  waterAbsorptionCapacity: 15
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "leather", "hide", "once-living", "flexible"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Condition from "../../vitals/Condition";
+import Condition from "../../../obj/Condition";
 import type { ToxinBehavior } from "../Metabolic";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
@@ -44,7 +44,7 @@ const ACHE: ToxinBehavior = {
     { threshold: 6, severity: 2 },
   ],
 };
-const PATH = "/lib/metabolism/conditions/ache";
+const PATH = "/obj/Condition/metabolism/ache";
 
 function ensureAche(): void {
   if (StuffApi.findByTemplatePath(PATH)) return;

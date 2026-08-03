@@ -37,7 +37,7 @@ import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
 import type { Slotted } from '../slot/Slotted';
-import type { LocomotionMode } from '../locomotion/LocomotionMode';
+import type { LocomotionMode } from '../../obj/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
 import { ContainmentApi, ContainmentError } from '../../api/containment';

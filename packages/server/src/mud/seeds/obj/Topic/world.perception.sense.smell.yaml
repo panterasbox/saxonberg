@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.sense.smell
+  family: world.perception.sense
+  label: Smell
+  description: Output of the smell verb — deliberate olfactory attention.

@@ -177,7 +177,7 @@ class: /lib/dorm/Bed       # = Detailed(SmellSource(SoundSource(Tangible(Visible
 data:
   short:    "a bed"                     # Visible      (NOT Named — generic)
   long:     "A standard dorm bed."      # Visible
-  material: /lib/material/wood/pine     # Tangible
+  material: /obj/material/wood/pine     # Tangible
   # details (Detailed) · smell (SmellSource) · sound (SoundSource) · light (AmbientLit): unset
 ```
 
@@ -189,7 +189,7 @@ bed:
   short:    "a great four-poster"                              # Visible
   long:     "A four-poster, drapes the deep red of old wine."  # Visible
   details:  { drapes: "heavy velvet, dust sifting from the folds" }   # Detailed
-  material: /lib/material/wood/blackoak                         # Tangible
+  material: /obj/material/wood/blackoak                         # Tangible
   smell:    "beeswax and cold stone"                           # SmellSource
   sound:    "charms on the canopy tick in any draft"           # SoundSource
   light:    { glow: candle, level: dim }                       # AmbientLit
@@ -206,7 +206,7 @@ Your half — a sparse *field diff* (any mixin's fields):
   "slots": {
     "bed": {
       "long":     "Just a cot. But the quilt's the one Gran sewed.",   // Visible
-      "material": "/lib/material/textile/quilt-cotton",                 // Tangible
+      "material": "/obj/material/textile/quilt-cotton",                 // Tangible
       "details":  { "quilt": "edges gone soft, a coffee stain shaped like Ohio" }, // Detailed
       "smell":    "faintly of her house — cedar and old coffee"         // SmellSource
       // short, sound, light: untouched → the fantasy bundle's
@@ -226,7 +226,7 @@ editable:
     SmellSource: [smell]
     SoundSource: [sound]
     AmbientLit:  [light]
-    Tangible:    { material: [ /lib/material/wood/**, /lib/material/textile/** ] }  # value-bounded
+    Tangible:    { material: [ /obj/material/wood/**, /obj/material/textile/** ] }  # value-bounded
   # NOT here: Atmospheric (room biome → apartment tier); composing new mixins (sandbox)
 ```
 

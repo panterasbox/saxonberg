@@ -16,13 +16,13 @@ import {
 } from '../../../security/__tests__/test-setup';
 import type { ModalityFamily } from '../../Modality';
 import { Modality } from '../../Modality';
-import { VisionModality } from '../VisionModality';
-import { SmellModality } from '../SmellModality';
-import { SoundModality } from '../SoundModality';
-import { TouchModality } from '../TouchModality';
-import { TasteModality } from '../TasteModality';
-import { VerbalESPModality } from '../VerbalESPModality';
-import { EmotiveESPModality } from '../EmotiveESPModality';
+import { VisionModality } from '../../../../obj/modalities/VisionModality';
+import { SmellModality } from '../../../../obj/modalities/SmellModality';
+import { SoundModality } from '../../../../obj/modalities/SoundModality';
+import { TouchModality } from '../../../../obj/modalities/TouchModality';
+import { TasteModality } from '../../../../obj/modalities/TasteModality';
+import { VerbalESPModality } from '../../../../obj/modalities/VerbalESPModality';
+import { EmotiveESPModality } from '../../../../obj/modalities/EmotiveESPModality';
 import { PerceptionApi } from '../../../../api/perception';
 
 function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
@@ -52,7 +52,7 @@ const MODALITY_SPECS: readonly ModalitySpec[] = [
 ];
 
 /**
- * Build one v1 modality singleton at `/lib/perception/modalities/<name>`.
+ * Build one v1 modality singleton at `/obj/modalities/<name>`.
  * Hydrates from the matching v1 seed data.
  */
 export function buildModality(name: string): Modality {
@@ -60,7 +60,7 @@ export function buildModality(name: string): Modality {
   if (!spec) {
     throw new Error(`buildModality: unknown modality '${name}'`);
   }
-  const path = `/lib/perception/modalities/${spec.name}`;
+  const path = `/obj/modalities/${spec.name}`;
   const modality = registerAtPath(spec.factory, path);
   modality.setName(spec.name);
   modality.setFamily(spec.family);

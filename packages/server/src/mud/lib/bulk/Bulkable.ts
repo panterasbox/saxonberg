@@ -46,7 +46,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';

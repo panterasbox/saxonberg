@@ -5,7 +5,7 @@ import { SingletonMixin } from '../Singleton';
 import { PopulatesMixin } from '../Populates';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -116,7 +116,7 @@ describe('PopulatesMixin', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
     ]);
@@ -129,7 +129,7 @@ describe('PopulatesMixin', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
     ]);
@@ -142,7 +142,7 @@ describe('PopulatesMixin', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
     ]);
@@ -159,7 +159,7 @@ describe('PopulatesMixin', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
     ]);
@@ -172,7 +172,7 @@ describe('PopulatesMixin', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
     ]);
@@ -193,7 +193,7 @@ describe('PopulatesMixin', () => {
       installInMemoryStore([
         {
           path: PersistentHydrator.templatePath,
-          class: '/lib/persistence/PersistentHydrator',
+          class: '/obj/persistence/PersistentHydrator',
           data: {},
         },
         {
@@ -232,7 +232,7 @@ describe('PopulatesMixin', () => {
       installInMemoryStore([
         {
           path: PersistentHydrator.templatePath,
-          class: '/lib/persistence/PersistentHydrator',
+          class: '/obj/persistence/PersistentHydrator',
           data: {},
         },
         {
@@ -271,7 +271,7 @@ describe('PopulatesMixin', () => {
       installInMemoryStore([
         {
           path: PersistentHydrator.templatePath,
-          class: '/lib/persistence/PersistentHydrator',
+          class: '/obj/persistence/PersistentHydrator',
           data: {},
         },
         {
@@ -309,7 +309,7 @@ describe('PopulatesMixin', () => {
       installInMemoryStore([
         {
           path: PersistentHydrator.templatePath,
-          class: '/lib/persistence/PersistentHydrator',
+          class: '/obj/persistence/PersistentHydrator',
           data: {},
         },
         {

@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.measure-pressure
-  family: world.perception.measurement
-  label: Measure Pressure
-  description: Output of the measure pressure subcommand — Pascals reading.

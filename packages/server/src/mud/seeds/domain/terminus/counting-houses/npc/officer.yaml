@@ -12,12 +12,12 @@
 # not the doing, and enrols you into the Circle (the `bank-circle` effect sets
 # the recognized-standing marker → the raised withdrawal quota) with the
 # Enclave-housing steer — the velvet cage in one gesture.
-class: /lib/npc/NPC
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/NPC
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Halloran
   pronouns: he
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: halloran
   alternateNames:

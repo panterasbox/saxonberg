@@ -18,7 +18,7 @@ import ParcelRegistry from "../ParcelRegistry";
 import GroupRegistry from "../GroupRegistry";
 import AccessRegistry from "../AccessRegistry";
 import Avatar from "../Avatar";
-import FolderZone from "../../lib/zone/FolderZone";
+import FolderZone from "../FolderZone";
 import { ParcelApi } from "../../api/parcel";
 import { AccessApi } from "../../api/access";
 import { GroupApi } from "../../api/group";
@@ -657,21 +657,21 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
   });
 
   it("⭐ a path-branch row with no use answers wild — so cultivation is refused", async () => {
-    // /studio and /lib/lounge are titles over the TEMPLATE TREE, not
+    // /studio and /obj/lounge are titles over the TEMPLATE TREE, not
     // ground. They must not read as cultivable merely because nobody
     // thought to zone them. This is the fail-closed default in situ.
     seedParcel({ extent: "/studio", owner: { kind: "group", name: "core" } });
     seedParcel({
-      extent: "/lib/lounge",
+      extent: "/obj/lounge",
       owner: { kind: "group", name: "lounge" },
     });
     await boot();
 
     expect(ParcelApi.landUseOf("/studio")).toBe("wild");
     expect(ParcelApi.landUseOf("/studio/some-group")).toBe("wild");
-    expect(ParcelApi.landUseOf("/lib/lounge")).toBe("wild");
+    expect(ParcelApi.landUseOf("/obj/lounge")).toBe("wild");
     expect(ParcelApi.cultivationScaleAt("/studio")).toBe("none");
-    expect(ParcelApi.cultivationScaleAt("/lib/lounge")).toBe("none");
+    expect(ParcelApi.cultivationScaleAt("/obj/lounge")).toBe("none");
   });
 
   it("reports the cultivation scale for zoned ground", async () => {

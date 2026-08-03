@@ -6,14 +6,14 @@
 # Ships EMPTY. Fill it at a tap or any water source with the shipped `fill`,
 # then `water` a plant.
 class: /obj/WateringCan
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a tin watering can
   primaryKeyword: can
   keywords: [can, "watering can", watering, tin]
   longDescription: |
     A dented tin can with a long spout and a wire handle, sized for reaching over a windowsill without soaking the sill.
-  material: /lib/material/alloy/steel
+  material: /obj/material/alloy/steel
   interiorBulk: true
   interiorCapacity: 2
   capabilities: [watering]

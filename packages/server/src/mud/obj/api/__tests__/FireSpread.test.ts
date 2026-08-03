@@ -8,10 +8,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../../lib/location/CartesianZone';
+import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
 import Exit from '../../../lib/boundary/Exit';
-import Door from '../../../lib/boundary/Door';
+import Door from '../../Door';
 import Thing from '../../../lib/stuff/Thing';
 import Material from '../../../lib/material/Material';
 import { ThermalMixin } from '../../../lib/thermal/Thermal';
@@ -53,7 +53,7 @@ function woodMaterial(): Material {
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));
     m.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
     return m;
-  }, `/lib/material/_test/spread-wood-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/spread-wood-${seq}`) as unknown as Material;
 }
 
 /** A log placed in `room` (mass tuned to the radiant heat one tick delivers:

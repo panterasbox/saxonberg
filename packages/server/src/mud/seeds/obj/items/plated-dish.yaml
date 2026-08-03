@@ -3,14 +3,14 @@
 # Material at the portion, and stamps the maker's mark. The NutritionLabel
 # renders the honest macros; getLong appends the quality verdict.
 class: /obj/Dish
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a plated dish
   primaryKeyword: dish
   keywords: [dish, plate, meal, serving]
   longDescription: |
     A deep ceramic dish, plain and clean, waiting for a meal.
-  _materialPath: /lib/material/ceramic/ceramic
+  _materialPath: /obj/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 0.6
   mass: 0.5

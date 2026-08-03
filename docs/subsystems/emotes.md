@@ -336,7 +336,7 @@ free-form). The leaf is authored as a `Topic` template at
 
 ```yaml
 class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   topic: world.expression.emote
   family: world.expression

@@ -5,7 +5,7 @@
 # break that never comes, because Gus never opens it (the "won't open" of the
 # sit/set/open/cross quartet). Generic object: Visible.shortDescription.
 class: /obj/Thermos
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a dented steel thermos
   primaryKeyword: thermos

@@ -1,0 +1,25 @@
+# Bronze — copper-tin alloy. The pre-ferrous arms-and-armor metal:
+# denser than steel, softer, and markedly less tough. A bronze
+# breastplate turns an edge less surely than a steel one (same
+# construction, lower material height) — the materials-response
+# "steel plate > bronze plate" contrast.
+class: /obj/material/Material
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: bronze
+  density: 8800
+  # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
+  waterAbsorptionCapacity: 0.2
+  specificHeat: 380
+  thermalConductivity: 60
+  # Mechanical response: softer + less tough than steel (MPa / MJ·m⁻³).
+  hardness: 250
+  toughness: 90
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["alloy", "metal", "copper", "tin"]
+  composition:
+    - { materialPath: /obj/material/element/copper, fraction: 0.88 }
+  chemistry: null
+  biologicalSource: null

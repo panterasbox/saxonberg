@@ -1,7 +1,0 @@
-# CommsUpdate — the default-installed comms capability, an incorporeal
-# update hosted on aether attunement. Created into a host by
-# Avatar.installDefaultLoadout; carries no persistent state in v1
-# (cohort is runtime-only).
-class: /lib/comms/CommsUpdate
-hydratorClass: /lib/persistence/PersistentHydrator
-data: {}

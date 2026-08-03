@@ -10,7 +10,7 @@
 # in content — no code change. Rooms are runtime clones minted by
 # `DormWarren.admit`. A plain non-coordinate Location; generic label, no Named.
 class: /domain/eternal/duncan-hall/DormRoom
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: a dorm room

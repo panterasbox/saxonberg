@@ -26,11 +26,11 @@ import {
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../../lib/stuff/Idea";
 import { Character } from "../../../lib/character/Character";
-import Species from "../../../lib/species/Species";
-import BodyPlan from "../../../lib/species/BodyPlan";
-import Weapon from "../../../lib/equipment/Weapon";
-import Armor from "../../../lib/equipment/Armor";
-import Shield from "../../../lib/equipment/Shield";
+import Species from "../../species/Species";
+import BodyPlan from "../../species/BodyPlan";
+import Weapon from "../../equipment/Weapon";
+import Armor from "../../equipment/Armor";
+import Shield from "../../equipment/Shield";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
 import Material from "../../../lib/material/Material";
@@ -53,10 +53,10 @@ import { AdvancementApi } from "../../../api/advancement";
 import { AccountabilityApi } from "../../../api/accountability";
 import { COMBAT_COUP_TYPE } from "../../../lib/combat/Coup";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
-import { Party } from "../../../lib/party/Party";
-import { CombatFormation } from "../../../lib/combat/CombatFormation";
+import { Party } from "../../Party";
+import { CombatFormation } from "../../CombatFormation";
 import type { Channel } from "../../../lib/material/Channel";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../api/event";
 
 class TestRoom extends ContainerMixin(Idea) {}
@@ -70,7 +70,7 @@ function mat(hardness: number, toughness: number, name: string): Material {
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
-  stampTemplatePathForTest(m, `/lib/material/test/m-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/m-${seq++}`);
   return m;
 }
 const steel = () => mat(600, 200, "steel");
@@ -112,26 +112,26 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/lib/material/tissue/bone", mass: 8 },
-        { tissuePath: "/lib/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
+        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-fighter-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-fighter-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/fighter-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/fighter-${id}`);
 
   const f = makeStuff(() => new (opts.ctor ?? TestFighter)());
   // A distinct templatePath per fighter — combat's side seam keys a
@@ -1282,7 +1282,7 @@ function residentFormation(name: string): CombatFormation {
   if (spec.trigger) f.setInterceptTrigger(spec.trigger);
   if (spec.coupRight) f.setCoupRight(spec.coupRight);
   if (spec.coupCall) f.setCoupCall(spec.coupCall);
-  stampTemplatePathForTest(f, `/lib/combat/CombatFormation/${name}`);
+  stampTemplatePathForTest(f, `/obj/CombatFormation/${name}`);
   return f;
 }
 
@@ -1304,7 +1304,7 @@ function seedFormationParty(
   raw.setCombatSide("faction:formed");
   for (const m of members) raw.addMember(m.getTemplatePath()!);
   raw.setCaptainId(members[captainIdx]!.getTemplatePath()!);
-  raw.setFormationPath(`/lib/combat/CombatFormation/${formation}`);
+  raw.setFormationPath(`/obj/CombatFormation/${formation}`);
   for (const [idx, role] of Object.entries(roles)) {
     raw.assignRole(members[Number(idx)]!.getTemplatePath()!, role);
   }
@@ -1720,7 +1720,7 @@ describe("CombatLogic — formations: mid-fight adopt + determinism", () => {
     // captain's `party adopt` / `party assign` — the store is the same).
     residentFormation("vanguard");
     const raw = ProxyApi.unwrap(party) as Party;
-    raw.setFormationPath("/lib/combat/CombatFormation/vanguard");
+    raw.setFormationPath("/obj/CombatFormation/vanguard");
     raw.assignRole(front.getTemplatePath()!, "front");
     raw.assignRole(back.getTemplatePath()!, "back");
 
@@ -1850,7 +1850,7 @@ describe("CombatLogic — coup governance (right / call / facts)", () => {
       expect(death!.killerRole).toBe("apprentice");
       expect(death!.directedBy).toBe(master.getTemplatePath());
       expect(death!.formationPath).toBe(
-        "/lib/combat/CombatFormation/master-apprentice",
+        "/obj/CombatFormation/master-apprentice",
       );
     } finally {
       spy.mockRestore();

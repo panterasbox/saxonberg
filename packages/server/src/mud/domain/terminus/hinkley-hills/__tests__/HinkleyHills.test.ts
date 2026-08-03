@@ -32,7 +32,7 @@ import GardenBed from '../../../../obj/GardenBed';
 import PlantPot from '../../../../obj/PlantPot';
 import Seed from '../../../../obj/Seed';
 import Plant from '../../../../obj/Plant';
-import FurnishableRoom from '../../../../lib/location/FurnishableRoom';
+import FurnishableRoom from '../../../../obj/location/FurnishableRoom';
 import ParcelRegistry from '../../../../obj/ParcelRegistry';
 import GroupRegistry from '../../../../obj/GroupRegistry';
 import { Reserve } from '../../../../lib/reserve';
@@ -300,7 +300,7 @@ function walkTissue(): Material {
     m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
     return m;
-  }, fresh('/lib/material/_test/walk-tissue')) as unknown as Material;
+  }, fresh('/obj/material/_test/walk-tissue')) as unknown as Material;
 }
 
 function walkWater(): Material {
@@ -312,7 +312,7 @@ function walkWater(): Material {
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
-  }, fresh('/lib/material/_test/walk-water')) as unknown as Material;
+  }, fresh('/obj/material/_test/walk-water')) as unknown as Material;
 }
 
 function walkCompost(): Material {
@@ -324,7 +324,7 @@ function walkCompost(): Material {
     m.setSpecificHeat(Quantity.of(1400, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.2, 'W/(m·K)'));
     return m;
-  }, fresh('/lib/material/_test/walk-compost')) as unknown as Material;
+  }, fresh('/obj/material/_test/walk-compost')) as unknown as Material;
 }
 
 function makeWalkCan(litres: number): WateringCan {
@@ -506,7 +506,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
   it('⭐ …but a COVERED branch with no declared use still refuses', async () => {
     // The other half, and why `wild` stays fail-closed. `/studio` and
-    // `/lib/lounge` are titles over the TEMPLATE TREE rather than ground.
+    // `/obj/lounge` are titles over the TEMPLATE TREE rather than ground.
     // They HAVE parcel rows, declare no use, and so answer `wild` — which
     // admits nothing. Covered-and-unzoned is policed; uncovered is not.
     seedParcel('/studio', null);

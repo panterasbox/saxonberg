@@ -20,8 +20,8 @@
 
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
-import Stock from "../../../lib/retail/Stock";
-import ConsignmentShelf from "../../../lib/retail/ConsignmentShelf";
+import Stock from "../../Stock";
+import ConsignmentShelf from "../../ConsignmentShelf";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";

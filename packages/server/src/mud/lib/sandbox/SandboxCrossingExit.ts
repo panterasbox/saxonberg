@@ -28,7 +28,7 @@ import { SandboxApi } from '../../api/sandbox';
 import { ParcelApi } from '../../api/parcel';
 import { PlayerApi } from '../../api/player';
 import type Avatar from '../../obj/Avatar';
-import type SandboxCrossing from './SandboxCrossing';
+import type SandboxCrossing from '../../obj/sandbox/SandboxCrossing';
 
 export default class SandboxCrossingExit extends Exit {
   /** Which way this passage runs. */

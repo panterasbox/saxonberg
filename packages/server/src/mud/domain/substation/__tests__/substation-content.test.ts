@@ -40,7 +40,7 @@ function templateExists(path: string): boolean {
 
 describe('The Drowned Substation — content integrity', () => {
   it('the zone is a CartesianZone', () => {
-    expect(seed('domain/substation').class).toBe('/lib/location/CartesianZone');
+    expect(seed('domain/substation').class).toBe('/obj/location/CartesianZone');
   });
 
   it('the flooded-cell room is a CartesianLocation subclass at authored coords', () => {
@@ -67,20 +67,20 @@ describe('The Drowned Substation — content integrity', () => {
     expect(floor.data?.surfaceBulk).toBe(true);
     expect(floor.data?.surfaceAmount).toBeGreaterThan(0);
     const material = String(floor.data?.surfaceMaterial ?? '');
-    expect(material).toBe('/lib/material/bulk/salt-water');
+    expect(material).toBe('/obj/material/bulk/salt-water');
     expect(templateExists(material), material).toBe(true);
   });
 
   it('the live wire is an Energized source held at a real potential', () => {
     const wire = seed('domain/substation/live-wire');
-    expect(wire.class).toBe('/lib/electricity/LiveWire');
+    expect(wire.class).toBe('/obj/LiveWire');
     expect(wire.data?.voltage).toBeGreaterThan(0);
     expect(wire.data?.on).toBe(true);
   });
 
   it('the stun baton is an authored Energized weapon, shipped safed', () => {
     const baton = seed('domain/substation/stun-baton');
-    expect(baton.class).toBe('/lib/electricity/StunBaton');
+    expect(baton.class).toBe('/obj/equipment/StunBaton');
     // A hafted weapon (mechanical) with an electrical layer on top.
     expect(baton.data?.constructionForm).toBe('hafted');
     expect(baton.data?.voltage).toBeGreaterThan(0);

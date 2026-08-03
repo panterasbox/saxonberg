@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DeferredDestinationExit from '../DeferredDestinationExit';
 import CartesianLocation from '../../location/CartesianLocation';
 import { StuffApi } from '../../../api/stuff';
-import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 

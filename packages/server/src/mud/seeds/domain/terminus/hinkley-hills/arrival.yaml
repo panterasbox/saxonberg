@@ -5,13 +5,13 @@
 # rather than a lamp's, and a crop needs a great deal more of it than a
 # houseplant does. Everything about the suburb's growing conditions comes
 # down to being out here instead of in there.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the Hinkley Hills stop
   primaryKeyword: stop
   _address: terminus/hinkley-hills/stop
-  _biomePath: /lib/biome/outdoor/baseline
+  _biomePath: /obj/biome/outdoor/baseline
   # Outdoor daylight, STATIC for now — the same placeholder the Duncan
   # Hall steps carry, and it becomes a computed value when CelestialApi
   # drives light. 600 lux is open sky on an ordinary day: well past the

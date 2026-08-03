@@ -30,22 +30,22 @@ function templateExists(path: string): boolean {
 
 describe('The Weeping Moor — content integrity', () => {
   it('the zone is a CartesianZone', () => {
-    expect(seed('domain/moor').class).toBe('/lib/location/CartesianZone');
+    expect(seed('domain/moor').class).toBe('/obj/location/CartesianZone');
   });
 
   it('the Locality carries an alive storm pin over the `moor` prefix', () => {
-    const loc = seed('lib/address/moor');
-    expect(loc.class).toBe('/lib/address/Locality');
+    const loc = seed('obj/Locality/moor');
+    expect(loc.class).toBe('/obj/Locality');
     expect(loc.data?._address).toBe('moor');
     expect(loc.data?._weatherPin).toEqual({ type: 'storm', mode: 'alive' });
   });
 
   it('the stormy heath is a SkyExposed CartesianLocation under `moor`', () => {
     const heath = seed('domain/moor/stormy-heath');
-    expect(heath.class).toBe('/lib/location/CartesianLocation');
-    expect(heath.data?._biomePath).toBe('/lib/biome/outdoor/baseline');
+    expect(heath.class).toBe('/obj/location/Room');
+    expect(heath.data?._biomePath).toBe('/obj/biome/outdoor/baseline');
     expect(heath.data?.address).toBe('moor/heath');
-    expect(templateExists('/lib/biome/outdoor/baseline')).toBe(true);
+    expect(templateExists('/obj/biome/outdoor/baseline')).toBe(true);
     for (const p of (heath.data?.adornments ?? []) as string[]) {
       expect(templateExists(p)).toBe(true);
     }
@@ -53,8 +53,8 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the weeping chamber is an indoor scope-pinned rain room', () => {
     const chamber = seed('domain/moor/weeping-chamber');
-    expect(chamber.class).toBe('/lib/location/CartesianLocation');
-    expect(chamber.data?._biomePath).toBe('/lib/biome/indoor/baseline');
+    expect(chamber.class).toBe('/obj/location/Room');
+    expect(chamber.data?._biomePath).toBe('/obj/biome/indoor/baseline');
     expect(chamber.data?._weatherPin).toEqual({ type: 'rain', mode: 'frozen' });
     expect(chamber.data?._humidity).toBe(98); // authored sodden air
     expect(chamber.data?.address).toBe('moor/chamber');

@@ -236,7 +236,7 @@ export interface Propertied {
   /**
    * Initialize a new property with options.
    *
-   * Pass `marshaller: '/lib/persistence/QuantityMarshaller/kg'` (or
+   * Pass `marshaller: '/obj/persistence/QuantityMarshaller/kg'` (or
    * any registered marshaller path) when the prop holds a rich
    * value object that needs storage-shape conversion. The binding
    * persists alongside `savedProps`, so loaded hosts round-trip

@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.sense.feel
+  family: world.perception.sense
+  label: Feel
+  description: Output of the feel verb — deliberate tactile attention.
