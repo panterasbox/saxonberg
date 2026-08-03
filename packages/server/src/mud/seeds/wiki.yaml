@@ -1,0 +1,22 @@
+# /wiki — the encyclopedia's namespace root, and a new top-level
+# template branch beside /lib, /obj, /domain, /home and /studio.
+#
+# A real Zone seed so the folder/leaf invariant accepts the namespace
+# zones beneath it, and so `Zone.lookupField` sees it as an inheritance
+# node — which is what makes `protection` declared HERE the default for
+# every namespace that does not override it.
+#
+# ⭐ `protection: anyone` is the open edit floor, and it is a decision
+# rather than a default. Community maintenance is the point; the
+# revision log plus fast rollback is the net. A review queue is
+# deliberately absent — open editing plus fast rollback is the
+# wiki-classic bargain, and a queue converts a commons into a
+# submission process. Revisit only if abuse actually appears.
+#
+# Class paths under here stay `/obj/...`, so `#validateClassPath` is
+# satisfied; only the TEMPLATE paths are new.
+class: /obj/WikiNamespaceZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: wiki
+  protection: anyone

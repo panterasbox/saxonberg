@@ -1,0 +1,19 @@
+# snippet — reusable markup fragments (infoboxes, citation formats,
+# navboxes). A snippet IS a page (S1), so it inherits revisions,
+# history, rollback and protection with no new code and no second
+# editing path.
+#
+# ⭐ The ONE namespace that tightens the open floor, and the reason is
+# blast radius rather than caution: an article is read by whoever opens
+# it, but a snippet is TRANSCLUDED, so vandalising one vandalises every
+# page that uses it. That is a different kind of act from editing a
+# page, and the floor should reflect it.
+#
+# This is not a capability boundary — snippets cannot reach live game
+# state at all; only a component a developer wrote can, which is the
+# real line. It is a blast-radius boundary.
+class: /obj/WikiNamespaceZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: snippet
+  protection: editors

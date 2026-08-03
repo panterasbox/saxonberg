@@ -36,3 +36,24 @@ groups:
     # resolution converge on one group.
     owner: system
     members: []
+
+  - name: wiki-editors
+    # The wiki's ONE managed group. It owns /wiki in parcels.yaml, so
+    # the protection ladder's `editors` rung is membership here and the
+    # `moderators` rung is the 'owner' role here.
+    #
+    # ⭐ One group, not two. A separate `wiki-moderators` would need a
+    # controller to call `GroupApi.isMember` directly — which the
+    # antipatterns table forbids — and the substrate ALREADY
+    # distinguishes 'owner' from 'member', so a second group would be
+    # inventing a distinction that exists. Confer moderator status with
+    # `group` by setting a member's role to owner.
+    #
+    # Deliberately EMPTY: an open wiki needs no editors to start, and
+    # the `anyone` floor at /wiki means the encyclopedia is writable on
+    # a fresh world by anyone who logs in. The group exists so the two
+    # rungs ABOVE that floor have somewhere to resolve against. Owner
+    # `system`, matching ParcelRegistry's mint-or-find so this seed and
+    # the lazy owner-ref resolution converge on one group.
+    owner: system
+    members: []

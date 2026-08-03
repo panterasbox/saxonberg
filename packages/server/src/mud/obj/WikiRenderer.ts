@@ -239,14 +239,80 @@ export default class WikiRenderer extends Idea {
     return nodes;
   }
 
-  /** Stage 3 — `[[Page]]` resolution. **Wave 3 fills this.** */
+  /**
+   * Stage 3 — `[[Page]]` and `[[Page|label]]` resolution.
+   *
+   * A missing page renders a **redlink**: a coloured, clickable
+   * affordance that runs `wiki create <name>`. Wikis run on redlinks —
+   * they are how a reader who noticed a gap becomes the author who
+   * filled it, and they are the input to `wiki wanted`, which is the
+   * best authoring to-do list a wiki has.
+   *
+   * Resolution walks **text nodes only**, so a `[[` inside an attribute
+   * or a `<code>` span's already-escaped content is never rewritten.
+   */
   protected async resolveLinks(
     nodes: readonly MmlNode[],
-    _opts: RenderOptions,
-    _budget: RenderBudget,
+    opts: RenderOptions,
+    budget: RenderBudget,
     _diagnostics: string[],
   ): Promise<readonly MmlNode[]> {
-    return nodes;
+    const resolve = opts.resolveLink;
+    if (!resolve) return nodes;
+    const out: MmlNode[] = [];
+    for (const node of nodes) {
+      if (node.kind === 'text') {
+        out.push(...(await this.linkifyText(node.text, resolve)));
+        continue;
+      }
+      // `<code>` / `<pre>` are opaque by the same rule markdown uses:
+      // an author writing about wiki syntax must be able to show it.
+      if (node.tag === 'code' || node.tag === 'pre') {
+        out.push(node);
+        continue;
+      }
+      out.push({
+        kind: 'tag',
+        tag: node.tag,
+        attrs: node.attrs,
+        children: [
+          ...(await this.resolveLinks(node.children, opts, budget, _diagnostics)),
+        ],
+      });
+    }
+    return out;
+  }
+
+  /** Split one text run on `[[…]]`, resolving each reference. */
+  private async linkifyText(
+    text: string,
+    resolve: NonNullable<RenderOptions['resolveLink']>,
+  ): Promise<MmlNode[]> {
+    if (!text.includes('[[')) return [{ kind: 'text', text }];
+    const out: MmlNode[] = [];
+    let cursor = 0;
+    // Non-greedy, and `[^\]]` so an unclosed `[[` cannot run to the end
+    // of the document swallowing the article.
+    const RE = /\[\[([^\]|]+)(?:\|([^\]]*))?\]\]/g;
+    let m: RegExpExecArray | null;
+    while ((m = RE.exec(text)) !== null) {
+      if (m.index > cursor) {
+        out.push({ kind: 'text', text: text.slice(cursor, m.index) });
+      }
+      const ref = m[1]!.trim();
+      const label = (m[2] ?? '').trim();
+      const target = await resolve(ref);
+      out.push(
+        target
+          ? link(`mudcmd:wiki ${target.handle}`, label || target.title)
+          : redlink(ref, label || ref),
+      );
+      cursor = m.index + m[0].length;
+    }
+    if (cursor < text.length) {
+      out.push({ kind: 'text', text: text.slice(cursor) });
+    }
+    return out;
   }
 
   /** Stage 4 — component resolution. **Wave 5 fills this.** */
@@ -429,6 +495,34 @@ function errorNode(detail: string): MmlNode {
     tag: 'code',
     attrs: {},
     children: [{ kind: 'text', text: `[wiki: ${detail}]` }],
+  };
+}
+
+/** A resolved internal link — clickable, runs `wiki <handle>`. */
+function link(href: string, label: string): MmlNode {
+  return {
+    kind: 'tag',
+    tag: 'link',
+    attrs: { href },
+    children: [{ kind: 'text', text: label }],
+  };
+}
+
+/**
+ * A **redlink** — a link to a page that does not exist yet, which runs
+ * `wiki create` instead of `wiki`.
+ *
+ * Coloured through the shipped `<color>` vocabulary rather than a new
+ * tag: the colour IS the convention every wiki reader already knows,
+ * and inventing a `<redlink>` tag would mean a new flatten entry, a new
+ * renderer arm and a new client treatment to say the same thing.
+ */
+function redlink(ref: string, label: string): MmlNode {
+  return {
+    kind: 'tag',
+    tag: 'color',
+    attrs: { value: 'red' },
+    children: [link(`mudcmd:wiki create ${ref}`, label)],
   };
 }
 

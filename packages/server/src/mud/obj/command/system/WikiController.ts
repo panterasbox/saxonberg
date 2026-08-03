@@ -1,0 +1,528 @@
+/**
+ * WikiController — the `wiki` verb, and the **one chokepoint** every
+ * wiki mutation passes through.
+ *
+ * Every mutator on `WikiRegistry` carries
+ * `@CallSecurity(FromModule('/obj/command/system/WikiController'))`, so
+ * this module is not merely the conventional caller — it is the only
+ * one the gate admits (criterion 20). Code that resolves the registry
+ * by template path gets a reference and a `SecurityError`.
+ *
+ * Subcommand-first with `fallthrough: true`, so bare `wiki <page>`
+ * reads (the `chat` / `forum` shape).
+ *
+ * Controllers return `void`; outcomes ride the dispatch-response
+ * envelope. A refusal is a `controller-rejected` note plus a scene
+ * line naming the reason — never a `{success: false}` return.
+ */
+
+import { CommandController } from '../../../lib/command/CommandController';
+import type { CommandContext, CommandModel } from '../../../api/command';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
+import { PromptApi } from '../../../api/prompt';
+import { StuffApi } from '../../../api/stuff';
+import { TemplatePaths } from '../../../lib/paths';
+import WikiRegistry, {
+  DEFAULT_NAMESPACE,
+  WikiConflict,
+  WikiDenied,
+} from '../../WikiRegistry';
+import WikiRenderer from '../../WikiRenderer';
+import {
+  WikiPage,
+  type Protection,
+  type SubjectKind,
+  type WikiSubject,
+} from '../../../lib/wiki/WikiPage';
+import { SpoilerLevels, type SpoilerLevel } from '../../../lib/wiki/render';
+
+interface WikiModel extends CommandModel {
+  page?: string;
+  slug?: string;
+  rev?: string;
+  level?: string;
+  namespace?: string;
+  body?: string;
+  title?: string;
+  subject?: string;
+  spoiler?: string;
+  tag?: string;
+  related?: string;
+}
+
+/** The scene topic every `wiki` readout rides. */
+const TOPIC = 'system.shell.wiki';
+
+export default class WikiController extends CommandController<WikiModel> {
+  async execute(model: WikiModel, context: CommandContext): Promise<void> {
+    const sub = model.subcommand;
+    try {
+      switch (sub) {
+        case undefined:
+        case 'read':
+          return await this.executeRead(model, context);
+        case 'create':
+          return await this.executeCreate(model, context);
+        case 'edit':
+          return await this.executeEdit(model, context);
+        case 'history':
+          return await this.executeHistory(model, context);
+        case 'rollback':
+          return await this.executeRollback(model, context);
+        case 'move':
+          return await this.executeMove(model, context);
+        case 'delete':
+          return await this.executeDelete(model, context, true);
+        case 'undelete':
+          return await this.executeDelete(model, context, false);
+        case 'purge':
+          return await this.executePurge(model, context);
+        case 'protect':
+          return await this.executeProtect(model, context);
+        case 'list':
+          return await this.executeList(model, context);
+        default:
+          return this.fail(
+            context,
+            `Unknown wiki subcommand: ${sub}`,
+            'unknown-subcommand',
+          );
+      }
+    } catch (err) {
+      // `WikiDenied` and `WikiConflict` are the substrate's two
+      // expected refusals — an authorization failure and a lost-update
+      // guard. Both are the player's business, so they surface as
+      // named rejections rather than as an error status.
+      if (err instanceof WikiDenied) {
+        return this.fail(context, err.message, 'wiki-denied');
+      }
+      if (err instanceof WikiConflict) {
+        return this.fail(
+          context,
+          `${err.message}. Re-read the page and reapply your edit.`,
+          'wiki-edit-conflict',
+        );
+      }
+      throw err;
+    }
+  }
+
+  // ── Read ──
+
+  private async executeRead(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const ref = (model.page ?? '').trim();
+    if (!ref) return this.fail(context, 'which page?', 'page-required');
+    const registry = await this.registry();
+    const hit = await registry.resolve(ref);
+    if (!hit) {
+      // A miss is an invitation, not an error: a wiki grows because
+      // the reader who noticed the gap is the author who fills it.
+      this.send(
+        context,
+        Mml.compose`\nNo page '${ref}'. Write it with \`wiki create ${ref}\`.\n`,
+      );
+      context.note({ kind: 'empty-result', field: 'page', query: ref });
+      return;
+    }
+    const { page, viaAlias } = hit;
+    const rendered = await this.render(page, model);
+    const header = viaAlias
+      ? `${page.getTitle()}  (via '${WikiPage.normalizeName(ref)}' → ${page.getHandle()})`
+      : `${page.getTitle()}  (${page.getHandle()}, rev ${page.getRev()})`;
+    this.send(
+      context,
+      Mml.fromMarkup(
+        `\n${Mml.escape(header)}\n\n${rendered}\n`,
+      ),
+    );
+  }
+
+  // ── Write ──
+
+  private async executeCreate(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const ref = (model.page ?? '').trim();
+    if (!ref) return this.fail(context, 'name the page', 'page-required');
+    const { namespace, name } = WikiPage.parseRef(ref, DEFAULT_NAMESPACE);
+    if (!name) return this.fail(context, 'name the page', 'page-required');
+    const subject = parseSubject(model.subject);
+    if (subject === 'invalid') {
+      return this.fail(
+        context,
+        `--subject must be template:<path>, mixin:<Name> or command:<file>`,
+        'bad-subject',
+      );
+    }
+    const body = await this.resolveBody(model, context, 'Write the article:');
+    const registry = await this.registry();
+    const page = await registry.createPage({
+      namespace,
+      slug: name,
+      ...(model.title ? { title: model.title } : {}),
+      body,
+      subject,
+      ...(model.tag ? { tags: splitList(model.tag) } : {}),
+      ...(model.related ? { related: splitList(model.related) } : {}),
+      ...(model.spoiler !== undefined
+        ? { spoilerLevel: SpoilerLevels.parse(model.spoiler) }
+        : {}),
+    });
+    this.send(
+      context,
+      Mml.compose`\nCreated '${page.getTitle()}' (${page.getHandle()}).\n`,
+    );
+  }
+
+  private async executeEdit(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const registry = await this.registry();
+    const subject = parseSubject(model.subject);
+    if (subject === 'invalid') {
+      return this.fail(
+        context,
+        `--subject must be template:<path>, mixin:<Name> or command:<file>`,
+        'bad-subject',
+      );
+    }
+
+    // Frontmatter rides options and changes only what was passed —
+    // an unpassed flag stays undefined on the patch rather than
+    // clearing the field (the `bulletin` edit shape).
+    const patch: Parameters<WikiRegistry['setFrontmatter']>[1] = {};
+    if (model.title !== undefined) patch.title = model.title;
+    if (model.tag !== undefined) patch.tags = splitList(model.tag);
+    if (model.related !== undefined) patch.related = splitList(model.related);
+    if (model.subject !== undefined) patch.subject = subject;
+    if (model.spoiler !== undefined) {
+      patch.spoilerLevel = SpoilerLevels.parse(model.spoiler);
+    }
+    if (Object.keys(patch).length > 0) {
+      await registry.setFrontmatter(page, patch);
+    }
+
+    const body = await this.resolveBody(
+      model,
+      context,
+      'Edit the article:',
+      page.getBody(),
+    );
+    if (body === null) {
+      // Frontmatter-only edit — the author passed options and no body.
+      this.send(context, Mml.compose`\nUpdated '${page.getTitle()}'.\n`);
+      return;
+    }
+    await registry.editPage(page, body);
+    this.send(
+      context,
+      Mml.compose`\nEdited '${page.getTitle()}' — now rev ${String(page.getRev())}.\n`,
+    );
+  }
+
+  private async executeHistory(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const registry = await this.registry();
+    const revisions = await registry.history(page._id ?? '');
+    if (revisions.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo revisions.\n`));
+      return;
+    }
+    const lines = [`History of ${page.getTitle()} (${page.getHandle()}):`];
+    for (const rev of revisions) {
+      const draft = rev.isPublished() ? '' : ' [draft]';
+      const note = rev.getSummary() ? ` — ${rev.getSummary()}` : '';
+      lines.push(
+        `  ${rev.getRev()}. ${rev.getKind()}${draft} by ${rev.getAuthor()}` +
+          ` at ${new Date(rev.getAt()).toISOString()}${note}`,
+      );
+    }
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
+  }
+
+  private async executeRollback(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const rev = Number.parseInt((model.rev ?? '').trim(), 10);
+    if (!Number.isFinite(rev)) {
+      return this.fail(context, 'which revision?', 'rev-required');
+    }
+    const registry = await this.registry();
+    await registry.rollback(page, rev);
+    this.send(
+      context,
+      Mml.compose`\nRestored rev ${String(rev)} of '${page.getTitle()}' as rev ${String(page.getRev())}.\n`,
+    );
+  }
+
+  private async executeMove(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const slug = (model.slug ?? '').trim();
+    if (!slug) return this.fail(context, 'rename it to what?', 'slug-required');
+    const before = page.getSlug();
+    const registry = await this.registry();
+    await registry.movePage(page, slug);
+    this.send(
+      context,
+      Mml.compose`\nRenamed '${before}' to '${page.getSlug()}'. The old name still resolves.\n`,
+    );
+  }
+
+  private async executeDelete(
+    model: WikiModel,
+    context: CommandContext,
+    remove: boolean,
+  ): Promise<void> {
+    const registry = await this.registry();
+    const ref = (model.page ?? '').trim();
+    if (!ref) return this.fail(context, 'which page?', 'page-required');
+    // Undelete has to SEE a deleted page to restore it.
+    const hit = await registry.resolve(ref, { includeDeleted: true });
+    if (!hit) return this.fail(context, `No page '${ref}'.`, 'no-such-page');
+    if (remove) {
+      await registry.deletePage(hit.page);
+      this.send(
+        context,
+        Mml.compose`\nDeleted '${hit.page.getTitle()}'. Its revisions are untouched; \`wiki undelete\` restores it.\n`,
+      );
+    } else {
+      await registry.undeletePage(hit.page);
+      this.send(context, Mml.compose`\nRestored '${hit.page.getTitle()}'.\n`);
+    }
+  }
+
+  private async executePurge(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const registry = await this.registry();
+    const ref = (model.page ?? '').trim();
+    if (!ref) return this.fail(context, 'which page?', 'page-required');
+    const hit = await registry.resolve(ref, { includeDeleted: true });
+    if (!hit) return this.fail(context, `No page '${ref}'.`, 'no-such-page');
+    // Irreversible and destructive: confirm when there is somebody to
+    // ask. A scripted caller (no Interactive) proceeds — it has already
+    // cleared the moderator gate, and a prompt it cannot answer would
+    // hang rather than protect.
+    if (context.interactive) {
+      const ok = await PromptApi.confirm(
+        context.interactive,
+        `Purge '${hit.page.getTitle()}' and every revision of it? This cannot be undone.`,
+        'no',
+      ).catch(() => false);
+      if (!ok) {
+        return this.fail(context, 'Purge cancelled.', 'purge-cancelled');
+      }
+    }
+    const removed = await registry.purgePage(hit.page);
+    this.send(
+      context,
+      Mml.compose`\nPurged '${hit.page.getTitle()}' and ${String(removed)} revisions. The act is recorded; the content is gone.\n`,
+    );
+  }
+
+  private async executeProtect(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const raw = (model.level ?? '').trim().toLowerCase();
+    if (raw !== 'none' && !WikiPage.isProtection(raw)) {
+      return this.fail(
+        context,
+        'level must be anyone, editors, moderators, or none',
+        'bad-protection',
+      );
+    }
+    const level: Protection | null = raw === 'none' ? null : raw;
+    const registry = await this.registry();
+    await registry.protectPage(page, level);
+    const effective = await registry.protectionFor(page);
+    this.send(
+      context,
+      Mml.compose`\n'${page.getTitle()}' is now editable by ${effective}.\n`,
+    );
+  }
+
+  private async executeList(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const registry = await this.registry();
+    const filter = WikiPage.normalizeName(model.namespace ?? '');
+    const pages = (await registry.allPages()).filter(
+      (p) => !filter || p.getNamespace() === filter,
+    );
+    if (pages.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo pages.\n`));
+      return;
+    }
+    const lines = [filter ? `Pages in ${filter}:` : 'Pages:'];
+    for (const p of pages.sort((a, b) =>
+      a.getHandle().localeCompare(b.getHandle()),
+    )) {
+      const subject = p.getSubject();
+      const bound = subject ? `  [${subject.kind}: ${subject.ref}]` : '';
+      lines.push(`  ${p.getHandle()}  ${p.getTitle()}${bound}`);
+    }
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
+  }
+
+  // ── Shared ──
+
+  /**
+   * Render a page for the acting reader. The renderer derives who that
+   * is from the execution context — the controller never tells it, and
+   * has no way to.
+   */
+  private async render(page: WikiPage, model: WikiModel): Promise<string> {
+    const registry = await this.registry();
+    const renderer = await StuffApi.singleton<WikiRenderer>(
+      TemplatePaths.wikiRenderer,
+    );
+    const zone = await registry.zoneFor(page.getNamespace());
+    const appetite =
+      model.spoiler !== undefined
+        ? (SpoilerLevels.parse(model.spoiler) as SpoilerLevel)
+        : undefined;
+    const result = await renderer.render(page.getBody(), {
+      pageId: page._id ?? '',
+      spoilerDefault: page.getSpoilerLevel(),
+      ...(zone ? { namespaceZone: zone } : {}),
+      ...(appetite !== undefined ? { appetite } : {}),
+      resolveLink: async (ref) => {
+        const target = await registry.resolve(ref);
+        return target
+          ? { handle: target.page.getHandle(), title: target.page.getTitle() }
+          : null;
+      },
+    });
+    return result.body;
+  }
+
+  /** Resolve `model.page`, sending the refusal when it misses. */
+  private async requirePage(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<WikiPage | null> {
+    const ref = (model.page ?? '').trim();
+    if (!ref) {
+      this.fail(context, 'which page?', 'page-required');
+      return null;
+    }
+    const registry = await this.registry();
+    const hit = await registry.resolve(ref);
+    if (!hit) {
+      this.fail(context, `No page '${ref}'.`, 'no-such-page');
+      return null;
+    }
+    return hit.page;
+  }
+
+  /**
+   * The body, from the three routes to one field: the structured
+   * side-channel (GUI), else an interactive compose prompt, else
+   * `null` for "the author did not supply one".
+   *
+   * `null` rather than `''` matters: an empty string is a legitimate
+   * edit (blanking a page), so the two cannot be conflated. `current`
+   * pre-fills the prompt so editing is editing rather than retyping.
+   */
+  private async resolveBody(
+    model: WikiModel,
+    context: CommandContext,
+    label: string,
+    current?: string,
+  ): Promise<string>;
+  private async resolveBody(
+    model: WikiModel,
+    context: CommandContext,
+    label: string,
+    current: string,
+  ): Promise<string | null>;
+  private async resolveBody(
+    model: WikiModel,
+    context: CommandContext,
+    label: string,
+    current?: string,
+  ): Promise<string | null> {
+    if (typeof model.body === 'string') return model.body;
+    if (context.interactive) {
+      try {
+        const composed = await PromptApi.compose(context.interactive, label, {
+          placeholder: 'Wiki markdown — ⌘/Ctrl+Enter to submit',
+          allowEditorEscalation: true,
+        });
+        return composed;
+      } catch {
+        return current === undefined ? '' : null;
+      }
+    }
+    return current === undefined ? '' : null;
+  }
+
+  private async registry(): Promise<WikiRegistry> {
+    return StuffApi.singleton<WikiRegistry>(TemplatePaths.wikiRegistry);
+  }
+
+  private fail(context: CommandContext, detail: string, reason: string): void {
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(detail)}\n`));
+    context.note({ kind: 'controller-rejected', reason, detail });
+  }
+
+  private send(context: CommandContext, body: Mml): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
+  }
+}
+
+/** The subject kinds a `--subject` option may name. */
+const SUBJECT_KINDS: readonly SubjectKind[] = ['template', 'mixin', 'command'];
+
+/**
+ * Parse `--subject kind:ref`. Returns `undefined` for an unpassed
+ * option (leave the field alone), `null` for an explicit `none`
+ * (unbind), a subject, or the sentinel `'invalid'` — three outcomes
+ * plus an error, which a bare `null` return could not distinguish.
+ */
+function parseSubject(
+  raw: string | undefined,
+): WikiSubject | null | undefined | 'invalid' {
+  if (raw === undefined) return undefined;
+  const s = raw.trim();
+  if (!s || s.toLowerCase() === 'none') return null;
+  const colon = s.indexOf(':');
+  if (colon <= 0) return 'invalid';
+  const kind = s.slice(0, colon).trim().toLowerCase();
+  const ref = s.slice(colon + 1).trim();
+  if (!ref) return 'invalid';
+  if (!(SUBJECT_KINDS as readonly string[]).includes(kind)) return 'invalid';
+  return { kind: kind as SubjectKind, ref };
+}
+
+/** Split a comma-separated option into trimmed, non-empty entries. */
+function splitList(raw: string): string[] {
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}

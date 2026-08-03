@@ -190,6 +190,14 @@ export const COLLECTION_POLICIES: Readonly<
   // offline illustrate CLI; no circle path should ever reach it.
   [Collections.Blueprints]: { verb: 'refuse' },
   [Collections.MediaAssets]: { verb: 'refuse' },
+  // The wiki, both halves. REFUSE rather than STAMP because an article
+  // is not gameplay state: a circle has no legitimate reason to write
+  // the field's encyclopedia, and a scoped page that reverted on circle
+  // exit would be a page an author watched themselves write and then
+  // lose. Matches the audit-flipped `Blueprints` / `MediaAssets`
+  // reasoning — field-visible content, so it fails closed.
+  [Collections.Wiki]: { verb: 'refuse' },
+  [Collections.WikiRevisions]: { verb: 'refuse' },
 };
 
 /**
@@ -1358,6 +1366,45 @@ export class PersistenceManager {
       });
       await this.getCollection(Collections.ContractEvents).createIndex({
         at: 1,
+      });
+
+      // Wiki pages: the current-state rows. The load-bearing one is the
+      // NAME index — slugs and aliases share ONE name space within a
+      // namespace (a name resolves to at most one page), so the lookup
+      // and the collision check are the same query. It is NOT declared
+      // unique: `aliases` is an array, so a unique index would be a
+      // multikey unique across the whole collection rather than per
+      // namespace, and would reject two namespaces legitimately holding
+      // the same name. Uniqueness is enforced at the one write
+      // chokepoint (`WikiRegistry`), which is also where the refusal can
+      // name the holder (criterion 63) instead of surfacing a driver
+      // error. `subject.ref` serves the total reverse lookup
+      // ("is this documented?" — criterion 6).
+      await this.getCollection(Collections.Wiki).createIndex({
+        namespace: 1,
+        slug: 1,
+      });
+      await this.getCollection(Collections.Wiki).createIndex({
+        namespace: 1,
+        aliases: 1,
+      });
+      await this.getCollection(Collections.Wiki).createIndex({
+        'subject.ref': 1,
+      });
+      await this.getCollection(Collections.Wiki).createIndex({ tags: 1 });
+
+      // Wiki revisions: the append-only edit log, in its own collection
+      // so a heavily-edited page never approaches Mongo's 16MB document
+      // cap and a page READ never drags its history (criterion 11).
+      // `{pageId, rev}` is unique — it is the compare-and-swap token's
+      // materialisation, and two rows at one rev would mean a lost edit
+      // that history records as having happened.
+      await this.getCollection(Collections.WikiRevisions).createIndex(
+        { pageId: 1, rev: -1 },
+        { unique: true },
+      );
+      await this.getCollection(Collections.WikiRevisions).createIndex({
+        author: 1,
       });
 
       // Sandbox: partial circleScope index on every STAMP collection —

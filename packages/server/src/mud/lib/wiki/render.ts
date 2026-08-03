@@ -152,6 +152,24 @@ export interface RenderOptions {
    * invocations are left as literal text.
    */
   resolveSnippet?: (name: string) => Promise<string | null>;
+  /**
+   * Resolve a `[[Page]]` reference to a link target, or `null` for a
+   * page that does not exist yet (which renders as a **redlink** —
+   * criterion 22).
+   *
+   * Injected rather than imported so the renderer never depends on the
+   * registry: the two singletons would otherwise import each other, and
+   * the seam also lets a test drive link resolution without a database.
+   */
+  resolveLink?: (ref: string) => Promise<LinkTarget | null>;
+}
+
+/** Where a resolved `[[Page]]` points. */
+export interface LinkTarget {
+  /** The `namespace:slug` handle the `wiki` verb takes. */
+  handle: string;
+  /** What the link reads as when the author gave no explicit label. */
+  title: string;
 }
 
 /** What a render produced, plus what it cost and what went wrong. */
