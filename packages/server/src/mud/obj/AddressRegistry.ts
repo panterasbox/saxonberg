@@ -47,8 +47,19 @@ const AddressLogicCaller = SecurityPolicies.FromTemplate('/obj/api/address');
 
 /** The addressing prefix; its Locality leaves live beneath it. */
 const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/obj/Locality/'
-/** The Locality class template path — the filter for the roster walk. */
-const LOCALITY_CLASS = `${ADDRESS_PREFIX}Locality`;
+/**
+ * The Locality class MODULE path — the filter for the roster walk.
+ *
+ * Stated outright rather than derived from `ADDRESS_PREFIX`. The two
+ * coincided while the class and its template family shared a directory
+ * (`/lib/address/Locality` was both), so `${prefix}Locality` read as
+ * clever rather than as a bug. After the lib/obj taxonomy move the
+ * class is flat at `/obj/Locality` while the family root is
+ * `/obj/Locality/`, and the derivation silently produced
+ * `/obj/Locality/Locality` — a class nothing has, so the roster walk
+ * matched nothing and every address resolved to its fallback.
+ */
+const LOCALITY_CLASS = '/obj/Locality';
 
 export default class AddressRegistry extends AddressRegistryBase {
   /**
