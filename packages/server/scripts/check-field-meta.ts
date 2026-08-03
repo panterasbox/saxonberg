@@ -528,6 +528,7 @@ const KNOWN_PROPS = new Set([
   "authorable",
   "authorPicker",
   "runtimeState",
+  "spoiler",
 ]);
 const TRUE_ONLY = new Set([
   "persistent",
@@ -539,6 +540,15 @@ const TRUE_ONLY = new Set([
 const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
 const REF_VALUES = new Set(["identity", "instance"]);
 const LIFETIME_VALUES = new Set(["weak", "symmetric", "owned"]);
+/**
+ * `spoiler` is the one NUMERIC property — the reveal level of this
+ * field's value wherever it surfaces (0 open … 3 wizard-only). Checked
+ * against the vocabulary rather than merely "is a number", because an
+ * out-of-range level would be silently clamped at read time and the
+ * author would never learn their `spoiler: 5` became a 3.
+ */
+const NUMERIC_PROPS = new Set(["spoiler"]);
+const SPOILER_VALUES = new Set(["0", "1", "2", "3"]);
 
 /**
  * The CI gate — what neither class registration nor the golden master
@@ -638,6 +648,15 @@ function lint(): void {
                     `${at(attr)}  \`${field}.${key}\` must be a string literal`
                   );
                 }
+              }
+              if (
+                NUMERIC_PROPS.has(key) &&
+                (!ts.isNumericLiteral(val) || !SPOILER_VALUES.has(val.text))
+              ) {
+                problems.push(
+                  `${at(attr)}  \`${field}.${key}\` must be a numeric ` +
+                    `literal 0-3 (the reveal-level vocabulary)`
+                );
               }
               if (
                 key === "ref" &&

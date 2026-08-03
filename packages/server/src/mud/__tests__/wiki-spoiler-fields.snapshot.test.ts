@@ -1,0 +1,164 @@
+/**
+ * ⭐ **The enumerating audit** — every field a `<composition>` panel can
+ * surface, with its declared reveal level.
+ *
+ * Acceptance criterion **28**, and it is not optional.
+ *
+ * ## Why this file exists
+ *
+ * The reveal model **fails open**: an untagged field is level 0. That
+ * decision is deliberate (default-spoiler would empty every panel until
+ * several hundred mundane fields were tagged, and would train authors
+ * to tag reflexively rather than thoughtfully), but it has a real cost
+ * that is not being papered over: **a newly-added spoilery field is
+ * visible until somebody tags it.**
+ *
+ * This is covered the way the sandbox boundary exemptions are —
+ * **by enumeration, not inference.** The snapshot below lists every
+ * field, so adding one shows up as a diff a reviewer has to look at,
+ * rather than as a leak in production that nobody notices.
+ *
+ * ## How to read a failure
+ *
+ * A diff here does **not** mean something broke. It means the set of
+ * fields the wiki can surface has changed, and somebody has to answer
+ * one question about each new line:
+ *
+ *   > *Is this a spoiler?*
+ *
+ * Density and hardness are not. A species' resistances are. A hazard's
+ * trigger is. A creature's weakness is. If the answer is yes, add
+ * `spoiler: <1|2|3>` to that field's `fieldMeta` entry and re-run.
+ * If no, update the snapshot.
+ *
+ * Reviewing the diff IS the control. Skipping it and blessing the
+ * snapshot is the one way this file stops working.
+ */
+
+import { describe, it, expect } from 'vitest';
+import { readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+
+const MUD_ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+/** Every `.ts` file under `dir`, recursively, tests excluded. */
+function sourceFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) {
+      if (entry === '__tests__' || entry === 'node_modules') continue;
+      sourceFiles(full, out);
+      continue;
+    }
+    if (entry.endsWith('.ts') && !entry.endsWith('.d.ts')) out.push(full);
+  }
+  return out;
+}
+
+/**
+ * Harvest `static fieldMeta = { … }` declarations by source scan.
+ *
+ * A source scan rather than runtime introspection, on purpose: the
+ * panel can surface a field on ANY class a template names, and
+ * enumerating those at runtime would mean importing the whole world —
+ * which is slow, order-dependent, and would quietly miss a class whose
+ * import happened to fail. The text is the truth about what is
+ * declared, and what is declared is what the panel reads.
+ *
+ * Returns `owner.field → level`, level 0 for anything untagged.
+ */
+function harvestFieldLevels(): Record<string, number> {
+  const levels: Record<string, number> = {};
+  const CLASS_RE = /(?:class|const)\s+(\w+)/g;
+  const META_RE = /static\s+fieldMeta\s*:?[^=]*=\s*\{/g;
+
+  for (const file of sourceFiles(MUD_ROOT)) {
+    const src = readFileSync(file, 'utf8');
+    META_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = META_RE.exec(src)) !== null) {
+      // The owner is the nearest class/const declaration above.
+      const before = src.slice(0, m.index);
+      CLASS_RE.lastIndex = 0;
+      let owner = '(anonymous)';
+      let c: RegExpExecArray | null;
+      while ((c = CLASS_RE.exec(before)) !== null) owner = c[1]!;
+
+      const body = braceBody(src, m.index + m[0].length - 1);
+      for (const [field, level] of entriesOf(body)) {
+        levels[`${owner}.${field}`] = level;
+      }
+    }
+  }
+  return levels;
+}
+
+/** The text between a `{` at `open` and its matching `}`. */
+function braceBody(src: string, open: number): string {
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    else if (src[i] === '}') {
+      depth--;
+      if (depth === 0) return src.slice(open + 1, i);
+    }
+  }
+  return '';
+}
+
+/** `field: { … spoiler: N … }` pairs inside one fieldMeta body. */
+function entriesOf(body: string): Array<[string, number]> {
+  const out: Array<[string, number]> = [];
+  const ENTRY = /(\w+)\s*:\s*\{/g;
+  let m: RegExpExecArray | null;
+  while ((m = ENTRY.exec(body)) !== null) {
+    const inner = braceBody(body, m.index + m[0].length - 1);
+    // Only a TOP-LEVEL entry is a field; a nested object is not.
+    if (/^\s*\w+\s*:\s*\{/.test(inner) && !/persistent|spoiler|ref\s*:/.test(inner)) {
+      continue;
+    }
+    const spoiler = /\bspoiler\s*:\s*(\d)/.exec(inner);
+    out.push([m[1]!, spoiler ? Number(spoiler[1]) : 0]);
+  }
+  return out;
+}
+
+describe('⭐ the composition panel’s surfaceable fields (28)', () => {
+  const levels = harvestFieldLevels();
+
+  it('harvests a non-trivial corpus — the audit is actually looking', () => {
+    // A scan that silently found nothing would pass every assertion
+    // below while auditing nothing at all.
+    expect(Object.keys(levels).length).toBeGreaterThan(200);
+  });
+
+  it('SNAPSHOT: every declared field, with its reveal level', () => {
+    // ⚠ A diff here is a REVIEW ITEM, not a breakage. For each new
+    // line, answer: is this a spoiler? If yes, add `spoiler: <n>` to
+    // its fieldMeta entry. If no, update the snapshot. Skipping the
+    // question is the one way this stops working.
+    const lines = Object.keys(levels)
+      .sort()
+      .map((key) => `${key} = ${levels[key]}`);
+    expect(lines.join('\n')).toMatchSnapshot();
+  });
+
+  it('SNAPSHOT: the fields deliberately declared as spoilers', () => {
+    // The short list, kept separately because it is the one a reviewer
+    // can actually read — and because it going EMPTY is a signal in
+    // itself (somebody dropped a tag).
+    const tagged = Object.keys(levels)
+      .filter((k) => (levels[k] ?? 0) > 0)
+      .sort()
+      .map((k) => `${k} = ${levels[k]}`);
+    expect(tagged.join('\n')).toMatchSnapshot();
+  });
+
+  it('every declared level is inside the 0–3 vocabulary', () => {
+    for (const [key, level] of Object.entries(levels)) {
+      expect(level, `${key} declares an out-of-range level`).toBeGreaterThanOrEqual(0);
+      expect(level, `${key} declares an out-of-range level`).toBeLessThanOrEqual(3);
+    }
+  });
+});

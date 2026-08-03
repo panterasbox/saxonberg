@@ -100,6 +100,36 @@ export interface FieldMetaEntry {
    * A **subset** of `persistent`, not a contradiction with it.
    */
   runtimeState?: true;
+
+  /**
+   * **Reveal level of this field's VALUE wherever it surfaces.**
+   *
+   * A derived panel emits live field values, and some of those are
+   * spoilers — a species' resistances, a hazard's trigger, a creature's
+   * weakness. Authored prose carries page defaults and inline tags;
+   * derived fields carry nothing, so without this a composition panel
+   * is a hole straight through the reveal model.
+   *
+   * ⭐ **Declared on the field, not in the component**, because the
+   * same field is a spoiler *wherever* it surfaces — a wiki panel, the
+   * Studio, help, a future codex. A policy table owned by the wiki
+   * would be wrong the moment anything else rendered the same value.
+   *
+   * ⚠ **Absent means level 0 — OPEN.** This is a reveal system
+   * defaulting to reveal, so the reasoning is worth stating: the
+   * alternative empties every panel until several hundred mundane
+   * fields are tagged, and trains authors to tag reflexively rather
+   * than thoughtfully. Density and hardness are not spoilers; a
+   * species' resistances are.
+   *
+   * The cost is real and is not being papered over — a newly-added
+   * spoilery field is visible until somebody tags it. It is covered
+   * the way the sandbox boundary exemptions are: **by enumeration, not
+   * inference.** A snapshot test lists every field a panel can surface
+   * with its level, so introducing a spoiler without a tag shows up as
+   * a diff in review rather than as a leak in production.
+   */
+  spoiler?: 0 | 1 | 2 | 3;
 }
 
 /** One class body's field declarations, keyed by instance field name. */

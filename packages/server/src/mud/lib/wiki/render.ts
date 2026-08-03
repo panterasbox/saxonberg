@@ -40,6 +40,7 @@
  * one careless inline tag unmasks a subtree.
  */
 
+import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import type { MmlNode } from '../../api/mml';
 import type { RenderBudget } from './RenderBudget';
 
@@ -104,6 +105,34 @@ export class SpoilerLevels {
    */
   static max(a: SpoilerLevel, b: SpoilerLevel): SpoilerLevel {
     return (a > b ? a : b) as SpoilerLevel;
+  }
+
+  /**
+   * ⭐ **The one seam** between a class's field declarations and the
+   * reveal model: the level of `field`'s VALUE on `ctor`.
+   *
+   * `MixinApi.getAllFieldMeta` merges **property-level** up the
+   * composition chain, so a subclass declaring `{ spoiler: 2 }` for a
+   * field its base declares `{ persistent: true }` for gets both —
+   * which is exactly what makes `spoiler` one more property beside its
+   * siblings rather than a new mechanism.
+   *
+   * ⚠ **This is the single place the fail-open default lives.** An
+   * untagged field is level 0 (see `FieldMetaEntry.spoiler` for why),
+   * and every surface that renders a field value must ask HERE rather
+   * than re-deriving it — a second copy of a fail-open default is a
+   * second chance to make it fail-closed by accident, or vice versa.
+   *
+   * A static on `SpoilerLevels` rather than its own module: the level
+   * vocabulary already owns `parse` (the fail-open coercion) and `max`
+   * (the MAXIMUM rule), and "what level is this field?" is the third
+   * question of the same kind. A free-floating `spoilerLevelOf` would
+   * also have tripped the export-discipline lint.
+   */
+  static ofField(ctor: unknown, field: string): SpoilerLevel {
+    if (typeof ctor !== 'function') return SpoilerLevels.OPEN;
+    const meta = MixinApi.getAllFieldMeta(ctor as AnyConstructor);
+    return SpoilerLevels.parse(meta[field]?.spoiler ?? 0);
   }
 }
 
