@@ -918,3 +918,17 @@ settings:
     value: "2"
   - key: crafting.repair.metalHeatK
     value: "900"
+  # ── wiki: the render budget. A page is community-authored input that
+  # runs a resolver, so every bound below fails with an inline error
+  # rather than a hang. Operator-tunable without a deploy; absent rows
+  # fall through to RenderBudget.DEFAULTS. See docs/subsystems/wiki.md.
+  - key: wiki.render.snippetDepth
+    value: "8"
+  - key: wiki.render.maxSnippets
+    value: "200"
+  - key: wiki.render.maxComponents
+    value: "100"
+  - key: wiki.render.componentTimeoutMs
+    value: "2000"
+  - key: wiki.render.maxOutputChars
+    value: "200000"
