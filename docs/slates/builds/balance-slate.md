@@ -89,23 +89,95 @@ everything read from elsewhere is reserved, holders have nothing and the
 Your fiction, your place, your stuff, your room descriptions — **yours**,
 however widely read. **Only the ledgers are federal.**
 
-## ⭐⭐⭐⭐ The enumeration is not philosophical — it is the collection list
+## ⭐⭐⭐⭐ The enumeration is not philosophical — and it has TWO halves
 
-Which makes the reserved list mechanically checkable rather than a matter
-of argument:
+The two axes are, notably, the two the US Constitution enumerates in
+Art. I §8: **commerce among the several states** (externality — what
+leaves) and **coinage + the standard of weights and measures**
+(commensurability — what must mean the same thing everywhere for a
+portable record to be legible). Plus the copyright clause, which the
+project already holds un-fused as `authoring_events`.
 
-> **The set of reserved matters IS the set of append-only,
-> cross-jurisdiction ledgers.** If a build adds a collection that
-> accumulates across localities, **it has added a reserved matter** — and
-> that becomes a design-review question at the time, not a discovery
-> three years later.
+⚠ **A first draft of this slate collapsed the enumeration to "the
+collection list," which captures only the externality half** — and
+therefore missed portable objects entirely (see below). Both halves are
+independently enumerable **from the codebase**, which is what makes the
+reserved list checkable rather than a matter of argument:
 
-The two axes this decomposes into are, notably, the two the US
-Constitution enumerates in Art. I §8: **commerce among the several
-states** (externality — what leaves) and **coinage + the standard of
-weights and measures** (commensurability — what must mean the same thing
-everywhere for a portable record to be legible). Plus the copyright
-clause, which the project already holds un-fused as `authoring_events`.
+> ⭐⭐⭐⭐⭐ **Reserved = the cross-jurisdiction LEDGERS (what accumulates)
+> ⊕ the closed VOCABULARIES (what things mean).**
+
+| Half | What it is | Already enumerable as |
+|---|---|---|
+| **ledgers** | what accumulates on a global scale | the append-only cross-jurisdiction collections (the table above) |
+| **vocabularies** | what a thing *means* anywhere | materials · Channels + the resist/deliver grids · Disciplines · Units · Modality · LocomotionModes · land use — **already closed engine code** |
+
+Both give the same design-review trigger: **a build that adds an
+accumulating cross-jurisdiction collection, or opens a closed vocabulary,
+has added a reserved matter** — a question to answer at the time, not a
+discovery three years later.
+
+⭐ **The vocabularies half is load-bearing and mostly already won.** A
+parcel cannot invent a new damage channel, a new material, or a new unit,
+so the worst version of the portable-object problem is foreclosed by the
+materials-response design before any of this ships.
+
+## ⭐⭐⭐ Portable objects — the second kind of crossing
+
+> **User: "a weapon that's balanced inside its parcel but can be carried
+> out — what's the determination there?"**
+
+The case the ledger test misses. A sword does not accumulate onto a global
+scale; it is a **durable capability that travels**, and it was calibrated
+against the producing parcel's context while operating under the
+consuming parcel's rules.
+
+### What a parcel can still get wrong — three cases, one of them new
+
+| | Case | Covered by |
+|---|---|---|
+| 1 | hands out a legal item **too freely** | not an item problem — an **acquisition rate** problem; the mint framing, iff acquisition is metered |
+| 2 | declares novice tier, lets **veterans farm it** | the declaration is a claim; the sweep audits it (Part 3) |
+| 3 | ⭐ combines **legal parts into an illegal whole** — crafting, augments, stacking | **new** — you cannot lint a combination nobody anticipated |
+
+> ⭐⭐⭐ **Declared power is checked at save. Emergent power is caught by
+> the meter.** The lint handles what can be specified; the meter handles
+> what cannot. The same division as throttle-vs-adjudicate, one layer
+> down.
+
+### ⭐⭐⭐⭐⭐ But the literal case is a PROPERTY question, not a balance question
+
+*"Balanced inside its parcel"* is not out-of-spec — it is **contextually
+calibrated**, fine for its encounter and broken outside it. No lint
+catches that, because nothing is wrong with the item. MMOs answer with
+**binding**, which is blunt. The shipped primitive is better:
+
+> **An item that should not leave does not leave because THE HOLDER DOES
+> NOT OWN IT** — it is the parcel's chattel, **lent not given**.
+> Diegetically honest (you borrowed the practice sword from the gym),
+> rides `chattel` / `chattel_events`
+> ([chattel.md](../../subsystems/chattel.md)), needs no new gate.
+
+And it hands the holder a real choice with real consequences:
+
+| The holder | Consequence |
+|---|---|
+| **transfers title** | it enters the global pool ⇒ **it must be globally legal** |
+| **retains title** | it may be locally calibrated ⇒ **it cannot leave** |
+
+> ⭐⭐⭐⭐⭐ **A parcel may make anything it wants, so long as it KEEPS it.
+> Export is what triggers the standard.**
+
+Which collapses the weapon question back into the general rule — **the
+object crossing IS the crossing.** Interior is yours; the boundary is
+where the Compact begins. The same sentence as everything else in Part 1.
+
+⚠ Note this is the **export/import** distinction the first draft elided by
+treating the boundary as one-directional. The real-world shape is
+**mutual recognition by default, harmonized standards where it matters**
+(Cassis de Dijon vs. the harmonized-standards regime) — and item efficacy
+is squarely harmonized, because it is expressed entirely in reserved
+vocabulary.
 
 ## ⭐⭐⭐⭐ Federalism is already built — it is the longest-prefix walk
 
@@ -244,6 +316,27 @@ is an engine release — constitutional scale. Self-limiting in the right
 direction, and it makes
 [instrumentation-slate](./instrumentation-slate.md) politically
 load-bearing rather than plumbing.
+
+#### ⚠⚠ And the binding instance of this is the jurisdiction stamp
+
+The ledgers record **who** and **what**. Balance needs **rates per
+jurisdiction** — so every ledger write needs a **parcel stamp**, derived
+from the acting location at write time, the same shape as provenance's
+context-derived author.
+
+> ⚠⚠ **Until ledger writes carry a jurisdiction stamp, a parcel's mint
+> rate is not computable and this entire slate is theory.** It is the
+> first build item; everything else queues behind it.
+
+⚠ **Verify against the actual event shapes before sizing it** — this is a
+design claim, not an audited one.
+
+⚠ **And it needs a stated rule for acts that span parcels** — a blow
+struck across a boundary, a trade concluded in one place and delivered in
+another. *Leans "where the acting principal stood,"* for the same reason
+`getActingAuthor` resolves the way it does — but it must be **declared,
+not defaulted**, or the stamp becomes an arbitrage surface: pick where you
+stand to pick your regulator.
 
 ### ⭐⭐⭐⭐ A bound that needs exemptions is measured in the wrong unit
 
@@ -730,7 +823,8 @@ Small, which is the argument for doing it:
 
 | # | Artifact | Size |
 |---|---|---|
-| 1 | **The enumeration** — the closed list of reserved matters (== the cross-jurisdiction ledgers) | a list |
+| **0** | ⚠⚠ **The jurisdiction stamp on ledger writes** — without it no mint rate is computable | **the blocker** |
+| 1 | **The enumeration** — both halves: the cross-jurisdiction ledgers ⊕ the closed vocabularies | a list |
 | 2 | **The validity predicate** in the codification lint (void-at-write) | a predicate |
 | 3 | **The `bound` instrument** — the missing middle law shape | the real work |
 | 4 | **The class-per-matter declaration** on `ParcelRecord`, beside `landUse` | one field |
@@ -739,10 +833,15 @@ Small, which is the argument for doing it:
 | 7 | **Quarantine** — closing a crossing; nothing can do this today | new |
 | 8 | **Conform-on-`saveTemplate`** — the compliance boundary at an existing chokepoint | small |
 | 9 | **Lapse-on-amendment** for bounds whose meter was redefined | small |
+| 10 | **The cross-parcel attribution rule** (#0's stated edge case) | a rule |
 
-⚠ **Sequencing:** #1–#2 are meaningless without #3, and #3 is meaningless
-without meters that exist. **The instrumentation gates everything here** —
-see the Part 2 constraint.
+⚠ **Sequencing: #0 gates literally everything.** Then #1–#2 are
+meaningless without #3, and #3 is meaningless without meters that exist.
+**The instrumentation gates the rest** — see the Part 2 constraint.
+
+⭐ **Portable objects need nothing new**: the chattel primitive ships, and
+the vocabularies half of the enumeration is already closed engine code.
+That case is design work, not build work.
 
 # Open questions
 
@@ -767,3 +866,15 @@ see the Part 2 constraint.
 6. **Relator's share — credit only, or is that too weak to motivate?**
 7. **Who staffs the courts** for the exception cases in a twelve-person
    polity? The venire pool primitive exists; the population may not.
+8. ⚠ **Where does a ledger write land when the act spans parcels?**
+   *Leans "where the acting principal stood"* — but it must be declared,
+   or it is an arbitrage surface.
+9. **Is retained-chattel calibration bounded at all, or is "it can't
+   leave" sufficient?** A parcel could tune a lent item arbitrarily; the
+   argument that it does not matter is that its *effects* are still
+   metered on that parcel's own rate. *Leans sufficient* — but it is the
+   one place where "keep it and do what you like" and "the meter catches
+   emergent power" have to actually agree.
+10. **Does an item's legality travel with its TEMPLATE or its
+    INSTANCE?** A globally-legal template cloned and then augmented in
+    place is case 3 wearing case 1's clothes.
