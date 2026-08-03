@@ -229,6 +229,30 @@ export interface SustainedEffect {
   realizes: string;
   /** Always tagged — a sustained effect IS magic. */
   magicOrigin: MagicProvenance;
+  /**
+   * **Who can pay again** — the durable id of the charged host holding
+   * this up (requirements D12), or absent when nobody can.
+   *
+   * A binding must be paid for continuously. A **charged host** can pay:
+   * its standby draw meters the cost against its own reserve, so at the
+   * end of each term it re-buys another and the hold survives — while
+   * it has charge. A **consumable** paid once and is gone, so this is
+   * absent and the term simply runs out.
+   *
+   * Together with {@link sustainedFor} this makes the old guideline a
+   * *derivation* rather than a rule. Nothing forbids a shadow sourced
+   * from a potion; it just cannot outlive the term it bought — which is
+   * exactly why long-lived sustained effects are forged as rings and not
+   * bottled. Wands, being spells with a battery, inherit the casting
+   * conventions.
+   */
+  sustainedBy?: string;
+  /**
+   * **How long one payment buys**, in game-seconds — the term. Set from
+   * the spell's authored lifetime at install. A host-held effect renews
+   * by this much each time it lapses; a term-bought one gets it once.
+   */
+  sustainedFor?: number;
   /** The bound emitter's live-instance stuffId (a conjured GlowlightOrb), if any. */
   boundStuffId?: string;
   /** The imposed disguise text (the cloak realization), if any. */

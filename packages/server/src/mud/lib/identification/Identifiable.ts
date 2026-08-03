@@ -22,11 +22,44 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { SecurityApi } from '../../api/security';
+import { Appearance } from './Appearance';
+import { DescriptorBank } from './DescriptorBank';
 
 export interface Identifiable {
   /** The true type name revealed on identification ("a potion of healing"). */
   getIdentifiedName(): string;
   setIdentifiedName(value: string): void;
+
+  /**
+   * Which {@link DescriptorBank} this item draws its unidentified look
+   * from (`potion`, `wand`, `ring`, …). Empty = no derived appearance;
+   * the item falls back to its authored short description.
+   */
+  getDescriptorClass(): string;
+  setDescriptorClass(value: string): void;
+
+  /**
+   * This item's stable position in the turnover window, as a persisted
+   * seed string. Minted once on first read and never changed — it stores
+   * a **position**, not an appearance.
+   */
+  getTurnoverSeed(): string;
+
+  /**
+   * **The derived unidentified appearance**, or `''` when this item has
+   * no descriptor class or its bank is unseeded.
+   *
+   * Sync by construction: this renders inside `getPresentation` and
+   * inside the merge ripple's `canMergeWith`, neither of which can
+   * await. Banks are warmed at boot and read from the cache.
+   */
+  renderAppearance(generation: number, progress: number): string;
+
+  // ---------- storage (public for the Hydrator) ----------
+  identifiedName: string;
+  descriptorClass: string;
+  turnoverSeed: string;
 }
 
 export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -35,10 +68,22 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       identifiedName: { persistent: true, authorable: true },
+      descriptorClass: { persistent: true, authorable: true },
+      // ⚠ Persistent but deliberately NOT a glob-identity field — every
+      // item carries a different seed, so keying identity on it would
+      // stop stacks merging at all. It records WHEN this item crosses
+      // the turnover window, which is invisible and confers nothing.
+      turnoverSeed: { persistent: true },
     };
 
     /** The true type name revealed on identification. */
     public identifiedName: string = '';
+
+    /** Which descriptor bank to draw the unidentified look from. */
+    public descriptorClass: string = '';
+
+    /** Stable window position. Minted lazily; never reassigned. */
+    public turnoverSeed: string = '';
 
     getIdentifiedName(): string {
       return this.identifiedName;
@@ -46,6 +91,39 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     setIdentifiedName(value: string): void {
       this.identifiedName = value;
+    }
+
+    getDescriptorClass(): string {
+      return this.descriptorClass;
+    }
+
+    setDescriptorClass(value: string): void {
+      this.descriptorClass = typeof value === 'string' ? value : '';
+    }
+
+    getTurnoverSeed(): string {
+      if (this.turnoverSeed.length === 0) {
+        // Minted on FIRST READ rather than in a constructor, so a
+        // hydrated item keeps the seed it was stored with and a fresh
+        // clone gets its own. Merging shifts an absorbed item's flip
+        // moment to the survivor's — D27 declares that invisible, and it
+        // is: a stack is a batch, and batches turn over as batches.
+        this.turnoverSeed = SecurityApi.uuid();
+      }
+      return this.turnoverSeed;
+    }
+
+    renderAppearance(generation: number, progress: number): string {
+      if (this.descriptorClass.length === 0) return '';
+      const bank = DescriptorBank.cached(this.descriptorClass);
+      if (!bank) return '';
+      return Appearance.renderFor(
+        this.descriptorClass,
+        generation,
+        progress,
+        this.getTurnoverSeed(),
+        bank,
+      ).descriptor;
     }
   };
 }

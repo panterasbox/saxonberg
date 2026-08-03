@@ -887,8 +887,12 @@ function inflictThroughStack(
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
   TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  target.afflict(trauma);
-  return { trauma, afflicted: true };
+  // The veto layer (magic-items D14) sits HERE — after the covering-stack
+  // fold, before the write. Armor still attenuates; a conferred immunity
+  // simply refuses what is left, and the outcome says so honestly rather
+  // than reporting a hit that never landed.
+  const landed = target.afflict(trauma);
+  return { trauma, afflicted: landed };
 }
 
 /**
@@ -920,8 +924,10 @@ function inflictPassthrough(
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
   TRAUMA_BEHAVIOR[type].onset(target, trauma);
-  target.afflict(trauma);
-  return { trauma, afflicted: true };
+  // Same veto seam as the stack path — a passthrough insult is no less
+  // refusable by a conferred immunity.
+  const landed = target.afflict(trauma);
+  return { trauma, afflicted: landed };
 }
 
 /**
@@ -959,6 +965,10 @@ function inflictShock(
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
   TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  target.afflict(trauma);
-  return { trauma, afflicted: true };
+  // The veto layer (magic-items D14) sits HERE — after the covering-stack
+  // fold, before the write. Armor still attenuates; a conferred immunity
+  // simply refuses what is left, and the outcome says so honestly rather
+  // than reporting a hit that never landed.
+  const landed = target.afflict(trauma);
+  return { trauma, afflicted: landed };
 }

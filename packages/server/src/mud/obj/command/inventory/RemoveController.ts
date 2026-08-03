@@ -56,6 +56,39 @@ export default class RemoveController extends CommandController<RemoveModel> {
       context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
       return;
     }
+    // ── The cursed release gate (magic-items D11) ──
+    //
+    // A cursed item will not come off. For a CHARGED one it is worse
+    // than that: it is stuck on you AND discharging into you — which is
+    // one fact from the wearer's side, so the gate and the discharge are
+    // one call rather than two features that happen to co-occur.
+    //
+    // Note the ordering: this fires only for something actually WORN
+    // (the vacate loop below would have reported "you aren't wearing
+    // that" otherwise), so a cursed item in your pack refuses nothing.
+    if (MixinApi.isBlessable(target) && target.refusesRelease()) {
+      const worn = target
+        .getSlotClaim(bodyPlanPath)
+        .some((slot) => giver.getOccupants(slot).has(target));
+      if (worn) {
+        const dumped = target.dischargeIntoHolder(giver);
+        MessageApi.scene(giver)
+          .topic('world.perception.inventory')
+          .toSelf(
+            dumped > 0
+              ? Mml.compose`${Mml.item(target)} will not come away — and it is running hot against your skin.`
+              : Mml.compose`${Mml.item(target)} will not come away. It has no intention of letting go.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'cursed-will-not-release',
+          detail: `${target.getPresentation()} refuses release`,
+        });
+        return;
+      }
+    }
+
     const slots = target.getSlotClaim(bodyPlanPath);
     let any = false;
     for (const slot of slots) {

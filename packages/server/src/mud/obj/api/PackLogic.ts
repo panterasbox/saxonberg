@@ -8,6 +8,8 @@ import { basename, dirname, join, relative } from 'path';
 import YAML from 'yaml';
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { NameBank } from '../../lib/species/NameBank';
+import { DescriptorBank } from '../../lib/identification/DescriptorBank';
+import { Appearance } from '../../lib/identification/Appearance';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Collections } from '../../lib/persistence/Collections';
@@ -51,6 +53,24 @@ interface NameBankFile {
   relFile: string;
 }
 
+/**
+ * One parsed `content/descriptor-banks/*.yaml` — the pool an
+ * unidentified item of that class draws its appearance from. Two
+ * DECORATIVE axes whose product is the bank's depth; the
+ * `lint:descriptors` build check proves them disjoint from the
+ * materials vocabulary. See magic-items D32.
+ */
+interface DescriptorBankFile {
+  /** Bank key — the file's basename, and the item class (`potion`). */
+  key: string;
+  primary: string[];
+  secondary: string[];
+  primaryAxis: string;
+  secondaryAxis: string;
+  /** Pack-relative file path, for diagnostics. */
+  relFile: string;
+}
+
 /** The classified content of a pack's `content/` tree. */
 interface PackContent {
   domain: DomainFile[];
@@ -58,6 +78,8 @@ interface PackContent {
   quantityYaml: string | null;
   /** Parsed `content/name-banks/*.yaml`, one per bank (empty when absent). */
   nameBanks: NameBankFile[];
+  /** Parsed `content/descriptor-banks/*.yaml`, one per item class. */
+  descriptorBanks: DescriptorBankFile[];
 }
 
 // --- discovery -------------------------------------------------------------
@@ -244,11 +266,35 @@ function readContent(pack: ResolvedPack): PackContent {
     });
   }
 
+  // Descriptor banks — the `name-banks` shape verbatim, one kind over.
+  const descriptorBanks: DescriptorBankFile[] = [];
+  const dbRoot = join(pack.contentRoot, 'descriptor-banks');
+  for (const file of walkYaml(dbRoot)) {
+    const raw = readFileSync(file, 'utf-8');
+    const parsed = YAML.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error(
+        `PackApi: pack '${pack.manifest.id}': malformed descriptor bank at ${file}`,
+      );
+    }
+    const doc = parsed as Record<string, unknown>;
+    descriptorBanks.push({
+      key: basename(file).replace(/\.yaml$/, ''),
+      primary: stringArray(doc.primary),
+      secondary: stringArray(doc.secondary),
+      primaryAxis: typeof doc.primaryAxis === 'string' ? doc.primaryAxis : '',
+      secondaryAxis:
+        typeof doc.secondaryAxis === 'string' ? doc.secondaryAxis : '',
+      relFile: relative(pack.root, file),
+    });
+  }
+
   const quantityYaml = join(pack.contentRoot, 'quantity', 'quantity-tags.yaml');
   return {
     domain,
     quantityYaml: existsSync(quantityYaml) ? quantityYaml : null,
     nameBanks,
+    descriptorBanks,
   };
 }
 
@@ -397,6 +443,16 @@ async function reconcileDomain(
 }
 
 /** The row shape PackLogic writes for a name bank (a flat `Document` + stamp). */
+interface DescriptorBankRow extends Record<string, unknown> {
+  _id?: string;
+  key: string;
+  primary: string[];
+  secondary: string[];
+  primaryAxis: string;
+  secondaryAxis: string;
+  sourcePack: string;
+}
+
 interface NameBankRow extends Record<string, unknown> {
   _id?: string;
   key: string;
@@ -483,6 +539,97 @@ async function reconcileNameBanks(
   return { inserted, updated, adopted, deleted };
 }
 
+/**
+ * Reconcile the `descriptor-banks`-kind files into the
+ * `descriptor_banks` collection. The {@link reconcileNameBanks} shape
+ * verbatim — same ownership-scoped insert/update/adopt/delete contract,
+ * keyed on the bank `key` (the file basename, which is the item class).
+ *
+ * These are immutable reference data like name banks, but on a much
+ * hotter read path: appearance renders on every look at every
+ * unidentified item, so the cache the write drops matters more here.
+ */
+async function reconcileDescriptorBanks(
+  packId: string,
+  files: DescriptorBankFile[],
+): Promise<Pick<PackReconcileResult, 'inserted' | 'updated' | 'adopted' | 'deleted'>> {
+  const inserted: string[] = [];
+  const updated: string[] = [];
+  const adopted: string[] = [];
+  const deleted: string[] = [];
+
+  const stampedRows = (await PersistApi.find(Collections.DescriptorBanks, {
+    sourcePack: packId,
+  })) as DescriptorBankRow[];
+  const stampedByKey = new Map(stampedRows.map((r) => [r.key, r]));
+  const fileKeys = new Set(files.map((f) => f.key));
+
+  for (const f of files) {
+    const row: DescriptorBankRow = {
+      key: f.key,
+      primary: f.primary,
+      secondary: f.secondary,
+      primaryAxis: f.primaryAxis,
+      secondaryAxis: f.secondaryAxis,
+      sourcePack: packId,
+    };
+    const stamped = stampedByKey.get(f.key);
+    if (stamped) {
+      const same =
+        canonical({
+          primary: stamped.primary,
+          secondary: stamped.secondary,
+          primaryAxis: stamped.primaryAxis,
+          secondaryAxis: stamped.secondaryAxis,
+        }) ===
+        canonical({
+          primary: f.primary,
+          secondary: f.secondary,
+          primaryAxis: f.primaryAxis,
+          secondaryAxis: f.secondaryAxis,
+        });
+      if (!same) {
+        await PersistApi.save(Collections.DescriptorBanks, {
+          ...row,
+          _id: stamped._id,
+        });
+        updated.push(f.key);
+      }
+      continue;
+    }
+
+    const existing = (await PersistApi.find(Collections.DescriptorBanks, {
+      key: f.key,
+    })) as DescriptorBankRow[];
+    const prior = existing[0];
+    if (prior) {
+      if (prior.sourcePack && prior.sourcePack !== packId) {
+        throw new Error(
+          `PackApi: pack '${packId}' wants descriptor bank '${f.key}' but ` +
+            `it is owned by pack '${prior.sourcePack}'`,
+        );
+      }
+      await PersistApi.save(Collections.DescriptorBanks, {
+        ...row,
+        _id: prior._id,
+      });
+      adopted.push(f.key);
+    } else {
+      await PersistApi.save(Collections.DescriptorBanks, row);
+      inserted.push(f.key);
+    }
+  }
+
+  for (const r of stampedRows) {
+    if (!fileKeys.has(r.key) && r._id) {
+      await PersistApi.delete(Collections.DescriptorBanks, r._id);
+      deleted.push(r.key);
+    }
+  }
+
+  return { inserted, updated, adopted, deleted };
+}
+
 /** Re-hydrate / destruct live singletons after a sync's reconcile. */
 async function rehydrate(
   changedPaths: string[],
@@ -536,6 +683,37 @@ async function reconcilePack(
     nameBanks + nb.deleted.length > 0
   ) {
     NameBank.clearCache();
+  }
+
+  const db = await reconcileDescriptorBanks(
+    pack.manifest.id,
+    content.descriptorBanks,
+  );
+  const descriptorBanks =
+    db.inserted.length + db.updated.length + db.adopted.length;
+  if (descriptorBanks + db.deleted.length > 0) {
+    // Two caches: the bank rows themselves, and the memoized rendered
+    // descriptor per (class, generation). Both would otherwise serve the
+    // pre-edit pool until reboot.
+    DescriptorBank.clearCache();
+    Appearance.clearMemo();
+  }
+  // Warm the SYNC read path. Appearance renders inside `getPresentation`
+  // and inside the merge ripple's `canMergeWith`, neither of which can
+  // await a query — so banks are primed once here and read from cache
+  // thereafter, exactly as the spell catalogue is.
+  if (content.descriptorBanks.length > 0) {
+    DescriptorBank.primeCache(
+      content.descriptorBanks.map((f) => {
+        const bank = new DescriptorBank();
+        bank.key = f.key;
+        bank.primary = f.primary;
+        bank.secondary = f.secondary;
+        bank.primaryAxis = f.primaryAxis;
+        bank.secondaryAxis = f.secondaryAxis;
+        return bank;
+      }),
+    );
   }
 
   let quantityTables = 0;

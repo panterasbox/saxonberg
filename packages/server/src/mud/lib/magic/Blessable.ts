@@ -1,0 +1,200 @@
+/**
+ * BlessableMixin — an item that carries a {@link Blessing}.
+ *
+ * **Opt-in per template**, deliberately. Most things in the world have
+ * no BUC state and should not carry the fields, the hidden-state risk,
+ * or the identification surface. A thing is blessable when its author
+ * says so.
+ *
+ * ## The two behaviours, and why they are here rather than elsewhere
+ *
+ * **Hidden until revealed.** The true band is the item's own fact; what
+ * the world knows about it is a separate, also-per-instance fact. The
+ * mixin exposes both and they must not be confused: `getBlessing()` is
+ * ground truth (engine-side only), `getBlessingBucket()` is what
+ * anything player-facing may act on. Stack identity keys on the
+ * **bucket**, so two unknown items merge regardless of their true state
+ * and merge behaviour leaks nothing.
+ *
+ * Note that BUC's revelation is **per-instance**, unlike wave 5's
+ * per-class identification: knowing what a potion of healing *is* tells
+ * you nothing about whether *this particular flask* is cursed. Two
+ * different questions, so two different memories.
+ *
+ * **Cursed sticks.** The release gate lives here as a *veto*, in the
+ * `canEvict` shape: the engine asks, the object decides. For a charged
+ * item D11 sharpens it — not merely *the slot will not release* but
+ * **stuck on you and discharging into you**, which is why the gate and
+ * the discharge are one method rather than two features that happen to
+ * co-occur.
+ */
+
+import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+import { Blessing } from './Blessing';
+import type { BlessingBand, BlessingBucket } from './Blessing';
+
+/** Fraction of remaining charge a cursed item dumps per discharge beat. */
+const CURSED_DISCHARGE_FRACTION = 0.05;
+/** Trauma severity per kilojoule dumped. *Calibrate at launch.* */
+const CURSED_SEVERITY_PER_KJ = 0.02;
+
+export interface Blessable {
+  /**
+   * **Ground truth.** The item's actual band, regardless of what anyone
+   * knows. Engine-side only — a player-facing surface must go through
+   * {@link getBlessingBucket}, or hidden state leaks.
+   */
+  getBlessing(): Blessing;
+  setBlessing(value: Blessing): void;
+  /** The persisted band word. The Hydrator's entry. */
+  getBlessingBand(): string;
+  setBlessingBand(value: string): void;
+
+  /**
+   * **What is known about this item's BUC** — `'unknown'` until
+   * something reveals it, the true band afterwards.
+   *
+   * This is the read every player-facing surface must use, and the one
+   * **stack identity keys on**. It is deliberately *item-side* rather
+   * than per-viewer, because BUC is a **per-instance** fact while
+   * identification is **per-class**: knowing what a potion of healing is
+   * tells you nothing about whether *this* flask is cursed. Two
+   * different questions, two different memories.
+   *
+   * Keying identity on this rather than on {@link getBlessing} is what
+   * closes the leak: two *unknown* items merge regardless of their true
+   * state, so merge behaviour carries no information. A stack that
+   * silently refused to merge would be a free curse detector.
+   */
+  getBlessingBucket(): BlessingBucket;
+  /**
+   * Reveal this item's BUC to the world. Idempotent. After this the item
+   * no longer merges with unknowns — which is correct and is not a leak,
+   * because the split is caused by a *revelation everyone can see*
+   * rather than by the hidden state itself.
+   */
+  revealBlessing(): void;
+  /** Has it been revealed? */
+  isBlessingKnown(): boolean;
+
+  /**
+   * **Does this refuse to come off?** A cursed item does. The `canEvict`
+   * shape: a veto the engine asks for and the object answers, defaulting
+   * to permission.
+   */
+  refusesRelease(): boolean;
+
+  /**
+   * **The cursed discharge** (D11). A cursed *charged* item is not
+   * merely stuck — it is emptying itself into whoever is wearing it.
+   * Returns the kilojoules it dumped, so the caller can narrate; 0 when
+   * the item is not cursed, not charged, or already flat.
+   *
+   * One method rather than two, because "it will not come off" and "and
+   * it is hurting you" are the same fact from the wearer's side, and
+   * splitting them invites a caller to check one and forget the other.
+   */
+  dischargeIntoHolder(holder: Stuff): number;
+
+  // ---------- storage (public for the Hydrator) ----------
+  blessingBand: string;
+  blessingBucket: string;
+}
+
+export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class BlessableMixin extends Base implements Blessable {
+    static _mixinName = 'BlessableMixin';
+
+    static fieldMeta: FieldMeta = {
+      // ⚠ The true band is persistent but is NOT a glob-identity field.
+      // Putting it there would split stacks by a fact nobody can see —
+      // which IS the leak: you would learn an item was cursed by
+      // watching it refuse to stack.
+      blessingBand: { persistent: true, authorable: true },
+      // The BUCKET is what identity keys on. Both persistent, satisfying
+      // the framework's `globIdentityFields ⊂ persistentFields`
+      // constraint, which it enforces at registration.
+      blessingBucket: {
+        persistent: true,
+        authorable: true,
+        globIdentity: true,
+      },
+    };
+
+    /** Ordinary is the overwhelming default. */
+    public blessingBand: string = 'uncursed';
+
+    /** What the world knows. Unknown until revealed. */
+    public blessingBucket: string = 'unknown';
+
+    public getBlessingBand(): string {
+      return this.blessingBand;
+    }
+
+    public setBlessingBand(value: string): void {
+      if (!Blessing.isBand(value)) {
+        throw new RangeError(
+          `BlessableMixin.setBlessingBand: unknown band '${value}'`,
+        );
+      }
+      this.blessingBand = value;
+    }
+
+    public getBlessing(): Blessing {
+      return Blessing.of(this.blessingBand);
+    }
+
+    public setBlessing(value: Blessing): void {
+      this.blessingBand = value.getBand();
+    }
+
+    public getBlessingBucket(): BlessingBucket {
+      return Blessing.isBand(this.blessingBucket)
+        ? (this.blessingBucket as BlessingBand)
+        : 'unknown';
+    }
+
+    public isBlessingKnown(): boolean {
+      return this.getBlessingBucket() !== 'unknown';
+    }
+
+    public revealBlessing(): void {
+      this.blessingBucket = this.blessingBand;
+    }
+
+    public refusesRelease(): boolean {
+      return this.getBlessing().isCursed();
+    }
+
+    public dischargeIntoHolder(holder: Stuff): number {
+      const self = this as unknown as Stuff;
+      if (!this.getBlessing().isCursed()) return 0;
+      if (!MixinApi.isCharged(self)) return 0;
+      const stored = self.getStoredKJ();
+      if (stored <= 0) return 0;
+
+      // What it dumps per beat is a fraction of what it holds, so a
+      // freshly-charged curse bites hardest and a nearly-flat one is a
+      // nuisance. Asymptotic — it never quite finishes, which is the
+      // soft-entropy constraint applied to something unpleasant.
+      const dumped = stored * CURSED_DISCHARGE_FRACTION;
+      if (!self.spendCharge(dumped)) return 0;
+
+      // The energy has to GO somewhere — first law. It goes into the
+      // wearer, through the shipped thermal path, so what it does to
+      // them is a materials-response read rather than a magic rule.
+      if (MixinApi.isVitals(holder)) {
+        holder.afflict({
+          kind: 'trauma',
+          type: 'burn',
+          site: 'body.torso',
+          severity: dumped * CURSED_SEVERITY_PER_KJ,
+          mechanism: 'heat',
+        });
+      }
+      return dumped;
+    }
+  };
+}

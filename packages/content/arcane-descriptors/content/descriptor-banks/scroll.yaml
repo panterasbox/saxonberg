@@ -1,0 +1,9 @@
+# Scrolls — the free case. Arbitrary text, unbounded, so a single axis
+# suffices and the depth requirement is nominal.
+primaryAxis: inscription
+primary:
+  [cramped, sprawling, meticulous, hurried, ornate, faint, blotted,
+   angular, looping, minuscule, jagged, flowing, smudged, precise,
+   slanted, crowded]
+secondaryAxis: ""
+secondary: []

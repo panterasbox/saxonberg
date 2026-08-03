@@ -27,7 +27,11 @@ class: /obj/material/PotionMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: veiling draught
-  appearance: a thin, faintly luminous liquid
+  # ⚠ NO `appearance:`, deliberately. A potion's look is DERIVED from
+  # (class, generation) — see D26 — so authoring one here would be dead
+  # data at best and a second, competing source of truth at worst. It
+  # would also reserve those words against the descriptor banks, which
+  # is how the disjointness lint caught the first draft of this file.
   keywords: [draught, potion, philtre]
   density: 1020
   thermalConductivity: 0.6

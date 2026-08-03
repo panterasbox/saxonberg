@@ -1,0 +1,21 @@
+# Potions — colour × clarity.
+#
+# ⚠ Note what is NOT here. D32's original sketch proposed *clear,
+# cloudy, murky* for the clarity axis — and all three are already
+# material APPEARANCE words (water is "clear water", the mixed drink is
+# "a cloudy, improvised mixed drink", salt water is "murky brine"). The
+# lint caught them, which is the lint working: `look at cloudy` would
+# have had two answers. The axis below says the same thing with words
+# the materials vocabulary has not spoken for.
+#
+# A colour word means a POTION. That is the one strict global rule — not
+# for disambiguation (the noun already does that) but for rotation
+# hygiene and prose that reads cleanly.
+primaryAxis: colour
+primary:
+  [azure, crimson, viridian, saffron, violet, umber, ochre, magenta,
+   cerulean, russet, chartreuse, indigo]
+secondaryAxis: clarity
+secondary:
+  [limpid, turbid, effervescent, viscid, opalescent, syrupy, seething,
+   sluggish, iridescent, flecked]

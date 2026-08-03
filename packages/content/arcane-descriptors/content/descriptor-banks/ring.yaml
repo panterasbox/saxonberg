@@ -1,0 +1,9 @@
+# Rings — band form × marking.
+primaryAxis: band form
+primary:
+  [flat, rounded, braided, split, coiled, wide, narrow, ridged,
+   pinched, stepped, doubled, hexed]
+secondaryAxis: marking
+secondary:
+  [engraved, pitted, scored, dimpled, chased, blank, hatched,
+   stippled, grooved, filigreed]

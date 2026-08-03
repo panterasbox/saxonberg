@@ -161,6 +161,11 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.KickProfiles]: { verb: 'refuse' },
   [Collections.Emotes]: { verb: 'refuse' },
   [Collections.NameBanks]: { verb: 'refuse' },
+  // Descriptor banks are immutable authored reference data installed by
+  // a content pack — the same posture as name banks. A sandboxed write
+  // to them would change what every unidentified item in the world looks
+  // like, which is a field-real registry mutation by any reading.
+  [Collections.DescriptorBanks]: { verb: 'refuse' },
   [Collections.Groups]: { verb: 'refuse' },
   [Collections.Channels]: { verb: 'refuse' },
   [Collections.Parties]: { verb: 'refuse' },
@@ -986,6 +991,13 @@ export class PersistenceManager {
 
       // Name banks: unique key for the char-gen suggester's by-key resolve.
       await this.getCollection(Collections.NameBanks).createIndex(
+        { key: 1 },
+        { unique: true }
+      );
+
+      // Descriptor banks: unique key (the item class) for the
+      // appearance resolver's by-key warm.
+      await this.getCollection(Collections.DescriptorBanks).createIndex(
         { key: 1 },
         { unique: true }
       );

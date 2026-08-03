@@ -349,6 +349,18 @@ export const Mixins = {
   // schedule than charge: a binding is a state held away from
   // equilibrium. "Magic perishes, matter doesn't." See D9.
   Focus: 'FocusMixin',
+  // Blessable — the blessed/uncursed/cursed axis, as a potency level on
+  // the item's OWN effect axis (never a hidden alignment tag). Opt-in
+  // per template. The paradigm hidden-state axis, so also the paradigm
+  // leak risk: stack identity keys on the per-viewer BUCKET, never the
+  // true band. Cursed sticks — and a cursed CHARGED item discharges into
+  // whoever is wearing it. See D11.
+  Blessable: 'BlessableMixin',
+  // Labelled — a player-written name on a thing. General annotation, not
+  // a potions feature: it serves storage, shops and gifts too. It is the
+  // fix for derived appearance's one cost — descriptors rotate, labels
+  // do not, so a careful stash survives a turnover. See D28.
+  Labelled: 'LabelledMixin',
 } as const;
 
 /**

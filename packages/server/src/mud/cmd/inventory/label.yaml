@@ -1,0 +1,39 @@
+verbs: [label]
+controller: /obj/command/inventory/LabelController
+description: "Write your own name on something"
+unafforded: "There is nothing here you could write on."
+help: |
+  Put your own name on a thing, and it answers to that name from
+  then on — to you and to anyone else who looks at it.
+
+  This is the fix for a real problem. What an unidentified thing
+  looks like is derived, and the descriptors rotate: a flask you
+  *know* is a healing draught will one day come back looking like
+  something else entirely. Your label does not rotate. A careful
+  stash survives a turnover with your own names intact.
+
+  It is a general annotation, not a potions feature — it serves
+  storage, shops, and gifts just as well. `label crate winter
+  seed`, `label vial DO NOT DRINK`, `label ring for Mira`.
+
+  A labelled item stops stacking with its unlabelled twins. That is
+  deliberate: you wrote something on that one on purpose, and
+  folding it silently into a pile would throw the note away.
+
+  `label <thing>` with no text clears it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  # Writing on a thing is a physical act — a shade has no hand to do it
+  # with. (The shipped `embodied-tagging` test enforces this for every
+  # verb that acts on matter, and caught this one.)
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+  - name: text
+    type: string
+    required: false
+    greedy: true

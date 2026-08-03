@@ -1,0 +1,9 @@
+# Amulets — shape × marking.
+primaryAxis: shape
+primary:
+  [teardrop, crescent, discoid, lozenge, spiral, cruciform, oblong,
+   trefoil, wedge, ovoid, starred, lobed]
+secondaryAxis: marking
+secondary:
+  [engraved, pitted, scored, dimpled, chased, blank, hatched,
+   stippled, grooved, filigreed]

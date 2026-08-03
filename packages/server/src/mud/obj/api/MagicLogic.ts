@@ -86,6 +86,7 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { Resists } from '../../lib/magic/Resist';
 import { RecognitionApi } from '../../api/recognition';
 import { IDENTIFICATION } from '../../lib/belief/BeliefStore';
+import { Appearance } from '../../lib/identification/Appearance';
 import { Suppressions, type MagicSuppression } from '../../lib/magic/Suppression';
 import type { SpellDescriptor } from '../magic/Spell';
 import type SpellCatalogue from '../SpellCatalogue';
@@ -1020,7 +1021,31 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
   }
   // Keyed on templatePath — the CLASS, never the instance. Two flasks
   // of the same draught are one fact.
-  learner.know(IDENTIFICATION, signature, { typeKnown: true });
+  //
+  // `knownAttributes` is the STATE (requirements D25) — you know facts,
+  // and how identified something is falls out of which facts you hold.
+  // There is deliberately no `identificationLevel` scalar: a stored
+  // percentage of knowing is exactly the shape this codebase avoids.
+  //
+  // `learnedGeneration` is what lets a stale record HEDGE rather than
+  // lie once its descriptor is reissued (D28) — *"you once knew blue to
+  // mean healing"*. One field, no sweep, and it only does work in the
+  // rare case.
+  const prior = learner.recall(IDENTIFICATION, signature)?.payload as
+    | { knownAttributes?: string[] }
+    | undefined;
+  const known = new Set(prior?.knownAttributes ?? []);
+  known.add('type');
+  if (MixinApi.isBlessable(target)) {
+    // Identifying the CLASS reveals what kind of thing it is; the
+    // per-instance BUC is a separate question and stays hidden.
+    known.add('kind');
+  }
+  learner.know(IDENTIFICATION, signature, {
+    typeKnown: true,
+    knownAttributes: [...known],
+    learnedGeneration: Appearance.currentGeneration().generation,
+  });
   return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, target)}.`;
 }
 
@@ -1037,7 +1062,7 @@ function execCloak(
   const subject = ctx.actor;
   if (!MixinApi.isVitals(subject)) return 'The veil finds nothing to settle on.';
   subject.afflict(
-    sustainedRecord(spell, ctx.tag, { realizes: 'cloak', disguise }),
+    sustainedRecord(ctx, spell, { realizes: 'cloak', disguise }),
   );
   pokeReconcile(subject);
   return 'The veil settles — watchers will see someone, never quite you.';
@@ -1060,7 +1085,7 @@ async function execEmitField(
   const holder = ctx.actor;
   if (MixinApi.isVitals(holder)) {
     holder.afflict(
-      sustainedRecord(spell, ctx.tag, {
+      sustainedRecord(ctx, spell, {
         realizes: 'emit-light',
         boundStuffId: orb.stuffId,
       }),
@@ -1206,8 +1231,8 @@ function difficultyOf(requiredBand: string): Difficulty {
 
 /** Build a SustainedEffect record with the spell's authored lifetime. */
 function sustainedRecord(
+  ctx: EffectContext,
   spell: SpellDescriptor,
-  tag: MagicProvenance,
   fields: Partial<SustainedEffect> & { realizes: string },
 ): SustainedEffect {
   let expiresAt: number | undefined;
@@ -1220,11 +1245,22 @@ function sustainedRecord(
       expiresAt = undefined;
     }
   }
+  // **Host-held or term-bought** (D12). A binding must be paid for
+  // continuously; a CHARGED source can keep paying (standby draw meters
+  // it against the shell's own reserve), so it is named as the renewer.
+  // A cast or a consumable paid once — the term runs out and nothing
+  // can re-buy it. That is a derivation, not a rule: it is exactly why
+  // long-lived sustained effects are forged as rings and not bottled.
+  const sustainedBy = MixinApi.isCharged(ctx.source)
+    ? durableIdOf(ctx.source)
+    : undefined;
   return {
     kind: 'sustained',
     spellId: spell.spellId,
-    magicOrigin: tag,
+    magicOrigin: ctx.tag,
     expiresAt,
+    sustainedBy,
+    sustainedFor: spell.durationSeconds > 0 ? spell.durationSeconds : undefined,
     ...fields,
   } as SustainedEffect;
 }

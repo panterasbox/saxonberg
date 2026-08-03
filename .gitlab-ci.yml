@@ -113,6 +113,12 @@ lint:
     # no template path lives under /lib/, and hydratorClass is neither
     # redundant nor missing where there is data to apply.
     - pnpm -C packages/server lint:instanceable
+    # Descriptor banks stay disjoint from the materials vocabulary
+    # (names ∪ keywords ∪ appearance words). A collision is a PARSER
+    # ambiguity bug, not a style wobble — and it fires in both
+    # directions, so a new MATERIAL colliding with a shipped descriptor
+    # is caught too. That is the direction nobody thinks to check.
+    - pnpm -C packages/server lint:descriptors
 
 test:
   extends: [.node, .mr-only]

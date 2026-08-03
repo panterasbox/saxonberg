@@ -1,0 +1,12 @@
+# Wands — ornament × proportion. Both axes describe WORKMANSHIP and
+# SHAPE, never substance: a wand IS brass, honestly and permanently,
+# and that tells you real things (it conducts, it will not burn) while
+# telling you nothing about which spell it holds.
+primaryAxis: ornament
+primary:
+  [runed, banded, spiked, forked, knotted, twisted, notched, fluted,
+   whorled, lobed, beaded, scalloped]
+secondaryAxis: proportion
+secondary:
+  [long, short, slender, stubby, tapered, crooked, straight, heavy,
+   wispy, curved]

@@ -147,8 +147,10 @@ import type { Arcane } from '../lib/magic/Arcane';
 import type { Consumable } from '../lib/magic/Consumable';
 import type { Potable } from '../lib/magic/Potable';
 import type { Marked } from '../lib/description/Marked';
+import type { Labelled } from '../lib/description/Labelled';
 import type { Charged } from '../lib/magic/Charged';
 import type { Focus } from '../lib/magic/Focus';
+import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
@@ -1221,6 +1223,15 @@ export class MixinApi {
   }
 
   /**
+   * A thing a player can write their own name on (D28). General
+   * annotation — it serves storage, shops and gifts as much as it serves
+   * an unidentified flask.
+   */
+  public static isLabelled(obj: Stuff): obj is Stuff & Labelled {
+    return this.hasMixin(obj, Mixins.Labelled);
+  }
+
+  /**
    * A **battery**: holds energy, spends it on use, and leaks (D7).
    * Composition, not state — a DEPLETED wand is still `Charged`, which
    * is what lets its verb keep affording while failing audibly (D34).
@@ -1232,6 +1243,15 @@ export class MixinApi {
   /** Supplies specification only; the USER pays and is the endpoint (D5). */
   public static isFocus(obj: Stuff): obj is Stuff & Focus {
     return this.hasMixin(obj, Mixins.Focus);
+  }
+
+  /**
+   * Carries a blessed/uncursed/cursed band — a potency level on the
+   * item's own effect axis (D11). **Opt-in per template**: most things
+   * have no BUC state and should not carry the hidden-state risk.
+   */
+  public static isBlessable(obj: Stuff): obj is Stuff & Blessable {
+    return this.hasMixin(obj, Mixins.Blessable);
   }
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {

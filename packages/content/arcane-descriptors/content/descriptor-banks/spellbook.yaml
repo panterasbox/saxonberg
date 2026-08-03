@@ -1,0 +1,12 @@
+# Spellbooks — condition × cover marking. Books are identified items on
+# the same axis as potions (D29), which is what keeps a library's
+# product the CATALOG rather than the books: new stock causes a
+# cataloguing backlog, not a rush.
+primaryAxis: condition
+primary:
+  [dog-eared, stained, mottled, faded, tattered, warped, worn, swollen,
+   scorched, cracked, brittle, foxed]
+secondaryAxis: cover marking
+secondary:
+  [unlettered, gilt-stamped, blind-tooled, banded, clasped, ribboned,
+   cornered, patched, embossed, lettered]
