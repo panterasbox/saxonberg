@@ -17,6 +17,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { SensorMixin } from '../../../../lib/message/Sensor';
+import { PerceptionMixin } from '../../../../lib/perception/Perception';
 import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
 import { UnboundedSourceMixin } from '../../../../lib/bulk/UnboundedSource';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -30,6 +31,12 @@ import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
 import { BulkableApi } from '../../../../api/bulk';
+import { MessageApi } from '../../../../api/message';
+import { IdentifiableMixin } from '../../../../lib/identification/Identifiable';
+import { Appearance } from '../../../../lib/identification/Appearance';
+import { DescriptorBank } from '../../../../lib/identification/DescriptorBank';
+import { WorldClockApi } from '../../../../api/worldclock';
+import '../../../WorldClockRegistry';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
@@ -42,8 +49,13 @@ import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
 
-class TestActor extends SensorMixin(
-  CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+// `Perception` as well as `Sensor`: `RecognitionApi.describe` refuses to
+// resolve a viewer-aware identity for anything that cannot run perception
+// queries, and the drink prose reads through it.
+class TestActor extends PerceptionMixin(
+  SensorMixin(
+    CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+  ),
 ) {
   static _mixinName = 'TestActor';
   public ingested: Array<{ material: string; litres: number }> = [];
@@ -55,6 +67,9 @@ class TestActor extends SensorMixin(
 class Receptacle extends BulkableMixin(Thing) {
   static _mixinName = 'Receptacle';
 }
+
+/** A substance you can learn — the potion case (magic-items D24/D26). */
+class IdentifiableMaterial extends IdentifiableMixin(Material) {}
 
 class UnboundedReceptacle extends UnboundedSourceMixin(BulkableMixin(Thing)) {
   static _mixinName = 'UnboundedReceptacle';
@@ -92,6 +107,25 @@ function vessel(
       v.setBulkAmount('interior', Quantity.of(opts.amountL, 'L'));
     return v;
   }) as unknown as Stuff;
+}
+
+/** Capture what a controller says to the actor, as flat text. */
+function captureSelfLines(): string[] {
+  const said: string[] = [];
+  vi.spyOn(MessageApi, 'scene').mockImplementation(
+    () =>
+      ({
+        topic: () => ({
+          toSelf: (m: { toMarkup?: () => string }) => {
+            said.push(
+              typeof m?.toMarkup === 'function' ? m.toMarkup() : String(m),
+            );
+            return { toPeers: () => ({ send: () => undefined }), send: () => undefined };
+          },
+        }),
+      }) as never,
+  );
+  return said;
 }
 
 function floorIn(loc: Stuff): Stuff {
@@ -354,6 +388,78 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     );
     expect(amountL(mug)).toBeCloseTo(0);
     expect(surfaceAmountL(floor)).toBeCloseTo(before);
+  });
+});
+
+describe('Bulk verbs — drink prose, and the two article rules', () => {
+  let actor: Stuff;
+  let loc: Stuff;
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+    DescriptorBank.clearCache();
+    Appearance.clearMemo();
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 100000);
+    const bank = new DescriptorBank();
+    bank.key = 'potion';
+    bank.primary = ['crimson'];
+    bank.secondary = ['iridescent'];
+    DescriptorBank.primeCache([bank]);
+    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    floorIn(loc);
+    actor = makeStuff(() => new TestActor()) as unknown as Stuff;
+    (actor as unknown as { setName(n: string): void }).setName('bob');
+    ContainmentApi.move(actor as never, loc as never);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+    DescriptorBank.clearCache();
+    Appearance.clearMemo();
+  });
+
+  /** The potion shape: identity rides the MATERIAL, not the flask. */
+  function draught(): Material {
+    return makeStuffAtPath(() => {
+      const m = new IdentifiableMaterial();
+      m.setName('veiling draught');
+      m.setKeywords(['draught']);
+      m.setDescriptorClass('potion');
+      m.setIdentifiedName('a veiling draught');
+      return m;
+    }, '/obj/material/potion/drink-test') as unknown as Material;
+  }
+
+  async function drink(holder: Stuff): Promise<string[]> {
+    const said = captureSelfLines();
+    await makeStuff(() => new DrinkController()).execute(
+      model({ target: one(holder, 'it') }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    return said;
+  }
+
+  it('a plain material keeps its shipped "the"', async () => {
+    const coffee = material('/obj/material/bulk/coffee2', 'coffee');
+    const mug = vessel('a mug', { material: coffee, amountL: 0.3, capacityL: 0.5 });
+    ContainmentApi.move(mug as never, actor as never);
+    // `appearance` is a BARE phrase ("some coffee"), so the verb supplies
+    // the article. This is the shipped wording and must not drift.
+    expect((await drink(mug)).join(' ')).toContain('You drink the some coffee');
+  });
+
+  it('an identifiable substance carries its OWN article', async () => {
+    const potion = draught();
+    const flask = vessel('a flask', { material: potion, amountL: 0.25, capacityL: 0.25 });
+    ContainmentApi.move(flask as never, actor as never);
+    // The per-viewer phrase is a FULL noun phrase ("an iridescent crimson
+    // potion"), so a second article would read "You drink the an …".
+    const said = (await drink(flask)).join(' ');
+    expect(said).toContain('You drink an iridescent crimson potion');
+    expect(said).not.toContain('the an');
   });
 });
 

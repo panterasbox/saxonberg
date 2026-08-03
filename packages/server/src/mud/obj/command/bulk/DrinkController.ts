@@ -12,6 +12,7 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { BulkableApi } from '../../../api/bulk';
+import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
@@ -53,6 +54,26 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // slot, for the ingest hand-off and the prose.
     const material = fromSlot.getMaterial();
     const payload = fromSlot.getPayload();
+    // …and, for an IDENTIFIABLE substance, capture how it looked to this
+    // drinker before they swallowed it. Taken here on purpose:
+    // swallowing an unidentified draught may teach you what it was
+    // (use-identification), and the prose should name what you thought
+    // you were drinking rather than spoil the reveal by rendering after
+    // the fact.
+    //
+    // Only the identifiable case, because the two phrasings differ:
+    // `getContentsDescriptionFor` returns a full noun phrase carrying
+    // its OWN article ("an iridescent crimson potion"), while a plain
+    // material's appearance is a bare phrase that still wants "the"
+    // ("You drink the dark, steaming coffee.").
+    const seenAs =
+      material && MixinApi.isIdentifiable(material) &&
+      MixinApi.isBulkable(target)
+        ? target.getContentsDescriptionFor(
+            giver,
+            model.target.via?.bulk?.affordance,
+          )
+        : null;
     const result = BulkableApi.transfer(fromSlot, null, { kind: 'all' });
     for (const note of result.notes) context.note(note);
 
@@ -66,11 +87,14 @@ export default class DrinkController extends CommandController<DrinkModel> {
 
     BulkableApi.ingest(giver, material, result.applied, payload);
 
-    const appearance =
-      payload?.appearance ?? (material?.getAppearance() || 'it');
+    const drunk = seenAs
+      ? Mml.compose`You drink ${seenAs}.`
+      : Mml.compose`You drink the ${
+          payload?.appearance ?? (material?.getAppearance() || 'it')
+        }.`;
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You drink the ${appearance}.`)
+      .toSelf(drunk)
       .toPeers(Mml.compose`${Mml.name(giver)} drinks from ${Mml.item(target)}.`)
       .send();
   }

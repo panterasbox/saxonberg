@@ -145,7 +145,11 @@ function unidentifiedLook(viewer: Stuff, target: Stuff): string | null {
   if (descriptor.length === 0) return null;
 
   const noun = target.getDescriptorClass();
-  const look = `a ${descriptor} ${noun}`.trim();
+  // `GrammarApi.articleFor` rather than a hardcoded "a": the descriptor
+  // is drawn from a bank and half of them start with a vowel, so
+  // "a iridescent crimson potion" is one draw away at all times.
+  const phrase = `${descriptor} ${noun}`.trim();
+  const look = `${GrammarApi.articleFor(phrase)} ${phrase}`;
 
   // A record from a PRIOR generation: hedge, never assert.
   if (!MixinApi.isBeliefStore(viewer)) return look;

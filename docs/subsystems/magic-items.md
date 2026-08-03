@@ -123,6 +123,27 @@ It also lands identity in the right place: **a potion's class IS its
 material**, so identification keys on the same singleton the effect
 hangs off.
 
+The rendering and identification paths both have to **reach past the
+glass** for this to be visible, and both do:
+
+- `look flask` → `Bulkable.getContentsDescriptionFor(viewer)` routes an
+  identifiable material through `RecognitionApi.describe`, so the same
+  flask reads as *"an iridescent crimson potion"* to a stranger and
+  *"a veiling draught"* to someone who has learned it. It rides the
+  shipped bulk-contents augmenter (the `viewer` parameter was always on
+  that contract; identification is the first thing that needed it), so
+  every path that renders a long description gets it — see
+  [bulk.md](./bulk.md) § `getContentsDescriptionFor`.
+- `read scroll at flask` → the identify effect makes the **same**
+  redirect. Without it the answer is "there is nothing hidden to learn
+  about a stoppered glass flask" — true of the glass and useless to the
+  player holding it.
+
+One identification therefore covers **every flask of that draught**, and
+decanting carries the knowledge because it carries the substance. The
+flask itself is an ordinary `Receptacle` that learns nothing, which is
+the whole point.
+
 `PotableMixin` fires from the shipped `BulkableApi.ingest` bridge,
 duck-typed exactly as the drinker's own `ingest` is — so bulk never
 imports magic, and every ingestion route fires it. `Metabolic` is
@@ -511,6 +532,14 @@ Literacy is out of scope for v1 — everyone reads the common script — but
 the seam is in place: it would slot into `decode` without disturbing
 `perceive`.
 
+**A working that needs a mark takes one from the same verb**:
+`read scroll at flask`. `read`'s second argument is optional, so
+`read scroll` is unchanged for a scroll whose working needs nothing —
+and a scroll that *does* need a mark and is given none refuses **before
+it is spent**, so a misaimed reading costs nothing. That refusal is the
+shared targeting floor (`MagicEffects.needsTarget`), not a `read`
+special case: the `cast` path takes the same one.
+
 ---
 
 ## Files
@@ -527,7 +556,9 @@ the seam is in place: it would slot into `decode` without disturbing
 
 **Identification** — `lib/identification/Appearance.ts` ·
 `DescriptorBank.ts` · `Identifiable.ts` · `lib/description/Labelled.ts` ·
-`Marked.ts` · `packages/content/arcane-descriptors/`
+`Marked.ts` · `packages/content/arcane-descriptors/` ·
+`lib/bulk/Bulkable.ts` (`getContentsDescriptionFor` — the reach past the
+glass, shared by `look` and the identify effect)
 
 **Memory** — `lib/magic/SpellKnowledge.ts` · `Memorized.ts` · `Fade.ts` ·
 `StudyActivity.ts`

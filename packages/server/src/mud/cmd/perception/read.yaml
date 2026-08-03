@@ -17,6 +17,10 @@ help: |
   Reading a scroll is also how a scroll's working fires. There is no
   separate verb for that, deliberately: if there were, the verb
   showing up in your list would tell you what you were holding.
+
+  Some workings need something to act on — `read scroll at flask`.
+  A scroll whose working needs a mark and is given none refuses
+  before it is spent, so a misaimed reading costs you nothing.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -29,3 +33,8 @@ args:
     prepositions: [at]
     validators:
       - /lib/command/validators/mustBeVisible
+  - name: mark
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [at, on, upon]

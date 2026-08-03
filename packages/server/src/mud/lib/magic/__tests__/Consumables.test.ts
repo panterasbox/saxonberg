@@ -43,6 +43,10 @@ import { ArcaneMixin } from '../Arcane';
 import { IdentifiableMixin } from '../../identification/Identifiable';
 import { VisibleMixin } from '../../description/Visible';
 import { ContainableMixin } from '../../spatial/Containable';
+import { NamedMixin } from '../../description/Named';
+import { BulkableMixin } from '../../bulk/Bulkable';
+import Material from '../../material/Material';
+import { Quantity } from '../../quantity';
 import { IDENTIFICATION } from '../../belief/BeliefStore';
 import {
   makeStuff,
@@ -60,6 +64,10 @@ class Signpost extends MarkedMixin(VisibleMixin(ContainableMixin(Idea))) {}
 class TestWand extends ConsumableMixin(ArcaneMixin(VisibleMixin(
   ContainableMixin(Idea),
 ))) {}
+/** The potion shape: identity rides the MATERIAL, not the vessel. */
+class TestDraught extends IdentifiableMixin(Material) {}
+/** …and the vessel, which is just glass and knows nothing. */
+class TestFlask extends BulkableMixin(ContainableMixin(NamedMixin(Idea))) {}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
@@ -431,5 +439,74 @@ describe('Wave 2 — consumables', () => {
     expect(RecognitionApi.describe(reader, vial)).toBe('a potion of healing');
     // …and it stays unidentified to everyone else.
     expect(RecognitionApi.describe(other, vial)).toBe('a blue potion');
+  });
+
+  it('D24 — identifying a VESSEL reaches the substance inside it', async () => {
+    const room = makeRoom();
+    const reader = makeActor();
+    ContainmentApi.move(reader, room);
+
+    // The shape a player actually holds: a flask, which is just glass,
+    // full of a draught, which is where the identity lives. Without the
+    // redirect this answers "there is nothing hidden to learn about a
+    // stoppered glass flask" — true of the glass, useless to the player.
+    const draught = makeStuffAtPath(
+      () => {
+        const m = new TestDraught();
+        m.setName('veiling draught');
+        m.setTags(['liquid']);
+        m.setDescriptorClass('potion');
+        m.setIdentifiedName('a veiling draught');
+        return m;
+      },
+      `/obj/material/potion/cons-${seq++}`,
+    );
+    const flask = makeStuff(() => {
+      const v = new TestFlask();
+      v.setName('flask');
+      v.interiorBulk = true;
+      v.setInteriorCapacity(Quantity.of(0.25, 'L'));
+      v.setBulkMaterial('interior', draught as unknown as Material);
+      v.setBulkAmount('interior', Quantity.of(0.25, 'L'));
+      return v;
+    });
+    ContainmentApi.move(flask as unknown as never, room);
+
+    const scroll = makeScroll('identify');
+    ContainmentApi.move(scroll, room);
+    actingAs(reader);
+
+    const out = await MagicApi.discharge(scroll, flask as unknown as never);
+    expect(out.ok).toBe(true);
+    // The record lands on the MATERIAL's path, which is what makes one
+    // reading cover every flask of that draught — and what makes
+    // decanting carry the knowledge.
+    expect(
+      reader.recall(IDENTIFICATION, draught.getTemplatePath()!)?.payload
+        .typeKnown,
+    ).toBe(true);
+    expect(out.reports.join(' ')).toContain('a veiling draught');
+  });
+
+  it('D24 — identifying something with nothing to learn still refuses', async () => {
+    const room = makeRoom();
+    const reader = makeActor();
+    ContainmentApi.move(reader, room);
+    // An empty flask is only glass; the redirect must not invent a
+    // subject where there is none.
+    const empty = makeStuff(() => {
+      const v = new TestFlask();
+      v.setName('flask');
+      v.interiorBulk = true;
+      v.setInteriorCapacity(Quantity.of(0.25, 'L'));
+      return v;
+    });
+    ContainmentApi.move(empty as unknown as never, room);
+    const scroll = makeScroll('identify');
+    ContainmentApi.move(scroll, room);
+    actingAs(reader);
+
+    const out = await MagicApi.discharge(scroll, empty as unknown as never);
+    expect(out.reports.join(' ')).toContain('nothing hidden to learn');
   });
 });

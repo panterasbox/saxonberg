@@ -80,7 +80,7 @@ import type { Caster } from '../../lib/magic/Caster';
 import { Faculty } from '../../lib/magic/Faculty';
 import { MagicEffects } from '../../lib/magic/Effect';
 import type { Effect, InjectChannelEffect } from '../../lib/magic/Effect';
-import { MagicGrid, type MagicProvenance } from '../../lib/magic/Grid';
+import { MagicGrid } from '../../lib/magic/Grid';
 import { EffectContexts } from '../../lib/magic/EffectContext';
 import type { EffectContext } from '../../lib/magic/EffectContext';
 import { ExecutionContextApi } from '../../api/execution-context';
@@ -1047,16 +1047,45 @@ function execSense(ctx: EffectContext, target: Stuff | undefined): string {
  */
 function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
   if (!target) return 'The working needs something to look at.';
-  if (!MixinApi.isIdentifiable(target)) {
+  // **Follow a vessel to what is in it.** A flask is just a flask — the
+  // identity of a potion lives on its MATERIAL, which is what makes one
+  // identification cover every flask of that draught. Without this
+  // redirect, `identify` on a flask answers "there is nothing hidden to
+  // learn about a stoppered glass flask", which is true of the glass
+  // and useless to the player holding it.
+  const subject = identifiableSubject(target);
+  if (!subject) {
     return `There is nothing hidden to learn about ${target.getPresentation()}.`;
   }
   const learner = ctx.actor;
-  const signature = target.getTemplatePath();
+  const signature = subject.getTemplatePath();
   if (!MixinApi.isBeliefStore(learner) || !signature) {
     return 'The knowing finds nowhere to settle.';
   }
-  learnClassOf(learner, target, signature);
-  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, target)}.`;
+  learnClassOf(learner, subject, signature);
+  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, subject)}.`;
+}
+
+/**
+ * What an identification act actually addresses: the thing itself, or —
+ * for a vessel — the substance inside it.
+ *
+ * The same redirect `Bulkable.getContentsDescriptionFor` makes when
+ * rendering, for the same reason: a potion's class is its material, so
+ * both *looking at* and *identifying* a flask have to reach past the
+ * glass. `null` when there is nothing identifiable either way.
+ */
+function identifiableSubject(target: Stuff): Stuff | null {
+  if (MixinApi.isIdentifiable(target)) return target;
+  if (!MixinApi.isBulkable(target)) return null;
+  try {
+    const material = target.getBulk().getMaterial();
+    return material && MixinApi.isIdentifiable(material)
+      ? (material as unknown as Stuff)
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

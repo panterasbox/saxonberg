@@ -43,6 +43,8 @@ const TOPIC = 'world.perception.vision';
 
 interface ReadModel extends CommandModel {
   target: MqlOneResult;
+  /** What the scroll's working acts ON, for workings that need a mark. */
+  mark?: MqlOneResult;
 }
 
 export default class ReadController extends CommandController<ReadModel> {
@@ -106,7 +108,7 @@ export default class ReadController extends CommandController<ReadModel> {
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
 
     // ── …and whatever reading it sets off ──
-    await this.fireAnyWorking(target, context);
+    await this.fireAnyWorking(target, context, model.mark?.stuff ?? undefined);
   }
 
   /**
@@ -122,6 +124,7 @@ export default class ReadController extends CommandController<ReadModel> {
   private async fireAnyWorking(
     target: Stuff,
     context: CommandContext,
+    mark?: Stuff,
   ): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isArcane(target)) return;
@@ -145,7 +148,7 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    const outcome = await MagicApi.discharge(target, undefined, {
+    const outcome = await MagicApi.discharge(target, mark, {
       source: giver,
     });
     const prose = outcome.ok
