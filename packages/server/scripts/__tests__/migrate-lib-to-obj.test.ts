@@ -215,3 +215,34 @@ describe('migrate-lib-to-obj', () => {
     });
   });
 });
+
+describe('BSON values survive the walk', () => {
+  // Regression: rewriteDeep used to rebuild every object it walked,
+  // which turned an ObjectId into `{buffer: {0: 106, …}}`. Mongo then
+  // rejected the write with "the (immutable) field '_id' was found to
+  // have been altered". Found on the first live run, not by the suite,
+  // because every fixture above uses a string _id.
+  class FakeObjectId {
+    constructor(readonly bytes: number[]) {}
+  }
+
+  it('leaves a non-plain object (ObjectId-shaped) identical by reference', () => {
+    const oid = new FakeObjectId([1, 2, 3]);
+    const { value } = rewriteDeep({ _id: oid, class: '/lib/messaging/Topic' });
+    const after = value as Record<string, unknown>;
+    expect(after._id).toBe(oid); // same reference, not a rebuilt copy
+    expect(after.class).toBe('/obj/Topic');
+  });
+
+  it('leaves a Date identical by reference', () => {
+    const d = new Date('2026-01-01T00:00:00Z');
+    const { value } = rewriteDeep({ when: d, class: '/lib/lock/Key' });
+    expect((value as Record<string, unknown>).when).toBe(d);
+  });
+
+  it('still walks plain nested objects', () => {
+    const { value } = rewriteDeep({ a: { b: { c: '/lib/lock/Key' } } });
+    const a = (value as { a: { b: { c: string } } }).a;
+    expect(a.b.c).toBe('/obj/Key');
+  });
+});

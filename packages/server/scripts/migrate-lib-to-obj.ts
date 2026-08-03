@@ -116,6 +116,19 @@ function rewriteOne(value: string, opts: RewriteOpts): string | null {
 }
 
 /**
+ * Only plain `{}` objects get walked and rebuilt. BSON values — ObjectId,
+ * Date, Binary, Decimal128 — are objects too, and rebuilding one turns it
+ * into `{buffer: {0: 106, …}}`, which Mongo then rejects (`the (immutable)
+ * field '_id' was found to have been altered`). Nothing inside a BSON
+ * scalar is ever a template path, so passing them through untouched is
+ * both correct and necessary.
+ */
+function isPlainObject(v: object): boolean {
+  const proto = Object.getPrototypeOf(v) as unknown;
+  return proto === Object.prototype || proto === null;
+}
+
+/**
  * Deep-rewrite a value: strings, array items, object values AND object
  * keys. Returns the new value and records every JSON path touched.
  */
@@ -136,7 +149,7 @@ export function rewriteDeep(
     );
     return { value: out, touched };
   }
-  if (value && typeof value === 'object' && !(value instanceof Date)) {
+  if (value && typeof value === 'object' && isPlainObject(value)) {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       const nk = rewriteOne(k, opts);
@@ -306,7 +319,11 @@ async function main(): Promise<void> {
       }
       const col = db.collection(name);
       for (const ch of plan.changes) {
-        await col.replaceOne({ _id: ch.id as never }, ch.after as never);
+        // `_id` is immutable — never send it in the replacement, and
+        // always match on the ORIGINAL value rather than anything the
+        // rewrite produced.
+        const { _id: _drop, ...body } = ch.after;
+        await col.replaceOne({ _id: ch.id as never }, body as never);
       }
     }
   }
