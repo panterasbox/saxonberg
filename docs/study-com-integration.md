@@ -28,6 +28,14 @@
 > misrepresent the study.com product.** Where I don't know, I say so
 > rather than inventing a schema that reads plausibly and sends the
 > generator down a wrong road.
+>
+> **Deepening companions (expand three parts of this doc):** the full
+> course, [magic-101-course.md](./magic-101-course.md) (expands §8); the
+> concrete interfaces/types,
+> [study-com-integration-spec.md](./study-com-integration-spec.md)
+> (expands §§6-7); and the reverse game→study adaptive feed,
+> [study-com-adaptive-feed.md](./study-com-adaptive-feed.md) (expands
+> §6.2).
 
 ---
 
@@ -234,17 +242,21 @@ honest today.
 **Item A — Examination mode (MC), rendered as a study.com item:**
 
 ```
-stem:    You commit 60 τ at η = 0.85 to ignite 40 g of dry straw
-         at 15 °C (8% moisture by mass). Straw ignites at ~250 °C.
-         How much delivered energy does ignition require?
+stem:    Igniting 40 g of dry straw (15 °C → ignition ~250 °C, 8%
+         moisture by mass) means raising the straw and its bound water
+         to ignition AND vaporising the moisture. At delivery
+         efficiency η = 0.85, how much energy must you COMMIT (in τ)?
 options:
-  A. 22.9 kJ        (distractor: dropped the moisture/latent-heat term)
-  B. 24.5 kJ        (distractor: heated the water but never vaporised it)
-  C. 29.9 kJ        (distractor: forgot the efficiency factor)
-  D. 35.2 kJ  ✓     (correct: sensible heat + moisture vaporisation)
+  A. 22.9 τ        (distractor: dropped the moisture/latent-heat term)
+  B. 24.5 τ        (distractor: heated the water but never vaporised it)
+  C. 29.9 τ        (distractor: used the delivered energy — forgot ÷η)
+  D. 35.2 τ  ✓     (correct: 29.9 kJ delivered ÷ 0.85 = 35.2 τ committed)
+  E. 35,150 τ      (distractor: ×10³ unit slip, J↔kJ)
 rationale (D): raise straw + bound water to ignition, vaporise the 8%
-         moisture (latent heat), then apply η. Each wrong option names
-         the specific step a student skipped.
+         moisture (latent heat) → ~29.9 kJ that must ARRIVE; divide by
+         η to get committed energy. Each wrong option names the specific
+         step skipped. (τ ≡ kJ, so 5.3 kJ of the 35.2 stays in the
+         caster — the honest account of a novice "running hot".)
 difficulty:     hard (near-edge; ZPD-appropriate for 'competent'→'proficient')
 objectiveRef:   THAUM101.LO.4.2  ("compute a spell's committed energy from
                 the price list, including phase-change terms")
@@ -260,10 +272,10 @@ that becomes a **Practical** simply by swapping the answer surface (§5).
 
 ```
 prompt:  Ignite the straw bundle on the lab bench using a single cast.
-         Report the delivered energy at η shown on your focus.
+         Report the energy you committed (τ) at the η shown on your focus.
 evaluator: run the fire subsystem's ignition check against the bench
-         instance; PASS iff the straw ignites AND reported delivered
-         energy is within tolerance of the computed key.
+         instance; PASS iff the straw ignites AND the reported committed
+         energy is within tolerance of the computed key (~35.2 τ here).
 objectiveRef / taxonomyNodeRef: identical to Item A.
 ```
 
