@@ -1,0 +1,30 @@
+# A wand of firebolt — the charged-item exemplar.
+#
+# It carries the SHIPPED `firebolt` spell rather than a bespoke one:
+# an item is a new trigger, never a new mechanism, and one authored
+# definition serving both doors is the whole of wave 1.
+#
+# `capacityKJ: 900` against firebolt's 20-point cost is about 45 firings
+# from full — a real resource, spent in an afternoon of trouble, and
+# worth the trip to a mage who will fill it again.
+#
+# `alwaysOn: false` is the cheap mode. A ring that conferred its effect
+# continuously would set this true and flatten in days rather than
+# months (D8) — that is one field, not a different class.
+#
+# `deliveryEfficiency: 1.4` is the maker's, fixed at manufacture (D7). A
+# novice firing this genuinely outperforms that novice casting, which is
+# the point of the whole class.
+class: /obj/magic/Wand
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a slender ashwood wand
+  primaryKeyword: wand
+  longDescription: >
+    A finger-length rod of pale ash, banded at the grip with tarnished
+    brass. Held still, it is faintly warm.
+  carriedSpellId: firebolt
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.4
+  capacityKJ: 900
+  alwaysOn: false

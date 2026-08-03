@@ -1,0 +1,36 @@
+verbs: [recharge]
+controller: /obj/command/magic/RechargeController
+description: "Move energy from your own reserve into an item"
+unafforded: "There is nothing here to recharge."
+help: |
+  Pour your own mana into a charged item, or re-impress the pattern
+  in a focus. Either way what you are spending is your reserve, and
+  what the item gets is what you had.
+
+  This is why recharging is a **trade**. A shell without charge is a
+  paperweight with a socket, and the thing that is genuinely scarce
+  is caster-hours — so a mage who will sit and fill other people's
+  wands has a business, and stays worth hiring however common the
+  wands themselves become.
+
+  Charged items and foci both answer to it; the cost basis differs.
+  Filling a tank is a transfer. Re-impressing a pattern is work: it
+  buys back order rather than energy, and it costs more per point of
+  usefulness restored.
+
+  `recharge wand` gives what you can spare. `recharge wand 40` gives
+  exactly that much of your reserve, or refuses if you haven't got it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible
+  - name: amount
+    type: number
+    required: false

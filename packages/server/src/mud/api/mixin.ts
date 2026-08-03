@@ -147,6 +147,8 @@ import type { Arcane } from '../lib/magic/Arcane';
 import type { Consumable } from '../lib/magic/Consumable';
 import type { Potable } from '../lib/magic/Potable';
 import type { Marked } from '../lib/description/Marked';
+import type { Charged } from '../lib/magic/Charged';
+import type { Focus } from '../lib/magic/Focus';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
@@ -1216,6 +1218,20 @@ export class MixinApi {
   /** A thing bearing readable marks — scroll, book, label, signpost. */
   public static isMarked(obj: Stuff): obj is Stuff & Marked {
     return this.hasMixin(obj, Mixins.Marked);
+  }
+
+  /**
+   * A **battery**: holds energy, spends it on use, and leaks (D7).
+   * Composition, not state — a DEPLETED wand is still `Charged`, which
+   * is what lets its verb keep affording while failing audibly (D34).
+   */
+  public static isCharged(obj: Stuff): obj is Stuff & Charged {
+    return this.hasMixin(obj, Mixins.Charged);
+  }
+
+  /** Supplies specification only; the USER pays and is the endpoint (D5). */
+  public static isFocus(obj: Stuff): obj is Stuff & Focus {
+    return this.hasMixin(obj, Mixins.Focus);
   }
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {

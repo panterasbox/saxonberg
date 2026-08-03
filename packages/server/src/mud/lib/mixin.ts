@@ -338,6 +338,17 @@ export const Mixins = {
   // carrying the modality they can be taken in through. `read` =
   // perceive + decode, and an embossed text reads in the dark. See D33.
   Marked: 'MarkedMixin',
+  // Charged — a BATTERY: supplies energy AND specification, spends on
+  // use, and LEAKS. The decay is load-bearing, not flavour: without it
+  // stock grows without bound at any inflow throttle; with it, stock
+  // settles at S* = inflow/d. The item is its own endpoint, so recoil
+  // and waste heat land on it. See D5/D6/D7.
+  Charged: 'ChargedMixin',
+  // Focus — supplies SPECIFICATION only; the user pays the energy and
+  // is therefore the endpoint. Perishes by pattern rot on a much slower
+  // schedule than charge: a binding is a state held away from
+  // equilibrium. "Magic perishes, matter doesn't." See D9.
+  Focus: 'FocusMixin',
 } as const;
 
 /**

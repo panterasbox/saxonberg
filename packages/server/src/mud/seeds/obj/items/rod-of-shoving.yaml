@@ -1,0 +1,23 @@
+# A rod of shoving — the focus exemplar, and the mirror of the wand.
+#
+# It has no tank. It holds a PATTERN, and the user pays — so the user is
+# the endpoint, and a rod that shoves recoils onto them (D6). That is
+# the opposite ergonomic from the wand, from one composition difference.
+#
+# `patternIntegrity: 1` is freshly impressed. It rots on its own much
+# slower schedule (D9): a binding is a state held away from equilibrium,
+# and a pattern that does work cannot BE at equilibrium. It never fails
+# outright — it delivers less, which is the legible signal, and
+# `recharge` re-impresses it.
+class: /obj/magic/Rod
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a short blackthorn rod
+  primaryKeyword: rod
+  longDescription: >
+    A hand's length of blackthorn, worn smooth where it is gripped. The
+    grain runs in a spiral that does not quite look natural.
+  carriedSpellId: shove
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1
+  patternIntegrity: 1

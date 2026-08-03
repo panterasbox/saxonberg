@@ -56,10 +56,15 @@ export interface EffectContext {
    */
   readonly actor: Stuff;
   /**
-   * What supplies the energy. The caster's mana for a cast, **the
-   * item's charge** for a charged item, the *user's* reserve for a
-   * focus (which is why source and origin are separate fields rather
-   * than one).
+   * **Who pays** — and therefore who takes the reaction. The caster's
+   * mana for a cast, **the item's charge** for a charged shell, the
+   * *user's* reserve for a focus (which is why source and origin are
+   * separate fields rather than one).
+   *
+   * That the payer is also the recoil endpoint is not a convention: the
+   * momentum came from the energy, so it pushes back on whatever
+   * supplied it. It is why D5's classes have opposite ergonomics from
+   * one line rather than three special cases.
    */
   readonly source: Stuff;
   /** Magnitude multiplier — competence-scaled, or the maker's stored efficiency. */

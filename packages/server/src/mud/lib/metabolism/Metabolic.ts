@@ -33,6 +33,7 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
+import type { Unit } from "../quantity";
 import type { Reserved } from "../reserve";
 import { Reserve } from "../reserve";
 import type { Vitals } from "../vitals/Vitals";
@@ -274,7 +275,37 @@ const NUTRIENT_ROUTING: Record<string, NutrientRoute> = {
 /** The phase a unit of intake fills — the verb decides, not the Material. */
 export type IngestPhase = "solid" | "liquid";
 
+/**
+ * One reserve the coupled-recovery keystone rebuilds by spending the
+ * body's satiation and hydration.
+ *
+ * The keystone's whole content is *nothing regenerates for free*, and
+ * this is what "a thing that regenerates" looks like to it. Endurance
+ * was the only one until magic-items made mana the second (D10) —
+ * closing a live first-law hole, since mana previously refilled from
+ * nothing while `arcane-science.md` prices its recovery at ~300 W of
+ * metabolic work.
+ */
+export interface CoupledConsumer {
+  /** The reserve key to refill. */
+  readonly key: string;
+  /** That reserve's own unit (`'%'` for the biological pools, `'pt'` for mana). */
+  readonly unit: Unit;
+  /** Ceiling gain per game-minute at full rest, in the reserve's unit. */
+  readonly maxPerMin: number;
+  /** Satiation (%) spent per unit gained. */
+  readonly satiationCost: number;
+  /** Hydration (%) spent per unit gained. */
+  readonly hydrationCost: number;
+}
+
 export interface Metabolic {
+  /**
+   * The reserves this body rebuilds by spending its tanks, in fuel
+   * priority order (body before gift). Override and `super`-append to
+   * add one; see the implementation's `@hook`.
+   */
+  coupledConsumers(): readonly CoupledConsumer[];
   /** The digestion-buffer per-tag pools (`%`-fill to deliver per tag). */
   digestionPools: Record<string, number>;
   /** Solid sub-volume (litres) — filled by `eat`. */
@@ -654,6 +685,55 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
      * spo2-throttle (the last inert in v1). This is the keystone — why
      * recovery lives in metabolism, not encumbrance.
      */
+    /**
+     * **The consumers this body rebuilds by spending its tanks**, in
+     * priority order — **body before gift**.
+     *
+     * @hook Override and `super`-append to make a reserve a second
+     * consumer of the coupled-recovery keystone. `CasterMixin` appends
+     * `mana` when the faculty is active, which is what closes a live
+     * first-law hole: mana previously refilled from nothing, and
+     * `arcane-science.md` prices recovery at ~300 W of metabolic work.
+     * Composition order matters — an appending mixin must sit OUTSIDE
+     * `MetabolicMixin` for the super-chain to reach here.
+     *
+     * Order is the fuel priority: earlier entries eat first, so a body
+     * that can only afford one of the two rebuilds itself before it
+     * rebuilds the gift. That is the honest ordering — you do not
+     * recover your magic while starving.
+     */
+    public coupledConsumers(): readonly CoupledConsumer[] {
+      const D = METABOLIC_DEFAULTS;
+      return [
+        {
+          key: "endurance",
+          unit: "%",
+          maxPerMin: D.MAX_RECOVERY_PER_MIN,
+          satiationCost: D.RECOVERY_SATIATION_COST,
+          hydrationCost: D.RECOVERY_HYDRATION_COST,
+        },
+      ];
+    }
+
+    /**
+     * Step 3 — **the keystone: nothing regenerates for free.** Each
+     * declared consumer is refilled by spending satiation and hydration,
+     * posture-gated, rest-scaled, hydration-throttled, SpO2-throttled,
+     * and hard-limited by what the tanks can actually pay for.
+     *
+     * Generalized from one consumer to N (magic-items D10). The single-
+     * consumer behaviour is preserved exactly — with only `endurance`
+     * declared this reduces line-for-line to what shipped — and the
+     * characterization suite in
+     * `__tests__/Metabolic.coupled.characterization.test.ts` is what
+     * holds that claim honest.
+     *
+     * **Fuel is consumed in list order**, so an earlier consumer really
+     * does starve a later one rather than both being scaled down. That
+     * is deliberate: a shared pool split pro-rata would mean a caster
+     * recovers endurance *slower* than a non-caster, which is a
+     * penalty for having a gift and nobody asked for one.
+     */
     protected coupledRecovery(stepMin: number): void {
       const self = this as unknown as MetabolicHost;
       const D = METABOLIC_DEFAULTS;
@@ -661,44 +741,55 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (base <= 0) return;
 
       const restQuality = this.currentRestQuality();
-      const hydration = this.reserveCurrent("hydration");
-      const throttle = Math.max(
-        0,
-        Math.min(1, hydration / D.RECOVERY_HYDRATION_THROTTLE_PCT),
-      );
       const spo2 = this.spo2Throttle();
 
-      let gain =
-        D.MAX_RECOVERY_PER_MIN * stepMin * base * restQuality * throttle * spo2;
-      if (gain <= 0) return;
+      // Tank state is read once and decremented locally, so consumers
+      // later in the list see what earlier ones left them — within one
+      // slice, not just slice-to-slice.
+      let satiation = this.reserveCurrent("satiation");
+      let hydration = this.reserveCurrent("hydration");
 
-      // Don't recover endurance the body can't hold.
-      const enduranceRoom = 100 - this.reserveCurrent("endurance");
-      gain = Math.min(gain, enduranceRoom);
-      if (gain <= 0) return;
+      for (const consumer of this.coupledConsumers()) {
+        // The throttle re-reads the running hydration, so a consumer
+        // that drank the tank dry throttles the next one too.
+        const throttle = Math.max(
+          0,
+          Math.min(1, hydration / D.RECOVERY_HYDRATION_THROTTLE_PCT),
+        );
+        let gain =
+          consumer.maxPerMin * stepMin * base * restQuality * throttle * spo2;
+        if (gain <= 0) continue;
 
-      // Fuel-limit the gain to what both tanks can pay for.
-      const satiation = this.reserveCurrent("satiation");
-      const maxBySat =
-        D.RECOVERY_SATIATION_COST > 0
-          ? satiation / D.RECOVERY_SATIATION_COST
-          : Infinity;
-      const maxByHyd =
-        D.RECOVERY_HYDRATION_COST > 0
-          ? hydration / D.RECOVERY_HYDRATION_COST
-          : Infinity;
-      gain = Math.min(gain, maxBySat, maxByHyd);
-      if (gain <= 0) return;
+        // Don't recover what the body can't hold. Capacity is read off
+        // the reserve rather than assumed to be 100 — a mana pool's
+        // capacity derives from the species depth band.
+        const stored = (this as unknown as Reserved).getReserve(consumer.key);
+        if (!stored) continue;
+        const room =
+          stored.capacity.rawValue() - stored.current.rawValue();
+        gain = Math.min(gain, room);
+        if (gain <= 0) continue;
 
-      self.adjustReserve("endurance", Quantity.of(gain, "%"));
-      self.adjustReserve(
-        "satiation",
-        Quantity.of(-gain * D.RECOVERY_SATIATION_COST, "%"),
-      );
-      self.adjustReserve(
-        "hydration",
-        Quantity.of(-gain * D.RECOVERY_HYDRATION_COST, "%"),
-      );
+        // Fuel-limit to what both tanks can still pay for.
+        const maxBySat =
+          consumer.satiationCost > 0
+            ? satiation / consumer.satiationCost
+            : Infinity;
+        const maxByHyd =
+          consumer.hydrationCost > 0
+            ? hydration / consumer.hydrationCost
+            : Infinity;
+        gain = Math.min(gain, maxBySat, maxByHyd);
+        if (gain <= 0) continue;
+
+        const satCost = gain * consumer.satiationCost;
+        const hydCost = gain * consumer.hydrationCost;
+        self.adjustReserve(consumer.key, Quantity.of(gain, consumer.unit));
+        self.adjustReserve("satiation", Quantity.of(-satCost, "%"));
+        self.adjustReserve("hydration", Quantity.of(-hydCost, "%"));
+        satiation -= satCost;
+        hydration -= hydCost;
+      }
     }
 
     /**

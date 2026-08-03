@@ -37,7 +37,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
 import { Reserve, type Reserved } from '../reserve';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
-import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
+import type { CoupledConsumer } from '../metabolism/Metabolic';
 import type { Stuff } from '../stuff/Stuff';
 import type Species from '../../obj/species/Species';
 import type { ActiveCondition } from '../../obj/Condition';
@@ -79,6 +79,21 @@ const FACULTY_GUARDS = {
   /** Far-past absence guard (game-seconds) — the metabolism/thermal guard. */
   MAX_REASONABLE_GAP_SEC: 4 * 3600,
   OVERCHANNEL_CLEAR_THRESHOLD: 0.5,
+  /**
+   * Satiation (%) and hydration (%) spent per mana point recovered.
+   *
+   * A full mid-depth pool is 120 pt, and `arcane-science.md` prices a
+   * full recovery at roughly one substantial meal's worth of work — so a
+   * point costs well under a percent of either tank. Set an order of
+   * magnitude below endurance's per-point cost because a point of mana
+   * is a much smaller unit than a percent of endurance; the *ratio*, not
+   * the absolute, is what makes a starved caster stop refilling.
+   *
+   * Calibrate at launch (D21). These are honest defaults, not balanced
+   * numbers.
+   */
+  RECOVERY_SATIATION_COST: 0.05,
+  RECOVERY_HYDRATION_COST: 0.07,
 } as const;
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
@@ -210,6 +225,18 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!this.isCastingCapable()) return;
       this.installArcaneReserve();
 
+      // Recovery lives on metabolism's clock now (see
+      // `coupledConsumers`), so the mana read has to poke THAT
+      // reconcile — otherwise reading your pool would show a stale
+      // number until something else happened to move the body's clock.
+      // The metabolic reconcile is itself re-entrancy-guarded and
+      // idempotent within a slice, so this is free when it has already
+      // run this beat.
+      const host = this as unknown as Partial<{ reconcileMetabolism(): void }>;
+      if (typeof host.reconcileMetabolism === 'function') {
+        host.reconcileMetabolism();
+      }
+
       // In-session game-time; idle when no world clock runs (the
       // metabolism idiom — pre-boot / unit tests without a clock).
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
@@ -241,7 +268,11 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this._reconcilingFaculty = true;
       try {
-        this.recoverMana(elapsed);
+        // Mana recovery itself is NOT here any more — it is a consumer
+        // of metabolism's coupled-recovery keystone (see
+        // `coupledConsumers` below). What remains on this clock is the
+        // strain hysteresis, which is a faculty fact rather than a
+        // metabolic one.
         this.clearStrainOnRecovery();
         this.facultyClockStamp = nowS;
       } finally {
@@ -249,33 +280,56 @@ export function CasterMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** Serenity-rate refill, scaled by the same rest inputs metabolism uses. */
-    protected recoverMana(elapsedSec: number): void {
-      const reserved = this as unknown as Reserved;
-      const pool = reserved.getReserve(MANA_RESERVE_KEY);
-      if (!pool) return;
-      const room = pool.capacity.rawValue() - pool.current.rawValue();
-      if (room <= 0) return;
-
-      const host = this as unknown as CasterHost;
-      const profile = this.getCasterProfile()!;
-      const postureBase =
-        METABOLIC_DEFAULTS.POSTURE_BASE[host.getPosture()] ??
-        METABOLIC_DEFAULTS.POSTURE_BASE.stand!;
-      if (postureBase <= 0) return;
-      const restQuality = (
-        this as unknown as { currentRestQuality(): number }
-      ).currentRestQuality();
-
-      const gain = Math.min(
-        room,
-        Faculty.recoveryPerMinFor(profile.serenity) *
-          (elapsedSec / 60) *
-          postureBase *
-          restQuality,
-      );
-      if (gain <= 0) return;
-      reserved.adjustReserve(MANA_RESERVE_KEY, Quantity.of(gain, 'pt'));
+    /**
+     * **Mana is the second consumer of the coupled-recovery keystone**
+     * (requirements D10).
+     *
+     * The hole this closes is a real one: the magic tree contained no
+     * reference to satiation or hydration anywhere, so **a caster
+     * refilled their pool from nothing — violating the first law by
+     * resting.** That was defensible while mana was abstract. It is not
+     * now that `arcane-science.md` prices recovery at ~300 W of
+     * metabolic work.
+     *
+     * It is deliberately *the same mechanism*, not a parallel one. A
+     * local fuel-spend inside `recoverMana` would have been ~30 lines
+     * and lower risk, but two integrators would then drain the same
+     * tanks in the same window without seeing each other, sub-stepping
+     * differently (metabolism slices at 60 s; the faculty integrated
+     * the whole gap in one shot). D10's own words are *"a second
+     * consumer of the existing keystone"*, and this is that.
+     *
+     * The payoff is that **a mana potion needs no new mechanism at
+     * all**: it is a concentrated carbohydrate (a full mid pool is ~7 g),
+     * it feeds satiation through the shipped `ingest` seam, and coupled
+     * recovery does the rest. Absorption is gut-limited, so a potion
+     * cannot beat resting — it removes the need to have eaten.
+     *
+     * Appended AFTER the body's own consumers (the super-chain puts
+     * `endurance` first), which is the honest fuel priority: you do not
+     * recover your gift while starving.
+     */
+    public coupledConsumers(): readonly CoupledConsumer[] {
+      const inherited = super.coupledConsumers();
+      if (!this.isCastingCapable()) return inherited;
+      const profile = this.getCasterProfile();
+      if (!profile) return inherited;
+      return [
+        ...inherited,
+        {
+          key: MANA_RESERVE_KEY,
+          unit: 'pt',
+          maxPerMin: Faculty.recoveryPerMinFor(profile.serenity),
+          satiationCost: dial(
+            AppSettingKeys.magicRecoverySatiationCost,
+            FACULTY_GUARDS.RECOVERY_SATIATION_COST,
+          ),
+          hydrationCost: dial(
+            AppSettingKeys.magicRecoveryHydrationCost,
+            FACULTY_GUARDS.RECOVERY_HYDRATION_COST,
+          ),
+        },
+      ];
     }
 
     /** Hysteresis-clear: recovery past the threshold relieves the strain. */

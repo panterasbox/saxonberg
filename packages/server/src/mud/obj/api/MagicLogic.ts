@@ -463,16 +463,56 @@ async function dischargeImpl(
   // Potency is the MAKER's stored efficiency, fixed at manufacture (D7),
   // where a cast's is competence-scaled. Same parameter, different
   // provenance — which is why the effect layer needed no change at all.
+  // ── The energy leg, per class (D5) ──
+  //
+  // A CHARGED item is a battery: it pays from its own reserve, and a
+  // depleted one fails AUDIBLY rather than ceasing to afford its verb
+  // (D34 — a silent verb would be a free charge meter).
+  //
+  // A FOCUS supplies specification only: the user pays, and a faded
+  // pattern delivers LESS rather than failing (D9/D15 — soft
+  // recoverable entropy, never a cliff).
+  //
+  // `source` is WHO PAYS, and therefore also who takes the reaction
+  // (see `recoilOnto`). A focus's payer is the user; a charged shell's
+  // is itself. An explicit option wins — a scroll names its reader.
+  let classScale = 1;
+  let payer: Stuff = opts?.source ?? item;
+  if (MixinApi.isFocus(item)) payer = opts?.source ?? actor;
+  if (MixinApi.isCharged(item)) {
+    const costKJ = spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1);
+    if (!item.spendCharge(costKJ)) {
+      return {
+        ok: false,
+        refusal: 'It is spent — nothing answers but a dry click.',
+        reports: [],
+      };
+    }
+  }
+  if (MixinApi.isFocus(item)) {
+    if (!item.isPatternUsable()) {
+      return {
+        ok: false,
+        refusal: 'The pattern in it has gone slack; nothing takes shape.',
+        reports: [],
+      };
+    }
+    // Fade shows up as falling delivery, never as failure.
+    classScale *= item.getPatternEfficiency();
+  }
+
   // The maker's fixed efficiency times whatever the capability supplied
-  // — a dose fraction, a partial charge. They MULTIPLY: half a dose of a
+  // — a dose fraction, a faded pattern. They MULTIPLY: half a dose of a
   // master's draught is half a master's dose.
   const scale = opts?.potencyScale ?? 1;
   const ctx = EffectContexts.forItem(
     item,
     actor,
     spell,
-    item.getDeliveryEfficiency() * (Number.isFinite(scale) ? scale : 1),
-    { specifiedBy: item.getMakerId(), source: opts?.source },
+    item.getDeliveryEfficiency() *
+      (Number.isFinite(scale) ? scale : 1) *
+      classScale,
+    { specifiedBy: item.getMakerId(), source: payer },
   );
 
   const reports: string[] = [];
@@ -480,7 +520,43 @@ async function dischargeImpl(
     const report = await executeEffect(ctx, target, spell, effect);
     if (report) reports.push(report);
   }
+  absorbWasteHeat(ctx, spell);
   return { ok: true, reports };
+}
+
+/**
+ * **Waste heat lands on the endpoint** (D6), which for a charged item is
+ * the item itself.
+ *
+ * No process is perfectly efficient, so the fraction of the committed
+ * energy that did not become effect became heat, and it has to go
+ * somewhere. On a cast that somewhere is the caster (who is a body with
+ * a thermal budget and sheds it); on a charged item it is the shell.
+ * That is what makes a charged cooling item able to crack, and a spark
+ * wand *safer* than the equivalent cast — the wand is in the circuit and
+ * the user is not.
+ *
+ * Routed through the shipped `ThermalApi` + `FireApi.tryAutoignite`
+ * path, so whether it cracks or catches is a **materials-response read**
+ * rather than a rule magic invented. That is the governing invariant
+ * doing its job: magic is a new trigger, never a new mechanism.
+ */
+function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
+  const endpoint = ctx.origin;
+  if (!MixinApi.isCharged(endpoint)) return;
+  const committedJ =
+    spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1) * 1000;
+  const wasteJ =
+    committedJ * dial(AppSettingKeys.magicWasteHeatFraction, 0.1);
+  if (wasteJ <= 0) return;
+  try {
+    ThermalApi.depositHeat(endpoint, wasteJ);
+    FireApi.tryAutoignite(endpoint);
+    ThermalApi.reconcilePhase(endpoint);
+  } catch {
+    // A shell with no thermal surface simply has nowhere to put it.
+    // Not an error — an item that cannot be heated cannot crack.
+  }
 }
 
 async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
@@ -803,27 +879,34 @@ async function execMove(
 
 /**
  * **Momentum is conserved** (arcane-science content rule 7): a directed
- * impulse pushes back on whatever launched it, and *whatever launched
- * it* is the **endpoint** — `ctx.origin`.
+ * impulse pushes back on whatever launched it.
  *
- * That single line gives the three item classes their opposite
- * ergonomics for free (requirements D6):
+ * *Whatever launched it* is **whatever supplied the energy** — which is
+ * `ctx.source`, not `ctx.origin`. Those differ exactly where D5's
+ * classes differ, and that is not a coincidence: the classes ARE
+ * distinguished by who pays, and the reaction follows the payment
+ * because that is where the momentum came from.
  *
- * - A **cast**: origin is the caster, so the caster takes the reaction.
- *   This is a deliberate behaviour change to the shipped `shove` — it
- *   previously pushed off nothing at all.
- * - A **focus**: origin is still the caster (a focus supplies the
- *   specification, not the endpoint), so the caster is displaced.
- * - A **charged item**: origin is the item, so the *item* takes it and
- *   the user is not displaced. A wand is small, which is exactly why
- *   kinetic charged items must be braced (D6) rather than handheld.
+ * So the three classes get their opposite ergonomics from one line
+ * (requirements D6):
+ *
+ * - A **cast** — source is the caster, so the caster takes it. This is a
+ *   deliberate behaviour change to the shipped `shove`, which previously
+ *   pushed off nothing at all and conserved no momentum.
+ * - A **focus** — supplies specification only, so the *user* pays and
+ *   the user is displaced. A focus that shoves recoils onto you.
+ * - A **charged item** — pays from its own tank, so the *item* takes it
+ *   and the user is not displaced. A wand is small, which is exactly why
+ *   kinetic charged items must be **braced** (gun-shaped, recoil through
+ *   a stock into the ground) rather than handheld: a 100 g wand
+ *   delivering 200 J recoils at ~1.7 km/s and destroys itself.
  *
  * The displacement is graded rather than a knockdown: standing →
  * staggered to a knee, already low → off your feet. Soft, recoverable,
  * legible — never a cliff.
  */
 function recoilOnto(ctx: EffectContext): void {
-  const endpoint = ctx.origin;
+  const endpoint = ctx.source;
   if (!MixinApi.isPosed(endpoint)) return; // an item absorbs it silently
   const posture = MixinApi.isPostured(endpoint)
     ? (endpoint as unknown as { getPosture(): string }).getPosture()
