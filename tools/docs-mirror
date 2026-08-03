@@ -318,6 +318,29 @@ if [ -z "${DOCS_MIRROR_REMOTE:-}" ]; then
   exit 0
 fi
 
+# Validate the SHAPE before handing it to git. Git's own diagnosis for a
+# non-URL is `fatal: '<x>' does not appear to be a git repository`, which
+# says nothing about what was wrong — and when the value is masked, the
+# offending string is [MASKED] in the log too, so there is nothing left
+# to go on. The likely mistake is storing the bare TOKEN rather than the
+# whole push URL, so name that case explicitly.
+#
+# Never echo the value itself — it carries a credential.
+case "$DOCS_MIRROR_REMOTE" in
+  *://*|git@*) ;;
+  *)
+    echo "docs-mirror: DOCS_MIRROR_REMOTE is not a URL — it has no scheme." >&2
+    case "$DOCS_MIRROR_REMOTE" in
+      ghp_*|github_pat_*|glpat-*)
+        echo "docs-mirror: it looks like a bare ACCESS TOKEN. The variable wants" >&2
+        echo "  the whole push URL with the token embedded, e.g." >&2
+        echo "  https://x-access-token:<TOKEN>@github.com/<owner>/<repo>.git" >&2 ;;
+      *)
+        echo "docs-mirror: expected e.g. https://<user>:<token>@host/owner/repo.git" >&2 ;;
+    esac
+    exit 1 ;;
+esac
+
 SRC_SHA="$(git rev-parse --short HEAD)"
 
 git -C "$OUT" init -q
