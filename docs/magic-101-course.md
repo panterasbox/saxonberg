@@ -32,6 +32,16 @@
 
 ---
 
+> **⚠️ Verified corrections — read
+> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> (2026-08-03).** The course design stands, but two mappings changed: the
+> **ISCED-F spine below is Saxonberg-*internal* only** (Study has no
+> ISCED-F/CIP code — a course/item maps to Study via an authored crosswalk
+> to `Concept`/`ExamTaxonomyNode`, not a shared code), and the
+> thermodynamics items map cleanly onto **real Study `MULTI_SELECT` items
+> that already exist** (e.g. a sealed-tank / kinetic-theory item pulled
+> from the live bank). Reality doc wins on any conflict.
+
 ## Course metadata (identical to study-com-integration.md §8.1)
 
 ```

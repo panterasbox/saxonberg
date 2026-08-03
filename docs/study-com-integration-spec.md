@@ -18,6 +18,17 @@
 
 ---
 
+> **⚠️ Verified corrections — read
+> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> (2026-08-03).** The **ISCED-F reverse index (§3.1) does not apply** —
+> Study has no ISCED-F/CIP code. Replace it with an **authored crosswalk
+> resolver** from Saxonberg `Discipline` → Study `Concept` (CX) /
+> `ExamTaxonomyNode` (test prep) ids, living in the proprietary adapter
+> (§4.3). The `iscedf` field in the wire schema (§2) is Saxonberg-internal,
+> not a Study join key; `Concept.dbpedia_subject_id` is the only external
+> anchor. The rest (recordClaim, provenance-as-tags, phasing, trust
+> boundary) still holds. Reality doc wins on any conflict.
+
 ## 1. What this spec adds, and where each piece lives
 
 Two rules from [architecture.md](./architecture.md) govern placement, and

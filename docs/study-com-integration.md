@@ -39,6 +39,21 @@
 
 ---
 
+> **⚠️ Verified corrections — read
+> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> (2026-08-03).** This doc predates checking the real platform, and
+> several load-bearing claims below are wrong: the **ISCED-F join does not
+> exist** (Study has no ISCED-F/CIP field — join via an **authored
+> crosswalk** to Study's `Concept` (CX) / `ExamTaxonomyNode` (test prep)
+> trees, in the proprietary adapter; ISCED-F is Saxonberg-*internal*
+> only); items are **not multiple-choice-only** (~20 types incl.
+> essay/free-response/LLM-graded, plus first-class case-study passages);
+> **proctoring is intact** (identity-verified via TypingDNA+Veriff; CX
+> rides it); the hierarchy is Program→Course→**Topic**→Lesson; and there
+> is **no learning-objective entity** (the tag is a Concept/ExamTaxonomyNode).
+> Where the reality doc conflicts with anything below, **it wins.** The
+> inline text here is not yet fully rewritten.
+
 ## 0. TL;DR — the five things that decide the build
 
 1. **The hook already exists on the Saxonberg side.** Every `Discipline`

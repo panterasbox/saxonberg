@@ -20,6 +20,17 @@
 
 ---
 
+> **⚠️ Verified corrections — read
+> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> (2026-08-03).** Good news for this doc: Study's per-member mastery model
+> is **real and Bayesian** — `Member_Concept_Mastery` (CX) and
+> `Study_Priority` (test prep), plus the `Question_Stats` master/dimwit
+> model — so the socket this feed targets genuinely exists and is
+> shaped like Saxonberg's estimator. But the join is an **authored
+> crosswalk to `Concept`/`ExamTaxonomyNode`**, not ISCED-F (§5), and
+> whether the engine accepts an **inbound** signal is still the gating
+> `[confirm]`. Reality doc wins on any conflict.
+
 ## 1. The thesis in one paragraph
 
 study.com already personalizes: a **diagnostic** produces a per-taxonomy-
