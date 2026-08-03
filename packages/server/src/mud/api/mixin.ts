@@ -148,6 +148,7 @@ import type { Consumable } from '../lib/magic/Consumable';
 import type { Potable } from '../lib/magic/Potable';
 import type { Marked } from '../lib/description/Marked';
 import type { Labelled } from '../lib/description/Labelled';
+import type { Memorized } from '../lib/magic/Memorized';
 import type { Charged } from '../lib/magic/Charged';
 import type { Focus } from '../lib/magic/Focus';
 import type { Blessable } from '../lib/magic/Blessable';
@@ -1229,6 +1230,11 @@ export class MixinApi {
    */
   public static isLabelled(obj: Stuff): obj is Stuff & Labelled {
     return this.hasMixin(obj, Mixins.Labelled);
+  }
+
+  /** A mind currently holding spell specifications (D15). */
+  public static isMemorized(obj: Stuff): obj is Stuff & Memorized {
+    return this.hasMixin(obj, Mixins.Memorized);
   }
 
   /**

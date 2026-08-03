@@ -361,6 +361,12 @@ export const Mixins = {
   // fix for derived appearance's one cost — descriptors rotate, labels
   // do not, so a careful stash survives a turnover. See D28.
   Labelled: 'LabelledMixin',
+  // Memorized — the specifications a mind is currently HOLDING. Claim
+  // lives in the chronicle (append-only, right for "I read of this");
+  // sharpness lives here, because it decays. Competence never fades;
+  // specifications do. No slot count — interference is the limiter, so
+  // Vancian preparation emerges instead of being imposed. See D15.
+  Memorized: 'MemorizedMixin',
 } as const;
 
 /**

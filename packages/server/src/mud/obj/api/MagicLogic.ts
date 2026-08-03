@@ -212,6 +212,12 @@ export class MagicLogic extends ApiLogic {
     return dischargeImpl(item, target, opts);
   }
 
+  /** See {@link MagicApi.spellById}. */
+  @CallSecurity(MagicApiCallers)
+  public spellById(spellId: string): SpellDescriptor | null {
+    return catalogue()?.getSpell(spellId) ?? null;
+  }
+
   /** See {@link MagicApi.spellsView}. */
   @CallSecurity(MagicApiCallers)
   public spellsView(caster: Stuff): Promise<SpellsView> {
@@ -326,7 +332,20 @@ async function resolveCastImpl(
   // pool floors at 0 and strain lands, staged by the deficit.
   const reserved = caster as unknown as Reserved & Caster & Vitals;
   const pool = reserved.getMana(); // reconciled read (the contract surface)
-  const cost = spell.cost || dial(AppSettingKeys.magicCostDefault, 15);
+  // **Fade is felt as COST, never as failure** (requirements D15). A
+  // hazy specification takes more out of you for the same effect, and a
+  // DEFECTIVE copy (read above your comprehension floor, D14) costs more
+  // again — on every cast, until you go back and study it properly.
+  //
+  // Nothing here can refuse. There is no sharpness at which the spell
+  // stops working, only one at which it stops being worth casting, and
+  // that call is the player's. A caster holding no copy at all pays the
+  // ordinary price, exactly as before spellbooks existed.
+  const fadeMultiplier = MixinApi.isMemorized(caster)
+    ? caster.costMultiplierFor(spell.spellId)
+    : 1;
+  const cost =
+    (spell.cost || dial(AppSettingKeys.magicCostDefault, 15)) * fadeMultiplier;
   const current = pool?.current.rawValue() ?? 0;
   let overchanneled = false;
   if (current >= cost) {
@@ -365,6 +384,20 @@ async function resolveCastImpl(
     reports.push(
       'The working takes more than you had — the world greys at the edges.',
     );
+  }
+
+  // Casting RENEWS the pattern (D15), so an actively used spell never
+  // fades — you lose only what you do not use. This is also what makes
+  // fade felt rather than punitive: the fix is to keep casting.
+  if (MixinApi.isMemorized(caster) && caster.holdsSpell(spell.spellId)) {
+    const held = caster.getMemorizedSpell(spell.spellId)!;
+    caster.memorize({
+      spellId: spell.spellId,
+      defective: held.defective,
+      verb: spell.verb,
+      noun: spell.noun,
+      complexity: held.complexity,
+    });
   }
 
   // Credit BOTH grid axes on the Transcript (one act, two subchecks).

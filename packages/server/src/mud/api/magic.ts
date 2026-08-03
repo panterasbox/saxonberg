@@ -36,10 +36,12 @@ import type {
   DischargeOptions,
 } from '../obj/api/MagicLogic';
 import type { MagicSuppression } from '../lib/magic/Suppression';
+import type { SpellDescriptor } from '../obj/magic/Spell';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { PrepareOutcome, CastOutcome, SpellsView, DischargeOptions };
+export type { SpellDescriptor };
 
 const LOGIC_PATH = '/obj/api/magic';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -118,6 +120,16 @@ export class MagicApi {
     opts?: DischargeOptions,
   ): Promise<CastOutcome> {
     return logic().discharge(item, target, opts);
+  }
+
+  /**
+   * One authored spell descriptor by id, or `null`. The read a
+   * *consumer of a spell* needs — a spellbook resolving what it teaches,
+   * an item resolving what it carries — as opposed to the caster-facing
+   * roster, which is `spellsView`.
+   */
+  public static spellById(spellId: string): SpellDescriptor | null {
+    return logic().spellById(spellId);
   }
 
   /**
