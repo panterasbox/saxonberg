@@ -25,7 +25,7 @@ import {
 import { Construction } from "../src/mud/lib/material/Construction";
 
 const EXIT_ON_FINDINGS = true; // CI-gating
-const WEAPON_CLASS = "/lib/equipment/Weapon";
+const WEAPON_CLASS = "/obj/equipment/Weapon";
 
 const SEEDS_DIR = fileURLToPath(new URL("../src/mud/seeds", import.meta.url));
 

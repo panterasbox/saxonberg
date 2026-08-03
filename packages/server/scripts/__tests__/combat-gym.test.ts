@@ -22,10 +22,10 @@ import {
 import { installV1QuantityMarshallers } from "../../src/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../src/mud/lib/stuff/Idea";
 import { Character } from "../../src/mud/lib/character/Character";
-import Species from "../../src/mud/lib/species/Species";
-import BodyPlan from "../../src/mud/lib/species/BodyPlan";
-import Weapon from "../../src/mud/lib/equipment/Weapon";
-import Shield from "../../src/mud/lib/equipment/Shield";
+import Species from "../../src/mud/obj/species/Species";
+import BodyPlan from "../../src/mud/obj/species/BodyPlan";
+import Weapon from "../../src/mud/obj/equipment/Weapon";
+import Shield from "../../src/mud/obj/equipment/Shield";
 import Material from "../../src/mud/lib/material/Material";
 import { Construction } from "../../src/mud/lib/material/Construction";
 import { ContainerMixin } from "../../src/mud/lib/spatial/Container";
@@ -49,10 +49,10 @@ import {
 } from "../combat-gym";
 import { CombatApi } from "../../src/mud/api/combat";
 import { PartyMemberMixin } from "../../src/mud/lib/party/PartyMember";
-import { Party } from "../../src/mud/lib/party/Party";
-import { CombatFormation } from "../../src/mud/lib/combat/CombatFormation";
+import { Party } from "../../src/mud/obj/Party";
+import { CombatFormation } from "../../src/mud/obj/CombatFormation";
 import { ProxyApi } from "../../src/mud/api/proxy";
-import StunBaton from "../../src/mud/lib/electricity/StunBaton";
+import StunBaton from "../../src/mud/obj/equipment/StunBaton";
 import { CombatReactiveMixin } from "../../src/mud/lib/combat/CombatReactive";
 import type { CombatHookContext } from "../../src/mud/lib/combat/CombatHookContext";
 import type { InflictSpec } from "../../src/mud/api/condition";
@@ -110,7 +110,7 @@ function steel(): Material {
   m.setHardness(Quantity.of(600, "MPa"));
   m.setToughness(Quantity.of(200, "MJ/m³"));
   m.setName("steel");
-  stampTemplatePathForTest(m, `/lib/material/test/gym-m-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/gym-m-${seq++}`);
   return m;
 }
 
@@ -178,26 +178,26 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/lib/material/tissue/bone", mass: 8 },
-        { tissuePath: "/lib/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
+        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/gym-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/gym-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/gym-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/gym-${id}`);
 
   const f = makeStuff(() => new ctor());
   stampTemplatePathForTest(f, `/test/gym-fighter-${id}`);
@@ -763,7 +763,7 @@ function wireFormation(
   roles: Record<number, string> = {},
 ): void {
   const shape = FORMATION_SHAPES[formation]!;
-  const path = `/lib/combat/CombatFormation/${formation}`;
+  const path = `/obj/CombatFormation/${formation}`;
   // Reuse a preset already resident this cell (two wired parties may
   // share one — a second stamp would break the singleton index).
   let resident: unknown;

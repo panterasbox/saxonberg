@@ -20,10 +20,10 @@ import {
 import { installV1QuantityMarshallers } from "../../src/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../src/mud/lib/stuff/Idea";
 import { Character } from "../../src/mud/lib/character/Character";
-import Species from "../../src/mud/lib/species/Species";
-import BodyPlan from "../../src/mud/lib/species/BodyPlan";
-import Weapon from "../../src/mud/lib/equipment/Weapon";
-import Armor from "../../src/mud/lib/equipment/Armor";
+import Species from "../../src/mud/obj/species/Species";
+import BodyPlan from "../../src/mud/obj/species/BodyPlan";
+import Weapon from "../../src/mud/obj/equipment/Weapon";
+import Armor from "../../src/mud/obj/equipment/Armor";
 import Material from "../../src/mud/lib/material/Material";
 import { Construction } from "../../src/mud/lib/material/Construction";
 import { ContainerMixin } from "../../src/mud/lib/spatial/Container";
@@ -53,7 +53,7 @@ function mat(hardness: number, toughness: number, name: string): Material {
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
-  stampTemplatePathForTest(m, `/lib/material/test/spar-m-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/spar-m-${seq++}`);
   return m;
 }
 const steel = () => mat(600, 200, "steel");
@@ -105,26 +105,26 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/lib/material/tissue/bone", mass: 8 },
-        { tissuePath: "/lib/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
+        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/spar-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/spar-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/spar-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/spar-${id}`);
 
   const f = makeStuff(() => new SparFighter());
   stampTemplatePathForTest(f, `/test/spar-fighter-${id}`);
