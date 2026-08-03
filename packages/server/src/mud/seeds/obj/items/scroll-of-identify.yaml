@@ -23,3 +23,6 @@ data:
   markForm: inked
   carriedSpellId: identify
   usesRemaining: 1
+  censusKey: scroll
+  materialTags: [vellum]
+  descriptorClass: scroll

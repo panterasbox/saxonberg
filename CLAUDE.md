@@ -152,6 +152,7 @@ behavior. Read the relevant doc before editing in its area.
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
+  - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy, BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
   - [combat-formations.md](./docs/subsystems/combat-formations.md) — party-strategy policies over the threat graph: presets, three hooks, coup governance, the command Discipline
   - [party.md](./docs/subsystems/party.md) — the Party Idea + PartyRecord mirror, the fourth GroupProvider, the `sideOf`/`areAllied` combat seam, the `party` verb
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves

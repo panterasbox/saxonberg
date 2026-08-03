@@ -1,0 +1,37 @@
+# A primer of glowlight — the spellbook exemplar.
+#
+# `comprehensionBand: untrained` against glowlight's `novice` casting
+# floor is the READ-AHEAD WINDOW made concrete (D14): an untrained
+# reader can take the working on board and cannot yet cast it, so
+# practice has a visible target. That gap is the whole point — books are
+# not a shortcut past competence, they are gated by it at a lower
+# threshold, for a different reason.
+#
+# `gradeBand: fine` sets REFRESH SPEED and nothing else (D16). Once a
+# specification is in a mind, the book that put it there has no say in
+# how fast it degrades — a well-written one only gets you back to sharp
+# faster. That is the teaching product, and it is legible.
+#
+# `descriptorClass: spellbook` makes it an identified item on the same
+# axis as potions (D29): an uncatalogued book is *a dog-eared book*, and
+# reading an unidentified one is a gamble against your own comprehension
+# floor. Which puts a library's product where it belongs — the CATALOG,
+# not the books.
+class: /obj/magic/Spellbook
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a slim grey primer
+  primaryKeyword: primer
+  longDescription: >
+    A thin volume in grey board, the spine cracked from being opened flat
+    too often. Someone has pencilled corrections in the margins.
+  identifiedName: a primer of glowlight
+  descriptorClass: spellbook
+  teachesSpellId: glowlight
+  comprehensionBand: untrained
+  gradeBand: fine
+  markText: >-
+    a patient walk through the shaping of a held light, with diagrams
+  markForm: inked
+  censusKey: spellbook
+  materialTags: [paper, board]

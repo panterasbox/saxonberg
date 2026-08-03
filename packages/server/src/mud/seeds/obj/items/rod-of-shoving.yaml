@@ -21,3 +21,5 @@ data:
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1
   patternIntegrity: 1
+  censusKey: rod
+  materialTags: [wood]

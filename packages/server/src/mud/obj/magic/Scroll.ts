@@ -26,7 +26,14 @@ import Thing from '../../lib/stuff/Thing';
 import { MarkedMixin } from '../../lib/description/Marked';
 import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { ConsumableMixin } from '../../lib/magic/Consumable';
+import { IdentifiableMixin } from '../../lib/identification/Identifiable';
+import { LabelledMixin } from '../../lib/description/Labelled';
+import { CirculatingMixin } from '../../lib/residency/Circulating';
 
-const ScrollBase = ConsumableMixin(ArcaneMixin(MarkedMixin(Thing)));
+const ScrollBase = CirculatingMixin(
+  IdentifiableMixin(
+    LabelledMixin(ConsumableMixin(ArcaneMixin(MarkedMixin(Thing)))),
+  ),
+);
 
 export default class Scroll extends ScrollBase {}

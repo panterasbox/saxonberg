@@ -25,6 +25,9 @@ import { StuffApi } from '../../api/stuff';
 import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { Census, type WorldCensus } from '../../lib/residency/Census';
+import { SpawnTable, type SpawnCandidate } from '../../lib/residency/SpawnTable';
+import type { Circulating } from '../../lib/residency/Circulating';
 import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
@@ -47,6 +50,14 @@ const ResidencyApiCallers = SecurityPolicies.FromModule(
 const DEFAULT_EVICTION_INTERVAL_MS = 60_000;
 const DEFAULT_IDLE_MS = 1_800_000;
 const DEFAULT_RESET_INTERVAL_S = 3_600; // one game-hour
+
+/** Spawn-sweep cadence — a game-day. *Calibrate at launch.* */
+const DEFAULT_SPAWN_INTERVAL_S = 24 * 3_600;
+/**
+ * How many of one census key a region should hold. The `inflow` half of
+ * `S* = inflow/d`; charge decay is the other. *Calibrate at launch.*
+ */
+const DEFAULT_SPAWN_REGION_TARGET = 3;
 const OBSERVE_SAMPLE_CAP = 20;
 
 function readInt(key: string, fallback: number): number {
@@ -163,6 +174,115 @@ function isInPresentRoom(raw: Stuff, presentRooms: Set<string>): boolean {
  * (a shop restocks while browsed). Runs on the game clock, so it freezes
  * with a paused world; mode (`residency.reset.mode`) is re-read each sweep.
  */
+/** What one spawn sweep did — the `observe`-mode surface. */
+export interface SpawnSweepReport {
+  /** Regions considered. */
+  regions: number;
+  /** Draws the table DECLINED because the region was at target. */
+  declined: number;
+  /** Items actually placed (0 in `observe` mode). */
+  placed: number;
+}
+
+/**
+ * **The spawn sweep** — the random injection channel (D31).
+ *
+ * The census is taken **once** and shared across every decision in the
+ * sweep, never re-taken per candidate: that is the difference between
+ * one query per sweep and one per spawn, and it is the cost note the
+ * plan's risk register flagged.
+ *
+ * Ships `observe`-first like its two siblings, so the algorithm can be
+ * watched in production before it places anything. Weights, rates and
+ * targets are *calibrate at launch* (D21) — this delivers the algorithm
+ * and honest defaults, not balanced numbers.
+ *
+ * ⚠ It touches **nothing** about `ParcelRecord.allowance`. That field
+ * exists already and is the inert Phase-1 compute-economy seam; it is
+ * not a spawn budget and must not become one.
+ */
+async function runSpawnSweep(): Promise<SpawnSweepReport> {
+  const census = await Census.takeCensus();
+  const mode = readSpawnMode();
+  const report: SpawnSweepReport = {
+    regions: census.size,
+    declined: 0,
+    placed: 0,
+  };
+
+  // v1 candidate set: every circulating template the world already
+  // knows. The AUTHORED half of D31 (a declared par on a resettable
+  // holder) rides the shipped reset sweep above and is deliberately
+  // untouched here — `populates:` likewise stays what it is, a
+  // clone-time cascade for set dressing, never the injection path for
+  // economy-bearing items.
+  const candidates = collectSpawnCandidates();
+  if (candidates.length === 0) return report;
+
+  for (const region of census.keys()) {
+    const pick = SpawnTable.draw(candidates, census, region);
+    if (!pick) {
+      // The region is at target for everything the table could place.
+      // This is authored placement suppressing random spawning without
+      // either channel knowing about the other — and it is REGIONAL,
+      // never global (AC 34).
+      report.declined++;
+      continue;
+    }
+    if (mode === 'enforce') {
+      try {
+        await StuffApi.clone(pick.templatePath);
+        report.placed++;
+      } catch (err) {
+        console.warn('[residency] spawn clone failed', pick.templatePath, err);
+      }
+    }
+  }
+  return report;
+}
+
+/**
+ * The templates the spawn table may draw from — every live circulating
+ * thing's own template, deduped by census key + path.
+ *
+ * v1 reads the live world rather than a separate registry, which keeps
+ * the candidate set honest (a thing that exists somewhere can be
+ * stocked) and avoids minting a table nobody would remember to update.
+ */
+function collectSpawnCandidates(): SpawnCandidate[] {
+  const byPath = new Map<string, SpawnCandidate>();
+  for (const obj of StuffApi.getAllObjects()) {
+    const raw = ProxyApi.unwrap(obj);
+    if (!MixinApi.isCirculating(raw)) continue;
+    const c = obj as Stuff & Circulating;
+    const templatePath = c.getTemplatePath();
+    const censusKey = c.getCensusKey();
+    if (!templatePath || censusKey.length === 0) continue;
+    if (byPath.has(templatePath)) continue;
+    byPath.set(templatePath, {
+      templatePath,
+      censusKey,
+      effectTags: c.getEffectTags(),
+      materialTags: c.getMaterialTags(),
+      regionTarget: readInt(
+        AppSettingKeys.residencySpawnRegionTarget,
+        DEFAULT_SPAWN_REGION_TARGET,
+      ),
+    });
+  }
+  return [...byPath.values()];
+}
+
+/** `observe` (default) | `enforce` — the sibling of the two shipped modes. */
+function readSpawnMode(): string {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.residencySpawnMode);
+    return raw === 'enforce' ? 'enforce' : 'observe';
+  } catch {
+    return 'observe';
+  }
+}
+
 async function runResetSweep(): Promise<void> {
   let presentRooms: Set<string>;
   try {
@@ -371,5 +491,49 @@ export class ResidencyLogic extends ApiLogic {
   @CallSecurity(ResidencyApiCallers)
   public async resetNow(): Promise<void> {
     await runResetSweep();
+  }
+
+  /** The recurring spawn-sweep handle (game-time) — retained so re-install no-ops. */
+  private spawnHandle: ClockHandle | null = null;
+
+  /**
+   * Install the game-time **spawn sweep** (idempotent) — the third
+   * member of the self-maintenance family, alongside eviction and
+   * reset (magic-items D30/D31).
+   *
+   * Same shape, same clock, same `observe`/`enforce` discipline, and the
+   * same file on purpose: it is the one home already allowlisted for raw
+   * enumeration, so if the census ever needs to become sweep-cached the
+   * move is local rather than an allowlist edit.
+   */
+  @CallSecurity(ResidencyApiCallers)
+  public installSpawnSweep(): void {
+    if (this.spawnHandle) return;
+    this.spawnHandle = WorldClockApi.every(
+      Quantity.of(
+        readInt(
+          AppSettingKeys.residencySpawnIntervalS,
+          DEFAULT_SPAWN_INTERVAL_S,
+        ),
+        's',
+      ),
+      () => {
+        void runSpawnSweep().catch((err) =>
+          console.warn('[residency] spawn sweep failed', err),
+        );
+      },
+    );
+  }
+
+  /** Run one spawn sweep (test / manual seam). */
+  @CallSecurity(ResidencyApiCallers)
+  public async spawnNow(): Promise<SpawnSweepReport> {
+    return runSpawnSweep();
+  }
+
+  /** See {@link ResidencyApi.takeCensus}. */
+  @CallSecurity(ResidencyApiCallers)
+  public takeCensus(): Promise<WorldCensus> {
+    return Census.takeCensus();
   }
 }

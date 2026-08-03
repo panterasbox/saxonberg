@@ -367,6 +367,11 @@ export const Mixins = {
   // specifications do. No slot count — interference is the limiter, so
   // Vancian preparation emerges instead of being imposed. See D15.
   Memorized: 'MemorizedMixin',
+  // Circulating — "this is part of the world's stock, and here is how to
+  // count it". Carries MATERIAL tags (place affinity) and a census key;
+  // READS its effect tags from Arcane rather than declaring them, so a
+  // ward never has to consult the distribution subsystem. See D21/D35.
+  Circulating: 'CirculatingMixin',
 } as const;
 
 /**

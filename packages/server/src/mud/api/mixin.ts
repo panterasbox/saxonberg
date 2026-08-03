@@ -149,6 +149,7 @@ import type { Potable } from '../lib/magic/Potable';
 import type { Marked } from '../lib/description/Marked';
 import type { Labelled } from '../lib/description/Labelled';
 import type { Memorized } from '../lib/magic/Memorized';
+import type { Circulating } from '../lib/residency/Circulating';
 import type { Charged } from '../lib/magic/Charged';
 import type { Focus } from '../lib/magic/Focus';
 import type { Blessable } from '../lib/magic/Blessable';
@@ -1235,6 +1236,11 @@ export class MixinApi {
   /** A mind currently holding spell specifications (D15). */
   public static isMemorized(obj: Stuff): obj is Stuff & Memorized {
     return this.hasMixin(obj, Mixins.Memorized);
+  }
+
+  /** Part of the world's countable stock — the distribution marker (D21). */
+  public static isCirculating(obj: Stuff): obj is Stuff & Circulating {
+    return this.hasMixin(obj, Mixins.Circulating);
   }
 
   /**

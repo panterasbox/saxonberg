@@ -60,11 +60,12 @@ import { MarkedMixin } from '../../lib/description/Marked';
 import { LabelledMixin } from '../../lib/description/Labelled';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { GradedMixin } from '../../lib/craft/Graded';
+import { CirculatingMixin } from '../../lib/residency/Circulating';
 import type { FieldMeta } from '../../lib/mixin';
 import type { CommandContributions } from '../../api/command';
 
-const SpellbookBase = GradedMixin(
-  IdentifiableMixin(LabelledMixin(MarkedMixin(Thing))),
+const SpellbookBase = CirculatingMixin(
+  GradedMixin(IdentifiableMixin(LabelledMixin(MarkedMixin(Thing)))),
 );
 
 export default class Spellbook extends SpellbookBase {

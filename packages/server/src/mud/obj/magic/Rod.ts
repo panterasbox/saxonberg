@@ -23,7 +23,8 @@
 import Thing from '../../lib/stuff/Thing';
 import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { FocusMixin } from '../../lib/magic/Focus';
+import { CirculatingMixin } from '../../lib/residency/Circulating';
 
-const RodBase = FocusMixin(ArcaneMixin(Thing));
+const RodBase = CirculatingMixin(FocusMixin(ArcaneMixin(Thing)));
 
 export default class Rod extends RodBase {}

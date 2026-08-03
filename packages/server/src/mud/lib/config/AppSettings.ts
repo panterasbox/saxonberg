@@ -404,6 +404,19 @@ export const AppSettingKeys = {
   residencyResetMode: "residency.reset.mode",
   /** Reset — game-time sweep cadence in game-seconds. */
   residencyResetIntervalS: "residency.reset.intervalS",
+  /** Residency — the SPAWN sweep's mode: `observe` (default) | `enforce`.
+   * The third self-maintenance sweep, alongside eviction and reset, and
+   * observe-first for the same reason: watch the algorithm in production
+   * before it places anything. */
+  residencySpawnMode: "residency.spawn.mode",
+  /** Residency — spawn-sweep cadence, game-seconds. *Calibrate at launch.* */
+  residencySpawnIntervalS: "residency.spawn.intervalS",
+  /** Residency — how many of one census key a REGION should hold. The
+   * `inflow` half of `S* = inflow/d`; charge decay is the other, and it
+   * is their RATIO that settles the world's stock. Regional, never
+   * global: a global target would let one author's hoard starve the
+   * world. *Calibrate at launch.* */
+  residencySpawnRegionTarget: "residency.spawn.regionTarget",
 
   /**
    * Retail — the general store. `listingCap` is the per-consignor active-

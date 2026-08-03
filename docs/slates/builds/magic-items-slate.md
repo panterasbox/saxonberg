@@ -280,6 +280,23 @@ its first consumer.
 
 ## Polymorph — the body-swap (cheaper than it looks)
 
+> **⚠ RESOLVED 2026-08-03 (requirements D18, built).** The section below
+> is retained for its architectural findings, which remain accurate — but
+> its premise is superseded on both halves:
+>
+> - **Item polymorph is SEMBLANCE, not transformation.**
+>   `arcane-science.md` prices material transformation out by ~10⁶
+>   (chemical bonds in eV against nuclear binding in MeV), and reforming
+>   every bond in a body is prohibitive. So item polymorph is a **shadow
+>   on presentation and recognition** — `Sense`, not `Transform` — which
+>   is exactly what this slate already lists shadows as being for. The
+>   `transform` verb is priced out in `lib/magic/PriceList.ts` rather
+>   than merely absent, so the model states the reason.
+> - **Actual body-swap defers to `presence-hollowing-slate.md`**, where
+>   it belongs: it is the movement of a *presence* between bodies — a
+>   reified inhabitant-relation on an unconfirmed noun — not a mutation
+>   of an attribute.
+
 Predicted to be the biggest structural gap; it isn't — the architecture is
 surprisingly ready, for an unplanned reason.
 
@@ -369,6 +386,19 @@ grade + reserve-recharge (combat-adjacent) · **teleport/punishment/genocide** �
 already walked (done / encumbrance / thematic Bucket D).
 
 ## Rings & amulets — the clean class
+
+> **⚠ REVISED 2026-08-03 (requirements D8, built).** Rings and amulets
+> are **charged items** — they carry a charge and confer their mixin
+> **only while charged**. The augment/slot wiring below is unchanged and
+> correct; what is added is that an always-on wearable **draws
+> continuously**, so it flattens a charge in days where a triggered item
+> lasts months.
+>
+> **Always-on is the expensive mode** — a real tactical choice, and it
+> bites hardest on exactly the class most prone to inflation, because
+> people wear rings and stow wands. Cursed also sharpens here (D11): not
+> merely *the slot will not release* but **stuck on you and discharging
+> into you**.
 
 The wearable-augment coupling is **already wired**: `MixinApi.getActiveMixins`
 walks installed augments **via slot occupancy**, and `AugmentMixin.confers()`

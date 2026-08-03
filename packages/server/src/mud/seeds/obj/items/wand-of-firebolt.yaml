@@ -28,3 +28,10 @@ data:
   deliveryEfficiency: 1.4
   capacityKJ: 900
   alwaysOn: false
+  # ── distribution (D21) ──
+  # Material tags weigh PLACE AFFINITY; effect tags are READ from
+  # Arcane and never repeated here — a copy would drift from the spell
+  # it came from, and a ward would end up consulting the distribution
+  # subsystem to decide whether to suppress this.
+  censusKey: wand
+  materialTags: [wood, brass]

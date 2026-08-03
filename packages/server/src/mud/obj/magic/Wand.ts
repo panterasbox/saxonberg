@@ -30,10 +30,13 @@ import Thing from '../../lib/stuff/Thing';
 import { ReservedMixin } from '../../lib/reserve';
 import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { ChargedMixin } from '../../lib/magic/Charged';
+import { CirculatingMixin } from '../../lib/residency/Circulating';
 
 // `ChargedMixin` stores its energy in a `Reserve` rather than a bare
 // number — the same substrate mana, endurance and fuel use — so
 // `ReservedMixin` is its prerequisite and is composed beneath it.
-const WandBase = ChargedMixin(ReservedMixin(ArcaneMixin(Thing)));
+const WandBase = CirculatingMixin(
+  ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
+);
 
 export default class Wand extends WandBase {}
