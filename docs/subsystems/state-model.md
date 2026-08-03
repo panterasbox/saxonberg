@@ -129,7 +129,7 @@ Avatar's template doc carries every mixin-declared persistent field as
 {
   path: "/obj/Avatar/<playerId>",
   class: "/obj/Avatar",
-  hydratorClass: "/lib/persistence/PersistentHydrator",
+  hydratorClass: "/obj/persistence/PersistentHydrator",
   data: {
     name, surname, honorific, nameSuffix, alternateNames, fullName,
     pronouns,

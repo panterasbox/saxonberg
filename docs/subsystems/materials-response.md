@@ -140,7 +140,7 @@ is a **sync** `findByTemplatePath` against the live index — and nothing
 else ever stood Materials up in a running server (tests hand-construct
 theirs), so every live read was null and nothing could ignite or melt.
 `MaterialApi.boot()` (called from `AppBootstrap` after the seeders)
-stands the whole `/lib/material/**` roster up as live singletons — the
+stands the whole `/obj/material/**` roster up as live singletons — the
 `SpeciesApi.preloadAnatomy` tolerant-ensure made total over a small,
 hot, reference-data roster. Folder rows (`FolderZone`s) are the zone
 substrate's and are skipped. `Material.canEvict` vetoes the residency

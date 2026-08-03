@@ -386,7 +386,7 @@ The body claims "boundaries and holdings are unrelated trees; no boundary edge
 coincides with an ownable extent." **Reading the code, that's wrong.** There is
 no zone-less content: every path belongs to the Zone hierarchy (`FolderZone`
 for organizational areas, `CartesianZone`/`SphericalZone` for coordinate rooms).
-The lounge is a **`FolderZone` at `/domain/lounge`** (+ `/lib/lounge`) with
+The lounge is a **`FolderZone` at `/domain/lounge`** (+ `/obj/lounge`) with
 `ownerGroup = managed:<lounge>`, stamped by `AccessRegistry.seedLoungeSlice`;
 `'core'` owns the root. ("Zone-less" in the lounge comments means only "no
 `Stuff.zone` *spatial* stamp" — the non-coordinate social pockets still belong
@@ -420,7 +420,7 @@ and seize the subtree. **These must live apart from the content they govern.**
   longest-prefix resolution.
 - **`parcelId` + `extents[]`** (not a bare domain-path key) is justified by
   "own the whole operation end to end": a parcel spans its content root **and**
-  its code root — the lounge already owns `/domain/lounge` **and** `/lib/lounge`.
+  its code root — the lounge already owns `/domain/lounge` **and** `/obj/lounge`.
 - **Full migration:** the Zone becomes pure content/geometry (extent, coordinate
   frame, inheritance defaults) with **zero** access info. `AccessApi.can`
   repoints its read from `zone.data` → the `parcels` registry;
@@ -561,7 +561,7 @@ everything below the zone to a second ownership axis.**
   a dorm (`HomeZone`), a farm (beds are **slots**, not sub-parcels). Parcel =
   zone. ✓
 - **Coarser than a zone** is covered by `extents[]` (one parcel spans several
-  zones — the lounge's `/domain/lounge` + `/lib/lounge`). **Finer than a zone is
+  zones — the lounge's `/domain/lounge` + `/obj/lounge`). **Finer than a zone is
   NOT a parcel:**
   - **Chattel** — movable/placeable objects (sword, pet, market stall, a
     supplier's counter dropped in your shop). Owned per-instance (an owner-stamp),

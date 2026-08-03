@@ -252,7 +252,7 @@ instance — the next clone that needs it will lazy-re-create through
 
 ```ts
 await HotReloadApi.reload('/abs/.../PersistentHydrator.ts');
-const stale = StuffApi.findByTemplatePath('/lib/persistence/PersistentHydrator');
+const stale = StuffApi.findByTemplatePath('/obj/persistence/PersistentHydrator');
 if (stale) StuffApi.destruct(stale);
 ```
 

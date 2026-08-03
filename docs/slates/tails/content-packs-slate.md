@@ -146,15 +146,15 @@ packages/content/base-library/
 ├── pack.yaml             # the manifest the installer reads
 └── content/              # content root; MIRRORS the template-path namespace
     └── lib/
-        ├── material/spirit/gin.yaml     →  /lib/material/spirit/gin
-        ├── material/element/iron.yaml   →  /lib/material/element/iron
+        ├── material/spirit/gin.yaml     →  /obj/material/spirit/gin
+        ├── material/element/iron.yaml   →  /obj/material/element/iron
         └── biome/…
 ```
 
 Lifting materials out is **literally `git mv`** of
 `server/src/mud/seeds/lib/material/` → `content/base-library/content/lib/material/`;
 `gin.yaml` is byte-for-byte unchanged. The template path stays
-`/lib/material/spirit/gin` but the file now lives in a different
+`/obj/material/spirit/gin` but the file now lives in a different
 package — so the path becomes a **pure namespace identifier, decoupled
 from where the file sits** (healthier anyway). The `content/` root
 preserves the existing path-from-location mapping so the move is
@@ -174,7 +174,7 @@ Deliberately tiny, because the two requirements we kept circling are
 **derivable, not hand-listed**:
 
 - **Requires-kernel** → the installer reads each file's `class:` field
-  (`/lib/material/Material`) and checks it resolves; missing → install
+  (`/obj/material/Material`) and checks it resolves; missing → install
   aborts with a clear message. An **install-time check**, no maintained
   list, no drift. *This check is the content-pack ↔ mod line, made
   enforceable* (a pack assumes classes; a mod brings them).
@@ -282,7 +282,7 @@ reserve the field (`0.x`), don't build machinery around it yet.
 When it *does* matter, it versions the pack's **public surface — the
 paths and tags other content references — not its values.** Editing
 gin's density breaks nothing (re-hydrates). Renaming
-`/lib/material/spirit/gin`, or changing a tag a recipe matches on,
+`/obj/material/spirit/gin`, or changing a tag a recipe matches on,
 breaks every pointer — semver's breaking-change idea applied to
 paths-and-tags.
 

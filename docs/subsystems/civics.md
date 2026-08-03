@@ -33,7 +33,7 @@ The meta-side committee concept lives on **`CompactApi`**
 ## The Government Idea + catalogue
 
 `Government` (`lib/civics/Government.ts`, templates under
-`/lib/civics/Government/<key>`) is a pure-data leaf `Idea` read from
+`/obj/Government/<key>`) is a pure-data leaf `Idea` read from
 `template.data`, never cloned live. Fields — every non-identity field a
 **durable-string reference into an existing substrate**, never a live
 ref:

@@ -455,17 +455,17 @@ characters that make poor filesystem segments. The encoding maps
 
 | Unit | Marshaller path |
 |---|---|
-| `'kg'` | `/lib/persistence/QuantityMarshaller/kg` |
-| `'g/mol'` | `/lib/persistence/QuantityMarshaller/g-per-mol` |
-| `'kg/m³'` | `/lib/persistence/QuantityMarshaller/kg-per-m3` |
-| `'lumen'` | `/lib/persistence/QuantityMarshaller/lumen` |
-| `'lux'` | `/lib/persistence/QuantityMarshaller/lux` |
-| `'K'` | `/lib/persistence/QuantityMarshaller/K` |
-| `'Pa'` | `/lib/persistence/QuantityMarshaller/Pa` |
-| `'%'` | `/lib/persistence/QuantityMarshaller/pct` |
-| `'m/s²'` | `/lib/persistence/QuantityMarshaller/m-per-s2` |
-| `'m'` | `/lib/persistence/QuantityMarshaller/m` |
-| `'m³'` | `/lib/persistence/QuantityMarshaller/m3` |
+| `'kg'` | `/obj/persistence/QuantityMarshaller/kg` |
+| `'g/mol'` | `/obj/persistence/QuantityMarshaller/g-per-mol` |
+| `'kg/m³'` | `/obj/persistence/QuantityMarshaller/kg-per-m3` |
+| `'lumen'` | `/obj/persistence/QuantityMarshaller/lumen` |
+| `'lux'` | `/obj/persistence/QuantityMarshaller/lux` |
+| `'K'` | `/obj/persistence/QuantityMarshaller/K` |
+| `'Pa'` | `/obj/persistence/QuantityMarshaller/Pa` |
+| `'%'` | `/obj/persistence/QuantityMarshaller/pct` |
+| `'m/s²'` | `/obj/persistence/QuantityMarshaller/m-per-s2` |
+| `'m'` | `/obj/persistence/QuantityMarshaller/m` |
+| `'m³'` | `/obj/persistence/QuantityMarshaller/m3` |
 
 Use `QuantityMarshaller.pathFor(unit)` at every declaration site
 rather than hardcoding the encoded form.

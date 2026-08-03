@@ -211,7 +211,7 @@ instance's state comes from a live source, not from authored data" is not
 a reason to skip the template — it is the `GlobbableApi.split` shape.
 Clone at a template, then copy the derived fields in. The corpse a death
 leaves behind does exactly this: what a corpse *is* is authored
-(`/lib/mortality/corpse`), whose it *was* is poured in through a gated
+(`/obj/Corpse`), whose it *was* is poured in through a gated
 applier. `byTemplatePath` is a multi-bucket, so many instances sharing one
 path is ordinary — only `StuffApi.singleton()` objects to it.
 
@@ -1039,7 +1039,7 @@ paths, `TemplatePathPrefixes` for trailing-slash families), a sibling of
 
 ```typescript
 const REGISTRY_PATH = '/obj/AccessRegistry';          // duplicated per file
-static readonly templatePath = '/lib/persistence/PersistentHydrator';
+static readonly templatePath = '/obj/persistence/PersistentHydrator';
 ```
 
 ### GOOD
@@ -1627,7 +1627,7 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
   async and reads via `atmosphere.<field>`; inline walks routinely
   skip the step.
 - **Root universe biome** (chain step 6). The terminal step reads
-  from `/lib/biome/universe`. Inline walks use hardcoded constants
+  from `/obj/biome/universe`. Inline walks use hardcoded constants
   that drift out of sync with the seeded universe biome.
 
 See [biome.md](./subsystems/biome.md) for the full chain.

@@ -711,7 +711,7 @@ A templated Window declares the two host paths in its YAML:
 
 ```yaml
 class: /lib/boundary/Window
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   baseTransmissivity: 0.9
   attachedHosts:
@@ -798,7 +798,7 @@ unless their identity is tied to an Exit.
 
 Template authoring: Window is template-loadable like Door
 (`class: '/lib/boundary/Window'`,
-`hydratorClass: '/lib/persistence/PersistentHydrator'`). Seed
+`hydratorClass: '/obj/persistence/PersistentHydrator'`). Seed
 code calls `BoundaryApi.attachExistingBoundary` to install on
 two rooms.
 

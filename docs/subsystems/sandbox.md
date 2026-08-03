@@ -408,7 +408,7 @@ would quietly restore the hole.
   "is this receiver inside the bound?" by requiring the receiver's own
   `templatePath` to sit under the parcel. But a template path is *clone
   lineage*: an avatar's is `/obj/Avatar/<id>` and a cloned corpse's is
-  `/lib/mortality/corpse`, wherever either happens to be standing. So a
+  `/obj/Corpse`, wherever either happens to be standing. So a
   governed eval was denied the one receiver it most obviously covers —
   the wizard's own body, in the parcel they hold title to — and every
   runtime instance besides. Worse, the eval scratch is minted and *then*
@@ -649,7 +649,7 @@ them are fixed on this branch.
   mirrors `/studio`. **Deploy step**: `SeederManager` is insert-only, so
   an existing environment keeps its stale `/home` row — delete
   `domain { path: '/home' }` once and restart to re-seed. Same for
-  `/domain/lounge/wire-alcove` and `/lib/sandbox/CircleFloor` if they
+  `/domain/lounge/wire-alcove` and `/obj/sandbox/CircleFloor` if they
   were seeded before the light fixtures landed.
 
 - **A crossing exit is not a spatial exit.** The wardrobe passage

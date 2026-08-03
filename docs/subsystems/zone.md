@@ -10,7 +10,7 @@ live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`,
 
 `Biome` deliberately does NOT extend `Zone` ([biome.md](./biome.md))
 — biomes are leaf Ideas with explicit `_extendsBiomePath` parent
-refs. The folder structure under `/lib/biome/` uses `FolderZone`
+refs. The folder structure under `/obj/biome/` uses `FolderZone`
 templates for the biome team's admin/ownership scoping; the actual
 biome inheritance lives independently in the leaf data.
 
@@ -53,7 +53,7 @@ CartesianZone  SphericalZone
   coordinate grid + its invariants, never an exit source.
 - **`FolderZone`** — generic organizational scope, no spatial
   topology. Use for templatePath folders like `/domain/narnia/`
-  or `/lib/biome/outdoor/` that organize a content team's tree
+  or `/obj/biome/outdoor/` that organize a content team's tree
   without anchoring a coordinate grid. Sub-folders that DO need
   a coordinate frame extend `CartesianZone` / `SphericalZone`
   instead.

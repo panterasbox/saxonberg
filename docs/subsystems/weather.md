@@ -371,7 +371,7 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
 - **Puddles.** The presence-gated boundary fan-out accrues an occupied
   scope's `Floor` surface-bulk pool under resolved rain
   (source-indifferent) and evaporates it otherwise (a clearer sky dries
-  faster). A fresh rain pool (`/lib/material/bulk/water`, ~0.01 S/m) is
+  faster). A fresh rain pool (`/obj/material/bulk/water`, ~0.01 S/m) is
   weakly conductive, so a live wire / a strike in it shocks a bridged
   body through `conduct` with **no new glue** — the
   weather→bulk→electricity loop (see [bulk.md](./bulk.md)).

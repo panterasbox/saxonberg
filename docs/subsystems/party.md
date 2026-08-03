@@ -53,7 +53,7 @@ Its *durable* state is mirrored into a dumb **`PartyRecord`** document
 through `addMember`/`removeMember`; the captain is the single source of
 leadership authority (`captainId`). The combat-formations build added the
 **formation state**: `formationPath` (the adopted
-`/lib/combat/CombatFormation/<name>` — a path string, ref-shapes Pattern
+`/obj/CombatFormation/<name>` — a path string, ref-shapes Pattern
 A; the party side never imports `lib/combat`) and `roleAssignments`
 (member → role; **roles are sets, not seats** — many members may share
 one, a departing member's role is released with them), both mirrored to

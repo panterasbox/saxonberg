@@ -36,8 +36,10 @@ packages/server/src/
     ├── api/         ~22 static Api classes (the public surface)
     ├── cmd/         YAML command views (declarative)
     ├── config/      constants
-    ├── lib/         Standard Model — Stuff hierarchy + mixins per subsystem
-    └── obj/         Instantiable game objects (Avatar, Interactive, Login)
+    ├── lib/         Substrate ONLY — abstract roots, mixins, value
+    │                objects, framework attachments. Never instanced.
+    └── obj/         Everything instanceable — anything a template's
+                     `class:` names (Avatar, Topic, Weapon, Room, …)
         ├── command/   CommandController implementations
         └── hooks/     persistence around-hooks
 ```
@@ -106,11 +108,36 @@ lookup) lives in `api/zone.ts`, where it belongs.
 question above resolves cleanly only when you know which kind you're
 adding.
 
+> **The placement invariant: nothing instances `/lib/`.** A class that
+> a template's `class:` resolves to lives in `obj/`, on both axes —
+> the `.ts` file and the template path. `lib/` holds only what is
+> inherited. Enforced by `pnpm lint:instanceable`; the full rule and
+> the eight split classes are in
+> [CLAUDE.md § Instanceable Lives in `obj/`](../CLAUDE.md).
+
 `lib/` holds:
 - **Mixins** — capability shapes (`Containable`, `Sensor`, `Posed`).
   Polymorphic by design.
-- **Stuff classes** — role identity (`Avatar`, `Vessel`, `Location`,
-  `Zone`). Overridable.
+- **Abstract Stuff roots** — role identity that subclasses inherit and
+  nothing clones (`Stuff`, `Thing`, `Location`, `Zone`, `Character`,
+  `Creature`, `Modality`). Overridable. When one of these is *also*
+  being cloned generically, it splits: the base stays here and a thin
+  concrete subclass in `obj/` takes the clones (`Thing` → `obj/Prop`,
+  `CartesianLocation` → `obj/location/Room`).
+- **Framework attachments** — objects that ride a Stuff, model nothing
+  on their own, and are never template-backed. `lib/stuff/Shadow` is
+  the exemplar and a **permanent** exception to "obj/ holds Stuff
+  classes": it has its own identity but is never cloned from a
+  template, so the placement rule genuinely does not reach it.
+  Also here: the *instanced but never stamped* fixtures —
+  `BoundaryAnchor` (minted onto its boundary), `SandboxCrossingExit`
+  (minted by the crossing), and `LightningStrike`, whose source says
+  it plainly: *"a transient single-use vessel — minted, conducted, and
+  reaped inside this one call, never authored, never persisted."* The
+  test is **does an instance carry a template-path stamp**, not *is it
+  ever `new`'d*. `ExitableVessel` sits here too, deferred: it has no
+  `fieldMeta` and no documented authoring path, so it moves to `obj/`
+  when a consumer demands a concrete class, not before.
 - **Value objects** — pure data + small per-instance math (`Light`,
   `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
   primitive the Api layer consumes.

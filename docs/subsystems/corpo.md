@@ -35,14 +35,14 @@ Both are pure-data leaf `Idea`s authored as templates and read by the
 catalogue from `template.data` — **never cloned as live Stuff** (the
 `Discipline` / `Topic` discipline).
 
-- **`Corpo`** (`lib/corpo/Corpo.ts`, templates under `/lib/corpo/Corpo/`) —
+- **`Corpo`** (`lib/corpo/Corpo.ts`, templates under `/obj/corpo/Corpo/`) —
   one megacorp. Fields: `key` (durable join), `label`, `sector`, `ethos`
   (the load-bearing culture slot), `aesthetic`, `temperament` (the player
   temperament it magnetizes), `description`, and **`rivals`** (a list of
   corpo `key`s — the fault-line edge). A corpo is distinguished by
   *sector + ethos + aesthetic*, **not** Good/Evil — the fault line is
   tribal, not moralistic.
-- **`Brand`** (`lib/corpo/Brand.ts`, templates under `/lib/corpo/Brand/`) —
+- **`Brand`** (`lib/corpo/Brand.ts`, templates under `/obj/corpo/Brand/`) —
   one product line. Fields: `key`, `name`, **`owner`** (the owning corpo
   `key`, or `''` = independent), `category` (the honest product category —
   `gin`, `vodka`, `whiskey`), `positioning` (an authored label, **data
@@ -142,7 +142,7 @@ bar build's job.
 - Six booze brands: Volk (Veshko), Goodkin Reserve (Goodkin), Vionne Noir
   (Vionne), Old Hollis (Hollis), aevex zero (Aevex), and **Crowsfoot Gin**
   (independent — empty `owner`).
-- Two proof-demo bottle templates under `/lib/corpo/demo/` — a Volk bottle
+- Two proof-demo bottle templates under `/obj/corpo/demo/` — a Volk bottle
   (resolves to Veshko) and a Crowsfoot bottle (resolves to a null corpo) —
   proving end-to-end mark resolution + the derived perception line.
 

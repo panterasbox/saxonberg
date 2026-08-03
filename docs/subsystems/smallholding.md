@@ -150,7 +150,7 @@ parcel, then its `parentParcel` chain, then `wild`.
 
 ### ⚠ `wild` admits nothing, and that is load-bearing
 
-**Most parcel rows are not ground at all.** `/studio`, `/lib/lounge` and
+**Most parcel rows are not ground at all.** `/studio`, `/obj/lounge` and
 the `/obj/…` roots are path-branch titles over the template tree, and they
 all answer `wild`. Had `wild` admitted a bed, cultivation would be legal
 on every branch nobody thought to zone. Stewardship's own gloss agrees —
@@ -181,7 +181,7 @@ parcel permits.
 "Nobody has zoned this" is not the same statement as "this is zoned
 against you", and conflating them turns every unclaimed acre in the world
 into red tape. The abstract branches stay protected anyway, because they
-DO carry rows: `/studio` and `/lib/lounge` are covered, declare no use,
+DO carry rows: `/studio` and `/obj/lounge` are covered, declare no use,
 and so still answer `wild` → refused.
 
 Same principle as the acreage check degrading on unmeasured land:

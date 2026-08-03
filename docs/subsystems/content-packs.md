@@ -34,14 +34,14 @@ packages/content/base-library/
 ├── pack.yaml             # the manifest the installer reads
 └── content/              # content root; MIRRORS the template-path namespace
     └── lib/
-        ├── material/spirit/gin.yaml   →  template path /lib/material/spirit/gin
+        ├── material/spirit/gin.yaml   →  template path /obj/material/spirit/gin
         └── biome/…
 ```
 
 The `content/` root mirrors the template-path namespace: a file's path
 relative to `content/`, minus `.yaml`, prefixed with `/`, **is** its
-template path (`content/lib/material/spirit/gin.yaml` →
-`/lib/material/spirit/gin`) — the same rule `SeederManager` uses. So the
+template path (`content/obj/material/spirit/gin.yaml` →
+`/obj/material/spirit/gin`) — the same rule `SeederManager` uses. So the
 path is a pure namespace identifier, decoupled from where the file
 physically sits, and migrating a tree out of `seeds/` is a `git mv`.
 
@@ -102,9 +102,20 @@ which a path-prefix notion of ownership could not:
 
 | Subdir | Kind | Backend |
 |---|---|---|
-| `content/lib/**.yaml` | **domain** | reconciled into the `domain` collection (stamped) |
+| `content/obj/**.yaml` | **domain** | reconciled into the `domain` collection (stamped) |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
 | `content/name-banks/<key>.yaml` | **name-banks** | reconciled into the `name_banks` collection (stamped), keyed on the file's basename = the bank key |
+
+> **The domain subdir was `content/lib/` until the lib/obj taxonomy
+> refactor.** It is `content/obj/` now, because a pack ships content and
+> content is instanceable — nothing a pack installs may live under
+> `/lib/`, which is substrate-only. This is a **breaking format change**
+> for any out-of-tree pack: rename `content/lib/` to `content/obj/` and
+> repoint every `class:` value. Shipped packs needed no data migration
+> because the installer **reconciles** (unlike `SeederManager`, which is
+> insert-only) — the old rows are stamped, their files vanished, so
+> `reconcileDomain` deletes them and inserts the new paths on the next
+> boot. `PackLogic.readContent` reads the subdir name.
 
 The **name-banks** kind is the first *side-collection* kind — a flat
 `Document` (`{key, given, surname, style?}`) rather than a path-addressed
@@ -212,7 +223,7 @@ timelines (separate repos / third-party packs / a marketplace) — the
 same boundary as the repo split — at which point it tracks the pack's
 **public surface** (the paths and tags other content references), not its
 values: editing gin's density breaks nothing (it re-hydrates); renaming
-`/lib/material/spirit/gin` breaks every pointer.
+`/obj/material/spirit/gin` breaks every pointer.
 
 ## Deferred
 
@@ -232,7 +243,7 @@ the repo split.
 - `packages/content/base-library/` — the substrate pack (materials,
   biomes, quantity-units).
 - `packages/content/species-and-names/` — the species/clade tree
-  (`content/lib/species/**`) + the name banks (`content/name-banks/**`).
+  (`content/obj/species/**`) + the name banks (`content/name-banks/**`).
 - `mud/api/pack.ts` — `PackApi` + the manifest/result types.
 - `mud/obj/api/PackLogic.ts` — discovery, content-kind dispatch (domain /
   quantity / name-banks), the stamped reconcile (insert/update/adopt/
