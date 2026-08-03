@@ -1,0 +1,338 @@
+#!/usr/bin/env bash
+#
+# docs-mirror — build (and optionally publish) the curated public docs
+# corpus: the AUTHORITATIVE half of docs/, and nothing else.
+#
+#   tools/docs-mirror                 # build into .docs-mirror/ and stop
+#   tools/docs-mirror --out /tmp/m    # build somewhere else
+#   tools/docs-mirror --push          # build, then force-push the mirror
+#
+# WHY THIS EXISTS
+#
+# The intended consumer is an LLM — a public "ask about the project"
+# chatbot, or any off-the-shelf service that ingests a git repo. Those
+# tools index whatever you point them at, and pointing one at this repo
+# wholesale produces a machine that confidently describes things that
+# are not true.
+#
+# The reason is the artifact taxonomy in docs/workflow.md. A SLATE is
+# deliberative: it records proposals, the ones that were argued down,
+# and open questions. balance-slate.md, for instance, contains a
+# portable-item rule AND the retraction of that rule four sections
+# later. A retrieval system has no way to tell which paragraph is the
+# design — it will happily quote the dead one.
+#
+# A SUBSYSTEM DOC is the opposite: the source of truth for shipped
+# behaviour, kept current by the pre-merge sweep. That is the half a
+# stranger is actually asking about, so that is the half we publish.
+#
+#   published  — docs/subsystems/** + the standing top-level references
+#   withheld   — docs/slates/** (deliberative), docs/manifesto/**,
+#                deployment.md + workflow.md (operational, not about the
+#                game), and the source tree
+#
+# Nothing here is secret — the repo is public and always has been. This
+# is about giving a retrieval system a corpus where every sentence is
+# meant to be current.
+#
+# PUBLISHING
+#
+# --push needs one CI/CD variable; without it the push is skipped and
+# the build still runs (so an unconfigured pipeline is a no-op, never a
+# failure):
+#
+#   DOCS_MIRROR_REMOTE   an authenticated push URL, e.g.
+#                        https://<user>:<token>@github.com/<you>/saxonberg-docs.git
+#                        https://oauth2:<token>@gitlab.com/<you>/saxonberg-docs.git
+#
+# Each run publishes a SINGLE squashed commit (fresh repo, force-push).
+# The mirror is a snapshot, not a history — this repo is the history,
+# and it means the job can never conflict or need a fetch.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+OUT=".docs-mirror"
+PUSH=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --out) OUT="$2"; shift 2 ;;
+    --push) PUSH=1; shift ;;
+    -h|--help) sed -n '2,48p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "docs-mirror: unknown argument '$1'" >&2; exit 2 ;;
+  esac
+done
+
+# ---------------------------------------------------------------------
+# The whitelist. Everything published is named here; add a line to
+# publish more. Paths are relative to the repo root and keep their
+# layout in the mirror, so relative links between docs keep resolving.
+# ---------------------------------------------------------------------
+
+TOP_LEVEL_DOCS=(
+  docs/vision.md
+  docs/roadmap.md
+  docs/architecture.md
+  docs/antipatterns.md
+  docs/ref-shapes.md
+  docs/arcane-science.md
+  docs/compact-political-science.md
+  docs/vocations.md
+  docs/mql-grammar.md
+)
+
+echo "docs-mirror: building into $OUT"
+rm -rf "$OUT"
+mkdir -p "$OUT/docs/subsystems"
+
+# Subsystem docs — the bulk of the corpus, and the source of truth.
+cp docs/subsystems/*.md "$OUT/docs/subsystems/"
+SUB_COUNT=$(find "$OUT/docs/subsystems" -name '*.md' | wc -l | tr -d ' ')
+
+# Standing top-level references. Missing entries are reported, not
+# fatal — a doc can be renamed upstream without breaking the pipeline.
+TOP_COUNT=0
+for f in "${TOP_LEVEL_DOCS[@]}"; do
+  if [ -f "$f" ]; then
+    cp "$f" "$OUT/$f"
+    TOP_COUNT=$((TOP_COUNT + 1))
+  else
+    echo "docs-mirror: WARNING — whitelisted doc missing, skipped: $f" >&2
+  fi
+done
+
+if [ -f LICENSE ]; then cp LICENSE "$OUT/LICENSE"; fi
+
+# ---------------------------------------------------------------------
+# Neutralize dangling cross-references. The subsystem docs link
+# liberally into docs/slates/**, docs/requirements/**, CLAUDE.md and
+# friends — none of which are published, so ~180 links would 404 here.
+#
+# The rule is deliberately generic rather than a list of withheld
+# prefixes: ANY relative link whose target is absent from the mirror
+# collapses to its own link text. Nothing to keep in sync — publish a
+# new doc and its inbound links start working by themselves.
+#
+# The text always survives, so a reader (or a model) still sees WHAT was
+# referenced; it simply stops pretending to be a followable link.
+# ---------------------------------------------------------------------
+
+MANIFEST="$(mktemp)"
+trap 'rm -f "$MANIFEST"' EXIT
+( cd "$OUT" && find . -type f | sed 's|^\./||' | sort ) > "$MANIFEST"
+
+NEUTRALIZED=0
+while IFS= read -r rel; do
+  before=$(mktemp); cp "$OUT/$rel" "$before"
+  awk -v manifest="$MANIFEST" -v base="$(dirname "$rel")" '
+    # Slurp the whole file as ONE record. The docs are hard-wrapped, so a
+    # link can straddle a line break ("see [the ranching\nslate](...)") —
+    # invisible to a line-at-a-time pass. A negated character class
+    # matches newlines, so a whole-file record catches those too.
+    # ORS="" because $0 already carries the trailing newline.
+    # ⚠ Load the manifest BEFORE touching RS. `getline < file` splits on
+    # RS too, so setting it first slurps the whole manifest into one key
+    # and the lookup silently comes back empty — which collapses EVERY
+    # link, valid ones included, with no error.
+    BEGIN { while ((getline l < manifest) > 0) exists[l] = 1
+            RS = "\001"; ORS = "" }
+
+    # Collapse "." and ".." so a target resolves the way a browser would.
+    function norm(p,   parts, n, i, out, m, r) {
+      n = split(p, parts, "/"); m = 0
+      for (i = 1; i <= n; i++) {
+        if (parts[i] == "." || parts[i] == "") continue
+        if (parts[i] == "..") { if (m > 0) m--; continue }
+        out[++m] = parts[i]
+      }
+      r = ""
+      for (i = 1; i <= m; i++) r = (r == "" ? out[i] : r "/" out[i])
+      return r
+    }
+
+    {
+      line = $0; res = ""
+      while (match(line, /\[[^]]*\]\([^)]*\)/)) {
+        pre  = substr(line, 1, RSTART - 1)
+        tok  = substr(line, RSTART, RLENGTH)
+        line = substr(line, RSTART + RLENGTH)
+
+        ti     = index(tok, "](")
+        text   = substr(tok, 2, ti - 2)
+        target = substr(tok, ti + 2, length(tok) - ti - 2)
+
+        keep = 1
+        # Absolute URLs, bare anchors and site-root paths are left alone.
+        if (target !~ /^[a-zA-Z][a-zA-Z0-9+.-]*:/ && target !~ /^#/ && target !~ /^\//) {
+          anchor = target; sub(/#.*/, "", anchor)
+          if (anchor != "" && !(norm(base "/" anchor) in exists)) keep = 0
+        }
+        res = res pre (keep ? tok : text)
+      }
+      print res line
+    }
+  ' "$before" > "$OUT/$rel"
+  # Count collapsed links by the drop in "](" occurrences. `|| true` is
+  # load-bearing: grep exits 1 on no-match, which under `set -e -o
+  # pipefail` would abort the run on the first link-free doc.
+  b=$(grep -o '](' "$before" | wc -l || true)
+  a=$(grep -o '](' "$OUT/$rel" | wc -l || true)
+  NEUTRALIZED=$((NEUTRALIZED + b - a))
+  rm -f "$before"
+done < <(cd "$OUT" && find . -name '*.md' | sed 's|^\./||')
+
+echo "docs-mirror: $NEUTRALIZED dangling cross-references collapsed to text"
+
+# ---------------------------------------------------------------------
+# INDEX.md — derived, never hand-maintained. Each entry is a doc's own
+# H1 plus its first line of prose, which is what a retrieval pass reads
+# to decide whether to open the file.
+# ---------------------------------------------------------------------
+
+summarize() {
+  # $1 = file. Emits "<h1>\t<first prose paragraph, one line, trimmed>".
+  #
+  # The docs are hard-wrapped at 72 chars, so a paragraph is many lines
+  # and the FIRST line is a sentence fragment. Accumulate until the
+  # paragraph ends, then trim on a word boundary.
+  awk '
+    /^# / && !title { sub(/^# /, ""); gsub(/`/, "", title); title = $0; next }
+    !title { next }
+    done { next }
+    {
+      blank = ($0 ~ /^[[:space:]]*$/)
+      if (summary != "" && blank) { done = 1; next }   # paragraph ended
+      if (blank) next
+      if ($0 ~ /^```/)      { next }                   # fence
+      if ($0 ~ /^#/)        { next }                   # subheading
+      if ($0 ~ /^>/)        { next }                   # blockquote
+      if ($0 ~ /^\|/)       { next }                   # table
+      if ($0 ~ /^[-*+][ \t]/) { next }                 # list item (needs the space:
+                                                       # **bold** must not match)
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      summary = (summary == "" ? line : summary " " line)
+    }
+    END {
+      if (!title) title = "(untitled)"
+      gsub(/\*\*/, "", summary); gsub(/`/, "", summary)
+      # Links -> their text. awk gsub has no capture groups, so drop the
+      # "](target)" tail first and then the orphaned opening bracket.
+      gsub(/\]\([^)]*\)/, "", summary)
+      gsub(/\[/, "", summary)
+      if (length(summary) > 180) {
+        summary = substr(summary, 1, 180)
+        sub(/[[:space:]][^[:space:]]*$/, "", summary)  # trim partial word
+        summary = summary "..."
+      }
+      printf "%s\t%s\n", title, summary
+    }
+  ' "$1"
+}
+
+{
+  echo "# Documentation index"
+  echo
+  echo "Derived on every publish — do not edit."
+  echo
+  echo "## Standing references"
+  echo
+  for f in "${TOP_LEVEL_DOCS[@]}"; do
+    [ -f "$OUT/$f" ] || continue
+    IFS=$'\t' read -r title summary < <(summarize "$OUT/$f")
+    echo "- [$title]($f) — $summary"
+  done
+  echo
+  echo "## Subsystems"
+  echo
+  echo "One doc per subsystem; each is the source of truth for its area."
+  echo
+  for f in "$OUT"/docs/subsystems/*.md; do
+    rel="docs/subsystems/$(basename "$f")"
+    IFS=$'\t' read -r title summary < <(summarize "$f")
+    echo "- [$title]($rel) — $summary"
+  done
+} > "$OUT/INDEX.md"
+
+# ---------------------------------------------------------------------
+# README.md — states plainly that this is curated, and what is missing.
+# A reader who does not know the corpus was filtered can't calibrate.
+# ---------------------------------------------------------------------
+
+cat > "$OUT/README.md" <<'EOF'
+# Saxonberg — public documentation
+
+**Generated. Do not edit here.** This repository is a curated, read-only
+mirror of the documentation in
+[gitlab.com/panterasbox/saxonberg](https://gitlab.com/panterasbox/saxonberg),
+which is the canonical source and where changes are made.
+
+Saxonberg is an immersive multiplayer role-playing educational platform —
+a simulation substrate with real units and a working polity on top. See
+[docs/vision.md](docs/vision.md), and [INDEX.md](INDEX.md) for the map.
+
+## What is here, and what is not
+
+It exists to give language models a corpus in which every sentence is
+meant to be **current**. So it carries the authoritative half of the
+documentation and deliberately omits the deliberative half:
+
+| | |
+|---|---|
+| **published** | subsystem references (the source of truth for shipped behaviour) + the standing top-level docs |
+| **withheld** | design slates, video scripts, deployment/process docs, and the source tree |
+
+The omission is not secrecy — the canonical repository is public, and the
+withheld material is all there. It is that a *slate* records proposals
+including the ones that were argued down, so a retrieval system reading
+one cannot tell a live decision from a discarded one. Subsystem docs
+carry no such ambiguity.
+
+## Caveats worth stating
+
+- **Designed is not built.** A subsystem doc describes what exists; the
+  roadmap describes what does not yet. If an answer matters to you,
+  check [docs/roadmap.md](docs/roadmap.md) and each doc's own
+  *"What's NOT in this build"* section.
+- **This is a snapshot**, republished as one squashed commit. The
+  canonical repository holds the history.
+EOF
+
+echo "docs-mirror: $SUB_COUNT subsystem docs + $TOP_COUNT references"
+echo "docs-mirror: $(find "$OUT" -name '*.md' | wc -l | tr -d ' ') files, $(du -sh "$OUT" | cut -f1) total"
+
+# ---------------------------------------------------------------------
+# Publish. Skipped-not-failed when unconfigured, so adding this job to a
+# pipeline before setting the variable is harmless.
+# ---------------------------------------------------------------------
+
+if [ "$PUSH" -eq 0 ]; then
+  echo "docs-mirror: built (no --push); inspect $OUT"
+  exit 0
+fi
+
+if [ -z "${DOCS_MIRROR_REMOTE:-}" ]; then
+  echo "docs-mirror: DOCS_MIRROR_REMOTE not set — skipping publish."
+  exit 0
+fi
+
+SRC_SHA="$(git rev-parse --short HEAD)"
+
+git -C "$OUT" init -q
+git -C "$OUT" config user.email "${DOCS_MIRROR_EMAIL:-docs-mirror@panterasbox.com}"
+git -C "$OUT" config user.name "${DOCS_MIRROR_NAME:-Saxonberg docs mirror}"
+git -C "$OUT" add -A
+git -C "$OUT" commit -q -m "docs: mirror of panterasbox/saxonberg@${SRC_SHA}"
+
+# Target branch must match the mirror repo's DEFAULT branch, or the
+# published corpus sits on a branch nothing reads. GitHub and current
+# GitLab both default to `main`; override for an older repo on `master`.
+BRANCH="${DOCS_MIRROR_BRANCH:-main}"
+
+# Never echo the remote — it carries a token.
+git -C "$OUT" push -q --force "$DOCS_MIRROR_REMOTE" "HEAD:refs/heads/$BRANCH" 2>&1 \
+  | sed 's|://[^@/]*@|://***@|g'
+
+echo "docs-mirror: published ${SRC_SHA} to the configured remote ($BRANCH)."

@@ -161,6 +161,44 @@ pages:
       when: manual
       allow_failure: true
 
+# Publish the curated public docs corpus — the authoritative half of
+# docs/ (subsystem references + the standing top-level docs), with the
+# deliberative half (slates, manifesto, process docs) withheld. Built for
+# LLM consumption: a public "ask about the project" chatbot, or any
+# off-the-shelf service that ingests a git repo. tools/docs-mirror has
+# the reasoning; short version is that a SLATE records proposals
+# INCLUDING the ones that were argued down, and a retrieval system
+# cannot tell those from live decisions.
+#
+# Automatic rather than manual, unlike `pages` — a docs bot answering
+# from a stale corpus is the exact failure mode this exists to prevent,
+# and the job is seconds on alpine with no pnpm install. allow_failure
+# so a mirror problem can never block a master pipeline.
+#
+# Requires ONE CI/CD variable (Settings -> CI/CD -> Variables, masked):
+#   DOCS_MIRROR_REMOTE — an authenticated push URL, e.g.
+#     https://<user>:<token>@github.com/<you>/saxonberg-docs.git
+#     https://oauth2:<token>@gitlab.com/<you>/saxonberg-docs.git
+# Unset, the job builds and skips the publish — so this landing before
+# the variable exists is a no-op, not a red pipeline.
+#
+# Optional: DOCS_MIRROR_BRANCH (default `main`). It must match the mirror
+# repo's DEFAULT branch, or the corpus lands somewhere nothing reads.
+docs-mirror:
+  stage: documentation
+  image: alpine:3
+  interruptible: true
+  before_script:
+    # gawk explicitly: the script sets RS to slurp whole files (links
+    # straddle the 80-col wrap), and busybox awk is not worth trusting
+    # for that.
+    - apk add --no-cache bash git gawk
+  script:
+    - bash tools/docs-mirror --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      allow_failure: true
+
 # Browser end-to-end tests against a full, throwaway stack. Playwright's
 # `webServer` boots the server (AUTH_MODE=test) + client and waits for
 # them; the DB is a job-scoped `mongo` service container, not a real

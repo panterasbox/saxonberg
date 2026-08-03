@@ -32,3 +32,6 @@ docs/manifesto/*.png
 
 # generated slide PNG exports (Descript inputs; regenerate via slide-generator.py)
 docs/manifesto/exports/
+
+# tools/docs-mirror build output (published by CI, never committed)
+.docs-mirror/
