@@ -656,3 +656,31 @@ the previous spec left it in — and rewriting the template row does NOT
 move it, because an Avatar is snapshot-backed and restores its recorded
 `place`. The live object is the only thing that decides where `enter`
 finds you.
+
+### The one known-red: `hinkley:163`
+
+`work-drive` and `sandbox:306` are fixed and green in-suite. `hinkley:163`
+is not, and it is the only red test on the branch.
+
+**State so far.** It passes ALONE on a fresh database. It fails when its
+own file's earlier tests run first. Two real bugs in it were found and
+fixed: it never poured the soil it cloned the sack for, so nothing
+planted. What remains is the final `water bed` assertion, which matches
+neither the success line nor the "nothing planted" refusal — so the
+failure is UPSTREAM of the watering itself (the fill, the can, or the
+bed's state), not in the assertion's wording. Loosening the assertion
+was tried and reverted: it did not fix the test and weakened it for
+nothing.
+
+**Why it resists.** Lot-1 is PRE-SOLD, so its yard is provisioned exactly
+once and never reset. Every run that plants leaves a crop behind and the
+bed's slots fill permanently, so the test's behaviour depends on the age
+of the database rather than on the code. A crop in a bed slot is also not
+targetable by keyword (`destruct carrots` → "no match"), which the file's
+own header already flags, so the spec cannot tidy up after itself.
+
+**The fix is content-shaped, not test-shaped:** give this drive a lot
+whose yard it may provision fresh, or make a bed resettable. Either is a
+design call about Hinkley Hills, not about the taxonomy refactor — which
+is why it is written down here rather than papered over with a weaker
+assertion.
