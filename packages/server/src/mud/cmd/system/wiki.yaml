@@ -173,6 +173,33 @@ subcommands:
       - name: page
         type: string
         required: true
+  diff:
+    description: "Compare two revisions, word by word"
+    help: |
+      Show what changed between two revisions. With no numbers, it
+      compares the latest two — the question you usually have.
+
+      The comparison is over the article's SOURCE, not over how it
+      renders: a render is different for every reader, so a diff of
+      renders would show your view changing when the page had not.
+
+      A change you could not have read does not appear, and neither
+      does the fact that there was one.
+    examples:
+      - cmd: wiki diff oak
+        note: What changed in the last edit
+      - cmd: wiki diff oak 3 7
+        note: Everything that changed between rev 3 and rev 7
+    args:
+      - name: page
+        type: string
+        required: true
+      - name: from
+        type: string
+        required: false
+      - name: to
+        type: string
+        required: false
   rollback:
     description: "Restore an earlier revision (appends; never rewrites history)"
     help: |

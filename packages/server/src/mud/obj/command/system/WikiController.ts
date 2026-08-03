@@ -38,11 +38,15 @@ import {
 } from '../../../lib/wiki/WikiPage';
 import { SpoilerLevels, type SpoilerLevel } from '../../../lib/wiki/render';
 import { Sections } from '../../../lib/wiki/Section';
+import { SourceDiff } from '../../../lib/wiki/SourceDiff';
 
 interface WikiModel extends CommandModel {
   page?: string;
   slug?: string;
   rev?: string;
+  /** The two revisions `wiki diff` compares. */
+  from?: string;
+  to?: string;
   level?: string;
   namespace?: string;
   body?: string;
@@ -79,6 +83,8 @@ export default class WikiController extends CommandController<WikiModel> {
           return await this.executeEdit(model, context);
         case 'history':
           return await this.executeHistory(model, context);
+        case 'diff':
+          return await this.executeDiff(model, context);
         case 'rollback':
           return await this.executeRollback(model, context);
         case 'move':
@@ -356,16 +362,126 @@ export default class WikiController extends CommandController<WikiModel> {
       this.send(context, Mml.fromMarkup(`\nNo revisions.\n`));
       return;
     }
-    const lines = [`History of ${page.getTitle()} (${page.getHandle()}):`];
-    for (const rev of revisions) {
+    // ⚠ History is a revision-facing surface, so it applies the same
+    // gate a reading does. A revision whose ONLY change was above this
+    // reader's ceiling redacts to the same text as its predecessor —
+    // and is then omitted entirely, because listing it would tell the
+    // reader THAT something they cannot see changed (criterion 68).
+    // Absent, not "1 change hidden": a redaction marker is the leak in
+    // miniature.
+    const renderer = await StuffApi.singleton<WikiRenderer>(
+      TemplatePaths.wikiRenderer,
+    );
+    const oldestFirst = [...revisions].reverse();
+    const visible: string[] = [];
+    let previous: string | null = null;
+    for (const rev of oldestFirst) {
+      const seen = await renderer.redactSource(rev.getBody());
+      const changed = previous === null || SourceDiff.changed(previous, seen);
+      previous = seen;
+      if (!changed) continue;
       const draft = rev.isPublished() ? '' : ' [draft]';
       const note = rev.getSummary() ? ` — ${rev.getSummary()}` : '';
-      lines.push(
+      visible.push(
         `  ${rev.getRev()}. ${rev.getKind()}${draft} by ${rev.getAuthor()}` +
           ` at ${new Date(rev.getAt()).toISOString()}${note}`,
       );
     }
+    if (visible.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo revisions.\n`));
+      return;
+    }
+    const lines = [
+      `History of ${page.getTitle()} (${page.getHandle()}):`,
+      ...visible.reverse(),
+    ];
     this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
+  }
+
+  /**
+   * ⭐ Word-level diff over SOURCE, **redacted before diffing**.
+   *
+   * The order is the security property. Redacting first means an
+   * over-ceiling fragment is absent from BOTH inputs and therefore
+   * produces no operation at all — so two revisions differing only
+   * above the ceiling diff to nothing, and a reader cannot learn
+   * *that* something changed (criteria 67, 68). Diffing first and
+   * filtering after would leak by construction: the ops would already
+   * name the changed text.
+   */
+  private async executeDiff(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const registry = await this.registry();
+    const renderer = await StuffApi.singleton<WikiRenderer>(
+      TemplatePaths.wikiRenderer,
+    );
+
+    const from = parseRev(model.from);
+    const to = parseRev(model.to);
+    if (from === 'invalid' || to === 'invalid') {
+      return this.fail(context, 'revisions must be numbers', 'bad-rev');
+    }
+    // Bare `wiki diff <page>` compares the last two — the question
+    // somebody scanning a page actually has ("what just changed?").
+    const revs = await registry.history(page._id ?? '');
+    const latest = revs[0]?.getRev() ?? page.getRev();
+    const toRev = to ?? latest;
+    const fromRev = from ?? Math.max(1, toRev - 1);
+    if (fromRev === toRev) {
+      this.send(context, Mml.fromMarkup(`\nNothing to compare.\n`));
+      return;
+    }
+
+    const [a, b] = await Promise.all([
+      this.bodyAt(page, fromRev),
+      this.bodyAt(page, toRev),
+    ]);
+    if (a === null || b === null) {
+      return this.fail(
+        context,
+        `no revision ${a === null ? fromRev : toRev} of this page`,
+        'no-such-revision',
+      );
+    }
+
+    // Redact, THEN diff.
+    const [safeA, safeB] = await Promise.all([
+      renderer.redactSource(a),
+      renderer.redactSource(b),
+    ]);
+    const ops = SourceDiff.words(safeA, safeB);
+    const changed = ops.some((o) => o.kind !== 'same');
+    if (!changed) {
+      this.send(
+        context,
+        Mml.fromMarkup(
+          `\nNo visible difference between rev ${fromRev} and rev ${toRev}.\n`,
+        ),
+      );
+      return;
+    }
+    this.send(
+      context,
+      Mml.fromMarkup(
+        `\n${Mml.escape(`${page.getTitle()}: rev ${fromRev} → rev ${toRev}`)}\n\n` +
+          `${Mml.escape(SourceDiff.format(ops))}\n`,
+      ),
+    );
+  }
+
+  /**
+   * The page's body at `rev` — the revision row's, or the page's own
+   * when `rev` is the current one and no row carries it.
+   */
+  private async bodyAt(page: WikiPage, rev: number): Promise<string | null> {
+    const registry = await this.registry();
+    const row = await registry.revisionAt(page._id ?? '', rev);
+    if (row) return row.getBody();
+    return rev === page.getRev() ? page.getBody() : null;
   }
 
   private async executeRollback(
