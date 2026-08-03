@@ -5,7 +5,7 @@
 gap). The press is the institution the verification architecture has
 been assuming without ever naming.
 
-Related: [forums.md](../../subsystems/forums.md) (the Subject layer a
+Related: [forums.md](../../subsystems/forums.md) (⚠ **NOT the substrate** — see § *What a publication is*; the layer a linked discussion
 publication rides), [bulletin.md](../../subsystems/bulletin.md) (the
 staff-side sibling), [belief.md](../../subsystems/belief.md) (the
 witness path), [enforcement-slate](./enforcement-slate.md) (the
@@ -79,9 +79,31 @@ one push surface** — and **the push is what makes it a publication**:
 - ⭐ **The unit is the POST, not the issue.** No bundling, no assembly, no
   compose-and-release. **This makes the build substantially cheaper** than
   a periodical would.
-- **A publication still rides the forums' Subject layer** — a board per
-  publisher. But **a post is a THREAD**, not an entry in an issue — which
-  means **comments come free**, and Substack has comments.
+- ⚠ **A publication does NOT ride the forums' Subject layer.** *(User,
+  2026-08-02: "you're not merging them with forums are you? we talked
+  about that and rejected it.")* **Correct — and this slate contradicted
+  itself**: it said *"a publication rides the forums' Subject layer"* here
+  while § *The structural threat* said `bulletins → /feed/<publisher>/` in
+  the **document tree** "is what this slate needs." **The document tree is
+  the right answer; the forums claim is struck.**
+
+  Three independent reasons, any one sufficient:
+
+  | | |
+  |---|---|
+  | **direction** | forums are **pull** — you go to a board. A publication **arrives** |
+  | **symmetry** | forums are **deliberative** — anyone posts, everyone replies. A publication is **one voice** |
+  | ⭐⭐ **the organizer** | forums' *defining feature* is the per-board **ranking axis** (`popularity` / `argument`). **"No algorithm" is a publication's defining commitment** — riding forums means inheriting the exact thing you must then disable |
+
+  Same shape as [auction-slate](./auction-slate.md)'s rejection: *forums and
+  chat carry **speech**; an auction carries **commitments**.* Here:
+  **forums carry DELIBERATION; a publication carries a BROADCAST.**
+
+- **A post is a Document at a path** — `/feed/<publisher>/<post>`.
+  ⭐ **Comments LINK, they do not merge**: a post may point at a forum
+  thread for discussion, exactly as a real article links to a comment
+  section **without being one.** The publication keeps its shape; the
+  argument happens where arguments belong.
 - ⭐⭐ **Subscription is the primitive**, and it is an **attention rule** —
   `NotifyPolicy` already decides what reaches you. Probably not a new
   system.
@@ -102,6 +124,21 @@ one push surface** — and **the push is what makes it a publication**:
   needed. ⚠ At 12× a "daily" is every two real hours and a "weekly" is
   fourteen — **the clock-tuning problem again; pick the number from play,
   not from realism.**
+
+### ⭐⭐⭐ Three overlapping systems, three different shapes
+
+All three are being built, they cover similar ground, and **conflating any
+two of them loses the thing that makes it useful**:
+
+| | Voices | Authorship | Shape |
+|---|---|---|---|
+| **forums** | many, arguing | **attributed opinion** | ranked, threaded, **pull** |
+| **wiki** | many, converging | **de-attributed consensus** | one text, edited toward agreement |
+| **the press** | **one** | **attributed assertion** | unranked, serial, **push** |
+
+> **Forums argue. The wiki converges. The press asserts.**
+
+They **cite** each other constantly and share no substrate.
 
 ### ⭐⭐⭐ The paywall is the press's own contradiction
 
