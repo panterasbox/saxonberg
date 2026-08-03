@@ -8,9 +8,10 @@ data:
   name: Unseen Shove
   verb: control
   noun: body
-  requiredBand: novice
   cost: 12
-  castSeconds: 2
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 2
   targeting: creature
   effects:
     - kind: move

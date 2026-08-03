@@ -57,6 +57,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths } from '../paths';
 import { Suppressions } from '../magic/Suppression';
+import { MagicGrid } from '../magic/Grid';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -334,6 +335,12 @@ export interface Vitals {
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
+  /**
+   * The Hydrator's Phase-1 entry for the persisted `conditions`
+   * collection — the seam that normalizes each record's magical
+   * provenance tag on the way in. See the implementation note.
+   */
+  setConditions(conditions: readonly ActiveCondition[]): void;
   hasCondition(pred: (c: ActiveCondition) => boolean): boolean;
   /** Add a condition (a Trauma value or an AfflictionRecord). */
   afflict(condition: ActiveCondition): void;
@@ -803,6 +810,31 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getConditions(): readonly ActiveCondition[] {
       this.reconcileConditions();
       return this.conditions;
+    }
+
+    /**
+     * Phase-1 hydrate entry for `conditions` (the Hydrator prefers a
+     * `set<Field>` method over the bracket-assign fallback).
+     *
+     * The one invariant it enforces: **magical provenance is normalized
+     * on the way in.** The tag split specified-by from fired-by
+     * (requirements D2), and rows written before that split carry a
+     * single `caster` field. A legacy row reads as both — which is the
+     * honest reading, since before items existed the specifier and the
+     * firer were the same object. A malformed tag is dropped rather than
+     * carried, so a dispel scan never keys off a corrupt mark.
+     */
+    public setConditions(conditions: readonly ActiveCondition[]): void {
+      if (!Array.isArray(conditions)) return;
+      this.conditions = conditions.map((c) => {
+        if (c == null || typeof c !== 'object') return c;
+        if (!('magicOrigin' in c) || c.magicOrigin === undefined) return c;
+        const normalized = MagicGrid.normalizeProvenance(c.magicOrigin);
+        // A sustained effect IS magic — a tag that will not normalize
+        // makes the record meaningless, so drop the tag and let the
+        // sustained arm release it on the next reconcile.
+        return { ...c, magicOrigin: normalized } as ActiveCondition;
+      });
     }
 
     /**

@@ -9,9 +9,10 @@ data:
   name: Spark
   verb: create
   noun: lightning
-  requiredBand: competent
   cost: 25
-  castSeconds: 3
+  castingProfile:
+    requiredBand: competent
+    castSeconds: 3
   targeting: any
   effects:
     - kind: inject-channel

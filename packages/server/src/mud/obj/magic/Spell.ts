@@ -23,7 +23,7 @@
 
 import { Idea } from '../../lib/stuff/Idea';
 import { TemplatePathPrefixes } from '../../lib/paths';
-import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
+import type { CastingProfile } from '../../lib/magic/CastingProfile';
 import type { Effect, EffectFamily } from '../../lib/magic/Effect';
 import type { MagicNoun, MagicVerb } from '../../lib/magic/Grid';
 import type { FieldMeta } from '../../lib/mixin';
@@ -51,12 +51,15 @@ export interface SpellDescriptor {
   name: string;
   verb: MagicVerb;
   noun: MagicNoun;
-  /** The band both axes must reach (competence IS access). */
-  requiredBand: CompetenceBandName;
-  /** Mana cost, absolute pt. */
+  /**
+   * The **caster-assuming** half — competence gate + shaping time. An
+   * item path reads `cost`, `targeting`, `effects` and `durationSeconds`
+   * and **ignores this whole object**, rather than silently ignoring two
+   * fields that happened not to apply. See requirements D3.
+   */
+  castingProfile: CastingProfile;
+  /** Energy required, absolute pt. Trigger-neutral — an item pays it too. */
   cost: number;
-  /** Cast time, game-seconds. */
-  castSeconds: number;
   targeting: SpellTargeting;
   effects: Effect[];
   family: EffectFamily;
@@ -77,12 +80,13 @@ export default class Spell extends Idea {
   public verb: string = '';
   /** The grid noun axis (an advancement Discipline `magic-<noun>`). */
   public noun: string = '';
-  /** The band gate on both axes. */
-  public requiredBand: string = 'novice';
-  /** Mana cost (absolute pt; the `magic.costDefault` dial when 0). */
+  /**
+   * The caster-assuming half — `{requiredBand, castSeconds}`. An item
+   * trigger ignores it wholesale (D3). Plain scalars → persists free.
+   */
+  public castingProfile: Record<string, unknown> = {};
+  /** Energy required (absolute pt; the `magic.costDefault` dial when 0). */
   public cost: number = 0;
-  /** Cast time (game-seconds; the `magic.castSecondsDefault` dial when 0). */
-  public castSeconds: number = 0;
   /** Targeting mode. */
   public targeting: string = 'none';
   /** The declarative effect list (validated by the catalogue on warm). */
@@ -97,9 +101,8 @@ export default class Spell extends Idea {
     name: { persistent: true },
     verb: { persistent: true },
     noun: { persistent: true },
-    requiredBand: { persistent: true },
+    castingProfile: { persistent: true },
     cost: { persistent: true },
-    castSeconds: { persistent: true },
     targeting: { persistent: true },
     effects: { persistent: true },
     durationSeconds: { persistent: true },

@@ -16,6 +16,7 @@ import Spell from "../magic/Spell";
 import { MagicEffects } from "../../lib/magic/Effect";
 import { MagicGrid } from "../../lib/magic/Grid";
 import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
+import { CastingProfiles } from "../../lib/magic/CastingProfile";
 import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
 
@@ -58,9 +59,8 @@ describe("SpellCatalogue — warm + lookup", () => {
         name: "Test Bolt",
         verb: "create",
         noun: "fire",
-        requiredBand: "novice",
         cost: 20,
-        castSeconds: 3,
+        castingProfile: { requiredBand: "novice", castSeconds: 3 },
         targeting: "any",
         effects: [{ kind: "inject-channel", channel: "heat", energy: 2 }],
       },
@@ -149,8 +149,14 @@ describe("the authored roster seeds", () => {
       // the two axes must be seeded Disciplines (the cast credits both)
       expect(disciplineKeys.has(`magic-${data.verb}`), `${id} verb leaf`).toBe(true);
       expect(disciplineKeys.has(`magic-${data.noun}`), `${id} noun leaf`).toBe(true);
+      // The caster-assuming half lives on its own object (D3) — an item
+      // trigger ignores the whole thing rather than two loose fields.
+      expect(() => CastingProfiles.validate(data.castingProfile), `${id} profile`)
+        .not.toThrow();
       expect(
-        CompetenceBand.isBand(data.requiredBand),
+        CompetenceBand.isBand(
+          CastingProfiles.validate(data.castingProfile).requiredBand,
+        ),
         `${id} bad requiredBand`,
       ).toBe(true);
       const effects = data.effects as unknown[];

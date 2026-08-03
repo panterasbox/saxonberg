@@ -143,6 +143,7 @@ import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
+import type { Arcane } from '../lib/magic/Arcane';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
@@ -1187,6 +1188,16 @@ export class MixinApi {
    */
   public static isCaster(obj: Stuff): obj is Stuff & Caster {
     return this.isActive(obj, Mixins.Caster);
+  }
+
+  /**
+   * A thing that **produces magic-tagged effects** and can name its grid
+   * footprint — every magic item today, traps and NPC powers later.
+   * Composition, not activation: a depleted wand is still arcane (its
+   * ward interaction and its rarity do not depend on its charge).
+   */
+  public static isArcane(obj: Stuff): obj is Stuff & Arcane {
+    return this.hasMixin(obj, Mixins.Arcane);
   }
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {

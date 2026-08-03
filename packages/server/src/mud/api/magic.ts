@@ -90,6 +90,32 @@ export class MagicApi {
   }
 
   /**
+   * **The item trigger** — fire the working bound into `item` at an
+   * optional `target`, through the same executors a cast runs.
+   *
+   * The one entry point every item class uses: a wand's `zap`, a
+   * scroll's `read`, a quaffed potion. What differs between the classes
+   * is *who pays and what happens to the item afterwards* — and that is
+   * the caller's business, not this method's. `discharge` fires; the
+   * capability mixin that called it has already spent the charge,
+   * drained the reader's reserve, or consumed the flask.
+   *
+   * It runs **no band gate and no cast time** (an item ignores the
+   * spell's casting profile wholesale — requirements D3), and it
+   * **credits no Transcript** (firing a wand teaches nothing; competence
+   * derives from deeds). Potency comes from the item's maker-fixed
+   * delivery efficiency rather than the user's competence, which is why
+   * a novice with a master's wand outperforms that novice casting.
+   *
+   * **The actor is derived from the execution context**, never passed —
+   * the `ProvenanceApi.recordAuthoring` precedent. The effect context of
+   * D1 is internal plumbing beneath this gate.
+   */
+  public static discharge(item: Stuff, target?: Stuff): Promise<CastOutcome> {
+    return logic().discharge(item, target);
+  }
+
+  /**
    * The `spells` self-view model — the roster with per-cell band status
    * plus the faculty view. **Bands and prose only, never numbers.**
    */

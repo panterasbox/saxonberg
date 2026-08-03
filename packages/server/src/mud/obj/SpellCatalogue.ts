@@ -30,8 +30,8 @@ import Spell, {
 } from './magic/Spell';
 import { MagicEffects, type Effect } from '../lib/magic/Effect';
 import { MagicGrid } from '../lib/magic/Grid';
-import { CompetenceBand } from '../lib/advancement/CompetenceBand';
-import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
+import { CastingProfiles } from '../lib/magic/CastingProfile';
+import type { CastingProfile } from '../lib/magic/CastingProfile';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
@@ -125,11 +125,15 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
   ).includes(d.targeting as string)
     ? (d.targeting as SpellTargeting)
     : 'none';
-  const requiredBand: CompetenceBandName = CompetenceBand.isBand(
-    d.requiredBand,
-  )
-    ? d.requiredBand
-    : 'novice';
+  // The caster-assuming half, validated as a unit (D3). A malformed
+  // profile drops the spell exactly as a malformed effect does — the
+  // seeds test is what catches it at authoring time.
+  let castingProfile: CastingProfile;
+  try {
+    castingProfile = CastingProfiles.validate(d.castingProfile);
+  } catch {
+    return null;
+  }
   if (!Array.isArray(d.effects) || d.effects.length === 0) return null;
   let effects: Effect[];
   try {
@@ -146,9 +150,8 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
       typeof d.name === 'string' && d.name.length > 0 ? d.name : d.spellId,
     verb: d.verb,
     noun: d.noun,
-    requiredBand,
+    castingProfile,
     cost: numberOr(d.cost, 0),
-    castSeconds: numberOr(d.castSeconds, 0),
     targeting,
     effects,
     family,

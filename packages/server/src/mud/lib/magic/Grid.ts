@@ -63,19 +63,37 @@ export const FRONTIER_NOUNS = ['time', 'spirit'] as const;
 
 /**
  * The pervasive provenance tag — everything magic produces is stamped
- * with the full grid address plus the caster, so magic is governable
- * *as a class*: anti-magic zones, detect, dispel, and attribution all
- * read this one mark. Rich, not a boolean — the address enables
- * grid-filtered gates ("no ·fire magic here") at no extra cost.
- * `caster` is the durable templatePath (the accountability/renown
- * keying precedent), never a live ref.
+ * with the full grid address plus **two** durable ids, so magic is
+ * governable *as a class*: anti-magic zones, detect, dispel, and
+ * attribution all read this one mark. Rich, not a boolean — the address
+ * enables grid-filtered gates ("no ·fire magic here") at no extra cost.
+ *
+ * **Why two ids.** A single `caster` field was unambiguous only while
+ * the person who *specified* an effect and the person who *fired* it
+ * were the same object. A wand pulls them apart: the maker specified it
+ * at manufacture, the user fired it just now. Dispel and arcane-sight
+ * key off the tag; accountability keys off who acted; and *who made
+ * this wand* is the item economy's whole quality signal. So the tag
+ * carries both, and neither field is a rename of the other — see
+ * requirements D2.
+ *
+ * Both are durable `templatePath`s (the accountability/renown keying
+ * precedent), never live refs. Plain scalars → persists free.
  */
 export interface MagicProvenance {
   readonly verb: MagicVerb;
   readonly noun: MagicNoun;
   readonly spellId: string;
-  /** The caster's templatePath (durable id). */
-  readonly caster: string;
+  /**
+   * Who **specified** the working — the caster for a cast, the item's
+   * maker for an item discharge. The readable quality signal.
+   */
+  readonly specifiedBy: string;
+  /**
+   * Who **fired** it — the caster for a cast, the *user* for an item
+   * discharge. What accountability names as the actor.
+   */
+  readonly firedBy: string;
 }
 
 /** Thin static holder — predicates + key derivation (the `Channels` shape). */
@@ -107,5 +125,32 @@ export class MagicGrid {
   /** The two-word cell address (`create·fire`) — display/logging form. */
   public static cellKey(verb: MagicVerb, noun: MagicNoun): string {
     return `${verb}·${noun}`;
+  }
+
+  /**
+   * **The hydrate normalizer.** The provenance tag is persisted state —
+   * it rides `Trauma.magicOrigin`, `AfflictionRecord.magicOrigin` and
+   * `SustainedEffect.magicOrigin` through `holder_snapshots`, so rows
+   * written before the D2 split carry a single `caster` field.
+   *
+   * A legacy row reads as **both** ids: before items existed, the
+   * specifier and the firer genuinely were the same object, so that is
+   * the honest reading and not a guess. Deliberately **not** a live
+   * `caster` alias — keeping one would recreate exactly the ambiguity
+   * D2 exists to kill.
+   *
+   * Returns `undefined` for anything that isn't a recognizable tag, so a
+   * corrupt blob drops the mark rather than poisoning a dispel scan.
+   */
+  public static normalizeProvenance(raw: unknown): MagicProvenance | undefined {
+    if (raw == null || typeof raw !== 'object') return undefined;
+    const p = raw as Record<string, unknown>;
+    if (!MagicGrid.isVerb(p.verb) || !MagicGrid.isNoun(p.noun)) return undefined;
+    const spellId = typeof p.spellId === 'string' ? p.spellId : '';
+    const legacy = typeof p.caster === 'string' ? p.caster : '';
+    const specifiedBy =
+      typeof p.specifiedBy === 'string' ? p.specifiedBy : legacy;
+    const firedBy = typeof p.firedBy === 'string' ? p.firedBy : legacy;
+    return { verb: p.verb, noun: p.noun, spellId, specifiedBy, firedBy };
   }
 }

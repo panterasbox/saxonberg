@@ -10,9 +10,10 @@ data:
   name: Firebolt
   verb: create
   noun: fire
-  requiredBand: novice
   cost: 20
-  castSeconds: 3
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
   targeting: any
   effects:
     - kind: inject-channel

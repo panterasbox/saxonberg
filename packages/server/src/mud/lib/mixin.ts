@@ -319,6 +319,12 @@ export const Mixins = {
   // Character, gated: active only when the Species intrinsically confers
   // it (innateMixins) or an augment does. See docs/subsystems/magic.md.
   Caster: 'CasterMixin',
+  // Arcane — "I produce magic-tagged effects, and here is my grid
+  // footprint". The one shared declaration suppression, dispel, rarity
+  // and the census all read. Sits BELOW distribution (Circulating reads
+  // it, never declares it) and is named for the property, not the object
+  // kind, so traps and NPC powers can wear it later. See D35.
+  Arcane: 'ArcaneMixin',
 } as const;
 
 /**
