@@ -1,7 +1,7 @@
 # Leather — tanned hide. A tough, flexible worked-organic sheet: soft
 # (low hardness — an edge bites it) but tough for its softness (it
 # spreads and absorbs a blow). The material a hide jerkin is cut from.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: leather

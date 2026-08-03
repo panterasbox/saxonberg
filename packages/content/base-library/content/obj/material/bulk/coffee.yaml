@@ -3,7 +3,7 @@
 # into water + solubles (the water is presumed); it carries no
 # composition / chemistry depth. Warmth is description only — thermal is
 # a deferred capability, so there is no temperature here.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: coffee

@@ -1,7 +1,7 @@
 # A root vegetable — raw cooking stock (turnip, carrot, whatever the
 # pantry has). Edible raw in a pinch; its worth is what a pot makes of
 # it. The cooking branch's staple input, matched by the `vegetable` tag.
-class: /obj/ConsumableMaterial
+class: /obj/material/ConsumableMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: root vegetable

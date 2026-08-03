@@ -30,7 +30,7 @@ import {
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 
 const IDEA = "/lib/stuff/Idea";
-const DANGEROUS = "/lib/location/CartesianLocation"; // any leaf w/ a class
+const DANGEROUS = "/obj/location/Room"; // any leaf w/ a class
 const HOST_PATH = "/domain/gallery/room";
 const TARGET_PATH = "/domain/gallery/trap";
 const ALICE = "/obj/Avatar/alice";

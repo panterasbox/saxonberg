@@ -7,7 +7,7 @@
 # (`/obj/material/compound/cellulose`, `.../lignin`); the `wood` and
 # `mixture` tags carry the gist meanwhile. `biologicalSource` is null
 # until an oak-tree species template is authored.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: oak

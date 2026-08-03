@@ -658,8 +658,10 @@ registry keys on class identity, not name).
 **Placement within `obj/`:** flat at `obj/<Name>.ts` by default. A
 `obj/<cluster>/` directory only where 3+ cohesive classes land together
 — today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
-`corpo/`, `persistence/`, `sandbox/`, plus the pre-existing
-`instrument/`. Lowercase content-tree roots under `/obj/` (`gear/`,
+`corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
+`instrument/`. `material/` is the one cluster that is load-bearing rather
+than cosmetic: `MaterialLogic.boot` keeps a row only when
+`tpl.class.startsWith('/obj/material/')`, so the directory IS the filter. Lowercase content-tree roots under `/obj/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing
 classes live elsewhere — that is fine and pre-existing.
 

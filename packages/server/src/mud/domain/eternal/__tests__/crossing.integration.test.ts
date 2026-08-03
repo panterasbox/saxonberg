@@ -141,7 +141,7 @@ function docs(): Doc[] {
     stub("/domain/terminus/terminal/office"),
     // The registry annex off the arrival gate's east frontage (civics).
     stub("/domain/terminus/registry/office"),
-    stub("/domain/terminus/terminal/departure-terminal-c", "/lib/stuff/Thing"),
+    stub("/domain/terminus/terminal/departure-terminal-c", "/obj/Prop"),
   ];
   return [...real, ...stubs];
 }

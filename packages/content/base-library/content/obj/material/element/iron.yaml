@@ -1,7 +1,7 @@
 # Iron — Fe, atomic number 26. Workhorse metal: dense, hard,
 # ferromagnetic, mediocre fire behavior at room temp. Standard
 # slash/blunt resistance baseline for weapon-grade materials.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: iron

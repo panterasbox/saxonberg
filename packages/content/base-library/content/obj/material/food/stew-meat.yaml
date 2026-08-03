@@ -1,7 +1,7 @@
 # Stew meat — butcher's cuts for the pot. Edible (you could choke it
 # down raw) but meant to be cooked; the cooking branch's protein input,
 # matched by the `meat` tag.
-class: /obj/ConsumableMaterial
+class: /obj/material/ConsumableMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: stew meat

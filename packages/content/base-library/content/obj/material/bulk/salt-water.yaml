@@ -1,7 +1,7 @@
 # Salt water — seawater / brine. The dissolved ions make it a far better
 # conductor than fresh water (~5 S/m, ~500×), the cheap teachable for why
 # the flooded cell is lethal. Otherwise a flat bulk Material like water.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: salt water

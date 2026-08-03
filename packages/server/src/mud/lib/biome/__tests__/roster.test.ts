@@ -78,7 +78,7 @@ describe('Biome roster — slim demonstrative inventory', () => {
 
   it('universe is the inheritance root with all five defaults and no parent', () => {
     const seed = loadSeed('universe.yaml');
-    expect(seed.class).toBe('/obj/biome/Biome');
+    expect(seed.class).toBe('/obj/Biome');
     const d = seed.data ?? {};
     expect(d._extendsBiomePath).toBeUndefined();
     expect(d._defaultTemperature).toBeDefined();
@@ -102,13 +102,13 @@ describe('Biome roster — slim demonstrative inventory', () => {
 
   it('indoor/baseline is plain Biome and extends universe', () => {
     const seed = loadSeed('indoor/baseline.yaml');
-    expect(seed.class).toBe('/obj/biome/Biome');
+    expect(seed.class).toBe('/obj/Biome');
     expect(seed.data?._extendsBiomePath).toBe('/obj/biome/universe');
   });
 
   it('indoor/cafeteria extends indoor/baseline', () => {
     const seed = loadSeed('indoor/cafeteria.yaml');
-    expect(seed.class).toBe('/obj/biome/Biome');
+    expect(seed.class).toBe('/obj/Biome');
     expect(seed.data?._extendsBiomePath).toBe('/obj/biome/indoor/baseline');
   });
 

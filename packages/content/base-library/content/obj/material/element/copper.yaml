@@ -1,7 +1,7 @@
 # Copper — Cu, atomic number 29. Soft red metal. Excellent thermal
 # and electrical conductor (the standard for wiring); essentially
 # non-magnetic.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: copper

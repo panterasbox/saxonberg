@@ -20,8 +20,8 @@ describe("MaterialApi.boot — the roster warm", () => {
   it("stands up Material rows and skips the FolderZone folders", async () => {
     vi.spyOn(Template, "findDescendants").mockResolvedValue([
       { path: "/obj/material/wood", class: "/obj/FolderZone" },
-      { path: "/obj/material/wood/oak", class: "/obj/Material" },
-      { path: "/obj/material/element/uranium", class: "/obj/RadioactiveMaterial" },
+      { path: "/obj/material/wood/oak", class: "/obj/material/Material" },
+      { path: "/obj/material/element/uranium", class: "/obj/material/RadioactiveMaterial" },
     ] as unknown as Template[]);
     const stood: string[] = [];
     vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {
@@ -39,8 +39,8 @@ describe("MaterialApi.boot — the roster warm", () => {
 
   it("tolerates a single failed standup and continues (the preloadAnatomy shape)", async () => {
     vi.spyOn(Template, "findDescendants").mockResolvedValue([
-      { path: "/obj/material/bad", class: "/obj/Material" },
-      { path: "/obj/material/good", class: "/obj/Material" },
+      { path: "/obj/material/bad", class: "/obj/material/Material" },
+      { path: "/obj/material/good", class: "/obj/material/Material" },
     ] as unknown as Template[]);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {

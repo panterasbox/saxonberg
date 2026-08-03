@@ -1,5 +1,5 @@
 # Dry vermouth — a fortified-wine input. Category tag `vermouth`.
-class: /obj/ConsumableMaterial
+class: /obj/material/ConsumableMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: dry vermouth

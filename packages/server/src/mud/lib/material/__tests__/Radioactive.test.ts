@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { RadioactiveMaterial } from '../../../obj/RadioactiveMaterial';
+import { RadioactiveMaterial } from '../../../obj/material/RadioactiveMaterial';
 import Material from '../Material';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';

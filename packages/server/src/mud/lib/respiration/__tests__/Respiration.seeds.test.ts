@@ -60,7 +60,7 @@ describe('respiration seeds — new content shapes hydrate', () => {
 
   it('asphyxiation condition seed hydrates', async () => {
     const data = seedData(
-      '../../../seeds/obj/respiration/conditions/asphyxiation.yaml',
+      '../../../seeds/obj/Condition/respiration/asphyxiation.yaml',
     );
     const cond = makeStuff(() => new Condition());
     await hydrator().hydrate(cond, data);

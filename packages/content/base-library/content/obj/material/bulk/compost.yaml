@@ -9,7 +9,7 @@
 # chemistry with more than one axis is farming's later business; one
 # limiting nutrient is enough to make an unfed bed yield worse, which is
 # the whole lesson phase 2 is after.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: compost

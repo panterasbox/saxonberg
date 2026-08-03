@@ -7,7 +7,7 @@
 # adding `/obj/material/mineral/quartz`, `.../feldspar`, `.../mica` and
 # populating composition entries here. The `igneous` tag carries the
 # rock-cycle classification meanwhile.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: granite

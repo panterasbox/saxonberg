@@ -14,6 +14,6 @@
  * See docs/plans/lib-obj-taxonomy-plan.md §2.2.
  */
 
-import MaterialBase from '../lib/material/Material';
+import MaterialBase from '../../lib/material/Material';
 
 export default class Material extends MaterialBase {}

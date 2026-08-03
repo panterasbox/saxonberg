@@ -1,6 +1,6 @@
 # House gin — a spirit input. Category tag `gin` is what a recipe input
 # slot matches; the brand is generic/unbranded (corpo marks are deferred).
-class: /obj/ConsumableMaterial
+class: /obj/material/ConsumableMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: house gin

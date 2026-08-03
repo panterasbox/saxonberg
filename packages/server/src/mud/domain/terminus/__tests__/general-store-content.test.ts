@@ -45,7 +45,7 @@ describe("general-store content integrity", () => {
     expect(zone.class).toBe("/obj/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
-    expect(room.class).toBe("/lib/location/CartesianLocation");
+    expect(room.class).toBe("/obj/location/Room");
     expect(room.data?.populates).toEqual([
       "/domain/terminus/general-store/counter",
       "/domain/terminus/general-store/consignment-shelf",
@@ -60,8 +60,8 @@ describe("general-store content integrity", () => {
     expect(load(STORE_DIR, "business.yaml").class).toBe(
       "/obj/Business",
     );
-    expect(load(STORE_DIR, "npc/clerk.yaml").class).toBe("/lib/npc/NPC");
-    expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/lib/npc/NPC");
+    expect(load(STORE_DIR, "npc/clerk.yaml").class).toBe("/obj/NPC");
+    expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/obj/NPC");
   });
 
   // The real, discrete item classes the store sells — each extends `Thing`
@@ -69,7 +69,7 @@ describe("general-store content integrity", () => {
   // class would fail the allowlist; the runtime `!isGlobbable` proof lives in
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
-    "/lib/stuff/Thing",
+    "/obj/Prop",
     "/obj/equipment/PortableLight",
     "/obj/equipment/Weapon",
     "/obj/Receptacle",
@@ -122,7 +122,7 @@ describe("general-store content integrity", () => {
   it("the goods are backed by real systems (not decorative props)", () => {
     // The rations are genuinely edible — their material is a food material.
     const rations = load(STORE_DIR, "goods/rations.yaml");
-    expect(rations.class).toBe("/lib/stuff/Thing");
+    expect(rations.class).toBe("/obj/Prop");
     expect(String(rations.data?._materialPath)).toMatch(/^\/obj\/material\/food\//);
     // The lights actually emit (authored flux + warmth), start unlit.
     for (const f of ["torch", "lantern"]) {

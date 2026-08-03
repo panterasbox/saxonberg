@@ -142,8 +142,8 @@ describe("FurnishableRoom", () => {
     };
     walk(root);
     expect(hits.sort()).toEqual([
-      "lib/location/FurnishableRoom.ts",
-      "lib/location/__tests__/FurnishableRoom.test.ts",
+      "obj/location/FurnishableRoom.ts",
+      "obj/location/__tests__/FurnishableRoom.test.ts",
     ]);
   });
 

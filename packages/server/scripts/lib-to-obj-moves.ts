@@ -105,6 +105,14 @@ const FILE_MOVES: ReadonlyArray<readonly [string, string]> = [
   ['/lib/persistence/PersistentHydrator', '/obj/persistence/PersistentHydrator'],
   ['/lib/persistence/QuantityMarshaller', '/obj/persistence/QuantityMarshaller'],
 
+  // — obj/material/ —
+  // A cluster because MaterialLogic.boot FILTERS on it: it keeps a
+  // template row only when `tpl.class.startsWith('/obj/material/')`.
+  // Flat placement broke that filter, so the directory is load-bearing
+  // rather than cosmetic.
+  ['/lib/material/ConsumableMaterial', '/obj/material/ConsumableMaterial'],
+  ['/lib/material/RadioactiveMaterial', '/obj/material/RadioactiveMaterial'],
+
   // — obj/sandbox/ —
   ['/lib/sandbox/CircleFloor', '/obj/sandbox/CircleFloor'],
   ['/lib/sandbox/SandboxCrossing', '/obj/sandbox/SandboxCrossing'],
@@ -140,8 +148,7 @@ const FILE_MOVES: ReadonlyArray<readonly [string, string]> = [
   ['/lib/identification/IdentifyScroll', '/obj/IdentifyScroll'],
   ['/lib/lock/Key', '/obj/Key'],
   ['/lib/locomotion/LocomotionMode', '/obj/LocomotionMode'],
-  ['/lib/material/ConsumableMaterial', '/obj/ConsumableMaterial'],
-  ['/lib/material/RadioactiveMaterial', '/obj/RadioactiveMaterial'],
+
   ['/lib/messaging/Topic', '/obj/Topic'],
   ['/lib/mortality/Shade', '/obj/Shade'],
   ['/lib/party/Mercenary', '/obj/Mercenary'],
@@ -166,7 +173,7 @@ const CLASSREF_MOVES: ReadonlyArray<readonly [string, string, string]> = [
   ['/lib/npc/NPC', '/obj/NPC', '8 cast templates'],
   ['/lib/stuff/Vessel', '/obj/Vessel', 'bag-of-holding'],
   ['/lib/boundary/Exit', '/obj/Exit', 'archway, stair'],
-  ['/lib/material/Material', '/obj/Material', '24 pack materials'],
+  ['/lib/material/Material', '/obj/material/Material', '24 pack materials'],
   ['/lib/biome/Biome', '/obj/Biome', '3 pack biomes'],
   ['/lib/creature/Creature', '/obj/Corpse', 'the corpse is a game object, not a generic creature'],
 ];

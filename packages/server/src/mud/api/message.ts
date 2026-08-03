@@ -71,7 +71,7 @@ export interface MessageBroadcastOptions {
  * Topic strings are emitted as **dotted-path string literals** at
  * call sites (e.g., `.topic('world.speech.say')`). The authored
  * source of truth for the topic vocabulary lives on per-topic YAML
- * leaf Ideas under `seeds/obj/messaging/Topic/` (loaded into the
+ * leaf Ideas under `seeds/obj/Topic/` (loaded into the
  * `TopicCatalogue` singleton at boot — see
  * `docs/subsystems/topics.md`). Keeping a parallel `TOPICS` constant
  * tree in code led to the same data living in two places; the tree

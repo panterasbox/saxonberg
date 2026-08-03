@@ -11,7 +11,7 @@
 # materials whose nuclei genuinely undergo spontaneous decay use
 # `class: /obj/material/RadioactiveMaterial`. Plain elements stay on
 # `class: /obj/material/Material`.
-class: /obj/RadioactiveMaterial
+class: /obj/material/RadioactiveMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: uranium

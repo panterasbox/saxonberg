@@ -20,7 +20,7 @@ import { DISCIPLINE_CHANNELS } from "../../../obj/Discipline";
 const __filename = fileURLToPath(import.meta.url);
 const SEEDS_DIR = join(
   dirname(__filename),
-  "../../../seeds/obj/advancement/Discipline"
+  "../../../seeds/obj/Discipline"
 );
 const CMD_DIR = join(dirname(__filename), "../../../cmd");
 

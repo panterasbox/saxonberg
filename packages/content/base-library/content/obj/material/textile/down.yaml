@@ -1,6 +1,6 @@
 # Down — the loft fill of a parka. The lowest-conductivity common
 # insulator (near still air): a thin down layer authors a high `clo`.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: down

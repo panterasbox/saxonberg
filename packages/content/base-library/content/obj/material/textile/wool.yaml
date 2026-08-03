@@ -1,7 +1,7 @@
 # Wool — animal-fibre textile. Low conductivity (it traps air): the
 # insulating cloth a warm garment is woven from. Its low
 # thermalConductivity is why a wool layer authors meaningful `clo`.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: wool

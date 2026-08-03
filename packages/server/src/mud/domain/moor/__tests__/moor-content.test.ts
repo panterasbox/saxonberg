@@ -34,7 +34,7 @@ describe('The Weeping Moor — content integrity', () => {
   });
 
   it('the Locality carries an alive storm pin over the `moor` prefix', () => {
-    const loc = seed('lib/address/moor');
+    const loc = seed('obj/Locality/moor');
     expect(loc.class).toBe('/obj/Locality');
     expect(loc.data?._address).toBe('moor');
     expect(loc.data?._weatherPin).toEqual({ type: 'storm', mode: 'alive' });
@@ -42,7 +42,7 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the stormy heath is a SkyExposed CartesianLocation under `moor`', () => {
     const heath = seed('domain/moor/stormy-heath');
-    expect(heath.class).toBe('/lib/location/CartesianLocation');
+    expect(heath.class).toBe('/obj/location/Room');
     expect(heath.data?._biomePath).toBe('/obj/biome/outdoor/baseline');
     expect(heath.data?.address).toBe('moor/heath');
     expect(templateExists('/obj/biome/outdoor/baseline')).toBe(true);
@@ -53,7 +53,7 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the weeping chamber is an indoor scope-pinned rain room', () => {
     const chamber = seed('domain/moor/weeping-chamber');
-    expect(chamber.class).toBe('/lib/location/CartesianLocation');
+    expect(chamber.class).toBe('/obj/location/Room');
     expect(chamber.data?._biomePath).toBe('/obj/biome/indoor/baseline');
     expect(chamber.data?._weatherPin).toEqual({ type: 'rain', mode: 'frozen' });
     expect(chamber.data?._humidity).toBe(98); // authored sodden air

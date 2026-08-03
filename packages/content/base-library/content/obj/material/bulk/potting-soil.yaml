@@ -7,7 +7,7 @@
 # no N/P/K, no pH, no tilth, no organic matter. The six-reserve soil that
 # makes quality mean something is farming's (phase 2/4). What the growth
 # model reads is only how many litres of it a pot holds: the root ceiling.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: potting soil

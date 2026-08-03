@@ -4,7 +4,7 @@
 # the values here are mid-range. Allotrope-specific carbon
 # (`/obj/material/element/carbon-graphite`, `.../carbon-diamond`) is a
 # content extension when content needs the distinction.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: carbon

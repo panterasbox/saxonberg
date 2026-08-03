@@ -30,7 +30,7 @@ import { dirname, join, relative } from 'path';
 import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
-const SEEDS_DIR = join(dirname(__filename), '../../../seeds/obj/address');
+const SEEDS_DIR = join(dirname(__filename), '../../../seeds/obj/Locality');
 
 interface AddressSeed {
   class: string;
@@ -59,7 +59,7 @@ function listYamlsRelative(dir: string): string[] {
 describe('Address roster — slim demonstrative inventory', () => {
   it('the /obj/Locality folder template is a FolderZone', () => {
     const seed = YAML.parse(
-      readFileSync(join(SEEDS_DIR, '../address.yaml'), 'utf-8'),
+      readFileSync(join(SEEDS_DIR, '../Locality.yaml'), 'utf-8'),
     ) as AddressSeed;
     expect(seed.class).toBe('/obj/FolderZone');
   });

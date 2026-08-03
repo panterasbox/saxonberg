@@ -2,7 +2,7 @@
 # the standard for swords/armor. v1 ships a generic carbon steel
 # (~0.2% carbon by weight); higher-carbon steels and alloy steels
 # (stainless, tool steel, …) are content extensions.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: steel

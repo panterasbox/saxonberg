@@ -3,7 +3,7 @@
 # breastplate turns an edge less surely than a steel one (same
 # construction, lower material height) — the materials-response
 # "steel plate > bronze plate" contrast.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: bronze

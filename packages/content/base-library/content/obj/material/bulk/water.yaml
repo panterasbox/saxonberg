@@ -3,7 +3,7 @@
 # as the bulk substrate reads (appearance + keywords). Real formula /
 # molar mass are a capacity, not a mandate — left unset until a consumer
 # (chemistry, electrolysis) actually needs them.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: water

@@ -4,7 +4,7 @@
 # blend's actual identity + toxins ride the holder's per-instance
 # BulkPayload (macros in = macros out) — per-cocktail material rows are
 # the retired anti-pattern (the fixed-vocabulary rule).
-class: /obj/ConsumableMaterial
+class: /obj/material/ConsumableMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: mixed drink

@@ -3,7 +3,7 @@
 # real Quantity fields, authored bare + marshalled. (The combat
 # material-response — `resistance.<type>` — is deferred until the
 # mechanism-of-injury system lands and can model it honestly.)
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: bone

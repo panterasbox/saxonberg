@@ -5,7 +5,7 @@
 # pending compound templates; species-specific flesh
 # (`Homo sapiens`-flesh, frog-flesh, …) is a content extension that
 # populates `biologicalSource`.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: flesh

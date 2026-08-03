@@ -212,7 +212,7 @@ describe('AssessController — the affliction readout', () => {
 
     await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
     expect(captured.toLowerCase()).toContain('recovering');
-    expect(captured).not.toContain('/lib/mortality');
+    expect(captured).not.toContain('/obj/Condition/mortality');
     expect(captured).toContain('No visible wounds.');
   });
 

@@ -2,7 +2,7 @@
 # sole or glove breaks the path to ground, so a body standing on it (or
 # shod in it) takes no current even in a live pool — the counterplay the
 # electricity model teaches. Conductivity ~1×10⁻¹³ S/m.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: rubber

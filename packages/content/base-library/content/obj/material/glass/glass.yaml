@@ -1,7 +1,7 @@
 # Glass — amorphous silica solid. The inner vessel wall of a vacuum
 # flask; low conductivity, moderate heat capacity. A real, tabulated
 # material consumed by the Thermal capability (the thermos wall term).
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: glass

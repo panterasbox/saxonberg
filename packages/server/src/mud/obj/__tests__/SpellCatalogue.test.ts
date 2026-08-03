@@ -23,7 +23,7 @@ const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(dirname(__filename), "../../seeds/obj/magic/Spell");
 const DISCIPLINE_SEEDS_DIR = join(
   dirname(__filename),
-  "../../seeds/obj/advancement/Discipline",
+  "../../seeds/obj/Discipline",
 );
 
 type Loose = Record<string, unknown>;

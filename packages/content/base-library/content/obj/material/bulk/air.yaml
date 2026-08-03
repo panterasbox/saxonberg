@@ -3,7 +3,7 @@
 # the interior bulk of an air tank is this material, and the respiration
 # driver taps a worn tank whose interior material name is in the body's
 # breathable set (`air`). Not breathable-as-food; a gas.
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: air

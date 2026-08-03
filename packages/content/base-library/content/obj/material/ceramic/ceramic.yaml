@@ -1,7 +1,7 @@
 # Ceramic — fired clay. The body of a mug; moderate conductivity and
 # heat capacity. A real, tabulated material consumed by the Thermal
 # capability (the open-mug wall term — cools faster than a sealed flask).
-class: /obj/Material
+class: /obj/material/Material
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: ceramic

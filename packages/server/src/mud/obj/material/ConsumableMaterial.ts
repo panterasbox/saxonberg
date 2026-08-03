@@ -20,6 +20,6 @@
  * vocabulary decision, not a content decision.
  */
 
-import Material from '../lib/material/Material';
+import Material from '../../lib/material/Material';
 
 export class ConsumableMaterial extends Material {}

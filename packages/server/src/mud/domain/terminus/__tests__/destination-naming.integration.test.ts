@@ -85,7 +85,7 @@ describe("destination naming + crossroads (real seeds)", () => {
       { path: "/obj/AddressRegistry", class: "/obj/AddressRegistry", data: {} },
       ...loadDir(join(SEEDS, "domain/terminus"), "domain/terminus"),
       ...loadDir(join(SEEDS, "domain/newbie-wilds"), "domain/newbie-wilds"),
-      ...loadDir(join(SEEDS, "lib/address"), "lib/address"),
+      ...loadDir(join(SEEDS, "obj/Locality"), "obj/Locality"),
       ...STUBS,
     ];
     installStore(docs);

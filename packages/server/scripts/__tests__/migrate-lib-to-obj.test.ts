@@ -192,7 +192,7 @@ describe('migrate-lib-to-obj', () => {
     });
 
     it('reports a path embedded in prose but never rewrites it', () => {
-      const prose = 'see /obj/Topic/world.narration for the routing';
+      const prose = 'see /lib/messaging/Topic/world.narration for the routing';
       const plan = planCollection('documents', [{ _id: 'x', body: prose }]);
       expect(plan.changes).toHaveLength(0);
       expect(plan.substrings.some((s) => s.includes('/lib/messaging/Topic'))).toBe(true);
@@ -209,7 +209,7 @@ describe('migrate-lib-to-obj', () => {
     it('records every touched location for the dry-run report', () => {
       const { touched } = rewriteDeep({
         class: '/lib/messaging/Topic',
-        nested: { deep: ['/obj/Key'] },
+        nested: { deep: ['/lib/lock/Key'] },
       });
       expect(touched.length).toBe(2);
     });

@@ -151,7 +151,7 @@ describe('BootstrapManager.run', () => {
     ] as unknown as Template[]);
 
     await BootstrapManager.run([
-      { templatePathPrefix: '/lib/species' },
+      { templatePathPrefix: '/obj/species' },
     ]);
 
     // Depth-ascending: shorter paths first so kingdom singletons land
@@ -175,7 +175,7 @@ describe('BootstrapManager.run', () => {
     // `/obj/species/animalia` because it's already covered explicitly.
     await BootstrapManager.run([
       { templatePath: '/obj/species/animalia', awaitInit: async () => {} },
-      { templatePathPrefix: '/lib/species' },
+      { templatePathPrefix: '/obj/species' },
     ]);
 
     expect(calls).toEqual([
@@ -190,7 +190,7 @@ describe('BootstrapManager.run', () => {
       BootstrapManager.run([
         {
           templatePath: '/obj/species/animalia',
-          templatePathPrefix: '/lib/species',
+          templatePathPrefix: '/obj/species',
         },
       ])
     ).rejects.toThrow(/exactly one of/);
@@ -205,7 +205,7 @@ describe('BootstrapManager.run', () => {
     stubClone();
     await expect(
       BootstrapManager.run([
-        { templatePathPrefix: '/lib/species', dependsOn: ['/obj/A'] },
+        { templatePathPrefix: '/obj/species', dependsOn: ['/obj/A'] },
       ])
     ).rejects.toThrow(/cannot specify dependsOn/);
   });

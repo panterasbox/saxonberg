@@ -246,7 +246,7 @@ describe('TemplateApi.validateReservedPath', () => {
     await expect(
       TemplateApi.validateReservedPath({
         path: '/obj/api/material',
-        class: '/obj/Material',
+        class: '/obj/material/Material',
       })
     ).rejects.toThrow(TemplateError);
   });
