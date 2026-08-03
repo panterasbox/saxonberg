@@ -291,6 +291,17 @@ class Mml {
   static orderedList(items: Mml[]): Mml
   static li(body): Mml
 
+  // Long-form (the article dialect — see wiki.md)
+  static heading(level: 1|2|3, body, anchor?): Mml  // <h1..3 anchor="…">
+  static table(rows: Array<Array<string|Mml>>, header?): Mml
+  static spoiler(level: 0|1|2|3, body): Mml         // the APPETITE half only
+
+  // Tree access (the wiki render pipeline resolves over nodes)
+  static parseTree(body: string): readonly MmlNode[]
+  static serialize(nodes: readonly MmlNode[]): string
+  static isKnownTag(tag: string): boolean       // markup vs component
+  static componentCandidate(tag: string): boolean
+
   // Joining
   static list(items: Mml[], opts?: { style? }): Mml  // commas/and or block
 
@@ -319,6 +330,20 @@ richer fragment — a name composed as markup — e.g. the TPA terminal
 wrapping its name in `<color>` to tint by status. So a name is a
 composable fragment like everything else; `getPresentation` stays a
 plain string for non-prose consumers (logs, notes, MQL scalars).
+
+⚠ **`markdownToMml` has two dialects**, selected by an options bag:
+**chat** (the default — every hot-path caller, byte-identical to what it
+has always emitted) and **article** (`longForm: true` — headings with
+sticky anchors, indent-nested lists, pipe tables). An options bag rather
+than a fork, because a forked long-form parser would drift from the chat
+one silently. `api/__tests__/mml.corpus.test.ts` pins the chat path
+byte-for-byte; a diff there is a failure regardless of whether the new
+output reads better. See [wiki.md](./wiki.md).
+
+⚠ **`<spoiler>` is the APPETITE half only.** Content above a reader's
+*capability* is deleted server-side and never reaches a tag, so if one
+is being emitted the reader is already entitled to what is inside. The
+two axes are not the same axis; conflating them leaks.
 
 The new vocabulary (chat / messaging tags + emphasis subset) and the
 markdown pipeline are documented in detail in

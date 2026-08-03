@@ -51,7 +51,7 @@ context fails closed at runtime.
 | **PASS (mark)** | `chronicles`, `beliefs`, `authoring_events`, `accountability_events`, `diagnostics` | Identity-real; persists with the epistemic wire mark (`circleScope` recorded, never filtered). What happened to *you* stays yours; readers may lens the mark. |
 | **PASS (unmarked)** | `domain`, `documents`, `holder_snapshots` | Authored truth + the mechanism's own stores — the deliberate save is the product. |
 | **SHADOW (skip)** | `bank_accounts`, `bank_supply`, `renown`, `participation`, `producer` | Rebuildable caches: the terminal cache write silently no-ops from circle context; in-circle reads derive from events (banking: the per-scope overlay). Overlay mode is specified as the labeled attach point, not built — no collection needs it. |
-| **REFUSE** | everything else (identity/auth, title registries `parcels`/`chattel` + event chains, `contracts`, `positions`, `groups`/`channels`/`parties`/forums, `emotes`, `name_banks`, `recipes`, `bulletins`, `office_holders`, `app_settings`, `world_state`, `producer_events`, `blueprints`, `media_assets`) | Throws `SandboxWriteRefusedError`. Field-real state a sandbox session may not mutate. |
+| **REFUSE** | everything else (identity/auth, title registries `parcels`/`chattel` + event chains, `contracts`, `positions`, `groups`/`channels`/`parties`/forums, `emotes`, `name_banks`, `recipes`, `bulletins`, `office_holders`, `app_settings`, `world_state`, `producer_events`, `blueprints`, `media_assets`, `wiki`, `wiki_revisions`) | Throws `SandboxWriteRefusedError`. Field-real state a sandbox session may not mutate. |
 
 Audit notes that changed the provisional classification:
 
@@ -61,6 +61,13 @@ Audit notes that changed the provisional classification:
   unaffected: `CmsSession` resolves the acting avatar to the registered
   **field** body (a parked avatar keeps the registry slot), so CMS work
   stays field-scoped even mid-visit.
+- **`wiki` / `wiki_revisions` → REFUSE**: an article is not gameplay
+  state. A circle has no legitimate reason to write the field's
+  encyclopedia, and STAMP would be worse than useless here — a scoped
+  page that reverted on circle exit is a page an author watched
+  themselves write and then lose. Same reasoning as `blueprints`:
+  field-visible content, so it fails closed.
+
 - **`media_assets` → REFUSE** (was provisional PASS): sole writer is
   the offline `tools/illustrate.ts` CLI; no circle path should reach it.
 - **`contacts`** has no collection — mixin state; it travels as a

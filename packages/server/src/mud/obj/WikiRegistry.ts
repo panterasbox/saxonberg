@@ -50,6 +50,7 @@ import { StuffApi } from '../api/stuff';
 import { PlayerApi } from '../api/player';
 import { ExecutionContextApi } from '../api/execution-context';
 import { Group } from '../lib/social/Group';
+import { Template } from '../lib/stuff/Template';
 import { TemplatePaths } from '../lib/paths';
 import type { Stuff } from '../lib/stuff/Stuff';
 import WikiNamespaceZone from './WikiNamespaceZone';
@@ -194,6 +195,105 @@ export default class WikiRegistry extends WikiRegistryBase {
     rev: number,
   ): Promise<WikiRevision | null> {
     return WikiRevision.findRev(pageId, rev);
+  }
+
+  // ── Maintenance reports (the four that keep a wiki from rotting) ──
+
+  /**
+   * Pages linking to `handle` — "what links here".
+   *
+   * Derived from the link graph on every read rather than maintained
+   * as an index. Deliberate: an index would need invalidating on every
+   * edit, rename and delete, and a *stale backlink index* is worse
+   * than a slow one — it reports links that are not there, which is
+   * indistinguishable from a bug in the resolver. Recomputing is
+   * O(pages) over bodies the registry has anyway.
+   */
+  public async backlinks(handle: string): Promise<WikiPage[]> {
+    const want = handle.trim().toLowerCase();
+    const pages = await this.allPages();
+    const target = await this.resolve(want);
+    // Match through aliases too, so a rename does not orphan the
+    // backlinks pointing at the old name.
+    const names = new Set<string>([want]);
+    if (target) {
+      for (const n of target.page.getNames()) {
+        names.add(`${target.page.getNamespace()}:${n}`);
+      }
+    }
+    return pages.filter((p) =>
+      WikiPage.linkRefs(p.getBody(), p.getNamespace()).some((r) =>
+        names.has(r),
+      ),
+    );
+  }
+
+  /**
+   * **Wanted pages** — the redlinks, ranked by how many pages want
+   * them. The best authoring to-do list a wiki has: each entry is a
+   * reader who noticed a gap, counted.
+   */
+  public async wanted(): Promise<Array<{ ref: string; demand: number }>> {
+    const pages = await this.allPages();
+    const live = new Set<string>();
+    for (const p of pages) {
+      for (const n of p.getNames()) live.add(`${p.getNamespace()}:${n}`);
+    }
+    const demand = new Map<string, number>();
+    for (const p of pages) {
+      for (const ref of WikiPage.linkRefs(p.getBody(), p.getNamespace())) {
+        if (live.has(ref)) continue;
+        demand.set(ref, (demand.get(ref) ?? 0) + 1);
+      }
+    }
+    return [...demand.entries()]
+      .map(([ref, n]) => ({ ref, demand: n }))
+      .sort((a, b) => b.demand - a.demand || a.ref.localeCompare(b.ref));
+  }
+
+  /** Pages nothing links to. Not an error — just unreachable by browsing. */
+  public async orphans(): Promise<WikiPage[]> {
+    const pages = await this.allPages();
+    const linked = new Set<string>();
+    for (const p of pages) {
+      for (const ref of WikiPage.linkRefs(p.getBody(), p.getNamespace())) {
+        linked.add(ref);
+      }
+    }
+    return pages.filter(
+      (p) =>
+        !p.getNames().some((n) => linked.has(`${p.getNamespace()}:${n}`)),
+    );
+  }
+
+  /**
+   * ⚠ **Dangling subjects** — articles whose `subject` names a template
+   * that no longer exists.
+   *
+   * The CMS renames and deletes templates and the wiki points at
+   * paths, so this **will** happen. It is the wiki's own version of the
+   * shipped gate lint: without it a stale article quietly documents
+   * nothing, and the only symptom is a panel that says "no template
+   * here" to whoever happens to read that page.
+   *
+   * Only `template`-kind subjects are checked. A `mixin` or `command`
+   * reference is a compilation unit, not a `domain` row — resolving
+   * those means loading modules, which is the panel's job at read time
+   * and too expensive for a sweep.
+   */
+  public async dangling(): Promise<Array<{ page: WikiPage; ref: string }>> {
+    const pages = await this.allPages();
+    const out: Array<{ page: WikiPage; ref: string }> = [];
+    const checked = new Map<string, boolean>();
+    for (const page of pages) {
+      const subject = page.getSubject();
+      if (!subject || subject.kind !== 'template') continue;
+      if (!checked.has(subject.ref)) {
+        checked.set(subject.ref, (await Template.findByPath(subject.ref)) !== null);
+      }
+      if (!checked.get(subject.ref)) out.push({ page, ref: subject.ref });
+    }
+    return out;
   }
 
   /**

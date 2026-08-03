@@ -306,6 +306,35 @@ export class WikiPage extends Document {
     return `/wiki/${namespace}`;
   }
 
+  /**
+   * Every `[[Page]]` reference in a body, normalised, deduplicated.
+   *
+   * The input to all four maintenance reports — backlinks, wanted
+   * pages, orphans — which are the reports that keep a wiki from
+   * rotting. **Wanted pages in particular are the best authoring
+   * to-do list a wiki has**: a redlink is a reader who noticed a gap,
+   * and ranking them by how many pages want them is the community
+   * telling you what to write next.
+   *
+   * `<code>`/`<pre>` spans are excluded for the same reason the render
+   * stage skips them: an author writing *about* wiki syntax would
+   * otherwise create phantom demand for a page called `Page`.
+   */
+  static linkRefs(body: string, defaultNamespace: string): string[] {
+    const withoutCode = body.replace(
+      /<(code|pre)\b[^>]*>[\s\S]*?<\/\1>/gi,
+      '',
+    );
+    const refs = new Set<string>();
+    const RE = /\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g;
+    let m: RegExpExecArray | null;
+    while ((m = RE.exec(withoutCode)) !== null) {
+      const { namespace, name } = WikiPage.parseRef(m[1]!, defaultNamespace);
+      if (name) refs.add(`${namespace}:${name}`);
+    }
+    return [...refs];
+  }
+
   /** The stricter of two protections — a page may tighten, never loosen. */
   static strictest(a: Protection, b: Protection): Protection {
     return PROTECTION_LADDER.indexOf(a) >= PROTECTION_LADDER.indexOf(b) ? a : b;

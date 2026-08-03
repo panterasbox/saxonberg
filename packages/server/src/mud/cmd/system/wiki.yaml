@@ -281,6 +281,38 @@ subcommands:
       - name: page
         type: string
         required: false
+  links:
+    description: "What links here"
+    help: |
+      Every page that links to this one. Follows aliases, so renaming
+      a page does not orphan the links pointing at its old name.
+    args:
+      - name: page
+        type: string
+        required: true
+  wanted:
+    description: "Redlinks, ranked by how many pages want them"
+    help: |
+      The pages people have linked to and nobody has written. This is
+      the wiki's to-do list, and it is written by its readers: every
+      entry is somebody who noticed a gap while reading.
+
+      Start at the top — those are the gaps the most articles are
+      currently pointing into.
+  orphans:
+    description: "Pages nothing links to"
+    help: |
+      Pages that exist but cannot be reached by following links from
+      anywhere else. Not an error — a page can be perfectly good and
+      simply unlinked — but it is usually a sign that something should
+      mention it.
+  dangling:
+    description: "Articles whose subject no longer exists"
+    help: |
+      Articles bound to a template that has since been renamed or
+      deleted. The page still renders — the prose is the article, the
+      panel was always derived — but it no longer has a live thing to
+      describe, and somebody should rebind or reword it.
   list:
     description: "List pages, optionally in one namespace"
     args:

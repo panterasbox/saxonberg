@@ -238,15 +238,19 @@ describe('⭐ the capability line (18)', () => {
     // reach state even if a snippet asked.
     //
     // A snippet CAN emit a component tag — that is D6, and it is
-    // fine — but emitting one buys nothing: the tag goes to stage 4
-    // like any other, which resolves only registered modules. Having
-    // been produced by a snippet does not privilege it. Here nothing
-    // is registered, so it is an ordinary unknown-component error.
+    // fine — but emitting one buys **nothing**: the tag goes to stage
+    // 4 like any other, and runs under exactly the same rules. Having
+    // been produced by a snippet does not privilege it.
+    //
+    // `<composition>` is a real registered component, so it resolves
+    // and then fails honestly (no database in a unit test). What
+    // matters is the shape of the outcome: an inline error, and not
+    // one byte of game state.
     const out = await render('{{Evil}}', {
       evil: '<composition of="/obj/material/oak"/>',
     });
-    expect(out).toContain('unknown component');
-    expect(out).toContain('composition');
+    expect(out).toContain('[wiki:');
+    expect(out).not.toMatch(/persistent|composes|class=/);
   });
 
   it('an unknown snippet is a named inline error, not silence', async () => {

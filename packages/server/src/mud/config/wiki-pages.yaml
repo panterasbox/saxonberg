@@ -1,0 +1,194 @@
+# wiki-pages.yaml — the starter articles, installed by the backend
+# WikiSeeder at boot.
+#
+# **Insert-only.** A page whose name already exists is left completely
+# alone. That is load-bearing rather than convenient: a wiki is
+# community-maintained, and a seeder that re-asserted its version every
+# boot would silently revert every edit anybody made to a seeded page,
+# on a schedule, with no record of having done it.
+#
+# ⭐ WHAT BELONGS HERE, and what does not.
+#
+# "Where the taxonomy IS the thing's identity — materials, biomes — we
+# seed deliberately, because there the structure is not an editorial
+# choice, it is the subject matter. Everything else grows organically
+# and is reorganised later if it ever needs to be. **Over-organising an
+# empty wiki is how wikis die.**"
+#
+# So this file is a FLOOR to build on, not a skeleton to fill in. It
+# ships: the front door, one worked example of each thing the engine can
+# do (a subject-bound article, a snippet, a guide), and nothing else.
+# Resist adding a stub for every material. A redlink is a better empty
+# page than an empty page — it says "somebody wanted this" and turns up
+# in `wiki wanted`, whereas a stub says "this is done" and does not.
+
+pages:
+  # ── The front door ──
+  - page: main:saxonberg
+    title: Saxonberg
+    tags: [meta]
+    related: [guide:how-to-write-here, lore:the-compact]
+    body: |
+      <h1 anchor="saxonberg">Saxonberg</h1>
+      This is the encyclopedia of the world — what things are, what
+      they are made of, and what you can do with them.
+
+      It is written by the people who play here, which includes you.
+      Every page has an edit button and a full history; nothing you
+      write is unrecoverable, and neither is anything you overwrite.
+
+      <h2 anchor="where-to-start">Where to start</h2>
+      <list><li>[[guide:how-to-write-here|How to write here]] — the markup, in
+      about two minutes.</li><li>[[oak|Oak]] — a worked example of an
+      article about a thing in the world.</li><li>Type
+      <code>wiki wanted</code> to see what other readers have asked for
+      and nobody has written yet. That is the to-do list, and it is
+      written by its readers.</li></list>
+
+      <h2 anchor="what-goes-here">What goes here</h2>
+      The nouns: materials, biomes, species, places, tools. Also lore,
+      guides, and anything else worth writing down.
+
+      What does NOT go here is what a verb does — that is
+      <code>help</code>, and a page can transclude it rather than
+      restating it. The distinction is worth keeping: help tells you
+      what <code>plant</code> does; this tells you what soil IS, and
+      therefore why planting in it works.
+
+  # ── The guide that makes the rest possible ──
+  - page: guide:how-to-write-here
+    title: How to write here
+    tags: [meta, guide]
+    related: [main:saxonberg]
+    body: |
+      <h1 anchor="how-to-write-here">How to write here</h1>
+      <code>wiki create &lt;name&gt;</code> starts a page.
+      <code>wiki edit &lt;name&gt;</code> changes one. That is the whole
+      workflow.
+
+      <h2 anchor="linking">Linking</h2>
+      Write <code>[[Oak]]</code> to link to a page, or
+      <code>[[Oak|oak wood]]</code> to give the link your own words.
+
+      A link to a page nobody has written renders red. **That is not an
+      error.** It is how a wiki grows: you noticed a gap, and the next
+      reader can click straight into filling it. Red links are also
+      ranked by demand in <code>wiki wanted</code>.
+
+      <h2 anchor="markup">Markup</h2>
+      <code>**bold**</code>, <code>*italic*</code>,
+      <code>`code`</code>, <code>&gt; quote</code>,
+      <code>- lists</code> (indent to nest), and pipe tables. Headings
+      are <code>#</code> to <code>###</code>.
+
+      <h2 anchor="citing">Citing a section</h2>
+      A heading can carry a permanent name:
+      <code>## Uses {#uses}</code>. Once set it is **kept** even if you
+      later reword the heading — so a course lesson citing
+      <code>#uses</code> keeps working. Anchors are minted for you if
+      you do not write one.
+
+      <h2 anchor="working-together">Working together</h2>
+      <code>--section &lt;anchor&gt;</code> edits one section and leaves
+      the rest alone, so two people working on different parts of a long
+      page never collide.
+
+      <code>--rev &lt;n&gt;</code> says which version you started from.
+      If somebody else edited meanwhile, your save is refused and you
+      are shown both versions rather than one quietly replacing the
+      other.
+
+      <code>wiki preview</code> shows exactly what saving will produce.
+
+      <h2 anchor="snippets">Reusable pieces</h2>
+      A page in the <code>snippet</code> namespace can be dropped into
+      any article with <code>{{name|arg}}</code>. See
+      [[snippet:stub|the stub snippet]] for a worked one. Snippets are
+      ordinary pages — same editing, same history, same rollback.
+
+  # ── The worked example: a subject-bound article ──
+  #
+  # `/obj/material/oak` may not exist on every deploy, and that is FINE
+  # and worth seeing: a dangling subject renders an inline note where
+  # the panel would be, the page still reads, and it turns up in
+  # `wiki dangling`. Seeding it either way exercises the honest path.
+  - page: main:oak
+    title: Oak
+    subject: { kind: template, ref: /obj/material/oak }
+    tags: [material, wood]
+    body: |
+      <h1 anchor="oak">Oak</h1>
+      A dense hardwood. Slow to grow, hard to work, and worth both.
+
+      <h2 anchor="architecture">What it is made of</h2>
+      The panel below is not written down anywhere — it is read out of
+      the running world every time somebody opens this page, so it
+      cannot drift from the truth.
+
+      <composition kind="template" of="/obj/material/oak"/>
+
+      <h2 anchor="uses">Uses {#uses}</h2>
+      Furniture, tool handles, and anything that has to take a beating.
+      Its density is what makes it good for all three and tiring for
+      all three.
+
+      <h2 anchor="working">Working it {#working}</h2>
+      Hard on tools and slow under them. Budget more time than the
+      volume suggests.
+
+  # ── The worked example: a snippet ──
+  - page: snippet:stub
+    title: Stub
+    tags: [meta, snippet]
+    body: |
+      <em>This article is a stub — {{{why|it needs more detail}}}. You
+      can help by expanding it.</em>
+
+  # ── A second snippet, showing parameters properly ──
+  - page: snippet:infobox
+    title: Infobox
+    tags: [meta, snippet]
+    body: |
+      <infobox title="{{{title|Untitled}}}" class="{{{class|unknown}}}"/>
+
+  # ── Lore: a page with no subject, by nature ──
+  - page: lore:the-compact
+    title: The Compact
+    tags: [lore, politics]
+    related: [main:saxonberg]
+    body: |
+      <h1 anchor="the-compact">The Compact</h1>
+      The agreement that governs this world, and the reason anything
+      here is anybody's to decide.
+
+      This page has no subject binding, and could not have one: there
+      is no template for an agreement. That is the ordinary case — most
+      pages document ideas, not objects, and the architecture panel is
+      an option rather than a requirement.
+
+      <h2 anchor="reading-further">Reading further</h2>
+      <list><li>[[lore:the-ordinance|The Ordinance]] — the founding
+      document.</li></list>
+
+  # ── The maintenance page, which is also a demonstration ──
+  - page: guide:keeping-the-wiki
+    title: Keeping the wiki
+    tags: [meta, guide]
+    body: |
+      <h1 anchor="keeping-the-wiki">Keeping the wiki</h1>
+      Four reports keep a wiki from rotting. None of them needs
+      permission to run.
+
+      <list><li><code>wiki wanted</code> — what readers have asked for
+      and nobody has written, ranked by how many pages want it. Start
+      here.</li><li><code>wiki orphans</code> — pages nothing links to.
+      Usually a sign something should mention
+      them.</li><li><code>wiki links &lt;page&gt;</code> — what links
+      here.</li><li><code>wiki dangling</code> — articles whose subject
+      was renamed or deleted out from under them.</li></list>
+
+      <h2 anchor="vandalism">Vandalism</h2>
+      <code>wiki history</code> then <code>wiki rollback</code>. It
+      takes about four seconds, which is the whole reason editing can
+      be open in the first place: there is no review queue because
+      undoing is cheaper than reviewing.

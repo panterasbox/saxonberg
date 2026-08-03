@@ -99,6 +99,14 @@ export default class WikiController extends CommandController<WikiModel> {
           return await this.executeProtect(model, context);
         case 'preview':
           return await this.executePreview(model, context);
+        case 'links':
+          return await this.executeLinks(model, context);
+        case 'wanted':
+          return await this.executeWanted(context);
+        case 'orphans':
+          return await this.executeOrphans(context);
+        case 'dangling':
+          return await this.executeDangling(context);
         case 'list':
           return await this.executeList(model, context);
         default:
@@ -594,6 +602,88 @@ export default class WikiController extends CommandController<WikiModel> {
       context,
       Mml.compose`\n'${page.getTitle()}' is now editable by ${effective}.\n`,
     );
+  }
+
+  // ── Maintenance: the four reports that keep a wiki from rotting ──
+
+  /** What links here. Follows aliases, so a rename orphans nothing. */
+  private async executeLinks(
+    model: WikiModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const page = await this.requirePage(model, context);
+    if (!page) return;
+    const registry = await this.registry();
+    const linkers = await registry.backlinks(page.getHandle());
+    if (linkers.length === 0) {
+      this.send(
+        context,
+        Mml.compose`\nNothing links to '${page.getTitle()}' yet.\n`,
+      );
+      return;
+    }
+    const lines = [`Pages linking to ${page.getTitle()}:`];
+    for (const p of linkers) lines.push(`  ${p.getHandle()}  ${p.getTitle()}`);
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
+  }
+
+  /**
+   * ⭐ Wanted pages — redlinks ranked by demand. The best authoring
+   * to-do list a wiki has: every entry is a reader who noticed a gap,
+   * counted.
+   */
+  private async executeWanted(context: CommandContext): Promise<void> {
+    const registry = await this.registry();
+    const wanted = await registry.wanted();
+    if (wanted.length === 0) {
+      this.send(
+        context,
+        Mml.fromMarkup(`\nNothing is wanted — every link resolves.\n`),
+      );
+      return;
+    }
+    const lines = ['Wanted pages (most-linked first):'];
+    for (const { ref, demand } of wanted) {
+      const plural = demand === 1 ? 'page wants' : 'pages want';
+      lines.push(`  ${ref}  — ${demand} ${plural} it`);
+    }
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
+  }
+
+  /** Pages nothing links to — unreachable by browsing, not broken. */
+  private async executeOrphans(context: CommandContext): Promise<void> {
+    const registry = await this.registry();
+    const orphans = await registry.orphans();
+    if (orphans.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo orphans.\n`));
+      return;
+    }
+    const lines = ['Pages nothing links to:'];
+    for (const p of orphans) lines.push(`  ${p.getHandle()}  ${p.getTitle()}`);
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
+  }
+
+  /**
+   * ⚠ Articles whose subject template is gone. The CMS renames and
+   * deletes templates and the wiki points at paths, so this WILL
+   * happen — and without the report a stale article quietly documents
+   * nothing (criterion 51).
+   */
+  private async executeDangling(context: CommandContext): Promise<void> {
+    const registry = await this.registry();
+    const dangling = await registry.dangling();
+    if (dangling.length === 0) {
+      this.send(
+        context,
+        Mml.fromMarkup(`\nEvery subject-bound article still has its subject.\n`),
+      );
+      return;
+    }
+    const lines = ['Articles whose subject no longer exists:'];
+    for (const { page, ref } of dangling) {
+      lines.push(`  ${page.getHandle()}  → ${ref}`);
+    }
+    this.send(context, Mml.fromMarkup(`\n${Mml.escape(lines.join('\n'))}\n`));
   }
 
   private async executeList(
