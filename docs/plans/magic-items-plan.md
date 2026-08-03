@@ -5,11 +5,9 @@ Phase 2 for [magic-items-requirements.md](../requirements/magic-items-requiremen
 **how**; the requirements say what and why, and are not re-litigated
 here.
 
-> **⛔ BLOCKED — no code until the lib/obj migration lands** (§12).
-> Whoever picks up wave 1 must write it against **post-refactor paths**.
-> The one strand that can proceed meanwhile is the **materials pack**,
-> then the **descriptor banks** — in that order, because the banks need
-> a stable materials vocabulary to be checked against.
+> **✅ UNBLOCKED 2026-08-03** — the lib/obj migration merged
+> (`629fb5cd`). Every path below has been re-verified against it; §12
+> records the five that moved and the new lint our content must pass.
 
 Q2 (thrown carriers) and Q5 (subsystem folders) are resolved in §11 with
 five smaller ones; §13 records what requirements D34 changed after this
@@ -102,7 +100,7 @@ W7 distribution ── (needs W1 tags, W3 decay, W5 classes)
 ```
 
 - **Wave 1 is a hard precondition.** Nothing else starts — and wave 1
-  itself waits on the lib/obj migration (§12).
+  itself is now unblocked — the lib/obj migration merged (§12).
 - **Waves 2 and 3 are independent** and can run in parallel. Land 2
   first if serial — it is lower risk and produces the first non-cast
   trigger, which is the first real test of the spine.
@@ -140,9 +138,11 @@ None invents a category.
   `holder_snapshots`. Ship a read-tolerant hydrate normalizer reading a
   legacy `caster` as both fields. **Do not keep `caster` as a live
   alias** — that recreates the ambiguity D2 exists to kill.
-- **`lib/magic/Spell.ts`** — the two fields move into a `castingProfile`
-  blob; nine seeds re-authored, single-form read (nine files is not
-  worth a shim).
+- **`obj/magic/Spell.ts`** *(moved by the refactor)* — the two fields
+  move into a `castingProfile` blob; nine seeds under
+  **`seeds/obj/magic/Spell/`** re-authored, single-form read (nine files
+  is not worth a shim). Fields are otherwise unchanged by the migration
+  — it was a move, not a reshape.
 - **`obj/SpellCatalogue.ts`** — warm-time validation of the new shape.
 - **`obj/api/MagicLogic.ts`** — the core. `executeEffect(ctx, target,
   spell, effect)`; `deliverAt` compares `sceneOf(ctx.origin)`;
@@ -208,7 +208,7 @@ None invents a category.
   new reason `unafforded` and prose from a new optional YAML field.
   **One general mechanism satisfies AC 5a for every capability verb at
   once.**
-- ⚠ **`lib/identification/IdentifyScroll.ts`** — retire its
+- ⚠ **`obj/IdentifyScroll.ts`** *(moved by the refactor)* — retire its
   `commandContributions`. *(Verified: it declares `inventory:
   ['perception/identify.yaml']`.)* It is the one shipped **item template
   declaring a use-verb**, which AC 5a forbids. `identify` moves to the
@@ -315,7 +315,8 @@ outside `MetabolicMixin` before starting.
   doc tier, same default bias. Do not invent a registry.
 - **`api/condition.ts` / `obj/api/ConditionLogic.ts`** — `inflict`
   consults the veto.
-- **`lib/vitals/Condition.ts`** — `SustainedEffect` gains
+- **`obj/Condition.ts`** *(moved by the refactor — it is an
+  instanceable data-Idea)* — `SustainedEffect` gains
   `sustainedBy?` (host durable id) vs `sustainedFor?` (term seconds).
 - **The wearable release gate** — a cursed `Blessable` vetoes unequip,
   plus D11's discharge into the holder.
@@ -565,77 +566,59 @@ value. It only starts costing vocabulary at 5+, or if a class grows past
 ~20 item types. So this was never the blocker; the materials vocabulary
 is.
 
-## 12. ⚠ Dependency: the lib/obj taxonomy refactor (build-1, in flight)
+## 12. ✅ The lib/obj migration — merged, and what it moved
 
-A migration is being specified in build-1 —
-`docs/requirements/lib-obj-taxonomy-requirements.md`, currently
-untracked there. Its rule governs every file this plan creates:
+Merged as **`629fb5cd`** (2026-08-03). Its rule, now enforced:
 
 > **`/obj/` holds anything instanceable** — anything a template's
-> `class:` resolves to. **`/lib/` holds substrate that is only ever
-> inherited**: abstract roots, mixins, value objects, and framework
-> machinery.
->
-> The invariant it makes literally true: **nothing instances `/lib/`**,
-> and **a lint fails when a template's `class:` resolves under `/lib/`.**
+> `class:` resolves to. **`/lib/` holds only what is inherited.**
 
-### What this corrects in this plan
+**`seeds/lib/` is gone entirely**, and the content packs' `content/lib/`
+became `content/obj/`.
 
-**`Spellbook.ts` moves to `obj/magic/Spellbook.ts`.** It is a cloneable
-Stuff, so it was in the wrong tree. The refactor already plans an
-**`obj/magic/` cluster** (GlowlightOrb, SparkSource, Spell), so it has a
-home waiting rather than needing a new directory.
+### Five paths this plan named have moved — all re-verified
 
-**Every concrete item class in the roster** — wands, potions, scrolls,
-rings, amulets — lands in `obj/magic/` with templates mirroring. This
-plan named mixins and value-objects and never named the concrete
-classes; they are `obj/`-side and must be authored there from the start,
-or the new lint fails on our own content.
+| Was | Now | Affects |
+|---|---|---|
+| `lib/magic/Spell.ts` | **`obj/magic/Spell.ts`** | wave 1 |
+| `seeds/lib/magic/Spell/` | **`seeds/obj/magic/Spell/`** (all nine) | wave 1 |
+| `lib/vitals/Condition.ts` | **`obj/Condition.ts`** | wave 4 (`SustainedEffect`) |
+| `lib/retail/Stock.ts` | **`obj/Stock.ts`** | wave 7 (the par precedent) |
+| `lib/identification/IdentifyScroll.ts` | **`obj/IdentifyScroll.ts`** | wave 2 (D34's deletion) |
 
-**Everything else in this plan is correctly placed and does not move.**
-All the mixins (`Consumable`, `Potable`, `Charged`, `Focus`,
-`Blessable`, `Marked`, `Labelled`, `Memorized`, `Circulating`) and all
-the value-objects (`EffectContext`, `CastingProfile`, `Dose`, `Charge`,
-`Blessing`, `Appearance`, `Fade`, `PriceList`, `Census`, `SpawnTable`)
-are inherited-only substrate and stay in `lib/`.
+**Everything else this plan touches stayed put** — `lib/magic/Grid.ts`,
+`Caster.ts`, `Faculty.ts`, `CastActivity.ts`, `Effect.ts`,
+`obj/api/MagicLogic.ts`, `api/magic.ts`, `lib/metabolism/Metabolic.ts`,
+`lib/stuff/Globbable.ts`, `lib/residency/Resettable.ts`,
+`lib/craft/Grade.ts`, `lib/script/RecipeKnowledge.ts`,
+`lib/species/NameBank.ts`, `obj/api/ResidencyLogic.ts`,
+`obj/api/PackLogic.ts`, `obj/SpellCatalogue.ts`. All verified present.
 
-### ✅ Sequencing decided: the refactor lands first
+**`obj/magic/` exists** (GlowlightOrb · SparkSource · Spell), so
+`Spellbook` and every concrete item class have a home waiting. Item
+seeds have one too: `seeds/obj/items/` is already in use.
 
-**Decision (user, 2026-08-02): no code is written for this build until
-the lib/obj migration is done.**
+**Materials moved with everything else** — the vocabulary D32's lint
+reads is now
+`packages/content/base-library/content/obj/material/**`.
 
-That removes the collision rather than managing it. Wave 1 would have
-modified `lib/magic/Spell.ts` and re-authored nine seeds under
-`seeds/lib/magic/Spell/` — the exact class and seed tree the refactor
-moves — and a rename-plus-edit is the unpleasant conflict shape. Waiting
-costs calendar time and buys a clean base.
+### ⚠ The new gate our content must pass
 
-**Consequence for whoever picks wave 1 up:** write it against
-**post-refactor paths**. `obj/magic/Spell.ts` and `seeds/obj/magic/`,
-not the `lib/` paths this plan names. Everything else in the plan is
-unaffected — waves 2–7 touch nothing the refactor moves.
+**`scripts/check-instanceable-placement.ts`** ships six invariants:
 
-### What can proceed in the meantime
+1. No template's `class:` resolves under `/lib/`  *(the headline)*
+2. No template **path** lives under `/lib/`
+3. Every `class:` resolves to a real module + export
+4. Every `hydratorClass:` resolves to a real template row
+5. No redundant `hydratorClass:` — declared with no `data` to apply
+6. **No orphaned `data:`** — a data block with no `hydratorClass`,
+   whose every key is *silently discarded*
 
-Two pieces sit outside the refactor's surface entirely, and the plan
-already wants them early:
-
-1. **The materials content pack** — expanding the taxonomy from its
-   current 36 entries to a real working set. Pure content with sourced
-   properties; touches no classes. It is also a **prerequisite** for the
-   next item, since D32 warns the descriptor banks cannot be authored
-   blind against a moving materials vocabulary.
-2. **The descriptor banks + `lint:descriptors`** — the long pole in wave
-   5, and safe to start: a `DescriptorBank` is a `Document`, and the
-   refactor's own decision is that *classes instanced but never stamped
-   stay in `lib/`*, so it is not in the migration's path.
-
-Sequence them: **materials stable → banks authored → the lint gates
-both directions.**
-
-> The **materials pack is the real prerequisite** here — the banks are
-> checked against that vocabulary in both directions, so authoring them
-> against a moving target means redoing the lint's fixtures.
+**Number 6 is the trap for this build.** Every wand, potion, scroll and
+ring seed carries a `data:` block, and forgetting `hydratorClass:` means
+the whole block vanishes with no error at runtime — the item clones,
+looks right, and has none of its authored values. The lint is now the
+only thing standing between that and a very confusing afternoon.
 
 ## 13. Added after planning — D34, and what it costs
 

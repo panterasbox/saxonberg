@@ -999,14 +999,15 @@ inherited — **never derived from the effect list.**
 - **New mixins land in the `lib/<subsystem>/` that owns the concern.**
   If none fits, propose a subsystem folder — never `lib/mixins/`.
 - **⚠ `/obj/` holds anything instanceable; `/lib/` holds only what is
-  inherited.** Per the in-flight lib/obj taxonomy migration
-  (`lib-obj-taxonomy-requirements.md`, build-1): anything a template's
-  `class:` resolves to is `obj/`-side, and a lint fails when a template
-  resolves under `lib/`. **Every concrete item class in this build —
-  wands, potions, scrolls, rings, amulets, spellbooks — is `obj/`-side**
-  (the migration already plans an `obj/magic/` cluster). Mixins and
-  value-objects stay in `lib/`. This build must not author content that
-  fails that lint.
+  inherited** — merged 2026-08-03 and enforced by
+  **`scripts/check-instanceable-placement.ts`** (CI-gating).
+  **Every concrete item class here — wands, potions, scrolls, rings,
+  amulets, spellbooks — is `obj/`-side**, in the existing `obj/magic/`
+  cluster; mixins and value-objects stay in `lib/`.
+  ⚠ **Its invariant 6 is the trap for this build**: a seed with a
+  `data:` block and no `hydratorClass:` has **every key silently
+  discarded** — the item clones, looks right, and carries none of its
+  authored values. Every item seed must declare its hydrator.
 - **Reconcile-on-read** for every decaying quantity (charge, pattern,
   sharpness), following the husbandry/metabolism pattern, with the same
   stamp guards.

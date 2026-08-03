@@ -50,11 +50,11 @@ gated** at execution.
 | Resist shapes | `lib/magic/Resist.ts` | axis vocabulary + the pure fold (`mitigators subtract`, immunity = a mitigator at 1) + `stageFor` (the substrate gate) |
 | Faculty | `lib/magic/Faculty.ts` + `lib/magic/Caster.ts` | the anatomical casting faculty (below) |
 | Suppression | `lib/magic/Suppression.ts` | the anti-magic field value + match + the **sync** outward containment walk (`fieldAt`) |
-| Spell | `lib/magic/Spell.ts` (data-Idea) + `obj/SpellCatalogue.ts` | authored roster leaves under `/obj/magic/Spell/<spellId>`, boot-warmed (the Discipline/Corpo recipe), **no Mongo collection** |
+| Spell | `obj/magic/Spell.ts` (data-Idea) + `obj/SpellCatalogue.ts` | authored roster leaves under `/obj/magic/Spell/<spellId>`, boot-warmed (the Discipline/Corpo recipe), **no Mongo collection** |
 | The pair | `api/magic.ts` + `obj/api/MagicLogic.ts` | the gated cast pipeline + all effect executors |
 | Cast activity | `lib/magic/CastActivity.ts` | `hands`+`voice`, interruptible, **everything at completion** |
 | Verbs | `cmd/magic/{cast,spells}.yaml` | the `magic` command category |
-| Bound emitters | `lib/magic/GlowlightOrb.ts` / `lib/magic/SparkSource.ts` | glowlight's held orb / spark's transient energized locus |
+| Bound emitters | `obj/magic/GlowlightOrb.ts` / `obj/magic/SparkSource.ts` | glowlight's held orb / spark's transient energized locus |
 | Demonstrator | `seeds/domain/practicum*` | casting yard / conductive gallery / warded cell |
 
 ## The cast pipeline
