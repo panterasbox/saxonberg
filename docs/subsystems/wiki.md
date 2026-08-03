@@ -434,13 +434,25 @@ one, because it reports links that are not there.
 
 | collection | holds | sandbox policy |
 |---|---|---|
-| `wiki` | current page state | `refuse` |
-| `wiki_revisions` | the append-only edit log | `refuse` |
+| `wiki` | current page state | `pass` (unmarked) |
+| `wiki_revisions` | the append-only edit log | `pass` (unmarked) |
 
-**REFUSE, not STAMP**: an article is not gameplay state, a circle has no
-business writing the field's encyclopedia, and a scoped page that
-reverted on circle exit would be a page an author watched themselves
-write and then lose.
+**PASS, beside `domain`** — the wiki is authored truth and a
+**communications surface**. An article cannot affect advancement, cannot
+mint anything, and cannot be spent; it is people writing to each other,
+so there is nothing for the sandbox to contain. It is also strictly less
+powerful than `domain`, which passes: a circle that may edit a room
+template should not be refused an encyclopedia edit about one.
+
+⚠ **Not STAMP**, which would be actively harmful: a scoped page
+reverting on circle exit is a page an author watched themselves write
+and then lose, and its scoped revision rows would collide with the
+unique `{pageId, rev}` index. **Not the epistemic mark**, which is for
+"what happened to *you*" — an article is not a personal record.
+
+Authorization is unaffected: the protection ladder resolves through
+`AccessApi`, which is circle-independent, so a circle confers no editing
+right its occupant did not already hold.
 
 Indexes: `{namespace, slug}` and `{namespace, aliases}` (the one name
 space), `subject.ref` (the total reverse lookup), `tags`, and a **unique**

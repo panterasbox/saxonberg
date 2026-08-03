@@ -103,7 +103,13 @@ describe('the index entries (31)', () => {
 
   it('sandbox.md records the two collections’ policy', () => {
     const sandbox = read('docs/subsystems/sandbox.md');
-    expect(sandbox).toMatch(/`wiki` \/ `wiki_revisions` → REFUSE/);
+    // PASS, beside `domain` — the wiki is authored truth and a
+    // communications surface, not gameplay state, so there is nothing
+    // for the sandbox to contain.
+    expect(sandbox).toMatch(/`wiki` \/ `wiki_revisions` → PASS/);
+    expect(sandbox).toMatch(
+      /PASS \(unmarked\)\*\* \| `domain`.*`wiki`, `wiki_revisions`/,
+    );
   });
 
   it('messaging.md records the long-form additions', () => {

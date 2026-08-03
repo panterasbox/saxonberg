@@ -148,6 +148,27 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.Domain]: { verb: 'pass' },
   [Collections.Documents]: { verb: 'pass' },
   [Collections.HolderSnapshots]: { verb: 'pass' },
+  // The wiki is **authored truth and a communications surface**, so it
+  // joins `domain` here rather than failing closed. An article cannot
+  // affect advancement, cannot mint anything, and cannot be spent — it
+  // is people writing to each other. There is no conflict to contain.
+  //
+  // The wiki is also strictly LESS powerful than `domain`, which is
+  // PASS: a circle session that may edit a room template has no
+  // business being refused an encyclopedia edit about one.
+  //
+  // Neither of the other verbs fits. STAMP would be actively harmful —
+  // a scoped page reverting on circle exit is a page an author watched
+  // themselves write and then lose, and its scoped revision rows would
+  // collide with the unique `{pageId, rev}` index. The epistemic MARK
+  // is for "what happened to *you*"; an article is not a personal
+  // record.
+  //
+  // Authorization is unaffected: `WikiRegistry`'s protection ladder
+  // resolves through `AccessApi`, which is circle-independent, so a
+  // circle grants no editing rights its occupant did not already have.
+  [Collections.Wiki]: { verb: 'pass' },
+  [Collections.WikiRevisions]: { verb: 'pass' },
   // ── SHADOW(skip): rebuildable caches — skip-and-rebuild ──
   [Collections.BankAccounts]: { verb: 'shadow', mode: 'skip' },
   [Collections.BankSupply]: { verb: 'shadow', mode: 'skip' },
@@ -190,14 +211,6 @@ export const COLLECTION_POLICIES: Readonly<
   // offline illustrate CLI; no circle path should ever reach it.
   [Collections.Blueprints]: { verb: 'refuse' },
   [Collections.MediaAssets]: { verb: 'refuse' },
-  // The wiki, both halves. REFUSE rather than STAMP because an article
-  // is not gameplay state: a circle has no legitimate reason to write
-  // the field's encyclopedia, and a scoped page that reverted on circle
-  // exit would be a page an author watched themselves write and then
-  // lose. Matches the audit-flipped `Blueprints` / `MediaAssets`
-  // reasoning — field-visible content, so it fails closed.
-  [Collections.Wiki]: { verb: 'refuse' },
-  [Collections.WikiRevisions]: { verb: 'refuse' },
 };
 
 /**
