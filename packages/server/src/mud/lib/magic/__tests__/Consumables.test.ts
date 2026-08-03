@@ -20,6 +20,7 @@ import YAML from 'yaml';
 import { MagicApi } from '../../../api/magic';
 import { AdvancementApi } from '../../../api/advancement';
 import { CommandApi } from '../../../api/command';
+import type { CommandDefinition } from '../../command/CommandDefinition';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -124,6 +125,33 @@ function makeScroll(spellId: string): Scroll {
   s.setMarkText('a dense column of glyphs');
   s.setCarriedSpellId(spellId);
   return s;
+}
+
+/**
+ * What the runtime collector actually affords for a Scroll in `bucket`.
+ *
+ * Deliberately NOT `Scroll.commandContributions`: that static is
+ * shadowed by whichever composed mixin declared it last, while the
+ * collector walks the whole chain and unions. Asserting the static
+ * would be asserting an implementation detail — and the wrong one.
+ */
+function scrollContributions(bucket: 'inventory'): CommandDefinition[] {
+  return CommandApi.collectContributions(Scroll, bucket);
+}
+
+/** The verb set an INSTANCE affords across every bucket. */
+function instanceVerbs(item: Scroll): string[] {
+  const buckets = ['inventory', 'environment', 'peers'] as const;
+  const verbs = new Set<string>();
+  for (const b of buckets) {
+    for (const def of CommandApi.collectContributions(
+      item.constructor as never,
+      b,
+    )) {
+      for (const v of def.verbs) verbs.add(v);
+    }
+  }
+  return [...verbs].sort();
 }
 
 function actingAs(actor: unknown): void {
@@ -265,19 +293,22 @@ describe('Wave 2 — consumables', () => {
 
   // ─────────────────────── AC 5a — the parser floor ───────────────────
 
-  it('AC5a — no item template declares a use-verb; the capability does', async () => {
+  it('AC5a — no item template declares a use-verb; the CAPABILITIES do', async () => {
     await CommandApi.preloadAll?.();
-    // The scroll class carries NO command contributions of its own…
-    const ownContributions = (
-      Scroll as unknown as { commandContributions?: unknown }
-    ).commandContributions as
-      | { inventory?: string[] }
-      | undefined;
-    const inventory = ownContributions?.inventory ?? [];
-    // …it inherits `read` from MarkedMixin, and declares nothing itself.
-    expect(inventory).toEqual(['perception/read.yaml']);
-    // The verb is written once, on the capability, not per item.
-    expect(new Set(inventory).size).toBe(inventory.length);
+    // ⚠ Read the COLLECTOR, not the static. `commandContributions` is a
+    // static, so the outermost mixin's declaration shadows the inner
+    // ones on the class object — but the runtime collector walks the
+    // whole mixin chain and unions them, which is what actually
+    // determines a scroll's affordances.
+    const verbs = new Set(
+      scrollContributions('inventory').flatMap((d) => d.verbs),
+    );
+    // `read` from MarkedMixin, `label` from LabelledMixin. Each written
+    // ONCE, on its capability — the scroll declares neither.
+    expect(verbs.has('read')).toBe(true);
+    expect(verbs.has('label')).toBe(true);
+    // And no use-verb of its own invention.
+    expect(verbs.has('identify')).toBe(false);
   });
 
   it('AC5a — an unafforded verb still PARSES and answers with a reason', () => {
@@ -348,31 +379,29 @@ describe('Wave 2 — consumables', () => {
     expect(identify).toEqual([]);
   });
 
-  it('AC5c — two scrolls of different class afford an identical verb set', () => {
+  it('AC5c — two scrolls of different class afford an IDENTICAL verb set', () => {
     const identifyScroll = makeScroll('identify');
     const veilScroll = makeScroll('veil');
-    const contributions = (
-      Scroll as unknown as { commandContributions?: { inventory?: string[] } }
-    ).commandContributions;
-    // Same class, same contributions — there is no per-instance or
-    // per-class verb variation to leak through.
+    // Different hidden class…
     expect(identifyScroll.getCarriedSpellId()).not.toBe(
       veilScroll.getCarriedSpellId(),
     );
-    expect(contributions?.inventory).toEqual(['perception/read.yaml']);
+    // …identical affordances. If they differed, the verb list would tell
+    // you which scroll you were holding.
+    expect(instanceVerbs(identifyScroll)).toEqual(instanceVerbs(veilScroll));
+    expect(instanceVerbs(identifyScroll)).toContain('read');
   });
 
   it('AC5c — a SPENT consumable still affords its verb', () => {
-    const scroll = makeScroll('veil');
-    scroll.setUsesRemaining(0);
-    expect(scroll.isSpent()).toBe(true);
+    const fresh = makeScroll('veil');
+    const spent = makeScroll('veil');
+    spent.setUsesRemaining(0);
+    expect(spent.isSpent()).toBe(true);
     // The affordance reflects the KIND, never the state. If a spent
     // scroll stopped affording `read`, the affordance list would become
     // a free inventory-state readout.
-    const contributions = (
-      Scroll as unknown as { commandContributions?: { inventory?: string[] } }
-    ).commandContributions;
-    expect(contributions?.inventory).toContain('perception/read.yaml');
+    expect(instanceVerbs(spent)).toEqual(instanceVerbs(fresh));
+    expect(instanceVerbs(spent)).toContain('read');
   });
 
   // ─────────────── D24 — the identify effect, not a verb ───────────────

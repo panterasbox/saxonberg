@@ -376,6 +376,15 @@ export class CommandLogic extends ApiLogic {
     return { loaded, failed };
   }
 
+  /** See {@link CommandApi.collectContributions}. */
+  @CallSecurity(CommandApiCallers)
+  public collectContributions(
+    ctor: unknown,
+    bucket: 'self' | 'inventory' | 'environment' | 'peers',
+  ): CommandDefinition[] {
+    return collectBucketDefs(ctor, bucket);
+  }
+
   /** See {@link CommandApi.collectSelfDefs}. */
   @CallSecurity(CommandApiCallers)
   public collectSelfDefs(ctor: unknown): CommandDefinition[] {

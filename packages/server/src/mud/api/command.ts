@@ -1277,6 +1277,25 @@ export class CommandApi {
   }
 
   /**
+   * **What a class actually affords in one bucket**, unioned across its
+   * whole mixin chain.
+   *
+   * The read that matters, and the one to reach for over the raw
+   * `commandContributions` static: that static is a *static*, so on a
+   * class composing two capability mixins the outermost declaration
+   * SHADOWS the inner ones on the class object — while dispatch walks
+   * the chain and unions. A scroll composing `Marked` and `Labelled`
+   * affords both `read` and `label`; reading the static would see only
+   * one of them and be wrong about the other.
+   */
+  static collectContributions(
+    ctor: unknown,
+    bucket: 'self' | 'inventory' | 'environment' | 'peers',
+  ): CommandDefinition[] {
+    return logic().collectContributions(ctor, bucket);
+  }
+
+  /**
    * Recency-stack delta for a successful containment move. Source-
    * side pops, dest-side pushes; if the moving item is itself a
    * CommandGiver, its env+peers slice is rebuilt from the new
