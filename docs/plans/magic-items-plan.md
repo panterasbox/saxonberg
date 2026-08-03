@@ -1,7 +1,7 @@
 # Magic items — implementation plan
 
 Phase 2 for [magic-items-requirements.md](../requirements/magic-items-requirements.md)
-(7 waves, 34 decisions D1–D34, 41 acceptance criteria). This plan says
+(7 waves, 35 decisions D1–D35, 42 acceptance criteria). This plan says
 **how**; the requirements say what and why, and are not re-litigated
 here.
 
@@ -127,8 +127,9 @@ Blast radius measured: only **12 files** mention
 |---|---|
 | `lib/magic/EffectContext.ts` | Named value-object — `{origin, actor, source, potency, tag}` + a static holder with `forCast` / `forItem`. The `Grid`/`Resists`/`Faculty` shape. |
 | `lib/magic/CastingProfile.ts` | Named value-object — D3's `{requiredBand, castSeconds}`, mirroring `Faculty.validateProfile`. |
+| `lib/magic/Arcane.ts` | Mixin — D35. The shared **grid footprint**: a set of typed `{verb, noun}`, derived from a carried `spellId` where there is one, declared otherwise. Composed by all three item classes; available to traps and NPC powers later. Sits **below** distribution — `Circulating` reads it. |
 
-Neither invents a category.
+None invents a category.
 
 ### Modified
 
@@ -160,7 +161,8 @@ Neither invents a category.
 1. `CastingProfile` + `Spell` + seeds + catalogue (smallest, gets seed
    churn out of the way).
 2. `Grid` provenance split + hydrate normalizer.
-3. `EffectContext`.
+3. `EffectContext` + `Arcane` (D35 — the footprint the ward, dispel,
+   rarity and census all read).
 4. `MagicLogic` threading. **Unblocks every later wave.**
 5. `api/magic.ts` item entry. **Unblocks waves 2 and 3.**
 
@@ -443,7 +445,7 @@ wave 3 coupled to metabolism. **Land it last and re-run both suites.**
 
 | File | Category |
 |---|---|
-| `lib/residency/Circulating.ts` | Mixin — the two tag sets + `censusKey()`. Worn by every item class so books, potions and wands all count |
+| `lib/residency/Circulating.ts` | Mixin — material tags + `censusKey()`. **Effect tags are READ from `Arcane` (D35), never re-declared** — otherwise a ward would depend on distribution. Worn by every item class so books, potions and wands all count |
 | `lib/magic/PriceList.ts` | Static holder — the arcane price list as code. **Spawn weight = inverse of stored labour**; multi-effect takes the max cell. Doubles as the authoring check for content rule 1 |
 | `lib/residency/Census.ts` | Static holder over the MQL query. **Not a new Api tier** |
 | `lib/residency/SpawnTable.ts` | Named value-object — the weighted draw; consults `Census`, declines at target |

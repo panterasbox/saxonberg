@@ -43,6 +43,9 @@ land first; waves 2–7 are independently shippable in the order given.
   without pretending they don't exist.
 - Traps and NPC powers can use the same spine (they are not built here,
   but nothing in the spine assumes a caster).
+- **`Arcane`** gives every magic-producing object one shared, structured
+  declaration of its **grid footprint**, read by suppression, dispel,
+  rarity, and the census alike.
 
 **Wave 2 — consumables.**
 
@@ -924,6 +927,56 @@ capacity whose *means* is a **visible tool** — a lens, an assay kit. No
 leak, because you know what your own lens is. Same shape as `read`:
 universal verb, contextual affordance, always parseable.
 
+### D35 — `Arcane`: one shared declaration of a thing's grid footprint
+
+Nothing in this build gave every magic-producing object a common way to
+say **where it sits on the verb × noun grid**, and four separate
+consumers need it:
+
+| Consumer | Needs the footprint to… |
+|---|---|
+| **Suppression** | decide whether a grid-filtered ward blocks it |
+| **Dispel / detect** | key on the tag |
+| **Rarity** | price it via the arcane price list (D21) |
+| **Census** | derive a census key (D30) |
+
+`Circulating` carries `effectTags`, but that is the **distribution**
+mixin — and if the footprint lives there, then **a ward must consult the
+distribution subsystem to know whether to suppress a wand.** That is
+backwards. The footprint sits below distribution, and **`Circulating`
+reads it rather than declaring it.**
+
+**Named for the property, not the object kind.** Wave 1's spine
+deliberately serves traps and NPC powers, and a trap has a grid address
+for exactly the same reasons. A `MagicItem` mixin would leave traps
+either duplicating it or outside the ward logic, so the concept is
+**`Arcane`** — *this thing produces magic-tagged effects, and here is
+where they sit.* Composed by all three item classes now, available to
+traps and powers later with no rename.
+
+**Structured, never scalar — and this is forced, not preferred.** The
+shipped code reads the two axes **independently** in all three places:
+`MagicSuppression` is `{all:true} | {verbs?, nouns?}` and matches on
+`verbs?.includes(verb) || nouns?.includes(noun)`; competence is two
+separate Discipline leaves (`magic-<verb>`, `magic-<noun>`); and Tarn's
+Rule takes the **minimum** of the two. A scalar `'create-fire'` would
+have to be split back apart at every one of those sites.
+
+So the value is typed `{ verb: MagicVerb, noun: MagicNoun }` — the
+existing `MagicProvenance` axes — and it is a **set**, because
+multi-effect items exist: rarity takes the most expensive cell, and
+suppression matches if **any** cell is suppressed.
+
+**Two sources, one accessor.** An item carrying a `spellId` **derives**
+its footprint from that spell and never copies it — a duplicated address
+would drift from the spell it came from. A bespoke item with its own
+effect bundle **declares** directly. Both answer the same getter.
+
+**The address belongs to the act, not the effect.** The `Effect` union
+carries no verb or noun, and a spell declares one address for the whole
+spell even when it fires several effects. So a footprint is declared or
+inherited — **never derived from the effect list.**
+
 ## Constraints
 
 - **The eight content-authoring rules** in `arcane-science.md` bind this
@@ -978,6 +1031,12 @@ phase reads against.
    row names the actor.
 3. A spell is usable through both the casting path and an item path from
    one authored definition, with no duplicated effect data.
+3a. `Arcane` exposes a **set** of typed `{verb, noun}` addresses, not a
+    scalar key. Tests assert: a spell-carrying item **derives** its
+    footprint (changing the spell changes the item's address, with
+    nothing duplicated); a grid-filtered ward suppresses a multi-cell
+    item when **any** of its cells matches; and `Circulating` **reads**
+    the footprint rather than declaring its own copy.
 
 **Wave 2 — consumables**
 
