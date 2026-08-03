@@ -39,6 +39,7 @@ import {
 import { SpoilerLevels, type SpoilerLevel } from '../../../lib/wiki/render';
 import { Sections } from '../../../lib/wiki/Section';
 import { SourceDiff } from '../../../lib/wiki/SourceDiff';
+import type { WikiPageFrame } from '@saxonberg/types';
 
 interface WikiModel extends CommandModel {
   page?: string;
@@ -68,6 +69,13 @@ interface WikiModel extends CommandModel {
 
 /** The scene topic every `wiki` readout rides. */
 const TOPIC = 'system.shell.wiki';
+
+/**
+ * The structured side-channel the wiki pane reads. A `world.` topic
+ * rather than `system.shell.` because it is world content, and because
+ * a player who filters the shell family should still get the pane.
+ */
+const PAGE_TOPIC = 'world.wiki.page';
 
 export default class WikiController extends CommandController<WikiModel> {
   async execute(model: WikiModel, context: CommandContext): Promise<void> {
@@ -166,6 +174,7 @@ export default class WikiController extends CommandController<WikiModel> {
         `\n${Mml.escape(header)}\n\n${rendered}\n`,
       ),
     );
+    await this.pushPage(context, page, rendered);
   }
 
   // ── Write ──
@@ -331,6 +340,7 @@ export default class WikiController extends CommandController<WikiModel> {
       context,
       Mml.fromMarkup(`\n${Mml.escape('(preview)')}\n\n${rendered}\n`),
     );
+    if (hit) await this.pushPage(context, hit.page, rendered, body, true);
   }
 
   /**
@@ -895,6 +905,65 @@ export default class WikiController extends CommandController<WikiModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
+  }
+
+  /**
+   * Push the structured twin of what just went to the scroll, so the
+   * wiki pane has something to show.
+   *
+   * ⭐ It carries **the body that was already rendered** — not the
+   * source, and not a second render. That is the whole security
+   * argument for the pane: the payload inherits the gate rather than
+   * re-deriving it, so there is no second path along which
+   * over-capability content could reach a client (criterion 24). A
+   * pane that re-rendered from source would be exactly that second
+   * path.
+   *
+   * `sectionsFrom` reads the **stored** source, which is markdown, and
+   * yields only heading text and anchors — public structure, not
+   * content. When a preview is being shown the outline comes from the
+   * DRAFT, or the pane's outline would describe the saved page while
+   * its body shows the unsaved one.
+   */
+  private async pushPage(
+    context: CommandContext,
+    page: WikiPage,
+    rendered: string,
+    draft?: string,
+    preview = false,
+  ): Promise<void> {
+    const registry = await this.registry();
+    let mayEdit = false;
+    try {
+      mayEdit = await registry.mayEdit(page);
+    } catch {
+      // A display hint is never worth failing a read over.
+      mayEdit = false;
+    }
+    const subject = page.getSubject();
+    const frame: WikiPageFrame = {
+      kind: 'wiki-page',
+      handle: page.getHandle(),
+      title: page.getTitle(),
+      rev: page.getRev(),
+      body: rendered,
+      tags: [...page.getTags()],
+      related: [...page.getRelated()],
+      sections: Sections.list(draft ?? page.getBody()).map((s) => ({
+        level: s.level,
+        anchor: s.anchor,
+        title: s.title,
+      })),
+      subject: subject ? { kind: subject.kind, ref: subject.ref } : null,
+      updatedBy: page.getUpdatedBy(),
+      updatedAt: page.getUpdatedAt().getTime(),
+      mayEdit,
+      ...(preview ? { preview: true } : {}),
+    };
+    MessageApi.scene(context.commandGiver)
+      .topic(PAGE_TOPIC)
+      .toSelf(Mml.fromMarkup(''), frame)
+      .send();
   }
 }
 

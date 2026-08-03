@@ -42,6 +42,7 @@ import type {
   RosterFrame,
   StuffDetailRecord,
   StuffRefRecord,
+  WikiPageFrame,
 } from "@saxonberg/types";
 import { INTENTIONAL_LEAVE_CLOSE_CODE } from "@saxonberg/types";
 import { nanoid } from "nanoid";
@@ -200,6 +201,17 @@ class WebSocketClient {
           store.applyBulletinRemove(payload.bulletinId);
           break;
       }
+    });
+
+    // The wiki pane's side-channel (`world.wiki.page`). Empty body —
+    // the article's prose already went to the scroll on
+    // `system.shell.wiki`; this is the structured twin, carrying the
+    // SAME rendered body so the pane inherits the server's gate rather
+    // than re-deriving it.
+    this.onTopic("world.wiki.page", (frame) => {
+      const payload = frame.payload as WikiPageFrame | undefined;
+      if (!payload || payload.kind !== "wiki-page") return;
+      useStore.getState().setWikiPage(payload);
     });
   }
 

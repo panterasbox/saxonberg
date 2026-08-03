@@ -34,6 +34,7 @@ import type {
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
+  WikiPageFrame,
 } from "@saxonberg/types";
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
@@ -331,8 +332,21 @@ interface StoreState extends CmsSlice, StudioSlice {
    * client-only UI state, never persisted. Consulted by the world
    * layout's right-column pane switch.
    */
-  rightPane: "inspect" | "who" | "news";
-  setRightPane: (pane: "inspect" | "who" | "news") => void;
+  rightPane: "inspect" | "who" | "news" | "wiki";
+  setRightPane: (pane: "inspect" | "who" | "news" | "wiki") => void;
+
+  /**
+   * The article the wiki pane is showing (`world.wiki.page`), or
+   * `null` before anything has been read this session.
+   *
+   * The body arrives **already rendered and already gated** — the pane
+   * displays it and never re-renders from a source, which is what
+   * keeps the reveal model's one gate on the server where it lives.
+   * Ephemeral, never persisted: the page is one `wiki <name>` away.
+   */
+  wikiPage: WikiPageFrame | null;
+  /** Show a pushed article (a `world.wiki.page` frame). */
+  setWikiPage: (page: WikiPageFrame) => void;
 
   /**
    * The "Who's Online" roster (`world.social.roster` topic). `roster` maps
@@ -1033,6 +1047,13 @@ export const useStore = create<StoreState>((set, get) => ({
   rightPane: "inspect",
   setRightPane: (pane) =>
     set((state) => (state.rightPane === pane ? {} : { rightPane: pane })),
+
+  wikiPage: null,
+  // Reading a page SWITCHES to the pane. The verb's whole purpose is
+  // to put an article in front of somebody, and leaving it behind a
+  // tab they have to know about would make the pane a thing you find
+  // rather than a thing you use.
+  setWikiPage: (page) => set(() => ({ wikiPage: page, rightPane: "wiki" })),
 
   // "Who's Online" roster (world.social.roster). Keyed by stable handle;
   // ordering recomputed on every mutation (recognized first, then header).

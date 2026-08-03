@@ -42,6 +42,7 @@ time and cannot go stale.
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
 | Verb | `cmd/system/wiki.yaml` + `obj/command/system/WikiController.ts` |
 | Starter articles | `config/wiki-pages.yaml` + `backend/WikiSeeder.ts` |
+| Client pane | `client/components/WikiPane.tsx`, fed by `world.wiki.page` |
 
 **No `*Api` was added**, by constraint. `obj/<Name>Registry.ts` is the
 shipped shape for a gated, state-owning singleton with no Api face
@@ -468,6 +469,48 @@ or a `# comment` in a shell sample acquires an anchor.
 
 ---
 
+## The client — one pane, everything a command
+
+`wiki <page>` sends the article's prose to the scroll on
+`system.shell.wiki` **and** a structured twin on `world.wiki.page`.
+`WikiPane` reads the twin: title, handle/rev/author, the outline, the
+body, the subject binding, tags and see-alsos.
+
+> ⭐ **The frame carries the body that was already RENDERED.** That is
+> the security argument for having a pane at all: the payload inherits
+> the pipeline's gate instead of re-deriving it, so there is no second
+> path to the reader. A pane fed from the source would be exactly that
+> path — and the leak would be invisible from the scroll, which would
+> still look correct. The pane holds no article source and cannot
+> render one.
+
+Every affordance is a **command the pane composes and emits** — `wiki
+edit`, `wiki history`, `wiki links`, and per-section `wiki edit …
+--section <anchor>` — on the shared bus, previewing on hover like every
+other clickable. Bus-primacy: there is no private wiki channel from the
+client, so anything the pane can do can also be typed.
+
+An outline row opens **that section for editing** rather than scrolling
+to it: section editing is the wiki's real concurrency control, and a
+reader who only wants to look has the whole body directly below. For a
+reader who may not edit, the same row re-reads the page.
+
+`mayEdit` rides the frame so the pane does not draw an affordance that
+is certain to be refused. It is a display hint — **the verb re-checks
+on arrival**, which is where the decision lives.
+
+A `wiki preview` frame is flagged, and its outline comes from the
+draft: a preview indistinguishable from the saved page is a page
+claiming to be something it is not.
+
+**No live preview of an in-flight draft.** Markdown is parsed
+server-side, so that is a round trip per keystroke; it belongs to the
+shared viewer substrate in the client-shell slate. The client here is
+scoped to "read a page, follow a link, submit an edit" — rudimentary by
+decision, not omission.
+
+---
+
 ## Maintenance
 
 Four reports, all derived on read from the link graph rather than
@@ -483,8 +526,11 @@ one, because it reports links that are not there.
   *will* happen; without the report a stale article quietly documents
   nothing.
 
-`[[refs]]` inside `<code>`/`<pre>` are excluded, or an author writing
-*about* the syntax would create phantom demand for a page called `Page`.
+`[[refs]]` inside code are excluded — MML `<code>`/`<pre>`, markdown
+fences and backtick spans alike — or an author writing *about* the
+syntax creates phantom demand for a page called `Page`. The guide page
+documents `` `[[Oak]]` ``, so this is not hypothetical: it put a
+`guide:oak` nobody could ever satisfy at the top of `wiki wanted`.
 
 ---
 

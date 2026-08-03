@@ -231,6 +231,57 @@ export interface BulletinRow {
  * arrives on connect via `ConnectionEstablishedPayload.bulletinWindow`
  * (the welcome payload, not a frame) — there is no request RPC.
  */
+/**
+ * One heading in an article, as the wiki pane's outline shows it.
+ * `anchor` is the **sticky** anchor — the durable citation target, not
+ * a slug re-derived from the title, so a reworded heading keeps it.
+ */
+export interface WikiSectionSummary {
+  level: 1 | 2 | 3;
+  anchor: string;
+  title: string;
+}
+
+/**
+ * `world.wiki.page` payload — the article the wiki pane is showing.
+ *
+ * The **same rendered body** the terminal received, which is the
+ * point: it has already been through the render pipeline's gate, so
+ * over-capability content is absent from this payload for the same
+ * reason it is absent from the scroll. The pane never re-renders and
+ * never sees a source it was not sent.
+ *
+ * Everything the pane can act on is a **command** it composes and
+ * emits (`wiki edit <handle>`, `wiki history <handle>`) — bus-primacy;
+ * there is no private wiki channel from the client.
+ *
+ * `mayEdit` is the server's answer, sent so the pane can hide an
+ * affordance that would be refused. It is a display hint and nothing
+ * more — the verb re-checks on arrival, which is where the decision
+ * actually lives.
+ */
+export interface WikiPageFrame {
+  kind: 'wiki-page';
+  /** `namespace:slug` — what every command the pane emits addresses. */
+  handle: string;
+  title: string;
+  rev: number;
+  /** Rendered, gated MML. */
+  body: string;
+  tags: string[];
+  related: string[];
+  sections: WikiSectionSummary[];
+  subject: { kind: string; ref: string } | null;
+  updatedBy: string;
+  updatedAt: number;
+  mayEdit: boolean;
+  /**
+   * True when this is an unsaved `wiki preview`. The pane says so, or
+   * a preview is indistinguishable from the saved page it is not.
+   */
+  preview?: boolean;
+}
+
 export type BulletinFeedFrame =
   | { kind: 'bulletin'; action: 'upsert'; row: BulletinRow }
   | { kind: 'bulletin'; action: 'remove'; bulletinId: string }

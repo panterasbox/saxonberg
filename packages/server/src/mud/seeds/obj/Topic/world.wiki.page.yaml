@@ -1,0 +1,10 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.wiki.page
+  family: world.wiki
+  label: Wiki page
+  description: >-
+    The article the wiki pane is showing — a structured payload
+    alongside the scroll's prose, carrying the SAME already-gated
+    rendered body.

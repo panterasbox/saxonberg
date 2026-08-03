@@ -20,10 +20,12 @@ import { CommandBar } from "../components/CommandBar";
 import { InspectionPane } from "../components/InspectionPane";
 import { WhoPane } from "../components/WhoPane";
 import { NewsTickerPane } from "../components/NewsTickerPane";
+import { WikiPane } from "../components/WikiPane";
 
 /**
  * The view-sensitive right column — a small pane switch above the active
- * cockpit pane (Inspection | Who's Online). Sizes to the pane child (each
+ * cockpit pane (Inspection | Who's Online | News | Wiki). Sizes to the
+ * pane child (each
  * declares its own fixed width); `PaneSlot` is `flex: 1` so the pane's
  * `height: 100%` resolves against the space below the switch.
  */
@@ -109,6 +111,12 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           >
             News
           </PaneTab>
+          <PaneTab
+            $active={rightPane === "wiki"}
+            onClick={() => setRightPane("wiki")}
+          >
+            Wiki
+          </PaneTab>
         </PaneSwitch>
         <PaneSlot>
           {rightPane === "who" ? (
@@ -118,6 +126,11 @@ export const WorldLayout: React.FC<LayoutProps> = ({
             />
           ) : rightPane === "news" ? (
             <NewsTickerPane
+              onSendCommand={onSendCommand}
+              onCommandPreview={onCommandPreview}
+            />
+          ) : rightPane === "wiki" ? (
+            <WikiPane
               onSendCommand={onSendCommand}
               onCommandPreview={onCommandPreview}
             />
