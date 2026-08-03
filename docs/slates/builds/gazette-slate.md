@@ -73,6 +73,26 @@ Plus the three-layer split this slate inherits:
 > **Nobody reads the Federal Register — that is the point, and precisely why
 > journalism exists.**
 
+### ⭐⭐⭐ And the docket being PULL is by design, not a concession
+
+**(Revised 2026-08-02, after decomposing the Substack form — see
+[press-slate § What a publication is](./press-slate.md).)**
+
+An earlier pass framed the state's output as a **wire service** feeding
+the press, on a newspaper analogy. **The analogy was wrong** — Substack has
+no issues and the unit is a post. The distinction that survives is
+simpler, and it is about **direction**:
+
+> **The state publishes to a PLACE. A publisher pushes to PEOPLE.**
+
+A state that pushes to everyone is either propaganda or noise. So the
+gazette being a surface you **go to** is **correct**, not a limitation —
+and the press is **what comes to you about it.**
+
+⭐ **This is also why system news is genuinely the smallest part**: it is
+the only one of the three layers that needs no delivery machinery at
+all.
+
 ---
 
 # Wave 0 — make it visible. Launch-critical.

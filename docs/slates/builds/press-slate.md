@@ -46,11 +46,89 @@ exactly three paths:
    is genuinely playable here — not as a minigame, but as reading
    what the world already keeps.
 
-## What a publication is (mechanically, mostly assembly)
+## What a publication is
 
-- **A publication rides the forums' Subject layer** — a board with a
-  periodical's organizer; issues are threads, stories are entries.
-  No new primitive.
+⚠ **Revised 2026-08-02.** This section previously read *"mostly
+assembly"* and modelled a publication as a **periodical** — *"issues are
+threads, stories are entries."* **Wrong form.** Substack was the stated
+inspiration and **Substack has no issues**: nobody composes issue #7 out
+of five pieces. You write a post and it goes out.
+
+*(User: "that's not how substack really works. this actually started off
+with wordpress and blogs as the model but no one does that anymore.")*
+
+### ⭐⭐⭐⭐⭐ The real evolution is PULL → PUSH
+
+The blog **died as a destination** — not because the writing changed, but
+because **nobody visits.** The unit was always the post; what changed was
+**delivery.**
+
+> **You don't visit a publication. It arrives.**
+
+Which reframes this slate's own three layers as **two pull surfaces and
+one push surface** — and **the push is what makes it a publication**:
+
+| Layer | Direction |
+|---|---|
+| the record | queryable — **pull** |
+| the docket | queryable, complete, boring — **pull** |
+| **a publication** | ⭐ **it arrives** — **PUSH** |
+
+### The form, decomposed
+
+- ⭐ **The unit is the POST, not the issue.** No bundling, no assembly, no
+  compose-and-release. **This makes the build substantially cheaper** than
+  a periodical would.
+- **A publication still rides the forums' Subject layer** — a board per
+  publisher. But **a post is a THREAD**, not an entry in an issue — which
+  means **comments come free**, and Substack has comments.
+- ⭐⭐ **Subscription is the primitive**, and it is an **attention rule** —
+  `NotifyPolicy` already decides what reaches you. Probably not a new
+  system.
+- ⭐⭐ **Delivery is the AETHER.** Substack's channel is email, which is
+  out-of-world; ours is the implant — a device that receives, *including
+  while you sleep* (physiology § Part 7d). **An issue arriving is a
+  message**, and it gives the aether a job beyond chat.
+- **The masthead is a person.** Credibility runs **both ways**: your
+  standing lends the publication authority, and its failures cost you
+  standing.
+- **Free and paid tiers** ride banking + recurring contracts. The
+  interesting part is the tension, not the mechanism — see § *the paywall*
+  below.
+- **No algorithm.** You get what you subscribed to, in the order it was
+  published. Worth committing to explicitly.
+- ⭐ **Cadence is a promise you can break VISIBLY.** A publisher who says
+  weekly and goes quiet is legibly unreliable, with no reputation mechanic
+  needed. ⚠ At 12× a "daily" is every two real hours and a "weekly" is
+  fourteen — **the clock-tuning problem again; pick the number from play,
+  not from realism.**
+
+### ⭐⭐⭐ The paywall is the press's own contradiction
+
+This project's thesis is that transparency is **actual** — and a paywall
+gates it behind money. The honest resolution is the real-world one:
+
+> **The record is always free. You are paying for the editing, not the
+> facts.**
+
+Which is the genuine defence of paid journalism, and **having the argument
+available in-world is better content than settling it by fiat.**
+
+### ⭐⭐ The piece most worth stealing
+
+Substack's actual innovation is not the editor or the paywall:
+
+> **The writer owns the subscriber list.** The anti-platform promise.
+
+Which is **the same promise the hosting model makes** — *you can leave and
+take it with you* — one layer down. **The publication form and the
+business model tell one story rather than two.**
+
+⚠ **Discovery is where we are BETTER off than Substack**, whose known
+weakness is that nobody finds you. In a world with a real social graph,
+**discovery is people telling each other.**
+
+### The rest of the mechanics
 - **Credibility derives from the track record**, exactly like
   testimony: claims that survive scrutiny accumulate, claims that
   fail do too, and readers see the record. A paper is not trusted
