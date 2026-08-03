@@ -246,3 +246,37 @@ describe('BSON values survive the walk', () => {
     expect(a.b.c).toBe('/obj/Key');
   });
 });
+
+describe('converging an interrupted run', () => {
+  // The app booted before the migration, so the insert-only seeder
+  // created fresh rows at the new paths beside the old ones. Reporting
+  // the collision is not enough: the stale source still carries the old
+  // /lib/ class, and BootstrapManager dies on it. The e2e suite caught
+  // this ("failed to clone '/domain/void'"); no unit test could, because
+  // none of them boot a world.
+  const row = { class: '/obj/Discipline', data: { label: 'Mixology' } };
+
+  it('marks the stale source for deletion when the destination is identical', () => {
+    const plan = planCollection('domain', [
+      { _id: 'stale', path: '/lib/advancement/Discipline/mixology', ...row },
+      { _id: 'seeded', path: '/obj/Discipline/mixology', ...row },
+    ]);
+    expect(plan.collisions[0]!.identical).toBe(true);
+    expect(plan.deletions).toEqual(['stale']);
+    expect(plan.changes.find((c) => c.id === 'stale')).toBeUndefined();
+  });
+
+  it('does NOT delete when the destination differs — that is a real conflict', () => {
+    const plan = planCollection('domain', [
+      {
+        _id: 'stale',
+        path: '/lib/advancement/Discipline/mixology',
+        class: '/lib/advancement/Discipline',
+        data: { label: 'house rules' },
+      },
+      { _id: 'seeded', path: '/obj/Discipline/mixology', ...row },
+    ]);
+    expect(plan.collisions[0]!.identical).toBe(false);
+    expect(plan.deletions).toEqual([]);
+  });
+});

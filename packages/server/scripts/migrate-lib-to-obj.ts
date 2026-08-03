@@ -77,6 +77,8 @@ export interface Collision {
 export interface Plan {
   changes: DocChange[];
   collisions: Collision[];
+  /** Stale source rows whose destination already holds an identical copy. */
+  deletions: unknown[];
   /** Whole-string /lib/ values no rule covered. */
   unmapped: string[];
   /** /lib/ occurrences inside a longer string — reported, never rewritten. */
@@ -178,6 +180,7 @@ export function planCollection(
 
   const changes: DocChange[] = [];
   const collisions: Collision[] = [];
+  const deletions: unknown[] = [];
   const uniqueField = UNIQUE_FIELDS[name];
   const occupied = new Map<string, Document>();
   if (uniqueField) {
@@ -198,15 +201,25 @@ export function planCollection(
       if (typeof nowAt === 'string' && nowAt !== before) {
         const sitting = occupied.get(nowAt);
         if (sitting && sitting !== doc) {
+          const identical =
+            JSON.stringify({ ...sitting, _id: null }) ===
+            JSON.stringify({ ...after, _id: null });
           collisions.push({
             collection: name,
             field: uniqueField,
             value: nowAt,
-            identical:
-              JSON.stringify({ ...sitting, _id: null }) ===
-              JSON.stringify({ ...after, _id: null }),
+            identical,
           });
-          continue; // never write into an occupied slot
+          // An IDENTICAL destination means the seeder already inserted
+          // the row we were about to write — the app booted before the
+          // migration ran. Converging means DELETING the stale source,
+          // not leaving it: a leftover row still carries the old
+          // `/lib/` class, and boot dies on it
+          // ("failed to clone '/domain/void'"). Reporting alone was the
+          // bug; the e2e suite found it because the unit tests never
+          // boot a world.
+          if (identical) deletions.push(doc._id);
+          continue; // never write INTO an occupied slot
         }
       }
     }
@@ -214,7 +227,7 @@ export function planCollection(
     changes.push({ collection: name, id: doc._id, before: doc, after, touched });
   }
 
-  return { changes, collisions, unmapped: [...unmapped], substrings: [...substrings] };
+  return { changes, collisions, deletions, unmapped: [...unmapped], substrings: [...substrings] };
 }
 
 /* ─────────────────────────── the driver ─────────────────────────── */
@@ -224,7 +237,7 @@ interface Args {
   scan: boolean;
   reverse: boolean;
   collections?: string[];
-  onCollision: 'abort' | 'skip' | 'prefer-source';
+  onCollision: 'abort' | 'skip' | 'prefer-source' | 'prefer-destination';
   uri?: string;
   db?: string;
 }
@@ -282,13 +295,14 @@ async function main(): Promise<void> {
       unmapped,
       substrings,
     });
-    if (plan.changes.length === 0 && plan.collisions.length === 0) continue;
+    if (plan.changes.length === 0 && plan.collisions.length === 0 && plan.deletions.length === 0) continue;
 
     totalChanges += plan.changes.length;
     totalCollisions += plan.collisions.length;
     console.log(
       `  ${name.padEnd(24)} ${String(plan.changes.length).padStart(5)} document(s)` +
-        (plan.collisions.length ? `  ⚠ ${plan.collisions.length} collision(s)` : '')
+        (plan.collisions.length ? `  ⚠ ${plan.collisions.length} collision(s)` : '') +
+        (plan.deletions.length ? `  ${plan.deletions.length} stale source(s) to drop` : '')
     );
 
     for (const c of plan.collisions) {
@@ -305,9 +319,27 @@ async function main(): Promise<void> {
     }
 
     if (args.apply) {
-      if (plan.collisions.length && args.onCollision === 'abort') {
+      // Only a DIFFERING destination is a conflict. An identical one is
+      // the seeder having already written what we were about to write —
+      // convergence, handled by the deletion pass above. Aborting on it
+      // would refuse the very case the migration is designed to absorb.
+      const conflicts = plan.collisions.filter((c) => !c.identical);
+      // `prefer-destination`: the row already sitting at the new path is
+      // what the CURRENT seeds produce, so it wins and the stale source
+      // is dropped. This is the "I am fine re-seeding" answer, and the
+      // right one when the difference is simply that the old row predates
+      // a seed change (e.g. a hydratorClass this build removed).
+      if (conflicts.length && args.onCollision === 'prefer-destination') {
+        for (const c of conflicts) {
+          const stale = docs.find(
+            (d) => typeof d.path === 'string' && rewrite(d.path) === c.value
+          );
+          if (stale) await db.collection(name).deleteOne({ _id: stale._id as never });
+        }
+        console.log(`      dropped ${conflicts.length} stale source(s) in favour of the seeded rows`);
+      } else if (conflicts.length && args.onCollision === 'abort') {
         console.error(
-          `\nABORT: ${name} has ${plan.collisions.length} collision(s). ` +
+          `\nABORT: ${name} has ${conflicts.length} conflicting collision(s). ` +
             `Nothing was written to this collection.\n` +
             `This usually means the new code booted BEFORE the migration ran ` +
             `(SeederManager is insert-only, so it inserted fresh defaults at ` +
@@ -318,6 +350,13 @@ async function main(): Promise<void> {
         process.exit(1);
       }
       const col = db.collection(name);
+      // Stale sources whose destination already holds an identical row.
+      // Deleting them is what makes an interrupted run converge; leaving
+      // them behind leaves a row still carrying the old /lib/ class,
+      // which boot then dies on.
+      for (const id of plan.deletions) {
+        await col.deleteOne({ _id: id as never });
+      }
       for (const ch of plan.changes) {
         // `_id` is immutable — never send it in the replacement, and
         // always match on the ORIGINAL value rather than anything the
