@@ -692,9 +692,28 @@ function readLegacyChannelSub(
   channelId: string,
 ): { tunedIn: boolean; muted: boolean } | null {
   if (!MixinApi.isPropertied(avatar)) return null;
-  const raw = avatar.getProp(
-    Property.of<PropValue>(`chat.subscription.${channelId}`),
-  );
+  let raw: PropValue | undefined;
+  try {
+    raw = avatar.getProp(
+      Property.of<PropValue>(`chat.subscription.${channelId}`),
+    );
+  } catch {
+    // The sandbox boundary denies `getProp` across scopes, and delivery
+    // walks every recipient — so a speaker standing inside a circle hits
+    // this on the first FIELD-scoped subscriber and the whole `chat`
+    // command dies with a raw SecurityError, after the line has already
+    // been composed and echoed to the sender.
+    //
+    // Degrading is right rather than exempting `getProp` at the boundary:
+    // this read is a best-effort ONE-TIME port of a legacy key onto the
+    // per-subject store, not something delivery depends on. Treating an
+    // unreadable value as "no legacy key" is exactly what this function
+    // already promises for an absent one. Exempting `getProp` would open
+    // arbitrary cross-scope domain reads — the thing the boundary exists
+    // to stop. Same reasoning as `isParked` in the exempt-method list,
+    // reached from the other side.
+    return null;
+  }
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as { tunedIn?: boolean; muted?: boolean };
   return {

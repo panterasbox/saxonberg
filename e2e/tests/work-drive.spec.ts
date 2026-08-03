@@ -7,12 +7,19 @@
  * unbanked refusal, opens an account, completes, gets paid.
  */
 import { test, expect, type Page } from '@playwright/test';
-import { mintSession, enterWorld, commandInput } from './helpers';
+import {
+  mintSession,
+  enterWorld,
+  commandInput,
+  openWorldAsFounder,
+} from './helpers';
 
 const SHOT = (n: string) =>
   `/tmp/claude-1000/-home-bobalu-play-saxonberg-build-1/7b521696-7891-4cf3-93e6-32c8504f67b0/scratchpad/drive-${n}.png`;
 
 const HALL = '/domain/terminus/terminal/hall';
+/** Goodkin's banking hall — where the boss opens an account. */
+const BANK = '/domain/terminus/counting-houses/banking-hall';
 
 async function cmd(page: Page, c: string, ms = 2200): Promise<string> {
   const before = await page.evaluate(() => document.body.innerText);
@@ -33,22 +40,56 @@ async function cmd(page: Page, c: string, ms = 2200): Promise<string> {
 test('work-contracts live drive', async ({ browser }) => {
   test.setTimeout(420_000);
 
-  // ── BOSS (persistent; funded account; wakes at the hall) ──
-  const boss = await mintSession({ handle: 'boss' });
+  // ── BOSS (wakes at the hall) ──
+  //
+  // `withCharacter` is what makes this work on a FRESH database: without
+  // a character to enter as, the session lands in char-gen and `look`
+  // returns "> enroll", which is exactly how this drive failed. The
+  // worker mint further down always had it; the boss did not.
+  //
+  // The handle is unique per run, like the worker's. It used to be the
+  // fixed `boss`, which only worked because that one account had been
+  // hand-funded in a long-lived database — the "one scaffold" this file's
+  // header admits to. A fixed handle also means the character already
+  // exists on the second run, so `startLocation` is ignored and the boss
+  // wakes wherever it was left. Funding in-world (below) removes the
+  // reason for the fixed handle entirely.
+  const boss = await mintSession({
+    handle: 'boss',
+    withCharacter: true,
+    startLocation: HALL,
+  });
   const b = await enterWorld(browser, boss.state);
   const bp = b.page;
   await bp.waitForTimeout(2000);
 
-  let lookOut = await cmd(bp, 'look');
-  if (lookOut.toLowerCase().includes('general store')) {
-    // A prior probe left the boss at the store — walk home to the hall.
-    await cmd(bp, 'south', 2600);
-    await cmd(bp, 'east', 2600);
-    await cmd(bp, 'south', 2600);
-    await cmd(bp, 'south', 2600);
-    lookOut = await cmd(bp, 'look');
-  }
+  const lookOut = await cmd(bp, 'look');
   expect(lookOut.toLowerCase()).toContain('noticeboard');
+
+  // ── FUND THE BOSS ──
+  //
+  // The boss needs to cover a 25-credit escrow and a new account opens at
+  // zero. `reserve issue` is the one conserved faucet and it is gated on
+  // the Governor's seat, so the founder does the issuing — there is
+  // deliberately no `seatAsGovernor` helper (see helpers.ts: `office
+  // assign` cannot resolve a second session).
+  //
+  // The handover is coin on the floor rather than `pay <name>`, because
+  // both `pay` and `bank transfer` resolve their recipient as an object
+  // and a session's HANDLE is not its character's in-world name. Dropping
+  // and taking needs no name at all — it only needs the two of them in
+  // the same room, which `startLocation` guarantees.
+  {
+    const gov = await openWorldAsFounder(browser, { startLocation: HALL });
+    try {
+      await cmd(gov.page, 'reserve issue 500', 2600);
+      await cmd(gov.page, 'drop coins', 2600);
+    } finally {
+      await gov.close();
+    }
+  }
+  await cmd(bp, 'get coins', 2600);
+
   await bp.screenshot({ path: SHOT('01-boss-hall'), fullPage: true });
 
   // Walk to Goodkin (current counting-houses): re-link the wallet (bank
@@ -59,9 +100,20 @@ test('work-contracts live drive', async ({ browser }) => {
   await cmd(bp, 'west', 2600);
   await cmd(bp, 'west', 2600);
   await cmd(bp, 'bank open', 2600);
-  const bal = await cmd(bp, 'bank', 2200);
-  const balMatch = bal.match(/balance is (\d+)/i);
+  let bal = await cmd(bp, 'bank', 2200);
+  let balMatch = bal.match(/balance is (\d+)/i);
   expect(balMatch, 'a readable balance').toBeTruthy();
+  // Top up when the account cannot cover the escrow. On a fresh database
+  // that is always (a new account opens at zero); on a re-run only once
+  // earlier runs have spent it down.
+  //
+  // Bank the coin the founder handed over at the hall.
+  if (Number(balMatch![1]) < 25) {
+    await cmd(bp, 'bank deposit coins', 2600);
+    bal = await cmd(bp, 'bank', 2200);
+    balMatch = bal.match(/balance is (\d+)/i);
+    expect(balMatch, 'a readable balance after topping up').toBeTruthy();
+  }
   expect(Number(balMatch![1])).toBeGreaterThanOrEqual(25);
   await bp.screenshot({ path: SHOT('02-boss-banked'), fullPage: true });
 

@@ -215,6 +215,15 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // present, in scope, parseable, routed to a controller. A controller
     // REFUSING is a pass — the verb ran. "I don't understand" is the
     // failure, and it is the one this build actually shipped.
+    // The bed ships EMPTY — "a raised garden bed has no soil in it. Pour
+    // some in first." Without this the plant never takes, so there is
+    // nothing growing for `water` to water, and the watering assertion
+    // below fails on any database where a previous run has not already
+    // left a crop in the bed. Pouring first is what the wizard brought
+    // the sack for.
+    await runCommand(page, 'pour sack into bed');
+    await page.waitForTimeout(2000);
+
     for (const [verb, cmd] of [
       ['plant', 'plant seed in bed'],
       ['feed', 'feed bed'],
