@@ -41,9 +41,21 @@ import { Mixins } from '../../lib/mixin';
 
 class Principal extends Idea {}
 
+/**
+ * A principal that answers the guest question the way a throwaway
+ * Avatar does. `PlayerApi.isAvatarStuff` is mocked per-test, so this
+ * only has to supply the one method the check asks for.
+ */
+class GuestPrincipal extends Idea {
+  getIsGuest(): boolean {
+    return true;
+  }
+}
+
 let db: WikiTestDb;
 let registry: WikiRegistry;
 let actor: Stuff;
+let guest: Stuff;
 let zone: WikiNamespaceZone;
 
 /**
@@ -85,6 +97,7 @@ beforeEach(async () => {
   db.reset();
   registry = makeStuff(() => new WikiRegistry());
   actor = makeStuff(() => new Principal()) as unknown as Stuff;
+  guest = makeStuff(() => new GuestPrincipal()) as unknown as Stuff;
   zone = makeStuff(() => new WikiNamespaceZone());
   // Namespace zones resolve through `StuffApi.singleton`; every
   // namespace in these tests shares one zone, since which zone it is
@@ -512,6 +525,69 @@ describe('permissions (19, 20, 21)', () => {
     expect(await asActor(() => registry.mayEdit(page))).toBe(true);
     // …but the moderator rung, which needs the zone, refuses.
     expect(await asActor(() => registry.mayModerate('main'))).toBe(false);
+  });
+
+  describe('⚠ a guest may read and may not write', () => {
+    /**
+     * The objection is to the IDENTITY, not the permission. Open
+     * editing is safe here because undoing is cheap AND an edit is
+     * attributable to somebody still around afterwards; a guest's
+     * identity evaporates at disconnect, so admitting one removes the
+     * thing that makes the openness safe rather than loosening it.
+     */
+    async function asGuest<T>(fn: () => Promise<T>): Promise<T> {
+      return ExecutionContextApi.runRoot(null, 'wiki.test', async () => {
+        ExecutionContextApi.tagActingAuthor(guest);
+        return fn();
+      });
+    }
+
+    it('refuses a create, naming the way out rather than a rung', async () => {
+      pinAccess({ avatar: true });
+      await expect(
+        asGuest(() => raw().createPage({ slug: 'graffiti' })),
+      ).rejects.toThrow(/read-only for guests/);
+    });
+
+    it('refuses an edit to an existing page', async () => {
+      pinAccess({ avatar: true });
+      const page = await create('oak');
+      await expect(asGuest(() => raw().editPage(page, 'x'))).rejects.toThrow(
+        /read-only for guests/,
+      );
+      expect(page.getRev()).toBe(1);
+    });
+
+    it('⭐ refuses BENEATH every rung — a guest wizard is still a guest', async () => {
+      // Checked before the ladder, wizard rung included, because no
+      // amount of permission makes an unattributable edit attributable.
+      pinAccess({ wizard: true, avatar: true, editor: true, moderator: true });
+      await expect(
+        asGuest(() => raw().createPage({ slug: 'graffiti' })),
+      ).rejects.toThrow(/read-only for guests/);
+      expect(await asGuest(() => registry.mayModerate('main'))).toBe(false);
+    });
+
+    it('answers `mayEdit` false, so no client draws the affordance', async () => {
+      pinAccess({ avatar: true });
+      const page = await create('oak');
+      expect(await asGuest(() => registry.mayEdit(page))).toBe(false);
+    });
+
+    it('⭐ READING is untouched', async () => {
+      // A wiki nobody can read before signing up cannot recruit its
+      // own authors.
+      pinAccess({ avatar: true });
+      await create('oak', { body: 'A dense hardwood.' });
+      const hit = await asGuest(() => registry.resolve('oak'));
+      expect(hit?.page.getBody()).toContain('dense hardwood');
+      expect(await asGuest(() => registry.allPages())).toHaveLength(1);
+    });
+
+    it('a signed-in player is unaffected', async () => {
+      pinAccess({ avatar: true });
+      await expect(create('oak')).resolves.toBeInstanceOf(WikiPage);
+    });
   });
 
   it('an unresolved principal is refused everything', async () => {

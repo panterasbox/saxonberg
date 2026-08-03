@@ -557,3 +557,41 @@ describe('the composer is seeded with what is being edited', () => {
     expect(cap.opts().initial).toBeUndefined();
   });
 });
+
+/**
+ * ⚠ A guest is refused **before the composer opens**.
+ *
+ * The registry refuses on its own either way, so this is not about
+ * whether the edit lands — it is about when somebody finds out. A
+ * refusal that arrives after an article has been typed is the same
+ * decision delivered at the worst possible moment.
+ */
+describe('a write nobody may make is refused up front', () => {
+  it('does not open the composer for a refused CREATE', async () => {
+    const compose = vi.spyOn(PromptApi, 'compose');
+    vi.spyOn(WikiRegistry.prototype, 'refusalToCreate').mockResolvedValue(
+      'the wiki is read-only for guests',
+    );
+    const { notes } = await run(
+      { subcommand: 'create', page: 'graffiti', title: 'x' },
+      {},
+    );
+    expect(reasons(notes)).toEqual(['wiki-denied']);
+    expect(compose).not.toHaveBeenCalled();
+    expect(db.all(Collections.Wiki)).toHaveLength(0);
+  });
+
+  it('does not open the composer for a refused EDIT', async () => {
+    await seedArticle();
+    const before = String(row().body);
+    const compose = vi.spyOn(PromptApi, 'compose');
+    vi.spyOn(WikiRegistry.prototype, 'refusalToEdit').mockResolvedValue(
+      'the wiki is read-only for guests',
+    );
+    const { body, notes } = await run({ subcommand: 'edit', page: 'oak' }, {});
+    expect(reasons(notes)).toEqual(['wiki-denied']);
+    expect(compose).not.toHaveBeenCalled();
+    expect(body).toContain('read-only for guests');
+    expect(String(row().body)).toBe(before);
+  });
+});

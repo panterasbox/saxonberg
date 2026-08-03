@@ -373,6 +373,40 @@ reason is **blast radius**: an article is read by whoever opens it, but
 a snippet is *transcluded*, so vandalising one vandalises every page
 using it.
 
+### ⚠ The guest floor — beneath every rung
+
+**A guest may read the wiki and may not write to it.** Checked before
+the ladder, the *wizard* rung included, because the objection is to the
+**identity**, not the permission — no amount of authority makes an
+unattributable edit attributable.
+
+Open editing works here because **undoing is cheaper than reviewing**:
+no queue, `wiki rollback` in about four seconds, and an edit that
+belongs to somebody who is still there afterwards. A guest is an
+anonymous throwaway (`/obj/Avatar/guest-<uuid>`, persists nothing)
+whose identity evaporates at disconnect — nobody to talk to, nobody to
+refuse next time, and a revision log of names that mean nothing.
+Admitting guests would not loosen the wiki; it would remove the thing
+that makes its openness safe.
+
+**Reading is untouched, deliberately** — a wiki nobody can read before
+signing up cannot recruit its own authors.
+
+Two properties worth keeping:
+
+- The refusal **names the way out** ("make a character and it is yours
+  to write"), not a rung. A would-be author who is told only "you may
+  not" leaves.
+- It arrives **before the composer opens**. `refusalToEdit` /
+  `refusalToCreate` answer the permission question and its reason in
+  one computation, so the verb can ask up front and the mutators can
+  still throw — the printed reason and the thrown one cannot drift.
+  Refusing somebody who has just written an article is technically
+  identical and humanly very different.
+
+`mayEdit` rides the `world.wiki.page` frame, so the pane simply does
+not draw an Edit button for a guest.
+
 **A review queue is deliberately absent.** Open editing plus fast
 rollback is the wiki-classic bargain; a queue converts a commons into a
 submission process. Revisit only if abuse actually appears.

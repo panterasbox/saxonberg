@@ -84,6 +84,16 @@ export const SNIPPET_NAMESPACE = 'snippet';
 /** The one managed group; moderators are its `'owner'`-role members. */
 const EDITORS_GROUP = 'wiki-editors';
 
+/**
+ * What a guest is told. Names the axis (identity, not permission) and
+ * the way out, so it does not read as an arbitrary lockout — "you may
+ * not" without "here is how you may" is how a would-be author leaves.
+ */
+const GUEST_REFUSAL =
+  'the wiki is read-only for guests — an edit has to be attributable to ' +
+  'somebody who is still here tomorrow. Make a character and it is yours ' +
+  'to write.';
+
 /** What a name lookup resolved to, and how. */
 export interface PageLookup {
   page: WikiPage;
@@ -343,7 +353,46 @@ export default class WikiRegistry extends WikiRegistryBase {
    * the same rule as revision authorship, for the same reason.
    */
   public async mayEdit(page: WikiPage): Promise<boolean> {
-    return this.satisfies(await this.protectionFor(page), page.getNamespace());
+    return (await this.refusalToEdit(page)) === null;
+  }
+
+  /**
+   * **Why** a write to `page` would be refused, or `null` if it would
+   * not — the same question `mayEdit` asks, answered in words.
+   *
+   * One computation behind both, so the reason a verb prints and the
+   * reason a mutator throws can never drift apart. The verb reads this
+   * BEFORE opening the composer: refusing somebody who has just
+   * written an article is technically identical to refusing them up
+   * front, and humanly very different.
+   */
+  public async refusalToEdit(page: WikiPage): Promise<string | null> {
+    const level = await this.protectionFor(page);
+    if (await this.satisfies(level, page.getNamespace())) return null;
+    if (this.actingGuest()) return GUEST_REFUSAL;
+    return `'${page.getHandle()}' is protected: only ${level} may edit it`;
+  }
+
+  /**
+   * Whether the **current** principal may write a NEW page into
+   * `namespace` — the same question `mayEdit` asks of an existing
+   * page, for the case where there is no page yet.
+   *
+   * Read by the verb before it opens the composer. Refusing after
+   * somebody has written an article is technically identical and
+   * humanly very different.
+   */
+  public async mayCreate(namespace: string): Promise<boolean> {
+    return (await this.refusalToCreate(namespace)) === null;
+  }
+
+  /** Why a NEW page in `namespace` would be refused, or `null`. */
+  public async refusalToCreate(namespace: string): Promise<string | null> {
+    const zone = await this.zoneFor(namespace);
+    const level = zone ? await zone.effectiveProtection() : 'anyone';
+    if (await this.satisfies(level, namespace)) return null;
+    if (this.actingGuest()) return GUEST_REFUSAL;
+    return `the '${namespace}' namespace is protected: only ${level} may write there`;
   }
 
   /** Whether the current principal holds the moderator rung. */
@@ -636,6 +685,40 @@ export default class WikiRegistry extends WikiRegistryBase {
     return null;
   }
 
+  /**
+   * ⚠ **A guest may read the wiki and may not write to it.**
+   *
+   * Not a protection rung — a floor beneath all of them, checked
+   * before the ladder including the wizard rung, because the objection
+   * is to the *identity*, not to the permission.
+   *
+   * Open editing works here because **undoing is cheaper than
+   * reviewing**: there is no review queue, `wiki rollback` takes about
+   * four seconds, and the deterrent is that an edit is attributable to
+   * somebody who is still around afterwards. A guest is an anonymous
+   * throwaway whose identity (`/obj/Avatar/guest-<uuid>`) evaporates
+   * at disconnect — nobody to talk to, nobody to refuse next time,
+   * and a revision log full of names that mean nothing. The whole
+   * accountability model assumes a durable author, so admitting a
+   * guest does not loosen the wiki, it removes the thing that makes
+   * the wiki's openness safe.
+   *
+   * Reading is deliberately untouched. A wiki nobody can read before
+   * signing up is a wiki that cannot recruit its own authors.
+   */
+  private actingGuest(): boolean {
+    const actor = this.actor();
+    if (actor === null || !PlayerApi.isAvatarStuff(actor)) return false;
+    // `isAvatarStuff` reads the template-path prefix, so it can be
+    // right about identity and wrong about the class (an HMR cycle, a
+    // moved backing class). Asking optionally means an unrecognisable
+    // principal falls through to the ladder — which then decides on
+    // its own terms — rather than throwing inside a permission check.
+    return (
+      (actor as { getIsGuest?: () => boolean }).getIsGuest?.() === true
+    );
+  }
+
   /** Whether the current principal clears `required` in `namespace`. */
   private async satisfies(
     required: Protection,
@@ -643,6 +726,8 @@ export default class WikiRegistry extends WikiRegistryBase {
   ): Promise<boolean> {
     const actor = this.actor();
     if (actor === null) return false;
+    // Before every rung, the wizard one included — see `actingGuest`.
+    if (this.actingGuest()) return false;
     // A wizard clears every rung — the code-trust axis subsumes content
     // authority, and a wizard could edit the row directly regardless.
     if (await AccessApi.isWizard(actor)) return true;
@@ -661,24 +746,18 @@ export default class WikiRegistry extends WikiRegistryBase {
   }
 
   private async assertMayEdit(page: WikiPage): Promise<void> {
-    if (await this.mayEdit(page)) return;
-    const level = await this.protectionFor(page);
-    throw new WikiDenied(
-      `'${page.getHandle()}' is protected: only ${level} may edit it`,
-    );
+    const refusal = await this.refusalToEdit(page);
+    if (refusal !== null) throw new WikiDenied(refusal);
   }
 
   private async assertMayEditNamespace(namespace: string): Promise<void> {
-    const zone = await this.zoneFor(namespace);
-    const level = zone ? await zone.effectiveProtection() : 'anyone';
-    if (await this.satisfies(level, namespace)) return;
-    throw new WikiDenied(
-      `the '${namespace}' namespace is protected: only ${level} may write there`,
-    );
+    const refusal = await this.refusalToCreate(namespace);
+    if (refusal !== null) throw new WikiDenied(refusal);
   }
 
   private async assertMayModerate(namespace: string): Promise<void> {
     if (await this.mayModerate(namespace)) return;
+    if (this.actingGuest()) throw new WikiDenied(GUEST_REFUSAL);
     throw new WikiDenied(
       `only moderators of '${namespace}' may do that`,
     );

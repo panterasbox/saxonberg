@@ -195,8 +195,13 @@ export default class WikiController extends CommandController<WikiModel> {
         'bad-subject',
       );
     }
-    const body = await this.resolveBody(model, context, 'Write the article:');
+    // ⚠ Ask BEFORE opening the composer. `createPage` refuses on its
+    // own — but refusing somebody who has just written an article is
+    // technically identical and humanly very different.
     const registry = await this.registry();
+    const refusal = await registry.refusalToCreate(namespace);
+    if (refusal !== null) return this.fail(context, refusal, 'wiki-denied');
+    const body = await this.resolveBody(model, context, 'Write the article:');
     const page = await registry.createPage({
       namespace,
       slug: name,
@@ -222,6 +227,11 @@ export default class WikiController extends CommandController<WikiModel> {
     const page = await this.requirePage(model, context);
     if (!page) return;
     const registry = await this.registry();
+    // ⚠ Ask before doing anything else. The mutators refuse on their
+    // own, but by then the composer has been opened and an article
+    // typed into it — the same refusal, arriving at the worst moment.
+    const refusal = await registry.refusalToEdit(page);
+    if (refusal !== null) return this.fail(context, refusal, 'wiki-denied');
     const subject = parseSubject(model.subject);
     if (subject === 'invalid') {
       return this.fail(
