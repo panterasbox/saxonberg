@@ -17,6 +17,7 @@ import { AccessApi } from '../../api/access';
 import { AppApi } from '../../api/app';
 import { ShellApi } from '../../api/shell';
 import { ExecutionContextApi } from '../../api/execution-context';
+import { ProxyApi } from '../../api/proxy';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { LinkTarget } from '../../lib/wiki/render';
@@ -31,6 +32,18 @@ function resolverOver(
   pages: Record<string, LinkTarget>,
 ): (ref: string) => Promise<LinkTarget | null> {
   return async (ref: string) => pages[ref.trim().toLowerCase()] ?? null;
+}
+
+/**
+ * `render` / `redactSource` are gated to the controller + the registry
+ * (criterion 49 — a component re-entering the renderer takes a
+ * `SecurityError`, which is a GATE, not a depth counter). Tests drive
+ * the unwrapped target; the gate itself is asserted through the PROXY
+ * in `WikiRenderer.components.test.ts`, once, rather than being
+ * defeated invisibly everywhere.
+ */
+function raw(): WikiRenderer {
+  return ProxyApi.unwrap(renderer as unknown as Stuff) as unknown as WikiRenderer;
 }
 
 beforeEach(() => {
@@ -48,7 +61,7 @@ async function render(
 ): Promise<string> {
   return ExecutionContextApi.runRoot(null, 'wiki.read', async () => {
     ExecutionContextApi.tagActingAuthor(reader);
-    const result = await renderer.render(body, {
+    const result = await raw().render(body, {
       resolveLink: resolverOver(pages),
     });
     return result.body;
@@ -158,7 +171,7 @@ describe('what link resolution must NOT touch', () => {
     // documented no-op rather than a half-resolution.
     const out = await ExecutionContextApi.runRoot(null, 'r', async () => {
       ExecutionContextApi.tagActingAuthor(reader);
-      return (await renderer.render('[[oak]]')).body;
+      return (await raw().render('[[oak]]')).body;
     });
     expect(out).toBe('[[oak]]');
   });

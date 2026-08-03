@@ -56,15 +56,20 @@
  */
 
 import { Idea } from '../lib/stuff/Idea';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Mml, type MmlNode } from '../api/mml';
 import { AccessApi } from '../api/access';
 import { AppApi } from '../api/app';
 import { ShellApi } from '../api/shell';
 import { ExecutionContextApi } from '../api/execution-context';
+import { StuffApi } from '../api/stuff';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { RenderBudget, RenderBudgetExceeded } from '../lib/wiki/RenderBudget';
+import { Snippets, type SnippetInvocation } from '../lib/wiki/Snippet';
 import {
   SpoilerLevels,
+  type ComponentStatics,
   type ReaderProfile,
   type RenderOptions,
   type RenderResult,
@@ -86,6 +91,31 @@ const LIMIT_KEYS = {
 /** The reader-preference setting declared on `Avatar` (D-9). */
 const APPETITE_SETTING = 'wiki.spoilerAppetite';
 
+/**
+ * ⭐ Who may run a render — and therefore **why criterion 49 is
+ * structural rather than a depth counter**.
+ *
+ * "No component may trigger a page render" could have been enforced
+ * with a re-entrancy flag or a recursion limit. Both make recursion
+ * *bounded*; neither makes it impossible, and a bound is a number
+ * somebody eventually raises.
+ *
+ * Instead: a component lives at `/lib/wiki/components/*`, which is in
+ * neither entry below, so a component calling back into the renderer
+ * takes a `SecurityError` at the proxy. There is no depth at which it
+ * becomes allowed.
+ *
+ * String form for both, because `pnpm lint:gates` validates concrete
+ * `FromModule` strings against a real module + export — the class form
+ * is invisible to that lint, which would make this an unchecked gate.
+ * (The `FromTemplate` entry names the registry's clone identity, which
+ * is how the registry reaches the renderer for its own reads.)
+ */
+const RenderCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('/obj/command/system/WikiController'),
+  SecurityPolicies.FromTemplate('/obj/WikiRegistry'),
+);
+
 export default class WikiRenderer extends Idea {
   /**
    * Render an article body to display MML for the **current** reader.
@@ -94,6 +124,7 @@ export default class WikiRenderer extends Idea {
    * component yields an inline error node and the rest of the page
    * renders (C2). It throws only for a programming error.
    */
+  @CallSecurity(RenderCallers)
   public async render(
     body: string,
     opts: RenderOptions = {},
@@ -177,6 +208,7 @@ export default class WikiRenderer extends Idea {
    * tag forms, so re-emitting an untouched body would rewrite bodies
    * this was only ever meant to filter (the plan's R-8).
    */
+  @CallSecurity(RenderCallers)
   public async redactSource(body: string): Promise<string> {
     const reader = await this.resolveReader({});
     // A ceiling of 3 admits everything the vocabulary can express, so
@@ -232,11 +264,146 @@ export default class WikiRenderer extends Idea {
    */
   protected async expandSnippets(
     nodes: readonly MmlNode[],
-    _opts: RenderOptions,
-    _budget: RenderBudget,
-    _diagnostics: string[],
+    opts: RenderOptions,
+    budget: RenderBudget,
+    diagnostics: string[],
   ): Promise<readonly MmlNode[]> {
-    return nodes;
+    if (!opts.resolveSnippet) return nodes;
+    return this.expandIn(nodes, opts, budget, diagnostics, []);
+  }
+
+  /**
+   * Walk `nodes` expanding every `{{Snippet}}` in their text, to
+   * fixpoint — an expansion's own body is re-parsed and re-walked, so a
+   * snippet may compose other snippets.
+   *
+   * `stack` is the chain of snippets currently being expanded, and it
+   * is the **cycle detector**: a name already on the stack renders an
+   * inline error instead of recursing. The budget's depth cap and total
+   * count are the belt to that brace — the depth cap catches a snippet
+   * including itself in a way the name check somehow missed, and the
+   * total count catches a fan-out that is shallow but enormous.
+   */
+  private async expandIn(
+    nodes: readonly MmlNode[],
+    opts: RenderOptions,
+    budget: RenderBudget,
+    diagnostics: string[],
+    stack: readonly string[],
+  ): Promise<MmlNode[]> {
+    const out: MmlNode[] = [];
+    for (const node of nodes) {
+      if (node.kind === 'text') {
+        out.push(...(await this.expandText(node.text, opts, budget, diagnostics, stack)));
+        continue;
+      }
+      // `<code>`/`<pre>` are opaque — an author documenting the snippet
+      // syntax has to be able to show it, which is the same rule the
+      // link stage follows.
+      if (node.tag === 'code' || node.tag === 'pre') {
+        out.push(node);
+        continue;
+      }
+      out.push({
+        kind: 'tag',
+        tag: node.tag,
+        attrs: node.attrs,
+        children: await this.expandIn(node.children, opts, budget, diagnostics, stack),
+      });
+    }
+    return out;
+  }
+
+  /** Expand every invocation in one text run. */
+  private async expandText(
+    text: string,
+    opts: RenderOptions,
+    budget: RenderBudget,
+    diagnostics: string[],
+    stack: readonly string[],
+  ): Promise<MmlNode[]> {
+    const resolve = opts.resolveSnippet;
+    if (!resolve || !text.includes('{{')) return [{ kind: 'text', text }];
+    const out: MmlNode[] = [];
+    let cursor = 0;
+    let hit = Snippets.findInvocation(text, 0);
+    while (hit) {
+      if (hit.start > cursor) {
+        out.push({ kind: 'text', text: text.slice(cursor, hit.start) });
+      }
+      out.push(
+        ...(await this.expandOne(hit, opts, budget, diagnostics, stack)),
+      );
+      cursor = hit.end;
+      hit = Snippets.findInvocation(text, cursor);
+    }
+    if (cursor < text.length) {
+      out.push({ kind: 'text', text: text.slice(cursor) });
+    }
+    return out;
+  }
+
+  /** Resolve, substitute, re-parse and recurse into one invocation. */
+  private async expandOne(
+    hit: SnippetInvocation,
+    opts: RenderOptions,
+    budget: RenderBudget,
+    diagnostics: string[],
+    stack: readonly string[],
+  ): Promise<MmlNode[]> {
+    const key = hit.name.trim().toLowerCase();
+    if (stack.includes(key)) {
+      // A cycle: `{{A}}` including `{{B}}` including `{{A}}`. A hard,
+      // NAMED failure — the chain is printed, because "there is a
+      // loop" without saying where is not actionable.
+      const detail = `snippet cycle: ${[...stack, key].join(' → ')}`;
+      diagnostics.push(detail);
+      return [errorNode(detail)];
+    }
+    const resolve = opts.resolveSnippet!;
+    let body: string | null;
+    try {
+      budget.chargeSnippet(hit.name);
+      budget.enterDepth(hit.name);
+      body = await resolve(hit.name);
+    } catch (err) {
+      // A budget breach at this depth is the page's problem, not the
+      // request's — it renders inline like everything else.
+      budget.exitDepth();
+      const detail = describe(err);
+      diagnostics.push(detail);
+      return [errorNode(detail)];
+    }
+    try {
+      if (body === null) {
+        const detail = `no snippet '${hit.name}'`;
+        diagnostics.push(detail);
+        return [errorNode(detail)];
+      }
+      const substituted = Snippets.substitute(body, hit);
+      budget.checkOutput(substituted);
+      // Re-parse: a snippet body is MML, and may itself invoke
+      // snippets or emit components. Expansion runs to fixpoint HERE,
+      // which is what makes stage 2 complete before stage 4 begins
+      // (D6) rather than interleaving with it.
+      const parsed = Mml.parseTree(substituted);
+      // ⚠ `await` before returning, deliberately. A bare
+      // `return this.expandIn(…)` inside a `try` runs the `finally` at
+      // the RETURN, not when the promise settles — so the depth
+      // counter would be released before the recursion it is meant to
+      // bound even began, and a chain of any length would render. The
+      // depth-cap test caught exactly that.
+      return await this.expandIn(parsed, opts, budget, diagnostics, [
+        ...stack,
+        key,
+      ]);
+    } catch (err) {
+      const detail = describe(err);
+      diagnostics.push(detail);
+      return [errorNode(detail)];
+    } finally {
+      budget.exitDepth();
+    }
   }
 
   /**
@@ -315,14 +482,134 @@ export default class WikiRenderer extends Idea {
     return out;
   }
 
-  /** Stage 4 — component resolution. **Wave 5 fills this.** */
+  /**
+   * Stage 4 — component resolution.
+   *
+   * An unknown tag whose name is a safe identifier is resolved as a
+   * module at `/lib/wiki/components/<name>`, via the shipped
+   * `StuffApi.resolveExport` — the **brain pattern**, applied to
+   * markup. Adding a component is dropping in a file; there is no
+   * registry to edit (criterion 15).
+   *
+   * ⭐ **Components annotate; they never gate** (C1). The component
+   * receives props, its raw children, and a read-only budget — and
+   * **no reader identity and no capability ceiling**. If components
+   * gated, the reveal model would be enforced in N places written by N
+   * people, and one buggy component would leak. With annotation-only
+   * there is exactly one gate, in stage 5, and a component *cannot*
+   * leak because it never learns what the reader may see.
+   *
+   * ⭐ **Recursion is impossible, not merely bounded** (criterion 49).
+   * `render`/`redactSource` are gated to the controller and the
+   * registry; a component lives at `/lib/wiki/components/*`, which is
+   * in neither, so a component re-entering the renderer takes a
+   * `SecurityError`. That is a gate, not a depth counter.
+   */
   protected async resolveComponents(
     nodes: readonly MmlNode[],
-    _opts: RenderOptions,
-    _budget: RenderBudget,
-    _diagnostics: string[],
+    opts: RenderOptions,
+    budget: RenderBudget,
+    diagnostics: string[],
   ): Promise<readonly MmlNode[]> {
-    return nodes;
+    const out: MmlNode[] = [];
+    for (const node of nodes) {
+      if (node.kind === 'text') {
+        out.push(node);
+        continue;
+      }
+      if (!Mml.componentCandidate(node.tag)) {
+        // Grammar markup (or a name that could never be a module
+        // basename — those stay literal, having survived the parser).
+        out.push({
+          kind: 'tag',
+          tag: node.tag,
+          attrs: node.attrs,
+          children: [
+            ...(await this.resolveComponents(
+              node.children,
+              opts,
+              budget,
+              diagnostics,
+            )),
+          ],
+        });
+        continue;
+      }
+      out.push(...(await this.resolveOne(node, opts, budget, diagnostics)));
+    }
+    return out;
+  }
+
+  /** Resolve and invoke one component tag. */
+  private async resolveOne(
+    node: Extract<MmlNode, { kind: 'tag' }>,
+    opts: RenderOptions,
+    budget: RenderBudget,
+    diagnostics: string[],
+  ): Promise<MmlNode[]> {
+    const tag = node.tag.toLowerCase();
+    // Deliberately NOT wrapped: a budget breach is fatal to the RENDER,
+    // not to this node. Letting it propagate means the pipeline's
+    // handler reports it once, rather than stamping an identical error
+    // on every remaining component in the page.
+    budget.chargeComponent(tag);
+
+    const mod = await StuffApi.resolveExport(
+      `/lib/wiki/components/${tag}`,
+      'component',
+    );
+    if (!isComponent(mod)) {
+      const detail = `unknown component <${tag}>`;
+      diagnostics.push(detail);
+      return [errorNode(detail)];
+    }
+
+    let produced: unknown;
+    try {
+      produced = await budget.withTimeout(
+        tag,
+        Promise.resolve(
+          mod.render(node.attrs, node.children, {
+            ...(opts.pageId !== undefined ? { pageId: opts.pageId } : {}),
+            budget,
+          }),
+        ),
+      );
+    } catch (err) {
+      // A component that throws yields an inline error NAMING it, and
+      // the rest of the page renders (C2). One broken widget must
+      // never take down an article.
+      const detail = `<${tag}> failed: ${describe(err)}`;
+      diagnostics.push(detail);
+      return [errorNode(detail)];
+    }
+
+    if (!isNodeArray(produced)) {
+      // ⚠ Nodes, never a raw string (criterion 56). A string would
+      // bypass sanitisation entirely — a component returning
+      // `'<script>'` would have it parsed as markup rather than
+      // escaped as text. Refusing is the whole reason the contract
+      // says "returns MML nodes".
+      const detail = `<${tag}> returned a ${typeof produced}, not MML nodes`;
+      diagnostics.push(detail);
+      return [errorNode(detail)];
+    }
+
+    // A component may declare a FLOOR for its whole output — for one
+    // whose very PRESENCE is a reveal (C3). MAXed with each node's own
+    // level, like everything else.
+    const floor = SpoilerLevels.parse(mod.spoilerFloor ?? 0);
+    const nodes = [...produced];
+    return floor > SpoilerLevels.OPEN
+      ? [
+          {
+            kind: 'tag',
+            tag: 'spoiler',
+            attrs: { level: String(floor) },
+            children: nodes,
+          },
+        ]
+      : nodes;
   }
 
   // ── The gate ──
@@ -553,6 +840,34 @@ function isStuff(value: unknown): value is Stuff {
     value !== null &&
     typeof (value as { getIdentityPath?: unknown }).getIdentityPath ===
       'function'
+  );
+}
+
+/**
+ * Whether a resolved module export is usable as a component. Duck-typed
+ * on `render` rather than `instanceof`, because a component is a
+ * **named class-expression** re-resolved per invocation for hot-reload
+ * — after a reload the constructor identity differs from any reference
+ * held here, so `instanceof` would fail on exactly the modules that
+ * were working a moment ago.
+ */
+function isComponent(mod: unknown): mod is ComponentStatics {
+  return (
+    typeof mod === 'function' &&
+    typeof (mod as { render?: unknown }).render === 'function'
+  );
+}
+
+/** Whether a component's return value is an MML node array. */
+function isNodeArray(value: unknown): value is readonly MmlNode[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (n) =>
+        typeof n === 'object' &&
+        n !== null &&
+        ((n as MmlNode).kind === 'text' || (n as MmlNode).kind === 'tag'),
+    )
   );
 }
 

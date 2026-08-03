@@ -25,6 +25,7 @@ import { StuffApi } from '../../../api/stuff';
 import { TemplatePaths } from '../../../lib/paths';
 import WikiRegistry, {
   DEFAULT_NAMESPACE,
+  SNIPPET_NAMESPACE,
   WikiConflict,
   WikiDenied,
 } from '../../WikiRegistry';
@@ -46,7 +47,10 @@ interface WikiModel extends CommandModel {
   body?: string;
   title?: string;
   subject?: string;
+  /** Reader appetite for THIS reading (verb-scoped `--spoiler`). */
   spoiler?: string;
+  /** The PAGE's default reveal level (`--reveal` on create/edit). */
+  reveal?: string;
   tag?: string;
   related?: string;
 }
@@ -169,8 +173,8 @@ export default class WikiController extends CommandController<WikiModel> {
       subject,
       ...(model.tag ? { tags: splitList(model.tag) } : {}),
       ...(model.related ? { related: splitList(model.related) } : {}),
-      ...(model.spoiler !== undefined
-        ? { spoilerLevel: SpoilerLevels.parse(model.spoiler) }
+      ...(model.reveal !== undefined
+        ? { spoilerLevel: SpoilerLevels.parse(model.reveal) }
         : {}),
     });
     this.send(
@@ -203,8 +207,8 @@ export default class WikiController extends CommandController<WikiModel> {
     if (model.tag !== undefined) patch.tags = splitList(model.tag);
     if (model.related !== undefined) patch.related = splitList(model.related);
     if (model.subject !== undefined) patch.subject = subject;
-    if (model.spoiler !== undefined) {
-      patch.spoilerLevel = SpoilerLevels.parse(model.spoiler);
+    if (model.reveal !== undefined) {
+      patch.spoilerLevel = SpoilerLevels.parse(model.reveal);
     }
     if (Object.keys(patch).length > 0) {
       await registry.setFrontmatter(page, patch);
@@ -415,6 +419,15 @@ export default class WikiController extends CommandController<WikiModel> {
         return target
           ? { handle: target.page.getHandle(), title: target.page.getTitle() }
           : null;
+      },
+      // A snippet IS a page (S1) — it resolves through the same
+      // lookup as everything else, just pinned to its namespace, so
+      // it inherits revisions, history, rollback and protection with
+      // no second store and no second editing path.
+      resolveSnippet: async (name) => {
+        const { name: leaf } = WikiPage.parseRef(name, SNIPPET_NAMESPACE);
+        const hit = await registry.resolve(`${SNIPPET_NAMESPACE}:${leaf}`);
+        return hit ? hit.page.getBody() : null;
       },
     });
     return result.body;

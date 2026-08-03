@@ -63,9 +63,9 @@ subcommands:
         type: string
         field: subject
         description: "What this documents: template:<path> | mixin:<Name> | command:<file>"
-      spoiler:
+      reveal:
         type: string
-        field: spoiler
+        field: reveal
         description: "Page-default reveal level 0-3; inline tags raise it, never lower"
       tag:
         type: string
@@ -96,9 +96,9 @@ subcommands:
         type: string
         field: subject
         description: "Rebind the subject: template:<path> | mixin:<Name> | command:<file>"
-      spoiler:
+      reveal:
         type: string
-        field: spoiler
+        field: reveal
         description: "Change the page-default reveal level (0-3)"
       tag:
         type: string
@@ -117,12 +117,8 @@ subcommands:
     help: |
       Render a page for you specifically. Content beyond your reach is
       never sent; content you asked not to be shown outright arrives
-      collapsed. `--spoiler` raises that appetite for one reading.
-    options:
-      spoiler:
-        type: string
-        field: spoiler
-        description: "Show revealed content up to this level for this reading (0-3)"
+      collapsed. The verb-scoped `--spoiler` raises that appetite for
+      one reading.
     args:
       - name: page
         type: string
@@ -213,6 +209,14 @@ subcommands:
         type: string
         required: false
 options:
+  # ⚠ `--spoiler` (READER APPETITE, here) and `--reveal` (the PAGE's
+  # default level, on create/edit) are deliberately different words for
+  # deliberately different things. They started life as one `--spoiler`
+  # and the command validator refused the file for a field collision —
+  # correctly, because they were two concepts wearing one name. One is
+  # a preference about how much YOU want shown; the other is an
+  # authored property of the article. Conflating them is exactly the
+  # confusion the two-axis reveal model exists to avoid.
   spoiler:
     type: string
     field: spoiler

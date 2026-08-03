@@ -26,6 +26,7 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { Mml } from '../../api/mml';
 import { RenderBudget, RenderBudgetExceeded } from '../../lib/wiki/RenderBudget';
 import { SpoilerLevels, RENDER_STAGES } from '../../lib/wiki/render';
+import { ProxyApi } from '../../api/proxy';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { RenderOptions } from '../../lib/wiki/render';
@@ -70,6 +71,18 @@ let renderer: WikiRenderer;
 let reader: Stuff;
 let zone: Stuff;
 
+/**
+ * `render` / `redactSource` are gated to the controller + the registry
+ * (criterion 49 — a component re-entering the renderer takes a
+ * `SecurityError`, which is a GATE, not a depth counter). Tests drive
+ * the unwrapped target; the gate itself is asserted through the PROXY
+ * in `WikiRenderer.components.test.ts`, once, rather than being
+ * defeated invisibly everywhere.
+ */
+function raw(): WikiRenderer {
+  return ProxyApi.unwrap(renderer as unknown as Stuff) as unknown as WikiRenderer;
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
   // No settings rows in a unit test — the budget falls through to
@@ -86,7 +99,7 @@ async function render(
   opts: RenderOptions = {},
 ): Promise<string> {
   const result = await asReader(reader, () =>
-    renderer.render(body, { namespaceZone: zone, ...opts }),
+    raw().render(body, { namespaceZone: zone, ...opts }),
   );
   return result.body;
 }
@@ -135,7 +148,7 @@ describe('capability — over-ceiling content is ABSENT from the payload (24)', 
     pinCeiling(3); // the ladder would allow everything IF an actor resolved
     pinAppetite(3);
     const result = await asReader(null, () =>
-      renderer.render('open <spoiler level="1">gated</spoiler>', {
+      raw().render('open <spoiler level="1">gated</spoiler>', {
         namespaceZone: zone,
       }),
     );
@@ -348,7 +361,7 @@ describe('redactSource — the same gate over source (67, 68)', () => {
   it('deletes over-ceiling fragments', async () => {
     pinCeiling(1);
     const out = await asReader(reader, () =>
-      renderer.redactSource('keep <spoiler level="3">drop</spoiler> keep'),
+      raw().redactSource('keep <spoiler level="3">drop</spoiler> keep'),
     );
     expect(out).not.toContain('drop');
     expect(out).toContain('keep');
@@ -357,10 +370,10 @@ describe('redactSource — the same gate over source (67, 68)', () => {
   it('leaves nothing to count — a reader cannot learn THAT it changed', async () => {
     pinCeiling(0);
     const a = await asReader(reader, () =>
-      renderer.redactSource('same <spoiler level="2">before</spoiler> same'),
+      raw().redactSource('same <spoiler level="2">before</spoiler> same'),
     );
     const b = await asReader(reader, () =>
-      renderer.redactSource('same <spoiler level="2">after</spoiler> same'),
+      raw().redactSource('same <spoiler level="2">after</spoiler> same'),
     );
     // Two revisions differing ONLY above the ceiling must redact to
     // the same string, or the diff of the redactions leaks the edit.
@@ -370,7 +383,7 @@ describe('redactSource — the same gate over source (67, 68)', () => {
   it('PRESERVES authored spoiler tags — this is source, not display', async () => {
     pinCeiling(3);
     const src = 'a <spoiler level="1">b</spoiler> c';
-    expect(await asReader(reader, () => renderer.redactSource(src))).toBe(src);
+    expect(await asReader(reader, () => raw().redactSource(src))).toBe(src);
   });
 
   it('returns the input byte-identical when nothing was removed (R-8)', async () => {
@@ -378,13 +391,13 @@ describe('redactSource — the same gate over source (67, 68)', () => {
     // untouched body would rewrite bodies this only meant to filter.
     pinCeiling(1);
     const src = "it&apos;s a <em>test</em>";
-    expect(await asReader(reader, () => renderer.redactSource(src))).toBe(src);
+    expect(await asReader(reader, () => raw().redactSource(src))).toBe(src);
   });
 
   it('does not expand snippets or resolve components', async () => {
     pinCeiling(3);
     const src = '{{Infobox|x=1}} <composition of="/obj/x"/>';
-    expect(await asReader(reader, () => renderer.redactSource(src))).toBe(src);
+    expect(await asReader(reader, () => raw().redactSource(src))).toBe(src);
   });
 });
 
@@ -447,7 +460,7 @@ describe('the render budget (48, partial)', () => {
       key === 'wiki.render.maxOutputChars' ? '10' : '',
     );
     const result = await asReader(reader, () =>
-      renderer.render('x'.repeat(500), { namespaceZone: zone }),
+      raw().render('x'.repeat(500), { namespaceZone: zone }),
     );
     expect(result.body).toContain('[wiki:');
     expect(result.body).toContain('exceeded');
@@ -510,7 +523,7 @@ describe('the render budget (48, partial)', () => {
     pinCeiling(3);
     pinAppetite(3);
     const result = await asReader(reader, () =>
-      renderer.render('x', { namespaceZone: zone }),
+      raw().render('x', { namespaceZone: zone }),
     );
     expect(result.budget.getLimits().maxComponents).toBe(7);
     // Unset keys fall through to the code-side defaults.
