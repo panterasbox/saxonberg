@@ -241,7 +241,12 @@ async function main(): Promise<void> {
 
   const client = new MongoClient(uri);
   await client.connect();
-  const db: Db = args.db ? client.db(args.db) : client.db();
+  // MONGODB_DATABASE is how every other entry point picks the database;
+  // `client.db()` with no argument silently falls back to whatever the
+  // URI names, or `test`. On a live box that means migrating the wrong
+  // database and reporting success — caught on the first real run.
+  const dbName = args.db ?? process.env.MONGODB_DATABASE;
+  const db: Db = dbName ? client.db(dbName) : client.db();
 
   const mode = args.scan ? 'SCAN' : args.apply ? 'APPLY' : 'DRY RUN';
   console.log(`migrate-lib-to-obj [${mode}]${args.reverse ? ' (reversed)' : ''}`);
