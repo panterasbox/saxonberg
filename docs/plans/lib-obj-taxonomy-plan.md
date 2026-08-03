@@ -575,3 +575,47 @@ No behavior changes. No `api/`↔`lib/` reshuffling. No `domain/` reorganization
 - `packages/server/src/mud/lib/paths.ts` *(`TemplatePaths` + `TemplatePathPrefixes` — must move in lockstep with the seeds)*
 - `packages/server/src/mud/obj/api/PackLogic.ts` *(`readContent`'s `contentRoot/lib` → `obj`, and the reconcile that makes pack rows self-heal)*
 - `packages/server/src/mud/api/stuff.ts` *(`loadClassByPath` ~1290 and the `hydratorClass` singleton resolve ~394 — the two axes)*
+
+---
+
+## 12. What actually happened (written during execution)
+
+Five things the plan got wrong or did not anticipate. Recorded because
+each is a general lesson, not a one-off.
+
+**The two axes are not separable.** §4 promised each wave independently
+green. False. For the marshallers, the hydrator, `Key`, `FolderZone`
+and others, the class path and the template path are the SAME string,
+so moving the class without the template leaves live references
+pointing at a template that has not moved. 31 tests failed exactly that
+way. Waves 2 and 3 landed as one commit.
+
+**Deriving a class path from a template prefix is the bug this
+refactor exposes.** Two independent instances, both silent:
+`AddressRegistry` computed `${TemplatePathPrefixes.address}Locality`
+and `MaterialLogic.boot` filtered on
+`tpl.class.startsWith('/lib/material/')`. Both were accidentally
+correct only while a class and its template family shared a directory.
+Neither threw — the address trie just stayed empty and every material
+was skipped at boot. **Anywhere a prefix constant is concatenated to
+reach a class, check it by hand; the compiler cannot.**
+
+**The material cluster is load-bearing, and §2.1 was wrong to forbid
+it.** `MaterialLogic` filters on the directory, so flat placement broke
+material standup entirely. `obj/material/` is a ninth cluster, added
+for that reason.
+
+**A codemod must not rewrite its own inputs.** The sweep rewrote the
+move map (turning every `from` into its own `to`), its tests, and this
+plan. A `SELF` exclusion list exists now. Related: the path-axis regex
+originally matched inside relative import specifiers —
+`'../lib/material/Channel'` contains `/lib/material/` — which required
+a lookbehind rejecting a preceding `.`, `/`, or alphanumeric.
+
+**Grep-shaped reference checks under-report.** Wave 0 originally
+deleted five classes on the strength of a scan matching `new X(` and
+template `class:` refs. Four were live: two were `instanceof` gates on
+shipped verbs, two were fixtures for eleven test suites. Only
+`LitterBin` was genuinely dead. The right check is
+`grep -rln '\bName\b' --include='*.ts'` minus tests and the class's own
+file.
