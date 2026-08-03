@@ -8,7 +8,7 @@
  *
  * Those templates name this class instead, leaving
  * `CartesianLocation` free to be what it is — the base rooms inherit.
- * See docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import CartesianLocation from '../../lib/location/CartesianLocation';

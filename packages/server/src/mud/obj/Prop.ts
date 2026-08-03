@@ -9,7 +9,7 @@
  *
  * Those templates name this class instead. `Thing` keeps its job as the
  * inheritance root; `Prop` is the thing you clone when a prop is all
- * you need. See docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import Thing from '../lib/stuff/Thing';

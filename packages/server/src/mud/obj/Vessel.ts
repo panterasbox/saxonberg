@@ -7,7 +7,7 @@
  * template cloned it raw: the bag of holding.
  *
  * That template names this class. See
- * docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import { Vessel as VesselBase } from '../lib/stuff/Vessel';

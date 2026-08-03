@@ -13,7 +13,7 @@
  * forensic-Creature role is exactly as documented in
  * docs/subsystems/mortality.md.
  *
- * See docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import { Creature } from '../lib/creature/Creature';

@@ -10,7 +10,7 @@
  * (`ExitOptions`) is inherited unchanged, so `new Exit({...})` and the
  * templated form stay the same shape.
  *
- * See docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import ExitBase from '../lib/boundary/Exit';

@@ -8,7 +8,7 @@
  *
  * Those templates name this class. The base keeps its role as the
  * archetype; this is the one you clone when the data IS the character.
- * See docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import { NPC as NpcBase } from '../lib/npc/NPC';

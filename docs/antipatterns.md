@@ -2691,3 +2691,45 @@ seams deserve the same reflex even though nothing enforces it.
 
 The general rule: **an optional witness is a shared channel, not a slot you
 own.** Write to it as though somebody else already has.
+
+## Deriving a CLASS path by concatenating a TEMPLATE prefix
+
+**Don't:**
+
+```ts
+const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/obj/Locality/'
+const LOCALITY_CLASS = `${ADDRESS_PREFIX}Locality`;  // ✗
+// …and its cousin, filtering rows on the class's DIRECTORY:
+if (!tpl.class.startsWith('/obj/material/')) continue; // ✗
+```
+
+**Do:** name the class outright.
+
+```ts
+const LOCALITY_CLASS = '/obj/Locality';
+```
+
+A template path and a module path are different namespaces that
+happen to look alike. They coincide only while a class and its
+template family share a directory — and when that stops being true,
+the derivation keeps producing a *plausible* string that names
+nothing.
+
+**It fails silently, which is what makes it worth a rule.** Both live
+instances behaved this way: `AddressRegistry` computed
+`/obj/Locality/Locality`, no template carried that class, the coverage
+trie stayed empty, and every address quietly resolved to its fallback
+("a Teleport Authority terminal" instead of "Terminus").
+`MaterialLogic.boot` filtered on the class's directory, so flattening
+those classes dropped every material at boot. Neither threw. Neither
+was caught by 7,600 unit tests; both were found by driving the game.
+
+The lint can't see this one — `lint:gates` checks gate strings and
+`lint:instanceable` checks what templates *declare*, but a
+concatenated constant is neither. Grep for `TemplatePathPrefixes.`
+concatenation and for `class.startsWith(` when you move classes.
+
+Corollary: when code genuinely *needs* a set of classes to share a
+directory (as `MaterialLogic` does), that directory is **load-bearing**
+and belongs in the placement rule, not in a reviewer's memory. See
+`obj/material/` in CLAUDE.md § Instanceable Lives in `obj/`.

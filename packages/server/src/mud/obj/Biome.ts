@@ -7,7 +7,7 @@
  * directly for indoor biomes, which need no sky behavior.
  *
  * Those pack entries name this class. See
- * docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import BiomeBase from '../lib/biome/Biome';

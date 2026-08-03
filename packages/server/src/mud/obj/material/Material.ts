@@ -11,7 +11,7 @@
  * `SingletonMixin` that makes one instance per material path) is
  * inherited unchanged.
  *
- * See docs/plans/lib-obj-taxonomy-plan.md §2.2.
+ * See CLAUDE.md § Instanceable Lives in `obj/`.
  */
 
 import MaterialBase from '../../lib/material/Material';
