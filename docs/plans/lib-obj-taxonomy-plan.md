@@ -271,8 +271,19 @@ done
 ```
 
 ### Wave 0 — dead code
-**Commit:** `refactor(obj): delete five unreferenced classes`
-Delete `obj/Candle.ts`, `obj/Lamp.ts`, `obj/LitterBin.ts`, `obj/instrument/Sextant.ts`, `obj/instrument/Sundial.ts` and their tests (`obj/__tests__/Candle.test.ts`, `Lamp.test.ts`, and any siblings under `obj/instrument/__tests__/`). Confirm zero non-test references first (`grep -rn 'Candle\b' packages/server/src`). Independent of everything else; do it first so the tree is smaller for every later pass.
+**Commit:** `refactor(obj): delete the one genuinely unreferenced class`
+Delete `obj/LitterBin.ts` only. It has no template and zero references anywhere, tests included.
+
+**The other four stay.** The plan originally called for deleting five; that rested on a scan matching only `new X(` and template `class:` refs, which saw neither `instanceof` nor imports. Verified reality:
+
+- `obj/instrument/Sextant.ts` — live `instanceof` gate in `obj/command/perception/MeasureAltitudeController.ts`; deleting it breaks `measure altitude`.
+- `obj/instrument/Sundial.ts` — same in `MeasureShadowController.ts`; breaks `measure shadow`.
+- `obj/Candle.ts` — fixture for 6 test suites (`VisionModality.shadow`, `LightSource`, `Door.light`, `SmellModality`, `Window.integration`, its own).
+- `obj/Lamp.ts` — fixture for 5 (`SwitchController`, `AnalyzeLightController`, `VisionModality`, `Window.integration`, its own).
+
+The correct reference check is `grep -rln '\bCandle\b' --include='*.ts'` minus `__tests__` and the class's own file — not a `new X(` scan.
+
+Independent of everything else; do it first so the tree is smaller for every later pass.
 
 ### Wave 1 — tooling, no moves
 **Commits:**

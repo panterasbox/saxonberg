@@ -269,16 +269,33 @@ Dropping the declaration anywhere with a non-empty `data` block is
 authored content. The empty-`data` test is the criterion, not a guess
 about whether the backing class "has state".
 
-### Five unreferenced `obj/` classes are deleted
+### One unreferenced `obj/` class is deleted — not five
 
-**Decision:** `Candle`, `Lamp`, `LitterBin`, `Sextant` and `Sundial`
-have no template and zero non-test references. Delete them, with their
-tests.
+**Decision:** delete `LitterBin`. Keep `Candle`, `Lamp`, `Sextant` and
+`Sundial`.
 
-They are already in the correct tree, so this is not strictly a
-taxonomy fix — but the build is reading every one of these files
-anyway, and dead classes are exactly what makes a taxonomy audit hard
-the next time.
+The original decision was to delete all five, on the strength of a scan
+that looked only for `new X(` and template `class:` references. That
+scan was wrong: it saw neither `instanceof` nor imports. Re-checked
+properly:
+
+| Class | Verdict |
+|---|---|
+| `LitterBin` | zero references anywhere, tests included — **delete** |
+| `Candle` | fixture for 6 test suites (`VisionModality.shadow`, `LightSource`, `Door.light`, `SmellModality`, `Window.integration`, its own) — **keep** |
+| `Lamp` | fixture for 5 suites (`SwitchController`, `AnalyzeLightController`, `VisionModality`, `Window.integration`, its own) — **keep** |
+| `Sextant` | live `instanceof` gate in `MeasureAltitudeController` — **keep** |
+| `Sundial` | live `instanceof` gate in `MeasureShadowController` — **keep** |
+
+Deleting `Sextant`/`Sundial` would break the `measure altitude` and
+`measure shadow` verbs. `Candle` and `Lamp` are not dead code — they
+are the canonical light-source and switchable-device exemplars the
+perception, light, and device suites are built on.
+
+What all four *do* lack is a **template**, so no player can obtain one.
+That is a content gap, not a placement problem, and authoring those
+templates is out of scope here (see Non-goals). Recorded so the next
+audit doesn't mistake them for dead again.
 
 ## Constraints
 
