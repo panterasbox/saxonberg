@@ -221,6 +221,12 @@ export class PerceptionLogic extends ApiLogic {
     return perceivesImpl(viewer, target, attention);
   }
 
+  /** See {@link PerceptionApi.canMakeOutMarks}. */
+  @CallSecurity(PerceptionApiCallers)
+  public canMakeOutMarks(viewer: Stuff, target: Stuff): boolean {
+    return canMakeOutMarksImpl(viewer, target);
+  }
+
   /** See {@link PerceptionApi.effectivePerception}. */
   @CallSecurity(PerceptionApiCallers)
   public effectivePerception(
@@ -659,6 +665,40 @@ function lightConditionsFor(viewer: Stuff, target: Stuff): number {
   }
   if (idx < 0) return 0;
   return Math.min(0, idx - NEUTRAL_LIGHT_INDEX);
+}
+
+/**
+ * **The perceive half of `read`** (magic-items D33).
+ *
+ * `read = perceive(the marks) + decode(the script)`, and this is the
+ * first half. It is deliberately NOT a general visibility check: making
+ * out lettering needs the `'fine'` detail band, which is a much higher
+ * bar than seeing that a scroll is there at all. That gap is the whole
+ * point — you can see the scroll in the gloom and be unable to read it.
+ *
+ * **Embossed marks bypass this entirely**, and the caller is what knows
+ * that (`Marked.requiresLightToRead`). Reading raised lettering by hand
+ * in the pitch dark is a real advantage worth paying for, not a
+ * courtesy — and it is the same mechanic that keeps a character without
+ * functioning sight inside the spellbook economy.
+ *
+ * Degrades to `true` when the vision singleton isn't loaded (unit
+ * fixtures), so reading stays testable without a light substrate.
+ */
+function canMakeOutMarksImpl(viewer: Stuff, target: Stuff): boolean {
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return true;
+  const vision = StuffApi.findByTemplatePath(VISION_PATH);
+  if (!vision) return true;
+  const VisionCtor = vision.constructor as typeof VisionModality;
+  try {
+    return VisionCtor.canSee(
+      viewer as Stuff & Sensor & Perception,
+      target,
+      'fine',
+    );
+  } catch {
+    return true;
+  }
 }
 
 /** See {@link PerceptionApi.effectivePerception}. */

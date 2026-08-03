@@ -107,6 +107,21 @@ export class BulkableLogic extends ApiLogic {
     if (typeof eater.ingest === 'function') {
       eater.ingest(material, Quantity.of(litres, 'L'), 'liquid', payload);
     }
+    // The substance's own leg, duck-typed exactly as the drinker's is
+    // two lines above. A potion is a liquid that carries a working
+    // (magic-items D4), and this is the one bridge `drink` and `sip`
+    // both route through — so firing it here means every ingestion path
+    // fires it, and bulk still never imports magic. An ordinary liquid
+    // has no such method and this is a no-op.
+    const substance = material as unknown as {
+      dischargeInto?: (drinker: Stuff, litres: number) => Promise<string[]>;
+    };
+    if (typeof substance.dischargeInto === 'function') {
+      // Fire-and-forget: the working's own prose rides the scene, and a
+      // failure inside it must never abort the swallow that already
+      // happened.
+      void substance.dischargeInto(actor, litres).catch(() => {});
+    }
   }
 
   /** See {@link BulkableApi.ingestSolid}. */

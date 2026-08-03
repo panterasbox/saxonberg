@@ -381,6 +381,14 @@ export interface CommandRejectedNote {
   reason:
     | 'parse-failed'
     | 'unknown-verb'
+    /**
+     * The verb EXISTS but nothing here affords it — *"there is nothing
+     * to drink"*, never *"unknown command"*. Distinct from
+     * `unknown-verb` on purpose: conferral controls the affordance
+     * list, never the parser, and the two answers teach opposite
+     * things about whether the verb is real.
+     */
+    | 'unafforded'
     | 'shape-fall-through'
     | 'bind-failed'
     | 'missing-subcommand'

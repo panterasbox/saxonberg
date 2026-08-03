@@ -26,6 +26,10 @@
       "type": "string",
       "description": "Multi-line authored help prose for the verb — what it does, when to reach for it, gotchas. Rendered below the synthesized syntax block by `getHelpText()`. Plain text (MML-safe); blank lines separate paragraphs."
     },
+    "unafforded": {
+      "type": "string",
+      "description": "The parser floor: what this verb answers when typed with nothing here affording it — \"there is nothing to drink\" rather than \"unknown command\". Conferral controls the affordance LIST, never the PARSER; hiding a verb from the parser teaches players that verbs evaporate. Optional — a verb without one still parses and gets a generic legible refusal."
+    },
     "examples": {
       "type": "array",
       "items": { "$ref": "#/$defs/example" },

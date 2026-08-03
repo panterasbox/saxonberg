@@ -144,6 +144,9 @@ import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
 import type { Arcane } from '../lib/magic/Arcane';
+import type { Consumable } from '../lib/magic/Consumable';
+import type { Potable } from '../lib/magic/Potable';
+import type { Marked } from '../lib/description/Marked';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
@@ -1198,6 +1201,21 @@ export class MixinApi {
    */
   public static isArcane(obj: Stuff): obj is Stuff & Arcane {
     return this.hasMixin(obj, Mixins.Arcane);
+  }
+
+  /** A discrete item that packages one act and spends itself doing it. */
+  public static isConsumable(obj: Stuff): obj is Stuff & Consumable {
+    return this.hasMixin(obj, Mixins.Consumable);
+  }
+
+  /** A liquid that carries a working — composed on the Material (D4). */
+  public static isPotable(obj: Stuff): obj is Stuff & Potable {
+    return this.hasMixin(obj, Mixins.Potable);
+  }
+
+  /** A thing bearing readable marks — scroll, book, label, signpost. */
+  public static isMarked(obj: Stuff): obj is Stuff & Marked {
+    return this.hasMixin(obj, Mixins.Marked);
   }
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {

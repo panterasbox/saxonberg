@@ -1,6 +1,7 @@
-verbs: [drink]
+verbs: [drink, quaff]
 controller: /obj/command/bulk/DrinkController
 description: "Drink the entire contents of a holder"
+unafforded: "There is nothing here to drink."
 help: |
   Drains a holder dry in one go — point `drink` at a cup, flask,
   or bottle and you swallow everything in it. Reach for this when
@@ -10,6 +11,10 @@ help: |
   You can name the container or the liquid itself, so
   `drink coffee` works as well as `drink mug`. If you only want a
   taste, use `sip` instead, which leaves the rest behind.
+
+  `quaff` is the same verb. A potion is a liquid like any other —
+  it is drunk through the same door as ale, and drinking half a
+  flask gets you half a dose.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

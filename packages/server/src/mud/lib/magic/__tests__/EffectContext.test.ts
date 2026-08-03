@@ -320,7 +320,9 @@ describe('EffectContext — the four separated jobs', () => {
         },
       } as never,
     ]);
-    const rec = body.conditions[0] as { magicOrigin: Record<string, string> };
+    const rec = body.conditions[0] as unknown as {
+      magicOrigin: Record<string, string>;
+    };
     expect(rec.magicOrigin.specifiedBy).toBe('/obj/Avatar/old');
     expect(rec.magicOrigin.firedBy).toBe('/obj/Avatar/old');
     expect(rec.magicOrigin.caster).toBeUndefined();

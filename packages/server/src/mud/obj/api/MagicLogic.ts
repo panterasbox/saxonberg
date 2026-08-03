@@ -84,6 +84,8 @@ import { EffectContexts } from '../../lib/magic/EffectContext';
 import type { EffectContext } from '../../lib/magic/EffectContext';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Resists } from '../../lib/magic/Resist';
+import { RecognitionApi } from '../../api/recognition';
+import { IDENTIFICATION } from '../../lib/belief/BeliefStore';
 import { Suppressions, type MagicSuppression } from '../../lib/magic/Suppression';
 import type { SpellDescriptor } from '../magic/Spell';
 import type SpellCatalogue from '../SpellCatalogue';
@@ -112,6 +114,26 @@ export interface CastOutcome {
   reports: string[];
   /** Did the cast overchannel (drove the pool past empty)? */
   overchanneled?: boolean;
+}
+
+/**
+ * What a capability mixin tells the item trigger about *this* firing.
+ * Everything here is per-use; the item's own durable facts (its maker,
+ * its efficiency, its spell) are read off the item itself.
+ */
+export interface DischargeOptions {
+  /**
+   * A per-use magnitude multiplier the capability supplies — a dose
+   * fraction for a partial swallow, a partial charge for a guttering
+   * wand. Multiplies the maker's fixed delivery efficiency.
+   */
+  readonly potencyScale?: number;
+  /**
+   * What paid for this firing, when it is not the item: a **focus**
+   * spends the *user's* reserve, which is the whole distinction between
+   * a focus and a charged shell (D5).
+   */
+  readonly source?: Stuff;
 }
 
 /** One roster row of the `spells` self-view (bands, never numbers). */
@@ -181,8 +203,12 @@ export class MagicLogic extends ApiLogic {
 
   /** See {@link MagicApi.discharge}. */
   @CallSecurity(MagicApiCallers)
-  public discharge(item: Stuff, target?: Stuff): Promise<CastOutcome> {
-    return dischargeImpl(item, target);
+  public discharge(
+    item: Stuff,
+    target?: Stuff,
+    opts?: DischargeOptions,
+  ): Promise<CastOutcome> {
+    return dischargeImpl(item, target, opts);
   }
 
   /** See {@link MagicApi.spellsView}. */
@@ -392,6 +418,7 @@ async function resolveCastImpl(
 async function dischargeImpl(
   item: Stuff,
   target?: Stuff,
+  opts?: DischargeOptions,
 ): Promise<CastOutcome> {
   const actor = ExecutionContextApi.getCurrentCommandGiver() as Stuff | null;
   if (!actor) {
@@ -422,7 +449,9 @@ async function dischargeImpl(
   // suppressed where it stands, not where its user stands — which is
   // the same fact that makes it a trap when set down. Any matching cell
   // suppresses (D35).
-  const field = await suppressionAtDeepImpl(sceneOf(item) ?? sceneOf(actor));
+  const field = await suppressionAtDeepImpl(
+    deliveryScene(item) ?? deliveryScene(actor),
+  );
   if (Suppressions.suppressesAny(field, item.getArcaneFootprint())) {
     return {
       ok: false,
@@ -434,12 +463,16 @@ async function dischargeImpl(
   // Potency is the MAKER's stored efficiency, fixed at manufacture (D7),
   // where a cast's is competence-scaled. Same parameter, different
   // provenance — which is why the effect layer needed no change at all.
+  // The maker's fixed efficiency times whatever the capability supplied
+  // — a dose fraction, a partial charge. They MULTIPLY: half a dose of a
+  // master's draught is half a master's dose.
+  const scale = opts?.potencyScale ?? 1;
   const ctx = EffectContexts.forItem(
     item,
     actor,
     spell,
-    item.getDeliveryEfficiency(),
-    { specifiedBy: item.getMakerId() },
+    item.getDeliveryEfficiency() * (Number.isFinite(scale) ? scale : 1),
+    { specifiedBy: item.getMakerId(), source: opts?.source },
   );
 
   const reports: string[] = [];
@@ -542,7 +575,9 @@ async function executeEffect(
     case 'conjure':
       return execConjure(ctx, target, effect);
     case 'sense':
-      return execSense(ctx, target);
+      return effect.sense === 'identify-item'
+        ? execIdentify(ctx, target)
+        : execSense(ctx, target);
     case 'cloak':
       return execCloak(ctx, spell, effect.disguise);
     case 'emit-field':
@@ -569,9 +604,11 @@ async function deliverAt(
 ): Promise<string> {
   // Reachability is measured from the ORIGIN, not the actor — that is
   // what makes a wand set down and pointed at a door a trap. For a cast
-  // origin === actor, so this is a no-op change (pinned by test).
-  const from = sceneOf(ctx.origin);
-  if (sceneOf(target) !== from && target !== from) {
+  // origin === actor, so this is a no-op change (pinned by test). An
+  // origin with no place of its own (a swallowed potion's material
+  // singleton) issues from wherever the actor is.
+  const from = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
+  if (deliveryScene(target) !== from && target !== from) {
     return 'Your reach ends at the scene before you.';
   }
   const { report, harmed } = deliver();
@@ -617,7 +654,7 @@ function execInjectChannel(
   if (e.channel === 'shock') {
     return deliverAt(ctx, target, () => {
       const locus = StuffApi.createSync(() => new SparkSource());
-      const scene = sceneOf(target) ?? sceneOf(ctx.origin);
+      const scene = deliveryScene(target) ?? deliveryScene(ctx.origin);
       if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(locus)) {
         ContainmentApi.move(locus, scene);
       }
@@ -801,7 +838,7 @@ async function execConjure(
 ): Promise<string> {
   if (e.templatePath) {
     const conjured = await StuffApi.clone(e.templatePath);
-    const scene = sceneOf(ctx.origin);
+    const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
     if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(conjured)) {
       ContainmentApi.move(conjured, scene);
     }
@@ -861,7 +898,7 @@ function execSense(ctx: EffectContext, target: Stuff | undefined): string {
   else {
     // The untargeted sweep reads the scene the working ISSUES from —
     // a wand pushed through a gap scans the far side, not your room.
-    const scene = sceneOf(ctx.origin);
+    const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
     if (scene && MixinApi.isContainer(scene)) {
       for (const thing of scene.getContents()) scan(thing);
     }
@@ -870,6 +907,38 @@ function execSense(ctx: EffectContext, target: Stuff | undefined): string {
   return marks.length === 0
     ? 'No workings answer the second look.'
     : `Workings reveal themselves: ${marks.join('; ')}.`;
+}
+
+/**
+ * **The identify working** (requirements D24) — a `sense` effect whose
+ * result is a **write to the actor's belief store**, not a message.
+ *
+ * That distinction is the whole decision. A message would tell you what
+ * a thing is *right now*; a belief write teaches you the **class**, so
+ * every flask that looks like that one reads as known from here on. It
+ * is the paid shortcut past experiment — what you buy instead of
+ * drinking the unknown flask and finding out.
+ *
+ * This is also where D34 lands: there is deliberately **no `identify`
+ * verb**. A scroll affords `read` like every written thing, and this
+ * fires from having read it. An `identify` affordance appearing in your
+ * list would identify the scroll for free, and the whole
+ * unidentified-consumable mechanic would collapse.
+ */
+function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
+  if (!target) return 'The working needs something to look at.';
+  if (!MixinApi.isIdentifiable(target)) {
+    return `There is nothing hidden to learn about ${target.getPresentation()}.`;
+  }
+  const learner = ctx.actor;
+  const signature = target.getTemplatePath();
+  if (!MixinApi.isBeliefStore(learner) || !signature) {
+    return 'The knowing finds nowhere to settle.';
+  }
+  // Keyed on templatePath — the CLASS, never the instance. Two flasks
+  // of the same draught are one fact.
+  learner.know(IDENTIFICATION, signature, { typeKnown: true });
+  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, target)}.`;
 }
 
 /**
@@ -901,7 +970,7 @@ async function execEmitField(
   spell: SpellDescriptor,
 ): Promise<string> {
   const orb = await StuffApi.clone(GLOWLIGHT_ORB_PATH);
-  const scene = sceneOf(ctx.origin);
+  const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
   if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(orb)) {
     ContainmentApi.move(orb, scene);
   }
@@ -937,6 +1006,38 @@ async function execScript(caster: Stuff, source: string): Promise<string> {
 function sceneOf(s: Stuff | undefined): Stuff | null {
   if (!s) return null;
   if (MixinApi.isContainable(s)) return s.getContainer() ?? null;
+  return null;
+}
+
+/** Carried-through-a-body walk cap (the `Suppressions.fieldAt` guard). */
+const CARRIER_WALK_CAP = 8;
+
+/**
+ * **The scene a working issues INTO**, walking out through any body
+ * carrying the origin.
+ *
+ * A caster's container is the room, so for a cast this is `sceneOf`
+ * exactly. But an item's container is usually *the person holding it* —
+ * and a wand in your hand fires into the room you are standing in, not
+ * into you. Without this walk, drawing a wand would make it unable to
+ * reach anything.
+ *
+ * The walk steps out through **Organisms only**. That is what keeps the
+ * two shipped behaviours intact: a caster inside a vessel (an entered
+ * wardrobe) still delivers *into the vessel*, because a vessel is not a
+ * body; and a wand set down on the floor still delivers into the room,
+ * because its container already is one. A wand at the bottom of a
+ * closed pack fires into the pack — which is the honest answer.
+ */
+function deliveryScene(s: Stuff | undefined): Stuff | null {
+  let cursor: Stuff | null = s ?? null;
+  let depth = CARRIER_WALK_CAP;
+  while (cursor !== null && depth-- > 0) {
+    const container = sceneOf(cursor);
+    if (container === null) return null;
+    if (!MixinApi.isOrganism(container)) return container;
+    cursor = container; // carried by a body — issue from where THEY are
+  }
   return null;
 }
 

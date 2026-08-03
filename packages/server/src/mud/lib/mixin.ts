@@ -325,6 +325,19 @@ export const Mixins = {
   // it, never declares it) and is named for the property, not the object
   // kind, so traps and NPC powers can wear it later. See D35.
   Arcane: 'ArcaneMixin',
+  // Consumable — a discrete item packaging ONE act, which spends itself
+  // performing it (scrolls, single-use wands). Deliberately NOT composed
+  // with Bulkable: potions have volume and ride bulk instead (D4), which
+  // keeps this concept small rather than universal.
+  Consumable: 'ConsumableMixin',
+  // Potable — a LIQUID that carries a working. Composes onto the
+  // Material, not the flask, so the magic travels with the substance:
+  // decanting, dilution, splitting and spilling are all real for free.
+  Potable: 'PotableMixin',
+  // Marked — a thing that bears marks (scroll, book, label, signpost),
+  // carrying the modality they can be taken in through. `read` =
+  // perceive + decode, and an embossed text reads in the dark. See D33.
+  Marked: 'MarkedMixin',
 } as const;
 
 /**

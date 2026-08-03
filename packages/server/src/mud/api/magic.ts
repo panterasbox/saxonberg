@@ -33,12 +33,13 @@ import type {
   PrepareOutcome,
   CastOutcome,
   SpellsView,
+  DischargeOptions,
 } from '../obj/api/MagicLogic';
 import type { MagicSuppression } from '../lib/magic/Suppression';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-export type { PrepareOutcome, CastOutcome, SpellsView };
+export type { PrepareOutcome, CastOutcome, SpellsView, DischargeOptions };
 
 const LOGIC_PATH = '/obj/api/magic';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -111,8 +112,12 @@ export class MagicApi {
    * the `ProvenanceApi.recordAuthoring` precedent. The effect context of
    * D1 is internal plumbing beneath this gate.
    */
-  public static discharge(item: Stuff, target?: Stuff): Promise<CastOutcome> {
-    return logic().discharge(item, target);
+  public static discharge(
+    item: Stuff,
+    target?: Stuff,
+    opts?: DischargeOptions,
+  ): Promise<CastOutcome> {
+    return logic().discharge(item, target, opts);
   }
 
   /**

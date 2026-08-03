@@ -91,10 +91,19 @@ export interface ConjureEffect {
   readonly litres?: number;
 }
 
-/** Read-only reveal — backing: the `magicOrigin` tag scan (detect magic). */
+/**
+ * Read-only reveal. Two senses, both backed by a shipped read:
+ *
+ * - **`detect-magic`** — the `magicOrigin` tag scan.
+ * - **`identify-item`** — a **write to the reader's own belief store**
+ *   (`IDENTIFICATION` realm), never a message (requirements D24). It
+ *   does not examine anything cleverly and it is not oracular: it is the
+ *   *paid shortcut past experiment* — the thing you buy instead of
+ *   drinking the unknown flask to find out.
+ */
 export interface SenseEffect {
   readonly kind: 'sense';
-  readonly sense: 'detect-magic';
+  readonly sense: 'detect-magic' | 'identify-item';
 }
 
 /** Imposed semblance — backing: `Disguisable.setDisguise`. Modifier-bound (the veil is held up). */
@@ -247,10 +256,10 @@ export class MagicEffects {
         };
       }
       case 'sense': {
-        if (e.sense !== 'detect-magic') {
+        if (e.sense !== 'detect-magic' && e.sense !== 'identify-item') {
           throw new TypeError(`sense: unknown sense '${String(e.sense)}'`);
         }
-        return { kind: 'sense', sense: 'detect-magic' };
+        return { kind: 'sense', sense: e.sense };
       }
       case 'cloak': {
         const disguise = e.disguise;
