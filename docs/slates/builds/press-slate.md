@@ -130,15 +130,23 @@ one push surface** — and **the push is what makes it a publication**:
 All three are being built, they cover similar ground, and **conflating any
 two of them loses the thing that makes it useful**:
 
-| | Voices | Authorship | Shape |
+| | Voices | Output | Shape |
 |---|---|---|---|
-| **forums** | many, arguing | **attributed opinion** | ranked, threaded, **pull** |
-| **wiki** | many, converging | **de-attributed consensus** | one text, edited toward agreement |
-| **the press** | **one** | **attributed assertion** | unranked, serial, **push** |
+| **forums** | many, **arguing** | positions that stay apart | ranked, threaded, **pull** |
+| **wiki** | many, **converging** | **one text they agree on** | edited toward agreement, **pull** |
+| **the press** | **one** | **an assertion somebody signs** | unranked, serial, **PUSH** |
 
 > **Forums argue. The wiki converges. The press asserts.**
 
-They **cite** each other constantly and share no substrate.
+⚠ **All three are ATTRIBUTED** — [wiki-slate](./wiki-slate.md) is explicit
+that *"every page is authored"* and keeps `{ author, at, snapshot }` per
+revision. The wiki differs by **what attribution is FOR**: on a wiki it is
+an **edit trail**, on a publication it is a **byline you answer for**.
+
+They **cite** each other constantly and share **no substrate** — though
+wiki and press are both plain `Document` collections on the same document
+track (`wiki` and `/feed/<publisher>/`), which is the right kind of
+sharing: same machinery, separate stores.
 
 ### ⭐⭐⭐ The paywall is the press's own contradiction
 
