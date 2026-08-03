@@ -30,7 +30,7 @@ interface ResolvedPack {
 
 /** A parsed `domain`-kind content file. */
 interface DomainFile {
-  /** Derived template path (`/lib/material/spirit/gin`). */
+  /** Derived template path (`/obj/material/spirit/gin`). */
   path: string;
   /** Backing class path. */
   class: string;
@@ -168,7 +168,7 @@ function discover(packRoots?: string[]): ResolvedPack[] {
 
 // --- content walk ----------------------------------------------------------
 
-/** Map a content file to its template path: `content/lib/x.yaml` → `/lib/x`. */
+/** Map a content file to its template path: `content/obj/x.yaml` → `/lib/x`. */
 function fileToTemplatePath(contentRoot: string, file: string): string {
   const rel = relative(contentRoot, file).replace(/\.yaml$/, '');
   return '/' + rel.split(/[\\/]/).join('/');

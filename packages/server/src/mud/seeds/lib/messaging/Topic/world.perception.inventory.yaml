@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.inventory
-  family: world.perception
-  label: Inventory
-  description: A listing of what a character is carrying — output of the inventory verb.

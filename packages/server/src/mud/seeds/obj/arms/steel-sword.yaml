@@ -1,5 +1,5 @@
-class: /lib/equipment/Weapon
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Weapon
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: an arming sword
   primaryKeyword: sword
@@ -8,7 +8,7 @@ data:
     double edge and an honest crossguard. It neither reaches like a spear nor
     breaks a guard like a hammer — it parries, ripostes, and rewards a
     fighter who reads the exchange.
-  _materialPath: /lib/material/alloy/steel
+  _materialPath: /obj/material/alloy/steel
   constructionForm: bladed
   gradeBand: fine
   # The balanced generalist — near-neutral mass (medium tempo/poise), medium
@@ -17,4 +17,4 @@ data:
   mass: 1.0
   length: 0.9
   slotClaims:
-    "/lib/body-plans/biped": ["hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:right"]

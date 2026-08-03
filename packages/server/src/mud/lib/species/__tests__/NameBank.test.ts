@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import Species from '../Species';
+import Species from '../../../obj/species/Species';
 import { NameBank } from '../NameBank';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

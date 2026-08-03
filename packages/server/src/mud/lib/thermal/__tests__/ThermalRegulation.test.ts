@@ -13,8 +13,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Species from "../../species/Species";
-import BodyPlan from "../../species/BodyPlan";
+import Species from "../../../obj/species/Species";
+import BodyPlan from "../../../obj/species/BodyPlan";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
@@ -56,12 +56,12 @@ function ectothermSpecies(): Species {
     const b = new BodyPlan();
     b.setThermalStrategy("ectotherm");
     return b;
-  }, `/lib/body-plans/_reg/ecto-${speciesCounter}`) as unknown as BodyPlan;
+  }, `/obj/species/BodyPlan/_reg/ecto-${speciesCounter}`) as unknown as BodyPlan;
   const sp = makeStuffAtPath(() => {
     const s = new Species();
     s.setBodyPlan(bp);
     return s;
-  }, `/lib/species/_reg/ecto-${speciesCounter}`) as unknown as Species;
+  }, `/obj/species/_reg/ecto-${speciesCounter}`) as unknown as Species;
   return sp;
 }
 

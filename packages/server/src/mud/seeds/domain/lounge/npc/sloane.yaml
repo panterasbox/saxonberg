@@ -2,12 +2,12 @@
 # Brooding, perceptive, secretive. Says little, sees everything, keeper
 # of the after-hours (the night close, wrapping past midnight — the
 # schedule lives on the Business roster now).
-class: /lib/character/Crafter
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Crafter
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Sloane
   pronouns: they
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
   primaryKeyword: sloane
   shortDescription: a still, attentive bartender

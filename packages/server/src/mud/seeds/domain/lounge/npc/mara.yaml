@@ -1,12 +1,12 @@
 # Mara — the Anchor (day shift, weekdays). Diligent, patient, reserved.
 # The spine of the place; she does inventory (the clipboard — later wave).
 # Built entirely from data: class NPC + behaviors, no bespoke code.
-class: /lib/character/Crafter
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Crafter
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Mara
   pronouns: she
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
   lifecycleState: alive
   primaryKeyword: mara
   shortDescription: a steady, watchful dwarf tending bar

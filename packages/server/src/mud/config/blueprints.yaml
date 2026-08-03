@@ -109,7 +109,7 @@ blueprints:
     name: Payment Card
     kind: concrete
     baseClass: Thing
-    classPath: /lib/banking/PaymentCard
+    classPath: /obj/PaymentCard
     parent: things
     blessed: true
     description: >
@@ -121,7 +121,7 @@ blueprints:
     name: Branded Bottle
     kind: composition
     baseClass: Thing
-    classPath: /lib/corpo/BrandedBottle
+    classPath: /obj/corpo/BrandedBottle
     parent: things
     blessed: true
     description: >
@@ -133,7 +133,7 @@ blueprints:
     name: NPC
     kind: composition
     baseClass: Character
-    classPath: /lib/npc/NPC
+    classPath: /obj/NPC
     parent: creatures
     blessed: true
     description: >

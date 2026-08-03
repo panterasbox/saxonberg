@@ -3,7 +3,7 @@ import AnalyzeChemistryController from '../AnalyzeChemistryController';
 import { TangibleMixin } from '../../../../lib/material/Tangible';
 import Material from '../../../../lib/material/Material';
 import Thing from '../../../../lib/stuff/Thing';
-import CartesianZone from '../../../../lib/location/CartesianZone';
+import CartesianZone from '../../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -95,7 +95,7 @@ describe('AnalyzeChemistryController', () => {
     });
     // Re-register under a templatePath so Tangible.getMaterial's
     // findByTemplatePath lookup resolves.
-    stampTemplatePathForTest(iron, '/lib/material/element/iron');
+    stampTemplatePathForTest(iron, '/obj/material/element/iron');
 
     const sword = makeStuff(() => new TangibleThing());
     sword.setName('iron sword');

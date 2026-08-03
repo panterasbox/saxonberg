@@ -1,0 +1,43 @@
+# Homo semieldarinus — fantasy half-elf. Same biped anatomy as sapiens;
+# split the difference between human and elf — a mild low-light edge and
+# a stretched (but mortal) lifespan, at home in neither world fully.
+# Playable. See docs/slates/builds/species-expansion-slate.md.
+class: /obj/species/Species
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  illustration: species/semieldarinus.png
+  binomial: Homo semieldarinus
+  sentient: true
+  commonNames: ["half-elf"]
+  _bodyPlanPath: /obj/species/BodyPlan/biped
+  _parentCladePath: /obj/species/animalia
+  _defaultMaterialPath: /obj/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
+    heartRate: { baseline: 70, survivableMin: 30, survivableMax: 220 }
+    respiratoryRate: { baseline: 16, survivableMin: 6, survivableMax: 40 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 5, survivableMin: 3.2, survivableMax: 5 }
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 180
+  circadianBand: diurnal
+  diet: omnivore
+  visionProfile:
+    scotopicMin: dim
+    photopicMax: bright
+    bandShift: 0
+  olfactoryProfile:
+    acuity: normal
+  longDescription: >-
+    A graceful but unmistakably human-built figure, fine-boned about the
+    face with a faint upward sweep to the ears, carrying the watchful poise
+    of the elves and the restless drive of the people who raised them —
+    quite at home in both rooms and wholly settled in neither.
+  nameBankKeys: ["elvish", "common"]
+  facultyProfile: { depth: mid, serenity: high, composure: mid }

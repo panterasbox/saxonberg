@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Crossing from '../Crossing';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
-import '../../obj/WorldClockRegistry';
+import '../WorldClockRegistry';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 

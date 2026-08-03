@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../../lib/location/CartesianZone';
+import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
 import Exit from '../../../lib/boundary/Exit';
 import Thing from '../../../lib/stuff/Thing';
@@ -58,7 +58,7 @@ function woodMaterial(): Material {
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
     m.setSpecificHeat(Quantity.of(2000, 'J/(kg·K)'));
     return m;
-  }, `/lib/material/_test/chem-wood-${seq}`) as unknown as Material;
+  }, `/obj/material/_test/chem-wood-${seq}`) as unknown as Material;
 }
 
 async function cellar(zone: CartesianZone, x: number, airPct = 100): Promise<Cellar> {

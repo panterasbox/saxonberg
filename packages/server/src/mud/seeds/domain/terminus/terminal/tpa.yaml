@@ -11,8 +11,8 @@
 # `banksAt` is the authored custody fact — the TPA is NOT the state (the
 # CB banks only the treasury), so it banks commercially: Goodkin, v1's one
 # real branch, until the corpo banks land.
-class: /lib/employment/Business
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   proprietorPath: ''
   positions: []

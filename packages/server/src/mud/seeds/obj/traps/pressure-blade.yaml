@@ -4,8 +4,8 @@
 # (requirement 2) is the shallow end of the concealment ladder: a walking
 # novice notices it and steps around, a running one barrels in (the care-speed
 # demonstrator's run/walk case). It trips; it does not block.
-class: /lib/hazard/Trap
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Trap
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a pressure-plate sweep blade
   primaryKeyword: blade

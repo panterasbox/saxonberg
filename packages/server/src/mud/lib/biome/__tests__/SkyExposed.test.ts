@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import Biome from '../Biome';
-import { SkyExposedBiome } from '../SkyExposedBiome';
+import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

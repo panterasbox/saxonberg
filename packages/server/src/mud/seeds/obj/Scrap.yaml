@@ -2,7 +2,7 @@
 # Material / prose are stamped per salvage by CraftingLogic; the seed is
 # deliberately generic (the Casting precedent).
 class: /obj/Scrap
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a heap of scrap
   keywords: [scrap, heap, salvage]

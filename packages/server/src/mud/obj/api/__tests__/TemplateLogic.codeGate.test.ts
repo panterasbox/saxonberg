@@ -32,8 +32,8 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 
 const LEAF = "/lib/location/CartesianLocation";
 const OTHER_LEAF = "/lib/stuff/Thing";
-const FOLDER = "/lib/zone/FolderZone";
-const HYDRATOR = "/lib/persistence/PersistentHydrator";
+const FOLDER = "/obj/FolderZone";
+const HYDRATOR = "/obj/persistence/PersistentHydrator";
 const OTHER_HYDRATOR = "/lib/persistence/SomeOtherHydrator";
 const PATH = "/domain/gallery/widget";
 const ALICE = "/obj/Avatar/alice";

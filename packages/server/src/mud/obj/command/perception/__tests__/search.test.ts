@@ -24,7 +24,7 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { EventApi } from '../../../../api/event';
-import EventRegistry from '../../../../obj/EventRegistry';
+import EventRegistry from '../../../EventRegistry';
 import {
   CommandApi,
   type CommandContext,

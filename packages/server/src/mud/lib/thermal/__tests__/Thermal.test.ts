@@ -54,7 +54,7 @@ function material(specificHeat: number, conductivity = 0.6): Material {
     m.setSpecificHeat(Quantity.of(specificHeat, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(conductivity, "W/(m·K)"));
     return m;
-  }, `/lib/material/_test/mat-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_test/mat-${matCounter}`) as unknown as Material;
 }
 
 function thing(opts: {

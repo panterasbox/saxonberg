@@ -33,7 +33,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '../../../../lib/quantity';
 import type { CommandContext } from '../../../../api/command';
-import type { Trauma } from '../../../../lib/vitals/Condition';
+import type { Trauma } from '../../../Condition';
 import { OUTCOMES, type Outcome } from '../../../../lib/advancement/ActSignature';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is

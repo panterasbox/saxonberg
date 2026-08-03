@@ -43,7 +43,7 @@ function thing(stampedK: number): ThermalThing {
     m.setSpecificHeat(Quantity.of(4186, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(0.6, "W/(m·K)"));
     return m;
-  }, `/lib/material/_restamp/m-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_restamp/m-${matCounter}`) as unknown as Material;
   return makeStuff(() => {
     const t = new ThermalThing();
     t.setMass(Quantity.of(0.3, "kg"));

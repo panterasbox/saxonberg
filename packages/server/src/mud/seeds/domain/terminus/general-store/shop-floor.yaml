@@ -7,8 +7,8 @@
 # Its own zone (`/domain/terminus/general-store`), but addressed under the
 # counting-houses Locality (`counting-houses/general-store`) — it sits on that
 # street, so no new address node is minted (the slim-roster discipline).
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the general store
   primaryKeyword: store

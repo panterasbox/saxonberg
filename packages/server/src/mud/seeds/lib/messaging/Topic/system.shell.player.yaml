@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: system.shell.player
-  family: system.shell
-  label: Player
-  description: Output of the player verb — player character settings listings and edit confirmations (name, pronouns, profile).

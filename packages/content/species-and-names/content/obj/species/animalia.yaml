@@ -1,0 +1,9 @@
+# Animalia — kingdom of motile, multicellular heterotrophs. Holds every
+# v1 sapient species roster member except the robot. Folder template
+# (Clade extends Zone — picked up by ZoneApi.isFolderClass);
+# descendants are sub-clades and Species leaves.
+class: /obj/species/Clade
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: Animalia
+  rank: kingdom

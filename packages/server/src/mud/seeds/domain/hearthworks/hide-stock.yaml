@@ -1,13 +1,13 @@
 # Tanned hide stock — the soft-goods input (the jerkin's `hide` category
 # slot; the tailoring branch's attach point) and the mending-repair
 # donor material.
-class: /lib/stuff/Thing
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Prop
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a folded tanned hide
   primaryKeyword: hide
   keywords: [hide, leather, skin]
   longDescription: |
     A supple tanned hide folded square, edges trimmed, smelling of the tannery.
-  _materialPath: /lib/material/organic/leather
+  _materialPath: /obj/material/organic/leather
   mass: 2

@@ -14,7 +14,7 @@ import {
   installStore,
   type Doc,
 } from "../../../domain/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../../persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 const FIXTURE_A = "/domain/test/emp/fixture-a";
@@ -27,13 +27,13 @@ const docs: Doc[] = [
   // Two Businesses, each operating its OWN fixture (two venues, one "room").
   {
     path: BIZ_A,
-    class: "/lib/employment/Business",
+    class: "/obj/Business",
     hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_A] },
   },
   {
     path: BIZ_B,
-    class: "/lib/employment/Business",
+    class: "/obj/Business",
     hydratorClass: PH,
     data: { proprietorPath: "", positions: [], operatingLocations: [FIXTURE_B] },
   },

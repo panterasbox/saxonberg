@@ -29,8 +29,8 @@ import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
 import { VisibleMixin } from '../../../../lib/description/Visible';
 import { OrganismMixin } from '../../../../lib/species/Organism';
-import Species from '../../../../lib/species/Species';
-import BodyPlan from '../../../../lib/species/BodyPlan';
+import Species from '../../../species/Species';
+import BodyPlan from '../../../species/BodyPlan';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -66,14 +66,14 @@ function makeFixture(): { giver: ReceivingGiver; location: TestLocation } {
   StuffApi.clearAll();
   const bp = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/lib/body-plans/test-taste',
+    '/obj/species/BodyPlan/test-taste',
   );
   bp.setSensoryPorts([
     { modality: 'taste', count: 1, position: 'forward' },
   ]);
   const sp = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/test/taste-only',
+    '/obj/species/test/taste-only',
   );
   sp.setBodyPlan(bp);
   const location = makeStuff(() => new TestLocation()) as TestLocation & {

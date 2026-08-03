@@ -13,7 +13,7 @@
  * neither needed new code:
  *
  *   - **It is eaten through the shipped metabolism path.** The crop's
- *     material (`/lib/material/food/root-vegetable`) already declares
+ *     material (`/obj/material/food/root-vegetable`) already declares
  *     `edibility` and nutrients, so `eat` works with no new consumer.
  *   - **The maker is never a parameter.** `CraftedMixin`'s rule is that
  *     the maker derives from the execution context; the harvest verb

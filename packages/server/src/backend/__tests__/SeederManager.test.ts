@@ -53,7 +53,7 @@ describe('SeederManager', () => {
     mkdirSync(join(seedsDir, 'obj'), { recursive: true });
     writeFileSync(
       join(seedsDir, 'obj', 'EventRegistry.yaml'),
-      'class: /obj/EventRegistry\nhydratorClass: /lib/persistence/PersistentHydrator\ndata: {}\n'
+      'class: /obj/EventRegistry\nhydratorClass: /obj/persistence/PersistentHydrator\ndata: {}\n'
     );
 
     const fake = installFakeCollection();

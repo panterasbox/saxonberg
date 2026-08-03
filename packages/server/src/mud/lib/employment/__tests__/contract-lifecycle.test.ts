@@ -426,7 +426,7 @@ describe("contract lifecycle", () => {
   it("business-issued: post --business escrows from the Business account, settles identically", async () => {
     const BUSINESS = "/domain/test/business";
     const DAVE = "/domain/test/npc/dave";
-    const { default: BusinessEntity } = await import("../Business");
+    const { default: BusinessEntity } = await import("../../../obj/Business");
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.proprietorPath = DAVE;
     biz.banksAt = BankingApi.defaultCustodianBank();

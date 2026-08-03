@@ -11,10 +11,10 @@ import { ConditionApi } from '../../../api/condition';
 import { MaterialApi } from '../../../api/material';
 import { MixinApi } from '../../../api/mixin';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
-import Armor from '../../../lib/equipment/Armor';
-import Weapon from '../../../lib/equipment/Weapon';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
+import Armor from '../../equipment/Armor';
+import Weapon from '../../equipment/Weapon';
 import Material from '../../../lib/material/Material';
 import { Construction } from '../../../lib/material/Construction';
 import { StuffApi } from '../../../api/stuff';
@@ -24,7 +24,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../Condition';
 
 // Per-instance unique paths — several bodies / materials coexist in one test.
 let seq = 0;
@@ -33,7 +33,7 @@ function mat(hardness: number, toughness: number): Material {
   const m = makeStuff(() => new Material());
   m.setHardness(Quantity.of(hardness, 'MPa'));
   m.setToughness(Quantity.of(toughness, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/lib/material/test/m-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/m-${seq++}`);
   return m;
 }
 
@@ -44,7 +44,7 @@ const wool = () => mat(3, 4);
 function thermalMat(conductivityWmK: number): Material {
   const m = makeStuff(() => new Material());
   m.setThermalConductivity(Quantity.of(conductivityWmK, 'W/(m·K)'));
-  stampTemplatePathForTest(m, `/lib/material/test/tm-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/tm-${seq++}`);
   return m;
 }
 
@@ -78,24 +78,24 @@ function bodied(): Creature {
       key: 'body.torso',
       parent: null,
       tissues: [
-        { tissuePath: '/lib/material/tissue/bone', mass: 8 },
-        { tissuePath: '/lib/material/tissue/flesh', mass: 20 },
+        { tissuePath: '/obj/material/tissue/bone', mass: 8 },
+        { tissuePath: '/obj/material/tissue/flesh', mass: 20 },
       ],
     },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/lib/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/flesh', mass: 0.5 }],
     },
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.right.foot', parent: 'body.leg.right', tissues: [] },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-response-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-response-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/response-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/response-${id}`);
 
   const c = makeStuff(() => new Creature());
   c.setSpecies(species);

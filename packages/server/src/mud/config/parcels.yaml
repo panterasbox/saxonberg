@@ -16,7 +16,7 @@
 #
 # `landUse` — one of the closed six (residential · agricultural ·
 # commercial · industrial · civic · wild). OMIT IT on rows that are not
-# ground: `/studio`, `/lib/lounge` and friends are path-branch titles over
+# ground: `/studio`, `/obj/lounge` and friends are path-branch titles over
 # the template tree, and the inheritance walk answers `wild` for them,
 # which admits nothing. That default is the fail-closed one and should
 # stay. `areaM2` is the declared lot area — likewise omitted for
@@ -35,7 +35,7 @@ parcels:
 
   # The lounge team's ownership roots — the library folder and the content
   # folder, both owned by the managed `lounge` group (was ownerGroupName).
-  - extent: /lib/lounge
+  - extent: /obj/lounge
     owner: { kind: group, name: lounge }
   - extent: /domain/lounge
     owner: { kind: group, name: lounge }

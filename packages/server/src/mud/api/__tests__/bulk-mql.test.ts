@@ -102,7 +102,7 @@ describe('MQL — bulk scope resolution', () => {
   });
 
   it('drink coffee → resolves the holder via material keyword, via.bulk set', () => {
-    const coffee = makeMaterial('/lib/material/bulk/coffee', 'coffee', ['coffee']);
+    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', ['coffee']);
     const thermos = makeThermos(coffee, 0.3);
     ContainmentApi.move(
       thermos as never,
@@ -114,7 +114,7 @@ describe('MQL — bulk scope resolution', () => {
   });
 
   it('thermos:b → keeps the holder, stamps via.bulk interior', () => {
-    const coffee = makeMaterial('/lib/material/bulk/coffee', 'coffee', ['coffee']);
+    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', ['coffee']);
     const thermos = makeThermos(coffee, 0.3);
     ContainmentApi.move(thermos as never, world.giver as never);
     const r = MqlApi.resolveOne('thermos:b', ctx);
@@ -128,7 +128,7 @@ describe('MQL — bulk scope resolution', () => {
   });
 
   it(':B is unallocated — falls to a keyword filter and yields empty', () => {
-    const coffee = makeMaterial('/lib/material/bulk/coffee', 'coffee', ['coffee']);
+    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', ['coffee']);
     const thermos = makeThermos(coffee, 0.3);
     ContainmentApi.move(thermos as never, world.giver as never);
     // `:B` is not a transform (only lowercase `b`); the bareword `B`
@@ -139,7 +139,7 @@ describe('MQL — bulk scope resolution', () => {
   });
 
   it('an empty holder contributes no material-keyword candidate', () => {
-    const coffee = makeMaterial('/lib/material/bulk/coffee', 'coffee', ['coffee']);
+    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', ['coffee']);
     const thermos = makeThermos(coffee, 0); // empty
     ContainmentApi.move(thermos as never, world.giver as never);
     const r = MqlApi.resolveMany('coffee', ctx);

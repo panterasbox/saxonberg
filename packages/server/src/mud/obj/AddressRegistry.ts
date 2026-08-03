@@ -22,7 +22,7 @@
  * **Eager roster clone.** Leaf Ideas are cloned lazily, so a Locality's
  * self-registration hook only fires once something clones it.
  * `postRegister` therefore eagerly clones every Locality template under
- * `/lib/address/` to populate the index even for never-accessed
+ * `/obj/Locality/` to populate the index even for never-accessed
  * Localities — a v1 simplification (trivial for the demonstrative
  * roster; a future delivery build with hundreds of Localities may want
  * an incremental scheme). `PathTrie.insert` is idempotent, so the
@@ -38,7 +38,7 @@ import { PathTrie } from '../lib/collections/PathTrie';
 import { StuffApi } from '../api/stuff';
 import { Template } from '../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../lib/paths';
-import type Locality from '../lib/address/Locality';
+import type Locality from './Locality';
 
 const AddressRegistryBase = PostRegistrationMixin(Idea);
 
@@ -46,7 +46,7 @@ const AddressRegistryBase = PostRegistrationMixin(Idea);
 const AddressLogicCaller = SecurityPolicies.FromTemplate('/obj/api/address');
 
 /** The addressing prefix; its Locality leaves live beneath it. */
-const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/lib/address/'
+const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/obj/Locality/'
 /** The Locality class template path — the filter for the roster walk. */
 const LOCALITY_CLASS = `${ADDRESS_PREFIX}Locality`;
 
@@ -127,7 +127,7 @@ export default class AddressRegistry extends AddressRegistryBase {
   }
 
   /**
-   * Eagerly clone every Locality template under `/lib/address/` and
+   * Eagerly clone every Locality template under `/obj/Locality/` and
    * index its claimed prefix. Ungated private — `postRegister` and the
    * gated `rebuildCoverageIndex` both route here.
    */

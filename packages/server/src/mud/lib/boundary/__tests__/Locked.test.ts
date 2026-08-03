@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LockableMixin } from '../Locked';
 import Exit from '../Exit';
-import Door from '../Door';
+import Door from '../../../obj/Door';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';

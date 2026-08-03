@@ -5,7 +5,7 @@
  * Lives at `/obj/TopicCatalogue`, sibling to `/obj/EventRegistry`
  * per the singleton-in-`obj/` convention. The cache is transient
  * instance state; the source of truth lives on the per-topic
- * `Topic` template documents under `/lib/messaging/Topic/` in the
+ * `Topic` template documents under `/obj/Topic/` in the
  * `domain` collection. The catalogue loads its descriptors
  * directly from those template docs — Topic templates are pure
  * data (`topic` / `family` / `label` / `description`), so there's
@@ -34,7 +34,7 @@
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Template } from '../lib/stuff/Template';
-import Topic from '../lib/messaging/Topic';
+import Topic from './Topic';
 import type { TopicDescriptor } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';

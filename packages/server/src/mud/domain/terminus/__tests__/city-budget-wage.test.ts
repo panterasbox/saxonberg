@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { Employment } from "../../../lib/employment/Employment";
-import BusinessEntity from "../../../lib/employment/Business";
+import BusinessEntity from "../../../obj/Business";
 import { WorldClockApi } from "../../../api/worldclock";
 import { Quantity } from "../../../lib/quantity";
 import { Idea } from "../../../lib/stuff/Idea";

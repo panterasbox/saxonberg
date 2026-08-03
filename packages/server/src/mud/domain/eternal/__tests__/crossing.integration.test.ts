@@ -30,7 +30,7 @@ import {
   installStore,
   type Doc,
 } from "../../lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 const SEEDS = fileURLToPath(new URL("../../../seeds", import.meta.url));
@@ -79,8 +79,8 @@ const WATCH = "/domain/eternal/university-avenue/pocket-watch";
 const LOG = "/domain/eternal/university-avenue/crossing-log";
 const THERMOS = "/domain/eternal/university-avenue/thermos";
 const HUMAN =
-  "/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
-const BIPED = "/lib/body-plans/biped";
+  "/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
+const BIPED = "/obj/species/BodyPlan/biped";
 
 /** The real seeds under test + the light forward-ref stubs. */
 function docs(): Doc[] {
@@ -107,12 +107,12 @@ function docs(): Doc[] {
     seed("domain/eternal/university-avenue/pocket-watch.yaml", WATCH),
     seed("domain/eternal/university-avenue/crossing-log.yaml", LOG),
     seed("domain/eternal/university-avenue/thermos.yaml", THERMOS),
-    seed("lib/body-plans/biped.yaml", BIPED),
+    seed("obj/species/BodyPlan/biped.yaml", BIPED),
     // Minimal human species → the real biped body plan (the full species
     // tree is content-pack installed and out of scope for this seed test).
     {
       path: HUMAN,
-      class: "/lib/species/Species",
+      class: "/obj/species/Species",
       hydratorClass: PH,
       data: { name: "human", _bodyPlanPath: BIPED },
     },
@@ -128,7 +128,7 @@ function docs(): Doc[] {
     seed("domain/terminus/terminal/departure-gate-c.yaml", GATE_C),
   ];
   // Light stubs for the rest of the hub the cascade reaches.
-  const stub = (p: string, cls = "/lib/stuff/VoidLocation"): Doc => ({
+  const stub = (p: string, cls = "/obj/VoidLocation"): Doc => ({
     path: p,
     class: cls,
     hydratorClass: PH,

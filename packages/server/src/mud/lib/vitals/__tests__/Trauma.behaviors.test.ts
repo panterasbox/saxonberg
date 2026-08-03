@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Thing from '../../stuff/Thing';
 import { SlottableMixin } from '../../slot/Slottable';
 import { StuffApi } from '../../../api/stuff';
@@ -17,8 +17,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { TRAUMA_BEHAVIOR, HARM_DEFAULTS } from '../Condition';
-import type { Trauma } from '../Condition';
+import { TRAUMA_BEHAVIOR, HARM_DEFAULTS } from '../../../obj/Condition';
+import type { Trauma } from '../../../obj/Condition';
 
 const SlottableThingBase = SlottableMixin(Thing);
 class SlottableThing extends SlottableThingBase {}
@@ -35,11 +35,11 @@ function anatomicalCreature(): Creature {
     { key: 'body.arm.left', parent: 'body.torso', tissues: [] },
     { key: 'body.arm.left.hand', parent: 'body.arm.left', tissues: [] },
   ]);
-  stampTemplatePathForTest(plan, '/lib/body-plans/test-biped');
+  stampTemplatePathForTest(plan, '/obj/species/BodyPlan/test-biped');
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, '/lib/species/test/anatomical');
+  stampTemplatePathForTest(species, '/obj/species/test/anatomical');
 
   const creature = makeStuff(() => new Creature());
   creature.setSpecies(species);

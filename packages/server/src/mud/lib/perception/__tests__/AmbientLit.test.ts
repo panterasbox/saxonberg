@@ -3,7 +3,7 @@ import { AmbientLitMixin } from '../AmbientLit';
 import { Idea } from '../../stuff/Idea';
 import { MixinApi } from '../../../api/mixin';
 import { ProxyApi } from '../../../api/proxy';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import { Mixins } from '../../mixin';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';

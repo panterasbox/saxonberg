@@ -20,7 +20,7 @@
 # per-user templates were forked at signup with the defaults in
 # effect at that moment.
 class: /obj/Avatar
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   pronouns: they
   # NOTE: `startLocation` is no longer a seed literal. Every avatar-mint
@@ -34,5 +34,5 @@ data:
   # these values. Existing per-user templates predate this addition;
   # OrganismMixin's getSpecies() returns null and getLifecycleState()
   # returns '' for those, both safe no-ops.
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive

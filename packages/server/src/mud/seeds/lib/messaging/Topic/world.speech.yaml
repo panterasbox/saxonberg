@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.speech
-  family: world
-  label: Speech
-  description: Words spoken between characters in the world — say, tell, and other utterance forms.

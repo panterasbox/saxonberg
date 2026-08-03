@@ -28,14 +28,14 @@ async function bootstrapEventRegistry(): Promise<EventRegistry> {
       const t = new LeafTemplate();
       t.path = path;
       t.class = '/obj/EventRegistry';
-      t.hydratorClass = '/lib/persistence/PersistentHydrator';
+      t.hydratorClass = '/obj/persistence/PersistentHydrator';
       t.data = {};
       return t;
     }
-    if (path === '/lib/persistence/PersistentHydrator') {
+    if (path === '/obj/persistence/PersistentHydrator') {
       const t = new LeafTemplate();
       t.path = path;
-      t.class = '/lib/persistence/PersistentHydrator';
+      t.class = '/obj/persistence/PersistentHydrator';
       t.data = {};
       return t;
     }

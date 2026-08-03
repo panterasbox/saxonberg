@@ -1,0 +1,20 @@
+# Cooked fare — the ONE generic substance every derived cooked blend
+# points at (a plated stew, a pot-luck): generic dense-food physics +
+# the edible routing home. The blend's actual identity + macros ride the
+# holder's per-instance BulkPayload (macros in = macros out) — per-dish
+# material rows are the retired anti-pattern (the fixed-vocabulary rule,
+# see /obj/material/ConsumableMaterial).
+class: /obj/ConsumableMaterial
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: cooked fare
+  appearance: a portion of plain cooked fare
+  keywords: [food, fare, portion]
+  density: 1000
+  thermalConductivity: 0.5
+  specificHeat: 3500
+  edibility: true
+  nutrients: [carb]
+  tags: [food, cooked]
+  composition: []
+  biologicalSource: null

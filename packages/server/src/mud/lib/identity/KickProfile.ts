@@ -18,7 +18,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { EncryptedStringMarshaller } from '../persistence/EncryptedStringMarshaller';
+import { EncryptedStringMarshaller } from '../../obj/persistence/EncryptedStringMarshaller';
 import type { KickProfile as IKickProfile } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
 

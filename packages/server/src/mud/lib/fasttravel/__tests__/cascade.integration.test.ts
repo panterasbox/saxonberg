@@ -24,7 +24,7 @@ import {
   flush,
   type Doc,
 } from "../../../domain/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../persistence/PersistentHydrator";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 // Repointed: the lounge routes to the Terminus arrival gate (the standalone
@@ -59,7 +59,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: TERMINUS_ROOM,
-    class: "/lib/stuff/VoidLocation",
+    class: "/obj/VoidLocation",
     hydratorClass: PH,
     data: { shortDescription: "the Terminus arrival gate" },
   },

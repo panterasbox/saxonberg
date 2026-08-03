@@ -9,8 +9,8 @@ import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
 import { Mixins } from "../../lib/mixin";
 import { TemplatePaths } from "../../lib/paths";
-import type { CorpoDescriptor } from "../../lib/corpo/Corpo";
-import type { BrandDescriptor } from "../../lib/corpo/Brand";
+import type { CorpoDescriptor } from "../corpo/Corpo";
+import type { BrandDescriptor } from "../corpo/Brand";
 import type CorpoCatalogue from "../CorpoCatalogue";
 
 const CorpoApiCallers = SecurityPolicies.FromModule("/api/corpo#CorpoApi");

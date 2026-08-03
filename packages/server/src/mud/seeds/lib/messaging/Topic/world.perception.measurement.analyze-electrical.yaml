@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.analyze-electrical
-  family: world.perception.measurement
-  label: Analyze Electrical
-  description: Output of the analyze electrical subcommand — a thing's electrical character (conductivity / resistance / path-to-ground bands + raw V/A/Ω), the multimeter read.

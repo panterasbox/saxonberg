@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
 import { AccessApi } from '../../../api/access';
-import BusinessEntity from '../../../lib/employment/Business';
+import BusinessEntity from '../../Business';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';

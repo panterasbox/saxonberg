@@ -3,8 +3,8 @@
 # genuinely casts light (VisionModality reads its flux), off goes dark. A
 # discrete Thing (chattel-stampable, never Globbable). Priced on the store's
 # price-list (Law 1), never here.
-class: /lib/equipment/PortableLight
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/PortableLight
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a pitch-pine torch
   primaryKeyword: torch

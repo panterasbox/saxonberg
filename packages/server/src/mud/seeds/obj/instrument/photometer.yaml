@@ -1,7 +1,7 @@
 # Photometer — handheld instrument that grants the `measure light`
 # verb to its carrier. Author-clonable; mechanically a Thing.
 class: /obj/instrument/Photometer
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a brass photometer
   long: A small brass instrument with a calibrated dial that reads light intensity in lux. Aim it at a location, take a measurement.

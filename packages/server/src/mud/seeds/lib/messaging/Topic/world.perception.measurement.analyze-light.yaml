@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.analyze-light
-  family: world.perception.measurement
-  label: Analyze Light
-  description: Output of the analyze light subcommand — source attribution and spectrum.

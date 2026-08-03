@@ -70,8 +70,32 @@ function git(...args: string[]): void {
   execFileSync('git', args, { cwd: REPO_ROOT, stdio: 'pipe' });
 }
 
+/**
+ * The migration's own files legitimately contain `/lib/…` literals as
+ * DATA — they are the table describing the move, and its tests. Sweeping
+ * them rewrites every `from` into its own `to` and destroys the map.
+ * Learned the hard way; do not remove.
+ */
+const SELF = [
+  'lib-to-obj-moves.ts',
+  'lib-to-obj-moves.test.ts',
+  'check-instanceable-placement.ts',
+  'migrate-lib-to-obj.ts',
+  'migrate-lib-to-obj.test.ts',
+  'apply-lib-to-obj-moves.ts',
+  // The migration's own artefacts describe the BEFORE state. Rewriting
+  // their /lib/ citations turns them into nonsense ("both happen to read
+  // /obj/persistence/PersistentHydrator today").
+  'docs/plans/lib-obj-taxonomy-plan.md',
+  'docs/requirements/lib-obj-taxonomy-requirements.md',
+];
+function isSelf(path: string): boolean {
+  return SELF.some((s) => path.endsWith(s));
+}
+
 let writes = 0;
 function write(path: string, next: string, prev: string): void {
+  if (isSelf(path)) return;
   if (next === prev) return;
   writes++;
   if (!DRY) writeFileSync(path, next);
@@ -210,15 +234,32 @@ function runClassAxis(): void {
         return `${head}${q}${r}${q}`;
       }
     );
+    // `TemplateApi.saveTemplate(path, '/lib/X', …)` names the class
+    // POSITIONALLY. The argument is routinely on its own line, so this
+    // has to span newlines. Takes the classref axis too: a test that
+    // saves a room template should now name /obj/location/Room.
     next = next.replace(
-      /(\b(?:loadClassByPath|FromModule|FromController)\(\s*)(['"])(\/lib\/[^'"]+)\2/g,
+      /(\bsaveTemplate\(\s*[^,]+,\s*)(['"])(\/lib\/[^'"]+)\2/g,
       (whole, head: string, q: string, val: string) => {
-        const r = rewrite(val, ['file']);
+        const r = rewrite(val, ['file', 'classref']);
         if (!r) return whole;
         tsHits++;
         return `${head}${q}${r}${q}`;
       }
     );
+    // Any remaining absolute '/lib/…' string literal that names a MOVED
+    // MODULE. Safe as a blanket rule on the file axis specifically:
+    // imports in this repo are relative, so an absolute /lib/ literal is
+    // never an import specifier, and a gate string naming a class that
+    // stays (Thing, SpatialZone) matches no file rule and is left alone.
+    // Deliberately NOT the classref axis — a gate string may legitimately
+    // name a split's base, which has not moved.
+    next = next.replace(/(['"])(\/lib\/[^'"]+)\1/g, (whole, q: string, val: string) => {
+      const r = rewrite(val, ['file']);
+      if (!r) return whole;
+      tsHits++;
+      return `${q}${r}${q}`;
+    });
     write(path, next, src);
   }
   console.log(`ts class references repointed: ${tsHits}`);
@@ -270,10 +311,15 @@ function runPathAxis(): void {
 
   for (const f of files) {
     const src = readFileSync(f, 'utf8');
-    // Any /lib/... run bounded by a quote, whitespace, backtick, comma,
-    // colon, paren or line end. Matched greedily then trimmed of
-    // trailing punctuation that cannot be part of a template path.
-    const next = src.replace(/\/lib\/[A-Za-z0-9_\-./Ω]*/g, (m: string) => {
+    // A template path starts at a boundary — a quote, backtick, space,
+    // paren, comma or colon. The lookbehind is what stops this matching
+    // INSIDE a relative import specifier: '../lib/material/Channel'
+    // contains "/lib/material/", and rewriting it produces
+    // '../obj/material/Channel', an import of a file that does not
+    // exist. Same for repo paths like `src/mud/lib/...`, which the
+    // separate repo-path pass owns. Rejecting a preceding `.`, `/`,
+    // alphanumeric, `_` or `-` covers both.
+    const next = src.replace(/(?<![A-Za-z0-9_./-])\/lib\/[A-Za-z0-9_\-./Ω]*/g, (m: string) => {
       const trimmed = m.replace(/[.,)]+$/, '');
       const tail = m.slice(trimmed.length);
       const r = rewrite(trimmed, ['path']);

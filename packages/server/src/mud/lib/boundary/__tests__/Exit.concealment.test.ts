@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Exit from '../Exit';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';

@@ -19,9 +19,9 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
 import Thing from '../../../lib/stuff/Thing';
-import Ingot from '../../../obj/Ingot';
-import Forge from '../../../obj/Forge';
-import ToolItem from '../../../lib/craft/ToolItem';
+import Ingot from '../../Ingot';
+import Forge from '../../Forge';
+import ToolItem from '../../ToolItem';
 import CraftedDrink from '../../../domain/lounge/CraftedDrink';
 import GradedReceptacle from '../../../domain/lounge/GradedReceptacle';
 import RecipeCatalogue from '../../RecipeCatalogue';
@@ -59,13 +59,13 @@ class TestProduce extends GlobbableMixin(Thing) {
   static _mixinName = 'TestProduceBranches';
 }
 
-const IRON = '/lib/material/_test/branch-iron';
-const VEG = '/lib/material/_test/branch-veg';
-const MEAT = '/lib/material/_test/branch-meat';
-const STEW = '/lib/material/_test/branch-stew';
-const GIN = '/lib/material/_test/branch-gin';
-const VERMOUTH = '/lib/material/_test/branch-vermouth';
-const MIXED = '/lib/material/cocktail/mixed';
+const IRON = '/obj/material/_test/branch-iron';
+const VEG = '/obj/material/_test/branch-veg';
+const MEAT = '/obj/material/_test/branch-meat';
+const STEW = '/obj/material/_test/branch-stew';
+const GIN = '/obj/material/_test/branch-gin';
+const VERMOUTH = '/obj/material/_test/branch-vermouth';
+const MIXED = '/obj/material/cocktail/mixed';
 const KNIFE_T = '/obj/_test/branch-knife';
 const DISH_T = '/obj/_test/branch-dish';
 const GLASS_T = '/obj/_test/branch-glass';

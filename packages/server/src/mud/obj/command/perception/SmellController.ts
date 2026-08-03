@@ -16,9 +16,9 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { SmellModality } from '../../../lib/perception/modalities/SmellModality';
+import { SmellModality } from '../../modalities/SmellModality';
 import type { Smell } from '../../../lib/perception/Smell';
-import type { OlfactoryProfile } from '../../../lib/species/Species';
+import type { OlfactoryProfile } from '../../species/Species';
 import type { Organism } from '../../../lib/species/Organism';
 import { StuffApi } from '../../../api/stuff';
 

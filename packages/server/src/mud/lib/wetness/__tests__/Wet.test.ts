@@ -48,7 +48,7 @@ function material(): Material {
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     m.setWaterAbsorptionCapacity(Quantity.of(5, '%')); // neutral, so the warmth test isolates warmth
     return m;
-  }, `/lib/material/_test/wet-mat-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_test/wet-mat-${matCounter}`) as unknown as Material;
 }
 
 let absSeq = 0;
@@ -60,7 +60,7 @@ function capacityThing(capacityPct: number): WetThing {
     m.setName(`cap-mat-${absSeq}`);
     m.setWaterAbsorptionCapacity(Quantity.of(capacityPct, '%'));
     return m;
-  }, `/lib/material/_test/cap-${absSeq}`) as unknown as Material;
+  }, `/obj/material/_test/cap-${absSeq}`) as unknown as Material;
   const t = makeStuff(() => new WetThing());
   (t as unknown as { setMaterial(m: Material): void }).setMaterial(mat);
   return t;

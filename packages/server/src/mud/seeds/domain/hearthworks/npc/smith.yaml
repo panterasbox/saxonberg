@@ -1,11 +1,11 @@
 # Berta — the Hearthworks smith: a Crafter (MakerMixin gated by her
 # rostered position; on shift she fulfills `order` at the smithy). Human.
-class: /lib/character/Crafter
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Crafter
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Berta
   pronouns: she
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: berta
   alternateNames:

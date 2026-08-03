@@ -46,7 +46,7 @@ import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
-import type Door from './Door';
+import type Door from '../../obj/Door';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';

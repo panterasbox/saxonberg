@@ -14,7 +14,7 @@ import Receptacle from "../Receptacle";
 import Material from "../../lib/material/Material";
 import { Quantity } from "../../lib/quantity";
 import { WorldClockApi } from "../../api/worldclock";
-import "../../obj/WorldClockRegistry";
+import "../WorldClockRegistry";
 import { BulkableApi } from "../../api/bulk";
 import {
   makeStuff,
@@ -43,7 +43,7 @@ function makeCoffee(): Material {
     m.setSpecificHeat(Quantity.of(4186, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(0.6, "W/(m·K)"));
     return m;
-  }, `/lib/material/_flask/coffee-${coffeeCounter}`) as unknown as Material;
+  }, `/obj/material/_flask/coffee-${coffeeCounter}`) as unknown as Material;
 }
 
 function flask(litres: number, tempK: number, sealed = true): Flask {

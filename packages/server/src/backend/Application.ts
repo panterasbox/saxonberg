@@ -50,7 +50,7 @@ import { SecurityPolicies } from '../mud/lib/security/SecurityPolicies';
 import {
   inboundHandlers,
   type InboundClientMessage,
-} from './inbound/index';
+} from './inbound';
 
 /**
  * The OAuth profile shapes the provider-parameterized find-or-create /

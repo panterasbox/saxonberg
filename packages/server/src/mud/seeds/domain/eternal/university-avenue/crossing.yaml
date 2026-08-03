@@ -23,14 +23,14 @@
 # dangling path — the locked *veto* never resolves the destination, but boot
 # hydration does.
 class: /obj/Crossing
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: University Avenue
   primaryKeyword: crossing
   # Sky-exposed outdoor city street: the biome makes the room weather-eligible
   # (SkyExposedBiome from the base-library content pack) and the address puts
   # it under the University Avenue locality (weather + departures-board name).
-  _biomePath: /lib/biome/outdoor/baseline
+  _biomePath: /obj/biome/outdoor/baseline
   _address: university-avenue/crossing
   longDescription: |
     A broad city crossing where University Avenue meets the mouth of the Terminus station. The street is loud with strangers — travellers spilling out of the terminal to the south, checking the sky, hurrying on — and empty of anyone who lives here; the locals keep to the districts downtown, and the avenue running east and west is a place people pass through, never stop. Across the way to the north, past a low wall and a set of tall shut gates, the pale terraces of Eternal University rise behind their railings. Underfoot the stone is swept but worn in a diagonal track, the way a hundred thousand arrivals have already crossed it. In all the churn, one thing holds still: the crossing guard at his post, watching a road that no cart ever comes down.

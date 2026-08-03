@@ -18,7 +18,7 @@
 # seed supplies the shape, which is why this retrofit needed no `class:`
 # change and therefore no migration of the live per-unit records.
 class: /domain/eternal/duncan-hall/Bed
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a narrow bed
   primaryKeyword: bed

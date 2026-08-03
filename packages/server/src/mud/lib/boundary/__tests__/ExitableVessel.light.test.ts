@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
-import Door from '../Door';
+import Door from '../../../obj/Door';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../location/CartesianZone';
-import { VisionModality } from '../../perception/modalities/VisionModality';
+import CartesianZone from '../../../obj/location/CartesianZone';
+import { VisionModality } from '../../../obj/modalities/VisionModality';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import { Light } from '../../perception/Light';
 import { AmbientLitMixin } from '../../perception/AmbientLit';

@@ -4,7 +4,7 @@
 # fills as patrons tip — inspectable, so you can watch it fill. Populated onto
 # the bar's rail by the Bar seed's `populates` list.
 class: /domain/lounge/TipJar
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a tip jar
   longDescription: >

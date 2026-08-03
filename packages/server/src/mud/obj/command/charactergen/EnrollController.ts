@@ -36,7 +36,7 @@ import { Template } from "../../../lib/stuff/Template";
 import Avatar from "../../Avatar";
 import Login from "../../Login";
 import type { EnrollmentDraft } from "../../Login";
-import type Species from "../../../lib/species/Species";
+import type Species from "../../species/Species";
 import type {
   CharGenOption,
   CharGenPicks,

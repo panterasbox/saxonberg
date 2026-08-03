@@ -25,7 +25,7 @@ import { NamedMixin } from "../../../lib/description/Named";
 import { ContainableMixin } from "../../../lib/spatial/Containable";
 import { ContainerMixin } from "../../../lib/spatial/Container";
 import { ContainmentApi } from "../../../api/containment";
-import ToolItem from "../../../lib/craft/ToolItem";
+import ToolItem from "../../ToolItem";
 import { Stuff } from "../../../lib/stuff/Stuff";
 import type { BuildContribution } from "../../../lib/craft/ManualBuild";
 import {
@@ -33,10 +33,10 @@ import {
   makeStuffAtPath,
 } from "../../../lib/security/__tests__/test-setup";
 
-const GIN = "/lib/material/spirit/gin";
-const VERMOUTH = "/lib/material/spirit/vermouth";
-const MARTINI_MAT = "/lib/material/cocktail/martini";
-const MIXED_MAT = "/lib/material/cocktail/mixed";
+const GIN = "/obj/material/spirit/gin";
+const VERMOUTH = "/obj/material/spirit/vermouth";
+const MARTINI_MAT = "/obj/material/cocktail/martini";
+const MIXED_MAT = "/obj/material/cocktail/mixed";
 const DAVE = "/domain/lounge/dave-buildmint";
 
 class TestMaker extends NamedMixin(ContainableMixin(Idea)) {

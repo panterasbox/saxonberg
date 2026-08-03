@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { RadioactiveMaterial } from '../RadioactiveMaterial';
+import { RadioactiveMaterial } from '../../../obj/RadioactiveMaterial';
 import Material from '../Material';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -53,7 +53,7 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
   it('decayProduct cross-reference resolves lazily', () => {
     const thorium = withTemplatePath(
       makeStuff(() => new RadioactiveMaterial()),
-      '/lib/material/element/thorium'
+      '/obj/material/element/thorium'
     );
     thorium.setName('thorium');
 
@@ -62,7 +62,7 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
     uranium.setDecayMode('alpha');
     uranium.setDecayProduct(thorium);
 
-    expect(uranium._decayProductPath).toBe('/lib/material/element/thorium');
+    expect(uranium._decayProductPath).toBe('/obj/material/element/thorium');
     expect(uranium.getDecayProduct()).toBe(thorium);
   });
 
@@ -75,7 +75,7 @@ describe('RadioactiveMixin / RadioactiveMaterial', () => {
     const u = makeStuff(() => new RadioactiveMaterial());
     const product = withTemplatePath(
       makeStuff(() => new RadioactiveMaterial()),
-      '/lib/material/element/thorium'
+      '/obj/material/element/thorium'
     );
     u.setDecayProduct(product);
     u.setDecayProduct(null);

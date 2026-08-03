@@ -1,5 +1,5 @@
-class: /lib/equipment/Armor
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Armor
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a bronze breastplate
   primaryKeyword: breastplate
@@ -8,8 +8,8 @@ data:
     form as its steel cousin — but the softer metal turns an edge far less
     surely.
   slotClaims:
-    "/lib/body-plans/biped": [torso]
-  _materialPath: /lib/material/alloy/bronze
+    "/obj/species/BodyPlan/biped": [torso]
+  _materialPath: /obj/material/alloy/bronze
   constructionForm: plate
   gradeBand: fine
   mass: 11

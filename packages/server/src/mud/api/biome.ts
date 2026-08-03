@@ -5,7 +5,7 @@
  *
  *   - **Lookup + density** (Wave 2) — `findByPath` singleton lookup,
  *     `densityOf(tag)` per-atmosphere density read, `getRootBiome`
- *     cached accessor for the universe biome at `/lib/biome/`.
+ *     cached accessor for the universe biome at `/obj/biome/`.
  *   - **Resolution chain** (Wave 3) — `resolveTemperatureFor` and
  *     the four siblings (pressure / humidity / gravity / atmosphere)
  *     plus their `trace*` variants that return provenance for the
@@ -65,7 +65,7 @@ export interface AtmosphericTrace<V> {
   /**
    * Path of the source — ancestor template path for detail / room,
    * biome template path for biome / biome-ancestor, zone path for
-   * zone, `'/lib/biome/universe'` for universe.
+   * zone, `'/obj/biome/universe'` for universe.
    */
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */
@@ -141,11 +141,11 @@ export class BiomeApi {
   }
 
   /**
-   * Cached accessor for the root universe biome at `/lib/biome/`.
+   * Cached accessor for the root universe biome at `/obj/biome/`.
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —
    * a boot-time invariant; the seeded universe biome at
-   * `seeds/lib/biome/universe.yaml` is mandatory.
+   * `seeds/obj/biome/universe.yaml` is mandatory.
    */
   public static getRootBiome(): Biome {
     return logic().getRootBiome();

@@ -16,7 +16,7 @@ import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { AdvancementMixin } from "../Advancement";
 import DisciplineCatalogue from "../../../obj/DisciplineCatalogue";
-import Discipline from "../Discipline";
+import Discipline from "../../../obj/Discipline";
 import { AdvancementApi } from "../../../api/advancement";
 import { CommandApi } from "../../../api/command";
 import { WorldClockApi } from "../../../api/worldclock";

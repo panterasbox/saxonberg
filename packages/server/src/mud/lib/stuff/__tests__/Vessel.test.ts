@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Vessel } from '../Vessel';
-import Thing from '../../stuff/Thing';
-import Location from '../../stuff/Location';
+import Thing from '../Thing';
+import Location from '../Location';
 import ExitableVessel from '../../boundary/ExitableVessel';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

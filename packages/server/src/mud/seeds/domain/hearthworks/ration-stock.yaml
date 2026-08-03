@@ -1,10 +1,10 @@
 # A ration pack in the pantry — the toasted-ration recipe's input (the
 # store's ration tier, one shelf over).
-class: /lib/stuff/Thing
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Prop
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a wrapped ration pack
   primaryKeyword: rations
   keywords: [rations, ration, pack]
-  _materialPath: /lib/material/food/trail-ration
+  _materialPath: /obj/material/food/trail-ration
   mass: 0.5

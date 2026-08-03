@@ -17,7 +17,7 @@ import { DialogueTreeSchema } from "../../../lib/npc/tree";
 // Registers the `bank-circle` dialogue effect so the officer tree validates.
 import { BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
-import BankCounter from "../../../lib/banking/BankCounter";
+import BankCounter from "../../../obj/BankCounter";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { ContainmentApi } from "../../../api/containment";

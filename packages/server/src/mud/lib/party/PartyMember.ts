@@ -31,7 +31,7 @@ import {
   Unshadowable,
 } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
-import { Party } from "./Party";
+import { Party } from "../../obj/Party";
 
 /** Public read surface for PartyMemberMixin. */
 export interface PartyMember {

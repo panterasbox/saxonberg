@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Condition from "../../vitals/Condition";
+import Condition from "../../../obj/Condition";
 import Material from "../../material/Material";
 import type { ToxinBehavior } from "../Metabolic";
 import { Quantity } from "../../quantity";
@@ -50,7 +50,7 @@ const ALCOHOL: ToxinBehavior = {
   ],
 };
 
-const ALCOHOL_PATH = "/lib/metabolism/conditions/alcohol";
+const ALCOHOL_PATH = "/obj/Condition/metabolism/alcohol";
 
 function ensureAlcoholCondition(): void {
   if (StuffApi.findByTemplatePath(ALCOHOL_PATH)) return;

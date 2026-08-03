@@ -1,0 +1,4 @@
+class: /obj/persistence/QuantityMarshaller
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  unit: clo

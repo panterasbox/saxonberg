@@ -24,8 +24,8 @@
 #
 # Ownership is NOT here. Each lot's title is a row in the gated `parcels`
 # collection, keyed on its extent under this branch.
-class: /lib/location/CartesianZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/CartesianZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Hinkley Hills lots
   cellSize: 6.0

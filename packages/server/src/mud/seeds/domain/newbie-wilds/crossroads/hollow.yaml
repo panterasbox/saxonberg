@@ -7,8 +7,8 @@
 # Reached by walking west from the treeline (the spawn-override still
 # lands you at the treeline); a duelling-stone holds a knife he takes up.
 # Carries the Last-Counted-Mile locality address like its siblings.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a hollow full of fog
   primaryKeyword: hollow

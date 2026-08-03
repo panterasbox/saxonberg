@@ -1,0 +1,15 @@
+# Smithing — the forming trade: control at the anvil. Evidence accrues at
+# craft-resolve (one-shot and by-hand mint alike) with the recipe's
+# authored difficulty; control stays fixed this build (the skill seam is
+# the declared next crafting wave), so the Transcript simply fills
+# honestly ahead of it.
+class: /obj/Discipline
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: smithing
+  channel: skill
+  label: Smithing
+  iscedf: "0715"  # ISCED-F 2013: mechanics and metal trades
+  description: Control at the anvil — heat judgment, hammer work, and the forming of metal stock into true shapes. Improves by doing, at the forge.
+  requires:
+    - recipe-knowledge

@@ -130,7 +130,7 @@ export class ParcelApi {
    *
    * `wild` admits **nothing**, so the default is fail-closed. Most parcel
    * rows are path-branch titles over the template tree (`/studio`,
-   * `/lib/lounge`) rather than ground, and none of them should read as
+   * `/obj/lounge`) rather than ground, and none of them should read as
    * cultivable merely because nobody zoned them.
    */
   public static landUseOf(path: string): LandUse {

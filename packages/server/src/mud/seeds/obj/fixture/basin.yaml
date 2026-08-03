@@ -11,7 +11,7 @@
 # municipal plumbing, so the tier can pick the fixture later without
 # touching an archetype row. Keep it that way.
 class: /obj/UnboundedReceptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a washbasin
   primaryKeyword: basin
@@ -19,5 +19,5 @@ data:
   longDescription: |
     A shallow basin set into a narrow shelf, with a single tap above it and a clouded mirror screwed to the wall behind.
   interiorBulk: true
-  interiorMaterial: /lib/material/bulk/water
+  interiorMaterial: /obj/material/bulk/water
   mass: 40

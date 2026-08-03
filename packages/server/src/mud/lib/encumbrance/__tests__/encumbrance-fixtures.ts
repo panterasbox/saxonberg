@@ -6,8 +6,8 @@
  */
 
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Thing from '../../stuff/Thing';
 import { Vessel } from '../../stuff/Vessel';
 import { WearableMixin } from '../../slot/Wearable';
@@ -73,28 +73,28 @@ export function bearerOf<T extends Creature>(
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/lib/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/bone', mass: 8 }],
     },
     {
       key: 'body.arm.left',
       parent: 'body.torso',
-      tissues: [{ tissuePath: '/lib/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/muscle', mass: 3 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
-      tissues: [{ tissuePath: '/lib/material/tissue/bone', mass: 0.4 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/bone', mass: 0.4 }],
     },
   ]);
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', covers: ['body.torso'] },
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.arm.left.hand' },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-bearer-${n}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-bearer-${n}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/bearer-${n}`);
+  stampTemplatePathForTest(species, `/obj/species/test/bearer-${n}`);
 
   const creature = makeStuff(factory);
   creature.setSpecies(species);

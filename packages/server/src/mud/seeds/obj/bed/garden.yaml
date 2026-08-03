@@ -10,14 +10,14 @@
 # (see lib/stuff/Vessel.ts). Empty it and a strong character could shift
 # the frame, which is a consequence rather than a special case.
 class: /obj/GardenBed
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a raised garden bed
   primaryKeyword: bed
   keywords: [bed, "garden bed", "raised bed", plot, planter]
   longDescription: |
     A knee-high frame of weathered boards, filled level with dark soil and edged by a path worn into the grass. There is room along its length for several plants without crowding.
-  material: /lib/material/wood/pine
+  material: /obj/material/wood/pine
   # ~340 kg filled: the frame plus 12 L of soil in a bed that is mostly
   # soil by volume. Well over any character's strain ceiling.
   mass: 340

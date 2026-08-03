@@ -18,7 +18,7 @@ import { ContainmentApi } from '../../api/containment';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { EARTH_LIKE, type Season } from '../../lib/time/CelestialProfile';
-import type Locality from '../../lib/address/Locality';
+import type Locality from '../Locality';
 import type Material from '../../lib/material/Material';
 import type { Bulkable } from '../../lib/bulk/Bulkable';
 import type { Adornable } from '../../lib/boundary/Adornable';
@@ -661,7 +661,7 @@ function findRoomFloor(room: Stuff & Container): (Stuff & Bulkable) | null {
 function freshWaterMaterial(): Material | null {
   const path = dialStr(
     AppSettingKeys.stormPuddleFreshWaterMaterialPath,
-    '/lib/material/bulk/water',
+    '/obj/material/bulk/water',
   );
   return StuffApi.findByTemplatePath<Material>(path) ?? null;
 }

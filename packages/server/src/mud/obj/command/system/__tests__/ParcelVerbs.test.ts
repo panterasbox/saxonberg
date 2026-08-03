@@ -25,7 +25,7 @@ import {
 import type { MqlOneResult } from "../../../../api/mql";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import Location from "../../../../lib/stuff/Location";
-import FolderZone from "../../../../lib/zone/FolderZone";
+import FolderZone from "../../../FolderZone";
 import { ParcelRecord, type ParcelOwner } from "../../../../lib/parcel/ParcelRecord";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import { ExecutionContextApi } from "../../../../api/execution-context";
@@ -137,7 +137,7 @@ describe("SubdivideController", () => {
 
     expect(TemplateApi.saveTemplate).toHaveBeenCalledWith(
       "/domain/lounge/east-wing",
-      "/lib/zone/FolderZone",
+      "/obj/FolderZone",
       { name: "East Wing" },
     );
     expect(subdivide).toHaveBeenCalledWith(

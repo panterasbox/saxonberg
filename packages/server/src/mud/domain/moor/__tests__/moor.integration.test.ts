@@ -12,7 +12,7 @@ import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';
 import Floor from '../../../obj/Floor';
 import Biome from '../../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';
 import Material from '../../../lib/material/Material';
 import { WeatherApi } from '../../../api/weather';
 import { BiomeApi } from '../../../api/biome';
@@ -51,7 +51,7 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 function installFreshWater(): void {
@@ -60,16 +60,16 @@ function installFreshWater(): void {
     m.setName('water');
     m.setElectricalConductivity(Quantity.of(0.01, 'S/m'));
     return m;
-  }, '/lib/material/bulk/water');
+  }, '/obj/material/bulk/water');
 }
 
 /** A SkyExposed (modelled-weather-eligible) room. */
 function skyRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;
@@ -79,9 +79,9 @@ function skyRoom(): TestRoom {
 function indoorRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/indoor/hall');
+  }, '/obj/biome/indoor/hall');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;

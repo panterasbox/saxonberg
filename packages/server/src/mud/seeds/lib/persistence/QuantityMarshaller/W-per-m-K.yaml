@@ -1,4 +1,0 @@
-class: /lib/persistence/QuantityMarshaller
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  unit: W/(m·K)

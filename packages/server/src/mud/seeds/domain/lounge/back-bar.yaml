@@ -2,8 +2,8 @@
 # bar tools rest ON it (placed via the bar's `populates: { onto }` entries),
 # so they're visible "on the back-bar" and reachable, but render under it
 # rather than as loose items among the room's occupants.
-class: /lib/spatial/Surface
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Surface
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the back-bar
   longDescription: A long mirrored back-bar, its rail worn smooth, ranked with bottles.

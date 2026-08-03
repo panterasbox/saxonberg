@@ -26,9 +26,9 @@ import {
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../stuff/Idea";
 import { Character } from "../../character/Character";
-import Species from "../../species/Species";
-import BodyPlan from "../../species/BodyPlan";
-import Weapon from "../../equipment/Weapon";
+import Species from "../../../obj/species/Species";
+import BodyPlan from "../../../obj/species/BodyPlan";
+import Weapon from "../../../obj/equipment/Weapon";
 import type { Stuff } from "../../stuff/Stuff";
 import Material from "../../material/Material";
 import { Construction } from "../../material/Construction";
@@ -107,7 +107,7 @@ function steel(): Material {
   m.setHardness(Quantity.of(600, "MPa"));
   m.setToughness(Quantity.of(200, "MJ/m³"));
   m.setName("steel");
-  stampTemplatePathForTest(m, `/lib/material/test/m-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/m-${seq++}`);
   return m;
 }
 
@@ -128,20 +128,20 @@ function makeFighter(room: Stuff, weapon?: Weapon | null): Character {
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/lib/material/tissue/bone", mass: 8 },
-        { tissuePath: "/lib/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
+        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-fighter-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-fighter-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/fighter-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/fighter-${id}`);
   const f = makeStuff(() => new TestFighter());
   stampTemplatePathForTest(f, `/test/fighter-${id}`);
   f.setSpecies(species);

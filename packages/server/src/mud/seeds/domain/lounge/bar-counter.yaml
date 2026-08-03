@@ -6,8 +6,8 @@
 # lease (you can't hog the bartender idle) and makes the bar run the same
 # subsystem the bank and the ticket office do. `order`/`serve`/`mix` stay the
 # payload (afforded by the Menu); this fixture is the wrapping.
-class: /lib/attendant/AttendancePoint
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/AttendancePoint
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the bar
   keywords: [bar, counter, rail, taps]

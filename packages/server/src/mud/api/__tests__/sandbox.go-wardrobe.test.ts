@@ -21,7 +21,7 @@ import EventRegistry from '../../obj/EventRegistry';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import SandboxCrossing from '../../lib/sandbox/SandboxCrossing';
+import SandboxCrossing from '../../obj/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
 

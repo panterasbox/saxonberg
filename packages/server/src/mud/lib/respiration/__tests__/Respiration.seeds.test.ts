@@ -9,9 +9,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import AirTank from '../../../obj/AirTank';
-import Condition from '../../vitals/Condition';
+import Condition from '../../../obj/Condition';
 import Material from '../../material/Material';
 import { StuffApi } from '../../../api/stuff';
 import {
@@ -34,7 +34,7 @@ function hydrator(): PersistentHydrator {
 describe('respiration seeds — new content shapes hydrate', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
-    makeStuffAtPath(() => new Material(), '/lib/material/bulk/air').setName(
+    makeStuffAtPath(() => new Material(), '/obj/material/bulk/air').setName(
       'air',
     );
   });
@@ -54,13 +54,13 @@ describe('respiration seeds — new content shapes hydrate', () => {
     expect(slot.getCapacity()?.rawValue()).toBe(6);
     expect(slot.getAmount().rawValue()).toBe(6);
     expect(tank.getBulkMaterial('interior')?.getName()).toBe('air');
-    expect(tank.getSlotClaims()['/lib/body-plans/biped']).toEqual(['torso']);
+    expect(tank.getSlotClaims()['/obj/species/BodyPlan/biped']).toEqual(['torso']);
     expect(tank.getAirGauge()).toBe(1);
   });
 
   it('asphyxiation condition seed hydrates', async () => {
     const data = seedData(
-      '../../../seeds/lib/respiration/conditions/asphyxiation.yaml',
+      '../../../seeds/obj/respiration/conditions/asphyxiation.yaml',
     );
     const cond = makeStuff(() => new Condition());
     await hydrator().hydrate(cond, data);

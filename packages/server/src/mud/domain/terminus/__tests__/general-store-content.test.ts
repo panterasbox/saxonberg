@@ -42,7 +42,7 @@ describe("general-store content integrity", () => {
       fileURLToPath(new URL("../../../seeds/domain/terminus/", import.meta.url)),
       "general-store.yaml",
     );
-    expect(zone.class).toBe("/lib/location/CartesianZone");
+    expect(zone.class).toBe("/obj/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
     expect(room.class).toBe("/lib/location/CartesianLocation");
@@ -53,12 +53,12 @@ describe("general-store content integrity", () => {
       "/domain/terminus/general-store/npc/keeper",
     ]);
 
-    expect(load(STORE_DIR, "counter.yaml").class).toBe("/lib/retail/Stock");
+    expect(load(STORE_DIR, "counter.yaml").class).toBe("/obj/Stock");
     expect(load(STORE_DIR, "consignment-shelf.yaml").class).toBe(
-      "/lib/retail/ConsignmentShelf",
+      "/obj/ConsignmentShelf",
     );
     expect(load(STORE_DIR, "business.yaml").class).toBe(
-      "/lib/employment/Business",
+      "/obj/Business",
     );
     expect(load(STORE_DIR, "npc/clerk.yaml").class).toBe("/lib/npc/NPC");
     expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/lib/npc/NPC");
@@ -70,16 +70,16 @@ describe("general-store content integrity", () => {
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
     "/lib/stuff/Thing",
-    "/lib/equipment/PortableLight",
-    "/lib/equipment/Weapon",
+    "/obj/equipment/PortableLight",
+    "/obj/equipment/Weapon",
     "/obj/Receptacle",
     // The crafting goods: the sewing kit + the sewing MACHINE (the
     // capability table's data-only variant) are plain ToolItems; the
     // whetstone keeps its class for the Audible rasp (behavior, not
     // affordances); the ingot a Meltable Thing — all discrete, none
     // Globbable.
-    "/lib/craft/ToolItem",
-    "/lib/craft/Whetstone",
+    "/obj/ToolItem",
+    "/obj/Whetstone",
     "/obj/Ingot",
     // The gardening line (husbandry phase 1): a pot is a Slotted fixture
     // with a bulk interior for soil, a seed a discrete Thing naming the
@@ -123,11 +123,11 @@ describe("general-store content integrity", () => {
     // The rations are genuinely edible — their material is a food material.
     const rations = load(STORE_DIR, "goods/rations.yaml");
     expect(rations.class).toBe("/lib/stuff/Thing");
-    expect(String(rations.data?._materialPath)).toMatch(/^\/lib\/material\/food\//);
+    expect(String(rations.data?._materialPath)).toMatch(/^\/obj\/material\/food\//);
     // The lights actually emit (authored flux + warmth), start unlit.
     for (const f of ["torch", "lantern"]) {
       const light = load(STORE_DIR, `goods/${f}.yaml`);
-      expect(light.class).toBe("/lib/equipment/PortableLight");
+      expect(light.class).toBe("/obj/equipment/PortableLight");
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
       expect(light.data?.on).toBe(false);
     }
@@ -137,7 +137,7 @@ describe("general-store content integrity", () => {
     expect(Number(skin.data?.interiorCapacity)).toBeGreaterThan(0);
     // The knife is a real bladed weapon (delivers an edge, wieldable).
     const knife = load(STORE_DIR, "goods/clasp-knife.yaml");
-    expect(knife.class).toBe("/lib/equipment/Weapon");
+    expect(knife.class).toBe("/obj/equipment/Weapon");
     expect(knife.data?.constructionForm).toBe("bladed");
   });
 

@@ -22,8 +22,8 @@ import { SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-const MATERIAL = '/lib/material/Material';
-const HYDRATOR = '/lib/persistence/PersistentHydrator';
+const MATERIAL = '/obj/material/Material';
+const HYDRATOR = '/obj/persistence/PersistentHydrator';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
@@ -98,7 +98,7 @@ afterEach(() => {
 
 describe('PackApi.sync', () => {
   it('reconciles and re-hydrates the affected live singletons (no restart)', async () => {
-    const root = writePack('p', 'lib/material/spirit/gin.yaml', {
+    const root = writePack('p', 'obj/material/spirit/gin.yaml', {
       name: 'gin',
       appearance: 'clear',
     });
@@ -106,7 +106,7 @@ describe('PackApi.sync', () => {
 
     // Edit the file.
     writeFileSync(
-      join(root, 'content/lib/material/spirit/gin.yaml'),
+      join(root, 'content/obj/material/spirit/gin.yaml'),
       YAML.stringify({
         class: MATERIAL,
         hydratorClass: HYDRATOR,
@@ -122,7 +122,7 @@ describe('PackApi.sync', () => {
       .mockResolvedValue(undefined);
 
     const result = await PackApi.sync('p', root);
-    expect(result.updated).toEqual(['/lib/material/spirit/gin']);
+    expect(result.updated).toEqual(['/obj/material/spirit/gin']);
     expect(restore).toHaveBeenCalledWith(liveGin);
     expect(result.rehydrated).toBe(1);
   });

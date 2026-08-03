@@ -6,7 +6,7 @@
  * engageAround / isTransientEngagement framework-internal helpers.
  *
  * All inputs that reference a mode by name accept either the short
- * name (`'walk'`) or the full templatePath (`/lib/locomotion/walk`).
+ * name (`'walk'`) or the full templatePath (`/obj/LocomotionMode/walk`).
  *
  * Thin, security-gated forwarding shell: the logic lives in the
  * hot-reloadable {@link LocomotionLogic} singleton at
@@ -25,7 +25,7 @@ import type {
   BodyProfile,
   GroundContact,
   NoiseLevel,
-} from '../lib/locomotion/LocomotionMode';
+} from '../obj/LocomotionMode';
 import type { Enablement } from '../lib/locomotion/Enablement';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';

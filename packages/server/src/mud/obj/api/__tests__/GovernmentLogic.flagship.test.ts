@@ -17,9 +17,9 @@ import { parse } from "yaml";
 import { GovernmentApi } from "../../../api/government";
 import { AddressApi } from "../../../api/address";
 import GovernmentCatalogue from "../../GovernmentCatalogue";
-import Government from "../../../lib/civics/Government";
+import Government from "../../Government";
 import AddressRegistry from "../../AddressRegistry";
-import Locality from "../../../lib/address/Locality";
+import Locality from "../../Locality";
 import { NPC } from "../../../lib/npc/NPC";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
@@ -41,18 +41,18 @@ function seedData(relative: string): Loose {
 
 /** The shipped Locality roster (every seeds/lib/address leaf). */
 const LOCALITY_SEEDS = [
-  "lib/address/narnia.yaml",
-  "lib/address/cair-paravel.yaml",
-  "lib/address/lantern-waste.yaml",
-  "lib/address/terminus.yaml",
-  "lib/address/terminus-city.yaml",
-  "lib/address/eternal-campus.yaml",
+  "obj/Locality/narnia.yaml",
+  "obj/Locality/cair-paravel.yaml",
+  "obj/Locality/lantern-waste.yaml",
+  "obj/Locality/terminus.yaml",
+  "obj/Locality/terminus-city.yaml",
+  "obj/Locality/eternal-campus.yaml",
 ];
 
 const GOVERNMENT_SEEDS = [
-  "lib/civics/Government/terminus-realm.yaml",
-  "lib/civics/Government/terminus-city.yaml",
-  "lib/civics/Government/eternal-university.yaml",
+  "obj/Government/terminus-realm.yaml",
+  "obj/Government/terminus-city.yaml",
+  "obj/Government/eternal-university.yaml",
 ];
 
 const CLERK_PATH = "/domain/terminus/registry/clerk";
@@ -70,7 +70,7 @@ async function wireFromSeeds(): Promise<void> {
         typeof data._governmentKey === "string" ? data._governmentKey : null
       );
       return l;
-    }, `/lib/address/${file.split("/").pop()!.replace(".yaml", "")}`);
+    }, `/obj/Locality/${file.split("/").pop()!.replace(".yaml", "")}`);
     AddressApi.registerLocality(loc);
   }
 
@@ -194,9 +194,9 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     );
     // And the shipped narnia Locality seeds declare no government.
     for (const file of [
-      "lib/address/narnia.yaml",
-      "lib/address/cair-paravel.yaml",
-      "lib/address/lantern-waste.yaml",
+      "obj/Locality/narnia.yaml",
+      "obj/Locality/cair-paravel.yaml",
+      "obj/Locality/lantern-waste.yaml",
     ]) {
       expect(seedData(file)._governmentKey).toBeUndefined();
     }

@@ -6,8 +6,8 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Thing from '../../stuff/Thing';
 import { SlottableMixin } from '../../slot/Slottable';
 import { StuffApi } from '../../../api/stuff';
@@ -31,32 +31,32 @@ function anatomicalCreature(): Creature {
     {
       key: 'body.torso',
       parent: null,
-      tissues: [{ tissuePath: '/lib/material/tissue/bone', mass: 8 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/bone', mass: 8 }],
     },
     {
       key: 'body.arm.left',
       parent: 'body.torso',
       severable: true,
-      tissues: [{ tissuePath: '/lib/material/tissue/muscle', mass: 3 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/muscle', mass: 3 }],
     },
     {
       key: 'body.arm.left.hand',
       parent: 'body.arm.left',
       severable: true,
-      tissues: [{ tissuePath: '/lib/material/tissue/bone', mass: 0.4 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/bone', mass: 0.4 }],
     },
     {
       key: 'body.torso.heart',
       parent: 'body.torso',
       governsVital: 'heartRate',
-      tissues: [{ tissuePath: '/lib/material/tissue/muscle', mass: 0.3 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/muscle', mass: 0.3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, '/lib/body-plans/test-biped');
+  stampTemplatePathForTest(plan, '/obj/species/BodyPlan/test-biped');
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, '/lib/species/test/anatomical');
+  stampTemplatePathForTest(species, '/obj/species/test/anatomical');
 
   const creature = makeStuff(() => new Creature());
   creature.setSpecies(species);
@@ -81,7 +81,7 @@ describe('VitalsMixin — anatomy resolver', () => {
     const creature = anatomicalCreature();
     const arm = creature.getPart('body.arm.left');
     expect(arm?.tissues).toEqual([
-      { tissuePath: '/lib/material/tissue/muscle', mass: 3 },
+      { tissuePath: '/obj/material/tissue/muscle', mass: 3 },
     ]);
   });
 

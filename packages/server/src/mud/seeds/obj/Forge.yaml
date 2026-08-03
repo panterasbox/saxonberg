@@ -3,7 +3,7 @@
 # the bellows scales it by 1.6 (→ 2080 K), so smelting heat is reachable ONLY
 # with the bellows — the forge's reasoned mechanic. Lit with `ignite`.
 class: /obj/Forge
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a stone forge
   longDescription: >

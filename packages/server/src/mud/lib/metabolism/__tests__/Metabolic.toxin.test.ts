@@ -9,7 +9,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Condition from "../../vitals/Condition";
+import Condition from "../../../obj/Condition";
 import type { ToxinBehavior } from "../Metabolic";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../obj/WorldClockRegistry";
@@ -68,7 +68,7 @@ const PURGE: ToxinBehavior = {
 };
 
 function ensureCondition(behavior: ToxinBehavior): void {
-  const path = "/lib/metabolism/conditions/" + behavior.toxinType;
+  const path = "/obj/Condition/metabolism/" + behavior.toxinType;
   if (StuffApi.findByTemplatePath(path)) return;
   makeStuffAtPath(() => {
     const c = new Condition();
@@ -80,13 +80,13 @@ function ensureCondition(behavior: ToxinBehavior): void {
 
 const burden = (c: Creature, t: string) => c.toxinBurdens[t] ?? 0;
 function hasCond(c: Creature, t: string): boolean {
-  const path = "/lib/metabolism/conditions/" + t;
+  const path = "/obj/Condition/metabolism/" + t;
   return c
     .getConditions()
     .some((x) => x.kind === "affliction" && x.templatePath === path);
 }
 function severity(c: Creature, t: string): number {
-  const path = "/lib/metabolism/conditions/" + t;
+  const path = "/obj/Condition/metabolism/" + t;
   const rec = c
     .getConditions()
     .find((x) => x.kind === "affliction" && x.templatePath === path);

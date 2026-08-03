@@ -431,7 +431,7 @@ describe('Application', () => {
         path: Avatar.SEED_TEMPLATE_PATH,
         class: '/obj/Avatar',
         data: { species: 'human' },
-        hydratorClass: '/lib/persistence/PersistentHydrator',
+        hydratorClass: '/obj/persistence/PersistentHydrator',
       } as never);
       vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue(undefined as never);
 
@@ -537,7 +537,7 @@ describe('Application', () => {
         path: Avatar.SEED_TEMPLATE_PATH,
         class: '/obj/Avatar',
         data: {},
-        hydratorClass: '/lib/persistence/PersistentHydrator',
+        hydratorClass: '/obj/persistence/PersistentHydrator',
       } as never);
       const tmplSave = vi
         .spyOn(TemplateApi, 'saveTemplate')
@@ -569,7 +569,7 @@ describe('Application', () => {
         path: Avatar.SEED_TEMPLATE_PATH,
         class: '/obj/Avatar',
         data: {},
-        hydratorClass: '/lib/persistence/PersistentHydrator',
+        hydratorClass: '/obj/persistence/PersistentHydrator',
       } as never);
       const tmplSave = vi
         .spyOn(TemplateApi, 'saveTemplate')

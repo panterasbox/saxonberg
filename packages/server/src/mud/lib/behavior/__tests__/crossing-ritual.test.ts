@@ -37,7 +37,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
 import { EngagedMixin } from '../../activity/Engaged';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';

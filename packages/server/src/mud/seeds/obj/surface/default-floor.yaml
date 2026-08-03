@@ -6,6 +6,7 @@
 # UNBOUNDED_CAPACITY = Number.MAX_SAFE_INTEGER (9007199254740991);
 # JSON/BSON-safe substitute for Infinity (which doesn't round-trip).
 class: /obj/Floor
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a featureless plain floor
   longDescription: A featureless plain floor.

@@ -10,7 +10,7 @@ import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HaulerMixin } from '../../../lib/slot/Hauler';
 import { Idea } from '../../../lib/stuff/Idea';
-import CartesianZone from '../../../lib/location/CartesianZone';
+import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
 import Exit from '../../../lib/boundary/Exit';
 import { StuffApi } from '../../../api/stuff';

@@ -19,7 +19,7 @@ import { ExecutionContextApi } from '../execution-context';
 import EventRegistry from '../../obj/EventRegistry';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
-import WireBody from '../../lib/sandbox/WireBody';
+import WireBody from '../../obj/sandbox/WireBody';
 import { Events } from '../../lib/events';
 import { OMNI_SCOPE } from '../execution-context';
 import { ScheduleApi } from '../schedule';

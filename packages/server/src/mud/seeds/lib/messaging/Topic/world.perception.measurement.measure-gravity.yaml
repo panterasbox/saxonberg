@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.measure-gravity
-  family: world.perception.measurement
-  label: Measure Gravity
-  description: Output of the measure gravity subcommand — acceleration reading.

@@ -1,9 +1,0 @@
-class: /lib/corpo/Brand
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  key: crowsfoot-gin
-  name: Crowsfoot Gin
-  owner: ""
-  category: gin
-  positioning: small-batch premium
-  descriptor: A small-batch gin out of a little place across town — independent, carried by no corpo.

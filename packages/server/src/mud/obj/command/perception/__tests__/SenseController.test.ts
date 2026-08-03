@@ -32,8 +32,8 @@ import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
 import { VisibleMixin } from '../../../../lib/description/Visible';
 import { OrganismMixin } from '../../../../lib/species/Organism';
-import Species from '../../../../lib/species/Species';
-import BodyPlan from '../../../../lib/species/BodyPlan';
+import Species from '../../../species/Species';
+import BodyPlan from '../../../species/BodyPlan';
 import type { SenseChannel } from '../../../../lib/description/Perceiver';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
@@ -72,7 +72,7 @@ function makeFixture(channels: SenseChannel[]): { giver: ReceivingGiver; locatio
   buildAllModalities();
   const bp = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    `/lib/body-plans/test-sense-${channels.join('-') || 'sessile'}`,
+    `/obj/species/BodyPlan/test-sense-${channels.join('-') || 'sessile'}`,
   );
   bp.setSensoryPorts(
     channels.map((ch) => ({
@@ -83,7 +83,7 @@ function makeFixture(channels: SenseChannel[]): { giver: ReceivingGiver; locatio
   );
   const sp = withTemplatePath(
     makeStuff(() => new Species()),
-    `/lib/species/test/sense-${channels.join('-') || 'sessile'}`,
+    `/obj/species/test/sense-${channels.join('-') || 'sessile'}`,
   );
   sp.setBodyPlan(bp);
   const location = makeStuff(() => new TestLocation()) as TestLocation & {

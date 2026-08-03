@@ -7,12 +7,12 @@
 # does drift out front the old stage habits (a wink, a polished glass,
 # that impression) resurface — the "annoying script" as fond homage.
 # Human (canon).
-class: /lib/character/Crafter
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Crafter
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Dave
   pronouns: he
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: dave
   alternateNames:

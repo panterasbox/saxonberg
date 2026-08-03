@@ -14,7 +14,7 @@ import {
 } from 'vitest';
 import { Quantity } from '../quantity';
 import { QuantityApi } from '../../api/quantity';
-import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 
 const BIOME_SCALES: ReadonlyArray<{
   unit: Parameters<typeof Quantity.registerTagTable>[0];
@@ -111,31 +111,31 @@ describe('Quantity — biome units', () => {
   describe('marshaller path encoding', () => {
     it('encodes m/s² as m-per-s2', () => {
       expect(QuantityMarshaller.pathFor('m/s²')).toBe(
-        '/lib/persistence/QuantityMarshaller/m-per-s2'
+        '/obj/persistence/QuantityMarshaller/m-per-s2'
       );
     });
 
     it('encodes % as pct', () => {
       expect(QuantityMarshaller.pathFor('%')).toBe(
-        '/lib/persistence/QuantityMarshaller/pct'
+        '/obj/persistence/QuantityMarshaller/pct'
       );
     });
 
     it('encodes m³ as m3', () => {
       expect(QuantityMarshaller.pathFor('m³')).toBe(
-        '/lib/persistence/QuantityMarshaller/m3'
+        '/obj/persistence/QuantityMarshaller/m3'
       );
     });
 
     it('encodes Pa unchanged', () => {
       expect(QuantityMarshaller.pathFor('Pa')).toBe(
-        '/lib/persistence/QuantityMarshaller/Pa'
+        '/obj/persistence/QuantityMarshaller/Pa'
       );
     });
 
     it('encodes m unchanged', () => {
       expect(QuantityMarshaller.pathFor('m')).toBe(
-        '/lib/persistence/QuantityMarshaller/m'
+        '/obj/persistence/QuantityMarshaller/m'
       );
     });
   });

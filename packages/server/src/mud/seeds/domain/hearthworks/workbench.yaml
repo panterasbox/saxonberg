@@ -1,7 +1,7 @@
 # The smithy workbench — a Surfaced fixture the soft-goods work happens
 # at (the jerkin's bench recipe); stock rests on it, reachable.
-class: /lib/spatial/Surface
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Surface
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a smithy workbench
   primaryKeyword: workbench

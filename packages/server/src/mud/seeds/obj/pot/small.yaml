@@ -7,14 +7,14 @@
 # explained to them. The `plant` slot and the capacity are the only things
 # that distinguish this from the large pot — one class, two data files.
 class: /obj/PlantPot
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a small clay pot
   primaryKeyword: pot
   keywords: [pot, "small pot", "clay pot", planter]
   longDescription: |
     A squat unglazed pot the size of two cupped hands, with a chipped rim and a drainage hole worn smooth.
-  material: /lib/material/ceramic/ceramic
+  material: /obj/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 0.5
   # `liquidTight` (the default), NOT `open`: an `open` interior does not

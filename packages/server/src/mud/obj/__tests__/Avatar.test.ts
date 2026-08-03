@@ -880,7 +880,7 @@ describe('Avatar', () => {
         async () =>
           [
             {
-              path: '/lib/messaging/Topic/world',
+              path: '/obj/Topic/world',
               data: {
                 topic: 'world',
                 family: '',

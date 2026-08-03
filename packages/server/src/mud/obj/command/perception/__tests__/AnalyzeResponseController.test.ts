@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeResponseController from '../AnalyzeResponseController';
-import Armor from '../../../../lib/equipment/Armor';
-import Weapon from '../../../../lib/equipment/Weapon';
+import Armor from '../../../equipment/Armor';
+import Weapon from '../../../equipment/Weapon';
 import Material from '../../../../lib/material/Material';
 import Thing from '../../../../lib/stuff/Thing';
 import { Construction } from '../../../../lib/material/Construction';
-import CartesianZone from '../../../../lib/location/CartesianZone';
+import CartesianZone from '../../../location/CartesianZone';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -74,7 +74,7 @@ function steel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, '/lib/material/alloy/steel');
+  stampTemplatePathForTest(m, '/obj/material/alloy/steel');
   return m;
 }
 

@@ -30,7 +30,7 @@ import type {
 } from './Application';
 import { Application } from './Application';
 import { ConnectionManager } from './ConnectionManager';
-import type { InboundClientMessage } from './inbound/index';
+import type { InboundClientMessage } from './inbound';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { SecurityApi } from '../mud/api/security';
 

@@ -3,9 +3,9 @@
  *
  * Roster (templatePath deliberately diverges from the claimed address,
  * pinning namespace independence):
- *   /lib/address/narnia        claims 'narnia'        (root Region)
- *   /lib/address/cair-paravel  claims 'narnia/castle' (nested Locality)
- *   /lib/address/lantern-waste claims 'narnia/wild'   (sibling)
+ *   /obj/Locality/narnia        claims 'narnia'        (root Region)
+ *   /obj/Locality/cair-paravel  claims 'narnia/castle' (nested Locality)
+ *   /obj/Locality/lantern-waste claims 'narnia/wild'   (sibling)
  *
  * The test harness skips `postRegister`, so Localities are registered
  * explicitly through `AddressApi`. The module-level registry cache in
@@ -14,9 +14,9 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
-import Locality from '../../lib/address/Locality';
+import Locality from '../../obj/Locality';
 import { Vessel } from '../../lib/stuff/Vessel';
-import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianZone from '../../obj/location/CartesianZone';
 import { AddressApi } from '../address';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
@@ -50,9 +50,9 @@ function installLocality(
 }
 
 function installRoster(): void {
-  installLocality('/lib/address/narnia', 'Narnia', 'narnia');
-  installLocality('/lib/address/cair-paravel', 'Cair Paravel', 'narnia/castle');
-  installLocality('/lib/address/lantern-waste', 'Lantern Waste', 'narnia/wild');
+  installLocality('/obj/Locality/narnia', 'Narnia', 'narnia');
+  installLocality('/obj/Locality/cair-paravel', 'Cair Paravel', 'narnia/castle');
+  installLocality('/obj/Locality/lantern-waste', 'Lantern Waste', 'narnia/wild');
 }
 
 describe('AddressApi — coverage index + resolve chain', () => {

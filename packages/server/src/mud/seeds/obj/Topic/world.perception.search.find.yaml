@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.search.find
+  family: world.perception.search
+  label: Find
+  description: Output of the find verb — local-scope name-matching results.

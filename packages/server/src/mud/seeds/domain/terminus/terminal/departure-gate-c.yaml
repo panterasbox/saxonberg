@@ -4,8 +4,8 @@
 # explicitly on both sides — the hall lies one cell north (reoriented
 # 2026-07-12: the arrival alcove and this dead gate swapped ends so the
 # terminal's north frontage opens onto University Avenue).
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate C
   primaryKeyword: gate-c

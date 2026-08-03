@@ -1,5 +1,5 @@
-class: /lib/equipment/Garment
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Garment
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a rugged field jacket
   primaryKeyword: jacket
@@ -8,4 +8,4 @@ data:
     has the quiet competence of something meant to stand between you and
     trouble.
   slotClaims:
-    "/lib/body-plans/biped": [torso]
+    "/obj/species/BodyPlan/biped": [torso]

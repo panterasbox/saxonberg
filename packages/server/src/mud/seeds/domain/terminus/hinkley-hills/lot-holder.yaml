@@ -8,7 +8,7 @@
 # residence. That swap is a subclass and this line — the catalogue does
 # not move.
 class: /obj/LotHolder
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   # MUST be a persistable room (/lib/location/FurnishableRoom or a
   # subclass) and NOT a CartesianLocation: a per-lot room cannot be a

@@ -1,0 +1,24 @@
+# Master-Apprentice — the marquee preset: codified power-leveling as a
+# teaching relationship. The apprentice holds the primary engagement
+# (everyone else presses the apprentice's target, so the apprentice's
+# openings and credit stay theirs); the master steps in only at
+# high-threat (focus-fire pressure on the apprentice). NO reward knobs:
+# each actor banks their own signatures — the economy holds because
+# defense is generative, openings are ally-exploitable, and competence is
+# the exchange rate (sustainable for a veteran master, suicidal for a
+# newbie running it unassisted). The coup right routes the deed to the
+# apprentice; the master (captain) holds the call — and under an unlawful
+# directed kill, credit and blame diverge (apprentice deed, master
+# command responsibility).
+class: /obj/CombatFormation
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: master-apprentice
+  roles: [master, apprentice]
+  allocation: primary
+  primaryRole: apprentice
+  protectsRoles: [apprentice]
+  interceptorRoles: [master]
+  interceptTrigger: high-threat
+  coupRight: apprentice
+  coupCall: captain

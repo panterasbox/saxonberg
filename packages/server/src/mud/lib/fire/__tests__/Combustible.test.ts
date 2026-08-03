@@ -48,7 +48,7 @@ function woodMaterial(): Material {
     m.setThermalConductivity(Quantity.of(0.17, 'W/(m·K)'));
     m.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
     return m;
-  }, `/lib/material/_test/wood-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_test/wood-${matCounter}`) as unknown as Material;
 }
 
 function firewood(opts: {
@@ -196,10 +196,10 @@ describe('the combustion driver — burns down to char', () => {
       m.setName('test-ash');
       m.setSpecificHeat(Quantity.of(840, 'J/(kg·K)'));
       return m;
-    }, '/lib/material/_test/ash') as unknown as Material;
+    }, '/obj/material/_test/ash') as unknown as Material;
 
     const log = firewood({ massKg: 1, fuelPct: 100 });
-    log.setCharMaterialPath('/lib/material/_test/ash');
+    log.setCharMaterialPath('/obj/material/_test/ash');
     FireApi.ignite(log);
     log.reconcileBurning(); // seed the burn clock stamp
     expect(log.isBurning()).toBe(true);
@@ -209,7 +209,7 @@ describe('the combustion driver — burns down to char', () => {
     expect(log.getFuelRemaining()).toBe(0);
     expect(log.isBurning()).toBe(false); // self-extinguished at fuel exhaustion
     // The material charred → ash.
-    const mat = StuffApi.findByTemplatePath<Material>('/lib/material/_test/ash');
+    const mat = StuffApi.findByTemplatePath<Material>('/obj/material/_test/ash');
     expect(log.getMaterial()).toBe(mat);
     void ash;
   });

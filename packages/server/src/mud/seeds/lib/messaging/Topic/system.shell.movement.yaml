@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: system.shell.movement
-  family: system.shell
-  label: Movement
-  description: Actor-side movement output — typically from the goto verb. Peers witness in-fiction narration separately.

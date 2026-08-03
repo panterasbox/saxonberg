@@ -4,7 +4,7 @@
 # willingness, calibrated to the store's ladder (a knife the store sells
 # at 6 is 15 bespoke — provenance carries worth).
 class: /domain/hearthworks/SmithyMenu
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a chalked slate of smith-work
   primaryKeyword: slate

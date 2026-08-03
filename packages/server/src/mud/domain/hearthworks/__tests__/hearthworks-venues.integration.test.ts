@@ -32,10 +32,10 @@ import Oven from '../../../obj/Oven';
 import Chest from '../../../obj/Chest';
 import CookPot from '../../../obj/CookPot';
 import Dish from '../../../obj/Dish';
-import Weapon from '../../../lib/equipment/Weapon';
-import ToolItem from '../../../lib/craft/ToolItem';
+import Weapon from '../../../obj/equipment/Weapon';
+import ToolItem from '../../../obj/ToolItem';
 import CommerceMenu from '../../../lib/commerce/Menu';
-import LoungeMenu from '../../../domain/lounge/Menu';
+import LoungeMenu from '../../lounge/Menu';
 import SmithyMenu from '../SmithyMenu';
 import KitchenMenu from '../KitchenMenu';
 import RecipeCatalogue from '../../../obj/RecipeCatalogue';
@@ -59,7 +59,7 @@ const RECIPES_YAML = fileURLToPath(
 );
 const PACK_MATERIALS = fileURLToPath(
   new URL(
-    '../../../../../../content/base-library/content/lib/material/',
+    '../../../../../../content/base-library/content/obj/material/',
     import.meta.url,
   ),
 );
@@ -97,7 +97,7 @@ function loadPackMaterial(rel: string): Material {
       m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
     }
     return m;
-  }, `/lib/material/${rel}`) as unknown as Material;
+  }, `/obj/material/${rel}`) as unknown as Material;
 }
 
 function makeForge(lit: boolean, bellows = false): Forge {
@@ -303,7 +303,7 @@ describe('the smithy, served', () => {
     ingot.setMass(Quantity.of(0.5, 'kg'));
     ingot.setMaterial(
       StuffApi.findByTemplatePath<Material>(
-        '/lib/material/element/iron',
+        '/obj/material/element/iron',
       ) as unknown as Material,
     );
     ContainmentApi.move(ingot, room);
@@ -352,9 +352,9 @@ describe('the cookhouse, served', () => {
     ContainmentApi.move(pot, room);
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest, room);
-    ContainmentApi.move(stock('/lib/material/food/root-vegetable', 0.6), chest);
-    ContainmentApi.move(stock('/lib/material/food/root-vegetable', 0.6), chest);
-    ContainmentApi.move(stock('/lib/material/food/stew-meat', 0.4), chest);
+    ContainmentApi.move(stock('/obj/material/food/root-vegetable', 0.6), chest);
+    ContainmentApi.move(stock('/obj/material/food/root-vegetable', 0.6), chest);
+    ContainmentApi.move(stock('/obj/material/food/stew-meat', 0.4), chest);
     chest.setOpen(chestOpen);
     ContainmentApi.move(
       makeStuffAtPath(() => new TestMaker(), `/obj/_test/venue-cook-${chestOpen}`),
@@ -377,7 +377,7 @@ describe('the cookhouse, served', () => {
     // points at the ONE generic cooked base and the payload carries the
     // stew's identity + macros, summed from the ACTUAL pantry inputs
     // (macros in = macros out; the fixed-vocabulary rule live).
-    expect(slot.getMaterialPath()).toBe('/lib/material/food/cooked');
+    expect(slot.getMaterialPath()).toBe('/obj/material/food/cooked');
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Hearty Stew');
     expect(payload.nutrientAmounts).toMatchObject({
@@ -423,7 +423,7 @@ describe('the cookhouse, served', () => {
     prime.setMass(Quantity.of(0.5, 'kg'));
     prime.setMaterial(
       StuffApi.findByTemplatePath<Material>(
-        '/lib/material/food/stew-meat',
+        '/obj/material/food/stew-meat',
       ) as unknown as Material,
     );
     prime.setGradeBand('fine');

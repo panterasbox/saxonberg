@@ -16,7 +16,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Business } from '../lib/employment/Business';
+import type { Business } from '../obj/Business';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { EmploymentLogic } from '../obj/api/EmploymentLogic';
@@ -33,7 +33,7 @@ export type {
   RosterAssignment,
   ShiftEntry,
 } from '../lib/employment/Roster';
-export type { Business } from '../lib/employment/Business';
+export type { Business } from '../obj/Business';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';

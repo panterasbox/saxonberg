@@ -43,52 +43,52 @@ export const TemplatePaths = {
   bulletinBoard: "/obj/BulletinBoard",
 
   // Persistence infra (declared as `static templatePath` on these classes).
-  persistentHydrator: "/lib/persistence/PersistentHydrator",
-  quantityMarshaller: "/lib/persistence/QuantityMarshaller",
-  encryptedStringMarshaller: "/lib/persistence/EncryptedStringMarshaller",
+  persistentHydrator: "/obj/persistence/PersistentHydrator",
+  quantityMarshaller: "/obj/persistence/QuantityMarshaller",
+  encryptedStringMarshaller: "/obj/persistence/EncryptedStringMarshaller",
 
   // Class refs / defaults.
   idea: "/lib/stuff/Idea",
-  folderZone: "/lib/zone/FolderZone",
-  rootBiome: "/lib/biome/universe",
-  aetherImplant: "/lib/augmentation/AetherImplant",
+  folderZone: "/obj/FolderZone",
+  rootBiome: "/obj/biome/universe",
+  aetherImplant: "/obj/AetherImplant",
 
   // Hosted capability updates (aether hosting relation) — incorporeal
   // Ideas cloned into an attunement host by the default loadout.
-  commsUpdate: "/lib/comms/CommsUpdate",
-  forumsUpdate: "/lib/forum/ForumsUpdate",
+  commsUpdate: "/obj/CommsUpdate",
+  forumsUpdate: "/obj/ForumsUpdate",
   // The unified credential wallet app — one hosted holder for every
   // credential kind (payment, travel, …), replacing the per-credential
   // PaymentImplantUpdate + TravelCredentialUpdate twins.
-  credentialWalletUpdate: "/lib/credential/CredentialWalletUpdate",
+  credentialWalletUpdate: "/obj/CredentialWalletUpdate",
 
   // Payment card template — cloned per issue (a bearer instrument, 1:1
   // with one account); the reissue path after a report-lost freeze.
-  paymentCard: "/lib/banking/PaymentCard",
+  paymentCard: "/obj/PaymentCard",
 
   // Physical key template — cloned per issue (a bearer instrument holding a
   // keychain credential); the durable form of dorm/lock access.
-  key: "/lib/lock/Key",
+  key: "/obj/Key",
 
   // Metabolism cascade conditions — the `floorEffect`-named `Condition`
   // Ideas the reconcile spawns/clears off a floored biological reserve.
-  metabolismStarvation: "/lib/metabolism/conditions/starvation",
-  metabolismDehydration: "/lib/metabolism/conditions/dehydration",
-  metabolismCollapse: "/lib/metabolism/conditions/collapse",
+  metabolismStarvation: "/obj/Condition/metabolism/starvation",
+  metabolismDehydration: "/obj/Condition/metabolism/dehydration",
+  metabolismCollapse: "/obj/Condition/metabolism/collapse",
   /** The body a player's death leaves behind (mortality.md). */
-  mortalityCorpse: "/lib/mortality/corpse",
+  mortalityCorpse: "/obj/Corpse",
   /** What coming back the cheap way costs you (mortality.md). */
-  mortalityRecovering: "/lib/mortality/conditions/recovering",
+  mortalityRecovering: "/obj/Condition/mortality/recovering",
 
   // Thermal cascade conditions — spawned/cleared by the thermoregulation
   // reconcile when driven `coreTemperature` crosses the survivable band.
-  thermalHypothermia: "/lib/thermal/conditions/hypothermia",
-  thermalHyperthermia: "/lib/thermal/conditions/hyperthermia",
-  thermalTorpor: "/lib/thermal/conditions/torpor",
+  thermalHypothermia: "/obj/Condition/thermal/hypothermia",
+  thermalHyperthermia: "/obj/Condition/thermal/hyperthermia",
+  thermalTorpor: "/obj/Condition/thermal/torpor",
 
   // Respiration anoxia condition — the affliction the drain accrues
   // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).
-  respirationAsphyxiation: "/lib/respiration/conditions/asphyxiation",
+  respirationAsphyxiation: "/obj/Condition/respiration/asphyxiation",
 } as const;
 
 /**
@@ -97,28 +97,28 @@ export const TemplatePaths = {
  */
 export const TemplatePathPrefixes = {
   avatar: "/obj/Avatar/",
-  species: "/lib/species/",
-  topic: "/lib/messaging/Topic/",
-  discipline: "/lib/advancement/Discipline/",
+  species: "/obj/species/",
+  topic: "/obj/Topic/",
+  discipline: "/obj/Discipline/",
   // Corpos — the two reference-identity leaf rosters the CorpoCatalogue
   // scans at boot (the megacorps and their product brands).
-  corpo: "/lib/corpo/Corpo/",
-  brand: "/lib/corpo/Brand/",
+  corpo: "/obj/corpo/Corpo/",
+  brand: "/obj/corpo/Brand/",
   // Civics — the diegetic Government leaf roster the GovernmentCatalogue
   // scans at boot (governments are plural authored content — never the
   // Compact's face).
-  government: "/lib/civics/Government/",
-  perceptionModalities: "/lib/perception/modalities/",
+  government: "/obj/Government/",
+  perceptionModalities: "/obj/modalities/",
   // Addressing — the Locality leaf roster lives under this prefix; the
   // AddressRegistry enumerates it to build the coverage index.
-  address: "/lib/address/",
+  address: "/obj/Locality/",
   // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
-  metabolismCondition: "/lib/metabolism/conditions/",
+  metabolismCondition: "/obj/Condition/metabolism/",
   // Magic — authored condition seeds (dread, overchannel-strain) and the
   // spell roster the SpellCatalogue scans at boot.
-  magicCondition: "/lib/magic/conditions/",
-  spell: "/lib/magic/Spell/",
+  magicCondition: "/obj/Condition/magic/",
+  spell: "/obj/magic/Spell/",
 } as const;
 
 /**

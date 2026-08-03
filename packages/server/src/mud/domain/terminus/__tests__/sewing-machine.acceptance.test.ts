@@ -22,9 +22,9 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Quantity } from "../../../lib/quantity";
 import Material from "../../../lib/material/Material";
 import Thing from "../../../lib/stuff/Thing";
-import Armor from "../../../lib/equipment/Armor";
-import ToolItem from "../../../lib/craft/ToolItem";
-import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
+import Armor from "../../../obj/equipment/Armor";
+import ToolItem from "../../../obj/ToolItem";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 import RecipeCatalogue from "../../../obj/RecipeCatalogue";
 import { Idea } from "../../../lib/stuff/Idea";
 import { ContainerMixin } from "../../../lib/spatial/Container";
@@ -43,7 +43,7 @@ const SEED = fileURLToPath(
     import.meta.url,
   ),
 );
-const LEATHER = "/lib/material/_test/sm-leather";
+const LEATHER = "/obj/material/_test/sm-leather";
 
 class Room extends ContainerMixin(Idea) {}
 class Shopper extends ContainerMixin(
@@ -72,14 +72,14 @@ afterEach(() => {
 async function hydrateMachine(): Promise<ToolItem> {
   const seed = YAML.parse(readFileSync(SEED, "utf8")) as Seed;
   // The whole point: no class beyond the generic ToolItem.
-  expect(seed.class).toBe("/lib/craft/ToolItem");
+  expect(seed.class).toBe("/obj/ToolItem");
   const machine = makeStuff(() => new ToolItem());
   makeStuffAtPath(() => {
     const m = new Material();
     m.setName("iron");
     m.setTags(["metal"]);
     return m;
-  }, "/lib/material/element/iron");
+  }, "/obj/material/element/iron");
   const data = { ...seed.data };
   delete data["_materialPath"]; // instruction field — not this test's business
   await makeStuff(() => new PersistentHydrator()).hydrate(machine, data);

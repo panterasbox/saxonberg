@@ -18,11 +18,11 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
 import Thing from '../../../lib/stuff/Thing';
-import Scrap from '../../../obj/Scrap';
-import Forge from '../../../obj/Forge';
-import Weapon from '../../../lib/equipment/Weapon';
-import Armor from '../../../lib/equipment/Armor';
-import ToolItem from '../../../lib/craft/ToolItem';
+import Scrap from '../../Scrap';
+import Forge from '../../Forge';
+import Weapon from '../../equipment/Weapon';
+import Armor from '../../equipment/Armor';
+import ToolItem from '../../ToolItem';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../lib/reserve';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -42,8 +42,8 @@ class TestSmith extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = 'TestSmithRepair';
 }
 
-const IRON = '/lib/material/_test/rp-iron';
-const LEATHER = '/lib/material/_test/rp-leather';
+const IRON = '/obj/material/_test/rp-iron';
+const LEATHER = '/obj/material/_test/rp-leather';
 
 let room: TestRoom;
 let smith: TestSmith;

@@ -9,8 +9,8 @@
 # travel node.
 #
 # No ownerGroup this cycle: it collects nothing.
-class: /lib/location/CartesianZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/CartesianZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: The Drowned Substation
   cellSize: 3.0

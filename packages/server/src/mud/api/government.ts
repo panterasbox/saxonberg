@@ -26,7 +26,7 @@ import type { Container } from "../lib/spatial/Container";
 import type {
   GovernmentDescriptor,
   GovernmentSeat,
-} from "../lib/civics/Government";
+} from "../obj/Government";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { GovernmentLogic } from "../obj/api/GovernmentLogic";

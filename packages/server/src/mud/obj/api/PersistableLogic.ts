@@ -16,7 +16,7 @@ import { Mixins } from "../../lib/mixin";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { PersistedRecord } from "../../lib/persistence/PersistedRecord";
 import { Document } from "../../lib/persistence/Document";
-import PersistentHydrator from "../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../persistence/PersistentHydrator";
 import type { Marshaller } from "../../lib/persistence/Marshaller";
 import type {
   MixinSlice,

@@ -37,7 +37,7 @@ import { ContainerMixin } from "../../lib/spatial/Container";
 import { EstateMixin } from "../../lib/chattel/Estate";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { Idea } from "../../lib/stuff/Idea";
-import PersistentHydrator from "../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../persistence/PersistentHydrator";
 import { ChattelEvent } from "../../lib/chattel/ChattelEvent";
 import { Document } from "../../lib/persistence/Document";
 import { PersistenceManager } from "../../../backend/PersistenceManager";

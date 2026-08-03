@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.narration.movement
+  family: world.narration
+  label: Movement
+  description: A character entering, leaving, or moving through the room — what witnesses observe.

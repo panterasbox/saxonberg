@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import CorpoCatalogue from "../CorpoCatalogue";
-import Corpo from "../../lib/corpo/Corpo";
-import Brand from "../../lib/corpo/Brand";
+import Corpo from "../corpo/Corpo";
+import Brand from "../corpo/Brand";
 import { StuffApi } from "../../api/stuff";
 import { ShadowApi } from "../../api/shadow";
 import { Template } from "../../lib/stuff/Template";

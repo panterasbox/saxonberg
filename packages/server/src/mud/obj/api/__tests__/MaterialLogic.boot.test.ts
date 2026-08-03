@@ -1,6 +1,6 @@
 /**
  * MaterialApi.boot — the boot-time roster warm that closes the live
- * materials gap: every authored `/lib/material/**` Material stands up as
+ * materials gap: every authored `/obj/material/**` Material stands up as
  * a live singleton (folder rows — FolderZones — are the zone substrate's,
  * skipped), so the sync resolve-on-read seams hit from the first frame.
  * Plus the residency veto: a culled material would be a null read until
@@ -19,9 +19,9 @@ afterEach(() => vi.restoreAllMocks());
 describe("MaterialApi.boot — the roster warm", () => {
   it("stands up Material rows and skips the FolderZone folders", async () => {
     vi.spyOn(Template, "findDescendants").mockResolvedValue([
-      { path: "/lib/material/wood", class: "/lib/zone/FolderZone" },
-      { path: "/lib/material/wood/oak", class: "/lib/material/Material" },
-      { path: "/lib/material/element/uranium", class: "/lib/material/RadioactiveMaterial" },
+      { path: "/obj/material/wood", class: "/obj/FolderZone" },
+      { path: "/obj/material/wood/oak", class: "/obj/Material" },
+      { path: "/obj/material/element/uranium", class: "/obj/RadioactiveMaterial" },
     ] as unknown as Template[]);
     const stood: string[] = [];
     vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {
@@ -32,15 +32,15 @@ describe("MaterialApi.boot — the roster warm", () => {
     const count = await MaterialApi.boot();
     expect(count).toBe(2);
     expect(stood).toEqual([
-      "/lib/material/wood/oak",
-      "/lib/material/element/uranium",
+      "/obj/material/wood/oak",
+      "/obj/material/element/uranium",
     ]);
   });
 
   it("tolerates a single failed standup and continues (the preloadAnatomy shape)", async () => {
     vi.spyOn(Template, "findDescendants").mockResolvedValue([
-      { path: "/lib/material/bad", class: "/lib/material/Material" },
-      { path: "/lib/material/good", class: "/lib/material/Material" },
+      { path: "/obj/material/bad", class: "/obj/Material" },
+      { path: "/obj/material/good", class: "/obj/Material" },
     ] as unknown as Template[]);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(StuffApi, "singleton").mockImplementation(async (path: string) => {

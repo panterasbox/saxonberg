@@ -104,7 +104,7 @@ function tissue(): Material {
     m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
     return m;
-  }, freshPath('/lib/material/_test/harv-tissue')) as unknown as Material;
+  }, freshPath('/obj/material/_test/harv-tissue')) as unknown as Material;
 }
 
 function makePlant(opts: { harvestable?: boolean } = {}): Plant {

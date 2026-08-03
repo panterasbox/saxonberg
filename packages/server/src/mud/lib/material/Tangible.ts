@@ -45,7 +45,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';

@@ -27,13 +27,13 @@ import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
 import YAML from 'yaml';
-import Trap from '../../../lib/hazard/Trap';
+import Trap from '../../../obj/Trap';
 import { HazardDelivery } from '../../../lib/hazard/HazardDelivery';
 import SearchController from '../../../obj/command/perception/SearchController';
 import DisarmController from '../../../obj/command/device/DisarmController';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Thing from '../../../lib/stuff/Thing';
 import Exit from '../../../lib/boundary/Exit';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
@@ -66,13 +66,13 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import PersistentHydrator from '../../../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../../obj/Condition';
 import type Interactive from '../../../obj/Interactive';
 
 const PH = PersistentHydrator.templatePath;
@@ -127,7 +127,7 @@ function trapsStore(): Doc[] {
     // void (the real treeline, with its wolf, is never stood up by a test).
     {
       path: '/domain/newbie-wilds/crossroads/treeline',
-      class: '/lib/stuff/VoidLocation',
+      class: '/obj/VoidLocation',
       hydratorClass: PH,
       data: { shortDescription: 'the treeline' },
     },
@@ -214,7 +214,7 @@ function steel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/lib/material/alloy/steel-td-${n}-${++delverCounter}`);
+  stampTemplatePathForTest(m, `/obj/material/alloy/steel-td-${n}-${++delverCounter}`);
   return m;
 }
 
@@ -306,10 +306,10 @@ beforeEach(async () => {
   EventApi._setRegistryForTesting(reg);
   n++;
   delverCounter = 0;
-  bodyplanPath = `/lib/body-plans/traps-biped-${n}`;
+  bodyplanPath = `/obj/species/BodyPlan/traps-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/lib/species/traps/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/obj/species/traps/biped-${n}`);
   // Stand the whole sphere up from a single anchor (cascades every room +
   // clones every trap + secret).
   await StuffApi.singleton('/domain/newbie-wilds/delve/vestibule');

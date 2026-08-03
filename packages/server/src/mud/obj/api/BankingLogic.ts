@@ -23,7 +23,7 @@ import type { LedgerLeg } from "../../lib/banking/Transaction";
 import type { Bank } from "../../lib/banking/Bank";
 import type { PaymentCredential } from "../../lib/credential/Credential";
 import type { CredentialWallet } from "../../lib/credential/CredentialWallet";
-import PaymentCard from "../../lib/banking/PaymentCard";
+import PaymentCard from "../PaymentCard";
 import type {
   Charge,
   SettlementMethod,

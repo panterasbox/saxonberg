@@ -11,8 +11,8 @@
 import { describe, it, expect } from 'vitest';
 import { HazardDelivery } from '../HazardDelivery';
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -39,8 +39,8 @@ function mover(): Creature {
   n++; // a fresh identity per mover so stamped singleton paths never collide
   const c = makeStuff(() => new Creature());
   const species = makeStuff(() => new Species());
-  species.setBodyPlan(footedBodyPlan(`/lib/body-plans/hazard-biped-${n}`));
-  stampTemplatePathForTest(species, `/lib/species/hazard/biped-${n}`);
+  species.setBodyPlan(footedBodyPlan(`/obj/species/BodyPlan/hazard-biped-${n}`));
+  stampTemplatePathForTest(species, `/obj/species/hazard/biped-${n}`);
   c.setSpecies(species);
   stampTemplatePathForTest(c, `/obj/test/hazard-mover-${n}`);
   return c;

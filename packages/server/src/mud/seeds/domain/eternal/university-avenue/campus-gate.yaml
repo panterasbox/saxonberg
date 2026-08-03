@@ -6,8 +6,8 @@
 # throw at hydration. It is unreachable in play: the gate Door is closed +
 # locked, so nobody ever stands here. A dead-end stub (no exits) on purpose;
 # the real campus entry replaces it when EU content lands.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: the university gatehouse
   primaryKeyword: gatehouse

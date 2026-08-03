@@ -1,0 +1,16 @@
+# Dry vermouth — a fortified-wine input. Category tag `vermouth`.
+class: /obj/ConsumableMaterial
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: dry vermouth
+  appearance: pale straw-gold vermouth
+  keywords: [vermouth]
+  density: 990
+  thermalConductivity: 0.4
+  specificHeat: 3500
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 7 }
+  tags: [liquid, beverage, drinkable, alcoholic, vermouth]
+  composition: []
+  biologicalSource: null

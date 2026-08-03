@@ -6,8 +6,8 @@
 #
 # No ownerGroup this cycle: it collects nothing (no operator), and the
 # newbie-wilds build will stamp its own owner group. Generic classes only.
-class: /lib/location/CartesianZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/CartesianZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: The Last Counted Mile
   cellSize: 3.0

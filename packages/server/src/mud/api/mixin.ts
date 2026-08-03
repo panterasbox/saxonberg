@@ -145,7 +145,7 @@ import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
-import type { Business } from '../lib/employment/Business';
+import type { Business } from '../obj/Business';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';

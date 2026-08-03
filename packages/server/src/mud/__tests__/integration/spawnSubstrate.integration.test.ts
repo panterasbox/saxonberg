@@ -14,7 +14,7 @@ import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import PersistentHydrator from '../../lib/persistence/PersistentHydrator';
+import PersistentHydrator from '../../obj/persistence/PersistentHydrator';
 import { StuffApi } from '../../api/stuff';
 import { HotReloadApi } from '../../api/hot-reload';
 import {
@@ -130,7 +130,7 @@ describe('spawn substrate integration', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
       {
@@ -184,7 +184,7 @@ describe('spawn substrate integration', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/lib/persistence/PersistentHydrator',
+        class: '/obj/persistence/PersistentHydrator',
         data: {},
       },
       {

@@ -9,7 +9,7 @@
 # Modest `restQuality`: the third instance of one pattern (a bed is high, a
 # tub is warm, a chair is a chair).
 class: /obj/Chair
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a worn armchair
   primaryKeyword: armchair

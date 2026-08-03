@@ -14,7 +14,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianZone from '../../obj/location/CartesianZone';
 import Biome from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
@@ -36,7 +36,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 describe('Biome scenario E — cafeteria gas-law', () => {

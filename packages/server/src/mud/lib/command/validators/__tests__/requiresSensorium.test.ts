@@ -13,8 +13,8 @@ import requiresTaste from '../requiresTaste';
 import { Idea } from '../../../stuff/Idea';
 import Thing from '../../../stuff/Thing';
 import { OrganismMixin } from '../../../species/Organism';
-import Species from '../../../species/Species';
-import BodyPlan from '../../../species/BodyPlan';
+import Species from '../../../../obj/species/Species';
+import BodyPlan from '../../../../obj/species/BodyPlan';
 import type { SenseChannel } from '../../../description/Perceiver';
 import {
   CommandApi,
@@ -58,7 +58,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 function makeOrganismWith(channels: SenseChannel[]): Stuff {
   const bp = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    `/lib/body-plans/test-${channels.join('-') || 'sessile'}`,
+    `/obj/species/BodyPlan/test-${channels.join('-') || 'sessile'}`,
   );
   bp.setSensoryPorts(
     channels.map((ch) => ({
@@ -69,7 +69,7 @@ function makeOrganismWith(channels: SenseChannel[]): Stuff {
   );
   const sp = withTemplatePath(
     makeStuff(() => new Species()),
-    `/lib/species/test/${channels.join('-') || 'sessile'}`,
+    `/obj/species/test/${channels.join('-') || 'sessile'}`,
   );
   sp.setBodyPlan(bp);
   const actor = makeStuff(() => new OrganismGiver()) as OrganismGiver & {

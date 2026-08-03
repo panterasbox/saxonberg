@@ -1,7 +1,7 @@
 # The water basin — the conjure-water target: an empty bounded Receptacle
 # that shows real litres arriving (and doubles as a douse source).
 class: /obj/Receptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a stone basin
   keywords: [basin, bowl]

@@ -12,7 +12,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
 import SpellCatalogue from "../SpellCatalogue";
-import Spell from "../../lib/magic/Spell";
+import Spell from "../magic/Spell";
 import { MagicEffects } from "../../lib/magic/Effect";
 import { MagicGrid } from "../../lib/magic/Grid";
 import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
@@ -20,10 +20,10 @@ import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
 
 const __filename = fileURLToPath(import.meta.url);
-const SPELL_SEEDS_DIR = join(dirname(__filename), "../../seeds/lib/magic/Spell");
+const SPELL_SEEDS_DIR = join(dirname(__filename), "../../seeds/obj/magic/Spell");
 const DISCIPLINE_SEEDS_DIR = join(
   dirname(__filename),
-  "../../seeds/lib/advancement/Discipline",
+  "../../seeds/obj/advancement/Discipline",
 );
 
 type Loose = Record<string, unknown>;
@@ -119,7 +119,7 @@ describe("the authored roster seeds", () => {
       const seed = YAML.parse(
         readFileSync(join(SPELL_SEEDS_DIR, file), "utf-8"),
       ) as { class: string; data?: Loose };
-      expect(seed.class, `${file} wrong class`).toBe("/lib/magic/Spell");
+      expect(seed.class, `${file} wrong class`).toBe("/obj/magic/Spell");
       const id = seed.data?.spellId as string | undefined;
       expect(id, `${file} missing spellId`).toBeTruthy();
       expect(byId.has(id!), `duplicate spellId ${id}`).toBe(false);

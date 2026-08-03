@@ -16,9 +16,9 @@ import { Idea } from "../../../lib/stuff/Idea";
 import { StuffApi } from "../../../api/stuff";
 import { PartyApi, DEFAULT_FORMATION_PATH } from "../../../api/party";
 import { ChatApi } from "../../../api/chat";
-import { CombatFormation } from "../../../lib/combat/CombatFormation";
+import { CombatFormation } from "../../CombatFormation";
 import { PartyMemberMixin } from "../../../lib/party/PartyMember";
-import { Party } from "../../../lib/party/Party";
+import { Party } from "../../Party";
 import { ProxyApi } from "../../../api/proxy";
 import { AdvancementApi } from "../../../api/advancement";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -165,7 +165,7 @@ function residentFormation(name: string, roles: string[]): CombatFormation {
   const f = makeStuff(() => new CombatFormation());
   f.setName(name);
   if (roles.length) f.setRoles(roles);
-  stampTemplatePathForTest(f, `/lib/combat/CombatFormation/${name}`);
+  stampTemplatePathForTest(f, `/obj/CombatFormation/${name}`);
   return f;
 }
 
@@ -193,7 +193,7 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     const res = await PartyApi.setFormation(cap as Stuff, "vanguard");
     expect(res.ok).toBe(true);
     expect(PartyApi.formationPathOf(cap as Stuff)).toBe(
-      "/lib/combat/CombatFormation/vanguard",
+      "/obj/CombatFormation/vanguard",
     );
   });
 
@@ -282,12 +282,12 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     stampTemplatePathForTest(party, `/obj/party/test-roundtrip-${seq++}`);
     const raw = ProxyApi.unwrap(party) as Party;
     raw.setDurable(true);
-    raw.setFormationPath("/lib/combat/CombatFormation/vanguard");
+    raw.setFormationPath("/obj/CombatFormation/vanguard");
     raw.assignRole("player-1", "front");
     raw.assignRole("merc-2", "back");
 
     const rec = party.toRecord();
-    expect(rec.formationPath).toBe("/lib/combat/CombatFormation/vanguard");
+    expect(rec.formationPath).toBe("/obj/CombatFormation/vanguard");
     expect(rec.roleAssignments).toEqual({
       "player-1": "front",
       "merc-2": "back",
@@ -297,7 +297,7 @@ describe("PartyApi — formation resolution (the total chain)", () => {
     stampTemplatePathForTest(revived, `/obj/party/test-roundtrip-${seq++}`);
     (ProxyApi.unwrap(revived) as Party).applyRecord(rec);
     expect(revived.getFormationPath()).toBe(
-      "/lib/combat/CombatFormation/vanguard",
+      "/obj/CombatFormation/vanguard",
     );
     expect(revived.roleOfMember("player-1")).toBe("front");
     expect(revived.roleOfMember("merc-2")).toBe("back");

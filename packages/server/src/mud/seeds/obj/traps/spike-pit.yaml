@@ -5,8 +5,8 @@
 # is set BEFORE the forced relocation (the drop-reentrancy guard), and the
 # pit-below climbs back up, so the fall wounds and delays but never strands.
 # `hidden` (requirement 4).
-class: /lib/hazard/Trap
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Trap
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a covered spike pit
   primaryKeyword: pit

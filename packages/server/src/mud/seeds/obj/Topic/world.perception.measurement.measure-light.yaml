@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.measurement.measure-light
+  family: world.perception.measurement
+  label: Measure Light
+  description: Output of the measure light subcommand — illuminance reading.

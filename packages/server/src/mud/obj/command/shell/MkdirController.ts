@@ -3,7 +3,7 @@
  * or a source-tree directory.
  *
  * Templates: creates a `ZoneTemplate` at the resolved path via
- * `TemplateApi.saveTemplate` with class `/lib/zone/FolderZone`. The
+ * `TemplateApi.saveTemplate` with class `/obj/FolderZone`. The
  * folder/leaf invariant fires through the persistence chokepoint.
  * `FolderZone` is the generic Zone subclass for organizational tree
  * folders without spatial topology; sub-folders that need a
@@ -59,7 +59,7 @@ export default class MkdirController extends CommandController<MkdirModel> {
         );
       }
       try {
-        await TemplateApi.saveTemplate(target, '/lib/zone/FolderZone', {});
+        await TemplateApi.saveTemplate(target, '/obj/FolderZone', {});
       } catch (err) {
         return this.fail(context, (err as Error).message);
       }

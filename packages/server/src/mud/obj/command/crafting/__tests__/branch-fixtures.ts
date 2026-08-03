@@ -23,7 +23,7 @@ import Material from '../../../../lib/material/Material';
 import Forge from '../../../Forge';
 import Oven from '../../../Oven';
 import { Reserve } from '../../../../lib/reserve';
-import ToolItem from '../../../../lib/craft/ToolItem';
+import ToolItem from '../../../ToolItem';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Thing from '../../../../lib/stuff/Thing';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
@@ -40,10 +40,10 @@ import {
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
 
-export const IRON = '/lib/material/_test/mb-iron';
-export const VEG = '/lib/material/food/root-vegetable';
-export const MEAT = '/lib/material/food/stew-meat';
-export const COOKED = '/lib/material/food/cooked';
+export const IRON = '/obj/material/_test/mb-iron';
+export const VEG = '/obj/material/food/root-vegetable';
+export const MEAT = '/obj/material/food/stew-meat';
+export const COOKED = '/obj/material/food/cooked';
 export const KNIFE_T = '/obj/arms/belt-knife';
 export const DISH_T = '/obj/items/plated-dish';
 

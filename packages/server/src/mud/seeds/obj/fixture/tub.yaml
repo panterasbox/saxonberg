@@ -12,7 +12,7 @@
 # lie the shipped campfire seat already tells. The alternative is a cold tub
 # nobody uses; if hot water is ever modelled, this is one field.
 class: /obj/Chair
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a bathtub
   primaryKeyword: tub

@@ -39,8 +39,8 @@ import { Reserve, type Reserved } from '../reserve';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 import type { Stuff } from '../stuff/Stuff';
-import type Species from '../species/Species';
-import type { ActiveCondition } from '../vitals/Condition';
+import type Species from '../../obj/species/Species';
+import type { ActiveCondition } from '../../obj/Condition';
 import { Faculty, type FacultyBand, type FacultyProfile } from './Faculty';
 
 /**

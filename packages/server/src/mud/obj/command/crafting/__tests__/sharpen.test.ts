@@ -11,8 +11,8 @@ import { SchedulerApi } from '../../../../api/scheduler';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { ContainmentApi } from '../../../../api/containment';
 import { Quantity } from '../../../../lib/quantity';
-import Weapon from '../../../../lib/equipment/Weapon';
-import Whetstone from '../../../../lib/craft/Whetstone';
+import Weapon from '../../../equipment/Weapon';
+import Whetstone from '../../../Whetstone';
 import { Construction } from '../../../../lib/material/Construction';
 import type { CommandContext } from '../../../../api/command';
 import {

@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import Stock from "../../../lib/retail/Stock";
+import Stock from "../../Stock";
 import Thing from "../../../lib/stuff/Thing";
 import Location from "../../../lib/stuff/Location";
 import { ResettableMixin } from "../../../lib/residency/Resettable";

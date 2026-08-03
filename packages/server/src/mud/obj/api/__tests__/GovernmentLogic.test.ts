@@ -10,9 +10,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GovernmentApi } from "../../../api/government";
 import { AddressApi } from "../../../api/address";
 import GovernmentCatalogue from "../../GovernmentCatalogue";
-import Government from "../../../lib/civics/Government";
+import Government from "../../Government";
 import AddressRegistry from "../../AddressRegistry";
-import Locality from "../../../lib/address/Locality";
+import Locality from "../../Locality";
 import Location from "../../../lib/stuff/Location";
 import { NPC } from "../../../lib/npc/NPC";
 import { StuffApi } from "../../../api/stuff";
@@ -88,11 +88,11 @@ function installLocality(
  * narnia/wild → no key (the sparse case).
  */
 function installRoster(): void {
-  installLocality("/lib/address/narnia", "narnia", "narnia-gov");
-  installLocality("/lib/address/cair-paravel", "narnia/castle", "castle-gov");
-  installLocality("/lib/address/keep", "narnia/castle/keep", "ghost-gov");
-  installLocality("/lib/address/tower", "narnia/castle/tower", "narnia-gov");
-  installLocality("/lib/address/lantern-waste", "narnia/wild", null);
+  installLocality("/obj/Locality/narnia", "narnia", "narnia-gov");
+  installLocality("/obj/Locality/cair-paravel", "narnia/castle", "castle-gov");
+  installLocality("/obj/Locality/keep", "narnia/castle/keep", "ghost-gov");
+  installLocality("/obj/Locality/tower", "narnia/castle/tower", "narnia-gov");
+  installLocality("/obj/Locality/lantern-waste", "narnia/wild", null);
 }
 
 describe("GovernmentApi / GovernmentLogic", () => {

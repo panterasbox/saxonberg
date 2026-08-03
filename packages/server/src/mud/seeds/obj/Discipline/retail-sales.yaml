@@ -1,0 +1,10 @@
+class: /obj/Discipline
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: retail-sales
+  channel: knowledge
+  label: Wholesale and retail sales
+  iscedf: "0416"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - business-administration
+  description: ISCED-F detailed field — where appraisal/valuation classifies.

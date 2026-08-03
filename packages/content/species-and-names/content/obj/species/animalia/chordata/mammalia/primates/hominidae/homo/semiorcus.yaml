@@ -1,0 +1,42 @@
+# Homo semiorcus — fantasy half-orc. Same biped anatomy as sapiens,
+# built broad and powerful; a keen nose (orcish smell) and a vision
+# profile that leans low-light. Shorter-lived (~80 years), quietly steady.
+class: /obj/species/Species
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  illustration: species/semiorcus.png
+  binomial: Homo semiorcus
+  sentient: true
+  commonNames: ["half-orc"]
+  _bodyPlanPath: /obj/species/BodyPlan/biped
+  _parentCladePath: /obj/species/animalia
+  _defaultMaterialPath: /obj/material/tissue/flesh
+  innateMixins: ["CasterMixin"]
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
+    heartRate: { baseline: 70, survivableMin: 30, survivableMax: 220 }
+    respiratoryRate: { baseline: 16, survivableMin: 6, survivableMax: 40 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 5, survivableMin: 3.2, survivableMax: 5 }
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 80
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: very-dim
+    photopicMax: bright
+    bandShift: -1
+  olfactoryProfile:
+    acuity: keen
+  longDescription: >-
+    A broad, heavy-boned figure a full head above the crowd, green-grey
+    of skin with a blunt jaw and small jutting tusks, carrying a quiet,
+    watchful steadiness and a nose that seems to read the room before
+    the eyes do.
+  nameBankKeys: ["orcish", "common"]
+  facultyProfile: { depth: mid, serenity: mid, composure: low }

@@ -15,8 +15,8 @@ import { PerceptionApi } from '../perception';
 import { PerceptionLogic } from '../../obj/api/PerceptionLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Species from '../../lib/species/Species';
-import BodyPlan from '../../lib/species/BodyPlan';
+import Species from '../../obj/species/Species';
+import BodyPlan from '../../obj/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
 import Thing from '../../lib/stuff/Thing';
 import {
@@ -28,9 +28,9 @@ import {
   buildAllModalities,
   buildModality,
 } from '../../lib/perception/modalities/__tests__/test-helpers';
-import { VisionModality } from '../../lib/perception/modalities/VisionModality';
-import { SoundModality } from '../../lib/perception/modalities/SoundModality';
-import { SmellModality } from '../../lib/perception/modalities/SmellModality';
+import { VisionModality } from '../../obj/modalities/VisionModality';
+import { SoundModality } from '../../obj/modalities/SoundModality';
+import { SmellModality } from '../../obj/modalities/SmellModality';
 
 const OrganismThingBase = OrganismMixin(Thing);
 class OrganismThing extends OrganismThingBase {}
@@ -43,7 +43,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 function makeBipedSapiens(): Stuff {
   const biped = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/lib/body-plans/biped',
+    '/obj/species/BodyPlan/biped',
   );
   biped.setSensoryPorts([
     { modality: 'vision', count: 2, position: 'frontal' },
@@ -52,7 +52,7 @@ function makeBipedSapiens(): Stuff {
   ]);
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/animalia/homo-sapiens',
+    '/obj/species/animalia/homo-sapiens',
   );
   sapiens.setBodyPlan(biped);
   const actor = makeStuff(() => new OrganismThing());
@@ -63,12 +63,12 @@ function makeBipedSapiens(): Stuff {
 function makePeaceLily(): Stuff {
   const sessile = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/lib/body-plans/sessile',
+    '/obj/species/BodyPlan/sessile',
   );
   // No sensoryPorts — sessile body plans have empty perception.
   const lily = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/plantae/peace-lily',
+    '/obj/species/plantae/peace-lily',
   );
   lily.setBodyPlan(sessile);
   const actor = makeStuff(() => new OrganismThing());
@@ -148,7 +148,7 @@ describe('PerceptionApi', () => {
     it('returns [] for a Species without a BodyPlan', () => {
       const orphan = withTemplatePath(
         makeStuff(() => new Species()),
-        '/lib/species/animalia/orphan',
+        '/obj/species/animalia/orphan',
       );
       const actor = makeStuff(() => new OrganismThing());
       actor.setSpecies(orphan);
@@ -163,7 +163,7 @@ describe('PerceptionApi', () => {
     it('dedupes when the same organ key appears multiple times', () => {
       const biped = withTemplatePath(
         makeStuff(() => new BodyPlan()),
-        '/lib/body-plans/duplicate',
+        '/obj/species/BodyPlan/duplicate',
       );
       biped.setSensoryPorts([
         { modality: 'vision', count: 2, position: 'frontal' },
@@ -171,7 +171,7 @@ describe('PerceptionApi', () => {
       ]);
       const species = withTemplatePath(
         makeStuff(() => new Species()),
-        '/lib/species/test/duplicate',
+        '/obj/species/test/duplicate',
       );
       species.setBodyPlan(biped);
       const actor = makeStuff(() => new OrganismThing());

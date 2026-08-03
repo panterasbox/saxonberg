@@ -5,7 +5,7 @@
 # an ambient strike = a shock, with no new glue. Mirrors the substation's
 # flooded-floor, authored empty.
 class: /obj/Floor
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: sodden peat ground
   longDescription: Black peat, waterlogged and treacherous, pooling the rain into shallow meres.

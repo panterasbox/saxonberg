@@ -8,9 +8,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CorpoApi } from "../../../api/corpo";
 import CorpoCatalogue from "../../CorpoCatalogue";
-import Corpo from "../../../lib/corpo/Corpo";
-import Brand from "../../../lib/corpo/Brand";
-import BrandedBottle from "../../../lib/corpo/BrandedBottle";
+import Corpo from "../../corpo/Corpo";
+import Brand from "../../corpo/Brand";
+import BrandedBottle from "../../corpo/BrandedBottle";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
 import { Template } from "../../../lib/stuff/Template";

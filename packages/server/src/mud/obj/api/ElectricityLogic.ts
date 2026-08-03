@@ -13,7 +13,7 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
 import type Material from '../../lib/material/Material';
 import type { Energized } from '../../lib/electricity/Energized';
-import type { SustainedShock } from '../../lib/vitals/Condition';
+import type { SustainedShock } from '../Condition';
 import type { ConductionOutcome } from '../../api/electricity';
 
 const ElectricityApiCallers = SecurityPolicies.FromModule(

@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.ambient.taste
+  family: world.perception.ambient
+  label: Ambient Taste
+  description: Unbidden gustatory signal — metallic tang in the air, the taste of dust.

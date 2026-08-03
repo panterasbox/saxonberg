@@ -35,7 +35,7 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
   it("all four exist and share `/lib/location/FurnishableRoom`", () => {
     for (const name of ARCHETYPES) {
       const seed = read(`obj/room/${name}.yaml`);
-      expect(seed.class).toBe("/lib/location/FurnishableRoom");
+      expect(seed.class).toBe("/obj/location/FurnishableRoom");
     }
   });
 
@@ -56,7 +56,7 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       "/obj/Oven", // the range
       "/obj/Chest", // the larder
       "/obj/UnboundedReceptacle", // the basin
-      "/lib/spatial/Surface", // the counter
+      "/obj/Surface", // the counter
       "/lib/stuff/Thing", // the toilet — prose, no capability
     ]);
     for (const file of readdirSync(join(SEEDS, "obj/fixture"))) {

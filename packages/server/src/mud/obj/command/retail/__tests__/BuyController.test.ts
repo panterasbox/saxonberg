@@ -10,15 +10,15 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../BuyController";
-import Stock from "../../../../lib/retail/Stock";
+import Stock from "../../../Stock";
 import Thing from "../../../../lib/stuff/Thing";
-import Coin from "../../../../obj/Coin";
-import PlantPot, { PLANT_SLOT } from "../../../../obj/PlantPot";
-import BankCounter from "../../../../lib/banking/BankCounter";
-import PaymentCard from "../../../../lib/banking/PaymentCard";
+import Coin from "../../../Coin";
+import PlantPot, { PLANT_SLOT } from "../../../PlantPot";
+import BankCounter from "../../../BankCounter";
+import PaymentCard from "../../../PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
 import { EmploymentApi } from "../../../../api/employment";
-import BusinessEntity from "../../../../lib/employment/Business";
+import BusinessEntity from "../../../Business";
 import { ChattelApi } from "../../../../api/chattel";
 import { BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";

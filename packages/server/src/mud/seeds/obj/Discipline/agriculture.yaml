@@ -1,0 +1,23 @@
+# Agriculture — the ISCED-F narrow field, and the first agricultural node in
+# the Catalog (39 Disciplines shipped before this one and none were
+# agricultural). A structural node: nothing practises "agriculture", the way
+# nothing practises "personal services" — the practised leaves hang under it.
+#
+# It is minted now, ahead of its siblings, precisely because it is the home
+# the rest of the living-world family will need: farming's crop rows,
+# ranching's animal husbandry, stewardship's land care. Giving them a parent
+# that already exists is cheaper than re-parenting later, even though
+# re-parenting IS safe (edges join on `key`, never on templatePath).
+#
+# The broad-field parent (ISCED-F 08, "Agriculture, forestry, fisheries and
+# veterinary") is deliberately absent — advancement.md files the full
+# broad→narrow→detailed spine as deferred content, and `medicine` sets the
+# precedent of a leaf anchoring its own detailed code without one.
+class: /obj/Discipline
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: agriculture
+  channel: knowledge
+  label: Agriculture
+  iscedf: "081"  # ISCED-F 2013 narrow field, under 08
+  description: ISCED-F narrow field. The impersonal taxonomy the growing and rearing trades hang under — soil, crop, herd and orchard.

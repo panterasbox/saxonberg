@@ -1,0 +1,10 @@
+class: /obj/Discipline
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: darts
+  channel: skill
+  label: Darts
+  iscedf: "1014"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - sports
+  description: A bar game — leveled just by hanging out and playing. A leaf with no prerequisites, classified under the sports field.

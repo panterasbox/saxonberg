@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.analyze-atmosphere
-  family: world.perception.measurement
-  label: Analyze Atmosphere
-  description: Output of the analyze atmosphere subcommand — provenance and component breakdown.

@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.narration.action
+  family: world.narration
+  label: Action
+  description: Other state-change narration — opening doors, manipulating objects, ambient activity witnessed in the room.

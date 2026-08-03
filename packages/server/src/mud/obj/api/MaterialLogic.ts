@@ -25,7 +25,7 @@ import type {
 } from '../../lib/material/Construction';
 import { Quantity } from '../../lib/quantity';
 import type { Grade } from '../../lib/craft/Grade';
-import type { TraumaType } from '../../lib/vitals/Condition';
+import type { TraumaType } from '../Condition';
 
 const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialApi'
 );
@@ -504,7 +504,7 @@ function containsElementOf(material: Material, elementSymbol: string): boolean {
 }
 
 function everyMaterial(): Material[] {
-  return StuffApi.findByPathGlob<Material>('/lib/material/**').filter((m) =>
+  return StuffApi.findByPathGlob<Material>('/obj/material/**').filter((m) =>
     isMaterial(m)
   );
 }
@@ -669,15 +669,15 @@ function expandInto(
  * it whole at boot rather than chasing every async seam that would
  * need a per-site ensure.
  *
- * Filters to rows whose backing `class` lives under `/lib/material/`
+ * Filters to rows whose backing `class` lives under `/obj/material/`
  * (Material + subclasses) — the tree's folder rows are `FolderZone`s
  * owned by the zone substrate, not ours to stand up.
  */
 async function bootImpl(): Promise<number> {
-  const templates = await Template.findDescendants('/lib/material/');
+  const templates = await Template.findDescendants('/obj/material/');
   let stood = 0;
   for (const tpl of templates) {
-    if (!tpl.class.startsWith('/lib/material/')) continue;
+    if (!tpl.class.startsWith('/obj/material/')) continue;
     try {
       await StuffApi.singleton(tpl.path);
       stood++;

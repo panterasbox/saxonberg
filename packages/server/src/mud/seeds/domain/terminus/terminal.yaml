@@ -9,8 +9,8 @@
 # editable zone template (the governing security invariant). This is the first
 # spatial-zone (CartesianZone) ownership stamp. The retired `ownerGroupName`
 # moved to the parcel row.
-class: /lib/location/CartesianZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/CartesianZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Terminus Terminal
   cellSize: 3.0

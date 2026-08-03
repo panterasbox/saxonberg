@@ -6,7 +6,7 @@ import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { MakerMixin } from '../Maker';
 import { Grade } from '../Grade';
-import PersistentHydrator from '../../persistence/PersistentHydrator';
+import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class GradedHost extends GradedMixin(Idea) {

@@ -9,15 +9,15 @@
 # The field deviations stay SkyExposed-gated (an indoor scope gets no storm
 # wind-chill); the precipitation read is NOT sky-gated (the pin rains). No
 # exits wired (reachable by teleport).
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a weeping chamber
   primaryKeyword: chamber
   longDescription: |
     A windowless stone vault, its ceiling lost in the dark above. Water beads on every surface and falls in a thin, ceaseless indoor rain, pattering into a spreading pool across the flagstones. The air is cold and utterly saturated. No sky reaches here — and still it weeps.
   # A sheltered indoor biome (no sky) — the field deviations don't reach here.
-  _biomePath: /lib/biome/indoor/baseline
+  _biomePath: /obj/biome/indoor/baseline
   # The authored atmosphere: a sodden air (a direct humidity override) …
   _humidity: 98
   # … and a scope-tier precipitation pin (frozen rain) the wetness / puddle

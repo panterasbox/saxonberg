@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.sense.sense
-  family: world.perception.sense
-  label: Sense
-  description: Output of the sense verb — gestalt perceptual sweep across the actor's full sensorium.

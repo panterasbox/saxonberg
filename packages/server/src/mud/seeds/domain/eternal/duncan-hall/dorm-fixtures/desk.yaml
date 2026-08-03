@@ -2,7 +2,7 @@
 # template), seeded into each DormRoom via its `populates:` data. A work surface;
 # generic label, no Named.
 class: /domain/eternal/duncan-hall/Desk
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a plain desk
   primaryKeyword: desk

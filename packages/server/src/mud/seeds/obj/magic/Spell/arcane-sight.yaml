@@ -1,0 +1,20 @@
+# Arcane sight — perceive·arcana, the read-only verb's proof: a Sense
+# effect scanning the magicOrigin tags on the target (or the scene) and
+# reporting what magic currently rides there. Reveals; changes nothing.
+class: /obj/magic/Spell
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  spellId: arcane-sight
+  name: Arcane Sight
+  verb: perceive
+  noun: arcana
+  requiredBand: novice
+  cost: 8
+  castSeconds: 2
+  targeting: any
+  effects:
+    - kind: sense
+      sense: detect-magic
+  description: >-
+    The second look. Workings show themselves as faint signatures — whose
+    hand, which art — to eyes that know how to ask.

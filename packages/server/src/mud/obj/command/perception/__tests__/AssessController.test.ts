@@ -24,8 +24,8 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { Trauma } from '../../../../lib/vitals/Condition';
-import Condition from '../../../../lib/vitals/Condition';
+import type { Trauma } from '../../../Condition';
+import Condition from '../../../Condition';
 
 let captured: string;
 function captureBody(): void {
@@ -150,7 +150,7 @@ describe('AssessController — the affliction readout', () => {
     stampTemplatePathForTest(c, path);
   }
 
-  const RECOVERING = '/lib/mortality/conditions/recovering';
+  const RECOVERING = '/obj/Condition/mortality/recovering';
 
   it('shows an affliction that is not a wound at all', async () => {
     // The gap this closes: the floor route's diminishment lives on the
@@ -205,7 +205,7 @@ describe('AssessController — the affliction readout', () => {
     stampTemplatePathForTest(me, '/obj/Avatar/orphan');
     me.afflict({
       kind: 'affliction',
-      templatePath: '/lib/mortality/conditions/recovering',
+      templatePath: '/obj/Condition/mortality/recovering',
       stage: 0,
       elapsed: 0,
     });
@@ -225,7 +225,7 @@ describe('AssessController — the affliction readout', () => {
     stampTemplatePathForTest(them, '/obj/Avatar/patient4');
     them.afflict({
       kind: 'affliction',
-      templatePath: '/lib/mortality/conditions/recovering',
+      templatePath: '/obj/Condition/mortality/recovering',
       stage: 0,
       elapsed: 0,
     });

@@ -1,5 +1,5 @@
-class: /lib/equipment/Garment
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Garment
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a pair of sturdy trousers
   primaryKeyword: trousers
@@ -7,4 +7,4 @@ data:
     Plain, hard-wearing trousers in a neutral weave — the kind issued by
     the bushel to every incoming class and quietly worn to graduation.
   slotClaims:
-    "/lib/body-plans/biped": [legs]
+    "/obj/species/BodyPlan/biped": [legs]

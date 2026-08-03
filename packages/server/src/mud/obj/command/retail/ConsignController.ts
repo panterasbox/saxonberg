@@ -16,7 +16,7 @@
 
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
-import ConsignmentShelf from "../../../lib/retail/ConsignmentShelf";
+import ConsignmentShelf from "../../ConsignmentShelf";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";

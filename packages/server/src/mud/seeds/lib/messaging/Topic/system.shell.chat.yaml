@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: system.shell.chat
-  family: system.shell
-  label: Chat
-  description: Feedback from chat management — listing, joining, leaving, muting, creating, disbanding channels.

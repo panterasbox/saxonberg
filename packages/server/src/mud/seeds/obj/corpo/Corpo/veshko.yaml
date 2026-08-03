@@ -1,0 +1,13 @@
+class: /obj/corpo/Corpo
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: veshko
+  label: Veshko
+  sector: heavy industry / materials / logistics
+  ethos: The Ruthless Optimizer — efficiency, vertical integration, results are the only morality.
+  aesthetic: brutalist grey, a wordmark not a logo
+  temperament: pragmatists, min-maxers
+  description: |
+    Veshko makes the world's hard infrastructure and does not apologize for any of it. What works, ships; what doesn't, is cut. The wordmark is grey because color is a cost.
+  rivals:
+    - aevex

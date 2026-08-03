@@ -29,7 +29,7 @@ describe('Modality base class', () => {
   });
 
   it('round-trips name / family / modality via setters', () => {
-    const m = newModalityAt('/lib/perception/modalities/x');
+    const m = newModalityAt('/obj/modalities/x');
     m.setName('xeno');
     m.setFamily('field');
     m.setModality('xenoreception');
@@ -39,38 +39,38 @@ describe('Modality base class', () => {
   });
 
   it('setName rejects empty strings', () => {
-    const m = newModalityAt('/lib/perception/modalities/y');
+    const m = newModalityAt('/obj/modalities/y');
     expect(() => m.setName('')).toThrow(TypeError);
   });
 
   it('setModality rejects empty strings', () => {
-    const m = newModalityAt('/lib/perception/modalities/z');
+    const m = newModalityAt('/obj/modalities/z');
     expect(() => m.setModality('')).toThrow(TypeError);
   });
 
   it('setFamily rejects values outside the union', () => {
-    const m = newModalityAt('/lib/perception/modalities/q');
+    const m = newModalityAt('/obj/modalities/q');
     expect(() => m.setFamily('quantum' as ModalityFamily)).toThrow(TypeError);
   });
 
   it.each<ModalityFamily>(['field', 'contact', 'network'])(
     'accepts family value "%s"',
     (family) => {
-      const m = newModalityAt(`/lib/perception/modalities/${family}-t`);
+      const m = newModalityAt(`/obj/modalities/${family}-t`);
       m.setFamily(family);
       expect(m.getFamily()).toBe(family);
     },
   );
 
   it('signalAt defaults to null', () => {
-    const m = newModalityAt('/lib/perception/modalities/d1');
+    const m = newModalityAt('/obj/modalities/d1');
     // Cast to unknown — the base default's first arg type doesn't
     // matter because the method returns null unconditionally.
     expect(m.signalAt({} as never)).toBeNull();
   });
 
   it('perceiveFor defaults to null', () => {
-    const m = newModalityAt('/lib/perception/modalities/d2');
+    const m = newModalityAt('/obj/modalities/d2');
     expect(m.perceiveFor({} as never, {} as never, {})).toBeNull();
   });
 });

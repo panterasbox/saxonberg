@@ -20,7 +20,7 @@ import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
-import { SkyExposedBiome } from '../../biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';
 import { ThermalMixin } from '../Thermal';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -72,7 +72,7 @@ function thermalBody(stampedK: number): ThermalThing {
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
-  }, `/lib/material/_weather/m-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_weather/m-${matCounter}`) as unknown as Material;
   return makeStuff(() => {
     const t = new ThermalThing();
     t.setMass(Quantity.of(0.3, 'kg'));
@@ -93,7 +93,7 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 /** A SkyExposed room (weather-eligible) with a Thermal body inside it. */
@@ -103,9 +103,9 @@ async function skyRoomWithBody(): Promise<{
 }> {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   const body = thermalBody(BASE_T);

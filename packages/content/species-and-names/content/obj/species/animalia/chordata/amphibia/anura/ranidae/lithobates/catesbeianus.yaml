@@ -1,0 +1,29 @@
+# Lithobates catesbeianus — American bullfrog. Quadruped amphibian,
+# short lifespan, mostly nocturnal. The non-mammal acceptance entry.
+class: /obj/species/Species
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  binomial: Lithobates catesbeianus
+  commonNames: ["bullfrog", "frog"]
+  _bodyPlanPath: /obj/species/BodyPlan/quadruped
+  _parentCladePath: /obj/species/animalia
+  _defaultMaterialPath: /obj/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 293, survivableMin: 278, survivableMax: 305 }
+    heartRate: { baseline: 50, survivableMin: 5, survivableMax: 120 }
+    respiratoryRate: { baseline: 40, survivableMin: 5, survivableMax: 120 }
+    bloodPressureSystolic: { baseline: 30, survivableMin: 15, survivableMax: 60 }
+    bloodPressureDiastolic: { baseline: 20, survivableMin: 8, survivableMax: 40 }
+    spo2: { baseline: 95, survivableMin: 50, survivableMax: 100 }
+    bloodVolume: { baseline: 0.03, survivableMin: 0.018, survivableMax: 0.03 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 8
+  circadianBand: nocturnal
+  diet: carnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: bright
+    bandShift: 0

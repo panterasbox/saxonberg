@@ -1,0 +1,17 @@
+# Terminus — the REALM-root Locality of the three-tier chain (the civics
+# build): `terminus` (realm) → `terminus/city` (city) →
+# `terminus/city/campus` (campus). Names the Terminus arrival node on
+# every departures board (D13); "Terminus" names both the realm and the
+# city (Rome-metonymy — terminus-city.md §8), so the board label stays.
+# Declares the Realm of Terminus's jurisdiction over the whole tree
+# (consent-by-construction: this seed is landowner-authored content).
+# Homed under `seeds/obj/address/` (the narnia precedent) so
+# AddressRegistry.postRegister eagerly clones + warms its prefix at boot —
+# a domain-dir seed would never register and the board would fall back to
+# "a Teleport Authority terminal". templatePath ≠ claimed address.
+class: /obj/Locality
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: Terminus
+  _address: terminus
+  _governmentKey: terminus-realm

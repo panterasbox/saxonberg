@@ -20,8 +20,8 @@ import { FastTravelMixin } from "../../../../lib/fasttravel/FastTravel";
 import Thing from "../../../../lib/stuff/Thing";
 import Location from "../../../../lib/stuff/Location";
 import { Agent } from "../../../../lib/stuff/Agent";
-import CredentialWalletUpdate from "../../../../lib/credential/CredentialWalletUpdate";
-import BusinessEntity from "../../../../lib/employment/Business";
+import CredentialWalletUpdate from "../../../CredentialWalletUpdate";
+import BusinessEntity from "../../../Business";
 import { StuffApi } from "../../../../api/stuff";
 import { MixinApi } from "../../../../api/mixin";
 import { AccessApi } from "../../../../api/access";
@@ -50,7 +50,7 @@ import {
 } from "../../../../lib/banking/__tests__/banking-test-harness";
 import type { AetherHosted } from "../../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../../lib/credential/CredentialWallet";
-import Coin from "../../../../obj/Coin";
+import Coin from "../../../Coin";
 import { Quantity } from "../../../../lib/quantity";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 

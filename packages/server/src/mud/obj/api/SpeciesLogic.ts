@@ -7,10 +7,10 @@ import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Organism } from '../../lib/species/Organism';
-import type Clade from '../../lib/species/Clade';
-import type { CladeRank } from '../../lib/species/Clade';
-import type Species from '../../lib/species/Species';
-import type BodyPlan from '../../lib/species/BodyPlan';
+import type Clade from '../species/Clade';
+import type { CladeRank } from '../species/Clade';
+import type Species from '../species/Species';
+import type BodyPlan from '../species/BodyPlan';
 import type Material from '../../lib/material/Material';
 import type { VisionProfile } from '../../lib/perception/Light';
 import type { DossierSection, SpeciesDossier } from '@saxonberg/types';
@@ -95,7 +95,7 @@ export class SpeciesLogic extends ApiLogic {
       ._speciesPath;
     if (!speciesPath) return;
     // Tolerant ensure: ancestor path segments without a seeded
-    // template (e.g. `/lib/species/animalia/chordata/mammalia` —
+    // template (e.g. `/obj/species/animalia/chordata/mammalia` —
     // folders without a Clade record) throw `singleton`; we
     // continue so the kingdom walk's `findByTemplatePath`-null
     // branch can surface the gap downstream when needed.
@@ -130,7 +130,7 @@ export class SpeciesLogic extends ApiLogic {
     const sections: DossierSection[] = [];
 
     // Classification — the Linnaean ladder. The species template path IS
-    // the taxonomy (/lib/species/animalia/chordata/.../homo/<epithet>),
+    // the taxonomy (/obj/species/animalia/chordata/.../homo/<epithet>),
     // so the ancestor-clade segments map onto the standard major ranks.
     const classRows = buildClassificationRows(speciesPath);
     if (classRows.length) {

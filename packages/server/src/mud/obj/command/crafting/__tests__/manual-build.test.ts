@@ -30,7 +30,7 @@ import { Quantity } from "../../../../lib/quantity";
 import Material from "../../../../lib/material/Material";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { EventApi } from "../../../../api/event";
-import EventRegistry from "../../../../obj/EventRegistry";
+import EventRegistry from "../../../EventRegistry";
 import { CommandGiverMixin } from "../../../../lib/command/CommandGiver";
 import { EngagedMixin } from "../../../../lib/activity/Engaged";
 import { SensorMixin } from "../../../../lib/message/Sensor";
@@ -46,10 +46,10 @@ import {
   makeStuffAtPath,
 } from "../../../../lib/security/__tests__/test-setup";
 
-const GIN = "/lib/material/spirit/gin";
-const VERMOUTH = "/lib/material/spirit/vermouth";
-const MARTINI_MAT = "/lib/material/cocktail/martini";
-const MIXED_MAT = "/lib/material/cocktail/mixed";
+const GIN = "/obj/material/spirit/gin";
+const VERMOUTH = "/obj/material/spirit/vermouth";
+const MARTINI_MAT = "/obj/material/cocktail/martini";
+const MIXED_MAT = "/obj/material/cocktail/mixed";
 
 class TestActor extends CommandGiverMixin(
   SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),

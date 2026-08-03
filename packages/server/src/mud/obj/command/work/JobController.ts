@@ -26,7 +26,7 @@ import { Mml } from "../../../api/mml";
 import { ContractApi } from "../../../api/contract";
 import type { ConditionData } from "../../../lib/employment/Condition";
 import type { ContractRecord } from "../../../lib/employment/ContractRecord";
-import JobBoard from "../../../lib/employment/JobBoard";
+import JobBoard from "../../JobBoard";
 
 const TOPIC = "world.narration.action";
 

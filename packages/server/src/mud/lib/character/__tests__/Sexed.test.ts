@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SexedMixin } from '../Sexed';
 import { OrganismMixin } from '../../species/Organism';
-import Species from '../../species/Species';
+import Species from '../../../obj/species/Species';
 import Thing from '../../stuff/Thing';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
@@ -25,7 +25,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 
 function setupSpecies(
   system: string,
-  path: string = '/lib/species/test'
+  path: string = '/obj/species/test'
 ): Species {
   const species = withTemplatePath(makeStuff(() => new Species()), path);
   species.setSexDeterminationSystem(system);

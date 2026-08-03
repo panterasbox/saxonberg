@@ -6,8 +6,8 @@
 #
 # Stands up LAZILY off `operatingLocations` on the first buy/wage query
 # (EmploymentApi.ensureOperatorAt) — no manifest entry, no standup hook.
-class: /lib/employment/Business
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   proprietorPath: /domain/terminus/general-store/npc/keeper
   positions:

@@ -20,8 +20,8 @@ import { PackApi } from '../../../api/pack';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
 
-const MATERIAL = '/lib/material/Material';
-const HYDRATOR = '/lib/persistence/PersistentHydrator';
+const MATERIAL = '/obj/material/Material';
+const HYDRATOR = '/obj/persistence/PersistentHydrator';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
@@ -157,30 +157,30 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
 
   it('insert: fresh DB → stamped rows, listed in `inserted`', async () => {
     const root = writePack('p', [
-      { rel: 'lib/material/spirit/gin.yaml', data: { name: 'gin' } },
-      { rel: 'lib/material/element/iron.yaml', data: { name: 'iron' } },
+      { rel: 'obj/material/spirit/gin.yaml', data: { name: 'gin' } },
+      { rel: 'obj/material/element/iron.yaml', data: { name: 'iron' } },
     ]);
     const [r] = await PackApi.install([root]);
     expect(r!.inserted.sort()).toEqual([
-      '/lib/material/element/iron',
-      '/lib/material/spirit/gin',
+      '/obj/material/element/iron',
+      '/obj/material/spirit/gin',
     ]);
     expect(rows).toHaveLength(2);
     expect(rows.every((row) => row.sourcePack === 'p')).toBe(true);
-    expect(rows.find((row) => row.path === '/lib/material/spirit/gin')!.data).toEqual(
+    expect(rows.find((row) => row.path === '/obj/material/spirit/gin')!.data).toEqual(
       { name: 'gin' },
     );
   });
 
   it('update: changed file overwrites; second run is a no-op', async () => {
     const root = writePack('p', [
-      { rel: 'lib/material/spirit/gin.yaml', data: { name: 'gin', density: 940 } },
+      { rel: 'obj/material/spirit/gin.yaml', data: { name: 'gin', density: 940 } },
     ]);
     await PackApi.install([root]);
 
     // Edit the file (new density) and re-install.
     writeFileSync(
-      join(root, 'content/lib/material/spirit/gin.yaml'),
+      join(root, 'content/obj/material/spirit/gin.yaml'),
       YAML.stringify({
         class: MATERIAL,
         hydratorClass: HYDRATOR,
@@ -188,7 +188,7 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
       }),
     );
     const [r2] = await PackApi.install([root]);
-    expect(r2!.updated).toEqual(['/lib/material/spirit/gin']);
+    expect(r2!.updated).toEqual(['/obj/material/spirit/gin']);
     expect(rows[0]!.data).toEqual({ name: 'gin', density: 950 });
 
     // No further edit → no-op (key-order-insensitive equality).
@@ -199,33 +199,33 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
 
   it('delete: a stamped row whose file vanished is removed', async () => {
     const root = writePack('p', [
-      { rel: 'lib/material/spirit/gin.yaml' },
-      { rel: 'lib/material/spirit/rum.yaml' },
+      { rel: 'obj/material/spirit/gin.yaml' },
+      { rel: 'obj/material/spirit/rum.yaml' },
     ]);
     await PackApi.install([root]);
     expect(rows).toHaveLength(2);
 
-    rmSync(join(root, 'content/lib/material/spirit/rum.yaml'));
+    rmSync(join(root, 'content/obj/material/spirit/rum.yaml'));
     const [r2] = await PackApi.install([root]);
-    expect(r2!.deleted).toEqual(['/lib/material/spirit/rum']);
-    expect(rows.map((row) => row.path)).toEqual(['/lib/material/spirit/gin']);
+    expect(r2!.deleted).toEqual(['/obj/material/spirit/rum']);
+    expect(rows.map((row) => row.path)).toEqual(['/obj/material/spirit/gin']);
   });
 
   it('adoption: an unstamped legacy row is stamped + matched, no duplicate', async () => {
     // Simulate a legacy SeederManager row (unstamped) at a pack path.
     rows.push({
       _id: 'legacy-1',
-      path: '/lib/material/spirit/gin',
+      path: '/obj/material/spirit/gin',
       class: MATERIAL,
       hydratorClass: HYDRATOR,
       data: { name: 'old gin' },
     });
     const root = writePack('p', [
-      { rel: 'lib/material/spirit/gin.yaml', data: { name: 'gin' } },
+      { rel: 'obj/material/spirit/gin.yaml', data: { name: 'gin' } },
     ]);
 
     const [r] = await PackApi.install([root]);
-    expect(r!.adopted).toEqual(['/lib/material/spirit/gin']);
+    expect(r!.adopted).toEqual(['/obj/material/spirit/gin']);
     expect(r!.inserted).toEqual([]);
     expect(rows).toHaveLength(1); // adopted in place — no duplicate
     expect(rows[0]!._id).toBe('legacy-1');
@@ -242,10 +242,10 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     rows.push({
       _id: 'other-1',
       path: '/domain/some/player/sword',
-      class: '/lib/Thing',
+      class: '/obj/Prop',
       data: { name: 'sword' },
     });
-    const root = writePack('p', [{ rel: 'lib/material/spirit/gin.yaml' }]);
+    const root = writePack('p', [{ rel: 'obj/material/spirit/gin.yaml' }]);
     const [r] = await PackApi.install([root]);
     expect([...r!.inserted, ...r!.updated, ...r!.adopted, ...r!.deleted]).not.toContain(
       '/domain/some/player/sword',
@@ -257,8 +257,8 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
 
   it('requires-kernel: a bogus class aborts before any write', async () => {
     const root = writePack('p', [
-      { rel: 'lib/material/spirit/gin.yaml' },
-      { rel: 'lib/material/bad.yaml', class: '/lib/material/DoesNotExist' },
+      { rel: 'obj/material/spirit/gin.yaml' },
+      { rel: 'obj/material/bad.yaml', class: '/obj/material/DoesNotExist' },
     ]);
     await expect(PackApi.install([root])).rejects.toThrow(/DoesNotExist/);
     expect(rows).toHaveLength(0); // all-or-nothing: nothing written
@@ -268,12 +268,12 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
 describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)', () => {
   beforeEach(stubClassResolution);
 
-  const HOMO = 'lib/species/animalia/homo/sapiens.yaml';
+  const HOMO = 'obj/species/animalia/homo/sapiens.yaml';
 
   it('insert: name-bank files → stamped name_banks rows (key = file basename)', async () => {
     const root = writePack(
       'p',
-      [{ rel: HOMO, class: '/lib/species/Species' }],
+      [{ rel: HOMO, class: '/obj/species/Species' }],
       [],
       [
         { key: 'common', given: ['Alden', 'Bella'], surname: ['Ashby'] },
@@ -358,17 +358,17 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     const base = results.find((r) => r.packId === 'base-library');
     expect(base).toBeDefined();
     // Materials + biomes inserted as stamped domain rows.
-    expect(base!.inserted).toContain('/lib/material/spirit/gin');
-    expect(base!.inserted).toContain('/lib/biome');
+    expect(base!.inserted).toContain('/obj/material/spirit/gin');
+    expect(base!.inserted).toContain('/obj/biome');
     // Content-kind dispatch: the quantity tag tables were loaded too.
     expect(base!.quantityTables).toBeGreaterThan(0);
 
     const sp = results.find((r) => r.packId === 'species-and-names');
     expect(sp).toBeDefined();
     const HOMO =
-      '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo';
+      '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo';
     // The kingdom Clade, the canonical human, and the two new casts.
-    expect(sp!.inserted).toContain('/lib/species/animalia');
+    expect(sp!.inserted).toContain('/obj/species/animalia');
     expect(sp!.inserted).toContain(`${HOMO}/sapiens`);
     expect(sp!.inserted).toContain(`${HOMO}/trollius`);
     expect(sp!.inserted).toContain(`${HOMO}/ghulius`);

@@ -28,7 +28,7 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { Employment, type EmploymentData, type EmploymentStatus } from './Employment';
-import type { Business } from './Business';
+import type { Business } from '../../obj/Business';
 
 /**
  * The participant contract on an employment-record write: the caller is

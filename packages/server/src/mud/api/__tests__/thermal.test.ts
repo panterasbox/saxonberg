@@ -41,7 +41,7 @@ function material(specificHeat: number): Material {
     m.setSpecificHeat(Quantity.of(specificHeat, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
-  }, `/lib/material/_test/thermal-api-${matCounter}`) as unknown as Material;
+  }, `/obj/material/_test/thermal-api-${matCounter}`) as unknown as Material;
 }
 
 function thing(massKg: number, specificHeat: number, stampedK = 300): ThermalThing {

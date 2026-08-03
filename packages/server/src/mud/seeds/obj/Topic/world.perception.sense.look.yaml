@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.perception.sense.look
+  family: world.perception.sense
+  label: Look
+  description: Output of the look verb — deliberate visual attention on a location, character, or item.

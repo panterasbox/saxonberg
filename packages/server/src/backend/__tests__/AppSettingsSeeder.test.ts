@@ -278,7 +278,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.stormPuddleAccrualLitersPerSegment]: "12",
           [AppSettingKeys.stormPuddleEvaporationFactor]: "0.2",
           [AppSettingKeys.stormPuddleFreshWaterMaterialPath]:
-            "/lib/material/bulk/water",
+            "/obj/material/bulk/water",
           [AppSettingKeys.stormStrikeRate]: "0.15",
           [AppSettingKeys.stormStrikeIntervalS]: "1800",
           [AppSettingKeys.stormStrikeVoltage]: "30000000",

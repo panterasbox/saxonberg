@@ -33,7 +33,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import type { MqlManyResult } from '../../../api/mql';
 import Avatar from '../../Avatar';
-import type EvalScript from '../../../lib/script/EvalScript';
+import type EvalScript from '../../EvalScript';
 import { ScriptApi } from '../../../api/script';
 import { SandboxApi } from '../../../api/sandbox';
 import { ParcelApi } from '../../../api/parcel';

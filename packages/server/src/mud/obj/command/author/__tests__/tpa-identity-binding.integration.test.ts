@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import RegisterController from "../../movement/RegisterController";
 import TeleportController from "../TeleportController";
 import TravelCard from "../../../../domain/common/tpa/TravelCard";
-import CredentialWalletUpdate from "../../../../lib/credential/CredentialWalletUpdate";
+import CredentialWalletUpdate from "../../../CredentialWalletUpdate";
 import { AetherMixin } from "../../../../lib/message/Aether";
 import { MobileMixin } from "../../../../lib/spatial/Mobile";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
@@ -41,7 +41,7 @@ import type { CredentialWallet } from "../../../../lib/credential/CredentialWall
 import type { FastTravel } from "../../../../lib/fasttravel/FastTravel";
 import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
 import { installStore, type Doc } from "../../../../domain/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 const D_ROOM = "/domain/test/d-room";
@@ -65,9 +65,9 @@ class Traveller extends AetherMixin(
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
-  { path: D_ROOM, class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the departure hall" } },
-  { path: R_ROOM, class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the arrival hall" } },
-  { path: OFF_ROOM, class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the shuttered hall" } },
+  { path: D_ROOM, class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the departure hall" } },
+  { path: R_ROOM, class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the arrival hall" } },
+  { path: OFF_ROOM, class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the shuttered hall" } },
   {
     path: DEPART,
     class: "/domain/common/tpa/TpaTerminal",

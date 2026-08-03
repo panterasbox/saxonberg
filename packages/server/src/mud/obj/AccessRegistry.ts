@@ -16,7 +16,7 @@
  * `postRegister` runs idempotent bootstrap seeding: mint the
  * groups (`'core'`, `'lounge'`, `'wizards'`, `'streamers'`,
  * `'archwizards'`) if absent and stamp the lounge FolderZones at
- * `/lib/lounge` and `/domain/lounge`. Caches
+ * `/obj/lounge` and `/domain/lounge`. Caches
  * (cached GroupRefs, wizard playerId Set, author-groups list) warm
  * lazily on first read and live as instance fields — reload of
  * `api/access.ts` doesn't affect them; reload of this file re-clones
@@ -38,7 +38,7 @@ import type { GroupRef } from '../lib/social/GroupProvider';
 import type { ParcelOwner } from '../lib/parcel/ParcelRecord';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
-import FolderZone from '../lib/zone/FolderZone';
+import FolderZone from './FolderZone';
 import Avatar from './Avatar';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
@@ -262,7 +262,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * compute the resource zone before calling `can()`.
    *
    * `lib/lounge/foo.ts` → tries `/lib/lounge/foo` (no match) → walks
-   * up to `/lib/lounge` (match, extant FolderZone) → returns it.
+   * up to `/obj/lounge` (match, extant FolderZone) → returns it.
    * `lib/security/SecurityPolicies.ts` → walks up → no FolderZone
    * match → returns `null` (caller falls through to `'core'`).
    */

@@ -17,8 +17,8 @@ import YAML from "yaml";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { AppSettings } from "../../../lib/config/AppSettings";
-import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
-import Stock from "../../../lib/retail/Stock";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import Stock from "../../../obj/Stock";
 import PlantPot from "../../../obj/PlantPot";
 import Seed from "../../../obj/Seed";
 import type { Bulkable } from "../../../lib/bulk/Bulkable";
@@ -174,7 +174,7 @@ describe("general-store standup (real seeds)", () => {
     expect(MixinApi.isBulkable(sack)).toBe(true);
     expect(sack.getBulkAmount("interior").rawValue()).toBeGreaterThan(0);
     expect(sack.getBulkMaterialPath("interior")).toBe(
-      "/lib/material/bulk/potting-soil",
+      "/obj/material/bulk/potting-soil",
     );
 
     // The seed names the plant it grows into (and is discrete, per above).

@@ -17,7 +17,7 @@ import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import CartesianZone from '../../lib/location/CartesianZone';
+import CartesianZone from '../../obj/location/CartesianZone';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('BoundaryApi.create', () => {

@@ -5,7 +5,7 @@
  * the already-`decorateApiClass`-wrapped Api classes so callers reach
  * them through one stable import root and dot-navigation:
  *
- *   import { Identity } from "../api/identity";
+ *   import { Identity } from "./identity";
  *   Identity.Recognition.describe(viewer, target);
  *   Identity.Belief.hydrate(viewer);
  *

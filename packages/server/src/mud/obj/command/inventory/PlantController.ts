@@ -129,7 +129,7 @@ export default class PlantController extends CommandController<PlantModel> {
       // So the gate asks whether a parcel COVERS this ground at all
       // before it asks what that parcel permits. The abstract path
       // branches stay protected, because they DO have rows: `/studio`
-      // and `/lib/lounge` are covered, declare no use, and therefore
+      // and `/obj/lounge` are covered, declare no use, and therefore
       // still answer `wild` → refused.
       //
       // Same principle as the acreage check degrading on unmeasured

@@ -1,8 +1,0 @@
-class: /lib/advancement/Discipline
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  key: business-admin-law
-  channel: knowledge
-  label: Business, administration and law
-  iscedf: "04"  # ISCED-F 2013 field-of-education code
-  description: ISCED-F broad field — a second branch of the spine, to show the Catalog is a tree, not a line.

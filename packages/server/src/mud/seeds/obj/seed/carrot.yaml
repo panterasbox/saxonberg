@@ -2,7 +2,7 @@
 # seeds (never Globbable) — it names the plant it grows into and carries
 # no variation of its own.
 class: /obj/Seed
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a packet of carrot seed
   primaryKeyword: seed
@@ -10,4 +10,4 @@ data:
   longDescription: |
     A paper packet with the corner torn off, holding more of the tiny ridged seeds than anyone could count.
   growsIntoPath: /obj/plant/carrot
-  _speciesPath: /lib/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
+  _speciesPath: /obj/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota

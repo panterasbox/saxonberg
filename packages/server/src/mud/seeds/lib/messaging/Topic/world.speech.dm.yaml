@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.speech.dm
-  family: world.speech
-  label: DM
-  description: A direct message over the implant network, delivered to a specific addressee. The verb `dm` (alias `tell`) emits this topic.

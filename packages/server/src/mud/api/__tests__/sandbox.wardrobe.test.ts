@@ -25,7 +25,7 @@ import EventRegistry from '../../obj/EventRegistry';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import SandboxCrossing from '../../lib/sandbox/SandboxCrossing';
+import SandboxCrossing from '../../obj/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../lib/sandbox/SandboxCrossingExit';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
@@ -273,7 +273,7 @@ describe('the seeding aperture (Wave 4)', () => {
       {
         _id: { toString: () => 't1' },
         path: '/obj/sandbox-test/trinket',
-        class: '/lib/stuff/Thing',
+        class: '/obj/Prop',
         data: {},
       },
     ];

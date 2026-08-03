@@ -29,7 +29,7 @@ import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import type { CommandContributions } from "../../api/command";
 import { CorpoApi } from "../../api/corpo";
-import type { CorpoDescriptor } from "../corpo/Corpo";
+import type { CorpoDescriptor } from "../../obj/corpo/Corpo";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import type { VetoResult } from "../errors";

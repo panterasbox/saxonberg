@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: world.youtube.message
+  family: world.youtube
+  label: YouTube Chat
+  description: A message relayed from a bound YouTube live chat (read-only). A meta/OOC surface — subscription-gated, not implant-gated. Channel attribution rides `meta.channelId` (the liveChatId); provenance and the external speaker ride the payload.

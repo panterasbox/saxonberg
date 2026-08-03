@@ -805,7 +805,7 @@ settings:
   - key: storm.puddle.evaporationFactor
     value: "0.2"
   - key: storm.puddle.freshWaterMaterialPath
-    value: "/lib/material/bulk/water"
+    value: "/obj/material/bulk/water"
   - key: storm.strikeRate
     value: "0.15"
   - key: storm.strikeIntervalS

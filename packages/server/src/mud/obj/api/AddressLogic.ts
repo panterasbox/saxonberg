@@ -11,7 +11,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Addressable } from '../../lib/address/Addressable';
-import type Locality from '../../lib/address/Locality';
+import type Locality from '../Locality';
 import type AddressRegistry from '../AddressRegistry';
 import type {
   AddressResolution,

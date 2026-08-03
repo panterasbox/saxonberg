@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: system.shell.help
+  family: system.shell
+  label: Help
+  description: Output of the help verb — the in-shell knowledge base.

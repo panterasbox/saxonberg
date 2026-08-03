@@ -97,7 +97,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    *
    * `wild` admits nothing, which makes the default **fail-closed**: most
    * parcel rows are path-branch titles over the template tree (`/studio`,
-   * `/lib/lounge`), not ground, and none of them should read as cultivable
+   * `/obj/lounge`), not ground, and none of them should read as cultivable
    * merely because nobody thought to zone them.
    *
    * A read — no `assertFieldMutation`. The five mutators below carry it.

@@ -20,7 +20,7 @@ import {
   installStore,
   type Doc,
 } from "../../lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../lib/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 
@@ -67,14 +67,14 @@ const STUBS: Doc[] = [
     hydratorClass: PH,
     data: { seatIn: "/domain/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/domain/test/lounge-room", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
-  { path: "/domain/eternal/university-avenue/crossing", class: "/lib/stuff/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/domain/test/lounge-room", class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
+  { path: "/domain/eternal/university-avenue/crossing", class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
   // The office populates the clerk (a full NPC, Phase 4) — stub it here so the
   // cascade resolves without heavy NPC hydration.
-  { path: "/domain/terminus/terminal/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  { path: "/domain/terminus/terminal/clerk", class: "/obj/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
   // The registry office (cascaded off the arrival gate, civics) populates
   // the registrar — same stub treatment.
-  { path: "/domain/terminus/registry/clerk", class: "/lib/stuff/Thing", hydratorClass: PH, data: { shortDescription: "the registrar" } },
+  { path: "/domain/terminus/registry/clerk", class: "/obj/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {
@@ -91,7 +91,7 @@ describe("destination naming + crossroads (real seeds)", () => {
     installStore(docs);
     await AppSettings.warm();
     // Stand up the AddressRegistry — its postRegister eagerly clones + registers
-    // every Locality under /lib/address/ (claiming their address prefixes).
+    // every Locality under /obj/Locality/ (claiming their address prefixes).
     await StuffApi.singleton("/obj/AddressRegistry");
   });
   afterEach(() => {

@@ -1,8 +1,0 @@
-# SoundModality — the auditory singleton. Modality name is 'sound';
-# the BodyPlan organ key it indexes against is 'hearing'.
-class: /lib/perception/modalities/SoundModality
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  name: sound
-  family: field
-  modality: hearing

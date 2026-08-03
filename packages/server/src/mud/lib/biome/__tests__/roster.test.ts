@@ -9,15 +9,15 @@
  * Each shipped template earns its place by demonstrating a
  * substrate property:
  *
- *   /lib/biome/                        FolderZone     ← admin root
- *   /lib/biome/universe                Biome          ← inheritance root
- *   /lib/biome/outdoor/                FolderZone     ← admin sub-tree
- *   /lib/biome/outdoor/baseline        SkyExposedBiome
- *   /lib/biome/outdoor/meadow          SkyExposedBiome ← 3-deep chain
- *   /lib/biome/indoor/                 FolderZone
- *   /lib/biome/indoor/baseline         Biome
- *   /lib/biome/indoor/cafeteria        Biome
- *   /lib/biome/indoor/cafeteria-atrium SkyExposedBiome ← scenario C
+ *   /obj/biome/                        FolderZone     ← admin root
+ *   /obj/biome/universe                Biome          ← inheritance root
+ *   /obj/biome/outdoor/                FolderZone     ← admin sub-tree
+ *   /obj/biome/outdoor/baseline        SkyExposedBiome
+ *   /obj/biome/outdoor/meadow          SkyExposedBiome ← 3-deep chain
+ *   /obj/biome/indoor/                 FolderZone
+ *   /obj/biome/indoor/baseline         Biome
+ *   /obj/biome/indoor/cafeteria        Biome
+ *   /obj/biome/indoor/cafeteria-atrium SkyExposedBiome ← scenario C
  */
 
 import { describe, it, expect } from 'vitest';
@@ -30,13 +30,13 @@ import YAML from 'yaml';
 const __filename = fileURLToPath(import.meta.url);
 // The biome roster now ships in the base-library content pack (lifted out of
 // `seeds/`). Resolve the pack root the same way the installer does, then read
-// its `content/lib/biome` namespace mirror.
+// its `content/obj/biome` namespace mirror.
 const PACK_ROOT = dirname(
   createRequire(import.meta.url).resolve(
     '@saxonberg/content-base-library/package.json',
   ),
 );
-const SEEDS_DIR = join(PACK_ROOT, 'content/lib/biome');
+const SEEDS_DIR = join(PACK_ROOT, 'content/obj/biome');
 
 interface BiomeSeed {
   class: string;
@@ -63,22 +63,22 @@ function listYamlsRelative(dir: string): string[] {
 }
 
 describe('Biome roster — slim demonstrative inventory', () => {
-  it('the /lib/biome folder template is a FolderZone', () => {
+  it('the /obj/biome folder template is a FolderZone', () => {
     const seed = YAML.parse(
       readFileSync(join(SEEDS_DIR, '../biome.yaml'), 'utf-8'),
     ) as BiomeSeed;
-    expect(seed.class).toBe('/lib/zone/FolderZone');
+    expect(seed.class).toBe('/obj/FolderZone');
   });
 
   it('sub-folders for sub-team scoping are FolderZones', () => {
     for (const f of ['outdoor.yaml', 'indoor.yaml']) {
-      expect(loadSeed(f).class).toBe('/lib/zone/FolderZone');
+      expect(loadSeed(f).class).toBe('/obj/FolderZone');
     }
   });
 
   it('universe is the inheritance root with all five defaults and no parent', () => {
     const seed = loadSeed('universe.yaml');
-    expect(seed.class).toBe('/lib/biome/Biome');
+    expect(seed.class).toBe('/obj/biome/Biome');
     const d = seed.data ?? {};
     expect(d._extendsBiomePath).toBeUndefined();
     expect(d._defaultTemperature).toBeDefined();
@@ -90,32 +90,32 @@ describe('Biome roster — slim demonstrative inventory', () => {
 
   it('outdoor/baseline is SkyExposed and extends universe', () => {
     const seed = loadSeed('outdoor/baseline.yaml');
-    expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/universe');
+    expect(seed.class).toBe('/obj/SkyExposedBiome');
+    expect(seed.data?._extendsBiomePath).toBe('/obj/biome/universe');
   });
 
   it('outdoor/meadow is SkyExposed and extends outdoor/baseline (3-deep chain)', () => {
     const seed = loadSeed('outdoor/meadow.yaml');
-    expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/outdoor/baseline');
+    expect(seed.class).toBe('/obj/SkyExposedBiome');
+    expect(seed.data?._extendsBiomePath).toBe('/obj/biome/outdoor/baseline');
   });
 
   it('indoor/baseline is plain Biome and extends universe', () => {
     const seed = loadSeed('indoor/baseline.yaml');
-    expect(seed.class).toBe('/lib/biome/Biome');
-    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/universe');
+    expect(seed.class).toBe('/obj/biome/Biome');
+    expect(seed.data?._extendsBiomePath).toBe('/obj/biome/universe');
   });
 
   it('indoor/cafeteria extends indoor/baseline', () => {
     const seed = loadSeed('indoor/cafeteria.yaml');
-    expect(seed.class).toBe('/lib/biome/Biome');
-    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/indoor/baseline');
+    expect(seed.class).toBe('/obj/biome/Biome');
+    expect(seed.data?._extendsBiomePath).toBe('/obj/biome/indoor/baseline');
   });
 
   it('scenario C — cafeteria-atrium is SkyExposed and explicitly extends cafeteria', () => {
     const seed = loadSeed('indoor/cafeteria-atrium.yaml');
-    expect(seed.class).toBe('/lib/biome/SkyExposedBiome');
-    expect(seed.data?._extendsBiomePath).toBe('/lib/biome/indoor/cafeteria');
+    expect(seed.class).toBe('/obj/SkyExposedBiome');
+    expect(seed.data?._extendsBiomePath).toBe('/obj/biome/indoor/cafeteria');
   });
 
   it('no other biome seeds have crept in (slim roster discipline)', () => {

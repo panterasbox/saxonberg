@@ -13,14 +13,14 @@
 # families that got one — and prose tells it better than a hundred
 # identical rooms would, at a hundredth the cost. Room-spec rule: prose is
 # bulk, Stuff is few.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: Hinkley Lane
   primaryKeyword: lane
   alternateNames: [road, street]
   _address: terminus/hinkley-hills/lane
-  _biomePath: /lib/biome/outdoor/baseline
+  _biomePath: /obj/biome/outdoor/baseline
   ambientIntensity: 600
   ambientColorTemperature: 5800
   longDescription: |

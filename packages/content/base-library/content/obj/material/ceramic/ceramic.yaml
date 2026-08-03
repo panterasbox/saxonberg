@@ -1,0 +1,21 @@
+# Ceramic — fired clay. The body of a mug; moderate conductivity and
+# heat capacity. A real, tabulated material consumed by the Thermal
+# capability (the open-mug wall term — cools faster than a sealed flask).
+class: /obj/Material
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: ceramic
+  appearance: glazed ceramic
+  keywords: [ceramic, clay]
+  density: 2300
+  # Water absorption capacity (% of dry mass, ASTM D570): glazed/porous ceramic.
+  waterAbsorptionCapacity: 8
+  thermalConductivity: 1.5
+  specificHeat: 880
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

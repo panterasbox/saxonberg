@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../../../api/locomotion';
-import { LocomotionMode } from '../../../lib/locomotion/LocomotionMode';
+import { LocomotionMode } from '../../LocomotionMode';
 import { buildMode } from '../../../lib/locomotion/__tests__/test-helpers';
 import Location from '../../../lib/stuff/Location';
 import Exit from '../../../lib/boundary/Exit';
@@ -22,7 +22,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../lib/vitals/Condition';
+import type { Trauma } from '../../Condition';
 
 class MobileCreature extends MobileMixin(Creature) {
   static _mixinName = 'MobileCreature';

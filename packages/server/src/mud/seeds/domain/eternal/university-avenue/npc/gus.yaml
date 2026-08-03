@@ -35,11 +35,11 @@
 #     ships; Gus stays on the idles+greets floor (a branching tree-dialogue
 #     is explicitly WRONG for the throwback), keyword Q&A deferred.
 class: /obj/Gus
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Gus
   pronouns: he
-  _speciesPath: /lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: gus
   alternateNames:

@@ -11,7 +11,7 @@ import { ContainerMixin } from '../Container';
 import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { EnvironmentMixin } from '../../shell/Environment';
-import CartesianZone from '../../location/CartesianZone';
+import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuff } from '../../security/__tests__/test-setup';

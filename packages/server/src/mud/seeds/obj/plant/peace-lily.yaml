@@ -9,15 +9,15 @@
 # for ~8 game days and runs dry at ~12 — a daily player tops it up right as
 # it starts to dip. See docs/subsystems/husbandry.md.
 class: /obj/Plant
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a peace lily
   primaryKeyword: lily
   keywords: [lily, "peace lily", plant, houseplant]
   longDescription: |
     Broad dark leaves fan out of the soil on slender stalks, each one tapering to a point. A peace lily — the plant every hall porter hands out and nobody quite manages to kill on purpose.
-  _speciesPath: /lib/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii
-  material: /lib/material/tissue/plant-tissue
+  _speciesPath: /obj/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii
+  material: /obj/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /obj/seed/peace-lily
   # NO moisture reserve. Phase 2 moved the water out of the plant and into

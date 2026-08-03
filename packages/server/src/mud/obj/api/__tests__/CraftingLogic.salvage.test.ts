@@ -16,9 +16,9 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
-import Casting from '../../../obj/Casting';
-import Scrap from '../../../obj/Scrap';
-import Weapon from '../../../lib/equipment/Weapon';
+import Casting from '../../Casting';
+import Scrap from '../../Scrap';
+import Weapon from '../../equipment/Weapon';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -39,10 +39,10 @@ class TestWrecker extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = 'TestWreckerSalvage';
 }
 
-const IRON = '/lib/material/_test/sv-iron';
-const LEATHER = '/lib/material/_test/sv-leather';
-const COMPOSITE = '/lib/material/_test/sv-composite';
-const RIGGED = '/lib/material/_test/sv-rigged';
+const IRON = '/obj/material/_test/sv-iron';
+const LEATHER = '/obj/material/_test/sv-leather';
+const COMPOSITE = '/obj/material/_test/sv-composite';
+const RIGGED = '/obj/material/_test/sv-rigged';
 
 let room: TestRoom;
 let wrecker: TestWrecker;

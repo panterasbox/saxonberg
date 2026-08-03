@@ -2,8 +2,8 @@
 # Exercises the encumbrance lift gate: `get anvil` declines diegetically
 # (the anvil doesn't budge). 200 kg sits above
 # baseMass(70) × CAPACITY_FRACTION(0.5) × OVERLOAD_FACTOR(2.0) = 70 kg.
-class: /lib/stuff/Thing
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Prop
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a blacksmith's anvil
   primaryKeyword: anvil

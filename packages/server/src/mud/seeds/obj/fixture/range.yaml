@@ -7,7 +7,7 @@
 # home is not a new mechanic, it is the ERRAND COLLAPSE that makes the
 # archetype worth having (D12).
 class: /obj/Oven
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a kitchen range
   primaryKeyword: range

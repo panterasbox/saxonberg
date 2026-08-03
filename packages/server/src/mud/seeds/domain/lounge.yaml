@@ -5,7 +5,7 @@
 # governing security invariant. The leaf content lives under
 # seeds/domain/lounge/ — folder-seed-alongside-dir, the /lib/address.yaml
 # precedent.
-class: /lib/zone/FolderZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/FolderZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: lounge

@@ -1,5 +1,5 @@
-class: /lib/equipment/Garment
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Garment
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a faded lab hoodie
   primaryKeyword: hoodie
@@ -8,4 +8,4 @@ data:
     cuff. It has the look of someone who codes through the night and
     forgets to eat.
   slotClaims:
-    "/lib/body-plans/biped": [torso]
+    "/obj/species/BodyPlan/biped": [torso]

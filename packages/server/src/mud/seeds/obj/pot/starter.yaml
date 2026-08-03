@@ -10,17 +10,17 @@
 # free plant is also the thing that teaches transplanting, and the large pot
 # at the general store is the first purchase a player has a reason to make.
 class: /obj/PlantPot
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a small clay pot
   primaryKeyword: pot
   keywords: [pot, "small pot", "clay pot", planter]
   longDescription: |
     A squat unglazed pot with a chipped rim, filled to within a thumb's width of the top with dark soil.
-  material: /lib/material/ceramic/ceramic
+  material: /obj/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 0.5
-  interiorMaterial: /lib/material/bulk/potting-soil
+  interiorMaterial: /obj/material/bulk/potting-soil
   interiorAmount: 0.5
   # `liquidTight` (the default), NOT `open`: an `open` interior does not
   # RETAIN bulk — the transfer drains it straight through to the floor. A

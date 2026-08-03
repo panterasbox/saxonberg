@@ -3,8 +3,8 @@
 # lying in the pool (placed as a room content via the cell's `populates:`).
 # The conduction walk reads its `voltage`; switch it off (`switch off the
 # cable`) and the cell goes dead. Per-instance (cloned fresh each standup).
-class: /lib/electricity/LiveWire
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/LiveWire
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a downed live cable
   longDescription: A heavy cable, come down from the ceiling and half-submerged in the water, its frayed end still humming faintly.

@@ -9,8 +9,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
-import BankCounter from "../BankCounter";
-import PaymentCard from "../PaymentCard";
+import BankCounter from "../../../obj/BankCounter";
+import PaymentCard from "../../../obj/PaymentCard";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";

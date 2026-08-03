@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeAddressController from '../AnalyzeAddressController';
 import Location from '../../../../lib/stuff/Location';
-import Locality from '../../../../lib/address/Locality';
+import Locality from '../../../Locality';
 import AddressRegistry from '../../../AddressRegistry';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -89,8 +89,8 @@ function installRoster(): void {
     }, path);
     AddressApi.registerLocality(loc);
   };
-  mint('/lib/address/narnia', 'Narnia', 'narnia');
-  mint('/lib/address/cair-paravel', 'Cair Paravel', 'narnia/castle');
+  mint('/obj/Locality/narnia', 'Narnia', 'narnia');
+  mint('/obj/Locality/cair-paravel', 'Cair Paravel', 'narnia/castle');
 }
 
 describe('AnalyzeAddressController', () => {

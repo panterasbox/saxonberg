@@ -34,7 +34,7 @@ import { StuffApi } from "../../api/stuff";
 import { EmploymentApi } from "../../api/employment";
 import { AttendanceEngagement } from "./AttendanceEngagement";
 import type { Engaged } from "../activity/Engaged";
-import type { Business } from "../employment/Business";
+import type { Business } from "../../obj/Business";
 
 /** The queue disciplines — how the order is decided + what forfeits a place. */
 export type ServiceDiscipline =

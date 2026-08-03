@@ -23,13 +23,13 @@ import { StuffApi } from "../../../api/stuff";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../WorldClockRegistry";
 import SpellCatalogue from "../../SpellCatalogue";
-import Spell from "../../../lib/magic/Spell";
-import GlowlightOrb from "../../../lib/magic/GlowlightOrb";
-import Condition from "../../../lib/vitals/Condition";
+import Spell from "../../magic/Spell";
+import GlowlightOrb from "../../magic/GlowlightOrb";
+import Condition from "../../Condition";
 import { Template } from "../../../lib/stuff/Template";
 import { Character } from "../../../lib/character/Character";
 import { Creature } from "../../../lib/creature/Creature";
-import Species from "../../../lib/species/Species";
+import Species from "../../species/Species";
 import { Quantity } from "../../../lib/quantity";
 import { Faculty } from "../../../lib/magic/Faculty";
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from "../../../lib/magic/Caster";
@@ -45,7 +45,7 @@ class TestCharacter extends Character {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  "../../../seeds/lib/magic/Spell",
+  "../../../seeds/obj/magic/Spell",
 );
 
 const SCALE = 12;
@@ -96,7 +96,7 @@ function makeCaster(): TestCharacter {
   species.setFacultyProfile({ depth: "mid", serenity: "mid", composure: "mid" });
   species.setInnateMixins(["CasterMixin"]);
   species.setSentient(true);
-  stampTemplatePathForTest(species, `/lib/species/test/magic-${n}`);
+  stampTemplatePathForTest(species, `/obj/species/test/magic-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/caster-${n}`);
@@ -108,7 +108,7 @@ function makeBystander(sentient: boolean): TestCharacter {
   const n = seq++;
   const species = makeStuff(() => new Species());
   species.setSentient(sentient);
-  stampTemplatePathForTest(species, `/lib/species/test/by-${n}`);
+  stampTemplatePathForTest(species, `/obj/species/test/by-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/by-${n}`);
@@ -124,7 +124,7 @@ function installDreadSeed(): void {
     { threshold: 15, stage: 2 },
     { threshold: 30, stage: 3 },
   ]);
-  stampTemplatePathForTest(dreadSeed, "/lib/magic/conditions/dread");
+  stampTemplatePathForTest(dreadSeed, "/obj/Condition/magic/dread");
 }
 
 function mana(c: TestCharacter): number {
@@ -213,7 +213,7 @@ describe("MagicLogic — the cast pipeline", () => {
     const caster = makeCaster();
     const out = await MagicApi.resolveCast(caster, "glowlight");
     expect(out.ok).toBe(true);
-    expect(clone).toHaveBeenCalledWith("/lib/magic/GlowlightOrb");
+    expect(clone).toHaveBeenCalledWith("/obj/magic/GlowlightOrb");
     const sustained = caster
       .getConditions()
       .find((c) => c.kind === "sustained");
@@ -263,7 +263,7 @@ describe("MagicLogic — the cast pipeline", () => {
     const target = makeBystander(true);
     target.afflict({
       kind: "affliction",
-      templatePath: "/lib/metabolism/conditions/collapse",
+      templatePath: "/obj/Condition/metabolism/collapse",
       stage: 1,
       elapsed: 0,
     });
@@ -273,7 +273,7 @@ describe("MagicLogic — the cast pipeline", () => {
 
     target.afflict({
       kind: "affliction",
-      templatePath: "/lib/magic/conditions/dread",
+      templatePath: "/obj/Condition/magic/dread",
       stage: 2,
       elapsed: 0,
       magicOrigin: {
@@ -338,7 +338,7 @@ describe("MagicLogic — the cast pipeline", () => {
     const target = makeBystander(true);
     target.afflict({
       kind: "affliction",
-      templatePath: "/lib/magic/conditions/dread",
+      templatePath: "/obj/Condition/magic/dread",
       stage: 1,
       elapsed: 0,
       magicOrigin: {

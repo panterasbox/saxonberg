@@ -12,15 +12,15 @@
 # when four are planted in 12 L. Plant four and they finish; plant four
 # in a bed you never fed and the nitrogen runs out first.
 class: /obj/Plant
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a row of carrots
   primaryKeyword: carrots
   keywords: [carrot, carrots, "carrot tops", tops, crop]
   longDescription: |
     Feathery green tops stand up in a close row, the soil around them cracked where something is swelling underneath.
-  _speciesPath: /lib/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
-  material: /lib/material/tissue/plant-tissue
+  _speciesPath: /obj/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
+  material: /obj/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /obj/seed/carrot
   harvestTemplatePath: /obj/crop/carrot

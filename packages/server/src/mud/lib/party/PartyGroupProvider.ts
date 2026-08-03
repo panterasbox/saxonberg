@@ -24,7 +24,7 @@ import type {
 import type { GroupRole } from "../social/Group";
 import { StuffApi } from "../../api/stuff";
 import { PlayerApi } from "../../api/player";
-import { Party } from "./Party";
+import { Party } from "../../obj/Party";
 
 export class PartyGroupProvider implements GroupProvider {
   readonly source = "party";

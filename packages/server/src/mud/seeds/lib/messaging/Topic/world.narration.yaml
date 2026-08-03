@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.narration
-  family: world
-  label: Narration
-  description: Third-person narration of what other characters are doing — movement, actions, state changes witnessed in the room.

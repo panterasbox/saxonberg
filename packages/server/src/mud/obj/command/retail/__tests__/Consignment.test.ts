@@ -14,13 +14,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../BuyController";
 import ConsignController from "../ConsignController";
 import ReclaimController from "../ReclaimController";
-import ConsignmentShelf from "../../../../lib/retail/ConsignmentShelf";
+import ConsignmentShelf from "../../../ConsignmentShelf";
 import Thing from "../../../../lib/stuff/Thing";
-import BankCounter from "../../../../lib/banking/BankCounter";
-import PaymentCard from "../../../../lib/banking/PaymentCard";
+import BankCounter from "../../../BankCounter";
+import PaymentCard from "../../../PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
 import { EmploymentApi } from "../../../../api/employment";
-import BusinessEntity from "../../../../lib/employment/Business";
+import BusinessEntity from "../../../Business";
 import { ChattelApi } from "../../../../api/chattel";
 import { BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
@@ -39,7 +39,7 @@ import Location from "../../../../lib/stuff/Location";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import { CommandApi, type CommandContext } from "../../../../api/command";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import Coin from "../../../../obj/Coin";
+import Coin from "../../../Coin";
 import {
   makeStuff,
   makeStuffAtPath,

@@ -5,8 +5,8 @@
 # of offers. Order it made, or make it yourself with their tools — the
 # DIY floor. Recipes own FORMING (ingot → blade), gated on reachable
 # heat: `forge knife` at a cold forge is a diegetic decline.
-class: /lib/location/CartesianLocation
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a smithy
   primaryKeyword: smithy

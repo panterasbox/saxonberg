@@ -7,7 +7,7 @@
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { AppApi } from '../../../api/app';
-import ToolItem from '../../../lib/craft/ToolItem';
+import ToolItem from '../../../obj/ToolItem';
 import { AppSettingKeys } from '../../config/AppSettings';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { StuffApi } from '../../../api/stuff';

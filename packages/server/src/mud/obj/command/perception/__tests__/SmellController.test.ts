@@ -37,8 +37,8 @@ import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
 import { VisibleMixin } from '../../../../lib/description/Visible';
 import { OrganismMixin } from '../../../../lib/species/Organism';
-import Species from '../../../../lib/species/Species';
-import BodyPlan from '../../../../lib/species/BodyPlan';
+import Species from '../../../species/Species';
+import BodyPlan from '../../../species/BodyPlan';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -87,7 +87,7 @@ function makeFixture(): Fixture {
   buildAllModalities();
   const bodyPlan = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/lib/body-plans/test-smell',
+    '/obj/species/BodyPlan/test-smell',
   );
   bodyPlan.setSensoryPorts([
     { modality: 'vision', count: 2, position: 'frontal' },
@@ -98,7 +98,7 @@ function makeFixture(): Fixture {
   ]);
   const species = withTemplatePath(
     makeStuff(() => new Species()),
-    '/lib/species/test/full-sensory',
+    '/obj/species/test/full-sensory',
   );
   species.setBodyPlan(bodyPlan);
 

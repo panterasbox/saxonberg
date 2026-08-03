@@ -40,7 +40,7 @@ describe('Tangible.getMaterial (direct object read)', () => {
   it('returns the Material singleton for a Tangible Stuff with a path set', () => {
     const oak = makeStuff(() => new Material());
     oak.setName('oak');
-    stampTemplatePathForTest(oak, '/lib/material/wood/oak');
+    stampTemplatePathForTest(oak, '/obj/material/wood/oak');
 
     const log = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(log)) throw new Error('expected tangible');
@@ -51,9 +51,9 @@ describe('Tangible.getMaterial (direct object read)', () => {
 
   it('reads per-Detail overrides when detailKey is supplied', () => {
     const oak = makeStuff(() => new Material());
-    stampTemplatePathForTest(oak, '/lib/material/wood/oak');
+    stampTemplatePathForTest(oak, '/obj/material/wood/oak');
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/lib/material/element/iron');
+    stampTemplatePathForTest(iron, '/obj/material/element/iron');
 
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -88,7 +88,7 @@ describe('MaterialApi v2 — classification queries', () => {
   } {
     const iron = withTemplatePath(
       makeStuff(() => new Material()),
-      '/lib/material/element/iron'
+      '/obj/material/element/iron'
     );
     iron.setName('iron');
     iron.setTags(['element', 'metal', 'ferrous']);
@@ -100,7 +100,7 @@ describe('MaterialApi v2 — classification queries', () => {
 
     const carbon = withTemplatePath(
       makeStuff(() => new Material()),
-      '/lib/material/element/carbon'
+      '/obj/material/element/carbon'
     );
     carbon.setName('carbon');
     carbon.setTags(['element', 'non-metal']);
@@ -112,13 +112,13 @@ describe('MaterialApi v2 — classification queries', () => {
 
     const steel = withTemplatePath(
       makeStuff(() => new Material()),
-      '/lib/material/alloy/steel'
+      '/obj/material/alloy/steel'
     );
     steel.setName('steel');
     steel.setTags(['alloy', 'metal', 'ferrous']);
     steel.setComposition([
-      { materialPath: '/lib/material/element/iron', fraction: 0.998 },
-      { materialPath: '/lib/material/element/carbon', fraction: 0.002 },
+      { materialPath: '/obj/material/element/iron', fraction: 0.998 },
+      { materialPath: '/obj/material/element/carbon', fraction: 0.002 },
     ]);
 
     return { iron, carbon, steel };
@@ -143,7 +143,7 @@ describe('MaterialApi v2 — classification queries', () => {
     it('a mixture without composition refs yields an empty flat map', () => {
       const granite = withTemplatePath(
         makeStuff(() => new Material()),
-        '/lib/material/rock/granite'
+        '/obj/material/rock/granite'
       );
       granite.setTags(['rock', 'igneous', 'mixture']);
       // composition empty by default

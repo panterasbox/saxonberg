@@ -6,8 +6,8 @@
 # the gated `parcels` collection (`/domain/terminus/registry` → the
 # managed `terminus` group; mud/config/parcels.yaml), the governing
 # security invariant.
-class: /lib/location/CartesianZone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/location/CartesianZone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   name: Terminus Registry
   cellSize: 3.0

@@ -23,7 +23,7 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
 import GradedReceptacle from '../../../domain/lounge/GradedReceptacle';
-import ToolItem from '../../../lib/craft/ToolItem';
+import ToolItem from '../../ToolItem';
 import CraftedDrink from '../../../domain/lounge/CraftedDrink';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -53,10 +53,10 @@ class TestPatron extends NamedMixin(ContainableMixin(Idea)) {
   static _mixinName = 'TestPatron';
 }
 
-const GIN = '/lib/material/spirit/gin';
-const VERMOUTH = '/lib/material/spirit/vermouth';
-const RUM = '/lib/material/spirit/rum';
-const MARTINI_MAT = '/lib/material/cocktail/martini';
+const GIN = '/obj/material/spirit/gin';
+const VERMOUTH = '/obj/material/spirit/vermouth';
+const RUM = '/obj/material/spirit/rum';
+const MARTINI_MAT = '/obj/material/cocktail/martini';
 const GLASS = '/domain/lounge/cocktail-glass';
 const DAVE = '/domain/lounge/dave-test';
 

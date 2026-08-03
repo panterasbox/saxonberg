@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.analyze-chemistry
-  family: world.perception.measurement
-  label: Analyze Chemistry
-  description: Output of the analyze chemistry subcommand — material composition breakdown.

@@ -9,8 +9,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import PaymentCard from "../PaymentCard";
-import CredentialWalletUpdate from "../../credential/CredentialWalletUpdate";
+import PaymentCard from "../../../obj/PaymentCard";
+import CredentialWalletUpdate from "../../../obj/CredentialWalletUpdate";
 import { MixinApi } from "../../../api/mixin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
@@ -130,7 +130,7 @@ describe("Credential risk ladder", () => {
   it("the wallet implant is body-bound (a hosted update, not a carryable Thing)", () => {
     const implant = makeStuffAtPath(
       () => new CredentialWalletUpdate(),
-      "/lib/credential/CredentialWalletUpdate"
+      "/obj/CredentialWalletUpdate"
     );
     // A card is Containable (carryable / losable); the wallet implant is not.
     const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");

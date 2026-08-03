@@ -79,7 +79,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 describe('AnalyzeAtmosphereController', () => {
@@ -99,11 +99,11 @@ describe('AnalyzeAtmosphereController', () => {
     const biome = makeStuffAtPath(
       () => {
         const b = new Biome();
-        b._extendsBiomePath = '/lib/biome/universe';
+        b._extendsBiomePath = '/obj/biome/universe';
         b.setDefaultTemperature(Quantity.of(285, 'K'));
         return b;
       },
-      '/lib/biome/outdoor/temperate/quad',
+      '/obj/biome/outdoor/temperate/quad',
     );
     const room = makeStuff(() => new TestLocation());
     room.setBiome(biome);
@@ -120,7 +120,7 @@ describe('AnalyzeAtmosphereController', () => {
 
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
-    expect(frame.body).toContain('/lib/biome/outdoor/temperate/quad');
+    expect(frame.body).toContain('/obj/biome/outdoor/temperate/quad');
     expect(frame.body).toContain('temperature:');
     expect(frame.body).toContain('value="285"');
     expect(frame.body).toContain('biome default');
@@ -128,8 +128,8 @@ describe('AnalyzeAtmosphereController', () => {
     expect(frame.body).toContain('air');
     // Fields the leaf doesn't override resolve via biome-ancestor walk
     // (follows _extendsBiomePath) up to the root universe biome at
-    // /lib/biome/universe.
-    expect(frame.body).toContain('biome ancestor (/lib/biome/universe)');
+    // /obj/biome/universe.
+    expect(frame.body).toContain('biome ancestor (/obj/biome/universe)');
   });
 
   it('detail key reads the hearth override with detail provenance', async () => {

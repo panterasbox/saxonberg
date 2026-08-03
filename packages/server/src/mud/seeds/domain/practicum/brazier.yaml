@@ -1,7 +1,7 @@
 # The warded cell's brazier — a mundane Campfire (fueled, ignitable):
 # proof that suppression never touches an impulse-real fire.
 class: /obj/Campfire
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a bronze brazier
   keywords: [brazier, fire, flames]

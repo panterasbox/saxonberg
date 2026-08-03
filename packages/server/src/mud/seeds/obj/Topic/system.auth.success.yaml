@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: system.auth.success
+  family: system.auth
+  label: Success
+  description: Authentication completed successfully.

@@ -7,7 +7,7 @@ help: |
   and — for wizards — the raw server console.
 
   `errors` (or `errors list`) shows recent diagnostics, newest first. A
-  trailing path narrows to that prefix: `errors /lib/lounge`. Filter with
+  trailing path narrows to that prefix: `errors /obj/lounge`. Filter with
   `--channel <zone.lounge|lib.*|command|api|global>`, `--severity
   <error|warning>`, `--source <runtime|compile>`, `--mine` (only
   diagnostics in content you authored), and `--limit <n>`.

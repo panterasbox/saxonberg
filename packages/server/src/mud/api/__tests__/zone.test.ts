@@ -63,12 +63,12 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Castle' },
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/lib/location/CartesianLocation',
+        class: '/obj/location/Room',
         data: {},
       },
     ]);
@@ -85,12 +85,12 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/lib/location/SphericalZone',
+        class: '/obj/location/SphericalZone',
         data: {},
       },
     ]);
@@ -104,7 +104,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/orphan/leaf',
-        class: '/lib/location/CartesianLocation',
+        class: '/obj/location/Room',
         data: {},
       },
     ]);
@@ -115,7 +115,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Narnia' },
       },
     ]);
@@ -126,7 +126,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -139,7 +139,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -152,7 +152,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -166,16 +166,16 @@ describe('ZoneApi.resolveZoneForPath', () => {
     // does NOT extend SpatialZone (so isSpatialZoneClass returns
     // false). A species member at this path has no spatial zone
     // ancestor, so the walk returns null even though
-    // /lib/species/animalia is a legal folder ancestor.
+    // /obj/species/animalia is a legal folder ancestor.
     installInMemoryStore([
       {
-        path: '/lib/species/animalia',
-        class: '/lib/species/Clade',
+        path: '/obj/species/animalia',
+        class: '/obj/species/Clade',
         data: { name: 'Animalia', rank: 'kingdom' },
       },
     ]);
     expect(
-      await ZoneApi.resolveZoneForPath('/lib/species/animalia/foo')
+      await ZoneApi.resolveZoneForPath('/obj/species/animalia/foo')
     ).toBeNull();
   });
 
@@ -183,7 +183,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);

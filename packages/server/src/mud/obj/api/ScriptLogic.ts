@@ -15,7 +15,7 @@ import { AppApi } from "../../api/app";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { StuffApi } from "../../api/stuff";
-import EvalScript from "../../lib/script/EvalScript";
+import EvalScript from "../EvalScript";
 import { Interpreter } from "../../lib/script/Interpreter";
 import { RecipeKnowledge } from "../../lib/script/RecipeKnowledge";
 import { Transcriber } from "../../lib/script/Transcriber";

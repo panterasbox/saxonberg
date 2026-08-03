@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
-import { LocomotionMode } from '../../lib/locomotion/LocomotionMode';
+import { LocomotionMode } from '../../obj/LocomotionMode';
 import {
   ClimbableMixin,
   CLIMBING_CAPABILITY_PROP,
@@ -62,8 +62,8 @@ class TestCart extends MobileCart {}
 // An Organism + Mobile + Containable actor (NPC-shaped) for the
 // body-plan default chain.
 import { OrganismMixin } from '../../lib/species/Organism';
-import Species from '../../lib/species/Species';
-import BodyPlan from '../../lib/species/BodyPlan';
+import Species from '../../obj/species/Species';
+import BodyPlan from '../../obj/species/BodyPlan';
 import { StuffApi } from '../stuff';
 import { LocomotionLogic } from '../../obj/api/LocomotionLogic';
 import { SecurityError } from '../../lib/security/errors';
@@ -90,7 +90,7 @@ describe('LocomotionApi', () => {
     });
 
     it('accepts a full templatePath', () => {
-      const m = LocomotionApi.modeOf('/lib/locomotion/walk');
+      const m = LocomotionApi.modeOf('/obj/LocomotionMode/walk');
       expect(m?.getName()).toBe('walk');
     });
 
@@ -100,7 +100,7 @@ describe('LocomotionApi', () => {
 
     it('modeOfOrThrow throws with the resolved path in the message', () => {
       expect(() => LocomotionApi.modeOfOrThrow('rocketpack')).toThrow(
-        /\/lib\/locomotion\/rocketpack/,
+        /\/obj\/LocomotionMode\/rocketpack/,
       );
     });
   });
@@ -483,7 +483,7 @@ describe('LocomotionApi', () => {
       // Set up a bird-shaped bodyplan with default='fly'.
       const bodyplan = makeAtPath(
         () => new BodyPlan(),
-        '/lib/species/bodyplan/test-avian',
+        '/obj/species/bodyplan/test-avian',
       );
       bodyplan.setName('test-avian');
       bodyplan.setLocomotionModes(['walk', 'fly']);
@@ -491,7 +491,7 @@ describe('LocomotionApi', () => {
 
       const species = makeAtPath(
         () => new Species(),
-        '/lib/species/test-bird',
+        '/obj/species/test-bird',
       );
       species.setBodyPlan(bodyplan);
 
@@ -503,14 +503,14 @@ describe('LocomotionApi', () => {
     it('falls back to "walk" for an Organism whose bodyplan has no default', () => {
       const bodyplan = makeAtPath(
         () => new BodyPlan(),
-        '/lib/species/bodyplan/test-bareplan',
+        '/obj/species/bodyplan/test-bareplan',
       );
       bodyplan.setName('test-bareplan');
       // defaultLocomotionMode stays at default null.
 
       const species = makeAtPath(
         () => new Species(),
-        '/lib/species/test-noplan',
+        '/obj/species/test-noplan',
       );
       species.setBodyPlan(bodyplan);
 

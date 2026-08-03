@@ -1,0 +1,7 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: system.connection.lost
+  family: system.connection
+  label: Lost
+  description: A client connection has dropped — either disconnect or timeout.

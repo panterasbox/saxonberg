@@ -15,23 +15,23 @@ import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
 import { Idea } from '../../../lib/stuff/Idea';
 import Location from '../../../lib/stuff/Location';
-import Floor from '../../../obj/Floor';
+import Floor from '../../Floor';
 import { Creature } from '../../../lib/creature/Creature';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
-import type Interactive from '../../../obj/Interactive';
-import Species from '../../../lib/species/Species';
-import BodyPlan from '../../../lib/species/BodyPlan';
+import type Interactive from '../../Interactive';
+import Species from '../../species/Species';
+import BodyPlan from '../../species/BodyPlan';
 import Material from '../../../lib/material/Material';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../WorldClockRegistry';
 import { Quantity } from '../../../lib/quantity';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma, SustainedShock } from '../../../lib/vitals/Condition';
+import type { Trauma, SustainedShock } from '../../Condition';
 
 class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestWire';
@@ -48,7 +48,7 @@ function saltWater(): Material {
   const m = makeStuff(() => new Material());
   m.setName('salt-water');
   m.setElectricalConductivity(Quantity.of(5, 'S/m'));
-  stampTemplatePathForTest(m, `/lib/material/test/salt-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/salt-${seq++}`);
   return m;
 }
 
@@ -91,13 +91,13 @@ function makeBody(room: Location, connected = true): TestBody {
     {
       key: 'body.leg.left.foot',
       parent: 'body.leg.left',
-      tissues: [{ tissuePath: '/lib/material/tissue/flesh', mass: 0.5 }],
+      tissues: [{ tissuePath: '/obj/material/tissue/flesh', mass: 0.5 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-sustain-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-sustain-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/sustain-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/sustain-${id}`);
   const c = makeStuff(() => new TestBody());
   c.setSpecies(species);
   // A body with no interactive reads as linkdead (reconcile freezes it); a

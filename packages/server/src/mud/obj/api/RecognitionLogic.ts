@@ -16,7 +16,7 @@ import { TemplatePathPrefixes } from '../../lib/paths';
 // registered singleton (see `canSeeGate`). A *static* import of any
 // perception module would drag the `Modality → Idea` subsystem into this
 // module's eval and crash boot. So: zero static perception imports here.
-import type { VisionModality } from '../../lib/perception/modalities/VisionModality';
+import type { VisionModality } from '../modalities/VisionModality';
 import { RECOGNITION, IDENTIFICATION } from '../../lib/belief/BeliefStore';
 
 const RecognitionApiCallers = SecurityPolicies.FromModule('/api/recognition#RecognitionApi'

@@ -13,7 +13,7 @@ import EnrollController from '../EnrollController';
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Avatar from '../../../Avatar';
-import Species from '../../../../lib/species/Species';
+import Species from '../../../species/Species';
 import { WearableMixin } from '../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../lib/slot/Slottable';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -30,8 +30,8 @@ import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 
 const SAPIENS =
-  '/lib/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
-const BIPED = '/lib/body-plans/biped';
+  '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
+const BIPED = '/obj/species/BodyPlan/biped';
 
 // A real Wearable+Containable garment so the dressing block's mixin
 // predicates (`isContainable`/`isWearable`) narrow it rather than skip.
@@ -100,7 +100,7 @@ describe('EnrollController.commit', () => {
       path: Avatar.SEED_TEMPLATE_PATH,
       class: '/obj/Avatar',
       data: { startLocation: '/domain/lounge/warren' },
-      hydratorClass: '/lib/persistence/PersistentHydrator',
+      hydratorClass: '/obj/persistence/PersistentHydrator',
     } as never);
     // No per-player template row is written anymore (the identity
     // doctrine): the picks ride the clone's `dataOverlay` and the

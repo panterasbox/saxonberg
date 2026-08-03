@@ -39,7 +39,7 @@ import type { Vitals } from '../vitals/Vitals';
 import type { Organism } from '../species/Organism';
 import type { Engaged } from '../activity/Engaged';
 import type Exit from '../boundary/Exit';
-import type { AfflictionRecord } from '../vitals/Condition';
+import type { AfflictionRecord } from '../../obj/Condition';
 import type { BulkSlot } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
 import { SchedulerApi } from '../../api/scheduler';

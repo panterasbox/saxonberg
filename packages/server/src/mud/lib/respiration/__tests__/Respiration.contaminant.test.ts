@@ -16,8 +16,8 @@ import {
 } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';
-import BodyPlan from '../../species/BodyPlan';
-import Species from '../../species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../obj/species/Species';
 import Material from '../../material/Material';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../obj/WorldClockRegistry';
@@ -38,7 +38,7 @@ class TestCharacter extends Character {}
 
 const SPECIES_PATH = '/test/respiration/co-species';
 const BODYPLAN_PATH = '/test/respiration/co-bodyplan';
-const AIR_MATERIAL_PATH = '/lib/material/bulk/air';
+const AIR_MATERIAL_PATH = '/obj/material/bulk/air';
 
 function room(atmosphere: string): TestLocation {
   const r = makeStuff(() => new TestLocation());

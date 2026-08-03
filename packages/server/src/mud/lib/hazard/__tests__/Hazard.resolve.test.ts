@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Trap from '../Trap';
+import Trap from '../../../obj/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';
 import DisarmController from '../../../obj/command/device/DisarmController';
 import { MobileMixin } from '../../spatial/Mobile';
@@ -33,8 +33,8 @@ import { Construction } from '../../material/Construction';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import Exit from '../../boundary/Exit';
@@ -57,7 +57,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../vitals/Condition';
+import type { Trauma } from '../../../obj/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 import type { MqlOneResult } from '../../../api/mql';
 import type { CommandContext } from '../../../api/command';
@@ -90,7 +90,7 @@ function demoSteel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/lib/material/alloy/steel-hz-${n}`);
+  stampTemplatePathForTest(m, `/obj/material/alloy/steel-hz-${n}`);
   return m;
 }
 
@@ -209,10 +209,10 @@ beforeEach(() => {
   });
   EventApi._setRegistryForTesting(reg);
   n++;
-  bodyplanPath = `/lib/body-plans/hazard-biped-${n}`;
+  bodyplanPath = `/obj/species/BodyPlan/hazard-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/lib/species/hazard/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/obj/species/hazard/biped-${n}`);
 });
 afterEach(() => {
   vi.restoreAllMocks();

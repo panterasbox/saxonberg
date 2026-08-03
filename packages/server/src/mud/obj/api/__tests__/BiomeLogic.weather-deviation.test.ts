@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Biome from '../../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../../lib/biome/SkyExposedBiome';
+import { SkyExposedBiome } from '../../SkyExposedBiome';
 import { BiomeApi } from '../../../api/biome';
 import { WeatherApi } from '../../../api/weather';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -39,16 +39,16 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(BASE_W, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/lib/biome/universe');
+  }, '/obj/biome/universe');
 }
 
 /** A room whose biome composes SkyExposedMixin (weather-eligible). */
 function skyRoom(): Location {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/outdoor/field');
+  }, '/obj/biome/outdoor/field');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;
@@ -58,9 +58,9 @@ function skyRoom(): Location {
 function indoorRoom(): Location {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/lib/biome/universe';
+    b._extendsBiomePath = '/obj/biome/universe';
     return b;
-  }, '/lib/biome/indoor/hall');
+  }, '/obj/biome/indoor/hall');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;

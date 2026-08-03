@@ -1,0 +1,10 @@
+# /obj/lounge — the lounge team's ownership root (a FolderZone). Scopes write
+# access for lounge content. Ownership is NOT declared here: it lives in the
+# gated `parcels` collection (`/obj/lounge` → the managed `lounge` group; see
+# mud/config/parcels.yaml), never on this editable `domain` zone template —
+# the governing security invariant. The retired `ownerGroupName` stamp moved
+# to the parcel row.
+class: /obj/FolderZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: lounge

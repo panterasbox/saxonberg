@@ -21,10 +21,10 @@ import {
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../../lib/stuff/Idea";
 import { Character } from "../../../lib/character/Character";
-import Species from "../../../lib/species/Species";
-import BodyPlan from "../../../lib/species/BodyPlan";
-import Weapon from "../../../lib/equipment/Weapon";
-import Armor from "../../../lib/equipment/Armor";
+import Species from "../../species/Species";
+import BodyPlan from "../../species/BodyPlan";
+import Weapon from "../../equipment/Weapon";
+import Armor from "../../equipment/Armor";
 import Material from "../../../lib/material/Material";
 import { Construction } from "../../../lib/material/Construction";
 import { ContainerMixin } from "../../../lib/spatial/Container";
@@ -39,7 +39,7 @@ import {
   type TermsProposal,
 } from "../../../lib/combat/CombatTerms";
 import { CombatSession } from "../../../lib/combat/CombatSession";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../api/event";
 
 class TestRoom extends ContainerMixin(Idea) {}
@@ -52,7 +52,7 @@ function mat(hardness: number, toughness: number, name: string): Material {
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
-  stampTemplatePathForTest(m, `/lib/material/test/gw-${seq++}`);
+  stampTemplatePathForTest(m, `/obj/material/test/gw-${seq++}`);
   return m;
 }
 const steel = () => mat(600, 200, "steel");
@@ -79,26 +79,26 @@ function makeFighter(room: TestRoom): TestFighter {
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/lib/material/tissue/bone", mass: 8 },
-        { tissuePath: "/lib/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
+        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/lib/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/lib/body-plans/test-gw-${id}`);
+  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-gw-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/lib/species/test/gw-${id}`);
+  stampTemplatePathForTest(species, `/obj/species/test/gw-${id}`);
 
   const f = makeStuff(() => new TestFighter());
   stampTemplatePathForTest(f, `/test/gw-fighter-${id}`);

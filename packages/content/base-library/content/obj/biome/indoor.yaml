@@ -1,0 +1,7 @@
+# /obj/biome/indoor — FolderZone for the indoor sub-tree.
+# Admin/ownership scope. Shared indoor defaults live on
+# `indoor/baseline`.
+class: /obj/FolderZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: indoor

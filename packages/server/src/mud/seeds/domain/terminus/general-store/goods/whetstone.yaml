@@ -1,8 +1,8 @@
 # A whetstone — the personal-capital exemplar: carried, it affords
 # `sharpen` (the working-surface ritual); it wears with use and the store
 # sells the next one. Granite, with an Audible rasp the room hears.
-class: /lib/craft/Whetstone
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/Whetstone
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a whetstone
   primaryKeyword: whetstone
@@ -10,5 +10,5 @@ data:
   longDescription: |
     A palm-sized bar of grey granite, one face dished by years of blades. Spit, steel, patience.
   capabilities: [whetstone]
-  _materialPath: /lib/material/rock/granite
+  _materialPath: /obj/material/rock/granite
   mass: 0.3

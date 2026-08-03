@@ -11,8 +11,8 @@
 # ARMED baton dropped in the pool WOULD become a source — correct physics,
 # the conduction walk reads every Energized node; safe here because it ships
 # safed.) Per-instance (cloned fresh); one-handed.
-class: /lib/electricity/StunBaton
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/StunBaton
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a stun baton
   primaryKeyword: baton
@@ -20,7 +20,7 @@ data:
     A short, rubber-gripped baton with two blunt steel electrodes at the tip
     and a thumb-switch on the haft. Dead weight until it is armed; then the
     gap between the electrodes spits and crackles.
-  _materialPath: /lib/material/alloy/steel
+  _materialPath: /obj/material/alloy/steel
   constructionForm: hafted
   gradeBand: fine
   mass: 0.6
@@ -28,7 +28,7 @@ data:
   balanceFactor: 1.4
   # One-handed — claims a single hand slot (wield it in either hand).
   slotClaims:
-    "/lib/body-plans/biped": ["hand:right"]
+    "/obj/species/BodyPlan/biped": ["hand:right"]
   # Contact-stun potential (~5 kV): body-limited to ~50 mA on a landed hit —
   # the tetany/disarm band, not lethal.
   voltage: 5000

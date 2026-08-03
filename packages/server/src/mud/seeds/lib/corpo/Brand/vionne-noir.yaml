@@ -1,9 +1,0 @@
-class: /lib/corpo/Brand
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  key: vionne-noir
-  name: Vionne Noir
-  owner: vionne
-  category: gin
-  positioning: overpriced-premium
-  descriptor: A fancy-bottled gin you order to be seen ordering — good, not transcendent, priced like a religion.

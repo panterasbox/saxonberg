@@ -1,5 +1,5 @@
-class: /lib/equipment/Garment
-hydratorClass: /lib/persistence/PersistentHydrator
+class: /obj/equipment/Garment
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a crisp white coat
   primaryKeyword: coat
@@ -8,4 +8,4 @@ data:
     wearer an air of competence they may not yet have earned — but
     intend to.
   slotClaims:
-    "/lib/body-plans/biped": [torso]
+    "/obj/species/BodyPlan/biped": [torso]

@@ -101,8 +101,8 @@ const CONTAINMENT_DEPTH_CAP = 32;
 /**
  * Path of the root universe biome — the inheritance-hierarchy root
  * with `_extendsBiomePath: null`. The biome admin folder lives at
- * `/lib/biome/` (a `FolderZone`); the root biome itself lives at
- * `/lib/biome/universe`.
+ * `/obj/biome/` (a `FolderZone`); the root biome itself lives at
+ * `/obj/biome/universe`.
  */
 const ROOT_BIOME_PATH = TemplatePaths.rootBiome;
 
@@ -487,7 +487,7 @@ function findBiomeByPath(path: string): Biome | null {
 }
 
 /**
- * Cached accessor for the root universe biome at `/lib/biome/`. Throws
+ * Cached accessor for the root universe biome at `/obj/biome/`. Throws
  * when the root biome isn't loaded — a boot-time invariant.
  */
 function rootBiome(): Biome {
@@ -497,7 +497,7 @@ function rootBiome(): Biome {
       throw new Error(
         `BiomeApi.getRootBiome: root universe biome at ` +
           `'${ROOT_BIOME_PATH}' is not loaded — check ` +
-          `seeds/lib/biome/universe.yaml`
+          `seeds/obj/biome/universe.yaml`
       );
     }
     rootBiomeCache = b;
@@ -798,7 +798,7 @@ async function runChainWalk<V>(
     throw new Error(
       `BiomeApi.resolve${capitalize(fieldBare)}For: root universe biome ` +
         `at '${ROOT_BIOME_PATH}' is missing the '${fieldBare}' default. ` +
-        `This is a boot-time invariant violation; check seeds/lib/biome/universe.yaml.`,
+        `This is a boot-time invariant violation; check seeds/obj/biome/universe.yaml.`,
     );
   }
   return {

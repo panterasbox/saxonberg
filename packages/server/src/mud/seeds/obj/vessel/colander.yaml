@@ -5,7 +5,7 @@
 # construction property, not the wall material (a steel bucket and a
 # steel sieve differ).
 class: /obj/Receptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a tin colander
   longDescription: A battered tin colander, its bowl pierced by a hundred little holes.

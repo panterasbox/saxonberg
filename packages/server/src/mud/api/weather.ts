@@ -31,7 +31,7 @@ import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Quantity } from '../lib/quantity';
-import type Locality from '../lib/address/Locality';
+import type Locality from '../obj/Locality';
 import { WeatherLogic } from '../obj/api/WeatherLogic';
 import { fileURLToPath } from 'url';
 

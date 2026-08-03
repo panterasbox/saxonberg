@@ -1,0 +1,17 @@
+# Plant tissue — soft cellulose-based. Living plant matter (a leaf,
+# a stem); distinct from oak (dead, processed wood). Flammable when
+# dry.
+class: /obj/Material
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: plant-tissue
+  density: 600
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  edibility: true
+  nutrients: ["cellulose", "water"]
+  toxicity: []
+  tags: ["tissue", "plant", "mixture", "organic", "living", "edible"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

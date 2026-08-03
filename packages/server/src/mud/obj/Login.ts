@@ -52,7 +52,7 @@ import type {
   CharGenRosterPayload,
 } from "@saxonberg/types";
 import type Interactive from "./Interactive";
-import type Species from "../lib/species/Species";
+import type Species from "./species/Species";
 import type { User } from "../lib/identity/User";
 
 /** Random element of an array (undefined when empty). */

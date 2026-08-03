@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ZoneApi } from '../../../api/zone';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
-import FolderZone from '../FolderZone';
+import FolderZone from '../../../obj/FolderZone';
 import { Zone } from '../Zone';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -75,7 +75,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -88,12 +88,12 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/lib/zone/FolderZone',
+        class: '/obj/FolderZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -109,7 +109,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -121,12 +121,12 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/eternal',
-        class: '/lib/zone/FolderZone',
+        class: '/obj/FolderZone',
         data: {},
       },
       {
         path: '/eternal/university',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -147,17 +147,17 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/outer',
-        class: '/lib/zone/FolderZone',
+        class: '/obj/FolderZone',
         data: {},
       },
       {
         path: '/outer/middle',
-        class: '/lib/zone/FolderZone',
+        class: '/obj/FolderZone',
         data: {},
       },
       {
         path: '/outer/middle/inner',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);
@@ -207,12 +207,12 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/lib/zone/FolderZone',
+        class: '/obj/FolderZone',
         data: {},
       },
       {
         path: '/zone/sub',
-        class: '/lib/location/CartesianZone',
+        class: '/obj/location/CartesianZone',
         data: {},
       },
     ]);

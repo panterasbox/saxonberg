@@ -7,7 +7,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import DrawController from "../DrawController";
-import BusinessEntity from "../../../../lib/employment/Business";
+import BusinessEntity from "../../../Business";
 import { BankingApi, Money } from "../../../../api/banking";
 import { MessageApi } from "../../../../api/message";
 import { ExecutionContextApi } from "../../../../api/execution-context";

@@ -1,7 +1,0 @@
-class: /lib/messaging/Topic
-hydratorClass: /lib/persistence/PersistentHydrator
-data:
-  topic: world.perception.sense.smell
-  family: world.perception.sense
-  label: Smell
-  description: Output of the smell verb — deliberate olfactory attention.

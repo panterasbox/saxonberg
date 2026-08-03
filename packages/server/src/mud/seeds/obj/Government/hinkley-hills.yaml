@@ -1,0 +1,28 @@
+# The Hinkley Hills Improvement District — the thinnest government in the
+# game, and deliberately so.
+#
+# Where the City of Terminus is a chartered municipal corporation with a
+# Registry and a Magistrate, this is a subdivision that has a name, a
+# survey, and an opinion about what you may build. It has NO departments,
+# NO treasury and NO seats, because it has none of those things: writing
+# empty structure into a template would be pretending. What it does have
+# is jurisdiction, which is exactly what a land-use rule needs to be more
+# than a suggestion.
+#
+# Everything about it is a seam for later. When somebody wants a road
+# maintained or a dispute settled, the Hills will need an office to do it,
+# and that is the moment to add one — not now.
+class: /obj/Government
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: hinkley-hills
+  displayName: the Hinkley Hills Improvement District
+  description: >-
+    A subdivision at the city's western edge, laid out by a surveyor who
+    was paid by the lot and drew accordingly. The District exists on
+    paper: it zones the ground residential, records who holds which lot,
+    and has never once been asked to do anything else.
+  charter: ""
+  treasury: ""
+  departments: []
+  seats: []

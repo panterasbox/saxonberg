@@ -26,12 +26,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Trap from '../Trap';
+import Trap from '../../../obj/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';
 import { MobileMixin } from '../../spatial/Mobile';
 import { Creature } from '../../creature/Creature';
-import Species from '../../species/Species';
-import BodyPlan from '../../species/BodyPlan';
+import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../obj/species/BodyPlan';
 import Location from '../../stuff/Location';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
@@ -44,7 +44,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../vitals/Condition';
+import type { Trauma } from '../../../obj/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 
 let n = 0;
@@ -125,10 +125,10 @@ beforeEach(() => {
   });
   n++;
   trapCounter = 0;
-  bodyplanPath = `/lib/body-plans/carespeed-biped-${n}`;
+  bodyplanPath = `/obj/species/BodyPlan/carespeed-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/lib/species/carespeed/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/obj/species/carespeed/biped-${n}`);
 });
 
 afterEach(() => {

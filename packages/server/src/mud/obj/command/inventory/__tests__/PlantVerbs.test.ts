@@ -97,7 +97,7 @@ function tissue(): Material {
     m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
     return m;
-  }, freshPath('/lib/material/_test/tissue')) as unknown as Material;
+  }, freshPath('/obj/material/_test/tissue')) as unknown as Material;
 }
 
 /** The template path the seed names; the clone stub mints from it. */

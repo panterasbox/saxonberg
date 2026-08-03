@@ -48,7 +48,7 @@
  * Content tree: writes a `LeafTemplate` at the resolved path via
  * `TemplateApi.saveTemplate`. The backing class and hydrator are
  * customisable per call via `--class` / `--hydrator`; defaults are
- * `/lib/stuff/Idea` and `/lib/persistence/PersistentHydrator` for
+ * `/lib/stuff/Idea` and `/obj/persistence/PersistentHydrator` for
  * a generic "data bag" template. Source tree: writes the body to
  * the resolved file via `SourceTreeApi.write`; `--class` /
  * `--hydrator` are ignored.

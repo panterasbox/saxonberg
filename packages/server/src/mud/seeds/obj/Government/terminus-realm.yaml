@@ -1,0 +1,16 @@
+# The Realm of Terminus — the realm-tier government of the three-tier
+# stack (terminus-city.md §8). THIN by design: identity + jurisdiction
+# only (the `terminus` Locality declares this key); ministries, the
+# steward's diegetic dressing, and the assizes are deferred to their own
+# design pass. It charters the city corporation and the University; it is
+# ordinary authored fiction, NOT the Compact (no tier is).
+class: /obj/Government
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: terminus-realm
+  displayName: the Realm of Terminus
+  description: >-
+    The young chartered order of the basin realm — heir to a lapsed
+    administration of manors and marches, seated in Terminus city, facing
+    the frontier war. It charters the city and the University; grave
+    matters rise to its assizes.

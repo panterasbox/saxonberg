@@ -3,7 +3,7 @@
 # have a real, drifting temperature), `drink` from it when the passage runs
 # dry. Capacity ~2 L. A discrete Thing (chattel-stampable, never Globbable).
 class: /obj/Receptacle
-hydratorClass: /lib/persistence/PersistentHydrator
+hydratorClass: /obj/persistence/PersistentHydrator
 data:
   shortDescription: a leather waterskin
   primaryKeyword: waterskin
