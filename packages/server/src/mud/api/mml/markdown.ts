@@ -45,6 +45,7 @@
 import { decodeEntities, escapeText } from './entities';
 import type { MentionResolver } from './mention';
 import { isKnownLinkScheme } from './schemes';
+import { isKnownTag, isComponentCandidate } from './tags';
 
 /**
  * Per-call parser options. **The default is the chat dialect**, byte
@@ -87,11 +88,25 @@ export function parseMarkdown(
     return ` CB${idx} `;
   });
   const codeSpans: string[] = [];
-  working = working.replace(/`([^`\n]+)`/g, (_, content: string) => {
-    const idx = codeSpans.length;
-    codeSpans.push(content);
-    return ` CS${idx} `;
-  });
+  // A span opens on a RUN of backticks and closes on a run of the same
+  // length — which is how ``` `` `code` `` ``` (a span whose content is
+  // itself backticked) is written, and the guide page's own markup
+  // table needs exactly that. A single-backtick regex reads the inner
+  // pair as the delimiters and emits garbage for the rest of the line.
+  working = working.replace(
+    /(`+)([^\n]*?)\1(?!`)/g,
+    (_, ticks: string, content: string) => {
+      const idx = codeSpans.length;
+      // CommonMark: one leading AND trailing space is stripped, so
+      // `` `x` `` means the span `x`, not " `x` ".
+      const inner =
+        content.length > 2 && content.startsWith(' ') && content.endsWith(' ')
+          ? content.slice(1, -1)
+          : content;
+      codeSpans.push(inner);
+      return ` CS${idx} `;
+    },
+  );
 
   // Phase 2 — block-level segmentation.
   const lines = working.split('\n');
@@ -182,6 +197,30 @@ export function parseMarkdown(
       continue;
     }
 
+    // Plain prose.
+    //
+    // ⚠ The article dialect processes a whole PARAGRAPH at once, not a
+    // line at a time. Articles are hard-wrapped, so `**a sentence that
+    // wraps**` is the ordinary case, and per-line inline processing
+    // renders the asterisks literally — which is exactly how the
+    // seeded guide page shipped its first draft. Chat stays per-line:
+    // an utterance is one line, and its output is pinned byte-for
+    // -byte.
+    if (longForm && line.trim() !== '') {
+      const para: string[] = [];
+      while (
+        i < lines.length &&
+        lines[i]!.trim() !== '' &&
+        !startsBlock(lines[i]!, longForm)
+      ) {
+        para.push(lines[i]!);
+        i++;
+      }
+      out.push(processInline(para.join('\n'), resolver, longForm));
+      if (i < lines.length) out.push('\n');
+      continue;
+    }
+
     // Plain paragraph line
     out.push(processInline(line, resolver, longForm));
     i++;
@@ -192,13 +231,27 @@ export function parseMarkdown(
   let result = out.join('');
 
   // Phase 4 — restore code sentinels to their MML tags.
-  result = result.replace(/ CB(\d+) /g, (_, idxStr: string) => {
-    const idx = Number(idxStr);
-    return `<pre>${escapeText(codeBlocks[idx] ?? '')}</pre>`;
+  //
+  // ⚠ The article dialect's restore tolerates the padding spaces being
+  // GONE. A sentinel is written as ` CS3 `, but a table cell and a
+  // heading are both trimmed on the way through, so a code span in
+  // either arrives here as bare `CS3` and the spaced pattern misses it
+  // — the reader then sees the literal text `CS3` where their code was.
+  // The index has to exist for the substitution to happen, which is
+  // what keeps an author who genuinely writes "CS3" from losing it.
+  // Chat keeps the exact spaced pattern it has always had: it has no
+  // trimming construct, and its output is pinned byte-for-byte.
+  const blockRe = longForm ? / ?CB(\d+) ?/g : / CB(\d+) /g;
+  const spanRe = longForm ? / ?CS(\d+) ?/g : / CS(\d+) /g;
+  result = result.replace(blockRe, (all, idxStr: string) => {
+    const block = codeBlocks[Number(idxStr)];
+    if (block === undefined) return all;
+    return `<pre>${escapeText(block)}</pre>`;
   });
-  result = result.replace(/ CS(\d+) /g, (_, idxStr: string) => {
-    const idx = Number(idxStr);
-    return `<code>${escapeText(codeSpans[idx] ?? '')}</code>`;
+  result = result.replace(spanRe, (all, idxStr: string) => {
+    const span = codeSpans[Number(idxStr)];
+    if (span === undefined) return all;
+    return `<code>${escapeText(span)}</code>`;
   });
 
   return result;
@@ -235,6 +288,25 @@ function processInline(
   let out = '';
   let i = 0;
   while (i < text.length) {
+    // ⭐ Article dialect: a well-formed MML/component TAG passes
+    // through verbatim rather than being escaped.
+    //
+    // This is what lets one body be markdown prose AND a component
+    // tree at once — `## Uses` beside `<composition of="/obj/oak"/>`.
+    // Without it, escaping `<` would make every component and every
+    // `<spoiler>` unwritable, and the requirements use exactly that
+    // syntax as the author-facing form.
+    //
+    // Only names the grammar knows or that could be a component are
+    // let through, so ordinary prose (`a < b`, `<3`) still escapes.
+    if (longForm && text[i] === '<') {
+      const tag = matchPassthroughTag(text, i);
+      if (tag) {
+        out += tag.markup;
+        i = tag.next;
+        continue;
+      }
+    }
     // Try matchers in priority order. Each matcher reads from `text`
     // starting at `i`; on success it returns the markup to emit + the
     // position past the consumed slice.
@@ -296,6 +368,57 @@ function processInline(
   return out;
 }
 
+/**
+ * A whole tag and nothing but: `<name>`, `</name>`, `<name/>`, with
+ * attributes that are bare or quoted. Attribute values may not contain
+ * `>` — which is what lets the caller find the tag's end with a plain
+ * `indexOf('>')` and still be right.
+ */
+const WELL_FORMED_TAG_RE =
+  /^<\/?([A-Za-z][A-Za-z0-9-]*)((?:\s+[A-Za-z_][\w.:-]*(?:\s*=\s*(?:"[^"<>]*"|'[^'<>]*'|[^\s"'<>`=]+))?)*)\s*\/?>$/;
+
+/**
+ * A tag at `i` that the article dialect emits verbatim.
+ *
+ * `<code>` and `<pre>` are consumed **whole**, through their closing
+ * tag: their contents are opaque, exactly as a backtick span's are, so
+ * an author documenting the syntax can write
+ * `<code>**bold**</code>` without it turning bold. Every other
+ * recognised tag passes through as just the tag — its children stay in
+ * the stream and keep getting markdown treatment, which is what makes
+ * `<spoiler level="2">the **big** twist</spoiler>` work.
+ *
+ * Returns null for anything that is not a recognised tag, so ordinary
+ * prose (`a < b`, `<3`, `<-- note`) is escaped as before.
+ *
+ * ⚠ Two conditions, and **both** matter. The slice has to be a
+ * well-formed tag — name plus quoted attributes and nothing else — or
+ * `a < b and c > d` is read as a `<b>` tag with junk attributes and
+ * three words of the author's prose vanish. And the name has to be
+ * known or a legal component name, or an arbitrary `<script>` rides
+ * through into the emitted markup.
+ */
+function matchPassthroughTag(text: string, i: number): InlineMatch | null {
+  const close = text.indexOf('>', i + 1);
+  if (close === -1) return null;
+  const slice = text.slice(i, close + 1);
+  const m = WELL_FORMED_TAG_RE.exec(slice);
+  if (!m) return null;
+  const isClose = slice.startsWith('</');
+  const name = m[1]!.toLowerCase();
+  if (!isKnownTag(name) && !isComponentCandidate(name)) return null;
+
+  // Opaque pair: swallow through the matching close tag.
+  if (!isClose && (name === 'code' || name === 'pre')) {
+    const endTag = `</${name}>`;
+    const end = text.indexOf(endTag, close + 1);
+    if (end !== -1) {
+      return { markup: text.slice(i, end + endTag.length), next: end + endTag.length };
+    }
+  }
+  return { markup: text.slice(i, close + 1), next: close + 1 };
+}
+
 /** A code sentinel as Phase 1 wrote it: ` CB<n> ` or ` CS<n> `. */
 const SENTINEL_RE = /^ C[BS]\d+ /;
 
@@ -307,6 +430,19 @@ const ANCHOR_SUFFIX_RE = /\{#([A-Za-z0-9][A-Za-z0-9-]*)\}\s*$/;
 
 /** A list item at any indent depth (article dialect). */
 const NESTED_ITEM_RE = /^(\s*)(?:-|\d+\.)\s+/;
+
+/**
+ * Whether a line opens a block construct, and so ends the paragraph
+ * before it. The paragraph collector needs this because a list or a
+ * table may follow prose with no blank line between them — swallowing
+ * it into the paragraph would render the markers literally.
+ */
+function startsBlock(line: string, longForm: boolean): boolean {
+  if (/^>\s?/.test(line)) return true;
+  if (/^-\s+/.test(line) || /^\d+\.\s+/.test(line)) return true;
+  if (!longForm) return false;
+  return HEADING_RE.test(line) || isTableRow(line) || NESTED_ITEM_RE.test(line);
+}
 
 /** Whether a line is a pipe-table row. */
 function isTableRow(line: string): boolean {

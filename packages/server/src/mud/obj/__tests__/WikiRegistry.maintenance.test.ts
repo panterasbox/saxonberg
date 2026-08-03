@@ -94,6 +94,24 @@ describe('the link graph (50)', () => {
     expect(WikiPage.linkRefs('<pre>[[Page]]</pre>', 'main')).toEqual([]);
   });
 
+  it('⚠ ignores refs inside MARKDOWN code — the stored body’s own form', () => {
+    // The guide page documents `[[Oak]]` in backticks. Bodies are
+    // markdown, so this is the first thing the extractor meets, and
+    // getting it wrong puts a phantom `guide:oak` at the top of
+    // `wiki wanted` where it can never be satisfied.
+    expect(WikiPage.linkRefs('write `[[Page]]` to link', 'main')).toEqual([]);
+    expect(WikiPage.linkRefs('``a `[[Page]]` b``', 'main')).toEqual([]);
+    expect(
+      WikiPage.linkRefs('```\n[[Page]]\n```\n', 'main'),
+    ).toEqual([]);
+  });
+
+  it('still extracts a real link next to a documented one', () => {
+    expect(WikiPage.linkRefs('`[[Page]]` links to [[oak]]', 'main')).toEqual([
+      'main:oak',
+    ]);
+  });
+
   it('a body with no links yields none', () => {
     expect(WikiPage.linkRefs('plain prose', 'main')).toEqual([]);
   });
@@ -305,7 +323,9 @@ describe('the seeder (29)', () => {
     const guide = db
       .all(Collections.Wiki)
       .find((r) => r.slug === 'how-to-write-here')!;
-    expect(String(guide.body)).toContain('anchor="citing"');
+    // Minted in the syntax the page is written in — markdown — so the
+    // author who opens the source sees what they would have typed.
+    expect(String(guide.body)).toContain('{#citing}');
   });
 
   it('⭐ is INSERT-ONLY — a seeded page somebody edited is never reverted', async () => {

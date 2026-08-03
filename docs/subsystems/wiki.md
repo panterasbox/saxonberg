@@ -205,13 +205,36 @@ Today's tagged set: a trap's `trigger` / `delivery` /
 
 ```
 render(body):
-  1. parse              Mml.parseTree(body)
+  1. parse              markdown (article dialect) → MML tree
   2. expandSnippets     fixpoint, depth cap, cycle detect
   3. resolveLinks       [[Page]] → <link> / redlink
   4. resolveComponents  path-resolved, budgeted
   5. gate               MAXIMUM levels → omit / tag
   6. emit               serialise back to MML
 ```
+
+### ⭐ Stage 1 is a **conversion**, and it lives at READ time
+
+An article body is **markdown** — the article dialect below, exactly
+what a player types into `wiki edit`. Stage 1 runs
+`Mml.markdownToMml(body, undefined, { longForm: true })` and parses the
+result.
+
+Converting at **write** time was the alternative and is worse in a way
+that compounds: the stored source would be a machine translation of
+what the author typed, so `history`, `diff`, `--section` and the edit
+box would all show them MML they never wrote, and every subsequent edit
+would be an edit of the translation. Converting at read time costs one
+parse per render and keeps **the stored source byte-identical to what
+was typed**.
+
+> ⚠ The consequence, and it bit twice during the build: anything that
+> reads the **source** must understand markdown, not MML.
+> `Sections` (headings, sticky anchors, `--section`) and
+> `WikiPage.linkRefs` (the whole link graph) are both source scanners,
+> and both failed **silently** — an empty heading list and a phantom
+> redlink, not an error. Both now read either form. A third source
+> scanner is the thing to check for whenever this file changes.
 
 **The stage list is frozen.** Four things each want to be outermost and
 the wrong order is a silent correctness bug rather than a crash, so the
@@ -381,6 +404,23 @@ the chat one silently.
 Added: `<h1>`–`<h3>` with **sticky `{#anchor}` suffixes**, indent-nested
 lists, pipe tables, `<spoiler level="n">`. Every tag defines `flatten`.
 
+**Tag passthrough.** The article dialect emits a recognised tag
+verbatim instead of escaping it, so markdown and MML mix in one body —
+which is what lets an author write `<composition of="…"/>` or wrap a
+paragraph in `<spoiler level="2">` while writing markdown everywhere
+else. A tag's *children* keep getting markdown treatment;
+`<code>`/`<pre>` are consumed whole, so a page documenting the syntax
+renders the syntax.
+
+> ⚠ Two conditions, both load-bearing. **Shape**: the slice must be a
+> well-formed tag, or `a < b and c > d` reads as a `<b>` tag and three
+> words of prose vanish. **Name**: known tag or legal component name,
+> because a component name becomes a **module basename** — that charset
+> rule in `api/mml/tags.ts` is a boundary, not a nicety. A legal-but
+> -unknown name still passes; stage 4 looks it up, fails, and emits an
+> inline "unknown component" error. Shape is the dialect's job,
+> existence is the renderer's, and neither pretends to be the other.
+
 > ⚠ **`api/__tests__/mml.corpus.test.ts` pins the chat path byte-for
 > -byte**, including its defects (a `[label](mudcmd:…)` link after a
 > space stays literal — the sentinel passthrough copies whole
@@ -393,12 +433,30 @@ flatten is a failsafe projection of an already-gated body, so what
 survives is content the reader may see. Hiding it would blank text on
 exactly the surfaces with no client to un-hide it.
 
+### The editor opens on what is there
+
+`wiki edit` sends the **current** text into the composer —
+`ComposePromptOpts.initial`, threaded through the `prompt-compose`
+note to a client that seeds the draft with it. A section edit sends
+that section; a full edit sends the article; `create` sends nothing,
+because there is nothing to open on.
+
+> ⚠ Without it, "edit" silently means "retype": the box opens empty
+> and whatever is posted **replaces the whole body**. This shipped that
+> way and only the live drive found it — every test submitted `--body`,
+> which skips the prompt path entirely. The three-line test that now
+> covers it drives `PromptApi.compose` and asserts what it was handed.
+
 ### Sticky anchors
 
 An anchor is **minted once and held**, not derived from heading text: a
 derived anchor changes when the words do, silently breaking every
 citation. `Sections.reconcile(prior, next)` carries anchors forward
-positionally and mints from text for new headings.
+positionally and mints from text for new headings — **in the syntax the
+heading was written in**, `## Uses {#uses}` for markdown and
+`<h2 anchor="uses">` for MML, so minting never rewrites the author's
+source into a form they did not choose. Fenced code blocks are skipped,
+or a `# comment` in a shell sample acquires an anchor.
 
 > ⚠ When the heading **count** changes, anchors are re-minted rather
 > than matched positionally — a mis-aimed citation is worse than a

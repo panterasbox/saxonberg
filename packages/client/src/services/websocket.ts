@@ -761,6 +761,7 @@ class WebSocketClient {
           ...(note.placeholder !== undefined
             ? { placeholder: note.placeholder }
             : {}),
+          ...(note.initial !== undefined ? { initial: note.initial } : {}),
           ...(note.allowEditorEscalation !== undefined
             ? { allowEditorEscalation: note.allowEditorEscalation }
             : {}),

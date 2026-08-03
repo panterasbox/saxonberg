@@ -346,6 +346,7 @@ export class PromptLogic extends ApiLogic {
         ...(opts?.placeholder !== undefined
           ? { placeholder: opts.placeholder }
           : {}),
+        ...(opts?.initial !== undefined ? { initial: opts.initial } : {}),
         ...(opts?.allowEditorEscalation !== undefined
           ? { allowEditorEscalation: opts.allowEditorEscalation }
           : {}),

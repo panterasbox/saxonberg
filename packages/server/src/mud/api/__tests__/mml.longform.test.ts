@@ -303,3 +303,138 @@ describe('parseTree / serialize round-trip (R-8)', () => {
     expect(node.children).toEqual([{ kind: 'text', text: 'Hi' }]);
   });
 });
+
+/**
+ * The tag passthrough — the article dialect's one departure from "all
+ * markup is escaped". It exists because the wiki's author syntax is
+ * markdown **and** MML tags in the same text: `<spoiler>` sections and
+ * `<composition of="…"/>` components are written by hand.
+ *
+ * Both halves of the rule earn their keep. Loosen the *name* check and
+ * `<script>` rides through; loosen the *shape* check and `a < b and c
+ * > d` eats the author's prose as a bogus `<b>` tag.
+ */
+describe('article dialect — tag passthrough', () => {
+  it('passes a known tag through untouched', () => {
+    expect(article('a <spoiler level="2">x</spoiler> b')).toBe(
+      'a <spoiler level="2">x</spoiler> b',
+    );
+  });
+
+  it('keeps treating the tag’s children as markdown', () => {
+    expect(article('<spoiler level="1">the **big** twist</spoiler>')).toBe(
+      '<spoiler level="1">the <strong>big</strong> twist</spoiler>',
+    );
+  });
+
+  it('passes a self-closing component tag through', () => {
+    expect(article('<composition of="/obj/gear/Sword"/>')).toBe(
+      '<composition of="/obj/gear/Sword"/>',
+    );
+  });
+
+  it('escapes a name that is not a known tag or a legal component', () => {
+    // A component name becomes a module BASENAME, so the charset rule
+    // in `tags.ts` is a boundary: anything with a separator, a dot or
+    // an underscore in it must never reach the resolver as a tag.
+    expect(article('<../evil>')).toBe('&lt;../evil&gt;');
+    expect(article('<my_component/>')).toBe('&lt;my_component/&gt;');
+    expect(article('<a.b>')).toBe('&lt;a.b&gt;');
+  });
+
+  it('a legal-but-unknown NAME still passes through — the renderer judges it', () => {
+    // Case folds, so `<SCRIPT>` is a well-formed component name. The
+    // dialect's job is shape, not existence: stage 4 looks the module
+    // up, fails, and emits an inline "unknown component" error. Two
+    // checks in two places, neither pretending to be the other.
+    expect(article('<SCRIPT>x</SCRIPT>')).toBe('<SCRIPT>x</SCRIPT>');
+  });
+
+  it('leaves comparison prose alone', () => {
+    expect(article('a < b and c > d')).toBe('a &lt; b and c &gt; d');
+    expect(article('if x<y then')).toBe('if x&lt;y then');
+    expect(article('<3')).toBe('&lt;3');
+  });
+
+  it('does not fire on an unterminated tag', () => {
+    expect(article('a <spoiler level="2" b')).toBe(
+      'a &lt;spoiler level=&quot;2&quot; b',
+    );
+  });
+
+  it('leaves a tag written inside a code span escaped', () => {
+    expect(article('write `<spoiler level="1">`')).toBe(
+      'write <code>&lt;spoiler level=&quot;1&quot;&gt;</code>',
+    );
+  });
+
+  it('is off in the chat dialect', () => {
+    // Chat escapes the tag rather than passing it: the `>` comes out
+    // as `&gt;`, so nothing downstream can read a tag out of it. (The
+    // bare `<` surviving is a pre-existing chat-dialect quirk of the
+    // space-run copy, pinned in `mml.corpus.test.ts`, not something
+    // the passthrough introduced.)
+    const chat = Mml.markdownToMml('a <spoiler level="1">x</spoiler>');
+    expect(chat.toString()).toContain('&gt;');
+    expect(chat.toString()).toContain('&lt;/spoiler&gt;');
+    expect(chat.toString()).not.toBe(
+      article('a <spoiler level="1">x</spoiler>'),
+    );
+  });
+});
+
+/**
+ * Three defects the **live drive** found in half a minute and the
+ * suite had not: every one of them is a case that only shows up when a
+ * real article — hard-wrapped prose, a markup table, a page teaching
+ * its own syntax — goes through the dialect end to end.
+ */
+describe('article dialect — what driving it found', () => {
+  it('bolds across a soft line break', () => {
+    // Articles are hard-wrapped, so an emphasis run spanning two
+    // source lines is the ORDINARY case, not an edge one. Processing
+    // inline per line renders the asterisks literally.
+    expect(article('renders red. **That is not an\nerror.** It grows.')).toBe(
+      'renders red. <strong>That is not an\nerror.</strong> It grows.',
+    );
+  });
+
+  it('ends the paragraph at a block construct with no blank line', () => {
+    const out = article('prose\n- one\n- two');
+    expect(out).toContain('prose');
+    expect(out).toContain('<list><li>one</li>');
+    expect(out).not.toContain('- one');
+  });
+
+  it('restores a code span inside a TABLE CELL', () => {
+    // Cells are trimmed, which strips the sentinel's padding spaces —
+    // so the reader saw the literal text `CS13` where their code was.
+    expect(article('| a |\n| --- |\n| `x` |')).toContain('<td><code>x</code>');
+  });
+
+  it('restores a code span inside a HEADING', () => {
+    // (Anchors are minted by `Sections`, at write time — not here.)
+    expect(article('## the `wiki` verb')).toBe(
+      '<h2>the <code>wiki</code> verb</h2>',
+    );
+  });
+
+  it('leaves a bare CSn that is not a sentinel alone', () => {
+    // The relaxed pattern must not eat an author writing about CS3.
+    expect(article('the CS3 signal')).toBe('the CS3 signal');
+  });
+
+  it('handles a double-backtick span containing backticks', () => {
+    // How you write a code span whose content is itself code — the
+    // guide page's markup table needs exactly this.
+    expect(article('write `` `code` `` here')).toBe(
+      'write <code>`code`</code> here',
+    );
+  });
+
+  it('does not let a double-backtick span swallow the rest of the line', () => {
+    expect(article('`a`, `` `b` ``, `c`')).toBe(
+      '<code>a</code>, <code>`b`</code>, <code>c</code>',
+    );
+  });
+});

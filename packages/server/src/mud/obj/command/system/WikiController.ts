@@ -868,6 +868,12 @@ export default class WikiController extends CommandController<WikiModel> {
       try {
         const composed = await PromptApi.compose(context.interactive, label, {
           placeholder: 'Wiki markdown — ⌘/Ctrl+Enter to submit',
+          // ⚠ The editor opens on what is THERE. Without this, `wiki
+          // edit` is `wiki retype`: an empty box whose contents
+          // replace the whole article on post.
+          ...(current !== undefined && current !== ''
+            ? { initial: current }
+            : {}),
           allowEditorEscalation: true,
         });
         return composed;

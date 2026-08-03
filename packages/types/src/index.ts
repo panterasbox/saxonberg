@@ -501,6 +501,15 @@ export interface ComposePromptNote {
   kind: 'prompt-compose';
   label: string;
   placeholder?: string;
+  /**
+   * Text the composer opens with — the **current** body when the
+   * prompt is an edit rather than a creation.
+   *
+   * ⚠ Without it "edit" means "retype": the box opens empty and
+   * whatever is posted replaces the whole article. The server sends
+   * what the author is editing; the client seeds the draft with it.
+   */
+  initial?: string;
   /** Hint the client may show an "open in editor" escalation affordance. */
   allowEditorEscalation?: boolean;
   foreground: boolean;

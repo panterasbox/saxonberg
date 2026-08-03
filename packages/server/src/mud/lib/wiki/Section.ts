@@ -58,40 +58,56 @@ const HEADING_RE = /<h([123])((?:\s+[\w-]+="[^"]*")*)\s*>/gi;
 /** An `anchor="…"` attribute inside a heading's attribute run. */
 const ANCHOR_ATTR = /\banchor="([^"]*)"/i;
 
+/**
+ * A markdown ATX heading line, `#` to `###`, with an optional sticky
+ * `{#anchor}` suffix.
+ *
+ * ⚠ **Both forms have to be understood here.** Article bodies are
+ * stored as the author typed them — markdown — and converted to MML at
+ * render time, so a Sections that only knew `<h2>` would find no
+ * headings at all in a body written today: no section editing, no
+ * minted anchors, and the failure is silent (an empty list, not an
+ * error). The MML form stays because a body may legitimately mix the
+ * two, and because bodies written before the dialect landed are still
+ * in the collection.
+ */
+const MD_HEADING_RE = /^(#{1,3})[ \t]+(.+?)[ \t]*$/gm;
+
+/** A `{#anchor}` suffix on a markdown heading. */
+const MD_ANCHOR_SUFFIX = /\s*\{#([A-Za-z0-9_-]+)\}\s*$/;
+
+/** A fence line — ``` or ~~~, with optional info string. */
+const FENCE_RE = /^[ \t]*(```|~~~)/;
+
+/** Which syntax a heading was written in — reconcile rewrites differ. */
+type HeadingForm = 'mml' | 'markdown';
+
+/** A heading as found, before section extents are computed. */
+interface HeadingHit {
+  level: 1 | 2 | 3;
+  anchor: string;
+  title: string;
+  /** Index of the heading construct's first character. */
+  start: number;
+  /** Index just past the heading construct itself (not its content). */
+  headEnd: number;
+  form: HeadingForm;
+  /** True when the author wrote the anchor — an authored one wins. */
+  declared: boolean;
+}
+
 export class Sections {
   /**
    * Every section in `body`, in document order.
    *
-   * Operates on the MML **source**, not a parse tree, because sections
-   * are a *source* concept: what a section edit replaces is a run of
+   * Operates on the **source**, not a parse tree, because sections are
+   * a *source* concept: what a section edit replaces is a run of
    * authored text, and round-tripping through a tree would normalise
-   * parts of the body the author never touched.
+   * parts of the body the author never touched — and, since the body
+   * is markdown, would replace it with MML.
    */
   static list(body: string): SectionSpan[] {
-    const heads: Array<{
-      level: 1 | 2 | 3;
-      anchor: string;
-      title: string;
-      start: number;
-      afterOpen: number;
-    }> = [];
-    HEADING_RE.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = HEADING_RE.exec(body)) !== null) {
-      const level = Number(m[1]) as 1 | 2 | 3;
-      const declared = ANCHOR_ATTR.exec(m[2] ?? '')?.[1];
-      const afterOpen = m.index + m[0].length;
-      const closeIdx = body.indexOf(`</h${level}>`, afterOpen);
-      const title =
-        closeIdx === -1 ? '' : stripTags(body.slice(afterOpen, closeIdx));
-      heads.push({
-        level,
-        anchor: declared || Sections.slugify(title),
-        title,
-        start: m.index,
-        afterOpen,
-      });
-    }
+    const heads = Sections.headings(body);
 
     return heads.map((h, i) => {
       // A section runs until the next heading at the SAME or a
@@ -164,29 +180,113 @@ export class Sections {
    * An explicitly authored `anchor=` always wins over both.
    */
   static reconcile(prior: string, next: string): string {
-    const priorAnchors = Sections.list(prior).map((s) => s.anchor);
-    const nextHeads = Sections.list(next);
+    const priorAnchors = Sections.headings(prior).map((h) => h.anchor);
+    const nextHeads = Sections.headings(next);
     const sameShape = priorAnchors.length === nextHeads.length;
 
     // Rewrite right-to-left so earlier indices stay valid.
     let out = next;
     for (let i = nextHeads.length - 1; i >= 0; i--) {
       const head = nextHeads[i]!;
-      const openEnd = out.indexOf('>', head.start);
-      if (openEnd === -1) continue;
-      const open = out.slice(head.start, openEnd + 1);
       // An author who wrote an anchor meant it.
-      if (ANCHOR_ATTR.test(open)) continue;
+      if (head.declared) continue;
       const adopted = sameShape ? priorAnchors[i] : undefined;
       const anchor = adopted || Sections.slugify(head.title);
       if (!anchor) continue;
-      const rewritten = open.replace(
-        /^<h([123])/i,
-        (_all, lvl: string) => `<h${lvl} anchor="${anchor}"`,
-      );
-      out = out.slice(0, head.start) + rewritten + out.slice(openEnd + 1);
+      const written = out.slice(head.start, head.headEnd);
+      // Each form is rewritten in its OWN syntax. Normalising markdown
+      // headings to MML on the way past would rewrite the author's
+      // source behind their back, which is the one thing every method
+      // on this class is arranged not to do.
+      const rewritten =
+        head.form === 'mml'
+          ? written.replace(
+              /^<h([123])/i,
+              (_all, lvl: string) => `<h${lvl} anchor="${anchor}"`,
+            )
+          : `${written.replace(/[ \t]+$/, '')} {#${anchor}}`;
+      out = out.slice(0, head.start) + rewritten + out.slice(head.headEnd);
     }
     return out;
+  }
+
+  /**
+   * Every heading in `body`, either syntax, in document order.
+   *
+   * Fenced code blocks are skipped: a ```` ``` ```` block containing a
+   * shell comment would otherwise register `# clean up first` as an
+   * `<h1>`, and `reconcile` would then write `{#clean-up-first}` into
+   * the middle of the author's code sample.
+   */
+  private static headings(body: string): HeadingHit[] {
+    const fences = Sections.fencedRanges(body);
+    const inFence = (at: number): boolean =>
+      fences.some(([from, to]) => at >= from && at < to);
+
+    const hits: HeadingHit[] = [];
+
+    HEADING_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = HEADING_RE.exec(body)) !== null) {
+      if (inFence(m.index)) continue;
+      const level = Number(m[1]) as 1 | 2 | 3;
+      const declared = ANCHOR_ATTR.exec(m[2] ?? '')?.[1];
+      const afterOpen = m.index + m[0].length;
+      const closeIdx = body.indexOf(`</h${level}>`, afterOpen);
+      const title =
+        closeIdx === -1 ? '' : stripTags(body.slice(afterOpen, closeIdx));
+      hits.push({
+        level,
+        anchor: declared || Sections.slugify(title),
+        title,
+        start: m.index,
+        headEnd: afterOpen,
+        form: 'mml',
+        declared: declared !== undefined,
+      });
+    }
+
+    MD_HEADING_RE.lastIndex = 0;
+    while ((m = MD_HEADING_RE.exec(body)) !== null) {
+      if (inFence(m.index)) continue;
+      const level = m[1]!.length as 1 | 2 | 3;
+      const raw = m[2]!;
+      const suffix = MD_ANCHOR_SUFFIX.exec(raw);
+      const title = (suffix ? raw.slice(0, suffix.index) : raw).trim();
+      hits.push({
+        level,
+        anchor: suffix?.[1]?.toLowerCase() || Sections.slugify(title),
+        title,
+        start: m.index,
+        headEnd: m.index + m[0].length,
+        form: 'markdown',
+        declared: suffix !== null,
+      });
+    }
+
+    return hits.sort((a, b) => a.start - b.start);
+  }
+
+  /** Half-open `[start, end)` ranges of fenced code blocks. */
+  private static fencedRanges(body: string): Array<[number, number]> {
+    const ranges: Array<[number, number]> = [];
+    let at = 0;
+    let open: number | null = null;
+    for (const line of body.split('\n')) {
+      const isFence = FENCE_RE.test(line);
+      if (isFence) {
+        if (open === null) open = at;
+        else {
+          ranges.push([open, at + line.length + 1]);
+          open = null;
+        }
+      }
+      at += line.length + 1;
+    }
+    // An unterminated fence runs to the end — the same reading the
+    // markdown parser takes, so the two agree about what is code.
+    if (open !== null) ranges.push([open, body.length]);
+    return ranges;
   }
 
   /** Slugify heading text into an anchor. Empty for empty text. */

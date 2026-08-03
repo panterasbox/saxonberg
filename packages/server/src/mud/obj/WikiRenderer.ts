@@ -13,7 +13,7 @@
  *
  * ```
  * render(body):
- *   1. parse              Mml.parseTree(body)
+ *   1. parse              markdown (article dialect) → MML tree
  *   2. expandSnippets     fixpoint, depth cap, cycle detect   [Wave 4]
  *   3. resolveLinks       [[Page]] → <link> / redlink         [Wave 3]
  *   4. resolveComponents  path-resolved, budgeted             [Wave 5]
@@ -135,9 +135,19 @@ export default class WikiRenderer extends Idea {
 
     let nodes: readonly MmlNode[];
     try {
-      // 1. parse
+      // 1. parse — the **article dialect**, not the chat one. An
+      // article body is markdown; `longForm` adds headings, nested
+      // lists and tables, and passes through the MML tags the
+      // vocabulary already knows (`<spoiler>`, `<composition/>`, …) so
+      // an author writes markdown and tags in one text. Stage 1 is
+      // where the conversion belongs: the **stored source stays
+      // exactly what the author typed**, so history, diff and the
+      // edit box all speak the author's own text rather than a
+      // machine translation of it.
       budget.checkOutput(body);
-      nodes = Mml.parseTree(body);
+      nodes = Mml.parseTree(
+        Mml.markdownToMml(body, undefined, { longForm: true }).toString(),
+      );
       // 2. expandSnippets — Wave 4 fills this.
       nodes = await this.expandSnippets(nodes, opts, budget, diagnostics);
       // 3. resolveLinks — Wave 3 fills this.

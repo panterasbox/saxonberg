@@ -32,6 +32,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { TemplatePaths } from '../../../../lib/paths';
 import { Collections } from '../../../../lib/persistence/Collections';
 import { Sections } from '../../../../lib/wiki/Section';
+import { PromptApi } from '../../../../api/prompt';
 import { installWikiTestDb, type WikiTestDb } from '../../../../lib/wiki/__tests__/wiki-test-db';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { Note, WikiEditConflictNote } from '@saxonberg/types';
@@ -48,6 +49,7 @@ let sent: string[];
 
 async function run(
   model: Partial<CommandModel>,
+  interactive?: unknown,
 ): Promise<{ body: string; notes: readonly Note[] }> {
   sent = [];
   const ctrl = makeStuff(() => new WikiController());
@@ -59,6 +61,7 @@ async function run(
     commandId: 'c',
     verb: 'wiki',
     command: { verbs: ['wiki'] } as unknown as CommandDefinition,
+    ...(interactive !== undefined ? { interactive: interactive as never } : {}),
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
@@ -508,5 +511,49 @@ describe('⭐ preview is the SAME pipeline (36)', () => {
   it('labels itself so it is never mistaken for the saved page', async () => {
     const { body } = await run({ subcommand: 'preview', body: 'x' });
     expect(body).toContain('(preview)');
+  });
+});
+
+/**
+ * ⚠ **The editor opens on what is THERE.** Found by driving, not by
+ * the suite: every test above submits `--body`, so the interactive
+ * path — the one a player actually uses — was never exercised, and it
+ * opened an empty box. Posting from an empty box replaces the whole
+ * article, which makes `wiki edit` mean `wiki retype`.
+ */
+describe('the composer is seeded with what is being edited', () => {
+  /** Capture the opts `PromptApi.compose` is called with. */
+  function captureCompose(reply: string): { opts: () => Record<string, unknown> } {
+    let seen: Record<string, unknown> = {};
+    vi.spyOn(PromptApi, 'compose').mockImplementation(
+      async (_i: unknown, _label: string, opts?: unknown) => {
+        seen = (opts ?? {}) as Record<string, unknown>;
+        return reply;
+      },
+    );
+    return { opts: () => seen };
+  }
+
+  it('a full edit opens on the whole current body', async () => {
+    await seedArticle();
+    const before = String(row().body);
+    const cap = captureCompose('replacement');
+    await run({ subcommand: 'edit', page: 'oak' }, {});
+    expect(cap.opts().initial).toBe(before);
+  });
+
+  it('a section edit opens on THAT SECTION, not the article', async () => {
+    await seedArticle();
+    const before = String(row().body);
+    const cap = captureCompose('<h2 anchor="uses">Uses</h2>oak');
+    await run({ subcommand: 'edit', page: 'oak', section: 'uses' }, {});
+    expect(cap.opts().initial).toBe(Sections.extract(before, 'uses'));
+    expect(cap.opts().initial).not.toContain('Working');
+  });
+
+  it('creating opens EMPTY — there is nothing to open on', async () => {
+    const cap = captureCompose('# New');
+    await run({ subcommand: 'create', page: 'fresh', title: 'Fresh' }, {});
+    expect(cap.opts().initial).toBeUndefined();
   });
 });

@@ -316,15 +316,20 @@ export class WikiPage extends Document {
    * and ranking them by how many pages want them is the community
    * telling you what to write next.
    *
-   * `<code>`/`<pre>` spans are excluded for the same reason the render
-   * stage skips them: an author writing *about* wiki syntax would
-   * otherwise create phantom demand for a page called `Page`.
+   * Code is excluded for the same reason the render stage skips it: an
+   * author writing *about* wiki syntax would otherwise create phantom
+   * demand for a page called `Page`. **All four code forms** — MML
+   * `<code>`/`<pre>`, markdown fences and markdown backtick spans —
+   * because the stored body is the author's markdown, so the guide
+   * page's own `` `[[Oak]]` `` example is the first thing this meets.
    */
   static linkRefs(body: string, defaultNamespace: string): string[] {
-    const withoutCode = body.replace(
-      /<(code|pre)\b[^>]*>[\s\S]*?<\/\1>/gi,
-      '',
-    );
+    const withoutCode = body
+      .replace(/<(code|pre)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+      .replace(/^[ \t]*(```|~~~)[\s\S]*?^[ \t]*\1[ \t]*$/gm, '')
+      // A backtick span closes on a run of the SAME length, which is
+      // how a span whose content is itself backticked gets written.
+      .replace(/(`+)[\s\S]*?\1/g, '');
     const refs = new Set<string>();
     const RE = /\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g;
     let m: RegExpExecArray | null;

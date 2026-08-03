@@ -188,3 +188,109 @@ describe('slugify', () => {
     expect(Sections.slugify('---')).toBe('');
   });
 });
+
+/**
+ * The markdown half. Article bodies are stored as the author typed
+ * them — markdown — so a `Sections` that only spoke MML would find no
+ * headings at all in a page written today, and fail **silently**: an
+ * empty section list, no minted anchors, `--section` refusing every
+ * anchor with "no such section".
+ */
+describe('markdown headings', () => {
+  const BODY = [
+    '# Oak {#oak}',
+    '',
+    'A dense hardwood.',
+    '',
+    '## Uses {#uses}',
+    '',
+    'Furniture.',
+    '',
+    '### Working it',
+    '',
+    'Slow.',
+    '',
+    '## Origins',
+    '',
+    'Forests.',
+  ].join('\n');
+
+  it('lists them with level, anchor and title', () => {
+    const list = Sections.list(BODY);
+    expect(list.map((s) => s.anchor)).toEqual([
+      'oak',
+      'uses',
+      'working-it',
+      'origins',
+    ]);
+    expect(list.map((s) => s.level)).toEqual([1, 2, 3, 2]);
+    expect(list[1]!.title).toBe('Uses');
+  });
+
+  it('a section still OWNS its subsections', () => {
+    const uses = Sections.extract(BODY, 'uses')!;
+    expect(uses).toContain('Furniture.');
+    expect(uses).toContain('### Working it');
+    expect(uses).not.toContain('## Origins');
+  });
+
+  it('replaces one section and leaves every other byte alone', () => {
+    const out = Sections.replace(BODY, 'origins', '## Origins\n\nGroves.\n')!;
+    expect(out).toContain('Groves.');
+    expect(out).not.toContain('Forests.');
+    expect(out).toContain('# Oak {#oak}');
+    expect(out).toContain('### Working it');
+  });
+
+  it('mints a markdown anchor in MARKDOWN, not as an MML attribute', () => {
+    // Rewriting the author's `## Uses` into `<h2 anchor="uses">` would
+    // silently convert their source to a syntax they did not write.
+    const out = Sections.reconcile('', '## Known Uses');
+    expect(out).toBe('## Known Uses {#known-uses}');
+  });
+
+  it('carries an anchor through a reworded heading', () => {
+    const prior = '## Uses {#uses}\n\ntext';
+    const next = '## What it is good for\n\ntext';
+    expect(Sections.reconcile(prior, next)).toContain('{#uses}');
+  });
+
+  it('leaves an authored anchor alone', () => {
+    expect(Sections.reconcile('', '## Uses {#u}')).toBe('## Uses {#u}');
+  });
+
+  it('mints fresh anchors when the heading COUNT changes', () => {
+    // Positional adoption would attach the wrong anchor to the wrong
+    // section, and a mis-aimed citation is worse than a broken one.
+    const prior = '## A {#a}\n## B {#b}';
+    const next = '## A\n## New\n## B';
+    const out = Sections.reconcile(prior, next);
+    expect(out).toContain('## A {#a}');
+    expect(out).toContain('## New {#new}');
+    expect(out).toContain('## B {#b}');
+  });
+
+  it('reads a body that MIXES both syntaxes in document order', () => {
+    const mixed = '<h1 anchor="top">Top</h1>\n\n## Later {#later}';
+    expect(Sections.list(mixed).map((s) => s.anchor)).toEqual([
+      'top',
+      'later',
+    ]);
+  });
+
+  it('⚠ ignores a hash inside a fenced code block', () => {
+    // Otherwise `reconcile` writes `{#clean-up-first}` into the middle
+    // of the author's shell sample.
+    const body = '# Real {#real}\n\n```sh\n# clean up first\nrm -rf x\n```\n';
+    expect(Sections.list(body).map((s) => s.anchor)).toEqual(['real']);
+    expect(Sections.reconcile('', body)).toBe(body);
+  });
+
+  it('needs a space after the hashes — #hashtag is prose', () => {
+    expect(Sections.list('#hashtag is not a heading')).toEqual([]);
+  });
+
+  it('stops at three levels, like the dialect', () => {
+    expect(Sections.list('#### too deep')).toEqual([]);
+  });
+});

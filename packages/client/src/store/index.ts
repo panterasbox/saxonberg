@@ -110,6 +110,8 @@ export type PromptEntry =
       promptId: string;
       label: string;
       placeholder?: string;
+      /** What the composer opens with — the current body on an edit. */
+      initial?: string;
       allowEditorEscalation?: boolean;
       foreground: boolean;
       validationError?: string;
@@ -1391,10 +1393,17 @@ export const useStore = create<StoreState>((set, get) => ({
         (p) => p.promptId !== entry.promptId,
       );
       const prompts = [...filtered, entry];
+      // A compose prompt may arrive with the text it is EDITING. Seed
+      // the draft with it, or the box opens empty and posting
+      // replaces the whole body — "edit" would mean "retype".
+      const seed =
+        entry.kind === "compose" && entry.initial !== undefined
+          ? entry.initial
+          : "";
       const drafts =
         state.promptDrafts[entry.promptId] !== undefined
           ? state.promptDrafts
-          : { ...state.promptDrafts, [entry.promptId]: "" };
+          : { ...state.promptDrafts, [entry.promptId]: seed };
       // foreground: true → take the active slot; false → leave
       // whatever the player was on. Per the slate's auto-switch
       // default.
