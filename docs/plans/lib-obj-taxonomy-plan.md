@@ -619,3 +619,40 @@ shipped verbs, two were fixtures for eleven test suites. Only
 `LitterBin` was genuinely dead. The right check is
 `grep -rln '\bName\b' --include='*.ts'` minus tests and the class's own
 file.
+
+---
+
+## 13. The e2e pass (written during execution)
+
+Running the browser suite was the single highest-value verification
+step, and it is the one the plan did not call for. It found three
+migration bugs no unit test could reach, because none of them boot a
+world and a dry run never writes:
+
+- the migration ignored `MONGODB_DATABASE` and happily migrated `test`,
+  reporting success;
+- `rewriteDeep` rebuilt every object it walked, turning an `ObjectId`
+  `_id` into `{buffer: {…}}` — Mongo rejected the write;
+- an identical collision was reported and then left alone, so the stale
+  source row survived carrying its old `/lib/` class and boot died on
+  `failed to clone '/domain/void'`.
+
+**Comparing failure counts across databases is invalid.** An early
+comparison of a migrated month-old DB against a freshly seeded one
+manufactured six phantom "regressions". Apples-to-apples — both fresh —
+the refactor causes **zero**. Always fix the database state before
+attributing a test failure to a code change.
+
+It also surfaced a real product bug that predates this build: `chat`
+from inside a sandbox circle died on the first field-scoped recipient.
+Fixed here (see the boundary exemption note in `api/security.ts`), and
+worth recording as the class of thing only a live client finds.
+
+**Known-red, order-dependent.** Two specs mutate persistent world state
+and depend on position: `work-drive` and `hinkley:163`. Both pass
+alone. `startLocation` applies only when a character is CREATED
+(`Application.provisionTestCharacter`), so a fixed handle keeps the room
+the previous spec left it in — and rewriting the template row does NOT
+move it, because an Avatar is snapshot-backed and restores its recorded
+`place`. The live object is the only thing that decides where `enter`
+finds you.
