@@ -131,7 +131,9 @@ stale; one that *cites* the feed stays current for free. Decomposed:
 - **Generated (never authored):** exam items as `(spec, seed)` with a
   **computed** key from the running simulation (college-slate.md:158-239).
 - **Fed live from Study.com:** lesson content (the watch-embed pane plays
-  a Study video in-room, no new client work, college-slate.md:335,345-347);
+  a Study video in-room, no new client work, college-slate.md:335,345-347)
+  — that is *content delivery*; the live **lecture** is a separate mode
+  (§6), not a video;
   the catalog itself (imported as content-pack data — "a data import, not
   a redesign", college-slate.md:96-99); inbound `claim` attestations (the
   academy faucet); optionally the outbound adaptive signal.
@@ -184,7 +186,111 @@ primitives as the feed; don't try to make Study's CMS author worlds.**
 
 ---
 
-## 6. The two game shapes (the big design output)
+## 6. Lecture vs lab — the two class modes, and the lecture agent
+
+A class session is **two distinct modes** with opposite cost and
+interactivity profiles. Conflating them — or calling a pre-watched video a
+"lecture" — is the mistake that makes the classroom sound like a worse
+website.
+
+- **Lab = a quest.** A mini-narrative with roles, shared world state, and
+  a world- or rubric-graded **deed** — the applied scenarios of §4–5
+  (ignite the straw; calm the child; hand off the patient).
+  **Deterministic and cheap at runtime**; the net-new work is *build-time*
+  derivation from Study's case-study content (§5).
+- **Lecture = a live, interrogable agent — not a video.** Delivering
+  information is the one thing async content already does well and the one
+  thing a lecture need not justify. A lecture earns its place on the two
+  things a video **cannot** do: **you can interrogate the instructor**,
+  and **you hear the whole room's questions** (half of what you learn in a
+  good lecture is the question you wouldn't have asked). So what we model
+  is *not* delivery — it is **live interrogation + shared Q&A**. A video,
+  if present, is a **prop the instructor plays** ("watch this, now tell me
+  where the energy went"), never the lecture itself.
+
+### 6.1 Why the lecture is the *cheap* runtime-LLM shape
+
+Counter-intuitively, a real lecture is the **most cost-efficient** runtime
+use of an LLM, because it is **one instructor : N students in one shared
+conversation** — not N private tutoring sessions:
+
+- **Amortized + bounded.** One agent, one context, N listeners; a
+  per-lecture cap on answered questions makes cost roughly **flat vs
+  headcount** (5 or 50, similar spend). 1:1 tutoring is the *expensive*
+  shape; the lecture is the cheap one — and the realistic one (one
+  professor, many students).
+- **Grounded in Study's real lesson.** The agent's source of truth is the
+  lesson transcript + objectives + the misconception bank, so it teaches
+  the **actual curriculum**, can't wander, and **gives Study a reason to
+  endorse it** (their content stays the authority).
+- **FAQ cache.** The tenth student to ask "why does cooling cost more"
+  gets the first student's answer for free; the cache grows, live calls
+  shrink.
+
+### 6.2 Class size = the interaction budget (realistic *and* cost-capping)
+
+- **Seminar (≤ ~30):** open floor — anyone interrogates, the agent fields
+  questions freely.
+- **Lecture hall (~100):** questions are **gated** the way a real hall
+  gates them — hand-raise / upvote, the instructor takes the best few, and
+  **TAs (player or NPC) field overflow** in side-threads. Fewer agent
+  turns, more realistic, cost flat regardless of headcount.
+
+Room size *is* the question budget — bigger = cheaper-per-head, same as
+real life.
+
+### 6.3 The empty hall — "the show must go on"
+
+The real dependency is **people, not model cost**, and it's solvable:
+
+- **Scheduled + persistent instructor** — the lecture happens at its slot
+  whether 2 attend or 0. This makes the college-slate's "sections
+  scheduled" load-bearing: scheduling *concentrates* a cohort into one
+  moment ([college-slate.md](./slates/builds/college-slate.md):421-424).
+- **NPC students backfill seats and ask seeded questions.** The
+  **misconception bank is a bank of illuminating "wait, but…" questions**
+  (every misconception is a great student question), so even a solo real
+  student sits in a room where classmates ask the good ones — the
+  shared-question value survives at zero real attendance, and seeded Q&As
+  can be **cache-served** (no live call).
+- **Lectures "record."** A live session's transcript-with-Q&A replays for
+  latecomers — a *richer* artifact than the raw video, because it carries
+  the discussion. (This is the good version of "watch it beforehand.")
+
+### 6.4 The two-tier ramp — same room, config swap
+
+- **Interim (no runtime LLM):** the instructor NPC runs an **authored
+  lecture** — a scripted beat sequence + a **dialogue-tree Q&A** over the
+  misconception bank ([npc-dialogue.md](./subsystems/npc-dialogue.md):60-97,
+  pure data), with NPC students asking the seeded questions.
+  Deterministic, zero per-play cost, ships on today's substrate.
+- **Premium (live LLM):** swap the instructor's brain to a **live agent**
+  grounded in the Study lesson — genuinely interrogable, handles novel
+  questions. Enable per-lecture (flagship courses / peak sections first).
+
+Both tiers share the same **room, roster, schedule, roles, and
+question-budget**, so upgrading a lecture is a **config swap, not a
+rebuild**. Mechanically the instructor is still an employment `Position`
+holder (§2); the lecture is its **on-shift behavior**
+([behavior.md](./subsystems/behavior.md)) — the interim tier is a dialogue
+tree, the premium tier is a new **agent-backed behavior** that calls an
+LLM with the room context + lesson grounding under the question budget.
+
+### 6.5 Where the spend concentrates
+
+Runtime LLM spend lands **on the lecture** — the "grill a real professor"
+moment a website structurally cannot offer — while **labs stay
+deterministic quests**. **Build-time** LLM does the offline heavy lifting:
+deriving the lab quests (§5) and seeding the per-topic question banks from
+Study's content, once, human-reviewed, shipped as data. So the one genuine
+net-new *runtime* component is a single **agent-instructor behavior**
+(bounded room conversation, lesson-grounded, budget-aware, cache-backed);
+everything else — the room, schedule, roster, NPC students, seeded
+questions — is shipped substrate or authored data.
+
+---
+
+## 7. The two game shapes (the big design output)
 
 CX and test prep are **structurally different products**
 ([platform-reality §3,§5](./study-com-platform-reality.md)), so they want
@@ -227,7 +333,7 @@ this one thing or several."
 
 ---
 
-## 7. Pacing — keeping the game on the learner's clock
+## 8. Pacing — keeping the game on the learner's clock
 
 The failure mode you named — the learner forced to keep up with the *game*
 instead of their real goal — is a real risk and is resolved structurally:
@@ -252,7 +358,7 @@ Neither asks the learner to keep up with *it*.
 
 ---
 
-## 8. Is it actually possible? — verdict and the honest gaps
+## 9. Is it actually possible? — verdict and the honest gaps
 
 **Possible, mostly on shipped substrate**, with three named gaps:
 
@@ -265,13 +371,18 @@ Neither asks the learner to keep up with *it*.
 - ⚠️ **Lived scenarios from flat content** — the real net-new work: a
   **scenario-derivation** authoring path on Saxonberg's side (§5), fed by
   Study's `case_study` passages + `AiMastery` steps.
+- ⚙️ **Live lecture agent** (optional, premium tier) — the one net-new
+  *runtime* piece: an agent-instructor behavior, lesson-grounded,
+  budget-aware, cache-backed (§6). The classroom **ships without it** via
+  the authored interim tier; add it per-lecture where "grill a real
+  professor" is worth the (bounded, 1:N-amortized) spend.
 - ⚠️ **Inbound personalization** — still gated on the `[confirm]`: does
   Study's adaptive engine accept an inbound signal
   ([platform-reality §10](./study-com-platform-reality.md)).
 
 ---
 
-## 9. Open questions
+## 10. Open questions
 
 - **Scenario-derivation fidelity** — how faithfully can a `case_study`
   passage be auto-derived into a room + roles + a rubric-checked deed, vs
