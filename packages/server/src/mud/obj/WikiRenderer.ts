@@ -803,13 +803,29 @@ function link(href: string, label: string): MmlNode {
  * tag: the colour IS the convention every wiki reader already knows,
  * and inventing a `<redlink>` tag would mean a new flatten entry, a new
  * renderer arm and a new client treatment to say the same thing.
+ *
+ * ⚠ **The `<color>` goes INSIDE the `<link>`, and the order is not
+ * cosmetic.** The client's clickable-affordance span sets its own
+ * colour, and a `<color>` *wrapping* it loses — the renderer documents
+ * this as "the inner color wins". Nested the other way round the
+ * redlink renders in the ordinary link colour and is indistinguishable
+ * from a page that exists, which defeats the entire point: a redlink
+ * only works if a reader can SEE that nobody has written it. Found by
+ * driving it in a browser; the unit test now pins the nesting.
  */
 function redlink(ref: string, label: string): MmlNode {
   return {
     kind: 'tag',
-    tag: 'color',
-    attrs: { value: 'red' },
-    children: [link(`mudcmd:wiki create ${ref}`, label)],
+    tag: 'link',
+    attrs: { href: `mudcmd:wiki create ${ref}` },
+    children: [
+      {
+        kind: 'tag',
+        tag: 'color',
+        attrs: { value: 'red' },
+        children: [{ kind: 'text', text: label }],
+      },
+    ],
   };
 }
 

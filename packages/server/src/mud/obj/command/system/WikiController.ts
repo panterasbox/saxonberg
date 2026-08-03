@@ -233,8 +233,22 @@ export default class WikiController extends CommandController<WikiModel> {
     if (model.reveal !== undefined) {
       patch.spoilerLevel = SpoilerLevels.parse(model.reveal);
     }
-    if (Object.keys(patch).length > 0) {
+    const frontmatterOnly = Object.keys(patch).length > 0;
+    if (frontmatterOnly) {
       await registry.setFrontmatter(page, patch);
+    }
+
+    // ⭐ `wiki edit oak --reveal 2` changes the level and stops. Asking
+    // for the body too would mean an author who wanted to retitle a
+    // page had to retype the whole article — and, worse, that there is
+    // no way to change frontmatter WITHOUT rewriting the body.
+    //
+    // The rule: options and no body = a frontmatter edit; no options =
+    // the author came to write, so open the editor. An explicit
+    // `--section` always means prose, whatever else was passed.
+    if (frontmatterOnly && model.body === undefined && !model.section) {
+      this.send(context, Mml.compose`\nUpdated '${page.getTitle()}'.\n`);
+      return;
     }
 
     const section = (model.section ?? '').trim().toLowerCase();
@@ -258,9 +272,8 @@ export default class WikiController extends CommandController<WikiModel> {
       current,
     );
     if (body === null) {
-      // Frontmatter-only edit — the author passed options and no body.
-      this.send(context, Mml.compose`\nUpdated '${page.getTitle()}'.\n`);
-      return;
+      // The author opened the editor and cancelled out of it.
+      return this.fail(context, 'Edit cancelled.', 'edit-cancelled');
     }
 
     const baseRev = parseRev(model.rev);

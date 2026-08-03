@@ -127,12 +127,12 @@ pages:
 
       <composition kind="template" of="/obj/material/oak"/>
 
-      <h2 anchor="uses">Uses {#uses}</h2>
+      <h2 anchor="uses">Uses</h2>
       Furniture, tool handles, and anything that has to take a beating.
       Its density is what makes it good for all three and tiring for
       all three.
 
-      <h2 anchor="working">Working it {#working}</h2>
+      <h2 anchor="working">Working it</h2>
       Hard on tools and slow under them. Budget more time than the
       volume suggests.
 

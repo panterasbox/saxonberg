@@ -98,6 +98,21 @@ describe('[[Page]] resolution (22)', () => {
     expect(out).toContain('>mimic<');
   });
 
+  it('⚠ the <color> nests INSIDE the <link>, not around it', async () => {
+    // Not cosmetic. The client's clickable-affordance span sets its own
+    // colour and a WRAPPING `<color>` loses to it ("the inner color
+    // wins", per MmlRenderer) — so nested the other way round a redlink
+    // renders in the ordinary link colour and a reader cannot tell the
+    // page is unwritten, which defeats the whole mechanism. Caught by
+    // driving it in a browser, not by any unit test.
+    const out = await render('[[mimic]]');
+    expect(out).toBe(
+      '<link href="mudcmd:wiki create mimic">' +
+        '<color value="red">mimic</color></link>',
+    );
+    expect(out.indexOf('<link')).toBeLessThan(out.indexOf('<color'));
+  });
+
   it('a redlink keeps an explicit label', async () => {
     const out = await render('[[mimic|that thing]]');
     expect(out).toContain('>that thing<');

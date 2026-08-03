@@ -76,6 +76,11 @@ function reasons(notes: readonly Note[]): string[] {
     .map((n) => n.reason);
 }
 
+/** The single stored page row. */
+function row(): Record<string, unknown> {
+  return db.all(Collections.Wiki)[0]!;
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
   db = installWikiTestDb();
@@ -276,6 +281,46 @@ describe('edit', () => {
     expect(row.title).toBe('Oak Wood');
     // Untouched — an unpassed option does not clear the field.
     expect(row.tags).toEqual(['wood']);
+  });
+
+  it('⭐ frontmatter-only: options and no body do NOT demand a body', async () => {
+    // Caught by driving it in a browser. `wiki edit oak --reveal 2`
+    // used to open the article editor, which meant an author who
+    // wanted to retitle a page had to retype the whole article — and
+    // that there was no way to change frontmatter WITHOUT rewriting
+    // the body. The controller's own comment described a path that was
+    // unreachable from the shell.
+    await run({ subcommand: 'create', page: 'oak', title: 'Oak', body: 'PROSE' });
+    const { body, notes } = await run({
+      subcommand: 'edit',
+      page: 'oak',
+      reveal: '2',
+    });
+    expect(reasons(notes)).toEqual([]);
+    expect(body).toContain('Updated');
+    // The level changed…
+    expect(row().spoilerLevel).toBe(2);
+    // …and the prose is untouched, with no new revision appended.
+    expect(row().body).toBe('PROSE');
+    expect(db.all(Collections.WikiRevisions)).toHaveLength(1);
+  });
+
+  it('an explicit --section still means prose, whatever else was passed', async () => {
+    await run({
+      subcommand: 'create',
+      page: 'oak',
+      body: '<h2 anchor="uses">Uses</h2>x',
+    });
+    const { notes } = await run({
+      subcommand: 'edit',
+      page: 'oak',
+      reveal: '1',
+      section: 'uses',
+      body: '<h2 anchor="uses">Uses</h2>REWRITTEN',
+    });
+    expect(reasons(notes)).toEqual([]);
+    expect(String(row().body)).toContain('REWRITTEN');
+    expect(row().spoilerLevel).toBe(1);
   });
 
   it('refuses an edit to a page that does not exist', async () => {

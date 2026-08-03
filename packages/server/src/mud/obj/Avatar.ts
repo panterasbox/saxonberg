@@ -149,6 +149,14 @@ export default class Avatar extends AvatarBase {
     self: [
       "system/ping.yaml",
       "system/help.yaml",
+      // The wiki sits beside `help` deliberately. Both are reference
+      // surfaces a player carries rather than reaches for: `help` tells
+      // you what a verb does, `wiki` tells you what a thing IS. Reading
+      // is open to everyone by design (D11 — an open commons, netted by
+      // rollback), so gating the verb behind a hosted aether update the
+      // way `forum`/`chat` are gated would contradict the access model
+      // the build actually implements.
+      "system/wiki.yaml",
       "system/clear.yaml",
       "system/affordances.yaml",
       "author/player.yaml",
