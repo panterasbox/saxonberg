@@ -47,7 +47,10 @@
 > vertical / learner-becomes-teacher opportunity
 > ([study-com-teacher-vertical.md](./study-com-teacher-vertical.md)), and
 > the fit-scored, market-grounded vertical survey
-> ([study-com-vertical-survey.md](./study-com-vertical-survey.md)).
+> ([study-com-vertical-survey.md](./study-com-vertical-survey.md)), and the
+> vertical **fidelity audit** — do our modeled industries teach the
+> discipline's reasoning?
+> ([study-com-vertical-fidelity-audit.md](./study-com-vertical-fidelity-audit.md)).
 
 ---
 
