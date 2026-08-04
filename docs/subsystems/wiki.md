@@ -156,8 +156,34 @@ Derived from identity, never stored:
 |---|---|
 | 3 | a wizard |
 | 2 | may mutate the namespace zone (its `'owner'` role) |
-| 1 | may edit in the namespace |
-| 0 | everyone else, and an unresolved principal |
+| 1 | may edit in the namespace — **or is simply a player** |
+| 0 | a guest, and an unresolved principal |
+
+#### ⭐ Why an ordinary player sits at 1
+
+The upper rungs are **authoring authority**, and for a while every
+rung was. A signed-in player sat at 0, which made `spoiler="1"` mean
+*no ordinary player may ever see this*, and meant the **appetite** axis
+— the click-to-reveal — could never fire for the people it was built
+for. Two axes, one of them structurally dead.
+
+Level 1 is therefore **ordinary reader content a reader may choose not
+to be shown**: collapsed for a reader whose `wiki.spoilerAppetite` is
+0, one click to open, plain for a reader who asked for everything.
+Levels 2 and 3 are unchanged and stay authority-gated, so opening 1 to
+everybody does not open the levels above it.
+
+> ⚠ A **guest stays at 0**, and not only for symmetry with the write
+> gate: a guest persists nothing, so the very setting that would let
+> them opt in cannot be remembered for them. "Collapsed until you
+> choose otherwise" is not an offer you can make to somebody whose
+> choice evaporates at disconnect.
+
+> ⚠ **This is not a knowledge model.** The ladder cannot express "this
+> character has worked oak and therefore knows its density" — that is
+> the Transcript/Competence axis, which the panel does not consult.
+> Reaching for a spoiler level to model something a character should
+> **earn** is the mistake worth naming here.
 
 > ⚠ `AccessApi.can` **ignores its `action` argument** (the parameter is
 > discarded). The ladder differentiates by *which predicate it calls*,
@@ -354,6 +380,23 @@ Three rules behind that:
 > ⚠ This is also what makes `spoiler` mean something. A field marked
 > level 3 so a creature's weakness stays hidden was, until now, hiding
 > the word "persistent". The gate was real and guarding nothing.
+
+**`Material`'s measured properties carry `spoiler: 1`** — density,
+hardness, the conductivities, autoignition, the heats, edibility,
+nutrients, toxicity. What a material *is* (name, appearance, tags, and
+the chemical identity anyone could look up) stays open; what it
+*measures* is the reward for working with it, and a panel that hands
+over every constant makes the material science a lookup instead of a
+subject. At level 1 it is a **default about presentation, not a lock**:
+one click, or `settings set wiki.spoilerAppetite 1` once and never
+again.
+
+> ⚠ The whole ROW collapses, name and value together — not the value
+> alone. That is forced by the capability half: hiding only the value
+> would leave `fireVulnerability · ` with an empty cell for an
+> over-ceiling reader, and **an empty cell is a redaction marker**,
+> which is the leak the model refuses everywhere else. One behaviour
+> for both axes, chosen by the half with the stricter requirement.
 
 `kind="mixin"` is untouched: *what in this world composes
 `Combustible`* — i.e. **what can burn** — is a question about the

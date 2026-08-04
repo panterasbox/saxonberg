@@ -61,6 +61,7 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Mml, type MmlNode } from '../api/mml';
 import { AccessApi } from '../api/access';
 import { AppApi } from '../api/app';
+import { PlayerApi } from '../api/player';
 import { ShellApi } from '../api/shell';
 import { ExecutionContextApi } from '../api/execution-context';
 import { StuffApi } from '../api/stuff';
@@ -238,8 +239,34 @@ export default class WikiRenderer extends Idea {
    *     content declares.
    *   - **2** — may mutate the namespace zone (its owner role). If you
    *     can roll the page back, hiding its content from you is theatre.
-   *   - **1** — may edit in the namespace.
-   *   - **0** — everyone else, including an unresolved principal.
+   *   - **1** — may edit in the namespace, **or is simply a player**.
+   *   - **0** — a guest, or an unresolved principal.
+   *
+   * ## ⭐ Why an ordinary player sits at 1
+   *
+   * The upper rungs are **authoring authority**, and for a while every
+   * rung was: a signed-in player sat at 0, so `spoiler="1"` meant "no
+   * ordinary player may ever see this" and the *appetite* axis — the
+   * click-to-reveal — could never fire for the people it was built
+   * for. Two axes, one of them structurally dead.
+   *
+   * Level 1 is therefore defined as **ordinary reader content that a
+   * reader may choose not to be shown**: hidden by default for a
+   * reader whose `wiki.spoilerAppetite` is 0, one click to open,
+   * plain for a reader who asked for everything. Levels 2 and 3 keep
+   * meaning what they meant, and remain authority-gated.
+   *
+   * ⚠ A **guest stays at 0**, and not only for symmetry with the write
+   * gate: a guest persists nothing, so the very setting that would let
+   * them opt in cannot be remembered for them. "Collapsed until you
+   * choose otherwise" is not an offer that can be made to somebody
+   * whose choice evaporates at disconnect.
+   *
+   * ⚠ This is NOT a knowledge model. The ladder cannot express "this
+   * character has worked oak and therefore knows its density" — that
+   * is the Transcript/Competence axis, a different mechanism the panel
+   * does not consult. Do not reach for a spoiler level to model
+   * something a character should *earn*.
    *
    * ⚠ `AccessApi.can` **ignores its `action` argument** (verified —
    * the parameter is discarded). The ladder differentiates by *which
@@ -254,10 +281,32 @@ export default class WikiRenderer extends Idea {
     if (actor === null) return SpoilerLevels.OPEN;
     if (await AccessApi.isWizard(actor)) return 3;
     const zone = isStuff(namespaceZone) ? namespaceZone : null;
-    if (zone === null) return SpoilerLevels.OPEN;
-    if (await AccessApi.canMutateZone(actor, zone)) return 2;
-    if (await AccessApi.can(actor, 'read', zone)) return 1;
-    return SpoilerLevels.OPEN;
+    if (zone !== null) {
+      if (await AccessApi.canMutateZone(actor, zone)) return 2;
+      if (await AccessApi.can(actor, 'read', zone)) return 1;
+    }
+    // The reader rung. Reached with no zone too — a namespace nobody
+    // seeded a zone for used to drop EVERY reader to 0, which was the
+    // right fail-closed answer while 1 meant "trusted with this
+    // namespace" and is the wrong one now that it means "ordinary
+    // content". The rungs that need the zone are still the ones that
+    // fail closed without it.
+    return this.isPlayerReader(actor) ? 1 : SpoilerLevels.OPEN;
+  }
+
+  /**
+   * A signed-in player, as opposed to a guest or a non-player Stuff.
+   *
+   * ⚠ Asked optionally: `isAvatarStuff` identifies by template-path
+   * prefix, so it can be right about identity and wrong about the
+   * class (an HMR cycle, a moved backing class). An unrecognisable
+   * principal falls to 0, which is the fail-closed direction — the
+   * twin of `WikiRegistry.actingGuest`, which makes the same call for
+   * the write gate.
+   */
+  private isPlayerReader(actor: Stuff): boolean {
+    if (!PlayerApi.isAvatarStuff(actor)) return false;
+    return (actor as { getIsGuest?: () => boolean }).getIsGuest?.() !== true;
   }
 
   // ── Stage bodies ──

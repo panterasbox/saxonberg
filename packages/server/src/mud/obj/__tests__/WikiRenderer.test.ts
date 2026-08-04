@@ -21,6 +21,7 @@ import WikiRenderer from '../WikiRenderer';
 import { Idea } from '../../lib/stuff/Idea';
 import { AccessApi } from '../../api/access';
 import { AppApi } from '../../api/app';
+import { PlayerApi } from '../../api/player';
 import { ShellApi } from '../../api/shell';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Mml } from '../../api/mml';
@@ -332,9 +333,73 @@ describe('the capability ladder', () => {
     expect(await renderer.ceilingFor(reader, zone)).toBe(1);
   });
 
-  it('everybody else is 0', async () => {
+  it('a non-player Stuff is 0', async () => {
     pinCeiling(0);
     expect(await renderer.ceilingFor(reader, zone)).toBe(0);
+  });
+
+  describe('⭐ the reader rung — an ordinary player sits at 1', () => {
+    /**
+     * The rung exists so the APPETITE axis can fire at all. While
+     * every rung was authoring authority, a signed-in player sat at 0,
+     * `spoiler="1"` meant "no ordinary player may ever see this", and
+     * the click-to-reveal could never reach the people it was built
+     * for. Level 1 now means "ordinary content a reader may choose not
+     * to be shown"; 2 and 3 stay authority-gated.
+     */
+    function player(guest: boolean): Stuff {
+      const avatar = principal();
+      vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(true);
+      (avatar as unknown as { getIsGuest: () => boolean }).getIsGuest = () =>
+        guest;
+      return avatar;
+    }
+
+    it('a signed-in player reaches 1 with no namespace authority at all', async () => {
+      pinCeiling(0);
+      expect(await renderer.ceilingFor(player(false), zone)).toBe(1);
+    });
+
+    it('…and with no zone either', async () => {
+      // A namespace nobody seeded a zone for used to drop every reader
+      // to 0. That was right while 1 meant "trusted with this
+      // namespace" and is wrong now that it means "ordinary content".
+      // The rungs that NEED the zone still fail closed without it.
+      pinCeiling(0);
+      expect(await renderer.ceilingFor(player(false), undefined)).toBe(1);
+    });
+
+    it('⚠ a GUEST stays at 0', async () => {
+      // Not only for symmetry with the write gate: a guest persists
+      // nothing, so the setting that would let them opt in cannot be
+      // remembered for them. "Collapsed until you choose otherwise" is
+      // not an offer you can make to somebody whose choice evaporates
+      // at disconnect.
+      pinCeiling(0);
+      expect(await renderer.ceilingFor(player(true), zone)).toBe(0);
+    });
+
+    it('does not raise a reader who already has more', async () => {
+      vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+      vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
+      expect(await renderer.ceilingFor(player(false), zone)).toBe(2);
+    });
+
+    it('⭐ level 2 is still out of an ordinary player’s reach', async () => {
+      // The whole point of keeping the upper rungs: opening level 1 to
+      // everybody must not open the levels above it.
+      pinCeiling(0);
+      pinAppetite(3);
+      const p = player(false);
+      const out = await asReader(p, () =>
+        raw().render(
+          'open <spoiler level="1">mild</spoiler> <spoiler level="2">real</spoiler>',
+          { namespaceZone: zone },
+        ),
+      );
+      expect(out.body).toContain('mild');
+      expect(out.body).not.toContain('real');
+    });
   });
 
   it('a null actor is 0 without consulting anything', async () => {
@@ -343,9 +408,10 @@ describe('the capability ladder', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('no zone means the zone rungs are unreachable — fails closed', async () => {
-    // A page with no namespace zone cannot be resource-targeted, so a
-    // non-wizard gets 0. That is the fail-closed direction.
+  it('no zone means the ZONE rungs are unreachable — fails closed', async () => {
+    // A page with no namespace zone cannot be resource-targeted, so
+    // the rungs that need one are out of reach. A non-player then has
+    // nothing left to stand on and gets 0.
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
     expect(await renderer.ceilingFor(reader, undefined)).toBe(0);

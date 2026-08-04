@@ -57,6 +57,78 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
 }
 
 /**
+ * Blank out comments and leave everything else where it was — every
+ * comment character becomes a space, so byte offsets (and therefore
+ * `braceBody`) stay valid.
+ *
+ * ⚠ Not cosmetic. The owner label comes from "the nearest `class` or
+ * `const` above", matched by regex against raw source, and
+ * `Material.ts` contains the ordinary English phrase *"See class
+ * header for…"* in a doc comment — so every material field was filed
+ * under `header.density`, `header.toxicity`, naming nothing. The
+ * reviewer's question is *is `Material.density` a spoiler*, and a
+ * label that answers "header" cannot be reviewed.
+ *
+ * It also stops a commented-OUT `static fieldMeta` being harvested as
+ * though it were live.
+ */
+function blankComments(src: string): string {
+  const out = src.split('');
+  type Mode = 'code' | 'line' | 'block' | "'" | '"' | '`';
+  let mode: Mode = 'code';
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i]!;
+    const d = src[i + 1];
+    if (mode === 'code') {
+      if (c === '/' && d === '/') {
+        out[i] = ' ';
+        out[i + 1] = ' ';
+        mode = 'line';
+        i += 2;
+        continue;
+      }
+      if (c === '/' && d === '*') {
+        out[i] = ' ';
+        out[i + 1] = ' ';
+        mode = 'block';
+        i += 2;
+        continue;
+      }
+      if (c === "'" || c === '"' || c === '`') mode = c;
+      i += 1;
+      continue;
+    }
+    if (mode === 'line') {
+      if (c === '\n') mode = 'code';
+      else out[i] = ' ';
+      i += 1;
+      continue;
+    }
+    if (mode === 'block') {
+      if (c === '*' && d === '/') {
+        out[i] = ' ';
+        out[i + 1] = ' ';
+        mode = 'code';
+        i += 2;
+        continue;
+      }
+      if (c !== '\n') out[i] = ' ';
+      i += 1;
+      continue;
+    }
+    // Inside a string: only the matching quote (unescaped) ends it.
+    if (c === '\\') {
+      i += 2;
+      continue;
+    }
+    if (c === mode) mode = 'code';
+    i += 1;
+  }
+  return out.join('');
+}
+
+/**
  * Harvest `static fieldMeta = { … }` declarations by source scan.
  *
  * A source scan rather than runtime introspection, on purpose: the
@@ -74,7 +146,7 @@ function harvestFieldLevels(): Record<string, number> {
   const META_RE = /static\s+fieldMeta\s*:?[^=]*=\s*\{/g;
 
   for (const file of sourceFiles(MUD_ROOT)) {
-    const src = readFileSync(file, 'utf8');
+    const src = blankComments(readFileSync(file, 'utf8'));
     META_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = META_RE.exec(src)) !== null) {
