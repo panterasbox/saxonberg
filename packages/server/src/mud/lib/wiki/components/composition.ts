@@ -152,6 +152,7 @@ async function describeTemplate(path: string): Promise<MmlNode[]> {
     .map((m) => m._mixinName)
     .filter((n): n is string => typeof n === 'string');
   const meta = MixinApi.getAllFieldMeta(ctor);
+  const data = (tpl.data ?? {}) as Record<string, unknown>;
 
   const rows: MmlNode[] = [
     headerRow('Property', 'Value'),
@@ -161,27 +162,87 @@ async function describeTemplate(path: string): Promise<MmlNode[]> {
     row('composes', mixins.length ? mixins.join(', ') : '(none)', SpoilerLevels.OPEN),
   ];
 
-  // Every declared field, at the level its declaration gives it. The
-  // component does not decide what is a spoiler; the field does.
+  // ⭐ The VALUE the template declares, not the field's storage class.
+  //
+  // This panel is a **game reference**; the schema view belongs to
+  // `help` and the generated API docs. It shipped rendering each
+  // field's declaration metadata, which on a material meant a column
+  // reading `persistent` twenty-six times — every field on `Material`
+  // declares exactly `{ persistent: true }` — while discarding the
+  // `marshaller`, which is the UNIT and the one thing a reader wants
+  // beside a number.
+  //
+  // It also left `spoiler` guarding nothing: a field declared level 3
+  // so a creature's weakness stays hidden was hiding the word
+  // "persistent". Putting real values in the panel is what makes the
+  // reveal model's per-field level mean something.
+  //
+  // Iterated over the DECLARED fields rather than the data's own keys,
+  // so the enumerating snapshot audit still covers everything a panel
+  // can surface — a stray key in a `data:` block cannot slip a value
+  // onto a page without a declared level.
   for (const field of Object.keys(meta).sort()) {
-    const level = SpoilerLevels.ofField(ctor, field);
-    rows.push(row(field, describeField(meta[field]), level));
+    const value = formatValue(data[field], meta[field]);
+    // A field the template never set has no value to report. Showing
+    // it empty pads the panel with rows that say nothing; oak declares
+    // no melting point because wood chars rather than melts, and a
+    // blank row states that no better than its absence does.
+    if (value === null) continue;
+    rows.push(row(field, value, SpoilerLevels.ofField(ctor, field)));
   }
 
   return [table(rows)];
 }
 
-/** A one-line summary of what a field declaration says about itself. */
-function describeField(entry: FieldMetaEntry | undefined): string {
-  if (!entry) return '';
-  const parts: string[] = [];
-  if (entry.persistent) parts.push('persistent');
-  if (entry.runtimeState) parts.push('engine-written');
-  if (entry.authorable) parts.push('authorable');
-  if (typeof entry.ref === 'string') parts.push(`ref:${entry.ref}`);
-  if (typeof entry.lifetime === 'string') parts.push(`lifetime:${entry.lifetime}`);
-  if (entry.globIdentity) parts.push('glob-identity');
-  return parts.join(' · ');
+/**
+ * Render an authored value for a reader, or `null` when there is
+ * nothing to say.
+ *
+ * `false` and `0` are values, not absences — "edible: no" is a fact
+ * about a material and the reason the emptiness test is written out
+ * rather than leaning on falsiness.
+ */
+function formatValue(raw: unknown, entry: FieldMetaEntry | undefined): string | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  if (Array.isArray(raw)) {
+    const items = raw.filter((v) => v !== null && v !== undefined);
+    return items.length ? items.map((v) => String(v)).join(', ') : null;
+  }
+  if (typeof raw === 'boolean') return raw ? 'yes' : 'no';
+  if (typeof raw === 'object') {
+    const keys = Object.keys(raw as Record<string, unknown>);
+    if (!keys.length) return null;
+    return keys.map((k) => `${k}: ${String((raw as Record<string, unknown>)[k])}`).join(', ');
+  }
+  const unit = unitOf(entry);
+  if (typeof raw === 'number' && unit) {
+    // `28 %` reads wrong; every other unit wants the space.
+    return unit === '%' ? `${raw}%` : `${raw} ${unit}`;
+  }
+  return String(raw);
+}
+
+/**
+ * The unit a field's marshaller carries, or null.
+ *
+ * Resolved from the marshaller SINGLETON rather than by decoding its
+ * path: the path encoding (`kg/m³` → `kg-per-m3`) is the marshaller's
+ * private business and re-deriving it here would be a second copy of a
+ * rule that already has an owner. Best-effort throughout — a unit is a
+ * courtesy, and no panel should fail to render for want of one.
+ */
+function unitOf(entry: FieldMetaEntry | undefined): string | null {
+  const path = entry?.marshaller;
+  if (typeof path !== 'string' || !path) return null;
+  try {
+    const m = StuffApi.findByTemplatePath(path) as
+      | { getUnit?: () => string }
+      | null;
+    const unit = m?.getUnit?.();
+    return typeof unit === 'string' && unit ? unit : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── mixin: what does this provide, and what has it ──

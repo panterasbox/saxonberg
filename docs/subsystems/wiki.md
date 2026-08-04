@@ -320,6 +320,45 @@ Shipped: `infobox` (pure presentation), `image` (a key; **no upload
 path**), `help` (transclude a verb's topic), `composition` (the live
 architecture panel).
 
+#### ⭐ `composition kind="template"` reports VALUES, not schema
+
+The panel is a **game reference**. The schema view — what a field is,
+how it persists, whether it is authorable — is what `help` and the
+generated API docs are for, and putting it on an article makes an
+encyclopedia entry about the engine instead of about the world.
+
+It shipped rendering each field's declaration metadata, and the
+failure mode is worth keeping written down: **every field on
+`Material` declares exactly `{ persistent: true }`**, so a material's
+panel was a column reading `persistent` twenty-six times — an
+all-identical column carrying no information — while discarding the
+`marshaller`, which is the **unit**, and the one thing a reader wants
+beside a number. Now: `density · 750 kg/m³`, `autoignitionTemperature
+· 570 K`, `edibility · no`.
+
+Three rules behind that:
+
+- **Units come from the marshaller singleton** (`getUnit()`), not from
+  decoding its path — the `kg/m³` → `kg-per-m3` encoding has an owner
+  and a second copy would rot. Best-effort: no panel fails for want of
+  a unit.
+- **A declared field the template never set is omitted.** Oak has no
+  melting point because wood chars rather than melts; a blank row
+  states that no better than its absence, and twenty of them bury the
+  fields that do have values.
+- **Iteration is over the DECLARED fields**, not the `data:` block's
+  own keys, so the enumerating snapshot audit still covers everything
+  a panel can surface — a stray key cannot slip a value onto a page
+  without a declared level.
+
+> ⚠ This is also what makes `spoiler` mean something. A field marked
+> level 3 so a creature's weakness stays hidden was, until now, hiding
+> the word "persistent". The gate was real and guarding nothing.
+
+`kind="mixin"` is untouched: *what in this world composes
+`Combustible`* — i.e. **what can burn** — is a question about the
+world that no template page can answer, and no help topic either.
+
 ### Snippets
 
 A page in the `snippet` namespace, invoked `{{Name|pos|key=value}}`,

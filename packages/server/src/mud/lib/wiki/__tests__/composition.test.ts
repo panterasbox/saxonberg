@@ -55,12 +55,17 @@ class Mimic extends Idea {
 /** The same shape with nothing declared spoilery. */
 class Oak extends Idea {
   static fieldMeta: FieldMeta = {
-    density: { persistent: true },
+    density: { persistent: true, marshaller: '/obj/persistence/QuantityMarshaller/kg-per-m3' },
     hardness: { persistent: true },
+    edible: { persistent: true },
+    meltingPoint: { persistent: true },
   };
-  density = 0.75;
+  density = 750;
   hardness = 1360;
 }
+
+/** What the oak TEMPLATE declares — `meltingPoint` deliberately unset. */
+const OAK_DATA = { density: 750, hardness: 1360, edible: false };
 
 const ctx: ComponentContext = { budget: new RenderBudget() };
 
@@ -70,9 +75,19 @@ async function panel(props: Record<string, string>): Promise<string> {
   return JSON.stringify(nodes);
 }
 
-/** A fake Template row. */
-function template(path: string, classPath: string): Template {
-  return { path, class: classPath } as unknown as Template;
+/**
+ * A fake Template row.
+ *
+ * ⚠ `data` is not optional dressing: the panel renders the values a
+ * template DECLARES, so a row with no data renders no fields. A
+ * fixture without it would make every assertion below vacuous.
+ */
+function template(
+  path: string,
+  classPath: string,
+  data: Record<string, unknown> = {},
+): Template {
+  return { path, class: classPath, data } as unknown as Template;
 }
 
 beforeEach(() => {
@@ -88,7 +103,7 @@ afterEach(() => {
 describe('⭐ the template panel — what is this thing made of (12)', () => {
   beforeEach(() => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/material/oak', '/obj/Oak'),
+      template('/obj/material/oak', '/obj/Oak', OAK_DATA),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Oak as never);
   });
@@ -99,15 +114,30 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
     expect(out).toContain('composes');
   });
 
-  it('lists every declared field', async () => {
+  it('⭐ reports each field\'s VALUE — this is a game reference', async () => {
+    // It shipped printing each field's storage class instead, which on
+    // a material meant a column reading `persistent` twenty-six times.
+    // The schema view is what `help` and the generated API docs are
+    // for; a reader of an oak article wants oak's density.
     const out = await panel({ kind: 'template', of: '/obj/material/oak' });
     expect(out).toContain('density');
-    expect(out).toContain('hardness');
+    expect(out).toContain('750');
+    expect(out).toContain('1360');
+    expect(out).not.toContain('persistent');
   });
 
-  it('summarises what each declaration says about a field', async () => {
+  it('renders a boolean as an answer, not a literal', async () => {
     const out = await panel({ kind: 'template', of: '/obj/material/oak' });
-    expect(out).toContain('persistent');
+    expect(out).toContain('edible');
+    expect(out).toContain('no');
+  });
+
+  it('⚠ omits a declared field the template never set', async () => {
+    // Oak has no melting point — wood chars rather than melts. A blank
+    // row states that no better than its absence does, and twenty of
+    // them bury the fields that do have values.
+    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(out).not.toContain('meltingPoint');
   });
 
   it('⭐ CHANGES when the subject changes, with no edit to the page', async () => {
@@ -124,6 +154,9 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
       };
     }
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(OakV2 as never);
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/material/oak', '/obj/Oak', { ...OAK_DATA, flammable: true }),
+    );
 
     const after = await panel({ kind: 'template', of: '/obj/material/oak' });
     expect(after).toContain('flammable');
@@ -294,7 +327,10 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     renderer = makeStuff(() => new WikiRenderer());
     reader = makeStuff(() => new Principal()) as unknown as Stuff;
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/npc/mimic', '/obj/Mimic'),
+      template('/obj/npc/mimic', '/obj/Mimic', {
+        mass: 40,
+        fireVulnerability: 'catastrophic',
+      }),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Mimic as never);
     // Resolve the real component module by path.
@@ -318,6 +354,11 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     const out = await render('<composition of="/obj/npc/mimic"/>');
     expect(out).toContain('mass');
     expect(out).not.toContain('fireVulnerability');
+    // ⭐ And the VALUE, which is the thing worth hiding. The panel now
+    // carries real values, so this is the assertion the per-field
+    // level was written for — it used to be guarding the word
+    // "persistent".
+    expect(out).not.toContain('catastrophic');
   });
 
   it('TAGS it for a reader who may see it but did not ask to', async () => {
@@ -326,6 +367,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
 
     const out = await render('<composition of="/obj/npc/mimic"/>');
     expect(out).toContain('fireVulnerability');
+    expect(out).toContain('catastrophic');
     expect(out).toContain('<spoiler level="3">');
   });
 
@@ -335,6 +377,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
 
     const out = await render('<composition of="/obj/npc/mimic"/>');
     expect(out).toContain('fireVulnerability');
+    expect(out).toContain('catastrophic');
     expect(out).not.toContain('<spoiler');
   });
 
