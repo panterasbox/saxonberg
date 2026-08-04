@@ -128,8 +128,8 @@ export class MagicApi {
    * an item resolving what it carries — as opposed to the caster-facing
    * roster, which is `spellsView`.
    */
-  public static spellById(spellId: string): SpellDescriptor | null {
-    return logic().spellById(spellId);
+  public static spellAt(path: string): SpellDescriptor | null {
+    return logic().spellAt(path);
   }
 
   /**

@@ -231,10 +231,10 @@ export class MagicLogic extends ApiLogic {
     return dischargeImpl(item, target, opts);
   }
 
-  /** See {@link MagicApi.spellById}. */
+  /** See {@link MagicApi.spellAt}. */
   @CallSecurity(MagicApiCallers)
-  public spellById(spellId: string): SpellDescriptor | null {
-    return catalogue()?.getSpell(spellId) ?? null;
+  public spellAt(path: string): SpellDescriptor | null {
+    return catalogue()?.getSpellAt(path) ?? null;
   }
 
   /** See {@link MagicApi.spellsView}. */
@@ -274,7 +274,9 @@ async function prepareCastImpl(
   if (!MixinApi.isCaster(caster)) {
     return { ok: false, refusal: 'You have no gift for the arts.' };
   }
-  const spell = catalogue()?.getSpell(spellId) ?? null;
+  // A player TYPED this, so it is a name, not a reference — ambiguity
+  // here is a disambiguation problem, never a corrupted pointer.
+  const spell = catalogue()?.getSpellNamed(spellId) ?? null;
   if (!spell) {
     return { ok: false, refusal: `You know no working called '${spellId}'.` };
   }
@@ -344,7 +346,7 @@ async function resolveCastImpl(
   // caster walked into a ward, the wound landed, the band is unchanged).
   const prep = await prepareCastImpl(caster, spellId, target);
   if (!prep.ok) return { ok: false, refusal: prep.refusal, reports: [] };
-  const spell = catalogue()!.getSpell(spellId)!;
+  const spell = catalogue()!.getSpellNamed(spellId)!;
 
   // Spend — at completion, in the same beat the effects fire (an abort
   // never reaches here). Overchanneling = completing past empty: the
@@ -408,10 +410,10 @@ async function resolveCastImpl(
   // Casting RENEWS the pattern (D15), so an actively used spell never
   // fades — you lose only what you do not use. This is also what makes
   // fade felt rather than punitive: the fix is to keep casting.
-  if (MixinApi.isMemorized(caster) && caster.holdsSpell(spell.spellId)) {
-    const held = caster.getMemorizedSpell(spell.spellId)!;
+  if (MixinApi.isMemorized(caster) && caster.holdsSpell(spell.path)) {
+    const held = caster.getMemorizedSpell(spell.path)!;
     caster.memorize({
-      spellId: spell.spellId,
+      spellPath: spell.path,
       defective: held.defective,
       verb: spell.verb,
       noun: spell.noun,
@@ -484,8 +486,10 @@ async function dischargeImpl(
   if (!MixinApi.isArcane(item)) {
     return { ok: false, refusal: 'There is no working in it.', reports: [] };
   }
-  const spellId = item.getCarriedSpellId();
-  const spell = spellId ? (catalogue()?.getSpell(spellId) ?? null) : null;
+  const spellPath = item.getCarriedSpellPath();
+  const spell = spellPath
+    ? (catalogue()?.getSpellAt(spellPath) ?? null)
+    : null;
   if (!spell) {
     return {
       ok: false,

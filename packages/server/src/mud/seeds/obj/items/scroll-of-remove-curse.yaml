@@ -21,7 +21,7 @@ data:
     a spiral of pressed characters reading inward, patient and
     unhurried
   markForm: embossed
-  carriedSpellId: remove-curse
+  carriedSpellPath: /obj/magic/Spell/remove-curse
   usesRemaining: 1
   censusKey: scroll
   materialTags: [vellum]

@@ -71,8 +71,8 @@ export interface Arcane {
    */
   getArcaneFootprint(): readonly ArcaneAddress[];
   /** The spell whose address this item inherits, or `''` for a bespoke one. */
-  getCarriedSpellId(): string;
-  setCarriedSpellId(spellId: string): void;
+  getCarriedSpellPath(): string;
+  setCarriedSpellPath(spellId: string): void;
   /** The bespoke declaration — ignored while a spell is carried. */
   getDeclaredAddresses(): readonly ArcaneAddress[];
   setDeclaredAddresses(addresses: readonly ArcaneAddress[]): void;
@@ -101,7 +101,7 @@ export interface Arcane {
   setDeliveryEfficiency(value: number): void;
 
   // ---------- storage (public for the Hydrator) ----------
-  carriedSpellId: string;
+  carriedSpellPath: string;
   declaredAddresses: ArcaneAddress[];
   makerId: string;
   deliveryEfficiency: number;
@@ -112,14 +112,14 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'ArcaneMixin';
 
     static fieldMeta: FieldMeta = {
-      carriedSpellId: { persistent: true, authorable: true },
+      carriedSpellPath: { persistent: true, authorable: true },
       declaredAddresses: { persistent: true, authorable: true },
       makerId: { persistent: true, authorable: true },
       deliveryEfficiency: { persistent: true, authorable: true },
     };
 
     /** The spell whose grid address this thing inherits. `''` = bespoke. */
-    public carriedSpellId: string = '';
+    public carriedSpellPath: string = '';
 
     /** The bespoke footprint. Plain scalars → persists free. */
     public declaredAddresses: ArcaneAddress[] = [];
@@ -152,12 +152,24 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.deliveryEfficiency = n;
     }
 
-    public getCarriedSpellId(): string {
-      return this.carriedSpellId;
+    public getCarriedSpellPath(): string {
+      return this.carriedSpellPath;
     }
 
-    public setCarriedSpellId(spellId: string): void {
-      this.carriedSpellId = typeof spellId === 'string' ? spellId : '';
+    public setCarriedSpellPath(path: string): void {
+      // ⚠ A bare id is the mistake this field exists to prevent, and the
+      // type system cannot catch it — both are strings. So the setter
+      // does, which turns the rename from a naming convention into an
+      // actual guardrail: `firebolt` throws, `/obj/magic/Spell/firebolt`
+      // does not. Empty clears.
+      const v = typeof path === 'string' ? path.trim() : '';
+      if (v.length > 0 && !v.startsWith('/')) {
+        throw new RangeError(
+          `carriedSpellPath: '${v}' is a bare id, not a template path ` +
+            `(did you mean '/obj/magic/Spell/${v}'?)`,
+        );
+      }
+      this.carriedSpellPath = v;
     }
 
     public getDeclaredAddresses(): readonly ArcaneAddress[] {
@@ -181,10 +193,10 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public getArcaneFootprint(): readonly ArcaneAddress[] {
-      if (this.carriedSpellId.length > 0) {
+      if (this.carriedSpellPath.length > 0) {
         const spell = StuffApi.findByTemplatePath<SpellCatalogue>(
           SPELL_CATALOGUE_PATH,
-        )?.getSpell(this.carriedSpellId);
+        )?.getSpellAt(this.carriedSpellPath);
         // A carried spell the catalogue does not know is an authoring
         // error, not a licence to fall back on a stale declaration —
         // an empty footprint is suppressible by nothing and priced as

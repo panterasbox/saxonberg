@@ -129,7 +129,7 @@ function makeRoom(): Room {
 function makeWand(band: string): Wand {
   const w = makeStuff(() => new Wand());
   stampTemplatePathForTest(w, `/obj/test/rc-wand-${seq++}`);
-  w.setCarriedSpellId('firebolt');
+  w.setCarriedSpellPath('/obj/magic/Spell/firebolt');
   w.setBlessingBand(band);
   return w;
 }
@@ -138,7 +138,7 @@ function makeScroll(spellId: string): Scroll {
   const s = makeStuff(() => new Scroll());
   stampTemplatePathForTest(s, `/obj/test/rc-scroll-${seq++}`);
   s.setMarkText('a spiral of pressed characters');
-  s.setCarriedSpellId(spellId);
+  s.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
   return s;
 }
 
@@ -197,14 +197,14 @@ describe('remove-curse — control·arcana over an item', () => {
   });
 
   it('is CONTROL, not DESTROY — dispel occupies the other cell', async () => {
-    const spell = await MagicApi.spellById('remove-curse');
+    const spell = await MagicApi.spellAt('/obj/magic/Spell/remove-curse');
     expect(spell).not.toBeNull();
     // The grid cell is the design claim in machine-readable form. A
     // curse is the item's own potency displaced, so lifting it changes
     // a parameter of a thing that remains itself.
     expect(spell!.verb).toBe('control');
     expect(spell!.noun).toBe('arcana');
-    const dispel = await MagicApi.spellById('dispel');
+    const dispel = await MagicApi.spellAt('/obj/magic/Spell/dispel');
     expect(dispel!.verb).toBe('destroy');
     // …and `control` is the dearer verb, which is why the cure costs
     // more than the unbinding it is often mistaken for.

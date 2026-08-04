@@ -162,7 +162,7 @@ export default class ReadController extends CommandController<ReadModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isArcane(target)) return;
-    if (target.getCarriedSpellId().length === 0) return;
+    if (target.getCarriedSpellPath().length === 0) return;
 
     // A spent scroll still affords `read` and still shows its text — it
     // just does nothing (D34: the affordance reflects the kind, never

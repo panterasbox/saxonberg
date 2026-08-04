@@ -155,50 +155,50 @@ describe('MemorizedMixin — the held repertoire', () => {
     vi.restoreAllMocks();
   });
 
-  function hold(mind: Mind, spellId: string, verb: string, noun: string): void {
-    mind.memorize({ spellId, verb, noun, complexity: 1, defective: false });
+  function hold(mind: Mind, spellPath: string, verb: string, noun: string): void {
+    mind.memorize({ spellPath, verb, noun, complexity: 1, defective: false });
   }
 
   it('memorizing takes a working on board, fully sharp', () => {
     const mind = makeStuff(() => new Mind());
-    hold(mind, 'firebolt', 'create', 'fire');
-    const held = mind.getMemorizedSpell('firebolt')!;
+    hold(mind, '/obj/magic/Spell/firebolt', 'create', 'fire');
+    const held = mind.getMemorizedSpell('/obj/magic/Spell/firebolt')!;
     expect(held.sharpness).toBe(1);
     expect(held.maturity).toBe(0);
-    expect(mind.holdsSpell('firebolt')).toBe(true);
-    expect(mind.costMultiplierFor('firebolt')).toBe(1);
+    expect(mind.holdsSpell('/obj/magic/Spell/firebolt')).toBe(true);
+    expect(mind.costMultiplierFor('/obj/magic/Spell/firebolt')).toBe(1);
   });
 
   it('AC29 — an UNHELD spell costs the ordinary price, not a penalty', () => {
     const mind = makeStuff(() => new Mind());
     // Not holding a copy is not an error and not a failure — you simply
     // pay what you always paid. Only holding a HAZY copy costs extra.
-    expect(mind.costMultiplierFor('firebolt')).toBe(1);
+    expect(mind.costMultiplierFor('/obj/magic/Spell/firebolt')).toBe(1);
   });
 
   it('AC29 — it fades over game-time, and the cost rises with it', () => {
     const mind = makeStuff(() => new Mind());
-    hold(mind, 'firebolt', 'create', 'fire');
+    hold(mind, '/obj/magic/Spell/firebolt', 'create', 'fire');
     mind.getMemorized(); // seed the stamp
 
     advance(10 * 24 * 3600); // ten game-days untouched
-    const held = mind.getMemorizedSpell('firebolt')!;
+    const held = mind.getMemorizedSpell('/obj/magic/Spell/firebolt')!;
     expect(held.sharpness).toBeLessThan(1);
     expect(held.sharpness).toBeGreaterThan(0); // faded, not gone
-    expect(mind.costMultiplierFor('firebolt')).toBeGreaterThan(1);
+    expect(mind.costMultiplierFor('/obj/magic/Spell/firebolt')).toBeGreaterThan(1);
     // …and it still WORKS. Never a failure, never Infinity.
-    expect(Number.isFinite(mind.costMultiplierFor('firebolt'))).toBe(true);
+    expect(Number.isFinite(mind.costMultiplierFor('/obj/magic/Spell/firebolt'))).toBe(true);
   });
 
   it('AC29 — refreshing restores sharpness AND raises maturity', () => {
     const mind = makeStuff(() => new Mind());
-    hold(mind, 'firebolt', 'create', 'fire');
+    hold(mind, '/obj/magic/Spell/firebolt', 'create', 'fire');
     mind.getMemorized();
     advance(10 * 24 * 3600);
-    expect(mind.getMemorizedSpell('firebolt')!.sharpness).toBeLessThan(1);
+    expect(mind.getMemorizedSpell('/obj/magic/Spell/firebolt')!.sharpness).toBeLessThan(1);
 
-    hold(mind, 'firebolt', 'create', 'fire'); // a cast, or a re-study
-    const held = mind.getMemorizedSpell('firebolt')!;
+    hold(mind, '/obj/magic/Spell/firebolt', 'create', 'fire'); // a cast, or a re-study
+    const held = mind.getMemorizedSpell('/obj/magic/Spell/firebolt')!;
     expect(held.sharpness).toBe(1);
     // Each refresh lengthens the NEXT interval — so an actively used
     // spell never fades, and you lose only what you do not use.
@@ -207,25 +207,25 @@ describe('MemorizedMixin — the held repertoire', () => {
 
   it('AC30 — interference is counted from NEIGHBOURING grid cells', () => {
     const mind = makeStuff(() => new Mind());
-    hold(mind, 'firebolt', 'create', 'fire');
-    expect(mind.neighbourCount('firebolt')).toBe(0);
+    hold(mind, '/obj/magic/Spell/firebolt', 'create', 'fire');
+    expect(mind.neighbourCount('/obj/magic/Spell/firebolt')).toBe(0);
 
     // Shares the VERB.
-    hold(mind, 'glowlight', 'create', 'light');
-    expect(mind.neighbourCount('firebolt')).toBe(1);
+    hold(mind, '/obj/magic/Spell/glowlight', 'create', 'light');
+    expect(mind.neighbourCount('/obj/magic/Spell/firebolt')).toBe(1);
     // Shares the NOUN.
-    hold(mind, 'quench', 'destroy', 'fire');
-    expect(mind.neighbourCount('firebolt')).toBe(2);
+    hold(mind, '/obj/magic/Spell/quench', 'destroy', 'fire');
+    expect(mind.neighbourCount('/obj/magic/Spell/firebolt')).toBe(2);
     // Shares NEITHER — the most alike things a holder could carry are
     // the ones in adjacent cells, and this is not one of them.
-    hold(mind, 'dread', 'destroy', 'mind');
-    expect(mind.neighbourCount('firebolt')).toBe(2);
+    hold(mind, '/obj/magic/Spell/dread', 'destroy', 'mind');
+    expect(mind.neighbourCount('/obj/magic/Spell/firebolt')).toBe(2);
   });
 
   it('AC30 — a crowded repertoire fades measurably faster', () => {
     const specialist = makeStuff(() => new Mind());
     const generalist = makeStuff(() => new Mind());
-    hold(specialist, 'firebolt', 'create', 'fire');
+    hold(specialist, '/obj/magic/Spell/firebolt', 'create', 'fire');
     for (const [id, v, n] of [
       ['firebolt', 'create', 'fire'],
       ['glowlight', 'create', 'light'],
@@ -233,7 +233,7 @@ describe('MemorizedMixin — the held repertoire', () => {
       ['spark', 'create', 'lightning'],
       ['veil', 'create', 'sense'],
     ] as const) {
-      hold(generalist, id, v, n);
+      hold(generalist, `/obj/magic/Spell/${id}`, v, n);
     }
     specialist.getMemorized();
     generalist.getMemorized();
@@ -242,8 +242,8 @@ describe('MemorizedMixin — the held repertoire', () => {
     // that neither has bottomed out (a comparison against two zeroes
     // would pass vacuously).
     advance(10 * 24 * 3600);
-    const sharp = specialist.getMemorizedSpell('firebolt')!.sharpness;
-    const hazy = generalist.getMemorizedSpell('firebolt')!.sharpness;
+    const sharp = specialist.getMemorizedSpell('/obj/magic/Spell/firebolt')!.sharpness;
+    const hazy = generalist.getMemorizedSpell('/obj/magic/Spell/firebolt')!.sharpness;
     // A broad generalist is permanently mediocre across their whole
     // list; a specialist's few are razor-sharp. No slot count imposed
     // it — it fell out of interference.
@@ -254,42 +254,42 @@ describe('MemorizedMixin — the held repertoire', () => {
   it('AC27 — a DEFECTIVE copy is replaced cleanly by re-studying', () => {
     const mind = makeStuff(() => new Mind());
     mind.memorize({
-      spellId: 'dispel',
+      spellPath: '/obj/magic/Spell/dispel',
       verb: 'destroy',
       noun: 'arcana',
       complexity: 1,
       defective: true,
     });
-    expect(mind.getMemorizedSpell('dispel')!.defective).toBe(true);
-    const badCost = mind.costMultiplierFor('dispel');
+    expect(mind.getMemorizedSpell('/obj/magic/Spell/dispel')!.defective).toBe(true);
+    const badCost = mind.costMultiplierFor('/obj/magic/Spell/dispel');
     expect(badCost).toBeGreaterThan(1); // fully sharp, still expensive
 
     // Re-study once competent — the recoverable half of the bargain.
     mind.memorize({
-      spellId: 'dispel',
+      spellPath: '/obj/magic/Spell/dispel',
       verb: 'destroy',
       noun: 'arcana',
       complexity: 1,
       defective: false,
     });
-    expect(mind.getMemorizedSpell('dispel')!.defective).toBe(false);
-    expect(mind.costMultiplierFor('dispel')).toBeLessThan(badCost);
-    expect(mind.costMultiplierFor('dispel')).toBe(1);
+    expect(mind.getMemorizedSpell('/obj/magic/Spell/dispel')!.defective).toBe(false);
+    expect(mind.costMultiplierFor('/obj/magic/Spell/dispel')).toBeLessThan(badCost);
+    expect(mind.costMultiplierFor('/obj/magic/Spell/dispel')).toBe(1);
   });
 
   it('AC29 — AMNESIA strips the held specification and nothing else', () => {
     const mind = makeStuff(() => new Mind());
-    hold(mind, 'firebolt', 'create', 'fire');
-    hold(mind, 'veil', 'create', 'sense');
+    hold(mind, '/obj/magic/Spell/firebolt', 'create', 'fire');
+    hold(mind, '/obj/magic/Spell/veil', 'create', 'sense');
 
-    expect(mind.forgetSpell('firebolt')).toBe(true);
-    expect(mind.holdsSpell('firebolt')).toBe(false);
+    expect(mind.forgetSpell('/obj/magic/Spell/firebolt')).toBe(true);
+    expect(mind.holdsSpell('/obj/magic/Spell/firebolt')).toBe(false);
     // It takes what you MEMORIZED. Competence derives from Transcript
     // deeds and lives nowhere near here — there is no method on this
     // mixin that could touch it, which is the asymmetry made structural
     // rather than merely asserted.
-    expect(mind.holdsSpell('veil')).toBe(true);
-    expect(mind.forgetSpell('firebolt')).toBe(false);
+    expect(mind.holdsSpell('/obj/magic/Spell/veil')).toBe(true);
+    expect(mind.forgetSpell('/obj/magic/Spell/firebolt')).toBe(false);
     expect(
       Object.keys(mind).some((k) => /competence|transcript|deed/i.test(k)),
     ).toBe(false);
@@ -298,7 +298,7 @@ describe('MemorizedMixin — the held repertoire', () => {
   it('there is NO slot cap — the limiter is interference, not a rule', () => {
     const mind = makeStuff(() => new Mind());
     for (let i = 0; i < 40; i++) {
-      hold(mind, `spell-${i}`, 'create', 'fire');
+      hold(mind, `/obj/magic/Spell/spell-${i}`, 'create', 'fire');
     }
     // Nothing refused. Vancian preparation emerges from the cost of
     // keeping forty things sharp, rather than being imposed by a number.

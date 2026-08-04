@@ -17,7 +17,7 @@ data:
   longDescription: >
     A hand's length of blackthorn, worn smooth where it is gripped. The
     grain runs in a spiral that does not quite look natural.
-  carriedSpellId: shove
+  carriedSpellPath: /obj/magic/Spell/shove
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1
   patternIntegrity: 1

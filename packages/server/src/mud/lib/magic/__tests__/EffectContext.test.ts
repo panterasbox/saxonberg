@@ -112,7 +112,7 @@ function makeActor(sentient = true): TestCharacter {
 function makeWand(spellId: string, maker: string): TestWand {
   const wand = makeStuff(() => new TestWand());
   stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
-  wand.setCarriedSpellId(spellId);
+  wand.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
   wand.setMakerId(maker);
   return wand;
 }
@@ -355,7 +355,7 @@ describe('EffectContext — the four separated jobs', () => {
     // Same authored effect, same prose — the item duplicates nothing.
     expect(fired.reports).toEqual(cast.reports);
     // The wand stores an id, never a copy of the effects.
-    expect(wand.getCarriedSpellId()).toBe('glowlight');
+    expect(wand.getCarriedSpellPath()).toBe('/obj/magic/Spell/glowlight');
     expect(wand.getDeclaredAddresses()).toEqual([]);
   });
 
@@ -542,7 +542,7 @@ describe('EffectContext — the four separated jobs', () => {
     expect(wand.getArcaneFootprint()).toEqual([
       { verb: 'create', noun: 'fire' },
     ]);
-    wand.setCarriedSpellId('glowlight');
+    wand.setCarriedSpellPath('/obj/magic/Spell/glowlight');
     expect(wand.getArcaneFootprint()).toEqual([
       { verb: 'create', noun: 'light' },
     ]);
@@ -601,7 +601,7 @@ describe('EffectContext — the four separated jobs', () => {
     ]);
     // …and a carried spell that does not resolve does NOT fall back to
     // the stale declaration.
-    wand.setCarriedSpellId('no-such-spell');
+    wand.setCarriedSpellPath('/obj/magic/Spell/no-such-spell');
     expect(wand.getArcaneFootprint()).toEqual([]);
   });
 });

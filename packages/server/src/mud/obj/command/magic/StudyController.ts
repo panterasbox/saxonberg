@@ -64,8 +64,8 @@ export default class StudyController extends CommandController<StudyModel> {
       return;
     }
 
-    const spellId = book.getTeachesSpellId?.() ?? '';
-    if (!spellId) {
+    const spellPath = book.getTeachesSpellPath?.() ?? '';
+    if (!spellPath) {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(
@@ -80,7 +80,7 @@ export default class StudyController extends CommandController<StudyModel> {
       return;
     }
 
-    const spell = MagicApi.spellById(spellId);
+    const spell = MagicApi.spellAt(spellPath);
     if (!spell) {
       MessageApi.scene(actor)
         .topic(TOPIC)
@@ -91,7 +91,7 @@ export default class StudyController extends CommandController<StudyModel> {
       context.note({
         kind: 'controller-rejected',
         reason: 'unknown-spell',
-        detail: spellId,
+        detail: spellPath,
       });
       return;
     }
@@ -126,7 +126,7 @@ export default class StudyController extends CommandController<StudyModel> {
     // reader believes is correct — honest, legible, and recoverable.
     const defective = !CompetenceBand.atOrAbove(limiting, floor);
 
-    const held = actor.getMemorizedSpell(spellId);
+    const held = actor.getMemorizedSpell(spellPath);
     const sharpness = held?.sharpness ?? 0;
     // The savings curve: a nearly-sharp working comes back quickly.
     const quality = MixinApi.isGraded(book) ? book.getGrade().getOrdinal() : 1;
@@ -143,11 +143,11 @@ export default class StudyController extends CommandController<StudyModel> {
 
     const activity = new StudyActivity({
       actor,
-      spellId,
+      spellPath,
       durationMs,
       onComplete: (): void => {
         actor.memorize({
-          spellId,
+          spellPath,
           defective,
           verb: spell.verb,
           noun: spell.noun,
@@ -156,7 +156,7 @@ export default class StudyController extends CommandController<StudyModel> {
         // The CLAIM, never a deed — competence is untouched, and a
         // Transcript entry here would be evidence of practice that did
         // not happen.
-        void SpellKnowledge.noteKnown(actor, spellId, spell.name).catch(
+        void SpellKnowledge.noteKnown(actor, spellPath, spell.name).catch(
           () => {},
         );
         MessageApi.scene(actor)

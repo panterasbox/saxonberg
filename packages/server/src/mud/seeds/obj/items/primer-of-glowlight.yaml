@@ -27,7 +27,7 @@ data:
     too often. Someone has pencilled corrections in the margins.
   identifiedName: a primer of glowlight
   descriptorClass: spellbook
-  teachesSpellId: glowlight
+  teachesSpellPath: /obj/magic/Spell/glowlight
   comprehensionBand: untrained
   gradeBand: fine
   markText: >-

@@ -132,7 +132,7 @@ function makeScroll(spellId: string): Scroll {
   const s = makeStuff(() => new Scroll());
   stampTemplatePathForTest(s, `/obj/test/scroll-${seq++}`);
   s.setMarkText('a dense column of glyphs');
-  s.setCarriedSpellId(spellId);
+  s.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
   return s;
 }
 
@@ -407,8 +407,8 @@ describe('Wave 2 — consumables', () => {
     const identifyScroll = makeScroll('identify');
     const veilScroll = makeScroll('veil');
     // Different hidden class…
-    expect(identifyScroll.getCarriedSpellId()).not.toBe(
-      veilScroll.getCarriedSpellId(),
+    expect(identifyScroll.getCarriedSpellPath()).not.toBe(
+      veilScroll.getCarriedSpellPath(),
     );
     // …identical affordances. If they differed, the verb list would tell
     // you which scroll you were holding.

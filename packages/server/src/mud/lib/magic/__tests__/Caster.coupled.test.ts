@@ -260,7 +260,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
 
     const rod = makeStuff(() => new Rod());
     stampTemplatePathForTest(rod, `/obj/test/rod-${seq++}`);
-    rod.setCarriedSpellId('shove');
+    rod.setCarriedSpellPath('/obj/magic/Spell/shove');
     ContainmentApi.move(rod, user);
     actingAs(user);
 
@@ -283,7 +283,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
 
     const wand = makeStuff(() => new Wand());
     stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
-    wand.setCarriedSpellId('shove');
+    wand.setCarriedSpellPath('/obj/magic/Spell/shove');
     wand.setCapacityKJ(1000);
     ContainmentApi.move(wand, user);
     actingAs(user);
@@ -303,7 +303,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     ContainmentApi.move(user, room);
     const wand = makeStuff(() => new Wand());
     stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
-    wand.setCarriedSpellId('glowlight'); // costs 10
+    wand.setCarriedSpellPath('/obj/magic/Spell/glowlight'); // costs 10
     wand.setCapacityKJ(25);
     ContainmentApi.move(wand, user);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>
@@ -331,7 +331,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     ContainmentApi.move(user, room);
     const rod = makeStuff(() => new Rod());
     stampTemplatePathForTest(rod, `/obj/test/rod-${seq++}`);
-    rod.setCarriedSpellId('shove');
+    rod.setCarriedSpellPath('/obj/magic/Spell/shove');
     rod.patternIntegrity = 0.5;
     rod.patternClockStamp = 1;
     ContainmentApi.move(rod, user);

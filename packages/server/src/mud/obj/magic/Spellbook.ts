@@ -70,7 +70,7 @@ const SpellbookBase = CirculatingMixin(
 
 export default class Spellbook extends SpellbookBase {
   static fieldMeta: FieldMeta = {
-    teachesSpellId: { persistent: true, authorable: true },
+    teachesSpellPath: { persistent: true, authorable: true },
     comprehensionBand: { persistent: true, authorable: true },
   };
 
@@ -88,7 +88,7 @@ export default class Spellbook extends SpellbookBase {
   };
 
   /** Which working this volume sets out. */
-  public teachesSpellId: string = '';
+  public teachesSpellPath: string = '';
 
   /**
    * The **comprehension floor** — the band needed to parse the book,
@@ -98,12 +98,21 @@ export default class Spellbook extends SpellbookBase {
   public comprehensionBand: string = '';
 
   /** Which working this volume sets out. `''` = a blank book. */
-  public getTeachesSpellId(): string {
-    return this.teachesSpellId;
+  public getTeachesSpellPath(): string {
+    return this.teachesSpellPath;
   }
 
-  public setTeachesSpellId(value: string): void {
-    this.teachesSpellId = typeof value === 'string' ? value : '';
+  public setTeachesSpellPath(value: string): void {
+    // The `Arcane.setCarriedSpellPath` guardrail, same reason: a bare id
+    // typechecks and resolves to nothing.
+    const v = typeof value === 'string' ? value.trim() : '';
+    if (v.length > 0 && !v.startsWith('/')) {
+      throw new RangeError(
+        `teachesSpellPath: '${v}' is a bare id, not a template path ` +
+          `(did you mean '/obj/magic/Spell/${v}'?)`,
+      );
+    }
+    this.teachesSpellPath = v;
   }
 
   /** The comprehension floor band, or `''` for "the spell's own". */

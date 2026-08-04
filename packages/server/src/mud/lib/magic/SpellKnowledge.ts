@@ -43,14 +43,14 @@
 import { ChronicleApi } from '../../api/chronicle';
 import type { Stuff } from '../stuff/Stuff';
 
-function knownKey(spellId: string): string {
-  return `spell-known:${spellId}`;
+function knownKey(spellPath: string): string {
+  return `spell-known:${spellPath}`;
 }
 
 export class SpellKnowledge {
-  /** True iff the actor has read of `spellId` (a claim). */
-  static async knowsOf(actor: Stuff, spellId: string): Promise<boolean> {
-    const key = knownKey(spellId);
+  /** True iff the actor has read of `spellPath` (a claim). */
+  static async knowsOf(actor: Stuff, spellPath: string): Promise<boolean> {
+    const key = knownKey(spellPath);
     const entries = await ChronicleApi.entriesFor(actor);
     return entries.some((e) => e.kind === 'claim' && e.key === key);
   }
@@ -64,10 +64,10 @@ export class SpellKnowledge {
    */
   static async noteKnown(
     actor: Stuff,
-    spellId: string,
+    spellPath: string,
     name: string,
   ): Promise<void> {
-    await ChronicleApi.recordOnce(actor, knownKey(spellId), {
+    await ChronicleApi.recordOnce(actor, knownKey(spellPath), {
       kind: 'claim',
       text: `Read of ${name}.`,
       tags: ['spell'],

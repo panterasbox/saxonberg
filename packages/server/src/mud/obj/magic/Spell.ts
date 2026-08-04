@@ -47,6 +47,19 @@ export type SpellTargeting = (typeof SPELL_TARGETINGS)[number];
  * (modifier iff any effect installs a sustained hold).
  */
 export interface SpellDescriptor {
+  /**
+   * **The durable key** — this spell's template path
+   * (`/obj/magic/Spell/<id>`, or a pack's own extent). Every stored
+   * reference to a working uses THIS, never {@link spellId}: the path is
+   * namespaced and packs claim path extents, so two packs shipping a
+   * `firebolt` stay distinct by construction.
+   */
+  path: string;
+  /**
+   * The **short name**, for players to type and for display. Deliberately
+   * NOT unique across packs — ambiguity here is a disambiguation problem,
+   * exactly as two items sharing a keyword is.
+   */
   spellId: string;
   name: string;
   verb: MagicVerb;

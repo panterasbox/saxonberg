@@ -37,8 +37,8 @@ const STUDY_SLOTS: readonly EngagementSlot[] = ['hands', 'attention'];
 /** Construction options for a {@link StudyActivity}. */
 export interface StudyActivityOptions {
   actor: Stuff & Engaged;
-  /** The working being taken on board (`study-activity:<spellId>`). */
-  spellId: string;
+  /** The working being taken on board (`study-activity:<spellPath>`). */
+  spellPath: string;
   /** Game-time the study occupies its slots, in (game) ms. */
   durationMs: number;
   /** The resolution closure — memorize + render. Runs at completion only. */
@@ -66,7 +66,7 @@ export class StudyActivity implements DurativeActivity {
 
   constructor(opts: StudyActivityOptions) {
     this.actor = opts.actor;
-    this.type = `${STUDY_ACTIVITY_TYPE}:${opts.spellId}`;
+    this.type = `${STUDY_ACTIVITY_TYPE}:${opts.spellPath}`;
     this.duration = opts.durationMs;
     this._onComplete = opts.onComplete;
     this._onAbort = opts.onAbort ?? ((): void => {});

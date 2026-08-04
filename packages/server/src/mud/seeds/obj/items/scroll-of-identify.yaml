@@ -21,7 +21,7 @@ data:
     a dense column of glyphs that will not hold still long enough to be
     copied
   markForm: inked
-  carriedSpellId: identify
+  carriedSpellPath: /obj/magic/Spell/identify
   usesRemaining: 1
   censusKey: scroll
   materialTags: [vellum]

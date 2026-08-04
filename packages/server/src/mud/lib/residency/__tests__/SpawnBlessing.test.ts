@@ -48,7 +48,7 @@ function seedCirculatingWand(): TestWand {
   const w = makeStuffAtPath(() => new TestWand(), WAND_PATH);
   w.setCensusKey('wand');
   w.setMaterialTags(['wood']);
-  w.setCarriedSpellId('firebolt');
+  w.setCarriedSpellPath('/obj/magic/Spell/firebolt');
   // Below target, so the table always has something eligible to place.
   w.regionTarget = 99;
   w.setBlessingOdds({ blessed: 1 });

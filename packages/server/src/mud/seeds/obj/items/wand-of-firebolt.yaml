@@ -23,7 +23,7 @@ data:
   longDescription: >
     A finger-length rod of pale ash, banded at the grip with tarnished
     brass. Held still, it is faintly warm.
-  carriedSpellId: firebolt
+  carriedSpellPath: /obj/magic/Spell/firebolt
   makerId: /obj/npc/practicum/artificer
   deliveryEfficiency: 1.4
   capacityKJ: 900

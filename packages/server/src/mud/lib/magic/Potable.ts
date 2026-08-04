@@ -132,7 +132,7 @@ export function PotableMixin<TBase extends MixinConstructor<Stuff>>(
     ): Promise<string[]> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isArcane(self)) return []; // a mundane liquid
-      if (self.getCarriedSpellId().length === 0) return [];
+      if (self.getCarriedSpellPath().length === 0) return [];
 
       const spec = this.getDose();
       const scale = Dose.scaleFor(spec, litres);

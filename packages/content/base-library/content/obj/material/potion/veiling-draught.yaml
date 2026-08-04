@@ -42,7 +42,7 @@ data:
   composition: []
   biologicalSource: null
   # ── the arcane half: which cell, whose making, how well it delivers ──
-  carriedSpellId: veil
+  carriedSpellPath: /obj/magic/Spell/veil
   deliveryEfficiency: 1
   # ── the potion half: how it gets in, and what a partial dose means ──
   route: oral

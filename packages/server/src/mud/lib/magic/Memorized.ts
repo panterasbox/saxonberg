@@ -54,7 +54,7 @@ import type { FadeInputs } from './Fade';
 /** One held specification. Plain scalars → persists free. */
 export interface MemorizedSpec {
   /** Which working. */
-  spellId: string;
+  spellPath: string;
   /** `[0,1]`; 1 = freshly studied. */
   sharpness: number;
   /** How many times refreshed — drives the spacing effect. */
@@ -80,9 +80,9 @@ export interface Memorized {
   /** Every held specification, freshly faded. */
   getMemorized(): readonly MemorizedSpec[];
   /** One held specification, freshly faded, or `null`. */
-  getMemorizedSpell(spellId: string): MemorizedSpec | null;
+  getMemorizedSpell(spellPath: string): MemorizedSpec | null;
   /** Is this working currently held at all? */
-  holdsSpell(spellId: string): boolean;
+  holdsSpell(spellPath: string): boolean;
   /**
    * Take a specification on board, or refresh one already held.
    * Refreshing raises sharpness to 1 and **increments maturity**, which
@@ -96,14 +96,14 @@ export interface Memorized {
    * competence — that derives from Transcript deeds and lives nowhere
    * near here, which is the asymmetry D15 asks for.
    */
-  forgetSpell(spellId: string): boolean;
-  /** The mana cost multiplier this holder's copy of `spellId` implies. */
-  costMultiplierFor(spellId: string): number;
+  forgetSpell(spellPath: string): boolean;
+  /** The mana cost multiplier this holder's copy of `spellPath` implies. */
+  costMultiplierFor(spellPath: string): number;
   /**
    * How many OTHER held specifications sit in a neighbouring grid cell.
    * The repertoire limiter's input.
    */
-  neighbourCount(spellId: string): number;
+  neighbourCount(spellPath: string): number;
 
   // ---------- storage (public for the Hydrator) ----------
   memorized: MemorizedSpec[];
@@ -167,7 +167,7 @@ export function MemorizedMixin<TBase extends MixinConstructor>(Base: TBase) {
         maturity: spec.maturity,
         competenceRank: this.competenceRankFor(spec.verb, spec.noun),
         complexity: spec.complexity,
-        neighbours: this.neighbourCount(spec.spellId),
+        neighbours: this.neighbourCount(spec.spellPath),
       };
     }
 
@@ -176,13 +176,13 @@ export function MemorizedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.memorized;
     }
 
-    public getMemorizedSpell(spellId: string): MemorizedSpec | null {
+    public getMemorizedSpell(spellPath: string): MemorizedSpec | null {
       this.reconcileMemory();
-      return this.memorized.find((s) => s.spellId === spellId) ?? null;
+      return this.memorized.find((s) => s.spellPath === spellPath) ?? null;
     }
 
-    public holdsSpell(spellId: string): boolean {
-      return this.memorized.some((s) => s.spellId === spellId);
+    public holdsSpell(spellPath: string): boolean {
+      return this.memorized.some((s) => s.spellPath === spellPath);
     }
 
     public memorize(
@@ -192,7 +192,7 @@ export function MemorizedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const nowS = StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
         ? WorldClockApi.getNow().rawValue()
         : 0;
-      const existing = this.memorized.find((s) => s.spellId === spec.spellId);
+      const existing = this.memorized.find((s) => s.spellPath === spec.spellPath);
       if (existing) {
         existing.sharpness = 1;
         // Each refresh lengthens the next interval — the spacing effect,
@@ -216,15 +216,15 @@ export function MemorizedMixin<TBase extends MixinConstructor>(Base: TBase) {
       });
     }
 
-    public forgetSpell(spellId: string): boolean {
-      const i = this.memorized.findIndex((s) => s.spellId === spellId);
+    public forgetSpell(spellPath: string): boolean {
+      const i = this.memorized.findIndex((s) => s.spellPath === spellPath);
       if (i === -1) return false;
       this.memorized.splice(i, 1);
       return true;
     }
 
-    public costMultiplierFor(spellId: string): number {
-      const spec = this.getMemorizedSpell(spellId);
+    public costMultiplierFor(spellPath: string): number {
+      const spec = this.getMemorizedSpell(spellPath);
       // Not holding it at all is NOT an error and NOT a failure — you
       // simply pay the ordinary price, exactly as before spellbooks
       // existed. Holding a hazy copy is what costs extra.
@@ -232,15 +232,15 @@ export function MemorizedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return Fade.costMultiplier(spec.sharpness, spec.defective);
     }
 
-    public neighbourCount(spellId: string): number {
-      const self = this.memorized.find((s) => s.spellId === spellId);
+    public neighbourCount(spellPath: string): number {
+      const self = this.memorized.find((s) => s.spellPath === spellPath);
       if (!self) return 0;
       // Neighbouring = sharing a verb or a noun. Spells in adjacent grid
       // cells are the most alike things a holder could carry, which is
       // exactly why interference bites hardest on a generalist.
       return this.memorized.filter(
         (s) =>
-          s.spellId !== spellId && (s.verb === self.verb || s.noun === self.noun),
+          s.spellPath !== spellPath && (s.verb === self.verb || s.noun === self.noun),
       ).length;
     }
   };

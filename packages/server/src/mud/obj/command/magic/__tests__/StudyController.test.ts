@@ -122,7 +122,7 @@ function makeBook(over: Partial<Spellbook> = {}): Spellbook {
   book.setShortDescription('a slim grey primer');
   book.setIdentifiedName('a primer of glowlight');
   book.setDescriptorClass('spellbook');
-  book.setTeachesSpellId('glowlight');
+  book.setTeachesSpellPath('/obj/magic/Spell/glowlight');
   Object.assign(book, over);
   return book;
 }
@@ -189,13 +189,16 @@ describe('StudyController — claim, never deed', () => {
     // The claim was minted…
     expect(claim).toHaveBeenCalled();
     const [, key, entry] = claim.mock.calls[0]!;
-    expect(key).toBe('spell-known:glowlight');
+    // The claim keys on the PATH, not the short name — a chronicle entry
+    // is a durable identity record, and "I know a working called
+    // firebolt" is exactly the ambiguity the path exists to remove.
+    expect(key).toBe('spell-known:/obj/magic/Spell/glowlight');
     expect((entry as { kind: string }).kind).toBe('claim');
 
     // …and competence was NOT touched. A book that granted skill would
     // have to write evidence of practice that never happened.
     expect(credit).not.toHaveBeenCalled();
-    expect(reader.holdsSpell('glowlight')).toBe(true);
+    expect(reader.holdsSpell('/obj/magic/Spell/glowlight')).toBe(true);
   });
 
   it('AC26 — the claim is idempotent (recordOnce, distinct key)', async () => {
@@ -217,7 +220,7 @@ describe('StudyController — claim, never deed', () => {
     // Both go through `recordOnce`, which dedups on {owner, key} — the
     // ledger stays honest without the controller tracking anything.
     for (const call of claim.mock.calls) {
-      expect(call[1]).toBe('spell-known:glowlight');
+      expect(call[1]).toBe('spell-known:/obj/magic/Spell/glowlight');
     }
   });
 
@@ -238,12 +241,12 @@ describe('StudyController — claim, never deed', () => {
 
     // NOT refused — the whole point. You take it on board believing it
     // is correct.
-    const held = reader.getMemorizedSpell('glowlight');
+    const held = reader.getMemorizedSpell('/obj/magic/Spell/glowlight');
     expect(held).toBeTruthy();
     expect(held!.defective).toBe(true);
     // …and it costs you, on every cast, until you fix it. That is the
     // legible signal, and it is the only one you get.
-    expect(reader.costMultiplierFor('glowlight')).toBeGreaterThan(1);
+    expect(reader.costMultiplierFor('/obj/magic/Spell/glowlight')).toBeGreaterThan(1);
   });
 
   it('AC27 — ABOVE the floor the copy is clean', async () => {
@@ -260,8 +263,8 @@ describe('StudyController — claim, never deed', () => {
     book.setComprehensionBand('novice');
     await controller().execute(model(book) as never, context(reader));
 
-    expect(reader.getMemorizedSpell('glowlight')!.defective).toBe(false);
-    expect(reader.costMultiplierFor('glowlight')).toBe(1);
+    expect(reader.getMemorizedSpell('/obj/magic/Spell/glowlight')!.defective).toBe(false);
+    expect(reader.costMultiplierFor('/obj/magic/Spell/glowlight')).toBe(1);
   });
 
   it('AC28 — an UNIDENTIFIED book does not reveal what it teaches', () => {
@@ -316,16 +319,16 @@ describe('StudyController — claim, never deed', () => {
 
     // The whole result lands at COMPLETION — an aborted study takes
     // nothing on board, exactly as an aborted cast fires nothing.
-    expect(reader.holdsSpell('glowlight')).toBe(false);
+    expect(reader.holdsSpell('/obj/magic/Spell/glowlight')).toBe(false);
     expect(claim).not.toHaveBeenCalled();
   });
 
   it('a book that teaches nothing is refused legibly', async () => {
     const reader = makeReader();
     const blank = makeBook();
-    blank.setTeachesSpellId('');
+    blank.setTeachesSpellPath('');
     const ctx = context(reader);
     await controller().execute(model(blank) as never, ctx);
-    expect(reader.holdsSpell('glowlight')).toBe(false);
+    expect(reader.holdsSpell('/obj/magic/Spell/glowlight')).toBe(false);
   });
 });
