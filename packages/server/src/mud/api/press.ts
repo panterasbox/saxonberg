@@ -25,13 +25,17 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { PressLogic } from '../obj/api/PressLogic';
 import { Release, type ReleaseKind } from '../lib/press/Release';
-import type { ReleaseRealm } from '../lib/press/Publisher';
+import type {
+  ReleaseRealm,
+  ReleaseVisibility,
+} from '../lib/press/Publisher';
+import type { Stuff } from '../lib/stuff/Stuff';
 import type { ReleaseRow } from '@saxonberg/types';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export { Release };
-export type { ReleaseRealm, ReleaseKind };
+export type { ReleaseRealm, ReleaseKind, ReleaseVisibility };
 // The wire projection now lives in `@saxonberg/types` (the shared client
 // surface landed in Phase 3); re-exported here for server callers that
 // import it from the Api face.
@@ -50,21 +54,35 @@ export interface PublishRequest {
   publisher: string;
   headline: string;
   body?: string;
-  realm?: ReleaseRealm;
   kind?: ReleaseKind;
   pinned?: boolean;
   /** Expiry, epoch-ms; `0` / omitted = never expires. */
   expiresAt?: number;
+  /**
+   * A **narrowing** of the publisher's declared reach; omitted = inherit
+   * it. ⚠ There is no widening direction — a `public` here on a `members`
+   * publisher is clamped back, by a max over the ordinal rather than by a
+   * check that could be forgotten.
+   */
+  visibility?: ReleaseVisibility;
+  /** Where a `repost`'s substance came from. */
+  source?: string;
 }
+
+// ⚠ `realm` is deliberately NOT a publish field. It derives from the
+// publisher, so there is one source rather than a copy that drifts — and
+// nobody can claim to speak in-fiction on an operator's feed.
 
 /** The editable subset of a release (the `edit` patch). */
 export interface ReleasePatch {
   headline?: string;
   body?: string;
-  realm?: ReleaseRealm;
   kind?: ReleaseKind;
   pinned?: boolean;
   expiresAt?: number;
+  /** `null` clears the narrowing (back to inheriting the publisher's). */
+  visibility?: ReleaseVisibility | null;
+  source?: string;
 }
 
 /** The archive query — realm/kind filters + `before`/`limit` paging. */
@@ -108,9 +126,24 @@ export class PressApi {
   }
 
   /**
+   * ⭐ Does `principal` hold **any** publishing position, anywhere? The
+   * affordance-level read behind `requiresPublisher`.
+   *
+   * ⚠ It returns a boolean and **selects nothing** — which is exactly what
+   * keeps it from being the banned pick-a-publisher helper, whose shape
+   * turns a refusal into a downgrade. The per-publisher check inside
+   * `publish` stays authoritative.
+   */
+  public static holdsAnyPublishingPosition(principal: Stuff | null): boolean {
+    return logic().holdsAnyPublishingPosition(principal);
+  }
+
+  /**
    * Publish a new release. The author is resolved from the execution
    * context (the publishing avatar's durable `templatePath`) — never
-   * caller-supplied. Returns the persisted {@link Release}.
+   * caller-supplied; the publisher is named by the caller and **checked**
+   * (`mayPublishAs`) before anything is minted or persisted, so a refusal
+   * writes nothing at all. Returns the persisted {@link Release}.
    */
   public static publish(req: PublishRequest): Promise<Release> {
     return logic().publish(req);
@@ -157,13 +190,16 @@ export class PressApi {
   public static toRow(release: Release): ReleaseRow {
     const expiresAt = release.getExpiresAt();
     const author = release.getAuthor();
+    const source = release.getSource();
     return {
       releaseId: release.getReleaseId(),
+      publisher: release.getPublisher(),
       realm: release.getRealm(),
       kind: release.getKind(),
       headline: release.getHeadline(),
       body: release.getBody(),
       author: author.length > 0 ? author : undefined,
+      source: source.length > 0 ? source : undefined,
       publishedAt: release.getPublishedAt(),
       pinned: release.isPinned(),
       expiresAt: expiresAt > 0 ? expiresAt : undefined,

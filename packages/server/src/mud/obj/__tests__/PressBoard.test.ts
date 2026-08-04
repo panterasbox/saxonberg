@@ -44,7 +44,6 @@ const FEED = '/compact/press/feed';
 function payload(fields: Partial<ReleaseData>): ReleaseData {
   return {
     releaseId: '',
-    realm: 'ooc',
     kind: 'notice',
     headline: '',
     body: '',
@@ -53,6 +52,8 @@ function payload(fields: Partial<ReleaseData>): ReleaseData {
     expiresAt: 0,
     pinned: false,
     retracted: false,
+    visibility: null,
+    source: '',
     ...fields,
   };
 }

@@ -18,20 +18,30 @@ help: |
   publishing positions — being the person who *appoints* to them is
   a different power and does not count.
 
-  `--realm` picks the broadcast realm: `ooc` (out-of-character /
-  operator, the default) or `world` (in-fiction). `--kind` classifies
-  it: `changelog`, `decision`, `event`, or `notice` (default). `--pin`
-  sticks it to the top of the window. `--expires` sets a shell-style
-  lifetime (`2h`, `7d`, `1h30m`); without one it never expires.
+  There is no `--realm`. Whether a release reads as operator
+  (`ooc`) or in-fiction (`world`) is a fact about the publisher, not
+  about the release, so it is taken from the organization — you
+  cannot speak in character on an operator's feed by passing a flag.
+
+  `--visibility` may make one release **more private** than its
+  publisher normally is (`public` | `members`). It can only narrow:
+  asking for `public` on a members-only publisher gets you
+  `members`.
+
+  `--kind` classifies it: `changelog`, `decision`, `event`, `notice`
+  (default), or `repost` — something somebody else put out, with
+  `--source` saying whose. `--pin` sticks it to the top of the
+  window. `--expires` sets a shell-style lifetime (`2h`, `7d`,
+  `1h30m`); without one it never expires.
 
   `press edit <id> …` revises an existing release; `press
-  retract <id>` soft-deletes it (the row stays in the archive but
-  drops out of the live window).
+  retract <id>` soft-deletes it (the document stays in the archive
+  but drops out of the live window).
 
-  This verb is restricted to authors — if you aren't one, the game
-  won't offer it.
+  The verb is offered to anyone holding a publishing position
+  anywhere — if you hold none, the game won't offer it.
 validators:
-  - /lib/command/validators/requiresAuthor
+  - /lib/command/validators/requiresPublisher
 fallthrough: true
 options:
   as:
@@ -39,17 +49,21 @@ options:
     field: as
     description: "Publisher organization path to publish as (e.g. /compact/press)"
   # Verb-scoped (global to `press`): in scope for the bare/`post`
-  # publish form AND the edit subcommand. No YAML `default:` on realm/kind
-  # — the publish default (ooc / notice) is applied in the controller so an
-  # unpassed flag stays undefined on the edit patch (change-only-what-you-pass).
-  realm:
+  # publish form AND the edit subcommand. No YAML `default:` on kind — the
+  # publish default (notice) is applied in the controller so an unpassed
+  # flag stays undefined on the edit patch (change-only-what-you-pass).
+  visibility:
     type: string
-    field: realm
-    description: "Broadcast realm: ooc | world (publish default ooc)"
+    field: visibility
+    description: "Narrow this release's reach: public | members (never widens)"
+  source:
+    type: string
+    field: source
+    description: "Where a repost's substance came from"
   kind:
     type: string
     field: kind
-    description: "Classification: changelog | decision | event | notice (publish default notice)"
+    description: "Classification: changelog | decision | event | notice | repost (publish default notice)"
   pin:
     type: boolean
     field: pin
@@ -72,10 +86,10 @@ subcommands:
     description: "Publish a new release to the ticker"
     help: |
       Publish an announcement to the news ticker. Give the headline
-      inline; the verb-scoped `--realm` / `--kind` / `--pin` /
-      `--expires` options shape it, and the long-form body rides the
-      structured `body` field. Bare `press <headline>` is the same
-      thing.
+      inline and the publisher with `--as`; the verb-scoped
+      `--visibility` / `--kind` / `--pin` / `--expires` options shape
+      it, and the long-form body rides the structured `body` field.
+      Bare `press <headline>` is the same thing.
     args:
       - name: headline
         type: string
@@ -86,9 +100,9 @@ subcommands:
     help: |
       Revise a release you published. Give its id, then the new
       headline inline (or leave it off to edit only the flags). The
-      same verb-scoped `--realm` / `--kind` / `--pin` / `--expires`
-      options apply, changing only the ones you pass; the long-form body
-      rides the structured `body` field as on publish.
+      same verb-scoped `--visibility` / `--kind` / `--pin` /
+      `--expires` options apply, changing only the ones you pass; the
+      long-form body rides the structured `body` field as on publish.
     args:
       - name: id
         type: string

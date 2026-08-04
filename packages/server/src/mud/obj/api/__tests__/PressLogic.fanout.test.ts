@@ -126,6 +126,16 @@ beforeEach(() => {
   void makeStuffAtPath(() => new PressBoard(), '/obj/PressBoard');
   const org = makeStuffAtPath(() => new OrganizationEntity(), PUBLISHER);
   org.feedPath = FEED;
+  org.positions = [
+    { key: 'communications-director', label: 'speaking', wageRate: 0, confers: [] },
+  ];
+  // ⚠ The publish path now checks `mayPublishAs` BEFORE minting anything,
+  // so the acting author has to actually hold a publishing position. The
+  // authored roster is the cheapest way to say so.
+  org.rosterSlots = [
+    { positionKey: 'communications-director', assignee: '/obj/Avatar/a', schedule: [] },
+  ];
+
 });
 
 afterEach(() => {
@@ -144,7 +154,6 @@ describe('PressLogic fan-out (inline, presence-public)', () => {
         publisher: PUBLISHER,
         headline: 'Server up',
         body: 'patch notes',
-        realm: 'ooc',
         kind: 'changelog',
         pinned: true,
       })

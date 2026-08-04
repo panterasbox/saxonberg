@@ -40,7 +40,6 @@ function fakeInteractive(): unknown {
 function makeRelease(id: string): Release {
   return Release.of(`/compact/press/feed/${id}`, '/compact/press', {
     releaseId: id,
-    realm: 'ooc',
     kind: 'changelog',
     headline: 'Server up',
     body: 'patch notes',
@@ -49,6 +48,8 @@ function makeRelease(id: string): Release {
     expiresAt: 0,
     pinned: true,
     retracted: false,
+    visibility: null,
+    source: '',
   });
 }
 

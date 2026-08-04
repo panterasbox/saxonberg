@@ -198,7 +198,12 @@ export type ReleaseRealm = 'ooc' | 'world';
  * The editorial classification of a release. Mirrors the server
  * `ReleaseKind`.
  */
-export type ReleaseKind = 'changelog' | 'decision' | 'event' | 'notice';
+export type ReleaseKind =
+  | 'changelog'
+  | 'decision'
+  | 'event'
+  | 'notice'
+  | 'repost';
 
 /**
  * The client-facing projection of one release (the news-ticker row). The
@@ -209,12 +214,16 @@ export type ReleaseKind = 'changelog' | 'decision' | 'event' | 'notice';
  */
 export interface ReleaseRow {
   releaseId: string;
+  /** The publisher organization's durable path. */
+  publisher: string;
   realm: ReleaseRealm;
   kind: ReleaseKind;
   headline: string;
   body: string;
-  /** The publisher's durable identity string, when present. */
+  /** The acting author's durable identity string, when present. */
   author?: string;
+  /** Where a `repost`'s substance came from; absent on an original. */
+  source?: string;
   /** Publish time, epoch-ms. */
   publishedAt: number;
   pinned: boolean;

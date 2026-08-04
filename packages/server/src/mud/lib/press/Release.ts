@@ -43,6 +43,8 @@
 import type { StoredDocument } from '../document/StoredDocument';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import type { Publisher, ReleaseVisibility } from './Publisher';
+import { RELEASE_VISIBILITIES } from './Publisher';
 import { RELEASE_REALMS, type ReleaseRealm } from './Publisher';
 
 // The realm vocabulary belongs to the publisher (a release DERIVES its
@@ -58,8 +60,16 @@ export { RELEASE_REALMS, type ReleaseRealm };
  */
 export const RELEASE_DOCUMENT_KIND = 'release';
 
-/** The editorial classification of a release. */
-export type ReleaseKind = 'changelog' | 'decision' | 'event' | 'notice';
+/**
+ * The editorial classification of a release. `repost` is a release whose
+ * substance is somebody else's — it carries a `source` line saying whose.
+ */
+export type ReleaseKind =
+  | 'changelog'
+  | 'decision'
+  | 'event'
+  | 'notice'
+  | 'repost';
 
 /** The blessed kind vocabulary (validation array). */
 export const RELEASE_KINDS: readonly ReleaseKind[] = [
@@ -67,12 +77,21 @@ export const RELEASE_KINDS: readonly ReleaseKind[] = [
   'decision',
   'event',
   'notice',
+  'repost',
 ];
 
-/** The stored `data` payload of a release document. */
+/**
+ * The stored `data` payload of a release document.
+ *
+ * ⚠ **`realm` is not here**, and neither is `publisher`. Both derive from
+ * the owning organization — the realm is what that publisher speaks in,
+ * and the publisher IS the document's owner. Storing either would be a
+ * copy that can drift from the thing it copies, and a caller-supplied
+ * `realm` would be a caller-supplied answer to a question about somebody
+ * else.
+ */
 export interface ReleaseData {
   releaseId: string;
-  realm: ReleaseRealm;
   kind: ReleaseKind;
   headline: string;
   body: string;
@@ -81,6 +100,14 @@ export interface ReleaseData {
   expiresAt: number;
   pinned: boolean;
   retracted: boolean;
+  /**
+   * A **narrowing** of the publisher's default reach. `null` = inherit it.
+   * A release may be more private than its publisher; it may never be more
+   * public — see {@link Release.getVisibility}.
+   */
+  visibility: ReleaseVisibility | null;
+  /** Where a `repost`'s substance came from. Empty on an original. */
+  source: string;
 }
 
 /** Coerce a hydrated value into the kind vocabulary (default `notice`). */
@@ -90,11 +117,16 @@ function coerceKind(raw: unknown): ReleaseKind {
     : 'notice';
 }
 
-/** Coerce a hydrated value into the realm vocabulary (default `ooc`). */
-function coerceRealm(raw: unknown): ReleaseRealm {
-  return RELEASE_REALMS.includes(raw as ReleaseRealm)
-    ? (raw as ReleaseRealm)
-    : 'ooc';
+/** Coerce a hydrated value into the visibility vocabulary, or `null`. */
+function coerceVisibility(raw: unknown): ReleaseVisibility | null {
+  return RELEASE_VISIBILITIES.includes(raw as ReleaseVisibility)
+    ? (raw as ReleaseVisibility)
+    : null;
+}
+
+/** How restrictive a visibility is — the ordinal the clamp maxes over. */
+function restrictiveness(v: ReleaseVisibility): number {
+  return RELEASE_VISIBILITIES.indexOf(v);
 }
 
 export class Release {
@@ -111,7 +143,6 @@ export class Release {
     const raw = doc.getData();
     return new Release(doc.getPath(), doc.getOwner(), {
       releaseId: String(raw.releaseId ?? ''),
-      realm: coerceRealm(raw.realm),
       kind: coerceKind(raw.kind),
       headline: String(raw.headline ?? ''),
       body: String(raw.body ?? ''),
@@ -120,7 +151,21 @@ export class Release {
       expiresAt: Number(raw.expiresAt ?? 0),
       pinned: raw.pinned === true,
       retracted: raw.retracted === true,
+      visibility: coerceVisibility(raw.visibility),
+      source: String(raw.source ?? ''),
     });
+  }
+
+  /**
+   * The publisher organization, if it is standing. Every derived read
+   * below goes through here, and each fails to the narrow/neutral end
+   * when it is not.
+   */
+  private publisher(): (Publisher & { getFeedPath(): string }) | null {
+    if (this.owner.length === 0) return null;
+    const organization = StuffApi.findByTemplatePath(this.owner);
+    if (!organization || !MixinApi.isPublisher(organization)) return null;
+    return organization;
   }
 
   /** Build a release from an already-typed payload at a known path. */
@@ -137,8 +182,41 @@ export class Release {
   getReleaseId(): string {
     return this.data.releaseId;
   }
+  /** The publisher organization's path — the document's owner. */
+  getPublisher(): string {
+    return this.owner;
+  }
+  /**
+   * ⚠ **Derived, never stored and never supplied.** A release's realm is
+   * the realm its publisher speaks in — `ooc` for the operator, `world`
+   * for a body inside the fiction. One source, so it cannot drift, and no
+   * caller can claim to speak in-fiction on an operator's feed.
+   */
   getRealm(): ReleaseRealm {
-    return this.data.realm;
+    return this.publisher()?.getRealm() ?? 'ooc';
+  }
+  /**
+   * ⭐ The effective reach: **a release may be more private than its
+   * publisher; it may never be more public.**
+   *
+   * `max_restrictive(publisher.visibility, own ?? publisher.visibility)` —
+   * a max over a two-value ordinal, so it is total and monotone rather
+   * than a table of cases, and the non-widening direction is a
+   * consequence of the shape rather than a check that can be forgotten.
+   * An unresolvable publisher yields the narrow end.
+   */
+  getVisibility(): ReleaseVisibility {
+    const declared = this.publisher()?.getVisibility() ?? 'members';
+    const own = this.data.visibility ?? declared;
+    return restrictiveness(own) > restrictiveness(declared) ? own : declared;
+  }
+  /** The narrowing this release declares, or `null` (inherit). */
+  getDeclaredVisibility(): ReleaseVisibility | null {
+    return this.data.visibility;
+  }
+  /** Where a `repost`'s substance came from; empty on an original. */
+  getSource(): string {
+    return this.data.source;
   }
   getKind(): ReleaseKind {
     return this.data.kind;
@@ -187,10 +265,8 @@ export class Release {
    * vouch for.
    */
   public static publishedByOwner(release: Release): boolean {
-    const owner = release.getOwner();
-    if (owner.length === 0) return false;
-    const organization = StuffApi.findByTemplatePath(owner);
-    if (!organization || !MixinApi.isPublisher(organization)) return false;
+    const organization = release.publisher();
+    if (!organization) return false;
     const feed = organization.getFeedPath();
     return feed.length > 0 && release.getPath().startsWith(`${feed}/`);
   }

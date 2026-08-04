@@ -17,7 +17,9 @@ import { PlayerApi } from '../../api/player';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { DocumentApi } from '../../api/document';
+import { EmploymentApi } from '../../api/employment';
 import { TemplatePaths } from '../../lib/paths';
 import {
   Release,
@@ -148,7 +150,32 @@ async function writeReleaseImpl(
   );
 }
 
+/**
+ * ⭐ Does the acting principal hold **any** publishing position, anywhere?
+ * A boolean for affordance — it selects nothing, which is what keeps it
+ * from being the banned pick-a-publisher helper: that shape turns a
+ * refusal into a downgrade. The per-publisher check in `publishImpl`
+ * stays authoritative.
+ *
+ * Publishers are enumerated viewer-blind over the `PublisherMixin`
+ * marker (the `allBusinesses` precedent) — whether you hold a job is not
+ * a question about what you can see.
+ */
+function holdsAnyPublishingPositionImpl(principal: Stuff | null): boolean {
+  if (principal === null) return false;
+  const publishers = MqlApi.resolveMany('world:[mixin.PublisherMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff;
+  for (const organization of publishers) {
+    if (!MixinApi.isOrganization(organization)) continue;
+    if (EmploymentApi.mayPublishAs(principal, organization)) return true;
+  }
+  return false;
+}
+
 async function publishImpl(req: PublishRequest): Promise<Release> {
+  const acting = ExecutionContextApi.getActingAuthor() as Stuff | null;
   const author = resolveAuthorImpl();
   if (!author) {
     throw new Error(
@@ -170,10 +197,23 @@ async function publishImpl(req: PublishRequest): Promise<Release> {
     );
   }
 
+  // ⭐ The entitlement, BEFORE anything is minted or persisted: a refusal
+  // writes nothing at all. Holding the organization's appointing
+  // authority does not pass this — appointment and exercise are different
+  // powers, and the committee that fills the press office's positions
+  // cannot publish through it by virtue of being the committee.
+  if (
+    !MixinApi.isOrganization(publisher) ||
+    !EmploymentApi.mayPublishAs(acting, publisher)
+  ) {
+    throw new Error(
+      `PressApi.publish: you hold no publishing position at ${req.publisher}`
+    );
+  }
+
   const releaseId = SecurityApi.uuid();
   const data: ReleaseData = {
     releaseId,
-    realm: req.realm ?? 'ooc',
     kind: req.kind ?? 'notice',
     headline: req.headline,
     body: req.body ?? '',
@@ -182,6 +222,8 @@ async function publishImpl(req: PublishRequest): Promise<Release> {
     expiresAt: req.expiresAt ?? 0,
     pinned: req.pinned ?? false,
     retracted: false,
+    visibility: req.visibility ?? null,
+    source: req.source ?? '',
   };
   const release = Release.of(
     `${feed}/${releaseId}`,
@@ -209,10 +251,11 @@ async function editImpl(
   const updated = existing.withPatch({
     ...(patch.headline !== undefined ? { headline: patch.headline } : {}),
     ...(patch.body !== undefined ? { body: patch.body } : {}),
-    ...(patch.realm !== undefined ? { realm: patch.realm } : {}),
     ...(patch.kind !== undefined ? { kind: patch.kind } : {}),
     ...(patch.pinned !== undefined ? { pinned: patch.pinned } : {}),
     ...(patch.expiresAt !== undefined ? { expiresAt: patch.expiresAt } : {}),
+    ...(patch.visibility !== undefined ? { visibility: patch.visibility } : {}),
+    ...(patch.source !== undefined ? { source: patch.source } : {}),
   });
   await writeReleaseImpl(publisher, updated);
   board()?.upsert(updated);
@@ -313,6 +356,12 @@ export class PressLogic extends ApiLogic {
   @CallSecurity(PressApiCallers)
   public retract(releaseId: string): Promise<Release | null> {
     return retractImpl(releaseId);
+  }
+
+  /** See {@link PressApi.holdsAnyPublishingPosition}. */
+  @CallSecurity(PressApiCallers)
+  public holdsAnyPublishingPosition(principal: Stuff | null): boolean {
+    return holdsAnyPublishingPositionImpl(principal);
   }
 
   /** See {@link PressApi.recent}. */

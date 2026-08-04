@@ -22,7 +22,9 @@ interface ReleaseModel extends CommandModel {
   headline?: string;
   body?: string;
   id?: string;
-  realm?: string;
+  as?: string;
+  visibility?: string;
+  source?: string;
   kind?: string;
   pin?: boolean;
   expires?: string;
@@ -100,14 +102,14 @@ describe('PressController', () => {
     await run({
       as: PUBLISHER,
       headline: 'Server maintenance',
-      realm: 'ooc',
       kind: 'notice',
     });
     expect(publish).toHaveBeenCalledTimes(1);
+    // ⚠ No `realm` on the request — it derives from the publisher, so the
+    // controller has nothing to pass and no way to override it.
     expect(publish).toHaveBeenCalledWith({
       publisher: PUBLISHER,
       headline: 'Server maintenance',
-      realm: 'ooc',
       kind: 'notice',
       pinned: false,
       expiresAt: 0,
@@ -121,13 +123,11 @@ describe('PressController', () => {
       as: PUBLISHER,
       headline: 'Patch notes',
       body: 'The long-form MML body.',
-      realm: 'world',
       kind: 'changelog',
     });
     expect(publish).toHaveBeenCalledWith({
       publisher: PUBLISHER,
       headline: 'Patch notes',
-      realm: 'world',
       kind: 'changelog',
       pinned: false,
       expiresAt: 0,
@@ -140,7 +140,6 @@ describe('PressController', () => {
     await run({
       as: PUBLISHER,
       headline: 'Event tonight',
-      realm: 'ooc',
       kind: 'event',
       pin: true,
       expires: '2h',
@@ -157,8 +156,8 @@ describe('PressController', () => {
   it('rejects an over-long headline (void return + ctx.note), no publish', async () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('5');
     const result = await run({
+      as: PUBLISHER,
       headline: 'this headline is far too long',
-      realm: 'ooc',
       kind: 'notice',
     });
     expect(result).toBeUndefined();
@@ -171,19 +170,41 @@ describe('PressController', () => {
     );
   });
 
-  it('rejects an unknown realm', async () => {
-    await run({ headline: 'h', realm: 'bogus', kind: 'notice' });
+  it('rejects an unknown visibility', async () => {
+    await run({
+      as: PUBLISHER,
+      headline: 'h',
+      visibility: 'everyone-on-earth',
+      kind: 'notice',
+    });
     expect(publish).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'controller-rejected',
-        reason: 'bad-realm',
+        reason: 'bad-visibility',
+      }),
+    );
+  });
+
+  it('threads a --visibility narrowing and a repost --source through', async () => {
+    await run({
+      as: PUBLISHER,
+      headline: 'What the Ministry said',
+      kind: 'repost',
+      visibility: 'members',
+      source: '/compact/executive',
+    });
+    expect(publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'repost',
+        visibility: 'members',
+        source: '/compact/executive',
       }),
     );
   });
 
   it('rejects a missing headline', async () => {
-    await run({ realm: 'ooc', kind: 'notice' });
+    await run({ as: PUBLISHER, kind: 'notice' });
     expect(publish).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'headline-required' }),

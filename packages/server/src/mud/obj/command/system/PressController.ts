@@ -34,12 +34,11 @@ import {
   type PublishRequest,
   type ReleasePatch,
 } from '../../../api/press';
+import { RELEASE_KINDS, type ReleaseKind } from '../../../lib/press/Release';
 import {
-  RELEASE_REALMS,
-  RELEASE_KINDS,
-  type ReleaseRealm,
-  type ReleaseKind,
-} from '../../../lib/press/Release';
+  RELEASE_VISIBILITIES,
+  type ReleaseVisibility,
+} from '../../../lib/press/Publisher';
 
 interface ReleaseModel extends CommandModel {
   /** The publish form's headline (greedy inline), or the edit form's new headline. */
@@ -50,7 +49,10 @@ interface ReleaseModel extends CommandModel {
   id?: string;
   /** The publisher organization to publish as (`--as`). */
   as?: string;
-  realm?: string;
+  /** A narrowing of the publisher's reach (`--visibility`). */
+  visibility?: string;
+  /** Where a repost's substance came from (`--source`). */
+  source?: string;
   kind?: string;
   pin?: boolean;
   expires?: string;
@@ -92,16 +94,12 @@ export default class PressController extends CommandController<ReleaseModel> {
     if (!headline) {
       return this.fail(context, 'headline required', 'headline-required');
     }
+    // ⚠ No `realm` here. It derives from the publisher — one source
+    // rather than a copy that drifts, and nobody claiming to speak
+    // in-fiction on an operator's feed.
+    //
     // Publish defaults applied here (not in the YAML) so an unpassed flag
-    // stays undefined for the edit patch — see release.yaml's options note.
-    const realm = PressController.resolveRealm(model.realm ?? 'ooc');
-    if (!realm) {
-      return this.fail(
-        context,
-        `unknown realm '${model.realm}' (try ${RELEASE_REALMS.join(' / ')})`,
-        'bad-realm',
-      );
-    }
+    // stays undefined for the edit patch — see press.yaml's options note.
     const kind = PressController.resolveKind(model.kind ?? 'notice');
     if (!kind) {
       return this.fail(
@@ -150,14 +148,32 @@ export default class PressController extends CommandController<ReleaseModel> {
       );
     }
 
+    // The narrowing, if one is asked for. Only the narrow direction is
+    // reachable: the clamp maxes over the visibility ordinal, so a
+    // `public` on a members-only publisher lands back at `members`.
+    let visibility: ReleaseVisibility | undefined;
+    if (model.visibility !== undefined) {
+      const resolved = PressController.resolveVisibility(model.visibility);
+      if (!resolved) {
+        return this.fail(
+          context,
+          `unknown visibility '${model.visibility}' (try ` +
+            `${RELEASE_VISIBILITIES.join(' / ')})`,
+          'bad-visibility',
+        );
+      }
+      visibility = resolved;
+    }
+
     const req: PublishRequest = {
       publisher,
       headline,
-      realm,
       kind,
       pinned: model.pin === true,
       expiresAt,
       ...(body ? { body } : {}),
+      ...(visibility ? { visibility } : {}),
+      ...(model.source ? { source: model.source.trim() } : {}),
     };
     try {
       const release = await PressApi.publish(req);
@@ -204,17 +220,19 @@ export default class PressController extends CommandController<ReleaseModel> {
       patch.body = body;
     }
 
-    if (model.realm !== undefined) {
-      const realm = PressController.resolveRealm(model.realm);
-      if (!realm) {
+    if (model.visibility !== undefined) {
+      const resolved = PressController.resolveVisibility(model.visibility);
+      if (!resolved) {
         return this.fail(
           context,
-          `unknown realm '${model.realm}' (try ${RELEASE_REALMS.join(' / ')})`,
-          'bad-realm',
+          `unknown visibility '${model.visibility}' (try ` +
+            `${RELEASE_VISIBILITIES.join(' / ')})`,
+          'bad-visibility',
         );
       }
-      patch.realm = realm;
+      patch.visibility = resolved;
     }
+    if (model.source !== undefined) patch.source = model.source.trim();
     if (model.kind !== undefined) {
       const kind = PressController.resolveKind(model.kind);
       if (!kind) {
@@ -267,11 +285,13 @@ export default class PressController extends CommandController<ReleaseModel> {
     }
   }
 
-  /** Validate a realm token against the vocabulary; `null` = unknown. */
-  private static resolveRealm(raw: string | undefined): ReleaseRealm | null {
+  /** Validate a visibility token against the vocabulary; `null` = unknown. */
+  private static resolveVisibility(
+    raw: string | undefined,
+  ): ReleaseVisibility | null {
     const v = (raw ?? '').trim().toLowerCase();
-    return RELEASE_REALMS.includes(v as ReleaseRealm)
-      ? (v as ReleaseRealm)
+    return RELEASE_VISIBILITIES.includes(v as ReleaseVisibility)
+      ? (v as ReleaseVisibility)
       : null;
   }
 

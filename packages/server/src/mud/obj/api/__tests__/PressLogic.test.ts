@@ -42,6 +42,13 @@ let idCounter = 0;
 
 const PUBLISHER = '/compact/press';
 const FEED = '/compact/press/feed';
+// ⚠ A release's realm now DERIVES from its publisher, so a realm filter
+// is a question about which masthead something went out under. The
+// archive fixtures therefore need two publishers rather than a per-row
+// realm field — which is the point: nobody can claim to speak in-fiction
+// on an operator's feed.
+const WORLD_PUBLISHER = '/compact/executive';
+const WORLD_FEED = '/compact/executive/feed';
 
 /** Plain equality matching — the archive filters in JS over the tree now. */
 function matches(
@@ -51,11 +58,16 @@ function matches(
   return Object.entries(query).every(([k, v]) => doc[k] === v);
 }
 
-/** Seed a release DOCUMENT straight into the fake `documents` collection. */
-function seed(fields: Partial<ReleaseData>): void {
+/**
+ * Seed a release DOCUMENT straight into the fake `documents` collection,
+ * under the `ooc` publisher by default or the `world` one when asked.
+ */
+function seed(
+  fields: Partial<ReleaseData>,
+  realm: 'ooc' | 'world' = 'ooc',
+): void {
   const data: ReleaseData = {
     releaseId: '',
-    realm: 'ooc',
     kind: 'notice',
     headline: '',
     body: '',
@@ -64,25 +76,48 @@ function seed(fields: Partial<ReleaseData>): void {
     expiresAt: 0,
     pinned: false,
     retracted: false,
+    visibility: null,
+    source: '',
     ...fields,
   };
+  const [owner, feed] =
+    realm === 'world' ? [WORLD_PUBLISHER, WORLD_FEED] : [PUBLISHER, FEED];
   const id = `id-${idCounter++}`;
   store.set(id, {
-    path: `${FEED}/${data.releaseId}`,
-    owner: PUBLISHER,
+    path: `${feed}/${data.releaseId}`,
+    owner,
     kind: RELEASE_DOCUMENT_KIND,
     data,
     _id: id,
   });
 }
 
-/** The publisher every fixture release goes out under. */
+/** The two publishers the fixture releases go out under. */
 function installPublisher(): void {
   const org = makeStuffAtPath(() => new OrganizationEntity(), PUBLISHER);
   org.realm = 'ooc';
   org.visibility = 'public';
   org.feedPath = FEED;
   org.publishingPositions = [];
+  org.positions = [
+    { key: 'communications-director', label: 'speaking', wageRate: 0, confers: [] },
+  ];
+  // ⚠ The publish path now checks `mayPublishAs` BEFORE minting anything,
+  // so the acting author has to actually hold a publishing position. The
+  // authored roster is the cheapest way to say so.
+  org.rosterSlots = [
+    { positionKey: 'communications-director', assignee: '/obj/Avatar/p1', schedule: [] },
+    { positionKey: 'communications-director', assignee: '/obj/Avatar/p2', schedule: [] },
+  ];
+
+  const world = makeStuffAtPath(
+    () => new OrganizationEntity(),
+    WORLD_PUBLISHER,
+  );
+  world.realm = 'world';
+  world.visibility = 'members';
+  world.feedPath = WORLD_FEED;
+  world.publishingPositions = [];
 }
 
 /** Run `fn` with `principal` stamped as the acting author (the giver). */
@@ -135,7 +170,6 @@ describe('PressApi.publish (actor from context)', () => {
         publisher: PUBLISHER,
         headline: 'Server up',
         body: 'patch notes',
-        realm: 'ooc',
         kind: 'changelog',
       })
     );
@@ -183,18 +217,15 @@ describe('PressApi.publish (actor from context)', () => {
 
 describe('PressApi.archive (filter + page)', () => {
   beforeEach(() => {
-    seed({ releaseId: 'a', realm: 'ooc', kind: 'notice', publishedAt: 10 });
-    seed({ releaseId: 'b', realm: 'world', kind: 'event', publishedAt: 20 });
-    seed({ releaseId: 'c', realm: 'ooc', kind: 'changelog', publishedAt: 30 });
-    seed({ releaseId: 'd', realm: 'world', kind: 'event', publishedAt: 40 });
+    seed({ releaseId: 'a', kind: 'notice', publishedAt: 10 }, 'ooc');
+    seed({ releaseId: 'b', kind: 'event', publishedAt: 20 }, 'world');
+    seed({ releaseId: 'c', kind: 'changelog', publishedAt: 30 }, 'ooc');
+    seed({ releaseId: 'd', kind: 'event', publishedAt: 40 }, 'world');
     // A retracted row must never surface.
-    seed({
-      releaseId: 'gone',
-      realm: 'world',
-      kind: 'event',
-      publishedAt: 50,
-      retracted: true,
-    });
+    seed(
+      { releaseId: 'gone', kind: 'event', publishedAt: 50, retracted: true },
+      'world',
+    );
   });
 
   it('orders recency-desc and excludes retracted rows', async () => {

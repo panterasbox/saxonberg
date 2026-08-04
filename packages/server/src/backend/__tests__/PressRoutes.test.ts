@@ -43,7 +43,6 @@ function makeRelease(
   const releaseId = fields.releaseId ?? "b-1";
   return Release.of(`/compact/press/feed/${releaseId}`, "/compact/press", {
     releaseId,
-    realm: fields.realm ?? "ooc",
     kind: fields.kind ?? "notice",
     headline: fields.headline ?? "headline",
     body: fields.body ?? "",
@@ -52,6 +51,8 @@ function makeRelease(
     expiresAt: fields.expiresAt ?? 0,
     pinned: fields.pinned ?? false,
     retracted: false,
+    visibility: null,
+    source: '',
   });
 }
 
