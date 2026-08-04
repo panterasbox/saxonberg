@@ -34,6 +34,7 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
+import { COMMON_SCRIPT } from '../../../lib/description/Marked';
 import { MessageApi } from '../../../api/message';
 import { PerceptionApi } from '../../../api/perception';
 import { MagicApi } from '../../../api/magic';
@@ -80,26 +81,59 @@ export default class ReadController extends CommandController<ReadModel> {
     }
 
     // ── Perceive ──
-    if (
-      target.requiresLightToRead() &&
-      !PerceptionApi.canMakeOutMarks(giver, target)
-    ) {
+    //
+    // One call. `canMakeOutMarks` owns the whole intersection now —
+    // the reader's channels against the marks' modalities, with light
+    // gating only the vision branch. The controller used to pre-filter
+    // on `requiresLightToRead()`, which is what left the touch branch
+    // unconditional.
+    if (!PerceptionApi.canMakeOutMarks(giver, target)) {
+      // The refusal names the reason the reader can actually observe.
+      const lightBound = target.requiresLightToRead();
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`There is writing on ${Mml.item(target)}, but you cannot make out a word of it in this light.`,
+          lightBound
+            ? Mml.compose`There is writing on ${Mml.item(target)}, but you cannot make out a word of it in this light.`
+            : Mml.compose`There is writing on ${Mml.item(target)}, but you have no way to make it out.`,
         )
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'too-dark-to-read',
-        detail: 'inked marks need light',
+        reason: lightBound ? 'too-dark-to-read' : 'no-channel-for-marks',
+        detail: lightBound
+          ? 'inked marks need light'
+          : 'no sense reaches these marks',
       });
       return;
     }
 
     // ── Decode ──
-    // v1: everyone reads the common script. The seam, not the content.
+    //
+    // v1 has one script and everyone reads it, so this only fires for
+    // authored braille or cipher. **Withheld, never mangled**: the
+    // medium here IS text, so scrambled output is indistinguishable
+    // from a bug, and "you can tell it is writing but not what it says"
+    // is both honest and the more interesting state to be in.
+    //
+    // ⚠ THE literacy seam. When known-scripts land on the reader, this
+    // condition becomes that lookup and nothing else moves.
+    const script = target.getMarkScript();
+    if (script !== COMMON_SCRIPT) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`The marks on ${Mml.item(target)} are writing of some kind, but not in any script you know.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'script-unknown',
+        detail: `cannot decode '${script}'`,
+      });
+      return;
+    }
+
     const text = target.getMarkText();
     const body =
       text.length > 0

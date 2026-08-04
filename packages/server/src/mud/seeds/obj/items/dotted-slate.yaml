@@ -1,0 +1,36 @@
+# A dotted slate — the braille exemplar, and the proof that `form` and
+# `script` are two axes rather than one.
+#
+# Compare it to `scroll-of-remove-curse`, which is ALSO `embossed`:
+#
+#   scroll-of-remove-curse   embossed + common   → perceive ✓  decode ✓
+#   dotted-slate             embossed + braille  → perceive ✓  decode ✗
+#
+# Same physical make, same senses reach it, and one of them you can read.
+# Under a single `markForm` field those two are indistinguishable, which
+# is exactly the collapse `markScript` undoes.
+#
+# It reads in the dark like any raised lettering — that half never
+# depended on knowing the system. What you get without the system is the
+# honest partial: *there is writing here, and it is not yours.* Withheld,
+# never scrambled: this is a text game, so mangled output is
+# indistinguishable from a bug.
+#
+# ⚠ v1 has no literacy, so NOBODY reads this yet. That is the point of
+# shipping it — the inclusive case (a reader who knows braille) and the
+# exclusive one (a cipher you don't) are the same field pointed in
+# opposite directions, and the seam is now visible in content rather
+# than only in a docstring.
+class: /obj/Signpost
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a small dotted slate
+  primaryKeyword: slate
+  keywords: [slate, tablet, dots]
+  longDescription: >
+    A hand-sized slate of grey stone, its face worked into neat ranks of
+    raised dots. Whoever made it cared about the spacing.
+  markText: >-
+    the fourth cistern is dry — do not send the cart before the thaw
+  markForm: embossed
+  markScript: braille

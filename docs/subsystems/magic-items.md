@@ -664,9 +664,48 @@ readable in the dark**, a real advantage worth paying for on an
 expedition; and a character without functioning sight is not excluded
 from the spellbook economy, by the same mechanic.
 
+### Two axes, not one
+
+`form` gates **perceive**; `script` gates **decode**, and they are
+independent:
+
+| | form | script | perceive | decode |
+|---|---|---|---|---|
+| raised common lettering | embossed | common | touch | ✓ |
+| **braille** | embossed | braille | touch | ✗ (v1) |
+| a ciphered dispatch | inked | cipher | vision + light | ✗ (v1) |
+
+Braille is what proves they are two: touch-only *and* its own system,
+where raised common letters are the same physical make in the ordinary
+system. Under one field those are indistinguishable. `obj/Signpost` +
+`seeds/obj/items/dotted-slate.yaml` are the worked A/B against the
+equally-embossed `scroll-of-remove-curse`.
+
+The symmetry worth keeping: **braille and cipher are the same field
+pointed in opposite directions** — one includes a reader through a
+different channel, the other excludes one through a different system.
+
+**Perceive is an intersection**, both directions: the reader's channels
+against the marks' modalities, with light gating only the vision branch.
+The first cut asked *"are these vision-only? then check light"*, which
+left touch unconditional — embossed text was readable by anyone, in the
+dark, with no sense of touch, and the "a sightless reader is not
+excluded" payoff came from a gate being **skipped** rather than from a
+model.
+
+> ⚠ **Touch is not organ-modelled.** `sensoryPorts` describes organs
+> (count, position — eyes, ears, a nose), so **no shipped body plan
+> declares touch**; it is the integument and the schema cannot say it.
+> A gate that required it in the sensorium made every embossed text
+> unreadable by everyone. `NON_ORGAN_CHANNELS` is the placeholder, and
+> it shrinks to empty once a real touch model exists — at which point a
+> numbed or gloved character correctly fails to read raised lettering.
+
 Literacy is out of scope for v1 — everyone reads the common script — but
-the seam is in place: it would slot into `decode` without disturbing
-`perceive`.
+the seam is in place: unknown scripts are **withheld, never mangled**
+(the medium here IS text, so scrambled output is indistinguishable from
+a bug), and the reader-side "which systems do you know?" lookup slots
+into `decode` without disturbing `perceive`.
 
 **A working that needs a mark takes one from the same verb**:
 `read scroll at flask`. `read`'s second argument is optional, so

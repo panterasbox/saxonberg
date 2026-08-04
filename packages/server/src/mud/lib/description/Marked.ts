@@ -61,6 +61,50 @@ export const MARK_FORMS = {
 /** An authored mark form — one of the {@link MARK_FORMS} keys. */
 export type MarkForm = keyof typeof MARK_FORMS;
 
+/**
+ * **The second axis: what symbol system the marks are in.**
+ *
+ * `form` and `script` are independent, and collapsing them is the thing
+ * this field exists to undo:
+ *
+ * | | how it is MADE (form) | what system it is IN (script) | gates |
+ * |---|---|---|---|
+ * | raised common lettering | embossed | common | perceive: touch **and** vision |
+ * | braille | embossed | braille | perceive: touch · decode: braille |
+ * | a ciphered dispatch | inked | cipher | perceive: vision · decode: cipher |
+ *
+ * Braille is the case that proves they are two axes: it is touch-only
+ * **and** its own system, while raised common letters are touch-*and*-
+ * vision in the ordinary system. Under one field both are just
+ * "embossed".
+ *
+ * The pleasing symmetry, and the reason to ship this before any literacy
+ * content: **braille and cipher are the same field pointed in opposite
+ * directions** — one includes a reader through a different channel, the
+ * other excludes one through a different system. Same machinery.
+ *
+ * ⚠ **v1 has exactly one script and no literacy.** Everything is
+ * `common` and everyone reads it; anything else is *withheld*, never
+ * mangled (scrambled text in a text game is indistinguishable from a
+ * bug). The reader-side lookup — "which systems does this character
+ * know?" — is the one seam a literacy build adds, and it lands in
+ * `decode` without disturbing `perceive`.
+ */
+export const MARK_SCRIPTS = {
+  /** The common script. Everyone reads it; the overwhelming default. */
+  common: 'common',
+  /** Raised dots. Touch-native, and its own system. */
+  braille: 'braille',
+  /** Deliberately obscured. The exclusion case. */
+  cipher: 'cipher',
+} as const;
+
+/** An authored script — one of the {@link MARK_SCRIPTS} keys. */
+export type MarkScript = keyof typeof MARK_SCRIPTS;
+
+/** The script every character can read in v1. */
+export const COMMON_SCRIPT: MarkScript = 'common';
+
 export interface Marked {
   /** The text the marks carry. Empty = blank. */
   getMarkText(): string;
@@ -79,10 +123,14 @@ export interface Marked {
    * is the whole mechanical payoff of the decomposition.
    */
   requiresLightToRead(): boolean;
+  /** The symbol system the marks are in. See {@link MARK_SCRIPTS}. */
+  getMarkScript(): MarkScript;
+  setMarkScript(script: string): void;
 
   // ---------- storage (public for the Hydrator) ----------
   markText: string;
   markForm: string;
+  markScript: string;
 }
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -112,6 +160,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       markText: { persistent: true, authorable: true },
       markForm: { persistent: true, authorable: true },
+      markScript: { persistent: true, authorable: true },
     };
 
     /** What the marks say. */
@@ -119,6 +168,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Ink is the ordinary case, so it is the default. */
     public markForm: string = 'inked';
+
+    /** The common script is the ordinary case, so it is the default. */
+    public markScript: string = COMMON_SCRIPT;
 
     public getMarkText(): string {
       return this.markText;
@@ -147,6 +199,23 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public requiresLightToRead(): boolean {
       return !this.getMarkModalities().includes('touch');
+    }
+
+    public getMarkScript(): MarkScript {
+      return (
+        this.markScript in MARK_SCRIPTS ? this.markScript : COMMON_SCRIPT
+      ) as MarkScript;
+    }
+
+    public setMarkScript(script: string): void {
+      if (!(script in MARK_SCRIPTS)) {
+        throw new RangeError(
+          `markScript: unknown script '${script}' (expected ${Object.keys(
+            MARK_SCRIPTS,
+          ).join(' | ')})`,
+        );
+      }
+      this.markScript = script;
     }
   };
 }
