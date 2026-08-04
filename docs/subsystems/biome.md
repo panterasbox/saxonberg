@@ -497,6 +497,18 @@ value="295">295 K</quantity> (warm)`. The pedagogical-seam toggle
 for "friendly-only" vs "canonical-only" rendering is deferred to a
 cross-cutting setting alongside sound's.
 
+
+> ⭐ **A biome's readings carry a reveal level.** Temperature, pressure, humidity, wind, gravity and ambient sound level — the numbers an instrument takes. The ambient sound and smell stay open: that IS the description of arriving. `spoiler: 1` with
+> `spoilerName: 0`, so a reader sees which properties exist with the
+> values collapsed — **one click, not a lock**, and a reader who set
+> `wiki.spoilerAppetite` higher never sees a collapse at all. The rule
+> the sweep settled on: *collapse what the WORLD measures, never what
+> the PLAYER operates.* Levels are declared on the field and therefore
+> apply wherever the value surfaces. See
+> [wiki.md](./wiki.md) § the reveal model.
+
+---
+
 ## Cross-references
 
 - [docs/subsystems/quantities.md](./quantities.md) — `Quantity<U>`

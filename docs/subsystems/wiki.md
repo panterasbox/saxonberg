@@ -801,8 +801,15 @@ Three shared substrates the wiki depends on and does not own:
 - **Durable notification** — nothing in the engine answers *"what
   happened to the things I care about while I was away."* The wiki emits
   nothing yet and **grows no inbox** (criterion 70, asserted); watching
-  is the substrate's job. See
+  is the substrate's job. Criteria 69 and 71 belong with it — the
+  publish event itself, and its carrying the level of what changed so
+  delivery can gate on it. See
   [notification-slate.md](../slates/builds/notification-slate.md).
+
+The one half-criterion: **39** is satisfied for `<image key>`
+resolution and not for a subject-bound page surfacing its subject's
+`illustration` with no authoring — that half rides media ingest with
+41/42.
 
 Also absent by decision: `wiki search` (a subcommand answering "not
 available" would put a lie in `help wiki`), an `<mql>` component

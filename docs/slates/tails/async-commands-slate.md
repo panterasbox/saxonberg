@@ -47,7 +47,8 @@ controllers can already return a `Promise`. So async-in-the-JS-sense
 buys nothing. The thing that makes "async commands" real is one level
 up: **`Backend.processUserMessage` serializes every message from a
 socket behind a per-socket promise chain** (`Backend.ts:242`,
-`inboundChainBySocketId`). Each message awaits the previous message's
+the ordered lane of `ConnectionApi.sequenceInbound`, once
+`Backend.inboundChainBySocketId`). Each message awaits the previous message's
 `executeCommand` before the next runs. So a slow command queues
 everything typed behind it until it finishes.
 

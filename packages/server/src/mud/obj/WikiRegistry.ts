@@ -738,6 +738,9 @@ export default class WikiRegistry extends WikiRegistryBase {
     }
     const zone = await this.zoneFor(namespace);
     if (zone === null) return false;
+    // `FolderZone` reaches `Stuff` through a mixin chain, so TS needs
+    // the widening told to it — the established mixin-host idiom, not a
+    // type escape: `AccessApi` wants the zone AS a resource.
     const zoneStuff = zone as unknown as Stuff;
     if (required === 'moderators') {
       return AccessApi.canMutateZone(actor, zoneStuff);

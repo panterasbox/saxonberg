@@ -289,6 +289,18 @@ real hazard/trap taxonomy is a separate future build over the same seam.
 - **Instrument + medicine first-aid branches**, fuller consumable-crafting
   supply chain, metabolism-coupled healing.
 
+
+> ⭐ **A condition's mechanism carry a reveal level.** `progression`, `resolution`, `contagion`, `toxinBehavior`, `signature` and `mentalBands`. `observableSigns` stays open — a sign nobody can read is not a sign, and the diagnosis loop runs on it. `spoiler: 1` with
+> `spoilerName: 0`, so a reader sees which properties exist with the
+> values collapsed — **one click, not a lock**, and a reader who set
+> `wiki.spoilerAppetite` higher never sees a collapse at all. The rule
+> the sweep settled on: *collapse what the WORLD measures, never what
+> the PLAYER operates.* Levels are declared on the field and therefore
+> apply wherever the value surfaces. See
+> [wiki.md](./wiki.md) § the reveal model.
+
+---
+
 ## Cross-references
 
 - [vitals.md](./vitals.md) — the substrate: `Trauma`, anatomy, the

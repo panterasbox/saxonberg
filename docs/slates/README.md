@@ -253,21 +253,7 @@ physics is buildable now.
 *The two halves of the in-game reading substrate — a systems↔content
 pair, split by center of gravity, not a wall.*
 - [help-slate](./builds/help-slate.md) — the **systems** half: the developer-maintained rulebook (commands, taxonomies, mechanics, formulas + numbers, the engine/API surface), harvested from three sources into one uniform `HelpTopic` index. Outgrew its current `HelpController` + TypeDoc scaffold. Governing pillar: transparent by default, hidden only by an explicit spoiler gate.
-- [wiki-slate](./builds/wiki-slate.md) — the **content** half: a community-maintained, client-native wiki of plain `WikiPage` Documents; every page authored, no generation from gamestate. A two-axis spoiler model (appetite dial × capability ceiling) governs reveals.
-
-**Phases:** help (systems index) → wiki (community content). Both lean on the deferred [spoiler](./deferred-rpg/spoiler-slate.md) reveal model.
-
-### 9. Cooperative & governance
-*The people who fund Saxonberg are the people who govern its world —
-real funding and in-world citizenship as the same act, separated by one
-hard membrane.* Also a **native-digital governance** thesis: drop the
-logistical artifacts of meatspace government, keep the protective
-functions, and tie influence to costly contribution because that's the
-Sybil floor (the novel polity is educational *payload*, not overhead).
-New substrate; no shipped subsystem. Prioritized to stand up a funding
-stream for dev. Sibling to the **economy** build
-(value-physics) — this governs over that value, and its in-world reserve
-closes economy's open "deliberate faucet without inflation" thread.
+- [wiki-slate](./tails/wiki-slate.md) *(tail)* — **shipped 2026-08-04** → [../subsystems/wiki.md](../subsystems/wiki.md): a community-maintained wiki of plain `WikiPage` Documents, every page authored, none generated from gamestate; the two-axis reveal model (appetite dial × capability ceiling) with a **reader rung** that makes the appetite half fire for ordinary players, the article dialect, and a per-surface tag policy that carried headings to forums and `<spoiler>` to chat. Tail holds Wave 2 richness (search integration, the level-3 source embed, the rest of the transclusion palette) and open questions 5–7 — anonymous web read, progress-gated reveals (⚠ NOT the capability ceiling: earned ≠ preferred), moderation depth.
 - [cooperative-slate](./builds/cooperative-slate.md) — the full governance
   design (authoritative; this is only a hook): **stake-is-not-stock** (the
   lawyer-free firewall) + **influence** (three non-fungible kinds = three
