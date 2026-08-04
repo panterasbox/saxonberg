@@ -249,8 +249,9 @@ dev/test path. **Nothing maps the founder credential to author status.**
 
 2. **The appointment, not the publish, is where the founder default
    applies.** The Compact press office's authority is
-   `{kind:'committee', parcel:'/'}` → `isCommitteeMember`, which already
-   carries the founder backstop. **No new `isFounder` call site.**
+   `{kind:'committee', parcel:'/compact'}` → `isCommitteeMember`, which
+   already carries the founder backstop. **No new `isFounder` call
+   site.**
 
 **The resulting chain:**
 
@@ -270,15 +271,61 @@ set — one boot warning, no error. Inherited from governance.md.
 
 ### Two seeded organizations
 
-| path | realm | appointing authority | positions |
-|---|---|---|---|
-| the Compact | `ooc` | `{kind:'committee', parcel:'/'}` | `communications-director` |
-| the Office of the Prime Minister | `world` | `{kind:'office', office:'prime-minister'}` | `communications-director`; `press-secretary` **reportsTo** it |
+| path | realm | appointing authority | feed | positions |
+|---|---|---|---|---|
+| the Compact | `ooc` | `{kind:'committee', parcel:'/compact'}` | `/compact/press/feed` | `communications-director` |
+| the Office of the Prime Minister | `world` | `{kind:'office', office:'prime-minister'}` | `/compact/executive/feed` | `communications-director`; `press-secretary` **reportsTo** it |
 
 Both ship **unfilled**. ⚠ The Office of the Prime Minister also ships with
 nothing to announce — no legislature, no bills, no policy — so its
 releases are whatever is written in character. Cold start is content, not
 mechanism: no NPC outlet, no seeded demo release, no synthetic floor.
+
+### `/compact` — a fourth namespace kind, and it is not a place
+
+A feed path needs an owned branch, and the Compact had none. Carving one
+surfaced a namespace kind the taxonomy did not have:
+
+| namespace | what it is |
+|---|---|
+| `/home/<self>` | personal workspace |
+| `/studio/<group>` | group workspace — **the multiseat `/home`** |
+| `/domain/<locality>` | **content** — a place, with rooms and NPCs, locally administered |
+| **`/compact`** | **publications — ideas and documents. No place.** |
+
+> **The Compact makes no rooms and no NPCs. It publishes.**
+
+Two wrong turns this correction closed, both recorded because the next
+person will reach for them too:
+
+- ⚠ **`/studio` is not the precedent.** It is a *workspace* namespace, the
+  multiseat `/home`, not a publishing one. Its parcel **row shape** is the
+  right model — a Compact-held path-branch title, `owner:
+  {kind: group, name: core}`, deliberately omitting `landUse`/`areaM2` so
+  the inheritance walk answers `wild` and admits nothing — but its
+  *concept* is not.
+- ⚠ **This is not a federal enclave.** An earlier draft framed the
+  Compact's premises as territory a future Saxonberg would host without
+  owning. Wrong: `/saxonberg` will be **content**, and the diegetic homes
+  of Compact institutions are *Saxonberg's rooms, administered locally* —
+  DC has its own police and city services under a seated city government.
+  **`/compact` is not where the buildings go.** It is where the documents
+  go.
+
+So: one parcel row, `extent: /compact`, `owner: {kind: group, name: core}`,
+no land use. It gives the feed paths an owner, gives `committeeOf` a
+claimed title to resolve rather than the state default, and gives the
+branch a chain of title that can be subdivided or transferred later.
+
+⚠ **Quotas are parked, deliberately.** The Compact has its own resource
+allowance, separate from any locality's — and the authority to set it is
+genuinely unresolved, because *the executive is the same branch that
+provisions parcels in the first place.* The balance slate already names
+that shape: **particular BURDEN ok / particular EXEMPTION = capture.**
+This build does not decide it and does not need to: `ParcelRecord.allowance`
+is an **inert 0a seam** and the allowance cascade is unbuilt. The tension
+is recorded in the balance slate for the cascade build to settle with the
+mint model in front of it.
 
 ### Where a release lives, and who writes it
 
@@ -399,6 +446,9 @@ cursor, no paging**. A press room is not an archive.
 12. A published release is a `StoredDocument` with `kind: 'release'`,
     `owner` = the publisher organization, under that publisher's feed
     path.
+12b. `ParcelApi.ownerOf('/compact/…')` resolves to the **claimed**
+    `/compact` title rather than falling through to the state default, and
+    `committeeOf` resolves against it.
 13. ⚠ **The write transport cannot be used to stamp an arbitrary owner** —
     it is callable only from its one gating module, and takes the
     authorized publisher rather than a caller-supplied owner.
@@ -467,6 +517,18 @@ cursor, no paging**. A press room is not an archive.
     [civics.md](../subsystems/civics.md) record that seats point at
     positions on organizations. ⚠ civics.md's stale
     `lib/civics/Government.ts` is corrected to `obj/Government.ts`.
+31b. [document-store.md](../subsystems/document-store.md) records the
+    **four-namespace taxonomy** — workspace (`/home`, `/studio`), content
+    (`/domain/<locality>`), publications (`/compact`) — so the next reader
+    does not reach for `/studio` as the publishing precedent, which is the
+    mistake this cycle made.
+    [parcel.md](../subsystems/parcel.md) gains the `/compact` title and
+    cross-references it.
+31c. [balance-slate](../slates/builds/balance-slate.md) gains a paragraph
+    on the parked quota tension: the Compact's allowance is separate from
+    any locality's, the executive both provisions parcels and needs one,
+    and *particular exemption = capture* is the rule that names the risk.
+    **No new slate** — it belongs where the meter doctrine already lives.
 32. [gazette-slate](../slates/builds/gazette-slate.md) has **Wave 1 struck
     and replaced**; [press-slate](../slates/builds/press-slate.md) records
     that a newspaper is an organization that trades and publishes, and
