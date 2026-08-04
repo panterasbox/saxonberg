@@ -49,7 +49,7 @@ function seedBudget(): BusinessEntity {
 
 function shift(onSince: number): Employment {
   return Employment.of({
-    businessPath: BUDGET,
+    organizationPath: BUDGET,
     positionKey: "clerk",
     status: "on-shift",
     hiredAt: 0,

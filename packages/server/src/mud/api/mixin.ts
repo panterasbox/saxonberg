@@ -146,6 +146,7 @@ import type { Caster } from '../lib/magic/Caster';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
+import type { Organization } from '../lib/employment/Organization';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
@@ -1191,6 +1192,15 @@ export class MixinApi {
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {
     return this.hasMixin(obj, Mixins.Bank);
+  }
+
+  /**
+   * An entity with an org chart — positions, holders and an appointing
+   * authority (the `OrganizationMixin` marker). Every Business is one; a
+   * ministry or a press office is one that does not trade.
+   */
+  public static isOrganization(obj: Stuff): obj is Stuff & Organization {
+    return this.hasMixin(obj, Mixins.Organization);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

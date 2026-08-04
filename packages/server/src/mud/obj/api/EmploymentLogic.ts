@@ -18,6 +18,7 @@ import { Quantity } from '../../lib/quantity';
 import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { Mixins } from '../../lib/mixin';
 import type { Business } from '../Business';
+import type { Organization } from '../../lib/employment/Organization';
 import type { Employed } from '../../lib/employment/Employed';
 import {
   Employment,
@@ -36,6 +37,8 @@ const EmploymentApiCallers = SecurityPolicies.FromModule(
 
 /** A Business as a live Stuff — the enumerable seeded entity. */
 type BusinessStuff = Stuff & Business;
+/** Any organization as a live Stuff — a Business, a ministry, a publisher. */
+type OrganizationStuff = Stuff & Organization;
 /** An employable actor. */
 type EmployedActor = Stuff & Employed;
 
@@ -46,20 +49,62 @@ type EmployedActor = Stuff & Employed;
  */
 async function isProprietorOfImpl(
   subject: Stuff,
-  business: BusinessStuff,
+  organization: OrganizationStuff,
 ): Promise<boolean> {
-  if (subject.getTemplatePath() === business.getProprietor()) return true;
+  if (subject.getTemplatePath() === organization.getProprietor()) return true;
   return AccessApi.isAuthor(subject);
+}
+
+/**
+ * Every actor holding `positionKey` at `organization` — the uniform
+ * *who-holds-P-in-O?* read, identical for a ministry, a shop and a
+ * publisher. Two sources, unioned: live non-terminal `Employment` records
+ * (runtime hires) and the authored roster (what makes a never-ticked,
+ * lazily-stood-up organization's holder provable). Holders are enumerated
+ * viewer-blind — the question is about the chart, not about who can see
+ * whom. Returns durable templatePaths, in no guaranteed order.
+ */
+function holdersOfImpl(
+  organization: OrganizationStuff,
+  positionKey: string,
+): string[] {
+  const organizationPath = organization.getTemplatePath() ?? '';
+  if (!organizationPath) return [];
+  const out = new Set<string>();
+  const exited = new Set<string>();
+
+  const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
+  for (const holder of holders) {
+    const key = holder.getTemplatePath() ?? '';
+    if (!key) continue;
+    const record = holder.getEmployment(organizationPath);
+    if (!record || record.positionKey !== positionKey) continue;
+    // An explicit exit is never resurrected by the authored roster — the
+    // same suppression `holdsSeat` implements, and the reason the roster
+    // pass below is a fallback rather than a second source of truth.
+    if (TERMINAL.includes(record.status)) exited.add(key);
+    else out.add(key);
+  }
+
+  for (const assignment of organization.getRosterAssignments()) {
+    if (assignment.positionKey !== positionKey) continue;
+    if (exited.has(assignment.assignee)) continue;
+    if (assignment.assignee) out.add(assignment.assignee);
+  }
+  return [...out];
 }
 
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
 function hireImpl(
-  business: BusinessStuff,
+  organization: OrganizationStuff,
   actor: Stuff,
   positionKey: string,
 ): Employment | null {
   if (!MixinApi.isEmployed(actor)) return null;
-  return business.hire(
+  return organization.hire(
     actor as EmployedActor,
     positionKey,
     WorldClockApi.getNow().rawValue(),
@@ -72,16 +117,19 @@ function hireImpl(
  * engine's janitorial arm covers the direct write. */
 function endEmploymentImpl(
   actor: Stuff,
-  businessPath: string,
+  organizationPath: string,
   status: 'fired' | 'quit',
 ): void {
   if (!MixinApi.isEmployed(actor)) return;
-  const business = StuffApi.findByTemplatePath(businessPath);
-  if (business && MixinApi.hasMixin(business, Mixins.Business)) {
-    (business as BusinessStuff).endEmployment(actor as EmployedActor, status);
+  const organization = StuffApi.findByTemplatePath(organizationPath);
+  if (organization && MixinApi.hasMixin(organization, Mixins.Organization)) {
+    (organization as OrganizationStuff).endEmployment(
+      actor as EmployedActor,
+      status,
+    );
     return;
   }
-  (actor as EmployedActor)._setEmploymentStatus(businessPath, status);
+  (actor as EmployedActor)._setEmploymentStatus(organizationPath, status);
 }
 
 /**
@@ -95,7 +143,7 @@ function endEmploymentImpl(
  */
 function beginCoverImpl(
   self: Stuff,
-  business: BusinessStuff,
+  business: OrganizationStuff,
 ): Employment | null {
   if (!MixinApi.isEmployed(self)) return null;
   return business.beginCover(
@@ -105,7 +153,7 @@ function beginCoverImpl(
 }
 
 /** End a proprietor's cover: drop the transient cover Employment. */
-function endCoverImpl(self: Stuff, business: BusinessStuff): void {
+function endCoverImpl(self: Stuff, business: OrganizationStuff): void {
   if (!MixinApi.isEmployed(self)) return;
   business.endCover(self as EmployedActor);
 }
@@ -455,45 +503,54 @@ export class EmploymentLogic extends ApiLogic {
   @CallSecurity(EmploymentApiCallers)
   public async isProprietorOf(
     subject: Stuff,
-    business: BusinessStuff,
+    organization: OrganizationStuff,
   ): Promise<boolean> {
-    return isProprietorOfImpl(subject, business);
+    return isProprietorOfImpl(subject, organization);
+  }
+
+  /** See {@link EmploymentApi.holdersOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public holdersOf(
+    organization: OrganizationStuff,
+    positionKey: string,
+  ): string[] {
+    return holdersOfImpl(organization, positionKey);
   }
 
   /** See {@link EmploymentApi.hire}. */
   @CallSecurity(EmploymentApiCallers)
   public hire(
-    business: BusinessStuff,
+    organization: OrganizationStuff,
     actor: Stuff,
     positionKey: string,
   ): Employment | null {
-    return hireImpl(business, actor, positionKey);
+    return hireImpl(organization, actor, positionKey);
   }
 
   /** See {@link EmploymentApi.fire}. */
   @CallSecurity(EmploymentApiCallers)
-  public fire(business: BusinessStuff, actor: Stuff): void {
-    endEmploymentImpl(actor, business.getTemplatePath() ?? '', 'fired');
+  public fire(organization: OrganizationStuff, actor: Stuff): void {
+    endEmploymentImpl(actor, organization.getTemplatePath() ?? '', 'fired');
   }
 
   /** See {@link EmploymentApi.quit}. */
   @CallSecurity(EmploymentApiCallers)
-  public quit(actor: Stuff, businessPath: string): void {
-    endEmploymentImpl(actor, businessPath, 'quit');
+  public quit(actor: Stuff, organizationPath: string): void {
+    endEmploymentImpl(actor, organizationPath, 'quit');
   }
 
   /** See {@link EmploymentApi.beginCover}. */
   @CallSecurity(EmploymentApiCallers)
   public beginCover(
     self: Stuff,
-    business: BusinessStuff,
+    business: OrganizationStuff,
   ): Employment | null {
     return beginCoverImpl(self, business);
   }
 
   /** See {@link EmploymentApi.endCover}. */
   @CallSecurity(EmploymentApiCallers)
-  public endCover(self: Stuff, business: BusinessStuff): void {
+  public endCover(self: Stuff, business: OrganizationStuff): void {
     endCoverImpl(self, business);
   }
 

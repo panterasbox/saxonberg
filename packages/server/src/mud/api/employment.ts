@@ -1,13 +1,23 @@
 /**
- * EmploymentApi — the gated surface for the employment engine: businesses,
- * positions, rosters, and an actor's employment relationships.
+ * EmploymentApi — the gated surface for the employment engine:
+ * organizations, positions, rosters, and an actor's employment
+ * relationships.
  *
- * A `Business` is a standalone `Idea` (not a mixin on a place) that owns a
- * proprietor, its positions, a roster, an account, and its operating
+ * An **organization** owns the chart — positions, holders, and the
+ * authority that fills them — and answers *who holds position P in
+ * organization O?* the same way for a ministry, a shop and a newspaper. A
+ * `Business` is an organization that also **trades**: a standalone `Idea`
+ * (not a mixin on a place) adding an account, a bank, and its operating
  * locations. An actor's `EmployedMixin` holds the `Employment` records the
  * roster materializes; on-shift confers the Position's duties via the
  * augment substrate (so an on-shift bartender fulfils `order` and an
  * off-shift one does not).
+ *
+ * ⚠ **Employment is independent of money movement.** `postTransaction`
+ * takes no employment argument and consults none: paying someone with no
+ * employment record is identical to paying an employee off-book, which is
+ * what makes paying under the table an emergent act rather than an
+ * unmodellable one. Do not couple them.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
  * {@link EmploymentLogic} singleton at `/obj/api/employment`, reached
@@ -17,6 +27,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Business } from '../obj/Business';
+import type { Organization } from '../lib/employment/Organization';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { EmploymentLogic } from '../obj/api/EmploymentLogic';
@@ -34,6 +45,7 @@ export type {
   ShiftEntry,
 } from '../lib/employment/Roster';
 export type { Business } from '../obj/Business';
+export type { Organization } from '../lib/employment/Organization';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
@@ -47,6 +59,8 @@ const LOGIC_CLASS_FILE = fileURLToPath(
 
 /** A Business as a live Stuff. */
 type BusinessStuff = Stuff & Business;
+/** Any organization as a live Stuff — a Business, a ministry, a publisher. */
+type OrganizationStuff = Stuff & Organization;
 
 /** Resolve the HMR-able EmploymentLogic singleton (sync). */
 function logic(): EmploymentLogic {
@@ -67,28 +81,44 @@ export class EmploymentApi {
    */
   public static isProprietorOf(
     subject: Stuff,
-    business: BusinessStuff,
+    organization: OrganizationStuff,
   ): Promise<boolean> {
-    return logic().isProprietorOf(subject, business);
+    return logic().isProprietorOf(subject, organization);
   }
 
-  /** Hire `actor` into `business`'s `positionKey`. Returns the record. */
+  /**
+   * Every actor holding `positionKey` at `organization` — the uniform
+   * *who-holds-P-in-O?* read (durable templatePaths). Unions live
+   * non-terminal `Employment` records with the authored roster, so a
+   * never-ticked organization's holder is still provable; an explicit exit
+   * suppresses the roster entry rather than being resurrected by it. Its
+   * inverse — *what does actor A hold, anywhere?* — is the actor's own
+   * `getActiveEmployments()`.
+   */
+  public static holdersOf(
+    organization: OrganizationStuff,
+    positionKey: string,
+  ): string[] {
+    return logic().holdersOf(organization, positionKey);
+  }
+
+  /** Hire `actor` into `organization`'s `positionKey`. Returns the record. */
   public static hire(
-    business: BusinessStuff,
+    organization: OrganizationStuff,
     actor: Stuff,
     positionKey: string,
   ): Employment | null {
-    return logic().hire(business, actor, positionKey);
+    return logic().hire(organization, actor, positionKey);
   }
 
-  /** Fire `actor` from `business` (status → fired; history preserved). */
-  public static fire(business: BusinessStuff, actor: Stuff): void {
-    return logic().fire(business, actor);
+  /** Fire `actor` from `organization` (status → fired; history preserved). */
+  public static fire(organization: OrganizationStuff, actor: Stuff): void {
+    return logic().fire(organization, actor);
   }
 
-  /** `actor` quits `businessPath` (status → quit; history preserved). */
-  public static quit(actor: Stuff, businessPath: string): void {
-    return logic().quit(actor, businessPath);
+  /** `actor` quits `organizationPath` (status → quit; history preserved). */
+  public static quit(actor: Stuff, organizationPath: string): void {
+    return logic().quit(actor, organizationPath);
   }
 
   /**
@@ -98,13 +128,13 @@ export class EmploymentApi {
    */
   public static beginCover(
     self: Stuff,
-    business: BusinessStuff,
+    business: OrganizationStuff,
   ): Employment | null {
     return logic().beginCover(self, business);
   }
 
   /** End a proprietor's cover — drop the transient cover Employment. */
-  public static endCover(self: Stuff, business: BusinessStuff): void {
+  public static endCover(self: Stuff, business: OrganizationStuff): void {
     return logic().endCover(self, business);
   }
 

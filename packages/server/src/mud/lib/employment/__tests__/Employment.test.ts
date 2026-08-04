@@ -6,7 +6,7 @@ import {
 } from '../Employment';
 
 const BASE: EmploymentData = {
-  businessPath: '/domain/lounge/business',
+  organizationPath: '/domain/lounge/business',
   positionKey: 'bartender',
   status: 'employed',
   hiredAt: 100,
@@ -53,7 +53,7 @@ describe('Employment', () => {
     expect(e.status).toBe('employed');
     expect(e.onShiftSince).toBeNull();
     // identity fields carried
-    expect(on.businessPath).toBe(BASE.businessPath);
+    expect(on.organizationPath).toBe(BASE.organizationPath);
     expect(on.hiredAt).toBe(BASE.hiredAt);
   });
 });
