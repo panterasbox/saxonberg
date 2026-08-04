@@ -54,6 +54,16 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // ship UNFILLED, which is the design — see their seeds.
   { templatePath: '/compact/press' },
   { templatePath: '/compact/executive' },
+  // The five corpo organizations — the chart each `Corpo` mark hangs off,
+  // and the answer to "who runs Veshko?". Warmed rather than stood up
+  // lazily for the same reason the Compact's two are: `appoint` and the
+  // chart reads resolve an organization by templatePath, and an
+  // organization nobody can find is one nobody can be appointed to.
+  { templatePath: '/corpo/aevex' },
+  { templatePath: '/corpo/goodkin' },
+  { templatePath: '/corpo/hollis' },
+  { templatePath: '/corpo/veshko' },
+  { templatePath: '/corpo/vionne' },
   // PressBoard singleton — the runtime news-ticker window. Warmed at
   // postRegister from the release documents in the path-addressed tree;
   // resolvable via `PressApi` after this entry's postRegister fires. It

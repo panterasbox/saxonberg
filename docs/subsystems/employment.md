@@ -176,6 +176,12 @@ that `appointingAuthority` overrides when both are present.
 (`EmploymentApi.organizationChainOf`, nearest parent first). Both are
 optional, so every shipped Position and Business is unchanged.
 
+⭐ **The first content consumer is the Goodkin branch**, which names
+`/corpo/goodkin` as its parent ([corpo.md](./corpo.md)): a subsidiary that
+trades, inside a holding company that does not. ⚠ **Nesting is not
+inheritance** — a position is held where it is authored, so the branch's
+tellers stay the branch's and do not appear on the company's chart.
+
 ⚠ **Both walks refuse a cycle rather than looping** — loudly, not by
 truncating: a truncated chain looks like a valid answer, and the failure a
 guard actually prevents takes the process with it. A *dangling* superior

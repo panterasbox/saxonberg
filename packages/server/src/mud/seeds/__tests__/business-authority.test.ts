@@ -171,27 +171,30 @@ describe('⭐ `committee` — a city department', () => {
   });
 });
 
-describe('⚠ the cases nothing fits — preserved, not papered over', () => {
-  it('the Goodkin branch is deliberately UNAUTHORED', () => {
-    // No authority kind expresses "the corpo that runs this counter
-    // appoints". The city owns the district, so the committee over the
-    // ground is the wrong appointer — it does not hire Goodkin's tellers —
-    // and `entity` matches the principal's own templatePath, which a Corpo
-    // (a mark, not an actor) can never be.
+describe('⭐ the corpo case, resolved', () => {
+  it('the Goodkin branch is appointed by GOODKIN’s committee', () => {
+    // This shipped UNAUTHORED one commit ago, because neither `committee`
+    // nor `entity` could name a corpo-run counter: the city holds title
+    // over the district, and `entity` matches the principal's own
+    // templatePath, which a mark can never be.
     //
-    // This is the generalization test returning a negative, and it is the
-    // most useful thing it returned. Jamming a wrong authority in would
-    // have hidden it.
+    // Giving each corpo its own `/corpo/<key>` branch and board group
+    // closed it **with no new authority kind** — the gap wanted a corpo to
+    // own some ground, not a fifth `PrincipalRef`. See corpo.md.
     const goodkin = byPath('counting-houses');
-    expect(goodkin.data.appointingAuthority).toBeUndefined();
-    // ...and it does have positions, so the gap is real rather than moot.
+    expect(goodkin.data.appointingAuthority).toEqual({
+      kind: 'committee',
+      parcel: '/corpo/goodkin',
+    });
+    expect(goodkin.data.parentOrganization).toBe('/corpo/goodkin');
+    // ...and it does have positions, so the authority has work to do.
     expect((goodkin.data.positions as unknown[]).length).toBeGreaterThan(0);
   });
 
-  it('the newbie-wilds account is unauthored because it has NO positions', () => {
-    // A different reason from Goodkin's, and worth keeping distinct: there
-    // is nothing here to appoint anyone to, so an authority would be
-    // structure without a consumer.
+  it('⚠ the newbie-wilds account stays unauthored — it has NO positions', () => {
+    // The one remaining case, and for a different reason worth keeping
+    // distinct from Goodkin's: there is nothing here to appoint anyone to,
+    // so an authority would be structure without a consumer.
     const wilds = byPath('newbie-wilds');
     expect(wilds.data.appointingAuthority).toBeUndefined();
     expect(wilds.data.positions).toEqual([]);

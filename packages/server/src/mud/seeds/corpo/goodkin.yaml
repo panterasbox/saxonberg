@@ -1,0 +1,37 @@
+# Goodkin — the company as an ORGANIZATION.
+#
+# ⭐ The answer to *"who runs Goodkin?"*, which the corpo substrate could
+# not express: a `Corpo` is a MARK — a key, a sector, an ethos, a set of
+# rivals — and a mark cannot hold a position or hire anyone. This is the
+# chart the mark hangs off.
+#
+# ⭐ The appointing authority is Goodkin's own COMMITTEE: the `goodkin` board
+# group holds title over `/corpo/goodkin` (config/parcels.yaml), and
+# `committeeOf` derives the committee from parcel title. So Goodkin's board
+# staffs Goodkin — not the municipality that happens to own the ground its
+# branches stand on, which was the wrong answer the Goodkin branch had no
+# way to avoid before this existed.
+#
+# It ships UNFILLED and the board ships EMPTY. Nobody works here yet, and
+# that is a fact about the company rather than a gap in the model — the
+# same honest empty state the Compact's press office ships in. The founder
+# passes by the Art. XI pool-of-one backstop, so a cold box can staff it.
+#
+# ⚠ It is NOT a Business. Goodkin as a whole trades through its
+# subsidiaries — the Goodkin branch, a future Veshko yard — each of which
+# is a Business with its own account, naming this as `parentOrganization`.
+# The holding company itself banks nothing.
+class: /obj/Organization
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  label: Goodkin
+  appointingAuthority:
+    kind: committee
+    parcel: /corpo/goodkin
+  positions:
+    # One position, and it is the one the docs kept promising an answer to.
+    - key: chief-executive
+      label: running Goodkin
+      wageRate: 0
+      confers: []
+  rosterSlots: []

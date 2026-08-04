@@ -55,6 +55,29 @@ parcels:
   - extent: /compact
     owner: { kind: group, name: core }
 
+  # ── The corpo branches ──────────────────────────────────────────────
+  #
+  # ⭐ One per corpo, each held by its own board group. This is what gives
+  # a corpo a COMMITTEE: `committeeOf('/corpo/goodkin')` resolves the
+  # title-holding group, and `{kind: committee, parcel: /corpo/goodkin}` is
+  # then an appointing authority Goodkin's board satisfies and nobody else
+  # does — including the municipality that owns the district its branch
+  # stands in.
+  #
+  # ⚠ No `landUse`, no `areaM2` — a corpo is not ground. Path-branch
+  # titles, same shape as `/studio` and `/compact`; the inheritance walk
+  # answers `wild` and admits nothing.
+  - extent: /corpo/aevex
+    owner: { kind: group, name: aevex }
+  - extent: /corpo/goodkin
+    owner: { kind: group, name: goodkin }
+  - extent: /corpo/hollis
+    owner: { kind: group, name: hollis }
+  - extent: /corpo/veshko
+    owner: { kind: group, name: veshko }
+  - extent: /corpo/vionne
+    owner: { kind: group, name: vionne }
+
   # The lounge team's ownership roots — the library folder and the content
   # folder, both owned by the managed `lounge` group (was ownerGroupName).
   - extent: /obj/lounge

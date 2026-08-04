@@ -91,7 +91,7 @@ describe("Dave's Bar — Business seed drives the engine", () => {
     StuffApi.clearAll();
     const doc = loadSeed();
     biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
-    biz.proprietorPath = doc.data.proprietorPath;
+    biz.appointingAuthority = doc.data.appointingAuthority as never;
     biz.positions = doc.data.positions as never;
     biz.rosterSlots = doc.data.rosterSlots as never;
     biz.operatingLocations = doc.data.operatingLocations;

@@ -41,9 +41,19 @@ Compact to publish, and the taxonomy did not have it:
 | `/home/<self>` | **workspace** — personal |
 | `/studio/<group>` | **workspace** — the multiseat `/home` |
 | `/domain/<locality>` | **content** — a *place*, with rooms and NPCs, locally administered |
-| **`/compact`** | **publications** — ideas and documents. **No place.** |
+| `/compact` | **an institution's own branch** — the Compact's; it keeps publications there |
+| `/corpo/<key>` | **an institution's own branch** — a company's |
 
-> **The Compact makes no rooms and no NPCs. It publishes.**
+> **An institution's branch is what it owns that is not a place.**
+
+⚠ **The fourth row was first written as "publications", and that was
+describing the Compact's *contents* rather than the *kind*.** Giving each
+corpo a branch of its own showed what the kind actually is: a body that
+is not a place still needs ground it holds title over — because that title
+is what makes it a **committee**, and a committee is how it appoints
+([corpo.md](./corpo.md), [employment.md](./employment.md)). The Compact
+keeps publications on its branch; a corpo keeps a chart on its. Neither
+makes rooms.
 
 Two wrong turns are recorded here because the next person will reach for
 them too:

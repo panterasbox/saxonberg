@@ -15,20 +15,25 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  # ⚠⚠ DELIBERATELY UNAUTHORED, and the reason is a finding rather than an
-  # omission: **no appointing-authority kind fits a corpo-run branch.**
+  # ⭐ GOODKIN's board hires Goodkin's tellers — not the city.
   #
-  # The city owns the district (`/domain/terminus/counting-houses` is the
-  # `terminus` group's) but Goodkin runs this counter — by corpo
-  # affiliation on the fixture, not by title. So the committee over the
-  # ground is the wrong appointer: the city does not hire Goodkin's
-  # tellers. And `entity` cannot express it either, since that kind
-  # matches the *principal's own templatePath* and a Corpo is a mark, not
-  # an actor that can act.
+  # The city owns the district this counter stands in
+  # (`/domain/terminus/counting-houses` is the `terminus` group's), so the
+  # committee over the GROUND would have been the wrong appointer, and
+  # `entity` cannot name a corpo (that kind matches the principal's own
+  # templatePath, and a Corpo is a mark, not an actor). The branch shipped
+  # unauthored for exactly that reason.
   #
-  # Leaving it unauthored is exactly today's behaviour (`proprietorPath:
-  # ""` already resolved to no authority), so nothing regresses — it just
-  # says so. A corpo authority kind is the named gap; see corpo.md.
+  # Giving each corpo its own `/corpo/<key>` branch and board group closes
+  # it with no new authority kind: the committee here is Goodkin's, over
+  # Goodkin's own ground, and the municipality satisfies it no more than a
+  # stranger does.
+  appointingAuthority:
+    kind: committee
+    parcel: /corpo/goodkin
+  # The branch sits INSIDE the company — the first content consumer of
+  # organization parentage. `organizationChainOf` walks it.
+  parentOrganization: /corpo/goodkin
   positions:
     - key: teller
       label: working the Goodkin counter
