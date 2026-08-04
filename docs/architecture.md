@@ -239,6 +239,34 @@ placed, not re-exported**. See [antipatterns.md](./antipatterns.md) for
 the `<Concept><Role>` naming rule that lets you guess a type's face from
 a bare name.
 
+### Path-resolved modules — brains, and now wiki components
+
+Two module families are **not imported by anything**. They are resolved
+by path, per invocation, through `StuffApi.resolveExport(path, name)`,
+so adding one is dropping in a file and there is no registry to edit —
+and so hot-reload propagates without a restart.
+
+| family | home | sole export | resolved by |
+|---|---|---|---|
+| **brains** | `lib/behavior/<verb>.ts` | `export const brain = class {…}` | `BehavedMixin`, per fire |
+| **wiki components** | `lib/wiki/components/<name>.ts` | `export const component = class {…}` | the wiki render pipeline, per occurrence |
+
+Both are **named class-expressions**, and that is load-bearing rather
+than stylistic: the hot-reload registry retains only class-like exports,
+so a plain object or an arrow function would silently fail to
+re-resolve after a reload. Both are duck-typed at the call site rather
+than `instanceof`-checked, for the same reason — after a reload the
+constructor identity differs from any reference held elsewhere.
+
+⚠ A component's tag name becomes its **module basename**, so the
+`[a-z][a-z0-9-]*` charset rule in `api/mml/tags.ts` is a security
+boundary, not tidiness: `../`, slashes and dots must be unrepresentable
+*before* any resolver sees the string, not sanitised after.
+
+⚠ A component receives **no reader identity** — see
+[wiki.md](./subsystems/wiki.md) § the reveal model. That absence is what
+keeps the reveal model to one gate instead of N.
+
 ### Export discipline & the sanctioned-exception registry
 
 The surface is now normalized: **every module exports classes and types

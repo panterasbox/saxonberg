@@ -31,6 +31,10 @@ export const TemplatePaths = {
   mqlSubscriptionRegistry: "/obj/MqlSubscriptionRegistry",
   forumSubscriptionRegistry: "/obj/ForumSubscriptionRegistry",
   reactionRegistry: "/obj/ReactionRegistry",
+  /** The wiki's page/revision state + mutations (docs/subsystems/wiki.md). */
+  wikiRegistry: "/obj/WikiRegistry",
+  /** The wiki's article render pipeline — and its ONE reveal gate. */
+  wikiRenderer: "/obj/WikiRenderer",
 
   // Singleton catalogues.
   channelCatalogue: "/obj/ChannelCatalogue",

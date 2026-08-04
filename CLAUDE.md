@@ -187,6 +187,7 @@ behavior. Read the relevant doc before editing in its area.
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
+  - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
 
 ## ⚠ Worktrees — read before committing
 
@@ -930,6 +931,8 @@ side — `backend/PersistenceManager` re-exports it).
 - `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
 - `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
 - `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)
+- `wiki` — the encyclopedia's current page state, one row per article (wiki.md)
+- `wiki_revisions` — the append-only edit log; a separate collection so a page READ never drags its history (wiki.md)
 
 ## Session Notes for Claude
 

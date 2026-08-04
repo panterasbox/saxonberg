@@ -138,6 +138,59 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
     PromptApi.handleResponse(interactive, { promptId: id, response: 'Bob' });
     await expect(p).resolves.toBe('Bob');
   });
+
+  /**
+   * ⭐ `compose` was the ONE Tier-1 kind with no lifecycle test, and it
+   * is the one that shipped broken: `forum post` and `wiki create` both
+   * echoed the typed body and then never completed. Every sibling kind
+   * had this test; compose did not, so nothing noticed.
+   */
+  it('compose resolves with the composed body', async () => {
+    await bootRegistry();
+    const { interactive, avatar } = await makeAvatarInteractive();
+    const envelopes = captureEnvelopes(avatar);
+    const p = PromptApi.compose(interactive, 'Write the article:');
+    const id = envelopes[0]!.promptId!;
+    expect(id, 'compose must push a prompt envelope').toBeDefined();
+    PromptApi.handleResponse(interactive, {
+      promptId: id,
+      response: '# A body\n\nWith two paragraphs.',
+    });
+    await expect(p).resolves.toBe('# A body\n\nWith two paragraphs.');
+  });
+
+  it('compose pushes a prompt-compose note carrying its options', async () => {
+    await bootRegistry();
+    const { interactive, avatar } = await makeAvatarInteractive();
+    const envelopes = captureEnvelopes(avatar);
+    const p = PromptApi.compose(interactive, 'Write:', {
+      placeholder: 'Markdown',
+      allowEditorEscalation: true,
+    });
+    const note = envelopes
+      .flatMap((e) => e.outcome?.notes ?? [])
+      .find((n) => n.kind === 'prompt-compose');
+    expect(note, 'a prompt-compose note must reach the client').toBeDefined();
+    expect(note!.label).toBe('Write:');
+    expect(note!.placeholder).toBe('Markdown');
+    PromptApi.handleResponse(interactive, {
+      promptId: envelopes[0]!.promptId!,
+      response: 'x',
+    });
+    await expect(p).resolves.toBe('x');
+  });
+
+  it('compose preserves an empty body — blanking is a real answer', async () => {
+    await bootRegistry();
+    const { interactive, avatar } = await makeAvatarInteractive();
+    const envelopes = captureEnvelopes(avatar);
+    const p = PromptApi.compose(interactive, 'Write:');
+    PromptApi.handleResponse(interactive, {
+      promptId: envelopes[0]!.promptId!,
+      response: '',
+    });
+    await expect(p).resolves.toBe('');
+  });
 });
 
 describe('PromptApi — mqlObject lifecycle', () => {

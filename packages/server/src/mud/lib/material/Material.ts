@@ -552,26 +552,46 @@ export default class Material extends SingletonMixin(
    * hydration / save through these marshallers; setters stay
    * strict on the runtime value type.
    */
+  /**
+   * ⭐ **The measured properties carry `spoiler: 1`.**
+   *
+   * What a material *is* — its name, look, tags, and the chemical
+   * identity anyone could look up in the real world — is open. What it
+   * *measures* is the reward for working with it: how dense oak is,
+   * what temperature it catches at, how much energy it gives back. A
+   * panel that hands a reader every constant makes the material
+   * science a lookup instead of a subject.
+   *
+   * Level **1** specifically, which is the reader rung: hidden by
+   * default, one click to open, plain for a reader who set
+   * `wiki.spoilerAppetite` higher. It is a **default about
+   * presentation, not a lock** — a player who wants the numbers has
+   * them immediately, and only a guest (who cannot persist the
+   * preference) is refused outright.
+   *
+   * ⭐ `spoilerName: 0` beside it, because **the existence of the
+   * property is schema and only the measurement is content**. "Oak has
+   * a density" is what `help` and the generated API docs publish
+   * anyway; `750 kg/m³` is the part worth working for. So the panel
+   * shows the property list with the numbers collapsed, rather than a
+   * table of blanks that tells a reader nothing about what is there to
+   * find.
+   *
+   * ⚠ This is not a knowledge model and must not be mistaken for one.
+   * It cannot express "this character has worked oak and therefore
+   * knows its density" — that is the Transcript/Competence axis, and
+   * reaching for a spoiler level to model something a character should
+   * EARN is the mistake this note exists to prevent.
+   *
+   * ⚠ The level rides the FIELD, so it applies wherever the value
+   * surfaces — wiki panel, Studio, help, a future codex — which is the
+   * whole reason it is declared here and not in the wiki. Changes show
+   * up as a diff in `wiki-spoiler-fields.snapshot.test.ts`.
+   */
   static fieldMeta: FieldMeta = {
+    // ── Identity: what it is, and what anyone could look up ──
     name: { persistent: true },
     appearance: { persistent: true },
-    density: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg/m³') },
-    thermalConductivity: { persistent: true, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
-    specificHeat: { persistent: true, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
-    hardness: { persistent: true, marshaller: QuantityMarshaller.pathFor('MPa') },
-    toughness: { persistent: true, marshaller: QuantityMarshaller.pathFor('MJ/m³') },
-    electricalConductivity: { persistent: true, marshaller: QuantityMarshaller.pathFor('S/m') },
-    waterAbsorptionCapacity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-    autoignitionTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
-    heatOfCombustion: { persistent: true, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
-    meltingPoint: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
-    latentHeatOfFusion: { persistent: true, marshaller: QuantityMarshaller.pathFor('J/kg') },
-    boilingPoint: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
-    latentHeatOfVaporization: { persistent: true, marshaller: QuantityMarshaller.pathFor('J/kg') },
-    edibility: { persistent: true },
-    nutrients: { persistent: true },
-    nutrientAmounts: { persistent: true },
-    toxicity: { persistent: true },
     tags: { persistent: true },
     composition: { persistent: true },
     symbol: { persistent: true },
@@ -579,6 +599,27 @@ export default class Material extends SingletonMixin(
     formula: { persistent: true },
     molarMass: { persistent: true, marshaller: QuantityMarshaller.pathFor('g/mol') },
     biologicalSource: { persistent: true },
+
+    // ── Measured: what working with it teaches you ──
+    density: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('kg/m³') },
+    thermalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
+    specificHeat: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
+    hardness: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MPa') },
+    toughness: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/m³') },
+    electricalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('S/m') },
+    waterAbsorptionCapacity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
+    autoignitionTemperature: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    heatOfCombustion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
+    meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
+
+    // ── What it does to you. The most worth finding out. ──
+    edibility: { persistent: true, spoiler: 1, spoilerName: 0 },
+    nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
+    nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   public getName(): string { return this.name; }

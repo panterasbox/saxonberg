@@ -348,6 +348,14 @@ content slate that pulls on it.
   content case needs the differentiation; framework supports
   the seam via the existing `emissionAt` walk.
 
+
+> ⚠ **Deliberately untagged.** `speed`, `noiseLevel` and `costMultiplier` are numbers, but a locomotion mode is the **player's own control surface** — `sneak` and `run` are things they do. Hiding how your own legs work teaches nothing: you learn sneaking is slower by sneaking, once. `CombatFormation`'s roles and coup rights are untagged for the same reason. The sweep that put `spoiler: 1` on
+> `Material`'s and `Biome`'s measurements stopped here on purpose —
+> *collapse what the WORLD measures, never what the PLAYER operates.*
+> See [wiki.md](./wiki.md) § the reveal model.
+
+---
+
 ## Cross-references
 
 - [response-envelope.md](./response-envelope.md) —

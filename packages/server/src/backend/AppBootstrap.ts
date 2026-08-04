@@ -22,6 +22,7 @@ import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
+import { WikiSeeder } from './WikiSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
@@ -176,6 +177,11 @@ export class AppBootstrap {
     // parcel/provisioning path does later converges on the seeded group.
     await GroupSeeder.run();
     await ParcelSeeder.run();
+    // Wiki AFTER parcels: a seeded page's namespace resolves its access
+    // through the /wiki parcel row, so the title has to exist first.
+    // Insert-only — a seeded page somebody has edited is never
+    // re-asserted, which would silently revert their work on a boot.
+    await WikiSeeder.run();
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {

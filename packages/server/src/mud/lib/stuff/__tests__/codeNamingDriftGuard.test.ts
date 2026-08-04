@@ -139,6 +139,42 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/stuff/Populates.ts::loadClassByPath",
     classification: "transitive-safe",
   },
+  // ⭐ Wiki component resolution. The tag name comes from
+  // COMMUNITY-AUTHORED ARTICLE MARKUP — the weakest input in this
+  // manifest, since any signed-in player can write `<foo/>` in a page
+  // body. It is `source-gated` because of what that input can reach,
+  // not who supplied it:
+  //
+  //   1. The path is `/lib/wiki/components/${tag}` with a LITERAL
+  //      prefix — an author selects a basename, never a path.
+  //   2. `Mml.componentCandidate` admits only `[a-z][a-z0-9-]*`
+  //      (api/mml/tags.ts), so `..`, `/` and `.` are unrepresentable
+  //      BEFORE the string reaches the resolver rather than sanitised
+  //      after.
+  //
+  // So the resolvable set is exactly the modules a wizard wrote into
+  // `lib/wiki/components/` — behind the source-write gate, like the
+  // command YAML that classification was written for. An author picks
+  // AMONG developer-provided code; they cannot introduce any.
+  //
+  // ⚠ If either half changes — a computed prefix, or a widened charset
+  // rule — this stops being source-gated and becomes a hole. Both are
+  // asserted in `mml.longform.test.ts` ("a name that could escape its
+  // directory is NOT a candidate").
+  {
+    site: "obj/WikiRenderer.ts::resolveExport",
+    classification: "source-gated",
+  },
+  // The wiki's `<composition>` panel resolves a template's `class` to
+  // read its effective mixin set and field declarations — the
+  // `StudioLogic.describeClass` case exactly, and the same argument:
+  // the path comes from a `domain` Template row that passed
+  // `enforceCodeFieldGate` at save, so only already-trusted code ever
+  // resolves. It reads statics and instantiates nothing.
+  {
+    site: "lib/wiki/components/composition.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
   // Brain-path existence pre-check (validateBehaviorPaths) — does not run.
   {
     site: "obj/api/CmsLogic.ts::resolveExport",

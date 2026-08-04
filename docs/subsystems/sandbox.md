@@ -49,7 +49,7 @@ context fails closed at runtime.
 |---|---|---|
 | **STAMP** | `bank_ledger`, `transcripts`, `renown_events`, `participation_events`, `disposition_events` | Write proceeds with `circleScope` stamped; field reads exclude; circle reads compose global ∪ own-scope; exit/sweeper discards. The material gameplay ledgers — the game genuinely runs, then reverts. |
 | **PASS (mark)** | `chronicles`, `beliefs`, `authoring_events`, `accountability_events`, `diagnostics` | Identity-real; persists with the epistemic wire mark (`circleScope` recorded, never filtered). What happened to *you* stays yours; readers may lens the mark. |
-| **PASS (unmarked)** | `domain`, `documents`, `holder_snapshots` | Authored truth + the mechanism's own stores — the deliberate save is the product. |
+| **PASS (unmarked)** | `domain`, `documents`, `holder_snapshots`, `wiki`, `wiki_revisions` | Authored truth + the mechanism's own stores — the deliberate save is the product. |
 | **SHADOW (skip)** | `bank_accounts`, `bank_supply`, `renown`, `participation`, `producer` | Rebuildable caches: the terminal cache write silently no-ops from circle context; in-circle reads derive from events (banking: the per-scope overlay). Overlay mode is specified as the labeled attach point, not built — no collection needs it. |
 | **REFUSE** | everything else (identity/auth, title registries `parcels`/`chattel` + event chains, `contracts`, `positions`, `groups`/`channels`/`parties`/forums, `emotes`, `name_banks`, `recipes`, `bulletins`, `office_holders`, `app_settings`, `world_state`, `producer_events`, `blueprints`, `media_assets`) | Throws `SandboxWriteRefusedError`. Field-real state a sandbox session may not mutate. |
 
@@ -61,6 +61,36 @@ Audit notes that changed the provisional classification:
   unaffected: `CmsSession` resolves the acting avatar to the registered
   **field** body (a parked avatar keeps the registry slot), so CMS work
   stays field-scoped even mid-visit.
+- **`wiki` / `wiki_revisions` → PASS (unmarked)** (was provisional
+  REFUSE): the wiki is **authored truth and a communications surface**,
+  so it belongs beside `domain`, not in the fail-closed set. An article
+  cannot affect advancement, cannot mint anything, and cannot be spent —
+  it is people writing to each other, and there is no conflict to
+  contain. It is also strictly LESS powerful than `domain`: a circle
+  session that may edit a room template has no business being refused an
+  encyclopedia edit *about* one.
+
+  ⚠ The provisional REFUSE reasoned from "field-visible content, like
+  `blueprints`" — but that is not what put `blueprints` in the refuse
+  set. `blueprints` is refused because its dedup path **overwrites an
+  existing global row's identity fields on a signature hit**: a
+  field-visible mutation of somebody else's row that nobody requested.
+  A wiki edit is the opposite — a deliberate, attributed, append-only
+  act by someone the protection ladder already authorized. "Field
+  -visible" is not the criterion; `domain` is field-visible and passes.
+
+  Neither other verb fits. **STAMP would be actively harmful**: a scoped
+  page reverting on circle exit is a page an author watched themselves
+  write and then lose, and its scoped revision rows would collide with
+  the unique `{pageId, rev}` index. The epistemic **mark** is for "what
+  happened to *you*"; an article is not a personal record.
+
+  Authorization is unaffected — `WikiRegistry`'s protection ladder
+  resolves through `AccessApi`, which is circle-independent, so a circle
+  confers no editing right its occupant did not already hold. PASS is
+  index-neutral by the rules below (no read injection, no index change),
+  so nothing else in this table moves.
+
 - **`media_assets` → REFUSE** (was provisional PASS): sole writer is
   the offline `tools/illustrate.ts` CLI; no circle path should reach it.
 - **`contacts`** has no collection — mixin state; it travels as a

@@ -34,6 +34,7 @@ import type {
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
+  WikiPageFrame,
 } from "@saxonberg/types";
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
@@ -110,6 +111,8 @@ export type PromptEntry =
       promptId: string;
       label: string;
       placeholder?: string;
+      /** What the composer opens with — the current body on an edit. */
+      initial?: string;
       allowEditorEscalation?: boolean;
       foreground: boolean;
       validationError?: string;
@@ -329,8 +332,21 @@ interface StoreState extends CmsSlice, StudioSlice {
    * client-only UI state, never persisted. Consulted by the world
    * layout's right-column pane switch.
    */
-  rightPane: "inspect" | "who" | "news";
-  setRightPane: (pane: "inspect" | "who" | "news") => void;
+  rightPane: "inspect" | "who" | "news" | "wiki";
+  setRightPane: (pane: "inspect" | "who" | "news" | "wiki") => void;
+
+  /**
+   * The article the wiki pane is showing (`world.wiki.page`), or
+   * `null` before anything has been read this session.
+   *
+   * The body arrives **already rendered and already gated** — the pane
+   * displays it and never re-renders from a source, which is what
+   * keeps the reveal model's one gate on the server where it lives.
+   * Ephemeral, never persisted: the page is one `wiki <name>` away.
+   */
+  wikiPage: WikiPageFrame | null;
+  /** Show a pushed article (a `world.wiki.page` frame). */
+  setWikiPage: (page: WikiPageFrame) => void;
 
   /**
    * The "Who's Online" roster (`world.social.roster` topic). `roster` maps
@@ -1032,6 +1048,13 @@ export const useStore = create<StoreState>((set, get) => ({
   setRightPane: (pane) =>
     set((state) => (state.rightPane === pane ? {} : { rightPane: pane })),
 
+  wikiPage: null,
+  // Reading a page SWITCHES to the pane. The verb's whole purpose is
+  // to put an article in front of somebody, and leaving it behind a
+  // tab they have to know about would make the pane a thing you find
+  // rather than a thing you use.
+  setWikiPage: (page) => set(() => ({ wikiPage: page, rightPane: "wiki" })),
+
   // "Who's Online" roster (world.social.roster). Keyed by stable handle;
   // ordering recomputed on every mutation (recognized first, then header).
   roster: {},
@@ -1391,10 +1414,17 @@ export const useStore = create<StoreState>((set, get) => ({
         (p) => p.promptId !== entry.promptId,
       );
       const prompts = [...filtered, entry];
+      // A compose prompt may arrive with the text it is EDITING. Seed
+      // the draft with it, or the box opens empty and posting
+      // replaces the whole body — "edit" would mean "retype".
+      const seed =
+        entry.kind === "compose" && entry.initial !== undefined
+          ? entry.initial
+          : "";
       const drafts =
         state.promptDrafts[entry.promptId] !== undefined
           ? state.promptDrafts
-          : { ...state.promptDrafts, [entry.promptId]: "" };
+          : { ...state.promptDrafts, [entry.promptId]: seed };
       // foreground: true → take the active slot; false → leave
       // whatever the player was on. Per the slate's auto-switch
       // default.

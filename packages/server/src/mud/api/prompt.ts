@@ -126,6 +126,12 @@ export interface TextPromptOpts extends PromptOpts<string> {
 
 export interface ComposePromptOpts extends PromptOpts<string> {
   placeholder?: string;
+  /**
+   * Text the composer opens with. Pass the **current** body when the
+   * prompt is an edit — without it the box opens empty and posting
+   * replaces the whole article, so "edit" silently means "retype".
+   */
+  initial?: string;
   /** Hint the client may show an "open in editor" escalation affordance. */
   allowEditorEscalation?: boolean;
 }

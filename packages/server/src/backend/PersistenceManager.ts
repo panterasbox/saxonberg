@@ -148,6 +148,27 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.Domain]: { verb: 'pass' },
   [Collections.Documents]: { verb: 'pass' },
   [Collections.HolderSnapshots]: { verb: 'pass' },
+  // The wiki is **authored truth and a communications surface**, so it
+  // joins `domain` here rather than failing closed. An article cannot
+  // affect advancement, cannot mint anything, and cannot be spent — it
+  // is people writing to each other. There is no conflict to contain.
+  //
+  // The wiki is also strictly LESS powerful than `domain`, which is
+  // PASS: a circle session that may edit a room template has no
+  // business being refused an encyclopedia edit about one.
+  //
+  // Neither of the other verbs fits. STAMP would be actively harmful —
+  // a scoped page reverting on circle exit is a page an author watched
+  // themselves write and then lose, and its scoped revision rows would
+  // collide with the unique `{pageId, rev}` index. The epistemic MARK
+  // is for "what happened to *you*"; an article is not a personal
+  // record.
+  //
+  // Authorization is unaffected: `WikiRegistry`'s protection ladder
+  // resolves through `AccessApi`, which is circle-independent, so a
+  // circle grants no editing rights its occupant did not already have.
+  [Collections.Wiki]: { verb: 'pass' },
+  [Collections.WikiRevisions]: { verb: 'pass' },
   // ── SHADOW(skip): rebuildable caches — skip-and-rebuild ──
   [Collections.BankAccounts]: { verb: 'shadow', mode: 'skip' },
   [Collections.BankSupply]: { verb: 'shadow', mode: 'skip' },
@@ -1358,6 +1379,45 @@ export class PersistenceManager {
       });
       await this.getCollection(Collections.ContractEvents).createIndex({
         at: 1,
+      });
+
+      // Wiki pages: the current-state rows. The load-bearing one is the
+      // NAME index — slugs and aliases share ONE name space within a
+      // namespace (a name resolves to at most one page), so the lookup
+      // and the collision check are the same query. It is NOT declared
+      // unique: `aliases` is an array, so a unique index would be a
+      // multikey unique across the whole collection rather than per
+      // namespace, and would reject two namespaces legitimately holding
+      // the same name. Uniqueness is enforced at the one write
+      // chokepoint (`WikiRegistry`), which is also where the refusal can
+      // name the holder (criterion 63) instead of surfacing a driver
+      // error. `subject.ref` serves the total reverse lookup
+      // ("is this documented?" — criterion 6).
+      await this.getCollection(Collections.Wiki).createIndex({
+        namespace: 1,
+        slug: 1,
+      });
+      await this.getCollection(Collections.Wiki).createIndex({
+        namespace: 1,
+        aliases: 1,
+      });
+      await this.getCollection(Collections.Wiki).createIndex({
+        'subject.ref': 1,
+      });
+      await this.getCollection(Collections.Wiki).createIndex({ tags: 1 });
+
+      // Wiki revisions: the append-only edit log, in its own collection
+      // so a heavily-edited page never approaches Mongo's 16MB document
+      // cap and a page READ never drags its history (criterion 11).
+      // `{pageId, rev}` is unique — it is the compare-and-swap token's
+      // materialisation, and two rows at one rev would mean a lost edit
+      // that history records as having happened.
+      await this.getCollection(Collections.WikiRevisions).createIndex(
+        { pageId: 1, rev: -1 },
+        { unique: true },
+      );
+      await this.getCollection(Collections.WikiRevisions).createIndex({
+        author: 1,
       });
 
       // Sandbox: partial circleScope index on every STAMP collection —

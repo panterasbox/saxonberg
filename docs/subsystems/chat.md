@@ -489,6 +489,20 @@ into this doc as they ship.
   it and migrate any legacy key on first read. See
   [forums.md](./forums.md).
 
+
+> ⭐ **`<spoiler>` is admitted here** (`tags: 'spoiler'`), and it is the
+> only literal markup a conversation carries. Chat is where a spoiler
+> gets blurted — a channel hears "the boss is a mimic" long before
+> anybody writes the article — and only the *appetite* half of the
+> reveal model applies: a chat line has no authored capability level,
+> so there is nothing to gate, only something for the client to fold.
+> Everything else escapes, because `<link>`/`<mention>` are affordances
+> that ISSUE COMMANDS and `<speech>`/`<name>` are identity claims the
+> composer emits on the server's authority. See
+> [wiki.md](./wiki.md) § the tag policy.
+
+---
+
 ## Related
 
 - [messaging.md](./messaging.md) — the Scene composer, the lone

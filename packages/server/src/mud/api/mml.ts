@@ -64,14 +64,30 @@ import {
   PerceiverMentionResolver,
   type MentionResolver,
 } from './mml/mention';
-import { parseMarkdown } from './mml/markdown';
+import { parseMarkdown, type MarkdownOptions } from './mml/markdown';
 import { parseToTree, type MmlNode } from './mml/tree';
+import { isKnownTag, isComponentCandidate, VOID_TAGS } from './mml/tags';
 import { RecognitionApi } from './recognition';
 import { SecurityApi } from './security';
 
 // Re-export the MentionResolver interface so consumers can keep
 // `import { MentionResolver } from '../mml'`.
 export type { MentionResolver };
+
+/**
+ * The MML parse tree — element, attributes, children, nesting. Exposed
+ * so the wiki's render pipeline can resolve over the tree rather than
+ * over a string (a resolver that regexes markup is a bug waiting for
+ * an author to write `<` in prose).
+ *
+ * Re-exported from the sealed `api/mml/` subdirectory per this
+ * module's hard rule: nothing outside `api/mml.ts` may import from
+ * `api/mml/`, so a consumer that needs the node type gets it here.
+ */
+export type { MmlNode };
+
+/** Per-call options for {@link Mml.markdownToMml}. */
+export type { MarkdownOptions };
 
 /**
  * Markup augmenter — a pure text-in → text-out transformation that
@@ -522,6 +538,114 @@ export class Mml {
   }
 
   /**
+   * Wrap body in `<h1>` / `<h2>` / `<h3>` — the long-form article
+   * headings (markdown `#` / `##` / `###`).
+   *
+   * `anchor` is the **sticky citation target**: minted once and then
+   * held, so a later rewording of the heading text does not break
+   * `pageId#anchor` citations. It is carried in the stored source (and
+   * round-trips through `flatten` as the `{#anchor}` suffix) rather
+   * than derived at render, which is the whole point — a derived
+   * anchor changes when the words do. See docs/subsystems/wiki.md.
+   */
+  static heading(level: 1 | 2 | 3, body: string | Mml, anchor?: string): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    const attr = anchor ? ` anchor="${escapeText(anchor)}"` : '';
+    return Mml.fromMarkup(`<h${level}${attr}>${inner}</h${level}>`);
+  }
+
+  /**
+   * Assemble a `<table>` from rows of already-composed cells. `header`
+   * emits the first row as `<th>` cells; without it every cell is
+   * `<td>`. No spans and no alignment in v1 — a table that needs
+   * either is a sign the content wants a different shape.
+   */
+  static table(rows: Array<Array<string | Mml>>, header = false): Mml {
+    const body = rows
+      .map((cells, rowIdx) => {
+        const tag = header && rowIdx === 0 ? 'th' : 'td';
+        const inner = cells
+          .map((c) => {
+            const text = c instanceof Mml ? c.toString() : escapeText(c);
+            return `<${tag}>${text}</${tag}>`;
+          })
+          .join('');
+        return `<tr>${inner}</tr>`;
+      })
+      .join('');
+    return Mml.fromMarkup(`<table>${body}</table>`);
+  }
+
+  /**
+   * Wrap body in `<spoiler level="n">` — the **appetite** half of the
+   * reveal model. A spoiler tag means "this is above the reader's
+   * declared appetite, so let them choose to see it"; the client
+   * collapses it behind a click.
+   *
+   * ⚠ It is **not** the capability half. Content above a reader's
+   * capability ceiling is *deleted server-side* and never reaches a
+   * tag — if you are emitting this, you have already decided the
+   * reader is allowed to see what is inside. See
+   * docs/subsystems/wiki.md § the two axes.
+   */
+  static spoiler(level: 0 | 1 | 2 | 3, body: string | Mml): Mml {
+    const inner = body instanceof Mml ? body.toString() : escapeText(body);
+    return Mml.fromMarkup(`<spoiler level="${level}">${inner}</spoiler>`);
+  }
+
+  /**
+   * Whether `tag` belongs to the MML grammar. The wiki's component
+   * resolver uses this to tell markup (renders) from a component
+   * candidate (resolves as a module) — see {@link componentCandidate}.
+   */
+  static isKnownTag(tag: string): boolean {
+    return isKnownTag(tag);
+  }
+
+  /**
+   * Whether `tag` is an unknown-but-well-formed name a component
+   * resolver may attempt to load. False for grammar tags, and false
+   * for anything outside `[a-z][a-z0-9-]*` — which is what keeps a
+   * component name from being a path-traversal primitive, since the
+   * name becomes a module basename.
+   */
+  static componentCandidate(tag: string): boolean {
+    return isComponentCandidate(tag);
+  }
+
+  /**
+   * Parse an MML body into its node tree. The wiki render pipeline's
+   * entry point: every resolver stage operates on nodes, never on
+   * markup text.
+   *
+   * Returns `readonly` nodes by contract — the pipeline builds new
+   * nodes rather than mutating, so a cached or shared tree can never
+   * be edited out from under another reader. {@link serialize} is the
+   * inverse.
+   */
+  static parseTree(body: string): readonly MmlNode[] {
+    return parseToTree(body);
+  }
+
+  /**
+   * Serialize a node tree back to MML markup — the inverse of
+   * {@link parseTree}, and what makes "parse, delete some nodes,
+   * re-emit" a safe way to filter a body (the redaction path).
+   *
+   * The round-trip is **semantic, not byte-exact**: `parseTree` decodes
+   * entities and drops the open/close-vs-self-closing distinction, so
+   * the guaranteed properties are that
+   * `parseTree(serialize(parseTree(x)))` equals `parseTree(x)`, and
+   * that `serialize` is idempotent on its own output. Callers that
+   * must not rewrite an untouched body should return the original
+   * string when they removed nothing — which is exactly what
+   * `WikiRenderer.redactSource` does.
+   */
+  static serialize(nodes: readonly MmlNode[]): string {
+    return serializeTree(nodes);
+  }
+
+  /**
    * Join a list of Mml fragments. Default behavior is "auto" — inline
    * (English-style commas + "and") for short lists, multi-line
    * (one indented item per line, no trailing punctuation) once the
@@ -638,9 +762,19 @@ export class Mml {
    *
    * Pure on the resolver — if no resolver is passed, `@<word>` always
    * leaves the literal text. Implementation in `api/mml/markdown.ts`.
+   *
+   * `opts.longForm` selects the **article dialect**, which adds
+   * `#`–`###` headings (with sticky `{#anchor}` suffixes),
+   * indent-nested lists and pipe tables. Omitted, the chat dialect is
+   * parsed and the output is byte-identical to what it has always
+   * been — the hot path is unchanged by construction.
    */
-  static markdownToMml(text: string, resolver?: MentionResolver): Mml {
-    return Mml.fromMarkup(parseMarkdown(text, resolver));
+  static markdownToMml(
+    text: string,
+    resolver?: MentionResolver,
+    opts?: MarkdownOptions,
+  ): Mml {
+    return Mml.fromMarkup(parseMarkdown(text, resolver, opts));
   }
 
   /**
@@ -864,10 +998,17 @@ function stripSenseNodes(
 
 /**
  * Re-serialize a parsed MML tree to a markup string. Used by
- * `Mml.stripBySense`. Text nodes round-trip raw — the parser
- * decoded entities on the way in, so the way out re-escapes them
- * to preserve the round-trip contract; `<`/`>`/`&`/`"`/`'`
- * inside text content stays escaped on the wire.
+ * `Mml.stripBySense` and by `Mml.serialize` (the wiki redaction
+ * path). Text nodes round-trip raw — the parser decoded entities on
+ * the way in, so the way out re-escapes them to preserve the
+ * round-trip contract; `<`/`>`/`&`/`"` inside text content stays
+ * escaped on the wire.
+ *
+ * Void tags (`<image key="k"/>`) emit self-closing rather than as an
+ * empty pair, so the common childless-component shape survives a
+ * parse/serialize cycle looking like what the author typed. Attribute
+ * order follows insertion order, which is parse order — so a
+ * re-serialized body keeps the attribute order of the original.
  */
 function serializeTree(nodes: readonly MmlNode[]): string {
   let out = '';
@@ -879,6 +1020,10 @@ function serializeTree(nodes: readonly MmlNode[]): string {
     const attrPart = Object.entries(node.attrs)
       .map(([k, v]) => ` ${k}="${escapeText(v)}"`)
       .join('');
+    if (node.children.length === 0 && VOID_TAGS.has(node.tag)) {
+      out += `<${node.tag}${attrPart}/>`;
+      continue;
+    }
     out += `<${node.tag}${attrPart}>`;
     out += serializeTree(node.children);
     out += `</${node.tag}>`;

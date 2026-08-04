@@ -287,6 +287,92 @@ const MentionSpan = styled.span<{ $self: boolean }>`
   border-radius: ${(p) => (p.$self ? '2px' : '0')};
 `;
 
+/* ── Long-form article treatments (the wiki build) ───────────────── */
+
+/**
+ * Headings scale down rather than up: an article renders inside a
+ * message column, so `h1` at browser default would tower over the
+ * surrounding scene prose. The rule is one visible step per level plus
+ * the anchor affordance, not a document type scale.
+ */
+const Heading = styled.div<{ $level: 1 | 2 | 3 }>`
+  font-weight: 600;
+  color: #e8e4da;
+  font-size: ${(p) => (p.$level === 1 ? '1.25em' : p.$level === 2 ? '1.1em' : '1em')};
+  margin: ${(p) => (p.$level === 1 ? '0.6em 0 0.3em' : '0.5em 0 0.2em')};
+  border-bottom: ${(p) => (p.$level === 1 ? '1px solid #3a3a3a' : 'none')};
+  padding-bottom: ${(p) => (p.$level === 1 ? '2px' : '0')};
+`;
+
+const ArticleTable = styled.table`
+  border-collapse: collapse;
+  margin: 0.4em 0;
+  /* An article table can be wider than the message column; scroll it
+     rather than letting it push the whole log sideways. */
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+`;
+
+const TableCell = styled.td`
+  border: 1px solid #3a3a3a;
+  padding: 2px 6px;
+  text-align: left;
+  vertical-align: top;
+`;
+
+const TableHeaderCell = styled.th`
+  border: 1px solid #3a3a3a;
+  padding: 2px 6px;
+  text-align: left;
+  vertical-align: top;
+  font-weight: 600;
+  background: #262626;
+`;
+
+/**
+ * A spoiler is the **appetite** half of the reveal model — content the
+ * reader is entitled to but has declared they would rather opt into.
+ * (Content above their *capability* was deleted server-side and never
+ * arrives, so there is nothing to collapse.) Collapsed until clicked;
+ * the level rides a data attribute for the stylesheet overlay.
+ */
+const SpoilerSpan = styled.span<{ $revealed: boolean }>`
+  background: ${(p) => (p.$revealed ? 'transparent' : '#2f2f33')};
+  color: ${(p) => (p.$revealed ? 'inherit' : 'transparent')};
+  border-radius: 2px;
+  cursor: ${(p) => (p.$revealed ? 'inherit' : 'pointer')};
+  transition: background 120ms ease;
+  &:hover {
+    background: ${(p) => (p.$revealed ? 'transparent' : '#3a3a40')};
+  }
+`;
+
+/**
+ * Click-to-reveal wrapper for `<spoiler>`. A component rather than an
+ * inline handler because it owns one bit of state per occurrence —
+ * revealing one spoiler must not reveal the rest of the page.
+ */
+function Spoiler({
+  level,
+  children,
+}: {
+  level: string | undefined;
+  children: React.ReactNode;
+}): React.ReactElement {
+  const [revealed, setRevealed] = React.useState(false);
+  return (
+    <SpoilerSpan
+      $revealed={revealed}
+      data-spoiler-level={level ?? '1'}
+      title={revealed ? undefined : 'Hidden — click to reveal'}
+      onClick={() => setRevealed(true)}
+    >
+      {children}
+    </SpoilerSpan>
+  );
+}
+
 /**
  * Render a tree of MML nodes into React. Recursive — every tag's
  * children render through the same function, so nested clickable
@@ -307,6 +393,13 @@ interface RenderCtx {
   onCommandClick: (command: string) => void;
   onCommandPreview: (command: string | null) => void;
   viewerStuffId?: string;
+  /**
+   * How many `<list>` levels enclose the node being rendered. Absent
+   * (or 0) at the top; each nested `<list>` renders its markers one
+   * step further in. Carried here rather than as a wrapper element so
+   * the chat templates' inline text flow is unaffected.
+   */
+  listDepth?: number;
 }
 
 function renderNode(
@@ -377,22 +470,61 @@ function renderNode(
       // v1 inline rendering: emit children with a separator. The
       // Wave 2 layout-library lift turns this into proper <ol>/<ul>
       // with indent + bullets.
+      //
+      // Nesting rides `ctx.listDepth`: a `<list>` inside an `<li>`
+      // renders its markers indented one step, so an article's nested
+      // list reads as nested rather than flat. Depth is carried in the
+      // context (not a wrapper element) so the inline text flow — which
+      // the chat templates depend on — is unchanged.
+      const depth = ctx.listDepth ?? 0;
+      const indent = '  '.repeat(depth);
+      const inner: RenderCtx = { ...ctx, listDepth: depth + 1 };
+      const items = node.children.filter(
+        (c): c is Extract<MmlNode, { kind: 'tag' }> =>
+          c.kind === 'tag' && c.tag === 'li',
+      );
       return (
         <React.Fragment key={key}>
-          {node.children
-            .filter((c): c is Extract<MmlNode, { kind: 'tag' }> =>
-              c.kind === 'tag' && c.tag === 'li',
-            )
-            .map((li, liIdx) => (
-              <React.Fragment key={liIdx}>
-                {ordered ? `${liIdx + 1}. ` : '- '}
-                {renderNodes(li.children, ctx)}
-                {liIdx < node.children.length - 1 ? '\n' : ''}
-              </React.Fragment>
-            ))}
+          {items.map((li, liIdx) => (
+            <React.Fragment key={liIdx}>
+              {depth > 0 && liIdx === 0 ? '\n' : ''}
+              {indent}
+              {ordered ? `${liIdx + 1}. ` : '- '}
+              {renderNodes(li.children, inner)}
+              {liIdx < items.length - 1 ? '\n' : ''}
+            </React.Fragment>
+          ))}
         </React.Fragment>
       );
     }
+    case 'h1':
+    case 'h2':
+    case 'h3': {
+      const level = Number(node.tag.slice(1)) as 1 | 2 | 3;
+      return (
+        <Heading key={key} $level={level} id={node.attrs.anchor}>
+          {children}
+        </Heading>
+      );
+    }
+    case 'table':
+      return (
+        <ArticleTable key={key}>
+          <tbody>{children}</tbody>
+        </ArticleTable>
+      );
+    case 'tr':
+      return <tr key={key}>{children}</tr>;
+    case 'th':
+      return <TableHeaderCell key={key}>{children}</TableHeaderCell>;
+    case 'td':
+      return <TableCell key={key}>{children}</TableCell>;
+    case 'spoiler':
+      return (
+        <Spoiler key={key} level={node.attrs.level}>
+          {children}
+        </Spoiler>
+      );
     case 'li':
       // Should only render here if a stray `<li>` appears outside a
       // `<list>` — fall back to a dashed line.

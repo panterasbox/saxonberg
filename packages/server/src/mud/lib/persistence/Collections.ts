@@ -66,5 +66,7 @@ export enum Collections {
   WorldState = 'world_state',
   MediaAssets = 'media_assets',
   OfficeHolders = 'office_holders',
+  Wiki = 'wiki',
+  WikiRevisions = 'wiki_revisions',
 }
 

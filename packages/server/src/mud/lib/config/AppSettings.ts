@@ -1126,6 +1126,28 @@ export const AppSettingKeys = {
   craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
   /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
   craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
+
+  /*
+   * Wiki — the render budget (docs/subsystems/wiki.md).
+   *
+   * A page is community-authored input that runs a resolver: snippets
+   * expand to fixpoint and components reach live sources, and both are
+   * written by players. Every bound below fails with an inline error
+   * rather than a hang, because the failure mode this guards against is
+   * not a wrong answer but a request that never returns.
+   */
+  /** Wiki — how deep snippet expansion may nest (catches self-inclusion). */
+  wikiRenderSnippetDepth: "wiki.render.snippetDepth",
+  /** Wiki — total snippet expansions per render (catches the mutually
+   *  -including PAIR, which alternates and so never gets deep). */
+  wikiRenderMaxSnippets: "wiki.render.maxSnippets",
+  /** Wiki — how many components one render may resolve. */
+  wikiRenderMaxComponents: "wiki.render.maxComponents",
+  /** Wiki — per-component timeout; one slow source stalls a widget, never
+   *  the page. */
+  wikiRenderComponentTimeoutMs: "wiki.render.componentTimeoutMs",
+  /** Wiki — the emitted-body ceiling, in characters (expansion bombs). */
+  wikiRenderMaxOutputChars: "wiki.render.maxOutputChars",
 } as const;
 
 export type AppSettingKey =

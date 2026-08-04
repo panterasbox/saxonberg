@@ -1,5 +1,12 @@
 # Wiki slate (working doc)
 
+> **⭐ SHIPPED 2026-08-04** → [wiki.md](../../subsystems/wiki.md).
+> Wave 1 landed end to end plus the article dialect, the reader rung,
+> the client pane and the per-surface tag policy. What remains is the
+> **tail** below: Wave 2 richness (search integration, the level-3
+> source embed, the rest of the transclusion palette), and open
+> questions 5–7. Moved from `builds/` to `tails/` accordingly.
+
 > **Status: shape proposed.** A **community-maintained wiki, built into
 > the client** — its own beast. **Every page is authored** (by the
 > community + the dev); there is **no** generation from gamestate and
@@ -313,20 +320,43 @@ the newcomer/SEO angle without a populated wiki.
 
 ## Open questions
 
-1. **Edit floor** — open to all signed-in players (lean) vs a curated
-   `wiki-contributors` group. A namespace-zone `accessGroups` decision.
-2. **MML long-form** — does the markup cover headings/lists/tables/
-   internal-links, or need extensions? The wiki forces the answer.
-3. **Edit-submission transport** — structured payload vs command; how
-   the body reaches `wiki edit`.
-4. **Categorization** — namespaces only, or namespaces + cross-cutting
-   tags/categories.
-5. **Anonymous read** — confirm public (no-login) read of level-0 pages
-   for newcomer/SEO; everything above baseline needs a session.
-6. **Progress-gated reveals** — deferred opt-in (couples to game
-   progress); explicitly out of v1 to keep the wiki decoupled.
-7. **Moderation tooling depth** — rollback + delete via owner role is
-   the v1 net; richer review/flagging is later.
+**Answered by the shipped build** — see
+[wiki.md](../../subsystems/wiki.md); kept here so the reasoning is not
+re-litigated from the slate.
+
+1. ~~**Edit floor**~~ — **open to all signed-in players**, via a
+   `protection` field on the namespace zone rather than a group
+   (there is no "all players" group, and a parcel has one owner). A
+   **guest** is refused: an edit has to be attributable to somebody
+   still there tomorrow.
+2. ~~**MML long-form**~~ — **extended**: `h1`–`h3` with sticky
+   `{#anchor}` suffixes, nested lists, pipe tables, `spoiler`, plus a
+   per-surface **tag policy** so forums and chat can take a narrower
+   slice than the wiki.
+3. ~~**Edit-submission transport**~~ — **the command bus**, through the
+   shared `compose` prompt. No private payload path; every affordance
+   the pane draws is a command it emits.
+4. ~~**Categorization**~~ — **both**: namespaces for access and
+   identity, cross-cutting `tags` in frontmatter.
+
+**Still open.**
+
+5. **Anonymous read** — public (no-login) read of level-0 pages for
+   newcomer/SEO. In-world guests read today; a pre-auth *web* view is
+   not built, and it shares a home with the docs mirror and the
+   TypeDoc HTML site rather than with the wiki verb.
+6. **Progress-gated reveals** — and the build sharpened the question
+   rather than answering it. ⚠ The capability ceiling is **not a
+   knowledge model**: it cannot express "this character has worked oak
+   and therefore knows its density". That is the
+   Transcript/Competence axis, which the panel does not consult.
+   Anything *earned* is a different mechanism from anything
+   *preferred*, and the reveal ladder only does the second.
+7. **Moderation tooling depth** — rollback, delete/undelete and purge
+   shipped, with a tombstone revision naming who purged what. Richer
+   review/flagging is later; the deliberate absence of a review queue
+   (open editing + fast rollback is the bargain) is the thing to
+   revisit only if abuse actually appears.
 
 ---
 

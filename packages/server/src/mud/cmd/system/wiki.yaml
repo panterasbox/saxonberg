@@ -1,0 +1,339 @@
+verbs: [wiki]
+controller: /obj/command/system/WikiController
+description: "Read and write the world's encyclopedia (create / edit / history / rollback / move / delete / protect)"
+help: |
+  The wiki is the community-maintained encyclopedia of the world's
+  nouns — materials, biomes, species, places — plus lore, guides and
+  system pages written on demand.
+
+  What separates it from `help` is not subject matter but substance.
+  Help tells you what a verb does; the wiki tells you what oak IS, and
+  therefore what you can do with it as a consumer and how you work it
+  as labour. A page about something in the world can carry a live
+  architecture panel alongside its prose, derived at read time — so it
+  cannot go stale.
+
+  Bare `wiki <page>` reads a page. Names are `namespace:slug`, and a
+  bare name means the `main` namespace, so `wiki oak` and
+  `wiki main:oak` are the same page.
+
+  Write `[[Oak]]` in a body to link to a page, or `[[Oak|oak wood]]`
+  to give the link your own words. A link to a page nobody has written
+  yet renders red and offers to create it — that is not an error, it is
+  the to-do list.
+
+  Editing is open to any player by default. The revision log and fast
+  rollback are the net, not a submission queue: nothing you write is
+  unrecoverable, and neither is anything you overwrite.
+validators:
+  - /lib/command/validators/requiresAnimate
+fallthrough: true
+payload:
+  # The article body is structured-form-only. Typing an MML article
+  # into the command bar is absurd, so the verb carries the intent and
+  # the body rides the side-channel the dispatcher overlays (the
+  # `bulletin` / `write` precedent). `overlayBodyFields` admits ONLY
+  # `payload:` fields and greedy string positionals, so no selector or
+  # flag is reachable through this channel.
+  body:
+    type: string
+    description: "The article source, in wiki markdown (GUI editor; structured-form-only)"
+subcommands:
+  create:
+    description: "Write a page that does not exist yet"
+    help: |
+      Start a new page. Give it a name; the body rides the editor, or
+      `--title` and the frontmatter options shape it.
+
+      A name another page already holds is refused, and the refusal
+      names the holder — usually because the page you meant already
+      exists under a name you did not guess.
+    examples:
+      - cmd: wiki create oak --title "Oak" --subject template:/obj/material/oak
+        note: A subject-bound article — it gains a live architecture panel
+      - cmd: wiki create snippet:infobox
+        note: A reusable markup fragment, edited like any other page
+    options:
+      title:
+        short: t
+        type: string
+        field: title
+        description: "Display title (defaults to the name you gave)"
+      subject:
+        type: string
+        field: subject
+        description: "What this documents: template:<path> | mixin:<Name> | command:<file>"
+      reveal:
+        type: string
+        field: reveal
+        description: "Page-default reveal level 0-3; inline tags raise it, never lower"
+      tag:
+        type: string
+        field: tag
+        description: "Comma-separated tags (cross-cutting; no permission meaning)"
+      related:
+        type: string
+        field: related
+        description: "Comma-separated sibling pages, for navigation"
+    args:
+      - name: page
+        type: string
+        required: true
+  edit:
+    description: "Revise a page (--section / --summary / --draft / --rev)"
+    help: |
+      Replace a page's body. The prior text is kept as a revision, so
+      an edit is never destructive — see `wiki history`.
+
+      `--section <anchor>` edits one heading's span and leaves the rest
+      of the article untouched. Two people editing different sections
+      of one page never collide, which is the point: it removes
+      conflicts rather than resolving them.
+
+      `--rev <n>` says which revision you started from. If the page has
+      moved on, your edit is refused and you are handed the three
+      versions rather than having yours silently overwrite theirs — or
+      theirs silently overwrite yours.
+
+      `--draft` records what you wrote without publishing it: the page
+      keeps serving its last published text while you work.
+
+      `--summary` is the one line that makes a history readable. Use it.
+
+      The frontmatter options change only what you pass.
+    examples:
+      - cmd: wiki edit oak --section uses --summary "add furniture"
+        note: Edit one section, and say why
+      - cmd: wiki edit oak --rev 7
+        note: Refuse the edit if somebody else has changed the page since rev 7
+    options:
+      section:
+        short: s
+        type: string
+        field: section
+        description: "Edit only this section's span (its heading anchor)"
+      summary:
+        short: m
+        type: string
+        field: summary
+        description: "One-line note recorded on the revision"
+      draft:
+        type: boolean
+        field: draft
+        description: "Record the edit without publishing it"
+      rev:
+        type: string
+        field: rev
+        description: "The revision you based this on; a mismatch is refused"
+      title:
+        short: t
+        type: string
+        field: title
+        description: "Change the display title"
+      subject:
+        type: string
+        field: subject
+        description: "Rebind the subject: template:<path> | mixin:<Name> | command:<file>"
+      reveal:
+        type: string
+        field: reveal
+        description: "Change the page-default reveal level (0-3)"
+      tag:
+        type: string
+        field: tag
+        description: "Replace the tag list (comma-separated)"
+      related:
+        type: string
+        field: related
+        description: "Replace the related-pages list (comma-separated)"
+    args:
+      - name: page
+        type: string
+        required: true
+  read:
+    description: "Read a page (the same as bare `wiki <page>`)"
+    help: |
+      Render a page for you specifically. Content beyond your reach is
+      never sent; content you asked not to be shown outright arrives
+      collapsed. The verb-scoped `--spoiler` raises that appetite for
+      one reading.
+    args:
+      - name: page
+        type: string
+        required: true
+  history:
+    description: "List a page's revisions, newest first"
+    help: |
+      Who changed what, and why. Each line is one revision with its
+      author and edit summary; `wiki rollback` takes the number.
+
+      A revision is filtered exactly as a reading is — a change you
+      could not have read is not listed.
+    args:
+      - name: page
+        type: string
+        required: true
+  diff:
+    description: "Compare two revisions, word by word"
+    help: |
+      Show what changed between two revisions. With no numbers, it
+      compares the latest two — the question you usually have.
+
+      The comparison is over the article's SOURCE, not over how it
+      renders: a render is different for every reader, so a diff of
+      renders would show your view changing when the page had not.
+
+      A change you could not have read does not appear, and neither
+      does the fact that there was one.
+    examples:
+      - cmd: wiki diff oak
+        note: What changed in the last edit
+      - cmd: wiki diff oak 3 7
+        note: Everything that changed between rev 3 and rev 7
+    args:
+      - name: page
+        type: string
+        required: true
+      - name: from
+        type: string
+        required: false
+      - name: to
+        type: string
+        required: false
+  rollback:
+    description: "Restore an earlier revision (appends; never rewrites history)"
+    help: |
+      Put a page back the way it was. This APPENDS a new revision
+      rather than deleting the ones since, so a rollback is itself
+      reversible and the log stays honest.
+    args:
+      - name: page
+        type: string
+        required: true
+      - name: rev
+        type: string
+        required: true
+  move:
+    description: "Rename a page; the old name keeps working"
+    help: |
+      Change a page's name. The old one becomes an alias, so every
+      existing link and every course citation still resolves — the set
+      of names a page answers to only grows.
+    args:
+      - name: page
+        type: string
+        required: true
+      - name: slug
+        type: string
+        required: true
+  delete:
+    description: "Soft-delete a page (moderators; reversible)"
+    help: |
+      Stop a page resolving for readers. Moderators still see it, its
+      revisions are untouched, and `wiki undelete` brings it back.
+    args:
+      - name: page
+        type: string
+        required: true
+  undelete:
+    description: "Restore a soft-deleted page (moderators)"
+    args:
+      - name: page
+        type: string
+        required: true
+  purge:
+    description: "⚠ Destroy a page AND its revisions (moderators; irreversible)"
+    help: |
+      For content that must not exist at all — illegal material,
+      doxxing, a leaked secret. This is the one place the revision log
+      loses, and it is deliberate: the alternative is not a safer wiki,
+      it is somebody editing the database by hand with no record.
+
+      The act itself is recorded even though its subject is gone.
+    args:
+      - name: page
+        type: string
+        required: true
+  protect:
+    description: "Set a page's edit floor: anyone | editors | moderators (moderators)"
+    help: |
+      Tighten a page against vandalism. A page can be made stricter
+      than its namespace but never looser — `anyone` on a page inside a
+      moderators-only namespace still means moderators.
+    args:
+      - name: page
+        type: string
+        required: true
+      - name: level
+        type: string
+        required: true
+  preview:
+    description: "Render a body without saving it"
+    help: |
+      See exactly what saving would produce, before you save. Naming a
+      page previews in that page's context — its namespace and
+      frontmatter; naming nothing previews an article that does not
+      exist yet, which is when this is most useful.
+
+      Preview runs the SAME pipeline a saved page runs, so it cannot
+      come to disagree with what saving will do.
+    args:
+      - name: page
+        type: string
+        required: false
+  links:
+    description: "What links here"
+    help: |
+      Every page that links to this one. Follows aliases, so renaming
+      a page does not orphan the links pointing at its old name.
+    args:
+      - name: page
+        type: string
+        required: true
+  wanted:
+    description: "Redlinks, ranked by how many pages want them"
+    help: |
+      The pages people have linked to and nobody has written. This is
+      the wiki's to-do list, and it is written by its readers: every
+      entry is somebody who noticed a gap while reading.
+
+      Start at the top — those are the gaps the most articles are
+      currently pointing into.
+  orphans:
+    description: "Pages nothing links to"
+    help: |
+      Pages that exist but cannot be reached by following links from
+      anywhere else. Not an error — a page can be perfectly good and
+      simply unlinked — but it is usually a sign that something should
+      mention it.
+  dangling:
+    description: "Articles whose subject no longer exists"
+    help: |
+      Articles bound to a template that has since been renamed or
+      deleted. The page still renders — the prose is the article, the
+      panel was always derived — but it no longer has a live thing to
+      describe, and somebody should rebind or reword it.
+  list:
+    description: "List pages, optionally in one namespace"
+    args:
+      - name: namespace
+        type: string
+        required: false
+options:
+  # ⚠ `--spoiler` (READER APPETITE, here) and `--reveal` (the PAGE's
+  # default level, on create/edit) are deliberately different words for
+  # deliberately different things. They started life as one `--spoiler`
+  # and the command validator refused the file for a field collision —
+  # correctly, because they were two concepts wearing one name. One is
+  # a preference about how much YOU want shown; the other is an
+  # authored property of the article. Conflating them is exactly the
+  # confusion the two-axis reveal model exists to avoid.
+  spoiler:
+    type: string
+    field: spoiler
+    description: "Show revealed content up to this level for this reading (0-3)"
+args:
+  # Fallthrough: `wiki <page>` with no subcommand reads the page.
+  - name: page
+    type: string
+    required: true

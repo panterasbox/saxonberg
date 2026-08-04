@@ -251,3 +251,8 @@ magnitudes not yet worth a dial ride module `MAGIC_DEFAULTS` literals
 - The plan's separate `requiresUnsuppressed` validator was folded into
   `prepareCast` (one veto seam, same timing, better prose) — a
   simplification, not a scope cut.
+
+> ⚠ **Deliberately untagged.** A spell's cost and duration look exactly like the numbers that got collapsed elsewhere, and magic here is a **published science** — one postulate, the laws, and *the price list* (see [arcane-science.md](../arcane-science.md)). A caster reasoning about the cost before paying it is the premise. A particular spell whose effect is a plot spoiler belongs behind a `<spoiler>` in authored prose, because a field level applies to every spell at once. The sweep that put `spoiler: 1` on
+> `Material`'s and `Biome`'s measurements stopped here on purpose —
+> *collapse what the WORLD measures, never what the PLAYER operates.*
+> See [wiki.md](./wiki.md) § the reveal model.

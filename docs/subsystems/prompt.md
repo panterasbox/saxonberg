@@ -181,6 +181,23 @@ scroll. The slate's snapshot-on-send pattern handles
 response-side terminal echo client-side; the substrate emits
 nothing on responses beyond the `prompt-dismissed` envelope.
 
+
+### ⭐ `compose` opens on what is there
+
+`ComposePromptOpts.initial` is the text the composer opens with — the
+current body when the prompt is an **edit** rather than a creation. It
+rides the `prompt-compose` note to a client that seeds the draft with
+it.
+
+> ⚠ Without it, "edit" silently means "retype": the box opens empty and
+> whatever is posted replaces the whole body. `wiki edit` shipped that
+> way and only a live drive found it — every test submitted `--body`,
+> which skips the prompt path entirely.
+
+A caller that has a current value should pass it. A caller creating
+something new should not — there is nothing to open on, and an empty
+box is the honest affordance.
+
 ## Lifecycle
 
 ### Push

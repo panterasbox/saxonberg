@@ -2733,3 +2733,53 @@ Corollary: when code genuinely *needs* a set of classes to share a
 directory (as `MaterialLogic` does), that directory is **load-bearing**
 and belongs in the placement rule, not in a reviewer's memory. See
 `obj/material/` in CLAUDE.md § Instanceable Lives in `obj/`.
+
+---
+
+## An edit prompt that opens EMPTY
+
+`PromptApi.compose` (and `text`) without an `initial` turns *edit* into
+*retype*: the box opens blank, and whatever is posted **replaces the
+whole body**. Nobody notices, because the flow works — it just quietly
+requires the author to retype what was already there, and destroys it
+if they type anything shorter.
+
+⚠ Tests do not catch this. Every controller test submits the value
+through a `--body`-style option, which **skips the prompt path
+entirely**, so the suite is green while the interactive path — the one
+every real player uses — is wrong. `wiki edit` shipped this way and a
+live drive found it.
+
+### BAD
+
+```ts
+// "Edit the article:" — over an empty box.
+const body = await PromptApi.compose(ctx.interactive, 'Edit the article:', {
+  placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
+});
+await registry.editPage(page, body);   // replaces everything
+```
+
+### GOOD
+
+```ts
+// The editor opens on what is THERE. A section edit sends that
+// section; a full edit sends the article; a CREATE sends nothing,
+// because there is nothing to open on.
+const current = section
+  ? (Sections.extract(page.getBody(), section) ?? '')
+  : page.getBody();
+const body = await PromptApi.compose(ctx.interactive, label, {
+  placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
+  ...(current !== '' ? { initial: current } : {}),
+});
+```
+
+The same shape has a second half worth doing at the same time: **ask
+whether the write is permitted BEFORE opening the composer.** The
+mutator refuses on its own either way, so this is not about whether the
+edit lands — it is about when somebody finds out. A refusal that
+arrives after an article has been typed is the same decision delivered
+at the worst possible moment. Compute the permission and its *reason*
+in one call (`refusalToEdit` / `refusalToCreate`) so the message a verb
+prints and the message a mutator throws cannot drift.

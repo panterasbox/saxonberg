@@ -113,3 +113,21 @@ parcels:
   - extent: /domain/eternal/duncan-hall/dorms
     owner: { kind: group, name: duncan-hall }
     landUse: residential
+
+  # The /wiki branch — the encyclopedia's namespace tree. Held by the
+  # managed `wiki-editors` group, which is what makes the protection
+  # ladder's upper two rungs resolvable: `editors` is membership in
+  # this group and `moderators` is its 'owner' role, both answered by
+  # the shipped AccessApi against THIS row rather than by anything on
+  # the (editable) zone templates.
+  #
+  # ⚠ The open edit floor is NOT expressed here, and cannot be: there
+  # is no "all signed-in players" group and a parcel has exactly one
+  # owner. `anyone` is a `protection` FIELD on the /wiki zone, resolved
+  # by Zone.lookupField. See seeds/wiki.yaml and docs/subsystems/wiki.md.
+  #
+  # No landUse and no areaM2 — a path-branch title over the template
+  # tree is not ground, and the inheritance walk answers `wild` for it,
+  # which admits nothing. Same shape as /studio and /obj/lounge above.
+  - extent: /wiki
+    owner: { kind: group, name: wiki-editors }

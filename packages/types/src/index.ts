@@ -231,6 +231,57 @@ export interface BulletinRow {
  * arrives on connect via `ConnectionEstablishedPayload.bulletinWindow`
  * (the welcome payload, not a frame) — there is no request RPC.
  */
+/**
+ * One heading in an article, as the wiki pane's outline shows it.
+ * `anchor` is the **sticky** anchor — the durable citation target, not
+ * a slug re-derived from the title, so a reworded heading keeps it.
+ */
+export interface WikiSectionSummary {
+  level: 1 | 2 | 3;
+  anchor: string;
+  title: string;
+}
+
+/**
+ * `world.wiki.page` payload — the article the wiki pane is showing.
+ *
+ * The **same rendered body** the terminal received, which is the
+ * point: it has already been through the render pipeline's gate, so
+ * over-capability content is absent from this payload for the same
+ * reason it is absent from the scroll. The pane never re-renders and
+ * never sees a source it was not sent.
+ *
+ * Everything the pane can act on is a **command** it composes and
+ * emits (`wiki edit <handle>`, `wiki history <handle>`) — bus-primacy;
+ * there is no private wiki channel from the client.
+ *
+ * `mayEdit` is the server's answer, sent so the pane can hide an
+ * affordance that would be refused. It is a display hint and nothing
+ * more — the verb re-checks on arrival, which is where the decision
+ * actually lives.
+ */
+export interface WikiPageFrame {
+  kind: 'wiki-page';
+  /** `namespace:slug` — what every command the pane emits addresses. */
+  handle: string;
+  title: string;
+  rev: number;
+  /** Rendered, gated MML. */
+  body: string;
+  tags: string[];
+  related: string[];
+  sections: WikiSectionSummary[];
+  subject: { kind: string; ref: string } | null;
+  updatedBy: string;
+  updatedAt: number;
+  mayEdit: boolean;
+  /**
+   * True when this is an unsaved `wiki preview`. The pane says so, or
+   * a preview is indistinguishable from the saved page it is not.
+   */
+  preview?: boolean;
+}
+
 export type BulletinFeedFrame =
   | { kind: 'bulletin'; action: 'upsert'; row: BulletinRow }
   | { kind: 'bulletin'; action: 'remove'; bulletinId: string }
@@ -501,6 +552,15 @@ export interface ComposePromptNote {
   kind: 'prompt-compose';
   label: string;
   placeholder?: string;
+  /**
+   * Text the composer opens with — the **current** body when the
+   * prompt is an edit rather than a creation.
+   *
+   * ⚠ Without it "edit" means "retype": the box opens empty and
+   * whatever is posted replaces the whole article. The server sends
+   * what the author is editing; the client seeds the draft with it.
+   */
+  initial?: string;
   /** Hint the client may show an "open in editor" escalation affordance. */
   allowEditorEscalation?: boolean;
   foreground: boolean;
@@ -572,7 +632,48 @@ export interface PromptRefreshNote {
   rendered: string;
 }
 
+/* ---- Wiki ------------------------------------------------------- */
+
+/**
+ * A wiki edit was rejected because the page moved under it — the
+ * compare-and-swap on `rev` (A3).
+ *
+ * ⭐ **No auto-merge, deliberately.** A wiki edit is prose, and a
+ * machine-merged paragraph is worse than an honest conflict: it reads
+ * as somebody's writing and is nobody's. So the server returns the
+ * three bodies and lets a person decide.
+ *
+ * ⚠ **All three bodies are filtered through the same reveal gate as a
+ * reading.** A conflict response is a revision-facing surface, so
+ * without that it is a hole in the wall the renderer built: a reader
+ * who cannot see a level-3 section could read it by provoking a
+ * conflict. Above the reader's ceiling a fragment is *absent* — not
+ * redacted, not counted (criteria 67, 68).
+ *
+ * A new `Note` kind is the sanctioned extension here: the union is
+ * explicitly append-only, and the alternative (a bespoke error shape)
+ * would not ride the dispatch-response envelope at all.
+ */
+export interface WikiEditConflictNote {
+  kind: 'wiki-edit-conflict';
+  /** The page's `namespace:slug` handle. */
+  page: string;
+  /** The section anchor, when the edit was section-scoped. */
+  section?: string;
+  /** The revision the submitted edit was based on. */
+  baseRev: number;
+  /** The revision the page is actually at now. */
+  currentRev: number;
+  /** The body as it stood at `baseRev` — gated. */
+  base: string;
+  /** The body as it stands now — gated. */
+  current: string;
+  /** What the author tried to save — gated. */
+  submitted: string;
+}
+
 export type Note =
+  | WikiEditConflictNote
   | QuantityClampedNote
   | QuantityClampedRejectedNote
   | MatchAmbiguousNote

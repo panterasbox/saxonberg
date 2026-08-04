@@ -111,13 +111,35 @@ export interface Hazard {
 export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class HazardMixin extends Base implements Hazard {
     static _mixinName = 'HazardMixin';
+    /**
+     * ⚠ **A trap's mechanism is the canonical spoiler**, and the reveal
+     * model's `spoiler` property is declared here rather than in any
+     * renderer for exactly that reason: the same fact is a spoiler
+     * *wherever* it surfaces — a wiki panel, the Studio, a future
+     * codex — so the field says so once and every surface obeys.
+     *
+     * `trigger` / `delivery` / `groundTriggered` / `dropDestination`
+     * are **what the trap does and how to avoid it**. A player reading
+     * an encyclopedia article about a delve should be able to learn
+     * that it is trapped without being handed the answer key; that is
+     * the whole distinction the reveal model draws. Level 2 (the
+     * namespace-moderator tier), not 3: this is content authors and
+     * moderators legitimately work with, not engine-internal truth.
+     *
+     * `hazardState`, `springMessage` and `placedBy` are deliberately
+     * NOT tagged. Whether a trap is already sprung is observable in
+     * the world; the spring message is prose the victim reads; who
+     * placed it is an accountability fact the ledger already carries.
+     * Tagging those would be tagging reflexively, which is the failure
+     * mode the fail-open default exists to avoid.
+     */
     static fieldMeta: FieldMeta = {
       hazardState: { persistent: true, authorable: true },
-      trigger: { persistent: true, authorable: true },
-      delivery: { persistent: true, authorable: true },
-      traverseConsequence: { persistent: true, authorable: true },
-      groundTriggered: { persistent: true, authorable: true },
-      dropDestination: { persistent: true, authorable: true },
+      trigger: { persistent: true, authorable: true, spoiler: 2 },
+      delivery: { persistent: true, authorable: true, spoiler: 2 },
+      traverseConsequence: { persistent: true, authorable: true, spoiler: 2 },
+      groundTriggered: { persistent: true, authorable: true, spoiler: 2 },
+      dropDestination: { persistent: true, authorable: true, spoiler: 2 },
       springMessage: { persistent: true, authorable: true },
       placedBy: { persistent: true, authorable: true },
     };
