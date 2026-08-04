@@ -1084,8 +1084,6 @@ export interface CommandView {
    * than `unknown-verb`. The mechanism is general: authoring this on a
    * capability verb satisfies the requirement for that verb, and every
    * verb benefits from the non-`unknown-verb` floor for free.
-   */
-  unafforded?: string;
   /** Worked invocations shown under an Examples heading. */
   examples?: ExampleDefinition[];
   args?: PositionalDefinition[];

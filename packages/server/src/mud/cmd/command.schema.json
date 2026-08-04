@@ -4,19 +4,25 @@
   "title": "Saxonberg Command Definition",
   "description": "YAML command spec consumed by CommandApi. Each .yaml file in this directory must validate against this schema.",
   "type": "object",
-  "required": ["verbs", "description"],
+  "required": [
+    "verbs",
+    "description"
+  ],
   "additionalProperties": false,
   "properties": {
     "verbs": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "description": "Command verbs and aliases. The first entry is the primary verb."
     },
     "controller": {
       "type": "string",
       "minLength": 1,
-      "description": "Class name of the CommandController to dispatch to. Optional only when every declared subcommand carries its own `controller:` (Option E — per-subcommand controller templates)."
+      "description": "Class name of the CommandController to dispatch to. Optional only when every declared subcommand carries its own `controller:` (Option E \u2014 per-subcommand controller templates)."
     },
     "description": {
       "type": "string",
@@ -24,58 +30,89 @@
     },
     "help": {
       "type": "string",
-      "description": "Multi-line authored help prose for the verb — what it does, when to reach for it, gotchas. Rendered below the synthesized syntax block by `getHelpText()`. Plain text (MML-safe); blank lines separate paragraphs."
-    },
-    "unafforded": {
-      "type": "string",
-      "description": "The parser floor: what this verb answers when typed with nothing here affording it — \"there is nothing to drink\" rather than \"unknown command\". Conferral controls the affordance LIST, never the PARSER; hiding a verb from the parser teaches players that verbs evaporate. Optional — a verb without one still parses and gets a generic legible refusal."
+      "description": "Multi-line authored help prose for the verb \u2014 what it does, when to reach for it, gotchas. Rendered below the synthesized syntax block by `getHelpText()`. Plain text (MML-safe); blank lines separate paragraphs."
     },
     "examples": {
       "type": "array",
-      "items": { "$ref": "#/$defs/example" },
-      "description": "Worked invocations shown under an Examples heading. Sparing by convention — only where a concrete invocation teaches something the generated usage cannot. Each is an individually searchable {cmd, note} pair."
+      "items": {
+        "$ref": "#/$defs/example"
+      },
+      "description": "Worked invocations shown under an Examples heading. Sparing by convention \u2014 only where a concrete invocation teaches something the generated usage cannot. Each is an individually searchable {cmd, note} pair."
     },
     "args": {
       "type": "array",
-      "items": { "$ref": "#/$defs/positional" },
+      "items": {
+        "$ref": "#/$defs/positional"
+      },
       "description": "Positional args for the (flat) verb. Mutually exclusive with `subcommands`."
     },
     "subcommands": {
       "type": "object",
-      "additionalProperties": { "$ref": "#/$defs/subcommand" },
+      "additionalProperties": {
+        "$ref": "#/$defs/subcommand"
+      },
       "description": "Subcommand-keyed dispatch map. Mutually exclusive with `args`."
     },
     "options": {
       "type": "object",
-      "additionalProperties": { "$ref": "#/$defs/option" },
+      "additionalProperties": {
+        "$ref": "#/$defs/option"
+      },
       "description": "Verb-scoped options."
     },
     "payload": {
       "type": "object",
-      "additionalProperties": { "$ref": "#/$defs/option" },
-      "description": "Structured-form-only fields. Populated exclusively via CommandApi.assembleFromStructured — the text-input path doesn't surface these to the matcher. Same field shape as options (type / schema / scope / validators / multiple / default), minus the keyboard-focused fields (short / prepositions / greedy don't apply)."
+      "additionalProperties": {
+        "$ref": "#/$defs/option"
+      },
+      "description": "Structured-form-only fields. Populated exclusively via CommandApi.assembleFromStructured \u2014 the text-input path doesn't surface these to the matcher. Same field shape as options (type / schema / scope / validators / multiple / default), minus the keyboard-focused fields (short / prepositions / greedy don't apply)."
     },
     "validators": {
       "type": "array",
-      "items": { "$ref": "#/$defs/validatorSpec" },
+      "items": {
+        "$ref": "#/$defs/validatorSpec"
+      },
       "description": "Verb-level validators that fire BEFORE field validators with `context.commandGiver` populated. Used for command-shape preconditions (animacy, mobility, vocal capacity) that don't tie to a specific arg."
     },
     "fallthrough": {
       "type": "boolean",
-      "description": "Opt-in flag permitting top-level `args:` AND `subcommands:` to coexist. When set, the matcher tries subcommands first; on an unknown first token it falls through to bind against the top-level `args:` (Phase 3a). Required together with both `args:` and `subcommands:` — schema rejects any other combination."
+      "description": "Opt-in flag permitting top-level `args:` AND `subcommands:` to coexist. When set, the matcher tries subcommands first; on an unknown first token it falls through to bind against the top-level `args:` (Phase 3a). Required together with both `args:` and `subcommands:` \u2014 schema rejects any other combination."
     },
     "async": {
       "type": "boolean",
       "description": "Default async-dispatch mode for this verb (default false). When true, the controller body detaches from the giver's own input chain at accept-time (spawned, not awaited), so the giver's prompt frees immediately and the single dispatch-response envelope fires late. A player overrides per-invocation with the reserved `--async` / `--sync` flags. Only for commands whose output tolerates arriving out of order (never `look`); see command-spec.md."
     }
   },
-  "if": { "properties": { "fallthrough": { "const": true } }, "required": ["fallthrough"] },
-  "then": { "required": ["args", "subcommands"] },
-  "else": { "not": { "required": ["args", "subcommands"] } },
+  "if": {
+    "properties": {
+      "fallthrough": {
+        "const": true
+      }
+    },
+    "required": [
+      "fallthrough"
+    ]
+  },
+  "then": {
+    "required": [
+      "args",
+      "subcommands"
+    ]
+  },
+  "else": {
+    "not": {
+      "required": [
+        "args",
+        "subcommands"
+      ]
+    }
+  },
   "$defs": {
     "example": {
       "type": "object",
-      "required": ["cmd"],
+      "required": [
+        "cmd"
+      ],
       "additionalProperties": false,
       "properties": {
         "cmd": {
@@ -93,14 +130,18 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "description": { "type": "string" },
+        "description": {
+          "type": "string"
+        },
         "help": {
           "type": "string",
           "description": "Multi-line authored help prose for this subcommand, rendered under the subcommand's usage line in `help <verb>`."
         },
         "examples": {
           "type": "array",
-          "items": { "$ref": "#/$defs/example" },
+          "items": {
+            "$ref": "#/$defs/example"
+          },
           "description": "Worked invocations specific to this subcommand. Sparing by convention."
         },
         "controller": {
@@ -110,22 +151,30 @@
         },
         "args": {
           "type": "array",
-          "items": { "$ref": "#/$defs/positional" }
+          "items": {
+            "$ref": "#/$defs/positional"
+          }
         },
         "options": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/option" }
+          "additionalProperties": {
+            "$ref": "#/$defs/option"
+          }
         },
         "validators": {
           "type": "array",
-          "items": { "$ref": "#/$defs/validatorSpec" },
-          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` — authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands."
+          "items": {
+            "$ref": "#/$defs/validatorSpec"
+          },
+          "description": "Subcommand-level validators that fire AFTER the verb-level validators and BEFORE field validators with `context.commandGiver` populated, only when this subcommand is the one invoked. The subcommand-scoped equivalent of verb-level `validators` \u2014 authority/precondition gates that apply to one subcommand (e.g. a founder-only `assign`) without blocking the verb's other, public subcommands."
         }
       }
     },
     "positional": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -134,14 +183,23 @@
           "description": "Field name the bound value lands on. Reserved: `subcommand` (when the verb declares subcommands)."
         },
         "type": {
-          "enum": ["string", "number", "boolean", "object", "objects", "struct"],
-          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) — text input cannot bind it."
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "objects",
+            "struct"
+          ],
+          "description": "Field value type. `object` runs `MqlApi.resolveOne` (single-cardinality MQL); `objects` runs `MqlApi.resolveMany` (plural-cardinality MQL); `struct` is a structured-input-only blob (Record<string, unknown>) \u2014 text input cannot bind it."
         },
         "schema": {
           "type": "object",
           "description": "Optional JSON Schema fragment validated against the structured value before user-defined validators fire. Only meaningful for `type: struct`. Runs through ajv during the structured-input coercion step."
         },
-        "required": { "type": "boolean" },
+        "required": {
+          "type": "boolean"
+        },
         "greedy": {
           "type": "boolean",
           "description": "Greedy positional: consumes the remainder of input verbatim. Must be the last arg in its array."
@@ -152,35 +210,63 @@
         },
         "validators": {
           "type": "array",
-          "items": { "$ref": "#/$defs/validatorSpec" }
+          "items": {
+            "$ref": "#/$defs/validatorSpec"
+          }
         },
         "default": {
           "type": "string",
-          "description": "Fill-in text used when the player provides no input for this field. Runs through ShellApi.expandVariables — `default: \"$focus\"` resolves to the giver's current focus at bind time."
+          "description": "Fill-in text used when the player provides no input for this field. Runs through ShellApi.expandVariables \u2014 `default: \"$focus\"` resolves to the giver's current focus at bind time."
         },
         "scope": {
           "oneOf": [
-            { "type": "string" },
-            { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
           ],
           "description": "MQL fragment(s) the dispatcher tries when resolving this field. Each entry runs through ShellApi.expandVariables and is tried in order; first non-empty result wins. Array form is the explicit fallback chain (e.g. `['$focus', 'inventory, here']` for drill-first). Only meaningful for `type: object` / `type: objects`."
         },
         "updates_focus": {
-          "enum": ["extend", "replace", "none"],
+          "enum": [
+            "extend",
+            "replace",
+            "none"
+          ],
           "description": "Focus management policy. `extend` appends the input fragment to the giver's current focus with `:` (with same-anchor compaction); `replace` re-anchors wholesale; `none` (default) leaves focus alone. Inspection-shaped verbs (look, examine, open, close) declare `extend`."
         },
         "prepositions": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "description": "Optional list of leading prepositions the matcher consumes (e.g. `[at]` for `look at`, `[to]` for `give X to Y`)."
         },
-        "cardinality": { "$ref": "#/$defs/cardinality" },
+        "cardinality": {
+          "$ref": "#/$defs/cardinality"
+        },
         "onExcess": {
-          "enum": ["top", "take-all", "prompt", "truncate", "error"],
+          "enum": [
+            "top",
+            "take-all",
+            "prompt",
+            "truncate",
+            "error"
+          ],
           "description": "Policy when MQL resolves more results than cardinality permits. See command-spec.md."
         },
         "onShortage": {
-          "enum": ["error"],
+          "enum": [
+            "error"
+          ],
           "description": "Policy when MQL resolves fewer results than cardinality.min. v1 only value: 'error'."
         }
       }
@@ -189,15 +275,26 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "min": { "type": "integer", "minimum": 0 },
-        "max": { "type": "integer", "minimum": 0 },
-        "exactly": { "type": "integer", "minimum": 0 }
+        "min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exactly": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "description": "Authorial cardinality constraint on an `objects` field. Defaults to { min: 0, max: Infinity }. `exactly: N` is sugar for { min: N, max: N }."
     },
     "option": {
       "type": "object",
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "additionalProperties": false,
       "properties": {
         "short": {
@@ -207,7 +304,14 @@
           "description": "Single-character short alias (e.g. `-v` for `--verbose`)."
         },
         "type": {
-          "enum": ["boolean", "string", "number", "object", "objects", "struct"]
+          "enum": [
+            "boolean",
+            "string",
+            "number",
+            "object",
+            "objects",
+            "struct"
+          ]
         },
         "schema": {
           "type": "object",
@@ -215,8 +319,17 @@
         },
         "scope": {
           "oneOf": [
-            { "type": "string" },
-            { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
           ],
           "description": "MQL fragment(s) the dispatcher tries when resolving this option's value. Same precedence + expander rules as a positional's `scope`. Only meaningful for `type: object` / `type: objects`."
         },
@@ -227,25 +340,43 @@
         },
         "required": {
           "type": "boolean",
-          "description": "Used by payload fields (the structured-form-only family) to declare that the client MUST attach this key. Verb-scoped options ignore this — options are by convention optional."
+          "description": "Used by payload fields (the structured-form-only family) to declare that the client MUST attach this key. Verb-scoped options ignore this \u2014 options are by convention optional."
         },
-        "multiple": { "type": "boolean" },
+        "multiple": {
+          "type": "boolean"
+        },
         "default": {},
-        "description": { "type": "string" },
+        "description": {
+          "type": "string"
+        },
         "validators": {
           "type": "array",
-          "items": { "$ref": "#/$defs/validatorSpec" }
+          "items": {
+            "$ref": "#/$defs/validatorSpec"
+          }
         },
-        "cardinality": { "$ref": "#/$defs/cardinality" },
+        "cardinality": {
+          "$ref": "#/$defs/cardinality"
+        },
         "onExcess": {
-          "enum": ["top", "take-all", "prompt", "truncate", "error"]
+          "enum": [
+            "top",
+            "take-all",
+            "prompt",
+            "truncate",
+            "error"
+          ]
         },
         "onShortage": {
-          "enum": ["error"]
+          "enum": [
+            "error"
+          ]
         },
         "effects": {
           "type": "array",
-          "items": { "$ref": "#/$defs/phaseEffect" },
+          "items": {
+            "$ref": "#/$defs/phaseEffect"
+          },
           "description": "Lifecycle effects this option applies to the dispatcher when its bound value is truthy. Each entry names a `phase` from the documented vocabulary (focus-update / validate / confirm-prompt / dispatch / emit-scene) and an `action` (`skip` or `replace`). `replace` carries a `with` handler name. Schema-valid effects against phases or handlers the substrate hasn't wired yet throw at runtime."
         }
       }
@@ -253,29 +384,66 @@
     "phaseEffect": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["phase", "action"],
+      "required": [
+        "phase",
+        "action"
+      ],
       "properties": {
         "phase": {
-          "enum": ["focus-update", "validate", "confirm-prompt", "dispatch", "emit-scene"],
-          "description": "Dispatcher lifecycle phase the effect targets. See the phase taxonomy in api/command.ts for implementation status — schema-valid phases without runtime support throw at dispatch time."
+          "enum": [
+            "focus-update",
+            "validate",
+            "confirm-prompt",
+            "dispatch",
+            "emit-scene"
+          ],
+          "description": "Dispatcher lifecycle phase the effect targets. See the phase taxonomy in api/command.ts for implementation status \u2014 schema-valid phases without runtime support throw at dispatch time."
         },
         "action": {
-          "enum": ["skip", "replace"],
+          "enum": [
+            "skip",
+            "replace"
+          ],
           "description": "`skip` bypasses the phase. `replace` runs a framework-registered handler in place of the phase's default behavior; requires `with`."
         },
         "with": {
-          "enum": ["deferred-dispatch", "explain-plan"],
+          "enum": [
+            "deferred-dispatch",
+            "explain-plan"
+          ],
           "description": "Replacement-handler name. Required when action is `replace`. The vocabulary is documented up-front; throws at dispatch time if the handler hasn't been implemented yet."
         }
       },
       "allOf": [
         {
-          "if": { "properties": { "action": { "const": "replace" } } },
-          "then": { "required": ["with"] }
+          "if": {
+            "properties": {
+              "action": {
+                "const": "replace"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "with"
+            ]
+          }
         },
         {
-          "if": { "properties": { "action": { "const": "skip" } } },
-          "then": { "not": { "required": ["with"] } }
+          "if": {
+            "properties": {
+              "action": {
+                "const": "skip"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "with"
+              ]
+            }
+          }
         }
       ]
     },

@@ -1,7 +1,6 @@
 verbs: [zap]
 controller: /obj/command/magic/ZapController
 description: "Fire the working bound into a charged item"
-unafforded: "You have nothing charged to fire."
 help: |
   Point a charged item and let it go. What fires is whatever was
   bound into it at manufacture — you are spending the maker's

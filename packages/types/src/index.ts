@@ -388,7 +388,6 @@ export interface CommandRejectedNote {
      * list, never the parser, and the two answers teach opposite
      * things about whether the verb is real.
      */
-    | 'unafforded'
     | 'shape-fall-through'
     | 'bind-failed'
     | 'missing-subcommand'

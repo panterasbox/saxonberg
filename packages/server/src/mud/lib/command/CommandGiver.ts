@@ -99,12 +99,6 @@ function proseForFrameworkNote(note: Note): string | null {
       switch (note.reason) {
         case 'unknown-verb':
           return `I don't understand '${note.detail ?? '?'}'.`;
-        // The parser floor: the verb is real, nothing here answers it.
-        // The `detail` IS the player-facing prose (the authored
-        // `unafforded:` line, or the generic fallback the dispatcher
-        // synthesized) — never dressed up as a parse failure.
-        case 'unafforded':
-          return note.detail ?? 'Nothing here answers that.';
         case 'parse-failed':
           return `Couldn't parse the command${tail}.`;
         case 'bind-failed':
@@ -1004,33 +998,12 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             return outer;
           }
         }
-        // ── The parser floor (requirements D23 / AC 5a) ──
-        //
-        // Conferral controls the affordance LIST, never the PARSER. If
-        // `drink` is unlisted because nothing here is drinkable, typing
-        // it must still answer *"there is nothing to drink"* — never
-        // *"unknown command"*. Hiding from a list is helpful; hiding
-        // from the parser teaches players that verbs evaporate, which
-        // is worse than never listing them.
-        //
-        // So: before calling a verb unknown, ask whether it exists
-        // ANYWHERE in the catalogue. If it does, this is an affordance
-        // miss, not a vocabulary miss, and it says so. ONE general
-        // mechanism — every capability verb gets the floor at once, and
-        // so does every other verb in the game.
-        const known = CommandApi.allDefinitions().find((d) =>
-          d.hasVerb(parsed.verb),
-        );
-        if (known) {
-          outer.note({
-            kind: 'command-rejected',
-            reason: 'unafforded',
-            detail:
-              known.unafforded ??
-              `There is nothing here to ${known.getPrimaryVerb()}.`,
-          });
-          return outer;
-        }
+        // Nothing here affords this verb. That IS an unknown verb from
+        // the actor's position — a verb reaches you by being contributed
+        // (`commandContributions`, `self` for one that should always be
+        // available), and a refusal with a reason is a validator's job.
+        // Both models already exist; a third that dispatches a message
+        // for a verb nobody assigned is a shadow affordance.
         outer.note({
           kind: 'command-rejected',
           reason: 'unknown-verb',

@@ -65,11 +65,6 @@ export class CommandDefinition {
   public readonly description: string;
   /** Multi-line authored help prose for the verb (optional). */
   public readonly help: string | undefined;
-  /**
-   * The parser floor's prose — what this verb answers when typed with
-   * nothing here affording it. See {@link CommandView.unafforded}.
-   */
-  public readonly unafforded: string | undefined;
   /** Worked invocations shown under an Examples heading (optional). */
   public readonly examples: ExampleDefinition[];
   /** Top-level positionals for flat verbs. Empty array for zero-arg verbs and subcommanded verbs. */
@@ -117,7 +112,6 @@ export class CommandDefinition {
     this.controller = view.controller;
     this.description = view.description || '';
     this.help = view.help;
-    this.unafforded = view.unafforded;
     this.examples = view.examples ?? [];
     this.args = view.args || [];
     this.subcommands = view.subcommands || {};

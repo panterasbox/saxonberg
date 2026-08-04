@@ -1,7 +1,6 @@
 verbs: [label]
 controller: /obj/command/inventory/LabelController
 description: "Write your own name on something"
-unafforded: "There is nothing here you could write on."
 help: |
   Put your own name on a thing, and it answers to that name from
   then on — to you and to anyone else who looks at it.

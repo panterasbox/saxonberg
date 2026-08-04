@@ -6,7 +6,8 @@
  *         below its minimum.
  * AC 5  — a scroll costs the reader's reserve and is destroyed on use.
  * AC 5a — a use-verb is declared once on its capability mixin and no
- *         item template declares one; an unafforded verb still PARSES.
+ *         item template declares one. (Its second clause — that an
+ *         unafforded verb still PARSES — is RETIRED; see the test.)
  * AC 5b — `read` resolves as perceive-then-decode: embossed text reads
  *         in darkness, inked text does not.
  * AC 5c — no affordance varies with hidden state (D34).
@@ -319,32 +320,32 @@ describe('Wave 2 — consumables', () => {
     expect(verbs.has('identify')).toBe(false);
   });
 
-  it('AC5a — an unafforded verb still PARSES and answers with a reason', () => {
-    // The whole point of the floor: `drink` typed where nothing is
-    // drinkable must not read as "unknown command", because that
-    // teaches players that verbs evaporate.
+  it('AC5a — an unafforded verb is UNKNOWN; there is no parser floor', () => {
+    // ⚠ This INVERTS what AC 5a originally asked for, deliberately.
     //
-    // ⚠ Asserts the PROSE A PLAYER GETS, not that a YAML key exists.
-    // The first draft checked `def.unafforded === '...'`, which locked
-    // in four authored strings that were byte-identical to the
-    // dispatcher's synthesized fallback — a test guarding dead content
-    // rather than behaviour, and it made deleting the duplicates look
-    // like a regression.
-    for (const verb of ['drink', 'read', 'study', 'recharge']) {
-      const def = CommandApi.allDefinitions().find((d) => d.hasVerb(verb));
-      expect(def, `${verb} must exist in the catalogue`).toBeTruthy();
-      const shown = def!.unafforded ?? `There is nothing here to ${
-        def!.getPrimaryVerb()
-      }.`;
-      expect(shown).toBe(`There is nothing here to ${verb}.`);
-    }
-
-    // A verb whose stock line would read badly authors its own, and
-    // THAT is what the field is for.
-    const label = CommandApi.allDefinitions().find((d) => d.hasVerb('label'));
-    expect(label!.unafforded).toBe(
-      'There is nothing here you could write on.',
-    );
+    // Wave 2 shipped a "parser floor": before answering "unknown verb",
+    // check whether the verb exists anywhere in the catalogue and, if
+    // so, dispatch a stock refusal instead. That made an unassigned verb
+    // BEHAVE as assigned — a shadow affordance, and a third mechanism
+    // beside two that already work:
+    //
+    //   - a verb reaches you by being CONTRIBUTED
+    //     (`commandContributions`; the `self` bucket for one that should
+    //     always be available, because having a mouth is a fact about
+    //     the ACTOR rather than about the flask);
+    //   - a refusal with a reason is a VALIDATOR.
+    //
+    // So the floor is gone and the honest answer is restored: a verb
+    // nobody afforded is unknown. Making `drink` universally typeable is
+    // a content decision — contribute it on `self` — not a parser
+    // special case.
+    const drink = CommandApi.allDefinitions().find((d) => d.hasVerb('drink'));
+    expect(drink).toBeTruthy(); // still in the catalogue…
+    // …and carries no stock-refusal string for a dispatcher to fake an
+    // affordance with. The field is gone from the view type entirely.
+    expect(
+      (drink as unknown as { unafforded?: string }).unafforded,
+    ).toBeUndefined();
   });
 
   it('AC5a — `quaff` is an alias on `drink`, not a second view', () => {
