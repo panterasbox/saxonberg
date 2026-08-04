@@ -27,6 +27,8 @@
 
 import type { Channel } from '../material/Channel';
 import { CHANNELS } from '../material/Channel';
+import type { BlessingBand } from './Blessing';
+import { Blessing } from './Blessing';
 import type { ResistSpec } from './Resist';
 import { Resists } from './Resist';
 
@@ -72,6 +74,51 @@ export interface AdjustReserveEffect {
   readonly kind: 'adjust-reserve';
   readonly reserveKey: string;
   readonly delta: number;
+}
+
+/**
+ * **Shift an item along its own BUC axis** — backing:
+ * `Blessable.setBlessing` + `revealBlessing`.
+ *
+ * The first effect kind that addresses an **item's durable state**
+ * rather than a creature or the world, and the mechanism behind
+ * remove-curse.
+ *
+ * `steps` is a signed **displacement** in bands, clamped to the band
+ * range — `+1` lifts a curse, `-1` lays one. A displacement rather than
+ * a destination because BUC is itself defined as "a displacement from
+ * the ordinary" ({@link Blessing}), and because one mechanism then
+ * serves both directions without a second kind.
+ *
+ * ⚠ **This is `control`, not `destroy`.** A curse here is not another
+ * caster's working laid over the thing — it is the item's own potency
+ * one notch down, so lifting it *changes a parameter of a thing that
+ * remains itself*, which is what `control` means on the grid. `dispel`
+ * (`relieve`) cannot reach it, and should not: it scans for
+ * `magicOrigin` conditions on a **body**. See `arcane-science.md` §
+ * The five verbs.
+ */
+export interface AdjustBlessingEffect {
+  readonly kind: 'adjust-blessing';
+  /** Signed band displacement; `+1` lifts a curse. Clamped. */
+  readonly steps: number;
+  /**
+   * **How far this working may push, in the direction it travels.**
+   *
+   * A cure *restores*; it does not *improve*. Without this bound,
+   * `steps: +1` on an ordinary item blesses it, and remove-curse
+   * becomes a cheap route to blessed gear that you cast on everything
+   * you own. `limit: 'uncursed'` says "walk it back up to ordinary and
+   * stop", which is what a cure means.
+   *
+   * Consecrating something past ordinary is a *different* working with
+   * a different cost, and it declares `limit: 'blessed'`. Authoring the
+   * ceiling rather than hardcoding it is what keeps one mechanism
+   * serving both.
+   *
+   * Absent ⇒ the full band range.
+   */
+  readonly limit?: BlessingBand;
 }
 
 /** Body control — backing: the posture surface (shove→prone) / the timed body-slot hold (pin). No combat machinery. */
@@ -130,6 +177,7 @@ export type Effect =
   | AfflictEffect
   | RelieveEffect
   | AdjustReserveEffect
+  | AdjustBlessingEffect
   | MoveEffect
   | ConjureEffect
   | SenseEffect
@@ -143,6 +191,7 @@ export const EFFECT_KINDS = [
   'afflict',
   'relieve',
   'adjust-reserve',
+  'adjust-blessing',
   'move',
   'conjure',
   'sense',
@@ -175,6 +224,7 @@ export class MagicEffects {
       case 'inject-channel':
       case 'afflict':
       case 'move':
+      case 'adjust-blessing':
         return true;
       // These are fine — or better — without a mark. Conjured water
       // pools on the floor; a sense sweeps the scene; a cloak, a field
@@ -273,6 +323,28 @@ export class MagicEffects {
           throw new TypeError(`adjust-reserve: bad delta '${String(e.delta)}'`);
         }
         return { kind: 'adjust-reserve', reserveKey, delta };
+      }
+      case 'adjust-blessing': {
+        const steps = Number(e.steps);
+        if (!Number.isFinite(steps) || !Number.isInteger(steps)) {
+          throw new TypeError(
+            `adjust-blessing: bad steps '${String(e.steps)}'`,
+          );
+        }
+        if (steps === 0) {
+          // A zero displacement is a working that costs mana to do
+          // nothing. Almost certainly an authoring slip, and cheap to
+          // refuse at parse time.
+          throw new TypeError('adjust-blessing: steps must be non-zero');
+        }
+        const limit = e.limit;
+        if (limit === undefined) return { kind: 'adjust-blessing', steps };
+        if (typeof limit !== 'string' || !Blessing.isBand(limit)) {
+          throw new TypeError(
+            `adjust-blessing: unknown limit band '${String(limit)}'`,
+          );
+        }
+        return { kind: 'adjust-blessing', steps, limit };
       }
       case 'move': {
         const move = e.move;

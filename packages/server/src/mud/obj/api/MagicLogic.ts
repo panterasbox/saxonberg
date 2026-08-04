@@ -81,6 +81,8 @@ import { Faculty } from '../../lib/magic/Faculty';
 import { MagicEffects } from '../../lib/magic/Effect';
 import type { Effect, InjectChannelEffect } from '../../lib/magic/Effect';
 import { MagicGrid } from '../../lib/magic/Grid';
+import { Blessing } from '../../lib/magic/Blessing';
+import type { BlessingBand } from '../../lib/magic/Blessing';
 import { EffectContexts } from '../../lib/magic/EffectContext';
 import type { EffectContext } from '../../lib/magic/EffectContext';
 import { ExecutionContextApi } from '../../api/execution-context';
@@ -158,6 +160,22 @@ export interface SpellsView {
 
 /** The bound-emitter and spark-locus template paths. */
 const GLOWLIGHT_ORB_PATH = '/obj/magic/GlowlightOrb';
+
+/**
+ * **What a blessing is worth**, as a multiplier on delivered magnitude.
+ *
+ * `uncursed` is the midpoint by construction (`Blessing.scale`
+ * interpolates), so these two ends fix the whole axis: a cursed item
+ * delivers 60% of ordinary, a blessed one 140%. Wide enough that a
+ * player notices without a readout, narrow enough that BUC never
+ * out-weighs the maker's own `deliveryEfficiency` — which is the fact
+ * that is *supposed* to dominate, since it is the one somebody worked
+ * for.
+ */
+const BUC_POTENCY = {
+  CURSED: 0.6,
+  BLESSED: 1.4,
+} as const;
 
 /** Magnitudes not yet worth a dial (the HARM_DEFAULTS precedent). */
 const MAGIC_DEFAULTS = {
@@ -535,10 +553,29 @@ async function dischargeImpl(
     // Fade shows up as falling delivery, never as failure.
     classScale *= item.getPatternEfficiency();
   }
+  if (MixinApi.isBlessable(item)) {
+    // **BUC is an EFFICIENCY, not a morality.** A blessed item does
+    // more of whatever it does; a cursed one does less. That is the
+    // whole model, and it is deliberately amoral: a blessed wand of
+    // dread is a *better* wand of dread, and a blessed draught of
+    // poison is a better poison.
+    //
+    // The consequence is the good part. Knowing an item's BUC is NOT
+    // enough to know whether using it is safe — you need to know what
+    // the item *is* as well. So the two identification axes (the class,
+    // via the belief store; the band, via the bucket) are genuinely
+    // independent and you need BOTH to predict an outcome. "Blessed"
+    // is never reassurance on its own.
+    classScale *= Blessing.scale(
+      item.getBlessing(),
+      BUC_POTENCY.CURSED,
+      BUC_POTENCY.BLESSED,
+    );
+  }
 
   // The maker's fixed efficiency times whatever the capability supplied
-  // — a dose fraction, a faded pattern. They MULTIPLY: half a dose of a
-  // master's draught is half a master's dose.
+  // — a dose fraction, a faded pattern, a blessing. They MULTIPLY: half
+  // a dose of a master's draught is half a master's dose.
   const scale = opts?.potencyScale ?? 1;
   const ctx = EffectContexts.forItem(
     item,
@@ -683,6 +720,8 @@ async function executeEffect(
       t.adjustReserve(effect.reserveKey, Quantity.of(effect.delta, unit));
       return effect.delta >= 0 ? 'Vigor flows in.' : 'Something is drawn away.';
     }
+    case 'adjust-blessing':
+      return execAdjustBlessing(target, effect.steps, effect.limit);
     case 'move':
       return execMove(ctx, target, effect.move);
     case 'conjure':
@@ -1064,6 +1103,76 @@ function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
   }
   learnClassOf(learner, subject, signature);
   return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, subject)}.`;
+}
+
+/**
+ * **Shift an item along its own BUC axis** — the executor behind
+ * remove-curse, and the first working that writes an *item's* durable
+ * state rather than a body's or the world's.
+ *
+ * Three things it deliberately does:
+ *
+ * **It clamps rather than refuses.** `steps: +1` on an already-blessed
+ * item is not an error; the working reached, found nothing below it, and
+ * says so. Refusing would make the outcome depend on hidden state before
+ * the caster paid, which is the leak {@link BlessableMixin} exists to
+ * avoid.
+ *
+ * **It reveals, always.** A `control · arcana` working has the caster's
+ * hands on the item's own pattern, so they learn where it sat whether or
+ * not it moved — this is the first caller of the long-unwired
+ * `revealBlessing()` seam. Yes, that makes remove-curse a BUC detector.
+ * It is a **paid** one, at `control` prices (3× on the price list, the
+ * dearest verb but transform), which is the same shape D24 gives
+ * identify: the shortcut you buy instead of finding out the hard way.
+ *
+ * **It reports the band it landed on, not the delta.** "The curse lifts"
+ * and "nothing was holding it" are different sentences because they are
+ * different facts, and a working that narrated its own arithmetic would
+ * read like a patch note.
+ */
+function execAdjustBlessing(
+  target: Stuff | undefined,
+  steps: number,
+  limit?: BlessingBand,
+): string {
+  if (!target) return 'The working needs something to take hold of.';
+  if (!MixinApi.isBlessable(target)) {
+    // A mundane rock has no effect axis to displace. Honest, and it
+    // leaks nothing — being un-blessable is a fact about the CLASS,
+    // which anybody can see.
+    return `${target.getPresentation()} has no working in it to shift.`;
+  }
+  const before = target.getBlessing();
+  const top = Blessing.BANDS.length - 1;
+  const from = before.getOrdinal();
+  let ordinal = Math.max(0, Math.min(top, from + steps));
+  if (limit !== undefined) {
+    // The working's own ceiling, in the direction it travels — a cure
+    // restores and stops rather than carrying on into a blessing.
+    //
+    // ⚠ Then re-clamp against where it STARTED, because a ceiling must
+    // never drag something backwards: remove-curse read over an already
+    // *blessed* wand has to leave it blessed, not demote it to ordinary.
+    // A working that could undo a blessing is a different working.
+    const bound = Blessing.of(limit).getOrdinal();
+    ordinal =
+      steps > 0
+        ? Math.max(from, Math.min(ordinal, bound))
+        : Math.min(from, Math.max(ordinal, bound));
+  }
+  const after = Blessing.of(Blessing.BANDS[ordinal]!);
+  target.setBlessing(after);
+  target.revealBlessing();
+
+  if (after.getBand() === before.getBand()) {
+    return before.isCursed()
+      ? `The curse in ${target.getPresentation()} does not give.`
+      : `Nothing was holding ${target.getPresentation()} back.`;
+  }
+  return steps > 0
+    ? `The weight goes out of ${target.getPresentation()} — it rests ${after.getBand()}.`
+    : `Something settles wrongly into ${target.getPresentation()} — it rests ${after.getBand()}.`;
 }
 
 /**

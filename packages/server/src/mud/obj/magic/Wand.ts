@@ -33,6 +33,7 @@ import { ChargedMixin } from '../../lib/magic/Charged';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { LabelledMixin } from '../../lib/description/Labelled';
+import { BlessableMixin } from '../../lib/magic/Blessable';
 
 // `ChargedMixin` stores its energy in a `Reserve` rather than a bare
 // number — the same substrate mana, endurance and fuel use — so
@@ -40,9 +41,17 @@ import { LabelledMixin } from '../../lib/description/Labelled';
 // `Identifiable` + `Labelled`: a wand is an unidentified item on the
 // same axis as a potion (there is a `wand` descriptor bank), and a
 // player can name their own. Without these the bank had no consumer.
+//
+// `Blessable`: a wand HAS an effect axis, which is the only thing BUC
+// is defined against — a blessed wand delivers more, a cursed one less
+// (see `Blessing`). It is composed here and not on `Thing` for exactly
+// that reason: a cursed chair has no model behind it, so it does not
+// get the field.
 const WandBase = CirculatingMixin(
-  IdentifiableMixin(
-    LabelledMixin(ChargedMixin(ReservedMixin(ArcaneMixin(Thing)))),
+  BlessableMixin(
+    IdentifiableMixin(
+      LabelledMixin(ChargedMixin(ReservedMixin(ArcaneMixin(Thing)))),
+    ),
   ),
 );
 

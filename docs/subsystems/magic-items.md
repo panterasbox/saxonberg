@@ -224,12 +224,79 @@ the `Grade` shape — quality and blessing are the same **shape** of fact
 (an ordinal verdict, never a slider), so reusing it makes them compose.
 
 `scale` and `pick` put the ordering in the **engine**: an author supplies
-two ends of a range and the band picks the point, so "cursed is worse"
-stops being a convention every author has to remember.
+two ends of a range and the band picks the point, so the direction stops
+being a convention every author has to remember. It is wired into the
+item-discharge potency chain alongside the maker's `deliveryEfficiency`
+and any pattern fade — they **multiply** (`BUC_POTENCY`: cursed 0.6×,
+blessed 1.4×, ordinary the interpolated midpoint).
+
+### ⚠ Blessed means EFFICIENT, not BENEVOLENT
+
+The settled ruling, and the one thing here that is easy to get
+backwards. A blessing amplifies **whatever the item already does**; a
+curse damps it. The axis carries no opinion about whether that is good
+for you.
+
+So a blessed wand of dread is a *better* wand of dread, and a blessed
+draught of poison is a better poison. **There is no band that means
+"safe."**
+
+That is deliberate, and the consequence is the payoff: knowing an item's
+BUC is *not enough* to know whether using it is safe — you need to know
+what the item **is** as well. The two hidden axes (the class, via the
+belief store's `IDENTIFICATION` realm; the band, via the
+`BlessingBucket`) are therefore genuinely independent, and a player needs
+**both** to predict an outcome. A band that always meant "fine" would
+collapse two questions into one.
+
+It also fixes the scope. `BlessableMixin` is composed **only on items
+with an effect axis to displace** — `Wand` and `Rod` — because that is
+the only thing the model is defined against. What a blessed *sword* or a
+cursed *chair* would mean has no model yet, so it stays unbuilt rather
+than guessed at. The mixin is the seam if one ever arrives.
 
 **Cursed sticks** — and for a charged item, D11 sharpens it: not merely
 *the slot will not release* but **stuck on you and discharging into
 you**. One method, because from the wearer's side it is one fact.
+*(Release-gate wiring into the equipment slots is still outstanding.)*
+
+### Remove curse — `control · arcana`, not `destroy · arcana`
+
+The obvious reading is that a curse is another caster's working laid over
+the thing, which would make lifting it `destroy · arcana` — `dispel`'s
+cell, and `dispel` would already do the job.
+
+That reading is wrong here, and the distinction is load-bearing. BUC is
+not a bound working; it is the item's own potency one notch down. So
+lifting it **changes a parameter of a thing that remains itself**, which
+is what `control` means on the grid. `dispel` cannot reach it and should
+not: `relieve` scans for `magicOrigin` conditions on a **body**.
+
+The price list then does the balancing without anyone choosing a number:
+`control` is 3×, the dearest verb short of the unaffordable `transform`,
+so one casting runs ~45 τ against `dispel`'s 20 — near half a mid
+caster's whole reserve. A cheap cure would make the curse meaningless,
+and the cost falls out of the verb rather than a dial.
+
+**The mechanism is `adjust-blessing`** — the first effect kind that
+writes an *item's* durable state (all ten others address a creature or
+the world). A signed band `steps` displacement plus an authored `limit`:
+
+| Field | Why |
+|---|---|
+| `steps: 1` | a displacement, not a destination — one kind serves both directions |
+| `limit: uncursed` | **what makes it a cure and not a buff.** Unbounded, `+1` on an ordinary wand *blesses* it, and the right play becomes reading one over everything you own |
+
+Two clamps, both found by testing: the ceiling bounds how far the working
+pushes, and the result is then re-clamped against where it **started**,
+because a ceiling must never drag something backwards — remove-curse read
+over an already-blessed wand leaves it blessed. Undoing a blessing is a
+different working.
+
+It **reveals the band either way** — the first caller of the
+long-unwired `revealBlessing()` seam. That makes remove-curse a BUC
+detector, deliberately: a *paid* one, at the dearest verb on the list,
+which is the same shape D24 gives identify.
 
 ### The condition veto
 
@@ -552,7 +619,11 @@ special case: the `cast` path takes the same one.
 `Scroll.ts` · `Spellbook.ts` · `obj/material/PotionMaterial.ts`
 
 **BUC** — `lib/magic/Blessing.ts` · `Blessable.ts` ·
-`lib/vitals/Vitals.ts` (`canAfflict`)
+`lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts` + `Rod.ts`
+(the only composers) · `obj/api/MagicLogic.ts` (`BUC_POTENCY`,
+`execAdjustBlessing`) · `seeds/obj/magic/Spell/remove-curse.yaml` ·
+`seeds/obj/items/scroll-of-remove-curse.yaml` ·
+`seeds/obj/items/wand-of-firebolt-cursed.yaml`
 
 **Identification** — `lib/identification/Appearance.ts` ·
 `DescriptorBank.ts` · `Identifiable.ts` · `lib/description/Labelled.ts` ·
@@ -568,7 +639,8 @@ glass, shared by `look` and the identify effect)
 (`installSpawnSweep`)
 
 **Verbs** — `magic/zap` · `magic/recharge` · `magic/study` ·
-`perception/read` · `inventory/label` · `bulk/drink` (+`quaff`)
+`perception/read` (+ `at <mark>`) · `inventory/label` · `bulk/drink`
+(+`quaff`)
 
 **Lint** — `pnpm lint:descriptors`
 (`scripts/check-descriptor-banks.ts`), CI-gating, both directions.

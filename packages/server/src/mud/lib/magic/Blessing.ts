@@ -18,6 +18,32 @@
  * ordinal verdict, never a slider), and reusing the shape means the two
  * compose without anyone having to think about it.
  *
+ * ## ⚠ Blessed means EFFICIENT, not BENEVOLENT
+ *
+ * The settled ruling, and the one thing about this axis that is easy to
+ * get backwards. A blessing amplifies **whatever the item already
+ * does**; a curse damps it. The axis carries no opinion about whether
+ * that is good for you.
+ *
+ * So a blessed wand of dread is a *better* wand of dread, and a blessed
+ * draught of poison is a better poison. There is no band that means
+ * "safe".
+ *
+ * That is deliberate, and the consequence is the point: **knowing an
+ * item's BUC is not enough to know whether using it is safe.** You need
+ * to know what the item *is* as well. The two hidden axes — the class
+ * (the belief store's `IDENTIFICATION` realm) and the band (the
+ * {@link BlessingBucket}) — are therefore genuinely independent, and a
+ * player needs both to predict an outcome. An axis where one band
+ * always meant "fine" would collapse that into a single question.
+ *
+ * It also explains why this is scoped to items with an **effect axis**
+ * — magic items — and to nothing else. There is a coherent model for
+ * amplifying a working. There is not, yet, one for what a blessed sword
+ * or a cursed chair would even mean; that stays unbuilt rather than
+ * guessed at, and `BlessableMixin` is composed only where the model
+ * applies.
+ *
  * ## The two things it is for
  *
  * **Hidden until identified.** BUC is the paradigm hidden-state axis, so
@@ -135,8 +161,13 @@ export class Blessing {
    *
    * The engine owns this ordering so content authors cannot get it
    * backwards: an author supplies the two ends of a range and the band
-   * picks the point, which makes "cursed is worse" a property of the
+   * picks the point, which makes the direction a property of the
    * substrate rather than a convention every author has to remember.
+   *
+   * ⚠ The direction is **more effect / less effect**, NOT *better for
+   * you / worse for you*. See the class doc: blessed amplifies whatever
+   * the item already does, including the things you would rather it did
+   * less of.
    */
   public static scale(blessing: Blessing, lo: number, hi: number): number {
     const span = BLESSING_BANDS.length - 1;

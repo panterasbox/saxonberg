@@ -1,0 +1,33 @@
+# A scroll of remove curse — the recourse, and the reason cursed items
+# can be allowed to exist at all.
+#
+# Same shape as the identify scroll in every respect (D34: it affords
+# `read` and nothing else; the verb keys on the visible KIND, the effect
+# on the hidden CLASS). What differs is only which working it carries.
+#
+# `regionTarget: 2` against identify's 4 — recourse should be findable
+# but not stocked like stationery. It is the item a player goes looking
+# for once, having learned the hard way what a cursed ring is.
+class: /obj/magic/Scroll
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a scroll of remove curse
+  primaryKeyword: scroll
+  longDescription: >
+    A short strip of vellum, the lettering pressed rather than inked and
+    laid out in a spiral that reads inward. Read it upon a thing that
+    will not let go.
+  markText: >-
+    a spiral of pressed characters reading inward, patient and
+    unhurried
+  markForm: embossed
+  carriedSpellId: remove-curse
+  usesRemaining: 1
+  censusKey: scroll
+  materialTags: [vellum]
+  descriptorClass: scroll
+  regionTarget: 2
+  identifiedName: a scroll of remove curse
+  # It visibly resolves something — the ring comes off, or it doesn't.
+  # You learn what the scroll was by watching it work.
+  selfIdentifying: true
