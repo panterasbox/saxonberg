@@ -34,6 +34,8 @@ import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { LabelledMixin } from '../../lib/description/Labelled';
 import { BlessableMixin } from '../../lib/magic/Blessable';
+import { WieldableMixin } from '../../lib/slot/Wieldable';
+import { SlottableMixin } from '../../lib/slot/Slottable';
 
 // `ChargedMixin` stores its energy in a `Reserve` rather than a bare
 // number — the same substrate mana, endurance and fuel use — so
@@ -48,9 +50,13 @@ import { BlessableMixin } from '../../lib/magic/Blessable';
 // that reason: a cursed chair has no model behind it, so it does not
 // get the field.
 const WandBase = CirculatingMixin(
-  BlessableMixin(
-    IdentifiableMixin(
-      LabelledMixin(ChargedMixin(ReservedMixin(ArcaneMixin(Thing)))),
+  WieldableMixin(
+    SlottableMixin(
+      BlessableMixin(
+        IdentifiableMixin(
+          LabelledMixin(ChargedMixin(ReservedMixin(ArcaneMixin(Thing)))),
+        ),
+      ),
     ),
   ),
 );

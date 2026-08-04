@@ -255,10 +255,37 @@ the only thing the model is defined against. What a blessed *sword* or a
 cursed *chair* would mean has no model yet, so it stays unbuilt rather
 than guessed at. The mixin is the seam if one ever arrives.
 
-**Cursed sticks** — and for a charged item, D11 sharpens it: not merely
-*the slot will not release* but **stuck on you and discharging into
-you**. One method, because from the wearer's side it is one fact.
-*(Release-gate wiring into the equipment slots is still outstanding.)*
+### Cursed sticks — the release gate
+
+D11 sharpens it for a charged item: not merely *the slot will not
+release* but **stuck on you and discharging into you**. From the
+wearer's side that is one fact, so it is one call —
+`Blessable.tryRelease(holder)`, returning `null` (it comes away) or a
+`ReleaseRefusal` carrying what the refusal cost you. Splitting the veto
+from the discharge invites a caller to check one and forget the other,
+which yields a curse that sticks but never bites: a silent, plausible
+bug no test of either half would catch.
+
+Every verb that takes something off your body runs the gate through
+**`Slotted.tryReleaseFromSlots(item)`** — `remove`, `unwield`, `drop`,
+`give`, `put`. All-or-nothing across the item's slots, so a two-handed
+cursed thing can never end up half off. The occupant makes the refusal
+(the `canEvict` shape: the engine asks, the object answers, default
+permit), and the slot substrate never imports the magic tree — it asks
+through `MixinApi.isBlessable`.
+
+`Wand` and `Rod` are `Wieldable` so there is a slot for a curse to stick
+to. Without a slot claim the gate has nothing to bite: a cursed wand in
+your **pack** refuses nothing, because the curse is a fact about
+wielding it, not about owning it.
+
+> ⚠ **A pre-existing bug this fixed.** `drop` / `give` / `put` moved the
+> Stuff without ever vacating the slot it occupied, so a dropped sword
+> lay on the floor while the hand it came from stayed full — a **phantom
+> occupant, for all equipment**, reproducible with a shipped steel mace
+> and nothing to do with curses. It was also the hole that made the
+> release gate decorative: you could not unwield a cursed wand, but you
+> could drop it.
 
 ### Remove curse — `control · arcana`, not `destroy · arcana`
 

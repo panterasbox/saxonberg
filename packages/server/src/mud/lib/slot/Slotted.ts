@@ -78,6 +78,14 @@ export interface SlotSpec {
 /**
  * Public shape provided by SlottedMixin.
  */
+/**
+ * The outcome of {@link Slotted.tryReleaseFromSlots}. `dumpedKJ` is set
+ * only on a refusal, and is what the refusal cost the holder.
+ */
+export type SlotReleaseResult =
+  | { readonly released: true; readonly vacated: number }
+  | { readonly released: false; readonly dumpedKJ: number };
+
 export interface Slotted {
   // Slot universe — overridable. Default reads `staticSlots`.
   getSlotNames(): readonly string[];
@@ -100,6 +108,32 @@ export interface Slotted {
   isSlotFull(slot: string): boolean;
 
   canOccupy(candidate: Stuff & Slottable, slot: string): boolean;
+
+  /**
+   * **Take `item` off this body entirely** — every slot it occupies, as
+   * one decision.
+   *
+   * `{ released: false }` ⇒ the item refuses and NOTHING was vacated;
+   * `{ released: true, vacated }` ⇒ it came off, `vacated` counting the
+   * slots freed (0 when it was not in any, which is not a failure —
+   * the caller decides whether "you aren't wearing that" matters).
+   *
+   * This exists because *leaving a body* is one event that several
+   * verbs perform — `remove`, `unwield`, and every verb that moves an
+   * item out of your inventory (`drop`, `give`, `put`). Before it, only
+   * the first two vacated slots at all, so **dropping a wielded item
+   * left a phantom occupant**: the sword was on the floor and the hand
+   * stayed full forever. That was a live bug for all equipment, and it
+   * was also the escape hatch that made the cursed-release gate
+   * decorative — you could not unwield a cursed wand, but you could
+   * drop it.
+   *
+   * The refusal is the occupant's to make (`Blessable.tryRelease` — the
+   * `canEvict` shape: the engine asks, the object answers, default
+   * permit), and it is **all-or-nothing** across the item's slots so a
+   * two-handed cursed thing can never end up half off.
+   */
+  tryReleaseFromSlots(item: Stuff & Slottable): SlotReleaseResult;
 
   /**
    * Place `candidate` in `slot`. Throws on programmatic violation
@@ -376,6 +410,36 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
         }
       }
       return candidate;
+    }
+
+    public tryReleaseFromSlots(
+      item: Stuff & Slottable,
+    ): SlotReleaseResult {
+      const self = this as unknown as Stuff & Slotted;
+      const occupied = this.getSlotNames().filter((slot) =>
+        this.getOccupants(slot).has(item),
+      );
+      // Not on the body at all — nothing to refuse and nothing to free.
+      if (occupied.length === 0) return { released: true, vacated: 0 };
+
+      // Ask the occupant. `MixinApi` rather than an import: the slot
+      // substrate must not depend on the magic tree, and asking through
+      // the narrowing predicate keeps the direction right — a slot knows
+      // that occupants may refuse, not what a curse is.
+      if (MixinApi.isBlessable(item)) {
+        const refusal = item.tryRelease(self);
+        if (refusal) {
+          // All-or-nothing: nothing has been vacated yet, so a
+          // two-handed cursed thing cannot end up half off.
+          return { released: false, dumpedKJ: refusal.dumpedKJ };
+        }
+      }
+
+      let vacated = 0;
+      for (const slot of occupied) {
+        if (this.vacate(slot, item)) vacated++;
+      }
+      return { released: true, vacated };
     }
 
     public vacateSole(slot: string): (Stuff & Slottable) | null {

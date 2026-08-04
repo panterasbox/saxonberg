@@ -35,6 +35,13 @@ import SpellCatalogue from '../../../obj/SpellCatalogue';
 import Spell from '../../../obj/magic/Spell';
 import Scroll from '../../../obj/magic/Scroll';
 import Wand from '../../../obj/magic/Wand';
+import { SlottedMixin } from '../../slot/Slotted';
+import { SlottableMixin } from '../../slot/Slottable';
+import { BlessableMixin } from '../Blessable';
+import { ChargedMixin } from '../Charged';
+import { ReservedMixin } from '../../reserve';
+import Thing from '../../stuff/Thing';
+import { Idea } from '../../stuff/Idea';
 import { Blessing } from '../Blessing';
 import { MagicEffects, EFFECT_KINDS } from '../Effect';
 import { Template } from '../../stuff/Template';
@@ -48,6 +55,18 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestCharacter extends Character {}
+/** A minimal slotted host — one hand, which is all the gate needs. */
+class Body extends SlottedMixin(Idea) {}
+/**
+ * A bare `Slottable` that can be cursed and holds charge. Deliberately
+ * NOT a real `Wand`: `Wieldable.fitsSlot` walks per-body-plan claim
+ * records, and dragging a body plan into a slot-mechanics test would be
+ * testing the wrong thing. The Wand-on-a-real-body path is covered by
+ * the live drive.
+ */
+class Held extends BlessableMixin(
+  ChargedMixin(ReservedMixin(SlottableMixin(Thing))),
+) {}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
@@ -345,5 +364,86 @@ describe('blessed means EFFICIENT, not BENEVOLENT', () => {
     expect(MixinApi.isBlessable(wand)).toBe(true);
     const scroll = makeScroll('firebolt');
     expect(MixinApi.isBlessable(scroll)).toBe(false);
+  });
+});
+
+describe('the release gate — cursed sticks, and the phantom occupant', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 100000);
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  /** A body with hands, and a wand in one of them. */
+  function makeHeld(band: string): Held {
+    const h = makeStuff(() => new Held());
+    stampTemplatePathForTest(h, `/obj/test/rc-held-${seq++}`);
+    h.setBlessingBand(band);
+    return h;
+  }
+
+  function makeBody(): Body {
+    const body = makeStuff(() => new Body());
+    body.setStaticSlots([
+      { name: 'hand:right', accepts: 'SlottableMixin', capacity: 1 },
+    ] as never);
+    return body;
+  }
+
+  function wielding(band: string): { body: Body; wand: Held } {
+    const body = makeBody();
+    const wand = makeHeld(band);
+    body.occupy(wand as never, 'hand:right');
+    return { body, wand };
+  }
+
+  it('a CURSED item refuses, and nothing is vacated', () => {
+    const { body, wand } = wielding('cursed');
+    const result = body.tryReleaseFromSlots(wand as never);
+    expect(result.released).toBe(false);
+    // Still held — an all-or-nothing refusal, so a two-handed cursed
+    // thing can never end up half off.
+    expect(body.getOccupants('hand:right').has(wand as never)).toBe(true);
+  });
+
+  it('an ORDINARY item comes away, and the slot is actually freed', () => {
+    const { body, wand } = wielding('uncursed');
+    const result = body.tryReleaseFromSlots(wand as never);
+    expect(result.released).toBe(true);
+    expect(result.released && result.vacated).toBe(1);
+    // The regression this method exists for: before it, `drop` moved the
+    // Stuff without vacating, so the hand stayed full forever — a
+    // phantom occupant, for ALL equipment and not just cursed things.
+    expect(body.getOccupants('hand:right').has(wand as never)).toBe(false);
+    expect(body.isSlotOccupied('hand:right')).toBe(false);
+  });
+
+  it('something not in a slot is not a refusal — it is a no-op', () => {
+    const body = makeBody();
+    // A cursed wand in your PACK refuses nothing. The curse is a fact
+    // about wielding it, not about owning it.
+    const loose = makeHeld('cursed');
+    const result = body.tryReleaseFromSlots(loose as never);
+    expect(result.released).toBe(true);
+    expect(result.released && result.vacated).toBe(0);
+  });
+
+  it('the refusal DISCHARGES — stuck and biting are one fact', () => {
+    const { body, wand } = wielding('cursed');
+    wand.setCapacityKJ(900);
+    wand.installChargeReserve(); // fills to capacity
+    const before = wand.getStoredKJ();
+    expect(before).toBeGreaterThan(0);
+    const result = body.tryReleaseFromSlots(wand as never);
+    expect(result.released).toBe(false);
+    // A caller that checked the veto and forgot the discharge would give
+    // a curse that sticks but never bites — a silent, plausible bug that
+    // no test of either half alone would catch. Hence one call.
+    expect(result.released === false && result.dumpedKJ).toBeGreaterThan(0);
+    expect(wand.getStoredKJ()).toBeLessThan(before);
   });
 });

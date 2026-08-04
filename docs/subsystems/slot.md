@@ -146,6 +146,27 @@ returns `count > 0`.
 - `SlotApi.transferOccupancy(candidate, from, to)` — vacate-then-
   occupy with rollback. Used by every posture verb to swap the
   actor's posture-bearing slot atomically.
+- **`tryReleaseFromSlots(item)`** — take `item` off this host
+  entirely, every slot it occupies, as **one decision**. Returns
+  `{released: false, dumpedKJ}` (the occupant refused; **nothing** was
+  vacated) or `{released: true, vacated}` (`0` = it was not in any slot,
+  which is a no-op rather than a failure).
+
+  **Every verb that removes something from a body goes through this** —
+  `remove`, `unwield`, `drop`, `give`, `put`. It exists because leaving
+  a body is one event several verbs perform, and only the first two used
+  to vacate at all: `drop` moved the Stuff and left the slot claiming
+  it, so **a dropped sword lay on the floor while the hand stayed full
+  forever**. Reproducible with any shipped weapon.
+
+  The refusal is the *occupant's* to make — the `canEvict` shape, where
+  the engine asks and the object answers, defaulting to permission. v1
+  refuser: a cursed `Blessable` (see
+  [magic-items.md](./magic-items.md) § Cursed sticks). The slot
+  substrate does **not** import the magic tree; it asks through
+  `MixinApi.isBlessable`, so a slot knows only that occupants may
+  refuse, never what a curse is. All-or-nothing across the item's slots,
+  so a two-handed cursed thing cannot end up half off.
 
 ## Lifecycle
 

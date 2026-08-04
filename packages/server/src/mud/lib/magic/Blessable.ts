@@ -40,6 +40,15 @@ const CURSED_DISCHARGE_FRACTION = 0.05;
 /** Trauma severity per kilojoule dumped. *Calibrate at launch.* */
 const CURSED_SEVERITY_PER_KJ = 0.02;
 
+/**
+ * Why a release did not happen — the return of {@link
+ * Blessable.tryRelease}. `dumpedKJ` is what the refusal cost the holder,
+ * and is 0 for a curse with no charge behind it.
+ */
+export interface ReleaseRefusal {
+  readonly dumpedKJ: number;
+}
+
 export interface Blessable {
   /**
    * **Ground truth.** The item's actual band, regardless of what anyone
@@ -85,6 +94,26 @@ export interface Blessable {
    * to permission.
    */
   refusesRelease(): boolean;
+
+  /**
+   * **Ask to take it off** — the whole release decision in one call.
+   *
+   * `null` ⇒ it comes away; a {@link ReleaseRefusal} ⇒ it does not, and
+   * `dumpedKJ` is what it cost you to find out (0 for an uncharged
+   * curse).
+   *
+   * The pairing exists because {@link refusesRelease} and
+   * {@link dischargeIntoHolder} are two halves of one fact, and a caller
+   * that checks the veto and forgets the discharge produces a curse that
+   * sticks but never bites — a silent, plausible bug that no test of
+   * either half would catch. Every release verb (`remove`, `unwield`)
+   * goes through this rather than the two methods.
+   *
+   * ⚠ The **caller** decides whether the item is actually in a slot
+   * first. A cursed wand sitting in your pack refuses nothing; the curse
+   * is a fact about wearing it, not about owning it.
+   */
+  tryRelease(holder: Stuff): ReleaseRefusal | null;
 
   /**
    * **The cursed discharge** (D11). A cursed *charged* item is not
@@ -166,6 +195,11 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public refusesRelease(): boolean {
       return this.getBlessing().isCursed();
+    }
+
+    public tryRelease(holder: Stuff): ReleaseRefusal | null {
+      if (!this.refusesRelease()) return null;
+      return { dumpedKJ: this.dischargeIntoHolder(holder) };
     }
 
     public dischargeIntoHolder(holder: Stuff): number {

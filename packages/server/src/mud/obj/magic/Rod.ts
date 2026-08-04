@@ -25,13 +25,17 @@ import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { FocusMixin } from '../../lib/magic/Focus';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { BlessableMixin } from '../../lib/magic/Blessable';
+import { WieldableMixin } from '../../lib/slot/Wieldable';
+import { SlottableMixin } from '../../lib/slot/Slottable';
 
 // `Blessable` for the same reason as `Wand`: a focus has an effect
 // axis to be displaced along. The blessing multiplies the delivered
 // magnitude alongside pattern fade, which is the honest composition —
 // a blessed but faded rod is both.
 const RodBase = CirculatingMixin(
-  BlessableMixin(FocusMixin(ArcaneMixin(Thing))),
+  WieldableMixin(
+    SlottableMixin(BlessableMixin(FocusMixin(ArcaneMixin(Thing)))),
+  ),
 );
 
 export default class Rod extends RodBase {}

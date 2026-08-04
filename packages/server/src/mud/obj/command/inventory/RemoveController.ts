@@ -63,38 +63,27 @@ export default class RemoveController extends CommandController<RemoveModel> {
     // one fact from the wearer's side, so the gate and the discharge are
     // one call rather than two features that happen to co-occur.
     //
-    // Note the ordering: this fires only for something actually WORN
-    // (the vacate loop below would have reported "you aren't wearing
-    // that" otherwise), so a cursed item in your pack refuses nothing.
-    if (MixinApi.isBlessable(target) && target.refusesRelease()) {
-      const worn = target
-        .getSlotClaim(bodyPlanPath)
-        .some((slot) => giver.getOccupants(slot).has(target));
-      if (worn) {
-        const dumped = target.dischargeIntoHolder(giver);
-        MessageApi.scene(giver)
-          .topic('world.perception.inventory')
-          .toSelf(
-            dumped > 0
-              ? Mml.compose`${Mml.item(target)} will not come away — and it is running hot against your skin.`
-              : Mml.compose`${Mml.item(target)} will not come away. It has no intention of letting go.`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'cursed-will-not-release',
-          detail: `${target.getPresentation()} refuses release`,
-        });
-        return;
-      }
+    // Note the ordering: `tryReleaseFromSlots` refuses only for
+    // something actually WORN, so a cursed item in your pack refuses
+    // nothing — the curse is a fact about wearing it, not owning it.
+    const release = giver.tryReleaseFromSlots(target);
+    if (!release.released) {
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(
+          release.dumpedKJ > 0
+            ? Mml.compose`${Mml.item(target)} will not come away — and it is running hot against your skin.`
+            : Mml.compose`${Mml.item(target)} will not come away. It has no intention of letting go.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cursed-will-not-release',
+        detail: `${target.getPresentation()} refuses release`,
+      });
+      return;
     }
-
-    const slots = target.getSlotClaim(bodyPlanPath);
-    let any = false;
-    for (const slot of slots) {
-      if (giver.vacate(slot, target)) any = true;
-    }
-    if (!any) {
+    if (release.vacated === 0) {
       MessageApi.scene(giver)
         .topic('world.perception.inventory')
         .toSelf(Mml.compose`You aren't wearing ${Mml.item(target)}.`)

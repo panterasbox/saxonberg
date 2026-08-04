@@ -45,3 +45,8 @@ data:
   identifiedName: a wand of firebolt
   # ── the one field that differs from the ordinary wand ──
   blessingBand: cursed
+  # You HOLD a wand. Without a slot claim there is nothing for a
+  # curse to stick to — `remove`/`unwield` only gate what is
+  # actually occupying a body slot.
+  slotClaims:
+    "/obj/species/BodyPlan/biped": ["hand:right"]
