@@ -189,10 +189,27 @@ at its current aim state. *(Resolves slate Q10.)*
 
 The shooter commits to a public **aim ladder**: `snap` (this beat) →
 `held` (one beat, visible) → `settled` (two beats, visible, target
-telegraphed). Aim decays on movement or band change.
+telegraphed). Aim decays on movement or band change, and **resets
+entirely on a target switch** — aim is a single-target commitment (D9),
+so abandoning the target abandons the commitment. No partial carry-over.
 
 The target spends the reactive window on one **answer**: `stand` ·
 `move` · `cover` · `drop` · `counter`.
+
+**A target with no available answer takes the worst cell.** Restraint
+and incapacitation are reachable states (D19, D20), so a netted or
+unconscious target cannot spend a reactive window, and the shot resolves
+near-automatically at `precise`. This is honest and grim, and it is the
+coup-de-grâce path — so it **routes through the shipped coup governance
+(formations hook 3, D38)** rather than inventing a second helpless-target
+rule. Making someone helpless and then killing them is one decision the
+party policy already has an opinion about.
+
+**Mutual standoffs are broken by tempo.** When both parties hold aim on
+each other, the faster tempo resolves first; the slower shot still
+resolves, because it was committed, unless the first placement disrupts
+it. No initiative roll and no new mechanism — and it keeps D8 honest,
+since competence wins the standoff by buying tempo rather than accuracy.
 
 The pair indexes a base matrix yielding a placement class —
 `miss` / `graze` / `hit` / `precise` — and modifiers then move steps
@@ -236,6 +253,12 @@ Whoever crosses eats the committed shot at its current aim state. The
 cost is the poker: a holding shooter has spent their reactive window
 and is meat if closed to the clinch.
 
+**Ordering against D6:** the suppression shot resolves **before** the
+engagement ends. Holding an exit is precisely aiming at the escape
+route, so a fleeing target eats the committed shot on the way out. This
+is what gives D6's "the exit is the escape" a real price, and it is the
+difference between overwatch mattering and being decoration.
+
 ### D11 — The Delivery Profile is a computed value-object
 
 Family fields are causes; combat consumes one derived tuple, computed
@@ -253,6 +276,16 @@ per (projectile × launcher × band) and **never stored**:
 Modelled on `WeaponProfile`: a pure, unit-tested value-object surfaced
 as bands with narrow numeric getters the engine multiplies in. Nothing
 anywhere stores "damage."
+
+**`integrity` governs recovery, and a spent projectile is abandoned on
+landing.** Arrows that survive, spent brass and thrown blades persist in
+the room and are recoverable — but they **release their chattel claim**
+when they land. Otherwise chattel would flag every battlefield pickup as
+theft, which is both absurd and a trap for new players who loot the
+arrows that were just shot at them. Abandonment is the honest reading
+and it is an act the world already models. Recovery is finders-keepers;
+the chain of title records the release, so a distinctive arrow is still
+*traceable* even though taking it is not stealing.
 
 ### D12 — Fit is hard for guns, graded for archery
 
@@ -299,6 +332,13 @@ Two things fall out that would otherwise need inventing:
 Poise cost follows directly: holding a draw is expensive per beat,
 holding a spanned crossbow or a chambered gun is free.
 
+**Coming back down the ladder is a real action too.** Letting a bow
+down under control is free at competence and fumbles below it. **Dry
+firing — loosing a drawn bow with nothing nocked — damages the bow**,
+because the energy has nowhere to go but the limbs. That is not a
+special rule: it is D35's readable-state rail applied to the launcher a
+novice is most likely to abuse, and it costs nothing to model.
+
 ### D14 — Splash is the target plus whoever is `close` to the target
 
 Because bands are relationships and not positions (D2), a hazard cannot
@@ -311,6 +351,15 @@ any invented radius geometry. "You're not shooting a person, you're
 shooting the floor they need" becomes "the splash catches whoever is on
 top of your target." The arrival creates a placed hazard through the
 shipped self-resolving `HazardMixin`. *(Resolves slate Q5.)*
+
+**The consent gate computes over the splash set, not the target.**
+Otherwise the area path walks straight around D18: throwing a flask at a
+consenting duelist who is clinched with a non-consenting bystander would
+catch the bystander with nothing refusing it. The commit-time check
+therefore resolves the full set — target plus everyone at `close` to it —
+and refuses if **any** member is a sentient the thrower could not
+deliberately target. Area delivery must not be a cheaper route to a
+person than aiming at them.
 
 ### D15 — `HazardDelivery.range` gains `'ranged'`; `MagicLogic.deliverAt` swaps its leg
 
@@ -357,6 +406,16 @@ This is honest (a round always goes somewhere), closes the grief hole
 completely, and keeps the entire lesson intact against NPCs and inside
 consenting contexts, which is where the guard and street content lives.
 
+**The terrain round is not inert — it can damage property, and that is
+deliberate.** An inert round makes the fallback pure flavor; a damaging
+one means "I cannot shoot you, but I can shoot your storefront" is a
+real act. It is allowed, and it **appends an accountability row** naming
+the shooter. Grief here is answered by attribution rather than
+prevention, because property damage is legible, the parcel and chattel
+ledgers already know who owns what, and the owner has a real remedy in
+systems that ship. Vandalism a court can hear beats a rule that silently
+eats the round.
+
 ### D18 — Shooting into a melee is gated at commit time, not only after the fact
 
 The same gate as D17. Where a non-consenting sentient shares the arena,
@@ -374,6 +433,12 @@ it as their own rung, so the existing handshake, the `consented: false`
 crime marker and derived blame cover the less-lethal family with no new
 consent axis and no doubled terms reconciliation. A taser used without
 consent is exactly as marked an act as an unconsented lethal blow.
+
+**The ladder is monotone**: consenting to a lethal duel implies
+consenting to being incapacitated in it. Stated explicitly because
+otherwise every terms reconciliation carries an ambiguity — and because
+the alternative (a duelist who may be killed but not netted) is absurd
+in exactly the way a ladder exists to prevent.
 *(Resolves slate Q27.)*
 
 ### D20 — Less-lethal is a payload, never an architecture
@@ -382,15 +447,26 @@ An ordinary launcher whose payload targets poise and conditions instead
 of wounds. The design refuses the euphemism: **less-lethal, never
 non-lethal.**
 
-- **Taser** — tethered, `close` only (the wires are honest), *both*
-  darts must land, one shot then reload; rides the shipped shock
-  channel into incapacitation as a condition.
+- **Taser** — tethered, reaching **`near`** (the wires are honest, and
+  they are about five metres of it), *both* darts must land, one shot
+  then reload; rides the shipped shock channel into incapacitation as a
+  condition.
 - **Beanbag / baton round** — a projectile `form` of `bag`: high mass,
   terrible sectional density, `blunt`, poise-crushing, wound-light. The
   placement table keeps it honest with zero special rules — `close` +
   `precise` + head is lethal, because that is the real failure mode.
-- **Nets and irritants** — entangle as restraint; spray as
-  sense-conditions, `close` band.
+- **Nets and irritants** — a thrown net entangles as restraint at
+  **`near`**; sprayed irritants deliver sense-conditions at **`reach`**,
+  because a spray is genuinely an arm's-length-plus weapon and not a
+  clinch one.
+
+**Band-literal note.** These assignments were re-derived against the
+four-tier ladder rather than inherited. The slate wrote every
+less-lethal weapon as `close`-only, but it was written against a
+two-band model where `close` absorbed everything inside bowshot. On the
+D1 ladder that reading makes a taser useless — `close` is the clinch,
+where you are already grappling and a shock weapon has no job. Every
+band literal in this document is re-derived, not copied.
 
 ### D21 — Armor rides the response grid; a stopped point becomes blunt
 
@@ -426,12 +502,28 @@ the danger genuinely self-inflicted: carrying chambered without
 knowing, surprised by an empty gun, missing the fouling. *(Resolves
 slate Q22.)*
 
-### D23 — Cross-reading works at `close` and `reach`, one band worse
+### D23 — Cross-reading splits: fine state is close work, gross handling carries
 
-An expert can partially read someone else's weapon state at the two
-melee bands. This is what makes unsafe handling socially legible, lets
-a veteran warn a novice, and lets range culture enforce itself among
-players rather than by the game lecturing. *(Resolves slate Q23.)*
+Reading someone *else's* weapon is one band worse than reading your own,
+but it is not one distance. The band sweep (D20) forced the split, and
+it is the more honest model anyway:
+
+| What | Reads at | Why |
+|---|---|---|
+| **Fine state** — chambered, round count, fouling, condition | `close`, `reach` | you have to be near enough to see the mechanism |
+| **Gross handling** — muzzle sweep, finger on the trigger, a drawn bow, a spanned crossbow, carrying chambered | out to `far` | posture is visible across a street |
+
+The split matters because the *social* half of the design depends on
+it. If unsafe handling only read in the clinch, nobody could react to
+it in time and the norm could never form — a bystander who must walk
+into a muzzle sweep to notice it is not a bystander. Gross handling
+carrying to `far` is what lets sentries escalate, bystanders move, and
+other players say something, which is how range culture actually
+enforces itself rather than by the game lecturing.
+
+It also pays off outside combat entirely: a spanned crossbow in a
+tavern is public state at any band, so the readiness model (D13) is
+socially legible for free. *(Resolves slate Q23.)*
 
 ### D24 — Sound attenuates over real metres; `MAX_HOPS` survives as a perf backstop
 
@@ -616,11 +708,28 @@ shipped lock/key/credential substrate — a looted state gun is a brick
 with a serial number. The **mechanism** ships; whether any polity
 mandates it is policy, never an engine rule.
 
-### D37 — The new-arrival edge opens at the arena's maximum band
+### D37 — Every edge opens at the arena's maximum band; an ambush opens at `close`
 
-You notice someone entering at distance. This makes closing a real cost
-for the arriver and gives held aims and suppression something to do
-about reinforcements. *(Resolves slate Q19.)*
+One rule covers both initiation and reinforcement.
+
+**New arrivals** open at the arena's maximum. You notice someone
+entering at distance; closing is a real cost for the arriver, and held
+aims and suppression get something to do about reinforcements.
+
+**Initiation is the same rule.** A fight opens at the arena's maximum
+band — which is the honest default, since there is no position to derive
+anything else from and an open challenge starts across the room.
+
+**An ambush opens at `close`.** A successful concealed approach — the
+shipped concealment substrate doing the work — is what buys the opening
+band, and this is the whole reason a knife-fighter can reach a bowman at
+all. It gives stealth a combat payoff that is not a damage multiplier,
+and it means the archer's advantage is real but defeatable by the
+system already built to defeat it.
+
+Without this rule the ladder has no entry point: an archer would want to
+open at `far` and an assassin at `close`, with nothing to arbitrate.
+Concealment arbitrates. *(Resolves slate Q19.)*
 
 ### D38 — Formation band preference is declared shape, not a fourth hook
 
@@ -709,6 +818,14 @@ standalone reserved for diegetic acts:
 - **`load`** (device category) with subcommands for span, clear and
   unload — operating a mechanism, which is what the category is for.
 
+**`throw` at a sentient is initiation, and routes exactly as `attack`
+does.** The verb existing outside combat must not become a consent
+bypass — throwing a rock at a person opens a session and runs the terms
+handshake identically to swinging at them, with the same ambush and
+consent gates and the same `consented: false` marker when terms are
+imposed. Throwing *at* a target and throwing something *away* are
+distinct parses; only the former initiates.
+
 ### D44 — Guns are honest, and the engine ships no gun law
 
 Kernel neutrality throughout. The engine models guns accurately —
@@ -769,110 +886,146 @@ from honesty, not advocacy.
 6. Withdrawal is per-edge; leaving through an exit ends the
    engagement; a committed held shot resolves against a withdrawing
    target.
-7. The aim ladder is public state, visible to other combatants, and
-   decays on movement or band change.
+7. The aim ladder is public state, visible to other combatants, decays
+   on movement or band change, and **resets entirely on a target
+   switch** — no partial carry-over.
 8. Aim × answer resolves to a placement class deterministically; no
    `Math.random` on the path. Tests cover every matrix cell and each
    step modifier.
 9. Competence changes settle time and readout resolution only —
    a test asserts identical placement outcomes across competence bands
    for identical commitments.
-10. A held aim covers exactly one target; a test asserts the second
+10. A target with no available answer — restrained, unconscious — takes
+    the worst cell, resolving near-automatically at `precise`, and the
+    kill routes through the shipped coup governance (formations hook 3)
+    rather than a second helpless-target rule.
+11. A mutual standoff is broken by tempo: the faster shooter resolves
+    first, the slower committed shot still resolves unless disrupted.
+    No initiative roll exists.
+12. A held aim covers exactly one target; a test asserts the second
     attacker advances free.
-11. Suppression resolves the committed shot against whoever crosses.
-12. `DeliveryProfile` is a pure, unit-tested value-object; a test
+13. Suppression resolves the committed shot against whoever crosses,
+    and a suppression shot held on an exit resolves **before** the
+    fleeing target's engagement ends.
+14. `DeliveryProfile` is a pure, unit-tested value-object; a test
     asserts the wound path cannot distinguish an arrow from a bullet at
     equal profiles.
-13. Gun chambering refuses on mismatch; arrow spine derives a stability
+15. A spent projectile persists in the room, is recoverable, and
+    **releases its chattel claim on landing** — picking up an arrow that
+    was shot at you is not theft, and the chain of title records the
+    release so the arrow stays traceable.
+16. Gun chambering refuses on mismatch; arrow spine derives a stability
     factor and never gates.
-14. Shooting a bow costs poise; firing a gun does not — asserted by
+17. Shooting a bow costs poise; firing a gun does not — asserted by
     `energySource`.
-15. Every launcher family carries the readiness state its
+18. Every launcher family carries the readiness state its
     `energySource` implies: guns `chambered`/`safetyOn`/
     `seatedMagazine`, crossbows `spanned`, bows `strung`/`nocked`/
     `drawn` with a held-beat count, thrown weapons none.
-16. A spanned crossbow and a chambered gun hold readiness indefinitely
+19. A spanned crossbow and a chambered gun hold readiness indefinitely
     at no poise cost; a drawn bow charges poise every beat held.
-17. A bow's `settled` stability decays past its holder's competence
+20. A bow's `settled` stability decays past its holder's competence
     hold window, so a shot held too long is measurably worse than a
     `held` one. Crossbows and guns have no hold window. A test covers
     the crossover point.
-18. A bow's nock-draw-loose resolves as a single `snap` with no
+21. A bow's nock-draw-loose resolves as a single `snap` with no
     separate committed readiness action; spanning a crossbow and
     loading a gun remain separate committed actions. No stored
     `rateOfFire` field exists — rate of fire is a consequence.
-19. A thrown flask crosses a band gap, breaks by its vessel material,
+22. Letting a bow down is free at competence and fumbles below it; dry
+    firing damages the bow via the readable-state rail.
+23. A thrown flask crosses a band gap, breaks by its vessel material,
     spills its contents onto the room, and fires its payload through the
     effect union.
-20. Splash catches the target plus everyone at `close` to the target,
+24. Splash catches the target plus everyone at `close` to the target,
     and nobody else.
-21. `HazardRange` accepts `'ranged'` and the hazard path reads it.
-22. `MagicLogic.deliverAt` uses the band model; offensive spells gain
+25. The commit-time consent gate computes over the **whole splash set**,
+    not just the target, and refuses if any member is a sentient the
+    thrower could not deliberately target. A test covers the
+    consenting-duelist-clinched-with-a-bystander case.
+26. `HazardRange` accepts `'ranged'` and the hazard path reads it.
+27. `MagicLogic.deliverAt` uses the band model; offensive spells gain
     ranged delivery with no change to the spell roster.
-23. Reload and span are committed engagement actions; being struck
+28. Reload and span are committed engagement actions; being struck
     costs the action, not the ammunition; partial load state persists.
-24. An ND cannot strike a sentient the shooter could not deliberately
+29. An ND cannot strike a sentient the shooter could not deliberately
     shoot; the round lands on terrain instead; the accountability row
     appends in both cases. Tests cover both branches.
-25. Shooting into a melee containing a non-consenting sentient is
+30. A terrain round may damage property and appends an accountability
+    row naming the shooter — it is not inert.
+31. Shooting into a melee containing a non-consenting sentient is
     refused at commit time.
-26. `CombatTerms.lethality` carries an incapacitation rung; an
-    unconsented taser produces the `consented: false` crime marker.
-27. Taser requires both darts at `close`; a beanbag at `close` +
+32. `CombatTerms.lethality` carries an incapacitation rung; an
+    unconsented taser produces the `consented: false` crime marker. The
+    ladder is **monotone** — consent to lethal implies consent to
+    incapacitation, asserted by a reconciliation test.
+33. Taser reaches `near` and requires both darts; a thrown net reaches
+    `near`; sprayed irritants reach `reach`. A beanbag at `close` +
     `precise` + head is lethal with no special-case rule.
-28. Armor converts a stopped `point` to `blunt` and the padding layer
+34. Armor converts a stopped `point` to `blunt` and the padding layer
     resolves the trauma; a test covers textile-stops-bullet /
     bodkin-slips-textile.
-29. The readout ladder omits lines the reader's competence cannot
-    resolve — no vague words, no stale values. Cross-reading works at
-    `close` and `reach`, one band worse than self-reading.
-30. Sound attenuates per metre through the exit graph; a whisper dies
+35. The readout ladder omits lines the reader's competence cannot
+    resolve — no vague words, no stale values.
+36. Cross-reading splits by distance: fine weapon state (chambered,
+    count, fouling) reads at `close`/`reach`; gross unsafe handling
+    (muzzle sweep, drawn bow, spanned crossbow) reads out to `far`, so
+    bystanders and sentries can react before the clinch.
+37. Sound attenuates per metre through the exit graph; a whisper dies
     next door and a gunshot carries until the accumulated attenuation
     crosses the hearing threshold. `MAX_HOPS` survives as a perf
     backstop and vision/smell behavior is unchanged.
-31. Cover is authored, joins the covering stack while occupied, is
+38. Cover is authored, joins the covering stack while occupied, is
     directional (flanking defeats it), destructible via the response
     grid, and capacity-leased.
-32. Overturnable furnishings flip in one beat and are measurably weaker
+39. Overturnable furnishings flip in one beat and are measurably weaker
     cover than purpose-built.
-33. Jam risk derives from fouling, wear, service history and rate of
+40. Jam risk derives from fouling, wear, service history and rate of
     fire; no flat chance constant exists in the codebase.
-34. Barrel / action / springs / stock wear independently and route to
+41. Barrel / action / springs / stock wear independently and route to
     their documented consequences.
-35. The fast wear axis is generalized; `keenness` and `fouling` are its
+42. The fast wear axis is generalized; `keenness` and `fouling` are its
     instances, sharpen and clean its restoring verbs, and neither
     touches structural condition.
-36. Pattern keys register in the chattel ledger; hand-fitted parts key
+43. Pattern keys register in the chattel ledger; hand-fitted parts key
     to an instance and pattern parts to a pattern name.
-37. Grade changes reliability, wear rate and stability — never energy.
+44. Grade changes reliability, wear rate and stability — never energy.
     A test asserts equal muzzle energy across grades.
-38. `elasticity` exists as a material property with bow staves and gun
+45. `elasticity` exists as a material property with bow staves and gun
     springs as consumers.
-39. `throw` ships as a standalone verb usable outside combat; firing,
+46. `throw` ships as a standalone verb usable outside combat; firing,
     aiming, band change and cover are gambits; `load` and its
     subcommands operate the mechanism.
-40. Formation role vocabulary carries a band preference — advisory for
+47. `throw` at a sentient opens a session and runs the terms handshake
+    identically to `attack` — same ambush and consent gates, same
+    `consented: false` marker on imposed terms. Throwing *at* and
+    throwing *away* are distinct parses.
+48. Formation role vocabulary carries a band preference — advisory for
     players, directive for brains. `skirmish` and `firing-line` presets
     exist. No fourth formation hook is added.
-41. Four ranged brains ship with dialed thresholds; each has a
+49. Four ranged brains ship with dialed thresholds; each has a
     documented, testable tell. `marksman` is assigned by loadout and is
     a crossbow-and-gun doctrine.
-42. Morale is brain-local and breaks an NPC off on screen-down, wound
+50. Morale is brain-local and breaks an NPC off on screen-down, wound
     band, outnumbered, or ammunition dry.
-43. NPCs deplete ammunition through the same object model as players.
-44. New arrivals open their edges at the arena's maximum band.
-45. A large-fight profile is taken at N=8 and N=16 participants, with
+51. NPCs deplete ammunition through the same object model as players.
+52. Every edge — new arrival *and* initiation — opens at the arena's
+    maximum band, except that a successful concealed approach opens at
+    `close`. A test covers the ambush case defeating an archer's
+    band advantage.
+53. A large-fight profile is taken at N=8 and N=16 participants, with
     the result recorded in the subsystem doc and no pathological
     blow-up in edge bookkeeping. *(Resolves slate Q20.)*
-46. One demonstrator per system is live-driveable: a bow, a crossbow, a
+54. One demonstrator per system is live-driveable: a bow, a crossbow, a
     thrown flask, a sidearm, a sentry, a cover object, an overturnable
     furnishing. Each verified by driving, not only by suite. **The bow
     and the crossbow must read as different weapons to play**, not as
     one weapon with different numbers.
-47. `docs/subsystems/ranged.md` exists and is the source of truth;
+55. `docs/subsystems/ranged.md` exists and is the source of truth;
     `combat.md`, `hazard.md`, `magic.md`, `materials-response.md`,
-    `crafting.md` and `perception.md` are updated at their seams.
-48. `pnpm build`, `pnpm test`, `pnpm lint` and the lint family
+    `crafting.md`, `chattel.md`, `concealment.md` and `perception.md`
+    are updated at their seams.
+56. `pnpm build`, `pnpm test`, `pnpm lint` and the lint family
     (`lint:gates`, `lint:instanceable`, `lint:imports`,
     `lint:module-scope`, `lint:boundary`) all pass.
 
