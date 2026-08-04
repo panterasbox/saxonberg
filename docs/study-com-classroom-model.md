@@ -290,7 +290,141 @@ questions — is shipped substrate or authored data.
 
 ---
 
-## 7. The two game shapes (the big design output)
+## 7. How the classroom actually runs — two build models, and what campus does with Study's assets
+
+Building on §6, this examines the **two architectures** we'd support for
+both modes, and the load-bearing question: what does the *campus* do with
+Study's website-shaped assets (videos, transcripts, the two taxonomies,
+assessments)?
+
+### 7.1 What Study's assets become on campus
+
+Study's assets are built to be *delivered and answered on a page*. On
+campus each changes job:
+
+| Study asset (website) | In the **lecture hall** | In the **lab** |
+|---|---|---|
+| **Video** | a *prop* the instructor plays ("watch this, now tell me where the energy went") — not the lecture | a mid-task reference |
+| **Transcript** (lesson text) | the instructor's **grounding / source of truth** + the readable lesson | the manual you consult |
+| **Concept / ExamTaxonomyNode** | *what the session covers* + the live **competence map** of who's weak where | *what deed this exercises*, via the Discipline crosswalk |
+| **Assessment items + `case_study` passages** | **formative checks** (clicker questions) + the seed bank of good student questions | the **graded deed** (computed key) + the **scenario itself** (a case → the quest) |
+
+So campus consumes the **transcript as teachable content, the taxonomy as
+the competence map, and the assessment bank as both formative checks and
+lab raw material** — the video is demoted to a prop.
+
+### 7.2 Why the interface is "built for LLMs"
+
+Saxonberg exposes the world as **structured, queryable state** (MQL, the
+viewer-aware perception face, the inspection pane —
+[mql.md](./subsystems/mql.md),
+[perception.md](./subsystems/perception.md),
+[inspection-pane.md](./subsystems/inspection-pane.md)) and a **command
+grammar with structured response envelopes**
+([command-routing.md](./subsystems/command-routing.md),
+[response-envelope.md](./subsystems/response-envelope.md)). That is exactly
+an **agent tool-use loop**: perceive state as text → decide → emit a
+command → read a structured result. A player drives it through the
+cockpit; an agent drives the **same verbs and queries**. This is the deep
+reason the player/NPC interchangeability of §2 extends to **LLM**
+inhabitants: an agent is a **brain** ([behavior.md](./subsystems/behavior.md))
+that perceives and acts through the standard surface. The world's native
+I/O *is* an agent's native I/O — so the agent model is a new **brain kind**,
+not a new subsystem.
+
+### 7.3 The two models, across lecture and lab
+
+|  | **Mechanical** (request/response, signals, pre-canned) | **Agent** (LLM inhabitants + game state) |
+|---|---|---|
+| **Lecture** | instructor = a dialogue tree keyed to the topic (`ask` → canned answer); formative checks = the item generator (computed key); NPC students ask **seeded** misconception-bank questions with cached answers. *Scripted direct instruction + retrieval practice — reliable; can't field a novel question or read the room.* Cost ≈ 0 runtime. | instructor = an LLM agent grounded in the transcript + objectives **and the room's live competence state** (sees the cohort is weak on latent heat and adapts), interrogable freely; NPC students are agents (emergent, instructively-wrong questions). *Responsive, dialogic, Socratic — contingent teaching a video can't do.* Cost: bounded 1:N (§6.1). |
+| **Lab** | the classic quest: the `case_study` passage → a branching scenario with **authored per-choice consequences**; the world subsystem grades the deed; the item generator supplies checks. *Learning-by-doing with immediate consequence (Kolb, deliberate practice); finite branches, can't handle an unforeseen action.* | the scenario is **inhabited by agents with game state** — the patient responds to *whatever* you do (not just authored branches), the lab partner is an agent, the instructor coaches contingently. *Authentic open-ended practice with a coach — closest to a real clinical placement / studio critique.* See the rule below. |
+
+### 7.4 The rule that makes the agent model safe
+
+**The simulation adjudicates; agents only narrate and socialize.** In the
+lab, the patient agent cannot invent a vitals change the physiology sim
+didn't produce — the sim is **truth and grade**; the agent *speaks* that
+truth in character and reacts socially. Break the rule and the deed stops
+being gradable and the agent starts hallucinating outcomes; keep it and you
+get open-ended interactivity on an **honest deterministic core**. (This is
+the runtime cousin of the item generator's rule — "the evaluator calls the
+game's own code path, it never reimplements the physics",
+[college-slate.md](./slates/builds/college-slate.md):241-251.)
+
+### 7.5 The three-layer dial (not old-vs-new)
+
+The real architecture composes all three, dialed per course / section /
+budget:
+
+1. **Deterministic core (always on)** — the physics/vitals/conservation
+   sim + the computed-key items. *Truth and grade; never an LLM.*
+2. **Agent layer (dial up)** — the professor who riffs, the patient who
+   reacts, the peer who argues. *Interactivity and presence.*
+3. **Mechanical layer (floor + fallback)** — dialogue trees, seeded
+   questions, authored branches; for when you won't pay, the agent is down,
+   or a formative check must be exact.
+
+The §6.4 two-tier ramp is this dial applied to the instructor; the same
+dial exists for the lab (authored branches → agent-inhabited scenario) and
+the classmates (seeded questions → agent peers). **Ship on layers 1+3;
+turn on layer 2 where it earns its cost.**
+
+### 7.6 A campus walk-through, lecture → lab, consuming the assets
+
+*Thermodynamics (CX / Magic-101 flavor).* Pre-work, async, anywhere: the
+Study **video + transcript**. Then campus:
+
+- **Lecture hall.** The instructor opens grounded in the **transcript** and
+  the cohort's **Concept mastery** — *"last week you all forgot the
+  water"* — and plays a 20-sec **video** clip as a prop. A **formative
+  check** drops: the real `MULTI_SELECT` thermo item (sealed tank heated /
+  cup cooled); everyone answers live and the misses steer the session. You
+  `ask "isn't that just latent heat?"` — *mechanical:* a canned latent-heat
+  answer; *agent:* it engages your framing and pushes. A classmate asks the
+  conservation question (the real 25-g-vs-20-g item, seeded from the
+  misconception bank).
+- **Lab.** You run the **calorimetry deed** — the fire/thermal sim computes
+  ignition and energy (the computed key is the grade; no LLM). *Mechanical:*
+  a fixed sequence of checks. *Agent:* a lab-partner agent argues whose
+  measurement was off and the instructor coaches — but the calorimeter's
+  reading is the **sim's**, not the agent's (§7.4). You leave with a **deed**
+  banked to the Transcript (→ competence → conferral → the dual transcript).
+
+Swap the domain and it's the NGN **postop-knee case**: the transcript
+grounds the lecture, the case's six questions are the formative spine, and
+the lab is the shift-long patient scenario (patient agent reacting, the
+SBAR handoff to a peer) with the vitals sim adjudicating.
+
+### 7.7 The pedagogy bets — and what an education expert must stress-test
+
+This design makes real learning-science bets, mostly good ones — but the
+agent layer has a specific hazard, and **none of this has been validated
+with a learning scientist.** That is a real dependency to close *before*
+the agent layer is built.
+
+- **Good bets:** active > passive; formative assessment + immediate
+  feedback; contingent tutoring at the ZPD (the agent lecture); deliberate
+  practice with consequence (the lab); social/dialogic learning (agent
+  peers); retrieval practice (the checks).
+- **The hazard — desirable difficulties.** An LLM instructor tends to be
+  *too helpful*. Productive struggle is where learning happens; an agent
+  that instantly resolves every confusion can **remove the struggle and the
+  learning with it.** Tuning an agent to *coach* (withhold, redirect)
+  rather than *answer* is a pedagogical design problem, not a prompt tweak.
+- **Questions for an expert:** where should the agent withhold vs. tell?
+  does hearing seeded NPC questions actually transfer, or just feel social?
+  is the lab's deterministic grade measuring understanding or
+  button-finding? should the lecture agent be allowed to be *wrong on
+  purpose* (a productive misconception to debate)?
+
+The **mechanical layer is pedagogically conservative and safe; the agent
+layer is where you can accidentally build something that *feels* like great
+teaching and isn't** — which is exactly why an education expert belongs in
+the room before it's built.
+
+---
+
+## 8. The two game shapes (the big design output)
 
 CX and test prep are **structurally different products**
 ([platform-reality §3,§5](./study-com-platform-reality.md)), so they want
@@ -333,7 +467,7 @@ this one thing or several."
 
 ---
 
-## 8. Pacing — keeping the game on the learner's clock
+## 9. Pacing — keeping the game on the learner's clock
 
 The failure mode you named — the learner forced to keep up with the *game*
 instead of their real goal — is a real risk and is resolved structurally:
@@ -358,7 +492,7 @@ Neither asks the learner to keep up with *it*.
 
 ---
 
-## 9. Is it actually possible? — verdict and the honest gaps
+## 10. Is it actually possible? — verdict and the honest gaps
 
 **Possible, mostly on shipped substrate**, with three named gaps:
 
@@ -382,7 +516,7 @@ Neither asks the learner to keep up with *it*.
 
 ---
 
-## 10. Open questions
+## 11. Open questions
 
 - **Scenario-derivation fidelity** — how faithfully can a `case_study`
   passage be auto-derived into a room + roles + a rubric-checked deed, vs
