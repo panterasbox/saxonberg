@@ -47,6 +47,11 @@ proceed now; implementation waits on that merge.
 - **Shots resolve deterministically** from two public commitments — the
   shooter's aim ladder against the target's answer — with no dice
   anywhere in the path.
+- **The four launcher families feel genuinely different to play**, and
+  that difference derives from one field rather than being authored per
+  weapon: `energySource` says where the shot's energy is stored, which
+  says whether readiness holds for free, which is why a bow's draw *is*
+  its aim while a crossbow and a gun aim at leisure.
 - **Thrown effect-carriers work**: a flask crosses a gap, the vessel
   breaks by its real material, the contents spill onto real surfaces,
   and the payload fires through the same effect union as every spell.
@@ -199,6 +204,19 @@ quality −1/−2, plus the shipped motion-degrade rules.
 requirement, the numbers are tuning. The gym is the test bench.
 *(Resolves slate Q4.)*
 
+**The ladder is shared, but a muscle-held launcher cannot sit at the
+top of it.** Because drawing *is* aiming for a bow (D13), stability
+**decays past the archer's hold window** — so a `settled` bow shot
+becomes *worse* than a `held` one once the window is exceeded. `settled`
+is not forbidden to a bow, which would be cleaner and wrong; it is
+self-defeating past your skill.
+
+The window is set by competence, which is exactly where the real
+archery skill lives: not "can I aim," but "how long can I hold before
+it goes." This keeps D8 intact — competence buys tempo, never steps —
+and gives archery a commitment decision guns do not have. Crossbows
+and guns have no hold window; their `settled` is free.
+
 ### D8 — Competence buys tempo and information, never steps
 
 A marksman settles faster and holds aim through minor movement. There
@@ -243,14 +261,43 @@ arrow leaves any bow; spine-match derives a quality factor that steps
 stability, never a gate. Machined versus craft tolerances, and quietly
 part of the proliferation lesson.
 
-### D13 — Poise cost follows `energySource`
+### D13 — Readiness and poise both follow `energySource`
 
 `energySource` is a closed vocabulary: `muscle` · `stored-elastic` ·
-`chemical` (`electrical` parked). Holding a bow at full draw is
-genuinely exhausting; firing a gun costs essentially nothing
-physically. The gun's real advantage is that it does not tire you —
-true, historically why firearms won, and the cleanest balance lever in
-the design. No invented drawback.
+`chemical` (`electrical` parked). It is the load-bearing field of the
+whole launcher model, because it answers two questions at once: **where
+the shot's energy is stored**, and therefore **whether readiness can be
+held for free**.
+
+Every launcher has a **readiness ladder**. What differs is who pays to
+sit at the top of it:
+
+| Family | `energySource` | Readiness stored in | Holds free? | Aim |
+|---|---|---|---|---|
+| Thrown | `muscle` | nothing — cocking is instantaneous | n/a | aim *is* the throw |
+| Bow | `stored-elastic`, muscle-held | **the archer's body** | **no** — poise every beat | draw **is** aim; one act |
+| Crossbow | `stored-elastic`, mechanically held | the spanned mechanism | **yes**, indefinitely | decoupled from readiness |
+| Gun | `chemical` | the cartridge | **yes**, indefinitely | decoupled from readiness |
+
+**For a gun and a crossbow, aiming and readiness are separate acts. For
+a bow they are the same act** — you cannot hold a bow at full draw
+without aiming, or aim without being at full draw, and the draw burns
+you down the whole time. This is the honest experiential difference
+between the families, and it derives from one field rather than being
+authored per weapon.
+
+Two things fall out that would otherwise need inventing:
+
+- **The crossbow's whole tactical point** — a spanned crossbow held on
+  a doorway for minutes, paid for with a miserable rate of fire — is
+  now a consequence of where the energy sits, not a special case. (It
+  is also public state: a spanned crossbow is visibly spanned.)
+- **The gun's real advantage is that it does not tire you.**
+  Historically why firearms won, and the cleanest balance lever in the
+  design. No invented drawback.
+
+Poise cost follows directly: holding a draw is expensive per beat,
+holding a spanned crossbow or a chambered gun is free.
 
 ### D14 — Splash is the target plus whoever is `close` to the target
 
@@ -283,6 +330,18 @@ struck interrupts the action, costing the action but not the
 ammunition. **Partial state is real**: a half-loaded revolver is an
 honest state, and ordered magazine contents are required anyway for the
 tracer trick. *(Resolves slate Q12.)*
+
+**One exception, and it derives from D13 rather than being carved:
+readiness folds into the shot when it is instantaneous.** Nocking an
+arrow is part of loosing it, so a bow has no separate committed
+readiness action — the flowing nock-draw-loose is a single `snap`.
+Spanning a crossbow and loading a gun are mechanical, so they stay
+separate committed actions.
+
+This is what makes rate of fire honest without a stored
+`rateOfFire` field: a longbowman shoots many times in the span a
+crossbowman manages one, and pays for it in the poise that a spanned
+crossbow does not cost. The trade is legible in both directions.
 
 ### D17 — A negligent discharge can only strike whoever you could deliberately shoot
 
@@ -438,9 +497,17 @@ deliberate while letting players create cover from the environment.
 ### D28 — Content is one demonstrator per system; venues defer
 
 The standing rule is systems over content, with NPCs as expensive
-just-in-time carves. Ships: one bow with arrows (graded fit), one
-thrown flask (the potion seam), one sidearm (hard fit, components), one
-sentry brain, one cover object, one overturnable furnishing.
+just-in-time carves. Ships: one bow with arrows (graded fit), **one
+crossbow**, one thrown flask (the potion seam), one sidearm (hard fit,
+components), one sentry brain, one cover object, one overturnable
+furnishing.
+
+**The crossbow is not optional content.** It is the only demonstrator
+of *mechanically held* readiness (D13) — the case that proves the
+readiness model is a real axis rather than a bow-versus-gun split. Bow
+and crossbow sharing `stored-elastic` while differing on who holds the
+draw is the model's sharpest test, and it is cheap: same projectile
+family, same graded fit, one extra `spanMechanism` field.
 
 Defers as content: the Practicum range, the armory venue, guard patrol
 density, the accessory catalogue, and the installed launch regime.
@@ -459,8 +526,12 @@ Store causes, derive effects. Nobody writes "damage" on anything.
 carry `limbLength`, `limbThickness` and stave material; crossbows add
 `spanMechanism` (`hand`/`stirrup`/`lever`/`windlass`).
 
-**Runtime state, not template** — `chambered`, `safetyOn`,
-`seatedMagazine`, `fouling`, Durable condition, `shotsSinceService`.
+**Runtime state, not template** — the readiness ladder of D13 is stored
+state, per family. Guns: `chambered`, `safetyOn`, `seatedMagazine`,
+`fouling`, Durable condition, `shotsSinceService`. Crossbows:
+`spanned`, and the seated bolt. Bows: `strung`, `nocked`, and `drawn`
+with the beat count it has been held — the value the D7 hold window
+reads. Thrown weapons carry none; readiness is instantaneous.
 
 **Derived, never stored** — muzzle energy, handling, concealability,
 reload and span tempo, jam risk, loudness.
@@ -583,6 +654,13 @@ becomes unbearable fastest.
 | `skirmisher` | kite to maintain band | withdraws on a threshold — bait it |
 | `marksman` | spend beats settling, take the good shot | committed aim — rush it |
 | `sentry` | the use-of-force ladder: challenge → draw → aim → warn → fire | escalation is public at every rung |
+
+**`marksman` is a crossbow-and-gun doctrine, not an archer one.**
+Patient settling is only available to a shooter whose weapon holds
+itself ready (D13); a bow's hold window makes it self-defeating. The
+doctrine is assigned by the NPC's loadout, and `archer` staying on the
+flow-and-volley end is the correct read of the weapon rather than a
+difficulty tier.
 
 Kiting is governed by two levers already designed: withdrawing costs
 tempo and holding a draw costs poise, so a kiting archer exhausts
@@ -709,75 +787,92 @@ from honesty, not advocacy.
     factor and never gates.
 14. Shooting a bow costs poise; firing a gun does not — asserted by
     `energySource`.
-15. A thrown flask crosses a band gap, breaks by its vessel material,
+15. Every launcher family carries the readiness state its
+    `energySource` implies: guns `chambered`/`safetyOn`/
+    `seatedMagazine`, crossbows `spanned`, bows `strung`/`nocked`/
+    `drawn` with a held-beat count, thrown weapons none.
+16. A spanned crossbow and a chambered gun hold readiness indefinitely
+    at no poise cost; a drawn bow charges poise every beat held.
+17. A bow's `settled` stability decays past its holder's competence
+    hold window, so a shot held too long is measurably worse than a
+    `held` one. Crossbows and guns have no hold window. A test covers
+    the crossover point.
+18. A bow's nock-draw-loose resolves as a single `snap` with no
+    separate committed readiness action; spanning a crossbow and
+    loading a gun remain separate committed actions. No stored
+    `rateOfFire` field exists — rate of fire is a consequence.
+19. A thrown flask crosses a band gap, breaks by its vessel material,
     spills its contents onto the room, and fires its payload through the
     effect union.
-16. Splash catches the target plus everyone at `close` to the target,
+20. Splash catches the target plus everyone at `close` to the target,
     and nobody else.
-17. `HazardRange` accepts `'ranged'` and the hazard path reads it.
-18. `MagicLogic.deliverAt` uses the band model; offensive spells gain
+21. `HazardRange` accepts `'ranged'` and the hazard path reads it.
+22. `MagicLogic.deliverAt` uses the band model; offensive spells gain
     ranged delivery with no change to the spell roster.
-19. Reload and span are committed engagement actions; being struck
+23. Reload and span are committed engagement actions; being struck
     costs the action, not the ammunition; partial load state persists.
-20. An ND cannot strike a sentient the shooter could not deliberately
+24. An ND cannot strike a sentient the shooter could not deliberately
     shoot; the round lands on terrain instead; the accountability row
     appends in both cases. Tests cover both branches.
-21. Shooting into a melee containing a non-consenting sentient is
+25. Shooting into a melee containing a non-consenting sentient is
     refused at commit time.
-22. `CombatTerms.lethality` carries an incapacitation rung; an
+26. `CombatTerms.lethality` carries an incapacitation rung; an
     unconsented taser produces the `consented: false` crime marker.
-23. Taser requires both darts at `close`; a beanbag at `close` +
+27. Taser requires both darts at `close`; a beanbag at `close` +
     `precise` + head is lethal with no special-case rule.
-24. Armor converts a stopped `point` to `blunt` and the padding layer
+28. Armor converts a stopped `point` to `blunt` and the padding layer
     resolves the trauma; a test covers textile-stops-bullet /
     bodkin-slips-textile.
-25. The readout ladder omits lines the reader's competence cannot
+29. The readout ladder omits lines the reader's competence cannot
     resolve — no vague words, no stale values. Cross-reading works at
     `close` and `reach`, one band worse than self-reading.
-26. Sound attenuates per metre through the exit graph; a whisper dies
+30. Sound attenuates per metre through the exit graph; a whisper dies
     next door and a gunshot carries until the accumulated attenuation
     crosses the hearing threshold. `MAX_HOPS` survives as a perf
     backstop and vision/smell behavior is unchanged.
-27. Cover is authored, joins the covering stack while occupied, is
+31. Cover is authored, joins the covering stack while occupied, is
     directional (flanking defeats it), destructible via the response
     grid, and capacity-leased.
-28. Overturnable furnishings flip in one beat and are measurably weaker
+32. Overturnable furnishings flip in one beat and are measurably weaker
     cover than purpose-built.
-29. Jam risk derives from fouling, wear, service history and rate of
+33. Jam risk derives from fouling, wear, service history and rate of
     fire; no flat chance constant exists in the codebase.
-30. Barrel / action / springs / stock wear independently and route to
+34. Barrel / action / springs / stock wear independently and route to
     their documented consequences.
-31. The fast wear axis is generalized; `keenness` and `fouling` are its
+35. The fast wear axis is generalized; `keenness` and `fouling` are its
     instances, sharpen and clean its restoring verbs, and neither
     touches structural condition.
-32. Pattern keys register in the chattel ledger; hand-fitted parts key
+36. Pattern keys register in the chattel ledger; hand-fitted parts key
     to an instance and pattern parts to a pattern name.
-33. Grade changes reliability, wear rate and stability — never energy.
+37. Grade changes reliability, wear rate and stability — never energy.
     A test asserts equal muzzle energy across grades.
-34. `elasticity` exists as a material property with bow staves and gun
+38. `elasticity` exists as a material property with bow staves and gun
     springs as consumers.
-35. `throw` ships as a standalone verb usable outside combat; firing,
+39. `throw` ships as a standalone verb usable outside combat; firing,
     aiming, band change and cover are gambits; `load` and its
     subcommands operate the mechanism.
-36. Formation role vocabulary carries a band preference — advisory for
+40. Formation role vocabulary carries a band preference — advisory for
     players, directive for brains. `skirmish` and `firing-line` presets
     exist. No fourth formation hook is added.
-37. Four ranged brains ship with dialed thresholds; each has a
-    documented, testable tell.
-38. Morale is brain-local and breaks an NPC off on screen-down, wound
+41. Four ranged brains ship with dialed thresholds; each has a
+    documented, testable tell. `marksman` is assigned by loadout and is
+    a crossbow-and-gun doctrine.
+42. Morale is brain-local and breaks an NPC off on screen-down, wound
     band, outnumbered, or ammunition dry.
-39. NPCs deplete ammunition through the same object model as players.
-40. New arrivals open their edges at the arena's maximum band.
-41. A large-fight profile is taken at N=8 and N=16 participants, with
+43. NPCs deplete ammunition through the same object model as players.
+44. New arrivals open their edges at the arena's maximum band.
+45. A large-fight profile is taken at N=8 and N=16 participants, with
     the result recorded in the subsystem doc and no pathological
     blow-up in edge bookkeeping. *(Resolves slate Q20.)*
-42. One demonstrator per system is live-driveable: a bow, a thrown
-    flask, a sidearm, a sentry, a cover object, an overturnable
-    furnishing. Each verified by driving, not only by suite.
-43. `docs/subsystems/ranged.md` exists and is the source of truth;
+46. One demonstrator per system is live-driveable: a bow, a crossbow, a
+    thrown flask, a sidearm, a sentry, a cover object, an overturnable
+    furnishing. Each verified by driving, not only by suite. **The bow
+    and the crossbow must read as different weapons to play**, not as
+    one weapon with different numbers.
+47. `docs/subsystems/ranged.md` exists and is the source of truth;
     `combat.md`, `hazard.md`, `magic.md`, `materials-response.md`,
     `crafting.md` and `perception.md` are updated at their seams.
-44. `pnpm build`, `pnpm test`, `pnpm lint` and the lint family
+48. `pnpm build`, `pnpm test`, `pnpm lint` and the lint family
     (`lint:gates`, `lint:instanceable`, `lint:imports`,
     `lint:module-scope`, `lint:boundary`) all pass.
 
