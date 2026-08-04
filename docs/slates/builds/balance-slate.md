@@ -337,13 +337,39 @@ A correction to the opening framing worth keeping in front:
 
 | Tier | Governed by |
 |---|---|
-| the **runtime** | wizards; out of fiction; the sandbox doctrine's one axis nothing opens |
+| the **runtime** | wizards; out of fiction. ⭐ Nothing *reaches in* — no content edit, no law, no clever composition escalates to code-trust. It is **assigned** from above (below), never climbed to |
 | the **Compact** | the polity — the rules of the game |
 | the **holder** | themselves, over everything unreserved |
 
-> ⭐⭐⭐ **No law can make you a wizard.** Otherwise the legislature has a
-> legal path to code-trust and the capture-resistance claim evaporates.
-> (See Part 6 for the succession form of the same rule.)
+⚠⚠ **CORRECTED 2026-08-04 — the original rule here was backwards.** It
+read *"no law can make you a wizard,"* on the reasoning that a legal path
+to code-trust would evaporate the capture-resistance claim. **Rejected:**
+
+> **User: "if a new PM comes in and wants to change every wizard and
+> archwizard in the game that's their prerogative. But no one ever loses
+> the ability to create content with the exception of compute quotas,
+> just typescript code."**
+
+The guarantee was aimed at the wrong side of the transaction. Code-trust
+is **a job assignment**, and an executive the polity chose is entitled to
+make it. What matters is not what can be *granted* but:
+
+> ⭐⭐⭐⭐⭐ **THE GUARANTEE IS ABOUT WHAT CANNOT BE TAKEN.**
+
+| | |
+|---|---|
+| **TypeScript / code-trust** | grantable **and revocable** by the executive |
+| ⭐ **content authorship** | **INALIENABLE** — nobody ever loses the ability to make things |
+| **compute** | the *only* legitimate throttle, and a **quota**, never a permission |
+
+So **"protowizard" is not a lesser tier — it is the floor nobody can be
+pushed below**, which is what makes the tenure kernel's protected bundle
+real: you can lose the keys to the engine and still hold your ground,
+your builds, and your capacity to author.
+
+⭐ **The claim survives, bounded more honestly:** the polity governs
+**who holds the keys**, not **what the engine does**. See Part 6 for the
+chain.
 
 ---
 
@@ -762,21 +788,68 @@ But "regulatory agency" carries the hazard to design against:
 > **whether to bring the exception case**, and the relator rung checks
 > even that.
 
-## ⚠⚠ The PM: two hats, never one office
+## ⭐⭐ The PM heads the executive, period
 
-The deferred Prime Minister in access.md sits atop **operator/root →
-archwizards → wizards** — the *code-trust* chain, out of fiction. The PM
-who seats a cabinet is a **diegetic** head of government.
+⚠⚠ **CORRECTED 2026-08-04.** This section previously argued *"two hats,
+never one office"* — that the diegetic PM must be kept apart from the
+code-trust chain or the executive would inherit code-trust by succession.
+**That was the same backwards guarantee as Part 1's, and it is rejected
+for the same reason.** The user's call:
 
-> ⚠⚠ **If those are the same seat, the fiction's executive inherits
-> code-trust by SUCCESSION.** That is *no law can make you a wizard*
-> defeated from the other direction — no law needed, just an appointment.
+> **User: "the PM. And the PM seats the ops office. The PM heads the
+> executive period."**
 
-They are the same person at launch (founder-default, and fine). But it
-must be **two hats, never one office**, or the succession rule quietly
-becomes the escalation path. The companion rule to Part 1's:
+So the seat access.md defers *above* `archwizards` is now specified, and
+it is one office:
 
-> **No law can make you a wizard, and NO OFFICE MAY INHERIT CODE-TRUST.**
+> **PM → archwizards → wizards**, with the PM seated by the polity.
+
+⭐⭐ **This makes code-trust politically accountable for the first
+time.** Archwizard membership is env-seeded and operator-managed today —
+entirely outside the fiction. An elected seat above it means the whole
+chain answers to somebody, and the *"community governs its world"* claim
+stops being partial.
+
+⚠ The obvious risk — **a captured PM revoking every wizard** — is exactly
+what Part 1's inalienable-content floor absorbs. They can take the keys
+to the engine; they can never take your ability to author. **That floor
+is the backstop, not decoration.**
+
+⭐ **Appointment is not exercise.** Build-1's organization doctrine keeps
+the powers apart with no extra machinery: *the appointing authority
+appoints, the position acts.* The PM **seats** the ops office without
+**holding** ops — and a PM who wants to do ops themselves must appoint
+themselves, which is a visible line on the chart rather than a quiet
+capability.
+
+### ⭐⭐⭐ Why ops is its own seat: it encapsulates the unmeasurable
+
+> **User: "we'd want to encapsulate everything we can't track inside the
+> engine: aws, mongo, the blockchain. We probably don't want that leaking
+> out to other institutions."**
+
+That is a principled reason for the office rather than an org-chart
+convenience, and it is **the exact complement of this slate's own rule**:
+
+| | |
+|---|---|
+| *A matter cannot be legislated until it is metered* (Part 2) | everything else |
+| ⭐ **Ops is the domain where metering is IMPOSSIBLE — so it gets a person instead of a bound** | AWS · Mongo · the anchoring chain |
+
+Consequences worth holding:
+
+- ⚠ **Its accountability is TESTIMONY, not measurement.** Everywhere else
+  the record derives and cannot be forged; here it is self-reported.
+  Pretending otherwise would be the dishonest move — the answer is not a
+  better audit but **keeping the surface small**.
+- ⭐ **The office should SHRINK.** Anything that becomes measurable leaves
+  ops for ordinary governance. **Compute is the first candidate** — a
+  metaresource today whose allowance ships inert, so it sits in ops until
+  the meter exists and then departs.
+- **Containment is the point**: these capabilities must not be reachable
+  from a locality committee, a guild or a corpo — not because those
+  bodies are untrustworthy, but because **no mechanism could hold them to
+  account for it.** There is no ledger to check them against.
 
 ## ⭐⭐⭐ Removal, not confirmation, is the lever — and conviction already provides it
 
