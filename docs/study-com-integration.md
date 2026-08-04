@@ -35,7 +35,13 @@
 > [study-com-integration-spec.md](./study-com-integration-spec.md)
 > (expands §§6-7); and the reverse game→study adaptive feed,
 > [study-com-adaptive-feed.md](./study-com-adaptive-feed.md) (expands
-> §6.2).
+> §6.2). Plus the verified-reality grounding
+> ([study-com-platform-reality.md](./study-com-platform-reality.md)), the
+> classroom model ([study-com-classroom-model.md](./study-com-classroom-model.md)),
+> worked real-data examples
+> ([study-com-integration-examples.md](./study-com-integration-examples.md)),
+> and the dual-transcript idea
+> ([study-com-dual-transcript.md](./study-com-dual-transcript.md)).
 
 ---
 
