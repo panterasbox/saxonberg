@@ -29,28 +29,10 @@ import type {
   UnlinkResult,
 } from './Application';
 import { Application } from './Application';
-import { ConnectionManager } from './ConnectionManager';
 import type { InboundClientMessage } from './inbound';
+import { ConnectionApi } from '../mud/api/connection';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { SecurityApi } from '../mud/api/security';
-
-/**
- * Inbound message types that must NOT be serialized behind the
- * socket's ordering chain — see `handleWebSocketMessage`.
- *
- * The membership test is "is this a reply to work already in flight?"
- * Both entries answer a specific `promptId`, so they are addressed
- * rather than ordered, and chaining them behind the very command that
- * is awaiting them deadlocks the socket.
- *
- * ⚠ Keep this set SMALL. Anything here gives up arrival-order
- * guarantees against every other message on the socket, which is the
- * right trade only for a reply that names its own target.
- */
-const OUT_OF_BAND_INBOUND: ReadonlySet<string> = new Set([
-  'prompt-response',
-  'prompt-cancel',
-]);
 
 /**
  * Build a deterministic synthetic Google profile for test-mode login.
@@ -92,7 +74,6 @@ export class Backend implements IBackend {
    * and two concurrent clones of one path trip `StuffApi.clone`'s
    * in-flight cycle guard. Entry removed on socket close.
    */
-  private inboundChainBySocketId: Map<string, Promise<void>> = new Map();
 
   /**
    * Reference to Application singleton.
@@ -254,69 +235,19 @@ export class Backend implements IBackend {
     if (!this.application) return;
     const app = this.application;
 
-    // ⭐ OUT-OF-BAND messages bypass the ordering chain, and they MUST.
-    //
-    // The chain below serializes each socket's messages by awaiting the
-    // previous handler in full. A command that raises a prompt does not
-    // settle until that prompt is answered — so chaining the ANSWER
-    // behind it is a deadlock: `prompt-response` waits for the command,
-    // which waits for `prompt-response`. Every interactive prompt
-    // raised from inside a command dispatch was unanswerable
-    // (`forum post`, `wiki create`, any mid-command disambiguation):
-    // the client sent a well-formed frame, nothing errored, and the
-    // prompt simply hung forever.
-    //
-    // These types are *replies to work already in flight*, addressed by
-    // `promptId` rather than by position, so arrival order carries no
-    // meaning for them and running them immediately is both safe and
-    // required. Everything else keeps its ordering guarantee.
-    if (OUT_OF_BAND_INBOUND.has(message.type)) {
-      void Promise.resolve(
-        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () => {
-          // Same circle-scope establishment as the chained path below.
-          // A prompt's VALIDATOR runs synchronously here, so it needs
-          // the scope for the same reason every other inbound handler
-          // does; omitting it would field-scope a validator's reads
-          // while its author stands inside their circle.
-          this.establishInboundScope(socketId);
-          return app.processUserMessage(socketId, message);
-        }),
-      ).catch((error) => {
-        console.error(
-          `Backend: out-of-band '${message.type}' error for socket ${socketId}:`,
-          error,
-        );
-      });
-      return;
-    }
-
-    // Chain this message behind the socket's prior one so they process
-    // in arrival order (see `inboundChainBySocketId`). `runRoot` plants
-    // a fresh root frame regardless of the calling continuation, so the
-    // message-driven call stack is still rooted at Backend.
-    const prior = this.inboundChainBySocketId.get(socketId) ?? Promise.resolve();
-    const next = prior
-      .then(() =>
-        ExecutionContextApi.runRoot(Backend, 'processUserMessage', () => {
-          // Sandbox taint at the INBOUND boundary (roots table, kind
-          // (a) — Interactive principal): everything this socket asks
-          // for runs as the body currently holding it. The command
-          // path establishes this for itself, but so must every other
-          // inbound handler — an MQL subscribe, a one-shot query, a
-          // client-state write — or work done on a player's behalf
-          // while they stand inside their circle is field-scoped and
-          // the boundary denies reads of their own body.
-          this.establishInboundScope(socketId);
-          return app.processUserMessage(socketId, message);
-        })
-      )
-      .catch((error) => {
-        console.error(
-          `Backend: inbound processing error for socket ${socketId}:`,
-          error
-        );
-      });
-    this.inboundChainBySocketId.set(socketId, next);
+    // WHICH LANE is the connection subsystem's business — arrival
+    // order for commands, a second lane for prompt replies that must
+    // not wait on the command awaiting them (see
+    // `ConnectionApi.sequenceInbound`). WHAT FRAME it runs in is
+    // this boundary's: an inbound turn begins here, so its root frame
+    // is planted here, and `ExecutionContextApi`'s frame mutators are
+    // gated to boundary files for exactly that reason.
+    ConnectionApi.sequenceInbound(socketId, message.type, () =>
+      ExecutionContextApi.runRoot(Backend, 'processUserMessage', () => {
+        this.establishInboundScope(socketId);
+        return app.processUserMessage(socketId, message);
+      }),
+    );
   }
 
   /**
@@ -325,15 +256,15 @@ export class Backend implements IBackend {
    * Interactive principal): everything this socket asks for runs as
    * the body currently holding it.
    *
-   * Shared by the ordered and out-of-band paths so the two cannot
-   * drift; an inbound handler that ran unscoped would be field-scoped
-   * while its author stands inside their circle, and the boundary
-   * would then deny reads of their own body.
+   * A prompt VALIDATOR runs synchronously inside its reply's frame, so
+   * both lanes need this for the same reason: a handler that ran
+   * unscoped would be field-scoped while its author stands inside
+   * their circle, and the boundary would deny reads of their own body.
    */
   private establishInboundScope(socketId: string): void {
-    const holder = ConnectionManager.get()
-      .getInteractive(socketId)
-      ?.getHolder?.() as { getCircleScope?: () => string | null } | null;
+    const holder = ConnectionApi.getInteractive(socketId)?.getHolder?.() as
+      | { getCircleScope?: () => string | null }
+      | null;
     const scope = holder?.getCircleScope?.() ?? null;
     if (scope !== null) ExecutionContextApi.establishCircleScope(scope);
   }
@@ -352,7 +283,9 @@ export class Backend implements IBackend {
 
     // Remove from registry
     this.socketsBySocketId.delete(socketId);
-    this.inboundChainBySocketId.delete(socketId);
+    // Drop the socket's inbound lanes with it, or a closed socket's
+    // chain heads keep the last handler's promise alive forever.
+    ConnectionApi.clearInboundSequencing(socketId);
 
     // Notify Application of disconnection. Root frame on the boundary.
     if (this.application) {
