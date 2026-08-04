@@ -23,6 +23,7 @@
 
 import React from "react";
 import styled from "styled-components";
+import { SERVER_URL } from "../config";
 import { useStore } from "../store/index";
 import { tokens } from "./ui";
 import { MmlRenderer } from "./MmlRenderer";
@@ -238,8 +239,13 @@ export function NewsTickerPane({
     if (!Number.isFinite(oldest)) return;
     setLoading(true);
     try {
+      // ⚠ Absolute, via SERVER_URL. A relative `/api/...` reaches Vite on
+      // :5173 in development, which proxies nothing — so "Load older" was
+      // broken in dev while working in production, where client and server
+      // share an origin. Every other client fetch already goes through
+      // SERVER_URL; this one didn't.
       const res = await fetch(
-        `/api/press/archive?before=${oldest}&limit=30`,
+        `${SERVER_URL}/api/press/archive?before=${oldest}&limit=30`,
         { credentials: "include" },
       );
       if (!res.ok) return;

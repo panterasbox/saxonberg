@@ -3,10 +3,12 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReleaseRow } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { NewsTickerPane } from "../NewsTickerPane";
+import { SERVER_URL } from "../../config";
 
 function release(overrides: Partial<ReleaseRow> = {}): ReleaseRow {
   return {
     releaseId: "b1",
+    publisher: "/compact/press",
     realm: "ooc",
     kind: "notice",
     headline: "Headline",
@@ -105,8 +107,12 @@ describe("NewsTickerPane", () => {
     render(<NewsTickerPane onSendCommand={() => undefined} />);
     fireEvent.click(screen.getByRole("button", { name: /Load older/i }));
 
+    // ⚠ Absolute, via SERVER_URL. A relative `/api/...` reaches Vite on
+    // :5173 in development, which proxies nothing — so this control was
+    // broken in dev while working in production, where client and server
+    // share an origin.
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/press/archive?before=2000&limit=30",
+      `${SERVER_URL}/api/press/archive?before=2000&limit=30`,
       { credentials: "include" },
     );
     expect(await screen.findByText("Older")).toBeDefined();

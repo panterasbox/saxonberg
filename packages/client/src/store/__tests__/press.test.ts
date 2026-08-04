@@ -9,6 +9,7 @@ function resetFeed(): void {
 function release(overrides: Partial<ReleaseRow> = {}): ReleaseRow {
   return {
     releaseId: "b1",
+    publisher: "/compact/press",
     realm: "ooc",
     kind: "notice",
     headline: "Headline",
