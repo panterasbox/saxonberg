@@ -18,11 +18,15 @@ help: |
   let you do the position's work: a president appoints a press
   secretary, they do not become one.
 
-  Name the organization by its path, e.g. `/compact/press`.
+  Name the organization by its path, e.g. `/compact/press`. To
+  appoint yourself, say `me` — the player argument resolves
+  against who is online, and `me` is how you name yourself there.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 examples:
+  - cmd: appoint me to communications-director at /compact/press
+    note: Appoint yourself — the founder's first act on a fresh world
   - cmd: appoint alice to communications-director at /compact/press
     note: Fill the Compact press office's one position
 args:
