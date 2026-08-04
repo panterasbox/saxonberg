@@ -9,6 +9,8 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import { AccessApi } from '../../api/access';
+import { CompactApi } from '../../api/compact';
+import { GovernmentApi } from '../../api/government';
 import { PlayerApi } from '../../api/player';
 import { BankingApi, Money } from '../../api/banking';
 import type { RemittanceSplit } from '../../api/banking';
@@ -19,6 +21,7 @@ import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { Mixins } from '../../lib/mixin';
 import type { Business } from '../Business';
 import type { Organization } from '../../lib/employment/Organization';
+import type { PrincipalRef } from '../../lib/employment/Authority';
 import type { Employed } from '../../lib/employment/Employed';
 import {
   Employment,
@@ -43,15 +46,59 @@ type OrganizationStuff = Stuff & Organization;
 type EmployedActor = Stuff & Employed;
 
 /**
- * Proprietor authority — a direct `proprietorPath` edge on the Business,
- * with `AccessApi.isAuthor` as the orthogonal operator override (AccessApi
- * cannot represent an NPC owner, so ownership is the edge, not a group).
+ * **The** authority resolver: does `principal` hold `ref`? One function
+ * answering one question, dispatching on the tag and nothing else.
+ *
+ * There is deliberately **no** "which authority does this actor satisfy?"
+ * helper — that shape turns a refusal into a downgrade.
+ *
+ * Fails **closed** throughout: an unauthored (`null`) authority refuses
+ * everyone, and each delegate already fails closed with no registry. The
+ * founder passes `office` and `committee` only; see {@link PrincipalRef}
+ * for why that column decides what a cold box can do at all.
+ */
+async function holdsAuthorityImpl(
+  principal: Stuff | null,
+  ref: PrincipalRef | null,
+): Promise<boolean> {
+  if (principal === null || ref === null) return false;
+  switch (ref.kind) {
+    case 'entity': {
+      const path = principal.getTemplatePath();
+      return path !== null && path === ref.path;
+    }
+    case 'office':
+      return CompactApi.holdsOffice(principal, ref.office);
+    case 'seat':
+      return GovernmentApi.holdsSeat(principal, ref.government, ref.seat);
+    case 'committee':
+      // Committee membership is a group read keyed on a playerId, so the
+      // Avatar narrowing comes first — a non-Avatar fails closed without
+      // touching the registry.
+      return PlayerApi.isAvatarStuff(principal)
+        ? CompactApi.isCommitteeMember(principal, ref.parcel)
+        : false;
+  }
+}
+
+/**
+ * Proprietor authority — the organization's appointing authority, with
+ * `AccessApi.isAuthor` as the orthogonal **operator override** (AccessApi
+ * cannot represent an NPC owner, so ownership is the authority, not a
+ * group).
+ *
+ * ⚠ The operator axis rides *on top of* an authority and is never one in
+ * its own right — which is why there is no `author` `PrincipalRef` kind.
+ * For an `entity` authority this is byte-identical to the shipped
+ * `proprietorPath` check.
  */
 async function isProprietorOfImpl(
   subject: Stuff,
   organization: OrganizationStuff,
 ): Promise<boolean> {
-  if (subject.getTemplatePath() === organization.getProprietor()) return true;
+  if (await holdsAuthorityImpl(subject, organization.getAppointingAuthority())) {
+    return true;
+  }
   return AccessApi.isAuthor(subject);
 }
 
@@ -506,6 +553,15 @@ export class EmploymentLogic extends ApiLogic {
     organization: OrganizationStuff,
   ): Promise<boolean> {
     return isProprietorOfImpl(subject, organization);
+  }
+
+  /** See {@link EmploymentApi.holdsAuthority}. */
+  @CallSecurity(EmploymentApiCallers)
+  public holdsAuthority(
+    principal: Stuff | null,
+    ref: PrincipalRef | null,
+  ): Promise<boolean> {
+    return holdsAuthorityImpl(principal, ref);
   }
 
   /** See {@link EmploymentApi.holdersOf}. */

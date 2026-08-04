@@ -3,10 +3,9 @@
  * that fills them.
  *
  * **Business models participation in the economy; an organization models
- * the chart.** Everything here is the chart half, lifted verbatim out of
- * `BusinessMixin`: the authored {@link Position}s, the {@link Roster}, the
- * proprietor edge (which Wave 2 generalizes into a polymorphic appointing
- * authority), and the holder transitions the employment engine drives.
+ * the chart.** Everything here is the chart half: the authored
+ * {@link Position}s, the {@link Roster}, the **appointing authority**, and
+ * the holder transitions the employment engine drives.
  * `BusinessMixin` **requires** this on its base and keeps only what trades
  * — `banksAt`, `operatingLocations`, the P&L account path, wage
  * settlement.
@@ -32,6 +31,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
+import { Authority, type PrincipalRef } from './Authority';
 import { Position, type PositionData } from './Position';
 import { Roster, type RosterAssignment } from './Roster';
 import {
@@ -59,7 +59,18 @@ const OrganizationSurface = SecurityPolicies.AnyOf(
 export interface Organization {
   /** This organization's durable key — its own templatePath. */
   getOrganizationPath(): string;
-  /** The proprietor's templatePath, or undefined when the seat is empty. */
+  /**
+   * Who may fill this organization's positions, or `null` when nothing
+   * resolvable is authored (in which case nobody may — the resolver fails
+   * closed). See {@link PrincipalRef}.
+   */
+  getAppointingAuthority(): PrincipalRef | null;
+  /**
+   * The proprietor's templatePath, or undefined — the *entity* case of the
+   * appointing authority, kept because the economic half asks it directly
+   * (the unpaid-cover rule, `businessOfProprietor`). An authority that
+   * names an office or a committee has no proprietor.
+   */
   getProprietor(): string | undefined;
   /** The authored positions, as value objects. */
   getPositions(): readonly Position[];
@@ -103,6 +114,7 @@ export interface Organization {
  * constraint (`BusinessMixin` does).
  */
 export interface OrganizationFields {
+  appointingAuthority: PrincipalRef | string | null;
   proprietorPath: string;
   positions: PositionData[];
   rosterSlots: RosterAssignment[];
@@ -117,6 +129,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     static _mixinName = 'OrganizationMixin';
 
     static fieldMeta: FieldMeta = {
+      appointingAuthority: { persistent: true, authorable: true },
       proprietorPath: {
         persistent: true,
         authorable: true,
@@ -127,7 +140,17 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     };
 
     /**
-     * templatePath of the proprietor (a replaceable edge). Empty = vacant.
+     * Who may fill this organization's positions — a {@link PrincipalRef},
+     * or a bare templatePath string (the legacy shape, normalized on read).
+     * `null` = unauthored, and the resolver refuses everyone.
+     */
+    public appointingAuthority: PrincipalRef | string | null = null;
+
+    /**
+     * ⚠ **Legacy hydration slot.** Shipped seeds author `proprietorPath: <path>`;
+     * it reads as `{kind: 'entity', path}` so they keep working untouched.
+     * New content authors `appointingAuthority`, which wins when both are
+     * present.
      */
     public proprietorPath: string = '';
 
@@ -145,8 +168,16 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       return (this as unknown as Stuff).getTemplatePath() ?? '';
     }
 
+    public getAppointingAuthority(): PrincipalRef | null {
+      return (
+        Authority.fromData(this.appointingAuthority) ??
+        Authority.fromData(this.proprietorPath)
+      );
+    }
+
     public getProprietor(): string | undefined {
-      return this.proprietorPath || undefined;
+      const authority = this.getAppointingAuthority();
+      return authority?.kind === 'entity' ? authority.path : undefined;
     }
 
     public getPositions(): readonly Position[] {

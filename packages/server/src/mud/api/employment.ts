@@ -33,6 +33,15 @@ import { HotReloadApi } from './hot-reload';
 import { EmploymentLogic } from '../obj/api/EmploymentLogic';
 import { fileURLToPath } from 'url';
 
+export type {
+  PrincipalRef,
+  PrincipalRefKind,
+  EntityPrincipalRef,
+  OfficePrincipalRef,
+  SeatPrincipalRef,
+  CommitteePrincipalRef,
+} from '../lib/employment/Authority';
+export { Authority, PRINCIPAL_REF_KINDS } from '../lib/employment/Authority';
 export type { Position, PositionData } from '../lib/employment/Position';
 export type {
   Employment,
@@ -49,6 +58,7 @@ export type { Organization } from '../lib/employment/Organization';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
+import type { PrincipalRef } from '../lib/employment/Authority';
 import type { RemittanceSplit } from './banking';
 import { SecurityApi } from './security';
 
@@ -76,8 +86,29 @@ function logic(): EmploymentLogic {
 
 export class EmploymentApi {
   /**
-   * Whether `subject` may act as the proprietor of `business` — the direct
-   * `proprietorPath` edge, or the `AccessApi.isAuthor` operator override.
+   * ⭐ Does `principal` hold `ref` — **the** authority question, and the
+   * only one. Dispatches on the tag: `entity` matches a templatePath,
+   * `office` asks `CompactApi.holdsOffice`, `seat` asks
+   * `GovernmentApi.holdsSeat`, `committee` asks
+   * `CompactApi.isCommitteeMember`. Fails closed on an unauthored
+   * authority, an unresolvable registry, or a non-Avatar where a playerId
+   * is required.
+   *
+   * ⚠ Holding an organization's appointing authority is the power to
+   * **fill** a position, never to exercise one — nothing that does the
+   * work of a position may consult this.
+   */
+  public static holdsAuthority(
+    principal: Stuff | null,
+    ref: PrincipalRef | null,
+  ): Promise<boolean> {
+    return logic().holdsAuthority(principal, ref);
+  }
+
+  /**
+   * Whether `subject` may act as the proprietor of `organization` — its
+   * appointing authority, or the `AccessApi.isAuthor` operator override.
+   * The override rides on top of an authority and is never one itself.
    */
   public static isProprietorOf(
     subject: Stuff,
