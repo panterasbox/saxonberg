@@ -126,13 +126,18 @@ pages:
 
   # ── The worked example: a subject-bound article ──
   #
-  # `/obj/material/oak` may not exist on every deploy, and that is FINE
-  # and worth seeing: a dangling subject renders an inline note where
-  # the panel would be, the page still reads, and it turns up in
-  # `wiki dangling`. Seeding it either way exercises the honest path.
+  # ⚠ The subject ref must be a REAL template path — this page is the
+  # flagship demonstration of the live architecture panel, so a page
+  # whose panel is an error message demonstrates the opposite. It
+  # shipped once pointing at `/obj/material/oak`, which does not exist
+  # (the material is `/obj/material/wood/oak`), and the comment here
+  # rationalised the miss as "exercising the honest path" — which is
+  # how a typo survives review. `wiki dangling` reported it correctly
+  # the whole time; nobody ran it. `wiki-seed-subjects.test.ts` now
+  # checks every seeded subject against the real template tree.
   - page: main:oak
     title: Oak
-    subject: { kind: template, ref: /obj/material/oak }
+    subject: { kind: template, ref: /obj/material/wood/oak }
     tags: [material, wood]
     body: |
       # Oak {#oak}
@@ -145,7 +150,7 @@ pages:
       the running world every time somebody opens this page, so it
       cannot drift from the truth.
 
-      <composition kind="template" of="/obj/material/oak"/>
+      <composition kind="template" of="/obj/material/wood/oak"/>
 
       ## Uses {#uses}
 

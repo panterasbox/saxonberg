@@ -290,11 +290,18 @@ describe('the seeder (29)', () => {
   });
 
   it('⭐ seeds a SUBJECT-BOUND page carrying a live panel (29)', async () => {
+    // ⚠ This assertion PINNED THE BUG. It shipped naming
+    // `/obj/material/oak`, which does not exist, so the suite stayed
+    // green while the flagship page rendered "no template at…" where
+    // its panel should be. A test that repeats the seed's own value
+    // only proves the seeder copies it — whether the value is REAL is
+    // `__tests__/wiki-seed-subjects.test.ts`, which checks it against
+    // the template tree on disk.
     await WikiSeeder.run({ seedPath: SEED });
     const oak = db.all(Collections.Wiki).find((r) => r.slug === 'oak')!;
     expect(oak.subject).toEqual({
       kind: 'template',
-      ref: '/obj/material/oak',
+      ref: '/obj/material/wood/oak',
     });
     expect(String(oak.body)).toContain('<composition');
   });
