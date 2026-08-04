@@ -424,6 +424,100 @@ the room before it's built.
 
 ---
 
+### 7.8 Acting, not just speaking — leveraging the command bus
+
+An agent that only talks is a chatbot; an agent wired to the **command
+bus** ([command-routing.md](./subsystems/command-routing.md),
+[command-spec.md](./subsystems/command-spec.md),
+[response-envelope.md](./subsystems/response-envelope.md)) *does things* —
+through the same validated verbs a player uses, adjudicated by the sim.
+**Conversation is the interface; the command bus is the substance.** The
+agent's turn is **perceive (MQL) → decide → emit commands *and* speech**,
+with three consequences:
+
+- **Hallucination guardrail.** The agent can't *claim* the pressure rose;
+  it must emit `heat tank` and report what the thermal sim returns — §7.4
+  generalized: **the agent proposes commands, the sim adjudicates truth.**
+- **Token saver.** Doing beats describing — run a demo instead of
+  generating paragraphs about it; spend tokens on the pedagogical
+  *decision*, not the content the sim already computes.
+- **Assessment surface.** The student's commands *are* the answer, and the
+  engine already witnesses deeds — action is where competence lives.
+
+**Game-experience leverage**
+
+- **Real demos, not video.** The instructor runs `heat tank` mid-lecture;
+  the room perceives the real pressure change, and a student's "what if you
+  cooled it?" is answered by running *that*.
+- **Run the class through commands.** `summon` apparatus, `reveal` the next
+  case slice, group students into a `party`, `spawn` a variant problem —
+  the agent operates the room, not just talks in it.
+- **NPCs drive scenarios by acting.** The patient `refuses` a med / pulls
+  an IV / codes; the lab-partner agent actually runs the calorimeter and
+  you see their real number. Scenarios emerge from command-mediated shared
+  state, not a fixed branch tree.
+- **The student's primary verb is "do."** In the invented science you
+  `cast`, the sim adjudicates the thermodynamics, and casting *is* the
+  graded procedure.
+
+**Academic leverage (each a named pedagogy)**
+
+- **Assessment by action — performance / competency-based assessment.** The
+  command sequence is the answer, checked against truth; "select the
+  option" becomes "perform the procedure." The hardest-to-scale assessment,
+  scaled.
+- **The command trace is process evidence — learning analytics /
+  evidence-centred design.** Not "wrong" but the exact procedure (order,
+  omission, recovery) — richer than item responses, harder to game, and it
+  *is* the deed evidence feeding the adaptive signal
+  ([study-com-adaptive-feed.md](./study-com-adaptive-feed.md)) and the dual
+  transcript ([study-com-dual-transcript.md](./study-com-dual-transcript.md)).
+- **Scaffold with actions, then fade — cognitive apprenticeship + ZPD.**
+  The agent hands the next tool, narrows the space, does-one-shows-one, and
+  fades with competence — scaffolding *actions, not answers*, the direct
+  fix for the §7.7 desirable-difficulties hazard (it preserves productive
+  struggle).
+- **Worked example → faded practice — the worked-example effect.** The
+  instructor performs the procedure via commands, then hands you a
+  scaffolded near-copy, then a bare problem.
+- **Examine by task — authentic viva.** "Show me — set up the experiment,"
+  not "explain it." Ungameable.
+- **Collaborative doing — cooperative learning + delegation.** Players and
+  agents act on one shared apparatus; a charge-nurse who `direct`s the team
+  agents is assessed on **delegation**, a real competency a quiz can't
+  touch.
+
+**Architecture**
+
+- **Agent proposes, sim adjudicates** — §7.4 for everything, not just labs.
+- **The item generator is a command** — the agent decides to `spawn` a
+  variant for a struggling student; the *content and key are computed by
+  the generator* ([college-slate.md](./slates/builds/college-slate.md):158-239),
+  not the LLM. Pedagogy and correctness cleanly split.
+- **The deed ledger is the by-product** — the witnessed command trace is
+  the raw material of the Transcript/chronicle, and thus of the dual
+  transcript.
+
+**Thesis.** The command bus moves the classroom from *talking about
+knowing* to *demonstrating doing* — the application layer of education made
+mechanical, competency-based and process-evidenced. Study delivers and
+quizzes knowledge on a page; only a command-driven world makes you
+*perform* it, watches you do it, grades against truth, and returns a
+process trace. That is the academic argument the command bus unlocks — and
+the one an education expert gets excited about, because it is authentic
+assessment, not engagement.
+
+**Study already ships this in miniature — and it proves the point.**
+StudyAI is a function-calling agent whose tools (enroll, create study plan,
+set goal, create classroom, recommend) are exactly this "acting" surface —
+but bound to a web page, where 94% of Test Prep / 74% of CX users only
+click canned pills and the intent-router keeps misfiring. Its tools map
+directly onto this command bus, and the world fixes the routing +
+engagement problems the page causes. Capture, leverage, and the pitch
+argument: [study-com-studyai.md](./study-com-studyai.md).
+
+---
+
 ## 8. The two game shapes (the big design output)
 
 CX and test prep are **structurally different products**

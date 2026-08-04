@@ -174,6 +174,34 @@ the room. This is deck/conversation material — the *videos* keep the
 no-competitor rule (V3 carries exactly one unnamed sentence); the
 named, four-point version lives here and in any investor context.
 
+## StudyAI — the wedge, and its numbers are the argument (added 2026-08-03)
+
+Study already ships **StudyAI** (the CX + Test Prep "Student AI
+Assistant") — a topic-aware, **function-calling** LLM agent in
+`prediction-services` with real tools (enroll, create study plan, set
+goal, create classroom, recommend next lesson). Full technical + leverage
+capture: [study-com-studyai.md](./study-com-studyai.md). Two things it
+hands the pitch:
+
+1. **The concept is pre-sold internally.** Study built and staffed
+   AI-assisted learning (the "Alpacas" team), so the idea isn't foreign and
+   there are internal validators. The tuned function-calling tool layer is
+   a reusable asset — their tools become our commands.
+2. **Its numbers are the argument, not a liability.** 94% of Test Prep /
+   74% of CX users only click canned pills; ~1.5k users; the team's own
+   note that it "isn't working as expected"; a router that can't infer
+   intent. Every one is a **container failure** — a web page can't host a
+   conversational, context-dependent agent. Saxonberg fixes each:
+   conversation is the medium (pills → real interaction), location is
+   intent (fixes routing), doing is the point (fixes engagement). And
+   Study's own roadmap pivot — "invisible AI, focused, embedded in the
+   activity" — **is a classroom.**
+
+Pitch line: *"You already built the intelligence and believe in it; it's
+underperforming because a website can't host it. We're the world where the
+same tools finally work."* Use these figures **only** in the Study-facing
+deck (their own data reflected back) — never in public materials.
+
 ## Go-to-market alternatives
 
 Models, lightest first. Not mutually exclusive — A is the on-ramp to
