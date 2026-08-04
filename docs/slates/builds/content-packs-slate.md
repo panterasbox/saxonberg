@@ -690,13 +690,120 @@ early one — it is the [wiki-as-course-commons](./wiki-slate.md) surface,
 its contributors are writers rather than programmers, and the conflict
 story is already built.
 
+## ⭐⭐⭐ Several of those collections are documents wearing a collection
+
+> **User: "emotes all live under lib, as well as name banks and anything
+> else that's parcel scoped, doesn't cross boundaries, and doesn't need
+> its own indexing schema."**
+
+⚠ **An earlier draft of this conversation suggested closing the
+`/lib/`-documents carve-out. Wrong — it is a real, populated category.**
+And the rule above supplies the **third sort test**, the one that is
+actually checkable, completing legal-code-slate's *"collections cut
+across jurisdictions and are queried by system; the tree is place / owner
+/ division of labor."*
+
+| | Storage | When |
+|---|---|---|
+| **own collection** | a dedicated collection | crosses jurisdictions · queried by system · **needs real indexes** — ledgers, events |
+| ⭐ **document at a parcel-scoped path** | `documents` | owned · local · **path-keyed is enough** — emotes, name banks |
+| **template** | `domain` | instanceable content |
+
+⚠ **The code does not agree yet.** `Collections.ts` carries
+`Emotes = 'emotes'` and `NameBanks = 'name_banks'` as their own
+collections, seeded by `EmoteSeeder` and the species-and-names pack.
+
+### The index measurement (2026-08-04) settles it
+
+| collection | indexes it actually declares |
+|---|---|
+| `name_banks` | unique on `key` |
+| `recipes` | unique on `recipeId` |
+| `blueprints` | unique on `blueprintId` (+1) |
+| `emotes` | unique on `verb`, **plus `aliases`** |
+
+> ⭐⭐⭐ **Three of four have exactly one index — unique on their natural
+> key — which is precisely what the path-addressed document store already
+> provides.** By the sort rule's own third test, they are documents
+> wearing a collection.
+
+⭐ **Which shrinks this whole migration:** the typed-contribution work is
+**fewer than nine kinds**, because several of those collections should
+not exist. Each collapsed kind inherits the document store's reconcile
+semantics — **one implementation instead of four.**
+
+## ⭐⭐ Storage vs. search — the false dichotomy
+
+> **User: "indexable also probably means searchable, and I do think we
+> want searchable emotes. So either we need to be more liberal about what
+> gets its own collection, or a better model for searching documents…
+> documents is very general purpose right now."**
+
+Both horns are avoidable, because **storage and search are different
+jobs**:
+
+> **Storage is the document store. Search is a CATALOGUE over it.**
+
+That is already the house pattern, used at least five times —
+`SoulCatalogue`, `TopicCatalogue`, `ChannelCatalogue`, the harvested help
+catalogue, Studio's blueprint catalogue. Each is a **derived, in-memory,
+rebuildable projection shaped for its own queries**. So *searchable
+emotes* needs `SoulCatalogue` to be the search surface, not emotes to
+have a collection.
+
+⚠ **The honest limit is cardinality, not principle.** Hundreds of emotes
+in memory is free; a large prose corpus is not.
+
+### ⭐⭐⭐ And where a catalogue cannot serve: kind-scoped indexes, not more collections
+
+> **`{kind: 1, verb: 1}` in the one `documents` collection gives emotes
+> exactly the index they have today — including the unique constraint —
+> inside the shared store.**
+
+Per-kind indexing **without** per-kind collections. It also dissolves the
+strongest argument those four collections had: `unique on {kind, key}` is
+the same guarantee as `unique on key` in a dedicated one.
+
+### Keeping the store general-purpose
+
+The worry is right — the document store is valuable *because* it is where
+authors persist things of their own design. So two tiers **inside** it:
+
+| | |
+|---|---|
+| **declared kinds** | the platform or a pack registers the kind + its indexable fields → indexes, and usually a catalogue |
+| **free-form** | author-designed, path-keyed only, no indexes, no search beyond prefix |
+
+⭐ **A kind graduates from free-form to declared when somebody needs to
+search it** — open by default, structured only where earned.
+
+⚠ **Declaring a kind creates database indexes**, so it is a
+platform-shaped act, not something an author does at runtime. That makes
+it a pack **`requires:`** entry — the same structure-vs-authority split as
+groups and title.
+
+⭐ **Document search is coming regardless.** The wiki, law and
+publications all want find-by-content and none of them fits in memory.
+**Emotes merely surfaced it first** — which argues for solving it rather
+than granting emotes a collection as a one-off that would have to be
+undone.
+
+⚠ **Open:** is `emotes`' `aliases` multikey index actually *used*, or does
+`SoulCatalogue` resolve aliases from memory? If memory, emotes collapse
+cleanly and there is no outlier. If live, emotes are the worked
+counterexample for *"needs its own indexing schema"* — useful either way.
+
 ## Migration order
 
+0. ⭐ **Collapse the documents-wearing-a-collection kinds** (`name_banks`,
+   `recipes`, `blueprints`, probably `emotes`) into the document store
+   with `{kind, key}` indexes — **fewer kinds to teach the installer, and
+   one reconcile implementation instead of four**
 1. **Typed contributions + per-kind reconcile** — everything waits on it
 2. **`requires:` + derived checklist + `provision`** — unblocks
-   groups/title/offices/policies
+   groups/title/offices/policies/**kind declarations**
 3. **The platform pack**, installed by bootstrap → delete `SeederManager`
-   and the eight others
+   and the rest
 4. **Split `seeds/` into trade and locality packs** — the long tail, now
    safe to do incrementally
 
