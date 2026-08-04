@@ -851,6 +851,113 @@ Consequences worth holding:
   bodies are untrustworthy, but because **no mechanism could hold them to
   account for it.** There is no ledger to check them against.
 
+⚠ **Authority and delivery separate.** The office is the *legitimating*
+fact; the **delivery path must not require a healthy world.** An
+operational announcement is needed precisely when things are broken, so
+if it depends on the office registry being readable, the outage eats the
+outage announcement.
+
+## ⭐⭐⭐⭐ Publishing is three different problems, and only one is governed
+
+Captured 2026-08-04, after an earlier draft built an elaborate editorial
+apparatus for all of it. **User: *"you're overthinking a lot of this."***
+Their decomposition, which is the one to keep:
+
+| | What it actually is | What it needs |
+|---|---|---|
+| **operator announcements** | ops, out of fiction; *"the medium doesn't really matter"* | the ops seat above. **No committee, no lineup, no editorial anything** |
+| **"she's live"** | a **product feature** | a notification default, **opt-out**. ⭐ No authority near it |
+| **everything else** | *"an industry publishing and broadcasting, modelled in fiction, staffed by committee"* | the editorial apparatus — **and it is CONTENT** |
+
+### ⭐⭐ The third case is a trade pack, not platform architecture
+
+Broadcasting is an industry like any other — tools, a workspace, roles,
+output, consumers. So it ships in a pack
+([content-packs-slate](./content-packs-slate.md)) and gets staffed like
+any organization. Which dissolves most of what an earlier draft was
+building:
+
+> ⭐⭐⭐ **There is no "the" editorial office.** There are **many
+> publishers**, each governed by whoever holds it — a council channel by
+> its committee, a corpo affiliate by its owner. The front page is not a
+> seat of power; it is whichever publisher the client shows first.
+
+Same for ranking. It is not one legislated formula for the world, it is
+**a publisher's editorial policy**, and how it is authored depends on who
+owns that publisher.
+
+### ⭐⭐⭐ Authority is required to PUSH, never to PUBLISH
+
+The rule underneath all three cases, and **the third time it has
+appeared** — [gazette-slate](./gazette-slate.md) reached it as *"the
+state publishes to a PLACE; a publisher pushes to PEOPLE."*
+
+> **Anyone may speak. Only a position may make everyone hear it.**
+
+- **Tuning in is unrestricted** — ⭐ and the source *need not be a player,
+  in the fiction, or a user at all*. **You can tune into anyone.**
+- **Syndication is the editorial act** — deciding what goes on a channel
+  others receive by default. That is the thing worth democratizing.
+- ⭐ **Promotion is therefore a publication, not a permission.** A
+  publisher does not grant you a capability; it publishes *"X is live."*
+  Attributed, on the record, no new mechanism.
+
+⭐ **Democratic ≠ algorithm-free** (user's correction). *"It just means
+the algorithm is authored democratically as well."* An algorithm is not
+undemocratic — **an unamendable one is.** And a ranking formula is a
+weighted composite, so this is Part 2's rule again: **the weights are the
+denominator, and the denominator is where all the design is.**
+
+### The two senses of public/private that actually cause trouble
+
+User's, and worth fixing as vocabulary because they cross-cut:
+
+> ⭐⭐ **Fiction-public means answerable to a CONSTITUENCY. Parcel-public
+> means NOBODY HOLDS TITLE.**
+
+A Terminus city council is the first without the second — a public body
+operating on privately-held ground, which is the normal case rather than
+a contradiction. A corpo network affiliate is neither.
+
+⚠ Note `/compact` is **not a parcel at all** — build-1 is carving it as a
+publications namespace that is explicitly *not a place*. Which reinforces
+the split: **the public tier is a namespace, not land.** Public bodies
+publish there; everything else publishes where its owner's title is.
+
+### The one concrete gap in case 2
+
+Notifications are **already per-user**, with **no way to set a default or
+mandate one**. That is a tier in an existing chain, not a subsystem —
+`LocomotionApi.defaultModeFor` already resolves *explicit setting →
+bodyplan → universe*:
+
+> **explicit user setting → community default → platform default**
+
+**Opt-out falls out for free**, because the user's explicit value already
+wins. ⚠ Keep *default* and *mandate* separate and be stingy with the
+second — an unoverridable notification is a spam vector, and the only
+honest use is ops-critical, which is case 1 and a different path anyway.
+
+### ⚠ Proposals here that the user has NOT ruled on
+
+Recorded so they are not mistaken for decisions:
+
+- **A docket of what was NOT carried.** Editorial power is the power to
+  exclude, so a lineup alone shows only winners — *the same Roll/docket
+  split legal-code already uses.* Argued twice; not adjudicated. Cheap to
+  add while build-1's feed is being built, expensive after.
+- **Must-carry obligations** (emergencies, right of reply, *"N slots for
+  first-timers"*) as legislated floors under editorial discretion.
+- ⭐ **Putting something on air is editorial; taking it off is
+  operational.** Different act, different gate — and a kill switch that
+  needs an appointment is not a kill switch. Watch that it does not
+  quietly become a backdoor editorial veto.
+- **Discovery by world context rather than category** — *"three people
+  are streaming from the Ferrow delve."* ⚠ Only matters at scale; with a
+  dozen streamers a complete list *is* discovery.
+- **The lounge screen + remote** as the same problem at room scale (the
+  remote is pull, the channel is push). User: *"I don't hate any of it."*
+
 ## ⭐⭐⭐ Removal, not confirmation, is the lever — and conviction already provides it
 
 Appointment power without removal power is weak. **Removal is where
