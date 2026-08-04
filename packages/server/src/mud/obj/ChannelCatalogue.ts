@@ -74,6 +74,26 @@ function historyCap(): number {
 }
 
 /** Chat-facing subscription shape, mapped from the per-subject store. */
+/**
+ * ⭐ `<spoiler>` is the one piece of markup a channel admits.
+ *
+ * Chat is where a spoiler gets blurted — "the boss is a mimic" lands
+ * in a channel long before anybody writes the article — so a
+ * collapsible is worth having here, and the client already renders one
+ * click-to-reveal. The APPETITE half of the reveal model is all that
+ * applies: a chat line carries no authored capability level, so there
+ * is nothing to gate, only something to fold.
+ *
+ * ⚠ `'spoiler'` and not `'inert'`, let alone `'all'`. A chat line has
+ * no render pipeline behind it, and the tags a player must never be
+ * able to write are the ones that ACT or CLAIM: `<link>`/`<mention>`
+ * become clickables that issue commands, and `<speech>`/`<name>` are
+ * identity the composer emits on the server's authority. Headings and
+ * tables are merely absurd in a spoken line; those are the ones that
+ * would be a hole.
+ */
+const CHAT_SPOILERS = { tags: 'spoiler' } as const;
+
 export interface ChannelSubscription {
   tunedIn: boolean;
   muted: boolean;
@@ -294,7 +314,11 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const reactionScope =
       'channel:' + (subject?.getGroupRef() || channelId);
     const speakerName = Mml.name(speaker);
-    const safeBody = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));
+    const safeBody = Mml.markdownToMml(
+      body,
+      Mml.perceiverMentionResolver(speaker),
+      CHAT_SPOILERS,
+    );
     const selfBody = Mml.compose`[${channel.name}] You: ${safeBody}`;
     const peerBody = Mml.compose`[${channel.name}] ${speakerName}: ${safeBody}`;
 

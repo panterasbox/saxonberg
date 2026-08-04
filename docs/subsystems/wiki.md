@@ -588,12 +588,53 @@ renders the syntax.
 
 > ⚠ Two conditions, both load-bearing. **Shape**: the slice must be a
 > well-formed tag, or `a < b and c > d` reads as a `<b>` tag and three
-> words of prose vanish. **Name**: known tag or legal component name,
-> because a component name becomes a **module basename** — that charset
-> rule in `api/mml/tags.ts` is a boundary, not a nicety. A legal-but
-> -unknown name still passes; stage 4 looks it up, fails, and emits an
-> inline "unknown component" error. Shape is the dialect's job,
-> existence is the renderer's, and neither pretends to be the other.
+> words of prose vanish. **Name**: it must pass the caller's
+> `TagPolicy`. A legal-but-unknown name still passes on the wiki;
+> stage 4 looks it up, fails, and emits an inline "unknown component"
+> error. Shape is the dialect's job, existence is the renderer's, and
+> neither pretends to be the other.
+
+#### The tag policy — what each surface admits
+
+The passthrough is what makes `<spoiler>` writable, and it is safe
+here because the wiki renders through a **gated pipeline**: components
+resolve against a charset-restricted namespace (a component name
+becomes a module basename), spoilers pass the ceiling gate, output is
+budgeted. A surface without that pipeline has to admit only what is
+safe on its own, so `MarkdownOptions.tags` names how much literal
+markup an author may write:
+
+| policy | admits | surface |
+|---|---|---|
+| `none` | nothing — everything escapes | `say`, emotes, broadcast |
+| `spoiler` | `<spoiler>` only | channels, `dm`/`tell` |
+| `inert` | presentation: emphasis, lists, headings, tables, spoiler | forum posts |
+| `all` | known markup **plus component candidates** | the wiki |
+
+Defaults preserve what every caller had before the option existed:
+`all` under `longForm`, `none` otherwise.
+
+> ⚠ The excluded tags are excluded for a reason worth keeping written
+> down. `<link>` and `<mention>` are **affordances that act** — the
+> client renders a clickable that ISSUES A COMMAND. `<name>`,
+> `<player>`, `<speech>`, `<msg>`, `<chan>` are **identity claims** the
+> composer emits on the server's authority, so a player who could write
+> `<speech>` could attribute words to somebody else. `<color>` is mere
+> presentation and still excluded: staff and system styling are
+> recognisable by it.
+
+Two conversational surfaces take `spoiler` because **chat is where a
+spoiler gets blurted** — a channel hears "the boss is a mimic" long
+before anybody writes the article — and only the *appetite* half of the
+reveal model applies there: a chat line carries no authored capability
+level, so there is nothing to gate, only something to fold. `say` stays
+at `none` on purpose: it is acoustic speech, and you cannot speak a
+table.
+
+Forum posts moved from the **chat** dialect to `longForm` + `inert`.
+They are long-form authored prose composed through the same prompt a
+wiki page uses, and until this pass a forum post could not carry a
+heading.
 
 > ⚠ **`api/__tests__/mml.corpus.test.ts` pins the chat path byte-for
 > -byte**, including its defects (a `[label](mudcmd:…)` link after a

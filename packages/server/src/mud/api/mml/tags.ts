@@ -72,6 +72,79 @@ export const KNOWN_TAGS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * ⭐ **Inert tags** — presentation only. They style text and nothing
+ * else: no click, no command, no identity claim, no module resolution.
+ *
+ * This is the line that decides what a *player* may write literally on
+ * a surface that has no render pipeline behind it. The wiki can admit
+ * every tag because its pipeline resolves components against a
+ * charset-restricted namespace, gates spoilers and budgets the output.
+ * A forum post and a chat line have none of that, so what they admit
+ * has to be safe **on its own**.
+ *
+ * ⚠ Everything outside this set is excluded for a reason worth stating
+ * once: `link` and `mention` are **affordances that act** (the client
+ * renders a clickable that issues a command), and `name` / `player` /
+ * `npc` / `item` / `speech` / `msg` / `chan` are **identity claims**
+ * the composer emits on the server's authority — a player who could
+ * write `<speech>` could attribute words to somebody else. `color` is
+ * merely presentation and still excluded: staff and system styling are
+ * recognisable by it, and forging that is impersonation by another
+ * route.
+ */
+export const INERT_TAGS: ReadonlySet<string> = new Set([
+  // Inline emphasis (chat subset).
+  'strong',
+  'em',
+  'code',
+  'pre',
+  'blockquote',
+  'strike',
+  'list',
+  'li',
+  // Long-form.
+  'h1',
+  'h2',
+  'h3',
+  'table',
+  'tr',
+  'th',
+  'td',
+  'spoiler',
+]);
+
+/**
+ * How much literal markup a parse admits — see {@link passthroughAllows}.
+ *
+ *  - `none` — everything is escaped. The chat default, and what every
+ *    surface did before the wiki build.
+ *  - `spoiler` — `<spoiler>` and nothing else. For conversation: chat
+ *    is where a spoiler gets blurted, and a collapsible is the one
+ *    piece of markup a spoken or messaged line has any use for.
+ *  - `inert` — the presentation set above. For long-form authored
+ *    prose with no render pipeline (forum posts).
+ *  - `all` — known markup plus component candidates. **Only for a
+ *    surface that resolves and gates them**, which today means the
+ *    wiki.
+ */
+export type TagPolicy = 'none' | 'spoiler' | 'inert' | 'all';
+
+/** Whether `policy` admits a literal `<tag>` written by an author. */
+export function passthroughAllows(policy: TagPolicy, tag: string): boolean {
+  const lower = tag.toLowerCase();
+  switch (policy) {
+    case 'none':
+      return false;
+    case 'spoiler':
+      return lower === 'spoiler';
+    case 'inert':
+      return INERT_TAGS.has(lower);
+    case 'all':
+      return isKnownTag(lower) || isComponentCandidate(lower);
+  }
+}
+
+/**
  * Tags that carry no children by nature — serialised in self-closing
  * form so `serialize(parseTree(x))` reproduces the shape an author
  * wrote rather than expanding `<image key="k"/>` into an empty pair.

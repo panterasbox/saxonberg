@@ -45,7 +45,22 @@
 import { decodeEntities, escapeText } from './entities';
 import type { MentionResolver } from './mention';
 import { isKnownLinkScheme } from './schemes';
-import { isKnownTag, isComponentCandidate } from './tags';
+import { passthroughAllows, type TagPolicy } from './tags';
+
+/**
+ * What the parser carries down the recursion: which dialect, and how
+ * much literal markup an author may write. One object rather than two
+ * parallel parameters — the pair travels together through eight
+ * helpers, and a caller that threaded one but not the other would
+ * silently change what a surface admits.
+ */
+interface ParseCtx {
+  longForm: boolean;
+  tags: TagPolicy;
+}
+
+/** The chat default: chat dialect, nothing literal survives. */
+const CHAT_CTX: ParseCtx = { longForm: false, tags: 'none' };
 
 /**
  * Per-call parser options. **The default is the chat dialect**, byte
@@ -63,6 +78,21 @@ import { isKnownTag, isComponentCandidate } from './tags';
 export interface MarkdownOptions {
   /** Parse the article dialect (headings, nested lists, tables). */
   longForm?: boolean;
+  /**
+   * How much literal markup an author may write and have survive.
+   *
+   * Defaults to `'all'` under `longForm` and `'none'` otherwise — the
+   * behaviour every surface had before this option existed. A caller
+   * sets it explicitly to open a *narrower* door: `'inert'` for a
+   * forum post (presentation only, no affordance), `'spoiler'` for a
+   * chat line.
+   *
+   * ⚠ `'all'` admits `<link>` and `<mention>`, which the client turns
+   * into clickables that ISSUE COMMANDS, and the identity tags the
+   * composer emits on the server's authority. It is correct only for a
+   * surface that resolves and gates what it admits — today, the wiki.
+   */
+  tags?: TagPolicy;
 }
 
 /**
@@ -79,6 +109,8 @@ export function parseMarkdown(
   opts?: MarkdownOptions,
 ): string {
   const longForm = opts?.longForm === true;
+  const tagPolicy: TagPolicy = opts?.tags ?? (longForm ? 'all' : 'none');
+  const ctx: ParseCtx = { longForm, tags: tagPolicy };
   // Phase 1 — extract code blocks (multi-line) and code spans (single-line)
   // so subsequent passes don't munge their contents.
   const codeBlocks: string[] = [];
@@ -128,7 +160,7 @@ export function parseMarkdown(
         const anchor = anchorMatch?.[1];
         const attr = anchor ? ` anchor="${escapeText(anchor)}"` : '';
         out.push(
-          `<h${level}${attr}>${processInline(textPart, resolver, longForm)}</h${level}>`,
+          `<h${level}${attr}>${processInline(textPart, resolver, ctx)}</h${level}>`,
         );
         i++;
         if (i < lines.length) out.push('\n');
@@ -143,7 +175,7 @@ export function parseMarkdown(
           rows.push(lines[i]!);
           i++;
         }
-        out.push(renderTable(rows, resolver, longForm));
+        out.push(renderTable(rows, resolver, ctx));
         if (i < lines.length) out.push('\n');
         continue;
       }
@@ -157,7 +189,7 @@ export function parseMarkdown(
         i++;
       }
       const inner = quoteLines
-        .map((l) => processInline(l, resolver, longForm))
+        .map((l) => processInline(l, resolver, ctx))
         .join('\n');
       out.push(`<blockquote>${inner}</blockquote>`);
       if (i < lines.length) out.push('\n');
@@ -173,7 +205,7 @@ export function parseMarkdown(
         itemLines.push(lines[i]!);
         i++;
       }
-      out.push(renderNestedList(itemLines, resolver, longForm));
+      out.push(renderNestedList(itemLines, resolver, ctx));
       if (i < lines.length) out.push('\n');
       continue;
     }
@@ -188,7 +220,7 @@ export function parseMarkdown(
       while (i < lines.length) {
         const m = itemRe.exec(lines[i]!);
         if (!m) break;
-        items.push(`<li>${processInline(m[1]!, resolver, longForm)}</li>`);
+        items.push(`<li>${processInline(m[1]!, resolver, ctx)}</li>`);
         i++;
       }
       const attr = ordered ? ' ordered="true"' : '';
@@ -216,13 +248,13 @@ export function parseMarkdown(
         para.push(lines[i]!);
         i++;
       }
-      out.push(processInline(para.join('\n'), resolver, longForm));
+      out.push(processInline(para.join('\n'), resolver, ctx));
       if (i < lines.length) out.push('\n');
       continue;
     }
 
     // Plain paragraph line
-    out.push(processInline(line, resolver, longForm));
+    out.push(processInline(line, resolver, ctx));
     i++;
     // Preserve line break between non-block lines
     if (i < lines.length) out.push('\n');
@@ -281,7 +313,7 @@ export function parseMarkdown(
 function processInline(
   text: string,
   resolver?: MentionResolver,
-  longForm = false,
+  ctx: ParseCtx = CHAT_CTX,
 ): string {
   void decodeEntities; // declared as a dependency seam — unused on this path
   // Recursive-descent over a tiny grammar.
@@ -299,8 +331,8 @@ function processInline(
     //
     // Only names the grammar knows or that could be a component are
     // let through, so ordinary prose (`a < b`, `<3`) still escapes.
-    if (longForm && text[i] === '<') {
-      const tag = matchPassthroughTag(text, i);
+    if (ctx.tags !== 'none' && text[i] === '<') {
+      const tag = matchPassthroughTag(text, i, ctx.tags);
       if (tag) {
         out += tag.markup;
         i = tag.next;
@@ -310,7 +342,7 @@ function processInline(
     // Try matchers in priority order. Each matcher reads from `text`
     // starting at `i`; on success it returns the markup to emit + the
     // position past the consumed slice.
-    const linkM = matchLink(text, i, resolver, longForm);
+    const linkM = matchLink(text, i, resolver, ctx);
     if (linkM) {
       out += linkM.markup;
       i = linkM.next;
@@ -322,19 +354,19 @@ function processInline(
       i = mentionM.next;
       continue;
     }
-    const strikeM = matchStrike(text, i, resolver, longForm);
+    const strikeM = matchStrike(text, i, resolver, ctx);
     if (strikeM) {
       out += strikeM.markup;
       i = strikeM.next;
       continue;
     }
-    const strongM = matchStrong(text, i, resolver, longForm);
+    const strongM = matchStrong(text, i, resolver, ctx);
     if (strongM) {
       out += strongM.markup;
       i = strongM.next;
       continue;
     }
-    const emM = matchEm(text, i, resolver, longForm);
+    const emM = matchEm(text, i, resolver, ctx);
     if (emM) {
       out += emM.markup;
       i = emM.next;
@@ -343,7 +375,7 @@ function processInline(
     // Sentinel passthrough — leave code sentinels intact so Phase 4
     // can restore them.
     if (text[i] === ' ') {
-      if (longForm) {
+      if (ctx.longForm) {
         // Article dialect: copy a sentinel and nothing else.
         SENTINEL_RE.lastIndex = 0;
         const m = SENTINEL_RE.exec(text.slice(i));
@@ -394,11 +426,16 @@ const WELL_FORMED_TAG_RE =
  * ⚠ Two conditions, and **both** matter. The slice has to be a
  * well-formed tag — name plus quoted attributes and nothing else — or
  * `a < b and c > d` is read as a `<b>` tag with junk attributes and
- * three words of the author's prose vanish. And the name has to be
- * known or a legal component name, or an arbitrary `<script>` rides
- * through into the emitted markup.
+ * three words of the author's prose vanish. And the name has to pass
+ * the caller's {@link TagPolicy}, which is what keeps a chat line from
+ * carrying a `<link>` the client would render as a clickable that
+ * issues a command.
  */
-function matchPassthroughTag(text: string, i: number): InlineMatch | null {
+function matchPassthroughTag(
+  text: string,
+  i: number,
+  policy: TagPolicy,
+): InlineMatch | null {
   const close = text.indexOf('>', i + 1);
   if (close === -1) return null;
   const slice = text.slice(i, close + 1);
@@ -406,7 +443,7 @@ function matchPassthroughTag(text: string, i: number): InlineMatch | null {
   if (!m) return null;
   const isClose = slice.startsWith('</');
   const name = m[1]!.toLowerCase();
-  if (!isKnownTag(name) && !isComponentCandidate(name)) return null;
+  if (!passthroughAllows(policy, name)) return null;
 
   // Opaque pair: swallow through the matching close tag.
   if (!isClose && (name === 'code' || name === 'pre')) {
@@ -472,7 +509,7 @@ function splitCells(line: string): string[] {
 function renderTable(
   rows: string[],
   resolver: MentionResolver | undefined,
-  longForm: boolean,
+  ctx: ParseCtx,
 ): string {
   const hasHeader = rows.length > 1 && isSeparatorRow(rows[1]!);
   const body = rows.filter((r) => !isSeparatorRow(r));
@@ -480,7 +517,7 @@ function renderTable(
   body.forEach((row, idx) => {
     const cell = hasHeader && idx === 0 ? 'th' : 'td';
     const cells = splitCells(row)
-      .map((c) => `<${cell}>${processInline(c, resolver, longForm)}</${cell}>`)
+      .map((c) => `<${cell}>${processInline(c, resolver, ctx)}</${cell}>`)
       .join('');
     out.push(`<tr>${cells}</tr>`);
   });
@@ -499,7 +536,7 @@ function renderTable(
 function renderNestedList(
   lines: string[],
   resolver: MentionResolver | undefined,
-  longForm: boolean,
+  ctx: ParseCtx,
 ): string {
   interface Item {
     text: string;
@@ -534,7 +571,7 @@ function renderNestedList(
     const lis = items
       .map(
         (it) =>
-          `<li>${processInline(it.text, resolver, longForm)}${emit(it.children)}</li>`,
+          `<li>${processInline(it.text, resolver, ctx)}${emit(it.children)}</li>`,
       )
       .join('');
     return `<list${attr}>${lis}</list>`;
@@ -551,7 +588,7 @@ function matchLink(
   text: string,
   i: number,
   resolver?: MentionResolver,
-  longForm = false,
+  ctx: ParseCtx = CHAT_CTX,
 ): InlineMatch | null {
   if (text[i] !== '[') return null;
   const closeBracket = text.indexOf(']', i + 1);
@@ -581,7 +618,7 @@ function matchLink(
   const uri = text.slice(closeBracket + 2, closeParen);
 
   // Process the label inline (mentions / emphasis allowed in labels).
-  const labelMarkup = processInline(label, resolver, longForm);
+  const labelMarkup = processInline(label, resolver, ctx);
 
   if (isKnownLinkScheme(uri)) {
     return {
@@ -624,14 +661,14 @@ function matchStrong(
   text: string,
   i: number,
   resolver?: MentionResolver,
-  longForm = false,
+  ctx: ParseCtx = CHAT_CTX,
 ): InlineMatch | null {
   if (text.slice(i, i + 2) !== '**') return null;
   const end = text.indexOf('**', i + 2);
   if (end === -1 || end === i + 2) return null;
   const inner = text.slice(i + 2, end);
   return {
-    markup: `<strong>${processInline(inner, resolver, longForm)}</strong>`,
+    markup: `<strong>${processInline(inner, resolver, ctx)}</strong>`,
     next: end + 2,
   };
 }
@@ -640,7 +677,7 @@ function matchEm(
   text: string,
   i: number,
   resolver?: MentionResolver,
-  longForm = false,
+  ctx: ParseCtx = CHAT_CTX,
 ): InlineMatch | null {
   const ch = text[i];
   if (ch !== '*' && ch !== '_') return null;
@@ -651,7 +688,7 @@ function matchEm(
   if (ch === '_' && /[A-Za-z0-9]/.test(text[end + 1] ?? '')) return null;
   const inner = text.slice(i + 1, end);
   return {
-    markup: `<em>${processInline(inner, resolver, longForm)}</em>`,
+    markup: `<em>${processInline(inner, resolver, ctx)}</em>`,
     next: end + 1,
   };
 }
@@ -660,14 +697,14 @@ function matchStrike(
   text: string,
   i: number,
   resolver?: MentionResolver,
-  longForm = false,
+  ctx: ParseCtx = CHAT_CTX,
 ): InlineMatch | null {
   if (text.slice(i, i + 2) !== '~~') return null;
   const end = text.indexOf('~~', i + 2);
   if (end === -1) return null;
   const inner = text.slice(i + 2, end);
   return {
-    markup: `<strike>${processInline(inner, resolver, longForm)}</strike>`,
+    markup: `<strike>${processInline(inner, resolver, ctx)}</strike>`,
     next: end + 2,
   };
 }

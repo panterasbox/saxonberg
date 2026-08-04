@@ -438,3 +438,71 @@ describe('article dialect — what driving it found', () => {
     );
   });
 });
+
+/**
+ * ⭐ The tag policy — **what a player may write literally, per
+ * surface**.
+ *
+ * The passthrough is what makes `<spoiler>` writable, and it is safe
+ * on the wiki because that pipeline resolves components against a
+ * charset-restricted namespace, gates spoilers and budgets output. A
+ * forum post and a chat line have none of that, so each opens a
+ * narrower door.
+ *
+ * ⚠ These assertions are a security boundary, not a preference. The
+ * tags kept out ACT (`<link>`/`<mention>` become clickables that issue
+ * commands) or CLAIM (`<speech>`/`<name>` are identity the composer
+ * emits on the server's authority).
+ */
+describe('tag policy per surface', () => {
+  const parse = (src: string, opts?: Parameters<typeof Mml.markdownToMml>[2]) =>
+    Mml.markdownToMml(src, undefined, opts).toString();
+
+  it('chat admits NOTHING literal by default — unchanged', () => {
+    expect(parse('a <spoiler level="1">x</spoiler>')).toContain('&lt;/spoiler&gt;');
+    expect(parse('<strong>x</strong>')).toContain('&lt;strong&gt;');
+  });
+
+  it("conversation ('spoiler') admits a spoiler and nothing else", () => {
+    const o = { tags: 'spoiler' } as const;
+    expect(parse('<spoiler level="2">x</spoiler>', o)).toBe(
+      '<spoiler level="2">x</spoiler>',
+    );
+    // ⚠ The ones that would matter.
+    expect(parse('<link to="x">y</link>', o)).toContain('&lt;link');
+    expect(parse('<mention stuff-id="1">@a</mention>', o)).toContain('&lt;mention');
+    expect(parse('<speech>fake</speech>', o)).toContain('&lt;speech&gt;');
+    expect(parse('<h1>x</h1>', o)).toContain('&lt;h1&gt;');
+  });
+
+  it("forums ('inert') admit presentation, never an affordance", () => {
+    const o = { longForm: true, tags: 'inert' } as const;
+    expect(parse('<spoiler level="1">x</spoiler>', o)).toContain('<spoiler');
+    expect(parse('<strong>x</strong>', o)).toBe('<strong>x</strong>');
+    expect(parse('# Heading', o)).toBe('<h1>Heading</h1>');
+    // ⚠ Still excluded, and this is the whole point of `inert`.
+    expect(parse('<link to="x">y</link>', o)).toContain('&lt;link');
+    expect(parse('<mention stuff-id="1">@a</mention>', o)).toContain('&lt;mention');
+    expect(parse('<name>Somebody</name>', o)).toContain('&lt;name&gt;');
+    expect(parse('<color name="red">x</color>', o)).toContain('&lt;color');
+    // No component resolution either — that namespace is the wiki's.
+    expect(parse('<composition of="/obj/x"/>', o)).toContain('&lt;composition');
+  });
+
+  it("only the wiki ('all') admits components and affordances", () => {
+    const o = { longForm: true, tags: 'all' } as const;
+    expect(parse('<composition of="/obj/x"/>', o)).toBe(
+      '<composition of="/obj/x"/>',
+    );
+    expect(parse('<link to="x">y</link>', o)).toBe('<link to="x">y</link>');
+  });
+
+  it('the default is exactly what each dialect had before the option', () => {
+    // longForm → 'all'; chat → 'none'. Anything else silently changes
+    // what an existing caller admits.
+    expect(parse('<composition of="/obj/x"/>', { longForm: true })).toBe(
+      '<composition of="/obj/x"/>',
+    );
+    expect(parse('<spoiler level="1">x</spoiler>')).toContain('&lt;spoiler');
+  });
+});
