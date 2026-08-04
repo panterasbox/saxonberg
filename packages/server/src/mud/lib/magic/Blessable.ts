@@ -33,7 +33,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { Blessing } from './Blessing';
-import type { BlessingBand, BlessingBucket } from './Blessing';
+import type { BlessingBand, BlessingBucket, BlessingOdds } from './Blessing';
 
 /** Fraction of remaining charge a cursed item dumps per discharge beat. */
 const CURSED_DISCHARGE_FRACTION = 0.05;
@@ -127,9 +127,42 @@ export interface Blessable {
    */
   dischargeIntoHolder(holder: Stuff): number;
 
+  /**
+   * **This kind's own generation odds** — how often a freshly minted one
+   * comes out at each band. A Zone's declaration wins over it; see
+   * {@link BlessingOdds}.
+   *
+   * ⚠ Read at MINT time only. It is not instance state and nothing
+   * consults it afterwards — an item that already exists has a band, and
+   * the odds that produced it are not a fact about it. It lives here
+   * rather than on `Circulating` because the field is meaningless
+   * without an effect axis to displace, which is the same reason the
+   * mixin is scoped to `Wand`/`Rod`.
+   */
+  getBlessingOdds(): BlessingOdds | null;
+  setBlessingOdds(odds: BlessingOdds | null): void;
+
+  /**
+   * **Draw this item's band at mint time.** `regionOdds` is the already-
+   * resolved zone table (`null` when the place declares none), and it
+   * WINS over this item's own baseline — the `regionTarget` ←
+   * `zone.stocks` precedence, one axis over.
+   *
+   * A no-op when neither side declares a usable table, which leaves an
+   * authored band alone: a deliberately cursed exemplar stays cursed
+   * rather than being re-rolled to ordinary.
+   *
+   * The draw lives here rather than in the spawn sweep so distribution
+   * never imports the magic tree — it asks through `MixinApi.isBlessable`
+   * and hands over a table, the way `Circulating` reads `Arcane` without
+   * importing it.
+   */
+  applyMintOdds(regionOdds: BlessingOdds | null, roll?: () => number): void;
+
   // ---------- storage (public for the Hydrator) ----------
   blessingBand: string;
   blessingBucket: string;
+  blessingOdds: BlessingOdds | null;
 }
 
 export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -150,6 +183,10 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
         authorable: true,
         globIdentity: true,
       },
+      // ⚠ NOT a glob-identity field. Two items differing only in the
+      // odds that MADE them are indistinguishable, and splitting a
+      // stack on it would leak a generation parameter as instance state.
+      blessingOdds: { persistent: true, authorable: true },
     };
 
     /** Ordinary is the overwhelming default. */
@@ -157,6 +194,28 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** What the world knows. Unknown until revealed. */
     public blessingBucket: string = 'unknown';
+
+    /** This kind's mint-time odds. `null` ⇒ fall back to the zone/dial. */
+    public blessingOdds: BlessingOdds | null = null;
+
+    public getBlessingOdds(): BlessingOdds | null {
+      return Blessing.hasOdds(this.blessingOdds) ? this.blessingOdds : null;
+    }
+
+    public setBlessingOdds(odds: BlessingOdds | null): void {
+      this.blessingOdds = Blessing.hasOdds(odds) ? odds : null;
+    }
+
+    public applyMintOdds(
+      regionOdds: BlessingOdds | null,
+      roll?: () => number,
+    ): void {
+      const odds = Blessing.hasOdds(regionOdds)
+        ? regionOdds
+        : this.getBlessingOdds();
+      if (!Blessing.hasOdds(odds)) return;
+      this.setBlessing(Blessing.draw(odds, roll));
+    }
 
     public getBlessingBand(): string {
       return this.blessingBand;

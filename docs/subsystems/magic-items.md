@@ -287,6 +287,48 @@ wielding it, not about owning it.
 > release gate decorative: you could not unwield a cursed wand, but you
 > could drop it.
 
+### Generation odds — how often a mint comes out cursed
+
+Weights, not percentages: they compose, need no total, and an absent
+band weighs 0 — so `{uncursed: 1}` says "never anything else" without
+spelling out zeroes. An empty or all-zero table draws `uncursed` rather
+than throwing, and a negative weight is treated as absent (an author
+typo must not silently curse the world).
+
+Precedence is the stock-target shape exactly (`regionTarget` ←
+`zone.stocks`), one axis over:
+
+| Declared on | Means |
+|---|---|
+| an item template (`blessingOdds`) | this KIND's baseline |
+| a **Zone** (`blessingOdds`, inherited down the zone walk) | **this PLACE is like that** — overrides the item wholesale |
+
+The zone form is the interesting one: a haunted delve skewing everything
+it spawns is one authored line. No shipped zone declares it yet — the
+same status as `stocks` and `favours`, whose zone half also ships
+unexercised.
+
+> ⭐ **The roll happens at the random mint and nowhere else.** A
+> *randomly generated* item rolls; a *deliberately made* one inherits
+> intent. An author's `clone`, a crafted output, a restocked
+> consignment — none come through the spawn sweep, so none get a
+> surprise curse. Putting the roll in `clone` would have every test,
+> every `populates:` cascade and every crafted item rolling dice.
+
+Neither side declaring is a **no-op**, which is what lets a deliberately
+cursed exemplar stay cursed instead of being re-rolled to ordinary by a
+sweep that had nothing to say.
+
+The draw lives on `Blessable.applyMintOdds` rather than in the sweep, so
+distribution never imports the magic tree — it asks through
+`MixinApi.isBlessable` and hands over a table, exactly as `Circulating`
+reads `Arcane` without importing it.
+
+Shipped odds are `{cursed: 3, uncursed: 95, blessed: 2}` on the wand and
+rod. Cursed can roll **at all** only because `remove-curse` now exists;
+the numbers are *calibrate at launch* under D21 like every other
+distribution constant.
+
 ### Remove curse — `control · arcana`, not `destroy · arcana`
 
 The obvious reading is that a curse is another caster's working laid over
@@ -645,7 +687,8 @@ special case: the `cast` path takes the same one.
 `Potable.ts` · `Charge.ts` · `Dose.ts` · `obj/magic/Wand.ts` · `Rod.ts` ·
 `Scroll.ts` · `Spellbook.ts` · `obj/material/PotionMaterial.ts`
 
-**BUC** — `lib/magic/Blessing.ts` · `Blessable.ts` ·
+**BUC** — `lib/magic/Blessing.ts` (`draw`/`hasOdds`) · `Blessable.ts`
+(`applyMintOdds`) · `obj/api/ResidencyLogic.ts` (the mint-site roll) ·
 `lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts` + `Rod.ts`
 (the only composers) · `obj/api/MagicLogic.ts` (`BUC_POTENCY`,
 `execAdjustBlessing`) · `seeds/obj/magic/Spell/remove-curse.yaml` ·

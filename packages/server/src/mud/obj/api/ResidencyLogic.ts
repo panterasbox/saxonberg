@@ -37,6 +37,7 @@ import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ConnectionApi } from '../../api/connection';
 import { MixinApi } from '../../api/mixin';
+import type { BlessingOdds } from '../../lib/magic/Blessing';
 import { PersistableApi } from '../../api/persistable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -222,7 +223,7 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
   if (candidates.length === 0) return report;
 
   for (const region of census.keys()) {
-    const { stocks, affinity } = await regionStockFor(region);
+    const { stocks, affinity, blessingOdds } = await regionStockFor(region);
     // A zone's declared count wins over the item's baseline.
     const scoped = candidates.map((c) => {
       const declared = stocks[c.censusKey];
@@ -241,7 +242,18 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
     }
     if (mode === 'enforce') {
       try {
-        await StuffApi.clone(pick.templatePath);
+        const minted = await StuffApi.clone(pick.templatePath);
+        // **The BUC roll happens HERE and nowhere else** — at the random
+        // mint, not inside `clone`.
+        //
+        // That line is the whole design: a *randomly generated* item
+        // rolls, a *deliberately made* one inherits intent. An author
+        // cloning a wand, a crafter finishing one, a shop restocking a
+        // consignment — none of them get a surprise curse, because none
+        // of them come through here. Putting the roll in `clone` would
+        // have every test, every `populates:` cascade and every crafted
+        // output rolling dice.
+        rollBlessing(minted, blessingOdds);
         report.placed++;
       } catch (err) {
         console.warn('[residency] spawn clone failed', pick.templatePath, err);
@@ -271,8 +283,13 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
 async function regionStockFor(region: string): Promise<{
   stocks: Record<string, number>;
   affinity: Map<string, number>;
+  blessingOdds: BlessingOdds | null;
 }> {
-  const empty = { stocks: {}, affinity: new Map<string, number>() };
+  const empty = {
+    stocks: {},
+    affinity: new Map<string, number>(),
+    blessingOdds: null,
+  };
   if (!region) return empty;
   try {
     const zone = await ZoneApi.resolveZoneForPath(region);
@@ -288,10 +305,34 @@ async function regionStockFor(region: string): Promise<{
     for (const tag of favours) {
       if (typeof tag === 'string') affinity.set(tag, boost);
     }
-    return { stocks, affinity };
+    // Zone-wide, and it wins over the item's own baseline: "this PLACE
+    // is like that" is the fiction that earns the override, and it
+    // inherits down the zone walk like every other zone field.
+    const blessingOdds =
+      (await zone.lookupField<BlessingOdds>('blessingOdds')) ?? null;
+    return { stocks, affinity, blessingOdds };
   } catch {
     return empty;
   }
+}
+
+/**
+ * **Stamp a freshly-spawned item's BUC band.**
+ *
+ * Precedence is the `regionTarget` ← `zone.stocks` shape exactly: a
+ * Zone's declaration wins over the item's own baseline, and an item with
+ * neither is left alone at its authored band (which is `uncursed`
+ * unless a template said otherwise — a deliberately cursed exemplar
+ * stays cursed rather than being re-rolled to ordinary).
+ *
+ * Silent no-op for anything not `Blessable`, which is most of the world.
+ */
+function rollBlessing(
+  minted: Stuff | null | undefined,
+  regionOdds: BlessingOdds | null,
+): void {
+  if (!minted || !MixinApi.isBlessable(minted)) return;
+  minted.applyMintOdds(regionOdds);
 }
 
 /**

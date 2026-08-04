@@ -79,6 +79,27 @@ export type BlessingBand = (typeof BLESSING_BANDS)[number];
  */
 export type BlessingBucket = 'unknown' | BlessingBand;
 
+/**
+ * **How often a minted item comes out at each band.** Weights, not
+ * percentages — see {@link Blessing.draw}. An absent band weighs 0.
+ *
+ * Authored in two places, and a Zone's declaration wins:
+ *
+ * | Declared on | Means |
+ * |---|---|
+ * | an item template (`Blessable.blessingOdds`) | this KIND's own baseline |
+ * | a Zone (`blessingOdds`, inherited down the zone walk) | **this PLACE is like that** — every item minted in it |
+ *
+ * The zone form is the interesting one: a haunted delve skewing
+ * everything it spawns is one authored line, and it inherits to
+ * descendants like every other zone field.
+ */
+export interface BlessingOdds {
+  readonly cursed?: number;
+  readonly uncursed?: number;
+  readonly blessed?: number;
+}
+
 export class Blessing {
   /** The band vocabulary, ascending — re-exported for callers. */
   public static readonly BANDS: readonly BlessingBand[] = BLESSING_BANDS;
@@ -190,5 +211,50 @@ export class Blessing {
     const t = span > 0 ? blessing.getOrdinal() / span : 0;
     const idx = Math.min(steps.length - 1, Math.round(t * (steps.length - 1)));
     return steps[idx]!;
+  }
+
+  /**
+   * **How often a minted item comes out at each band** — a weighted
+   * draw, the `SpawnTable.draw` idiom one axis over.
+   *
+   * Weights, deliberately, not percentages: they compose, they need not
+   * sum to anything, and an author who writes `{cursed: 1, uncursed: 9}`
+   * has said something obviously true rather than something that has to
+   * be checked. An absent band weighs 0, so `{uncursed: 1}` means "never
+   * anything else" without spelling out the zeroes.
+   *
+   * Returns `uncursed` for an empty or all-zero table — the overwhelming
+   * default is the safe answer when an author has said nothing usable.
+   *
+   * `roll` is injectable for tests, exactly as the spawn table's is.
+   */
+  public static draw(
+    odds: BlessingOdds | null | undefined,
+    roll: () => number = Math.random,
+  ): Blessing {
+    const weights = BLESSING_BANDS.map((band) => {
+      const w = odds?.[band];
+      return typeof w === 'number' && Number.isFinite(w) && w > 0 ? w : 0;
+    });
+    const total = weights.reduce((a, b) => a + b, 0);
+    if (total <= 0) return Blessing.of('uncursed');
+
+    const target = roll() * total;
+    let running = 0;
+    for (let i = 0; i < BLESSING_BANDS.length; i++) {
+      running += weights[i]!;
+      if (target < running) return Blessing.of(BLESSING_BANDS[i]!);
+    }
+    // Floating-point tail — the last weighted band is the honest answer.
+    return Blessing.of(BLESSING_BANDS[BLESSING_BANDS.length - 1]!);
+  }
+
+  /** Is this a usable odds table — at least one positive weight? */
+  public static hasOdds(odds: BlessingOdds | null | undefined): boolean {
+    if (!odds) return false;
+    return BLESSING_BANDS.some((b) => {
+      const w = odds[b];
+      return typeof w === 'number' && Number.isFinite(w) && w > 0;
+    });
   }
 }

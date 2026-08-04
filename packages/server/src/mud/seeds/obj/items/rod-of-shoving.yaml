@@ -29,3 +29,12 @@ data:
   # actually occupying a body slot.
   slotClaims:
     "/obj/species/BodyPlan/biped": ["hand:right"]
+  # ── generation odds (mint-time only) ──
+  # Weights, not percentages. Cursed is rare and blessed rarer still —
+  # a displacement from the ordinary should stay a surprise. A Zone that
+  # declares `blessingOdds` overrides this wholesale.
+  #
+  # Cursed can roll at all only because there is now recourse for it
+  # (`remove-curse`). *Calibrate at launch* — D21 holds every
+  # distribution constant to that.
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }
