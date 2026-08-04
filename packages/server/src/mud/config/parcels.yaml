@@ -33,6 +33,28 @@ parcels:
   - extent: /studio
     owner: { kind: group, name: core }
 
+  # The /compact branch — the PUBLICATIONS namespace, and the fourth kind
+  # in the taxonomy: workspace (/home/<self>, /studio/<group>), content
+  # (/domain/<locality> — a place, locally administered), and this.
+  #
+  # ⚠ The Compact makes no rooms and no NPCs. It PUBLISHES. Its
+  # institutions' diegetic premises are Saxonberg's rooms, administered
+  # locally (DC has its own police under a seated city government) — this
+  # is not a federal enclave, and /studio is NOT the precedent for it
+  # (that is a workspace namespace, the multiseat /home). What /studio IS
+  # the precedent for is the ROW SHAPE below.
+  #
+  # Held by `core` so the branch has a claimed title rather than falling
+  # through to the state default: it gives the press feed paths an owner,
+  # gives `committeeOf('/compact')` a group to resolve, and gives the
+  # branch a chain of title that can be subdivided or transferred later.
+  #
+  # ⚠ No `landUse`, no `areaM2` — a path-branch title, not ground, so the
+  # inheritance walk answers `wild` and admits nothing. That is the
+  # fail-closed default this file's header insists on keeping.
+  - extent: /compact
+    owner: { kind: group, name: core }
+
   # The lounge team's ownership roots — the library folder and the content
   # folder, both owned by the managed `lounge` group (was ownerGroupName).
   - extent: /obj/lounge

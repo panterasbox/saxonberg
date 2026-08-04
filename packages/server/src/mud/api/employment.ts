@@ -118,6 +118,26 @@ export class EmploymentApi {
   }
 
   /**
+   * ⭐ May `principal` publish as `publisher`? Exactly *does the principal
+   * hold a non-exited position at this organization whose key is in its
+   * `publishingPositions`* — an empty list meaning **any position**.
+   *
+   * ⚠ **It never consults the appointing authority.** The committee that
+   * fills the press office's positions cannot publish through it by virtue
+   * of being the committee; a member holding no publishing position is
+   * refused. Appointment and exercise are different powers.
+   *
+   * Fails closed on an organization that does not publish, an unresolvable
+   * one, and a principal with no durable identity.
+   */
+  public static mayPublishAs(
+    principal: Stuff | null,
+    publisher: OrganizationStuff,
+  ): boolean {
+    return logic().mayPublishAs(principal, publisher);
+  }
+
+  /**
    * Every actor holding `positionKey` at `organization` — the uniform
    * *who-holds-P-in-O?* read (durable templatePaths). Unions live
    * non-terminal `Employment` records with the authored roster, so a

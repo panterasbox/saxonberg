@@ -147,6 +147,7 @@ import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { Publisher } from '../lib/press/Publisher';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Combatant } from '../lib/combat/Combatant';
@@ -1201,6 +1202,14 @@ export class MixinApi {
    */
   public static isOrganization(obj: Stuff): obj is Stuff & Organization {
     return this.hasMixin(obj, Mixins.Organization);
+  }
+
+  /**
+   * An organization that publishes (`PublisherMixin`) — a press office, a
+   * ministry's communications shop, a newspaper.
+   */
+  public static isPublisher(obj: Stuff): obj is Stuff & Publisher {
+    return this.hasMixin(obj, Mixins.Publisher);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

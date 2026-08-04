@@ -103,45 +103,96 @@ async function isProprietorOfImpl(
 }
 
 /**
- * Every actor holding `positionKey` at `organization` — the uniform
- * *who-holds-P-in-O?* read, identical for a ministry, a shop and a
- * publisher. Two sources, unioned: live non-terminal `Employment` records
- * (runtime hires) and the authored roster (what makes a never-ticked,
- * lazily-stood-up organization's holder provable). Holders are enumerated
- * viewer-blind — the question is about the chart, not about who can see
- * whom. Returns durable templatePaths, in no guaranteed order.
+ * ⭐ **The one holder-resolution path**: every position at `organization`
+ * mapped to the actors holding it, in a single scan.
+ *
+ * Two sources, unioned: live non-terminal `Employment` records (runtime
+ * hires) and the authored roster (what makes a never-ticked, lazily
+ * stood-up organization's holder provable). **An explicit exit suppresses
+ * the roster entry** — an exit is never resurrected, the same rule
+ * `holdsSeat` implements.
+ *
+ * Everything that asks *who holds what here* reads this — `holdersOf` and
+ * the publishing entitlement both — deliberately, so there is exactly one
+ * exit-handling path rather than a second one drifting away from it.
+ *
+ * Holders are enumerated viewer-blind: the question is about the chart,
+ * not about who can see whom.
  */
-function holdersOfImpl(
+function holdersByPositionImpl(
   organization: OrganizationStuff,
-  positionKey: string,
-): string[] {
+): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>();
   const organizationPath = organization.getTemplatePath() ?? '';
-  if (!organizationPath) return [];
-  const out = new Set<string>();
-  const exited = new Set<string>();
+  if (!organizationPath) return out;
+  const add = (positionKey: string, who: string): void => {
+    const bucket = out.get(positionKey);
+    if (bucket) bucket.add(who);
+    else out.set(positionKey, new Set([who]));
+  };
 
+  const exited = new Set<string>();
   const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
     commandGiver: null,
     scope: 'world',
   }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
   for (const holder of holders) {
-    const key = holder.getTemplatePath() ?? '';
-    if (!key) continue;
+    const who = holder.getTemplatePath() ?? '';
+    if (!who) continue;
     const record = holder.getEmployment(organizationPath);
-    if (!record || record.positionKey !== positionKey) continue;
-    // An explicit exit is never resurrected by the authored roster — the
-    // same suppression `holdsSeat` implements, and the reason the roster
-    // pass below is a fallback rather than a second source of truth.
-    if (TERMINAL.includes(record.status)) exited.add(key);
-    else out.add(key);
+    if (!record) continue;
+    if (TERMINAL.includes(record.status)) exited.add(who);
+    else add(record.positionKey, who);
   }
 
   for (const assignment of organization.getRosterAssignments()) {
-    if (assignment.positionKey !== positionKey) continue;
-    if (exited.has(assignment.assignee)) continue;
-    if (assignment.assignee) out.add(assignment.assignee);
+    if (!assignment.assignee || exited.has(assignment.assignee)) continue;
+    add(assignment.positionKey, assignment.assignee);
   }
-  return [...out];
+  return out;
+}
+
+/**
+ * Every actor holding `positionKey` at `organization` — the uniform
+ * *who-holds-P-in-O?* read, identical for a ministry, a shop and a
+ * publisher. Durable templatePaths, in no guaranteed order.
+ */
+function holdersOfImpl(
+  organization: OrganizationStuff,
+  positionKey: string,
+): string[] {
+  return [...(holdersByPositionImpl(organization).get(positionKey) ?? [])];
+}
+
+/**
+ * ⭐ May `principal` publish as `publisher`? Exactly *does the principal
+ * hold a non-exited position at this organization whose key is in
+ * `publishingPositions`* — with an **empty list meaning any position**.
+ *
+ * ⚠ **It never consults the appointing authority.** Appointment and
+ * exercise are different powers: whoever may fill the press office's
+ * positions has, by that alone, no power to publish through it. A
+ * committee member holding no publishing position is **refused** — the
+ * explicit negative this function exists to make true, and the one a
+ * reviewer is most likely to "fix" by re-adding an `||`.
+ *
+ * Fails closed: an organization that does not publish, one with no
+ * resolvable path, and a principal with no durable identity are all no.
+ */
+function mayPublishAsImpl(
+  principal: Stuff | null,
+  publisher: OrganizationStuff,
+): boolean {
+  if (principal === null) return false;
+  if (!MixinApi.isPublisher(publisher)) return false;
+  const who = principal.getTemplatePath();
+  if (who === null || who.length === 0) return false;
+  const allowed = publisher.getPublishingPositions();
+  for (const [positionKey, holders] of holdersByPositionImpl(publisher)) {
+    if (allowed.length > 0 && !allowed.includes(positionKey)) continue;
+    if (holders.has(who)) return true;
+  }
+  return false;
 }
 
 /**
@@ -604,6 +655,15 @@ export class EmploymentLogic extends ApiLogic {
     organization: OrganizationStuff,
   ): OrganizationStuff[] {
     return organizationChainOfImpl(organization);
+  }
+
+  /** See {@link EmploymentApi.mayPublishAs}. */
+  @CallSecurity(EmploymentApiCallers)
+  public mayPublishAs(
+    principal: Stuff | null,
+    publisher: OrganizationStuff,
+  ): boolean {
+    return mayPublishAsImpl(principal, publisher);
   }
 
   /** See {@link EmploymentApi.holdersOf}. */

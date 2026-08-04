@@ -46,6 +46,14 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // by `BlueprintSeeder.run` earlier in boot). Resolvable via `StudioApi`'s
   // catalog ops after this entry's postRegister fires.
   { templatePath: '/obj/BlueprintCatalogue' },
+  // The two seeded organizations — the Compact's own press office and the
+  // Office of the Prime Minister. Warmed here rather than stood up lazily
+  // because they are the targets of `appoint` and of the publish path,
+  // both of which resolve an organization by templatePath: an
+  // organization nobody can find is one nobody can be appointed to. Both
+  // ship UNFILLED, which is the design — see their seeds.
+  { templatePath: '/compact/press' },
+  { templatePath: '/compact/executive' },
   // BulletinBoard singleton — the runtime news-ticker window. Warmed at
   // postRegister from the `bulletins` collection; resolvable via
   // `BulletinApi` after this entry's postRegister fires. No dependsOn.
