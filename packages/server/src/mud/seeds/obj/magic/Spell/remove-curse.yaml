@@ -47,13 +47,24 @@ data:
   targeting: object
   effects:
     - kind: adjust-blessing
-      steps: 1
-      # ⚠ The ceiling is what makes this a CURE and not a buff. Without
-      # it, +1 on an ordinary wand blesses it and the right play is to
-      # read one of these over everything you own. A cure restores; it
-      # stops at ordinary. Consecration past that is a different working
-      # at a different price.
-      limit: uncursed
+      # ⚠ Read as [cursed · uncursed · blessed] — the SCROLL's own band,
+      # not the target's. This is the whole BUC model in four numbers,
+      # and it is the case a potency multiplier cannot express at all:
+      #
+      #   cursed  steps -1, limit cursed    it CURSES what you read it on
+      #   uncursed steps +1, limit uncursed the cure — restores, stops there
+      #   blessed steps +1, limit blessed   consecrates past ordinary
+      #
+      # A sign INVERSION at the low end, and a raised ceiling at the
+      # high end. Both are "the low/high end of this working's own axis"
+      # — never a fraction of the same outcome. NetHack's cursed remove
+      # curse does exactly this, and it is the reason the axis is worth
+      # having: you must know the scroll before you use it.
+      steps: [-1, 1, 1]
+      # The ceiling is what makes the ordinary case a CURE and not a
+      # buff: unbounded, +1 on an ordinary item blesses it and the right
+      # play is to read one over everything you own.
+      limit: [cursed, uncursed, blessed]
   description: >-
     Not an unbinding — there is nothing here another hand tied. The
     working takes the thing's own pattern and walks it back up one

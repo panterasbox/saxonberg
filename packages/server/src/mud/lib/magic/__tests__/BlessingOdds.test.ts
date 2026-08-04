@@ -14,6 +14,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Blessing, type BlessingOdds } from '../Blessing';
+import { MagicEffects } from '../Effect';
 import { BlessableMixin } from '../Blessable';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
@@ -155,5 +156,67 @@ describe('the roll happens at the random mint, and NOWHERE else', () => {
     // It takes an explicit mint-time call to move it.
     t.applyMintOdds(null, rollAt(0.5));
     expect(t.getBlessingBand()).toBe('cursed');
+  });
+});
+
+describe('band-varying effects — the item owns the function, not the engine', () => {
+  it('a scalar field resolves per band, in order', () => {
+    const raw = { kind: 'inject-channel', channel: 'heat', energy: [1, 2, 4] };
+    const cursed = MagicEffects.validateForBand(raw, 'cursed');
+    const ordinary = MagicEffects.validate(raw);
+    const blessed = MagicEffects.validateForBand(raw, 'blessed');
+    expect((cursed as { energy: number }).energy).toBe(1);
+    expect((ordinary as { energy: number }).energy).toBe(2);
+    expect((blessed as { energy: number }).energy).toBe(4);
+  });
+
+  it('`validate` IS the uncursed case — so a cast is unchanged', () => {
+    // A caster has no BUC. Casting must fire exactly what it always
+    // fired, which is only true if the plain validate path picks the
+    // middle step.
+    const raw = { kind: 'adjust-reserve', reserveKey: 'mana', delta: [-5, 0, 5] };
+    expect((MagicEffects.validate(raw) as { delta: number }).delta).toBe(0);
+  });
+
+  it('⭐ a SIGN INVERSION — the case a multiplier cannot express', () => {
+    // The whole reason the engine must not own the function. There is no
+    // scalar that turns "lift a curse" into "lay one"; it is the low end
+    // of remove-curse's OWN axis, and only the working can say so.
+    const raw = {
+      kind: 'adjust-blessing',
+      steps: [-1, 1, 1],
+      limit: ['cursed', 'uncursed', 'blessed'],
+    };
+    const cursed = MagicEffects.validateForBand(raw, 'cursed') as {
+      steps: number; limit: string;
+    };
+    const blessed = MagicEffects.validateForBand(raw, 'blessed') as {
+      steps: number; limit: string;
+    };
+    expect(cursed.steps).toBe(-1); // it CURSES what you read it on
+    expect(cursed.limit).toBe('cursed');
+    expect(blessed.steps).toBe(1);
+    expect(blessed.limit).toBe('blessed'); // consecrates past ordinary
+  });
+
+  it('a working with no band-varying field is band-INDIFFERENT', () => {
+    // Honest, and the common case: most workings do not care about
+    // potency, and saying nothing means exactly that.
+    const raw = { kind: 'emit-field', field: 'light' };
+    expect(MagicEffects.validateForBand(raw, 'cursed')).toEqual(
+      MagicEffects.validateForBand(raw, 'blessed'),
+    );
+  });
+
+  it('the ENGINE owns only the ordering — an author cannot invert it', () => {
+    // `Blessing.pick` indexes the list; there is no way to author
+    // "cursed is the good one" except by writing it in the good slot,
+    // which is the point of the primitive being engine-side.
+    const raw = { kind: 'inject-channel', channel: 'heat', energy: [9, 5, 1] };
+    // Authored backwards, it faithfully produces a backwards item —
+    // monotonicity is a SEMANTIC contract on the author, not a lint.
+    expect(
+      (MagicEffects.validateForBand(raw, 'cursed') as { energy: number }).energy,
+    ).toBe(9);
   });
 });

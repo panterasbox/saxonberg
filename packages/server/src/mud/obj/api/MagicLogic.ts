@@ -161,22 +161,6 @@ export interface SpellsView {
 /** The bound-emitter and spark-locus template paths. */
 const GLOWLIGHT_ORB_PATH = '/obj/magic/GlowlightOrb';
 
-/**
- * **What a blessing is worth**, as a multiplier on delivered magnitude.
- *
- * `uncursed` is the midpoint by construction (`Blessing.scale`
- * interpolates), so these two ends fix the whole axis: a cursed item
- * delivers 60% of ordinary, a blessed one 140%. Wide enough that a
- * player notices without a readout, narrow enough that BUC never
- * out-weighs the maker's own `deliveryEfficiency` — which is the fact
- * that is *supposed* to dominate, since it is the one somebody worked
- * for.
- */
-const BUC_POTENCY = {
-  CURSED: 0.6,
-  BLESSED: 1.4,
-} as const;
-
 /** Magnitudes not yet worth a dial (the HARM_DEFAULTS precedent). */
 const MAGIC_DEFAULTS = {
   /** Cast-time slowdown per overchannel-strain stage. */
@@ -396,6 +380,9 @@ async function resolveCastImpl(
   const potency = await potencyFactor(caster, spell);
   const ctx = EffectContexts.forCast(caster, spell, potency);
 
+  // A CAST always fires the ordinary branch: a caster has no BUC, so
+  // there is no band to read. Potency is an INSTRUMENT fact, which is
+  // why the low/high branches are reachable only through the item door.
   const reports: string[] = [];
   for (const effect of spell.effects) {
     const report = await executeEffect(ctx, target, spell, effect);
@@ -557,25 +544,6 @@ async function dischargeImpl(
     // Fade shows up as falling delivery, never as failure.
     classScale *= item.getPatternEfficiency();
   }
-  if (MixinApi.isBlessable(item)) {
-    // **BUC is an EFFICIENCY, not a morality.** A blessed item does
-    // more of whatever it does; a cursed one does less. That is the
-    // whole model, and it is deliberately amoral: a blessed wand of
-    // dread is a *better* wand of dread, and a blessed draught of
-    // poison is a better poison.
-    //
-    // The consequence is the good part. Knowing an item's BUC is NOT
-    // enough to know whether using it is safe — you need to know what
-    // the item *is* as well. So the two identification axes (the class,
-    // via the belief store; the band, via the bucket) are genuinely
-    // independent and you need BOTH to predict an outcome. "Blessed"
-    // is never reassurance on its own.
-    classScale *= Blessing.scale(
-      item.getBlessing(),
-      BUC_POTENCY.CURSED,
-      BUC_POTENCY.BLESSED,
-    );
-  }
 
   // The maker's fixed efficiency times whatever the capability supplied
   // — a dose fraction, a faded pattern, a blessing. They MULTIPLY: half
@@ -591,8 +559,24 @@ async function dischargeImpl(
     { specifiedBy: item.getMakerId(), source: payer },
   );
 
+  // **The band picks the working's own low/high branch** — not a global
+  // multiplier. A blanket 0.6×/1.4× made every cursed item identical AND
+  // unobservable, which is the opposite of what magic is for: the whole
+  // point is that each item is its own thing. The engine owns only the
+  // ORDERING (`Blessing.pick`, at validation); what each step MEANS is
+  // the working's own, authored inline on its effects.
+  const band = MixinApi.isBlessable(item)
+    ? item.getBlessing().getBand()
+    : 'uncursed';
+  const effects =
+    band === 'cursed'
+      ? spell.cursedEffects
+      : band === 'blessed'
+        ? spell.blessedEffects
+        : spell.effects;
+
   const reports: string[] = [];
-  for (const effect of spell.effects) {
+  for (const effect of effects) {
     const report = await executeEffect(ctx, target, spell, effect);
     if (report) reports.push(report);
   }

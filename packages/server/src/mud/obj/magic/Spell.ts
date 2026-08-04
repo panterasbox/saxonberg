@@ -75,6 +75,21 @@ export interface SpellDescriptor {
   cost: number;
   targeting: SpellTargeting;
   effects: Effect[];
+  /**
+   * **What this working does at the low and high ends of its own axis.**
+   *
+   * Built from the SAME authored blobs as {@link effects} — an author
+   * writes band-varying fields inline (`energy: [1, 2, 4]`,
+   * `steps: [-1, 1, 1]`) and validation resolves one list per band. So
+   * there is no duplicated effect data and no second catalogue entry;
+   * see `MagicEffects.validateForBand`.
+   *
+   * Read only through the ITEM door: a caster has no BUC, so a cast
+   * always fires {@link effects}. That is the honest reading of "spells
+   * are spells and items are items" — potency is an instrument fact.
+   */
+  cursedEffects: Effect[];
+  blessedEffects: Effect[];
   family: EffectFamily;
   /** Sustained (modifier) lifetime, game-seconds; 0 = until dispelled. */
   durationSeconds: number;

@@ -232,28 +232,87 @@ blessed 1.4×, ordinary the interpolated midpoint).
 
 ### ⚠ Blessed means EFFICIENT, not BENEVOLENT
 
-The settled ruling, and the one thing here that is easy to get
-backwards. A blessing amplifies **whatever the item already does**; a
-curse damps it. The axis carries no opinion about whether that is good
-for you.
+A blessing amplifies **whatever the item already does**; a curse damps
+or inverts it. The axis carries no opinion about whether that is good
+for you — a blessed wand of dread is a *better* wand of dread. **There
+is no band that means "safe."**
 
-So a blessed wand of dread is a *better* wand of dread, and a blessed
-draught of poison is a better poison. **There is no band that means
-"safe."**
+The payoff: knowing an item's BUC is *not enough* to know whether using
+it is safe — you need to know what the item **is** as well. The two
+hidden axes (class, via the belief store; band, via the
+`BlessingBucket`) stay independent, and a player needs **both**.
 
-That is deliberate, and the consequence is the payoff: knowing an item's
-BUC is *not enough* to know whether using it is safe — you need to know
-what the item **is** as well. The two hidden axes (the class, via the
-belief store's `IDENTIFICATION` realm; the band, via the
-`BlessingBucket`) are therefore genuinely independent, and a player needs
-**both** to predict an outcome. A band that always meant "fine" would
-collapse two questions into one.
+### ⭐ The engine owns the ORDERING; the working owns the FUNCTION
 
-It also fixes the scope. `BlessableMixin` is composed **only on items
-with an effect axis to displace** — `Wand` and `Rod` — because that is
-the only thing the model is defined against. What a blessed *sword* or a
-cursed *chair* would mean has no model yet, so it stays unbuilt rather
-than guessed at. The mixin is the seam if one ever arrives.
+The load-bearing rule, and the one this build initially got wrong.
+
+> **BUC is a potency level on the item's own effect axis.** The engine
+> owns the ordering `cursed < uncursed < blessed`; **the item owns the
+> effect-as-a-function-of-potency**, and honors one contract: monotonic
+> in potency. — `magic-items-slate.md`
+
+The first cut shipped a global `BUC_POTENCY` constant (cursed 0.6×,
+blessed 1.4×) applied to every discharge. That moved the *function* into
+the engine, and it was wrong twice over:
+
+- **every cursed item became the same item** — the opposite of what
+  magic is for, which is that each one is its own thing;
+- **it was unobservable.** Bands are shown, never numbers, so 0.6×
+  firebolt and 1.0× firebolt read identically. BUC became the one hidden
+  axis a player could not deduce — while the whole identification design
+  rests on matching observed effects against a known vocabulary.
+
+**Band-varying authored fields** replace it. Any scalar field of an
+effect may be written as an ordered 2- or 3-step list, and the band
+picks one (`Blessing.pick`, engine-side, so an author cannot invert the
+ordering):
+
+```yaml
+# firebolt — the MAGNITUDE case
+- kind: inject-channel
+  channel: heat
+  energy: [1, 2, 4]          # cursed · uncursed · blessed
+
+# remove-curse — the SIGN INVERSION a multiplier cannot express
+- kind: adjust-blessing
+  steps: [-1, 1, 1]
+  limit: [cursed, uncursed, blessed]
+```
+
+A cursed scroll of remove curse **lays** a curse. Not a weaker cure —
+the opposite act, because that is the low end of *remove-curse's own*
+axis. `scroll-of-remove-curse-cursed` is the worked exemplar against its
+ordinary twin: same working, one band down.
+
+Resolution happens **once, at validation** (`MagicEffects.validateForBand`),
+so the catalogue holds three concrete effect lists per spell and every
+executor keeps receiving a plain `Effect`. No executor learns about
+bands, and there is no duplicated effect data or second catalogue entry.
+
+**A cast always fires the ordinary branch** — a caster has no BUC. That
+is the honest reading of *spells are spells and items are items*:
+potency is an **instrument** fact, reachable only through the item door.
+
+A working that authors no band-varying field is band-**indifferent**,
+which is the common and honest case.
+
+### Scoped to things with an effect axis
+
+`BlessableMixin` is composed by `Wand`, `Rod` and `Scroll` — everything
+that fires a working. `Scroll` earned it once the band selected the
+working's own branch; while BUC's only consumer was the release gate it
+was meaningless for a one-shot, and now it is the archetype.
+
+Deliberately **not** `PotionMaterial`: BUC is per-instance and a material
+is a shared singleton, so one cursed draught would curse every flask of
+it. What a cursed *sword* or *chair* would mean stays unbuilt rather
+than guessed at.
+
+> **BUC is a band that every consumer interprets in its own terms.**
+> There is no single mechanism and there should not be — discharge reads
+> band-varying effects, the release gate reads `refusesRelease`, charge
+> reads `dischargeIntoHolder`. Two engine primitives fix the *ordering*;
+> the *meaning* is always local.
 
 ### Cursed sticks — the release gate
 

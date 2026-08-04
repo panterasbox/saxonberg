@@ -35,6 +35,7 @@ import SpellCatalogue from '../../../obj/SpellCatalogue';
 import Spell from '../../../obj/magic/Spell';
 import Scroll from '../../../obj/magic/Scroll';
 import Wand from '../../../obj/magic/Wand';
+import Signpost from '../../../obj/Signpost';
 import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import { BlessableMixin } from '../Blessable';
@@ -293,11 +294,12 @@ describe('remove-curse — control·arcana over an item', () => {
     const room = makeRoom();
     const reader = makeActor();
     ContainmentApi.move(reader, room);
-    // A scroll is not Blessable — there is no model for what a blessed
-    // one-shot would mean, so it does not carry the field. Refusing is
-    // honest and leaks nothing: being un-blessable is a fact about the
-    // CLASS, which anybody can see.
-    const rock = makeScroll('firebolt');
+    // A signpost bears marks and nothing else — no effect axis to
+    // displace, so it does not carry the field. Refusing is honest and
+    // leaks nothing: being un-blessable is a fact about the CLASS, which
+    // anybody can see.
+    const rock = makeStuff(() => new Signpost());
+    stampTemplatePathForTest(rock, `/obj/test/rc-sign-${seq++}`);
     ContainmentApi.move(rock, room);
     expect(MixinApi.isBlessable(rock)).toBe(false);
     const scroll = makeScroll('remove-curse');
@@ -356,14 +358,16 @@ describe('blessed means EFFICIENT, not BENEVOLENT', () => {
     expect(potencies.uncursed!).toBeLessThan(potencies.blessed!);
   });
 
-  it('the shipped magic-item classes carry the axis; nothing else does', () => {
-    // Scoped to items with an effect axis to displace, which is the
-    // only thing the model is defined against. A cursed sword or chair
-    // stays UNBUILT rather than guessed at.
-    const wand = makeWand('uncursed');
-    expect(MixinApi.isBlessable(wand)).toBe(true);
-    const scroll = makeScroll('firebolt');
-    expect(MixinApi.isBlessable(scroll)).toBe(false);
+  it('every item with an EFFECT AXIS carries it; nothing else does', () => {
+    // Scoped to things that fire a working, which is the only thing the
+    // model is defined against. `Scroll` earned it once a band selected
+    // the working's own branch — a cursed scroll of remove curse is the
+    // archetype. A cursed sword or chair stays UNBUILT rather than
+    // guessed at, because nobody has said what it would mean.
+    expect(MixinApi.isBlessable(makeWand('uncursed'))).toBe(true);
+    expect(MixinApi.isBlessable(makeScroll('firebolt'))).toBe(true);
+    const sign = makeStuff(() => new Signpost());
+    expect(MixinApi.isBlessable(sign)).toBe(false);
   });
 });
 

@@ -192,8 +192,19 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
   }
   if (!Array.isArray(d.effects) || d.effects.length === 0) return null;
   let effects: Effect[];
+  let cursedEffects: Effect[];
+  let blessedEffects: Effect[];
   try {
     effects = d.effects.map((e) => MagicEffects.validate(e));
+    // One list per band, from the same authored blobs. A working with no
+    // band-varying field simply yields three identical lists, which is
+    // the honest "this working does not care about potency".
+    cursedEffects = d.effects.map((e) =>
+      MagicEffects.validateForBand(e, 'cursed'),
+    );
+    blessedEffects = d.effects.map((e) =>
+      MagicEffects.validateForBand(e, 'blessed'),
+    );
   } catch {
     return null;
   }
@@ -214,6 +225,8 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
     cost: numberOr(d.cost, 0),
     targeting,
     effects,
+    cursedEffects,
+    blessedEffects,
     family,
     durationSeconds: numberOr(d.durationSeconds, 0),
     description: typeof d.description === 'string' ? d.description : '',
@@ -227,5 +240,10 @@ function numberOr(v: unknown, fallback: number): number {
 
 /** Defensive copy so callers can't mutate the cached descriptor. */
 function cloneDescriptor(d: SpellDescriptor): SpellDescriptor {
-  return { ...d, effects: d.effects.map((e) => ({ ...e })) };
+  return {
+    ...d,
+    effects: d.effects.map((e) => ({ ...e })),
+    cursedEffects: d.cursedEffects.map((e) => ({ ...e })),
+    blessedEffects: d.blessedEffects.map((e) => ({ ...e })),
+  };
 }

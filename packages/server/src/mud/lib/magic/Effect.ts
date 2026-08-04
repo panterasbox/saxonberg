@@ -266,8 +266,59 @@ export class MagicEffects {
    * unknown kind or malformed fields — the structural enforcement of
    * the governing invariant ("gain 5 levels" cannot parse).
    */
+  /**
+   * **Band-varying authored fields** — the mechanism behind
+   * "the item owns the effect-as-a-function-of-potency".
+   *
+   * Any scalar field of an authored effect may be written as an ordered
+   * 2- or 3-step list instead of a value, and the band picks one:
+   *
+   * ```yaml
+   * - kind: inject-channel
+   *   channel: heat
+   *   energy: [1, 2, 4]          # cursed · uncursed · blessed
+   * ```
+   *
+   * The engine owns **only the ordering** (`Blessing.pick`, which is why
+   * an author cannot get it backwards); the *meaning* of each step is the
+   * working's own. That is the slate's contract, and the reason there is
+   * no global potency constant: a blanket multiplier made every cursed
+   * item identical AND unobservable, when the whole point of magic is
+   * that each one is its own thing.
+   *
+   * Scalars, enums and paths all work, so this covers magnitude
+   * (`energy: [1,2,4]`), scope, count, and outright sign inversion
+   * (`steps: [-1, 1, 1]` — a cursed remove-curse that *curses*).
+   *
+   * No effect field is legitimately array-valued, so a bare list is
+   * unambiguous. Resolution happens ONCE, here at validation, so every
+   * executor keeps receiving a concrete `Effect` and none of them learn
+   * about bands.
+   */
+  private static forBand(raw: unknown, band: BlessingBand): unknown {
+    if (!raw || typeof raw !== 'object') return raw;
+    const blessing = Blessing.of(band);
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      out[k] =
+        Array.isArray(v) && v.length >= 2 && v.length <= 3
+          ? Blessing.pick(blessing, v)
+          : v;
+    }
+    return out;
+  }
+
+  /**
+   * Parse one authored effect **as a given band would fire it**. The
+   * band-aware sibling of {@link validate}; `validate` itself is the
+   * `uncursed` case, which is what a CAST uses (a caster has no BUC).
+   */
+  public static validateForBand(raw: unknown, band: BlessingBand): Effect {
+    return MagicEffects.validate(MagicEffects.forBand(raw, band));
+  }
+
   public static validate(raw: unknown): Effect {
-    const e = raw as Record<string, unknown>;
+    const e = MagicEffects.forBand(raw, 'uncursed') as Record<string, unknown>;
     const kind = e?.kind;
     if (
       typeof kind !== 'string' ||

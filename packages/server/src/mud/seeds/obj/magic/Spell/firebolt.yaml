@@ -18,8 +18,13 @@ data:
   effects:
     - kind: inject-channel
       channel: heat
-      energy: 2
-      joules: 900000
+      # [cursed · uncursed · blessed] — the MAGNITUDE case, which is the
+      # one a multiplier did handle. It stays authored per working rather
+      # than engine-fixed, because how much a guttering firebolt loses is
+      # a fact about firebolt, not a global constant. A wand that barely
+      # catches vs one that sears.
+      energy: [1, 2, 4]
+      joules: [300000, 900000, 1800000]
       resist: { axis: channel, intensity: 2 }
   description: >-
     A lance of true flame. What it touches, it heats — flesh burns, tinder

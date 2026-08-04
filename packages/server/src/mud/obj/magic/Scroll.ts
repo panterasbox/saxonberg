@@ -29,10 +29,20 @@ import { ConsumableMixin } from '../../lib/magic/Consumable';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { LabelledMixin } from '../../lib/description/Labelled';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
+import { BlessableMixin } from '../../lib/magic/Blessable';
 
+// `Blessable` because a scroll HAS an effect axis, which is the only
+// thing BUC is defined against. It was left off while BUC's only
+// consumer was the cursed-sticks release gate — meaningless for
+// something you read once and destroy. Now that a band selects the
+// working's own low/high branch, a scroll is the ARCHETYPE: NetHack's
+// cursed scroll of remove curse lays curses instead of lifting them,
+// and that is the one demonstration the whole model rests on.
 const ScrollBase = CirculatingMixin(
-  IdentifiableMixin(
-    LabelledMixin(ConsumableMixin(ArcaneMixin(MarkedMixin(Thing)))),
+  BlessableMixin(
+    IdentifiableMixin(
+      LabelledMixin(ConsumableMixin(ArcaneMixin(MarkedMixin(Thing)))),
+    ),
   ),
 );
 
