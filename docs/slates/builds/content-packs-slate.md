@@ -325,10 +325,42 @@ resource → zone → templatePath → `ownerOf(path)`, so documents need to
 **enter that chain one step later** — a path-shaped sibling to `can`.
 Doing it deletes the `core` fallback from a third place.
 
-⚠ **`/compact` is the exception and it is build-1's call.** It is being
-carved as a publications namespace that is explicitly *not a place*, so
-"some parcel covers it" may be the wrong rule there. Settle that before
-anything depends on it.
+### ⭐⭐ `/compact` is not an exception — landless parcels already ship
+
+> **User: "the `/compact` branch is both a parcel and a namespace owned by
+> the compact. They just don't use any land. But they own documents and
+> ideas and maybe even things."**
+
+An earlier draft called this the one root that would not fit and punted it
+to build-1. **Wrong — the shape already exists.** parcel.md:
+
+> *"⚠ `wild` admits nothing, and that default is load-bearing. Most rows
+> in this collection are **not ground at all** — `/studio`, `/obj/lounge`
+> and the `/obj/…` roots are **path-branch titles over the template
+> tree**, and they all answer `wild`."*
+
+So `/compact` is the same shape as `/studio`: `area: 0`, use inheriting to
+`wild`, owner the Compact. Which generalizes the whole model:
+
+> ⭐⭐⭐ **A parcel is TITLE OVER AN EXTENT OF THE PATH TREE. Land is one
+> thing you can hold there — not what a parcel IS.**
+
+That is why the trie needs no per-namespace logic: documents, templates
+and publications are all extents, and *ground* is the special case that
+additionally carries `area`, `storeys` and a `landUse`.
+
+⚠ **"Maybe even things" is the seam between the two ownership systems**,
+and it is worth not blurring:
+
+| The Compact owns… | Mechanism |
+|---|---|
+| a **branch** — documents, Ideas, template definitions | **parcel title** over the extent |
+| a specific **instance** — the mace of office, one particular chair | ⭐ **chattel** (`_chattelId`, its own chain of title) |
+
+A Thing sitting in a room the Compact does not own is *chattel* the
+Compact holds, not evidence that parcels need to cover instances. Keep
+them apart or `ownerOf(path)` starts wanting to answer questions about
+objects that move.
 
 ## What does NOT change
 
