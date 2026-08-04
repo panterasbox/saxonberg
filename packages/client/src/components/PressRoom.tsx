@@ -29,7 +29,7 @@
  */
 
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { SERVER_URL } from "../config";
 import { tokens } from "./ui";
 import { MmlRenderer } from "./MmlRenderer";
@@ -60,12 +60,13 @@ const Title = styled.h2`
   color: ${tokens.color.fgMuted};
 `;
 
-const Item = styled.article<{ $pinned: boolean }>`
-  padding: ${tokens.space.sm} 0;
+const Item = styled.article`
+  padding: ${tokens.space.md} 0;
   border-top: 1px solid ${tokens.color.borderMuted};
-  border-left: ${(p) =>
-    p.$pinned ? `2px solid ${tokens.color.fgEmphasis}` : "none"};
-  padding-left: ${(p) => (p.$pinned ? tokens.space.sm : "0")};
+
+  &:first-of-type {
+    border-top: none;
+  }
 `;
 
 const Byline = styled.div`
@@ -77,16 +78,91 @@ const Byline = styled.div`
   margin-bottom: ${tokens.space.xs};
 `;
 
-const Headline = styled.div`
-  font-weight: 600;
-  color: ${tokens.color.fgEmphasis};
+/**
+ * ⚠ Pinning is stated, not implied.
+ *
+ * A pinned release sorts above newer ones, so without a marker the date
+ * order simply looks broken. The marker was a bare accent rail down the
+ * item's left edge — which encoded the fact accurately and communicated
+ * nothing, reading as inconsistent styling rather than as meaning. A word
+ * costs the same pixels and says what it is.
+ */
+const Pinned = styled.span`
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${tokens.color.accent};
 `;
 
-const Body = styled.div`
+/**
+ * The subject line. A `<button>` only when there is a body to reveal —
+ * a control that does nothing is worse than no control.
+ */
+const Headline = styled.button<{ $interactive: boolean }>`
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 600;
+  color: ${tokens.color.fgEmphasis};
+  cursor: ${(p) => (p.$interactive ? "pointer" : "default")};
+
+  &:hover {
+    color: ${(p) =>
+      p.$interactive ? tokens.color.primary : tokens.color.fgEmphasis};
+  }
+`;
+
+/**
+ * The body, clamped to two lines until expanded. Kept in the DOM either
+ * way so the text is a preview rather than an absence — the point of the
+ * surface is that a visitor can tell what a release is *about* without
+ * clicking anything.
+ */
+const Body = styled.div<{ $clamped: boolean }>`
   margin-top: ${tokens.space.xs};
   font-size: ${tokens.font.small};
+  line-height: 1.45;
   color: ${tokens.color.fgMuted};
   word-break: break-word;
+
+  ${(p) =>
+    p.$clamped &&
+    css`
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    `}
+`;
+
+/**
+ * The affordance, shown only when a body exists to expand.
+ *
+ * ⚠ A real `<button>`, not a label. It said "MORE" while being a `<span>`,
+ * so the one element on the card that *announces* itself as a control was
+ * the one element that wasn't one — and the headline, which looks like a
+ * heading, was. Whatever reads as the affordance has to be the affordance.
+ */
+const More = styled.button`
+  display: inline-block;
+  margin-top: ${tokens.space.xs};
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: ${tokens.font.micro};
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.primary};
+  }
 `;
 
 const Empty = styled.p`
@@ -120,6 +196,61 @@ function formatDate(epochMs: number): string {
 
 export const PressRoom: React.FC = () => {
   const [feed, setFeed] = React.useState<Feed>({ state: "loading" });
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
+  const toggle = (id: string): void =>
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  /**
+   * ⚠ Whether each body actually **overflows** its two-line clamp.
+   *
+   * Having a body is not the same as having something to expand: a
+   * two-line body clamps to exactly itself, so a toggle driven by
+   * `body.length > 0` promises a reveal and then moves the layout by a
+   * pixel. The control is only honest if it is driven by measurement.
+   *
+   * Measured while clamped — an expanded body always "fits" by
+   * definition, so the reading is taken before expansion and kept.
+   */
+  const bodyRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+  const [overflowing, setOverflowing] = React.useState<Record<string, boolean>>(
+    {},
+  );
+
+  const measure = React.useCallback((): void => {
+    setOverflowing((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const [id, el] of Object.entries(bodyRefs.current)) {
+        if (!el || expanded[id]) continue;
+        const over = el.scrollHeight - el.clientHeight > 1;
+        if (next[id] !== over) {
+          next[id] = over;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [expanded]);
+
+  // Before paint, so a toggle never flickers in and out on first render.
+  React.useLayoutEffect(() => {
+    measure();
+  }, [feed, measure]);
+
+  // Web fonts change line metrics after first paint, and the panel
+  // reflows with the window.
+  React.useEffect(() => {
+    let live = true;
+    const onResize = (): void => measure();
+    window.addEventListener("resize", onResize);
+    void document.fonts?.ready.then(() => {
+      if (live) measure();
+    });
+    return () => {
+      live = false;
+      window.removeEventListener("resize", onResize);
+    };
+  }, [measure]);
 
   React.useEffect(() => {
     const abort = new AbortController();
@@ -159,31 +290,70 @@ export const PressRoom: React.FC = () => {
       {feed.state === "empty" ? (
         <Empty>Nothing has been published yet.</Empty>
       ) : (
-        feed.rows.map((row) => (
-          <Item key={row.releaseId} $pinned={row.pinned}>
-            <Byline>
-              <span>{row.publisherLabel}</span>
-              <span>{formatDate(row.publishedAt)}</span>
-              {row.source && <span>via {row.source}</span>}
-            </Byline>
-            <Headline>
-              <MmlRenderer
-                text={row.headline}
-                onCommandClick={noop}
-                onCommandPreview={noop}
-              />
-            </Headline>
-            {row.body && (
-              <Body>
+        feed.rows.map((row) => {
+          const hasBody = row.body.length > 0;
+          const open = expanded[row.releaseId] === true;
+          // Offer the toggle only when there is genuinely more to see —
+          // or when it is open, so it can be closed again.
+          const collapsible = hasBody && (overflowing[row.releaseId] || open);
+          return (
+            <Item key={row.releaseId}>
+              <Byline>
+                <span>{row.publisherLabel}</span>
+                <span>{formatDate(row.publishedAt)}</span>
+                {row.pinned && <Pinned>Pinned</Pinned>}
+                {row.source && <span>via {row.source}</span>}
+              </Byline>
+              <Headline
+                as={collapsible ? "button" : "div"}
+                $interactive={collapsible}
+                {...(collapsible
+                  ? {
+                      onClick: () => toggle(row.releaseId),
+                      "aria-expanded": open,
+                      title: open ? "Collapse" : "Read more",
+                    }
+                  : {})}
+              >
                 <MmlRenderer
-                  text={row.body}
+                  text={row.headline}
                   onCommandClick={noop}
                   onCommandPreview={noop}
                 />
-              </Body>
-            )}
-          </Item>
-        ))
+              </Headline>
+              {hasBody && (
+                <>
+                  <Body
+                    ref={(el) => {
+                      bodyRefs.current[row.releaseId] = el;
+                    }}
+                    $clamped={!open}
+                  >
+                    <MmlRenderer
+                      text={row.body}
+                      onCommandClick={noop}
+                      onCommandPreview={noop}
+                    />
+                  </Body>
+                  {collapsible && (
+                  <More
+                    type="button"
+                    onClick={() => toggle(row.releaseId)}
+                    aria-expanded={open}
+                    aria-label={
+                      open
+                        ? `Collapse: ${row.headline}`
+                        : `Read more: ${row.headline}`
+                    }
+                  >
+                    {open ? "Less \u2303" : "More \u2304"}
+                  </More>
+                  )}
+                </>
+              )}
+            </Item>
+          );
+        })
       )}
     </Panel>
   );

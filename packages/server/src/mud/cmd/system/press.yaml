@@ -7,8 +7,7 @@ help: |
   connected player sees.
 
   `press post <headline>` publishes an announcement. Type the
-  headline inline; the longer body is composed in the GUI editor (the
-  structured `body` field), not on the command line. (Bare `press
+  headline inline and the longer text with `--body`. (Bare `press
   <headline>` is shorthand for `press post <headline>`.)
 
   `--as` names the publisher organization the release goes out
@@ -22,6 +21,9 @@ help: |
   (`ooc`) or in-fiction (`world`) is a fact about the publisher, not
   about the release, so it is taken from the organization — you
   cannot speak in character on an operator's feed by passing a flag.
+
+  `--body "..."` adds the long-form text under the headline —
+  quote it, and it may use MML.
 
   `--visibility` may make one release **more private** than its
   publisher normally is (`public` | `members`). It can only narrow:
@@ -48,6 +50,16 @@ options:
     type: string
     field: as
     description: "Publisher organization path to publish as (e.g. /compact/press)"
+  # ⚠ The body is a verb-scoped OPTION, not the `payload:` side-channel it
+  # used to be. The side-channel is the GUI editor's seam — and there is
+  # no press editor, so nothing could write a body at all and every
+  # release shipped bodiless. A quoted `--body` makes it reachable from
+  # the command line today; a structured editor can still submit the
+  # `body` field later, since it is a known field name either way.
+  body:
+    type: string
+    field: body
+    description: "Long-form MML body — quote it: --body \"...\""
   # Verb-scoped (global to `press`): in scope for the bare/`post`
   # publish form AND the edit subcommand. No YAML `default:` on kind — the
   # publish default (notice) is applied in the controller so an unpassed
@@ -72,24 +84,14 @@ options:
     type: string
     field: expires
     description: "Shell-style lifetime (e.g. 2h, 7d, 1h30m); omit for never"
-payload:
-  # The long-form body is structured-form-only — clients populate it via
-  # the `{text, fields}` side-channel (overlaid into `model.body` by the
-  # dispatcher), not from bare text on the command line. The greedy
-  # `headline` positional already occupies the single greedy-arg slot, so
-  # the body rides the payload channel (the `write.yaml` body precedent).
-  body:
-    type: string
-    description: "Long-form MML body (GUI editor; structured-form-only)"
 subcommands:
   post:
     description: "Publish a new release to the ticker"
     help: |
       Publish an announcement to the news ticker. Give the headline
       inline and the publisher with `--as`; the verb-scoped
-      `--visibility` / `--kind` / `--pin` / `--expires` options shape
-      it, and the long-form body rides the structured `body` field.
-      Bare `press <headline>` is the same thing.
+      `--body` / `--visibility` / `--kind` / `--pin` / `--expires`
+      options shape it. Bare `press <headline>` is the same thing.
     args:
       - name: headline
         type: string
@@ -100,9 +102,8 @@ subcommands:
     help: |
       Revise a release you published. Give its id, then the new
       headline inline (or leave it off to edit only the flags). The
-      same verb-scoped `--visibility` / `--kind` / `--pin` /
-      `--expires` options apply, changing only the ones you pass; the
-      long-form body rides the structured `body` field as on publish.
+      same verb-scoped `--body` / `--visibility` / `--kind` / `--pin` /
+      `--expires` options apply, changing only the ones you pass.
     args:
       - name: id
         type: string

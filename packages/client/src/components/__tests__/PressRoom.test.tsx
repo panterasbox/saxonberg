@@ -10,10 +10,16 @@
  * client fetch uses `'include'`, so the failure mode is somebody copying
  * the surrounding idiom and quietly sending session cookies to a route
  * whose entire contract is that it reads none.
+ *
+ * ⚠ The collapse tests **fake layout**. jsdom performs none, so
+ * `scrollHeight` and `clientHeight` are both 0 and every body would
+ * measure as fitting. Each case stubs the pair explicitly — which is the
+ * only way to assert the rule that matters: *having a body is not the
+ * same as having something to expand.*
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { PressRoom } from "../PressRoom";
 import type { PublicReleaseRow } from "@saxonberg/types";
 
@@ -30,6 +36,17 @@ function row(overrides: Partial<PublicReleaseRow> = {}): PublicReleaseRow {
     pinned: false,
     ...overrides,
   };
+}
+
+/**
+ * Force the next-rendered bodies to report an overflowing (or fitting)
+ * clamp. Restored by `vi.restoreAllMocks` in `afterEach`.
+ */
+function stubClamp(overflows: boolean): void {
+  vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(40);
+  vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(
+    overflows ? 120 : 40,
+  );
 }
 
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -121,5 +138,53 @@ describe("PressRoom", () => {
     expect(init.signal?.aborted).toBe(false);
     unmount();
     expect(init.signal?.aborted).toBe(true);
+  });
+
+  it("marks a pinned release in words, not by styling alone", async () => {
+    respond([
+      row({ releaseId: "a", headline: "Stuck", pinned: true }),
+      row({ releaseId: "b", headline: "Ordinary", pinned: false }),
+    ]);
+    render(<PressRoom />);
+    await screen.findByText("Stuck");
+    // A pinned release sorts above newer ones, so the fact has to be
+    // legible — an accent rail alone reads as inconsistent styling.
+    expect(screen.getAllByText("Pinned")).toHaveLength(1);
+  });
+
+  it("⚠ offers NO expand control when the body already fits", async () => {
+    stubClamp(false);
+    respond([row({ body: "Two lines at most." })]);
+    render(<PressRoom />);
+    await screen.findByText("Something happened");
+    // The body is shown in full...
+    expect(screen.getByText("Two lines at most.")).toBeTruthy();
+    // ...and there is nothing to reveal, so nothing claims otherwise.
+    expect(screen.queryByText(/^More/)).toBeNull();
+    expect(screen.queryByRole("button", { name: /Read more/ })).toBeNull();
+  });
+
+  it("offers one when the body genuinely overflows, and expands on click", async () => {
+    stubClamp(true);
+    respond([row({ body: "A long body that runs past the clamp." })]);
+    render(<PressRoom />);
+    const more = await screen.findByRole("button", { name: /Read more/ });
+    expect(more.getAttribute("aria-expanded")).toBe("false");
+
+    fireEvent.click(more);
+
+    const less = screen.getByRole("button", { name: /Collapse/ });
+    expect(less.getAttribute("aria-expanded")).toBe("true");
+    expect(less.textContent).toMatch(/^Less/);
+  });
+
+  it("⚠ the MORE affordance is a real control, not a label", async () => {
+    // It said "MORE" while being a <span>: the one element that announced
+    // itself as a control was the one element that wasn't one.
+    stubClamp(true);
+    respond([row({ body: "A long body that runs past the clamp." })]);
+    render(<PressRoom />);
+    const more = await screen.findByRole("button", { name: /Read more/ });
+    expect(more.tagName).toBe("BUTTON");
   });
 });
