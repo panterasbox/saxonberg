@@ -133,6 +133,19 @@ export class EmploymentApi {
     return logic().holdersOf(organization, positionKey);
   }
 
+  /**
+   * The organization chain above `organization`, nearest parent first —
+   * a department inside a ministry, a desk inside a paper. A parent that
+   * does not resolve ends the chain; a **cycle throws** rather than
+   * returning a truncated one. The position-level twin is the
+   * organization's own `getReportingChain(positionKey)`.
+   */
+  public static organizationChainOf(
+    organization: OrganizationStuff,
+  ): OrganizationStuff[] {
+    return logic().organizationChainOf(organization);
+  }
+
   /** Hire `actor` into `organization`'s `positionKey`. Returns the record. */
   public static hire(
     organization: OrganizationStuff,

@@ -144,6 +144,40 @@ function holdersOfImpl(
   return [...out];
 }
 
+/**
+ * The organization chain above `organization`, nearest parent first — a
+ * department inside a ministry, a desk inside a paper.
+ *
+ * ⚠ **A parent cycle is refused, not looped on** (a self-parenting
+ * organization included): the walk throws rather than returning a
+ * truncated chain, because a chart that eats its own tail is an authoring
+ * error and a quiet partial answer hides it. A parent path that resolves
+ * to nothing — or to something that is not an organization — simply ends
+ * the chain: that is a gap, not a contradiction.
+ */
+function organizationChainOfImpl(
+  organization: OrganizationStuff,
+): OrganizationStuff[] {
+  const out: OrganizationStuff[] = [];
+  const seen = new Set<string>([organization.getTemplatePath() ?? '']);
+  let current: OrganizationStuff = organization;
+  for (;;) {
+    const parentPath = current.getParentOrganizationPath();
+    if (!parentPath) return out;
+    if (seen.has(parentPath)) {
+      throw new Error(
+        `EmploymentLogic.organizationChainOf: parent cycle at ` +
+          `'${parentPath}'`,
+      );
+    }
+    seen.add(parentPath);
+    const parent = StuffApi.findByTemplatePath(parentPath);
+    if (!parent || !MixinApi.isOrganization(parent)) return out;
+    out.push(parent);
+    current = parent;
+  }
+}
+
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
 function hireImpl(
   organization: OrganizationStuff,
@@ -562,6 +596,14 @@ export class EmploymentLogic extends ApiLogic {
     ref: PrincipalRef | null,
   ): Promise<boolean> {
     return holdsAuthorityImpl(principal, ref);
+  }
+
+  /** See {@link EmploymentApi.organizationChainOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public organizationChainOf(
+    organization: OrganizationStuff,
+  ): OrganizationStuff[] {
+    return organizationChainOfImpl(organization);
   }
 
   /** See {@link EmploymentApi.holdersOf}. */

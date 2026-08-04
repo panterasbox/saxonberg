@@ -80,6 +80,22 @@ export interface Organization {
   getRoster(): Roster;
   /** The roster assignments in list order. */
   getRosterAssignments(): readonly RosterAssignment[];
+  /**
+   * The organization this one sits inside (a durable templatePath), or
+   * undefined at the top. A department inside a ministry; a desk inside a
+   * paper.
+   */
+  getParentOrganizationPath(): string | undefined;
+  /**
+   * The reporting chain above `positionKey`, nearest superior first —
+   * `[Communications Director]` for a Press Secretary that reports to it.
+   * Empty when the position reports to nobody or does not exist.
+   *
+   * ⚠ **A `reportsTo` cycle is refused, not looped on**: the walk throws
+   * rather than returning a truncated chain, because a chart that eats its
+   * own tail is an authoring error and a quiet partial answer hides it.
+   */
+  getReportingChain(positionKey: string): readonly Position[];
 
   /** Hire `actor` into `positionKey` (employed, off-shift). */
   hire(
@@ -115,6 +131,7 @@ export interface Organization {
  */
 export interface OrganizationFields {
   appointingAuthority: PrincipalRef | string | null;
+  parentOrganization: string;
   proprietorPath: string;
   positions: PositionData[];
   rosterSlots: RosterAssignment[];
@@ -130,6 +147,11 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
 
     static fieldMeta: FieldMeta = {
       appointingAuthority: { persistent: true, authorable: true },
+      parentOrganization: {
+        persistent: true,
+        authorable: true,
+        authorPicker: 'Template',
+      },
       proprietorPath: {
         persistent: true,
         authorable: true,
@@ -153,6 +175,11 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
      * present.
      */
     public proprietorPath: string = '';
+
+    /**
+     * The enclosing organization's templatePath. Empty = top of the chart.
+     */
+    public parentOrganization: string = '';
 
     /**
      * Authored positions, stored raw; wrapped on read.
@@ -195,6 +222,34 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
 
     public getRosterAssignments(): readonly RosterAssignment[] {
       return this.getRoster().getAssignments();
+    }
+
+    public getParentOrganizationPath(): string | undefined {
+      return this.parentOrganization || undefined;
+    }
+
+    public getReportingChain(positionKey: string): readonly Position[] {
+      const out: Position[] = [];
+      const seen = new Set<string>([positionKey]);
+      let current = this.getPosition(positionKey);
+      while (current?.reportsTo) {
+        const next = current.reportsTo;
+        if (seen.has(next)) {
+          throw new Error(
+            `OrganizationMixin.getReportingChain: reportsTo cycle at ` +
+              `'${next}' in ${this.getOrganizationPath()}`,
+          );
+        }
+        seen.add(next);
+        const superior = this.getPosition(next);
+        // A dangling `reportsTo` ends the chain rather than throwing: the
+        // position it names may simply not be authored yet, which is a gap
+        // and not a contradiction.
+        if (!superior) break;
+        out.push(superior);
+        current = superior;
+      }
+      return out;
     }
 
     /* ───── employment transitions (the org acts on its employee) ─────
