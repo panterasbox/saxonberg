@@ -45,7 +45,9 @@
 > StudyAI capture + pitch argument
 > ([study-com-studyai.md](./study-com-studyai.md)), and the teacher
 > vertical / learner-becomes-teacher opportunity
-> ([study-com-teacher-vertical.md](./study-com-teacher-vertical.md)).
+> ([study-com-teacher-vertical.md](./study-com-teacher-vertical.md)), and
+> the fit-scored, market-grounded vertical survey
+> ([study-com-vertical-survey.md](./study-com-vertical-survey.md)).
 
 ---
 

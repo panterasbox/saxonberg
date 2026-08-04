@@ -39,6 +39,13 @@ fail to violate it.
 
 ## S→G ② An unfolding NGN case becomes a shift-long team quest (flagship)
 
+> **Correction (2026-08-03):** this case is **NGN / NCLEX clinical content**
+> (the exit/licensure side, B2B via Elsevier) — *not* the **TEAS / HESI-A2
+> entrance** exams that are Study's B2C nursing test-prep vertical (those
+> are pre-clinical academic recall). It remains a strong "live-it" demo,
+> but it represents the clinical side, not the entrance vertical. See
+> [study-com-vertical-survey.md](./study-com-vertical-survey.md) §0.
+
 **Real case** — `ariel2_0.Question_Passage` #15172 + its six ordered
 `Quiz_Question`s (#1822090-100), from the Next-Gen-NCLEX nursing bank:
 

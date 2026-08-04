@@ -10,6 +10,14 @@
 > Builds on the interchangeable-role classroom
 > ([study-com-classroom-model.md](./study-com-classroom-model.md)) and the
 > two game shapes; this is the killer application of the University shape.
+>
+> **Precision (2026-08-03, per the market plan):** Study's teacher *test
+> prep* covers the recall/pedagogy exams; the performance assessment
+> (edTPA/PPAT) is **downstream of and adjacent to** what they sell, and
+> Teacher TP is a **0%-growth, mature** line. So this vertical's Saxonberg
+> value is the **practicum gap + the CotF pathway/twofer**, not growth in
+> exam prep itself. Prioritization context:
+> [study-com-vertical-survey.md](./study-com-vertical-survey.md).
 
 ---
 
