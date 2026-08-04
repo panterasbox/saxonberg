@@ -854,16 +854,61 @@ objects in reach both affording `shake`.
 ### ⭐⭐⭐ And the namespace is not inherently flat
 
 > **It is flat only because almost everything currently hangs off the
-> UNIVERSAL scope.**
+> UNIVERSAL scope.** Scoping affordances off `self` is therefore *the
+> actual fix* rather than a mitigation; MQL disambiguation handles the
+> residue.
 
-Move affordances onto objects and it becomes a **scope chain** —
-resolved against what is in your hands, then the room, then your own
-mixins, then core. That is `$PATH`, or method dispatch, and it is the
-same shape as every other resolution in this project.
+⚠⚠ **Two things called "scope" — do not conflate them** (an earlier draft
+here did):
 
-⭐ Which makes the user's first solution *the actual fix* rather than a
-mitigation: **scoping affordances off `self` converts a flat namespace
-into a hierarchical one**, and MQL disambiguation handles the residue.
+| | governs | declared |
+|---|---|---|
+| **`scope:`** — `$focus` · `inventory` · `peers` · `reachable` | where MQL searches for a verb's **ARGUMENTS** | per-verb, in YAML, by the author |
+| **`RecencyBucket`** — `self` · `inventory` · `environment` · `peers` | which **AFFORDANCE** provides the verb | never — it is runtime state |
+
+### ⭐⭐⭐⭐ How affordance collisions resolve TODAY: recency
+
+`RecencyBucket` carries the comment *"categorical metadata, **not
+ordering**."* The ordering is the stack: `getAffordances()` walks
+`_commandStack` **top-down**, so **the most recently pushed source
+wins**. Two objects affording `shake` → whichever you most recently dealt
+with.
+
+⭐ **That is a good heuristic, and it explains why this has not bitten
+yet.** *"The thing I was just handling"* is how people actually think.
+Nothing here is broken.
+
+### So what is missing is narrower than it first appeared
+
+Two gaps, both small:
+
+1. ⚠ **It is invisible.** Nothing says which affordance fired or why.
+   Same command, different result, no explanation — the `$PATH` problem.
+2. **It is unoverridable.** When recency picks wrong there is no way to
+   say *"no, the other `shake`."*
+
+**The scope machinery is not missing. The ANNOUNCEMENT and the OVERRIDE
+are.**
+
+### ⭐⭐⭐ And the override is a filter on a field that already exists
+
+`_runChain` already does:
+
+```js
+const matches = this.getAffordances().filter(a => a.command.hasVerb(parsed.verb));
+```
+
+and `Affordance` is already `{ command, source, bucket }` — matching is
+done on affordances *"so each matched definition arrives paired with its
+resolved affording source."*
+
+> **The disambiguator is one more `.filter()` on `source`.** No new
+> resolution engine, no scope chain to build, no YAML change.
+
+⭐ **Which satisfies the "any command must be able to express it"
+constraint by construction** — it runs *before* verb dispatch, on a list
+every command already produces. It is a property of the **dispatcher**,
+not a per-verb capability.
 
 ### ⭐⭐⭐⭐ The rule that makes collisions non-fatal
 
@@ -908,15 +953,23 @@ It also gives manifest review something concrete: a **cosmetic-tier pack
 shipping verbs is already a tier violation** (Part 1), and now it is
 visible in the diff.
 
-### Open
+### The addition, concretely
 
-- ⚠ **What does `getAffordances()` do TODAY with two matches on one
-  verb?** The precise behaviour this all builds on, and unchecked. It may
-  already pick one — the question is whether it picks well and says so.
-- **Nearest-wins silently, or nearest-wins-and-tells-you?** *Leans the
-  latter* — a `Note` in the response envelope naming which affordance
-  resolved. **Silent shadowing is exactly what makes shell `$PATH`
-  confusing.**
+| | |
+|---|---|
+| a **parse position** for the selector — before the verb, so no backtracking | new |
+| **MQL evaluated against `reachable`** → a source set | reuse |
+| `matches.filter(a => sources.has(a.source))` | **one line** |
+| ⭐⭐ a **`Note` naming which affordance resolved** — *always*, not only on ambiguity | new, and **the higher-value half** |
+
+> ⭐⭐⭐ **Recency is a fine policy and a terrible secret.** If the
+> envelope says *"`shake` → the cocktail shaker"* every time, most
+> disambiguation never needs typing — and when it does, the player
+> already knows the vocabulary because they have been reading it.
+
+⭐ **Nothing here proposes changing the buckets.** They are categorical
+by design, recency does the ordering, and that division looks right —
+leave both alone.
 
 ## Migration order
 
