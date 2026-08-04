@@ -160,6 +160,39 @@ venues / shops), and approval → benefit/access conversion. Portfolios beyond
 booze (augments, food, tools, media) are authored as consumers need them.
 The price ≠ quality economics belong to the bar / economy / crafting builds.
 
+## ⚠ The gap: a corpo cannot appoint
+
+Porting the shipped Businesses onto the appointing authority
+([employment.md](./employment.md)) turned up one case the four kinds do
+not cover, and it is a corpo case.
+
+The **Goodkin branch** (`/domain/terminus/counting-houses/business`) has
+positions — a teller and an officer — and no authority that fits:
+
+- **`committee`** is wrong. The *city* holds title over the district;
+  Goodkin runs the counter by **corpo affiliation on the fixture**, not by
+  title. The city does not hire Goodkin's tellers.
+- **`entity`** cannot express it. That kind matches the **principal's own
+  templatePath** — the actor doing the appointing must *be* that path. A
+  `Corpo` is a **mark**, not an actor that can act.
+- `office` and `seat` are polity constructs and mean nothing here.
+
+So the branch ships **deliberately unauthored**, which is exactly the
+behaviour it had before the port (`proprietorPath: ""` already resolved to
+no authority) — the port just made the absence legible instead of
+incidental.
+
+⚠ **Do not resolve this by pointing the branch at the district
+committee.** That reads as working and quietly hands a corpo's hiring to
+the municipality, which is the kind of wrong answer that survives review
+because nothing fails.
+
+What it actually wants is either a fifth `PrincipalRef` kind keyed on
+corpo affiliation, or — more likely correct — the corpo growing an
+**organization of its own** whose chart the branch's positions hang from,
+which is the *"who runs Veshko?"* question this doc already can't answer.
+That is the natural next consumer of the organization substrate.
+
 ## Cross-references
 
 - [corpos-slate.md](../slates/builds/corpos-slate.md) — the model + the

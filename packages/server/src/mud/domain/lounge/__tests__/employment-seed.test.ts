@@ -29,7 +29,7 @@ const DAVE = '/domain/lounge/npc/dave';
 interface BizDoc {
   class: string;
   data: {
-    proprietorPath: string;
+    appointingAuthority: { kind: string; path?: string };
     positions: { key: string; wageRate: number; confers: string[] }[];
     rosterSlots: { positionKey: string; assignee: string; schedule: unknown[] }[];
     operatingLocations: string[];
@@ -50,7 +50,13 @@ describe("Dave's Bar — Business seed integrity", () => {
   it('resolves the class and the proprietor edge', () => {
     const doc = loadSeed();
     expect(doc.class).toBe('/obj/Business');
-    expect(doc.data.proprietorPath).toBe(DAVE);
+    // Dave owns the bar. The edge is now spelled as the `entity` case of
+    // the appointing authority — same fact, same value, under the name
+    // every organization uses.
+    expect(doc.data.appointingAuthority).toEqual({
+      kind: 'entity',
+      path: DAVE,
+    });
   });
 
   it('authors the bartender position conferring MakerMixin', () => {

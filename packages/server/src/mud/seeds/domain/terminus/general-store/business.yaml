@@ -9,7 +9,10 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  proprietorPath: /domain/terminus/general-store/npc/keeper
+  # The keeper owns the shop: an ENTITY authority.
+  appointingAuthority:
+    kind: entity
+    path: /domain/terminus/general-store/npc/keeper
   positions:
     - key: clerk
       label: working the general-store counter

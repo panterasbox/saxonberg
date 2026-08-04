@@ -1,20 +1,26 @@
 /**
- * ⚠ **The shipped Businesses still author `proprietorPath`, and that has
- * to keep resolving.**
+ * ⭐ **Every shipped Business, ported to the appointing authority.**
  *
- * The organizations build generalized the proprietor edge into a
- * polymorphic appointing authority and claimed, as a design goal, that
- * **no seed needed editing**: `Authority.fromData` reads a bare string as
- * `{kind: 'entity', path}`, the same value under the new type.
+ * The build shipped with all eight Businesses still authoring the legacy
+ * `proprietorPath`, working via the bare-string normalization. That was
+ * fine and it was also untested against the real files — and, more to the
+ * point, it meant content spoke two spellings and the substrate had never
+ * been asked *"who appoints here?"* about anything but a fixture.
  *
- * That claim was tested only against hand-built fixtures. Nothing read
- * the real seed files — so a typo, a half-port, or a future seed that
- * authors *both* spellings would pass every suite. This is the missing
- * half: the eight shipped Business seeds, checked as authored.
+ * Porting them is the generalization test. Answering the question eight
+ * times over real content produced three answers, and the third is the
+ * valuable one:
  *
- * It is a **seed-shape** test rather than a runtime one on purpose. These
- * are authored facts; the thing most likely to break them is somebody
- * editing a seed, and that is what should turn it red.
+ *   - **`entity`** — somebody owns it (Dave's Bar, the general store,
+ *     Hearthworks). The proprietor edge, under its own name.
+ *   - **`committee`** — a city department, staffed by whoever holds title
+ *     over its ground (the Registry, the transit operator, the TPA desk).
+ *     This is the case the substrate was built for.
+ *   - ⚠ **nothing fits** — the Goodkin branch. See below. A negative
+ *     result, deliberately preserved rather than papered over.
+ *
+ * Seed-shape rather than runtime on purpose: these are authored facts and
+ * a seed edit is what should turn this red.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -25,6 +31,7 @@ import { parse } from 'yaml';
 import { Authority } from '../../lib/employment/Authority';
 
 const SEEDS = fileURLToPath(new URL('..', import.meta.url));
+const CONFIG = fileURLToPath(new URL('../../config/', import.meta.url));
 
 interface Seed {
   class?: string;
@@ -48,41 +55,39 @@ const businesses = walk(SEEDS)
   .filter((e) => e.seed?.class === '/obj/Business')
   .map((e) => ({ rel: e.path.slice(SEEDS.length), data: e.seed.data ?? {} }));
 
+const parcels = (
+  parse(readFileSync(join(CONFIG, 'parcels.yaml'), 'utf8')) as {
+    parcels: Array<{ extent: string; owner?: { name?: string } }>;
+  }
+).parcels;
+
+/** The claimed title covering `path` by longest prefix, or undefined. */
+function coveringTitle(path: string): { extent: string; owner?: { name?: string } } | undefined {
+  return parcels
+    .filter((p) => path === p.extent || path.startsWith(`${p.extent}/`))
+    .sort((a, b) => b.extent.length - a.extent.length)[0];
+}
+
+const byPath = (fragment: string) =>
+  businesses.find((b) => b.rel.includes(fragment))!;
+
 describe('the shipped Business seeds', () => {
   it('finds them all — the sweep is not silently empty', () => {
     // A walk that matches nothing would make every assertion below vacuous.
     expect(businesses.length).toBeGreaterThanOrEqual(8);
   });
 
-  it('⚠ every authored authority resolves, whichever spelling it uses', () => {
+  it('⭐ NONE still authors the legacy `proprietorPath`', () => {
     for (const { rel, data } of businesses) {
-      const authored = data.appointingAuthority ?? data.proprietorPath;
-      // A proprietor-absent business (a municipal budget, a registry)
-      // authors `''` — no authority, which is a fact rather than a fault.
-      if (authored === '' || authored === undefined) continue;
-      expect(Authority.fromData(authored), rel).not.toBeNull();
+      expect(data.proprietorPath, `${rel} still authors proprietorPath`)
+        .toBeUndefined();
     }
   });
 
-  it('⚠ resolves a legacy bare `proprietorPath` to an entity ref', () => {
-    const daves = businesses.find((b) => b.rel.includes('lounge'));
-    expect(daves).toBeDefined();
-    expect(Authority.fromData(daves!.data.proprietorPath)).toEqual({
-      kind: 'entity',
-      path: '/domain/lounge/npc/dave',
-    });
-  });
-
-  it('⚠ no seed authors BOTH spellings', () => {
-    // `appointingAuthority` wins when both are present, so a seed carrying
-    // both has a silently-ignored field — the shape of a half-finished
-    // port, and invisible at runtime.
+  it('every authored authority resolves', () => {
     for (const { rel, data } of businesses) {
-      const both =
-        data.appointingAuthority !== undefined &&
-        data.proprietorPath !== undefined &&
-        data.proprietorPath !== '';
-      expect(both, `${rel} authors both spellings`).toBe(false);
+      if (data.appointingAuthority === undefined) continue;
+      expect(Authority.fromData(data.appointingAuthority), rel).not.toBeNull();
     }
   });
 
@@ -95,22 +100,100 @@ describe('the shipped Business seeds', () => {
       expect((data.banksAt as string).length, rel).toBeGreaterThan(0);
     }
   });
+});
 
-  it('records which ones actually name a proprietor', () => {
-    // Three of the eight have one; the rest are proprietor-absent by
-    // design (municipal budgets, the registry, the transit desk). Stated
-    // so that a seed quietly losing its proprietor is visible.
-    const withProprietor = businesses
-      .filter((b) => {
-        const p = b.data.proprietorPath;
-        return typeof p === 'string' && p.length > 0;
-      })
-      .map((b) => b.data.proprietorPath)
-      .sort();
-    expect(withProprietor).toEqual([
-      '/domain/hearthworks/npc/smith',
-      '/domain/lounge/npc/dave',
-      '/domain/terminus/general-store/npc/keeper',
+describe('`entity` — somebody owns it', () => {
+  it.each([
+    ['lounge', '/domain/lounge/npc/dave'],
+    ['general-store', '/domain/terminus/general-store/npc/keeper'],
+    ['hearthworks', '/domain/hearthworks/npc/smith'],
+  ])('%s names its proprietor', (fragment, path) => {
+    expect(byPath(fragment).data.appointingAuthority).toEqual({
+      kind: 'entity',
+      path,
+    });
+  });
+
+  it('⚠ the unpaid-cover rule still reads it', () => {
+    // `settleShiftWage` skips `getProprietor()`, which is the `entity` case
+    // of the authority. Porting the spelling must not quietly make Dave's
+    // own cover shift a paid one.
+    const daves = byPath('lounge').data.appointingAuthority as {
+      kind: string;
+      path: string;
+    };
+    expect(daves.kind).toBe('entity');
+    expect(Authority.fromData(daves)).toEqual({
+      kind: 'entity',
+      path: '/domain/lounge/npc/dave',
+    });
+  });
+});
+
+describe('⭐ `committee` — a city department', () => {
+  it.each([
+    ['terminus/registry', '/domain/terminus/registry'],
+    ['terminus/budget', '/domain/terminus/terminal'],
+    ['terminal/tpa', '/domain/terminus/terminal'],
+  ])('%s is staffed by the committee over %s', (fragment, parcel) => {
+    expect(byPath(fragment).data.appointingAuthority).toEqual({
+      kind: 'committee',
+      parcel,
+    });
+  });
+
+  it('⚠ each named parcel actually has a CLAIMED title', () => {
+    // A committee authority over unclaimed ground falls through to the
+    // state default (`core`) — which would silently mean "the operator
+    // staffs the city", the exact wrong answer. The parcel has to be
+    // somebody's, and that somebody has to be the city.
+    for (const fragment of ['terminus/registry', 'terminus/budget', 'terminal/tpa']) {
+      const ref = byPath(fragment).data.appointingAuthority as {
+        parcel: string;
+      };
+      const title = coveringTitle(ref.parcel);
+      expect(title, `${ref.parcel} has no claimed title`).toBeDefined();
+      expect(title!.owner?.name, ref.parcel).toBe('terminus');
+    }
+  });
+
+  it('⚠ the Registry stays a BUSINESS — it sells land titles', () => {
+    // `TitleController` settles land purchases into its operating account
+    // via `ensureOperatorAt` → `operatingAccountOf`. A registry that takes
+    // money trades, so the trading half is load-bearing here and the
+    // tempting reclassification to `/obj/Organization` would break `title
+    // buy`.
+    const registry = byPath('terminus/registry');
+    expect(registry.data.banksAt).toBe('goodkin');
+    expect(registry.data.operatingLocations).toEqual([
+      '/domain/terminus/registry/office',
     ]);
+  });
+});
+
+describe('⚠ the cases nothing fits — preserved, not papered over', () => {
+  it('the Goodkin branch is deliberately UNAUTHORED', () => {
+    // No authority kind expresses "the corpo that runs this counter
+    // appoints". The city owns the district, so the committee over the
+    // ground is the wrong appointer — it does not hire Goodkin's tellers —
+    // and `entity` matches the principal's own templatePath, which a Corpo
+    // (a mark, not an actor) can never be.
+    //
+    // This is the generalization test returning a negative, and it is the
+    // most useful thing it returned. Jamming a wrong authority in would
+    // have hidden it.
+    const goodkin = byPath('counting-houses');
+    expect(goodkin.data.appointingAuthority).toBeUndefined();
+    // ...and it does have positions, so the gap is real rather than moot.
+    expect((goodkin.data.positions as unknown[]).length).toBeGreaterThan(0);
+  });
+
+  it('the newbie-wilds account is unauthored because it has NO positions', () => {
+    // A different reason from Goodkin's, and worth keeping distinct: there
+    // is nothing here to appoint anyone to, so an authority would be
+    // structure without a consumer.
+    const wilds = byPath('newbie-wilds');
+    expect(wilds.data.appointingAuthority).toBeUndefined();
+    expect(wilds.data.positions).toEqual([]);
   });
 });
