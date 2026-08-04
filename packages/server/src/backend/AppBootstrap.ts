@@ -50,7 +50,7 @@ import { EmploymentApi } from '../mud/api/employment';
 import { AttendantApi } from '../mud/api/attendant';
 import { SocialApi } from '../mud/api/social';
 import { PartyApi } from '../mud/api/party';
-import { BulletinApi } from '../mud/api/bulletin';
+import { PressApi } from '../mud/api/press';
 import AccountBalance from '../mud/lib/banking/AccountBalance';
 import SupplyAggregate from '../mud/lib/banking/SupplyAggregate';
 import { Document } from '../mud/lib/persistence/Document';
@@ -295,11 +295,11 @@ export class AppBootstrap {
     // the grouping facade is fully warmed.
     await PartyApi.boot();
 
-    // Bulletin (news ticker) — a thin warm/activation seam. The board warms
+    // Press (news ticker) — a thin warm/activation seam. The board warms
     // via its manifest postRegister; the staff→player feed fan-out is inline
-    // in BulletinLogic (Phase 3), so there is no event tap. Kept here for
+    // in PressLogic (Phase 3), so there is no event tap. Kept here for
     // call-site symmetry with the other *Api.boot() seams.
-    BulletinApi.boot();
+    PressApi.boot();
 
     // Twitch relay — install the outbound DI port + wire the presence-gated
     // EventSub reader. Inert until a channel is seeded AND a player tunes

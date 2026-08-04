@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import type { BulletinRow } from "@saxonberg/types";
+import type { ReleaseRow } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { NewsTickerPane } from "../NewsTickerPane";
 
-function bulletin(overrides: Partial<BulletinRow> = {}): BulletinRow {
+function release(overrides: Partial<ReleaseRow> = {}): ReleaseRow {
   return {
-    bulletinId: "b1",
+    releaseId: "b1",
     realm: "ooc",
     kind: "notice",
     headline: "Headline",
@@ -17,8 +17,8 @@ function bulletin(overrides: Partial<BulletinRow> = {}): BulletinRow {
   };
 }
 
-function seed(rows: BulletinRow[]): void {
-  useStore.getState().applyBulletinSnapshot(rows);
+function seed(rows: ReleaseRow[]): void {
+  useStore.getState().applyReleaseSnapshot(rows);
 }
 
 beforeEach(() => {
@@ -30,15 +30,15 @@ afterEach(() => {
 });
 
 describe("NewsTickerPane", () => {
-  it("renders an empty state when there are no bulletins", () => {
+  it("renders an empty state when there are no releases", () => {
     render(<NewsTickerPane onSendCommand={() => undefined} />);
-    expect(screen.getByText(/No bulletins yet/i)).toBeDefined();
+    expect(screen.getByText(/No releases yet/i)).toBeDefined();
   });
 
-  it("renders a card per bulletin with realm/kind chips and headline", () => {
+  it("renders a card per release with realm/kind chips and headline", () => {
     seed([
-      bulletin({
-        bulletinId: "b1",
+      release({
+        releaseId: "b1",
         headline: "Server maintenance",
         realm: "ooc",
         kind: "changelog",
@@ -53,11 +53,11 @@ describe("NewsTickerPane", () => {
     expect(screen.getByText("1")).toBeDefined();
   });
 
-  it("shows a pin indicator on pinned bulletins, ordered pins-first", () => {
+  it("shows a pin indicator on pinned releases, ordered pins-first", () => {
     seed([
-      bulletin({ bulletinId: "plain", headline: "Plain", publishedAt: 3000 }),
-      bulletin({
-        bulletinId: "pinned",
+      release({ releaseId: "plain", headline: "Plain", publishedAt: 3000 }),
+      release({
+        releaseId: "pinned",
         headline: "Pinned item",
         publishedAt: 1000,
         pinned: true,
@@ -75,8 +75,8 @@ describe("NewsTickerPane", () => {
 
   it("expands the body on headline click", () => {
     seed([
-      bulletin({
-        bulletinId: "b1",
+      release({
+        releaseId: "b1",
         headline: "Tap me",
         body: "Hidden detail",
       }),
@@ -88,10 +88,10 @@ describe("NewsTickerPane", () => {
     expect(screen.getByText("Hidden detail")).toBeDefined();
   });
 
-  it("loads older bulletins from the REST archive and appends them", async () => {
-    seed([bulletin({ bulletinId: "b2", headline: "Recent", publishedAt: 2000 })]);
-    const older: BulletinRow[] = [
-      bulletin({ bulletinId: "b1", headline: "Older", publishedAt: 1000 }),
+  it("loads older releases from the REST archive and appends them", async () => {
+    seed([release({ releaseId: "b2", headline: "Recent", publishedAt: 2000 })]);
+    const older: ReleaseRow[] = [
+      release({ releaseId: "b1", headline: "Older", publishedAt: 1000 }),
     ];
     const fetchMock = vi
       .spyOn(global, "fetch")
@@ -106,7 +106,7 @@ describe("NewsTickerPane", () => {
     fireEvent.click(screen.getByRole("button", { name: /Load older/i }));
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/bulletins/archive?before=2000&limit=30",
+      "/api/press/archive?before=2000&limit=30",
       { credentials: "include" },
     );
     expect(await screen.findByText("Older")).toBeDefined();
@@ -114,8 +114,8 @@ describe("NewsTickerPane", () => {
 
   it("routes MML clicks in the headline through onSendCommand", () => {
     seed([
-      bulletin({
-        bulletinId: "b1",
+      release({
+        releaseId: "b1",
         headline: '<link href="mudcmd:look board">the board</link>',
       }),
     ]);

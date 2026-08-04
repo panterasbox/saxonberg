@@ -1,19 +1,19 @@
 /**
- * BulletinRoutes REST surface — supertest against a minimal Express app that
- * mirrors Server's auth middleware + `BulletinRoutes.setup` (the HelpRoutes
+ * PressRoutes REST surface — supertest against a minimal Express app that
+ * mirrors Server's auth middleware + `PressRoutes.setup` (the HelpRoutes
  * test harness).
  *
  * Proves the transport contract:
  *   - unauthenticated → 401
- *   - the query (before/limit/realm/kind) is forwarded into BulletinApi.archive
- *   - the returned Bulletin Documents are projected to BulletinRow[] (recency
+ *   - the query (before/limit/realm/kind) is forwarded into PressApi.archive
+ *   - the returned Release Documents are projected to ReleaseRow[] (recency
  *     order preserved as archive returns them)
  *   - a bad realm / kind → 400
  *   - the route is registered before the SPA catch-all (matches first)
  *
- * `BulletinApi.archive` is stubbed (its paging/ordering logic is
- * BulletinLogic.test.ts's job); these tests assert only that the route wires
- * query → archive → toRow → JSON. The real `BulletinApi.toRow` projection runs.
+ * `PressApi.archive` is stubbed (its paging/ordering logic is
+ * PressLogic.test.ts's job); these tests assert only that the route wires
+ * query → archive → toRow → JSON. The real `PressApi.toRow` projection runs.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -22,14 +22,14 @@ import session from "express-session";
 import passport from "passport";
 import cookieParser from "cookie-parser";
 import request from "supertest";
-import type { BulletinRow } from "@saxonberg/types";
-import { BulletinRoutes } from "../BulletinRoutes";
-import { BulletinApi, Bulletin } from "../../mud/api/bulletin";
-import type { ArchiveQuery } from "../../mud/api/bulletin";
+import type { ReleaseRow } from "@saxonberg/types";
+import { PressRoutes } from "../PressRoutes";
+import { PressApi, Release } from "../../mud/api/press";
+import type { ArchiveQuery } from "../../mud/api/press";
 
-function makeBulletin(
+function makeRelease(
   fields: Partial<{
-    bulletinId: string;
+    releaseId: string;
     realm: "ooc" | "world";
     kind: "changelog" | "decision" | "event" | "notice";
     headline: string;
@@ -39,24 +39,25 @@ function makeBulletin(
     expiresAt: number;
     pinned: boolean;
   }>
-): Bulletin {
-  const b = new Bulletin();
-  b.bulletinId = fields.bulletinId ?? "b-1";
-  b.realm = fields.realm ?? "ooc";
-  b.kind = fields.kind ?? "notice";
-  b.headline = fields.headline ?? "headline";
-  b.body = fields.body ?? "";
-  b.author = fields.author ?? "";
-  b.publishedAt = fields.publishedAt ?? 0;
-  b.expiresAt = fields.expiresAt ?? 0;
-  b.pinned = fields.pinned ?? false;
-  b.retracted = false;
-  return b;
+): Release {
+  const releaseId = fields.releaseId ?? "b-1";
+  return Release.of(`/compact/press/feed/${releaseId}`, "/compact/press", {
+    releaseId,
+    realm: fields.realm ?? "ooc",
+    kind: fields.kind ?? "notice",
+    headline: fields.headline ?? "headline",
+    body: fields.body ?? "",
+    author: fields.author ?? "",
+    publishedAt: fields.publishedAt ?? 0,
+    expiresAt: fields.expiresAt ?? 0,
+    pinned: fields.pinned ?? false,
+    retracted: false,
+  });
 }
 
 /**
  * Build the app. When `withCatchAll` is set, a SPA-style `*` fallback is
- * registered AFTER the bulletin routes so we can prove ordering: the API
+ * registered AFTER the release routes so we can prove ordering: the API
  * route must still match first.
  */
 function makeApp(withCatchAll = false): Express {
@@ -81,7 +82,7 @@ function makeApp(withCatchAll = false): Express {
       res.json({ ok: true });
     });
   });
-  BulletinRoutes.setup(app);
+  PressRoutes.setup(app);
   if (withCatchAll) {
     app.get("*", (_req, res) => {
       res.status(200).json({ sentinel: "catch-all" });
@@ -90,27 +91,27 @@ function makeApp(withCatchAll = false): Express {
   return app;
 }
 
-describe("BulletinRoutes", () => {
+describe("PressRoutes", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   it("unauthenticated request returns 401", async () => {
-    vi.spyOn(BulletinApi, "archive").mockResolvedValue([]);
-    const res = await request(makeApp()).get("/api/bulletins/archive");
+    vi.spyOn(PressApi, "archive").mockResolvedValue([]);
+    const res = await request(makeApp()).get("/api/press/archive");
     expect(res.status).toBe(401);
   });
 
-  it("forwards before/limit/realm/kind into BulletinApi.archive", async () => {
+  it("forwards before/limit/realm/kind into PressApi.archive", async () => {
     let captured: ArchiveQuery | undefined;
-    vi.spyOn(BulletinApi, "archive").mockImplementation(async (q) => {
+    vi.spyOn(PressApi, "archive").mockImplementation(async (q) => {
       captured = q;
       return [];
     });
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);
     const res = await agent.get(
-      "/api/bulletins/archive?before=1700&limit=5&realm=world&kind=event"
+      "/api/press/archive?before=1700&limit=5&realm=world&kind=event"
     );
     expect(res.status).toBe(200);
     expect(captured).toEqual({
@@ -121,68 +122,68 @@ describe("BulletinRoutes", () => {
     });
   });
 
-  it("projects archive rows to BulletinRow[] in recency-desc order", async () => {
+  it("projects archive rows to ReleaseRow[] in recency-desc order", async () => {
     const rows = [
-      makeBulletin({ bulletinId: "b-new", publishedAt: 300, pinned: true }),
-      makeBulletin({ bulletinId: "b-mid", publishedAt: 200 }),
-      makeBulletin({ bulletinId: "b-old", publishedAt: 100 }),
+      makeRelease({ releaseId: "b-new", publishedAt: 300, pinned: true }),
+      makeRelease({ releaseId: "b-mid", publishedAt: 200 }),
+      makeRelease({ releaseId: "b-old", publishedAt: 100 }),
     ];
-    vi.spyOn(BulletinApi, "archive").mockResolvedValue(rows);
+    vi.spyOn(PressApi, "archive").mockResolvedValue(rows);
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);
-    const res = await agent.get("/api/bulletins/archive");
+    const res = await agent.get("/api/press/archive");
     expect(res.status).toBe(200);
-    const body = res.body as BulletinRow[];
-    expect(body.map((r) => r.bulletinId)).toEqual(["b-new", "b-mid", "b-old"]);
+    const body = res.body as ReleaseRow[];
+    expect(body.map((r) => r.releaseId)).toEqual(["b-new", "b-mid", "b-old"]);
     expect(body[0]?.pinned).toBe(true);
     expect(body[0]?.publishedAt).toBe(300);
   });
 
   it("pages by before/limit (forwarded numerically)", async () => {
     let captured: ArchiveQuery | undefined;
-    vi.spyOn(BulletinApi, "archive").mockImplementation(async (q) => {
+    vi.spyOn(PressApi, "archive").mockImplementation(async (q) => {
       captured = q;
-      return [makeBulletin({ bulletinId: "b-1", publishedAt: 50 })];
+      return [makeRelease({ releaseId: "b-1", publishedAt: 50 })];
     });
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);
-    const res = await agent.get("/api/bulletins/archive?before=100&limit=1");
+    const res = await agent.get("/api/press/archive?before=100&limit=1");
     expect(res.status).toBe(200);
     expect(captured?.before).toBe(100);
     expect(captured?.limit).toBe(1);
-    expect((res.body as BulletinRow[]).length).toBe(1);
+    expect((res.body as ReleaseRow[]).length).toBe(1);
   });
 
   it("400s on a bad realm", async () => {
-    const spy = vi.spyOn(BulletinApi, "archive").mockResolvedValue([]);
+    const spy = vi.spyOn(PressApi, "archive").mockResolvedValue([]);
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);
-    const res = await agent.get("/api/bulletins/archive?realm=bogus");
+    const res = await agent.get("/api/press/archive?realm=bogus");
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("invalid");
     expect(spy).not.toHaveBeenCalled();
   });
 
   it("400s on a bad kind", async () => {
-    const spy = vi.spyOn(BulletinApi, "archive").mockResolvedValue([]);
+    const spy = vi.spyOn(PressApi, "archive").mockResolvedValue([]);
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);
-    const res = await agent.get("/api/bulletins/archive?kind=bogus");
+    const res = await agent.get("/api/press/archive?kind=bogus");
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("invalid");
     expect(spy).not.toHaveBeenCalled();
   });
 
   it("is registered before the SPA catch-all", async () => {
-    vi.spyOn(BulletinApi, "archive").mockResolvedValue([
-      makeBulletin({ bulletinId: "b-real", publishedAt: 1 }),
+    vi.spyOn(PressApi, "archive").mockResolvedValue([
+      makeRelease({ releaseId: "b-real", publishedAt: 1 }),
     ]);
     const agent = request.agent(makeApp(true));
     await agent.post("/test-login").expect(200);
-    const res = await agent.get("/api/bulletins/archive");
+    const res = await agent.get("/api/press/archive");
     expect(res.status).toBe(200);
-    // The bulletin route matched, not the `*` sentinel.
+    // The release route matched, not the `*` sentinel.
     expect(Array.isArray(res.body)).toBe(true);
-    expect((res.body as BulletinRow[])[0]?.bulletinId).toBe("b-real");
+    expect((res.body as ReleaseRow[])[0]?.releaseId).toBe("b-real");
   });
 });

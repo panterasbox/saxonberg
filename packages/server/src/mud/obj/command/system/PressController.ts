@@ -1,24 +1,24 @@
 /**
- * BulletinController — the `bulletin` verb: post / edit / retract on the
+ * PressController — the `press` verb: post / edit / retract on the
  * staff→player broadcast feed (the news ticker).
  *
- * Afforded via `AuthorMixin.commandContributions` (`system/bulletin.yaml`)
- * and authorized declaratively on the author axis — `bulletin.yaml` carries
+ * Afforded via `AuthorMixin.commandContributions` (`system/press.yaml`)
+ * and authorized declaratively on the author axis — `release.yaml` carries
  * `requiresAuthor`, so a non-author sees the verb but the dispatcher
  * rejects the command before this controller runs.
  *
- * Goes through the Api layer only: calls `BulletinApi.publish / edit /
- * retract`, never the `BulletinBoard` / `BulletinLogic` directly. The
+ * Goes through the Api layer only: calls `PressApi.publish / edit /
+ * retract`, never the `PressBoard` / `PressLogic` directly. The
  * publishing author is NOT passed — the logic derives it from the
  * execution context (the gated-API actor-from-context rule).
  *
  * Forms (`post` subcommand, with a bare-headline fallthrough shorthand):
- *   - `bulletin post <headline>` (or bare `bulletin <headline>`) — publish;
+ *   - `release post <headline>` (or bare `release <headline>`) — publish;
  *     `--realm` / `--kind` / `--pin` / `--expires` options shape it; the
  *     long-form `body` rides the structured-form side-channel (overlaid
  *     into `model.body`).
- *   - `bulletin edit <id> [headline]` — patch an existing bulletin.
- *   - `bulletin retract <id>` — soft-delete (kept in the archive).
+ *   - `release edit <id> [headline]` — patch an existing release.
+ *   - `release retract <id>` — soft-delete (kept in the archive).
  *
  * Controllers return `void`; outcomes ride the dispatch-response envelope.
  */
@@ -30,24 +30,26 @@ import { Mml } from '../../../api/mml';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import {
-  BulletinApi,
+  PressApi,
   type PublishRequest,
-  type BulletinPatch,
-} from '../../../api/bulletin';
+  type ReleasePatch,
+} from '../../../api/press';
 import {
-  BULLETIN_REALMS,
-  BULLETIN_KINDS,
-  type BulletinRealm,
-  type BulletinKind,
-} from '../../../lib/bulletin/Bulletin';
+  RELEASE_REALMS,
+  RELEASE_KINDS,
+  type ReleaseRealm,
+  type ReleaseKind,
+} from '../../../lib/press/Release';
 
-interface BulletinModel extends CommandModel {
+interface ReleaseModel extends CommandModel {
   /** The publish form's headline (greedy inline), or the edit form's new headline. */
   headline?: string;
   /** Long-form MML body — overlaid from the `{text, fields}` side-channel. */
   body?: string;
   /** Edit / retract target id. */
   id?: string;
+  /** The publisher organization to publish as (`--as`). */
+  as?: string;
   realm?: string;
   kind?: string;
   pin?: boolean;
@@ -58,13 +60,13 @@ interface BulletinModel extends CommandModel {
 const HEADLINE_CAP_FALLBACK = 120;
 const BODY_CAP_FALLBACK = 4000;
 
-export default class BulletinController extends CommandController<BulletinModel> {
+export default class PressController extends CommandController<ReleaseModel> {
   async execute(
-    model: BulletinModel,
+    model: ReleaseModel,
     context: CommandContext,
   ): Promise<void> {
     switch (model.subcommand) {
-      // Bare `bulletin <headline>` falls through with no subcommand; the
+      // Bare `release <headline>` falls through with no subcommand; the
       // explicit `post` subcommand is the same publish path.
       case undefined:
       case 'post':
@@ -76,14 +78,14 @@ export default class BulletinController extends CommandController<BulletinModel>
       default:
         return this.fail(
           context,
-          `Unknown bulletin subcommand: ${model.subcommand}`,
+          `Unknown release subcommand: ${model.subcommand}`,
           'unknown-subcommand',
         );
     }
   }
 
   private async executePublish(
-    model: BulletinModel,
+    model: ReleaseModel,
     context: CommandContext,
   ): Promise<void> {
     const headline = (model.headline ?? '').trim();
@@ -91,25 +93,25 @@ export default class BulletinController extends CommandController<BulletinModel>
       return this.fail(context, 'headline required', 'headline-required');
     }
     // Publish defaults applied here (not in the YAML) so an unpassed flag
-    // stays undefined for the edit patch — see bulletin.yaml's options note.
-    const realm = BulletinController.resolveRealm(model.realm ?? 'ooc');
+    // stays undefined for the edit patch — see release.yaml's options note.
+    const realm = PressController.resolveRealm(model.realm ?? 'ooc');
     if (!realm) {
       return this.fail(
         context,
-        `unknown realm '${model.realm}' (try ${BULLETIN_REALMS.join(' / ')})`,
+        `unknown realm '${model.realm}' (try ${RELEASE_REALMS.join(' / ')})`,
         'bad-realm',
       );
     }
-    const kind = BulletinController.resolveKind(model.kind ?? 'notice');
+    const kind = PressController.resolveKind(model.kind ?? 'notice');
     if (!kind) {
       return this.fail(
         context,
-        `unknown kind '${model.kind}' (try ${BULLETIN_KINDS.join(' / ')})`,
+        `unknown kind '${model.kind}' (try ${RELEASE_KINDS.join(' / ')})`,
         'bad-kind',
       );
     }
 
-    const caps = BulletinController.lengthCaps();
+    const caps = PressController.lengthCaps();
     if (headline.length > caps.headline) {
       return this.fail(
         context,
@@ -126,7 +128,7 @@ export default class BulletinController extends CommandController<BulletinModel>
       );
     }
 
-    const expiresAt = BulletinController.resolveExpiry(model.expires);
+    const expiresAt = PressController.resolveExpiry(model.expires);
     if (expiresAt === null) {
       return this.fail(
         context,
@@ -135,7 +137,21 @@ export default class BulletinController extends CommandController<BulletinModel>
       );
     }
 
+    // ⚠ Required and never defaulted: which masthead a release goes out
+    // under is the author's statement. Picking one for them would turn a
+    // refusal ("you hold no publishing position anywhere") into a silent
+    // downgrade ("...so here is the one you do hold").
+    const publisher = (model.as ?? '').trim();
+    if (!publisher) {
+      return this.fail(
+        context,
+        'name the publisher to release as, e.g. --as /compact/press',
+        'publisher-required',
+      );
+    }
+
     const req: PublishRequest = {
+      publisher,
       headline,
       realm,
       kind,
@@ -144,10 +160,10 @@ export default class BulletinController extends CommandController<BulletinModel>
       ...(body ? { body } : {}),
     };
     try {
-      const bulletin = await BulletinApi.publish(req);
+      const release = await PressApi.publish(req);
       this.tell(
         context,
-        `\nPublished bulletin '${bulletin.getBulletinId()}'.\n`,
+        `\nPublished release '${release.getReleaseId()}'.\n`,
       );
     } catch (err) {
       return this.fail(context, (err as Error).message, 'publish-failed');
@@ -155,14 +171,14 @@ export default class BulletinController extends CommandController<BulletinModel>
   }
 
   private async executeEdit(
-    model: BulletinModel,
+    model: ReleaseModel,
     context: CommandContext,
   ): Promise<void> {
     const id = (model.id ?? '').trim();
-    if (!id) return this.fail(context, 'bulletin id required', 'id-required');
+    if (!id) return this.fail(context, 'release id required', 'id-required');
 
-    const caps = BulletinController.lengthCaps();
-    const patch: BulletinPatch = {};
+    const caps = PressController.lengthCaps();
+    const patch: ReleasePatch = {};
 
     const headline = (model.headline ?? '').trim();
     if (headline) {
@@ -189,22 +205,22 @@ export default class BulletinController extends CommandController<BulletinModel>
     }
 
     if (model.realm !== undefined) {
-      const realm = BulletinController.resolveRealm(model.realm);
+      const realm = PressController.resolveRealm(model.realm);
       if (!realm) {
         return this.fail(
           context,
-          `unknown realm '${model.realm}' (try ${BULLETIN_REALMS.join(' / ')})`,
+          `unknown realm '${model.realm}' (try ${RELEASE_REALMS.join(' / ')})`,
           'bad-realm',
         );
       }
       patch.realm = realm;
     }
     if (model.kind !== undefined) {
-      const kind = BulletinController.resolveKind(model.kind);
+      const kind = PressController.resolveKind(model.kind);
       if (!kind) {
         return this.fail(
           context,
-          `unknown kind '${model.kind}' (try ${BULLETIN_KINDS.join(' / ')})`,
+          `unknown kind '${model.kind}' (try ${RELEASE_KINDS.join(' / ')})`,
           'bad-kind',
         );
       }
@@ -212,7 +228,7 @@ export default class BulletinController extends CommandController<BulletinModel>
     }
     if (model.pin === true) patch.pinned = true;
     if (model.expires !== undefined) {
-      const expiresAt = BulletinController.resolveExpiry(model.expires);
+      const expiresAt = PressController.resolveExpiry(model.expires);
       if (expiresAt === null) {
         return this.fail(
           context,
@@ -224,46 +240,46 @@ export default class BulletinController extends CommandController<BulletinModel>
     }
 
     try {
-      const updated = await BulletinApi.edit(id, patch);
+      const updated = await PressApi.edit(id, patch);
       if (!updated) {
-        return this.fail(context, `no bulletin '${id}'`, 'no-such-bulletin');
+        return this.fail(context, `no release '${id}'`, 'no-such-release');
       }
-      this.tell(context, `\nEdited bulletin '${id}'.\n`);
+      this.tell(context, `\nEdited release '${id}'.\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'edit-failed');
     }
   }
 
   private async executeRetract(
-    model: BulletinModel,
+    model: ReleaseModel,
     context: CommandContext,
   ): Promise<void> {
     const id = (model.id ?? '').trim();
-    if (!id) return this.fail(context, 'bulletin id required', 'id-required');
+    if (!id) return this.fail(context, 'release id required', 'id-required');
     try {
-      const retracted = await BulletinApi.retract(id);
+      const retracted = await PressApi.retract(id);
       if (!retracted) {
-        return this.fail(context, `no bulletin '${id}'`, 'no-such-bulletin');
+        return this.fail(context, `no release '${id}'`, 'no-such-release');
       }
-      this.tell(context, `\nRetracted bulletin '${id}'.\n`);
+      this.tell(context, `\nRetracted release '${id}'.\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'retract-failed');
     }
   }
 
   /** Validate a realm token against the vocabulary; `null` = unknown. */
-  private static resolveRealm(raw: string | undefined): BulletinRealm | null {
+  private static resolveRealm(raw: string | undefined): ReleaseRealm | null {
     const v = (raw ?? '').trim().toLowerCase();
-    return BULLETIN_REALMS.includes(v as BulletinRealm)
-      ? (v as BulletinRealm)
+    return RELEASE_REALMS.includes(v as ReleaseRealm)
+      ? (v as ReleaseRealm)
       : null;
   }
 
   /** Validate a kind token against the vocabulary; `null` = unknown. */
-  private static resolveKind(raw: string | undefined): BulletinKind | null {
+  private static resolveKind(raw: string | undefined): ReleaseKind | null {
     const v = (raw ?? '').trim().toLowerCase();
-    return BULLETIN_KINDS.includes(v as BulletinKind)
-      ? (v as BulletinKind)
+    return RELEASE_KINDS.includes(v as ReleaseKind)
+      ? (v as ReleaseKind)
       : null;
   }
 
@@ -274,7 +290,7 @@ export default class BulletinController extends CommandController<BulletinModel>
   private static resolveExpiry(raw: string | undefined): number | null {
     const text = (raw ?? '').trim();
     if (!text) return 0;
-    const ms = BulletinController.parseDurationMs(text);
+    const ms = PressController.parseDurationMs(text);
     if (ms === null || ms <= 0) return null;
     return Date.now() + ms;
   }
@@ -291,10 +307,10 @@ export default class BulletinController extends CommandController<BulletinModel>
     };
     return {
       headline: read(
-        AppSettingKeys.bulletinHeadlineMaxLength,
+        AppSettingKeys.pressHeadlineMaxLength,
         HEADLINE_CAP_FALLBACK,
       ),
-      body: read(AppSettingKeys.bulletinBodyMaxLength, BODY_CAP_FALLBACK),
+      body: read(AppSettingKeys.pressBodyMaxLength, BODY_CAP_FALLBACK),
     };
   }
 
@@ -330,7 +346,7 @@ export default class BulletinController extends CommandController<BulletinModel>
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.bulletin')
+      .topic('system.press')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

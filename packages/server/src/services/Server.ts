@@ -23,7 +23,7 @@ import { CmsRoutes } from '../backend/CmsRoutes';
 import { GitRoutes } from '../backend/GitRoutes';
 import { StudioRoutes } from '../backend/StudioRoutes';
 import { HelpRoutes } from '../backend/HelpRoutes';
-import { BulletinRoutes } from '../backend/BulletinRoutes';
+import { PressRoutes } from '../backend/PressRoutes';
 import { KickWebhookRoutes } from '../backend/KickWebhookRoutes';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
@@ -192,10 +192,10 @@ export class Server {
     // Read-only; same auth/ordering constraints as the CMS routes.
     HelpRoutes.setup(this.app);
 
-    // Bulletin (news-ticker) REST archive — the client pane's "load older"
+    // Release (news-ticker) REST archive — the client pane's "load older"
     // transport. Read-only; same auth/ordering constraints as the routes
     // above (registered before the SPA `*` fallback).
-    BulletinRoutes.setup(this.app);
+    PressRoutes.setup(this.app);
 
     // In production the server serves the built client from its own
     // origin — set CLIENT_DIST to the client's `dist/`. When it's unset

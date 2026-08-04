@@ -1,22 +1,24 @@
 /**
- * BulletinController — the `bulletin` verb maps the bound model onto
- * `BulletinApi.publish / edit / retract` (never the registry). Output is
+ * PressController — the `press` verb maps the bound model onto
+ * `PressApi.publish / edit / retract` (never the registry). Output is
  * captured by spying `Mml.fromMarkup` (it calls through) + a no-op scene
- * chainable, the ConfigController.test.ts harness. `BulletinApi` and
+ * chainable, the ConfigController.test.ts harness. `PressApi` and
  * `AppApi.setting` are stubbed — no Mongo, no warmed AppSettings.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
-import BulletinController from '../BulletinController';
-import { BulletinApi } from '../../../../api/bulletin';
+import PressController from '../PressController';
+import { PressApi } from '../../../../api/press';
 import { AppApi } from '../../../../api/app';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 
-interface BulletinModel extends CommandModel {
+const PUBLISHER = '/compact/press';
+
+interface ReleaseModel extends CommandModel {
   headline?: string;
   body?: string;
   id?: string;
@@ -26,13 +28,13 @@ interface BulletinModel extends CommandModel {
   expires?: string;
 }
 
-/** A minimal Bulletin stand-in (only `getBulletinId` is read by the controller). */
-function fakeBulletin(id: string): { getBulletinId(): string } {
-  return { getBulletinId: () => id };
+/** A minimal Release stand-in (only `getReleaseId` is read by the controller). */
+function fakeRelease(id: string): { getReleaseId(): string } {
+  return { getReleaseId: () => id };
 }
 
-describe('BulletinController', () => {
-  let ctrl: BulletinController;
+describe('PressController', () => {
+  let ctrl: PressController;
   let ctx: CommandContext;
   let output: string[];
   let note: ReturnType<typeof vi.fn>;
@@ -47,16 +49,16 @@ describe('BulletinController', () => {
     vi.spyOn(AppApi, 'setting').mockReturnValue('100000');
 
     publish = vi
-      .spyOn(BulletinApi, 'publish')
-      .mockResolvedValue(fakeBulletin('b-1') as never);
+      .spyOn(PressApi, 'publish')
+      .mockResolvedValue(fakeRelease('b-1') as never);
     edit = vi
-      .spyOn(BulletinApi, 'edit')
-      .mockResolvedValue(fakeBulletin('b-1') as never);
+      .spyOn(PressApi, 'edit')
+      .mockResolvedValue(fakeRelease('b-1') as never);
     retract = vi
-      .spyOn(BulletinApi, 'retract')
-      .mockResolvedValue(fakeBulletin('b-1') as never);
+      .spyOn(PressApi, 'retract')
+      .mockResolvedValue(fakeRelease('b-1') as never);
 
-    ctrl = makeStuff(() => new BulletinController());
+    ctrl = makeStuff(() => new PressController());
 
     output = [];
     const realFromMarkup = Mml.fromMarkup.bind(Mml);
@@ -80,14 +82,30 @@ describe('BulletinController', () => {
     vi.restoreAllMocks();
   });
 
-  function run(model: BulletinModel) {
+  function run(model: ReleaseModel) {
     return ctrl.execute(model as never, ctx);
   }
 
-  it('publish maps the model onto BulletinApi.publish (no actor passed)', async () => {
-    await run({ headline: 'Server maintenance', realm: 'ooc', kind: 'notice' });
+  it('⚠ refuses to guess a publisher — --as is required, never defaulted', async () => {
+    // Picking one would turn a refusal ("you hold no publishing position
+    // anywhere") into a silent downgrade ("...so here is the one you do").
+    await run({ headline: 'Server maintenance' });
+    expect(publish).not.toHaveBeenCalled();
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'publisher-required' }),
+    );
+  });
+
+  it('publish maps the model onto PressApi.publish (no actor passed)', async () => {
+    await run({
+      as: PUBLISHER,
+      headline: 'Server maintenance',
+      realm: 'ooc',
+      kind: 'notice',
+    });
     expect(publish).toHaveBeenCalledTimes(1);
     expect(publish).toHaveBeenCalledWith({
+      publisher: PUBLISHER,
       headline: 'Server maintenance',
       realm: 'ooc',
       kind: 'notice',
@@ -95,17 +113,19 @@ describe('BulletinController', () => {
       expiresAt: 0,
     });
     expect(note).not.toHaveBeenCalled();
-    expect(output.join('\n')).toContain("Published bulletin 'b-1'");
+    expect(output.join('\n')).toContain("Published release 'b-1'");
   });
 
   it('reads the overlaid body side-channel into the publish request', async () => {
     await run({
+      as: PUBLISHER,
       headline: 'Patch notes',
       body: 'The long-form MML body.',
       realm: 'world',
       kind: 'changelog',
     });
     expect(publish).toHaveBeenCalledWith({
+      publisher: PUBLISHER,
       headline: 'Patch notes',
       realm: 'world',
       kind: 'changelog',
@@ -118,6 +138,7 @@ describe('BulletinController', () => {
   it('threads --pin and a parsed --expires into the request', async () => {
     const before = Date.now();
     await run({
+      as: PUBLISHER,
       headline: 'Event tonight',
       realm: 'ooc',
       kind: 'event',
@@ -169,13 +190,13 @@ describe('BulletinController', () => {
     );
   });
 
-  it('edit maps id + patch onto BulletinApi.edit', async () => {
+  it('edit maps id + patch onto PressApi.edit', async () => {
     await run({
       subcommand: 'edit',
       id: 'b-1',
       headline: 'Revised headline',
       pin: true,
-    } as BulletinModel);
+    } as ReleaseModel);
     expect(edit).toHaveBeenCalledTimes(1);
     expect(edit).toHaveBeenCalledWith('b-1', {
       headline: 'Revised headline',
@@ -190,16 +211,16 @@ describe('BulletinController', () => {
       subcommand: 'edit',
       id: 'missing',
       headline: 'x',
-    } as BulletinModel);
+    } as ReleaseModel);
     expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'no-such-bulletin' }),
+      expect.objectContaining({ reason: 'no-such-release' }),
     );
   });
 
-  it('retract maps id onto BulletinApi.retract', async () => {
-    await run({ subcommand: 'retract', id: 'b-1' } as BulletinModel);
+  it('retract maps id onto PressApi.retract', async () => {
+    await run({ subcommand: 'retract', id: 'b-1' } as ReleaseModel);
     expect(retract).toHaveBeenCalledWith('b-1');
     expect(note).not.toHaveBeenCalled();
-    expect(output.join('\n')).toContain("Retracted bulletin 'b-1'");
+    expect(output.join('\n')).toContain("Retracted release 'b-1'");
   });
 });

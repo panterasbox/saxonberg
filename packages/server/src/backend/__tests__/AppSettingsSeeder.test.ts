@@ -123,11 +123,11 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.kickDedupTtlSec]: "900",
           [AppSettingKeys.kickDedupMaxSize]: "4096",
           [AppSettingKeys.kickResolveCacheTtlMs]: "3600000",
-          // The four news-ticker (bulletin) keys.
-          [AppSettingKeys.bulletinTickerWindow]: "30",
-          [AppSettingKeys.bulletinMaxPins]: "3",
-          [AppSettingKeys.bulletinHeadlineMaxLength]: "120",
-          [AppSettingKeys.bulletinBodyMaxLength]: "4000",
+          // The four news-ticker (release) keys.
+          [AppSettingKeys.pressTickerWindow]: "30",
+          [AppSettingKeys.pressMaxPins]: "3",
+          [AppSettingKeys.pressHeadlineMaxLength]: "120",
+          [AppSettingKeys.pressBodyMaxLength]: "4000",
           // The three residency (self-eviction) keys.
           [AppSettingKeys.residencyEvictionMode]: "observe",
           [AppSettingKeys.residencyEvictionIntervalMs]: "60000",
@@ -406,7 +406,7 @@ describe("AppSettingsSeeder", () => {
     // + 1 conviction + 5 traits + 1 chat + 2 chargen + 1 status + 7 script
     // + 2 banking + 2 youtube (pollIntervalMs, overlayPollIntervalMs)
     // + 3 social (social.baselineRules, social.defaultColor, social.idleAfter)
-    // + 4 bulletin (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength)
+    // + 4 release (tickerWindow, maxPins, headlineMaxLength, bodyMaxLength)
     // + 3 residency (eviction.mode, .intervalMs, .idleThresholdMs)
     // + 4 transit (banking.onboardingStipend + 3 fasttravel fare keys)
     // + 21 materials-response (7 attenuation + 4 material + 2 grade

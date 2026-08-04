@@ -54,10 +54,12 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // ship UNFILLED, which is the design — see their seeds.
   { templatePath: '/compact/press' },
   { templatePath: '/compact/executive' },
-  // BulletinBoard singleton — the runtime news-ticker window. Warmed at
-  // postRegister from the `bulletins` collection; resolvable via
-  // `BulletinApi` after this entry's postRegister fires. No dependsOn.
-  { templatePath: '/obj/BulletinBoard' },
+  // PressBoard singleton — the runtime news-ticker window. Warmed at
+  // postRegister from the release documents in the path-addressed tree;
+  // resolvable via `PressApi` after this entry's postRegister fires. It
+  // follows the two organizations above, whose feed branches it verifies
+  // each release against.
+  { templatePath: '/obj/PressBoard' },
   // DisciplineCatalogue singleton — the advancement Catalog: the authored,
   // typed field-of-study graph. Warms its descriptor cache in postRegister
   // from the per-Discipline leaf templates under `/lib/advancement/

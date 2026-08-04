@@ -48,7 +48,6 @@ export enum Collections {
   Positions = 'positions',
   Recipes = 'recipes',
   Blueprints = 'blueprints',
-  Bulletins = 'bulletins',
   Documents = 'documents',
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',

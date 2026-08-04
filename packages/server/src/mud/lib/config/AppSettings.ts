@@ -364,19 +364,19 @@ export const AppSettingKeys = {
   socialIdleAfter: "social.idleAfter",
 
   /**
-   * Bulletin (news ticker) — the server-owned ticker semantics. The engine
+   * Press (news ticker) — the server-owned ticker semantics. The engine
    * ships the pins-first/recency window + soft-retract/expiry; these are the
    * operator-tunable limits, read with a try/catch fallback so a pre-warm /
-   * test read is still safe. See docs/subsystems/bulletin.md.
+   * test read is still safe. See docs/subsystems/release.md.
    */
-  /** Bulletin — max bulletins in the live ticker window. */
-  bulletinTickerWindow: "bulletin.tickerWindow",
-  /** Bulletin — max pinned bulletins held at the top of the window. */
-  bulletinMaxPins: "bulletin.maxPins",
-  /** Bulletin — max rendered length (chars) of a headline. */
-  bulletinHeadlineMaxLength: "bulletin.headlineMaxLength",
-  /** Bulletin — max rendered length (chars) of a body. */
-  bulletinBodyMaxLength: "bulletin.bodyMaxLength",
+  /** Release — max releases in the live ticker window. */
+  pressTickerWindow: "press.tickerWindow",
+  /** Release — max pinned releases held at the top of the window. */
+  pressMaxPins: "press.maxPins",
+  /** Release — max rendered length (chars) of a headline. */
+  pressHeadlineMaxLength: "press.headlineMaxLength",
+  /** Release — max rendered length (chars) of a body. */
+  pressBodyMaxLength: "press.bodyMaxLength",
 
   /**
    * Residency — scheduled object self-maintenance (see
