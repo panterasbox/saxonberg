@@ -559,9 +559,16 @@ uncertainty is the point:
 
 ## What exists (audited 2026-08-04)
 
-Nine bespoke code paths for *"put this YAML in that collection"*:
+Bespoke code paths for *"put this YAML in that collection"*:
 `SeederManager` (walks `mud/seeds/` → `domain`), plus `Group`, `Parcel`,
 `Emote`, `Channel`, `Recipe`, `Blueprint`, `AppSettings` and `Script`.
+
+⚠ **Make that TEN — build-2's wiki added `WikiSeeder` + `config/wiki-
+pages.yaml` (starter articles) while this audit was being written.** That
+is the sequencing pressure stated as a fact: **new seeders keep arriving
+until the pack path exists**, because a seeder is currently the only way
+to ship starting content. Every build pays the tax and the migration
+grows.
 
 ⭐ **And `SeederManager`'s own header makes the case for the migration:**
 
@@ -644,6 +651,44 @@ semantics.**
 version: compare against what the pack last installed and skip anything
 that has diverged — ⭐ **loudly**. Silent skips are how you spend an
 afternoon wondering why a pack update did nothing.
+
+### ⭐⭐⭐ The wiki shows the general rule — and already implements it
+
+The wiki is the one collection the project deliberately gave version
+control to (*user, opening this session: "we rejected any kind of version
+control on our own mongo collections **except the wiki**"*), and that
+turns out to answer the reconcile question rather than complicate it.
+
+From [wiki.md](../../subsystems/wiki.md) (⚠ **build-2's, MR !166 — not on
+master yet, so this link dangles until it merges**): `wiki` holds current
+state, **`wiki_revisions`** is append-only, and —
+
+> *"`rev` is a **compare-and-swap token**. An edit submits the rev it was
+> based on; a mismatch is rejected with all three bodies and **no
+> auto-merge**, because a machine-merged paragraph reads as somebody's
+> writing and is nobody's."*
+
+⭐⭐ **So a pack update to a wiki page needs no special seed-vs-assert
+logic at all.** It submits an edit with the rev it shipped against; if a
+player has since edited, it is **rejected with a three-body conflict a
+human resolves.** Not stomped, not silently skipped — surfaced.
+
+> ⭐⭐⭐⭐ **Reconcile semantics should follow whether a contribution kind
+> has a revision token.**
+>
+> | kind has CAS/`rev` | submit the edit; let the collection's own conflict machinery fire |
+> | no CAS | compare-and-skip against what the pack last installed, **loudly** |
+
+And the wiki's own justification generalizes to the whole installer: **a
+pack silently merging into authored content has exactly the problem that
+line names** — the result reads as somebody's writing and is nobody's.
+Which is the argument for *skip and warn* over *merge* everywhere the CAS
+token is missing.
+
+⚠ **A wiki pack is therefore its own contribution kind**, and a good
+early one — it is the [wiki-as-course-commons](./wiki-slate.md) surface,
+its contributors are writers rather than programmers, and the conflict
+story is already built.
 
 ## Migration order
 
