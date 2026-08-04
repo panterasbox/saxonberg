@@ -243,6 +243,102 @@ somebody loses a shop.
 
 ---
 
+# Part 4b — How a pack and a parcel actually wire together
+
+> **User: "the path needs to be by convention but the actual wiring needs
+> to be more explicit, especially since parcels can be carved up
+> however."**
+
+## ⭐⭐⭐⭐ The distinction that governs all of it
+
+> **The path is a CONVENTION, for humans. The parcel trie is the FACT,
+> for the engine. When they disagree the trie wins — and disagreement is
+> the FEATURE, not an error.**
+
+## ⭐⭐ You never wire the convention. You decline to carve.
+
+`ownerOf('/domain/terminus/law/ordinance-3')` walks the coverage trie,
+finds `/domain/terminus` by longest prefix, and returns the locality's
+committee. **Nobody declared "law belongs to the locality."** It falls
+out of there being no carve-out beneath it.
+
+Which makes the constitutional move a *parcel operation*:
+
+> ⭐⭐⭐ **An independent judiciary is `subdivide /domain/terminus/law` +
+> `transfer` to the court.** The arrangement is not modelled, declared or
+> special-cased — it is two calls that already exist, and every downstream
+> gate follows automatically because they all read the same trie.
+
+That is the federalism-is-the-longest-prefix-walk finding
+([balance-slate](./balance-slate.md)) doing real work.
+
+## The install flow, explicitly
+
+```
+1. MANIFEST declares what it claims — never who owns it
+     claims:  [/domain/terminus/gray]
+     requires: { groups: [gray-committee], policy: <extent>/law/.policy }
+
+2. PRECONDITION — the installing actor must hold title to the covering
+   parcel of every claim.  ownerOf('/domain/terminus/gray') must be them.
+     ⇒ you can only install into ground you already own
+
+3. TITLE — the installer calls the gated ParcelApi.subdivide, the same
+   path the verb uses. Owner INHERITS from the parent.
+     ⚠ the pack never writes a parcels row. It CLAIMS; the registry GRANTS
+
+4. CONTENT — writes are REFUSED outside a claimed extent
+     ⇒ a trade pack cannot drop a document into someone's law branch
+
+5. CHECKLIST — unfilled requirements derive on read and stay visible
+     the group exists but is empty; the policy is absent; title may move later
+```
+
+⭐ **Step 4 is what makes a claim mean anything.** A pack may write only
+inside what it claimed, and may claim only inside what you own. Two
+checks, both against the trie already in memory.
+
+## ⚠⚠ Reconcile is bounded by CURRENT title, not the original claim
+
+Parcels get carved after install — that is the whole point of owning
+land. So when the installer next reconciles a path whose nearest parcel
+is no longer the pack's owner, **it skips it.**
+
+> **Selling part of your district partially uninstalls the pack from
+> it.** Correct, diegetically sensible, and it needs no new rule — it is
+> the same `ownerOf` walk, run again later.
+
+This is the seed-vs-assert rule (Part 4) with title as the signal rather
+than player-modification, and the two want the same implementation.
+
+## The three trees, as of the 2026-08-04 audit
+
+| Tree | How ownership resolves |
+|---|---|
+| **template** | ✅ parcels cover extents directly — the real model |
+| **documents** | ⭐ **already the same namespace** (`/domain/terminus/law/…` nests under the locality). ⚠ But `DocumentLogic.gateMutation` still uses the pre-0a `resolveZoneForPath` → `canMutateZone`, falling to `can(…, null)` → `core`. **It never got repointed onto `ParcelApi` when `AccessRegistry` did.** |
+| **source** | mapped by the *backing-class path mirrors template path* convention via `resolveSourceFolderZone` — genuinely a different namespace, so the mapping earns its keep |
+
+⭐ **The blocker on the document repoint is small:** `AccessApi.can` takes
+a **Stuff**, and documents are not Stuff. `can` internally resolves
+resource → zone → templatePath → `ownerOf(path)`, so documents need to
+**enter that chain one step later** — a path-shaped sibling to `can`.
+Doing it deletes the `core` fallback from a third place.
+
+⚠ **`/compact` is the exception and it is build-1's call.** It is being
+carved as a publications namespace that is explicitly *not a place*, so
+"some parcel covers it" may be the wrong rule there. Settle that before
+anything depends on it.
+
+## What does NOT change
+
+⚠⚠ **A pack still never declares title.** Multi-extent claims make a
+pack's reach *wider*, so the invariant matters more, not less: **the pack
+CLAIMS, the gated registry GRANTS.** `parcels.yaml` stays a platform
+seed, and the supply-chain-spoof reasoning in parcel.md is exactly why.
+
+---
+
 # Part 5 — Tests: the dependency direction is the design
 
 > **User: "a lot of our current seeding is just there for our tests and I
