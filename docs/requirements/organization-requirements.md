@@ -97,13 +97,20 @@ Business, never by definition.
   parcel committee, a government seat-holder, an operator, or an ordinary
   person can all be one:
 
-  | kind | resolves through |
-  |---|---|
-  | `entity` | templatePath match — today's `proprietorPath` |
-  | `office` | `CompactApi.holdsOffice` |
-  | `seat` | `GovernmentApi.holdsSeat` |
-  | `committee` | `CompactApi.isCommitteeMember` |
-  | `author` | `AccessApi.isAuthor` |
+  | kind | resolves through | founder passes? |
+  |---|---|---|
+  | `entity` | templatePath match — today's `proprietorPath` | no |
+  | `office` | `CompactApi.holdsOffice` | **yes — founder-default** |
+  | `seat` | `GovernmentApi.holdsSeat` | no |
+  | `committee` | `CompactApi.isCommitteeMember` | **yes — the pool-of-one backstop** |
+  | `author` | `AccessApi.isAuthor` | **no — see the cold-box trace** |
+
+  ⚠ **The `founder-passes` column is load-bearing, not trivia.** Only the
+  `office` and `committee` arms carry the Art. XI pool-of-one default. An
+  authority the founder cannot satisfy on a cold box is an authority
+  nobody can satisfy until a human edits a group by hand — see § *The
+  cold-box trace* below, which is why the Compact's press office uses
+  `committee` and not `author`.
 
 - ⭐ **Staff follows the seat.** Because the appointing authority *is* the
   office, a handover moves the staff relationship with it — no roster
@@ -150,11 +157,11 @@ Business, never by definition.
   not merely skipped.
 - **No press-build surface**: no subscription, no push, no byline, no
   credibility track record, no paywall, no `/feed/<publisher>/`.
-- **No verb-affordance widening.** The `bulletin` verb is afforded through
-  `AuthorMixin`, so a non-author position-holder cannot reach it — but
-  that person cannot currently exist: the founder holds every seat by
-  default and is an author, and governance.md records `office assign` as
-  broken (*"cannot find an online player"*). It lands when that is fixed.
+- **No affordance rework.** `AuthorMixin` is already composed on every
+  Avatar via `ShelledCharacter`, so the verb contribution needs no
+  widening — only its **validator** changes (`requiresAuthor` →
+  `requiresPublisher`, see the cold-box trace). An earlier draft deferred
+  an affordance rework on a false premise; this replaces it.
 - **No generic `requiresOffice` validator.** Its trigger is the second
   office-gated **verb**; this gates a publisher inside the logic.
 - **No docket**, **no annotation layer**, **no Saxonberg** (also blocked:
@@ -237,7 +244,7 @@ Director.
 
 | path | realm | appointing authority | positions |
 |---|---|---|---|
-| the Compact | `ooc` | `{kind:'author'}` | — |
+| the Compact | `ooc` | `{kind:'committee', parcel:'/'}` | — |
 | the Office of the Prime Minister | `world` | `{kind:'office', office:'prime-minister'}` | `communications-director`; `press-secretary` **reportsTo** it |
 
 The first is the out-of-fiction operator press office — the platform
@@ -250,12 +257,73 @@ there is no legislature, no bills, no policy, so its releases are whatever
 is written in character. Accepted: cold start is content, not mechanism.
 No NPC outlet, no seeded demo release, no synthetic floor.
 
+### ⚠ The cold-box trace — how the founder actually posts
+
+Traced against the code, because two links were broken and the design read
+as sound without them.
+
+**The founder is not an author.** `AccessRegistry.isAuthor` is *membership
+of `core`, or of any parcel-owning group* — and `seedCoreGroup()` creates
+`core` **empty**. `WIZARD_PLAYER_IDS` seeds `wizards`, not `core`; the only
+code path that adds anyone to `core` is
+`Application.provisionTestCharacter`, a dev/test path. **Nothing maps the
+founder credential to author status.** The two axes are orthogonal by
+design (governance.md says so) and this build must not assume otherwise.
+
+Two consequences, both now in scope:
+
+1. **The `bulletin` verb's gate.** `AuthorMixin` is composed on
+   `ShelledCharacter`, and `Avatar` descends from it — so *every* Avatar
+   already carries the verb contribution. **Affordance was never the
+   gate**; `requiresAuthor` → `AccessApi.isAuthor` is. On a fresh box the
+   founder fails it and cannot invoke the verb at all.
+
+   ⚠ **This invalidates an earlier deferral in this cycle**, which said no
+   affordance work was needed because *"the founder holds every seat by
+   default and is an author."* The second half is false. The fix is a
+   validator swap, not the affordance rework that deferral imagined —
+   **cheaper than the thing I deferred, and actually necessary.**
+
+   `requiresAuthor` on `bulletin` becomes **`requiresPublisher`**: *is
+   this actor entitled to publish as **any** publisher?* A coarse
+   affordance gate; the authoritative per-publisher check stays in
+   `publishImpl` (the controller-gate + validator-authority split).
+
+   ⚠ **This is not the banned "pick the best publisher" helper.** That
+   shape is banned because it turns a refusal into a *downgrade*. This
+   returns a boolean, selects nothing, and the precise check still runs.
+
+2. **The Compact publisher's authority.** `{kind:'author'}` would hit the
+   same empty-`core` wall. `{kind:'committee'}` resolves through
+   `CompactApi.isCommitteeMember`, which **already carries the
+   founder-default backstop** — `isFounder` first, then group membership.
+   So the founder passes on a cold box, anyone later added to `core`
+   passes by membership, and **no new `isFounder` call site is
+   introduced**: it is the existing sanctioned one.
+
+**The resulting chain, with nothing manual in it:** founder logs in →
+`isFounder` resolves against `FOUNDER_GOOGLE_EMAIL` →
+`isCommitteeMember` passes by default → `requiresPublisher` admits →
+`mayPublishAs` admits → the release persists with `realm: ooc` and public
+visibility → the front-page filter passes → an anonymous browser reads it.
+
+⚠ **`isFounder` returns false until the founder has logged in once** (no
+`User` row to match a credential against) and is always false if neither
+founder env var is set — one boot warning, no error. The deploy contract,
+inherited from governance.md.
+
 ### Placement is configuration; permission is visibility
 
 An AppSettings key names which publisher organizations the anonymous
 surface serves. ⚠ **`AppApi.setting()` returns a `string`** — there is no
 array type — so it is a comma-separated list, consistent with every other
 setting.
+
+⚠ **An unresolvable front-page entry must warn, not fail silently.** The
+setting holds organization paths; a typo would empty the front page with
+no signal, and the front page's whole failure mode is *looking deliberate
+while being empty*. Unknown entries are skipped (one typo must not take
+the page down) **and logged once at boot**.
 
 **Two independent filters, deliberately.** Front-page membership is
 *placement*; visibility is *permission*. A publisher can be public and off
@@ -345,6 +413,14 @@ read.
 6. **No new `isFounder` call site exists** — asserted by grep in review;
    the only consumers remain `requiresFoundingAuthority` and
    `isCommitteeMember`.
+6b. ⭐ **The cold-box end-to-end**: on a database with an **empty `core`
+    group** and no manual group edits, a logged-in founder can invoke
+    `bulletin`, publish as the Compact, and have the release appear on the
+    anonymous press-room route. This is the acceptance criterion that
+    catches the two links that were broken; assert it as one test that
+    walks the whole chain, not as five that each pass in isolation.
+6c. A **non**-founder with no `core` membership, no office and no position
+    is refused at `requiresPublisher` — the same chain, denied.
 
 **Existing behavior survives the factoring**
 
