@@ -3,259 +3,224 @@
 **The org chart, factored out of Business — and the press room as its
 first consumer.**
 
-The build has two halves, deliberately coupled: a substrate that answers
-*"who holds position P in organization O?"* uniformly across governments,
-businesses and publishers; and the **press room** — press releases,
-publicly readable on the start screen — which is what proves the
-substrate by using it rather than by testing it.
+Three coupled halves: a substrate that answers *"who holds position P in
+organization O?"* uniformly across governments, businesses and publishers;
+a **storage correction** that moves press releases out of a system
+collection and into the owned document tree where locally-scoped content
+belongs; and the **press room** — press releases publicly readable on the
+start screen — which proves both by using them.
 
-The immediate practical need is small and concrete: **announcements
-reaching people who land on mud.panterasbox.com**, none of which is
-visible today (the live fan needs an Avatar, the initial window rides the
-post-auth connection payload, the archive route is `requireAuth`, and the
-pane is a post-login tab). The substrate is not sized to that need — it is
-sized to the industries design, because the same question has to be
-answerable of a newspaper and a ministry before press and government can
-interact at all.
+The immediate practical need is small: **announcements reaching people who
+land on mud.panterasbox.com**, none of which is visible today (the live
+fan needs an Avatar, the initial window rides the post-auth connection
+payload, the archive route is `requireAuth`, the pane is a post-login
+tab). The substrate is not sized to that need — it is sized to the
+industries design, because the same question has to be answerable of a
+newspaper and a ministry before press and government can interact at all.
 
 Seeded by [gazette-slate](../slates/builds/gazette-slate.md) (Wave 0;
 **its Wave 1 is superseded here**) and
 [press-slate](../slates/builds/press-slate.md). Grows
-[employment.md](../subsystems/employment.md) and
-[bulletin.md](../subsystems/bulletin.md).
+[employment.md](../subsystems/employment.md),
+[document-store.md](../subsystems/document-store.md), and the bulletin
+subsystem doc (renamed — see below).
 
-## The governing decision
+## The three governing decisions
+
+### 1. Business models the economy; an organization models the chart
 
 > **Business models participation in the economy. An organization models
 > the chart. Business currently carries both, and that is the
 > conflation.**
 
-The shipped code strains at this in three places already:
+The shipped code already strains at it:
 
 - **`Government.departments` are Business templatePaths.** Terminus must
   stand up a *Business* just to have a Registry with a Magistrate seat. A
   registry does not trade; it is a Business because that is where
   positions live.
-- **`Corpo` cannot answer who runs it.** A megacorp with a sector, an
-  ethos and rivals, and no chart.
-- **Personal staff has nowhere to live at all** — which is what surfaced
+- **`Corpo` cannot answer who runs it** — sector, ethos, rivals, no chart.
+- **Personal staff has nowhere to live at all**, which is what surfaced
   this: a Communications Director is *not* an office. Offices head
   institutions and are prescribed by law; a comms director is the
   principal's personal staff, serves at pleasure, and is prescribed by
   nothing.
 
-So the concept is an **organization**: an identity with **positions**,
-**holders**, and an **appointing authority**, answering one question
-uniformly — *who holds position P in organization O?* — and its inverse,
-*what does actor A hold, anywhere?*
+So an **organization** is an identity with **positions**, **holders**, and
+an **appointing authority**, answering *who holds position P in
+organization O?* and its inverse *what does actor A hold, anywhere?*
+`BusinessMixin` composes `OrganizationMixin`; trade stays on Business.
 
-Everything then composes instead of duplicating:
+**The seat/staff line, now expressible:**
 
-| | organization | plus |
-|---|---|---|
-| a Business | ✔ | trade — account, wage settlement, venue |
-| a government department | ✔ | — (that is the whole point) |
-| a Corpo | ✔ (later) | a mark |
-| a press office | ✔ | publishing |
-| a newspaper | ✔ (later) | trade + publishing |
-
-### The seat/staff line, now expressible
-
-| | prescribed by law? | modeled as |
+| | prescribed by law? | is |
 |---|---|---|
 | Compact **Office** | yes | `OFFICE_APPARATUS` |
-| government **seat** | yes | a `Government.seats` entry **pointing at a position** |
+| government **seat** | yes | a `Government.seats` entry **pointing at** a position |
 | **personal staff** | **no — serves at pleasure** | **a position nobody points at** |
 
-⭐ **The difference between a seat and staff is whether a constitutional
-document points at the position.** Same substrate; the pointer is the law.
-Serving at pleasure is `fire` being unconditioned, which the employment
-transitions already provide.
+⭐ **The difference is whether a constitutional document points at the
+position. Same substrate; the pointer is the law.** So **no
+`communications-director` Office is minted** — an earlier draft of this
+cycle proposed one, and that was the error that produced this substrate.
 
-**This is why no `communications-director` Office is minted.** An earlier
-draft of this cycle proposed one; it was wrong for exactly the reason
-above, and the correction is what produced this substrate.
+### 2. The appointing authority appoints. The position acts.
 
-### And it dissolves the meta/diegetic wrinkle
+> **The committee fills a position; the position gates who can publish.**
 
-An earlier draft asked whether the Compact's press office had to be a
-*Business* — an out-of-fiction institution wearing a commercial word. It
-does not. It is an organization that does not compose `BusinessMixin`.
-Compensation remains available to state offices (it is a conserved
-economy; everyone needs money), but it arrives by *also* being a
-Business, never by definition.
+```
+mayPublishAs(principal, org) = holdsPublishingPosition(principal, org)
+```
+
+Full stop. **The appointing authority is not an alternate route to the
+power** — its power is to *fill* the position, not to exercise it. A
+President has no press-secretary powers; they appoint a press secretary.
+
+An earlier draft had `holdsAuthority(...) OR holdsPublishingPosition(...)`,
+which collapsed two different powers into one.
+
+⭐ **This strengthens the founder doctrine rather than straining it.** The
+founder's specialness lives entirely at the *appointment* step — the
+pool-of-one backstop inside `isCommitteeMember` lets them fill the
+position — and publishing is earned the way anyone earns it, by holding
+the position. **Nothing in the publish path consults the founder at all.**
+
+Its honest consequence: **an organization with no comms director publishes
+nothing**, and the founder's first act is to appoint one (possibly
+themselves). That is correct behaviour, and it is the gazette slate's own
+*"a locality with no gazette is a fact about that locality."*
+
+### 3. Releases live in the document tree, not a system collection
+
+The sort rule, from
+[legal-code-slate](../slates/builds/legal-code-slate.md): *collections cut
+across jurisdictions and are queried by system; the tree is place / owner
+/ division of labor — **would you query it across all jurisdictions?***
+
+Press releases fail that test cleanly. **You read a publisher's feed.**
+Nobody queries releases globally — even the front page reads a short
+enumerated list of publishers, each by prefix. They are owner-scoped
+content with a place: a municipality's press releases are the
+municipality's.
+
+> **So a release is a `StoredDocument` (`kind: 'release'`) under a feed
+> path its publisher declares — and the `bulletins` collection retires.**
+
+press-slate said this all along (`/feed/<publisher>/` in the document
+tree); the shipped `bulletins` collection predates the rule and was kept
+by inertia.
+
+⚠ **The collection retiring means the *name* retires with it.** A `Bulletin`
+class and a `bulletin` verb standing over a store that no longer exists is
+exactly the half-migration that misleads the next reader, so the rename is
+in scope, not deferred: `BulletinApi`→`PressApi`, the `bulletin`
+verb→`press`, `bulletin.md`→`press.md`.
 
 ## Goals
 
-### The substrate
+**The substrate**
 
-- **`OrganizationMixin`** carries positions, holders and an appointing
-  authority. `BusinessMixin` composes it; trade stays on Business.
-- **`who holds P in O?` and `what does A hold?` are single uniform reads**,
-  identical whether O is a ministry, a shop or a paper.
-- **The appointing authority is polymorphic**, so a Compact officer, a
-  parcel committee, a government seat-holder, an operator, or an ordinary
-  person can all be one:
+- `OrganizationMixin` carries positions, holders and an appointing
+  authority; `BusinessMixin` composes it.
+- `who holds P in O?` / `what does A hold?` are single uniform reads,
+  identical for a ministry, a shop and a paper.
+- The appointing authority is polymorphic, so a Compact officer, a parcel
+  committee, a government seat-holder, an operator or an ordinary person
+  can all be one:
 
   | kind | resolves through | founder passes? |
   |---|---|---|
   | `entity` | templatePath match — today's `proprietorPath` | no |
-  | `office` | `CompactApi.holdsOffice` | **yes — founder-default** |
+  | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
   | `seat` | `GovernmentApi.holdsSeat` | no |
-  | `committee` | `CompactApi.isCommitteeMember` | **yes — the pool-of-one backstop** |
+  | `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one backstop** |
   | `author` | `AccessApi.isAuthor` | **no — see the cold-box trace** |
 
-  ⚠ **The `founder-passes` column is load-bearing, not trivia.** Only the
-  `office` and `committee` arms carry the Art. XI pool-of-one default. An
-  authority the founder cannot satisfy on a cold box is an authority
-  nobody can satisfy until a human edits a group by hand — see § *The
-  cold-box trace* below, which is why the Compact's press office uses
-  `committee` and not `author`.
-
-- ⭐ **Staff follows the seat.** Because the appointing authority *is* the
-  office, a handover moves the staff relationship with it — no roster
-  migration, and the gap an earlier draft had to defer disappears.
-- **Positions and organizations both nest**: `Position.reportsTo` and an
-  organization's parent. "Press Secretary reports to the Communications
-  Director" becomes mechanism, not documentation.
+- ⭐ **Staff follows the seat**: because the authority *is* the office, a
+  handover moves it with no roster migration.
+- **Positions and organizations both nest** — `Position.reportsTo` and an
+  organization parent. "Press Secretary reports to the Communications
+  Director" becomes mechanism.
 - **One holder relation.** `Employment`'s counterparty generalizes from a
-  Business to an organization; wage and shifts stay optional. A volunteer
-  is a wage-0 employee. This is already how `Government.seats` resolve —
-  `holdsSeat` walks `Employment` records — so it keeps one thing
-  consistent rather than introducing a second.
+  Business to an organization; wage and shifts stay optional, a volunteer
+  is a wage-0 employee. Already how `Government.seats` resolve.
+- **An appointment verb** — a player-facing surface, gated on holding the
+  organization's appointing authority, that fills a position.
 
-### The press room
+**Storage**
 
-- **`PublisherMixin`** on an organization — realm, default visibility, and
-  which positions may publish. A publisher is a *face an organization
-  wears*, not a separate entity.
-- **A visitor who has never signed in can read the press room**: a plain
-  unauthenticated HTTP read, surfaced on the start screen, MML rendered,
-  **degrading deliberately** when empty or unreachable.
-- **Publishing authority is `holds the appointing authority` OR `holds a
-  publishing position`** — the non-exclusivity that personal staff
-  requires.
+- Releases are `StoredDocument`s under a publisher-declared feed path;
+  the `bulletins` collection, its class and its name retire.
+- The in-world ticker, the archive read and the connect-time window all
+  read the tree; their behaviour is unchanged.
+
+**The press room**
+
+- `PublisherMixin` on an organization — realm, default visibility, feed
+  path, and which positions may publish.
+- A visitor who has never signed in can read it: a plain unauthenticated
+  HTTP read on the start screen, MML rendered, **degrading deliberately**
+  when empty or unreachable.
 - **Visibility is declared by the publisher**, narrowable per release,
-  **never widenable**. **`realm` is derived from the publisher**, not
-  supplied. **Reposting is a release kind** with a `source` line.
-- **Which publishers the pre-login surface shows is configuration**, not a
-  property of the publisher — so a municipal press office is readable,
-  local, and nowhere near the app's front door.
+  **never widenable**. **`realm` derives from the publisher.** **Reposting
+  is a release kind** with a `source` line.
+- **Which publishers the pre-login surface shows is configuration**, so a
+  municipal press office is readable, local, and nowhere near the app's
+  front door.
 
 ## Non-goals
 
 - **No new Office.** The Communications Director is a position.
-- **No Corpo migration.** Corpos are the obvious next consumer of
-  `OrganizationMixin`; wiring them is not this build.
-- **No municipal press office seeded.** The `{kind:'seat'}` authority
-  branch is built and unit-tested; the first one authors itself as
-  content. Accepted risk: an untravelled path in content.
-- **No consent model, and no volunteer/slave distinction.** A volunteer is
-  a wage-0 employee.
-- ⚠ **No coupling between employment records and money movement.** See the
-  constraint below — this is a non-goal that has to be actively defended,
-  not merely skipped.
-- **No press-build surface**: no subscription, no push, no byline, no
-  credibility track record, no paywall, no `/feed/<publisher>/`.
-- **No affordance rework.** `AuthorMixin` is already composed on every
-  Avatar via `ShelledCharacter`, so the verb contribution needs no
-  widening — only its **validator** changes (`requiresAuthor` →
-  `requiresPublisher`, see the cold-box trace). An earlier draft deferred
-  an affordance rework on a false premise; this replaces it.
-- **No generic `requiresOffice` validator.** Its trigger is the second
-  office-gated **verb**; this gates a publisher inside the logic.
-- **No docket**, **no annotation layer**, **no Saxonberg** (also blocked:
-  `ParcelRecord.allowance` is an inert seam and the allowance cascade is
+- **No Corpo migration** — the obvious next consumer, not this build.
+- **No municipal press office seeded.** The `{kind:'seat'}` branch is
+  built and unit-tested; the first one authors itself as content.
+- **No consent model.** A volunteer is a wage-0 employee.
+- ⚠ **No coupling between employment records and money movement** — a
+  non-goal that must be actively defended, see Constraints.
+- **No affordance rework.** `AuthorMixin` is already on every Avatar via
+  `ShelledCharacter`; only the *validator* changes.
+- **No press-build surface**: no subscription, push, byline, credibility
+  track record, paywall.
+- **No generic `requiresOffice` validator** — its trigger is the second
+  office-gated verb.
+- **No docket, no annotation layer, no Saxonberg** (also blocked:
+  `ParcelRecord.allowance` is an inert seam, the allowance cascade is
   unbuilt).
 - **No permalinks, `og:` tags, RSS or email. No CORS work, no
-  panterasbox.com consumer.** The surface is the start screen —
-  same-origin in production, `SERVER_URL` in dev.
-- **No rename migration.** The stored release row stays `Bulletin` in the
-  `bulletins` collection. A rename is its own standalone migration, like
-  the pending `domain`→`content` one.
+  panterasbox.com consumer** — the surface is the start screen.
+- **No data migration script.** See the deploy step: at staff-feed volume,
+  re-posting what should survive folds the migration and the mandatory
+  content review into one act.
 
 ## Surface decisions
 
 ### `OrganizationMixin`, composed — not a standalone entity
 
 One entity wears its hats: a press office is an organization; a shop is an
-organization that also trades. This matches the codebase idiom
+organization that also trades. Matches the codebase idiom
 (`BusinessEntity extends BusinessMixin(PostRegistrationMixin(Idea))`) and
-avoids a hop on every *who-holds-P* read.
+avoids a hop on every read. **Accepted cost:** an organization and its
+commercial face can never be separately owned; no consumer wants that.
 
-**The accepted cost:** an organization and its commercial face can never be
-separately owned or transferred. No current consumer wants that.
-
-### What moves, and what stays
-
-| stays on `BusinessMixin` | moves to `OrganizationMixin` |
-|---|---|
-| `banksAt`, wage settlement, tips | `positions`, `rosterSlots` |
-| `operatingLocations` and the room→business index | the holder transitions: hire / end / roster / shift |
-| trade and the P&L account | `proprietorPath` → the appointing authority |
-
-**`Position.wageRate` stays on `Position`** — compensation attaches to the
-*position*, not the person, which is what makes the roster's
+**What moves:** `positions`, `rosterSlots`, the holder transitions, and
+`proprietorPath`→the appointing authority. **What stays on Business:**
+`banksAt`, wage settlement, tips, `operatingLocations`, the room→business
+index, the P&L account. **`Position.wageRate` stays on `Position`** —
+compensation attaches to the *position*, which is what makes the roster's
 `{positionKey, assignee}` shape right rather than incidental.
 
-⭐ **Existing content keeps working untouched**: because `Business`
-composes `OrganizationMixin` and templatePaths do not change,
-`Government.departments`, `Government.seats` and `holdsSeat` all continue
-to resolve against the Terminus Registry exactly as they do today.
+⭐ **Existing content keeps working untouched**: `Business` composes the
+mixin and templatePaths do not change, so `Government.departments`,
+`Government.seats` and `holdsSeat` resolve against the Terminus Registry
+exactly as today.
 
 ### The appointing authority replaces `proprietorPath`
 
 `proprietorPath` is a templatePath — a *specific entity* — so authority
-under it can never be handed off, which is the same defect the
-check-the-office doctrine exists to prevent. It becomes the `entity` kind
-of a polymorphic reference; `isProprietorOf` dispatches on the tag.
-
-The surface is small: the field on `obj/Business.ts` and
-`isProprietorOfImpl` in `EmploymentLogic` are the only non-test call
-sites.
-
-### Authority checks positions. It never checks the founder.
-
-> **The founder value's only function is being the default holder of every
-> office.**
-
-Already true and this build must not erode it. `isFounder` has exactly
-**two** legitimate call sites, both pool-of-one backstops:
-`requiresFoundingAuthority` (gating `office assign`/`vacate` — the power
-to constitute the government itself) and `CompactLogic.isCommitteeMember`.
-**This build adds no third**, and the founder gets every new power
-automatically because `holdsOffice` already returns true for them.
-
-### Publishing authority
-
-```
-mayPublishAs(principal, organization) =
-     holdsAppointingAuthority(organization)   // founder-default rides holdsOffice
-  || holdsPublishingPosition(organization)
-```
-
-`PublisherMixin.publishingPositions` names which position keys may
-publish; empty means any position-holder. This is the non-exclusivity that
-motivated the whole design — the Comms Director publishes without being
-the PM, and the Press Secretary publishes without being the Comms
-Director.
-
-### Two seeded organizations
-
-| path | realm | appointing authority | positions |
-|---|---|---|---|
-| the Compact | `ooc` | `{kind:'committee', parcel:'/'}` | — |
-| the Office of the Prime Minister | `world` | `{kind:'office', office:'prime-minister'}` | `communications-director`; `press-secretary` **reportsTo** it |
-
-The first is the out-of-fiction operator press office — the platform
-talking about itself, and the one that carries content on day one. The
-second is the in-fiction executive's, and it is what makes the staff model
-real rather than described.
-
-⚠ **The Office of the Prime Minister ships with nothing to announce** —
-there is no legislature, no bills, no policy, so its releases are whatever
-is written in character. Accepted: cold start is content, not mechanism.
-No NPC outlet, no seeded demo release, no synthetic floor.
+under it can never be handed off, the same defect the check-the-office
+doctrine exists to prevent. It becomes the `entity` kind of the
+polymorphic reference; `isProprietorOf` dispatches on the tag, and legacy
+bare-string values normalize to `{kind:'entity', path}` on hydration.
 
 ### ⚠ The cold-box trace — how the founder actually posts
 
@@ -265,271 +230,291 @@ as sound without them.
 **The founder is not an author.** `AccessRegistry.isAuthor` is *membership
 of `core`, or of any parcel-owning group* — and `seedCoreGroup()` creates
 `core` **empty**. `WIZARD_PLAYER_IDS` seeds `wizards`, not `core`; the only
-code path that adds anyone to `core` is
-`Application.provisionTestCharacter`, a dev/test path. **Nothing maps the
-founder credential to author status.** The two axes are orthogonal by
-design (governance.md says so) and this build must not assume otherwise.
+code path that adds anyone is `Application.provisionTestCharacter`, a
+dev/test path. **Nothing maps the founder credential to author status.**
 
-Two consequences, both now in scope:
+1. **The verb gate.** `AuthorMixin` is composed on `ShelledCharacter` and
+   `Avatar` descends from it, so *every* Avatar already carries the verb
+   contribution — **affordance was never the gate**; `requiresAuthor` →
+   `AccessApi.isAuthor` is, and the founder fails it on a fresh box.
 
-1. **The `bulletin` verb's gate.** `AuthorMixin` is composed on
-   `ShelledCharacter`, and `Avatar` descends from it — so *every* Avatar
-   already carries the verb contribution. **Affordance was never the
-   gate**; `requiresAuthor` → `AccessApi.isAuthor` is. On a fresh box the
-   founder fails it and cannot invoke the verb at all.
+   ⚠ This invalidated an earlier deferral in this cycle, which reasoned
+   *"the founder holds every seat by default and is an author."* False.
+   The fix is a **validator swap**, not the affordance rework that
+   deferral imagined: `requiresPublisher` — *does this actor hold **any**
+   publishing position?* A coarse affordance gate; the per-publisher check
+   in the publish path stays authoritative. ⚠ **Not the banned
+   "pick-a-publisher" helper** — that shape turns a refusal into a
+   downgrade; this returns a boolean and selects nothing.
 
-   ⚠ **This invalidates an earlier deferral in this cycle**, which said no
-   affordance work was needed because *"the founder holds every seat by
-   default and is an author."* The second half is false. The fix is a
-   validator swap, not the affordance rework that deferral imagined —
-   **cheaper than the thing I deferred, and actually necessary.**
+2. **The appointment, not the publish, is where the founder default
+   applies.** The Compact press office's authority is
+   `{kind:'committee', parcel:'/'}` → `isCommitteeMember`, which already
+   carries the founder backstop. **No new `isFounder` call site.**
 
-   `requiresAuthor` on `bulletin` becomes **`requiresPublisher`**: *is
-   this actor entitled to publish as **any** publisher?* A coarse
-   affordance gate; the authoritative per-publisher check stays in
-   `publishImpl` (the controller-gate + validator-authority split).
+**The resulting chain:**
 
-   ⚠ **This is not the banned "pick the best publisher" helper.** That
-   shape is banned because it turns a refusal into a *downgrade*. This
-   returns a boolean, selects nothing, and the precise check still runs.
-
-2. **The Compact publisher's authority.** `{kind:'author'}` would hit the
-   same empty-`core` wall. `{kind:'committee'}` resolves through
-   `CompactApi.isCommitteeMember`, which **already carries the
-   founder-default backstop** — `isFounder` first, then group membership.
-   So the founder passes on a cold box, anyone later added to `core`
-   passes by membership, and **no new `isFounder` call site is
-   introduced**: it is the existing sanctioned one.
-
-**The resulting chain, with nothing manual in it:** founder logs in →
-`isFounder` resolves against `FOUNDER_GOOGLE_EMAIL` →
-`isCommitteeMember` passes by default → `requiresPublisher` admits →
-`mayPublishAs` admits → the release persists with `realm: ooc` and public
-visibility → the front-page filter passes → an anonymous browser reads it.
+```
+founder logs in            → isFounder matches FOUNDER_GOOGLE_EMAIL
+appoints themselves        → isCommitteeMember passes by founder default
+                             → the appointment verb fills the position
+publishes                  → requiresPublisher admits (holds the position)
+                             → mayPublishAs admits
+                             → release written to the tree, realm ooc, public
+anonymous browser reads it → front-page filter passes
+```
 
 ⚠ **`isFounder` returns false until the founder has logged in once** (no
-`User` row to match a credential against) and is always false if neither
-founder env var is set — one boot warning, no error. The deploy contract,
-inherited from governance.md.
+`User` row to match), and is always false if neither founder env var is
+set — one boot warning, no error. Inherited from governance.md.
+
+### Two seeded organizations
+
+| path | realm | appointing authority | positions |
+|---|---|---|---|
+| the Compact | `ooc` | `{kind:'committee', parcel:'/'}` | `communications-director` |
+| the Office of the Prime Minister | `world` | `{kind:'office', office:'prime-minister'}` | `communications-director`; `press-secretary` **reportsTo** it |
+
+Both ship **unfilled**. ⚠ The Office of the Prime Minister also ships with
+nothing to announce — no legislature, no bills, no policy — so its
+releases are whatever is written in character. Cold start is content, not
+mechanism: no NPC outlet, no seeded demo release, no synthetic floor.
+
+### Where a release lives, and who writes it
+
+`kind: 'release'`, path `<feedPath>/<id>`, `owner` = the publisher
+organization, `data` = headline, body, kind, source, publishedAt,
+expiresAt, pinned, retracted, and the optional visibility narrowing.
+`realm` is **not stored** — it derives from the publisher, so there is one
+source rather than a copy that can drift.
+
+⚠ **The write must be owner-stamped as the publisher, not as the acting
+player.** `DocumentApi.save` gates on self-home / covering zone /
+slice-walk, which admits the *parcel owner* — not the comms director.
+Making every comms director a landowner is obviously wrong, so the press
+path writes through a **narrow named transport** with `mayPublishAs` as
+the authoritative check, the way `PersistableApi` routes capture as the
+owning principal. **That seam is an ownership bypass by construction**; it
+is gated to a single calling module and never takes a caller-supplied
+owner — it takes the publisher it just authorized.
 
 ### Placement is configuration; permission is visibility
 
 An AppSettings key names which publisher organizations the anonymous
-surface serves. ⚠ **`AppApi.setting()` returns a `string`** — there is no
-array type — so it is a comma-separated list, consistent with every other
-setting.
+surface serves. ⚠ **`AppApi.setting()` returns a `string`** — no array
+type — so it is a comma-separated list. **An unresolvable entry warns at
+boot**: a typo would empty the front page with no signal, and "looking
+deliberate while empty" is precisely this surface's failure mode.
 
-⚠ **An unresolvable front-page entry must warn, not fail silently.** The
-setting holds organization paths; a typo would empty the front page with
-no signal, and the front page's whole failure mode is *looking deliberate
-while being empty*. Unknown entries are skipped (one typo must not take
-the page down) **and logged once at boot**.
+**Two independent filters.** Front-page membership is *placement*;
+visibility is *permission*. A publisher can be public and off the front
+page; a listed publisher can still have a members-only release.
+Collapsing them makes placement imply permission.
 
-**Two independent filters, deliberately.** Front-page membership is
-*placement*; visibility is *permission*. A publisher can be public and off
-the front page; a listed publisher can still have a members-only release.
-Collapsing them would make placement imply permission — the same
-one-field-three-jobs bug this cycle removed from `realm`.
-
-### `realm` derived; visibility narrows, never widens
+### Visibility narrows, never widens
 
 > **A release may be more private than its publisher. It may never be more
 > public.**
 
-`realm` leaves `PublishRequest`/`BulletinPatch` and is stamped from the
-publisher, while remaining a stored indexed field.
-
-⚠ **This makes existing rows public on deploy.** Every stored bulletin
-inherits the Compact publisher and public visibility. Intended — the `ooc`
-realm is already *"identical for every viewer, no per-viewer lensing"* —
-but the collection must be **reviewed before the route goes live**. A
-deploy step, not a code path.
+⚠ **Existing content becomes public when the route goes live.** Whatever
+survives the migration inherits the Compact publisher and public
+visibility — intended, but a one-way door on content nobody wrote for an
+anonymous audience. See the deploy step.
 
 ### The public read is its own route, and serves the window
 
 A route whose entire contract is *"public, anonymous, no credentials"* is
 much harder to widen by accident than a flag on the archive. It reads no
-session and sets no cookie, and it **serves the live window from the warm
-cache — no `before` cursor, no paging**. A press room is not an archive;
-this caps an anonymous endpoint on an underpowered box at one in-memory
-read.
+session, sets no cookie, and **serves the warm window — no `before`
+cursor, no paging**. A press room is not an archive.
 
 ## Constraints
 
-- ⚠ **Employment records and money movement must stay independent.**
+- ⚠ **Employment records and money movement stay independent.**
   `postTransaction` is the banking chokepoint and takes no employment
-  argument; wage settlement reads employment but nothing in the ledger
-  requires it. **Do not couple them.** Paying someone with no record must
-  remain identical to paying an employee off-book — that is what makes
+  argument. **Do not couple them** — paying someone with no record must
+  remain identical to paying an employee off-book, which is what makes
   paying under the table an emergent act rather than an unmodellable one.
-- **`Employment`'s status vocabulary is unchanged**
-  (`employed | on-shift | off-shift | quit | fired`), and the
-  quit/fired-suppresses-roster rule in `holdsSeat` must survive the
-  generalization — an exit is never resurrected.
-- **The `EmployedMixin` participant contract moves with the counterparty**:
-  `FromMixin(Mixins.Business)` becomes the organization mixin, keeping the
-  relational `where` that requires the written record key to be the
-  calling organization's own path.
-- **New mixins are registered in `lib/mixin.ts`'s `Mixins` constants** —
-  the single source of truth.
-- **Placement**: `OrganizationMixin` in `lib/employment/` and
-  `employment.md` grows, rather than a new subsystem folder — "prefer
-  fewer directories". `PublisherMixin` in `lib/bulletin/`.
-- **Nothing instances `/lib/`** (`pnpm lint:instanceable`); seeded
-  organizations are templates over concrete `obj/` classes.
-- **`BulletinApi` ↔ `BulletinLogic` and `EmploymentApi` ↔
-  `EmploymentLogic` stay split** — the Api is the thin gated shell, the
-  logic singleton is the hot-reload boundary.
-- **Actor from context.** Entitlement resolves its principal from
-  execution context, never a parameter.
-- **Office, seat and committee reads go through their facades** —
-  `CompactApi`, `GovernmentApi`. Registries are not reachable directly.
-- **`GroupApi.isMember` takes a `playerId` string**, so the committee
-  branch narrows with `PlayerApi.isAvatarStuff` first — the
-  `isCommitteeMember` precedent.
+- **`Employment`'s status vocabulary is unchanged**, and the
+  quit/fired-suppresses-roster rule must survive the generalization — an
+  exit is never resurrected.
+- **The `EmployedMixin` participant contract moves with the counterparty**,
+  keeping the relational `where` that requires the written record key to
+  be the calling organization's own path.
+- **New mixins are registered in `lib/mixin.ts`'s `Mixins` constants.**
+- **Placement**: `OrganizationMixin` in `lib/employment/` with
+  `employment.md` growing, rather than a new subsystem folder — "prefer
+  fewer directories".
+- **Nothing instances `/lib/`** (`pnpm lint:instanceable`).
+- **The Api ↔ logic-singleton split holds** for every touched pair.
+- **Actor from context**, never a parameter.
+- **Office, seat and committee reads go through `CompactApi` /
+  `GovernmentApi`**; registries are not reachable directly.
+- **`GroupApi.isMember` takes a `playerId` string**, so committee
+  resolution narrows with `PlayerApi.isAvatarStuff` first.
 - **The import boundary holds**; route code lives in `backend/`.
 - **Wire types live in `@saxonberg/types`**; the press-release row is a
   distinct exported type.
 - ⚠ **`NewsTickerPane.tsx:242` fetches relative** with no Vite dev proxy,
-  so "Load older" fails in development. Pre-existing, one line — **fix in
-  passing**.
+  so "Load older" fails in development — **fix in passing**.
 - **Do not run `prettier --write`** across untouched files.
 
 ## Acceptance criteria
 
 **The substrate**
 
-1. `who holds position P in organization O?` and `what positions does
-   actor A hold?` answer identically for a Business, a non-trading
-   organization, and a publisher organization.
-2. All five appointing-authority kinds resolve — `entity`, `office`,
-   `seat`, `committee`, `author` — each admitting and refusing correctly.
+1. `who holds position P in organization O?` and `what does actor A hold?`
+   answer identically for a Business, a non-trading organization and a
+   publisher organization.
+2. All five appointing-authority kinds resolve, each admitting and
+   refusing correctly.
 3. ⭐ **Staff follows the seat**: with an `{kind:'office'}` authority,
-   reassigning the office moves who may act as the appointing authority,
-   with no change to any employment or roster record.
-4. `Position.reportsTo` and organization parentage are readable, and
+   reassigning the office moves who may appoint, with **no employment or
+   roster record touched**.
+4. `Position.reportsTo` and organization parentage are readable;
    `press-secretary` resolves as reporting to `communications-director`.
-5. A wage-0 position is a valid, holdable position.
-6. **No new `isFounder` call site exists** — asserted by grep in review;
-   the only consumers remain `requiresFoundingAuthority` and
+   Cycles are refused at read, not looped on.
+5. A wage-0 position is valid and holdable.
+6. **The appointment verb** fills a position when invoked by a holder of
+   the organization's appointing authority, and is refused otherwise.
+7. **No new `isFounder` call site exists** — grep-asserted in review; the
+   only consumers remain `requiresFoundingAuthority` and
    `isCommitteeMember`.
-6b. ⭐ **The cold-box end-to-end**: on a database with an **empty `core`
-    group** and no manual group edits, a logged-in founder can invoke
-    `bulletin`, publish as the Compact, and have the release appear on the
-    anonymous press-room route. This is the acceptance criterion that
-    catches the two links that were broken; assert it as one test that
-    walks the whole chain, not as five that each pass in isolation.
-6c. A **non**-founder with no `core` membership, no office and no position
-    is refused at `requiresPublisher` — the same chain, denied.
+8. ⚠ **The appointing authority cannot publish by virtue of being the
+   authority.** A committee member who holds no publishing position is
+   **refused** — the explicit negative for decision 2.
 
 **Existing behavior survives the factoring**
 
-7. The Terminus Registry Business, `Government.departments`,
-   `Government.seats` and `holdsSeat` all resolve unchanged, including
-   the quit/fired-suppresses-roster rule.
-8. Dave's Bar hire/shift/wage/tip behavior is unregressed.
-9. ⚠ **Money movement remains independent of employment**: a transfer
-   between two actors succeeds with no employment record between them,
-   and nothing in `postTransaction` consults employment.
+9. The Terminus Registry Business, `Government.departments`,
+   `Government.seats` and `holdsSeat` resolve unchanged, including the
+   quit/fired-suppresses-roster rule.
+10. Dave's Bar hire/shift/wage/tip behavior is unregressed.
+11. ⚠ **Money movement remains independent of employment**: a transfer
+    succeeds between two actors with no employment record, and nothing in
+    `postTransaction` consults employment.
+
+**Storage**
+
+12. A published release is a `StoredDocument` with `kind: 'release'`,
+    `owner` = the publisher organization, under that publisher's feed
+    path.
+13. ⚠ **The write transport cannot be used to stamp an arbitrary owner** —
+    it is callable only from its one gating module, and takes the
+    authorized publisher rather than a caller-supplied owner.
+14. **The `bulletins` collection has no remaining reader or writer.** The
+    in-world ticker, the archive read and the connect-time window all read
+    the tree with unchanged behavior.
 
 **Publishing**
 
-10. **Entitlement is enforced both ways**: the appointing-authority holder
-    may publish; a publishing-position holder who is *not* the authority
-    may publish; anyone else is refused. **A refusal writes nothing at
-    all** — never a fallback to another publisher.
-11. `realm` is stamped from the publisher and cannot be supplied.
-12. A release cannot be more public than its publisher.
-13. A `repost` release round-trips its `source`.
-14. Bulletins persisted before this build load with the Compact publisher
-    and public visibility, with **no migration script**.
+15. **Entitlement**: a publishing-position holder may publish; a
+    non-publishing position-holder, an unrelated actor, an unresolvable
+    organization and a cold catalogue are all **refused**. A refusal
+    **writes nothing at all**.
+16. `realm` derives from the publisher and cannot be supplied.
+17. A release cannot be more public than its publisher.
+18. A `repost` release round-trips its `source`.
 
 **The read path and the surface**
 
-15. `GET` the press-room route with **no session cookie** returns the
+19. `GET` the press-room route with **no session cookie** returns the
     window, `200`, for a caller that has never authenticated.
-16. It returns **only** public-visibility releases from publishers named
-    in the front-page setting. A release from an unlisted publisher is
-    absent from it and present in the authenticated archive.
-17. It accepts a bounded `limit` and **rejects** paging (`before` → 400).
-18. The press-release row carries the publisher label and `source` and
+20. It returns **only** public-visibility releases from publishers named in
+    the front-page setting; a release from an unlisted publisher is absent
+    from it and present in the authenticated archive. An unresolvable
+    front-page entry is skipped and logged.
+21. It accepts a bounded `limit` and **rejects** paging (`before` → 400).
+22. The press-release row carries the publisher label and `source` and
     **does not carry `author`** — asserted against a frozen key set.
-19. The start screen renders the press room for an anonymous visitor;
+23. The start screen renders the press room for an anonymous visitor;
     sign-in and guest controls render and function with it present, empty
     and failing.
-20. Existing authenticated surfaces are unregressed: the live
-    `world.bulletin.feed` fan, the connection payload's `bulletinWindow`,
-    `GET /api/bulletins/archive`, `NewsTickerPane`.
-21. "Load older" in `NewsTickerPane` works in development.
+24. "Load older" in the ticker pane works in development.
+
+**The whole chain**
+
+25. ⭐ **The cold-box walk**: on a database with an **empty `core` group**
+    and no manual group edits, a logged-in founder can appoint themselves
+    to the Compact's `communications-director` position, publish, and have
+    the release appear on the anonymous route. **One test that walks the
+    whole chain** — the two breaks it exists to catch were each invisible
+    to tests that passed in isolation.
+26. The same walk for a non-founder with no committee membership, no
+    office and no position: refused at the appointment step.
 
 **Tests / docs / live**
 
-22. Vitest, colocated, covering: the authority-kind matrix (2); staff
-    following the seat (3); the publishing entitlement matrix including
-    refusal and the position-only case (10); the visibility clamp
-    **including the non-widening direction** (12); realm stamping (11);
-    the frozen row key set (18); legacy-row defaults (14); anonymous
-    access and the front-page filter (15, 16); and the regression net for
-    (7), (8), (9).
-23. `pnpm lint`, `pnpm lint:imports`, `pnpm lint:module-scope`,
+27. Vitest, colocated, covering every AC above, and in particular: the
+    authority-kind matrix (2); staff-follows-the-seat (3); the authority
+    **cannot** publish (8); the entitlement matrix (15); the clamp
+    **including the non-widening direction** (17); the frozen row key set
+    (22); the regression net for (9), (10), (11).
+28. `pnpm lint`, `pnpm lint:imports`, `pnpm lint:module-scope`,
     `pnpm lint:gates`, `pnpm lint:instanceable`, `pnpm build`, `pnpm test`
     pass.
-24. [employment.md](../subsystems/employment.md) is expanded — the
-    organization/business split, what moved and why, the appointing
-    authority and its five kinds, nesting, and the independence of
+29. [employment.md](../subsystems/employment.md) is expanded — the
+    organization/business split, what moved, the appointing authority and
+    its five kinds, nesting, the appointment verb, and the independence of
     employment from money movement.
-25. [bulletin.md](../subsystems/bulletin.md) is expanded — the press-room
-    framing, `PublisherMixin`, the entitlement model, the clamp, derived
-    `realm`, the `repost` kind, the route, the front-page setting, the
-    two independent filters, and the start-screen surface.
-26. [governance.md](../subsystems/governance.md) and
+30. `press.md` (renamed from `bulletin.md`) covers the press-release form,
+    `PublisherMixin`, appointment-vs-exercise, the tree storage and the
+    write transport, the clamp, derived `realm`, `repost`, the route, the
+    front-page setting and the start-screen surface.
+    [document-store.md](../subsystems/document-store.md) gains the
+    `release` kind and the named transport.
+31. [governance.md](../subsystems/governance.md) and
     [civics.md](../subsystems/civics.md) record that seats point at
-    positions on organizations; governance.md records the press office as
-    the Office substrate's second wired authority consumer, gating a
-    publisher rather than a verb. ⚠ civics.md's stale
-    `lib/civics/Government.ts` path is corrected to `obj/Government.ts`
-    while it is open.
-27. [gazette-slate](../slates/builds/gazette-slate.md) has **Wave 1 struck
-    and replaced**, reasons carried over; Wave 0 marked shipped.
-    [press-slate](../slates/builds/press-slate.md) records the shared
-    substrate: a newspaper is an organization that trades and publishes,
-    and *"who is the editor in chief?"* is the same read as *"who is the
+    positions on organizations. ⚠ civics.md's stale
+    `lib/civics/Government.ts` is corrected to `obj/Government.ts`.
+32. [gazette-slate](../slates/builds/gazette-slate.md) has **Wave 1 struck
+    and replaced**; [press-slate](../slates/builds/press-slate.md) records
+    that a newspaper is an organization that trades and publishes, and
+    that *"who is the editor in chief?"* is the same read as *"who is the
     comms director?"*
-28. Verified **by driving it**: load the start screen signed out in a real
-    browser and read a real release; confirm the empty and server-down
+33. Verified **by driving it**: sign out in a real browser, read a real
+    release on the start screen, and confirm the empty and server-down
     states look deliberate.
+
+## The deploy step
+
+⚠ Two things converge here and are handled as one act. The `bulletins`
+collection retires with **no migration script**, and everything that
+survives becomes **publicly readable**. So before the route is exposed:
+read the old collection, decide row by row what should survive and be
+public, and **re-post those as releases**. At staff-feed volume this is
+minutes, and it folds the migration into the content review the visibility
+change requires anyway.
 
 ## What this unlocks (not built here)
 
-Recorded because it is the reason the substrate is worth its cost. Once
-both sides answer the same question:
-
-- a **press credential** is issued to a position-holder;
-- a **briefing list** is *"the comms director of every accredited
-  publisher"*;
-- a **spokesperson relation** is position ↔ position;
-- a **FOIA request** goes from a position to a position;
-- **Corpos** gain a chart, so *"who runs Veshko?"* becomes answerable.
-
-None is expressible today, because positions exist only on Businesses.
+Once press and government answer the same question: a **press credential**
+issued to a position-holder; a **briefing list** that is *"the comms
+director of every accredited publisher"*; a **spokesperson relation**
+position ↔ position; a **FOIA request** from a position to a position; and
+**Corpos** gaining a chart so *"who runs Veshko?"* becomes answerable.
+None is expressible while positions live only on Businesses.
 
 ## Cross-references
 
 **Seeding slates** — [gazette-slate](../slates/builds/gazette-slate.md),
 [press-slate](../slates/builds/press-slate.md),
-[vocations.md](../vocations.md).
+[legal-code-slate](../slates/builds/legal-code-slate.md) (the storage sort
+rule), [vocations.md](../vocations.md).
 
 **Owning subsystem docs** —
-[employment.md](../subsystems/employment.md) (the substrate),
-[bulletin.md](../subsystems/bulletin.md) (the press room).
+[employment.md](../subsystems/employment.md),
+[document-store.md](../subsystems/document-store.md), `press.md`.
 
 **Load-bearing context** —
 [governance.md](../subsystems/governance.md),
 [civics.md](../subsystems/civics.md),
 [grouping.md](../subsystems/grouping.md),
 [access.md](../subsystems/access.md),
-[banking.md](../subsystems/banking.md) (the `postTransaction`
-chokepoint), [corpo.md](../subsystems/corpo.md) (the next consumer),
+[parcel.md](../subsystems/parcel.md),
+[banking.md](../subsystems/banking.md),
+[persistence.md](../subsystems/persistence.md) (the write-as-owner
+precedent), [corpo.md](../subsystems/corpo.md),
 [client-shell.md](../subsystems/client-shell.md),
 [app-settings.md](../subsystems/app-settings.md),
 [mixins.md](../subsystems/mixins.md),
