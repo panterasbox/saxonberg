@@ -391,6 +391,43 @@ subject. At level 1 it is a **default about presentation, not a lock**:
 one click, or `settings set wiki.spoilerAppetite 1` once and never
 again.
 
+#### ⭐ What else is level 1, and the line that decides it
+
+> **Collapse what the WORLD measures. Never collapse what the PLAYER
+> operates.**
+
+| class | level 1 | left open |
+|---|---|---|
+| `Material` | density, hardness, conductivities, autoignition, the heats, edibility, nutrients, toxicity | name, appearance, tags, and the chemistry anyone could look up |
+| `Species` | `vitalProfile`, `facultyProfile`, `innateMixins`, `naturalAttacks`, `affordedGambits` | the natural history a field guide prints — diet, lifespan, circadian band, vision, scent, reproduction, sentience |
+| `Condition` | `progression`, `resolution`, `contagion`, `toxinBehavior`, `signature`, `mentalBands` | `observableSigns` — a sign nobody can read is not a sign — and the name |
+| `Recipe` | inputs, tools, heat, difficulty, grade band, every output field | `name`, `keywords`, `discipline` — how the recipe is found at all |
+| `Biome` | temperature, pressure, humidity, wind, gravity, ambient sound level | the ambient sound and smell MML: that IS the description of arriving |
+
+Two classes were looked at and **deliberately left open**, recorded at
+their own declaration sites so the next sweep does not silently reverse
+them:
+
+- **`Spell`** — magic here is a *published science*, one postulate and
+  a price list ([arcane-science.md](../arcane-science.md)). A caster
+  reasoning about the cost before paying it is the premise; collapsing
+  the cost contradicts the fiction rather than protecting anything. A
+  particular spell that IS a plot spoiler belongs behind a `<spoiler>`
+  in authored prose, because a field level applies to every spell at
+  once.
+- **`LocomotionMode`** (and `CombatFormation`) — `speed`, `noiseLevel`,
+  `costMultiplier` are numbers, but a locomotion mode is the player's
+  own control surface. Hiding how your own legs work teaches nothing:
+  a player learns sneaking is slower by sneaking, once.
+
+> ⚠ Tagging only bites where a **template authors the field**, since
+> the panel reads a template's `data`. Runtime state (`VitalsMixin`'s
+> heart rate, `GrowingMixin`'s vigor) is never in a template's data, so
+> a level there would change nothing on the wiki while still applying
+> to the Studio and to anything else that renders the value later.
+> That is why the sweep tagged authored data Ideas and left instance
+> state alone.
+
 #### Name and value can carry different levels
 
 `spoilerName` sits beside `spoiler` on a field declaration and says

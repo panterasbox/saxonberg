@@ -30,7 +30,6 @@ import { ProxyApi } from '../../../api/proxy';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { RenderBudget } from '../RenderBudget';
 import { SpoilerLevels, type ComponentContext } from '../render';
-import type { MmlNode } from '../../../api/mml';
 import type { FieldMeta } from '../../mixin';
 import type { MmlNode } from '../../../api/mml';
 import type { Stuff } from '../../stuff/Stuff';
@@ -504,7 +503,7 @@ describe('per-cell reveal levels', () => {
       ctx,
     );
     const rows: MmlNode[] = [];
-    const walk = (ns: MmlNode[]): void => {
+    const walk = (ns: readonly MmlNode[]): void => {
       for (const n of ns) {
         if (n.kind !== 'tag') continue;
         if (n.tag === 'tr') rows.push(n);
@@ -563,5 +562,50 @@ describe('per-cell reveal levels', () => {
   it('an undeclared name level follows its value', async () => {
     expect(SpoilerLevels.ofFieldName(Timber, 'weakness')).toBe(1);
     expect(SpoilerLevels.ofFieldName(Timber, 'density')).toBe(0);
+  });
+});
+
+/**
+ * ⚠ Nested authored values, found on a live page: a bullfrog's
+ * `vitalProfile` rendered `coreTemperature: [object Object],
+ * heartRate: [object Object]` — the one field on the page actually
+ * worth reading, and the panel could say nothing about it.
+ */
+describe('nested values are spelled out, to a floor', () => {
+  class Frog extends Idea {
+    static fieldMeta: FieldMeta = {
+      vitals: { persistent: true },
+      deep: { persistent: true },
+      empty: { persistent: true },
+    };
+  }
+
+  async function frogPanel(data: Record<string, unknown>): Promise<string> {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/species/frog', '/obj/Frog', data),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Frog as never);
+    return panel({ kind: 'template', of: '/obj/species/frog' });
+  }
+
+  it('renders one level of nesting rather than [object Object]', async () => {
+    const out = await frogPanel({
+      vitals: { heartRate: { baseline: 50, survivableMax: 120 } },
+    });
+    expect(out).not.toContain('object Object');
+    expect(out).toContain('heartRate');
+    expect(out).toContain('baseline 50');
+    expect(out).toContain('survivableMax 120');
+  });
+
+  it('⚠ elides past the depth floor — a row is not a data dump', async () => {
+    const out = await frogPanel({ deep: { a: { b: { c: { d: 1 } } } } });
+    expect(out).toContain('…');
+    expect(out).not.toContain('object Object');
+  });
+
+  it('omits a field whose nested value is entirely empty', async () => {
+    const out = await frogPanel({ empty: { a: null, b: '' } });
+    expect(out).not.toContain('empty');
   });
 });

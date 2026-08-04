@@ -288,7 +288,26 @@ export default class Species extends SingletonMixin(
    */
   protected affordedGambits: string[] = [];
 
+  /**
+   * ⭐ **Natural history is open; the combat profile is level 1.**
+   *
+   * The split is what a field guide would print versus what you learn
+   * by meeting the thing. Diet, lifespan, circadian band, vision and
+   * scent, how it reproduces, whether it is sentient — a naturalist
+   * publishes all of that, and it is the education vertical's material.
+   * What it *hits you with* and *how hard it is to put down* is the
+   * other kind of knowledge.
+   *
+   * Level 1, so it is **collapsed, not forbidden**: a player who wants
+   * to read up before a fight can, in one click, and a player who
+   * would rather find out stays unspoiled by default.
+   *
+   * `spoilerName: 0` throughout — that a species HAS natural attacks
+   * is not the secret, and a page of blank rows would tell a reader
+   * nothing about what there is to learn.
+   */
   static fieldMeta: FieldMeta = {
+    // ── What a field guide prints ──
     binomial: { persistent: true },
     commonNames: { persistent: true },
     _bodyPlanPath: { persistent: true },
@@ -303,13 +322,25 @@ export default class Species extends SingletonMixin(
     diet: { persistent: true },
     visionProfile: { persistent: true },
     olfactoryProfile: { persistent: true },
-    vitalProfile: { persistent: true },
-    facultyProfile: { persistent: true },
     nameBankKeys: { persistent: true },
-    innateMixins: { persistent: true },
     sentient: { persistent: true },
-    naturalAttacks: { persistent: true, authorable: true },
-    affordedGambits: { persistent: true, authorable: true },
+
+    // ── What you learn by meeting it ──
+    vitalProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
+    facultyProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
+    innateMixins: { persistent: true, spoiler: 1, spoilerName: 0 },
+    naturalAttacks: {
+      persistent: true,
+      authorable: true,
+      spoiler: 1,
+      spoilerName: 0,
+    },
+    affordedGambits: {
+      persistent: true,
+      authorable: true,
+      spoiler: 1,
+      spoilerName: 0,
+    },
   };
   // `shortDescription` / `longDescription` (the species' generic
   // appearance) come from VisibleMixin's own persistentFields. The

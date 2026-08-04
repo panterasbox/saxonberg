@@ -210,23 +210,54 @@ async function describeTemplate(path: string): Promise<MmlNode[]> {
  * rather than leaning on falsiness.
  */
 function formatValue(raw: unknown, entry: FieldMetaEntry | undefined): string | null {
-  if (raw === null || raw === undefined || raw === '') return null;
-  if (Array.isArray(raw)) {
-    const items = raw.filter((v) => v !== null && v !== undefined);
-    return items.length ? items.map((v) => String(v)).join(', ') : null;
-  }
-  if (typeof raw === 'boolean') return raw ? 'yes' : 'no';
-  if (typeof raw === 'object') {
-    const keys = Object.keys(raw as Record<string, unknown>);
-    if (!keys.length) return null;
-    return keys.map((k) => `${k}: ${String((raw as Record<string, unknown>)[k])}`).join(', ');
-  }
   const unit = unitOf(entry);
-  if (typeof raw === 'number' && unit) {
+  const rendered = renderValue(raw, unit, 0);
+  return rendered === '' ? null : rendered;
+}
+
+/** How deep a nested authored value is spelled out before eliding. */
+const MAX_VALUE_DEPTH = 2;
+
+/**
+ * Spell out an authored value, recursively.
+ *
+ * ⚠ Recursive because a flat `String(v)` renders a nested object as
+ * `[object Object]`, which is how a bullfrog's `vitalProfile` reached a
+ * live page reading `coreTemperature: [object Object], heartRate:
+ * [object Object]`. A structured profile is exactly the kind of field
+ * worth reading, and it was the one the panel could not say anything
+ * about.
+ *
+ * Bounded rather than unbounded: past {@link MAX_VALUE_DEPTH} it
+ * elides to `…`. An authored blob is not a place to recurse without a
+ * floor, and a panel row is not a data dump — a reader who needs the
+ * whole structure is asking a Studio question, not a wiki one.
+ */
+function renderValue(raw: unknown, unit: string | null, depth: number): string {
+  if (raw === null || raw === undefined || raw === '') return '';
+  if (typeof raw === 'boolean') return raw ? 'yes' : 'no';
+  if (typeof raw === 'number') {
+    if (!unit) return String(raw);
     // `28 %` reads wrong; every other unit wants the space.
     return unit === '%' ? `${raw}%` : `${raw} ${unit}`;
   }
-  return String(raw);
+  if (typeof raw !== 'object') return String(raw);
+  if (depth >= MAX_VALUE_DEPTH) return '…';
+
+  if (Array.isArray(raw)) {
+    const items = raw
+      .map((v) => renderValue(v, unit, depth + 1))
+      .filter((v) => v !== '');
+    return items.join(', ');
+  }
+  const entries = Object.entries(raw as Record<string, unknown>)
+    .map(([k, v]) => [k, renderValue(v, null, depth + 1)] as const)
+    .filter(([, v]) => v !== '');
+  if (!entries.length) return '';
+  const body = entries.map(([k, v]) => `${k} ${v}`).join(', ');
+  // Braced only when nested, so a top-level profile reads as a list
+  // rather than as JSON somebody forgot to format.
+  return depth === 0 ? body : `(${body})`;
 }
 
 /**

@@ -119,8 +119,24 @@ export interface FieldMetaEntry {
    * defaulting to reveal, so the reasoning is worth stating: the
    * alternative empties every panel until several hundred mundane
    * fields are tagged, and trains authors to tag reflexively rather
-   * than thoughtfully. Density and hardness are not spoilers; a
-   * species' resistances are.
+   * than thoughtfully.
+   *
+   * ⭐ **The line the sweep settled on: collapse what the WORLD
+   * measures; never collapse what the PLAYER operates.** A material's
+   * density, a biome's temperature, a species' natural attacks, a
+   * recipe's inputs, a condition's cure — all level 1, because a
+   * reader may want to meet those in play and can open any of them in
+   * one click. A locomotion mode's speed and a combat formation's
+   * roles stay open: those are the player's own controls, and hiding
+   * how your own legs work teaches nothing.
+   *
+   * (This note used to say "density and hardness are not spoilers".
+   * They are now level 1 — a deliberate reversal, not drift. What
+   * makes it coherent is the **reader rung**: level 1 is collapsed by
+   * default rather than forbidden, so tagging a measurement costs a
+   * reader one click instead of locking them out. Before that rung
+   * existed, level 1 meant "no ordinary player, ever", and under those
+   * semantics the old advice was right.)
    *
    * The cost is real and is not being papered over — a newly-added
    * spoilery field is visible until somebody tags it. It is covered
