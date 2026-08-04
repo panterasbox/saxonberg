@@ -57,6 +57,13 @@ author    -> AccessApi.isAuthor(principal)
 shape turns a refusal into a downgrade. The only question is *does this
 principal satisfy THIS ref?*
 
+⚠ **Only `office` and `committee` carry the founder default.** `entity`,
+`seat` and `author` do not, and `author` in particular resolves to
+membership of an **empty-by-default `core` group** — so an authority the
+founder cannot satisfy is one nobody can satisfy on a fresh box. This is
+why the Compact's press office uses `{kind:'committee'}`; see the
+requirements' cold-box trace.
+
 The `entity` arm reproduces today's `isProprietorOfImpl` exactly,
 including its `AccessApi.isAuthor` operator override, so Wave 2 is also
 behaviour-preserving for every existing Business.
@@ -262,6 +269,17 @@ and getters; `BulletinKind` gains `repost`. `publishImpl` calls
 loses `--realm`. Refusals ride the dispatch envelope (`ctx.note`), never
 an exception to the player.
 
+**New: `lib/command/validators/requiresPublisher.ts`**, replacing
+`requiresAuthor` on `system/bulletin.yaml`. Its preload answers *is the
+giver entitled to publish as **any** publisher?* — a boolean for
+affordance, selecting nothing; `publishImpl`'s per-publisher check remains
+authoritative. `requiresAuthor` itself is untouched and keeps its other
+consumers.
+
+⚠ **Without this swap the founder cannot invoke the verb at all** on a box
+whose `core` group is empty — which is every fresh box. The
+`requiresAuthor` gate, not the affordance, was the real barrier.
+
 **Tests:** the clamp table asserting **the non-widening direction**
 (`members` publisher + `public` release → `members`); realm stamping is
 caller-proof; the repost round-trip; legacy-row hydration; and **a refusal
@@ -377,6 +395,8 @@ MR description.
 | the public projection gains a field and leaks it | 6 | **high** | standalone `PressReleaseRow`; frozen key set |
 | employment coupled to money movement, killing under-the-table | 1, 8 | **high** | AC 9 asserts a transfer needs no employment record; written into employment.md as a constraint |
 | placement collapsed into permission | 6 | medium | two independent filters, separately tested |
+| ⭐ **the founder cannot post at all** — `core` seeds empty, so `isAuthor` is false on every fresh box | 4, 5 | **highest** | `{kind:'committee'}` for the Compact org + the `requiresPublisher` swap; **AC 6b walks the whole chain against an empty `core`** |
+| a front-page typo empties the page silently | 6 | medium | unknown entries skipped **and logged once at boot** |
 | a new `isFounder` call site creeps in | any | medium | AC 6, a grep check in the MR description |
 | `reportsTo` / parent cycles | 3 | medium | cycle guard at read |
 | a reviewer re-adds a `communications-director` Office | 4, 8 | low | stated in requirements and repeated in the docs wave |
