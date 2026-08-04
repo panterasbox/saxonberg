@@ -788,10 +788,51 @@ publications all want find-by-content and none of them fits in memory.
 than granting emotes a collection as a one-off that would have to be
 undone.
 
-⚠ **Open:** is `emotes`' `aliases` multikey index actually *used*, or does
-`SoulCatalogue` resolve aliases from memory? If memory, emotes collapse
-cleanly and there is no outlier. If live, emotes are the worked
-counterexample for *"needs its own indexing schema"* — useful either way.
+### ⭐⭐ RESOLVED — kill emote aliases, and the outlier disappears
+
+> **User: "I hate emote aliases, the namespace is crowded enough as it
+> is."**
+
+Better than the answer the open question was fishing for. `emotes.md`
+confirms aliases are **dispatchable** — *"the map is keyed by canonical
+verb AND by every alias"* — so every alias consumes a word in the
+**global verb namespace**, which is the one namespace nobody can carve.
+
+⭐⭐⭐ **And the personal mechanism already ships.** `AliasMixin`
+([shell-alias.md](../../subsystems/shell-alias.md)) is per-character,
+verb-position, persistent or session-scoped:
+
+> **Emote aliases are a GLOBAL solution to a PERSONAL problem, and the
+> personal solution already exists.** Someone who wants `hi` to mean
+> `wave` types `alias hi wave` and consumes nobody else's namespace.
+
+⭐ **Discoverability survives by demotion, not deletion:** keep the
+alias words as **catalogue search terms**, not dispatchable verbs. That
+is exactly the storage-vs-search split above — `SoulCatalogue` matches
+`hi` and offers `wave`; the dispatcher never binds it.
+
+**Consequences:** the `aliases` multikey index goes away ⇒ **`emotes`
+declares one index, unique on its natural key** ⇒ it collapses into the
+document store with the other three. ⭐ **No outlier at all.**
+
+⚠ Migration: existing aliases either drop or get promoted to real emotes
+— a content decision per row, not a mechanism.
+
+### ⭐⭐⭐ The rule this generalizes to, before packs make it urgent
+
+> **A word occupies the global verb namespace only if it is the PRIMARY
+> NAME OF A DISTINCT ACT.** Synonyms belong to the catalogue;
+> preferences belong to per-character aliases.
+
+⚠ **This gets urgent fast**, because trade packs confer verbs through
+their instruments (a cocktail shaker confers `shake`). Forty trade packs
+each adding a handful of words, plus emotes, plus soul verbs, and the
+verb namespace is the scarcest shared resource in the game — **with no
+carve-out mechanism, because unlike paths it is flat.**
+
+⭐ Worth a namespace-discipline rule in the pack manifest review
+(cosmetic packs adding verbs is already a tier violation) **before** there
+are forty packs, not after.
 
 ## Migration order
 
