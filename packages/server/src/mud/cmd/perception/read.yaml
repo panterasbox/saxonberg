@@ -1,7 +1,6 @@
 verbs: [read]
 controller: /obj/command/perception/ReadController
 description: "Take in the marks on a written thing and decode them"
-unafforded: "There is nothing here to read."
 help: |
   Reading is two things at once, and they come apart.
 

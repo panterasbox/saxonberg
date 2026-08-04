@@ -1,7 +1,6 @@
 verbs: [drink, quaff]
 controller: /obj/command/bulk/DrinkController
 description: "Drink the entire contents of a holder"
-unafforded: "There is nothing here to drink."
 help: |
   Drains a holder dry in one go — point `drink` at a cup, flask,
   or bottle and you swallow everything in it. Reach for this when

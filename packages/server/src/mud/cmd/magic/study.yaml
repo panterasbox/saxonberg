@@ -1,7 +1,6 @@
 verbs: [study]
 controller: /obj/command/magic/StudyController
 description: "Take a working on board from a spellbook, or sharpen one you hold"
-unafforded: "There is nothing here to study."
 help: |
   Sit with a book until its working is in your head.
 

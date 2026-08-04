@@ -323,13 +323,28 @@ describe('Wave 2 — consumables', () => {
     // The whole point of the floor: `drink` typed where nothing is
     // drinkable must not read as "unknown command", because that
     // teaches players that verbs evaporate.
-    const drink = CommandApi.allDefinitions().find((d) => d.hasVerb('drink'));
-    expect(drink).toBeTruthy();
-    expect(drink!.unafforded).toBe('There is nothing here to drink.');
+    //
+    // ⚠ Asserts the PROSE A PLAYER GETS, not that a YAML key exists.
+    // The first draft checked `def.unafforded === '...'`, which locked
+    // in four authored strings that were byte-identical to the
+    // dispatcher's synthesized fallback — a test guarding dead content
+    // rather than behaviour, and it made deleting the duplicates look
+    // like a regression.
+    for (const verb of ['drink', 'read', 'study', 'recharge']) {
+      const def = CommandApi.allDefinitions().find((d) => d.hasVerb(verb));
+      expect(def, `${verb} must exist in the catalogue`).toBeTruthy();
+      const shown = def!.unafforded ?? `There is nothing here to ${
+        def!.getPrimaryVerb()
+      }.`;
+      expect(shown).toBe(`There is nothing here to ${verb}.`);
+    }
 
-    const read = CommandApi.allDefinitions().find((d) => d.hasVerb('read'));
-    expect(read).toBeTruthy();
-    expect(read!.unafforded).toBe('There is nothing here to read.');
+    // A verb whose stock line would read badly authors its own, and
+    // THAT is what the field is for.
+    const label = CommandApi.allDefinitions().find((d) => d.hasVerb('label'));
+    expect(label!.unafforded).toBe(
+      'There is nothing here you could write on.',
+    );
   });
 
   it('AC5a — `quaff` is an alias on `drink`, not a second view', () => {

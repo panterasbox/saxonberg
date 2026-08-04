@@ -1,7 +1,6 @@
 verbs: [recharge]
 controller: /obj/command/magic/RechargeController
 description: "Move energy from your own reserve into an item"
-unafforded: "There is nothing here to recharge."
 help: |
   Pour your own mana into a charged item, or re-impress the pattern
   in a focus. Either way what you are spending is your reserve, and
