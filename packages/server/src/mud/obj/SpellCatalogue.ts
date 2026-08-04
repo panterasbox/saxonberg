@@ -29,6 +29,7 @@ import Spell, {
   type SpellTargeting,
 } from './magic/Spell';
 import { MagicEffects, type Effect } from '../lib/magic/Effect';
+import type { BlessingBand } from '../lib/magic/Blessing';
 import { MagicGrid } from '../lib/magic/Grid';
 import { CastingProfiles } from '../lib/magic/CastingProfile';
 import type { CastingProfile } from '../lib/magic/CastingProfile';
@@ -171,6 +172,27 @@ export default class SpellCatalogue extends SpellCatalogueBase {
  * effects). Effect validation throwing → the spell is dropped; the
  * roster seeds test asserts every authored seed survives this.
  */
+/**
+ * One band's effect list: **membership first, then fields.**
+ *
+ * `bands: [cursed]` on an authored effect means it exists ONLY at those
+ * bands — the piece field-variation cannot express, because "a cursed
+ * wand also burns your hand" is an extra effect rather than a different
+ * number. It is an authoring directive, consumed here and never seen by
+ * an executor.
+ *
+ * Absent ⇒ every band, which is the overwhelming default.
+ */
+function forBand(raw: unknown[], band: BlessingBand): Effect[] {
+  return raw
+    .filter((e) => {
+      const bands = (e as { bands?: unknown }).bands;
+      if (!Array.isArray(bands)) return true;
+      return bands.includes(band);
+    })
+    .map((e) => MagicEffects.validateForBand(e, band));
+}
+
 function buildDescriptor(data: unknown): SpellDescriptor | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Record<string, unknown>;
@@ -195,16 +217,12 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
   let cursedEffects: Effect[];
   let blessedEffects: Effect[];
   try {
-    effects = d.effects.map((e) => MagicEffects.validate(e));
+    effects = forBand(d.effects, 'uncursed');
     // One list per band, from the same authored blobs. A working with no
     // band-varying field simply yields three identical lists, which is
     // the honest "this working does not care about potency".
-    cursedEffects = d.effects.map((e) =>
-      MagicEffects.validateForBand(e, 'cursed'),
-    );
-    blessedEffects = d.effects.map((e) =>
-      MagicEffects.validateForBand(e, 'blessed'),
-    );
+    cursedEffects = forBand(d.effects, 'cursed');
+    blessedEffects = forBand(d.effects, 'blessed');
   } catch {
     return null;
   }

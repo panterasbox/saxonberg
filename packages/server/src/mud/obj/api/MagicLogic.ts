@@ -692,11 +692,16 @@ async function executeEffect(
   spell: SpellDescriptor,
   effect: Effect,
 ): Promise<string | null> {
+  // **Backfire.** An effect may name the ACTOR as its endpoint even when
+  // something was aimed at — the deliberate redirect a cursed wand needs,
+  // as opposed to the `target ?? ctx.actor` fallback for an unaimed cast.
+  const landsOn =
+    (effect as { self?: boolean }).self === true ? ctx.actor : target;
   switch (effect.kind) {
     case 'inject-channel':
-      return execInjectChannel(ctx, target, effect);
+      return execInjectChannel(ctx, landsOn, effect);
     case 'afflict':
-      return execAfflict(ctx, target, effect);
+      return execAfflict(ctx, landsOn, effect);
     case 'relieve':
       return execRelieve(target ?? ctx.actor, effect);
     case 'adjust-reserve': {
@@ -820,10 +825,20 @@ function execInjectChannel(
         energy: (e.energy ?? 1) * potency,
       });
       if (outcome.trauma) outcome.trauma.magicOrigin = tag;
+      // A backfire has to READ like one. The mechanism was landing the
+      // second effect correctly and narrating it identically, so a
+      // cursed firing looked like the same line printed twice — the
+      // player learned nothing, which is the whole failure a hidden
+      // axis cannot afford.
+      const backfired = (e as { self?: boolean }).self === true;
       return {
-        report: outcome.afflicted
-          ? 'The bolt lands — flesh remembers fire.'
-          : 'The bolt splashes off harmlessly.',
+        report: backfired
+          ? outcome.afflicted
+            ? 'It comes out the wrong end — the heat goes into your hand.'
+            : 'Something gutters back down the shaft and dies.'
+          : outcome.afflicted
+            ? 'The bolt lands — flesh remembers fire.'
+            : 'The bolt splashes off harmlessly.',
         harmed: outcome.afflicted,
       };
     });

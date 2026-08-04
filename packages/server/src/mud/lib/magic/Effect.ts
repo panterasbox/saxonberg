@@ -51,6 +51,16 @@ export interface InjectChannelEffect {
   readonly joules?: number;
   readonly site?: string;
   readonly resist?: ResistSpec;
+  /**
+   * **Land this on the ACTOR, not the target** — the backfire flag.
+   *
+   * Distinct from the shipped `target ?? ctx.actor` fallback, which only
+   * fires when nothing was aimed at. This one redirects *deliberately*,
+   * even with a target in hand, which is what "a cursed wand goes off in
+   * your face" requires. Pair it with {@link bands} to make it the low
+   * end of a working's own axis.
+   */
+  readonly self?: boolean;
 }
 
 /** Install an authored condition — backing: `Vitals.afflict`. */
@@ -59,6 +69,8 @@ export interface AfflictEffect {
   /** The Condition seed's templatePath (`/obj/Condition/magic/dread`). */
   readonly conditionPath: string;
   readonly resist?: ResistSpec;
+  /** Land it on the ACTOR — see {@link InjectChannelEffect.self}. */
+  readonly self?: boolean;
 }
 
 /** Remove magic — backing: `Vitals.relieve`, **tag-keyed only** (scans for `magicOrigin`, structurally unable to touch a laceration). */
@@ -340,6 +352,7 @@ export class MagicEffects {
           );
         }
         return {
+          self: e.self === true ? true : undefined,
           kind: 'inject-channel',
           channel: channel as Channel,
           energy: MagicEffects.optNumber(e.energy, 'energy'),
@@ -356,7 +369,12 @@ export class MagicEffects {
             `afflict: bad conditionPath '${String(conditionPath)}'`,
           );
         }
-        return { kind: 'afflict', conditionPath, resist };
+        return {
+          kind: 'afflict',
+          conditionPath,
+          resist,
+          self: e.self === true ? true : undefined,
+        };
       }
       case 'relieve':
         return {

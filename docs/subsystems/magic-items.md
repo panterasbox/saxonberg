@@ -268,16 +268,56 @@ picks one (`Blessing.pick`, engine-side, so an author cannot invert the
 ordering):
 
 ```yaml
-# firebolt — the MAGNITUDE case
+# firebolt — MAGNITUDE, plus its own answer to being cursed
 - kind: inject-channel
   channel: heat
   energy: [1, 2, 4]          # cursed · uncursed · blessed
+- kind: inject-channel        # ← exists ONLY at the cursed band
+  bands: [cursed]
+  self: true                  # ← lands on the ACTOR, deliberately
+  channel: heat
+  energy: 3
 
 # remove-curse — the SIGN INVERSION a multiplier cannot express
 - kind: adjust-blessing
   steps: [-1, 1, 1]
-  limit: [cursed, uncursed, blessed]
+  limit: [cursed, uncursed, uncursed]
 ```
+
+Two directives beyond field variation, because *"a cursed wand also
+burns your hand"* is an **extra effect**, not a different number:
+
+- **`bands`** — membership. This effect exists only at those bands.
+  Consumed at catalogue build; no executor sees it.
+- **`self`** — the endpoint is the **actor**, deliberately, even with a
+  target in hand. Distinct from the shipped `target ?? ctx.actor`
+  fallback, which only fires when nothing was aimed at.
+
+> ⚠ **Backfire is *firebolt's* answer, not a rule about cursed wands.**
+> A frost wand might go brittle; a rod of shoving might shove the
+> wielder. The engine offers the capability; what the low end of a
+> working *feels* like is the author's, and it should fit that working's
+> identity.
+
+**Cursed must feel bad where it can, not merely weaker** — and it must
+*read* that way. The first cut landed the backfire correctly and
+narrated it with the ordinary bolt's line, so a cursed firing looked
+like the same sentence printed twice and the player learned nothing.
+A hidden axis cannot afford that.
+
+### ⚠ …and the high end must not betray the working's identity
+
+The first draft gave blessed remove-curse `limit: blessed`, so it
+*consecrated*. That is a different working sharing a name: this one is
+for **removing curses**.
+
+What "better at removing curses" properly means is **scope** — the
+slate's `[worn-only, all-worn, whole-inventory]`. More curses removed is
+unmistakably more of the same act and cannot drift into another one. It
+needs multi-target, which does not ship, so the high end is deliberately
+the same cure and its value is **certainty**: you cannot read a scroll's
+band before reading it, so blessed is the one you know will not turn on
+you. The real high end stays named for when multi-target lands.
 
 A cursed scroll of remove curse **lays** a curse. Not a weaker cure —
 the opposite act, because that is the low end of *remove-curse's own*

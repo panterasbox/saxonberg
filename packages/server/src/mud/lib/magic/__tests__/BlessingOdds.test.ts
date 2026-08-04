@@ -208,6 +208,49 @@ describe('band-varying effects — the item owns the function, not the engine', 
     );
   });
 
+  it('`bands` is MEMBERSHIP — the piece field-variation cannot express', () => {
+    // "A cursed wand also burns your hand" is an EXTRA effect, not a
+    // different number, so field variation alone cannot say it. The
+    // directive is consumed at catalogue build and never reaches an
+    // executor.
+    const bolt = { kind: 'inject-channel', channel: 'heat', energy: [1, 2, 4] };
+    const backfire = {
+      kind: 'inject-channel',
+      bands: ['cursed'],
+      self: true,
+      channel: 'heat',
+      energy: 3,
+    };
+    const authored = [bolt, backfire];
+    const at = (band: string) =>
+      authored.filter((e) => {
+        const b = (e as { bands?: string[] }).bands;
+        return !Array.isArray(b) || b.includes(band);
+      });
+    expect(at('cursed')).toHaveLength(2); // bolt + backfire
+    expect(at('uncursed')).toHaveLength(1); // bolt only
+    expect(at('blessed')).toHaveLength(1);
+  });
+
+  it('`self` redirects to the ACTOR — deliberately, not as a fallback', () => {
+    // Distinct from the shipped `target ?? ctx.actor`, which only fires
+    // when nothing was aimed at. Backfire redirects WITH a target in
+    // hand, which is the whole point.
+    const e = MagicEffects.validate({
+      kind: 'inject-channel',
+      channel: 'heat',
+      energy: 3,
+      self: true,
+    });
+    expect((e as { self?: boolean }).self).toBe(true);
+    const plain = MagicEffects.validate({
+      kind: 'inject-channel',
+      channel: 'heat',
+      energy: 3,
+    });
+    expect((plain as { self?: boolean }).self).toBeUndefined();
+  });
+
   it('the ENGINE owns only the ordering — an author cannot invert it', () => {
     // `Blessing.pick` indexes the list; there is no way to author
     // "cursed is the good one" except by writing it in the good slot,
