@@ -186,11 +186,32 @@ appointee's `Employment` is created with the right `organizationPath` and
 `visibility`, `feedPath`, `publishingPositions`) plus `PressVisibility` +
 its validation array; `Mixins.Publisher`. `obj/Organization.ts` — the
 concrete instanceable class for organizations that are *not* businesses,
-so templates have something to name. Seeds: **the Compact** (`ooc`,
-`{kind:'committee', parcel:'/'}`, one position) and **the Office of the
-Prime Minister** (`world`, `{kind:'office', office:'prime-minister'}`, two
-positions with `reportsTo`). Both ship **unfilled**.
-`mayPublishAsImpl` per §0.3.
+so templates have something to name. `mayPublishAsImpl` per §0.3.
+
+**The `/compact` title.** One row in `config/parcels.yaml`:
+
+```yaml
+  - extent: /compact
+    owner: { kind: group, name: core }
+```
+
+⚠ **No `landUse`, no `areaM2`** — a path-branch title, not ground, so the
+inheritance walk answers `wild` and admits nothing (the fail-closed
+default the file's own header insists on keeping). The seeder is
+idempotent, keyed on `extent`.
+
+⚠ **`/studio` is the row-shape precedent, not the concept.** It is the
+multiseat `/home` — a *workspace* namespace. `/compact` is a
+**publications** namespace: the Compact makes no rooms and no NPCs, so
+nothing spatial ever lands here, and `/saxonberg` (content, locally
+administered) is where the diegetic premises of Compact institutions will
+actually live.
+
+**Seeds:** **the Compact** (`ooc`, `{kind:'committee', parcel:'/compact'}`,
+feed `/compact/press/feed`, one position) and **the Office of the Prime
+Minister** (`world`, `{kind:'office', office:'prime-minister'}`, feed
+`/compact/executive/feed`, two positions with `reportsTo`). Both ship
+**unfilled**.
 
 **Tests:** the entitlement matrix — a publishing-position holder admitted;
 a non-publishing position-holder refused; **a committee member with no
@@ -308,6 +329,24 @@ civics.md's stale `lib/civics/Government.ts` → `obj/Government.ts`);
 `mixins.md`; `gazette-slate.md` (**Wave 1 struck and replaced**);
 `press-slate.md` (a newspaper is an organization that trades and
 publishes).
+
+Plus two that are easy to skip and are the reason this cycle went down a
+wrong path twice:
+
+- **`document-store.md`** — the **four-namespace taxonomy**: workspace
+  (`/home/<self>`, `/studio/<group>`), content (`/domain/<locality>` — a
+  place, locally administered), publications (`/compact` — ideas and
+  documents, no place). The doc already lists `/home/…` and `/domain/…`
+  as scope-encoding prefixes; this completes the set. **`parcel.md`**
+  gains the `/compact` title and cross-references it.
+- **`balance-slate.md`** — one paragraph on the **parked quota tension**:
+  the Compact's allowance is separate from any locality's, and the
+  authority to set it is unresolved because *the executive is the same
+  branch that provisions parcels.* The slate's own **particular BURDEN ok
+  / particular EXEMPTION = capture** is the rule that names the risk.
+  Deliberately **not** a new slate, and deliberately not decided here —
+  `ParcelRecord.allowance` is inert and the cascade is unbuilt, so the
+  cascade build settles it with the mint model in front of it.
 
 ⚠ **`CLAUDE.md`'s doc-map lines are NOT touched here** — index files are
 swept, not raced. The `bulletin.md`→`press.md` map entry lands at finalize.
