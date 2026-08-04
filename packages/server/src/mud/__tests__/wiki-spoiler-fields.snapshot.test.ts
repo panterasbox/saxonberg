@@ -140,8 +140,8 @@ function blankComments(src: string): string {
  *
  * Returns `owner.field → level`, level 0 for anything untagged.
  */
-function harvestFieldLevels(): Record<string, number> {
-  const levels: Record<string, number> = {};
+function harvestFieldLevels(): Record<string, string> {
+  const levels: Record<string, string> = {};
   const CLASS_RE = /(?:class|const)\s+(\w+)/g;
   const META_RE = /static\s+fieldMeta\s*:?[^=]*=\s*\{/g;
 
@@ -180,8 +180,8 @@ function braceBody(src: string, open: number): string {
 }
 
 /** `field: { … spoiler: N … }` pairs inside one fieldMeta body. */
-function entriesOf(body: string): Array<[string, number]> {
-  const out: Array<[string, number]> = [];
+function entriesOf(body: string): Array<[string, string]> {
+  const out: Array<[string, string]> = [];
   const ENTRY = /(\w+)\s*:\s*\{/g;
   let m: RegExpExecArray | null;
   while ((m = ENTRY.exec(body)) !== null) {
@@ -191,7 +191,16 @@ function entriesOf(body: string): Array<[string, number]> {
       continue;
     }
     const spoiler = /\bspoiler\s*:\s*(\d)/.exec(inner);
-    out.push([m[1]!, spoiler ? Number(spoiler[1]) : 0]);
+    const level = spoiler ? Number(spoiler[1]) : 0;
+    // ⚠ The NAME's level is audited too. A field can now reveal its
+    // existence at a lower level than its value (`spoilerName`), which
+    // is deliberate for schema-vs-measurement — and is exactly the
+    // kind of quiet loosening this file exists to put in front of a
+    // reviewer. Rendered only when it DIFFERS, so splitting a field
+    // shows as a diff while every unsplit field's line stays put.
+    const named = /\bspoilerName\s*:\s*(\d)/.exec(inner);
+    const nameLevel = named ? Math.min(Number(named[1]), level) : level;
+    out.push([m[1]!, nameLevel === level ? `${level}` : `${level} (name ${nameLevel})`]);
   }
   return out;
 }
@@ -221,7 +230,7 @@ describe('⭐ the composition panel’s surfaceable fields (28)', () => {
     // can actually read — and because it going EMPTY is a signal in
     // itself (somebody dropped a tag).
     const tagged = Object.keys(levels)
-      .filter((k) => (levels[k] ?? 0) > 0)
+      .filter((k) => !(levels[k] ?? '0').startsWith('0'))
       .sort()
       .map((k) => `${k} = ${levels[k]}`);
     expect(tagged.join('\n')).toMatchSnapshot();
@@ -229,8 +238,23 @@ describe('⭐ the composition panel’s surfaceable fields (28)', () => {
 
   it('every declared level is inside the 0–3 vocabulary', () => {
     for (const [key, level] of Object.entries(levels)) {
-      expect(level, `${key} declares an out-of-range level`).toBeGreaterThanOrEqual(0);
-      expect(level, `${key} declares an out-of-range level`).toBeLessThanOrEqual(3);
+      for (const n of level.match(/\d/g) ?? []) {
+        expect(Number(n), `${key} declares an out-of-range level`).toBeGreaterThanOrEqual(0);
+        expect(Number(n), `${key} declares an out-of-range level`).toBeLessThanOrEqual(3);
+      }
+    }
+  });
+
+  it('⚠ a name level never exceeds its value level', () => {
+    // A name more secret than the thing it names is incoherent — it
+    // renders as a value in a row with no label. `ofFieldName` clamps
+    // it; this asserts nothing in the corpus relies on the clamp.
+    for (const [key, level] of Object.entries(levels)) {
+      const m = /^(\d) \(name (\d)\)$/.exec(level);
+      if (!m) continue;
+      expect(Number(m[2]), `${key} names above its value`).toBeLessThan(
+        Number(m[1]),
+      );
     }
   });
 });

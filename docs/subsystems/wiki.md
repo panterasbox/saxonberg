@@ -391,12 +391,32 @@ subject. At level 1 it is a **default about presentation, not a lock**:
 one click, or `settings set wiki.spoilerAppetite 1` once and never
 again.
 
-> ⚠ The whole ROW collapses, name and value together — not the value
-> alone. That is forced by the capability half: hiding only the value
-> would leave `fireVulnerability · ` with an empty cell for an
-> over-ceiling reader, and **an empty cell is a redaction marker**,
-> which is the leak the model refuses everywhere else. One behaviour
-> for both axes, chosen by the half with the stricter requirement.
+#### Name and value can carry different levels
+
+`spoilerName` sits beside `spoiler` on a field declaration and says
+when a reader learns the field **exists**; it defaults to `spoiler`,
+so name and value hide together unless a declaration splits them.
+
+The distinction is **schema versus measurement**. "This material has a
+density" is not a secret — it is exactly what `help` and the generated
+API docs publish. `750 kg/m³` is the part worth working for. Split, a
+reader gets the property list with the numbers collapsed; unsplit,
+they get a table of blanks that says nothing about what is there to
+find.
+
+> ⚠ Splitting is **opting into a redaction marker**, which the reveal
+> model refuses everywhere else — the empty value cell announces that
+> something is there. That is coherent only because the name was
+> already public. **Never split a field whose existence IS the
+> reveal**: on a creature whose `fireVulnerability` is a spoiler,
+> knowing it has one is most of the information, and the marker would
+> hand over exactly what the level was protecting. That case is the
+> default for a reason.
+
+> ⚠ A name level above its value's is **clamped**, not trusted — it
+> would render as a value in a row with no label. The enumerating
+> audit records both levels (`Material.density = 1 (name 0)`), so a
+> split shows up as a diff a reviewer has to look at.
 
 `kind="mixin"` is untouched: *what in this world composes
 `Combustible`* — i.e. **what can burn** — is a question about the

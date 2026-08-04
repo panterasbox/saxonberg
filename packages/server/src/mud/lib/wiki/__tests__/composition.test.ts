@@ -30,6 +30,7 @@ import { ProxyApi } from '../../../api/proxy';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { RenderBudget } from '../RenderBudget';
 import { SpoilerLevels, type ComponentContext } from '../render';
+import type { MmlNode } from '../../../api/mml';
 import type { FieldMeta } from '../../mixin';
 import type { MmlNode } from '../../../api/mml';
 import type { Stuff } from '../../stuff/Stuff';
@@ -63,6 +64,23 @@ class Oak extends Idea {
   density = 750;
   hardness = 1360;
 }
+
+/**
+ * A subject whose measurement is content but whose SCHEMA is not: the
+ * existence of a `density` is what `help` publishes anyway, the number
+ * is the part worth working for.
+ */
+class Timber extends Idea {
+  static fieldMeta: FieldMeta = {
+    density: { persistent: true, spoiler: 1, spoilerName: 0 },
+    // The unsplit case, for contrast: the name hides with the value.
+    weakness: { persistent: true, spoiler: 1 },
+    // ⚠ Incoherent as declared — a name more secret than its value.
+    inverted: { persistent: true, spoiler: 1, spoilerName: 3 },
+  };
+}
+
+const TIMBER_DATA = { density: 750, weakness: 'fire', inverted: 'x' };
 
 /** What the oak TEMPLATE declares — `meltingPoint` deliberately unset. */
 const OAK_DATA = { density: 750, hardness: 1360, edible: false };
@@ -457,5 +475,93 @@ describe('the node shape', () => {
     const budget = new RenderBudget();
     await composition.render({ kind: 'mixin', of: 'XMixin' }, [], { budget });
     expect(budget.getComponentCount()).toBe(0);
+  });
+});
+
+/**
+ * ⭐ **Name and value can carry different levels.**
+ *
+ * The distinction: a field's EXISTENCE is schema and its VALUE is
+ * content. "This material has a density" is what `help` and the
+ * generated API docs publish anyway; `750 kg/m³` is the part worth
+ * working for. Split, a reader gets the property list with the numbers
+ * collapsed instead of a table of blanks that says nothing about what
+ * is there to find.
+ */
+describe('per-cell reveal levels', () => {
+  beforeEach(() => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/material/timber', '/obj/Timber', TIMBER_DATA),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Timber as never);
+  });
+
+  /** The row whose first text anywhere inside it is `label`. */
+  async function rowFor(label: string): Promise<MmlNode> {
+    const nodes = await composition.render(
+      { kind: 'template', of: '/obj/material/timber' },
+      [],
+      ctx,
+    );
+    const rows: MmlNode[] = [];
+    const walk = (ns: MmlNode[]): void => {
+      for (const n of ns) {
+        if (n.kind !== 'tag') continue;
+        if (n.tag === 'tr') rows.push(n);
+        walk(n.children);
+      }
+    };
+    walk(nodes);
+    const hit = rows.find((r) => JSON.stringify(r).includes(`"${label}"`));
+    expect(hit, `no row for ${label}`).toBeDefined();
+    return hit!;
+  }
+
+  /** `[tag, …]` of a node's direct children. */
+  function childTags(node: MmlNode): string[] {
+    if (node.kind !== 'tag') return [];
+    return node.children.map((c) => (c.kind === 'tag' ? c.tag : 'text'));
+  }
+
+  it('wraps only the VALUE cell when the name is declared lower', async () => {
+    const tr = await rowFor('density');
+    // Structural, not a substring match: the row's own children are
+    // the bare label cell and a WRAPPED value cell.
+    expect(childTags(tr)).toEqual(['td', 'spoiler']);
+    const [label, wrapped] = (tr as Extract<MmlNode, { kind: 'tag' }>).children;
+    expect(JSON.stringify(label)).toContain('density');
+    expect(JSON.stringify(wrapped)).toContain('750');
+    expect(childTags(wrapped!)).toEqual(['td']);
+  });
+
+  it('⭐ an unsplit field still hides NAME AND VALUE together', async () => {
+    // The conservative default, and the reason it is the default: on a
+    // creature whose `fireVulnerability` is a spoiler, knowing it HAS
+    // one is most of the information. So the `tr` sits INSIDE the
+    // spoiler rather than containing one.
+    const tr = await rowFor('weakness');
+    expect(childTags(tr)).toEqual(['td', 'td']);
+    const nodes = await composition.render(
+      { kind: 'template', of: '/obj/material/timber' },
+      [],
+      ctx,
+    );
+    const flat = JSON.stringify(nodes);
+    // The label is inside the spoiler's subtree, which is what the
+    // split case is NOT.
+    expect(flat).toMatch(/"tag":"spoiler"[\s\S]*?weakness/);
+  });
+
+  it('⚠ clamps a name level declared ABOVE its value', async () => {
+    // A name more secret than the thing it names would render as a
+    // value in a row with no label. `ofFieldName` refuses it rather
+    // than trusting the declaration.
+    expect(SpoilerLevels.ofFieldName(Timber, 'inverted')).toBe(1);
+    expect(SpoilerLevels.ofField(Timber, 'inverted')).toBe(1);
+  });
+
+  it('an undeclared name level follows its value', async () => {
+    expect(SpoilerLevels.ofFieldName(Timber, 'weakness')).toBe(1);
+    expect(SpoilerLevels.ofFieldName(Timber, 'density')).toBe(0);
   });
 });

@@ -529,6 +529,7 @@ const KNOWN_PROPS = new Set([
   "authorPicker",
   "runtimeState",
   "spoiler",
+  "spoilerName",
 ]);
 const TRUE_ONLY = new Set([
   "persistent",
@@ -541,13 +542,15 @@ const STRING_PROPS = new Set(["marshaller", "inverse", "authorPicker"]);
 const REF_VALUES = new Set(["identity", "instance"]);
 const LIFETIME_VALUES = new Set(["weak", "symmetric", "owned"]);
 /**
- * `spoiler` is the one NUMERIC property — the reveal level of this
- * field's value wherever it surfaces (0 open … 3 wizard-only). Checked
- * against the vocabulary rather than merely "is a number", because an
- * out-of-range level would be silently clamped at read time and the
- * author would never learn their `spoiler: 5` became a 3.
+ * The NUMERIC properties — reveal levels (0 open … 3 wizard-only).
+ * `spoiler` is the level of the field's VALUE; `spoilerName` the level
+ * at which its NAME (its existence) is revealed, defaulting to
+ * `spoiler`. Both are checked against the vocabulary rather than
+ * merely "is a number", because an out-of-range level is silently
+ * clamped at read time and the author would never learn their
+ * `spoiler: 5` became a 3.
  */
-const NUMERIC_PROPS = new Set(["spoiler"]);
+const NUMERIC_PROPS = new Set(["spoiler", "spoilerName"]);
 const SPOILER_VALUES = new Set(["0", "1", "2", "3"]);
 
 /**

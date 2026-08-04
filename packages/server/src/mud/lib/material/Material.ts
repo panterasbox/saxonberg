@@ -569,6 +569,14 @@ export default class Material extends SingletonMixin(
    * them immediately, and only a guest (who cannot persist the
    * preference) is refused outright.
    *
+   * ⭐ `spoilerName: 0` beside it, because **the existence of the
+   * property is schema and only the measurement is content**. "Oak has
+   * a density" is what `help` and the generated API docs publish
+   * anyway; `750 kg/m³` is the part worth working for. So the panel
+   * shows the property list with the numbers collapsed, rather than a
+   * table of blanks that tells a reader nothing about what is there to
+   * find.
+   *
    * ⚠ This is not a knowledge model and must not be mistaken for one.
    * It cannot express "this character has worked oak and therefore
    * knows its density" — that is the Transcript/Competence axis, and
@@ -593,25 +601,25 @@ export default class Material extends SingletonMixin(
     biologicalSource: { persistent: true },
 
     // ── Measured: what working with it teaches you ──
-    density: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('kg/m³') },
-    thermalConductivity: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
-    specificHeat: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
-    hardness: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('MPa') },
-    toughness: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('MJ/m³') },
-    electricalConductivity: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('S/m') },
-    waterAbsorptionCapacity: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('%') },
-    autoignitionTemperature: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('K') },
-    heatOfCombustion: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
-    meltingPoint: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('K') },
-    latentHeatOfFusion: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('J/kg') },
-    boilingPoint: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('K') },
-    latentHeatOfVaporization: { persistent: true, spoiler: 1, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    density: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('kg/m³') },
+    thermalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('W/(m·K)') },
+    specificHeat: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/(kg·K)') },
+    hardness: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MPa') },
+    toughness: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/m³') },
+    electricalConductivity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('S/m') },
+    waterAbsorptionCapacity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
+    autoignitionTemperature: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    heatOfCombustion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('MJ/kg') },
+    meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
+    boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
 
     // ── What it does to you. The most worth finding out. ──
-    edibility: { persistent: true, spoiler: 1 },
-    nutrients: { persistent: true, spoiler: 1 },
-    nutrientAmounts: { persistent: true, spoiler: 1 },
-    toxicity: { persistent: true, spoiler: 1 },
+    edibility: { persistent: true, spoiler: 1, spoilerName: 0 },
+    nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
+    nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   public getName(): string { return this.name; }

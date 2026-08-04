@@ -134,6 +134,30 @@ export class SpoilerLevels {
     const meta = MixinApi.getAllFieldMeta(ctor as AnyConstructor);
     return SpoilerLevels.parse(meta[field]?.spoiler ?? 0);
   }
+
+  /**
+   * The level of a field's **name** — when a reader learns it exists.
+   *
+   * Defaults to {@link ofField}, so name and value hide together
+   * unless a declaration says otherwise. A field splits the two only
+   * where the existence is schema and the measurement is content:
+   * "this material has a density" is what `help` publishes, `750
+   * kg/m³` is not.
+   *
+   * ⚠ Never returns a level ABOVE the value's. A name more secret than
+   * the thing it names is incoherent, and it would render as a value
+   * floating in a row with no label — so a declaration that inverts
+   * them is clamped here rather than trusted.
+   */
+  static ofFieldName(ctor: unknown, field: string): SpoilerLevel {
+    if (typeof ctor !== 'function') return SpoilerLevels.OPEN;
+    const meta = MixinApi.getAllFieldMeta(ctor as AnyConstructor);
+    const value = SpoilerLevels.parse(meta[field]?.spoiler ?? 0);
+    const declared = meta[field]?.spoilerName;
+    if (declared === undefined) return value;
+    const name = SpoilerLevels.parse(declared);
+    return name > value ? value : name;
+  }
 }
 
 /**

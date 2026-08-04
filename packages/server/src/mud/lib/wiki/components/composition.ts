@@ -188,7 +188,14 @@ async function describeTemplate(path: string): Promise<MmlNode[]> {
     // no melting point because wood chars rather than melts, and a
     // blank row states that no better than its absence does.
     if (value === null) continue;
-    rows.push(row(field, value, SpoilerLevels.ofField(ctor, field)));
+    rows.push(
+      row(
+        field,
+        value,
+        SpoilerLevels.ofField(ctor, field),
+        SpoilerLevels.ofFieldName(ctor, field),
+      ),
+    );
   }
 
   return [table(rows)];
@@ -368,34 +375,73 @@ function headerRow(a: string, b: string): MmlNode {
     kind: 'tag',
     tag: 'tr',
     attrs: {},
-    children: [cell('th', a, SpoilerLevels.OPEN), cell('th', b, SpoilerLevels.OPEN)],
+    children: [cell('th', a), cell('th', b)],
   };
 }
 
 /**
- * One field row, at `level`.
+ * One field row: the name at `nameLevel`, the value at `valueLevel`.
  *
- * The level wraps the WHOLE row, including the field's name: on a
- * creature whose `fireVulnerability` is a spoiler, the *existence* of
- * that field is the reveal as much as its value is.
+ * ⭐ **Equal levels wrap the WHOLE row**, which is the default and the
+ * conservative case: on a creature whose `fireVulnerability` is a
+ * spoiler, the *existence* of that field is the reveal as much as its
+ * value is, and a row showing the name with an empty cell beside it
+ * would announce precisely what the level was protecting.
+ *
+ * When a declaration splits them — `spoilerName: 0, spoiler: 1` on
+ * `Material`'s measured properties — the name rides open and only the
+ * value is wrapped, so a reader gets the property list with the
+ * numbers collapsed rather than a table of blanks. "This material has
+ * a density" is schema, and schema is what `help` publishes; the
+ * number is the part worth working for.
+ *
+ * ⚠ That split is **opting into a redaction marker**, and it is
+ * coherent only because the marker reveals nothing when the name was
+ * already public. `SpoilerLevels.ofFieldName` clamps a name level
+ * above its value's, so the incoherent direction cannot be declared.
  */
-function row(label: string, value: string, level: SpoilerLevel): MmlNode {
-  const tr: MmlNode = {
+function row(
+  label: string,
+  value: string,
+  valueLevel: SpoilerLevel,
+  nameLevel: SpoilerLevel = valueLevel,
+): MmlNode {
+  if (nameLevel === valueLevel) {
+    const tr: MmlNode = {
+      kind: 'tag',
+      tag: 'tr',
+      attrs: {},
+      children: [cell('td', label), cell('td', value)],
+    };
+    if (valueLevel === SpoilerLevels.OPEN) return tr;
+    return spoiler(valueLevel, [tr]);
+  }
+  return {
     kind: 'tag',
     tag: 'tr',
     attrs: {},
-    children: [cell('td', label, level), cell('td', value, level)],
+    children: [
+      wrap(nameLevel, cell('td', label)),
+      wrap(valueLevel, cell('td', value)),
+    ],
   };
-  if (level === SpoilerLevels.OPEN) return tr;
+}
+
+/** `node`, wrapped iff `level` is above open. */
+function wrap(level: SpoilerLevel, node: MmlNode): MmlNode {
+  return level === SpoilerLevels.OPEN ? node : spoiler(level, [node]);
+}
+
+function spoiler(level: SpoilerLevel, children: MmlNode[]): MmlNode {
   return {
     kind: 'tag',
     tag: 'spoiler',
     attrs: { level: String(level) },
-    children: [tr],
+    children,
   };
 }
 
-function cell(tag: 'td' | 'th', text: string, _level: SpoilerLevel): MmlNode {
+function cell(tag: 'td' | 'th', text: string): MmlNode {
   return { kind: 'tag', tag, attrs: {}, children: [{ kind: 'text', text }] };
 }
 

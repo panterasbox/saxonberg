@@ -130,6 +130,29 @@ export interface FieldMetaEntry {
    * a diff in review rather than as a leak in production.
    */
   spoiler?: 0 | 1 | 2 | 3;
+
+  /**
+   * **Reveal level of this field's NAME** — the level at which a
+   * reader learns the field *exists at all*. Defaults to
+   * {@link spoiler}, which is the whole-row behaviour: on a creature
+   * whose `fireVulnerability` is a spoiler, knowing it HAS one is most
+   * of the information, so name and value hide together.
+   *
+   * ⭐ Declare it lower than `spoiler` where **the existence is schema
+   * and only the measurement is content**. "This material has a
+   * density" is not a secret — it is what `help` and the generated API
+   * docs publish. `750 kg/m³` is the thing worth working for. So
+   * `Material`'s measured properties carry `spoilerName: 0` beside
+   * `spoiler: 1`, and a reader sees the property list with the numbers
+   * collapsed rather than a table of blanks.
+   *
+   * ⚠ Splitting them is **opting into a redaction marker**, which the
+   * reveal model refuses everywhere else. That is coherent only
+   * because the marker reveals nothing here: the name was already
+   * public. Do not split a field whose existence is the reveal — the
+   * empty cell would announce exactly what the level was protecting.
+   */
+  spoilerName?: 0 | 1 | 2 | 3;
 }
 
 /** One class body's field declarations, keyed by instance field name. */
