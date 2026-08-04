@@ -818,21 +818,105 @@ document store with the other three. ⭐ **No outlier at all.**
 ⚠ Migration: existing aliases either drop or get promoted to real emotes
 — a content decision per row, not a mechanism.
 
-### ⭐⭐⭐ The rule this generalizes to, before packs make it urgent
+### ⭐⭐⭐ The rule this generalizes to
 
 > **A word occupies the global verb namespace only if it is the PRIMARY
 > NAME OF A DISTINCT ACT.** Synonyms belong to the catalogue;
 > preferences belong to per-character aliases.
 
-⚠ **This gets urgent fast**, because trade packs confer verbs through
-their instruments (a cocktail shaker confers `shake`). Forty trade packs
-each adding a handful of words, plus emotes, plus soul verbs, and the
-verb namespace is the scarcest shared resource in the game — **with no
-carve-out mechanism, because unlike paths it is flat.**
+## ⭐⭐ The verb namespace — and packs SHOULD ship verbs
 
-⭐ Worth a namespace-discipline rule in the pack manifest review
-(cosmetic packs adding verbs is already a tier violation) **before** there
-are forty packs, not after.
+> **User: "we do want packs to ship verbs. Collisions should be
+> infrequent provided good governance but they'll happen… scoping verb
+> affordances so very few verbs hang on universals like 'self'. And then
+> providing an enhancement to our CLI that lets you provide an MQL query
+> to scope your command to."**
+
+### ⚠ First, a correction: emotes are already the FALLBACK
+
+An earlier draft here called the verb namespace *"the scarcest shared
+resource in the game, with no carve-out mechanism, because unlike paths
+it is flat."* **Overstated.** From
+[emotes.md](../../subsystems/emotes.md):
+
+> *"when the affordance verb-match list (`getAffordances()` filtered by
+> verb) comes back **empty**, the router checks `MixinApi.isSoul(speaker)`
+> and consults `SoulApi.resolve(parsed.verb)`."*
+
+⭐⭐ **Emotes only get a word when nothing affords it.** An
+ever-expanding catalogue can never shadow a pack's verb — it fills gaps.
+And two explicit forms already ship: the `:wave` / `;wave` prefix
+dispatch, and `cmd/social/emote.yaml`.
+
+**So the problem is narrower than stated: affordance ↔ affordance.** Two
+objects in reach both affording `shake`.
+
+### ⭐⭐⭐ And the namespace is not inherently flat
+
+> **It is flat only because almost everything currently hangs off the
+> UNIVERSAL scope.**
+
+Move affordances onto objects and it becomes a **scope chain** —
+resolved against what is in your hands, then the room, then your own
+mixins, then core. That is `$PATH`, or method dispatch, and it is the
+same shape as every other resolution in this project.
+
+⭐ Which makes the user's first solution *the actual fix* rather than a
+mitigation: **scoping affordances off `self` converts a flat namespace
+into a hierarchical one**, and MQL disambiguation handles the residue.
+
+### ⭐⭐⭐⭐ The rule that makes collisions non-fatal
+
+> **Every afforded verb has an explicit, always-unambiguous form. The
+> bare word is SUGAR that resolves by scope and YIELDS on conflict.**
+
+A collision is then never an error and never a governance failure — just
+a case where the sugar does not apply. **Much better than "collisions
+must be prevented,"** which does not scale past a few dozen packs.
+
+### The disambiguation syntax — criteria, not a pick
+
+*(User: "the syntax for this is up for debate but it's scoped
+somewhere.")* Four constraints:
+
+1. **Parseable without backtracking** — the scope must be identifiable
+   *before* verb resolution ⇒ argues for a prefix or sigil over a
+   trailing clause
+2. **No collision with MQL's own operators** (`:` is taken by predicates)
+   **or with prepositions used as real arguments** (`with`, `at`, `on`
+   are live)
+3. **Round-trips through `format()`** — the tokenizer already guarantees
+   this and it should not be special-cased
+4. ⭐⭐ **The client emits it.** Every clickable previews its command, so
+   the disambiguated form is mostly **machine-written**
+
+⭐ **Constraint 4 is the decisive one and it lowers the stakes:
+unambiguity beats elegance**, because the common path is a button that
+already knows which object it came from. Typing it is the power-user
+fallback, not the default experience.
+
+⚠ `shaker.shake` reads instantly to a technical audience and satisfies
+1–3, but **check `.` against MQL's chain operators** before adopting it.
+
+### Packs declare their verbs — to REPORT, not to prevent
+
+> **Warn, do not refuse.** *"This pack's `shake` will be ambiguous with
+> the cocktail shaker when both are in reach."* Under the scope model
+> that is information, not an error.
+
+It also gives manifest review something concrete: a **cosmetic-tier pack
+shipping verbs is already a tier violation** (Part 1), and now it is
+visible in the diff.
+
+### Open
+
+- ⚠ **What does `getAffordances()` do TODAY with two matches on one
+  verb?** The precise behaviour this all builds on, and unchecked. It may
+  already pick one — the question is whether it picks well and says so.
+- **Nearest-wins silently, or nearest-wins-and-tells-you?** *Leans the
+  latter* — a `Note` in the response envelope naming which affordance
+  resolved. **Silent shadowing is exactly what makes shell `$PATH`
+  confusing.**
 
 ## Migration order
 
