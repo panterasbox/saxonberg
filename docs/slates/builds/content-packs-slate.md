@@ -549,6 +549,116 @@ uncertainty is the point:
 
 ---
 
+# Part 9 — Replacing the seeders
+
+> **User: "I want to get completely rid of SeederManager if I can and
+> replace it with content packs in its entirety, with the exception of
+> whatever content is actually platform level like certain groups
+> existing. So there does need to be some level of platform seeding, but
+> hopefully it runs the same logic as content pack installation."**
+
+## What exists (audited 2026-08-04)
+
+Nine bespoke code paths for *"put this YAML in that collection"*:
+`SeederManager` (walks `mud/seeds/` → `domain`), plus `Group`, `Parcel`,
+`Emote`, `Channel`, `Recipe`, `Blueprint`, `AppSettings` and `Script`.
+
+⭐ **And `SeederManager`'s own header makes the case for the migration:**
+
+> *"Insert-only by design… the dev workflow for 'I changed the seed YAML'
+> is `db.domain.deleteOne({path}); restart`."*
+
+> **The pack installer already reconciles. SeederManager cannot.** This is
+> an upgrade on the axis you feel daily, not a lateral move.
+
+⚠ **Only `ScriptSeeder` touches the `documents` collection at all**, and
+narrowly — lounge `.script` files at `/domain/lounge/scripts/<name>`.
+**There is no general document seeding**, which build-1's publications
+work will need.
+
+## ⭐⭐⭐ Structure vs. authority — the rule that shrinks the exception list
+
+> **A pack declares STRUCTURE. It never declares AUTHORITY.**
+
+| Structure — a pack may declare it | Authority — only a gated procedure grants it |
+|---|---|
+| this group **exists** | who is **in** it |
+| this extent is **claimed** | who holds **title** |
+| this office **exists** | who **sits** in it |
+
+So *"what has to stay platform-level?"* is **almost nothing**. Membership,
+title and seats were never content — `parcels.yaml` and `groups.yaml` do
+not stay behind because they are special seeds, they **stop being seeds**.
+
+⭐ That also retires the awkward part of `config/groups.yaml`: the four
+tag-like groups become *requirements* the platform declares, and
+`WIZARD_PLAYER_IDS` stops being a separate mechanism — **it is the first
+invocation of the fulfillment procedure.**
+
+## Requirements, and a checklist that DERIVES
+
+```yaml
+requires:
+  groups:
+    - name: bakers-guild
+      purpose: who may operate a bakery here
+  title:
+    - extent: /trade/baking
+  policy:
+    - at: <extent>/law/.policy      # see branch-policy-slate
+```
+
+Install creates the empty structure and **never blocks**. `pack provision
+<id>` walks whatever is still unfilled — at install, or a week later.
+
+- ⭐ **The checklist derives on read, never stored.** *"What is
+  unfulfilled?"* is a query, not a to-do list that can drift. Same house
+  pattern as competence, wounds and the roll.
+- ⚠ **Unfilled must be a legal world state.** An empty guild is a *fact*,
+  not an error (never-half-grown). Content whose requirement is unmet is
+  **inert and visibly so**, never broken.
+
+## One installer; the platform is pack zero
+
+> **Same logic, different authority.** The `platform` pack installs
+> through the identical reconcile path, but it is installed **by
+> bootstrap**, not by the `pack` verb.
+
+Trust is a property of **provenance, not format** — the narrow-entry
+pattern already used everywhere. ⭐ And it means the platform pack
+dogfoods the installer on **every boot**, so the path third-party content
+will use is the most-exercised code in the system.
+
+## ⚠ The installer has to grow typed contributions
+
+Six seeders write **non-`domain` collections**. So a pack stops being "a
+tree of templates" and becomes **a set of typed contributions**, with the
+installer dispatching per kind — and **each kind needs its own reconcile
+semantics.**
+
+> ⚠⚠ **The seed-vs-assert rule (Part 4) generalizes to every contribution
+> kind.** A pack update must not stomp an `app_settings` value an operator
+> tuned, for the same reason it must not stomp a bakery a player bought.
+
+`sourcePack` gives provenance but **not modified-since**. Cheapest honest
+version: compare against what the pack last installed and skip anything
+that has diverged — ⭐ **loudly**. Silent skips are how you spend an
+afternoon wondering why a pack update did nothing.
+
+## Migration order
+
+1. **Typed contributions + per-kind reconcile** — everything waits on it
+2. **`requires:` + derived checklist + `provision`** — unblocks
+   groups/title/offices/policies
+3. **The platform pack**, installed by bootstrap → delete `SeederManager`
+   and the eight others
+4. **Split `seeds/` into trade and locality packs** — the long tail, now
+   safe to do incrementally
+
+⭐ **Step 3 is where "the platform ships clean" becomes true and
+testable, and it can land well before step 4 finishes.**
+
+
 # Open questions
 
 1. **Is a trade one pack, or a pack per business?** *Leans trade =
