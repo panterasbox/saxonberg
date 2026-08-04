@@ -1,25 +1,43 @@
 /**
- * PressRoutes — the read-only REST data surface for the news-ticker
- * archive (the client pane's "load older" transport).
+ * PressRoutes — the read-only REST data surface for the press.
  *
- * One GET route, 1:1 with the `PressApi.archive` read:
+ * **Two routes, and the difference between them is the whole point:**
  *
- *   GET /api/press/archive?before=&limit=&realm=&kind=
- *     → PressApi.archive({...}) → ReleaseRow[]   (400 on a bad realm/kind)
+ *   GET /api/press/archive?before=&limit=&realm=&kind=   (requireAuth)
+ *     → PressApi.archive({...}) → ReleaseRow[]
+ *
+ *   GET /api/press/releases?limit=                       (⭐ ANONYMOUS)
+ *     → PressApi.pressRoom(limit) → PublicReleaseRow[]
+ *
+ * ⭐ **The public read is its own route rather than a flag on the
+ * archive.** A route whose entire contract is *"public, anonymous, no
+ * credentials"* is much harder to widen by accident than a boolean on a
+ * route that also serves authenticated readers. It reads no session, sets
+ * no cookie, and touches neither `req.user` nor any cookie header.
+ *
+ * ⚠ It **serves the window and rejects paging** (`before` → 400). A
+ * silently-ignored cursor is the shape of a future accidental widening —
+ * somebody adds paging to the archive-shaped handler and the public one
+ * inherits it. A press room is not an archive.
+ *
+ * ⚠ **`requireAuthApi` is per-route, never app-wide** (verified against
+ * `Server.setupRoutes`), so mounting an unauthenticated route here does
+ * not need — and must not get — any middleware change.
+ *
+ * ⚠ **No CORS change is needed and none should be made.** The app-wide
+ * policy is single-origin with `credentials: true`, already covering
+ * same-origin production and 5173→2010 dev. A single-origin credentialed
+ * policy cannot have an origin appended without reasoning about the
+ * credentialed routes it also governs.
  *
  * Structural sibling of {@link HelpRoutes}: **read-only** — no CSRF, no
- * attribution bridge (there are no writes). The route is `requireAuth` (the
- * session-derived viewer is the anonymous floor for every authenticated
- * reader); it adds no authz surface beyond that. Releases are OOC-public, so
- * there is no per-viewer lensing — `PressApi.toRow` projects each row once.
- *
- * Paging/ordering/limit-clamping all live in `PressApi.archive` (the
- * Phase-1 logic); this route only parses + validates query params and projects
- * the returned `Release` Documents to their wire shape.
+ * attribution bridge (there are no writes). Ordering, filtering and
+ * limit-clamping all live in the Api; these handlers only parse and
+ * validate query params.
  */
 
 import type { Express, Response } from "express";
-import type { ReleaseRow } from "@saxonberg/types";
+import type { ReleaseRow, PublicReleaseRow } from "@saxonberg/types";
 import { PressApi, type ArchiveQuery } from "../mud/api/press";
 import {
   RELEASE_REALMS,
@@ -82,6 +100,30 @@ export class PressRoutes {
 
       const releases = await PressApi.archive(query);
       const rows: ReleaseRow[] = releases.map((b) => PressApi.toRow(b));
+      res.json(rows);
+    });
+
+    // ⭐ The anonymous press room. NO `requireAuth` — deliberately, and
+    // the handler below touches no session, no cookie and no `req.user`.
+    app.get("/api/press/releases", (req, res) => {
+      // ⚠ Paging is REFUSED rather than ignored. Ignoring it would make a
+      // future `before=` on this route silently start working the day
+      // somebody wires one up.
+      if (req.query.before !== undefined) {
+        sendError(
+          res,
+          400,
+          "the press room serves the current window; it does not page",
+        );
+        return;
+      }
+
+      const raw = Number(req.query.limit);
+      const limit =
+        req.query.limit !== undefined && Number.isFinite(raw)
+          ? raw
+          : undefined;
+      const rows: PublicReleaseRow[] = PressApi.pressRoom(limit);
       res.json(rows);
     });
 

@@ -30,7 +30,7 @@ import type {
   ReleaseVisibility,
 } from '../lib/press/Publisher';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { ReleaseRow } from '@saxonberg/types';
+import type { ReleaseRow, PublicReleaseRow } from '@saxonberg/types';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -39,7 +39,7 @@ export type { ReleaseRealm, ReleaseKind, ReleaseVisibility };
 // The wire projection now lives in `@saxonberg/types` (the shared client
 // surface landed in Phase 3); re-exported here for server callers that
 // import it from the Api face.
-export type { ReleaseRow };
+export type { ReleaseRow, PublicReleaseRow };
 
 /**
  * The publish request — everything an author supplies. The author is NOT a
@@ -172,6 +172,24 @@ export class PressApi {
   /** The live ticker window (pins-first, recency-ordered), optionally sliced. */
   public static recent(limit?: number): Release[] {
     return logic().recent(limit);
+  }
+
+  /**
+   * ⭐ The **anonymous** press room: the warm window, filtered to the
+   * publishers named in `press.frontPage` and to publicly-visible
+   * releases, projected to {@link PublicReleaseRow}.
+   *
+   * ⚠ Two **independent** filters — placement (on the front page?) and
+   * permission (publicly visible?). A publisher can be public and off the
+   * front page; a listed publisher can still have a members-only release.
+   *
+   * ⚠ This is an already-filtered **read**, not a predicate: nothing
+   * outside the logic ever sees an unresolved visibility, so there is no
+   * way for a caller to get the comparison backwards. It serves the
+   * window — no cursor, no paging. A press room is not an archive.
+   */
+  public static pressRoom(limit?: number): PublicReleaseRow[] {
+    return logic().pressRoom(limit);
   }
 
   /** The paged archive over the tree (realm/kind filtered, recency-desc). */

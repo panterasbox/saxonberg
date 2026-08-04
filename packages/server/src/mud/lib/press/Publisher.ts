@@ -23,6 +23,7 @@
  *     narrow this; it may never widen it.
  *   - `feedPath` — the document-tree branch its releases live under. A
  *     release is a `StoredDocument` at `<feedPath>/<id>`.
+ *   - `label` — the masthead a reader sees on the front page.
  *   - `publishingPositions` — which of the organization's positions may
  *     publish. **Empty means any position**, which is the small-shop case
  *     (everyone at a two-person paper writes), not a wildcard for
@@ -61,6 +62,12 @@ export const RELEASE_VISIBILITIES: readonly ReleaseVisibility[] = [
  * the contract surface.
  */
 export interface Publisher {
+  /**
+   * The masthead — what a reader sees attributed on a release. Falls back
+   * to the organization's own path when unauthored, so the front page
+   * never shows a blank byline.
+   */
+  getLabel(): string;
   /** The realm this publisher speaks in; a release derives it. */
   getRealm(): ReleaseRealm;
   /** The default reach of what it publishes; a release may only narrow it. */
@@ -73,6 +80,7 @@ export interface Publisher {
 
 /** The persistent field slots this mixin declares — Hydrator-facing. */
 export interface PublisherFields {
+  label: string;
   realm: string;
   visibility: string;
   feedPath: string;
@@ -111,11 +119,15 @@ export function PublisherMixin<
     static _mixinName = Mixins.Publisher;
 
     static fieldMeta: FieldMeta = {
+      label: { persistent: true, authorable: true },
       realm: { persistent: true, authorable: true },
       visibility: { persistent: true, authorable: true },
       feedPath: { persistent: true, authorable: true },
       publishingPositions: { persistent: true, authorable: true },
     };
+
+    /** The masthead a reader sees. Empty = fall back to the org path. */
+    public label: string = '';
 
     /** `ooc` | `world`; a release derives its realm from this. */
     public realm: string = 'ooc';
@@ -128,6 +140,15 @@ export function PublisherMixin<
 
     /** Position keys allowed to publish; empty = any position. */
     public publishingPositions: string[] = [];
+
+    public getLabel(): string {
+      return (
+        this.label ||
+        (this as unknown as { getTemplatePath(): string | null })
+          .getTemplatePath() ||
+        ''
+      );
+    }
 
     public getRealm(): ReleaseRealm {
       return coerceRealm(this.realm);

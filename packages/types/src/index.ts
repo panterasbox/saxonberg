@@ -232,6 +232,35 @@ export interface ReleaseRow {
 }
 
 /**
+ * The **anonymous** projection of one release — what an unauthenticated
+ * visitor reads on the start screen's press room.
+ *
+ * ⚠ **A standalone interface, deliberately.** Not a `Pick<ReleaseRow>` and
+ * not an extension of it: structural sharing is how a field added to the
+ * authenticated row later leaks to the open internet without anyone
+ * noticing. The key set is frozen and asserted as frozen.
+ *
+ * ⚠ **No `author` and no `expiresAt`.** An expiry is operational metadata,
+ * not press-room content, and the person who typed a release is not part
+ * of what a publisher published — the organization is the speaker.
+ */
+export interface PublicReleaseRow {
+  releaseId: string;
+  /** The publisher organization's durable path. */
+  publisher: string;
+  /** The publisher's display name. */
+  publisherLabel: string;
+  realm: ReleaseRealm;
+  kind: ReleaseKind;
+  /** Where a `repost`'s substance came from; absent on an original. */
+  source?: string;
+  headline: string;
+  body: string;
+  publishedAt: number;
+  pinned: boolean;
+}
+
+/**
  * Payload of a `world.press.feed` frame (the news-ticker fan-out;
  * mirrors the server-side fan). Rides the ordinary `MessageFrame` channel
  * (empty body, structured payload). The client routes by `action`:

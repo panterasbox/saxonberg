@@ -18,6 +18,8 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DocumentApi } from '../../api/document';
 import { EmploymentApi } from '../../api/employment';
 import { TemplatePaths } from '../../lib/paths';
@@ -35,13 +37,18 @@ import type {
   ReleasePatch,
   ArchiveQuery,
 } from '../../api/press';
-import type { ReleaseFeedFrame } from '@saxonberg/types';
+import type { ReleaseFeedFrame, PublicReleaseRow } from '@saxonberg/types';
 
 const PressApiCallers = SecurityPolicies.FromModule('/api/press#PressApi'
 );
 
 /** The news-ticker fan-out topic — a presence-PUBLIC OOC channel. */
 const FEED_TOPIC = 'world.press.feed';
+
+/** Default press-room page size. A press room is not an archive. */
+const PRESS_ROOM_DEFAULT_LIMIT = 20;
+/** Hard cap on the anonymous read. */
+const PRESS_ROOM_MAX_LIMIT = 50;
 
 /** Default archive page size when the query doesn't specify one. */
 const ARCHIVE_DEFAULT_LIMIT = 30;
@@ -317,6 +324,92 @@ async function archiveImpl(query: ArchiveQuery): Promise<Release[]> {
 }
 
 /**
+ * The publisher organizations the anonymous front page shows, in the
+ * order the setting lists them.
+ *
+ * ⚠ **An entry that does not resolve is skipped AND logged.** A typo
+ * would otherwise empty the front page with no signal, and "looking
+ * deliberate while empty" is exactly this surface's failure mode. There is
+ * no publisher catalogue behind this: the list is short and enumerated, so
+ * each entry is resolved by path — a warm catalogue would be machinery
+ * with no query to serve.
+ */
+function frontPagePublishersImpl(): Array<Stuff & Publisher> {
+  let raw = '';
+  try {
+    raw = AppApi.setting(AppSettingKeys.pressFrontPage);
+  } catch {
+    return [];
+  }
+  const out: Array<Stuff & Publisher> = [];
+  for (const entry of raw.split(',')) {
+    const path = entry.trim();
+    if (path.length === 0) continue;
+    const publisher = resolvePublisherImpl(path);
+    if (!publisher) {
+      console.warn(
+        `PressApi: press.frontPage names '${path}', which is not a live ` +
+          `publisher organization — skipped`
+      );
+      continue;
+    }
+    out.push(publisher);
+  }
+  return out;
+}
+
+/**
+ * The anonymous press room: the warm window, narrowed by **two
+ * independent filters**, then sliced.
+ *
+ * ⚠ The two filters are `placement` (is this publisher on the front page?)
+ * and `permission` (is this release publicly visible?). They are separate
+ * questions and stay separately applied — a publisher can be public and
+ * off the front page, and a listed publisher can still have a
+ * members-only release. Collapsing them makes placement imply permission.
+ *
+ * The visibility clamp is applied by `Release.getVisibility()`, so nothing
+ * out here ever sees an unresolved visibility: this is an already-filtered
+ * read, not a predicate somebody could call the wrong way round.
+ */
+function pressRoomImpl(limit?: number): PublicReleaseRow[] {
+  const listed = new Map(
+    frontPagePublishersImpl().map((p) => [
+      (p as Stuff).getTemplatePath() ?? '',
+      p,
+    ])
+  );
+  if (listed.size === 0) return [];
+
+  const size =
+    typeof limit === 'number' && limit > 0
+      ? Math.min(Math.floor(limit), PRESS_ROOM_MAX_LIMIT)
+      : PRESS_ROOM_DEFAULT_LIMIT;
+
+  const out: PublicReleaseRow[] = [];
+  for (const release of board()?.recentWindow() ?? []) {
+    const publisher = listed.get(release.getPublisher());
+    if (!publisher) continue; // placement
+    if (release.getVisibility() !== 'public') continue; // permission
+    const source = release.getSource();
+    out.push({
+      releaseId: release.getReleaseId(),
+      publisher: release.getPublisher(),
+      publisherLabel: publisher.getLabel(),
+      realm: release.getRealm(),
+      kind: release.getKind(),
+      ...(source.length > 0 ? { source } : {}),
+      headline: release.getHeadline(),
+      body: release.getBody(),
+      publishedAt: release.getPublishedAt(),
+      pinned: release.isPinned(),
+    });
+    if (out.length >= size) break;
+  }
+  return out;
+}
+
+/**
  * PressLogic — the hot-reloadable logic singleton behind
  * {@link PressApi}.
  *
@@ -368,6 +461,12 @@ export class PressLogic extends ApiLogic {
   @CallSecurity(PressApiCallers)
   public recent(limit?: number): Release[] {
     return recentImpl(limit);
+  }
+
+  /** See {@link PressApi.pressRoom}. */
+  @CallSecurity(PressApiCallers)
+  public pressRoom(limit?: number): PublicReleaseRow[] {
+    return pressRoomImpl(limit);
   }
 
   /** See {@link PressApi.archive}. */

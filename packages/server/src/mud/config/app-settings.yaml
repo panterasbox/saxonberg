@@ -292,6 +292,14 @@ settings:
     value: "120"
   - key: press.bodyMaxLength
     value: "4000"
+  # Which publishers the ANONYMOUS start-screen press room shows — a
+  # comma-separated list of organization paths (AppApi.setting returns a
+  # string; there is no array type). Placement, not permission: being
+  # listed here puts a publisher on the front door and says nothing about
+  # who may read a given release. An entry that doesn't resolve is skipped
+  # and logged at boot — a typo must not silently empty the page.
+  - key: press.frontPage
+    value: "/compact/press"
 
   # Residency — scheduled object self-maintenance. The eviction sweep
   # (`residency.eviction.*`) is the real-time cold-tail garbage-culler;

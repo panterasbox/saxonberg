@@ -67,6 +67,7 @@ describe('the Compact press office', () => {
   });
 
   it('speaks out of character, publicly, on its own feed branch', () => {
+    expect(press.data?.label).toBe('the Compact');
     expect(press.data?.realm).toBe('ooc');
     expect(press.data?.visibility).toBe('public');
     expect(press.data?.feedPath).toBe('/compact/press/feed');
@@ -105,6 +106,7 @@ describe('the Office of the Prime Minister', () => {
   });
 
   it('speaks in the fiction, members-only, and both positions may publish', () => {
+    expect(executive.data?.label).toBe('the Office of the Prime Minister');
     expect(executive.data?.realm).toBe('world');
     expect(executive.data?.visibility).toBe('members');
     expect(executive.data?.feedPath).toBe('/compact/executive/feed');

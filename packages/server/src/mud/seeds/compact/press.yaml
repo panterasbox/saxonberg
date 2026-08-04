@@ -29,6 +29,7 @@ data:
       wageRate: 0
       confers: []
   rosterSlots: []
+  label: "the Compact"
   realm: ooc
   visibility: public
   feedPath: /compact/press/feed
