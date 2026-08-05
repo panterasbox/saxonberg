@@ -44,8 +44,6 @@ const TOPIC = 'world.perception.vision';
 
 interface ReadModel extends CommandModel {
   target: MqlOneResult;
-  /** What the scroll's working acts ON, for workings that need a mark. */
-  mark?: MqlOneResult;
 }
 
 export default class ReadController extends CommandController<ReadModel> {
