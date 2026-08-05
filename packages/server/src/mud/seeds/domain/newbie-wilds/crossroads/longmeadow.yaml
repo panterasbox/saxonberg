@@ -22,11 +22,11 @@ data:
   longDescription: |
     The pines break and the ground opens out — a long shallow meadow running east, grass gone to seed and standing waist-high, the wind moving through it in slow visible lines. There is nothing to hide behind and a great deal of room to see across, which is a comfort or a problem depending on what else is here.
 
-    A low stone wall, tumbled and half-swallowed by the grass, runs along the northern edge. West, the pines close again toward the treeline.
+    A low stone wall, tumbled and half-swallowed by the grass, runs along the northern edge. Southwest, the pines close again toward the treeline.
   coords:
     x: 1
     y: 1
     z: 0
   exits:
-    west:
+    southwest:
       destination: /domain/newbie-wilds/crossroads/treeline

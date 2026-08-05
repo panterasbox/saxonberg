@@ -3613,23 +3613,6 @@ function standingTermsImpl(
   return { lethality, stopCondition, stakes: "" };
 }
 
-/**
- * Ambush read — is the attacker striking from concealment the defender
- * does not perceive? Reads the attacker's hidden state FIRST (warming the
- * defender's `awareness` so `perceives` uses their real capacity), then
- * clears the attacker's hide, because striking reveals you, ambush or not.
- */
-async function resolveAmbushImpl(
-  attacker: Stuff,
-  defender: Stuff,
-): Promise<boolean> {
-  if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
-  await PerceptionApi.preloadForSenseGate(defender);
-  const unseen = !PerceptionApi.perceives(defender, attacker);
-  attacker.breakHide();
-  return unseen;
-}
-
 /** Warm each side's formation Idea into residency (best-effort). */
 async function warmFormationsImpl(combatants: Stuff[]): Promise<void> {
   for (const c of combatants) {
@@ -3836,7 +3819,7 @@ async function initiateImpl(
 
   const opts = await snapshotBandsImpl([initiator, target]);
   await warmFormationsImpl([initiator, target]);
-  opts.ambush = await resolveAmbushImpl(initiator, target);
+  opts.ambush = await PerceptionApi.resolveAmbush(initiator, target);
 
   // Attacking someone already fighting JOINS their melee; attacking from
   // mid-fight DRAWS the target in; two separate fights colliding MERGE;
