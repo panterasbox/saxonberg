@@ -292,6 +292,15 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (update.knownAs != null) existing.knownAs = update.knownAs;
         if (update.typeKnown !== undefined) {
           existing.payload.typeKnown = update.typeKnown;
+          // ⚠ **A type-learning act REPLACES what you believe the type
+          // is**, including replacing a lie with nothing. `believedName`
+          // is therefore assigned unconditionally here rather than
+          // guarded like its neighbours: an honest identification omits
+          // the field, and omitting it must CLEAR a planted name, not
+          // leave it standing. Guarding it would make a curse permanent
+          // — the one thing the design says it must not be, since
+          // finding out is how the holder recovers.
+          existing.payload.believedName = update.believedName;
         }
         // Regard overwrites (not raise-only): the consumer computes the
         // new value before calling.
@@ -327,6 +336,9 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (update.learnedGeneration !== undefined) {
         payload.learnedGeneration = update.learnedGeneration;
+      }
+      if (update.believedName !== undefined) {
+        payload.believedName = update.believedName;
       }
       const record: BeliefRecord = {
         realm,

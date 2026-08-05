@@ -67,6 +67,8 @@ interface DescriptorBankFile {
   secondary: string[];
   primaryAxis: string;
   secondaryAxis: string;
+  /** Class-level prose for an unidentified item; `{descriptor}` interpolates. */
+  unidentifiedLong: string;
   /** Pack-relative file path, for diagnostics. */
   relFile: string;
 }
@@ -285,6 +287,10 @@ function readContent(pack: ResolvedPack): PackContent {
       primaryAxis: typeof doc.primaryAxis === 'string' ? doc.primaryAxis : '',
       secondaryAxis:
         typeof doc.secondaryAxis === 'string' ? doc.secondaryAxis : '',
+      unidentifiedLong:
+        typeof doc.unidentifiedLong === 'string'
+          ? doc.unidentifiedLong.trim()
+          : '',
       relFile: relative(pack.root, file),
     });
   }
@@ -450,6 +456,7 @@ interface DescriptorBankRow extends Record<string, unknown> {
   secondary: string[];
   primaryAxis: string;
   secondaryAxis: string;
+  unidentifiedLong: string;
   sourcePack: string;
 }
 
@@ -571,6 +578,7 @@ async function reconcileDescriptorBanks(
       secondary: f.secondary,
       primaryAxis: f.primaryAxis,
       secondaryAxis: f.secondaryAxis,
+      unidentifiedLong: f.unidentifiedLong,
       sourcePack: packId,
     };
     const stamped = stampedByKey.get(f.key);
@@ -581,12 +589,14 @@ async function reconcileDescriptorBanks(
           secondary: stamped.secondary,
           primaryAxis: stamped.primaryAxis,
           secondaryAxis: stamped.secondaryAxis,
+          unidentifiedLong: stamped.unidentifiedLong ?? '',
         }) ===
         canonical({
           primary: f.primary,
           secondary: f.secondary,
           primaryAxis: f.primaryAxis,
           secondaryAxis: f.secondaryAxis,
+          unidentifiedLong: f.unidentifiedLong,
         });
       if (!same) {
         await PersistApi.save(Collections.DescriptorBanks, {
@@ -711,6 +721,7 @@ async function reconcilePack(
         bank.secondary = f.secondary;
         bank.primaryAxis = f.primaryAxis;
         bank.secondaryAxis = f.secondaryAxis;
+        bank.unidentifiedLong = f.unidentifiedLong;
         return bank;
       }),
     );

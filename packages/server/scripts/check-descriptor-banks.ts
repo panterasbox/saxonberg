@@ -196,6 +196,7 @@ interface BankFile {
   key: string;
   primary: string[];
   secondary: string[];
+  unidentifiedLong: string;
   file: string;
 }
 
@@ -221,6 +222,8 @@ function collectBanks(): BankFile[] {
         secondary: Array.isArray(doc.secondary)
           ? doc.secondary.filter((v): v is string => typeof v === 'string')
           : [],
+        unidentifiedLong:
+          typeof doc.unidentifiedLong === 'string' ? doc.unidentifiedLong : '',
         file,
       });
     }
@@ -235,6 +238,7 @@ function main(): void {
   const collisions: Finding[] = [];
   const shallow: string[] = [];
   const dupes: string[] = [];
+  const prose: string[] = [];
 
   for (const bank of banks) {
     const all = [...bank.primary, ...bank.secondary];
@@ -259,6 +263,41 @@ function main(): void {
             `(${types} item types × (reuseDelay ${REUSE_DELAY} + 1))`,
         );
       }
+    }
+    // ── The unidentified long description ──
+    // The paragraph a specimen of this class reads as before anyone
+    // knows what it is. Two rules, both of which fail SILENTLY and
+    // legibly (the prose still renders; it is just wrong).
+    const long = bank.unidentifiedLong;
+    if (long.trim().length === 0) {
+      prose.push(
+        `  ${bank.key}: no unidentifiedLong — every item of this class ` +
+          `falls back to its AUTHORED paragraph, which is written for the ` +
+          `identified thing and routinely gives the answer away.`,
+      );
+    } else {
+      // A hand-written article before the token: the descriptor is
+      // drawn from a pool, half of it vowel-initial, so a literal "a"
+      // is one draw away from being a typo at all times.
+      if (/\b(an?|An?)\s+\{descriptor\}/.test(long)) {
+        prose.push(
+          `  ${bank.key}: a hand-written article sits before {descriptor}. ` +
+            `Write '{a} {descriptor}' — the token resolves the article ` +
+            `against the drawn word, the way the derived NAME does.`,
+        );
+      }
+      // ⚠ The **no-material rule is NOT checked here**, deliberately.
+      // The prose must claim no substance — a specimen is truly brass or
+      // ash or glass per instance, and class-level prose saying "of pale
+      // ash" is simply false on the brass one — but the reserved
+      // vocabulary is built for single-word descriptors and includes
+      // ordinary English (*plain*, *mixed*, *down*). Run against a
+      // paragraph it flags almost every sentence, and a check that cries
+      // wolf is worse than no check: it trains authors to add exemptions.
+      //
+      // The two rules above fail STRUCTURALLY and can be seen from the
+      // outside. "Does this sentence assert a substance?" is a reading,
+      // and readings are review's job.
     }
     // A duplicated word inside one axis silently shrinks the pool.
     for (const axis of [bank.primary, bank.secondary]) {
@@ -307,6 +346,18 @@ function main(): void {
         'its two axes, so ten and ten give a hundred.\n',
     );
     for (const s of shallow) console.error(s);
+  }
+
+  if (prose.length > 0) {
+    failed = true;
+    console.error(
+      '\ncheck-descriptor-banks: the unidentified long description.\n' +
+        'The derived short name exists so an unidentified item does not\n' +
+        'announce itself; the paragraph under it has to withhold the same\n' +
+        'thing, and an author writing their own long description has no\n' +
+        'reason to suspect otherwise. So the CLASS owns that paragraph.\n',
+    );
+    for (const p of prose) console.error(p);
   }
 
   if (dupes.length > 0) {

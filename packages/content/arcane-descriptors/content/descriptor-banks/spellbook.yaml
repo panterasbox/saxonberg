@@ -10,3 +10,18 @@ secondaryAxis: cover marking
 secondary:
   [unlettered, gilt-stamped, blind-tooled, banded, clasped, ribboned,
    cornered, patched, embossed, lettered]
+
+# ── the unidentified long description (class-level, never per item) ──
+# The authored `longDescription` on a template is written for the
+# IDENTIFIED item and routinely gives the answer away. This is what a
+# specimen of the class reads as until the viewer actually knows.
+#
+# ⚠ Two rules. Claim no MATERIAL — a specimen is truly brass or ash or
+# glass, per instance, and class prose that names a substance is simply
+# false on half of them. And never hand-write the ARTICLE before
+# `{descriptor}`: half the bank is vowel-initial, so write `{a}` (or
+# `{A}`) and let it resolve against the word actually drawn.
+unidentifiedLong: >
+  {A} {descriptor} volume, of the size that fits a satchel rather
+  than a shelf. The contents would tell you what it is; the outside is
+  doing its level best not to.

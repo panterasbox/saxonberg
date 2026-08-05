@@ -79,6 +79,7 @@ export class DescriptorBank extends Document {
     secondary: { persistent: true },
     primaryAxis: { persistent: true },
     secondaryAxis: { persistent: true },
+    unidentifiedLong: { persistent: true },
   };
 
   /** Unique bank key — the item class (`potion`, `wand`, `ring`, …). */
@@ -95,6 +96,39 @@ export class DescriptorBank extends Document {
 
   /** What axis B *is*. Empty for a single-axis bank. */
   public secondaryAxis: string = '';
+
+  /**
+   * **The long description an UNIDENTIFIED item of this class shows.**
+   *
+   * The authored `longDescription` on a template is written for the
+   * identified item and routinely names what the thing does — which is
+   * the leak the derived short name exists to prevent. So the class
+   * owns the unidentified prose, exactly as it owns the descriptor
+   * pool: an author never writes an unidentified variant, and a
+   * careless one cannot give the answer away in the paragraph under a
+   * name that withholds it.
+   *
+   * ⚠ **It must claim no material.** The lint proves the descriptor
+   * *axes* disjoint from the materials vocabulary for parser reasons;
+   * this prose is never parsed, so it escapes that check — but the
+   * modelling reason still binds. A wand *is* brass or ash, truly and
+   * per instance, and class-level prose that says "of pale ash" is
+   * simply false on the brass one. Describe shape and workmanship;
+   * material stays orthogonal and stays honest.
+   *
+   * Two tokens. `{descriptor}` interpolates this item's rendered
+   * descriptor, so the paragraph agrees with the name above it; `{a}`
+   * (or `{A}` sentence-initially) is **the article for that
+   * descriptor**. ⚠ Never author the article yourself — half a bank's
+   * words are vowel-initial, so a literal *a* is one draw away from
+   * being a typo at all times. `{a}` runs the same `GrammarApi`
+   * resolution the derived name does, so the two cannot disagree.
+   * Empty = no generic prose,
+   * and the item falls back to its authored long description (the
+   * pre-existing behaviour, and still correct for a class whose long
+   * description gives nothing away).
+   */
+  public unidentifiedLong: string = '';
 
   /**
    * Cache of key → bank. Banks are immutable reference data; the first

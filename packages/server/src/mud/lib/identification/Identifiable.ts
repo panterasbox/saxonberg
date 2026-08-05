@@ -22,7 +22,10 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
 import { SecurityApi } from '../../api/security';
+import { GrammarApi } from '../../api/grammar';
+import { RecognitionApi } from '../../api/recognition';
 import { Appearance } from './Appearance';
 import { DescriptorBank } from './DescriptorBank';
 
@@ -78,6 +81,16 @@ export interface Identifiable {
    * await. Banks are warmed at boot and read from the cache.
    */
   renderAppearance(generation: number, progress: number): string;
+
+  /**
+   * **The class-level long description an unidentified specimen shows**,
+   * or `''` when this item's bank authors none.
+   *
+   * The paragraph belongs to the *class*, not the item — see
+   * {@link DescriptorBank.unidentifiedLong} for why an author never
+   * writes an unidentified variant of their own prose.
+   */
+  renderUnidentifiedLong(generation: number, progress: number): string;
 
   // ---------- storage (public for the Hydrator) ----------
   identifiedName: string;
@@ -164,6 +177,52 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.getTurnoverSeed(),
         bank,
       ).descriptor;
+    }
+
+    renderUnidentifiedLong(generation: number, progress: number): string {
+      if (this.descriptorClass.length === 0) return '';
+      const bank = DescriptorBank.cached(this.descriptorClass);
+      const prose = bank?.unidentifiedLong ?? '';
+      if (prose.length === 0) return '';
+      // Literal substitution rather than a Liquid template: this renders
+      // inside `getMarkupLong`, which is sync, and `ProseApi.compile` is
+      // not. Two tokens is all the prose needs.
+      if (!prose.includes('{descriptor}') && !prose.includes('{a}')) {
+        return prose;
+      }
+      const descriptor = this.renderAppearance(generation, progress);
+      // `{a}` / `{A}` — the article FOR the descriptor. Half a bank's
+      // words are vowel-initial, so an authored "a" is one draw away
+      // from being a typo at all times; this is the same `articleFor`
+      // the derived NAME uses, so the two can't disagree.
+      const article = GrammarApi.articleFor(descriptor);
+      return prose
+        .replaceAll('{descriptor}', descriptor)
+        .replaceAll('{a}', article)
+        .replaceAll('{A}', article.charAt(0).toUpperCase() + article.slice(1))
+        .replace(/\s{2,}/g, ' ');
+    }
+
+    /**
+     * ⚠ **Withhold the authored paragraph until the reader has earned
+     * it.** The derived short name exists to hide what an item is; a
+     * long description written for the identified thing hands it
+     * straight back, and an author writing "a wand of firebolt, its
+     * grip scorched" has no reason to suspect they leaked anything.
+     *
+     * So the *class* owns the unidentified prose and the item owns the
+     * identified prose, and which one you get is a fact about the
+     * reader. Falls through to the authored long whenever the bank
+     * offers no generic prose — silence must not blank an item's
+     * description.
+     */
+    getLongFor(viewer: Stuff): string {
+      if (RecognitionApi.knowsTrueType(viewer, this as unknown as Stuff)) {
+        return super.getLongFor(viewer);
+      }
+      const { generation, progress } = Appearance.currentGeneration();
+      const generic = this.renderUnidentifiedLong(generation, progress);
+      return generic.length > 0 ? generic : super.getLongFor(viewer);
     }
   };
 }

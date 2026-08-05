@@ -90,38 +90,69 @@ function isMasked(target: Stuff): boolean {
  * baseline shows).
  */
 function identificationName(viewer: Stuff, target: Stuff): string | null {
+  const record = currentTypeRecord(viewer, target);
+  if (!record) return null;
+  // ⚠ A **believed** name overrides the true one. This is the belief
+  // store doing what it is for: holding something the viewer is
+  // confident about and WRONG about. A cursed identify plants one, and
+  // the reader has no way to tell from the inside — which is what
+  // makes false information strictly worse than none.
+  const believed = (record as { believedName?: unknown }).believedName;
+  if (typeof believed === 'string' && believed.length > 0) return believed;
+  if (!MixinApi.isIdentifiable(target)) return null;
+  const known = target.getIdentifiedName();
+  return known ? known : null;
+}
+
+/**
+ * The viewer's **usable, current-generation** type record for `target`,
+ * or `null`. The one place the "is this knowledge still good?" test
+ * lives, so the name and the prose can never disagree about it.
+ *
+ * ⚠ A record from a PRIOR generation is deliberately treated as absent
+ * (D28). Its descriptor may have been reissued meaning something else,
+ * so asserting from it would state something possibly false; the caller
+ * falls through to `unidentifiedLook`, which hedges instead.
+ */
+function currentTypeRecord(
+  viewer: Stuff,
+  target: Stuff,
+): Record<string, unknown> | null {
   if (!MixinApi.isIdentifiable(target)) return null;
   if (!MixinApi.isBeliefStore(viewer)) return null;
   const signature = target.getTemplatePath();
   if (!signature) return null;
   const record = viewer.recall(IDENTIFICATION, signature);
-  if (record?.payload.typeKnown) {
-    // ⚠ A record from a PRIOR generation must NOT assert plainly (D28).
-    // Its descriptor may have been reissued meaning something else, so
-    // returning the name here would state something possibly false.
-    // Falling through hands it to `unidentifiedLook`, which hedges.
-    const learned = record.payload.learnedGeneration;
-    if (
-      typeof learned === 'number' &&
-      !Appearance.isRecordCurrent(
-        learned,
-        Appearance.currentGeneration().generation,
-      )
-    ) {
-      return null;
-    }
-    // ⚠ A **believed** name overrides the true one. This is the belief
-    // store doing what it is for: holding something the viewer is
-    // confident about and WRONG about. A cursed identify plants one, and
-    // the reader has no way to tell from the inside — which is what
-    // makes false information strictly worse than none.
-    const believed = (record.payload as { believedName?: unknown })
-      .believedName;
-    if (typeof believed === 'string' && believed.length > 0) return believed;
-    const known = target.getIdentifiedName();
-    if (known) return known;
+  if (!record?.payload.typeKnown) return null;
+  const learned = record.payload.learnedGeneration;
+  if (
+    typeof learned === 'number' &&
+    !Appearance.isRecordCurrent(
+      learned,
+      Appearance.currentGeneration().generation,
+    )
+  ) {
+    return null;
   }
-  return null;
+  return record.payload as unknown as Record<string, unknown>;
+}
+
+/**
+ * **Does this viewer actually know what this is?** — the gate on
+ * revealing an item's authored long description.
+ *
+ * Strictly narrower than "shows a type name". A **believed** name reads
+ * as knowledge from the inside and is not knowledge: a misidentified
+ * potion must keep showing its class's generic prose, because the
+ * authored paragraph belongs to the thing it really is and would
+ * contradict the name the viewer has been given. False information is
+ * only worse than none while it stays uncontradicted.
+ */
+function knowsTrueTypeImpl(viewer: Stuff, target: Stuff): boolean {
+  const record = currentTypeRecord(viewer, target);
+  if (!record) return false;
+  const believed = (record as { believedName?: unknown }).believedName;
+  return !(typeof believed === 'string' && believed.length > 0);
 }
 
 /**
@@ -412,6 +443,12 @@ export class RecognitionLogic extends ApiLogic {
     covered: ReadonlySet<string> = EMPTY_COVERAGE
   ): string {
     return salientFeaturesImpl(target, covered);
+  }
+
+  /** See {@link RecognitionApi.knowsTrueType}. */
+  @CallSecurity(RecognitionApiCallers)
+  public knowsTrueType(viewer: Stuff, target: Stuff): boolean {
+    return knowsTrueTypeImpl(viewer, target);
   }
 
   /** See {@link RecognitionApi.perceivedKeywords}. */

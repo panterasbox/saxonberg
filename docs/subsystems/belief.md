@@ -223,6 +223,28 @@ contradicting the act in flight; see [message-rendering.md] /
   (unidentified ↔ identified); reusable (no consumption). Ships a blue-vial
   demo. The masking mechanism supports item-identity *illusion* by design
   but no illusion content ships.
+- **`payload.believedName` — a name the viewer holds and that may be
+  FALSE.** The store is a record of what someone *thinks*, and until this
+  existed nothing exercised that: every record was true-or-absent. A
+  cursed identify plants one — a record indistinguishable from a real
+  identification, naming a *different real thing*, so the lie is
+  plausible. Absent ⇒ the referent's own `identifiedName`, i.e. the truth.
+
+  Two consequences worth stating, because both are load-bearing:
+
+  > ⚠ `know()` assigns `believedName` **unconditionally whenever
+  > `typeKnown` is written**, rather than guarding it like its
+  > neighbours. A type-learning act *replaces* what you believe the type
+  > is, and an honest identification omits the field — so omitting it has
+  > to CLEAR a planted name. Guarded, a curse would be permanent, and
+  > finding out is the whole of how a holder recovers.
+
+  > ⚠ It also gates the **prose**, via `RecognitionApi.knowsTrueType`: a
+  > misidentified item keeps its class's generic long description rather
+  > than revealing the authored one, which would contradict the planted
+  > name in the very next line. See
+  > [magic-items.md](./magic-items.md) § *The class owns the
+  > unidentified paragraph*.
 
 ## Regard — attitude axis, the third realm (`api/regard.ts`)
 
@@ -340,8 +362,10 @@ holds; sequential single-viewer commands keep the race benign).
   explicit `introduce` verb is the shipped core trigger.
 - Identification's **pedagogical instrument seam** (`analyze X with Y`,
   real Material-substrate chemistry), **partial identification**,
-  experience-/social-ID verbs, **misidentification** (belief-vs-truth,
-  cursed items, illusion content).
+  experience-/social-ID verbs. (**Misidentification** is no longer
+  deferred — `believedName` above ships the belief-vs-truth split and the
+  cursed identify scroll plants one. Illusion *content* still doesn't
+  ship, but the mechanism it would ride does.)
 - **Place-memory** — the *feature-discovery* cut shipped as the `DISCOVERY`
   realm (above); *room-familiarity* place-memory is still a future realm,
   alongside the shipped recognition / identification / regard / discovery

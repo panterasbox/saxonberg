@@ -636,6 +636,62 @@ What this buys is that **material stays orthogonal**. A wand *is* brass,
 honestly and permanently — which tells you real things (it conducts, it
 will not burn) and tells you **nothing** about which spell it holds.
 
+### The class owns the unidentified paragraph
+
+> **The prose under the name has to withhold what the name withholds.**
+
+A bank supplies a *name*, and for a while that was the whole of it — the
+long description stayed the authored one, always. That is a leak with no
+author on the hook for it: a template's `longDescription` is written for
+the **identified** item, so *a crooked beaded wand* sat over "A
+finger-length rod of pale ash. A pull on it throws a lance of true
+flame." The name did its job and the paragraph gave the answer away, and
+the author had no reason to suspect they had written anything sensitive.
+
+So each bank carries an **`unidentifiedLong`** — one paragraph per class,
+with `{descriptor}` interpolated so it agrees with the name above it —
+and the split is: **the class owns the unidentified prose, the item owns
+the identified prose.** Which one you get is a fact about the reader. An
+author never writes an unidentified variant of their own description,
+which is the point: there is nothing to remember to do.
+
+Two tokens, and the second is not decoration. `{a}` / `{A}` resolves
+**the article for the drawn descriptor** through the same `GrammarApi`
+the derived name uses. A hand-written *a* is one draw away from being a
+typo at all times, and because the pool rotates on a schedule the typo
+would surface months after the sentence was written, on a word the
+author never saw.
+
+The seam is `Visible.getLongFor(viewer)` — the per-viewer **base text**,
+which `getMarkupLong` augments. Augmenters could not have done this:
+they are handed the finished string and may only add to it, and
+withholding needs a hand on the base. Silence falls through to the
+authored paragraph, so a class with no prose is exactly as it was.
+
+> ⚠ **The gate is `RecognitionApi.knowsTrueType`, which is strictly
+> narrower than "shows a type name."** A **believed** name reads as
+> knowledge from the inside and is not knowledge; a record from a prior
+> generation hedges. Both keep the generic prose — because handing the
+> authored paragraph to a misidentified reader would contradict, in the
+> very next line, the name the curse just planted. **False information
+> is only worse than none while it stays uncontradicted.**
+
+Two authoring rules, both CI-gated by `lint:descriptors` where they can
+be seen structurally:
+
+| Rule | Checked? |
+|---|---|
+| every bank authors prose | ✅ lint |
+| never hand-write the article before `{descriptor}` — use `{a}` | ✅ lint |
+| **claim no material** — a specimen is truly brass or ash *per instance*, so class prose saying "of pale ash" is false on the brass one | ❌ review |
+
+The third is deliberately not linted. The reserved-material vocabulary is
+built for single-word descriptors and includes ordinary English
+(*plain*, *mixed*, *down*); run against a paragraph it flags almost every
+sentence, and a check that cries wolf trains authors to add exemptions.
+The first two fail structurally; "does this sentence assert a substance"
+is a reading, and readings are review's job.
+
 ### BUC and merge behaviour
 
 Stack identity keys on the per-instance **bucket** (`unknown` until
