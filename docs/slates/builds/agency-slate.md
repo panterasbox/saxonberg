@@ -105,11 +105,63 @@ vocabulary closed rather than open is the design work.
 - **the custodian / receiver** — currently a bespoke role in
   [contract.md](../../subsystems/contract.md); agency generalizes it
 
-⚠ **Possibly already a special case: employment.** A bartender selling
-drinks is acting for the business, and the business gets the money.
-Worth checking whether `employment.md`'s on-shift conferral is a
-hand-rolled narrow agency — **if it is, generalizing unifies two things
-instead of adding one.**
+## ⚠ Checked: employment is NOT agency — and the real mechanism is better
+
+The hypothesis was that a bartender selling drinks is acting for the
+business. **Wrong.** Three separate mechanisms, none of them agency:
+
+| | Mechanism | Keys off |
+|---|---|---|
+| **on-shift conferral** | capability (`MakerMixin`) via the augment substrate | the **position** |
+| **sale settlement** | payee resolution | ⭐ the **venue** |
+| **proprietor acts for business** | `businessOfProprietor` | **ownership**, not employment |
+
+`BuyController` never consults the seller:
+
+```js
+const business = await EmploymentApi.ensureOperatorAt(venuePath);
+account = await EmploymentApi.operatingAccountOf(business);
+```
+
+> ⭐⭐⭐ **The money goes to the business because of WHERE the sale
+> happened, not WHO made it.**
+
+That is **the till model** — cash in the drawer belongs to the shop
+regardless of who rang it up. No authority is delegated and no act is
+attributed to anyone else; the bartender crafts **as themselves**, with a
+conferred capability. `getConferredMixinNames()` is exactly what it says:
+**capability, not authority.**
+
+### ⭐⭐ Which tells us what agency is actually FOR
+
+> **Place-derivation only works where there is a venue.**
+
+A courier, a travelling salesman, a broker negotiating off-site, a
+contractor working on someone else's parcel — none of them give
+`ensureOperatorAt(venuePath)` anything to resolve.
+
+> ⭐⭐⭐ **Agency is not redundant with employment. It is what unblocks
+> commerce OUTSIDE a shop** — exactly where
+> [delivery-slate](./delivery-slate.md) and
+> [freight-slate](./freight-slate.md) are headed.
+
+**Place-derivation for the counter; agency for the road.** Complements,
+not competitors — and it means agency should NOT try to absorb the retail
+path, which already works.
+
+### ⭐ There IS one hand-rolled narrow agency, just not that one
+
+```js
+businessOfProprietor(subject) → findBusiness(b => b.getProprietor() === path)
+```
+
+**Proprietor-only**, matched on ownership, built for `--business` contract
+posting. That is a real *"this person may act as this business"* — single
+purpose and hand-rolled.
+
+> **Generalizing agency subsumes it**, and would let a **manager** post a
+> contract for the business without owning it — which the current shape
+> cannot express at all.
 
 ## ⚠⚠ Delegation is NOT agency — do not conflate them
 
