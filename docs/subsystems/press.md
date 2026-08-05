@@ -351,6 +351,45 @@ no legislature, no bills, no policy — so its releases are whatever is
 written in character. **Cold start is content, not mechanism**: no NPC
 outlet, no seeded demo release, no synthetic floor.
 
+### ⚠ A press office is not a newsroom
+
+Both seeded publishers are **institutional communications shops**, and
+their position labels are the tell: *"speaking for the Compact"*,
+*"speaking for the Prime Minister"*. A newsroom role is never labelled
+with the name of its subject.
+
+So the roster here is `communications-director` (and, at the executive,
+a `press-secretary` reporting to it) — **not** an editor in chief. That
+is doctrine, not taste: **the state aggregates, never reports.** The
+state may cite; only a publisher may claim. It is the rule that struck
+the herald seat from the gazette slate's Wave 1. Putting an editor in
+chief on a government press office would be the state standing up a
+newsroom and calling its own output journalism, which is precisely the
+failure the rule exists to prevent.
+
+The newsroom roster belongs to a **different organization that does not
+exist yet** — the vocation in
+[press-slate](../slates/builds/press-slate.md), the one that makes
+transparency actual rather than declared. Its shape when it lands:
+
+```
+publisher → editor-in-chief → editor → reporter
+```
+
+...with `publishingPositions` most likely stopping short of `reporter`
+(a reporter *files*; an editor *publishes*), and `reportsTo` finally
+carrying a chain deeper than the two links the executive uses today.
+
+⚠ **A vocabulary collision to expect there.** This subsystem uses
+"publisher" to mean *a thing that publishes* — `PublisherMixin`,
+`publishingPositions`, `getFeedPath`. In journalism **Publisher is a
+job**: the business side, the person who hires the editor in chief. So a
+newspaper will be a `Publisher` (mixin) whose positions include a
+`publisher` (role). Awkward, and deliberately left alone — the two live
+in different namespaces, and the mixin's meaning is already load-bearing
+across `/compact/press`, the executive, and any future organization that
+publishes without being a news outlet at all.
+
 ## Non-goals
 
 - **No threading / replies / reactions / voting** — two-way deliberation
