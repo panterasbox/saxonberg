@@ -64,7 +64,7 @@ export function candidatesForHere(
   const out: ScopeCandidate[] = [];
 
   pushDirect(out, location, viewer, attention);
-  pushDetails(out, location);
+  pushDetails(out, location, viewer);
 
   if (MixinApi.isExitable(location)) {
     const seenDoors = new Set<string>();
@@ -72,7 +72,7 @@ export function candidatesForHere(
       if (seenDoors.has(door.stuffId)) continue;
       seenDoors.add(door.stuffId);
       pushDirect(out, door, viewer, attention);
-      pushDetails(out, door);
+      pushDetails(out, door, viewer);
     }
     // Use `getObviousExits()` so synthesized exits (an
     // `ExitableVessel`'s `out` exit, a Cartesian zone's derived
@@ -130,7 +130,7 @@ export function candidatesForPeers(
   for (const item of env.getContents()) {
     if (item.stuffId === giver.stuffId) continue;
     pushDirect(out, item, giver, attention);
-    pushDetails(out, item);
+    pushDetails(out, item, giver);
   }
   return out;
 }
@@ -307,9 +307,20 @@ function pushBulkMaterials(out: ScopeCandidate[], host: Stuff): void {
   }
 }
 
-function pushDetails(out: ScopeCandidate[], host: Stuff): void {
+/**
+ * ⚠ `viewer` is not optional in spirit. A detail key is a targeting
+ * token, so an item that offers `sigil` as a candidate has told you
+ * what it is before you look at anything — the same D34 shape as a
+ * flat wand dropping `zap` from its affordance list. `null` is system
+ * mode (a viewer-blind engine enumeration), matching `pushDirect`.
+ */
+function pushDetails(
+  out: ScopeCandidate[],
+  host: Stuff,
+  viewer: Stuff | null,
+): void {
   if (!MixinApi.isDetailed(host)) return;
-  const ids = host.getDetailIds() ?? [];
+  const ids = host.getDetailIds(undefined, viewer ?? undefined) ?? [];
   // Each Detail can carry aliases (multiple ids → same Detail
   // object). Walk the alias map to dedup before emitting candidates.
   const seen = new Set<Detail>();
@@ -317,7 +328,7 @@ function pushDetails(out: ScopeCandidate[], host: Stuff): void {
     // Top-level details only — nested details are reached through
     // the chain rule (`:keyword` mid-chain auto-extends with child
     // detail names at the current via depth), not the seed scope.
-    if (!host.hasDetail(id)) continue;
+    if (!host.hasDetail(id, undefined, viewer ?? undefined)) continue;
     // Resolve the actual Detail object behind this id by reading the
     // raw map. DetailedMixin doesn't expose the Detail object
     // directly; we use its public shape. Keyword pool for a detail

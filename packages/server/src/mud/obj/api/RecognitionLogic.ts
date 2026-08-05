@@ -18,6 +18,8 @@ import { TemplatePathPrefixes } from '../../lib/paths';
 // module's eval and crash boot. So: zero static perception imports here.
 import type { VisionModality } from '../modalities/VisionModality';
 import { RECOGNITION, IDENTIFICATION } from '../../lib/belief/BeliefStore';
+import { Appearance } from '../../lib/identification/Appearance';
+import { DescriptorBank } from '../../lib/identification/DescriptorBank';
 
 const RecognitionApiCallers = SecurityPolicies.FromModule('/api/recognition#RecognitionApi'
 );
@@ -88,16 +90,130 @@ function isMasked(target: Stuff): boolean {
  * baseline shows).
  */
 function identificationName(viewer: Stuff, target: Stuff): string | null {
+  const record = currentTypeRecord(viewer, target);
+  if (!record) return null;
+  // ⚠ A **believed** name overrides the true one. This is the belief
+  // store doing what it is for: holding something the viewer is
+  // confident about and WRONG about. A cursed identify plants one, and
+  // the reader has no way to tell from the inside — which is what
+  // makes false information strictly worse than none.
+  const believed = (record as { believedName?: unknown }).believedName;
+  if (typeof believed === 'string' && believed.length > 0) return believed;
+  if (!MixinApi.isIdentifiable(target)) return null;
+  const known = target.getIdentifiedName();
+  return known ? known : null;
+}
+
+/**
+ * The viewer's **usable, current-generation** type record for `target`,
+ * or `null`. The one place the "is this knowledge still good?" test
+ * lives, so the name and the prose can never disagree about it.
+ *
+ * ⚠ A record from a PRIOR generation is deliberately treated as absent
+ * (D28). Its descriptor may have been reissued meaning something else,
+ * so asserting from it would state something possibly false; the caller
+ * falls through to `unidentifiedLook`, which hedges instead.
+ */
+function currentTypeRecord(
+  viewer: Stuff,
+  target: Stuff,
+): Record<string, unknown> | null {
   if (!MixinApi.isIdentifiable(target)) return null;
   if (!MixinApi.isBeliefStore(viewer)) return null;
   const signature = target.getTemplatePath();
   if (!signature) return null;
   const record = viewer.recall(IDENTIFICATION, signature);
-  if (record?.payload.typeKnown) {
-    const known = target.getIdentifiedName();
-    if (known) return known;
+  if (!record?.payload.typeKnown) return null;
+  const learned = record.payload.learnedGeneration;
+  if (
+    typeof learned === 'number' &&
+    !Appearance.isRecordCurrent(
+      learned,
+      Appearance.currentGeneration().generation,
+    )
+  ) {
+    return null;
   }
-  return null;
+  return record.payload as unknown as Record<string, unknown>;
+}
+
+/**
+ * **Does this viewer actually know what this is?** — the gate on
+ * revealing an item's authored long description.
+ *
+ * Strictly narrower than "shows a type name". A **believed** name reads
+ * as knowledge from the inside and is not knowledge: a misidentified
+ * potion must keep showing its class's generic prose, because the
+ * authored paragraph belongs to the thing it really is and would
+ * contradict the name the viewer has been given. False information is
+ * only worse than none while it stays uncontradicted.
+ */
+function knowsTrueTypeImpl(viewer: Stuff, target: Stuff): boolean {
+  const record = currentTypeRecord(viewer, target);
+  if (!record) return false;
+  const believed = (record as { believedName?: unknown }).believedName;
+  return !(typeof believed === 'string' && believed.length > 0);
+}
+
+/**
+ * **What an unidentified item looks like, and how a stale record hedges**
+ * (magic-items D26/D28).
+ *
+ * Three cases, and the middle one is the whole reason the generation
+ * rides the record:
+ *
+ * | Record | Shows as |
+ * |---|---|
+ * | current generation | *a potion of healing* (handled by `identificationName`) |
+ * | **prior** generation | *a blue potion — you once knew blue to mean healing* |
+ * | none | *a blue potion* |
+ *
+ * The descriptor pool is finite, so a descriptor is eventually reissued
+ * meaning something else. That is the one moment a stale record could
+ * assert something false — so the display **hedges rather than lies**.
+ * One field, no sweep, and it only does work in the rare case.
+ * Knowledge is never invalidated; only its applicability fades.
+ *
+ * Returns `null` when the item has no derived appearance at all, and the
+ * caller falls back to the authored short description.
+ */
+function unidentifiedLook(viewer: Stuff, target: Stuff): string | null {
+  if (!MixinApi.isIdentifiable(target)) return null;
+  const { generation, progress } = Appearance.currentGeneration();
+  const descriptor = target.renderAppearance(generation, progress);
+  if (descriptor.length === 0) return null;
+
+  const noun = target.getDescriptorClass();
+  // `GrammarApi.articleFor` rather than a hardcoded "a": the descriptor
+  // is drawn from a bank and half of them start with a vowel, so
+  // "a iridescent crimson potion" is one draw away at all times.
+  const phrase = `${descriptor} ${noun}`.trim();
+  const look = `${GrammarApi.articleFor(phrase)} ${phrase}`;
+
+  // A record from a PRIOR generation: hedge, never assert.
+  if (!MixinApi.isBeliefStore(viewer)) return look;
+  const signature = target.getTemplatePath();
+  if (!signature) return look;
+  const record = viewer.recall(IDENTIFICATION, signature)?.payload as
+    | { typeKnown?: boolean; learnedGeneration?: number }
+    | undefined;
+  if (!record?.typeKnown) return look;
+  const learned = record.learnedGeneration;
+  if (
+    typeof learned === 'number' &&
+    !Appearance.isRecordCurrent(learned, generation)
+  ) {
+    const thenDescriptor = Appearance.descriptorFor(
+      noun,
+      learned,
+      DescriptorBank.cached(noun),
+    );
+    const known = target.getIdentifiedName();
+    if (thenDescriptor.length > 0 && known) {
+      return `${look} — you once knew ${thenDescriptor} to mean ${known}`;
+    }
+  }
+  return look;
 }
 
 /**
@@ -212,9 +328,19 @@ function describeCore(
     return withStatus ? decorate(core, target) : core;
   }
 
-  // Items / inert things: the identified type, else the unidentified
-  // baseline.
-  const core = typeName ?? baseline;
+  // Items / inert things: the identified type; else the DERIVED
+  // unidentified look (which hedges a stale record rather than lying);
+  // else the authored baseline.
+  //
+  // A player's own LABEL wins over both (D28) — it is the fix for the
+  // one incongruity derived appearance creates, so it has to be visible
+  // even once you know what the thing is.
+  const label = MixinApi.isLabelled(target) ? target.getLabel() : '';
+  if (label.length > 0) {
+    const core = typeName ? `${label} (${typeName})` : label;
+    return withStatus ? decorate(core, target) : core;
+  }
+  const core = typeName ?? unidentifiedLook(viewer, target) ?? baseline;
   return withStatus ? decorate(core, target) : core;
 }
 
@@ -317,6 +443,12 @@ export class RecognitionLogic extends ApiLogic {
     covered: ReadonlySet<string> = EMPTY_COVERAGE
   ): string {
     return salientFeaturesImpl(target, covered);
+  }
+
+  /** See {@link RecognitionApi.knowsTrueType}. */
+  @CallSecurity(RecognitionApiCallers)
+  public knowsTrueType(viewer: Stuff, target: Stuff): boolean {
+    return knowsTrueTypeImpl(viewer, target);
   }
 
   /** See {@link RecognitionApi.perceivedKeywords}. */

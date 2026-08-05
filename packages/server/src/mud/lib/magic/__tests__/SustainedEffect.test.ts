@@ -36,7 +36,8 @@ const ORIGIN: MagicProvenance = {
   verb: "create",
   noun: "light",
   spellId: "glowlight",
-  caster: "/obj/Avatar/test",
+  specifiedBy: "/obj/Avatar/test",
+  firedBy: "/obj/Avatar/test",
 };
 
 function makeActor(): TestCharacter {

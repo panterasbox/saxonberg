@@ -143,6 +143,16 @@ import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { Maker } from '../lib/craft/Maker';
 import type { Caster } from '../lib/magic/Caster';
+import type { Arcane } from '../lib/magic/Arcane';
+import type { Consumable } from '../lib/magic/Consumable';
+import type { Potable } from '../lib/magic/Potable';
+import type { Marked } from '../lib/description/Marked';
+import type { Labelled } from '../lib/description/Labelled';
+import type { Memorized } from '../lib/magic/Memorized';
+import type { Circulating } from '../lib/residency/Circulating';
+import type { Conduit } from '../lib/magic/Conduit';
+import type { Charged } from '../lib/magic/Charged';
+import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
 import type { Business } from '../obj/Business';
@@ -1189,6 +1199,77 @@ export class MixinApi {
    */
   public static isCaster(obj: Stuff): obj is Stuff & Caster {
     return this.isActive(obj, Mixins.Caster);
+  }
+
+  /**
+   * A thing that **produces magic-tagged effects** and can name its grid
+   * footprint — every magic item today, traps and NPC powers later.
+   * Composition, not activation: a depleted wand is still arcane (its
+   * ward interaction and its rarity do not depend on its charge).
+   */
+  public static isArcane(obj: Stuff): obj is Stuff & Arcane {
+    return this.hasMixin(obj, Mixins.Arcane);
+  }
+
+  /** A discrete item that packages one act and spends itself doing it. */
+  public static isConsumable(obj: Stuff): obj is Stuff & Consumable {
+    return this.hasMixin(obj, Mixins.Consumable);
+  }
+
+  /** A liquid that carries a working — composed on the Material (D4). */
+  public static isPotable(obj: Stuff): obj is Stuff & Potable {
+    return this.hasMixin(obj, Mixins.Potable);
+  }
+
+  /** A thing bearing readable marks — scroll, book, label, signpost. */
+  public static isMarked(obj: Stuff): obj is Stuff & Marked {
+    return this.hasMixin(obj, Mixins.Marked);
+  }
+
+  /**
+   * A thing a player can write their own name on (D28). General
+   * annotation — it serves storage, shops and gifts as much as it serves
+   * an unidentified flask.
+   */
+  public static isLabelled(obj: Stuff): obj is Stuff & Labelled {
+    return this.hasMixin(obj, Mixins.Labelled);
+  }
+
+  /** A mind currently holding spell specifications (D15). */
+  public static isMemorized(obj: Stuff): obj is Stuff & Memorized {
+    return this.hasMixin(obj, Mixins.Memorized);
+  }
+
+  /** Part of the world's countable stock — the distribution marker (D21). */
+  public static isCirculating(obj: Stuff): obj is Stuff & Circulating {
+    return this.hasMixin(obj, Mixins.Circulating);
+  }
+
+  /**
+   * A **battery**: holds energy, spends it on use, and leaks (D7).
+   * Composition, not state — a DEPLETED wand is still `Charged`, which
+   * is what lets its verb keep affording while failing audibly (D34).
+   */
+  public static isCharged(obj: Stuff): obj is Stuff & Charged {
+    return this.hasMixin(obj, Mixins.Charged);
+  }
+
+  /**
+   * Does this thing couple an arcane reserve to a shell? The apparatus
+   * half of `recharge` — see {@link ConduitMixin}.
+   */
+  public static isConduit(obj: Stuff): obj is Stuff & Conduit {
+    return this.hasMixin(obj, Mixins.Conduit);
+  }
+
+
+  /**
+   * Carries a blessed/uncursed/cursed band — a potency level on the
+   * item's own effect axis (D11). **Opt-in per template**: most things
+   * have no BUC state and should not carry the hidden-state risk.
+   */
+  public static isBlessable(obj: Stuff): obj is Stuff & Blessable {
+    return this.hasMixin(obj, Mixins.Blessable);
   }
 
   public static isBank(obj: Stuff): obj is Stuff & Bank {

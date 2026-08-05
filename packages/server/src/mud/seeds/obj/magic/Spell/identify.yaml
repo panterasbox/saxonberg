@@ -1,0 +1,40 @@
+# Identify — perceive·arcana, the paid shortcut past experiment. A Sense
+# effect whose result is a WRITE to the reader's belief store, not a
+# message: it teaches the item's CLASS, so every flask that looks like
+# that one reads as known from here on. Not oracular — you are buying
+# the answer you would otherwise get by drinking the unknown flask and
+# finding out. See requirements D24.
+#
+# ⚠ There is deliberately no `identify` VERB (D34). A scroll of identify
+# affords `read`, like every written thing, and this is what happens
+# when you read it. An `identify` affordance would announce what you
+# were holding just by appearing in your list.
+class: /obj/magic/Spell
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  spellId: identify
+  name: Identify
+  verb: perceive
+  noun: arcana
+  cost: 12
+  castingProfile:
+    requiredBand: competent
+    castSeconds: 4
+  targeting: object
+  effects:
+    # [cursed · uncursed · blessed] — identify's own axis, end to end:
+    #
+    #   cursed   plants a FALSE identification you will act on
+    #   uncursed names one thing truthfully
+    #   blessed  names EVERYTHING you carry
+    #
+    # The low end is not a weaker identify and not a misfire — it is
+    # strictly worse than no information, because you will trust it. It
+    # is also the only thing in the game that exercises the belief
+    # store's capacity to hold something untrue.
+    - kind: sense
+      sense: [misidentify, identify-item, identify-item]
+      scope: [null, null, inventory]
+  description: >-
+    The shape of a made thing remembers its making. Held long enough
+    against the question, it answers what it is.

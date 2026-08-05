@@ -39,6 +39,8 @@ describe("MagicEffects.validate — the closed union", () => {
       { kind: "afflict", conditionPath: "/obj/Condition/magic/dread" },
       { kind: "relieve" },
       { kind: "adjust-reserve", reserveKey: "mana", delta: -10 },
+      { kind: "adjust-blessing", steps: 1 },
+      { kind: "adjust-blessing", steps: -1 },
       { kind: "move", move: "shove" },
       { kind: "conjure", bulkMaterial: "water", litres: 1 },
       { kind: "conjure", templatePath: "/obj/magic/GlowlightOrb" },
@@ -48,7 +50,7 @@ describe("MagicEffects.validate — the closed union", () => {
       { kind: "script", source: "say hello" },
     ];
     for (const s of samples) expect(() => MagicEffects.validate(s)).not.toThrow();
-    expect(EFFECT_KINDS).toHaveLength(10);
+    expect(EFFECT_KINDS).toHaveLength(11);
   });
 
   it("makes an unbacked effect unrepresentable — the governing invariant", () => {

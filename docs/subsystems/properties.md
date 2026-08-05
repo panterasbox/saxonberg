@@ -21,12 +21,62 @@ assignment.** Every dynamic value goes through the Propertied API.
 // WRONG — bypasses access control, persistence opt-in, introspection,
 // and is unreachable to anything that walks a Stuff's properties
 avatar.questStarted = true;
-avatar.gold = 100;
+avatar.tally = 100;
 
 // RIGHT — controlled, introspectable, opt-in persistence, gateable
 avatar.setProp(Property.of<boolean>('quest_started'), true);
-avatar.setProp(Property.of<number>('gold'), 100);
+avatar.setProp(Property.of<number>('tally'), 100);
 ```
+
+## ⚠ What props are FOR — and the two things they are not
+
+There are exactly **two** production prop call sites, and they share a
+shape:
+
+| Site | Key |
+|---|---|
+| `api/event.ts` — the EventRegistry | `Property.of(eventName)` — one slot per authored event |
+| `obj/api/BankingLogic.ts` — corpo circle membership | `circleProp(corpoKey)` — one flag per corpo |
+
+Neither key exists at authoring time, and that is the whole point:
+
+> ⭐ **A mixin field needs a statically known name. A prop is for a slot
+> whose key is computed at runtime.**
+
+A sharper test than "is it dynamic", and it explains why the count is
+two rather than two hundred. This codebase is *designed* — one mind,
+everything named up front — so the organic, unforeseen state props exist
+to absorb has mostly not arisen. **That is the expected state, not an
+under-use to correct.**
+
+### ⚠⚠ Money is not a prop
+
+This doc used to run on `gold` as its example. That predates the banking
+build and is now **the exact breach the money system exists to
+prevent**: money lives in `bank_ledger`, written only by the sealed
+`postTransaction` chokepoint, which enforces
+`supply == Σ account balances + Σ circulating coins`. A number on an
+avatar — prop *or* field — mints currency from nowhere. See
+[banking.md](./banking.md).
+
+### And a "data-only" mixin is still a mixin
+
+Props do not replace a thin mixin, because three framework contracts key
+on `fieldMeta` and have no prop equivalent:
+
+1. **`authorable`** — the Hydrator reflects into **fields**, never
+   props, so a prop cannot be written in a template's `data:` block or
+   appear in the Studio `@authorable` schema. **Props are unreachable
+   from content.**
+2. **narrowing** — `MixinApi.isX(obj)` threads a mixin's interface into
+   TypeScript's control flow; `getProp` returns `T | undefined` on every
+   Stuff.
+3. **`globIdentity`** — stack-merge identity is declared in `fieldMeta`.
+
+`LabelledMixin` is three accessors and no logic, yet it carries a setter
+invariant the Hydrator routes through, contributes the `label` verb, is
+narrowed on by `RecognitionApi`, vetoes stack merges, and is authorable.
+**A mixin is a TYPE; a prop is a VALUE.**
 
 Direct assignment is invisible to the framework. Props are visible to
 access control, mask transformation, persistence, and enumeration —
@@ -41,7 +91,7 @@ assignment](../antipatterns.md#use-props-not-direct-field-assignment).
 Property keys are nominal strings carrying a type parameter:
 
 ```typescript
-const gold = Property.of<number>('gold');
+const tally = Property.of<number>('tally');
 const flags = Property.of<string[]>('quest_flags');
 ```
 
@@ -50,9 +100,9 @@ a string key is. The type parameter threads through `setProp` /
 `getProp` so writes and reads agree on the value type:
 
 ```typescript
-avatar.setProp(gold, 100);          // ok
-avatar.setProp(gold, 'rich');       // type error: 'rich' is not number
-const g: number | null = avatar.getProp(gold);
+avatar.setProp(tally, 100);          // ok
+avatar.setProp(tally, 'rich');       // type error: 'rich' is not number
+const t: number | null = avatar.getProp(tally);
 ```
 
 ### Transient vs saved
@@ -70,8 +120,8 @@ Every property is one or the other:
 avatar.setProp(Property.of<string>('current_target'), 'goblin-42');
 
 // Saved — explicit init
-avatar.initProp(Property.of<number>('gold'), { transient: false });
-avatar.setProp(Property.of<number>('gold'), 100);
+avatar.initProp(Property.of<number>('tally'), { transient: false });
+avatar.setProp(Property.of<number>('tally'), 100);
 ```
 
 The distinction is settable later via `configureProp`; the value moves
@@ -144,13 +194,13 @@ changes them. Returns `false` if the property already exists (init) or
 doesn't exist (configure):
 
 ```typescript
-avatar.initProp(Property.of<number>('gold'), {
+avatar.initProp(Property.of<number>('tally'), {
   transient: false,
   checkAccess: (prop, op, special) => { ... },
 });
 
 // Later, lock writes:
-avatar.configureProp(Property.of<number>('gold'), {
+avatar.configureProp(Property.of<number>('tally'), {
   checkAccess: (prop, op) => op === PropOperations.Get,
 });
 ```
@@ -287,7 +337,7 @@ subsystem; this doc just shows the shape.
 > "Anyone can read this; only the owning Stuff can write it."
 
 ```typescript
-avatar.initProp(Property.of<number>('gold'), {
+avatar.initProp(Property.of<number>('tally'), {
   transient: false,
   checkAccess: (_prop, op, _special) =>
     op !== PropOperations.Set || ExecutionContextApi.getCaller() === avatar,
@@ -478,8 +528,8 @@ class. Props handle the cases where:
 - The set of useful keys depends on what the player is doing (active
   buffs, current capabilities, in-flight quest state).
 - The keys are author-defined at runtime (mod content, custom NPCs).
-- The protection rules differ per-key (gold needs ownership-gating;
-  display name doesn't).
+- The protection rules differ per-key (a corpo-membership flag needs
+  ownership-gating; a script's scratch counter doesn't).
 - The values are best treated uniformly (enumeration, save/load,
   introspection).
 
@@ -512,8 +562,8 @@ Operations are six because the threats differ:
 - `Mask` and `Unmask` are gates on third-party transformations of the
   value, distinct from writing the base.
 - `Remove` is structural deletion; the protection rules around it are
-  often stricter than for `Set` (you can usually overwrite gold;
-  rarely should you be able to make the gold property cease to exist).
+  often stricter than for `Set` (you can usually overwrite a flag;
+  rarely should you be able to make it cease to exist).
 - `Get` is read.
 
 Six is the smallest set that captures meaningfully-different policy

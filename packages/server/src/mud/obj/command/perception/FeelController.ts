@@ -165,7 +165,11 @@ export default class FeelController extends SingleSenseControllerBase {
       MessageApi.scene(actor).topic(this.sceneTopic).toSelf(body).send();
       return;
     }
-    const description = host.getDetail(dotted, this.senseChannel);
+    const description = host.getDetailFor(
+      context.commandGiver,
+      dotted,
+      this.senseChannel,
+    );
     if (description === null) {
       const body = bandPrefix
         ? bandPrefix

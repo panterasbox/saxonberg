@@ -395,6 +395,59 @@ export const Mixins = {
   // Character, gated: active only when the Species intrinsically confers
   // it (innateMixins) or an augment does. See docs/subsystems/magic.md.
   Caster: 'CasterMixin',
+  // Arcane — "I produce magic-tagged effects, and here is my grid
+  // footprint". The one shared declaration suppression, dispel, rarity
+  // and the census all read. Sits BELOW distribution (Circulating reads
+  // it, never declares it) and is named for the property, not the object
+  // kind, so traps and NPC powers can wear it later. See D35.
+  Arcane: 'ArcaneMixin',
+  // Consumable — a discrete item packaging ONE act, which spends itself
+  // performing it (scrolls, single-use wands). Deliberately NOT composed
+  // with Bulkable: potions have volume and ride bulk instead (D4), which
+  // keeps this concept small rather than universal.
+  Consumable: 'ConsumableMixin',
+  // Potable — a LIQUID that carries a working. Composes onto the
+  // Material, not the flask, so the magic travels with the substance:
+  // decanting, dilution, splitting and spilling are all real for free.
+  Potable: 'PotableMixin',
+  // Marked — a thing that bears marks (scroll, book, label, signpost),
+  // carrying the modality they can be taken in through. `read` =
+  // perceive + decode, and an embossed text reads in the dark. See D33.
+  Marked: 'MarkedMixin',
+  // Charged — a BATTERY: supplies energy AND specification, spends on
+  // use, and LEAKS. The decay is load-bearing, not flavour: without it
+  // stock grows without bound at any inflow throttle; with it, stock
+  // settles at S* = inflow/d. The item is its own endpoint, so recoil
+  // and waste heat land on it. See D5/D6/D7.
+  Charged: 'ChargedMixin',
+  Conduit: 'ConduitMixin',
+  // Focus — supplies SPECIFICATION only; the user pays the energy and
+  // is therefore the endpoint. Perishes by pattern rot on a much slower
+  // schedule than charge: a binding is a state held away from
+  // equilibrium. "Magic perishes, matter doesn't." See D9.
+  // Blessable — the blessed/uncursed/cursed axis, as a potency level on
+  // the item's OWN effect axis (never a hidden alignment tag). Opt-in
+  // per template. The paradigm hidden-state axis, so also the paradigm
+  // leak risk: stack identity keys on the per-viewer BUCKET, never the
+  // true band. Cursed sticks — and a cursed CHARGED item discharges into
+  // whoever is wearing it. See D11.
+  Blessable: 'BlessableMixin',
+  // Labelled — a player-written name on a thing. General annotation, not
+  // a potions feature: it serves storage, shops and gifts too. It is the
+  // fix for derived appearance's one cost — descriptors rotate, labels
+  // do not, so a careful stash survives a turnover. See D28.
+  Labelled: 'LabelledMixin',
+  // Memorized — the specifications a mind is currently HOLDING. Claim
+  // lives in the chronicle (append-only, right for "I read of this");
+  // sharpness lives here, because it decays. Competence never fades;
+  // specifications do. No slot count — interference is the limiter, so
+  // Vancian preparation emerges instead of being imposed. See D15.
+  Memorized: 'MemorizedMixin',
+  // Circulating — "this is part of the world's stock, and here is how to
+  // count it". Carries MATERIAL tags (place affinity) and a census key;
+  // READS its effect tags from Arcane rather than declaring them, so a
+  // ward never has to consult the distribution subsystem. See D21/D35.
+  Circulating: 'CirculatingMixin',
 } as const;
 
 /**

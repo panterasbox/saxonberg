@@ -16,6 +16,7 @@ import Spell from "../magic/Spell";
 import { MagicEffects } from "../../lib/magic/Effect";
 import { MagicGrid } from "../../lib/magic/Grid";
 import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
+import { CastingProfiles } from "../../lib/magic/CastingProfile";
 import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
 
@@ -39,6 +40,19 @@ function stubSpellTemplates(seeds: Loose[]): void {
   );
 }
 
+/** Warm from explicit `[path, data]` pairs — the pack-collision shape. */
+async function warmCatalogueAt(
+  rows: [string, Loose][],
+): Promise<SpellCatalogue> {
+  vi.spyOn(Template, "findDescendants").mockImplementation(
+    async (): Promise<Template[]> =>
+      rows.map(([path, data]) => ({ path, data })) as unknown as Template[],
+  );
+  const cat = makeStuff(() => new SpellCatalogue());
+  await cat.postRegister();
+  return cat;
+}
+
 async function warmCatalogue(seeds: Loose[]): Promise<SpellCatalogue> {
   stubSpellTemplates(seeds);
   const cat = makeStuff(() => new SpellCatalogue());
@@ -51,16 +65,15 @@ afterEach(() => {
 });
 
 describe("SpellCatalogue — warm + lookup", () => {
-  it("warms descriptors keyed on spellId, with derived family", async () => {
+  it("warms descriptors keyed on PATH, with derived family", async () => {
     const cat = await warmCatalogue([
       {
         spellId: "test-bolt",
         name: "Test Bolt",
         verb: "create",
         noun: "fire",
-        requiredBand: "novice",
         cost: 20,
-        castSeconds: 3,
+        castingProfile: { requiredBand: "novice", castSeconds: 3 },
         targeting: "any",
         effects: [{ kind: "inject-channel", channel: "heat", energy: 2 }],
       },
@@ -72,10 +85,10 @@ describe("SpellCatalogue — warm + lookup", () => {
         effects: [{ kind: "emit-field", field: "light" }],
       },
     ]);
-    const bolt = cat.getSpell("test-bolt")!;
+    const bolt = cat.getSpellAt("/obj/magic/Spell/test-bolt")!;
     expect(bolt.family).toBe("impulse");
     expect(bolt.cost).toBe(20);
-    const light = cat.getSpell("test-light")!;
+    const light = cat.getSpellAt("/obj/magic/Spell/test-light")!;
     expect(light.family).toBe("modifier");
     expect(light.name).toBe("test-light"); // name defaults to id
     expect(cat.spellsAtCell("create", "fire").map((s) => s.spellId)).toEqual([
@@ -104,9 +117,9 @@ describe("SpellCatalogue — warm + lookup", () => {
         effects: [],
       },
     ]);
-    expect(cat.getSpell("gain-levels")).toBeNull();
-    expect(cat.getSpell("bad-address")).toBeNull();
-    expect(cat.getSpell("no-effects")).toBeNull();
+    expect(cat.getSpellNamed("gain-levels")).toBeNull();
+    expect(cat.getSpellNamed("bad-address")).toBeNull();
+    expect(cat.getSpellNamed("no-effects")).toBeNull();
     expect(cat.allSpells()).toHaveLength(0);
   });
 });
@@ -149,8 +162,14 @@ describe("the authored roster seeds", () => {
       // the two axes must be seeded Disciplines (the cast credits both)
       expect(disciplineKeys.has(`magic-${data.verb}`), `${id} verb leaf`).toBe(true);
       expect(disciplineKeys.has(`magic-${data.noun}`), `${id} noun leaf`).toBe(true);
+      // The caster-assuming half lives on its own object (D3) — an item
+      // trigger ignores the whole thing rather than two loose fields.
+      expect(() => CastingProfiles.validate(data.castingProfile), `${id} profile`)
+        .not.toThrow();
       expect(
-        CompetenceBand.isBand(data.requiredBand),
+        CompetenceBand.isBand(
+          CastingProfiles.validate(data.castingProfile).requiredBand,
+        ),
         `${id} bad requiredBand`,
       ).toBe(true);
       const effects = data.effects as unknown[];
@@ -181,5 +200,36 @@ describe("the authored roster seeds", () => {
     ]) {
       expect(cells.has(cell), `missing cell ${cell}`).toBe(true);
     }
+  });
+
+  it("two packs shipping the same NAME stay distinct — the collision case", async () => {
+    // The bug this keying exists to prevent. Both rows are called
+    // `firebolt`; keyed on the flat id the second loader silently won,
+    // and every item in the world naming `firebolt` was repointed at it.
+    const cat = await warmCatalogueAt([
+      ["/obj/magic/Spell/firebolt", { spellId: "firebolt", name: "Core Firebolt",
+        verb: "create", noun: "fire", cost: 20,
+        effects: [{ kind: "inject-channel", channel: "heat", energy: 2 }] }],
+      ["/pack/ember/Spell/firebolt", { spellId: "firebolt", name: "Ember Firebolt",
+        verb: "create", noun: "fire", cost: 5,
+        effects: [{ kind: "inject-channel", channel: "heat", energy: 9 }] }],
+    ]);
+
+    // Both survive, and a durable reference reaches exactly the one it names.
+    expect(cat.allSpells()).toHaveLength(2);
+    expect(cat.getSpellAt("/obj/magic/Spell/firebolt")!.name).toBe("Core Firebolt");
+    expect(cat.getSpellAt("/pack/ember/Spell/firebolt")!.name).toBe("Ember Firebolt");
+
+    // The short name is ambiguous, and says so rather than pretending.
+    expect(cat.pathsNamed("firebolt")).toHaveLength(2);
+    // A player typing it gets one — a disambiguation problem, not a
+    // corrupted pointer, which is the whole distinction.
+    expect(cat.getSpellNamed("firebolt")).not.toBeNull();
+
+    // …and the descriptor carries its own key, so anything holding a
+    // descriptor can store a reference that survives the collision.
+    expect(cat.getSpellAt("/pack/ember/Spell/firebolt")!.path).toBe(
+      "/pack/ember/Spell/firebolt",
+    );
   });
 });

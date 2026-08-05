@@ -430,6 +430,19 @@ export const AppSettingKeys = {
   residencyResetMode: "residency.reset.mode",
   /** Reset — game-time sweep cadence in game-seconds. */
   residencyResetIntervalS: "residency.reset.intervalS",
+  /** Residency — the SPAWN sweep's mode: `observe` (default) | `enforce`.
+   * The third self-maintenance sweep, alongside eviction and reset, and
+   * observe-first for the same reason: watch the algorithm in production
+   * before it places anything. */
+  residencySpawnMode: "residency.spawn.mode",
+  /** Residency — spawn-sweep cadence, game-seconds. *Calibrate at launch.* */
+  residencySpawnIntervalS: "residency.spawn.intervalS",
+  /** Residency — how much a region's declared `favours` material tag
+   * multiplies a candidate's draw weight. Shifts WHICH item fills a
+   * region's stock, never how much of it there is (that is the item's
+   * `regionTarget`, overridden by the zone's `stocks`).
+   * *Calibrate at launch.* */
+  residencySpawnAffinityBoost: "residency.spawn.affinityBoost",
 
   /**
    * Retail — the general store. `listingCap` is the per-consignor active-
@@ -1088,6 +1101,56 @@ export const AppSettingKeys = {
   /** Magic — base mana recovery (pt per game-minute) at rest, before the
    * serenity factor and the metabolism-shaped rest-quality scaling. */
   magicRecoveryPerMinBase: "magic.recoveryPerMinBase",
+  /** Magic — kilojoules delivered into an item's tank per point of the
+   * recharging caster's own reserve spent. The exchange rate of the
+   * recharging SERVICE: what is scarce is caster-hours, not shells.
+   * *Calibrate at launch.* */
+  magicRechargeKJPerManaPt: "magic.recharge.kJPerManaPt",
+  /** Magic — pattern integrity (0..1) restored per point spent
+   * re-impressing a focus. Deliberately DEARER per point of usefulness
+   * than filling a tank: a focus is cheap to own and expensive to
+   * maintain, which is the counterweight to having no tank to run dry.
+   * *Calibrate at launch.* */
+  magicRefreshPatternPerManaPt: "magic.recharge.patternPerManaPt",
+  /** Magic — kilojoules of stored charge a charged item spends per point
+   * of a spell's authored cost. The conversion between the caster-facing
+   * pool (pt) and the item-facing tank (kJ) — a spell's `cost` is
+   * trigger-neutral once read as *energy required*, which the arcane
+   * science says it literally is. *Calibrate at launch.* */
+  magicChargeKJPerCostPt: "magic.charge.kJPerCostPt",
+  /** Magic — fraction of an item's committed energy that becomes WASTE
+   * HEAT in the item rather than effect. No process is perfectly
+   * efficient, and on a charged item the endpoint is the shell — which
+   * is what lets a cooling wand crack and makes a spark wand safer than
+   * the equivalent cast. *Calibrate at launch.* */
+  magicWasteHeatFraction: "magic.wasteHeatFraction",
+  /** Magic — a charged item's idle self-discharge, per GAME second. The
+   * `d` in `S* = inflow/d`: with no decay, stock grows without bound at
+   * any inflow throttle and no dial can save it. HALF the answer — the
+   * ratio to inflow is what settles the world's charged stock.
+   * *Calibrate at launch.* */
+  magicChargeDecayPerGameSec: "magic.charge.decayPerGameSec",
+  /** Magic — what an always-on charged item draws just staying on
+   * (watts). Two orders of magnitude above the leak, which is what makes
+   * always-on the EXPENSIVE mode rather than a rounding difference — a
+   * worn ring flattens in days where a stowed wand lasts months.
+   * *Calibrate at launch.* */
+  magicChargeStandbyWatts: "magic.charge.standbyWatts",
+  /** Magic — a focus's pattern rot, per GAME second. Much slower than
+   * charge decay: a binding is a state held away from equilibrium and a
+   * pattern that does work cannot BE at equilibrium, so it relaxes — but
+   * it has no energy to leak, only order to lose. The canon line is
+   * "magic perishes, matter doesn't". *Calibrate at launch.* */
+  magicPatternRotPerGameSec: "magic.pattern.rotPerGameSec",
+  /** Magic — satiation (%) spent per mana point recovered. Mana is the
+   * SECOND consumer of metabolism's coupled-recovery keystone: a caster
+   * refilling from nothing was a live first-law violation, and
+   * `arcane-science.md` prices recovery at ~300 W of metabolic work.
+   * *Calibrate at launch.* */
+  magicRecoverySatiationCost: "magic.recovery.satiationCost",
+  /** Magic — hydration (%) spent per mana point recovered. The tighter
+   * leash of the two, as it is for endurance. *Calibrate at launch.* */
+  magicRecoveryHydrationCost: "magic.recovery.hydrationCost",
   /** Magic — recovery multiplier for a `low`-serenity faculty. */
   magicSerenityFactorLow: "magic.serenityFactor.low",
   /** Magic — recovery multiplier for a `mid`-serenity faculty. */

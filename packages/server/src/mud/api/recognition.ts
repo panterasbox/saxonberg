@@ -139,6 +139,23 @@ export class RecognitionApi {
   }
 
   /**
+   * **Does `viewer` truly know what `target` is?** — the type axis, and
+   * the gate on showing an item's authored long description.
+   *
+   * Narrower than "renders a type name": a **believed** name (planted by
+   * a cursed identify) reads as knowledge and is not knowledge, and a
+   * record learned in a prior appearance generation hedges rather than
+   * asserts. Both answer `false` here, so the reader keeps seeing the
+   * class's generic prose and nothing contradicts the name they hold.
+   *
+   * False whenever the target isn't identifiable or the viewer can't
+   * hold beliefs.
+   */
+  public static knowsTrueType(viewer: Stuff, target: Stuff): boolean {
+    return logic().knowsTrueType(viewer, target);
+  }
+
+  /**
    * Generate a salient-feature description for a being the viewer
    * doesn't recognize. Viewer-independent (features are objective; only
    * the *name* is unknown). Reused by the viewer-relative targeting

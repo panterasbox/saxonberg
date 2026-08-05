@@ -10,9 +10,10 @@ data:
   name: Dread
   verb: destroy
   noun: mind
-  requiredBand: novice
   cost: 18
-  castSeconds: 3
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
   targeting: creature
   effects:
     - kind: afflict

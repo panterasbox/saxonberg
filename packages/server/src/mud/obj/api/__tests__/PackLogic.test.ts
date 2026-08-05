@@ -348,7 +348,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)
 });
 
 describe('PackLogic — pack integration (real packs + real class resolution)', () => {
-  it('install() discovers the shipped packs: base-library + species-and-names', async () => {
+  it('install() discovers the shipped packs: base-library + species-and-names + arcane-descriptors', async () => {
     // No stub on loadClassByPath — exercises the real resolver against the
     // shipped Material/Biome/Species/Clade classes. No packRoots → real
     // discovery from server deps + module resolution to the
@@ -376,13 +376,20 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     expect(sp!.nameBanks).toBeGreaterThan(0);
     expect(nameBankRows().some((b) => b.key === 'common')).toBe(true);
 
-    // Every written row is stamped by one of the two shipped packs — no
+    // The descriptor-bank content kind: the pools an unidentified magic
+    // item draws its appearance from (magic-items D32). Same shape as
+    // name banks, one kind over.
+    const desc = results.find((r) => r.packId === 'arcane-descriptors');
+    expect(desc).toBeDefined();
+
+    // Every written row is stamped by one of the shipped packs — no
     // unstamped leakage.
     expect(
       rows.every(
         (r) =>
           r.sourcePack === 'base-library' ||
-          r.sourcePack === 'species-and-names',
+          r.sourcePack === 'species-and-names' ||
+          r.sourcePack === 'arcane-descriptors',
       ),
     ).toBe(true);
   });

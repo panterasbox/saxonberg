@@ -1,0 +1,45 @@
+verbs: [study]
+controller: /obj/command/magic/StudyController
+description: "Take a working on board from a spellbook, or sharpen one you hold"
+help: |
+  Sit with a book until its working is in your head.
+
+  What you get is a **specification**, not a skill. You will know
+  the working; whether you can cast it is a separate question, and
+  the answer is your competence. Knowing a spell you cannot yet
+  cast is the ordinary outcome, not a failure — the book is the
+  manual, the practice is the lab.
+
+  A held specification **fades** when you do not use it, and fade
+  is felt as **cost**: a hazy working takes more out of you for the
+  same result. It never simply fails. Casting sharpens it, so
+  anything you use regularly never fades at all — you lose only
+  what you do not use.
+
+  Studying takes time and holds your hands and your attention, so
+  it competes with everything else. A nearly-sharp working comes
+  back quickly; one you have let go takes far longer. Regular light
+  maintenance beats cramming, which is exactly what you would
+  expect.
+
+  **You cannot learn what you cannot parse.** A book has a
+  comprehension floor below its casting floor, and reading above
+  the floor does not refuse you — it gives you a copy you believe
+  is correct. It is not. It will cost you on every cast until you
+  come back and study it properly.
+
+  There is no slot count and nothing stops you reading the whole
+  library. But similar workings blur each other, so the more you
+  hold the hazier they all get, and you will settle at the
+  repertoire you can afford to keep.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeVisible

@@ -125,14 +125,39 @@ export interface Detailed {
   getDetail(id: DetailId, sense: SenseChannel, parent?: DetailId): string | null;
   getDetail(id: DetailId, parent: DetailId): string | null;
 
-  /** Get all detail IDs at level */
-  getDetailIds(parent?: DetailId): DetailId[] | null;
+  /**
+   * **`getDetail` as `viewer` may address it** — the form every
+   * player-facing read should use.
+   *
+   * A separate name rather than a fourth positional because
+   * `getDetail`'s middle arguments are runtime-dispatched, so the
+   * viewer-aware call would otherwise read
+   * `getDetail(id, 'vision', undefined, viewer)`. Its siblings below
+   * take the viewer as a trailing optional, where it costs nothing.
+   */
+  getDetailFor(
+    viewer: Stuff,
+    id: DetailId,
+    sense?: SenseChannel,
+    parent?: DetailId,
+  ): string | null;
 
-  /** Get all detail IDs recursively */
-  getDeepDetailIds(parent?: DetailId): string[] | null;
+  /**
+   * Get all detail IDs at level.
+   *
+   * ⚠ **Pass `viewer` on any path a player can see.** A detail key is a
+   * parser token, so an item whose keys leak tells you what it is
+   * before you read a word of the text — which is why
+   * `IdentifiableMixin` swaps the whole tree for its class's. Omitting
+   * the viewer is the authoring/system read.
+   */
+  getDetailIds(parent?: DetailId, viewer?: Stuff): DetailId[] | null;
+
+  /** Get all detail IDs recursively. Viewer-aware — see `getDetailIds`. */
+  getDeepDetailIds(parent?: DetailId, viewer?: Stuff): string[] | null;
 
   /** Membership test for a single detail id at the given level. */
-  hasDetail(id: DetailId, parent?: DetailId): boolean;
+  hasDetail(id: DetailId, parent?: DetailId, viewer?: Stuff): boolean;
 
   /**
    * Set detail(s) — supports multiple IDs (aliases). Two shapes:
@@ -154,7 +179,7 @@ export interface Detailed {
    * that points at the same Detail. Used by the live-query
    * substrate's flat `details` projection.
    */
-  getDetailEntries(parent?: DetailId): DetailEntry[];
+  getDetailEntries(parent?: DetailId, viewer?: Stuff): DetailEntry[];
 
   /**
    * Declarative-content applier — consumes the YAML/template shape
@@ -178,7 +203,7 @@ export interface Detailed {
    * query substrate's focused-detail projection. Supports dotted
    * paths via the same `resolveParent` rules as `getDetail`.
    */
-  getDetailEntry(key: DetailId): DetailEntry | null;
+  getDetailEntry(key: DetailId, viewer?: Stuff): DetailEntry | null;
 }
 
 /**
@@ -235,9 +260,19 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'details',
-        read: (stuff) => (stuff as unknown as Detailed).getDetailEntries(),
-        perDetailRead: (stuff, detailKey) => {
-          const entry = (stuff as unknown as Detailed).getDetailEntry(detailKey);
+        // ⚠ Both layers take the `viewer` the descriptor already hands
+        // them. Before this they ignored it, so the INSPECTION PANE
+        // enumerated every key and description to anyone with the pane
+        // open — a wider leak than `look`, which at least had to be
+        // asked a question. `longDescription`'s projection next door was
+        // viewer-aware from the start; this one simply never was.
+        read: (stuff, viewer) =>
+          (stuff as unknown as Detailed).getDetailEntries(undefined, viewer),
+        perDetailRead: (stuff, detailKey, viewer) => {
+          const entry = (stuff as unknown as Detailed).getDetailEntry(
+            detailKey,
+            viewer,
+          );
           if (!entry) return null;
           return {
             ids: entry.ids,
@@ -276,6 +311,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       id: DetailId,
       senseOrParent?: SenseChannel | DetailId,
       parent?: DetailId,
+      viewer?: Stuff,
     ): string | null {
       let sense: SenseChannel = 'vision';
       let resolvedParent: DetailId | undefined = parent;
@@ -286,7 +322,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
           resolvedParent = senseOrParent;
         }
       }
-      const resolved = this.resolveParent(resolvedParent, id);
+      const resolved = this.resolveParent(resolvedParent, id, viewer);
       if (!resolved) {
         return null;
       }
@@ -301,10 +337,22 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Get all detail IDs at level.
+     * `getDetail` as `viewer` may address it — see the interface.
      */
-    getDetailIds(parent?: DetailId): DetailId[] | null {
-      const resolved = this.resolveParent(parent);
+    getDetailFor(
+      viewer: Stuff,
+      id: DetailId,
+      sense: SenseChannel = 'vision',
+      parent?: DetailId,
+    ): string | null {
+      return this.getDetail(id, sense, parent, viewer);
+    }
+
+    /**
+     * Get all detail IDs at level. Viewer-aware — see the interface.
+     */
+    getDetailIds(parent?: DetailId, viewer?: Stuff): DetailId[] | null {
+      const resolved = this.resolveParent(parent, undefined, viewer);
       if (!resolved) {
         return null;
       }
@@ -320,8 +368,8 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Returns true iff the detail exists and ANY sense slot is
      * populated (cheaper than walking the slot map externally).
      */
-    hasDetail(id: DetailId, parent?: DetailId): boolean {
-      const resolved = this.resolveParent(parent, id);
+    hasDetail(id: DetailId, parent?: DetailId, viewer?: Stuff): boolean {
+      const resolved = this.resolveParent(parent, id, viewer);
       if (!resolved) return false;
       const [details, resolvedId] = resolved;
       if (!resolvedId || !details) return false;
@@ -333,8 +381,8 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Get all detail IDs recursively.
      */
-    getDeepDetailIds(parent?: DetailId): string[] | null {
-      const resolved = this.resolveParent(parent);
+    getDeepDetailIds(parent?: DetailId, viewer?: Stuff): string[] | null {
+      const resolved = this.resolveParent(parent, undefined, viewer);
       if (!resolved) {
         return null;
       }
@@ -505,8 +553,8 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `hasChildren` reflects whether the entry's Detail has its own
      * nested DetailMap.
      */
-    getDetailEntries(parent?: DetailId): DetailEntry[] {
-      const resolved = this.resolveParent(parent);
+    getDetailEntries(parent?: DetailId, viewer?: Stuff): DetailEntry[] {
+      const resolved = this.resolveParent(parent, undefined, viewer);
       if (!resolved) return [];
       const [details] = resolved;
       if (!details || details.size === 0) return [];
@@ -539,8 +587,8 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `getDetail` uses. Returns `null` when no detail exists at the
      * requested key.
      */
-    getDetailEntry(key: DetailId): DetailEntry | null {
-      const resolved = this.resolveParent(undefined, key);
+    getDetailEntry(key: DetailId, viewer?: Stuff): DetailEntry | null {
+      const resolved = this.resolveParent(undefined, key, viewer);
       if (!resolved) return null;
       const [details, resolvedId] = resolved;
       if (!resolvedId || !details) return null;
@@ -559,13 +607,42 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * **The detail tree as `viewer` may address it** — the one place
+     * the whole read surface starts from, which is why the per-viewer
+     * override is a single method rather than a rule every accessor has
+     * to remember.
+     *
+     * Viewer-blind by default. `IdentifiableMixin` overrides it so an
+     * unidentified item presents its *class's* parts and not its own:
+     * a detail key is a parser token, so `look at sigil on wand`
+     * resolving-or-not is a free identification oracle otherwise.
+     *
+     * `undefined` viewer = the authoring/system read (hydration, the
+     * composer, MQL system mode). Deliberately unfiltered: there is no
+     * viewer to withhold from.
+     */
+    protected detailRoot(viewer?: Stuff): DetailMap {
+      if (viewer) {
+        const self = this as unknown as Stuff;
+        if (MixinApi.isIdentifiable(self)) {
+          const lensed = self.unidentifiedDetailRootFor(viewer);
+          if (lensed) return lensed;
+        }
+      }
+      return this.details;
+    }
+
+    /**
      * Internal: Get parent details by path.
      * Returns the Map that CONTAINS the last element of the path.
      * For example, getParentDetails(["a", "b"]) returns the details Map
      * inside "a", which contains "b".
      */
-    private getParentDetails(path: DetailId[]): DetailMap | undefined {
-      let details: DetailMap | undefined = this.details;
+    private getParentDetails(
+      path: DetailId[],
+      viewer?: Stuff,
+    ): DetailMap | undefined {
+      let details: DetailMap | undefined = this.detailRoot(viewer);
       // Navigate to path.length - 1 (the parent of the last element)
       for (let i = 0; i < path.length - 1; i++) {
         const segment = path[i];
@@ -591,8 +668,9 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
     private resolveParent(
       parent?: DetailId,
       id?: DetailId,
+      viewer?: Stuff,
     ): [DetailMap?, DetailId?] | undefined {
-      let details: DetailMap | undefined = this.details;
+      let details: DetailMap | undefined = this.detailRoot(viewer);
 
       if (id) {
         const pos = id.lastIndexOf(PATH_DELIM);
@@ -608,7 +686,7 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       if (parent && parent.length) {
         const path = parent.split(PATH_DELIM);
-        details = this.getParentDetails(path);
+        details = this.getParentDetails(path, viewer);
         if (!details) {
           return undefined;
         }
@@ -735,9 +813,10 @@ function escapeRegExp(value: string): string {
 function wrapDetailKeywords(
   text: string,
   host: Detailed & { getLong?: () => string },
+  viewer?: Stuff,
 ): string {
   if (!text) return text;
-  const entries = host.getDetailEntries?.();
+  const entries = host.getDetailEntries?.(undefined, viewer);
   if (!entries || entries.length === 0) return text;
   const canonicalKeys: string[] = [];
   for (const entry of entries) {
@@ -768,11 +847,20 @@ function wrapDetailKeywords(
 function wrapDetailKeysAugmenter(
   text: string,
   host: Stuff,
-  _viewer: Stuff,
+  viewer: Stuff,
 ): string {
   if (!MixinApi.isDetailed(host)) return text;
+  // ⚠ The FOURTH leak surface, and the one that only shows up when you
+  // drive it. The augmenter wraps any word in the finished prose that
+  // matches a detail key — so an unidentified scroll whose class prose
+  // said "in a hurried hand" came back with `hand` anchored, because
+  // the SCROLL has an authored `hand` detail. The anchor alone answers
+  // the question: this thing has a part called that. Lensing the key
+  // list closes it, and lets the identified case keep the anchor, which
+  // is the behaviour worth having.
   return wrapDetailKeywords(
     text,
     host as Detailed & { getLong?: () => string },
+    viewer,
   );
 }

@@ -222,7 +222,8 @@ describe("MagicLogic — the cast pipeline", () => {
       verb: "create",
       noun: "light",
       spellId: "glowlight",
-      caster: caster.getTemplatePath(),
+      specifiedBy: caster.getTemplatePath(),
+      firedBy: caster.getTemplatePath(),
     });
     // the bound orb realizes lit on the reconcile pull
     const orb = StuffApi.findById(
@@ -280,7 +281,8 @@ describe("MagicLogic — the cast pipeline", () => {
         verb: "destroy",
         noun: "mind",
         spellId: "dread",
-        caster: "/obj/test/other",
+        specifiedBy: "/obj/test/other",
+        firedBy: "/obj/test/other",
       },
     });
     const out = await MagicApi.resolveCast(caster, "dispel", target);
@@ -345,7 +347,8 @@ describe("MagicLogic — the cast pipeline", () => {
         verb: "destroy",
         noun: "mind",
         spellId: "dread",
-        caster: "/obj/test/other",
+        specifiedBy: "/obj/test/other",
+        firedBy: "/obj/test/other",
       },
     });
     const out = await MagicApi.resolveCast(caster, "arcane-sight", target);

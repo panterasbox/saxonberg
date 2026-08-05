@@ -12,6 +12,7 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { BulkableApi } from '../../../api/bulk';
+import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
@@ -19,6 +20,10 @@ const TOPIC = 'world.narration.action';
 
 interface DrinkModel extends CommandModel {
   target: MqlOneResult;
+  /** `--amount 100ml` — how much to take. Absent ⇒ the whole slot. */
+  amount?: string;
+  /** `--exact` — take the full measure or none of it. */
+  exact?: boolean;
 }
 
 export default class DrinkController extends CommandController<DrinkModel> {
@@ -53,7 +58,46 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // slot, for the ingest hand-off and the prose.
     const material = fromSlot.getMaterial();
     const payload = fromSlot.getPayload();
-    const result = BulkableApi.transfer(fromSlot, null, { kind: 'all' });
+    // …and, for an IDENTIFIABLE substance, capture how it looked to this
+    // drinker before they swallowed it. Taken here on purpose:
+    // swallowing an unidentified draught may teach you what it was
+    // (use-identification), and the prose should name what you thought
+    // you were drinking rather than spoil the reveal by rendering after
+    // the fact.
+    //
+    // Only the identifiable case, because the two phrasings differ:
+    // `getContentsDescriptionFor` returns a full noun phrase carrying
+    // its OWN article ("an iridescent crimson potion"), while a plain
+    // material's appearance is a bare phrase that still wants "the"
+    // ("You drink the dark, steaming coffee.").
+    const seenAs =
+      material && MixinApi.isIdentifiable(material) &&
+      MixinApi.isBulkable(target)
+        ? target.getContentsDescriptionFor(
+            giver,
+            model.target.via?.bulk?.affordance,
+          )
+        : null;
+    // **A measure if one was named, the whole slot otherwise** — the
+    // `pour` shape, where the quantity rides the target's own MQL
+    // result rather than a separate arg. It matters because dose
+    // response is continuous (`Dose.scaleFor`), so a graded potion has
+    // a real half-dose that nothing could previously ask for: `drink`
+    // took everything and `sip` took a fixed 0.03 L.
+    //
+    // ⚠ NO PLAYER CAN REACH THIS YET. Measures do not parse for ANY
+    // bulk verb — `pour 2 cups urn into mug`, pour's own documented
+    // example, fails shape-matching, as does `urn:{2 cup}`. The
+    // controllers read `.quantity`, MQL has the measure variant, and
+    // the command shape-matcher rejects the phrasing before either is
+    // consulted. Pre-existing and its own fix; this side is now ready
+    // for it.
+    const amount = BulkableApi.amountFromOption(
+      model.amount,
+      { kind: 'all' },
+      model.exact === true,
+    );
+    const result = BulkableApi.transfer(fromSlot, null, amount);
     for (const note of result.notes) context.note(note);
 
     if (result.applied <= 0) {
@@ -66,11 +110,14 @@ export default class DrinkController extends CommandController<DrinkModel> {
 
     BulkableApi.ingest(giver, material, result.applied, payload);
 
-    const appearance =
-      payload?.appearance ?? (material?.getAppearance() || 'it');
+    const drunk = seenAs
+      ? Mml.compose`You drink ${seenAs}.`
+      : Mml.compose`You drink the ${
+          payload?.appearance ?? (material?.getAppearance() || 'it')
+        }.`;
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You drink the ${appearance}.`)
+      .toSelf(drunk)
       .toPeers(Mml.compose`${Mml.name(giver)} drinks from ${Mml.item(target)}.`)
       .send();
   }

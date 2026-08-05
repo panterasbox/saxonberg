@@ -478,7 +478,8 @@ augmentation, thermal, metabolism, respiration, senses, teleport, reserve); a
 handful reconceive (healing has no HP to restore), stress a system (identify →
 prompt, detection → MQL, hallucination → rendering, amnesia → belief), or wait
 on combat.
-- [magic-items-slate](./builds/magic-items-slate.md) — the reformed
+- [magic-items-slate](./tails/magic-items-slate.md) *(tail)* — **shipped**
+  → [../subsystems/magic-items.md](../subsystems/magic-items.md). The reformed
   **blessed/uncursed/cursed** model (BUC as a *potency level* on the item's own
   axis — `scale`/`pick`, monotonic, opt-in `Blessable`, known-BUC a belief
   realm, cursed-sticks via the release gate) + the `Consumable`/`Effect`
@@ -486,6 +487,15 @@ on combat.
   (the build work-list). Sibling of
   [identification-slate](./tails/identification-slate.md) (the orthogonal item
   *identity* axis).
+- [implements-slate](./builds/implements-slate.md) — *(spun out of the
+  magic-items build, where the `Focus` class was cut)* **an implement does
+  not cast; it changes what happens when *you* cast.** Specialisation by
+  **inventory, not membership** — no magic guild, anyone may carry one,
+  only a caster benefits. Rides the shipped grid: an implement lifts your
+  effective band on **one axis** (verb *or* noun), which Tarn's Rule
+  already reads. Records why `Focus` failed — a second thing to top up,
+  no verb to fire it, no NetHack analogue — as the constraint list for
+  whatever replaces it. Nothing built.
 - [presence-hollowing-slate](./builds/presence-hollowing-slate.md) *(spun out of
   the item walk)* — **presence-vs-hollowing as a physical agent-state** (*is
   anyone home?*), the physical shadow of the Good=presence / Evil=hollowing

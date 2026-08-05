@@ -3,10 +3,17 @@
  *
  * Lives at `/obj/api/magic` (a stateless `Stuff` singleton, no backing
  * `Template`); `MagicApi`'s public statics forward here via
- * `StuffApi.singletonSync`. Owns the cast pipeline (gates → spend →
- * effects → provenance → Transcript credit) and the **effect executors**
- * — each a thin wrapper over its backing gated Api, per the governing
- * invariant (magic = a new trigger, never a new mechanism).
+ * `StuffApi.singletonSync`. Owns **two triggers over one executor set**
+ * — the cast pipeline (gates → spend → effects → provenance → Transcript
+ * credit) and the item discharge (`dischargeImpl`) — plus the **effect
+ * executors** themselves, each a thin wrapper over its backing gated
+ * Api, per the governing invariant (magic = a new trigger, never a new
+ * mechanism).
+ *
+ * The executors run from an explicit {@link EffectContext} rather than a
+ * bare `caster`, which is what lets the two triggers share them: a cast
+ * collapses origin/actor/source onto one object, an item pulls them
+ * apart. See requirements D1.
  *
  * Two cross-cutting legs on the hostile executors:
  *  - **`deliverAt`** — every hostile channel-delivery routes through this
@@ -39,6 +46,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { Mixins } from '../../lib/mixin';
 import { ConditionApi } from '../../api/condition';
 import { ThermalApi } from '../../api/thermal';
@@ -71,9 +79,19 @@ import type {
 import type { Vitals } from '../../lib/vitals/Vitals';
 import type { Caster } from '../../lib/magic/Caster';
 import { Faculty } from '../../lib/magic/Faculty';
+import { MagicEffects } from '../../lib/magic/Effect';
 import type { Effect, InjectChannelEffect } from '../../lib/magic/Effect';
-import { MagicGrid, type MagicProvenance } from '../../lib/magic/Grid';
+import { Charge } from '../../lib/magic/Charge';
+import { MagicGrid } from '../../lib/magic/Grid';
+import { Blessing } from '../../lib/magic/Blessing';
+import type { BlessingBand } from '../../lib/magic/Blessing';
+import { EffectContexts } from '../../lib/magic/EffectContext';
+import type { EffectContext } from '../../lib/magic/EffectContext';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { Resists } from '../../lib/magic/Resist';
+import { RecognitionApi } from '../../api/recognition';
+import { IDENTIFICATION } from '../../lib/belief/BeliefStore';
+import { Appearance } from '../../lib/identification/Appearance';
 import { Suppressions, type MagicSuppression } from '../../lib/magic/Suppression';
 import type { SpellDescriptor } from '../magic/Spell';
 import type SpellCatalogue from '../SpellCatalogue';
@@ -104,6 +122,40 @@ export interface CastOutcome {
   overchanneled?: boolean;
 }
 
+/**
+ * What a capability mixin tells the item trigger about *this* firing.
+ * Everything here is per-use; the item's own durable facts (its maker,
+ * its efficiency, its spell) are read off the item itself.
+ */
+export interface DischargeOptions {
+  /**
+   * A per-use magnitude multiplier the capability supplies — a dose
+   * fraction for a partial swallow, a partial charge for a guttering
+   * wand. Multiplies the maker's fixed delivery efficiency.
+   */
+  readonly potencyScale?: number;
+  /**
+   * What paid for this firing, when it is not the item — a scroll names
+   * its reader.
+   */
+  readonly source?: Stuff;
+  /**
+   * **Fire as if this band, whatever the item actually is.**
+   *
+   * Defaults to the item's own band, so every shipped verb behaves
+   * exactly as it reads. The override exists because the band is a
+   * *parameter of the firing*, not a property the executor should be
+   * digging out of the item: an author wants to preview a working at
+   * each band, a trap wants to fire cursed from an uncursed housing, and
+   * a test wants to assert all three without minting three items.
+   *
+   * Hard-wiring the read would have made every one of those need a
+   * separate mechanism. Potency is already open this way
+   * ({@link potencyScale}); this is the same principle one axis over.
+   */
+  readonly band?: BlessingBand;
+}
+
 /** One roster row of the `spells` self-view (bands, never numbers). */
 export interface SpellCellRow {
   spellId: string;
@@ -124,6 +176,33 @@ export interface SpellsView {
 
 /** The bound-emitter and spark-locus template paths. */
 const GLOWLIGHT_ORB_PATH = '/obj/magic/GlowlightOrb';
+
+/**
+ * **What potency means, once, for every effect kind.**
+ *
+ * Potency is the fraction of the working that landed — `deliveryEfficiency
+ * × dose × competence`, all multiplying. Every effect then falls into one
+ * of two shapes, and there are no other cases:
+ *
+ * | shape | kinds | what potency does |
+ * |---|---|---|
+ * | **magnitude** — has one delivered quantity | inject-channel · adjust-reserve · conjure · cloak · emit-field · afflict *(banded)* | scales it, continuously |
+ * | **outcome** — no quantity, it happens or it does not | move · sense · afflict *(flat)* | must clear {@link OUTCOME_FLOOR}; below it, nothing |
+ *
+ * > **Scale it if it has a size; gate it if it does not.**
+ *
+ * The point is that an author never writes anything for this. They
+ * author the full-strength value and the engine knows what "less of this
+ * kind" means — so dose, competence and a maker's efficiency all work on
+ * every working ever authored, for free.
+ *
+ * Before this, potency reached `inject-channel` and nothing else. A
+ * half-flask of a healing draught healed fully; half a veiling draught
+ * veiled for the full term. `dose:` was authored on potions where it
+ * could not possibly do anything, which is the worst kind of gap —
+ * silent, and it looks configured.
+ */
+const OUTCOME_FLOOR = 0.5;
 
 /** Magnitudes not yet worth a dial (the HARM_DEFAULTS precedent). */
 const MAGIC_DEFAULTS = {
@@ -169,6 +248,46 @@ export class MagicLogic extends ApiLogic {
     return resolveCastImpl(caster, spellId, target);
   }
 
+  /** See {@link MagicApi.discharge}. */
+  @CallSecurity(MagicApiCallers)
+  /** See {@link MagicApi.requiresMark}. */
+  @CallSecurity(MagicApiCallers)
+  public requiresMark(item: Stuff): boolean {
+    if (!MixinApi.isArcane(item)) return false;
+    const path = item.getCarriedSpellPath();
+    if (path.length === 0) return false;
+    const spell = catalogue()?.getSpellAt(path) ?? null;
+    if (!spell) return false;
+    const band = MixinApi.isBlessable(item)
+      ? item.getBlessing().getBand()
+      : 'uncursed';
+    return MagicEffects.everyEffectNeedsTarget(effectsAtBand(spell, band));
+  }
+
+  /** See {@link MagicApi.transferCharge}. */
+  @CallSecurity(MagicApiCallers)
+  public transferCharge(
+    actor: Stuff,
+    shell: Stuff,
+    committedPt: number,
+  ): Promise<ChargeTransfer> {
+    return transferChargeImpl(actor, shell, committedPt);
+  }
+
+  public discharge(
+    item: Stuff,
+    target?: Stuff,
+    opts?: DischargeOptions,
+  ): Promise<CastOutcome> {
+    return dischargeImpl(item, target, opts);
+  }
+
+  /** See {@link MagicApi.spellAt}. */
+  @CallSecurity(MagicApiCallers)
+  public spellAt(path: string): SpellDescriptor | null {
+    return catalogue()?.getSpellAt(path) ?? null;
+  }
+
   /** See {@link MagicApi.spellsView}. */
   @CallSecurity(MagicApiCallers)
   public spellsView(caster: Stuff): Promise<SpellsView> {
@@ -206,7 +325,9 @@ async function prepareCastImpl(
   if (!MixinApi.isCaster(caster)) {
     return { ok: false, refusal: 'You have no gift for the arts.' };
   }
-  const spell = catalogue()?.getSpell(spellId) ?? null;
+  // A player TYPED this, so it is a name, not a reference — ambiguity
+  // here is a disambiguation problem, never a corrupted pointer.
+  const spell = catalogue()?.getSpellNamed(spellId) ?? null;
   if (!spell) {
     return { ok: false, refusal: `You know no working called '${spellId}'.` };
   }
@@ -235,13 +356,13 @@ async function prepareCastImpl(
     AdvancementApi.bandFor(caster, verbKey),
     AdvancementApi.bandFor(caster, nounKey),
   ]);
-  if (!CompetenceBand.atOrAbove(verbBand, spell.requiredBand)) {
+  if (!CompetenceBand.atOrAbove(verbBand, spell.castingProfile.requiredBand)) {
     return {
       ok: false,
       refusal: `${spell.name} is beyond your command of ${spell.verb} — practice the operation.`,
     };
   }
-  if (!CompetenceBand.atOrAbove(nounBand, spell.requiredBand)) {
+  if (!CompetenceBand.atOrAbove(nounBand, spell.castingProfile.requiredBand)) {
     return {
       ok: false,
       refusal: `${spell.name} is beyond your feel for ${spell.noun} — study the domain.`,
@@ -259,7 +380,9 @@ async function prepareCastImpl(
 
   // Overchannel strain slows the gestures.
   const strainStage = strainStageOf(caster);
-  const base = spell.castSeconds || dial(AppSettingKeys.magicCastSecondsDefault, 3);
+  const base =
+    spell.castingProfile.castSeconds ||
+    dial(AppSettingKeys.magicCastSecondsDefault, 3);
   const castSeconds =
     base * (1 + MAGIC_DEFAULTS.STRAIN_SLOWDOWN_PER_STAGE * strainStage);
   return { ok: true, castSeconds, spellName: spell.name };
@@ -274,14 +397,27 @@ async function resolveCastImpl(
   // caster walked into a ward, the wound landed, the band is unchanged).
   const prep = await prepareCastImpl(caster, spellId, target);
   if (!prep.ok) return { ok: false, refusal: prep.refusal, reports: [] };
-  const spell = catalogue()!.getSpell(spellId)!;
+  const spell = catalogue()!.getSpellNamed(spellId)!;
 
   // Spend — at completion, in the same beat the effects fire (an abort
   // never reaches here). Overchanneling = completing past empty: the
   // pool floors at 0 and strain lands, staged by the deficit.
   const reserved = caster as unknown as Reserved & Caster & Vitals;
   const pool = reserved.getMana(); // reconciled read (the contract surface)
-  const cost = spell.cost || dial(AppSettingKeys.magicCostDefault, 15);
+  // **Fade is felt as COST, never as failure** (requirements D15). A
+  // hazy specification takes more out of you for the same effect, and a
+  // DEFECTIVE copy (read above your comprehension floor, D14) costs more
+  // again — on every cast, until you go back and study it properly.
+  //
+  // Nothing here can refuse. There is no sharpness at which the spell
+  // stops working, only one at which it stops being worth casting, and
+  // that call is the player's. A caster holding no copy at all pays the
+  // ordinary price, exactly as before spellbooks existed.
+  const fadeMultiplier = MixinApi.isMemorized(caster)
+    ? caster.costMultiplierFor(spell.spellId)
+    : 1;
+  const cost =
+    (spell.cost || dial(AppSettingKeys.magicCostDefault, 15)) * fadeMultiplier;
   const current = pool?.current.rawValue() ?? 0;
   let overchanneled = false;
   if (current >= cost) {
@@ -304,21 +440,19 @@ async function resolveCastImpl(
     overchanneled = true;
   }
 
-  // The provenance tag — the full grid address + the caster's durable id.
-  const tag: MagicProvenance = {
-    verb: spell.verb,
-    noun: spell.noun,
-    spellId: spell.spellId,
-    caster: caster.getTemplatePath() ?? `stuff:${caster.stuffId}`,
-  };
-
-  // Competence-scaled potency: how far the caster's limiting band sits
-  // above the spell's floor.
+  // The effect context — for a cast, one object plays origin, actor and
+  // source, so this collapses to exactly the shipped behaviour. The tag
+  // names the caster as BOTH specifier and firer, which is the honest
+  // reading: they specified it and they fired it.
   const potency = await potencyFactor(caster, spell);
+  const ctx = EffectContexts.forCast(caster, spell, potency);
 
+  // A CAST always fires the ordinary branch: a caster has no BUC, so
+  // there is no band to read. Potency is an INSTRUMENT fact, which is
+  // why the low/high branches are reachable only through the item door.
   const reports: string[] = [];
   for (const effect of spell.effects) {
-    const report = await executeEffect(caster, target, spell, effect, tag, potency);
+    const report = await executeEffect(ctx, target, spell, effect);
     if (report) reports.push(report);
   }
   if (overchanneled) {
@@ -327,8 +461,24 @@ async function resolveCastImpl(
     );
   }
 
+  // Casting RENEWS the pattern (D15), so an actively used spell never
+  // fades — you lose only what you do not use. This is also what makes
+  // fade felt rather than punitive: the fix is to keep casting.
+  if (MixinApi.isMemorized(caster) && caster.holdsSpell(spell.path)) {
+    const held = caster.getMemorizedSpell(spell.path)!;
+    caster.memorize({
+      spellPath: spell.path,
+      defective: held.defective,
+      verb: spell.verb,
+      noun: spell.noun,
+      complexity: held.complexity,
+    });
+  }
+
   // Credit BOTH grid axes on the Transcript (one act, two subchecks).
-  const difficulty = difficultyOf(spell.requiredBand);
+  // A CAST is a deed; an item discharge deliberately is not — see
+  // `dischargeImpl`.
+  const difficulty = difficultyOf(spell.castingProfile.requiredBand);
   void AdvancementApi.recordSignature(caster, {
     discipline: [
       {
@@ -347,6 +497,179 @@ async function resolveCastImpl(
   return { ok: true, reports, overchanneled };
 }
 
+/**
+ * **The item trigger** — the second door onto the same executors.
+ *
+ * Three things it deliberately does NOT do, each of them a modelled
+ * omission rather than an oversight:
+ *
+ * 1. **No band gate and no cast time.** Those are the
+ *    {@link CastingProfile} — the caster-assuming half — and an item
+ *    ignores the profile *wholesale* (D3). The maker passed the gate at
+ *    manufacture; the user is spending stored labour, not competence.
+ *    This is the whole of *"a novice using a master-made wand genuinely
+ *    outperforms that novice casting."*
+ * 2. **No Transcript credit.** Firing a wand is not practising the art —
+ *    the specification is pre-formed, and nothing was learned. Competence
+ *    derives from deeds only, so crediting here would write evidence the
+ *    character did not earn (the derive-don't-track constraint, and
+ *    D13's claim-vs-deed axis).
+ * 3. **No spend.** The energy leg belongs to whichever capability mixin
+ *    fired this — a charged shell debits its own reserve, a focus debits
+ *    the user's, a consumable destroys itself. `discharge` is *fire the
+ *    working*; the caller has already paid. Keeping the spend out here
+ *    is what stops this from becoming a second cast pipeline.
+ *
+ * **The actor derives from the execution context, never a parameter** —
+ * the `ProvenanceApi.recordAuthoring` precedent. The effect context is
+ * internal plumbing beneath the gate, not a way to pass an actor in.
+ */
+async function dischargeImpl(
+  item: Stuff,
+  target?: Stuff,
+  opts?: DischargeOptions,
+): Promise<CastOutcome> {
+  const actor = ExecutionContextApi.getCurrentCommandGiver() as Stuff | null;
+  if (!actor) {
+    return {
+      ok: false,
+      refusal: 'Nothing here has hold of it.',
+      reports: [],
+    };
+  }
+  if (!MixinApi.isArcane(item)) {
+    return { ok: false, refusal: 'There is no working in it.', reports: [] };
+  }
+  const spellPath = item.getCarriedSpellPath();
+  const spell = spellPath
+    ? (catalogue()?.getSpellAt(spellPath) ?? null)
+    : null;
+  if (!spell) {
+    return {
+      ok: false,
+      refusal: 'Whatever was bound into it, it is not there now.',
+      reports: [],
+    };
+  }
+
+  // **The band picks the working's own low/high branch** — not a global
+  // multiplier. Resolved HERE, ahead of the shape gate, because the gate
+  // must judge the list that will actually fire.
+  // The caller may name the band; absent that, the item's own.
+  const band =
+    opts?.band ??
+    (MixinApi.isBlessable(item) ? item.getBlessing().getBand() : 'uncursed');
+  const effects = effectsAtBand(spell, band);
+
+  // The spell's own targeting demand — shape only, exactly as a cast.
+  const shapeRefusal = targetingRefusal(spell, actor, target, effects);
+  if (shapeRefusal) return { ok: false, refusal: shapeRefusal, reports: [] };
+
+  // The ward reads the ITEM's footprint at the ITEM's scene: a wand is
+  // suppressed where it stands, not where its user stands — which is
+  // the same fact that makes it a trap when set down. Any matching cell
+  // suppresses (D35).
+  const field = await suppressionAtDeepImpl(
+    deliveryScene(item) ?? deliveryScene(actor),
+  );
+  if (Suppressions.suppressesAny(field, item.getArcaneFootprint())) {
+    return {
+      ok: false,
+      refusal: 'It goes inert — something here suppresses what is in it.',
+      reports: [],
+    };
+  }
+
+  // Potency is the MAKER's stored efficiency, fixed at manufacture (D7),
+  // where a cast's is competence-scaled. Same parameter, different
+  // provenance — which is why the effect layer needed no change at all.
+  // ── The energy leg, per class (D5) ──
+  //
+  // A CHARGED item is a battery: it pays from its own reserve, and a
+  // depleted one fails AUDIBLY rather than ceasing to afford its verb
+  // (D34 — a silent verb would be a free charge meter).
+  //
+  // A FOCUS supplies specification only: the user pays, and a faded
+  // pattern delivers LESS rather than failing (D9/D15 — soft
+  // recoverable entropy, never a cliff).
+  //
+  // `source` is WHO PAYS, and therefore also who takes the reaction
+  // (see `recoilOnto`). A charged shell pays for itself; a consumable's
+  // payer is its user. An explicit option wins — a scroll names its
+  // reader.
+  const classScale = 1;
+  const payer: Stuff = opts?.source ?? item;
+  if (MixinApi.isCharged(item)) {
+    const costKJ = spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1);
+    if (!item.spendCharge(costKJ)) {
+      return {
+        ok: false,
+        refusal: 'It is spent — nothing answers but a dry click.',
+        reports: [],
+      };
+    }
+  }
+
+  // The maker's fixed efficiency times whatever the capability supplied
+  // — a dose fraction, a faded pattern, a blessing. They MULTIPLY: half
+  // a dose of a master's draught is half a master's dose.
+  const scale = opts?.potencyScale ?? 1;
+  const ctx = EffectContexts.forItem(
+    item,
+    actor,
+    spell,
+    item.getDeliveryEfficiency() *
+      (Number.isFinite(scale) ? scale : 1) *
+      classScale,
+    { specifiedBy: item.getMakerId(), source: payer },
+  );
+
+  const reports: string[] = [];
+  for (const effect of effects) {
+    const report = await executeEffect(ctx, target, spell, effect);
+    if (report) reports.push(report);
+  }
+  absorbWasteHeat(ctx, spell);
+  // The working fired, so anything self-evident about it is now known.
+  noteUseIdentification(ctx, item);
+  return { ok: true, reports };
+}
+
+/**
+ * **Waste heat lands on the endpoint** (D6), which for a charged item is
+ * the item itself.
+ *
+ * No process is perfectly efficient, so the fraction of the committed
+ * energy that did not become effect became heat, and it has to go
+ * somewhere. On a cast that somewhere is the caster (who is a body with
+ * a thermal budget and sheds it); on a charged item it is the shell.
+ * That is what makes a charged cooling item able to crack, and a spark
+ * wand *safer* than the equivalent cast — the wand is in the circuit and
+ * the user is not.
+ *
+ * Routed through the shipped `ThermalApi` + `FireApi.tryAutoignite`
+ * path, so whether it cracks or catches is a **materials-response read**
+ * rather than a rule magic invented. That is the governing invariant
+ * doing its job: magic is a new trigger, never a new mechanism.
+ */
+function absorbWasteHeat(ctx: EffectContext, spell: SpellDescriptor): void {
+  const endpoint = ctx.origin;
+  if (!MixinApi.isCharged(endpoint)) return;
+  const committedJ =
+    spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1) * 1000;
+  const wasteJ =
+    committedJ * dial(AppSettingKeys.magicWasteHeatFraction, 0.1);
+  if (wasteJ <= 0) return;
+  try {
+    ThermalApi.depositHeat(endpoint, wasteJ);
+    FireApi.tryAutoignite(endpoint);
+    ThermalApi.reconcilePhase(endpoint);
+  } catch {
+    // A shell with no thermal surface simply has nowhere to put it.
+    // Not an error — an item that cannot be heated cannot crack.
+  }
+}
+
 async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
   const casterView = (caster as unknown as Caster).getFacultyView();
   const rows: SpellCellRow[] = [];
@@ -363,9 +686,9 @@ async function spellsViewImpl(caster: Stuff): Promise<SpellsView> {
       spellId: spell.spellId,
       name: spell.name,
       cell: MagicGrid.cellKey(spell.verb, spell.noun),
-      requiredBand: spell.requiredBand,
+      requiredBand: spell.castingProfile.requiredBand,
       band: limiting,
-      castable: CompetenceBand.atOrAbove(limiting, spell.requiredBand),
+      castable: CompetenceBand.atOrAbove(limiting, spell.castingProfile.requiredBand),
       description: spell.description,
     });
   }
@@ -404,42 +727,187 @@ async function suppressionAtDeepImpl(
 
 // ─────────────────────────── the executors ───────────────────────────
 
+/**
+ * Run one effect from an explicit {@link EffectContext}.
+ *
+ * **The self-effect fallback is `ctx.actor`, never `ctx.origin`.** For a
+ * cast the two are the same object, so this reads identically to the
+ * shipped behaviour; for an item they differ, and getting it wrong
+ * silently retargets a spell at the wand. See requirements D1.
+ */
 async function executeEffect(
-  caster: Stuff,
+  ctx: EffectContext,
   target: Stuff | undefined,
   spell: SpellDescriptor,
   effect: Effect,
-  tag: MagicProvenance,
-  potency: number,
+): Promise<string | null> {
+  // **Backfire.** An effect may name the ACTOR as its endpoint even when
+  // something was aimed at — the deliberate redirect a cursed wand needs,
+  // as opposed to the `target ?? ctx.actor` fallback for an unaimed cast.
+  const landsOn =
+    (effect as { self?: boolean }).self === true ? ctx.actor : target;
+
+  // **A scoped effect acts on a SET, not the aimed thing.** The MQL
+  // query resolves against the ACTOR, so `inventory` means the reader's
+  // own pack. This is how a working expresses "more of the same act" at
+  // its high end — a blessed remove curse sweeps everything you carry,
+  // which is unmistakably more curse-removing and cannot drift into
+  // being a different working.
+  const scope = (effect as { scope?: string }).scope;
+  if (typeof scope === 'string' && scope.length > 0) {
+    const many = { stuff: resolveScope(ctx.actor, scope) };
+    // ⚠ MQL names the SET; the EFFECT decides what it can act on.
+    //
+    // The filter deliberately does not live in the query: `mixin.` and
+    // `class.` filters are AUTHOR-GATED in MQL, and a content-authored
+    // scope must not need author powers to resolve. So the scope stays a
+    // plain seed a player could have typed, and applicability is asked
+    // of the effect — which is where the knowledge belongs anyway.
+    const reports: string[] = [];
+    for (const subject of many.stuff) {
+      if (!appliesTo(effect, subject)) continue;
+      const r = await executeOne(ctx, subject, spell, effect);
+      if (r) reports.push(r);
+    }
+    return reports.length > 0
+      ? reports.join(' ')
+      : 'Nothing here answers the working.';
+  }
+  return executeOne(ctx, landsOn, spell, effect);
+}
+
+/**
+ * **The subject set a scoped effect acts on.**
+ *
+ * A closed vocabulary resolved in code rather than through MQL. Two
+ * reasons, both learned the hard way:
+ *
+ * - MQL's `mixin.` / `class.` filters are **author-gated**, and a
+ *   content-authored scope must never need author powers to resolve;
+ * - MQL's giver-anchored seeds want a dispatch frame's permission
+ *   snapshot, which an effect executor does not have.
+ *
+ * So the engine knows a handful of scopes by name and content picks one.
+ * Growing the list is a deliberate edit, which is the right shape for
+ * something that decides how far a working reaches.
+ */
+function resolveScope(actor: Stuff, scope: string): Stuff[] {
+  switch (scope) {
+    case 'inventory':
+      return MixinApi.isContainer(actor) ? [...actor.getContents()] : [];
+    case 'here': {
+      const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+      return room && MixinApi.isContainer(room) ? [...room.getContents()] : [];
+    }
+    default:
+      return [];
+  }
+}
+
+/**
+ * **Can this effect do anything to this subject?** The applicability
+ * test a scoped sweep filters on, so a blessed remove curse reports on
+ * the cursed ring in your pack and stays silent about your lunch.
+ *
+ * Only asked on the scoped path — an aimed effect still refuses out
+ * loud, because there the player named a specific thing and deserves to
+ * be told why nothing happened.
+ */
+function appliesTo(effect: Effect, subject: Stuff): boolean {
+  switch (effect.kind) {
+    case 'adjust-blessing':
+      return MixinApi.isBlessable(subject);
+    case 'sense':
+      return MixinApi.isIdentifiable(subject) || MixinApi.isBulkable(subject);
+    default:
+      return true;
+  }
+}
+
+/**
+ * The effect list a working fires **at a given band** — the one place
+ * that selection happens, so nothing else has to know the shape.
+ */
+function effectsAtBand(
+  spell: SpellDescriptor,
+  band: BlessingBand,
+): readonly Effect[] {
+  return band === 'cursed'
+    ? spell.cursedEffects
+    : band === 'blessed'
+      ? spell.blessedEffects
+      : spell.effects;
+}
+
+/** One effect against ONE subject — the un-scoped core. */
+async function executeOne(
+  ctx: EffectContext,
+  landsOn: Stuff | undefined,
+  spell: SpellDescriptor,
+  effect: Effect,
 ): Promise<string | null> {
   switch (effect.kind) {
     case 'inject-channel':
-      return execInjectChannel(caster, target, effect, tag, potency);
+      return execInjectChannel(ctx, landsOn, effect);
     case 'afflict':
-      return execAfflict(caster, target, effect, tag, potency);
+      return execAfflict(ctx, landsOn, effect);
     case 'relieve':
-      return execRelieve(caster, target ?? caster, effect);
+      return execRelieve(landsOn ?? ctx.actor, effect);
     case 'adjust-reserve': {
-      const t = target ?? caster;
+      const t = landsOn ?? ctx.actor;
       if (!MixinApi.isReserved(t) || !t.hasReserve(effect.reserveKey)) {
         return 'Nothing there answers the draw.';
       }
+      // ⚠ **Charge is not fillable by fiat.** Every other reserve is a
+      // property of the thing that has it; a shell's charge is energy
+      // that had to come from somewhere and cross something. An effect
+      // that simply added it would mint joules — `transfer` authored
+      // `delta: 20` against a `cost: 4` and was generating 16 kJ a cast,
+      // a lossless back door around the entire coupling model.
+      //
+      // So the charge case routes through the ONE implementation, which
+      // debits the actor and charges them the coupling loss. This gates
+      // ANY effect that reaches for charge, not just the one that did.
+      if (effect.delta > 0 && effect.reserveKey === Charge.RESERVE_KEY) {
+        const moved = await transferChargeImpl(
+          ctx.actor,
+          t as unknown as Stuff,
+          effect.delta * ctx.potency,
+        );
+        return moved.report;
+      }
       const unit = t.getReserve(effect.reserveKey)!.current.unit;
-      t.adjustReserve(effect.reserveKey, Quantity.of(effect.delta, unit));
+      t.adjustReserve(
+        effect.reserveKey,
+        Quantity.of(effect.delta * ctx.potency, unit),
+      );
       return effect.delta >= 0 ? 'Vigor flows in.' : 'Something is drawn away.';
     }
+    case 'adjust-blessing':
+      return execAdjustBlessing(landsOn, effect.steps, effect.limit);
     case 'move':
-      return execMove(caster, target, effect.move, tag);
+      // Outcome, not magnitude: a shove puts you down or it does not.
+      if (ctx.potency < OUTCOME_FLOOR) {
+        return 'The push comes, and it is not enough to move anything.';
+      }
+      return execMove(ctx, landsOn, effect.move);
     case 'conjure':
-      return execConjure(caster, target, effect);
+      return execConjure(ctx, landsOn, effect);
     case 'sense':
-      return execSense(caster, target);
+      // Outcome, not magnitude: you learn it or you do not.
+      if (ctx.potency < OUTCOME_FLOOR) {
+        return 'The impression will not resolve — too little of it got through.';
+      }
+      if (effect.sense === 'misidentify') return execMisidentify(ctx, landsOn);
+      return effect.sense === 'identify-item'
+        ? execIdentify(ctx, landsOn)
+        : execSense(ctx, landsOn);
     case 'cloak':
-      return execCloak(caster, spell, effect.disguise, tag);
+      return execCloak(ctx, spell, effect.disguise);
     case 'emit-field':
-      return execEmitField(caster, spell, tag);
+      return execEmitField(ctx, spell);
     case 'script':
-      return execScript(caster, effect.source);
+      return execScript(ctx.actor, effect.source);
   }
 }
 
@@ -454,51 +922,63 @@ async function executeEffect(
  * combat session.
  */
 async function deliverAt(
-  caster: Stuff,
+  ctx: EffectContext,
   target: Stuff,
   deliver: () => { report: string; harmed: boolean },
 ): Promise<string> {
-  if (sceneOf(target) !== sceneOf(caster) && target !== sceneOf(caster)) {
+  // Reachability is measured from the ORIGIN, not the actor — that is
+  // what makes a wand set down and pointed at a door a trap. For a cast
+  // origin === actor, so this is a no-op change (pinned by test). An
+  // origin with no place of its own (a swallowed potion's material
+  // singleton) issues from wherever the actor is.
+  const from = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
+  if (deliveryScene(target) !== from && target !== from) {
     return 'Your reach ends at the scene before you.';
   }
   const { report, harmed } = deliver();
   if (harmed && MixinApi.isOrganism(target)) {
-    appendHarmRow(caster, target);
+    appendHarmRow(ctx.actor, target);
   }
   return report;
 }
 
-/** The trap-spring producer, magic's own writer (see accountability.md). */
-function appendHarmRow(caster: Stuff, victim: Stuff): void {
+/**
+ * The trap-spring producer, magic's own writer (see accountability.md).
+ *
+ * **The initiator is the actor, never the origin.** A wand cannot
+ * initiate a harm row — the person who pointed it did. This is the one
+ * place where confusing the two would launder responsibility through an
+ * object, so it takes the principal explicitly.
+ */
+function appendHarmRow(actor: Stuff, victim: Stuff): void {
   // Inside one shared combat session the combat ledger owns the
   // encounter's rows (opened/violated/death carry the consent verdict) —
   // double-booking a harm row would double-count the same hurt.
-  const casterSession = CombatApi.sessionFor(caster);
-  if (casterSession && casterSession === CombatApi.sessionFor(victim)) return;
+  const actorSession = CombatApi.sessionFor(actor);
+  if (actorSession && actorSession === CombatApi.sessionFor(victim)) return;
   AccountabilityApi.record({
     kind: 'harm',
-    sessionId: `magic:${caster.stuffId}:${Date.now()}`,
-    initiator: durableIdOf(caster),
+    sessionId: `magic:${actor.stuffId}:${Date.now()}`,
+    initiator: durableIdOf(actor),
     opponent: durableIdOf(victim),
     victim: durableIdOf(victim),
-    killer: durableIdOf(caster),
+    killer: durableIdOf(actor),
     consented: false,
     sentient: SpeciesApi.isSentient(victim),
   });
 }
 
 function execInjectChannel(
-  caster: Stuff,
+  ctx: EffectContext,
   target: Stuff | undefined,
   e: InjectChannelEffect,
-  tag: MagicProvenance,
-  potency: number,
 ): Promise<string> | string {
+  const { tag, potency } = ctx;
   if (!target) return 'The working needs a mark.';
   if (e.channel === 'shock') {
-    return deliverAt(caster, target, () => {
+    return deliverAt(ctx, target, () => {
       const locus = StuffApi.createSync(() => new SparkSource());
-      const scene = sceneOf(target) ?? sceneOf(caster);
+      const scene = deliveryScene(target) ?? deliveryScene(ctx.origin);
       if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(locus)) {
         ContainmentApi.move(locus, scene);
       }
@@ -517,17 +997,27 @@ function execInjectChannel(
   // Heat (and any future channel) — a body folds it through the covering
   // stack; a plain object takes real joules + the autoignition check.
   if (MixinApi.isOrganism(target)) {
-    return deliverAt(caster, target, () => {
+    return deliverAt(ctx, target, () => {
       const outcome = ConditionApi.inflict(target, {
         mechanism: e.channel as Exclude<typeof e.channel, 'shock'>,
         site: e.site ?? MAGIC_DEFAULTS.DEFAULT_SITE,
         energy: (e.energy ?? 1) * potency,
       });
       if (outcome.trauma) outcome.trauma.magicOrigin = tag;
+      // A backfire has to READ like one. The mechanism was landing the
+      // second effect correctly and narrating it identically, so a
+      // cursed firing looked like the same line printed twice — the
+      // player learned nothing, which is the whole failure a hidden
+      // axis cannot afford.
+      const backfired = (e as { self?: boolean }).self === true;
       return {
-        report: outcome.afflicted
-          ? 'The bolt lands — flesh remembers fire.'
-          : 'The bolt splashes off harmlessly.',
+        report: backfired
+          ? outcome.afflicted
+            ? 'It comes out the wrong end — the heat goes into your hand.'
+            : 'Something gutters back down the shaft and dies.'
+          : outcome.afflicted
+            ? 'The bolt lands — flesh remembers fire.'
+            : 'The bolt splashes off harmlessly.',
         harmed: outcome.afflicted,
       };
     });
@@ -541,16 +1031,24 @@ function execInjectChannel(
 }
 
 async function execAfflict(
-  caster: Stuff,
+  ctx: EffectContext,
   target: Stuff | undefined,
   e: Extract<Effect, { kind: 'afflict' }>,
-  tag: MagicProvenance,
-  potency: number,
 ): Promise<string> {
+  const { tag, potency } = ctx;
   if (!target || !MixinApi.isVitals(target)) {
     return 'The working needs a living mark.';
   }
   const seed = StuffApi.findByTemplatePath<Condition>(e.conditionPath);
+
+  // **Afflict is magnitude where it HAS one, outcome where it does not.**
+  // A seed with `mentalBands` scales its stage below (the resist fold
+  // already threads potency). A flat stage-1 condition has no size to
+  // scale down to except zero, so it gates instead — which is the same
+  // rule, honestly applied, rather than fake precision on an integer.
+  if (e.resist?.axis !== 'mental' && ctx.potency < OUTCOME_FLOOR) {
+    return 'The working thins out before it can take hold.';
+  }
 
   let stage = 1;
   if (e.resist?.axis === 'mental') {
@@ -567,7 +1065,7 @@ async function execAfflict(
     stage = staged;
   }
 
-  return deliverAt(caster, target, () => {
+  return deliverAt(ctx, target, () => {
     const record: AfflictionRecord = {
       kind: 'affliction',
       templatePath: e.conditionPath,
@@ -581,7 +1079,6 @@ async function execAfflict(
 }
 
 function execRelieve(
-  _caster: Stuff,
   target: Stuff,
   e: Extract<Effect, { kind: 'relieve' }>,
 ): string {
@@ -614,25 +1111,25 @@ function execRelieve(
 }
 
 async function execMove(
-  caster: Stuff,
+  ctx: EffectContext,
   target: Stuff | undefined,
   move: 'shove' | 'pin',
-  tag: MagicProvenance,
 ): Promise<string> {
   if (!target) return 'The working needs a mark.';
   if (move === 'shove') {
     if (!MixinApi.isPosed(target)) return 'It does not so much as rock.';
-    return deliverAt(caster, target, () => {
+    return deliverAt(ctx, target, () => {
       target.setPosture(Postures.Lie);
+      recoilOnto(ctx);
       return { report: 'The unseen blow takes them off their feet.', harmed: false };
     });
   }
   // pin — a timed body-slot hold (the hazard-pin engagement shape).
   if (!MixinApi.isEngaged(target)) return 'It cannot be held.';
-  return deliverAt(caster, target, () => {
+  return deliverAt(ctx, target, () => {
     const pin = new HazardActivity({
       actor: target,
-      type: `magic-pin:${tag.spellId}`,
+      type: `magic-pin:${ctx.tag.spellId}`,
       durationMs: MAGIC_DEFAULTS.PIN_DURATION_MS,
       slots: ['body'],
       onComplete: () => {},
@@ -647,14 +1144,51 @@ async function execMove(
   });
 }
 
+/**
+ * **Momentum is conserved** (arcane-science content rule 7): a directed
+ * impulse pushes back on whatever launched it.
+ *
+ * *Whatever launched it* is **whatever supplied the energy** — which is
+ * `ctx.source`, not `ctx.origin`. Those differ exactly where D5's
+ * classes differ, and that is not a coincidence: the classes ARE
+ * distinguished by who pays, and the reaction follows the payment
+ * because that is where the momentum came from.
+ *
+ * So the three classes get their opposite ergonomics from one line
+ * (requirements D6):
+ *
+ * - A **cast** — source is the caster, so the caster takes it. This is a
+ *   deliberate behaviour change to the shipped `shove`, which previously
+ *   pushed off nothing at all and conserved no momentum.
+ * - A **focus** — supplies specification only, so the *user* pays and
+ *   the user is displaced. A focus that shoves recoils onto you.
+ * - A **charged item** — pays from its own tank, so the *item* takes it
+ *   and the user is not displaced. A wand is small, which is exactly why
+ *   kinetic charged items must be **braced** (gun-shaped, recoil through
+ *   a stock into the ground) rather than handheld: a 100 g wand
+ *   delivering 200 J recoils at ~1.7 km/s and destroys itself.
+ *
+ * The displacement is graded rather than a knockdown: standing →
+ * staggered to a knee, already low → off your feet. Soft, recoverable,
+ * legible — never a cliff.
+ */
+function recoilOnto(ctx: EffectContext): void {
+  const endpoint = ctx.source;
+  if (!MixinApi.isPosed(endpoint)) return; // an item absorbs it silently
+  const posture = MixinApi.isPostured(endpoint)
+    ? (endpoint as unknown as { getPosture(): string }).getPosture()
+    : Postures.Stand;
+  endpoint.setPosture(posture === Postures.Stand ? Postures.Kneel : Postures.Lie);
+}
+
 async function execConjure(
-  caster: Stuff,
+  ctx: EffectContext,
   target: Stuff | undefined,
   e: Extract<Effect, { kind: 'conjure' }>,
 ): Promise<string> {
   if (e.templatePath) {
     const conjured = await StuffApi.clone(e.templatePath);
-    const scene = sceneOf(caster);
+    const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
     if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(conjured)) {
       ContainmentApi.move(conjured, scene);
     }
@@ -675,10 +1209,11 @@ async function execConjure(
     const to =
       target && MixinApi.isBulkable(target)
         ? BulkableApi.slotFor(target, undefined)
-        : BulkableApi.floorSurfaceNear(caster);
+        : BulkableApi.floorSurfaceNear(ctx.origin);
     if (!to) return 'There is nothing here to hold it.';
     const litres =
-      e.litres ?? dial(AppSettingKeys.magicConjureWaterLitres, 1);
+      (e.litres ?? dial(AppSettingKeys.magicConjureWaterLitres, 1)) *
+      ctx.potency;
     const result = BulkableApi.transfer(from, to, {
       kind: 'measure',
       litres,
@@ -694,7 +1229,7 @@ async function execConjure(
   }
 }
 
-function execSense(caster: Stuff, target: Stuff | undefined): string {
+function execSense(ctx: EffectContext, target: Stuff | undefined): string {
   const marks: string[] = [];
   const scan = (thing: Stuff): void => {
     if (!MixinApi.isVitals(thing)) return;
@@ -712,47 +1247,304 @@ function execSense(caster: Stuff, target: Stuff | undefined): string {
   };
   if (target) scan(target);
   else {
-    const scene = sceneOf(caster);
+    // The untargeted sweep reads the scene the working ISSUES from —
+    // a wand pushed through a gap scans the far side, not your room.
+    const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
     if (scene && MixinApi.isContainer(scene)) {
       for (const thing of scene.getContents()) scan(thing);
     }
-    scan(caster);
+    scan(ctx.actor);
   }
   return marks.length === 0
     ? 'No workings answer the second look.'
     : `Workings reveal themselves: ${marks.join('; ')}.`;
 }
 
+/**
+ * **The identify working** (requirements D24) — a `sense` effect whose
+ * result is a **write to the actor's belief store**, not a message.
+ *
+ * That distinction is the whole decision. A message would tell you what
+ * a thing is *right now*; a belief write teaches you the **class**, so
+ * every flask that looks like that one reads as known from here on. It
+ * is the paid shortcut past experiment — what you buy instead of
+ * drinking the unknown flask and finding out.
+ *
+ * This is also where D34 lands: there is deliberately **no `identify`
+ * verb**. A scroll affords `read` like every written thing, and this
+ * fires from having read it. An `identify` affordance appearing in your
+ * list would identify the scroll for free, and the whole
+ * unidentified-consumable mechanic would collapse.
+ */
+function execIdentify(ctx: EffectContext, target: Stuff | undefined): string {
+  if (!target) return 'The working needs something to look at.';
+  // **Follow a vessel to what is in it.** A flask is just a flask — the
+  // identity of a potion lives on its MATERIAL, which is what makes one
+  // identification cover every flask of that draught. Without this
+  // redirect, `identify` on a flask answers "there is nothing hidden to
+  // learn about a stoppered glass flask", which is true of the glass
+  // and useless to the player holding it.
+  const subject = identifiableSubject(target);
+  if (!subject) {
+    return `There is nothing hidden to learn about ${target.getPresentation()}.`;
+  }
+  const learner = ctx.actor;
+  const signature = subject.getTemplatePath();
+  if (!MixinApi.isBeliefStore(learner) || !signature) {
+    return 'The knowing finds nowhere to settle.';
+  }
+  learnClassOf(learner, subject, signature);
+  return `The letters crawl, and you know it: ${RecognitionApi.describe(learner, subject)}.`;
+}
+
+/**
+ * **Shift an item along its own BUC axis** — the executor behind
+ * remove-curse, and the first working that writes an *item's* durable
+ * state rather than a body's or the world's.
+ *
+ * Three things it deliberately does:
+ *
+ * **It clamps rather than refuses.** `steps: +1` on an already-blessed
+ * item is not an error; the working reached, found nothing below it, and
+ * says so. Refusing would make the outcome depend on hidden state before
+ * the caster paid, which is the leak {@link BlessableMixin} exists to
+ * avoid.
+ *
+ * **It reveals, always.** A `control · arcana` working has the caster's
+ * hands on the item's own pattern, so they learn where it sat whether or
+ * not it moved — this is the first caller of the long-unwired
+ * `revealBlessing()` seam. Yes, that makes remove-curse a BUC detector.
+ * It is a **paid** one, at `control` prices (3× on the price list, the
+ * dearest verb but transform), which is the same shape D24 gives
+ * identify: the shortcut you buy instead of finding out the hard way.
+ *
+ * **It reports the band it landed on, not the delta.** "The curse lifts"
+ * and "nothing was holding it" are different sentences because they are
+ * different facts, and a working that narrated its own arithmetic would
+ * read like a patch note.
+ */
+function execAdjustBlessing(
+  target: Stuff | undefined,
+  steps: number,
+  limit?: BlessingBand,
+): string {
+  if (!target) return 'The working needs something to take hold of.';
+  if (!MixinApi.isBlessable(target)) {
+    // A mundane rock has no effect axis to displace. Honest, and it
+    // leaks nothing — being un-blessable is a fact about the CLASS,
+    // which anybody can see.
+    return `${target.getPresentation()} has no working in it to shift.`;
+  }
+  const before = target.getBlessing();
+  const top = Blessing.BANDS.length - 1;
+  const from = before.getOrdinal();
+  let ordinal = Math.max(0, Math.min(top, from + steps));
+  if (limit !== undefined) {
+    // The working's own ceiling, in the direction it travels — a cure
+    // restores and stops rather than carrying on into a blessing.
+    //
+    // ⚠ Then re-clamp against where it STARTED, because a ceiling must
+    // never drag something backwards: remove-curse read over an already
+    // *blessed* wand has to leave it blessed, not demote it to ordinary.
+    // A working that could undo a blessing is a different working.
+    const bound = Blessing.of(limit).getOrdinal();
+    ordinal =
+      steps > 0
+        ? Math.max(from, Math.min(ordinal, bound))
+        : Math.min(from, Math.max(ordinal, bound));
+  }
+  const after = Blessing.of(Blessing.BANDS[ordinal]!);
+  target.setBlessing(after);
+  target.revealBlessing();
+
+  if (after.getBand() === before.getBand()) {
+    return before.isCursed()
+      ? `The curse in ${target.getPresentation()} does not give.`
+      : `Nothing was holding ${target.getPresentation()} back.`;
+  }
+  return steps > 0
+    ? `The weight goes out of ${target.getPresentation()} — it rests ${after.getBand()}.`
+    : `Something settles wrongly into ${target.getPresentation()} — it rests ${after.getBand()}.`;
+}
+
+/**
+ * **Plant a confident falsehood** — the cursed identify (the slate's
+ * best example of the axis, and the only thing that exercises the
+ * belief store's capacity to hold something untrue).
+ *
+ * It does not misfire or refuse. It writes a record that reads exactly
+ * like a real identification, naming a DIFFERENT catalogued class. The
+ * reader has no way to tell from the inside; they find out by acting on
+ * it. That is strictly worse than no information, which is what makes
+ * it the low end of identify's own axis rather than merely a weaker
+ * version of it.
+ */
+function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string {
+  if (!target) return 'The working needs something to look at.';
+  const subject = identifiableSubject(target);
+  if (!subject) {
+    return `There is nothing hidden to learn about ${target.getPresentation()}.`;
+  }
+  const learner = ctx.actor;
+  const signature = subject.getTemplatePath();
+  if (!MixinApi.isBeliefStore(learner) || !signature) {
+    return 'The knowing finds nowhere to settle.';
+  }
+  // Borrow another identifiable class's true name. Drawn from the world
+  // rather than invented, so the lie is plausible — it names a thing
+  // that really exists, which is exactly why it is believable.
+  //
+  // ⚠ A **system-mode MQL query**, not a `getAllObjects()` filter-loop.
+  // The raw enumeration is allowlisted to three engine homes and this is
+  // not one of them (`lint:world-scan`, CI-gating); the declarative form
+  // is the sanctioned way to ask the world a question. `commandGiver:
+  // null` is what makes the `mixin.` filter legal here — those are
+  // author-gated for a real caller, and system mode has no principal to
+  // gate. Same shape as `Census.takeCensus`.
+  const others = MqlApi.resolveMany('world:[mixin.IdentifiableMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter(
+    (o) =>
+      MixinApi.isIdentifiable(o) &&
+      o.getTemplatePath() !== signature &&
+      o.getIdentifiedName().length > 0,
+  );
+  const decoy = others[0];
+  const believedName = decoy
+    ? (decoy as unknown as { getIdentifiedName(): string }).getIdentifiedName()
+    : 'something entirely harmless';
+  learner.know(IDENTIFICATION, signature, {
+    typeKnown: true,
+    knownAttributes: ['type'],
+    learnedGeneration: Appearance.currentGeneration().generation,
+    believedName,
+  });
+  return `The letters crawl, and you know it: ${believedName}.`;
+}
+
+/**
+ * What an identification act actually addresses: the thing itself, or —
+ * for a vessel — the substance inside it.
+ *
+ * The same redirect `Bulkable.getContentsDescriptionFor` makes when
+ * rendering, for the same reason: a potion's class is its material, so
+ * both *looking at* and *identifying* a flask have to reach past the
+ * glass. `null` when there is nothing identifiable either way.
+ */
+function identifiableSubject(target: Stuff): Stuff | null {
+  if (MixinApi.isIdentifiable(target)) return target;
+  if (!MixinApi.isBulkable(target)) return null;
+  try {
+    const material = target.getBulk().getMaterial();
+    return material && MixinApi.isIdentifiable(material)
+      ? (material as unknown as Stuff)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Write what `learner` now knows about `target`'s CLASS.
+ *
+ * Keyed on templatePath — the class, never the instance. Two flasks of
+ * the same draught are one fact.
+ *
+ * `knownAttributes` is the STATE (D25): you know facts, and how
+ * identified something is falls out of which facts you hold. There is
+ * deliberately no `identificationLevel` scalar — a stored percentage of
+ * knowing is exactly the shape this codebase avoids.
+ *
+ * `learnedGeneration` is what lets a stale record HEDGE rather than lie
+ * once its descriptor is reissued (D28) — *"you once knew blue to mean
+ * healing"*. One field, no sweep, and it only does work in the rare
+ * case.
+ *
+ * Shared by the identify working and by use-identification, because
+ * they teach the same thing by different routes.
+ */
+function learnClassOf(learner: Stuff, target: Stuff, signature: string): void {
+  if (!MixinApi.isBeliefStore(learner)) return;
+  const prior = learner.recall(IDENTIFICATION, signature)?.payload as
+    | { knownAttributes?: string[] }
+    | undefined;
+  const known = new Set(prior?.knownAttributes ?? []);
+  known.add('type');
+  if (MixinApi.isBlessable(target)) {
+    // Identifying the CLASS reveals what kind of thing it is; the
+    // per-instance BUC is a separate question and stays hidden.
+    known.add('kind');
+  }
+  learner.know(IDENTIFICATION, signature, {
+    typeKnown: true,
+    knownAttributes: [...known],
+    learnedGeneration: Appearance.currentGeneration().generation,
+  });
+}
+
+/**
+ * **Use-identification** (the experiment D24's scroll is a shortcut
+ * past): a thing whose author declared it self-evident teaches its
+ * class to whoever just used it.
+ *
+ * ⚠ Called ONLY on a working that actually fired. A refused discharge —
+ * no mark, no charge, suppressed by a ward — teaches nothing, because
+ * otherwise the *failure* becomes an identification channel and you
+ * could identify a wand for free by zapping it at nothing. That is the
+ * D34 leak shape one layer down, and it is why this sits after the
+ * effect loop rather than beside the gates.
+ */
+function noteUseIdentification(ctx: EffectContext, item: Stuff): void {
+  if (!MixinApi.isIdentifiable(item)) return;
+  if (!item.identifiesOnUse()) return;
+  const signature = item.getTemplatePath();
+  if (!signature) return;
+  learnClassOf(ctx.actor, item, signature);
+}
+
+/**
+ * A veil settles on **the actor** — the person, never the wand. This is
+ * one of the four self-effect fallbacks D1 warns about: reading
+ * `ctx.origin` here would cloak the item that fired the spell.
+ */
 function execCloak(
-  caster: Stuff,
+  ctx: EffectContext,
   spell: SpellDescriptor,
   disguise: string,
-  tag: MagicProvenance,
 ): string {
-  if (!MixinApi.isVitals(caster)) return 'The veil finds nothing to settle on.';
-  caster.afflict(sustainedRecord(spell, tag, { realizes: 'cloak', disguise }));
-  pokeReconcile(caster);
+  const subject = ctx.actor;
+  if (!MixinApi.isVitals(subject)) return 'The veil finds nothing to settle on.';
+  subject.afflict(
+    sustainedRecord(ctx, spell, { realizes: 'cloak', disguise }),
+  );
+  pokeReconcile(subject);
   return 'The veil settles — watchers will see someone, never quite you.';
 }
 
+/**
+ * The orb kindles at the **origin's** scene (a wand can light a room you
+ * are not in) but the sustained hold that keeps it up rides **the
+ * actor** — you are the one maintaining it, and dispelling you drops it.
+ */
 async function execEmitField(
-  caster: Stuff,
+  ctx: EffectContext,
   spell: SpellDescriptor,
-  tag: MagicProvenance,
 ): Promise<string> {
   const orb = await StuffApi.clone(GLOWLIGHT_ORB_PATH);
-  const scene = sceneOf(caster);
+  const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
   if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(orb)) {
     ContainmentApi.move(orb, scene);
   }
-  if (MixinApi.isVitals(caster)) {
-    caster.afflict(
-      sustainedRecord(spell, tag, {
+  const holder = ctx.actor;
+  if (MixinApi.isVitals(holder)) {
+    holder.afflict(
+      sustainedRecord(ctx, spell, {
         realizes: 'emit-light',
         boundStuffId: orb.stuffId,
       }),
     );
-    pokeReconcile(caster);
+    pokeReconcile(holder);
   }
   return 'A mote of cold light kindles and holds.';
 }
@@ -779,6 +1571,38 @@ function sceneOf(s: Stuff | undefined): Stuff | null {
   return null;
 }
 
+/** Carried-through-a-body walk cap (the `Suppressions.fieldAt` guard). */
+const CARRIER_WALK_CAP = 8;
+
+/**
+ * **The scene a working issues INTO**, walking out through any body
+ * carrying the origin.
+ *
+ * A caster's container is the room, so for a cast this is `sceneOf`
+ * exactly. But an item's container is usually *the person holding it* —
+ * and a wand in your hand fires into the room you are standing in, not
+ * into you. Without this walk, drawing a wand would make it unable to
+ * reach anything.
+ *
+ * The walk steps out through **Organisms only**. That is what keeps the
+ * two shipped behaviours intact: a caster inside a vessel (an entered
+ * wardrobe) still delivers *into the vessel*, because a vessel is not a
+ * body; and a wand set down on the floor still delivers into the room,
+ * because its container already is one. A wand at the bottom of a
+ * closed pack fires into the pack — which is the honest answer.
+ */
+function deliveryScene(s: Stuff | undefined): Stuff | null {
+  let cursor: Stuff | null = s ?? null;
+  let depth = CARRIER_WALK_CAP;
+  while (cursor !== null && depth-- > 0) {
+    const container = sceneOf(cursor);
+    if (container === null) return null;
+    if (!MixinApi.isOrganism(container)) return container;
+    cursor = container; // carried by a body — issue from where THEY are
+  }
+  return null;
+}
+
 /** The durable id the accountability/renown ledgers key on. */
 function durableIdOf(s: Stuff): string {
   return s.getTemplatePath() ?? `stuff:${s.stuffId}`;
@@ -790,6 +1614,14 @@ function targetingRefusal(
   spell: SpellDescriptor,
   caster: Stuff,
   target: Stuff | undefined,
+  /**
+   * The list actually about to fire — the BAND's list for an item, the
+   * ordinary one for a cast. The gate must judge what will run, not the
+   * uncursed default: a blessed remove curse whose branch is SCOPED
+   * needs no mark, and reading `spell.effects` refused it for want of
+   * one it never wanted.
+   */
+  effects: readonly Effect[] = spell.effects,
 ): string | null {
   switch (spell.targeting) {
     case 'none':
@@ -802,8 +1634,28 @@ function targetingRefusal(
       }
       return null;
     case 'object':
-      return target ? null : `${spell.name} needs a mark.`;
+      // Same rule as `any`: a spell every one of whose effects finds its
+      // own subjects (a scope) has nothing to aim.
+      if (!target && MagicEffects.everyEffectNeedsTarget(effects)) {
+        return `${spell.name} needs a mark.`;
+      }
+      return null;
     case 'any':
+      // `any` means "object or creature, target optional" — and that
+      // optionality is right for a working that still does something
+      // untargeted (conjured water pools on the floor; a sense sweeps
+      // the scene). It is WRONG for one whose every effect acts on a
+      // mark: firebolt with nothing to burn is a no-op, and letting it
+      // through means the executor refuses AFTER the spend leg has
+      // already taken the caster's mana or the wand's charge.
+      //
+      // Found by live-driving: 45 targetless zaps flattened a 900 kJ
+      // wand exactly as 45 real ones did. The gate belongs here, ahead
+      // of the spend, and it governs BOTH triggers because both consult
+      // this one function.
+      if (!target && MagicEffects.everyEffectNeedsTarget(effects)) {
+        return `${spell.name} needs a mark.`;
+      }
       return null;
   }
 }
@@ -843,8 +1695,130 @@ async function potencyFactor(
     CompetenceBand.rank(verbBand),
     CompetenceBand.rank(nounBand),
   );
-  const above = Math.max(0, minRank - CompetenceBand.rank(spell.requiredBand));
+  const above = Math.max(0, minRank - CompetenceBand.rank(spell.castingProfile.requiredBand));
   return 1 + dial(AppSettingKeys.magicPotencyCompetenceFactor, 0.25) * above;
+}
+
+/**
+ * **The one implementation of moving a caster's reserve into a shell**,
+ * and the only way charge enters the world outside manufacture.
+ *
+ * Both doors call it: `recharge <item> [amount]` (the amount-controlled
+ * one) and any effect that reaches for a `charge` reserve. That is the
+ * magic-items rule applied to itself — *an item is a new trigger, never
+ * a new mechanism* — and it is what makes "you cannot fill a shell
+ * without a coupling" true rather than merely intended.
+ *
+ * `committedPt` is what the caster puts in. What the shell gets is
+ * `committed × coupling × competence`, **both factors below 1**; the
+ * difference is heat in the coupling. The caster is debited for the
+ * loss too — that energy left them whether or not it arrived.
+ */
+export interface ChargeTransfer {
+  /** kJ that actually reached the shell. */
+  delivered: number;
+  /** Reserve points actually taken from the caster. */
+  spent: number;
+  /** kJ lost to the coupling. */
+  lost: number;
+  /** Player-facing line. */
+  report: string;
+  /** Why nothing moved, when nothing did. */
+  refusal: string | null;
+}
+
+/** The skill half — Tarn's Rule over control·arcana, as a LOSS < 1. */
+const COMPETENCE_EFFICIENCY = [0.4, 0.55, 0.78, 0.86, 0.92] as const;
+
+async function transferChargeImpl(
+  actor: Stuff,
+  shell: Stuff,
+  committedPt: number,
+): Promise<ChargeTransfer> {
+  const nil = (refusal: string): ChargeTransfer => ({
+    delivered: 0,
+    spent: 0,
+    lost: 0,
+    report: refusal,
+    refusal,
+  });
+  if (!MixinApi.isCharged(shell)) {
+    return nil('There is nothing in it that would hold a charge.');
+  }
+  if (!MixinApi.isCaster(actor) || !MixinApi.isReserved(actor)) {
+    return nil('You have no gift to pour into it.');
+  }
+  const conduit = bestConduitFor(actor);
+  if (!conduit) {
+    return nil(
+      'You hold the shape of it, and it goes nowhere — bare hands are a ' +
+        'poor road for that much energy.',
+    );
+  }
+  const available = actor.getMana()?.current.rawValue() ?? 0;
+  const committed = Math.max(0, Math.min(committedPt, available));
+  if (committed <= 0) return nil('You have nothing left to give it.');
+
+  const efficiency =
+    conduit.getCouplingEfficiency() * (await competenceEfficiency(actor));
+  const offered = committed * efficiency;
+  const delivered = shell.receiveCharge(offered);
+  // Bill in proportion to what the shell accepted — a full tank
+  // refusing the back half must not charge for it.
+  const spent = offered > 0 ? committed * (delivered / offered) : 0;
+  if (spent > 0) {
+    actor.adjustReserve(MANA_RESERVE_KEY, Quantity.of(-spent, 'pt'));
+  }
+  const lost = Math.max(0, spent - delivered);
+  return {
+    delivered,
+    spent,
+    lost,
+    refusal: null,
+    report:
+      delivered > 0
+        ? `The shell drinks it down and warms in your hand. ` +
+          `${delivered.toFixed(0)} kJ in, ${lost.toFixed(0)} kJ gone to the coupling.`
+        : 'It is already as full as it will get.',
+  };
+}
+
+/** The best coupling in reach: carried, or present where the actor is. */
+function bestConduitFor(
+  actor: Stuff,
+): (Stuff & { getCouplingEfficiency(): number }) | null {
+  const candidates: Stuff[] = [];
+  if (MixinApi.isContainer(actor)) candidates.push(...actor.getContents());
+  if (MixinApi.isContainable(actor)) {
+    const env = actor.getContainer();
+    if (env && MixinApi.isContainer(env)) candidates.push(...env.getContents());
+  }
+  let best: (Stuff & { getCouplingEfficiency(): number }) | null = null;
+  for (const c of candidates) {
+    if (!MixinApi.isConduit(c)) continue;
+    if (!best || c.getCouplingEfficiency() > best.getCouplingEfficiency()) {
+      best = c as Stuff & { getCouplingEfficiency(): number };
+    }
+  }
+  return best;
+}
+
+/**
+ * ⚠ Deliberately NOT `potencyFactor`, whose competence term is a bonus
+ * `>= 1` above the required band. Multiplying delivered energy by that
+ * would let a good caster deliver more than they spent.
+ */
+async function competenceEfficiency(actor: Stuff): Promise<number> {
+  const [verbBand, nounBand] = await Promise.all([
+    AdvancementApi.bandFor(actor, MagicGrid.verbDisciplineKey('control')),
+    AdvancementApi.bandFor(actor, MagicGrid.nounDisciplineKey('arcana')),
+  ]);
+  const rank = Math.min(
+    CompetenceBand.rank(verbBand),
+    CompetenceBand.rank(nounBand),
+  );
+  const i = Math.max(0, Math.min(COMPETENCE_EFFICIENCY.length - 1, rank));
+  return COMPETENCE_EFFICIENCY[i]!;
 }
 
 /** The Transcript difficulty a spell's floor band implies. */
@@ -861,25 +1835,41 @@ function difficultyOf(requiredBand: string): Difficulty {
 
 /** Build a SustainedEffect record with the spell's authored lifetime. */
 function sustainedRecord(
+  ctx: EffectContext,
   spell: SpellDescriptor,
-  tag: MagicProvenance,
   fields: Partial<SustainedEffect> & { realizes: string },
 ): SustainedEffect {
+  // **Duration IS the sustained family's delivered quantity.** A cloak
+  // and a field have no magnitude field to scale, so a half dose buys
+  // half the term — which is what the veiling draught's own seed claimed
+  // all along while nothing implemented it.
+  const seconds = spell.durationSeconds * ctx.potency;
   let expiresAt: number | undefined;
-  if (spell.durationSeconds > 0) {
+  if (seconds > 0) {
     try {
       if (StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
-        expiresAt = WorldClockApi.getNow().rawValue() + spell.durationSeconds;
+        expiresAt = WorldClockApi.getNow().rawValue() + seconds;
       }
     } catch {
       expiresAt = undefined;
     }
   }
+  // **Host-held or term-bought** (D12). A binding must be paid for
+  // continuously; a CHARGED source can keep paying (standby draw meters
+  // it against the shell's own reserve), so it is named as the renewer.
+  // A cast or a consumable paid once — the term runs out and nothing
+  // can re-buy it. That is a derivation, not a rule: it is exactly why
+  // long-lived sustained effects are forged as rings and not bottled.
+  const sustainedBy = MixinApi.isCharged(ctx.source)
+    ? durableIdOf(ctx.source)
+    : undefined;
   return {
     kind: 'sustained',
     spellId: spell.spellId,
-    magicOrigin: tag,
+    magicOrigin: ctx.tag,
     expiresAt,
+    sustainedBy,
+    sustainedFor: seconds > 0 ? seconds : undefined,
     ...fields,
   } as SustainedEffect;
 }

@@ -71,6 +71,21 @@ export interface Visible {
   getShort(): string;
   getLong(): string;
   /**
+   * **The long description as `viewer` would read it**, before
+   * augmenters run — the per-viewer *base text* seam.
+   *
+   * The default is viewer-blind (`getLong()`); a mixin overrides this
+   * when the paragraph itself differs by who is reading, as
+   * `IdentifiableMixin` does (an unidentified item shows its class's
+   * generic prose, never the authored paragraph written for the
+   * identified thing).
+   *
+   * This exists because augmenters can only *add* to the base — they
+   * are handed the finished string and decorate it. Withholding needs
+   * a hand on the base text, and that is exactly one method.
+   */
+  getLongFor(viewer: Stuff): string;
+  /**
    * Long description with every contributing mixin's
    * `markupAugmenters` applied — detail keys wrapped in `<detail>`
    * MML when the host composes Detailed, exit names wrapped in
@@ -250,6 +265,14 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * Viewer-blind by default — see the interface docstring. Overridden
+     * by mixins whose prose depends on what the reader knows.
+     */
+    getLongFor(_viewer: Stuff): string {
+      return this.getLong();
+    }
+
+    /**
      * Affordance-annotated long description — see the interface
      * docstring for the augmenter pipeline contract. Calls
      * `Mml.augment` with the host (`this`), the supplied `viewer`,
@@ -260,7 +283,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getMarkupLong(viewer: Stuff, opts?: AugmentOpts): string {
       return Mml.augment(
-        this.getLong(),
+        this.getLongFor(viewer),
         this as unknown as Stuff,
         viewer,
         opts,

@@ -29,9 +29,10 @@ import Spell, {
   type SpellTargeting,
 } from './magic/Spell';
 import { MagicEffects, type Effect } from '../lib/magic/Effect';
+import type { BlessingBand } from '../lib/magic/Blessing';
 import { MagicGrid } from '../lib/magic/Grid';
-import { CompetenceBand } from '../lib/advancement/CompetenceBand';
-import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
+import { CastingProfiles } from '../lib/magic/CastingProfile';
+import type { CastingProfile } from '../lib/magic/CastingProfile';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
@@ -43,19 +44,62 @@ export default class SpellCatalogue extends SpellCatalogueBase {
     return { ok: false, reason: 'system singleton; never culled' };
   }
 
-  /** Transient cache keyed by `spellId`; `null` = not built yet. */
+  /**
+   * **The durable index: template PATH → descriptor.**
+   *
+   * Keyed on the path rather than the `spellId` field because the path
+   * is the namespaced key and the id is not. Spell templates already
+   * live at `/obj/magic/Spell/<id>`, and packs claim path *extents* — so
+   * two packs shipping a `firebolt` are `/pack-a/…/firebolt` and
+   * `/pack-b/…/firebolt`, distinct by construction. Collapsing both into
+   * `'firebolt'` made the last loader win and silently repointed every
+   * item in the world that named it.
+   *
+   * `null` = not built yet.
+   */
   private cache: Map<string, SpellDescriptor> | null = null;
 
-  /** The authored descriptor for `spellId`, or `null`. */
-  public getSpell(spellId: string): SpellDescriptor | null {
+  /**
+   * **The player-input index: short name → paths.**
+   *
+   * Deliberately separate, and deliberately allowed to be ambiguous.
+   * Typing `cast firebolt` is *name resolution* — the same kind of act
+   * as naming an item by keyword — so a collision there is a
+   * disambiguation problem, not a corruption. A durable reference is a
+   * different thing and must never come through here.
+   */
+  private byName: Map<string, string[]> | null = null;
+
+  /** The authored descriptor at `path`, or `null`. The durable read. */
+  public getSpellAt(path: string): SpellDescriptor | null {
     this.ensureCache();
-    return this.cache!.get(spellId) ?? null;
+    return this.cache!.get(path) ?? null;
   }
 
-  /** Whether `spellId` names a cataloged spell. */
-  public has(spellId: string): boolean {
+  /**
+   * The descriptor a player MEANT by a short name, or `null`.
+   *
+   * First match when a name is ambiguous — the honest v1 answer, and the
+   * seam where a disambiguation prompt goes. Never use this to resolve a
+   * stored reference: see {@link getSpellAt}.
+   */
+  public getSpellNamed(name: string): SpellDescriptor | null {
     this.ensureCache();
-    return this.cache!.has(spellId);
+    const paths = this.byName!.get(name.trim().toLowerCase()) ?? [];
+    const first = paths[0];
+    return first ? (this.cache!.get(first) ?? null) : null;
+  }
+
+  /** Every path a short name resolves to — the ambiguity, made visible. */
+  public pathsNamed(name: string): readonly string[] {
+    this.ensureCache();
+    return this.byName!.get(name.trim().toLowerCase()) ?? [];
+  }
+
+  /** Whether `path` names a cataloged spell. */
+  public has(path: string): boolean {
+    this.ensureCache();
+    return this.cache!.has(path);
   }
 
   /** Every authored descriptor (defensive copies). */
@@ -94,6 +138,7 @@ export default class SpellCatalogue extends SpellCatalogueBase {
   private ensureCache(): void {
     if (this.cache !== null) return;
     this.cache = new Map();
+    this.byName = new Map();
   }
 
   private async loadCacheFromTemplates(): Promise<void> {
@@ -101,11 +146,23 @@ export default class SpellCatalogue extends SpellCatalogueBase {
       Spell.TEMPLATE_PATH_PREFIX,
     );
     const map = new Map<string, SpellDescriptor>();
+    const names = new Map<string, string[]>();
     for (const tpl of templates) {
       const descriptor = buildDescriptor(tpl.data);
-      if (descriptor) map.set(descriptor.spellId, descriptor);
+      if (!descriptor) continue;
+      // The descriptor learns its own durable key here — the one place
+      // that knows both the row and its path.
+      descriptor.path = tpl.path;
+      // The PATH is the key. The id is a short name, indexed separately
+      // and allowed to collide.
+      map.set(tpl.path, descriptor);
+      const key = descriptor.spellId.trim().toLowerCase();
+      const bucket = names.get(key);
+      if (bucket) bucket.push(tpl.path);
+      else names.set(key, [tpl.path]);
     }
     this.cache = map;
+    this.byName = names;
   }
 }
 
@@ -115,6 +172,27 @@ export default class SpellCatalogue extends SpellCatalogueBase {
  * effects). Effect validation throwing → the spell is dropped; the
  * roster seeds test asserts every authored seed survives this.
  */
+/**
+ * One band's effect list: **membership first, then fields.**
+ *
+ * `bands: [cursed]` on an authored effect means it exists ONLY at those
+ * bands — the piece field-variation cannot express, because "a cursed
+ * wand also burns your hand" is an extra effect rather than a different
+ * number. It is an authoring directive, consumed here and never seen by
+ * an executor.
+ *
+ * Absent ⇒ every band, which is the overwhelming default.
+ */
+function forBand(raw: unknown[], band: BlessingBand): Effect[] {
+  return raw
+    .filter((e) => {
+      const bands = (e as { bands?: unknown }).bands;
+      if (!Array.isArray(bands)) return true;
+      return bands.includes(band);
+    })
+    .map((e) => MagicEffects.validateForBand(e, band));
+}
+
 function buildDescriptor(data: unknown): SpellDescriptor | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Record<string, unknown>;
@@ -125,15 +203,26 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
   ).includes(d.targeting as string)
     ? (d.targeting as SpellTargeting)
     : 'none';
-  const requiredBand: CompetenceBandName = CompetenceBand.isBand(
-    d.requiredBand,
-  )
-    ? d.requiredBand
-    : 'novice';
+  // The caster-assuming half, validated as a unit (D3). A malformed
+  // profile drops the spell exactly as a malformed effect does — the
+  // seeds test is what catches it at authoring time.
+  let castingProfile: CastingProfile;
+  try {
+    castingProfile = CastingProfiles.validate(d.castingProfile);
+  } catch {
+    return null;
+  }
   if (!Array.isArray(d.effects) || d.effects.length === 0) return null;
   let effects: Effect[];
+  let cursedEffects: Effect[];
+  let blessedEffects: Effect[];
   try {
-    effects = d.effects.map((e) => MagicEffects.validate(e));
+    effects = forBand(d.effects, 'uncursed');
+    // One list per band, from the same authored blobs. A working with no
+    // band-varying field simply yields three identical lists, which is
+    // the honest "this working does not care about potency".
+    cursedEffects = forBand(d.effects, 'cursed');
+    blessedEffects = forBand(d.effects, 'blessed');
   } catch {
     return null;
   }
@@ -141,16 +230,21 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
     ? 'modifier'
     : 'impulse';
   return {
+    // Filled by the loader, which is the only caller that knows the row's
+    // path. Empty here means "built from a bare data blob" — a test
+    // fixture, never a catalogued spell.
+    path: '',
     spellId: d.spellId,
     name:
       typeof d.name === 'string' && d.name.length > 0 ? d.name : d.spellId,
     verb: d.verb,
     noun: d.noun,
-    requiredBand,
+    castingProfile,
     cost: numberOr(d.cost, 0),
-    castSeconds: numberOr(d.castSeconds, 0),
     targeting,
     effects,
+    cursedEffects,
+    blessedEffects,
     family,
     durationSeconds: numberOr(d.durationSeconds, 0),
     description: typeof d.description === 'string' ? d.description : '',
@@ -164,5 +258,10 @@ function numberOr(v: unknown, fallback: number): number {
 
 /** Defensive copy so callers can't mutate the cached descriptor. */
 function cloneDescriptor(d: SpellDescriptor): SpellDescriptor {
-  return { ...d, effects: d.effects.map((e) => ({ ...e })) };
+  return {
+    ...d,
+    effects: d.effects.map((e) => ({ ...e })),
+    cursedEffects: d.cursedEffects.map((e) => ({ ...e })),
+    blessedEffects: d.blessedEffects.map((e) => ({ ...e })),
+  };
 }

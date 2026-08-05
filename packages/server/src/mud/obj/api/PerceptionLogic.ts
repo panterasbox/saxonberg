@@ -13,6 +13,7 @@ import type { Perception } from '../../lib/perception/Perception';
 import { Modality } from '../../lib/perception/Modality';
 import type { Percept } from '../../lib/perception/Modality';
 import { MixinApi } from '../../api/mixin';
+import type { SenseChannel } from '../../lib/description/Perceiver';
 import { StuffApi } from '../../api/stuff';
 import { SpeciesApi } from '../../api/species';
 import { AdvancementApi } from '../../api/advancement';
@@ -42,6 +43,28 @@ const MODALITY_PREFIX = TemplatePathPrefixes.perceptionModalities;
 
 /** Template path of the vision modality singleton (light conditions read). */
 const VISION_PATH = `${MODALITY_PREFIX}vision`;
+
+/**
+ * **Channels the sensorium cannot speak to, so its silence is not a NO.**
+ *
+ * `sensoryPorts` models **organs** — each entry carries a `count` and a
+ * `position`, because it describes eyes, ears, a nose. Touch is not an
+ * organ; it is the integument. The schema has no way to say it, which is
+ * why **no shipped body plan declares it** — biped has vision, hearing
+ * and smell and stops.
+ *
+ * So absence here is not evidence of absence, and treating it as such
+ * would have made every embossed text unreadable by everyone the moment
+ * the perceive gate became symmetric. Organ-modelled channels are the
+ * ones the sensorium may legitimately deny.
+ *
+ * ⚠ This is a placeholder for a real touch model, not a claim that one
+ * exists. A numbed, gloved or burned character *should* fail to read
+ * raised lettering, and that mechanic needs the integument modelled —
+ * at which point this list shrinks to empty and the gate stops needing
+ * an exception.
+ */
+const NON_ORGAN_CHANNELS: readonly SenseChannel[] = ['touch'];
 
 /** The perception/awareness Discipline key (seeded as data in Phase 3). */
 const AWARENESS_DISCIPLINE = 'awareness';
@@ -219,6 +242,52 @@ export class PerceptionLogic extends ApiLogic {
   @CallSecurity(PerceptionApiCallers)
   public perceives(viewer: Stuff, target: Stuff, attention?: number): boolean {
     return perceivesImpl(viewer, target, attention);
+  }
+
+  /** See {@link PerceptionApi.canMakeOutMarks}. */
+  @CallSecurity(PerceptionApiCallers)
+  public canMakeOutMarks(viewer: Stuff, target: Stuff): boolean {
+    // **The symmetric gate.** Perceiving marks succeeds iff the reader
+    // has SOME sense that reaches them — reader's channels ∩ the marks'
+    // modalities ≠ ∅ — and that channel is usable right now.
+    //
+    // The first cut asked only "are these vision-only? then check
+    // light", which made the touch branch unconditional: embossed text
+    // was readable by anyone, in the dark, with no sense of touch, and
+    // the celebrated "a sightless reader is not excluded" fell out of a
+    // gate being SKIPPED rather than from any model. Both directions
+    // now run through one intersection.
+    const modalities: readonly SenseChannel[] = MixinApi.isMarked(target)
+      ? target.getMarkModalities()
+      : ['vision'];
+    if (modalities.length === 0) return false;
+    if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) {
+      return true;
+    }
+
+    // An empty sensorium means *undeterminable*, not *senseless* — it is
+    // the documented answer for non-Organisms, speciesless fixtures and
+    // sessile hosts. Fail OPEN there, which is what this read did before.
+    const senses = this.sensorium(viewer);
+    const determinable = senses.length > 0;
+
+    for (const channel of modalities) {
+      if (
+        determinable &&
+        !NON_ORGAN_CHANNELS.includes(channel) &&
+        !senses.some((m) => m.getName() === (channel as string))
+      ) {
+        continue; // the reader has no such sense
+      }
+      // Vision is the only channel with an environmental gate: ink needs
+      // light. Touch reaches whatever the verb's `reachable` scope
+      // already let the reader address.
+      if (channel === 'vision' && !visionAdequateForMarks(viewer, target)) {
+        continue;
+      }
+      return true; // one usable channel is enough
+    }
+    return false;
   }
 
   /** See {@link PerceptionApi.effectivePerception}. */
@@ -659,6 +728,40 @@ function lightConditionsFor(viewer: Stuff, target: Stuff): number {
   }
   if (idx < 0) return 0;
   return Math.min(0, idx - NEUTRAL_LIGHT_INDEX);
+}
+
+/**
+ * **The perceive half of `read`** (magic-items D33).
+ *
+ * `read = perceive(the marks) + decode(the script)`, and this is the
+ * first half. It is deliberately NOT a general visibility check: making
+ * out lettering needs the `'fine'` detail band, which is a much higher
+ * bar than seeing that a scroll is there at all. That gap is the whole
+ * point — you can see the scroll in the gloom and be unable to read it.
+ *
+ * **Embossed marks bypass this entirely**, and the caller is what knows
+ * that (`Marked.requiresLightToRead`). Reading raised lettering by hand
+ * in the pitch dark is a real advantage worth paying for, not a
+ * courtesy — and it is the same mechanic that keeps a character without
+ * functioning sight inside the spellbook economy.
+ *
+ * Degrades to `true` when the vision singleton isn't loaded (unit
+ * fixtures), so reading stays testable without a light substrate.
+ */
+function visionAdequateForMarks(viewer: Stuff, target: Stuff): boolean {
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return true;
+  const vision = StuffApi.findByTemplatePath(VISION_PATH);
+  if (!vision) return true;
+  const VisionCtor = vision.constructor as typeof VisionModality;
+  try {
+    return VisionCtor.canSee(
+      viewer as Stuff & Sensor & Perception,
+      target,
+      'fine',
+    );
+  } catch {
+    return true;
+  }
 }
 
 /** See {@link PerceptionApi.effectivePerception}. */
