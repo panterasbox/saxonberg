@@ -122,7 +122,8 @@ threshold; a **bound** constrains an outcome — how fast something may accumula
 measured against what. Bounds are not set at ratification. Adjusting them against a running
 world is the ordinary work of the legislature, and it never finishes.
 
-What a community configures is what remains when those three are set aside.
+What a community configures is what remains when those three are set aside. The list of
+exclusions is short. The Schedule is long.
 
 ## Visual cue sheet
 
@@ -158,7 +159,9 @@ Corner / no-face throughout; explanatory schematics, flat register.
   Schedule lit. Grey out the **kernel** box ("not on the menu"), then the **eternity** rows
   ("only left behind"), then a third column appears beside MODULES and PARAMETERS —
   **BOUNDS**, greyed, captioned *"not set here"* with a small forward arrow marked
-  *ongoing*. What stays lit at the end **is** the community's configuration: the remainder.
+  *ongoing*. What stays lit at the end **is** the community's configuration — and the shot
+  should read as **mostly still lit**. ⭐ The subtraction only works if the remainder is
+  visibly the larger part; three greyed items beside a long lit Schedule.
 
 ## Notes
 
@@ -227,6 +230,25 @@ Corner / no-face throughout; explanatory schematics, flat register.
   registries (npm/apt/Nix) as the "governance-as-config" ergonomic; ALEC model bills as the
   *caution* (pre-drafted law as a capture vector — curation + transparency the antidote).
   Left out to stay tight.
-- **Tense honesty:** the Schedule, the amendment library, presets, and package-manager
-  composition are **designed, not built** (a small v1 slice is buildable — see the slate).
-  Values are set-at-ratification / calibrated-at-launch, not fixed in the doc.
+- **Tense honesty — for the EDITOR, not a viewer disclaimer.** The Schedule, the amendment
+  library, presets and package-manager composition are **designed, not built** (a small v1
+  slice is buildable — see the slate); values are set-at-ratification / calibrated-at-launch,
+  not fixed in the doc. ⚠ **But do not hedge this in narration.** The whole series is a
+  design explainer — Ch 1–7 describe a constitution that is not built either — so a
+  build-state caveat here would be inconsistent with its siblings and would undersell the
+  claim. *(User, 2026-08-04: "when I say proof it doesn't actually need to be built — the
+  proof of the design. It's all going to get built before anyone tries to boot any of this
+  up.")*
+- **⭐⭐ Publishing purpose (user, 2026-08-04): A may ship shortly after the main series,
+  ahead of the other appendices, because it "validates the promise of a not-one-size-fits-all
+  solution with evidence."** Two consequences worth holding:
+  - **What A proves is that the DESIGN ADMITS VARIATION** — demonstrable from the design
+    alone, and it is the actual claim being made.
+  - ⚠ **The presets are the evidence.** Three named, genuinely different configurations of
+    one engine is the proof of the claim — and they currently sit inside [4] at 62s, sharing
+    the beat with dependency resolution and the two-tier registry, while [2] runs 110s. [2]
+    is the spine and should stay long, but **for this purpose the payload beat is the densest
+    and third-shortest in the video.** Open call, flagged not taken.
+  - ⭐ **The close must read as latitude, not restriction** — hence "the list of exclusions is
+    short; the Schedule is long," and the cue-sheet note that the final shot should be
+    **mostly still lit.**
