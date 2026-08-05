@@ -112,7 +112,7 @@ describe('CommandGiverMixin recency stack', () => {
     expect(bucketsOf(giver)).toEqual(['self']);
   });
 
-  it('pushes inventory contributions on ContainmentApi.move into the giver', () => {
+  it('pushes a held item\'s contributions (environment) on move into the giver', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.getAvailableCommands(); // seed self
     const baseLen = stackOf(giver).length;
@@ -121,10 +121,12 @@ describe('CommandGiverMixin recency stack', () => {
     ContainmentApi.move(item, giver as unknown as Parameters<typeof ContainmentApi.move>[1]);
 
     expect(stackOf(giver)).toHaveLength(baseLen + 1);
-    expect(stackOf(giver)[baseLen]?.bucket).toBe('inventory');
+    // A held item grants OUTWARD to its holder: the `environment`
+    // bucket under the directional model.
+    expect(stackOf(giver)[baseLen]?.bucket).toBe('environment');
   });
 
-  it('pops inventory contributions on ContainmentApi.move out of the giver', () => {
+  it('pops a held item\'s contributions on move out of the giver', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.getAvailableCommands();
     const item = makeStuff(() => new InvProvider());
@@ -134,10 +136,10 @@ describe('CommandGiverMixin recency stack', () => {
     ContainmentApi.move(item, null);
 
     expect(stackOf(giver)).toHaveLength(beforePop - 1);
-    expect(bucketsOf(giver)).not.toContain('inventory');
+    expect(bucketsOf(giver)).not.toContain('peers');
   });
 
-  it('pushes environment contributions when a giver enters a Location with content', () => {
+  it('pushes sibling (peers) contributions when a giver enters a Location with content', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     const loc = makeStuff(() => new Location());
     const envThing = makeStuff(() => new EnvProvider());
@@ -146,35 +148,36 @@ describe('CommandGiverMixin recency stack', () => {
     ContainmentApi.move(giver, loc);
 
     // Self entry seeded by getAvailableCommands OR by self-move
-    // logic; either way the env entry must be present too.
+    // logic; either way the sibling entry must be present too — room
+    // contents reach you sideways, which is `peers`.
     giver.getAvailableCommands();
-    expect(bucketsOf(giver)).toContain('environment');
+    expect(bucketsOf(giver)).toContain('peers');
   });
 
-  it('pops environment contributions when a giver leaves a Location', () => {
+  it('pops sibling (peers) contributions when a giver leaves a Location', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     const loc = makeStuff(() => new Location());
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
     ContainmentApi.move(giver, loc);
-    expect(bucketsOf(giver)).toContain('environment');
+    expect(bucketsOf(giver)).toContain('peers');
 
     const otherLoc = makeStuff(() => new Location());
     ContainmentApi.move(giver, otherLoc);
 
-    expect(bucketsOf(giver)).not.toContain('environment');
+    expect(bucketsOf(giver)).not.toContain('peers');
   });
 
   it('pushes contributions when a thing arrives in the giver\'s environment', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     const loc = makeStuff(() => new Location());
     ContainmentApi.move(giver, loc);
-    expect(bucketsOf(giver)).not.toContain('environment');
+    expect(bucketsOf(giver)).not.toContain('peers');
 
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
 
-    expect(bucketsOf(giver)).toContain('environment');
+    expect(bucketsOf(giver)).toContain('peers');
   });
 
   it('pops contributions when a thing leaves the giver\'s environment', () => {
@@ -183,10 +186,10 @@ describe('CommandGiverMixin recency stack', () => {
     ContainmentApi.move(giver, loc);
     const envThing = makeStuff(() => new EnvProvider());
     ContainmentApi.move(envThing, loc);
-    expect(bucketsOf(giver)).toContain('environment');
+    expect(bucketsOf(giver)).toContain('peers');
 
     ContainmentApi.move(envThing, null);
-    expect(bucketsOf(giver)).not.toContain('environment');
+    expect(bucketsOf(giver)).not.toContain('peers');
   });
 
   it('orders contributions newest-first by pushing in chronological order', () => {
@@ -205,13 +208,13 @@ describe('CommandGiverMixin recency stack', () => {
       expect(seqs[i]).toBeGreaterThan(seqs[i - 1]!);
     }
 
-    // Walking newest-first should put inventory before environment
-    // before self.
+    // Walking newest-first should put the held item's `environment`
+    // entry before the room's `peers` entry before `self`.
     const walkedBuckets = stackOf(giver)
       .slice()
       .reverse()
       .map((e) => e.bucket);
-    expect(walkedBuckets[0]).toBe('inventory');
+    expect(walkedBuckets[0]).toBe('environment');
     expect(walkedBuckets[walkedBuckets.length - 1]).toBe('self');
   });
 

@@ -22,7 +22,9 @@ describe('crossing content classes (composition)', () => {
     expect(MixinApi.isAudible(w as never)).toBe(true);
     expect(MixinApi.isWearable(w as never)).toBe(true);
     expect(MixinApi.hasMixin(w as never, Mixins.Detailed)).toBe(true);
-    expect(Whistle.commandContributions.inventory).toContain('domain/eternal/university-avenue/cmd/blow.yaml');
+    // A carried or worn whistle grants `blow` OUTWARD to its bearer —
+    // the `environment` bucket under the directional model.
+    expect(Whistle.commandContributions.environment).toContain('domain/eternal/university-avenue/cmd/blow.yaml');
   });
 
   it('Paddle is Wieldable + Detailed with no carried verb', () => {

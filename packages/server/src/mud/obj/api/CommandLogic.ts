@@ -2366,7 +2366,16 @@ function peerScopesOf(container: Stuff): Stuff[] {
     // A closed door is a closed door. A verb lighting up through one
     // would be claiming a reach the world does not have.
     if (MixinApi.isSealable(exit) && !exit.isOpen()) continue;
-    const dest: Stuff | null = exit.getDestination() ?? null;
+    // ⚠ `getDestination()` THROWS when the target zone is not faulted
+    // in yet. Redistributing affordances must never force world-loading
+    // — a containment delta is a hot path and an unloaded room simply is
+    // not an adjacent peer scope until something else pulls it in.
+    let dest: Stuff | null = null;
+    try {
+      dest = exit.getDestination();
+    } catch {
+      continue;
+    }
     if (dest !== null && !out.includes(dest)) out.push(dest);
   }
   return out;
@@ -2499,27 +2508,37 @@ function applyShadowDeltaImpl(
         collectBucketDefs(shadow.constructor, 'self')
       );
     }
+    // A shadow rides its host, so it distributes exactly as the host
+    // would: outward along the container chain, inward to the host's
+    // contents, sideways to peers. Same directional model as the
+    // containment path — a shadow must not have a different reach from
+    // the thing it is shadowing.
+    const envDefs = collectBucketDefs(shadow.constructor, 'environment');
+    for (const anc of ancestorsOf(host)) {
+      if (!MixinApi.isCommandGiver(anc)) continue;
+      push(anc as Stuff & CommandGiver, 'environment', envDefs);
+    }
+
+    const invDefs = collectBucketDefs(shadow.constructor, 'inventory');
+    if (invDefs.length > 0 && MixinApi.isContainer(host)) {
+      for (const inner of selfAndDescendants(host)) {
+        if (inner === host || !MixinApi.isCommandGiver(inner)) continue;
+        push(inner as Stuff & CommandGiver, 'inventory', invDefs);
+      }
+    }
+
     if (!MixinApi.isContainable(host)) return;
     const container = (host as Stuff & Containable).getContainer();
     if (!container) return;
-    if (MixinApi.isCommandGiver(container)) {
-      push(
-        container as Stuff & CommandGiver,
-        'inventory',
-        collectBucketDefs(shadow.constructor, 'inventory')
-      );
-    }
-    const envDefs = collectBucketDefs(shadow.constructor, 'environment');
-    const peerDefs = MixinApi.isCommandGiver(host)
-      ? collectBucketDefs(shadow.constructor, 'peers')
-      : [];
-    if (envDefs.length === 0 && peerDefs.length === 0) return;
-    for (const sibling of container.getContents()) {
-      if ((sibling as Stuff) === host) continue;
-      if (!MixinApi.isCommandGiver(sibling)) continue;
-      const siblingCG = sibling as Stuff & CommandGiver;
-      push(siblingCG, 'environment', envDefs);
-      push(siblingCG, 'peers', peerDefs);
+    const peerDefs = collectBucketDefs(shadow.constructor, 'peers');
+    if (peerDefs.length === 0) return;
+    for (const scope of peerScopesOf(container)) {
+      if (!MixinApi.isContainer(scope)) continue;
+      for (const sibling of (scope as Stuff & Container).getContents()) {
+        if ((sibling as Stuff) === host) continue;
+        if (!MixinApi.isCommandGiver(sibling)) continue;
+        push(sibling as Stuff & CommandGiver, 'peers', peerDefs);
+      }
     }
     return;
   }

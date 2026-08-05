@@ -106,7 +106,7 @@ describe('Shadow ↔ recency stack integration', () => {
     ).toBe(false);
   });
 
-  it('environment + peers contributions land on each CG sibling, both buckets', () => {
+  it('a shadow\'s peers contribution lands on each CG sibling', () => {
     const loc = makeStuff(() => new Location());
     const host = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
     const peer = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
@@ -118,19 +118,18 @@ describe('Shadow ↔ recency stack integration', () => {
     const shadow = makeStuff(() => new EnvBucketShadow());
     ShadowApi.attach(host, shadow);
 
-    // Two new entries on the peer's stack: environment + peers, both
-    // sourced from the shadow.
-    expect(stackOf(peer).length).toBe(peerBaseLen + 2);
+    // ONE new entry, not two. Under the directional model `environment`
+    // (outward) and `peers` (sideways) are different fan-outs; the old
+    // pair were two names for the same sibling push, and the shadow's
+    // contribution collapses to the one that actually means "siblings".
+    expect(stackOf(peer).length).toBe(peerBaseLen + 1);
     const fromShadow = stackOf(peer).filter(
       (e) => e.source === (shadow as unknown as Stuff)
     );
-    expect(fromShadow.map((e) => e.bucket).sort()).toEqual([
-      'environment',
-      'peers',
-    ]);
+    expect(fromShadow.map((e) => e.bucket)).toEqual(['peers']);
   });
 
-  it('detach pops both env and peers entries from siblings', () => {
+  it('detach pops the peers entry from siblings', () => {
     const loc = makeStuff(() => new Location());
     const host = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
     const peer = makeStuff(() => new TestHost()) as TestHost & CommandGiver;
@@ -143,7 +142,7 @@ describe('Shadow ↔ recency stack integration', () => {
 
     ShadowApi.detach(shadow);
 
-    expect(stackOf(peer).length).toBe(attached - 2);
+    expect(stackOf(peer).length).toBe(attached - 1);
     expect(
       stackOf(peer).some((e) => e.source === (shadow as unknown as Stuff))
     ).toBe(false);

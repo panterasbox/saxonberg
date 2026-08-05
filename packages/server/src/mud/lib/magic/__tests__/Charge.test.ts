@@ -246,8 +246,9 @@ describe('ChargedMixin — the battery', () => {
     // charged thing, its verb would vanish and the affordance list would
     // become a free charge meter.
     const contributions = (
-      TestWand as unknown as { commandContributions?: { inventory?: string[] } }
+      TestWand as unknown as { commandContributions?: { environment?: string[] } }
     ).commandContributions;
-    expect(contributions?.inventory).toContain('magic/zap.yaml');
+    // A held wand grants OUTWARD to its wielder — `environment`.
+    expect(contributions?.environment).toContain('magic/zap.yaml');
   });
 });
