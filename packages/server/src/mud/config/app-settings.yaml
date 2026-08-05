@@ -608,6 +608,12 @@ settings:
     value: "20"
   - key: combat.range.withdrawCost
     value: "0.22"
+  # How far a working reaches by default. `far` means "anywhere in the
+  # scene", which is what every shipped spell already did — the band gate
+  # only bites for a carrier that declares a tighter envelope (a thrown
+  # contact payload reaches `close`).
+  - key: magic.spellEnvelope
+    value: "far"
   # Hand-slot economy — switching armament is a vulnerable durative beat;
   # the sidearm draws fast (the disarm answer). Game-time seconds.
   - key: combat.switch.seconds

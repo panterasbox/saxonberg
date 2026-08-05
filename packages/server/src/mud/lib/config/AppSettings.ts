@@ -737,6 +737,9 @@ export const AppSettingKeys = {
   /** Poise spent opening one band of distance (withdrawal costs more than
    * an advance — leaving under pressure is the harder act). */
   combatRangeWithdrawCost: "combat.range.withdrawCost",
+  /** The band a working reaches by default. `far` keeps every shipped
+   * spell inert against the band gate; a carrier declares its own. */
+  magicSpellEnvelope: "magic.spellEnvelope",
 
   /* ── hand-slot economy. ── */
   /** Weapon-switch vulnerable-beat window (game-time seconds). */
