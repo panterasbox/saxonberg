@@ -425,10 +425,9 @@ const PipelineHostBase = AliasMixin(
 
 class PipelineHost extends PipelineHostBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
 
   public received: MessageFrame[] = [];
@@ -522,10 +521,9 @@ describe('AliasMixin — pipeline integration', () => {
     );
     class Npc extends NpcBase {
       static override commandContributions = {
+      peers: [],
         self: ['system/ping.yaml'],
         environment: [],
-        inventory: [],
-        peers: [],
       };
       public received: MessageFrame[] = [];
       protected override handleMessage(frame: unknown): void {

@@ -42,10 +42,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   public received: MessageFrame[] = [];
   public envelopes: EnvelopeTemplate[] = [];
@@ -376,10 +375,9 @@ describe('sync is per-giver, not global', () => {
  */
 class ScriptGiver extends TestGiver {
   static override commandContributions = {
+      peers: [],
     self: ['shell/script.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
 }
 

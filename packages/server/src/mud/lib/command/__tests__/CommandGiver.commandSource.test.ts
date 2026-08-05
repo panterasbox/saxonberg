@@ -42,10 +42,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   protected override handleMessage(_frame: unknown): void {
     // discard
@@ -58,10 +57,9 @@ class TestGiver extends TestGiverBase {
 const InvProviderBase = ContainableMixin(Idea);
 class InvProvider extends InvProviderBase {
   static commandContributions = {
+      peers: [],
     self: [],
-    environment: [],
-    inventory: ['system/ping.yaml'],
-    peers: [],
+    environment: ['system/ping.yaml'],
   };
 }
 

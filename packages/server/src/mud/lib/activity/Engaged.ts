@@ -109,9 +109,8 @@ export function EngagedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: ['system/cancel.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

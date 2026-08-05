@@ -230,9 +230,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'boundary/close.yaml',
         'author/goto.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

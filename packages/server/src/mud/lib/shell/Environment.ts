@@ -271,9 +271,8 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: ['shell/settings.yaml', 'shell/var.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

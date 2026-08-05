@@ -2316,70 +2316,162 @@ function collectBucketDefsForInstance(
   ]);
 }
 
+/**
+ * Every container in `s`'s ancestor chain, innermost first, capped.
+ *
+ * The cap is a cycle/pathology backstop, not a design limit — containment
+ * is a tree, but a corrupted graph must not hang the command layer.
+ */
+const CONTAINMENT_WALK_CAP = 16;
+
+function ancestorsOf(s: Stuff): Stuff[] {
+  const out: Stuff[] = [];
+  let cursor: Stuff | null = MixinApi.isContainable(s)
+    ? (s as Stuff & Containable).getContainer()
+    : null;
+  let depth = CONTAINMENT_WALK_CAP;
+  while (cursor !== null && depth-- > 0) {
+    out.push(cursor);
+    cursor = MixinApi.isContainable(cursor)
+      ? (cursor as Stuff & Containable).getContainer()
+      : null;
+  }
+  return out;
+}
+
+/** `s` plus everything nested inside it, at any depth, capped. */
+function selfAndDescendants(s: Stuff, depth = CONTAINMENT_WALK_CAP): Stuff[] {
+  const out: Stuff[] = [s];
+  if (depth <= 0 || !MixinApi.isContainer(s)) return out;
+  for (const child of (s as Stuff & Container).getContents()) {
+    out.push(...selfAndDescendants(child, depth - 1));
+  }
+  return out;
+}
+
+/**
+ * The rooms whose occupants count as `s`'s peers: its own container, plus
+ * every room one exit away.
+ *
+ * Adjacency is one hop and **passable exits only** — a closed door is a
+ * closed door, and a verb that lit up through it would be claiming a
+ * reach the world does not have. Cross-room verb affordance is a
+ * deliberately small extension: it says "you can see who is next door
+ * well enough to address them", not that distance has stopped existing.
+ */
+function peerScopesOf(container: Stuff): Stuff[] {
+  const out: Stuff[] = [container];
+  if (!MixinApi.isExitable(container)) return out;
+  for (const exit of container.getExits().values()) {
+    // A closed door is a closed door. A verb lighting up through one
+    // would be claiming a reach the world does not have.
+    if (MixinApi.isSealable(exit) && !exit.isOpen()) continue;
+    const dest: Stuff | null = exit.getDestination() ?? null;
+    if (dest !== null && !out.includes(dest)) out.push(dest);
+  }
+  return out;
+}
+
+/**
+ * Redistribute command affordances after `item` moved from `from` to `to`.
+ *
+ * **The buckets name WHO RECEIVES, from the declaring object's point of
+ * view**, and they are directional:
+ *
+ * | Bucket | Receiver |
+ * |---|---|
+ * | `self` | the object itself |
+ * | `inventory` | everything nested **inside** it, at any depth |
+ * | `environment` | its container **chain**, outward, at any depth |
+ * | `peers` | its siblings, and one passable exit away |
+ *
+ * ⚠ **`inventory` and `environment` are RECURSIVE, and that is the
+ * point.** Verb availability used to be direct-containment-scoped while
+ * MQL targeting is arbitrarily-nested — so a rock inside a bag inside
+ * your pack could be *named* by a command whose verb the rock had never
+ * lit up. It worked anyway, by accident, because the bag was also
+ * Tangible and afforded the same verb itself. The moment a verb came
+ * from a rarer mixin the accident would have stopped covering for it.
+ * Reach now matches what the parser can address.
+ */
 function applyContainmentDeltaImpl(
   item: Stuff,
   from: (Stuff & Container) | null,
   to: (Stuff & Container) | null
 ): void {
-  // Source side: pop from anyone whose stack carried item.
+  const moved = selfAndDescendants(item);
+
+  // ── Source side: every stack that carried anything in the moved
+  // subtree drops it. Popping by source is idempotent, so popping a
+  // source that was never pushed is free.
   if (from) {
-    if (MixinApi.isCommandGiver(from)) {
-      (from as Stuff & CommandGiver).popCommandSource(item);
-    }
-    for (const sibling of from.getContents()) {
-      if (sibling === item) continue;
-      if (MixinApi.isCommandGiver(sibling)) {
-        (sibling as Stuff & CommandGiver).popCommandSource(item);
-      }
-    }
-  }
-
-  // Dest side: push to anyone whose stack now carries item.
-  if (to) {
-    if (MixinApi.isCommandGiver(to)) {
-      const defs = collectBucketDefsForInstance(item, 'inventory');
-      if (defs.length > 0) {
-        (to as Stuff & CommandGiver).pushCommandSource(item, 'inventory', defs);
-      }
-    }
-    const envDefs = collectBucketDefsForInstance(item, 'environment');
-    const peerDefs = MixinApi.isCommandGiver(item)
-      ? collectBucketDefsForInstance(item, 'peers')
-      : [];
-    if (envDefs.length > 0 || peerDefs.length > 0) {
-      for (const sibling of to.getContents()) {
-        if (sibling === item) continue;
-        if (!MixinApi.isCommandGiver(sibling)) continue;
-        const siblingCG = sibling as Stuff & CommandGiver;
-        if (envDefs.length > 0) {
-          siblingCG.pushCommandSource(item, 'environment', envDefs);
-        }
-        if (peerDefs.length > 0) {
-          siblingCG.pushCommandSource(item, 'peers', peerDefs);
+    const oldScopes = [from, ...ancestorsOf(from), ...peerScopesOf(from)];
+    for (const scope of oldScopes) {
+      for (const holder of selfAndDescendants(scope)) {
+        if (!MixinApi.isCommandGiver(holder)) continue;
+        for (const m of moved) {
+          (holder as Stuff & CommandGiver).popCommandSource(m);
         }
       }
     }
+    // And the moved subtree drops whatever the old surroundings gave it.
+    for (const m of moved) {
+      if (!MixinApi.isCommandGiver(m)) continue;
+      (m as Stuff & CommandGiver).resetCommandSources('self-moved');
+    }
   }
 
-  // Self-move: item is a CommandGiver entering a container. Drop
-  // any prior env+peers slice and push contributions from each
-  // neighbor in the new container — this is what makes "I just
-  // walked into a room" see the room's existing contents on the
-  // giver's own stack.
-  if (MixinApi.isCommandGiver(item) && to) {
-    const itemCG = item as Stuff & CommandGiver;
-    if (from) itemCG.resetCommandSources('self-moved');
-    for (const neighbor of to.getContents()) {
-      if ((neighbor as Stuff) === item) continue;
-      const envDefs = collectBucketDefsForInstance(neighbor, 'environment');
-      const peerDefs = MixinApi.isCommandGiver(neighbor)
-        ? collectBucketDefsForInstance(neighbor, 'peers')
-        : [];
-      if (envDefs.length > 0) {
-        itemCG.pushCommandSource(neighbor, 'environment', envDefs);
+  if (!to) return;
+
+  const ancestors = [to, ...ancestorsOf(to)];
+
+  // ── `environment`: the moved subtree grants OUTWARD, to every
+  // container above it. This is what makes a rock in a bag in your pack
+  // still hand you `throw`.
+  for (const m of moved) {
+    const defs = collectBucketDefsForInstance(m, 'environment');
+    if (defs.length === 0) continue;
+    for (const anc of ancestors) {
+      if (!MixinApi.isCommandGiver(anc)) continue;
+      (anc as Stuff & CommandGiver).pushCommandSource(m, 'environment', defs);
+    }
+  }
+
+  // ── `inventory`: every container above grants INWARD, to the whole
+  // moved subtree. A pack that affords `rummage` affords it to what it
+  // swallowed, however deep.
+  for (const anc of ancestors) {
+    const defs = collectBucketDefsForInstance(anc, 'inventory');
+    if (defs.length === 0) continue;
+    for (const m of moved) {
+      if (!MixinApi.isCommandGiver(m)) continue;
+      (m as Stuff & CommandGiver).pushCommandSource(anc, 'inventory', defs);
+    }
+  }
+
+  // ── `peers`: sideways, both directions, across the peer scopes.
+  //
+  // Ungated by CommandGiver on the CONTRIBUTOR side: a job board is not a
+  // command giver and still posts its verb to everyone in the room. Only
+  // the RECEIVER has to be able to hold a command.
+  const scopes = peerScopesOf(to);
+  for (const scope of scopes) {
+    if (!MixinApi.isContainer(scope)) continue;
+    for (const sibling of (scope as Stuff & Container).getContents()) {
+      if (moved.includes(sibling)) continue;
+
+      const theirs = collectBucketDefsForInstance(sibling, 'peers');
+      if (theirs.length > 0) {
+        for (const m of moved) {
+          if (!MixinApi.isCommandGiver(m)) continue;
+          (m as Stuff & CommandGiver).pushCommandSource(sibling, 'peers', theirs);
+        }
       }
-      if (peerDefs.length > 0) {
-        itemCG.pushCommandSource(neighbor, 'peers', peerDefs);
+      if (!MixinApi.isCommandGiver(sibling)) continue;
+      for (const m of moved) {
+        const mine = collectBucketDefsForInstance(m, 'peers');
+        if (mine.length === 0) continue;
+        (sibling as Stuff & CommandGiver).pushCommandSource(m, 'peers', mine);
       }
     }
   }

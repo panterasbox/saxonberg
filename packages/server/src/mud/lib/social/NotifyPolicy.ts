@@ -120,9 +120,8 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: ["social/notify.yaml"],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

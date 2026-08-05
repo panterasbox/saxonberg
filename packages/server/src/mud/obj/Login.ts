@@ -106,9 +106,8 @@ export default class Login extends LoginBase {
    */
   static commandContributions: CommandContributions = {
     self: ["charactergen/enroll.yaml", "charactergen/play.yaml"],
-    environment: [],
-    inventory: [],
     peers: [],
+    environment: [],
   };
 
   /**

@@ -11,8 +11,7 @@ import type { CommandContributions } from '../../api/command';
 export default class GasAnalyzer extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['perception/measure.yaml'],
-    environment: [],
+    environment: ['perception/measure.yaml'],
     peers: [],
   };
 }

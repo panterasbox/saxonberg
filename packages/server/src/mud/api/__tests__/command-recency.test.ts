@@ -32,10 +32,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   public envelopes: Array<import('@saxonberg/types').EnvelopeTemplate> = [];
   protected override handleMessage(_frame: unknown): void {
@@ -51,20 +50,18 @@ class TestGiver extends TestGiverBase {
 const InvProviderBase = ContainableMixin(Idea);
 class InvProvider extends InvProviderBase {
   static commandContributions = {
+      peers: [],
     self: [],
-    environment: [],
-    inventory: ['system/ping.yaml'],
-    peers: [],
+    environment: ['system/ping.yaml'],
   };
 }
 
 const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
+      peers: ['system/ping.yaml'],
     self: [],
-    environment: ['system/ping.yaml'],
-    inventory: [],
-    peers: [],
+    environment: [],
   };
 }
 

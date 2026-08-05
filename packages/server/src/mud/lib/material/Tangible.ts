@@ -116,8 +116,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      inventory: ['inventory/throw.yaml'],
-      environment: [],
+      environment: ['inventory/throw.yaml'],
       peers: [],
     };
     /**

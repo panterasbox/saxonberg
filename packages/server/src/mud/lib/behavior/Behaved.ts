@@ -167,9 +167,12 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         (s) => s.trigger === 'engage'
       );
       if (!conversational) return inner;
+      // `talk` reaches whoever shares the room with this NPC — one
+      // bucket now, since `peers` is the sideways one. (It was listed on
+      // both `environment` and `peers` before the rename, which were two
+      // names for the same sibling fan-out.)
       return {
         ...inner,
-        environment: [...(inner.environment ?? []), 'social/talk.yaml'],
         peers: [...(inner.peers ?? []), 'social/talk.yaml'],
       };
     }

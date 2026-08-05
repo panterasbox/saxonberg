@@ -59,8 +59,7 @@ class SelfBucketShadow extends Shadow {
 
 class EnvBucketShadow extends Shadow {
   static commandContributions = {
-    environment: ['perception/look.yaml'],
-    peers: ['perception/look.yaml'],
+      peers: ['perception/look.yaml'],
   };
   @Shadowing
   zap(): string {
