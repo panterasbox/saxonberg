@@ -175,7 +175,7 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     static fieldMeta: FieldMeta = {
-      capacityKJ: { persistent: true, authorable: true },
+      capacityKJ: { persistent: true, authorable: true, spoiler: 1 },
       alwaysOn: { persistent: true, authorable: true },
       drawActive: { persistent: true, runtimeState: true },
       chargeClockStamp: { persistent: true, runtimeState: true },

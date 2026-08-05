@@ -106,7 +106,7 @@ export function CirculatingMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       materialTags: { persistent: true, authorable: true },
       censusKey: { persistent: true, authorable: true },
-      regionTarget: { persistent: true, authorable: true },
+      regionTarget: { persistent: true, authorable: true, spoiler: 1 },
       // ⚠ There is deliberately NO `effectTags` field. It would be a
       // copy of the `Arcane` footprint, and a copy drifts — which is
       // exactly the failure D35 exists to prevent.

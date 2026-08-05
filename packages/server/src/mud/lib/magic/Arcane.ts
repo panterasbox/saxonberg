@@ -115,7 +115,7 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
       carriedSpellPath: { persistent: true, authorable: true },
       declaredAddresses: { persistent: true, authorable: true },
       makerId: { persistent: true, authorable: true },
-      deliveryEfficiency: { persistent: true, authorable: true },
+      deliveryEfficiency: { persistent: true, authorable: true, spoiler: 1 },
     };
 
     /** The spell whose grid address this thing inherits. `''` = bespoke. */

@@ -79,7 +79,7 @@ export function ConduitMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'ConduitMixin';
 
     static fieldMeta: FieldMeta = {
-      couplingEfficiency: { persistent: true, authorable: true },
+      couplingEfficiency: { persistent: true, authorable: true, spoiler: 1 },
     };
 
     /**
