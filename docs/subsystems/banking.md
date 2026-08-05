@@ -313,11 +313,37 @@ append-only ledger + conservation + only-the-CB-mints means the two and only
 two consumers are derive-on-read with no backfill:
 
 - **The P&L** (Phase 4) — `profitAndLoss`.
-- **Money supply + reconciliation** — `moneySupply()` (Σ mints − Σ drains,
-  O(1) off `SupplyAggregate`) and `reconcile()`: the conservation audit
-  (`supply === Σ account balances + Σ circulating coin`, the coins outside
-  bank vaults; `cashInExistence = supply − Σ balances`). `reserve supply`
-  (operator-gated) renders both.
+- **Money supply + reconciliation** — all **per currency**; reports partition
+  by currency and **never sum across** (with no rate, a combined total is a
+  number nobody can justify).
+  - `moneySupply(currency)` — Σ mints − Σ drains, O(1) off `SupplyAggregate`.
+  - `reconcile(currency)` — the **circulating**-value audit, **sync**:
+    `supply === Σ balances + Σ circulating coin`. It walks the in-memory
+    index, so it sees live instances only, and it excludes vault float. Kept
+    sync for the paths that cannot await, and now honest about what it omits.
+  - `fullReconcile(currency)` — ⭐ **the follow-the-money instrument**, async.
+    The identity that actually holds is
+    `supply === Σ balances + circulating + snapshotCoin`.
+
+    ⚠⚠ **Two accounting subtleties, both found by driving, both easy to get
+    backwards:**
+
+    1. **Vault float is REPORTED but NOT ADDED.** `seedFloat` mints coin into
+       the till *and* credits the branch's own operating account 1:1 against
+       it, so the float is **already on the ledger** as that balance. Adding
+       `vaultCoin` to the identity double-counts it by exactly the float —
+       the original `reconcile`'s `continue` on vault cash was **load-bearing
+       accounting, not an oversight.**
+    2. **`snapshotCoin` counts only NON-RESIDENT holders.** A snapshot is a
+       *copy* of state that may also be live; if the holder's avatar is still
+       materialized, `liveCoinOf` already counted those coins and counting the
+       record too doubles them.
+
+    The snapshot term is the one the audit genuinely was missing — it is
+    where a logged-out player's cash lives, and nothing on the ledger
+    corresponds to it.
+  - `reserve supply` (governor-gated) renders one block per registered
+    currency from the **complete** read.
 - **The account statement** (player-facing) — `bank statement [count]`, a
   `BankController` subcommand beside `balance`: a derive-on-read scan of the
   caller's own ledger at the branch they're standing in (`entriesFor(accountId)`
@@ -499,6 +525,23 @@ The currency build added three more:
    ore in the world. `Coin` is the value-bearing glob (and scrip will be a
    `Coin`), so it inherits. A general *value-bearing* marker is the
    money-integrity slate's own cycle.
+11. **The clone pipeline is on the gate's allow-list.** A `Hydrator` applies
+   a template's (or a snapshot's) `quantity` through the two-phase
+   `set<Field>` dispatch, so hydration is how a coin stack comes into
+   existence at all — for a fresh clone *and* for a logged-out player's cash
+   restoring from `holder_snapshots`. Reconstituting a stack that already
+   exists is not minting. ⚠ The consequence, accepted knowingly: a template
+   authored with `data.quantity: 1000000` clones into a fortune. That is a
+   **content** surface (`class`/`hydratorClass` are wizard-gated), and it is
+   enumerated in the money-integrity slate.
+12. ⚠⚠ **Vault float is reported, never added, to the conservation
+   identity** — it is already on the ledger as the branch's own balance
+   (`seedFloat` mints the coin *and* credits the account 1:1). The original
+   `reconcile`'s skip of vault cash was correct accounting that the currency
+   build briefly "fixed" into a double-count. **Before adding any term to a
+   conservation identity, ask what already represents it.** The same hazard
+   applies to `snapshotCoin`, which is why it counts only *non-resident*
+   holders.
 
 ## Deferred seams
 
@@ -722,3 +765,22 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
 > ?? corpoKey`). `AccountBalance.bankPath` survives only as a legacy
 > hydration carrier the boot restamp migrates and clears — remove with
 > the terminus-banking build.
+
+## History
+
+- **The currency build** (2026-08-05, `c1b9b711…52f65257`) — the money
+  substrate generalized from one *implicit* currency to N, shipped with
+  exactly one. `credit` → **zorkmid** (the word went to the deferred lending
+  subsystem); denominations became **structural** `(currency, faceValue)`;
+  `currency` threaded through all three `bank_*` collections; conservation
+  became per-currency with a **permanent** no-crossing rule; the cash-side
+  `setQuantity` hole was gated; and `reconcile` split into a sync
+  circulating read and the complete `fullReconcile`.
+
+  ⚠ Three defects in that build were found **only by driving the client**,
+  not by the suite — enroll was broken by the new gate (the tests call
+  `issueCash` from a root execution context and stub `clone`, so they never
+  exercised the real caller or the hydration path), a coin stack rendered
+  as *"4 a 5-zorkmid pieces"*, and the new vault term double-counted the
+  branch float. The lesson is the one the project already holds: **green
+  tests are not a working flow.**

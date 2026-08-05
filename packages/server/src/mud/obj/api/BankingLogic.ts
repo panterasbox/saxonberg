@@ -1239,6 +1239,13 @@ async function snapshotCoinOf(currency: string): Promise<number> {
   if (!active()) return 0;
   const records = await PersistedRecord.find<PersistedRecord>({});
   let total = 0;
+  // ⚠⚠ A snapshot is a COPY of state that may ALSO be live. If the holder is
+  // currently resident, its coins are already counted by `liveCoinOf`, and
+  // counting the snapshot too would double them — found by driving, when the
+  // audit reported a bottom-up exceeding supply. Only a holder that is NOT
+  // materialized is represented solely by its record.
+  const isResident = (scope: string): boolean =>
+    scope !== "" && StuffApi.findByTemplatePath(scope) !== undefined;
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       for (const child of node) visit(child);
@@ -1256,7 +1263,10 @@ async function snapshotCoinOf(currency: string): Promise<number> {
     }
     for (const value of Object.values(obj)) visit(value);
   };
-  for (const record of records) visit(record.state);
+  for (const record of records) {
+    if (isResident(record.getScope())) continue;
+    visit(record.state);
+  }
   return total;
 }
 

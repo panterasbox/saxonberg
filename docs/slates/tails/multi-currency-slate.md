@@ -1,6 +1,12 @@
 # Multi-currency slate (working doc)
 
-> **Status: scoped, buildable in two clean halves.** The banking
+> ✅ **HALF A IS BUILT AND MERGED** (the currency build, 2026-08-05 —
+> `docs/subsystems/banking.md` is now the live reference for everything in
+> it). What survives here is the **record of what was considered** for the
+> refused Half B, and the open questions the build did not close. Do not
+> build from the Half-A sections below; they describe work already done.
+>
+> **Original status: scoped, buildable in two clean halves.** The banking
 > substrate **shipped** ([banking.md](../../subsystems/banking.md)) with a
 > single currency (`credit`). The amount value-object (`Money`) is already
 > **currency-tagged and currency-closed** — the intent is there. What is

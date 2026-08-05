@@ -10,11 +10,11 @@
 > here we need to thread through the entire economy and make sure money
 > doesn't leak in or out anywhere."**
 
-> **Status: findings + audit surface. Not requirements.** Three findings
-> are **confirmed against the code**; the rest of the surface is
-> enumerated but **unswept**. The instrument fix and the two gates ride
-> the [currency build](../../requirements/currency-requirements.md); the
-> full sweep is its own cycle.
+> **Status: findings + audit surface. Not requirements.** Two findings
+> held up; **the third did not** (see below — it was correct behaviour
+> misread as a bug, and driving the currency build caught it). The rest of
+> the surface is enumerated but **unswept**. The gates and the instrument
+> fix shipped with the currency build; the full sweep is its own cycle.
 
 Related: [banking.md](../../subsystems/banking.md) (the conservation
 chokepoint), [persistence.md](../../subsystems/persistence.md) (the
@@ -79,21 +79,36 @@ reads the **in-memory `byTemplatePath` index** — live instances only.
 > persist-and-restore surface the user flagged. The audit has a blind
 > spot exactly where value durably lives.
 
-## 3. `reconcile()` skips vault cash
+## ~~3. `reconcile()` skips vault cash~~ — ⛔ **THIS FINDING WAS WRONG**
 
-```ts
-if (container && MixinApi.isBank(container)) continue; // vault cash
-```
+*Corrected 2026-08-05, by driving the currency build.*
 
-Deliberate (vault float is not "circulating"), but it means `balanced`
-is not a total-value identity — it is a *circulating*-value identity, and
-**a leak into a vault is invisible to it.**
+The slate read the vault-cash skip as a blind spot. It is not — it is
+**load-bearing accounting.** `seedFloat` mints coin into the till **and
+credits the branch's own operating account 1:1 against it**, so vault float
+is *already represented on the ledger* by that balance. Counting the coin
+as well double-counts it by exactly the float.
 
-## ⚠⚠ Why 2 + 3 matter more than they look
+The currency build "fixed" the non-bug, and the live audit immediately
+reported a bottom-up **exceeding** supply — which is how the error was
+caught. Vault float is now *reported* (labelled "backed on-ledger") and
+excluded from the identity, which is what the original `continue` was
+doing all along.
+
+⭐ **The lesson worth keeping:** a term that looks like a missing reservoir
+may be a *duplicate* of one already counted elsewhere. Before adding
+anything to a conservation identity, ask what else already represents it.
+Finding 2's snapshot term has the same hazard in a different costume — a
+snapshot is a **copy** of state that may also be live, so it counts only
+for holders that are not currently resident.
+
+## ⚠⚠ Why finding 2 matters more than it looks
 
 `balanced === (supply === accountTotal + circulatingCoin)` is **the**
-follow-the-money instrument — the operator's one honest read. With two
-structural blind spots, it is not trustworthy enough to audit *against*.
+follow-the-money instrument — the operator's one honest read. With
+snapshotted coin invisible to it, it is not trustworthy enough to audit
+*against*: that is where a logged-out player's cash lives, and nothing on
+the ledger corresponds to it.
 
 > ⭐ **Fix the instrument before running the audit.** An audit conducted
 > with a leaky gauge is theater.
@@ -128,9 +143,12 @@ and cheaper to close.
 
 # The audit surface — what "follow the money" actually has to sweep
 
-⚠ **This list is enumerated, not swept.** Findings 1–3 came from about
-fifteen minutes on four surfaces; that hit rate is itself a finding.
-Each row below is a *question to answer*, not a known defect.
+⚠ **This list is enumerated, not swept.** The findings above came from
+about fifteen minutes on four surfaces; that hit rate is itself a finding
+— as is the fact that **one of the three was wrong**, and only driving the
+code caught it. Each row below is a *question to answer*, not a known
+defect, and each deserves the same "what already represents this?" check
+that finding 3 failed.
 
 ## A. Creating a coin
 
@@ -191,12 +209,15 @@ just as thoroughly.
 
 # ⭐ What the currency build already fixes (do not re-scope here)
 
-Folded into [currency-requirements.md](../../requirements/currency-requirements.md)
+Shipped by the currency build (see [banking.md](../../subsystems/banking.md))
 because those paths are being rewritten anyway:
 
-1. **Gate `setQuantity`** on the money-bearing path (finding 1).
-2. **Complete the instrument** — `reconcile` counts snapshotted coin and
-   accounts for vault cash explicitly (findings 2 + 3), per-currency.
+1. **Gate `setQuantity`** on the money-bearing path (finding 1) — landed
+   on `Coin`, not on `GlobbableMixin`: a glob is not necessarily money, and
+   gating the mixin gates every pile of ore in the world.
+2. **Complete the instrument** — `fullReconcile` counts snapshotted coin
+   (finding 2), **scoped to non-resident holders**, and reports vault float
+   without adding it (the finding-3 correction).
 3. **`Coin` glob identity gains the currency** — two issuers' like-valued
    coins can no longer merge into one stack (an invisible mint by merge).
 4. **The unknown-denomination `?? 1` fallback becomes a throw** — a coin

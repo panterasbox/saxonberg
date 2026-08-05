@@ -82,7 +82,12 @@ const CoinQuantityMutators = SecurityPolicies.AnyOf(
   // "can a template mint coins" is enumerated in
   // docs/slates/builds/money-integrity-slate.md § the audit surface
   // (clone-a-coin, content packs, the CMS coin row) as that cycle's work.
-  SecurityPolicies.FromModule("/lib/stuff/Hydrator", { includeSubclasses: true }),
+  // `lib/stuff/Hydrator` is an INTERFACE — there is no runtime class to gate
+  // on, so the arms are the concrete hydrator's code provenance and its
+  // template lineage (`lint:gates` catches a dead arm here).
+  SecurityPolicies.FromModule("/obj/persistence/PersistentHydrator", {
+    includeSubclasses: true,
+  }),
   SecurityPolicies.FromTemplate("/obj/persistence/*Hydrator"),
   // The glob mechanics: split subtracts what it hands out, merge sums what it
   // absorbs — both conserve by construction.
