@@ -110,6 +110,14 @@ function identificationName(viewer: Stuff, target: Stuff): string | null {
     ) {
       return null;
     }
+    // ⚠ A **believed** name overrides the true one. This is the belief
+    // store doing what it is for: holding something the viewer is
+    // confident about and WRONG about. A cursed identify plants one, and
+    // the reader has no way to tell from the inside — which is what
+    // makes false information strictly worse than none.
+    const believed = (record.payload as { believedName?: unknown })
+      .believedName;
+    if (typeof believed === 'string' && believed.length > 0) return believed;
     const known = target.getIdentifiedName();
     if (known) return known;
   }

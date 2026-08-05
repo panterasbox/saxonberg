@@ -51,32 +51,28 @@ data:
       # not the target's. This is the whole BUC model in four numbers,
       # and it is the case a potency multiplier cannot express at all:
       #
-      #   cursed   steps -1, limit cursed     it CURSES what you read it on
-      #   uncursed steps +1, limit uncursed  the cure — restores, stops
-      #   blessed  steps +1, limit uncursed  the same cure, reliably
+      #   cursed   lays a curse on what you read it on
+      #   uncursed lifts the curse on ONE thing
+      #   blessed  lifts the curse on EVERYTHING YOU CARRY
       #
-      # ⚠ A blessed remove curse does NOT bless. That would betray the
-      # working's identity: this is for REMOVING curses, and a scroll
-      # that consecrates is a different working that happens to share a
-      # name. The earlier draft raised the ceiling to `blessed` and was
-      # wrong for exactly that reason.
-      #
-      # So what IS the high end here? Properly, SCOPE — the slate's
-      # answer, `[worn-only, all-worn, whole-inventory]`. Removing more
-      # curses is unmistakably "better at removing curses" and cannot
-      # drift into being a different act. It needs multi-target, which
-      # does not ship, so the high end is deliberately the same cure and
-      # its value is CERTAINTY: you cannot tell a scroll's band before
-      # reading it, so "blessed" is the one you know will not turn on
-      # you. Honest, and it leaves the real high end named for later.
+      # The high end is SCOPE, which is the only honest "better at
+      # removing curses": more curses removed is unmistakably more of
+      # the same act and cannot drift into being a different working.
+      # A blessed scroll that *blessed* things would be a different
+      # working sharing a name — the earlier draft did exactly that and
+      # betrayed the item's identity.
       #
       # The low end is the sign INVERSION, which is what makes the axis
-      # worth having: you must know the scroll before you read it.
+      # worth knowing before you read: a cursed scroll of remove curse
+      # is a trap wearing the same words.
       steps: [-1, 1, 1]
       # The ceiling is what makes the ordinary case a CURE and not a
       # buff: unbounded, +1 on an ordinary item blesses it and the right
       # play is to read one over everything you own.
       limit: [cursed, uncursed, uncursed]
+      # Blessed resolves a SET instead of the aimed thing — every
+      # blessable item in the reader's pack.
+      scope: [null, null, inventory]
   description: >-
     Not an unbinding — there is nothing here another hand tied. The
     working takes the thing's own pattern and walks it back up one

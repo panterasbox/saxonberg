@@ -46,6 +46,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { Mixins } from '../../lib/mixin';
 import { ConditionApi } from '../../api/condition';
 import { ThermalApi } from '../../api/thermal';
@@ -485,8 +486,21 @@ async function dischargeImpl(
     };
   }
 
+  // **The band picks the working's own low/high branch** — not a global
+  // multiplier. Resolved HERE, ahead of the shape gate, because the gate
+  // must judge the list that will actually fire.
+  const band = MixinApi.isBlessable(item)
+    ? item.getBlessing().getBand()
+    : 'uncursed';
+  const effects =
+    band === 'cursed'
+      ? spell.cursedEffects
+      : band === 'blessed'
+        ? spell.blessedEffects
+        : spell.effects;
+
   // The spell's own targeting demand — shape only, exactly as a cast.
-  const shapeRefusal = targetingRefusal(spell, actor, target);
+  const shapeRefusal = targetingRefusal(spell, actor, target, effects);
   if (shapeRefusal) return { ok: false, refusal: shapeRefusal, reports: [] };
 
   // The ward reads the ITEM's footprint at the ITEM's scene: a wand is
@@ -558,22 +572,6 @@ async function dischargeImpl(
       classScale,
     { specifiedBy: item.getMakerId(), source: payer },
   );
-
-  // **The band picks the working's own low/high branch** — not a global
-  // multiplier. A blanket 0.6×/1.4× made every cursed item identical AND
-  // unobservable, which is the opposite of what magic is for: the whole
-  // point is that each item is its own thing. The engine owns only the
-  // ORDERING (`Blessing.pick`, at validation); what each step MEANS is
-  // the working's own, authored inline on its effects.
-  const band = MixinApi.isBlessable(item)
-    ? item.getBlessing().getBand()
-    : 'uncursed';
-  const effects =
-    band === 'cursed'
-      ? spell.cursedEffects
-      : band === 'blessed'
-        ? spell.blessedEffects
-        : spell.effects;
 
   const reports: string[] = [];
   for (const effect of effects) {
@@ -697,15 +695,100 @@ async function executeEffect(
   // as opposed to the `target ?? ctx.actor` fallback for an unaimed cast.
   const landsOn =
     (effect as { self?: boolean }).self === true ? ctx.actor : target;
+
+  // **A scoped effect acts on a SET, not the aimed thing.** The MQL
+  // query resolves against the ACTOR, so `inventory` means the reader's
+  // own pack. This is how a working expresses "more of the same act" at
+  // its high end — a blessed remove curse sweeps everything you carry,
+  // which is unmistakably more curse-removing and cannot drift into
+  // being a different working.
+  const scope = (effect as { scope?: string }).scope;
+  if (typeof scope === 'string' && scope.length > 0) {
+    const many = { stuff: resolveScope(ctx.actor, scope) };
+    // ⚠ MQL names the SET; the EFFECT decides what it can act on.
+    //
+    // The filter deliberately does not live in the query: `mixin.` and
+    // `class.` filters are AUTHOR-GATED in MQL, and a content-authored
+    // scope must not need author powers to resolve. So the scope stays a
+    // plain seed a player could have typed, and applicability is asked
+    // of the effect — which is where the knowledge belongs anyway.
+    const reports: string[] = [];
+    for (const subject of many.stuff) {
+      if (!appliesTo(effect, subject)) continue;
+      const r = await executeOne(ctx, subject, spell, effect);
+      if (r) reports.push(r);
+    }
+    return reports.length > 0
+      ? reports.join(' ')
+      : 'Nothing here answers the working.';
+  }
+  return executeOne(ctx, landsOn, spell, effect);
+}
+
+/**
+ * **The subject set a scoped effect acts on.**
+ *
+ * A closed vocabulary resolved in code rather than through MQL. Two
+ * reasons, both learned the hard way:
+ *
+ * - MQL's `mixin.` / `class.` filters are **author-gated**, and a
+ *   content-authored scope must never need author powers to resolve;
+ * - MQL's giver-anchored seeds want a dispatch frame's permission
+ *   snapshot, which an effect executor does not have.
+ *
+ * So the engine knows a handful of scopes by name and content picks one.
+ * Growing the list is a deliberate edit, which is the right shape for
+ * something that decides how far a working reaches.
+ */
+function resolveScope(actor: Stuff, scope: string): Stuff[] {
+  switch (scope) {
+    case 'inventory':
+      return MixinApi.isContainer(actor) ? [...actor.getContents()] : [];
+    case 'here': {
+      const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+      return room && MixinApi.isContainer(room) ? [...room.getContents()] : [];
+    }
+    default:
+      return [];
+  }
+}
+
+/**
+ * **Can this effect do anything to this subject?** The applicability
+ * test a scoped sweep filters on, so a blessed remove curse reports on
+ * the cursed ring in your pack and stays silent about your lunch.
+ *
+ * Only asked on the scoped path — an aimed effect still refuses out
+ * loud, because there the player named a specific thing and deserves to
+ * be told why nothing happened.
+ */
+function appliesTo(effect: Effect, subject: Stuff): boolean {
+  switch (effect.kind) {
+    case 'adjust-blessing':
+      return MixinApi.isBlessable(subject);
+    case 'sense':
+      return MixinApi.isIdentifiable(subject) || MixinApi.isBulkable(subject);
+    default:
+      return true;
+  }
+}
+
+/** One effect against ONE subject — the un-scoped core. */
+async function executeOne(
+  ctx: EffectContext,
+  landsOn: Stuff | undefined,
+  spell: SpellDescriptor,
+  effect: Effect,
+): Promise<string | null> {
   switch (effect.kind) {
     case 'inject-channel':
       return execInjectChannel(ctx, landsOn, effect);
     case 'afflict':
       return execAfflict(ctx, landsOn, effect);
     case 'relieve':
-      return execRelieve(target ?? ctx.actor, effect);
+      return execRelieve(landsOn ?? ctx.actor, effect);
     case 'adjust-reserve': {
-      const t = target ?? ctx.actor;
+      const t = landsOn ?? ctx.actor;
       if (!MixinApi.isReserved(t) || !t.hasReserve(effect.reserveKey)) {
         return 'Nothing there answers the draw.';
       }
@@ -714,15 +797,16 @@ async function executeEffect(
       return effect.delta >= 0 ? 'Vigor flows in.' : 'Something is drawn away.';
     }
     case 'adjust-blessing':
-      return execAdjustBlessing(target, effect.steps, effect.limit);
+      return execAdjustBlessing(landsOn, effect.steps, effect.limit);
     case 'move':
-      return execMove(ctx, target, effect.move);
+      return execMove(ctx, landsOn, effect.move);
     case 'conjure':
-      return execConjure(ctx, target, effect);
+      return execConjure(ctx, landsOn, effect);
     case 'sense':
+      if (effect.sense === 'misidentify') return execMisidentify(ctx, landsOn);
       return effect.sense === 'identify-item'
-        ? execIdentify(ctx, target)
-        : execSense(ctx, target);
+        ? execIdentify(ctx, landsOn)
+        : execSense(ctx, landsOn);
     case 'cloak':
       return execCloak(ctx, spell, effect.disguise);
     case 'emit-field':
@@ -1179,6 +1263,51 @@ function execAdjustBlessing(
 }
 
 /**
+ * **Plant a confident falsehood** — the cursed identify (the slate's
+ * best example of the axis, and the only thing that exercises the
+ * belief store's capacity to hold something untrue).
+ *
+ * It does not misfire or refuse. It writes a record that reads exactly
+ * like a real identification, naming a DIFFERENT catalogued class. The
+ * reader has no way to tell from the inside; they find out by acting on
+ * it. That is strictly worse than no information, which is what makes
+ * it the low end of identify's own axis rather than merely a weaker
+ * version of it.
+ */
+function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string {
+  if (!target) return 'The working needs something to look at.';
+  const subject = identifiableSubject(target);
+  if (!subject) {
+    return `There is nothing hidden to learn about ${target.getPresentation()}.`;
+  }
+  const learner = ctx.actor;
+  const signature = subject.getTemplatePath();
+  if (!MixinApi.isBeliefStore(learner) || !signature) {
+    return 'The knowing finds nowhere to settle.';
+  }
+  // Borrow another identifiable class's true name. Drawn from the world
+  // rather than invented, so the lie is plausible — it names a thing
+  // that really exists, which is exactly why it is believable.
+  const others = StuffApi.getAllObjects().filter(
+    (o) =>
+      MixinApi.isIdentifiable(o) &&
+      o.getTemplatePath() !== signature &&
+      o.getIdentifiedName().length > 0,
+  );
+  const decoy = others[0];
+  const believedName = decoy
+    ? (decoy as unknown as { getIdentifiedName(): string }).getIdentifiedName()
+    : 'something entirely harmless';
+  learner.know(IDENTIFICATION, signature, {
+    typeKnown: true,
+    knownAttributes: ['type'],
+    learnedGeneration: Appearance.currentGeneration().generation,
+    believedName,
+  });
+  return `The letters crawl, and you know it: ${believedName}.`;
+}
+
+/**
  * What an identification act actually addresses: the thing itself, or —
  * for a vessel — the substance inside it.
  *
@@ -1369,6 +1498,14 @@ function targetingRefusal(
   spell: SpellDescriptor,
   caster: Stuff,
   target: Stuff | undefined,
+  /**
+   * The list actually about to fire — the BAND's list for an item, the
+   * ordinary one for a cast. The gate must judge what will run, not the
+   * uncursed default: a blessed remove curse whose branch is SCOPED
+   * needs no mark, and reading `spell.effects` refused it for want of
+   * one it never wanted.
+   */
+  effects: readonly Effect[] = spell.effects,
 ): string | null {
   switch (spell.targeting) {
     case 'none':
@@ -1381,7 +1518,12 @@ function targetingRefusal(
       }
       return null;
     case 'object':
-      return target ? null : `${spell.name} needs a mark.`;
+      // Same rule as `any`: a spell every one of whose effects finds its
+      // own subjects (a scope) has nothing to aim.
+      if (!target && MagicEffects.everyEffectNeedsTarget(effects)) {
+        return `${spell.name} needs a mark.`;
+      }
+      return null;
     case 'any':
       // `any` means "object or creature, target optional" — and that
       // optionality is right for a working that still does something
@@ -1395,7 +1537,7 @@ function targetingRefusal(
       // wand exactly as 45 real ones did. The gate belongs here, ahead
       // of the spend, and it governs BOTH triggers because both consult
       // this one function.
-      if (!target && MagicEffects.everyEffectNeedsTarget(spell.effects)) {
+      if (!target && MagicEffects.everyEffectNeedsTarget(effects)) {
         return `${spell.name} needs a mark.`;
       }
       return null;

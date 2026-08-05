@@ -22,8 +22,19 @@ data:
     castSeconds: 4
   targeting: object
   effects:
+    # [cursed · uncursed · blessed] — identify's own axis, end to end:
+    #
+    #   cursed   plants a FALSE identification you will act on
+    #   uncursed names one thing truthfully
+    #   blessed  names EVERYTHING you carry
+    #
+    # The low end is not a weaker identify and not a misfire — it is
+    # strictly worse than no information, because you will trust it. It
+    # is also the only thing in the game that exercises the belief
+    # store's capacity to hold something untrue.
     - kind: sense
-      sense: identify-item
+      sense: [misidentify, identify-item, identify-item]
+      scope: [null, null, inventory]
   description: >-
     The shape of a made thing remembers its making. Held long enough
     against the question, it answers what it is.

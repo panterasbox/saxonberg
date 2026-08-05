@@ -112,6 +112,20 @@ export interface BeliefPayload {
    */
   typeKnown?: boolean;
   /**
+   * Identification realm: **a name this viewer believes and that may be
+   * FALSE.** Overrides the referent's own identified name on read.
+   *
+   * The store is a record of what someone *thinks*, not a cache of what
+   * is true — and until this field existed nothing exercised that. A
+   * cursed identify plants one: a record indistinguishable from a real
+   * identification, naming a different real thing. The holder finds out
+   * by acting on it, which is what makes bad information strictly worse
+   * than none.
+   *
+   * Absent ⇒ the referent's own `identifiedName`, i.e. the truth.
+   */
+  believedName?: string;
+  /**
    * Identification realm: **the facts this viewer holds about the
    * referent's class** — and the state from which any band derives
    * (magic-items D25).

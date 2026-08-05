@@ -1,0 +1,38 @@
+# A BLESSED scroll of remove curse — the high end of the working's own
+# axis, and the proof that "better" means MORE OF THE SAME ACT.
+#
+# It does not bless anything. It lifts curses from EVERYTHING you are
+# carrying, in one read — `scope: inventory:[mixin.BlessableMixin]` on
+# the spell's blessed branch. More curses removed is unmistakably more
+# curse-removing, and cannot drift into being a different working the
+# way a scroll that consecrated would.
+#
+# The three bands of one scroll, end to end:
+#   cursed   lays a curse on what you read it on
+#   uncursed lifts the curse on ONE thing
+#   blessed  lifts the curse on EVERYTHING YOU CARRY
+#
+# `regionTarget: 0` — deliberate clones only.
+class: /obj/magic/Scroll
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a scroll of remove curse
+  primaryKeyword: scroll
+  longDescription: >
+    A short strip of vellum, the lettering pressed rather than inked and
+    laid out in a spiral that reads inward. Read it upon a thing that
+    will not let go.
+  markText: >-
+    a spiral of pressed characters reading inward, patient and
+    unhurried
+  markForm: embossed
+  carriedSpellPath: /obj/magic/Spell/remove-curse
+  usesRemaining: 1
+  censusKey: scroll
+  materialTags: [vellum]
+  descriptorClass: scroll
+  regionTarget: 0
+  identifiedName: a scroll of remove curse
+  selfIdentifying: true
+  # ── the one field that differs ──
+  blessingBand: blessed

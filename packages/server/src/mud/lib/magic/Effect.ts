@@ -112,6 +112,23 @@ export interface AdjustReserveEffect {
  */
 export interface AdjustBlessingEffect {
   readonly kind: 'adjust-blessing';
+  /**
+   * **An MQL query naming the SET this acts on**, instead of the single
+   * aimed target. Band-varying like any other field, which is how a
+   * working expresses "more of the same act" at its high end:
+   *
+   * ```yaml
+   * scope: [null, null, 'inventory:[mixin.BlessableMixin]']
+   * ```
+   *
+   * Absent ⇒ the aimed target, unchanged. Resolved against the ACTOR
+   * (`commandGiver`), so `inventory` means *the reader's* pack.
+   *
+   * This is the honest high end for a working whose identity is "remove
+   * curses": removing MORE curses is unmistakably more of the same act
+   * and cannot drift into being a different one.
+   */
+  readonly scope?: string;
   /** Signed band displacement; `+1` lifts a curse. Clamped. */
   readonly steps: number;
   /**
@@ -138,6 +155,8 @@ export interface MoveEffect {
   readonly kind: 'move';
   readonly move: 'shove' | 'pin';
   readonly resist?: ResistSpec;
+  /** Land it on the ACTOR — see {@link InjectChannelEffect.self}. */
+  readonly self?: boolean;
 }
 
 /** Bring Stuff or bulk into being — backing: `StuffApi.clone`+`ContainmentApi.move` (Stuff) / `BulkableApi.transfer` from an unbounded source (bulk). */
@@ -162,7 +181,15 @@ export interface ConjureEffect {
  */
 export interface SenseEffect {
   readonly kind: 'sense';
-  readonly sense: 'detect-magic' | 'identify-item';
+  /**
+   * `misidentify` is the **false-belief** case: it writes a confident
+   * record naming the WRONG thing. Strictly worse than no information,
+   * because you will act on it — and the only thing in the game that
+   * exercises the belief store's capacity to hold something untrue.
+   */
+  readonly sense: 'detect-magic' | 'identify-item' | 'misidentify';
+  /** See {@link AdjustBlessingEffect.scope}. */
+  readonly scope?: string;
 }
 
 /** Imposed semblance — backing: `Disguisable.setDisguise`. Modifier-bound (the veil is held up). */
@@ -230,6 +257,10 @@ export class MagicEffects {
    * 900 kJ wand as thoroughly as 45 real ones.
    */
   public static needsTarget(effect: Effect): boolean {
+    // A SCOPED effect finds its own subjects, so there is nothing to
+    // aim. Without this a blessed remove curse — which sweeps your whole
+    // pack — refused for want of a mark it never needed.
+    if (typeof (effect as { scope?: string }).scope === 'string') return false;
     switch (effect.kind) {
       // These act ON something. With nothing to act on there is no
       // effect to have, and no reason to charge for one.
@@ -406,21 +437,29 @@ export class MagicEffects {
           // refuse at parse time.
           throw new TypeError('adjust-blessing: steps must be non-zero');
         }
+        const scope = typeof e.scope === 'string' ? e.scope : undefined;
         const limit = e.limit;
-        if (limit === undefined) return { kind: 'adjust-blessing', steps };
+        if (limit === undefined) {
+          return { kind: 'adjust-blessing', steps, scope };
+        }
         if (typeof limit !== 'string' || !Blessing.isBand(limit)) {
           throw new TypeError(
             `adjust-blessing: unknown limit band '${String(limit)}'`,
           );
         }
-        return { kind: 'adjust-blessing', steps, limit };
+        return { kind: 'adjust-blessing', steps, limit, scope };
       }
       case 'move': {
         const move = e.move;
         if (move !== 'shove' && move !== 'pin') {
           throw new TypeError(`move: unknown move '${String(move)}'`);
         }
-        return { kind: 'move', move, resist };
+        return {
+          kind: 'move',
+          move,
+          resist,
+          self: e.self === true ? true : undefined,
+        };
       }
       case 'conjure': {
         const templatePath = MagicEffects.optString(
@@ -444,10 +483,18 @@ export class MagicEffects {
         };
       }
       case 'sense': {
-        if (e.sense !== 'detect-magic' && e.sense !== 'identify-item') {
+        if (
+          e.sense !== 'detect-magic' &&
+          e.sense !== 'identify-item' &&
+          e.sense !== 'misidentify'
+        ) {
           throw new TypeError(`sense: unknown sense '${String(e.sense)}'`);
         }
-        return { kind: 'sense', sense: e.sense };
+        return {
+          kind: 'sense',
+          sense: e.sense,
+          scope: typeof e.scope === 'string' ? e.scope : undefined,
+        };
       }
       case 'cloak': {
         const disguise = e.disguise;
