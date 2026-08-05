@@ -132,6 +132,47 @@ inflow; a depletable one does not.**
 > and every price in the world tracks it. **Mana must be rent-bearing, not
 > manufacturable.**
 
+## ⭐⭐⭐⭐ Guard 3 (2026-08-05, from the merged currency build) — mana CANNOT become money
+
+The strongest guard was not available when this slate was written. The
+currency build made currencies a **code registry**, not a collection:
+
+> **banking.md: "currency records are *code*, and code is not a collection.
+> **Adding a currency is a code edit at the wizard tier** — the
+> reserved-matter constraint in its crudest honest form (a mint is
+> Compact-level, never a locality's own call)."**
+
+> ⭐⭐⭐⭐ **So "everyone optimizes for mana until it becomes the numéraire"
+> is blocked at the registry.** Mana would have to be *registered as a
+> currency* to be money, and that is a reviewed code change at the wizard
+> tier — not something an economy can drift into.
+
+⭐⭐ And the never-cross-currencies rule fixes mana's category for good:
+every ledger leg is same-currency, so **you buy charge WITH zorkmids**
+rather than trading one money for another.
+
+> **Mana is a commodity priced in money — exactly like grain.** That is the
+> correct relationship, and it is now enforced by the ledger's shape rather
+> than argued for here.
+
+## ⭐⭐ And Guard 1 is now citable rather than asserted
+
+This slate claimed *"money doesn't rot; mana does."* Both halves are now
+documented rules pointing opposite ways:
+
+| | rule |
+|---|---|
+| **money** | banking.md **Law 2** — *"banking installs **no** scheduled recompute touching balances/coin, so **nothing decays** — an idle balance/stack is unchanged over a game-clock advance."* |
+| **charge** | magic-items-slate — **3%/month self-discharge**, *"the ruins are full of dead wands."* |
+
+⇒ **the asymmetry is structural, not a hope.**
+
+⚠ **One gap inherited from the same survey:** `PricedOffer.prices` is bare
+minor units while `Charge` carries a currency — so a charger's price is
+denominated **by convention** at the settling site. Harmless at one
+currency; see [supply-chain-slate](./supply-chain-slate.md) § *the offer
+layer has no currency*.
+
 ---
 
 # Part 3 — The stack
@@ -186,7 +227,9 @@ Four things this buys, none of which need new substrate:
 
 1. ⭐ **The fare stops being an arbitrary number and becomes cost-plus** —
    energy + capital. The accounts already exist (`fasttravel.tpaAccount`,
-   the network fee, the remittance split).
+   the network fee, the remittance split) and are **currency-tagged end to
+   end** since the 2026-08-05 merge — `Charge` carries a currency, so a fare
+   is a zorkmid fare and cannot quietly become anything else.
 2. **A failure mode, and therefore a politics.** A dark terminal is
    somebody's fault, somebody's budget line, and somebody's election issue.
 3. ⭐⭐ **Grid coverage = network coverage.** The mana grid decides *where

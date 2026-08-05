@@ -271,6 +271,20 @@ down.
    needs a second act, and a street nobody may walk is nonsense.
 4. **Metering: is consumption measured, or only connection?** *Leans
    connection for v1* — measured consumption means a meter reading, a
-   billing cycle, and arrears, which is a whole build.
+   billing cycle, and arrears, which is a whole build. ⭐ When it comes, a
+   utility bill is an ordinary `payment` leg; no new banking substrate is
+   needed.
+
+   > ⭐⭐ **Added 2026-08-05, from the merged currency build: a locality
+   > CANNOT bill in its own scrip.** Currency records are *code* —
+   > *"adding a currency is a code edit at the wizard tier… a mint is
+   > Compact-level, never a locality's own call"* — and a ledger leg may
+   > never cross currencies. ⇒ **utility billing is denominated in the
+   > Compact's currency by construction**, which forecloses the grid
+   > becoming a private monetary system. That is the **truck-system** worry
+   > [currency-slate](./currency-slate.md) raised (*wages in company scrip,
+   > redeemable at the company store*), answered structurally: **a utility
+   > can overcharge, but it cannot pay or bill you in something only it
+   > issues.**
 5. ⚠ **Do the newbie wilds have a grid?** Deliberately open; it is the first
    real consumer of the declaration process.
