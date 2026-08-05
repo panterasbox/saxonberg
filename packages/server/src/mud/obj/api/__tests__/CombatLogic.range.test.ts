@@ -60,7 +60,11 @@ function steel(): Material {
 }
 
 /** A fighter with an authored weapon length — length drives reach rank. */
-function makeFighter(room: TestRoom, weaponLength: number): TestFighter {
+function makeFighter(
+  room: TestRoom,
+  weaponLength: number,
+  sentient = false,
+): TestFighter {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName("test-biped");
@@ -86,6 +90,9 @@ function makeFighter(room: TestRoom, weaponLength: number): TestFighter {
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
+  // Sentience is off by default on Species, and the consent gate only
+  // speaks about PEOPLE — a flask may soak a beast or the furniture.
+  species.setSentient(sentient);
   stampTemplatePathForTest(species, `/obj/species/test/range-${id}`);
 
   const f = makeStuff(() => new TestFighter());
@@ -387,5 +394,143 @@ describe("CombatLogic — the arena caps the ladder (AC 3, AC 5)", () => {
     // Concealment is what buys the opening band — which is why a
     // knife-fighter can reach a bowman at all.
     expect(res.session.getGraph().rangeBetween(a, b)).toBe("close");
+  });
+});
+
+describe("CombatLogic — the splash set is a relationship, not a radius", () => {
+  it("catches the target plus whoever is clinched with them, and NOBODY else", () => {
+    const room = makeArena(30);
+    const thrower = makeFighter(room as unknown as TestRoom, 0.9);
+    const target = makeFighter(room as unknown as TestRoom, 0.9);
+    const clinched = makeFighter(room as unknown as TestRoom, 0.9);
+    const bystander = makeFighter(room as unknown as TestRoom, 0.9);
+
+    const s = open(thrower, target);
+    CombatApi.join(clinched as never, target as never, s.getTerms());
+    CombatApi.join(bystander as never, target as never, s.getTerms());
+
+    s.getGraph().setRange(clinched, target, "close");
+    s.getGraph().setRange(bystander, target, "reach");
+
+    const set = CombatApi.splashSetFor(target as never);
+    expect(set).toContain(target);
+    expect(set).toContain(clinched);
+    // At `reach` you are near the target, not ON them.
+    expect(set).not.toContain(bystander);
+  });
+
+  /**
+   * The trap that produced the P1 re-seed bug, in its other guise:
+   * `rangeBetween` answers `close` for a pair it has never seen, so
+   * asking it without checking for an edge would sweep every combatant
+   * in the session into every splash.
+   */
+  it("does not sweep in unengaged combatants via the `close` fallback", () => {
+    const room = makeArena(30);
+    const thrower = makeFighter(room as unknown as TestRoom, 0.9);
+    const target = makeFighter(room as unknown as TestRoom, 0.9);
+    const elsewhere = makeFighter(room as unknown as TestRoom, 0.9);
+
+    const s = open(thrower, target);
+    // `elsewhere` is in the session but has no edge to the target.
+    CombatApi.join(elsewhere as never, thrower as never, s.getTerms());
+
+    expect(CombatApi.splashSetFor(target as never)).not.toContain(elsewhere);
+  });
+
+  it("a target in no fight splashes only itself", () => {
+    const room = makeArena(12);
+    const lone = makeFighter(room as unknown as TestRoom, 0.9);
+    expect(CombatApi.splashSetFor(lone as never)).toEqual([lone]);
+  });
+});
+
+describe("CombatLogic — the commit-time consent gate (AC 25, AC 31)", () => {
+  /** A person — the gate only speaks about sentients. */
+  const person = (room: unknown) =>
+    makeFighter(room as TestRoom, 0.9, true);
+
+  it("permits the primary target — attacking the unwilling is a CRIME, not impossible", () => {
+    const room = makeArena(12);
+    const thrower = person(room);
+    const target = person(room);
+    open(thrower, target);
+
+    // The gate never speaks about the primary; the terms handshake and
+    // the `consented: false` marker do. A gate that refused here would
+    // forbid crime itself.
+    const verdict = CombatApi.mayDeliverTo(
+      thrower as never,
+      target as never,
+      [target as never],
+    );
+    expect(verdict.ok).toBe(true);
+  });
+
+  /**
+   * AC 25 — the case the requirements named: a consenting duelist
+   * clinched with a bystander the thrower has no terms with. Before this
+   * gate, the area path caught the bystander with nothing refusing it,
+   * which made splash a cheaper route to a person than aiming at them.
+   */
+  it("REFUSES when a non-consenting sentient is clinched with the target", () => {
+    const room = makeArena(30);
+    const thrower = person(room);
+    const duelist = person(room);
+    const bystander = person(room);
+
+    const s = open(thrower, duelist);
+    // The bystander is in the fight against the DUELIST, not the thrower
+    // — so the thrower holds no consented terms with them.
+    CombatApi.join(bystander as never, duelist as never, s.getTerms());
+    s.getGraph().setRange(bystander, duelist, "close");
+
+    const splash = CombatApi.splashSetFor(duelist as never);
+    expect(splash).toContain(bystander);
+
+    const verdict = CombatApi.mayDeliverTo(
+      thrower as never,
+      duelist as never,
+      splash as never,
+    );
+    expect(verdict.ok).toBe(false);
+    if (!verdict.ok) expect(verdict.refusedBy).toBe(bystander);
+  });
+
+  it("PERMITS once the thrower holds consented terms with everyone caught", () => {
+    const room = makeArena(30);
+    const thrower = person(room);
+    const duelist = person(room);
+    const ally = person(room);
+
+    const s = open(thrower, duelist);
+    // This time the third party is fighting the THROWER, consented — so
+    // they already stand under terms that permit this harm.
+    CombatApi.join(ally as never, thrower as never, s.getTerms());
+    s.getGraph().setRange(ally, duelist, "close");
+    s.getGraph().addEdge(thrower, ally, s.getTerms());
+
+    const splash = CombatApi.splashSetFor(duelist as never);
+    const verdict = CombatApi.mayDeliverTo(
+      thrower as never,
+      duelist as never,
+      splash as never,
+    );
+    expect(verdict.ok).toBe(true);
+  });
+
+  it("never gates on a non-sentient — a flask may soak the furniture", () => {
+    const room = makeArena(12);
+    const thrower = person(room);
+    const target = person(room);
+    const prop = makeStuff(() => new TestRoom());
+    open(thrower, target);
+
+    const verdict = CombatApi.mayDeliverTo(
+      thrower as never,
+      target as never,
+      [target as never, prop as never],
+    );
+    expect(verdict.ok).toBe(true);
   });
 });

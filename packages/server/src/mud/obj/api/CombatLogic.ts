@@ -182,6 +182,30 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatApiCallers)
+  public splashSetFor(target: Stuff): Stuff[] {
+    return splashSetForImpl(target);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public mayDeliverTo(
+    thrower: Stuff,
+    primary: Stuff,
+    splash: readonly Stuff[],
+  ): { ok: true } | { ok: false; refusedBy: Stuff } {
+    return mayDeliverToImpl(thrower, primary, splash);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public arenaMaxBandFor(who: Stuff): RangeState {
+    return arenaMaxBandFor(who);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public bandBetween(a: Stuff, b: Stuff): RangeState | null {
+    return bandBetweenImpl(a, b);
+  }
+
+  @CallSecurity(CombatApiCallers)
   public yieldFight(actor: Stuff): boolean {
     const session = sessionForImpl(actor);
     if (!session) return false;
@@ -3484,6 +3508,104 @@ function termsFor(
   victim: Stuff,
 ): CombatTerms {
   return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
+}
+
+/**
+ * The band between two combatants — the location-aware read everything
+ * outside the graph asks.
+ *
+ * `CombatGraph.rangeBetween` is a pure value-object and falls back to
+ * `close` for an unknown pair, which is right for the graph and wrong for
+ * a caller: two people who have not engaged in a 20 m yard are not in a
+ * clinch. So a live edge wins, else the arena's own cap answers, and
+ * `null` means they are not even co-present (cross-room fire is out of
+ * scope, D26).
+ */
+function bandBetweenImpl(a: Stuff, b: Stuff): RangeState | null {
+  const session = sessionForImpl(a);
+  const graph = session?.getGraph();
+  if (
+    graph &&
+    (graph.edgeBetween(a, b) !== undefined ||
+      graph.edgeBetween(b, a) !== undefined)
+  ) {
+    return graph.rangeBetween(a, b);
+  }
+  const envA = MixinApi.isContainable(a) ? a.getContainer() : null;
+  const envB = MixinApi.isContainable(b) ? b.getContainer() : null;
+  if (envA === null || envA !== envB) return null;
+  return arenaMaxBandFor(a);
+}
+
+/**
+ * The splash set: the target, plus everyone clinched with them.
+ *
+ * Bands are RELATIONSHIPS, not positions (D2), so a placed effect cannot
+ * sit "at a band" globally — there is no position to place it at. Area
+ * arrival therefore resolves relationally: whoever is at `close` to the
+ * primary target is on top of them, and catches it.
+ *
+ * *"You're not shooting a person, you're shooting the floor they need"*
+ * becomes *"the splash catches whoever is on top of your target"* — which
+ * needs no invented radius and cannot disagree with the band model.
+ *
+ * ⚠ The edge check is load-bearing. `rangeBetween` falls back to `close`
+ * for a pair with no edge at all, so asking it alone would sweep every
+ * combatant in the session into the splash. The same trap that produced
+ * the re-seed bug at `pickSustained`.
+ */
+function splashSetForImpl(target: Stuff): Stuff[] {
+  const out: Stuff[] = [target];
+  const session = sessionForImpl(target);
+  if (!session) return out;
+  const graph = session.getGraph();
+  for (const st of session.getStates()) {
+    const other = st.combatant;
+    if (other === target) continue;
+    const engaged =
+      graph.edgeBetween(other, target) !== undefined ||
+      graph.edgeBetween(target, other) !== undefined;
+    if (!engaged) continue;
+    if (graph.rangeBetween(other, target) === "close") out.push(other);
+  }
+  return out;
+}
+
+/**
+ * The commit-time consent gate for an area delivery.
+ *
+ * The shipped model *permits* attacking the unwilling — that is what the
+ * `consented: false` crime marker is for — so this gate cannot mean
+ * "refuse all non-consented harm" without forbidding crime itself. The
+ * honest distinction is **deliberate versus collateral**:
+ *
+ *  - the **primary** target runs the ordinary terms handshake and is not
+ *    gated here; attacking them may be a crime, and the ledger says so;
+ *  - every **other** sentient caught in the splash must ALREADY stand
+ *    under terms in force with the thrower that permit this harm.
+ *    Otherwise the whole act is refused before it commits — nothing
+ *    thrown, no poise spent, no session state moved.
+ *
+ * The rule it enforces: **area delivery must not be a cheaper route to a
+ * person than aiming at them.**
+ */
+function mayDeliverToImpl(
+  thrower: Stuff,
+  primary: Stuff,
+  splash: readonly Stuff[],
+): { ok: true } | { ok: false; refusedBy: Stuff } {
+  const session = sessionForImpl(thrower);
+  const graph = session?.getGraph();
+  for (const victim of splash) {
+    if (victim === primary || victim === thrower) continue;
+    // Non-sentients never gate — a thrown flask may soak the furniture.
+    if (!safeIsSentient(victim)) continue;
+    const edge =
+      graph?.edgeBetween(thrower, victim) ?? graph?.edgeBetween(victim, thrower);
+    if (edge?.terms.consented === true) continue;
+    return { ok: false, refusedBy: victim };
+  }
+  return { ok: true };
 }
 
 /** Sentience read, tolerant of a species not yet resolved. */

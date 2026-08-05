@@ -299,6 +299,54 @@ export class CombatApi {
   }
 
   /**
+   * The engagement band between two combatants — the location-aware read.
+   *
+   * Prefer this to `CombatGraph.rangeBetween`, which is a pure
+   * value-object and answers `close` for a pair it has never seen. `null`
+   * means the two are not co-present at all.
+   */
+  public static bandBetween(a: Stuff, b: Stuff): RangeState | null {
+    return logic().bandBetween(a, b);
+  }
+
+  /**
+   * The widest band this combatant's arena affords, derived from the
+   * room's real linear extent — a 3 m cell caps at `reach`, an authored
+   * 20 m outdoor cell reaches `far`. Nobody authors a band.
+   */
+  public static arenaMaxBandFor(who: Stuff): RangeState {
+    return logic().arenaMaxBandFor(who);
+  }
+
+  /**
+   * Everyone an area delivery aimed at `target` would catch: the target
+   * plus whoever is clinched (`close`) with them. Bands are relationships
+   * rather than positions, so this is the honest reading of "splash" —
+   * no radius, no geometry.
+   */
+  public static splashSetFor(target: Stuff): Stuff[] {
+    return logic().splashSetFor(target);
+  }
+
+  /**
+   * The commit-time consent gate for an area delivery. The primary target
+   * runs the ordinary terms handshake (attacking the unwilling is a crime,
+   * not an impossibility); every OTHER sentient caught in the splash must
+   * already stand under consented terms with the thrower, or the whole act
+   * is refused before it commits.
+   *
+   * Area delivery must not be a cheaper route to a person than aiming at
+   * them.
+   */
+  public static mayDeliverTo(
+    thrower: Stuff,
+    primary: Stuff,
+    splash: readonly Stuff[],
+  ): { ok: true } | { ok: false; refusedBy: Stuff } {
+    return logic().mayDeliverTo(thrower, primary, splash);
+  }
+
+  /**
    * The actor's own formation standing (preset + role + protector flag) —
    * total, never null; a partyless actor reads the default formation.
    * The `fight` status lines and the combatant brain's protector bias
