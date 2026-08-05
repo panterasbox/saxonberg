@@ -35,9 +35,9 @@ permanent. What it fixes is the community's **configuration** — and the consti
 that configuration in one place, a Schedule held separate from the articles, so that the
 logic of the system and its settings never tangle.
 
-The more useful question, though, is not what a community sets. It is **how much is
-actually theirs to set.** That is what this appendix lays out: the configuration, the parts
-of it that lock, and the parts that were never on the table.
+But the configuration is only half of what ratification settles. The other half is **how much
+of it is theirs to set at all.** What follows is both: the configuration, the parts of it
+that lock, and the parts that were never on the table.
 
 **[1 — two kinds of setting]**
 There are two kinds of thing to set. The first is **modules** — which capabilities a
@@ -86,19 +86,19 @@ economy — and two more: the information rules, and the limits on the operator'
 
 Two areas show the grain. Under **voting**: the passage threshold, the quorum below which
 a chamber abstains, and whether that threshold is measured against votes cast or against
-eligible weight. The last of those is not a detail — it decides whether an absent chamber
-blocks or abstains. Under **the judiciary**: who is drawn into a jury, how many, how long
-they have to reach a verdict, and how many levels of appeal exist.
+eligible weight. The last of those decides whether an absent chamber blocks or abstains.
+Under **the judiciary**: who is drawn into a jury, how many, how long they have to reach a
+verdict, and how many levels of appeal exist.
 
-The rest sit on the same panel at the same grain. What is worth noticing is where the
-arguments will actually happen. The number itself is rarely what gets contested — the
-count of jurors, the size of a threshold. What gets contested is the denominator: what the
-number is measured *against*. That choice is where the politics lives, and it is set here.
+The rest sit on the same panel at the same grain. The number itself is rarely what gets
+contested — the count of jurors, the size of a threshold. What gets contested is the
+denominator: what the number is measured *against*. That choice is where the politics
+lives, and it is set here.
 
 **[4 — three ways to start]**
 Few communities set all of this by hand. Most begin from a **preset** — a bundle assembled
-for a common archetype — and adjust. Which is to say most communities accept somebody
-else's answer to nearly all of it, and argue about the rest.
+for a common archetype — and adjust. A community that starts from a preset has accepted
+somebody else's answer to nearly all of it, and will argue about the rest.
 
 The presets differ along one axis: **how much authority the operator gives up.**
 
@@ -113,7 +113,8 @@ still holds the executive, but no longer decides what is true.
 The **full republic** gives up nearly all of it. Every module on, the chambers co-equal,
 the founder's hold already lapsed. The operator is a member with a job.
 
-Same engine. Three worlds. The difference is not features — it is where authority sits.
+All three run on the same engine and offer the same capabilities. What differs between them
+is not which features exist, but where authority over them sits.
 
 **[5 — how the library composes]**
 The library **composes like a package manager**: modules carry dependencies and conflicts —
@@ -134,37 +135,88 @@ threshold; a **bound** constrains an outcome — how fast something may accumula
 measured against what. Bounds are not set at ratification. Adjusting them against a running
 world is the ordinary work of the legislature, and it never finishes.
 
-What a community configures is what remains when those three are set aside. The list of
-exclusions is short. The Schedule is long.
+What a community configures is what remains once those three are set aside — a short list
+of exclusions against a long Schedule.
 
 ## Visual cue sheet
 
 Corner / no-face throughout; explanatory schematics, flat register.
+
+### ⭐⭐⭐ Visual thesis: ONE object, seen seven times
+
+Every other chapter assembles a machine from parts. **This appendix has a single object —
+the Schedule — and every beat is a different overlay on it.** Nothing else is drawn.
+
+That is not a stylistic choice; it is the argument. The appendix claims the design admits
+variation, and the only way to *show* that rather than assert it is for the viewer to watch
+**the same panel** get filled three different ways. If the presets were drawn as three
+different diagrams they would prove nothing. Drawn as one panel with different values, they
+prove it without a word.
+
+It also satisfies the generator's standing rule — *draw a structure once where it is
+established; consequences get said, not re-drawn* — more literally than any chapter does.
+
+**The build, column by column.** The panel accretes exactly like `master(level=1..5)` in
+Ch 1:
+
+| Beat | What the panel gains |
+|---|---|
+| 0 | it is **assembled** — the filled-in blanks of four familiar documents lift out and become it |
+| 1 | rows get **typed** — a switch glyph (module) or a numeral (parameter) |
+| 2 | a **tier badge** column; the ladder is that column's legend, not a separate diagram |
+| 3 | **area groupings**; then values dim and a *measured against* column lights |
+| 4 | it is **filled three times**, side by side |
+| 5 | the module rows grow **dependency arrows** between themselves |
+| 6 | rows are **struck** — kernel, eternity, and a greyed BOUNDS column pushed off the edge |
+
+### ⭐⭐ Two scales, and cutting between them is the motion
+
+Eleven areas at readable type will not fit one 1080 frame, and pretending otherwise
+produces either an illegible wall or a panel so abridged it stops reading as *long*.
+
+> **Wide = the whole Schedule at small type — legible as a panel, not as words. It carries
+> BREADTH. Crop = three to five rows at full size. It carries GRAIN.**
+
+Beats 0, 3 and 6 need the wide; beats 1, 2 and 5 are crops. **Beat 4 is the wide, three
+times.** The cut between scales is what keeps 7½ minutes of a configuration panel moving —
+there is no second subject to cut away to, and there should not be.
+
+⚠ **The one deliberate exception** is the prohibition inset at [2] — the only frame in the
+appendix that is not the panel. It earns it by being the only historical evidence in the
+video, and it is small and inset rather than a replacement shot.
+
+### Per-beat
 
 - **0 — corner.** Open on four familiar documents fanned out — **lease · handbook · HOA
   declaration · server rules** — each with its rules greyed and its *filled-in settings*
   highlighted, so the two layers read before they are named. Then the same split, formal:
   **ARTICLES (the logic)** and **SCHEDULE (the configuration)**, a line marking them
   separate. A timeline tick: **provisional → [RATIFY] → committed.**
-- **1 — no-face.** The two kinds of setting: a column of **MODULES** (capability switches —
-  due-process / economy / property / tenure / term-limits, on or off) beside a column of
-  **PARAMETERS** (numeric dials — quorum, jurors, term length, thresholds). One module
-  ("due process") flipped to show it moves a knob on already-running machinery, adds none.
-- **2 — hero, no-face.** The **change-tier ladder**, most-fixed at the base: **eternity**
-  (locked, "fork to change") → **amendment** (set at ratification, supermajority+referendum
-  to move) → **organic** (tunable by the affected chamber) → **charter** (founder-set). Each
-  parameter/module tagged by its rung. ⭐ On the **amendment** rung, a two-way inset:
+- **1 — CROP, no-face.** ⭐ **Not two columns side by side — one column, typed.** Hold on
+  five rows of the panel and let each row declare which kind it is: a **switch** glyph
+  (due-process / economy / property / tenure — on or off) or a **numeral** (quorum, jurors,
+  term length, threshold). *The point is that they sit in the same list*, which two separate
+  columns would deny. One switch flips as it is named, and a knob elsewhere on the panel
+  moves in response — showing a module turns already-running machinery, adds none.
+- **2 — CROP → hero, no-face.** A **third column slides in from the right: the tier badge.**
+  Every row now carries one. The **change-tier ladder** is drawn as that column's **legend**,
+  not as its own diagram — **eternity** (locked, "fork to change") · **amendment**
+  (supermajority + referendum) · **organic** (the affected chamber) · **charter**
+  (founder-set) — and rows sort under it so the eternity rows visibly cluster at the floor.
+  ⭐ ⚠ **The one non-panel frame in the appendix:** on the amendment rung, a small inset —
   **18th (1919) → 21st (1933)**, an arrow out and an arrow back — *the same instrument
-  installing a policy and removing it.*
-- **3 — no-face.** ⭐ **The panel now carries this section — narration walks only two rows.**
-  The **Schedule as a filled config panel**, by area (voting / executive / judiciary /
-  legislation / recognition / membership / emergency / founder / land-economy / **information**
-  / **the operator**), each row showing its value + tier badge. **Voting** and **judiciary**
-  highlight as narration reaches them; the rest stay legible but unremarked — the viewer
-  reads the breadth while hearing the grain. Close the beat by dimming the *values* and
-  lighting what each is measured **against** (votes cast ⟷ eligible weight), for the
-  denominator line.
-- **4 — hero, no-face.** ⭐ **One horizontal axis: AUTHORITY RETAINED BY THE OPERATOR**,
+  installing a policy and removing it.* Inset, not a cutaway; the panel stays on screen.
+- **3 — WIDE, no-face.** ⭐ **The panel now carries this section — narration walks only two
+  rows.** Pull out to the **whole Schedule**, grouped by area (voting / executive /
+  judiciary / legislation / recognition / membership / emergency / founder / land-economy /
+  **information** / **the operator**). At this scale the rows read as *a long list*, not as
+  words — that is the job. **Voting** and **judiciary** crop up to full size as narration
+  reaches them, then drop back; the rest stay unremarked. The viewer takes the breadth from
+  the wide and the grain from the two crops. ⭐ Close the beat on the denominator: dim every
+  *value* and light what each is measured **against**, then hold one row — a 60% threshold —
+  and swing its denominator between **votes cast** and **eligible weight**, with an absent
+  chamber flipping from *abstains* to *blocks*. Same number, opposite constitution.
+- **4 — WIDE ×3, hero, no-face.** ⭐ **One horizontal axis: AUTHORITY RETAINED BY THE OPERATOR**,
   full at the left, none at the right. The three presets sit along it as pre-filled Schedule
   panels that expand as each is named — **operator's table** (left; almost every module off,
   jury of one) → **creator collective** (middle; property + expression lit, weight shifted
@@ -172,10 +224,13 @@ Corner / no-face throughout; explanatory schematics, flat register.
   level, founder row greyed *lapsed*). ⭐⭐ **The three panels must be visibly the SAME
   panel** — same rows, same order, different values. That is the whole proof: *same engine,
   three worlds.* Land on all three side by side for the closing line.
-- **5 — no-face.** The **package-manager** inset — dependency arrows (property → records),
-  one conflict mark (term limits ⊗ president-for-life), a **standard / community** tier
-  badge, and an adoption writing a line into both the constitution and the record.
-- **6 — corner.** ⭐ **The three-things close, built as a subtraction.** Start on the full
+- **5 — CROP, no-face.** ⭐ **Still the panel — the dependencies are drawn BETWEEN ITS
+  ROWS**, not in a separate graph. Hold on the module rows and let arrows arc from one row
+  to another (property → records), with one conflict mark struck between two (term limits ⊗
+  president-for-life). A **standard / community** badge sits beside each. Adopting one
+  writes a line into the constitution and the record — the only place in the appendix
+  anything leaves the panel.
+- **6 — WIDE, corner.** ⭐ **The three-things close, built as a subtraction.** Start on the full
   Schedule lit. Grey out the **kernel** box ("not on the menu"), then the **eternity** rows
   ("only left behind"), then a third column appears beside MODULES and PARAMETERS —
   **BOUNDS**, greyed, captioned *"not set here"* with a small forward arrow marked
@@ -183,11 +238,69 @@ Corner / no-face throughout; explanatory schematics, flat register.
   should read as **mostly still lit**. ⭐ The subtraction only works if the remainder is
   visibly the larger part; three greyed items beside a long lit Schedule.
 
+### Frames to generate
+
+Not yet built — `slide-generator.py` carries Ch 1–7 only (99 frames, `CH1`…`CH7`). This
+appendix wants **one new function** and an `APXA` list, because every frame but two is the
+same object at a different level:
+
+```python
+def schedule(level=0, scale="wide", crop=None, fill=None, strike=())
+```
+
+| Frame | Call | Beat |
+|---|---|---|
+| `apxa-01-docs` | *(bespoke)* four documents, settings highlighted | 0 |
+| `apxa-02-split` | articles ⟷ schedule, `level=0` | 0 |
+| `apxa-03-typed` | `scale="crop", level=1` | 1 |
+| `apxa-04-tiers` | `scale="crop", level=2` | 2 |
+| `apxa-05-ladder` | `level=2` + ladder legend | 2 |
+| `apxa-06-prohibition` | *(bespoke inset)* 18th → 21st | 2 |
+| `apxa-07-areas` | `level=3` | 3 |
+| `apxa-08-denominator` | `scale="crop", level=3, crop="voting"` | 3 |
+| `apxa-09/10/11-preset-*` | `level=3, fill="table"\|"collective"\|"republic"` | 4 |
+| `apxa-12-presets-all` | three at once on the authority axis | 4 |
+| `apxa-13-deps` | `scale="crop", level=4` | 5 |
+| `apxa-14-subtract` | `level=3, strike=("kernel","eternity","bounds")` | 6 |
+
+⭐ **`fill=` is the whole evidential apparatus in one keyword argument** — three calls
+differing by one string is exactly the claim the beat makes, and it makes the *same panel*
+guarantee structural rather than a thing the illustrator has to remember.
+
+⚠ Two house constraints from the generator header: **cam keep-out** (nothing load-bearing
+past `x>1500 AND y>820` — the three-panel frame at [4] runs wide and will need checking),
+and **no `fill-opacity`** (ImageMagick drops it) — so "dimmed" rows must be a *colour*
+change (`DIM`/`DIMB`), never transparency. Both bite this appendix harder than any chapter,
+since it is nothing but dimmed and lit rows.
+
 ## Notes
 
-- **Length: 1100 words ≈ 7.6 min @145wpm (8.5 @130)** — the longest in the series, which is defensible for the one appendix carrying an evidential job. ⭐ The house rhythm across Ch 1 (1004),
-  this (939) and Appendix B (840) is **~900 words ≈ 6–7 min** — treat that as the budget for
-  every appendix, which is roughly **five beats**.
+- **⭐ SCRIPT SETTLED 2026-08-04. Length: 1104 words ≈ 7.6 min @145wpm (8.5 @130)**, in seven
+  beats. ⚠ **Over the house budget and knowingly so** — Ch 1 is 1004 and Appendix B 840, so
+  **~900 words ≈ 6–7 min in five beats** is the rhythm everywhere else. A runs long because
+  it is the only appendix carrying an **evidential** job rather than an explanatory one, and
+  the presets beat is that evidence. *(An earlier note here read "939," a stale figure from
+  before the presets split; corrected.)*
+- **⭐⭐ Register pass 2026-08-04 — A is B's sibling, and B's rule governs.** Appendix B's
+  brief is explicit: *no dramatic reveals, no narrator, no slogan kickers.* The presets
+  rewrite had drifted persuasive. **Four lines flattened**, none of them losing payload:
+  - *"The more useful question, though…"* → **"But the configuration is only half of what
+    ratification settles"** — the thesis stated, not the narrator ranking questions.
+  - *"Same engine. Three worlds. The difference is not features — it is where authority
+    sits."* → one sentence, same content. ⭐ **The fragment triad was the clearest breach in
+    the file** — B forbids exactly this shape, and the visual (three identical panels) makes
+    the point without the rhythm helping.
+  - *"What is worth noticing is where the arguments will actually happen"* — **cut whole**;
+    it announced the denominator line instead of letting it land, and the line is stronger
+    unannounced. *"The last of those is not a detail"* → the flat verb.
+  - *"The list of exclusions is short. The Schedule is long."* → **"a short list of
+    exclusions against a long Schedule"** — the proportion survives, the kicker cadence does
+    not.
+
+  ⚠ **Second person is KEPT** at [0] (*"You have read one of these before"*). B is strictly
+  impersonal, but Ch 1–7 address the viewer throughout, and A opens the appendix set — the
+  familiarity hook is the one place it earns its keep. This is the deliberate seam between
+  A's register and B's.
 - **Register: descriptive** (matches Appendix B) — documentation, not advocacy. The
   prohibition/repeal beat stays inside it: it documents the mechanism working, it is not a
   flourish.
