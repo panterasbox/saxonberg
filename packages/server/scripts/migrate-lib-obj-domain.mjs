@@ -36,11 +36,12 @@
  *   --apply     perform the update, after writing a backup JSON
  *   --revert F  restore `class` values from a backup file
  *
- * Run from packages/server so it can read .env and resolve `mongodb`:
+ * Lives under packages/server/scripts so `mongodb` resolves and `.env`
+ * is next door. Run from packages/server:
  *
- *   node ../../tools/migrate-lib-obj-domain.mjs            # dry run
- *   node ../../tools/migrate-lib-obj-domain.mjs --apply
- *   node ../../tools/migrate-lib-obj-domain.mjs --revert lib-obj-domain-backup.json
+ *   node scripts/migrate-lib-obj-domain.mjs            # dry run
+ *   node scripts/migrate-lib-obj-domain.mjs --apply
+ *   node scripts/migrate-lib-obj-domain.mjs --revert lib-obj-domain-backup.json
  */
 
 import { MongoClient } from "mongodb";
@@ -143,5 +144,5 @@ for (const [from, to] of Object.entries(MAPPING)) {
   changed += res.modifiedCount;
 }
 console.log(`migrated ${changed} row(s).`);
-console.log(`revert with: node ../../tools/migrate-lib-obj-domain.mjs --revert ${backup}`);
+console.log(`revert with: node scripts/migrate-lib-obj-domain.mjs --revert ${backup}`);
 await client.close();
