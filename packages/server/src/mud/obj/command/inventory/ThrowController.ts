@@ -1,0 +1,251 @@
+/**
+ * ThrowController — `throw <item> [at <target>]`.
+ *
+ * Two acts behind one verb, told apart by the `at` binding:
+ *
+ *  - **`throw <item>`** — a ballistic relocation. The thing leaves your
+ *    hands and lands on the floor. No fight, no gate.
+ *  - **`throw <item> at <someone>`** — an initiation, and it routes
+ *    through `CombatApi.initiate` exactly as `attack` does. That is the
+ *    whole reason the handshake was extracted: "routes identically" has
+ *    to be a fact rather than a claim, and a verb that lived outside
+ *    combat would otherwise be a consent bypass with a friendly name.
+ *
+ * The verb rides `ContainerMixin`, not a combat mixin, because throwing
+ * operates through **containment** — the substrate, not the drama. A
+ * Container can throw; being a Combatant is not required. That is what
+ * makes "works outside combat" free rather than special-cased.
+ *
+ * On arrival a broken vessel spills its real volume onto whoever is
+ * there, and the DOSE curve decides what each share does. Nothing here
+ * invents a splash rule.
+ */
+
+import { CommandController } from "../../../lib/command/CommandController";
+import type { CommandContext, CommandModel } from "../../../api/command";
+import type { MqlOneResult } from "../../../api/mql";
+import { MessageApi } from "../../../api/message";
+import { MixinApi } from "../../../api/mixin";
+import { Mml } from "../../../api/mml";
+import { PromptApi, PromptCancelledError } from "../../../api/prompt";
+import { ContainmentApi } from "../../../api/containment";
+import { StuffApi } from "../../../api/stuff";
+import { BulkableApi } from "../../../api/bulk";
+import { CombatApi } from "../../../api/combat";
+import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { TermsProposal } from "../../../lib/combat/CombatTerms";
+
+const TOPIC = "world.narration.action";
+
+interface ThrowModel extends CommandModel {
+  item?: MqlOneResult;
+  target?: MqlOneResult;
+}
+
+export default class ThrowController extends CommandController<ThrowModel> {
+  async execute(model: ThrowModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver as Stuff;
+
+    if (!model.item?.stuff) {
+      const raw = model.item?.raw;
+      return this.fail(
+        context,
+        raw ? `You don't have any '${raw}' to throw.` : "Throw what?",
+        "empty-result",
+      );
+    }
+    const item = model.item.stuff;
+    const target = model.target?.stuff ?? null;
+
+    if (target === giver) {
+      return this.fail(context, "You can't throw that at yourself.", "self-target");
+    }
+
+    // ── The throw-away parse: no target, no gate, no fight. ──
+    if (target === null) {
+      return this.pitchAway(giver, item, context);
+    }
+
+    // ── Everyone this would touch, and whether that is allowed. ──
+    const splash = CombatApi.splashSetFor(target);
+    const verdict = CombatApi.mayDeliverTo(giver, target, splash);
+    if (!verdict.ok) {
+      // Refused BEFORE anything commits: nothing thrown, no poise spent,
+      // no session opened. Area delivery must not be a cheaper route to a
+      // person than aiming at them.
+      return this.fail(
+        context,
+        `You can't throw that without catching ${Mml.item(verdict.refusedBy).toString()} in it.`,
+        "splash-would-catch-a-bystander",
+      );
+    }
+
+    // ── Throwing at a person is starting a fight. Same door as `attack`. ──
+    if (MixinApi.isVitals(target) && MixinApi.isEngaged(target)) {
+      const opened = await CombatApi.initiate(
+        giver,
+        target,
+        {},
+        (t, mine) => this.resolveConflict(t, mine),
+      );
+      if (!opened.ok) {
+        if (opened.reason === "cancelled") {
+          return this.fail(context, "The moment passes.", "cancelled");
+        }
+        return this.fail(
+          context,
+          "You can't start that fight.",
+          opened.reason ?? "failed",
+        );
+      }
+    }
+
+    await this.deliver(giver, item, target, splash);
+  }
+
+  /** A ballistic relocation — the thing lands on the floor. */
+  private pitchAway(
+    giver: Stuff,
+    item: Stuff,
+    context: CommandContext,
+  ): void {
+    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    if (room === null || !MixinApi.isContainer(room)) {
+      return this.fail(context, "There's nowhere to throw it.", "no-room");
+    }
+    ContainmentApi.move(item as never, room as never);
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You hurl ${Mml.item(item)} away.`)
+      .toPeers(Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} away.`)
+      .send();
+  }
+
+  /** Resolve the arrival and apply it. */
+  private async deliver(
+    giver: Stuff,
+    item: Stuff,
+    target: Stuff,
+    splash: readonly Stuff[],
+  ): Promise<void> {
+    const slot = BulkableApi.slotFor(item, undefined);
+    const material = slot?.getMaterial() ?? null;
+    const litres = slot?.getAmount().rawValue() ?? 0;
+
+    const plan = CombatApi.resolveThrown(
+      giver,
+      target,
+      {
+        litres,
+        toughness: this.numberOf(item, "getToughness"),
+        hardness: this.numberOf(item, "getHardness"),
+      },
+      splash,
+    );
+
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`You hurl ${Mml.item(item)} at ${Mml.name(target)}.`)
+      .toTarget(target, Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at you!`)
+      .toPeers(
+        Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at ${Mml.name(target)}.`,
+      )
+      .send();
+
+    if (plan.placement === "miss") {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`It goes wide.`)
+        .send();
+    }
+
+    // The vessel breaks by ITS OWN material — glass, not the draught it
+    // carries. Two different materials, and confusing them would make
+    // every potion as fragile as its flask.
+    if (plan.profile.breaksOnArrival() && plan.placement !== "miss") {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`${Mml.item(item)} shatters against ${Mml.name(target)}.`)
+        .toPeers(Mml.compose`${Mml.item(item)} shatters against ${Mml.name(target)}.`)
+        .send();
+
+      for (const share of plan.shares) {
+        if (share.litres <= 0) continue;
+        if (material === null || !MixinApi.isPotable(material)) continue;
+        // ORIGIN is the victim: a contact payload acts at the point of
+        // impact, not from the hand that threw it. Without this the
+        // effect would measure its reach from the thrower and refuse
+        // across the gap it just crossed.
+        const reports = await material.dischargeInto(
+          share.victim,
+          share.litres,
+          { origin: share.victim },
+        );
+        for (const line of reports) {
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(Mml.fromMarkup(Mml.escape(line)))
+            .send();
+        }
+      }
+
+      // Whatever is left pools on the real floor, through the shipped
+      // spill path — the same one `pour` uses.
+      if (plan.spilled > 0 && slot !== null) {
+        const floor = BulkableApi.floorSurfaceNear(target);
+        if (floor !== null) {
+          BulkableApi.transfer(slot, floor, {
+            kind: "quantity",
+            litres: plan.spilled,
+          } as never);
+        }
+      }
+      // The vessel is gone — it broke. Destroying it is the honest
+      // outcome, and `StuffApi.destruct` is the only way to do that.
+      await StuffApi.destruct(item);
+    }
+  }
+
+  /** Read a numeric material property off the item, best-effort. */
+  private numberOf(item: Stuff, getter: string): number | undefined {
+    const mat = MixinApi.isTangible(item) ? item.getMaterial() : null;
+    if (mat === null) return undefined;
+    const fn = (mat as unknown as Record<string, unknown>)[getter];
+    if (typeof fn !== "function") return undefined;
+    const q = (fn as () => { rawValue(): number } | null).call(mat);
+    return q ? q.rawValue() : undefined;
+  }
+
+  /** Prompt a live defender on a terms conflict — asking is the
+   * controller's job, exactly as it is for `attack`. */
+  private async resolveConflict(
+    target: Stuff,
+    mine: TermsProposal,
+  ): Promise<boolean | null | "cancelled"> {
+    if (!MixinApi.isHasInteractive(target)) return null;
+    const interactive = [...target.getInteractives()][0];
+    if (!interactive) return null;
+    try {
+      const picked = await PromptApi.choice(
+        interactive,
+        `You are challenged to a ${mine.lethality} fight (to ${mine.stopCondition}). Accept?`,
+        [
+          { label: "Accept", response: "accept" },
+          { label: "Refuse the terms", response: "decline" },
+        ],
+      );
+      return picked === "accept";
+    } catch (err) {
+      if (err instanceof PromptCancelledError) return "cancelled";
+      throw err;
+    }
+  }
+
+  private fail(context: CommandContext, detail: string, reason: string): void {
+    context.note({ kind: "controller-rejected", reason, detail });
+    MessageApi.scene(context.commandGiver)
+      .topic(TOPIC)
+      .toSelf(Mml.fromMarkup(Mml.escape(detail)))
+      .send();
+  }
+}

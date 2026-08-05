@@ -740,6 +740,17 @@ export const AppSettingKeys = {
   /** The band a working reaches by default. `far` keeps every shipped
    * spell inert against the band gate; a carrier declares its own. */
   magicSpellEnvelope: "magic.spellEnvelope",
+  /** The band a thrown carrier reaches. */
+  combatRangeThrownEnvelope: "combat.range.thrownEnvelope",
+  /** Launch speed (m/s) of a thrown object — the ½mv² input. */
+  combatRangeThrowSpeed: "combat.range.throwSpeedMs",
+  /** Fraction of a broken vessel that lands on the primary target, by
+   * placement class. The remainder splashes and spills. */
+  combatRangeSplashPrecise: "combat.range.splash.preciseFraction",
+  combatRangeSplashPrimary: "combat.range.splash.primaryFraction",
+  combatRangeSplashGraze: "combat.range.splash.grazeFraction",
+  /** Fraction each clinched bystander catches. */
+  combatRangeSplashBystander: "combat.range.splash.bystanderFraction",
 
   /* ── hand-slot economy. ── */
   /** Weapon-switch vulnerable-beat window (game-time seconds). */

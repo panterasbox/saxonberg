@@ -614,6 +614,25 @@ settings:
   # contact payload reaches `close`).
   - key: magic.spellEnvelope
     value: "far"
+  # Thrown carriers. The envelope is how far a throw reaches; the speed
+  # is the real ½mv² input. The splash fractions divide a BROKEN vessel's
+  # real volume: the primary catches most of it (scaled by how well the
+  # throw landed), each clinched bystander catches a little, and whatever
+  # is left pools on the floor. Volume-conserving, because litres are
+  # real — the dose curve does the rest, so a graded effect scales down
+  # honestly on a bystander and a threshold one may not fire at all.
+  - key: combat.range.thrownEnvelope
+    value: "near"
+  - key: combat.range.throwSpeedMs
+    value: "12"
+  - key: combat.range.splash.preciseFraction
+    value: "0.85"
+  - key: combat.range.splash.primaryFraction
+    value: "0.6"
+  - key: combat.range.splash.grazeFraction
+    value: "0.3"
+  - key: combat.range.splash.bystanderFraction
+    value: "0.15"
   # Hand-slot economy — switching armament is a vulnerable durative beat;
   # the sidearm draws fast (the disarm answer). Game-time seconds.
   - key: combat.switch.seconds

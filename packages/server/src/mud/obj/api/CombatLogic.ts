@@ -76,7 +76,9 @@ import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
 import { CombatFlags } from "../../lib/combat/CombatFlags";
 import type { RangeState } from "../../lib/combat/CombatGraph";
 import type { CombatGraph } from "../../lib/combat/CombatGraph";
-import { RangeBand } from "../../lib/combat/RangeBand";
+import { RangeBand, RANGE_BANDS } from "../../lib/combat/RangeBand";
+import { DeliveryProfile } from "../../lib/combat/DeliveryProfile";
+import { AimResolution, type Placement } from "../../lib/combat/AimResolution";
 import type { RangeBandConfig } from "../../lib/combat/RangeBand";
 import Location from "../../lib/stuff/Location";
 import { Gambit, type GambitSpec } from "../../lib/combat/Gambit";
@@ -210,6 +212,21 @@ export class CombatLogic extends ApiLogic {
     to?: string,
   ): TermsProposal {
     return standingTermsImpl(combatant, lethal, to);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public resolveThrown(
+    thrower: Stuff,
+    target: Stuff,
+    contents: {
+      litres: number;
+      toughness?: number;
+      hardness?: number;
+      massKg?: number;
+    },
+    splash: readonly Stuff[],
+  ): ThrownDelivery {
+    return resolveThrownImpl(thrower, target, contents, splash);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -3644,6 +3661,112 @@ async function snapshotBandsImpl(
     }
   }
   return { competenceBands };
+}
+
+/** One victim's share of a broken vessel. */
+export interface ThrownShare {
+  readonly victim: Stuff;
+  readonly litres: number;
+  readonly primary: boolean;
+}
+
+/** What a thrown carrier did on arrival. */
+export interface ThrownDelivery {
+  readonly placement: Placement;
+  readonly profile: DeliveryProfile;
+  /** Who caught how much, primary first. Empty when nothing broke. */
+  readonly shares: readonly ThrownShare[];
+  /** Litres left over for the floor. */
+  readonly spilled: number;
+}
+
+/**
+ * Resolve a thrown carrier's arrival.
+ *
+ * Pure with respect to the world: it decides WHAT happens — where the
+ * throw landed, whether the vessel broke, and how its real volume divides
+ * — and hands the caller a plan. Applying that plan (discharging into
+ * each victim, pooling the remainder on the floor) is the controller's
+ * job, because those are world mutations with their own gates.
+ *
+ * **The split is volume-conserving**, because litres are real. The
+ * primary catches a share scaled by how well the throw landed; each
+ * clinched bystander catches a little; whatever is left pools. The DOSE
+ * curve then does all the rest of the work — a graded effect scales down
+ * honestly on a bystander, and a threshold effect may honestly not fire
+ * on one at all. That is why there is no splash-magnitude rule here to
+ * invent or to get wrong.
+ */
+function resolveThrownImpl(
+  thrower: Stuff,
+  target: Stuff,
+  contents: { litres: number; toughness?: number; hardness?: number; massKg?: number },
+  splash: readonly Stuff[],
+): ThrownDelivery {
+  const band = bandBetweenImpl(thrower, target) ?? "close";
+  const envelope = bandDial(
+    AppSettingKeys.combatRangeThrownEnvelope,
+    "near",
+  );
+  const profile = DeliveryProfile.derive({
+    energySource: "muscle",
+    massKg: contents.massKg ?? 0.4,
+    speedMs: dial(AppSettingKeys.combatRangeThrowSpeed, 12),
+    channel: "blunt",
+    band,
+    envelope,
+    toughness: contents.toughness,
+    hardness: contents.hardness,
+  });
+
+  // A thrown carrier can only ever commit `snap` — for a muscle
+  // launcher, aim IS the throw. Wave 1 has no reactive window, so the
+  // target stands.
+  const placement = AimResolution.resolve("snap", "stand", {
+    poorStability: profile.stabilityIsPoor(),
+    beyondEffective: profile.beyondEnvelope,
+  });
+
+  if (!profile.breaksOnArrival() || placement === "miss") {
+    return { placement, profile, shares: [], spilled: contents.litres };
+  }
+
+  const primaryFraction =
+    placement === "precise"
+      ? dial(AppSettingKeys.combatRangeSplashPrecise, 0.85)
+      : placement === "graze"
+        ? dial(AppSettingKeys.combatRangeSplashGraze, 0.3)
+        : dial(AppSettingKeys.combatRangeSplashPrimary, 0.6);
+  const bystanderFraction = dial(
+    AppSettingKeys.combatRangeSplashBystander,
+    0.15,
+  );
+
+  const shares: ThrownShare[] = [];
+  let remaining = contents.litres;
+  const primaryShare = Math.min(remaining, contents.litres * primaryFraction);
+  shares.push({ victim: target, litres: primaryShare, primary: true });
+  remaining -= primaryShare;
+  for (const other of splash) {
+    if (other === target || remaining <= 0) continue;
+    const share = Math.min(remaining, contents.litres * bystanderFraction);
+    if (share <= 0) continue;
+    shares.push({ victim: other, litres: share, primary: false });
+    remaining -= share;
+  }
+  return { placement, profile, shares, spilled: Math.max(0, remaining) };
+}
+
+/** A band-valued settings read with a seeded literal fallback. */
+function bandDial(key: string, fallback: RangeState): RangeState {
+  try {
+    const raw = AppApi.setting(key);
+    return (RANGE_BANDS as readonly string[]).includes(raw ?? "")
+      ? (raw as RangeState)
+      : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 /**

@@ -1,0 +1,43 @@
+verbs: [throw, hurl, lob]
+controller: /obj/command/inventory/ThrowController
+description: "Throw something you're carrying — away, or at someone"
+help: |
+  Throw an item out of your hands. Name the item on its own to pitch
+  it away, or add `at` and a target to throw it AT something.
+
+  Throwing at a person starts a fight, exactly the way `attack` does —
+  same terms, same consent, same record. It is not a way to hit
+  somebody without the world noticing.
+
+  How far it can reach depends on the room. A cramped cell only affords
+  arm's length; an open yard lets you throw across it. If a thrown
+  flask breaks, its contents go onto whatever is there — and onto
+  anyone clinched with your target.
+
+  A potion only does its work if it acts on CONTACT. Throwing one meant
+  to be drunk just wastes the flask.
+examples:
+  - cmd: throw the rock
+    note: Pitch it away — no target, no fight
+  - cmd: throw flask at the wolf
+    note: Deliver a contact potion across the gap
+  - cmd: hurl the bottle at the bandit
+    note: An alias for the same verb
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: item
+    type: object
+    required: true
+    scope: "inventory"
+    validators:
+      - /lib/command/validators/mustBeInInventory
+      - /lib/command/validators/mustBeContainable
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    prepositions: [at]
+    validators:
+      - /lib/command/validators/mustBeVisible

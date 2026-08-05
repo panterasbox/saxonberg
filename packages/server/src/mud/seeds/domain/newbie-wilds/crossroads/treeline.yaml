@@ -26,6 +26,11 @@ data:
     # (the Build-2 consented-duel demonstrator — a person, not a beast).
     west:
       destination: /domain/newbie-wilds/crossroads/hollow
+    # East opens into the long meadow — the RANGED demonstrator. It is
+    # the only room hereabouts with an authored extent, so it is the only
+    # one where a fight can open at a distance.
+    east:
+      destination: /domain/newbie-wilds/crossroads/longmeadow
     # North goes down into the Sunken Delve — the concealment/traps
     # demonstrator (docs/subsystems/concealment.md). The SINGLE ordinary
     # ground exit into that self-contained sphere; hung here off the treeline

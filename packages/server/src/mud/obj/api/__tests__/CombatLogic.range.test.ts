@@ -651,3 +651,134 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
     expect(res.reason).toBe("not-a-combatant");
   });
 });
+
+describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
+  const person = (room: unknown) => makeFighter(room as TestRoom, 0.9, true);
+  /** Glass: hard and almost tough-less — the brittle signature. */
+  const glassFlask = { litres: 0.25, toughness: 0.5, hardness: 550 };
+
+  it("a glass vessel shatters and divides its REAL volume", () => {
+    const room = makeArena(12);
+    const thrower = person(room);
+    const target = person(room);
+    open(thrower, target);
+
+    const plan = CombatApi.resolveThrown(
+      thrower as never,
+      target as never,
+      glassFlask,
+      [target as never],
+    );
+    expect(plan.profile.breaksOnArrival()).toBe(true);
+    expect(plan.shares.length).toBe(1);
+    expect(plan.shares[0]!.victim).toBe(target);
+    expect(plan.shares[0]!.primary).toBe(true);
+
+    // Volume-conserving, because litres are real.
+    const total =
+      plan.shares.reduce((n, sh) => n + sh.litres, 0) + plan.spilled;
+    expect(total).toBeCloseTo(0.25, 6);
+  });
+
+  it("a clinched bystander catches a SHARE, and the rest pools", () => {
+    // A 12 m yard opens at `near` — inside a thrown carrier's envelope,
+    // so the throw actually lands. (At 30 m it would open at `far` and
+    // degrade to a miss, which the envelope test below pins.)
+    const room = makeArena(12);
+    const thrower = person(room);
+    const target = person(room);
+    const clinched = person(room);
+    const s = open(thrower, target);
+    CombatApi.join(clinched as never, target as never, s.getTerms());
+    s.getGraph().setRange(clinched, target, "close");
+
+    const splash = CombatApi.splashSetFor(target as never);
+    const plan = CombatApi.resolveThrown(
+      thrower as never,
+      target as never,
+      glassFlask,
+      splash as never,
+    );
+
+    expect(plan.shares.length).toBe(2);
+    const bystander = plan.shares.find((sh) => !sh.primary)!;
+    expect(bystander.victim).toBe(clinched);
+    // A fraction, not a full dose — which is what makes the dose curve
+    // able to say "not enough of it got you" without a splash rule.
+    expect(bystander.litres).toBeLessThan(plan.shares[0]!.litres);
+    expect(bystander.litres).toBeGreaterThan(0);
+
+    const total =
+      plan.shares.reduce((n, sh) => n + sh.litres, 0) + plan.spilled;
+    expect(total).toBeCloseTo(0.25, 6);
+  });
+
+  it("a TOUGH vessel does not break — and nobody catches anything", () => {
+    const room = makeArena(12);
+    const thrower = person(room);
+    const target = person(room);
+    open(thrower, target);
+
+    // Steel's 200 MJ/m³ against glass's 0.5: the same throw, a different
+    // material, and the flask simply bounces.
+    const plan = CombatApi.resolveThrown(
+      thrower as never,
+      target as never,
+      { litres: 0.25, toughness: 200, hardness: 600 },
+      [target as never],
+    );
+    expect(plan.profile.breaksOnArrival()).toBe(false);
+    expect(plan.shares).toEqual([]);
+    expect(plan.spilled).toBeCloseTo(0.25, 6);
+  });
+
+  it("throwing past the envelope degrades the placement", () => {
+    const room = makeArena(30);
+    const thrower = person(room);
+    const target = person(room);
+    const s = open(thrower, target);
+
+    // `far` is past a thrown carrier's `near` envelope.
+    expect(s.getGraph().rangeBetween(thrower, target)).toBe("far");
+    const long = CombatApi.resolveThrown(
+      thrower as never,
+      target as never,
+      glassFlask,
+      [target as never],
+    );
+    expect(long.profile.beyondEnvelope).toBe(true);
+
+    s.getGraph().setRange(thrower, target, "near");
+    const inRange = CombatApi.resolveThrown(
+      thrower as never,
+      target as never,
+      glassFlask,
+      [target as never],
+    );
+    expect(inRange.profile.beyondEnvelope).toBe(false);
+    // Closing the gap is worth doing — that is the whole range duel.
+    expect(
+      AimResolutionRank(inRange.placement),
+    ).toBeGreaterThanOrEqual(AimResolutionRank(long.placement));
+  });
+});
+
+/** Local placement rank, so the test does not import the value-object
+ * just to compare two outcomes. */
+function AimResolutionRank(p: string): number {
+  return ["miss", "graze", "hit", "precise"].indexOf(p);
+}
+
+describe("throw — the affordance actually reaches a player (the binder gap)", () => {
+  it("ContainerMixin contributes inventory/throw.yaml", async () => {
+    // Controller tests skip the YAML binder, so the ONLY thing standing
+    // between a working controller and a verb nobody can type is this
+    // contribution. antipatterns.md documents four defects that lived in
+    // exactly this gap.
+    const { ContainerMixin: CM } = await import("../../../lib/spatial/Container");
+    const composed = CM(Idea) as unknown as {
+      commandContributions: { self: string[] };
+    };
+    expect(composed.commandContributions.self).toContain("inventory/throw.yaml");
+  });
+});

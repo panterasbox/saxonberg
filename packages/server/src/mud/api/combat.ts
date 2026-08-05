@@ -24,7 +24,10 @@ import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
 import type { TermsProposal } from "../lib/combat/CombatTerms";
-import type { InitiateResult } from "../obj/api/CombatLogic";
+import type {
+  InitiateResult,
+  ThrownDelivery,
+} from "../obj/api/CombatLogic";
 import type {
   CombatInfluence,
   InfluenceResult,
@@ -357,6 +360,29 @@ export class CombatApi {
    */
   public static arenaMaxBandFor(who: Stuff): RangeState {
     return logic().arenaMaxBandFor(who);
+  }
+
+  /**
+   * Resolve a thrown carrier's arrival: where it landed, whether the
+   * vessel broke, and how its real volume divides between the target,
+   * whoever is clinched with them, and the floor.
+   *
+   * Returns a PLAN rather than applying one — discharging into each
+   * victim and pooling the remainder are world mutations with their own
+   * gates, and they belong to the caller.
+   */
+  public static resolveThrown(
+    thrower: Stuff,
+    target: Stuff,
+    contents: {
+      litres: number;
+      toughness?: number;
+      hardness?: number;
+      massKg?: number;
+    },
+    splash: readonly Stuff[],
+  ): ThrownDelivery {
+    return logic().resolveThrown(thrower, target, contents, splash);
   }
 
   /**
