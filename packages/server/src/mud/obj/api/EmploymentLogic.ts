@@ -9,6 +9,8 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import { AccessApi } from '../../api/access';
+import { CompactApi } from '../../api/compact';
+import { GovernmentApi } from '../../api/government';
 import { PlayerApi } from '../../api/player';
 import { BankingApi, Money } from '../../api/banking';
 import type { RemittanceSplit } from '../../api/banking';
@@ -18,11 +20,14 @@ import { Quantity } from '../../lib/quantity';
 import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { Mixins } from '../../lib/mixin';
 import type { Business } from '../Business';
+import type { Organization } from '../../lib/employment/Organization';
+import type { PrincipalRef } from '../../lib/employment/Authority';
 import type { Employed } from '../../lib/employment/Employed';
 import {
   Employment,
   type EmploymentStatus,
 } from '../../lib/employment/Employment';
+import { Currency } from "../../lib/banking/Currency";
 
 /** One game-hour in game-seconds — the roster tick cadence. */
 const ONE_GAME_HOUR_S = 3_600;
@@ -36,30 +41,203 @@ const EmploymentApiCallers = SecurityPolicies.FromModule(
 
 /** A Business as a live Stuff — the enumerable seeded entity. */
 type BusinessStuff = Stuff & Business;
+/** Any organization as a live Stuff — a Business, a ministry, a publisher. */
+type OrganizationStuff = Stuff & Organization;
 /** An employable actor. */
 type EmployedActor = Stuff & Employed;
 
 /**
- * Proprietor authority — a direct `proprietorPath` edge on the Business,
- * with `AccessApi.isAuthor` as the orthogonal operator override (AccessApi
- * cannot represent an NPC owner, so ownership is the edge, not a group).
+ * **The** authority resolver: does `principal` hold `ref`? One function
+ * answering one question, dispatching on the tag and nothing else.
+ *
+ * There is deliberately **no** "which authority does this actor satisfy?"
+ * helper — that shape turns a refusal into a downgrade.
+ *
+ * Fails **closed** throughout: an unauthored (`null`) authority refuses
+ * everyone, and each delegate already fails closed with no registry. The
+ * founder passes `office` and `committee` only; see {@link PrincipalRef}
+ * for why that column decides what a cold box can do at all.
+ */
+async function holdsAuthorityImpl(
+  principal: Stuff | null,
+  ref: PrincipalRef | null,
+): Promise<boolean> {
+  if (principal === null || ref === null) return false;
+  switch (ref.kind) {
+    case 'entity': {
+      const path = principal.getTemplatePath();
+      return path !== null && path === ref.path;
+    }
+    case 'office':
+      return CompactApi.holdsOffice(principal, ref.office);
+    case 'seat':
+      return GovernmentApi.holdsSeat(principal, ref.government, ref.seat);
+    case 'committee':
+      // Committee membership is a group read keyed on a playerId, so the
+      // Avatar narrowing comes first — a non-Avatar fails closed without
+      // touching the registry.
+      return PlayerApi.isAvatarStuff(principal)
+        ? CompactApi.isCommitteeMember(principal, ref.parcel)
+        : false;
+  }
+}
+
+/**
+ * Proprietor authority — the organization's appointing authority, with
+ * `AccessApi.isAuthor` as the orthogonal **operator override** (AccessApi
+ * cannot represent an NPC owner, so ownership is the authority, not a
+ * group).
+ *
+ * ⚠ The operator axis rides *on top of* an authority and is never one in
+ * its own right — which is why there is no `author` `PrincipalRef` kind.
+ * For an `entity` authority this is byte-identical to the shipped
+ * `proprietorPath` check.
  */
 async function isProprietorOfImpl(
   subject: Stuff,
-  business: BusinessStuff,
+  organization: OrganizationStuff,
 ): Promise<boolean> {
-  if (subject.getTemplatePath() === business.getProprietor()) return true;
+  if (await holdsAuthorityImpl(subject, organization.getAppointingAuthority())) {
+    return true;
+  }
   return AccessApi.isAuthor(subject);
+}
+
+/**
+ * ⭐ **The one holder-resolution path**: every position at `organization`
+ * mapped to the actors holding it, in a single scan.
+ *
+ * Two sources, unioned: live non-terminal `Employment` records (runtime
+ * hires) and the authored roster (what makes a never-ticked, lazily
+ * stood-up organization's holder provable). **An explicit exit suppresses
+ * the roster entry** — an exit is never resurrected, the same rule
+ * `holdsSeat` implements.
+ *
+ * Everything that asks *who holds what here* reads this — `holdersOf` and
+ * the publishing entitlement both — deliberately, so there is exactly one
+ * exit-handling path rather than a second one drifting away from it.
+ *
+ * Holders are enumerated viewer-blind: the question is about the chart,
+ * not about who can see whom.
+ */
+function holdersByPositionImpl(
+  organization: OrganizationStuff,
+): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>();
+  const organizationPath = organization.getTemplatePath() ?? '';
+  if (!organizationPath) return out;
+  const add = (positionKey: string, who: string): void => {
+    const bucket = out.get(positionKey);
+    if (bucket) bucket.add(who);
+    else out.set(positionKey, new Set([who]));
+  };
+
+  const exited = new Set<string>();
+  const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
+  for (const holder of holders) {
+    const who = holder.getTemplatePath() ?? '';
+    if (!who) continue;
+    const record = holder.getEmployment(organizationPath);
+    if (!record) continue;
+    if (TERMINAL.includes(record.status)) exited.add(who);
+    else add(record.positionKey, who);
+  }
+
+  for (const assignment of organization.getRosterAssignments()) {
+    if (!assignment.assignee || exited.has(assignment.assignee)) continue;
+    add(assignment.positionKey, assignment.assignee);
+  }
+  return out;
+}
+
+/**
+ * Every actor holding `positionKey` at `organization` — the uniform
+ * *who-holds-P-in-O?* read, identical for a ministry, a shop and a
+ * publisher. Durable templatePaths, in no guaranteed order.
+ */
+function holdersOfImpl(
+  organization: OrganizationStuff,
+  positionKey: string,
+): string[] {
+  return [...(holdersByPositionImpl(organization).get(positionKey) ?? [])];
+}
+
+/**
+ * ⭐ May `principal` publish as `publisher`? Exactly *does the principal
+ * hold a non-exited position at this organization whose key is in
+ * `publishingPositions`* — with an **empty list meaning any position**.
+ *
+ * ⚠ **It never consults the appointing authority.** Appointment and
+ * exercise are different powers: whoever may fill the press office's
+ * positions has, by that alone, no power to publish through it. A
+ * committee member holding no publishing position is **refused** — the
+ * explicit negative this function exists to make true, and the one a
+ * reviewer is most likely to "fix" by re-adding an `||`.
+ *
+ * Fails closed: an organization that does not publish, one with no
+ * resolvable path, and a principal with no durable identity are all no.
+ */
+function mayPublishAsImpl(
+  principal: Stuff | null,
+  publisher: OrganizationStuff,
+): boolean {
+  if (principal === null) return false;
+  if (!MixinApi.isPublisher(publisher)) return false;
+  const who = principal.getTemplatePath();
+  if (who === null || who.length === 0) return false;
+  const allowed = publisher.getPublishingPositions();
+  for (const [positionKey, holders] of holdersByPositionImpl(publisher)) {
+    if (allowed.length > 0 && !allowed.includes(positionKey)) continue;
+    if (holders.has(who)) return true;
+  }
+  return false;
+}
+
+/**
+ * The organization chain above `organization`, nearest parent first — a
+ * department inside a ministry, a desk inside a paper.
+ *
+ * ⚠ **A parent cycle is refused, not looped on** (a self-parenting
+ * organization included): the walk throws rather than returning a
+ * truncated chain, because a chart that eats its own tail is an authoring
+ * error and a quiet partial answer hides it. A parent path that resolves
+ * to nothing — or to something that is not an organization — simply ends
+ * the chain: that is a gap, not a contradiction.
+ */
+function organizationChainOfImpl(
+  organization: OrganizationStuff,
+): OrganizationStuff[] {
+  const out: OrganizationStuff[] = [];
+  const seen = new Set<string>([organization.getTemplatePath() ?? '']);
+  let current: OrganizationStuff = organization;
+  for (;;) {
+    const parentPath = current.getParentOrganizationPath();
+    if (!parentPath) return out;
+    if (seen.has(parentPath)) {
+      throw new Error(
+        `EmploymentLogic.organizationChainOf: parent cycle at ` +
+          `'${parentPath}'`,
+      );
+    }
+    seen.add(parentPath);
+    const parent = StuffApi.findByTemplatePath(parentPath);
+    if (!parent || !MixinApi.isOrganization(parent)) return out;
+    out.push(parent);
+    current = parent;
+  }
 }
 
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
 function hireImpl(
-  business: BusinessStuff,
+  organization: OrganizationStuff,
   actor: Stuff,
   positionKey: string,
 ): Employment | null {
   if (!MixinApi.isEmployed(actor)) return null;
-  return business.hire(
+  return organization.hire(
     actor as EmployedActor,
     positionKey,
     WorldClockApi.getNow().rawValue(),
@@ -72,16 +250,19 @@ function hireImpl(
  * engine's janitorial arm covers the direct write. */
 function endEmploymentImpl(
   actor: Stuff,
-  businessPath: string,
+  organizationPath: string,
   status: 'fired' | 'quit',
 ): void {
   if (!MixinApi.isEmployed(actor)) return;
-  const business = StuffApi.findByTemplatePath(businessPath);
-  if (business && MixinApi.hasMixin(business, Mixins.Business)) {
-    (business as BusinessStuff).endEmployment(actor as EmployedActor, status);
+  const organization = StuffApi.findByTemplatePath(organizationPath);
+  if (organization && MixinApi.hasMixin(organization, Mixins.Organization)) {
+    (organization as OrganizationStuff).endEmployment(
+      actor as EmployedActor,
+      status,
+    );
     return;
   }
-  (actor as EmployedActor)._setEmploymentStatus(businessPath, status);
+  (actor as EmployedActor)._setEmploymentStatus(organizationPath, status);
 }
 
 /**
@@ -95,7 +276,7 @@ function endEmploymentImpl(
  */
 function beginCoverImpl(
   self: Stuff,
-  business: BusinessStuff,
+  business: OrganizationStuff,
 ): Employment | null {
   if (!MixinApi.isEmployed(self)) return null;
   return business.beginCover(
@@ -105,7 +286,7 @@ function beginCoverImpl(
 }
 
 /** End a proprietor's cover: drop the transient cover Employment. */
-function endCoverImpl(self: Stuff, business: BusinessStuff): void {
+function endCoverImpl(self: Stuff, business: OrganizationStuff): void {
   if (!MixinApi.isEmployed(self)) return;
   business.endCover(self as EmployedActor);
 }
@@ -149,6 +330,7 @@ async function operatingAccountOfImpl(
     business.getAccountPath(),
     banksAt,
     '',
+    Currency.compact(),
   );
 }
 
@@ -169,7 +351,14 @@ async function ensurePayableWorker(
   if (live && PlayerApi.isAvatarStuff(live)) return false;
   const banksAt = business.getBanksAt();
   if (!banksAt) return false;
-  await BankingApi.ensureVenueAccount(employeeKey, banksAt, '');
+  // A worker's first account opens in the PAYER's currency — which is how
+  // company-scrip wages will eventually work. Nothing else here is scrip.
+  await BankingApi.ensureVenueAccount(
+    employeeKey,
+    banksAt,
+    '',
+    Currency.compact(),
+  );
   return true;
 }
 
@@ -221,7 +410,7 @@ async function settleShiftWageImpl(
     );
     return;
   }
-  await BankingApi.payWage(account, employeeKey, Money.of(amount));
+  await BankingApi.payWage(account, employeeKey, Money.of(amount, Currency.compact()));
 }
 
 /**
@@ -270,7 +459,7 @@ async function settlePieceworkImpl(
   await BankingApi.payWage(
     account,
     employeeKey,
-    Money.of(amount),
+    Money.of(amount, Currency.compact()),
     'piecework',
     'piecework',
   );
@@ -318,7 +507,7 @@ async function flowSplitsForImpl(
     if (!account) continue;
     splits.push({
       accountId: account,
-      amount: Money.of(cut),
+      amount: Money.of(cut, Currency.compact()),
       category: 'commission',
     });
     total += cut;
@@ -455,45 +644,80 @@ export class EmploymentLogic extends ApiLogic {
   @CallSecurity(EmploymentApiCallers)
   public async isProprietorOf(
     subject: Stuff,
-    business: BusinessStuff,
+    organization: OrganizationStuff,
   ): Promise<boolean> {
-    return isProprietorOfImpl(subject, business);
+    return isProprietorOfImpl(subject, organization);
+  }
+
+  /** See {@link EmploymentApi.holdsAuthority}. */
+  @CallSecurity(EmploymentApiCallers)
+  public holdsAuthority(
+    principal: Stuff | null,
+    ref: PrincipalRef | null,
+  ): Promise<boolean> {
+    return holdsAuthorityImpl(principal, ref);
+  }
+
+  /** See {@link EmploymentApi.organizationChainOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public organizationChainOf(
+    organization: OrganizationStuff,
+  ): OrganizationStuff[] {
+    return organizationChainOfImpl(organization);
+  }
+
+  /** See {@link EmploymentApi.mayPublishAs}. */
+  @CallSecurity(EmploymentApiCallers)
+  public mayPublishAs(
+    principal: Stuff | null,
+    publisher: OrganizationStuff,
+  ): boolean {
+    return mayPublishAsImpl(principal, publisher);
+  }
+
+  /** See {@link EmploymentApi.holdersOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public holdersOf(
+    organization: OrganizationStuff,
+    positionKey: string,
+  ): string[] {
+    return holdersOfImpl(organization, positionKey);
   }
 
   /** See {@link EmploymentApi.hire}. */
   @CallSecurity(EmploymentApiCallers)
   public hire(
-    business: BusinessStuff,
+    organization: OrganizationStuff,
     actor: Stuff,
     positionKey: string,
   ): Employment | null {
-    return hireImpl(business, actor, positionKey);
+    return hireImpl(organization, actor, positionKey);
   }
 
   /** See {@link EmploymentApi.fire}. */
   @CallSecurity(EmploymentApiCallers)
-  public fire(business: BusinessStuff, actor: Stuff): void {
-    endEmploymentImpl(actor, business.getTemplatePath() ?? '', 'fired');
+  public fire(organization: OrganizationStuff, actor: Stuff): void {
+    endEmploymentImpl(actor, organization.getTemplatePath() ?? '', 'fired');
   }
 
   /** See {@link EmploymentApi.quit}. */
   @CallSecurity(EmploymentApiCallers)
-  public quit(actor: Stuff, businessPath: string): void {
-    endEmploymentImpl(actor, businessPath, 'quit');
+  public quit(actor: Stuff, organizationPath: string): void {
+    endEmploymentImpl(actor, organizationPath, 'quit');
   }
 
   /** See {@link EmploymentApi.beginCover}. */
   @CallSecurity(EmploymentApiCallers)
   public beginCover(
     self: Stuff,
-    business: BusinessStuff,
+    business: OrganizationStuff,
   ): Employment | null {
     return beginCoverImpl(self, business);
   }
 
   /** See {@link EmploymentApi.endCover}. */
   @CallSecurity(EmploymentApiCallers)
-  public endCover(self: Stuff, business: BusinessStuff): void {
+  public endCover(self: Stuff, business: OrganizationStuff): void {
     endCoverImpl(self, business);
   }
 

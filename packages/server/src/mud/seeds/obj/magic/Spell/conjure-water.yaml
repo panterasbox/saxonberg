@@ -9,9 +9,10 @@ data:
   name: Conjure Water
   verb: create
   noun: water
-  requiredBand: novice
   cost: 15
-  castSeconds: 3
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
   targeting: any
   effects:
     - kind: conjure

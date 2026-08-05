@@ -12,7 +12,7 @@ stops the small thing from foreclosing the large one.
 > **Status: sequencing plan. Wave 0 is launch-critical and independently
 > shippable; Waves 1–2 wait on build-1's refactor.**
 
-Related: [bulletin.md](../../subsystems/bulletin.md) (**shipped — what
+Related: [press.md](../../subsystems/press.md) (**shipped — what
 exists today**), [press-slate](./press-slate.md) (**the industry design;
 Wave 2 is already worked there — do not re-derive it**),
 [civics.md](../../subsystems/civics.md) (Locality-declared jurisdiction,
@@ -122,30 +122,57 @@ docket. It is a read path and a surface.
 
 ---
 
-# Wave 1 — the gazette
+# ~~Wave 1 — the gazette~~ · **STRUCK, and partly built**
 
-**The reframe made real: `world` stops being a chip on a staff feed and
-becomes the state's publication.**
+> **Struck by the organizations build (2026-08).** What Wave 1 asked for
+> was *a publisher that is a held, handed-over, visible seat rather than
+> `AccessApi.isAuthor`*. That is now built — but **not as an Office**, and
+> the correction is worth more than the wave was.
 
-- **The publisher is an OFFICE, not a person.** The deferred *herald* axis
-  becomes a **seat** on the Office substrate, so authority to publish is
-  held, handed over, and visible — rather than being `AccessApi.isAuthor`.
-- **Scoped to a LOCALITY.** Saxonberg exists now
-  ([saxonberg-city-slate](./saxonberg-city-slate.md)), and civics already
-  does Locality-declared jurisdiction — so *"the Saxonberg gazette"* is a
-  scope, not a label, and a second locality's gazette costs nothing.
-- ⭐ **The events-not-significance rule enforced structurally**, not by
-  convention. Whatever the state feed can emit should be *incapable* of
-  editorialising — that constraint is what leaves room for a press.
-- **The docket** — the missing middle layer. Unedited, chronological,
-  complete, deliberately boring. Cheap to build, and **it is what makes
-  journalism necessary rather than decorative.**
-- Attribution moves from a stored `author` string toward the office that
-  published, which is the honest form once a seat exists.
+**What shipped instead** ([press.md](../../subsystems/press.md),
+[employment.md](../../subsystems/employment.md)):
+
+- ⭐ **The publisher is an ORGANIZATION, and the publisher's authority is
+  a POSITION on it** — not an Office. The seat/staff line turns out to be
+  whether *a constitutional document points at the position*: a
+  Communications Director serves at pleasure and is prescribed by nothing,
+  so minting an Office for one would have been a category error. An
+  earlier draft of that cycle proposed exactly that, and catching it is
+  what produced the whole organization substrate.
+- ⭐ **Appointment and exercise are different powers.** Holding a
+  publisher's appointing authority lets you *fill* the position, never
+  exercise it. Wave 1's instinct — *authority to publish is held and
+  handed over* — was right; what it missed is that the holding and the
+  handing-over are two different rights.
+- **Scoped by ORGANIZATION rather than by locality.** A locality's press
+  office is an organization whose appointing authority is
+  `{kind: 'seat', …}`; that branch is built and unit-tested, and the first
+  municipal one authors itself as content. *"The Saxonberg gazette"* is
+  still a scope, not a label — the scope is just the publisher rather than
+  the place.
+- **Attribution moved off the author string** in the direction Wave 1
+  named: the *document* is owned by the publishing organization; the
+  person is recorded in the payload and **never shown** on the anonymous
+  surface. The organization is the speaker.
+- **`/feed/<publisher>/` in the document tree landed early**, from Wave 2's
+  list rather than this one — the storage sort rule made it the right
+  place regardless of which wave paid for it.
+
+**What Wave 1 asked for and is still NOT built**, deliberately:
+
+- ⭐ **The events-not-significance rule enforced structurally.** Nothing
+  today makes a state feed *incapable* of editorialising. This is the
+  single most valuable unbuilt thing on this slate and it survives intact.
+- ⭐ **The docket** — unedited, chronological, complete, deliberately
+  boring. Still the missing middle layer, still what makes journalism
+  necessary rather than decorative.
+- Locality-scoped gazettes as shipped content.
 
 ⚠ **The OOC realm stays exactly as it is** — operator announcements are
-genuinely out-of-character and must not be dragged into the fiction. **Two
-things wearing one name is fine as long as the split stays a field.**
+genuinely out-of-character and must not be dragged into the fiction. This
+held: `realm` is still a field, it just derives from the publisher now
+rather than being typed per release, so **nobody can claim to speak
+in-fiction on an operator's feed**.
 
 ---
 

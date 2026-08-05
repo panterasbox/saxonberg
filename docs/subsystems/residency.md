@@ -306,3 +306,23 @@ shipped container behaviour instead of dying with it. See
 Note the eviction sweep ships in **observe** mode, so a spent corpse
 permits collection but is not actually culled in production; the contract
 is tested directly.
+
+## Zone fields the spawn sweep reads
+
+All three come off the ordinary `zone.lookupField` walk, so a parent
+zone's declaration covers its descendants and a child can narrow it.
+
+| Field | Effect |
+|---|---|
+| `stocks` — `{censusKey: count}` | overrides an item's own `regionTarget` |
+| `favours` — material tags | multiplies draw weight for matching items |
+| `blessingOdds` — BUC weights | **overrides an item's own generation odds, zone-wide** (see [magic-items.md](./magic-items.md) § Generation odds) |
+
+⚠ **None of the three is declared by any shipped zone yet.** A region
+that declares nothing leaves every item on its own baseline and a
+neutral affinity, so distribution works in un-authored regions rather
+than silently placing nothing.
+
+The BUC roll fires on the freshly cloned object at the mint site inside
+the sweep — deliberately **not** in `StuffApi.clone`, so an author's
+clone, a crafted output and a restocked consignment never roll.

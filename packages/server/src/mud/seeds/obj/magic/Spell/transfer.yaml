@@ -1,0 +1,60 @@
+# Transfer — control·arcana. The SPECIFICATION half of recharging.
+#
+# ## Why a working is needed at all
+#
+# Because the alternative is what shipped: a caster in reach of a
+# charged thing topped it up on the strength of intent, and nothing in
+# the fiction said how. Energy crossing from a reserve into a shell is
+# work, and work needs a shape to take.
+#
+# ## Why CONTROL and not CREATE
+#
+# Nothing is made. The energy already exists — it is the caster's, drawn
+# an hour ago out of food and water — and the working only *directs* it
+# across a boundary it would not cross on its own. That is exactly what
+# `control` means on the grid (arcane-science.md § The five verbs), and
+# it puts transfer in the same cell as remove-curse: sustained direction
+# against a thing's tendency.
+#
+# ## Why it is CHEAP where remove-curse is dear
+#
+# The 45 τ on remove-curse buys back *order* — it walks a pattern up its
+# own axis. Transfer buys nothing of the sort: the pattern in the shell
+# already exists and is untouched, and all the working does is hold a
+# door open while the caster's own reserve does the paying. The cost
+# here is the toll on the door, not the freight — the freight is
+# whatever the caster chooses to spend, and the loss to coupling is
+# where the real price lands.
+class: /obj/magic/Spell
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  spellId: transfer
+  name: Transfer
+  verb: control
+  noun: arcana
+  cost: 4
+  castingProfile:
+    # Deliberately the FLOOR band. Transfer is not the interesting part
+    # of being a mage — it is the plumbing, and gating it high would make
+    # recharging a specialist's monopoly rather than a service anyone
+    # with the working can sell. Competence still matters, continuously,
+    # through the efficiency ladder rather than a cliff.
+    requiredBand: novice
+    castSeconds: 3
+  # `object`: this addresses a made thing's charge. Cast at a person it
+  # would mean nothing — a body's reserves are metabolism's, not a
+  # shell's, and the two staying apart is what keeps either honest.
+  targeting: object
+  effects:
+    # The dose an unaided cast delivers. `recharge` is the door that
+    # lets a caster name the amount instead; both spend the SAME
+    # reserve through the SAME coupling, because an item is a new
+    # trigger and never a new mechanism.
+    - kind: adjust-reserve
+      reserveKey: charge
+      delta: 20
+  description: >-
+    The working itself is unglamorous — a held shape that lets your own
+    reserve go somewhere it would not go. What it does not do is
+    generate: every joule that arrives was yours an hour ago, and some
+    of it does not arrive at all.

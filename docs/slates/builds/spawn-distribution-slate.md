@@ -13,7 +13,7 @@ See also:
 above this mechanism**: what the weights are actually based on, who may
 tune what, and how far the substrate extends (foraging · consumables ·
 creature spawn · ore as the zero-inflow case) ·
-[magic-items-slate](./magic-items-slate.md) (the two consumers: BUC blessing
+[magic-items-slate](../tails/magic-items-slate.md) (the two consumers: BUC blessing
 sampled at spawn; create-monster = a player-triggered spawn) ·
 [content-packs.md](../../subsystems/content-packs.md) (content-as-data; the
 `populates: onto` static seeding this is the dynamic sibling of) ·

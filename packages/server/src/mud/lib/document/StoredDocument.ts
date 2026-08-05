@@ -73,6 +73,11 @@ export class StoredDocument extends Document {
     return docs[0] ?? null;
   }
 
+  /** Every document of `kind` — the warm-window rebuild's input. */
+  static async findByKind(kind: string): Promise<StoredDocument[]> {
+    return StoredDocument.find<StoredDocument>({ kind });
+  }
+
   /**
    * Every document whose path is `prefix` or lies under `prefix/` — the
    * CMS tree's listing input. Filters in JS (over `find({})`) so the

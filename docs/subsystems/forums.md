@@ -498,7 +498,24 @@ precedent) — **no command-spec schema change**.
 
 ### Three routes to one MML body
 
-A post body is **MML** (markdown → `Mml.markdownToMml` server-side →
+A post body is **MML**, parsed with the **article dialect** and the
+`inert` tag policy (`longForm: true, tags: 'inert'`) — headings, nested
+lists and pipe tables, the same markup a wiki article gets, because a
+post is long-form authored prose composed through the same prompt. It
+parsed the *chat* dialect until 2026-08-04, so a post could not carry a
+heading.
+
+> ⚠ `inert`, not the wiki's `all`. The wiki can admit every tag because
+> its pipeline resolves components against a charset-restricted
+> namespace and gates spoilers; a post is stored as MML and rendered
+> directly, so it admits **presentation only** — no `<link>` or
+> `<mention>` (the client turns those into clickables that ISSUE
+> COMMANDS) and none of the identity tags the composer emits on the
+> server's authority. See [wiki.md](./wiki.md) § the tag policy.
+
+Conversion happens on the way IN, so existing posts are unaffected.
+
+(markdown → `Mml.markdownToMml` server-side →
 stored MML → `MmlRenderer` displays). `ForumController.resolveBody`
 reaches one body field three ways:
 

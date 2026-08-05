@@ -1052,7 +1052,9 @@ programmatic-contract violations.
 By default `_executeOne` **awaits** the controller, so the giver's
 `executeCommand` promise resolves only when the body finishes. Since
 `Backend.processUserMessage` chains each socket's messages behind that
-same socket's previous one (`inboundChainBySocketId`), a long controller
+same socket's previous one (the ordered lane —
+`ConnectionApi.sequenceInbound`; prompt replies ride a second lane, see
+[connection.md](./connection.md)), a long controller
 blocks *that giver's* next command until it completes — but never
 another player's: the chain is per-socket, and Node's event loop
 interleaves everyone else the moment the body `await`s. **Sync is

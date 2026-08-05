@@ -1,11 +1,21 @@
 /**
- * Identification (Wave 7) — the type axis, thin: the `identify` trigger
- * writes a type record; the item then renders by its known type to that
- * viewer only; the two axes compose.
+ * Identification — the **type axis** rendering: an item reads as its
+ * unidentified appearance until a viewer holds an `IDENTIFICATION`
+ * record for its class, and the type axis composes with the recognition
+ * (instance) axis.
+ *
+ * ⚠ **There is no `identify` verb**, and there never was a good reason
+ * for one (requirements D34): a verb that appears in your affordance
+ * list *because of what you are holding* tells you what you are
+ * holding, so a scroll of identify would have identified itself for
+ * free. The scroll affords `read` like every other written thing, and
+ * the identify **effect** fires from having read it — covered in
+ * `lib/magic/__tests__/Consumables.test.ts`, where the catalogue is
+ * warmed. What is left here is the belief-rendering half, which is what
+ * this file was always really testing.
  */
 
 import { describe, it, expect } from 'vitest';
-import IdentifyController from '../IdentifyController';
 import { RecognitionApi } from '../../../../api/recognition';
 import { IDENTIFICATION, RECOGNITION } from '../../../../lib/belief/BeliefStore';
 import { BeliefStoreMixin } from '../../../../lib/belief/BeliefStore';
@@ -18,16 +28,9 @@ import { OrganismMixin } from '../../../../lib/species/Organism';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
 import {
-  CommandApi,
-  type CommandContext,
-  type CommandModel,
-} from '../../../../api/command';
-import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
-import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
-import type { MqlOneResult } from '../../../../api/mql';
 
 class Viewer extends BeliefStoreMixin(PerceptionMixin(SensorMixin(Idea))) {}
 
@@ -51,49 +54,26 @@ function makeVial(): Vial {
   return v;
 }
 
-function stubCommand(): CommandDefinition {
-  return CommandDefinition.fromYaml(
-    `verbs: [identify]\ncontroller: perception/IdentifyController\ndescription: stub\n`,
-    '<test>',
-  );
-}
-
-function context(viewer: Viewer): CommandContext {
-  return CommandApi.createCommandContext({
-    commandGiver: viewer as never,
-    location: null as never,
-    commandText: 'identify vial',
-    executionId: 'test',
-    commandId: 'test',
-    verb: 'identify',
-    command: stubCommand(),
-  });
-}
-
-function model(target: Vial): CommandModel {
-  return { target: { stuff: target, raw: 'vial' } as MqlOneResult } as CommandModel;
-}
-
-describe('identify trigger', () => {
+describe('identification — the type axis', () => {
   it('renders the unidentified appearance until identified', () => {
     const viewer = makeStuff(() => new Viewer());
     const vial = makeVial();
     expect(RecognitionApi.describe(viewer, vial)).toBe('a blue potion');
   });
 
-  it('identify writes the type record; the vial then reads as its type to that viewer only', () => {
+  it('a type record makes the vial read as its type to that viewer only', () => {
     const reader = makeStuff(() => new Viewer());
     const other = makeStuff(() => new Viewer());
     const vial = makeVial();
 
-    const controller = makeStuff(() => new IdentifyController());
-    controller.execute(model(vial), context(reader));
+    reader.know(IDENTIFICATION, vial.getTemplatePath()!, { typeKnown: true });
 
-    // The reader's record was written.
-    expect(reader.recall(IDENTIFICATION, vial.getTemplatePath()!)?.payload.typeKnown).toBe(true);
-    // …and the vial now reads as its true type to the reader,
+    expect(
+      reader.recall(IDENTIFICATION, vial.getTemplatePath()!)?.payload.typeKnown,
+    ).toBe(true);
     expect(RecognitionApi.describe(reader, vial)).toBe('a potion of healing');
-    // …but stays unidentified to everyone else.
+    // …but it stays unidentified to everyone else. Identification is
+    // per-viewer memory, never a world fact.
     expect(RecognitionApi.describe(other, vial)).toBe('a blue potion');
   });
 

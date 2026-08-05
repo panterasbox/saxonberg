@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
 import BankCounter from "../../../obj/BankCounter";
@@ -52,7 +52,12 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.008, "kg"));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -84,22 +89,21 @@ describe("The bar money loop (end to end)", () => {
     const barAcct = await BankingApi.ensureVenueAccount(
       BAR,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
 
     // 1. open an account + deposit cash
     const patronAcct = await asOwner(patron, () =>
-      BankingApi.openAccount("goodkin", "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
     const cash = (await asOwner(patron, () =>
-      BankingApi.issueCash(patron as never, Money.of(300))
+      BankingApi.issueCash(patron as never, Money.of(300, Currency.compact()))
     )) as Stuff & Globbable;
     await asOwner(patron, () => BankingApi.deposit(bank, cash));
     expect(BankingApi.balanceOf(patronAcct).minor).toBe(300);
 
     // 2. buy a drink — a presented Charge settled from the implant/card
     const drink: Charge = {
-      amount: Money.of(60),
+      amount: Money.of(60, Currency.compact()),
       reason: "a martini",
       presented: true,
       payeeAccountId: barAcct,
@@ -110,8 +114,8 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
 
     // 3. the bar pays a wage that exceeds its takings → it runs RED
-    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
-    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(150));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(150, Currency.compact()));
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
 
     // 4. the P&L shows the deficit
@@ -122,10 +126,10 @@ describe("The bar money loop (end to end)", () => {
 
     // 5. the central bank mints subsidy to cover the red — logged + visible
     const red = -BankingApi.balanceOf(barAcct).minor;
-    await BankingApi.mint(barAcct, Money.of(red), "deficit subsidy", "subsidy");
+    await BankingApi.mint(barAcct, Money.of(red, Currency.compact()), "deficit subsidy", "subsidy");
     expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
 
     // 6. the conservation invariant holds across the whole loop
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 });

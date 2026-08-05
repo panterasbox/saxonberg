@@ -189,32 +189,41 @@ export type RosterFrame =
   | { kind: 'roster'; action: 'snapshot'; rows: RosterRow[] };
 
 /**
- * Which broadcast realm a bulletin belongs to — `ooc` (out-of-character /
- * operator) vs `world` (in-fiction). Mirrors the server `BulletinRealm`.
+ * Which broadcast realm a release belongs to — `ooc` (out-of-character /
+ * operator) vs `world` (in-fiction). Mirrors the server `ReleaseRealm`.
  */
-export type BulletinRealm = 'ooc' | 'world';
+export type ReleaseRealm = 'ooc' | 'world';
 
 /**
- * The editorial classification of a bulletin. Mirrors the server
- * `BulletinKind`.
+ * The editorial classification of a release. Mirrors the server
+ * `ReleaseKind`.
  */
-export type BulletinKind = 'changelog' | 'decision' | 'event' | 'notice';
+export type ReleaseKind =
+  | 'changelog'
+  | 'decision'
+  | 'event'
+  | 'notice'
+  | 'repost';
 
 /**
- * The client-facing projection of one bulletin (the news-ticker row). The
+ * The client-facing projection of one release (the news-ticker row). The
  * server owns all semantics (ordering, pin-cap, expiry, soft-retract) — a
- * **retracted** bulletin is never projected to the client. MML `headline` /
+ * **retracted** release is never projected to the client. MML `headline` /
  * `body` render through the existing parse path; the client owns zero
  * ordering/recognition semantics.
  */
-export interface BulletinRow {
-  bulletinId: string;
-  realm: BulletinRealm;
-  kind: BulletinKind;
+export interface ReleaseRow {
+  releaseId: string;
+  /** The publisher organization's durable path. */
+  publisher: string;
+  realm: ReleaseRealm;
+  kind: ReleaseKind;
   headline: string;
   body: string;
-  /** The publisher's durable identity string, when present. */
+  /** The acting author's durable identity string, when present. */
   author?: string;
+  /** Where a `repost`'s substance came from; absent on an original. */
+  source?: string;
   /** Publish time, epoch-ms. */
   publishedAt: number;
   pinned: boolean;
@@ -223,18 +232,98 @@ export interface BulletinRow {
 }
 
 /**
- * Payload of a `world.bulletin.feed` frame (the news-ticker fan-out;
+ * The **anonymous** projection of one release — what an unauthenticated
+ * visitor reads on the start screen's press room.
+ *
+ * ⚠ **A standalone interface, deliberately.** Not a `Pick<ReleaseRow>` and
+ * not an extension of it: structural sharing is how a field added to the
+ * authenticated row later leaks to the open internet without anyone
+ * noticing. The key set is frozen and asserted as frozen.
+ *
+ * ⚠ **No `author` and no `expiresAt`.** An expiry is operational metadata,
+ * not press-room content, and the person who typed a release is not part
+ * of what a publisher published — the organization is the speaker.
+ */
+export interface PublicReleaseRow {
+  releaseId: string;
+  /** The publisher organization's durable path. */
+  publisher: string;
+  /** The publisher's display name. */
+  publisherLabel: string;
+  realm: ReleaseRealm;
+  kind: ReleaseKind;
+  /** Where a `repost`'s substance came from; absent on an original. */
+  source?: string;
+  headline: string;
+  body: string;
+  publishedAt: number;
+  pinned: boolean;
+}
+
+/**
+ * Payload of a `world.press.feed` frame (the news-ticker fan-out;
  * mirrors the server-side fan). Rides the ordinary `MessageFrame` channel
  * (empty body, structured payload). The client routes by `action`:
  * `snapshot` replaces the whole feed, `upsert` inserts/replaces one row by
- * `bulletinId`, `remove` deletes by `bulletinId`. The initial `snapshot`
- * arrives on connect via `ConnectionEstablishedPayload.bulletinWindow`
+ * `releaseId`, `remove` deletes by `releaseId`. The initial `snapshot`
+ * arrives on connect via `ConnectionEstablishedPayload.releaseWindow`
  * (the welcome payload, not a frame) — there is no request RPC.
  */
-export type BulletinFeedFrame =
-  | { kind: 'bulletin'; action: 'upsert'; row: BulletinRow }
-  | { kind: 'bulletin'; action: 'remove'; bulletinId: string }
-  | { kind: 'bulletin'; action: 'snapshot'; rows: BulletinRow[] };
+/**
+ * One heading in an article, as the wiki pane's outline shows it.
+ * `anchor` is the **sticky** anchor — the durable citation target, not
+ * a slug re-derived from the title, so a reworded heading keeps it.
+ */
+export interface WikiSectionSummary {
+  level: 1 | 2 | 3;
+  anchor: string;
+  title: string;
+}
+
+/**
+ * `world.wiki.page` payload — the article the wiki pane is showing.
+ *
+ * The **same rendered body** the terminal received, which is the
+ * point: it has already been through the render pipeline's gate, so
+ * over-capability content is absent from this payload for the same
+ * reason it is absent from the scroll. The pane never re-renders and
+ * never sees a source it was not sent.
+ *
+ * Everything the pane can act on is a **command** it composes and
+ * emits (`wiki edit <handle>`, `wiki history <handle>`) — bus-primacy;
+ * there is no private wiki channel from the client.
+ *
+ * `mayEdit` is the server's answer, sent so the pane can hide an
+ * affordance that would be refused. It is a display hint and nothing
+ * more — the verb re-checks on arrival, which is where the decision
+ * actually lives.
+ */
+export interface WikiPageFrame {
+  kind: 'wiki-page';
+  /** `namespace:slug` — what every command the pane emits addresses. */
+  handle: string;
+  title: string;
+  rev: number;
+  /** Rendered, gated MML. */
+  body: string;
+  tags: string[];
+  related: string[];
+  sections: WikiSectionSummary[];
+  subject: { kind: string; ref: string } | null;
+  updatedBy: string;
+  updatedAt: number;
+  mayEdit: boolean;
+  /**
+   * True when this is an unsaved `wiki preview`. The pane says so, or
+   * a preview is indistinguishable from the saved page it is not.
+   */
+  preview?: boolean;
+}
+
+export type ReleaseFeedFrame =
+  | { kind: 'release'; action: 'upsert'; row: ReleaseRow }
+  | { kind: 'release'; action: 'remove'; releaseId: string }
+  | { kind: 'release'; action: 'snapshot'; rows: ReleaseRow[] };
 
 /**
  * One row of the `social.rules` client-state projection — a flattened,
@@ -381,6 +470,13 @@ export interface CommandRejectedNote {
   reason:
     | 'parse-failed'
     | 'unknown-verb'
+    /**
+     * The verb EXISTS but nothing here affords it — *"there is nothing
+     * to drink"*, never *"unknown command"*. Distinct from
+     * `unknown-verb` on purpose: conferral controls the affordance
+     * list, never the parser, and the two answers teach opposite
+     * things about whether the verb is real.
+     */
     | 'shape-fall-through'
     | 'bind-failed'
     | 'missing-subcommand'
@@ -501,6 +597,15 @@ export interface ComposePromptNote {
   kind: 'prompt-compose';
   label: string;
   placeholder?: string;
+  /**
+   * Text the composer opens with — the **current** body when the
+   * prompt is an edit rather than a creation.
+   *
+   * ⚠ Without it "edit" means "retype": the box opens empty and
+   * whatever is posted replaces the whole article. The server sends
+   * what the author is editing; the client seeds the draft with it.
+   */
+  initial?: string;
   /** Hint the client may show an "open in editor" escalation affordance. */
   allowEditorEscalation?: boolean;
   foreground: boolean;
@@ -572,7 +677,48 @@ export interface PromptRefreshNote {
   rendered: string;
 }
 
+/* ---- Wiki ------------------------------------------------------- */
+
+/**
+ * A wiki edit was rejected because the page moved under it — the
+ * compare-and-swap on `rev` (A3).
+ *
+ * ⭐ **No auto-merge, deliberately.** A wiki edit is prose, and a
+ * machine-merged paragraph is worse than an honest conflict: it reads
+ * as somebody's writing and is nobody's. So the server returns the
+ * three bodies and lets a person decide.
+ *
+ * ⚠ **All three bodies are filtered through the same reveal gate as a
+ * reading.** A conflict response is a revision-facing surface, so
+ * without that it is a hole in the wall the renderer built: a reader
+ * who cannot see a level-3 section could read it by provoking a
+ * conflict. Above the reader's ceiling a fragment is *absent* — not
+ * redacted, not counted (criteria 67, 68).
+ *
+ * A new `Note` kind is the sanctioned extension here: the union is
+ * explicitly append-only, and the alternative (a bespoke error shape)
+ * would not ride the dispatch-response envelope at all.
+ */
+export interface WikiEditConflictNote {
+  kind: 'wiki-edit-conflict';
+  /** The page's `namespace:slug` handle. */
+  page: string;
+  /** The section anchor, when the edit was section-scoped. */
+  section?: string;
+  /** The revision the submitted edit was based on. */
+  baseRev: number;
+  /** The revision the page is actually at now. */
+  currentRev: number;
+  /** The body as it stood at `baseRev` — gated. */
+  base: string;
+  /** The body as it stands now — gated. */
+  current: string;
+  /** What the author tried to save — gated. */
+  submitted: string;
+}
+
 export type Note =
+  | WikiEditConflictNote
   | QuantityClampedNote
   | QuantityClampedRejectedNote
   | MatchAmbiguousNote
@@ -1654,10 +1800,10 @@ export interface ConnectionEstablishedPayload {
    * The live news-ticker window at connect time — the pins-first,
    * recency-ordered, retract/expiry-filtered slice the client seeds its
    * feed pane from (consumed as a `snapshot`, exactly as `topicCatalogue`
-   * is). Live deltas thereafter ride `world.bulletin.feed` frames. Empty
+   * is). Live deltas thereafter ride `world.press.feed` frames. Empty
    * when nothing is published.
    */
-  bulletinWindow: BulletinRow[];
+  releaseWindow: ReleaseRow[];
 }
 
 /**

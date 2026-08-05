@@ -182,7 +182,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
       const npc = makeStuff(() => new NPC());
       npc.employments = [
         {
-          businessPath: BUSINESS,
+          organizationPath: BUSINESS,
           positionKey: "magistrate",
           status: "employed",
           hiredAt: 1,
@@ -258,7 +258,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
       );
       clerk.employments = [
         {
-          businessPath: BUSINESS,
+          organizationPath: BUSINESS,
           positionKey: "magistrate",
           status: "quit",
           hiredAt: 1,

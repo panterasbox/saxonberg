@@ -340,7 +340,8 @@ describe('sync is per-giver, not global', () => {
   });
 
   it("giver A's slow SYNC command does not block giver B's command", async () => {
-    // Backend serializes per-socket (Backend.ts inboundChainBySocketId);
+    // Inbound is serialized per-socket (ConnectionApi.sequenceInbound's
+    // ordered lane; prompt replies ride the second lane);
     // this exercises the underlying per-giver property directly. The
     // slow body only stalls giver A (keyed on the executing giver).
     const gate = makeDeferred();

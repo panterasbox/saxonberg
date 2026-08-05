@@ -56,7 +56,9 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths } from '../paths';
+import type { VetoResult } from '../errors';
 import { Suppressions } from '../magic/Suppression';
+import { MagicGrid } from '../magic/Grid';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -334,9 +336,31 @@ export interface Vitals {
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
+  /**
+   * The Hydrator's Phase-1 entry for the persisted `conditions`
+   * collection — the seam that normalizes each record's magical
+   * provenance tag on the way in. See the implementation note.
+   */
+  setConditions(conditions: readonly ActiveCondition[]): void;
   hasCondition(pred: (c: ActiveCondition) => boolean): boolean;
-  /** Add a condition (a Trauma value or an AfflictionRecord). */
-  afflict(condition: ActiveCondition): void;
+  /**
+   * **The application veto** — may this condition land on this body at
+   * all? Default `{ok: true}`; compose via `super` to refuse.
+   *
+   * The `canEvict` shape, deliberately: same doctrine (the engine asks,
+   * the object decides), same default bias (permission), same doc tier.
+   * It is what makes immunity and resistance *expressible* — an
+   * amulet-conferred immunity refuses the condition rather than the
+   * engine having to keep a registry of who is immune to what.
+   */
+  canAfflict(condition: ActiveCondition): VetoResult;
+  /**
+   * Add a condition (a Trauma value or an AfflictionRecord). Returns
+   * whether it actually landed — {@link canAfflict} may refuse it.
+   * Callers that do not care may ignore the result; callers that report
+   * an outcome (`ConditionApi.inflict`) must not.
+   */
+  afflict(condition: ActiveCondition): boolean;
   /** Remove a condition by reference; true if it was present. */
   relieve(condition: ActiveCondition): boolean;
   /** Release a sustained magical effect: un-realize, destruct any bound
@@ -806,6 +830,31 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * Phase-1 hydrate entry for `conditions` (the Hydrator prefers a
+     * `set<Field>` method over the bracket-assign fallback).
+     *
+     * The one invariant it enforces: **magical provenance is normalized
+     * on the way in.** The tag split specified-by from fired-by
+     * (requirements D2), and rows written before that split carry a
+     * single `caster` field. A legacy row reads as both — which is the
+     * honest reading, since before items existed the specifier and the
+     * firer were the same object. A malformed tag is dropped rather than
+     * carried, so a dispel scan never keys off a corrupt mark.
+     */
+    public setConditions(conditions: readonly ActiveCondition[]): void {
+      if (!Array.isArray(conditions)) return;
+      this.conditions = conditions.map((c) => {
+        if (c == null || typeof c !== 'object') return c;
+        if (!('magicOrigin' in c) || c.magicOrigin === undefined) return c;
+        const normalized = MagicGrid.normalizeProvenance(c.magicOrigin);
+        // A sustained effect IS magic — a tag that will not normalize
+        // makes the record meaningless, so drop the tag and let the
+        // sustained arm release it on the next reconcile.
+        return { ...c, magicOrigin: normalized } as ActiveCondition;
+      });
+    }
+
+    /**
      * Reconcile-on-read wound progression — the harm driver, reconcile
      * style (the metabolism / thermal / respiration precedent, NOT a
      * recurring push tick). For each active trauma, integrate the in-session
@@ -957,7 +1006,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             continue;
           }
           s.tickedAt = nowS;
-          if (s.expiresAt !== undefined && nowS >= s.expiresAt) {
+          if (
+            s.expiresAt !== undefined &&
+            nowS >= s.expiresAt &&
+            !this.renewSustained(s, nowS)
+          ) {
             this.releaseSustained(s);
             continue;
           }
@@ -1074,6 +1127,37 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * suppressible line IS the impulse/modifier line — nothing else in
      * this reconcile consults the field.
      */
+    /**
+     * **Host-held vs term-bought** (magic-items D12), at the moment the
+     * distinction actually bites: expiry.
+     *
+     * A binding must be paid for continuously. A **charged host** can
+     * pay — its standby draw meters the cost against its own reserve —
+     * so it renews its own effect for another term and the hold
+     * survives. A **consumable** paid once and is gone: there is
+     * nothing left to renew with, so the term simply runs out.
+     *
+     * That is what makes the old guideline a *derivation* rather than a
+     * rule. Nothing forbids a shadow sourced from a potion; it just
+     * cannot outlive the term it bought — which is exactly why
+     * long-lived sustained effects are forged as rings and not bottled.
+     *
+     * Returns whether the effect was renewed.
+     */
+    private renewSustained(s: SustainedEffect, nowS: number): boolean {
+      // Term-bought: nothing to ask. It ran out.
+      if (!s.sustainedBy) return false;
+      const host = StuffApi.findByTemplatePath(s.sustainedBy);
+      if (!host || !MixinApi.isCharged(host)) return false;
+      // A flat host cannot hold anything up either — the ring goes out
+      // rather than running on nothing.
+      if (host.isDepleted()) return false;
+      const term = s.sustainedFor && s.sustainedFor > 0 ? s.sustainedFor : 0;
+      if (term <= 0) return false;
+      s.expiresAt = nowS + term;
+      return true;
+    }
+
     private reconcileSuppression(s: SustainedEffect): void {
       const self = this as unknown as Stuff;
       const place = MixinApi.isContainable(self)
@@ -1203,9 +1287,35 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.conditions.some(pred);
     }
 
-    public afflict(condition: ActiveCondition): void {
+    /**
+     * The application veto's terminal — permission by default.
+     *
+     * @hook Override and `super`-chain to refuse a condition. Exactly
+     * the `canEvict` contract: the engine asks, the object decides, and
+     * an object that says nothing lets it through. That default is what
+     * keeps this inert for the seven shipped `inflict` callers (harm,
+     * hazard, fire, electricity, metabolism, combat, magic) while making
+     * immunity expressible without a registry.
+     *
+     * ⚠ **Where it runs matters.** `ConditionApi.inflict` consults it
+     * AFTER the covering-stack fold and BEFORE the write — so armor
+     * still attenuates, and a vetoed condition simply never lands.
+     * Moving it earlier would stop armor attenuating; later, and the
+     * body would already be hurt.
+     */
+    public canAfflict(_condition: ActiveCondition): VetoResult {
+      return { ok: true };
+    }
+
+    public afflict(condition: ActiveCondition): boolean {
+      // The veto layer (magic-items D14). A composed mixin — a worn
+      // amulet's conferred immunity — may refuse outright. Routed
+      // through the proxy `this` so a shadow can veto too.
+      const verdict = (this as unknown as Vitals).canAfflict(condition);
+      if (!verdict.ok) return false;
       // Pure add this build — no onset()/tick() invocation, nothing ticks.
       this.conditions.push(condition);
+      return true;
     }
 
     public relieve(condition: ActiveCondition): boolean {

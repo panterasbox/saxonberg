@@ -19,7 +19,12 @@
  */
 
 import { Money } from "../lib/banking/Money";
-import type { Currency } from "../lib/banking/Money";
+import type { CurrencyTag } from "../lib/banking/Money";
+import { Currency } from "../lib/banking/Currency";
+import type {
+  CurrencyRecord,
+  Denomination,
+} from "../lib/banking/Currency";
 import { Account } from "../lib/banking/Account";
 import type LedgerEntry from "../lib/banking/LedgerEntry";
 import type {
@@ -28,6 +33,7 @@ import type {
   LedgerEntryFields,
   ProfitAndLoss,
   ReconcileResult,
+  FullReconcileResult,
   EscrowHoldResult,
 } from "../lib/banking/LedgerEntry";
 import type { Container } from "../lib/spatial/Container";
@@ -50,9 +56,11 @@ import { BankingLogic } from "../obj/api/BankingLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-export { Money, Account };
+export { Money, Account, Currency };
 export type {
-  Currency,
+  CurrencyTag,
+  CurrencyRecord,
+  Denomination,
   LedgerKind,
   PnlCategory,
   LedgerEntryFields,
@@ -145,8 +153,8 @@ export class BankingApi {
   }
 
   /** The sync total money supply (Σ mints − Σ drains). */
-  public static moneySupply(): Money {
-    return logic().moneySupply();
+  public static moneySupply(currency: string): Money {
+    return logic().moneySupply(currency);
   }
 
   /** Every ledger row touching `accountId` on either side — the substrate read. */
@@ -182,8 +190,9 @@ export class BankingApi {
   public static async openAccount(
     bank: string,
     corpoKey: string,
+    currency: string
   ): Promise<string> {
-    return logic().openAccount(bank, corpoKey);
+    return logic().openAccount(bank, corpoKey, currency);
   }
 
   /** The acting owner's account id at the `bank` institution. */
@@ -426,8 +435,21 @@ export class BankingApi {
    * + Σ circulating coins). `balanced` is the reconciliation invariant; one
    * of the two and only two reporting consumers (with the bar P&L).
    */
-  public static reconcile(): ReconcileResult {
-    return logic().reconcile();
+  public static reconcile(currency: string): ReconcileResult {
+    return logic().reconcile(currency);
+  }
+
+  /**
+   * The **complete** conservation audit for `currency` — supply against
+   * every reservoir of value, including vault float and coin captured in
+   * `holder_snapshots`. Async, because the snapshot term is a collection
+   * read; {@link reconcile} stays sync and circulating-only for paths that
+   * cannot await.
+   */
+  public static async fullReconcile(
+    currency: string
+  ): Promise<FullReconcileResult> {
+    return logic().fullReconcile(currency);
   }
 
   /**
@@ -440,8 +462,9 @@ export class BankingApi {
     ownerPath: string,
     bank: string,
     corpoKey: string,
+    currency: string
   ): Promise<string> {
-    return logic().ensureVenueAccount(ownerPath, bank, corpoKey);
+    return logic().ensureVenueAccount(ownerPath, bank, corpoKey, currency);
   }
 
   /**
@@ -452,8 +475,9 @@ export class BankingApi {
   public static async ensureCorpoTreasury(
     corpoKey: string,
     bank: string,
+    currency: string
   ): Promise<string> {
-    return logic().ensureCorpoTreasury(corpoKey, bank);
+    return logic().ensureCorpoTreasury(corpoKey, bank, currency);
   }
 
   /**

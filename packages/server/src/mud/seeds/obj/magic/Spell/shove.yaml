@@ -8,13 +8,21 @@ data:
   name: Unseen Shove
   verb: control
   noun: body
-  requiredBand: novice
   cost: 12
-  castSeconds: 2
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 2
   targeting: creature
   effects:
+    # [cursed · uncursed · blessed] — displacement is shove's identity,
+    # so both ends stay displacement:
+    #
+    #   cursed   the shove takes YOU instead — you go over backwards
+    #   uncursed it shoves what you aimed at
+    #   blessed  it PINS — strictly more control over the same body
     - kind: move
-      move: shove
+      move: [shove, shove, pin]
+      self: [true, false, false]
   description: >-
     A fist of air takes the mark square in the chest. The strong keep
     their feet; the unready sit down hard.

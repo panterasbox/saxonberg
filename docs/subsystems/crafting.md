@@ -643,6 +643,18 @@ at rest); glassmaking/brewing/alchemy (later branch consumers of the
 same seams); corpos/brands at corporate scale; viewer-relative
 appraisal + congener→hangover.
 
+
+> ⭐ **A recipe's requirements and outputs carry a reveal level.** Inputs, tools, heat, difficulty, grade band and every output field. `name`/`keywords`/`discipline` stay open — a search index nobody can read indexes nothing. `spoiler: 1` with
+> `spoilerName: 0`, so a reader sees which properties exist with the
+> values collapsed — **one click, not a lock**, and a reader who set
+> `wiki.spoilerAppetite` higher never sees a collapse at all. The rule
+> the sweep settled on: *collapse what the WORLD measures, never what
+> the PLAYER operates.* Levels are declared on the field and therefore
+> apply wherever the value surfaces. See
+> [wiki.md](./wiki.md) § the reveal model.
+
+---
+
 ## Cross-references
 
 - **Substrate consumed:** [templates](./templates.md),

@@ -482,7 +482,9 @@ function candidatesFromQuery(
   }
   const out: ScopeCandidate[] = [];
   for (const m of matches) {
-    for (const c of candidatesForAnchor(m.stuff, m.via)) out.push(c);
+    for (const c of candidatesForAnchor(m.stuff, m.via, ctx.commandGiver)) {
+      out.push(c);
+    }
   }
   return out;
 }
@@ -505,9 +507,17 @@ function candidatesFromQuery(
  * rule: a candidate with via is "inside" a detail, so its
  * neighborhood is the detail tree, not the host's contents.
  */
+/**
+ * ⚠ `viewer` gates which detail keys are ADDRESSABLE. A key is a
+ * targeting token, so an item that offers `sigil` as a candidate has
+ * answered "what is this?" before anything was looked at — the same
+ * shape as a flat wand dropping `zap` from its affordance list.
+ * `null` is system mode, where there is no viewer to withhold from.
+ */
 function candidatesForAnchor(
   stuff: Stuff,
-  via: MqlMatchVia | undefined
+  via: MqlMatchVia | undefined,
+  viewer: Stuff | null
 ): ScopeCandidate[] {
   const out: ScopeCandidate[] = [];
   const path = via?.detailPath;
@@ -533,7 +543,7 @@ function candidatesForAnchor(
   // Detail names at the current via depth.
   if (MixinApi.isDetailed(stuff)) {
     const parent = insideDetail ? path[path.length - 1] : undefined;
-    const ids = stuff.getDetailIds(parent) ?? [];
+    const ids = stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
     for (const id of ids) {
       const childPath = insideDetail ? [...path, id] : [id];
       out.push({
@@ -555,7 +565,7 @@ function candidatesForAnchor(
           keywords: keywordsOf(item),
         });
         if (MixinApi.isDetailed(item)) {
-          const ids = item.getDetailIds() ?? [];
+          const ids = item.getDetailIds(undefined, viewer ?? undefined) ?? [];
           for (const id of ids) {
             out.push({
               stuff: item,
@@ -578,7 +588,7 @@ function candidatesForAnchor(
           keywords: keywordsOf(door),
         });
         if (MixinApi.isDetailed(door)) {
-          const ids = door.getDetailIds() ?? [];
+          const ids = door.getDetailIds(undefined, viewer ?? undefined) ?? [];
           for (const id of ids) {
             out.push({
               stuff: door,
@@ -750,7 +760,7 @@ function applyColon(
 ): MqlMatch[] {
   switch (el.kind) {
     case 'transform':
-      return applyTransform(input, el.transform);
+      return applyTransform(input, el.transform, ctx.commandGiver);
     case 'keywords': {
       if (el.words.length === 1) {
         const name = el.words[0]!;
@@ -934,7 +944,8 @@ function candidatesForElementDerivable(
  */
 function applyTransform(
   input: MqlMatch[],
-  transform: 'i' | 'I' | 'e' | 'E' | 'b'
+  transform: 'i' | 'I' | 'e' | 'E' | 'b',
+  viewer: Stuff | null
 ): MqlMatch[] {
   const out: MqlMatch[] = [];
   for (const m of input) {
@@ -957,7 +968,8 @@ function applyTransform(
       if (insideDetailTree) {
         if (!MixinApi.isDetailed(m.stuff)) continue;
         const parent = path![path!.length - 1];
-        const childIds = m.stuff.getDetailIds(parent) ?? [];
+        const childIds =
+          m.stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
         for (const id of childIds) {
           out.push({
             stuff: m.stuff,
@@ -976,7 +988,11 @@ function applyTransform(
         if (!MixinApi.isDetailed(m.stuff)) continue;
         // Walk the detail subtree from the current tip and emit one
         // match per descendant, vias extended along the walk path.
-        for (const subPath of walkDetailDescendants(m.stuff, path!)) {
+        for (const subPath of walkDetailDescendants(
+          m.stuff,
+          path!,
+          viewer,
+        )) {
           out.push({
             stuff: m.stuff,
             score: m.score,
@@ -1059,12 +1075,13 @@ function stripDetailPath(via: MqlMatchVia | undefined): MqlMatchVia | undefined 
 function walkDetailDescendants(
   host: Stuff,
   path: string[],
+  viewer: Stuff | null,
 ): string[][] {
   if (!MixinApi.isDetailed(host)) return [];
   const out: string[][] = [];
   const recurse = (currentPath: string[]): void => {
     const tip = currentPath[currentPath.length - 1]!;
-    const childIds = host.getDetailIds(tip) ?? [];
+    const childIds = host.getDetailIds(tip, viewer ?? undefined) ?? [];
     for (const id of childIds) {
       const next = [...currentPath, id];
       out.push(next);
@@ -1102,7 +1119,7 @@ function filterByKeywordsOrPredicate(
     }
     return out;
   }
-  return filterByKeywords(input, words);
+  return filterByKeywords(input, words, ctx.commandGiver);
 }
 
 /**
@@ -1125,12 +1142,16 @@ function filterByKeywordsOrPredicate(
  * place — `:i` between detail steps is redundant because `:keyword`
  * already auto-extends with child names.
  */
-function filterByKeywords(input: MqlMatch[], words: string[]): MqlMatch[] {
+function filterByKeywords(
+  input: MqlMatch[],
+  words: string[],
+  viewer: Stuff | null,
+): MqlMatch[] {
   if (words.length === 0) return input;
   const out: MqlMatch[] = [];
   for (const m of input) {
     const direct = directCandidate(m);
-    const detailCandidates = detailExtensionCandidates(m);
+    const detailCandidates = detailExtensionCandidates(m, viewer);
 
     // Pick the best candidate by RAW score (not max-with-prior) — the
     // prior match's score is locked in regardless, but the candidate
@@ -1194,11 +1215,14 @@ function directCandidate(m: MqlMatch): ScopeCandidate {
  * set, the children of the path's tip. Each sub-candidate is the
  * same Stuff with `via.detailPath` extended by the detail's name.
  */
-function detailExtensionCandidates(m: MqlMatch): ScopeCandidate[] {
+function detailExtensionCandidates(
+  m: MqlMatch,
+  viewer: Stuff | null,
+): ScopeCandidate[] {
   if (!MixinApi.isDetailed(m.stuff)) return [];
   const currentPath = m.via?.detailPath ?? [];
   const parent = currentPath[currentPath.length - 1];
-  const ids = m.stuff.getDetailIds(parent) ?? [];
+  const ids = m.stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
   const out: ScopeCandidate[] = [];
   for (const id of ids) {
     const lower = id.toLowerCase();

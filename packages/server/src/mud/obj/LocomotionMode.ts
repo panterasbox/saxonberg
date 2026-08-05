@@ -141,6 +141,20 @@ export class LocomotionMode extends SingletonMixin(PropertiedMixin(Idea)) {
    */
   protected medium: string | null = null;
 
+  /**
+   * ⚠ **Deliberately untagged.** `speed`, `noiseLevel` and
+   * `costMultiplier` are numbers, and the sweep that collapsed
+   * `Material`'s and `Biome`'s stopped here on purpose.
+   *
+   * A locomotion mode is **the player's own control surface**, not a
+   * fact about the world: `sneak` and `run` are things they do. Hiding
+   * how your own legs work is user-hostile, and it teaches nothing —
+   * a player learns sneaking is slower by sneaking, in one move.
+   *
+   * The rule the sweep settled on: collapse what the WORLD measures,
+   * never what the PLAYER operates. `CombatFormation`'s roles and
+   * coup rights are untagged for the same reason.
+   */
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     speed: { persistent: true },

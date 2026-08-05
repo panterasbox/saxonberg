@@ -85,7 +85,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contacts.md](./docs/subsystems/contacts.md) — per-Avatar named lists, durable identifiers only, owner-only privacy
   - [social-graph.md](./docs/subsystems/social-graph.md) — attention rules (NotifyPolicy), display-lensing, presence relay, the `notify` verb
   - [forums.md](./docs/subsystems/forums.md) — Subject layer, Board→Thread→Post + Entry tree, popularity/argument organizers, `forum_events`
-  - [bulletin.md](./docs/subsystems/bulletin.md) — staff→player news ticker: Bulletin docs, BulletinBoard window, `bulletin` verb, NewsTickerPane
+  - [press.md](./docs/subsystems/press.md) — publishers, releases, the news ticker: PublisherMixin, appointing-authority-appoints/position-publishes, Release docs, `press` verb, the anonymous press room
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, lookup chain, `settings`/`var`
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — per-character verb aliases, expandAliases, the `alias` verb
   - [prose.md](./docs/subsystems/prose.md) — ProseApi Liquid templating, Mml-aware output, default filters
@@ -152,6 +152,7 @@ behavior. Read the relevant doc before editing in its area.
   - [electricity.md](./docs/subsystems/electricity.md) — the shock channel + conduction spread: the Ohm's-law core, the ElectricityApi walk, SustainedShock, FloodedCell
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [magic.md](./docs/subsystems/magic.md) — effect substrate + casting: Effect-iff-gated-Api, the grid as Disciplines, CasterMixin faculty, suppression, the Practicum
+  - [magic-items.md](./docs/subsystems/magic-items.md) — using a thing as a way to act: the EffectContext split (origin/actor/source), Arcane grid footprint, the three item classes + `S* = inflow/d` charge economy, BUC + the `canAfflict` veto, derived appearance + descriptor banks, the fade/defective-copy memory loop, census-gated distribution
   - [combat-formations.md](./docs/subsystems/combat-formations.md) — party-strategy policies over the threat graph: presets, three hooks, coup governance, the command Discipline
   - [party.md](./docs/subsystems/party.md) — the Party Idea + PartyRecord mirror, the fourth GroupProvider, the `sideOf`/`areAllied` combat seam, the `party` verb
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves
@@ -187,6 +188,7 @@ behavior. Read the relevant doc before editing in its area.
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
+  - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
 
 ## ⚠ Worktrees — read before committing
 
@@ -236,6 +238,13 @@ file:
 Which branch · does anyone else hold it · am I behind · is anything
 unpushed. **Both 2026-08-02 failures were visible in this output and
 nobody looked.**
+
+7. **Merge on ORIGIN through the GitLab tool, never the git CLI.** A
+   CLI merge performs the join in a worktree — the exact machinery
+   rules 1–6 exist to keep away from — and it bypasses the MR, so the
+   merge commit carries no review record and the remote never observes
+   it. Merging a branch *into your own branch* to catch it up is a
+   different act and is fine; landing it is the MR's job.
 
 **Enforcement** — a tracked hook blocks all three failure modes:
 
@@ -833,7 +842,7 @@ orchestration cases:
 | `creature.move(loc)` (raw containment) | `LocomotionApi.traverseWithDefault(actor, exit)` (default-mode dispatch via `defaultModeFor` chain) or `LocomotionApi.engageAround(actor, mode, exit, action)` (known mode + engagement bookkeeping) |
 | `actor.setEngagedMode(mode); await actor.traverse(exit, …); if (transient) actor.setEngagedMode(null)` | `LocomotionApi.engageAround(actor, mode, exit, action)` — handles transient/persistent decision + error-path cleanup |
 | `resolveSetting(actor, 'movement.defaultMode') ?? 'walk'` | `LocomotionApi.defaultModeFor(actor)` — three-tier chain: explicit setting → bodyplan default → universe 'walk' (the raw resolveSetting skips the bodyplan layer for NPCs) |
-| `avatar.gold = 100` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<number>('gold'), 100)` (PropertiedMixin) |
+| `avatar.questStarted = true` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<boolean>('quest_started'), true)` (PropertiedMixin). ⚠ A prop is for a slot whose **key is computed at runtime** (`circleProp(corpoKey)`, `Property.of(eventName)` — the only two production call sites). Anything **authored in YAML** or **narrowed on** is a mixin field, because the Hydrator reflects into fields and `MixinApi.isX` threads the type. ⚠⚠ **Money is neither** — it lives in `bank_ledger` behind the sealed `postTransaction` chokepoint. |
 | `(stuff as unknown as { templatePath? }).templatePath` | `stuff.getTemplatePath()` (runtime stamp). For `Template` docs use `template.path` — the two are distinct. |
 | `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated, re-keys `byTemplatePath`). The slot is hard-private (`#templatePath`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampTemplatePath` seam. |
 | `(stuff as { zone? }).zone = z` | `stuff.setZone(z)` (gated by `FromSpatialZone` — only `SpatialZone` subclasses may call). Slot is hard-private (`#zone`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampZone` seam. |
@@ -908,6 +917,7 @@ side — `backend/PersistenceManager` re-exports it).
 - `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `name_banks` — char-gen name pools, installed by the species-and-names pack
+- `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
 - `beliefs` — per-viewer identity-memory rows (belief.md)
 - `chronicles` — per-character append-only identity ledger (chronicle.md)
 - `transcripts` — advancement evidence ledger; Competence derives on read (advancement.md)
@@ -919,7 +929,6 @@ side — `backend/PersistenceManager` re-exports it).
 - `positions` — held conviction stakes (influence.md)
 - `recipes` — crafting reference data, never cloned (crafting.md)
 - `blueprints` — the Studio composition catalogue (studio.md)
-- `bulletins` — the staff→player broadcast feed (bulletin.md)
 - `documents` — the path-addressed, kind-tagged document store (document-store.md)
 - `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
 - `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
@@ -930,6 +939,8 @@ side — `backend/PersistenceManager` re-exports it).
 - `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
 - `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
 - `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)
+- `wiki` — the encyclopedia's current page state, one row per article (wiki.md)
+- `wiki_revisions` — the append-only edit log; a separate collection so a page READ never drags its history (wiki.md)
 
 ## Session Notes for Claude
 

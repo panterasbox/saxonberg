@@ -1,0 +1,37 @@
+# Wands — ornament × proportion. Both axes describe WORKMANSHIP and
+# SHAPE, never substance: a wand IS brass, honestly and permanently,
+# and that tells you real things (it conducts, it will not burn) while
+# telling you nothing about which spell it holds.
+primaryAxis: ornament
+primary:
+  [runed, banded, spiked, forked, knotted, twisted, notched, fluted,
+   whorled, lobed, beaded, scalloped]
+secondaryAxis: proportion
+secondary:
+  [long, short, slender, stubby, tapered, crooked, straight, heavy,
+   wispy, curved]
+
+# ── the unidentified long description (class-level, never per item) ──
+# The authored `longDescription` on a template is written for the
+# IDENTIFIED item and routinely gives the answer away. This is what a
+# specimen of the class reads as until the viewer actually knows.
+#
+# ⚠ Two rules. Claim no MATERIAL — a specimen is truly brass or ash or
+# glass, per instance, and class prose that names a substance is simply
+# false on half of them. And never hand-write the ARTICLE before
+# `{descriptor}`: half the bank is vowel-initial, so write `{a}` (or
+# `{A}`) and let it resolve against the word actually drawn.
+unidentifiedLong: >
+  {A} {descriptor} rod, about a hand's length, worked with more care
+  than a stick needs and labelled nowhere. Whatever a maker bound into
+  it is not written on the outside — you would have to use it, or find
+  somebody who could tell you.
+# The parts an unidentified one has. Keys are PARSER TOKENS — generic by
+# necessity, since the real parts are named for what the thing does.
+unidentifiedDetails:
+  grip: >
+    Worn smooth in a band about a third of the way along, the way a
+    thing gets when it is carried far more often than it is used.
+  tip: >
+    Blunted, and darker than the rest — whatever comes out comes out
+    here, and has been doing so for a while.

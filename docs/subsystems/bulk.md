@@ -185,13 +185,46 @@ payload-less slot behaves byte-identically to before.
 
 `BulkableMixin` contributes a `markupAugmenter` (the same
 `getMarkupLong` pipeline `DetailedMixin` rides), so a non-empty slot's
-`appearance` surfaces wherever a holder's long description renders:
+contents surface wherever a holder's long description renders:
 `look thermos` → "… It holds dark, steaming coffee."; `look floor` → "…
 A puddle of water pools here." A puddle also surfaces in the bare `look`
 room view via `BulkableApi.floorPuddleSummary(location)`, since the
 floor is an `Adornment` excluded from the room's contents list. (Making
 the floor's contents the *primary* room presentation is the deferred
 containment-inversion, not this — see non-goals.)
+
+### `getContentsDescriptionFor(viewer, affordance?)` — the one viewer-aware read
+
+Bulk is otherwise **viewer-blind**, and rightly so: a puddle of water is
+a puddle of water to everybody. The augmenter reads its phrase from this
+method, which resolves in two tiers:
+
+| Slot holds | Phrase |
+|---|---|
+| an **identifiable** material | `RecognitionApi.describe(viewer, material)` — per-viewer |
+| anything else | `payload?.appearance ?? material.appearance` — the shipped read, unchanged |
+
+The case that earns the tier is the **potion**: what a draught *looks*
+like and what it *is* are different facts, and which one you get depends
+on what you have learned. Identity rides the **material**, not the
+flask, so one identification covers every flask of that substance and
+decanting carries the knowledge with the liquid — see
+[magic-items.md](./magic-items.md) § Identification. `MagicLogic`'s
+identify effect makes the **same** redirect, so *looking at* and
+*identifying* a vessel agree about what the subject is.
+
+Two article rules follow from the two tiers, and they are not
+interchangeable: the identification phrase is a **full noun phrase**
+carrying its own article ("an iridescent crimson potion"), while a plain
+material's `appearance` is a **bare phrase** the verb articles itself
+("You drink **the** dark, steaming coffee."). `DrinkController` branches
+on `MixinApi.isIdentifiable(material)` for exactly this reason; branching
+on "did a phrase come back" silently drops the "the" from every ordinary
+drink.
+
+`null` for an empty slot, a slotless host, or an ambiguous affordance —
+the description pass runs on every render, so the boring cases are
+silent rather than throwing.
 
 ## MQL surface
 
@@ -293,7 +326,7 @@ Each lands in a named home later; none is in this slice.
 
 | File | Role |
 |---|---|
-| `lib/bulk/Bulkable.ts` | mixin + `BulkSlot` + closure scale + `via.bulk` + `requiredClosureFor` |
+| `lib/bulk/Bulkable.ts` | mixin + `BulkSlot` + closure scale + `via.bulk` + `requiredClosureFor` + `getContentsDescriptionFor` |
 | `lib/bulk/UnboundedSource.ts` | `UnboundedSourceMixin` — inexhaustible-source override (urn) |
 | `obj/UnboundedReceptacle.ts` | the urn's class (`UnboundedSourceMixin(Receptacle)`) |
 | `api/bulk.ts` | `BulkableApi.transfer` + `slotFor` / `amountFromQuantity` / `floorSurfaceNear` / `floorPuddleSummary` / `ingest` |

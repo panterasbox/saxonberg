@@ -509,6 +509,26 @@ So the shipped state — Transform has no working spell — is not a gap
 in the game. **It is the correct answer to a calculation a first-year
 student can do on one page.**
 
+**What this settles about polymorph** (magic-items D18, built 2026-08-03).
+The question "can a working turn one thing into another?" has two
+answers and neither of them is *transform*:
+
+- **Item polymorph is SEMBLANCE.** A shadow on **presentation and
+  recognition** — `Sense`, not `Transform`. Nothing about the thing
+  changes; what changes is what an observer's belief store reads off it.
+  Affordable, honest, and already what shadows are for.
+- **Body-swap is not transformation at all.** It is the movement of a
+  *presence* between bodies — a reified inhabitant-relation, which is
+  `presence-hollowing-slate.md`'s problem and carries no material cost
+  because no material moves.
+
+Both are written into `magic-items-slate.md` too. The price list makes
+the ruling structural rather than editorial:
+`lib/magic/PriceList.ts` prices `transform` three orders of magnitude
+above every other verb, so a *transform* item derives a rarity that
+keeps it out of circulation by arithmetic rather than by a rule
+somebody has to remember.
+
 ### The thirteen nouns, and how they were carved
 
 A noun is a **domain the world keeps independent books on**. The

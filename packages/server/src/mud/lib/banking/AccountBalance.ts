@@ -32,6 +32,7 @@ export default class AccountBalance extends Document {
     isPrimary: { persistent: true },
     isActive: { persistent: true },
     balance: { persistent: true },
+    currency: { persistent: true },
   };
 
   /** Durable, opaque ledger key. */
@@ -60,6 +61,19 @@ export default class AccountBalance extends Document {
   isActive = true;
   /** Materialized balance in minor units — derived from the ledger. */
   balance = 0;
+  /**
+   * The currency this account is denominated in. **An account holds exactly
+   * one currency** (a zorkmid account and a scrip account are two accounts,
+   * as in real banking) — which is what keeps conservation a one-line
+   * per-currency assertion and leaves the scalar `balance` and its warmed
+   * cache untouched.
+   *
+   * ⚠ Defaults to `""`, **not** the compact currency: an unmigrated row must
+   * hydrate currency-less and be loud. A compact-currency default would make
+   * an unmigrated row look correct, which is the silent-revalue failure mode
+   * wearing a different hat.
+   */
+  currency = "";
   // Circle membership (Goodkin's recognized-standing perk) is NOT an account
   // field — it's an attribute of the *member*, held as a `<corpoKey>.circle`
   // saved prop on the player (PropertiedMixin). See BankingLogic.enrollCircle
@@ -72,12 +86,39 @@ export default class AccountBalance extends Document {
    */
   private static _cache = new Map<string, number>();
 
-  /** Load all balances into the read cache. Called at boot + after rebuild. */
+  /**
+   * The currency sibling of {@link _cache}: `accountId → currency`. A second
+   * map rather than a reshaped one, deliberately — every existing sync
+   * balance read site survives verbatim, where a `{balance, currency}` value
+   * shape would have rewritten all of them.
+   */
+  private static _currencyCache = new Map<string, string>();
+
+  /**
+   * Load all balances into the read cache. Called at boot + after rebuild.
+   *
+   * ⚠ **Throws on a currency-less row.** Booting on an unmigrated database
+   * would run the world on money whose denomination nobody knows; failing
+   * fast and harmlessly is the designed guard. The deploy order is
+   * stop → migrate → deploy → start.
+   */
   static async warm(): Promise<void> {
     const rows = await AccountBalance.find<AccountBalance>({});
     const next = new Map<string, number>();
-    for (const r of rows) next.set(r.accountId, r.balance);
+    const nextCurrency = new Map<string, string>();
+    for (const r of rows) {
+      if (!r.currency) {
+        throw new Error(
+          `AccountBalance.warm: account '${r.accountId}' has no currency — ` +
+            `this database predates the currency build and must be migrated ` +
+            `first (packages/server/scripts/migrate-currency.ts --apply)`
+        );
+      }
+      next.set(r.accountId, r.balance);
+      nextCurrency.set(r.accountId, r.currency);
+    }
     AccountBalance._cache = next;
+    AccountBalance._currencyCache = nextCurrency;
   }
 
   /** The warmed read cache (empty until first warm → 0 reads). */
@@ -90,19 +131,42 @@ export default class AccountBalance extends Document {
     return AccountBalance._cache.get(accountId) ?? 0;
   }
 
+  /**
+   * Sync currency read off the warmed cache. Empty string for an account the
+   * cache has never seen — which callers must read as *"new, adopt the leg's
+   * currency"*, never as a mismatch.
+   */
+  static cachedCurrency(accountId: string): string {
+    return AccountBalance._currencyCache.get(accountId) ?? "";
+  }
+
+  /** Σ balances per currency, off the warmed caches (sync). */
+  static cachedTotalsByCurrency(): Map<string, number> {
+    const totals = new Map<string, number>();
+    for (const [id, balance] of AccountBalance._cache) {
+      const currency = AccountBalance._currencyCache.get(id) ?? "";
+      if (!currency) continue;
+      totals.set(currency, (totals.get(currency) ?? 0) + balance);
+    }
+    return totals;
+  }
+
   /** Keep the read cache in step after a posting / rebuild. */
-  static putCached(accountId: string, balance: number): void {
+  static putCached(accountId: string, balance: number, currency?: string): void {
     AccountBalance._cache.set(accountId, balance);
+    if (currency) AccountBalance._currencyCache.set(accountId, currency);
   }
 
   /** Drop a closed account from the cache (escrow close — row deleted). */
   static removeCached(accountId: string): void {
     AccountBalance._cache.delete(accountId);
+    AccountBalance._currencyCache.delete(accountId);
   }
 
   /** Test seam — drop the cache so each test warms a fresh instance. */
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly("AccountBalance._resetForTesting");
     AccountBalance._cache = new Map();
+    AccountBalance._currencyCache = new Map();
   }
 }

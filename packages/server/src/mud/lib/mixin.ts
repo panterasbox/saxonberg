@@ -100,6 +100,75 @@ export interface FieldMetaEntry {
    * A **subset** of `persistent`, not a contradiction with it.
    */
   runtimeState?: true;
+
+  /**
+   * **Reveal level of this field's VALUE wherever it surfaces.**
+   *
+   * A derived panel emits live field values, and some of those are
+   * spoilers — a species' resistances, a hazard's trigger, a creature's
+   * weakness. Authored prose carries page defaults and inline tags;
+   * derived fields carry nothing, so without this a composition panel
+   * is a hole straight through the reveal model.
+   *
+   * ⭐ **Declared on the field, not in the component**, because the
+   * same field is a spoiler *wherever* it surfaces — a wiki panel, the
+   * Studio, help, a future codex. A policy table owned by the wiki
+   * would be wrong the moment anything else rendered the same value.
+   *
+   * ⚠ **Absent means level 0 — OPEN.** This is a reveal system
+   * defaulting to reveal, so the reasoning is worth stating: the
+   * alternative empties every panel until several hundred mundane
+   * fields are tagged, and trains authors to tag reflexively rather
+   * than thoughtfully.
+   *
+   * ⭐ **The line the sweep settled on: collapse what the WORLD
+   * measures; never collapse what the PLAYER operates.** A material's
+   * density, a biome's temperature, a species' natural attacks, a
+   * recipe's inputs, a condition's cure — all level 1, because a
+   * reader may want to meet those in play and can open any of them in
+   * one click. A locomotion mode's speed and a combat formation's
+   * roles stay open: those are the player's own controls, and hiding
+   * how your own legs work teaches nothing.
+   *
+   * (This note used to say "density and hardness are not spoilers".
+   * They are now level 1 — a deliberate reversal, not drift. What
+   * makes it coherent is the **reader rung**: level 1 is collapsed by
+   * default rather than forbidden, so tagging a measurement costs a
+   * reader one click instead of locking them out. Before that rung
+   * existed, level 1 meant "no ordinary player, ever", and under those
+   * semantics the old advice was right.)
+   *
+   * The cost is real and is not being papered over — a newly-added
+   * spoilery field is visible until somebody tags it. It is covered
+   * the way the sandbox boundary exemptions are: **by enumeration, not
+   * inference.** A snapshot test lists every field a panel can surface
+   * with its level, so introducing a spoiler without a tag shows up as
+   * a diff in review rather than as a leak in production.
+   */
+  spoiler?: 0 | 1 | 2 | 3;
+
+  /**
+   * **Reveal level of this field's NAME** — the level at which a
+   * reader learns the field *exists at all*. Defaults to
+   * {@link spoiler}, which is the whole-row behaviour: on a creature
+   * whose `fireVulnerability` is a spoiler, knowing it HAS one is most
+   * of the information, so name and value hide together.
+   *
+   * ⭐ Declare it lower than `spoiler` where **the existence is schema
+   * and only the measurement is content**. "This material has a
+   * density" is not a secret — it is what `help` and the generated API
+   * docs publish. `750 kg/m³` is the thing worth working for. So
+   * `Material`'s measured properties carry `spoilerName: 0` beside
+   * `spoiler: 1`, and a reader sees the property list with the numbers
+   * collapsed rather than a table of blanks.
+   *
+   * ⚠ Splitting them is **opting into a redaction marker**, which the
+   * reveal model refuses everywhere else. That is coherent only
+   * because the marker reveals nothing here: the name was already
+   * public. Do not split a field whose existence is the reveal — the
+   * empty cell would announce exactly what the level was protecting.
+   */
+  spoilerName?: 0 | 1 | 2 | 3;
 }
 
 /** One class body's field declarations, keyed by instance field name. */
@@ -281,10 +350,17 @@ export const Mixins = {
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
-  // Employment — the standalone Business entity and an actor's employment
-  // relationships (an on-shift Position confers its duties via augments).
+  // Employment — the org chart (positions + holders + the appointing
+  // authority), the Business that trades on top of it, and an actor's
+  // employment relationships (an on-shift Position confers its duties via
+  // augments). A ministry is an organization that does not trade.
+  Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Press — an organization that publishes: the realm it speaks in, the
+  // reach of what it publishes, its feed branch, and which of its
+  // positions may publish through it.
+  Publisher: 'PublisherMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',
@@ -319,6 +395,59 @@ export const Mixins = {
   // Character, gated: active only when the Species intrinsically confers
   // it (innateMixins) or an augment does. See docs/subsystems/magic.md.
   Caster: 'CasterMixin',
+  // Arcane — "I produce magic-tagged effects, and here is my grid
+  // footprint". The one shared declaration suppression, dispel, rarity
+  // and the census all read. Sits BELOW distribution (Circulating reads
+  // it, never declares it) and is named for the property, not the object
+  // kind, so traps and NPC powers can wear it later. See D35.
+  Arcane: 'ArcaneMixin',
+  // Consumable — a discrete item packaging ONE act, which spends itself
+  // performing it (scrolls, single-use wands). Deliberately NOT composed
+  // with Bulkable: potions have volume and ride bulk instead (D4), which
+  // keeps this concept small rather than universal.
+  Consumable: 'ConsumableMixin',
+  // Potable — a LIQUID that carries a working. Composes onto the
+  // Material, not the flask, so the magic travels with the substance:
+  // decanting, dilution, splitting and spilling are all real for free.
+  Potable: 'PotableMixin',
+  // Marked — a thing that bears marks (scroll, book, label, signpost),
+  // carrying the modality they can be taken in through. `read` =
+  // perceive + decode, and an embossed text reads in the dark. See D33.
+  Marked: 'MarkedMixin',
+  // Charged — a BATTERY: supplies energy AND specification, spends on
+  // use, and LEAKS. The decay is load-bearing, not flavour: without it
+  // stock grows without bound at any inflow throttle; with it, stock
+  // settles at S* = inflow/d. The item is its own endpoint, so recoil
+  // and waste heat land on it. See D5/D6/D7.
+  Charged: 'ChargedMixin',
+  Conduit: 'ConduitMixin',
+  // Focus — supplies SPECIFICATION only; the user pays the energy and
+  // is therefore the endpoint. Perishes by pattern rot on a much slower
+  // schedule than charge: a binding is a state held away from
+  // equilibrium. "Magic perishes, matter doesn't." See D9.
+  // Blessable — the blessed/uncursed/cursed axis, as a potency level on
+  // the item's OWN effect axis (never a hidden alignment tag). Opt-in
+  // per template. The paradigm hidden-state axis, so also the paradigm
+  // leak risk: stack identity keys on the per-viewer BUCKET, never the
+  // true band. Cursed sticks — and a cursed CHARGED item discharges into
+  // whoever is wearing it. See D11.
+  Blessable: 'BlessableMixin',
+  // Labelled — a player-written name on a thing. General annotation, not
+  // a potions feature: it serves storage, shops and gifts too. It is the
+  // fix for derived appearance's one cost — descriptors rotate, labels
+  // do not, so a careful stash survives a turnover. See D28.
+  Labelled: 'LabelledMixin',
+  // Memorized — the specifications a mind is currently HOLDING. Claim
+  // lives in the chronicle (append-only, right for "I read of this");
+  // sharpness lives here, because it decays. Competence never fades;
+  // specifications do. No slot count — interference is the limiter, so
+  // Vancian preparation emerges instead of being imposed. See D15.
+  Memorized: 'MemorizedMixin',
+  // Circulating — "this is part of the world's stock, and here is how to
+  // count it". Carries MATERIAL tags (place affinity) and a census key;
+  // READS its effect tags from Arcane rather than declaring them, so a
+  // ward never has to consult the distribution subsystem. See D21/D35.
+  Circulating: 'CirculatingMixin',
 } as const;
 
 /**

@@ -1,13 +1,23 @@
 /**
- * EmploymentApi — the gated surface for the employment engine: businesses,
- * positions, rosters, and an actor's employment relationships.
+ * EmploymentApi — the gated surface for the employment engine:
+ * organizations, positions, rosters, and an actor's employment
+ * relationships.
  *
- * A `Business` is a standalone `Idea` (not a mixin on a place) that owns a
- * proprietor, its positions, a roster, an account, and its operating
+ * An **organization** owns the chart — positions, holders, and the
+ * authority that fills them — and answers *who holds position P in
+ * organization O?* the same way for a ministry, a shop and a newspaper. A
+ * `Business` is an organization that also **trades**: a standalone `Idea`
+ * (not a mixin on a place) adding an account, a bank, and its operating
  * locations. An actor's `EmployedMixin` holds the `Employment` records the
  * roster materializes; on-shift confers the Position's duties via the
  * augment substrate (so an on-shift bartender fulfils `order` and an
  * off-shift one does not).
+ *
+ * ⚠ **Employment is independent of money movement.** `postTransaction`
+ * takes no employment argument and consults none: paying someone with no
+ * employment record is identical to paying an employee off-book, which is
+ * what makes paying under the table an emergent act rather than an
+ * unmodellable one. Do not couple them.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
  * {@link EmploymentLogic} singleton at `/obj/api/employment`, reached
@@ -17,11 +27,21 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Business } from '../obj/Business';
+import type { Organization } from '../lib/employment/Organization';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { EmploymentLogic } from '../obj/api/EmploymentLogic';
 import { fileURLToPath } from 'url';
 
+export type {
+  PrincipalRef,
+  PrincipalRefKind,
+  EntityPrincipalRef,
+  OfficePrincipalRef,
+  SeatPrincipalRef,
+  CommitteePrincipalRef,
+} from '../lib/employment/Authority';
+export { Authority, PRINCIPAL_REF_KINDS } from '../lib/employment/Authority';
 export type { Position, PositionData } from '../lib/employment/Position';
 export type {
   Employment,
@@ -34,9 +54,11 @@ export type {
   ShiftEntry,
 } from '../lib/employment/Roster';
 export type { Business } from '../obj/Business';
+export type { Organization } from '../lib/employment/Organization';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
+import type { PrincipalRef } from '../lib/employment/Authority';
 import type { RemittanceSplit } from './banking';
 import { SecurityApi } from './security';
 
@@ -47,6 +69,8 @@ const LOGIC_CLASS_FILE = fileURLToPath(
 
 /** A Business as a live Stuff. */
 type BusinessStuff = Stuff & Business;
+/** Any organization as a live Stuff — a Business, a ministry, a publisher. */
+type OrganizationStuff = Stuff & Organization;
 
 /** Resolve the HMR-able EmploymentLogic singleton (sync). */
 function logic(): EmploymentLogic {
@@ -62,33 +86,103 @@ function logic(): EmploymentLogic {
 
 export class EmploymentApi {
   /**
-   * Whether `subject` may act as the proprietor of `business` — the direct
-   * `proprietorPath` edge, or the `AccessApi.isAuthor` operator override.
+   * ⭐ Does `principal` hold `ref` — **the** authority question, and the
+   * only one. Dispatches on the tag: `entity` matches a templatePath,
+   * `office` asks `CompactApi.holdsOffice`, `seat` asks
+   * `GovernmentApi.holdsSeat`, `committee` asks
+   * `CompactApi.isCommitteeMember`. Fails closed on an unauthored
+   * authority, an unresolvable registry, or a non-Avatar where a playerId
+   * is required.
+   *
+   * ⚠ Holding an organization's appointing authority is the power to
+   * **fill** a position, never to exercise one — nothing that does the
+   * work of a position may consult this.
+   */
+  public static holdsAuthority(
+    principal: Stuff | null,
+    ref: PrincipalRef | null,
+  ): Promise<boolean> {
+    return logic().holdsAuthority(principal, ref);
+  }
+
+  /**
+   * Whether `subject` may act as the proprietor of `organization` — its
+   * appointing authority, or the `AccessApi.isAuthor` operator override.
+   * The override rides on top of an authority and is never one itself.
    */
   public static isProprietorOf(
     subject: Stuff,
-    business: BusinessStuff,
+    organization: OrganizationStuff,
   ): Promise<boolean> {
-    return logic().isProprietorOf(subject, business);
+    return logic().isProprietorOf(subject, organization);
   }
 
-  /** Hire `actor` into `business`'s `positionKey`. Returns the record. */
+  /**
+   * ⭐ May `principal` publish as `publisher`? Exactly *does the principal
+   * hold a non-exited position at this organization whose key is in its
+   * `publishingPositions`* — an empty list meaning **any position**.
+   *
+   * ⚠ **It never consults the appointing authority.** The committee that
+   * fills the press office's positions cannot publish through it by virtue
+   * of being the committee; a member holding no publishing position is
+   * refused. Appointment and exercise are different powers.
+   *
+   * Fails closed on an organization that does not publish, an unresolvable
+   * one, and a principal with no durable identity.
+   */
+  public static mayPublishAs(
+    principal: Stuff | null,
+    publisher: OrganizationStuff,
+  ): boolean {
+    return logic().mayPublishAs(principal, publisher);
+  }
+
+  /**
+   * Every actor holding `positionKey` at `organization` — the uniform
+   * *who-holds-P-in-O?* read (durable templatePaths). Unions live
+   * non-terminal `Employment` records with the authored roster, so a
+   * never-ticked organization's holder is still provable; an explicit exit
+   * suppresses the roster entry rather than being resurrected by it. Its
+   * inverse — *what does actor A hold, anywhere?* — is the actor's own
+   * `getActiveEmployments()`.
+   */
+  public static holdersOf(
+    organization: OrganizationStuff,
+    positionKey: string,
+  ): string[] {
+    return logic().holdersOf(organization, positionKey);
+  }
+
+  /**
+   * The organization chain above `organization`, nearest parent first —
+   * a department inside a ministry, a desk inside a paper. A parent that
+   * does not resolve ends the chain; a **cycle throws** rather than
+   * returning a truncated one. The position-level twin is the
+   * organization's own `getReportingChain(positionKey)`.
+   */
+  public static organizationChainOf(
+    organization: OrganizationStuff,
+  ): OrganizationStuff[] {
+    return logic().organizationChainOf(organization);
+  }
+
+  /** Hire `actor` into `organization`'s `positionKey`. Returns the record. */
   public static hire(
-    business: BusinessStuff,
+    organization: OrganizationStuff,
     actor: Stuff,
     positionKey: string,
   ): Employment | null {
-    return logic().hire(business, actor, positionKey);
+    return logic().hire(organization, actor, positionKey);
   }
 
-  /** Fire `actor` from `business` (status → fired; history preserved). */
-  public static fire(business: BusinessStuff, actor: Stuff): void {
-    return logic().fire(business, actor);
+  /** Fire `actor` from `organization` (status → fired; history preserved). */
+  public static fire(organization: OrganizationStuff, actor: Stuff): void {
+    return logic().fire(organization, actor);
   }
 
-  /** `actor` quits `businessPath` (status → quit; history preserved). */
-  public static quit(actor: Stuff, businessPath: string): void {
-    return logic().quit(actor, businessPath);
+  /** `actor` quits `organizationPath` (status → quit; history preserved). */
+  public static quit(actor: Stuff, organizationPath: string): void {
+    return logic().quit(actor, organizationPath);
   }
 
   /**
@@ -98,13 +192,13 @@ export class EmploymentApi {
    */
   public static beginCover(
     self: Stuff,
-    business: BusinessStuff,
+    business: OrganizationStuff,
   ): Employment | null {
     return logic().beginCover(self, business);
   }
 
   /** End a proprietor's cover — drop the transient cover Employment. */
-  public static endCover(self: Stuff, business: BusinessStuff): void {
+  public static endCover(self: Stuff, business: OrganizationStuff): void {
     return logic().endCover(self, business);
   }
 

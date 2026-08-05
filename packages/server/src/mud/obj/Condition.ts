@@ -229,6 +229,30 @@ export interface SustainedEffect {
   realizes: string;
   /** Always tagged — a sustained effect IS magic. */
   magicOrigin: MagicProvenance;
+  /**
+   * **Who can pay again** — the durable id of the charged host holding
+   * this up (requirements D12), or absent when nobody can.
+   *
+   * A binding must be paid for continuously. A **charged host** can pay:
+   * its standby draw meters the cost against its own reserve, so at the
+   * end of each term it re-buys another and the hold survives — while
+   * it has charge. A **consumable** paid once and is gone, so this is
+   * absent and the term simply runs out.
+   *
+   * Together with {@link sustainedFor} this makes the old guideline a
+   * *derivation* rather than a rule. Nothing forbids a shadow sourced
+   * from a potion; it just cannot outlive the term it bought — which is
+   * exactly why long-lived sustained effects are forged as rings and not
+   * bottled. Wands, being spells with a battery, inherit the casting
+   * conventions.
+   */
+  sustainedBy?: string;
+  /**
+   * **How long one payment buys**, in game-seconds — the term. Set from
+   * the spell's authored lifetime at install. A host-held effect renews
+   * by this much each time it lapses; a term-bought one gets it once.
+   */
+  sustainedFor?: number;
   /** The bound emitter's live-instance stuffId (a conjured GlowlightOrb), if any. */
   boundStuffId?: string;
   /** The imposed disguise text (the cloak realization), if any. */
@@ -568,15 +592,29 @@ export default class Condition extends SingletonMixin(
    */
   protected mentalBands: ResistBand[] | null = null;
 
+  /**
+   * ⭐ **The SIGNS are open; the mechanism is level 1.**
+   *
+   * `observableSigns` is the one field whose whole purpose is to be
+   * seen — a sign nobody can read is not a sign — and hiding it would
+   * break the diagnosis loop the medic vertical is built on. Naming
+   * the condition is likewise public.
+   *
+   * How it progresses, what resolves it, how it spreads: that is the
+   * medicine, and medicine is learned. Level 1 keeps it **one click
+   * away rather than gated** — looking up a cure is exactly what a
+   * community wiki is for, and a player who would rather work it out
+   * from the signs is not spoiled by opening the page.
+   */
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
-    signature: { persistent: true },
-    progression: { persistent: true },
-    resolution: { persistent: true },
     observableSigns: { persistent: true },
-    contagion: { persistent: true },
-    toxinBehavior: { persistent: true },
-    mentalBands: { persistent: true },
+    signature: { persistent: true, spoiler: 1, spoilerName: 0 },
+    progression: { persistent: true, spoiler: 1, spoilerName: 0 },
+    resolution: { persistent: true, spoiler: 1, spoilerName: 0 },
+    contagion: { persistent: true, spoiler: 1, spoilerName: 0 },
+    toxinBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
+    mentalBands: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   public getName(): string {

@@ -49,6 +49,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { RecognitionApi } from '../../api/recognition';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
 
@@ -248,6 +249,17 @@ export interface Bulkable {
    * returns that slot and throws when the holder lacks it.
    */
   getBulk(affordance?: BulkAffordance): BulkSlot;
+
+  /**
+   * What `viewer` sees in a slot — the per-viewer contents phrase, or
+   * `null` when there is nothing to report. The one viewer-aware read
+   * on the substrate; see the implementation for why identification is
+   * the case that earns it.
+   */
+  getContentsDescriptionFor(
+    viewer: Stuff,
+    affordance?: BulkAffordance,
+  ): string | null;
 
   // Per-affordance slot state (the BulkSlot handle delegates here).
   getBulkMaterialPath(affordance: BulkAffordance): string | null;
@@ -488,6 +500,52 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       );
     }
 
+    /**
+     * **What `viewer` sees in this slot** — the per-viewer contents
+     * phrase, or `null` when there is nothing to report.
+     *
+     * Bulk prose is otherwise viewer-blind, and rightly so: a puddle of
+     * water is a puddle of water to everybody. A **potion** is the case
+     * that breaks it — what a draught *looks* like and what it *is* are
+     * different facts, and which one you get depends on what you have
+     * learned (magic-items D24/D26). Identity rides the **material**,
+     * not the flask, so one identification covers every flask of that
+     * substance and decanting carries the knowledge.
+     *
+     * So an identifiable substance routes through
+     * `RecognitionApi.describe` — the same rendering path an
+     * unidentified item on the floor uses, not a parallel one. Anything
+     * else keeps the shipped convention exactly: the blend payload
+     * first (a mixed drink names itself, not its base material), then
+     * the material's own appearance.
+     */
+    public getContentsDescriptionFor(
+      viewer: Stuff,
+      affordance?: BulkAffordance,
+    ): string | null {
+      let slot: BulkSlot;
+      try {
+        slot = this.getBulk(affordance);
+      } catch {
+        // No slot, or both slots and no affordance named. Callers on
+        // the render path ask about arbitrary targets, so the boring
+        // case is silent rather than throwing.
+        return null;
+      }
+      if (slot.isEmpty()) return null;
+      const material = slot.getMaterial();
+      if (!material) return null;
+
+      if (MixinApi.isIdentifiable(material)) {
+        const described = RecognitionApi.describe(
+          viewer,
+          material as unknown as Stuff,
+        );
+        if (described) return described;
+      }
+      return slot.getPayload()?.appearance ?? material.getAppearance() ?? null;
+    }
+
     public getBulkMaterialPath(affordance: BulkAffordance): string | null {
       return affordance === 'interior'
         ? this.interiorMaterial
@@ -579,17 +637,22 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
 
 /**
  * `MarkupAugmenter` for the bulk-contents description pass. Appends a
- * sentence per non-empty bulk slot, drawn from the contained
- * `Material.appearance`: an interior slot reads "It holds <appearance>."
- * and a surface slot reads "A puddle of <appearance> pools here." A
- * holder with empty (or no) slots is unchanged. Module-level (not an
- * inline arrow) so it's identifiable by name in stack traces, mirroring
- * `DetailedMixin`'s `wrapDetailKeysAugmenter`.
+ * sentence per non-empty bulk slot: an interior slot reads "It holds
+ * <contents>." and a surface slot reads "A puddle of <contents> pools
+ * here." A holder with empty (or no) slots is unchanged. Module-level
+ * (not an inline arrow) so it's identifiable by name in stack traces,
+ * mirroring `DetailedMixin`'s `wrapDetailKeysAugmenter`.
+ *
+ * The phrase comes from `getContentsDescriptionFor(viewer)`, so it is
+ * **per-viewer**: coffee reads as coffee to everybody, and an
+ * unidentified draught reads as what it looks like until you have
+ * learned it. The `viewer` parameter was always on the augmenter
+ * contract; identification is the first thing that needed it.
  */
 function bulkContentsAugmenter(
   text: string,
   host: Stuff,
-  _viewer: Stuff,
+  viewer: Stuff,
 ): string {
   if (!MixinApi.isBulkable(host)) return text;
   const lines: string[] = [];
@@ -598,16 +661,12 @@ function bulkContentsAugmenter(
     ['surface', host.hasSurfaceBulk()],
   ] as [BulkAffordance, boolean][]) {
     if (!present) continue;
-    const slot = host.getBulk(affordance);
-    if (slot.isEmpty()) continue;
-    // A blend's payload prose wins over its generic base material's.
-    const appearance =
-      slot.getPayload()?.appearance ?? slot.getMaterial()?.getAppearance();
-    if (!appearance) continue;
+    const contents = host.getContentsDescriptionFor(viewer, affordance);
+    if (!contents) continue;
     lines.push(
       affordance === 'surface'
-        ? `A puddle of ${appearance} pools here.`
-        : `It holds ${appearance}.`,
+        ? `A puddle of ${contents} pools here.`
+        : `It holds ${contents}.`,
     );
   }
   if (lines.length === 0) return text;

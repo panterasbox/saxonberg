@@ -25,9 +25,11 @@
  * avatar.setProp(Property.of<boolean>("quest_started"), true);
  * avatar.getProp(Property.of<boolean>("quest_started")); // true
  *
- * // Persistent property with access control
- * const gold = Property.of<number>("gold");
- * avatar.initProp(gold, {
+ * // Persistent property with access control. ⚠ NOT money — see the
+ * // note below; this is a per-corpo membership flag, whose KEY is
+ * // computed and so cannot be a declared field.
+ * const member = circleProp(corpoKey);
+ * avatar.initProp(member, {
  *   transient: false,  // Persists to DB
  *   checkAccess: (prop, op, special) => {
  *     if (op === PropOperations.Set && special !== avatar) {
@@ -36,7 +38,7 @@
  *     return true;
  *   }
  * });
- * avatar.setProp(gold, 100);
+ * avatar.setProp(member, true);
  *
  * // Persistent property holding a rich value object — bind a
  * // marshaller so the savedProps record carries storage-shape and
@@ -87,7 +89,7 @@ import { PropertyChangedEvent } from '../events/PropertyChangedEvent';
  */
 // `T` is a phantom type parameter: the class body never references it,
 // but it threads the value type through the property-access API
-// (`Property.of<number>('gold')` → `getProp(p: Property<T>): T`), so it
+// (`Property.of<number>('tally')` → `getProp(p: Property<T>): T`), so it
 // cannot be removed without breaking inference at every call site.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class Property<T extends PropValue = PropValue> extends String {
@@ -99,7 +101,7 @@ export class Property<T extends PropValue = PropValue> extends String {
    * Canonical factory. Reads as "a Property of T called name".
    *
    * ```typescript
-   * avatar.setProp(Property.of<number>('gold'), 100);
+   * avatar.setProp(circleProp(corpoKey), true);
    * ```
    */
   static of<T extends PropValue = PropValue>(name: string): Property<T> {

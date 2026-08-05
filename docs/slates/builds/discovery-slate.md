@@ -26,7 +26,7 @@ gathering vertical was never written.
 > **Status: direction set, nothing built.** Sits **above**
 > [spawn-distribution-slate](./spawn-distribution-slate.md) (the weighted-
 > table mechanism) and beside
-> [magic-items-slate](./magic-items-slate.md) (BUC),
+> [magic-items-slate](../tails/magic-items-slate.md) (BUC),
 > [identification-slate](../tails/identification-slate.md) (**the
 > class-level deduction game this makes communal**) and
 > [pharma-slate](./pharma-slate.md) (the product line).

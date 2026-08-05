@@ -56,6 +56,45 @@ export class ConnectionApi {
   }
 
   /**
+   * Run one inbound message from `socketId` in its lane, on a fresh
+   * root frame carrying the socket's circle scope.
+   *
+   * **Two lanes.** Ordinary messages process in arrival order, so a
+   * player's commands cannot overtake each other. A prompt reply
+   * (`prompt-response` / `prompt-cancel`) rides a second lane: it is
+   * addressed by `promptId` rather than by position — an interrupt,
+   * which is what a prompt is — and a command awaiting a prompt cannot
+   * settle until the reply lands, so sharing one lane deadlocks the
+   * socket. The second lane keeps replies ordered against each other
+   * without ever waiting on a command.
+   *
+   * `run` is invoked when the lane reaches it, and is expected to
+   * plant its own root frame — `ExecutionContextApi`'s frame mutators
+   * are gated to boundary files, and a lane is not a boundary. This
+   * decides WHEN a message runs; the transport decides what frame it
+   * runs in.
+   *
+   * Never throws to the caller and never returns a promise: the
+   * transport's job is to hand the message over, not to await a turn.
+   *
+   * Ungated like its `ConnectionApi` siblings — the caller is the
+   * WebSocket transport, which sits outside the mudlib and so cannot
+   * be named by a `FromModule` policy.
+   */
+  public static sequenceInbound(
+    socketId: string,
+    messageType: string,
+    run: () => Promise<void>,
+  ): void {
+    logic().sequenceInbound(socketId, messageType, run);
+  }
+
+  /** Drop a closed socket's lanes. Called on disconnect. */
+  public static clearInboundSequencing(socketId: string): void {
+    logic().clearInboundSequencing(socketId);
+  }
+
+  /**
    * Get all active Interactive connections.
    * Safe read-only operation for mudlib.
    *

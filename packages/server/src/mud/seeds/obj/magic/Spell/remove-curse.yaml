@@ -1,0 +1,80 @@
+# Remove Curse — control·arcana.
+#
+# ## Why CONTROL and not DESTROY
+#
+# The obvious reading is that a curse is another caster's working laid
+# over the thing, which would make lifting it destroy·arcana — Dispel's
+# cell, and Dispel would already do the job. That reading is wrong for
+# this model, and the distinction is load-bearing.
+#
+# BUC here is NOT a bound working. It is "a potency level on the item's
+# own effect axis" (requirements D11) — the same quantity the item was
+# already graded on, one notch down. A cursed wand of firebolt is a
+# *weaker wand of firebolt*, not a wand with something stuck to it.
+#
+# So lifting it *changes a parameter of a thing that remains itself*,
+# which is exactly what `control` means on the grid (arcane-science.md
+# § The five verbs). Dispel cannot reach it and should not: `relieve`
+# scans for magicOrigin conditions on a BODY, and is structurally unable
+# to touch an item's own band.
+#
+# ## Why it is expensive
+#
+# The price list puts `control` at 3× — the dearest verb short of the
+# unaffordable `transform` — because sustained direction against a
+# thing's tendency is the costly kind of work. That is the correct
+# answer here rather than an inconvenient one: a cheap cure makes the
+# curse meaningless, and the cost is not a balance dial somebody chose,
+# it falls out of the verb.
+#
+# 45 τ against Dispel's 20 is that ratio, near enough, and it puts one
+# casting near half a mid caster's whole reserve.
+class: /obj/magic/Spell
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  spellId: remove-curse
+  name: Remove Curse
+  verb: control
+  noun: arcana
+  cost: 45
+  castingProfile:
+    requiredBand: competent
+    castSeconds: 6
+  # `object`, not `any`: this addresses a made thing's own axis. There
+  # is nothing it could mean cast at a person — a cursed person is a
+  # CONDITION, which is Dispel's job, and the two staying apart is what
+  # keeps either of them honest.
+  targeting: object
+  effects:
+    - kind: adjust-blessing
+      # ⚠ Read as [cursed · uncursed · blessed] — the SCROLL's own band,
+      # not the target's. This is the whole BUC model in four numbers,
+      # and it is the case a potency multiplier cannot express at all:
+      #
+      #   cursed   lays a curse on what you read it on
+      #   uncursed lifts the curse on ONE thing
+      #   blessed  lifts the curse on EVERYTHING YOU CARRY
+      #
+      # The high end is SCOPE, which is the only honest "better at
+      # removing curses": more curses removed is unmistakably more of
+      # the same act and cannot drift into being a different working.
+      # A blessed scroll that *blessed* things would be a different
+      # working sharing a name — the earlier draft did exactly that and
+      # betrayed the item's identity.
+      #
+      # The low end is the sign INVERSION, which is what makes the axis
+      # worth knowing before you read: a cursed scroll of remove curse
+      # is a trap wearing the same words.
+      steps: [-1, 1, 1]
+      # The ceiling is what makes the ordinary case a CURE and not a
+      # buff: unbounded, +1 on an ordinary item blesses it and the right
+      # play is to read one over everything you own.
+      limit: [cursed, uncursed, uncursed]
+      # Blessed resolves a SET instead of the aimed thing — every
+      # blessable item in the reader's pack.
+      scope: [null, null, inventory]
+  description: >-
+    Not an unbinding — there is nothing here another hand tied. The
+    working takes the thing's own pattern and walks it back up one
+    step toward what it should have been, which is slow, expensive,
+    and the reason most people simply throw the ring in a river.

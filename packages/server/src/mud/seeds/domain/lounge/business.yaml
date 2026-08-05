@@ -15,10 +15,14 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  # The proprietor edge (a replaceable pointer, not a group): Dave. Checked
-  # by EmploymentApi.isProprietorOf; the covers brain reads it too. His own
-  # cover shift draws no wage (the settlement skips the proprietor).
-  proprietorPath: /domain/lounge/npc/dave
+  # Who may fill this business's positions. Dave owns the bar, so the
+  # authority is the ENTITY edge — a replaceable pointer, not a group.
+  # Checked by EmploymentApi.isProprietorOf; the covers brain reads it too
+  # (his own cover shift draws no wage — the settlement skips the
+  # proprietor, which reads `getProprietor()`, the entity case of this).
+  appointingAuthority:
+    kind: entity
+    path: /domain/lounge/npc/dave
   # The one position v1. `wageRate` is minor units per game-hour on shift
   # (a tuning placeholder — an 8h shift ~ 32, a modest labor line against
   # the deliberately-red P&L). `confers` is the on-shift capability grant:

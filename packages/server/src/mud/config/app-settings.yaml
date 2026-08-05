@@ -157,6 +157,13 @@ settings:
     value: "64"
   - key: script.maxDepth.platform
     value: "256"
+  # Banking — THE CURRENCY THE COMPACT TRANSACTS IN. Policy data, not a
+  # property of the money: the substrate never compares a currency to a
+  # literal, it asks which one the Compact uses. Making Compact obligations
+  # payable only in this currency is what makes it the reserve currency BY
+  # CONSTRUCTION rather than by decree. Read only through Currency.compact().
+  - key: banking.compactCurrency
+    value: zorkmid
   # Banking — the DEMO sales-tax rate (a fraction of a purchase remitted to
   # the placeholder treasury via the remittance-split seam). Authored and
   # INERT: recorded + instrumented, not governed. Live taxation is the
@@ -279,19 +286,27 @@ settings:
   - key: social.idleAfter
     value: "300"
 
-  # Bulletin (news ticker) — the server-owned ticker semantics. The engine
+  # Press (news ticker) — the server-owned ticker semantics. The engine
   # ships the pins-first/recency window + soft-retract/expiry filtering;
   # these are the operator-tunable limits. tickerWindow caps the live
   # window; maxPins caps the pin block held at the top; the length knobs
-  # bound an authored headline/body (validated at the `bulletin` verb).
-  - key: bulletin.tickerWindow
+  # bound an authored headline/body (validated at the `press` verb).
+  - key: press.tickerWindow
     value: "30"
-  - key: bulletin.maxPins
+  - key: press.maxPins
     value: "3"
-  - key: bulletin.headlineMaxLength
+  - key: press.headlineMaxLength
     value: "120"
-  - key: bulletin.bodyMaxLength
+  - key: press.bodyMaxLength
     value: "4000"
+  # Which publishers the ANONYMOUS start-screen press room shows — a
+  # comma-separated list of organization paths (AppApi.setting returns a
+  # string; there is no array type). Placement, not permission: being
+  # listed here puts a publisher on the front door and says nothing about
+  # who may read a given release. An entry that doesn't resolve is skipped
+  # and logged at boot — a typo must not silently empty the page.
+  - key: press.frontPage
+    value: "/compact/press"
 
   # Residency — scheduled object self-maintenance. The eviction sweep
   # (`residency.eviction.*`) is the real-time cold-tail garbage-culler;
@@ -918,3 +933,17 @@ settings:
     value: "2"
   - key: crafting.repair.metalHeatK
     value: "900"
+  # ── wiki: the render budget. A page is community-authored input that
+  # runs a resolver, so every bound below fails with an inline error
+  # rather than a hang. Operator-tunable without a deploy; absent rows
+  # fall through to RenderBudget.DEFAULTS. See docs/subsystems/wiki.md.
+  - key: wiki.render.snippetDepth
+    value: "8"
+  - key: wiki.render.maxSnippets
+    value: "200"
+  - key: wiki.render.maxComponents
+    value: "100"
+  - key: wiki.render.componentTimeoutMs
+    value: "2000"
+  - key: wiki.render.maxOutputChars
+    value: "200000"

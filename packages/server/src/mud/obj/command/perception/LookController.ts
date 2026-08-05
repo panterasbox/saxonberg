@@ -116,7 +116,7 @@ export default class LookController extends CommandController<LookModel> {
       return;
     }
     const dotted = detailPath.join('.');
-    const description = host.getDetail(dotted);
+    const description = host.getDetailFor(context.commandGiver, dotted);
     if (description === null) {
       MessageApi.scene(context.commandGiver)
         .topic('world.perception.sense.look')

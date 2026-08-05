@@ -56,12 +56,28 @@ export default class UnwieldController extends CommandController<UnwieldModel> {
       context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
       return;
     }
-    const slots = target.getSlotClaim(bodyPlanPath);
-    let any = false;
-    for (const slot of slots) {
-      if (giver.vacate(slot, target)) any = true;
+    // **Cursed sticks** — the same gate `remove` runs, because a cursed
+    // thing that would not come off your body but slid out of your hand
+    // is not a curse, it is a formality. This verb had no gate at all,
+    // so the recourse for any cursed *wielded* item was `unwield`.
+    const release = giver.tryReleaseFromSlots(target);
+    if (!release.released) {
+      MessageApi.scene(giver)
+        .topic('world.perception.inventory')
+        .toSelf(
+          release.dumpedKJ > 0
+            ? Mml.compose`Your hand will not open around ${Mml.item(target)} — and it is running hot against your palm.`
+            : Mml.compose`Your hand will not open around ${Mml.item(target)}. It has no intention of letting go.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cursed-will-not-release',
+        detail: `${target.getPresentation()} refuses release`,
+      });
+      return;
     }
-    if (!any) {
+    if (release.vacated === 0) {
       MessageApi.scene(giver)
         .topic('world.perception.inventory')
         .toSelf(Mml.compose`You aren't wielding ${Mml.item(target)}.`)

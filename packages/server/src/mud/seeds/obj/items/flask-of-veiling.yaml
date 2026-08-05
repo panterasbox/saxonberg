@@ -1,0 +1,29 @@
+# A flask of veiling draught — the potion exemplar, in a vessel.
+#
+# The FLASK is an ordinary `Receptacle`; it carries no identity of its
+# own and never learns anything. All the identification lives on the
+# MATERIAL it holds (`/obj/material/potion/veiling-draught`), which is
+# why decanting the draught into another vial carries the mystery with
+# it and why one identification covers every flask of that substance.
+#
+# So `look flask` renders the flask's own description plus a per-viewer
+# line for what is in it: "a cerulean limpid potion" to someone who has
+# not learned it, "a veiling draught" to someone who has. The flask
+# itself reads the same to everybody, because a flask is just a flask.
+#
+# 0.25 L is the reference dose (see the material's `dose` block), so a
+# full flask is exactly one dose and drinking half of it is half.
+class: /obj/Receptacle
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a stoppered glass flask
+  primaryKeyword: flask
+  keywords: [flask, vial, potion, draught]
+  longDescription: >
+    A squat glass flask with a waxed stopper, the kind an apothecary
+    sells by the crate. Whatever is in it moves a little slowly when
+    tilted.
+  interiorBulk: true
+  interiorCapacity: 0.25
+  interiorMaterial: /obj/material/potion/veiling-draught
+  interiorAmount: 0.25

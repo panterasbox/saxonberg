@@ -130,6 +130,30 @@ export default class PutController extends CommandController<PutModel> {
       }
     }
 
+    // **Leaving your inventory means leaving your body first** — the
+    // same release gate `remove`/`unwield`/`drop` run. Without it this
+    // verb both bypasses a curse and leaves a phantom slot occupant
+    // behind (see `Slotted.tryReleaseFromSlots`).
+    if (MixinApi.isSlotted(giver) && MixinApi.isSlottable(item)) {
+      const release = giver.tryReleaseFromSlots(item);
+      if (!release.released) {
+        MessageApi.scene(giver)
+          .topic('world.perception.inventory')
+          .toSelf(
+            release.dumpedKJ > 0
+              ? Mml.compose`You cannot let go of ${Mml.item(item)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.item(item)}. It has no intention of leaving your hand.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'cursed-will-not-release',
+          detail: `${item.getPresentation()} refuses release`,
+        });
+        return;
+      }
+    }
+
     // Branch to the correct primitive based on resolved mode. Two
     // distinct calls — each does one thing — preserving
     // ContainmentApi.move's existing contract.

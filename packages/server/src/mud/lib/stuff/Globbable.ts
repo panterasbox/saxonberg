@@ -45,6 +45,7 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
+import { Appearance } from '../identification/Appearance';
 import {
   MqlSubscriptionApi,
   type SubscribableFieldDescriptor,
@@ -212,6 +213,38 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
       const all = new Set([...aFields, ...bFields]);
       for (const f of all) {
         if (readGlobField(self, f) !== readGlobField(other, f)) return false;
+      }
+
+      // ── The identification vetoes (magic-items D27/D28) ──
+      //
+      // These live HERE rather than in `globIdentityFields` because
+      // identity fields must be a subset of *persistent* fields (the
+      // framework enforces it at registration), and neither of these
+      // facts is a stored scalar: rendered appearance is DERIVED, and a
+      // label's effect is a refusal rather than a difference.
+
+      // A player LABELLED this one on purpose. Folding it into a stack
+      // would throw away information they created.
+      if (
+        (MixinApi.isLabelled(self) && self.isLabelled()) ||
+        (MixinApi.isLabelled(other) && other.isLabelled())
+      ) {
+        return false;
+      }
+
+      // Two items of the same class at different points in a transition
+      // window LOOK different, and things that look different must not
+      // silently become one pile. The window is self-healing: once a
+      // stack passes its flip point the merge-on-arrival ripple folds it
+      // into the already-flipped stack on next contact.
+      if (MixinApi.isIdentifiable(self) && MixinApi.isIdentifiable(other)) {
+        const gen = Appearance.currentGeneration();
+        if (
+          self.renderAppearance(gen.generation, gen.progress) !==
+          other.renderAppearance(gen.generation, gen.progress)
+        ) {
+          return false;
+        }
       }
       return true;
     }

@@ -33,6 +33,27 @@ import type {
 const ForumsApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi');
 
 /**
+ * ⭐ A forum post is **long-form authored prose**, so it parses the
+ * article dialect — headings, nested lists, pipe tables — exactly like
+ * a wiki article. It reached this build parsing the CHAT dialect,
+ * which meant a post composed through the same compose prompt as a
+ * wiki page could not carry a heading.
+ *
+ * ⚠ `tags: 'inert'`, NOT the wiki's `'all'`. The wiki can admit every
+ * tag because its pipeline resolves components against a
+ * charset-restricted namespace and gates spoilers; a forum post is
+ * stored as MML and rendered directly, so what it admits has to be
+ * safe on its own. Inert means presentation only — no `<link>` or
+ * `<mention>` (the client turns those into clickables that ISSUE
+ * COMMANDS) and none of the identity tags the composer emits on the
+ * server's authority.
+ *
+ * Existing posts are unaffected: conversion happens on the way IN, so
+ * only new bodies parse this way.
+ */
+const FORUM_DIALECT = { longForm: true, tags: 'inert' } as const;
+
+/**
  * ForumsLogic — the hot-reloadable logic singleton behind {@link ForumsApi}.
  *
  * Lives at `/obj/api/forums`; `ForumsApi`'s public statics forward here.
@@ -134,7 +155,7 @@ export class ForumsLogic extends ApiLogic {
     entry.relation = 'reply';
     entry.author = author;
     entry.title = title;
-    entry.body = Mml.markdownToMml(body).toString();
+    entry.body = Mml.markdownToMml(body, undefined, FORUM_DIALECT).toString();
     entry.up = isArgument ? 0 : 1; // auto-upvote own (popularity only).
     await entry.save();
     if (!isArgument) await seedAuthorVote(entry._id!, author);
@@ -174,7 +195,7 @@ export class ForumsLogic extends ApiLogic {
     entry.parent = parent._id!;
     entry.relation = 'reply';
     entry.author = author;
-    entry.body = Mml.markdownToMml(body).toString();
+    entry.body = Mml.markdownToMml(body, undefined, FORUM_DIALECT).toString();
     entry.up = 1; // auto-upvote own.
     await entry.save();
     await seedAuthorVote(entry._id!, author);
@@ -215,7 +236,7 @@ export class ForumsLogic extends ApiLogic {
     entry.parent = parent._id!;
     entry.relation = relation;
     entry.author = author;
-    entry.body = Mml.markdownToMml(body).toString();
+    entry.body = Mml.markdownToMml(body, undefined, FORUM_DIALECT).toString();
     // No vote seeding — argument entries are reputation-blind (up/down are
     // never read under the argument organizer).
     await entry.save();
@@ -242,7 +263,7 @@ export class ForumsLogic extends ApiLogic {
     // append-only `'entry-edited'` event so the trail is lossless (the
     // grounded source the deferred dedup/summarization LLM layer reads).
     const priorBody = entry.getBody();
-    entry.body = Mml.markdownToMml(body).toString();
+    entry.body = Mml.markdownToMml(body, undefined, FORUM_DIALECT).toString();
     entry.editedAt = new Date();
     await entry.save();
     await recordEvent({

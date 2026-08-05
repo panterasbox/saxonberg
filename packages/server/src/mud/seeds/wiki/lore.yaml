@@ -1,0 +1,11 @@
+# lore — history, institutions, the Compact, the realm. Pages with no
+# subject binding by nature: there is no template for the Ordinance.
+#
+# It is a namespace rather than a tag because it is an ACCESS axis as
+# much as an organisational one — lore is where an unreleased plot
+# beat would sit, and a namespace can be tightened while a tag cannot
+# (tags carry no permission meaning, by design).
+class: /obj/WikiNamespaceZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: lore

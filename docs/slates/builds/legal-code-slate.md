@@ -33,15 +33,34 @@ persisted in the path-addressed third tree, with each `kind`'s
 consumer owning its `data` shape. So **a law is a StoredDocument of
 kind `law`, and a code is a subtree**:
 
+⚠⚠ **CORRECTED 2026-08-04.** This slate originally rooted every code in
+a top-level `/law/<institution>/` tree. **Wrong** — user: *"it's
+`/domain/terminus/law/`."* The rule is:
+
+> ⭐⭐ **A code lives UNDER the extent of the institution it governs, at
+> `<extent>/law/`** — not in a parallel `/law/` hierarchy.
+
 ```
-/law/compact/…                 the Compact's statutes
-/law/terminus/realm/…          the realm's
-/law/terminus/city/…           the municipal code
-/law/terminus/city/gray/…      a district's, if it has one
-/law/guild/ironwrights/…       a guild's internal code
-/law/business/daves-bar/…      house rules
-/law/gray/…                    a gang's code — unchartered, identical machinery
+/compact/law/…                      the Compact's statutes  (⚠ /compact is a
+                                    publications NAMESPACE, not a place)
+/domain/terminus/law/…              Terminus's code
+/domain/terminus/gray/law/…         a district's, if it has one
+<guild extent>/law/…                a guild's internal code
+<business extent>/law/…             house rules
+<gang's held ground>/law/…          a gang's code — identical machinery
 ```
+
+⭐ **This is a real improvement, not a rename.** The old shape was a
+*parallel hierarchy* that had to be kept in sync with the ownership
+hierarchy by hand. Nesting law under its institution's extent makes them
+**the same hierarchy**, so the parcel trie answers *"who may write this
+law?"* with no extra wiring — longest-prefix already lands on the
+institution that owns the ground.
+
+⚠ **Open:** the old tree distinguished a `realm` tier from a `city` tier
+under one place name. That tiering needs re-deriving against the
+locality/address model rather than being mechanically translated; the
+examples above collapse to the locality.
 
 **This one choice buys most of the brief.** Navigability is free
 (paths). The CMS already browses trees. Citation *is* a path. And the
@@ -91,12 +110,12 @@ It also hands a young legislature a genuinely meaningful first act:
 
 ```yaml
 kind: law
-path: /law/terminus/city/arms/university-ordinance
+path: /domain/terminus/law/arms/university-ordinance
 title: "The University Arms Ordinance"
 text: "No person shall bear arms within University grounds…"
 enactment:
   process: committee-decision      # | compact-vote | founding | charter-grant
-  body: /law/terminus/city         # whose charter authorized this
+  body: /domain/terminus/law         # whose charter authorized this
   when: <game-time>
   deliberation: [ <forum thread>, <argument map>, <tally> ]
 status: in-force                   # | repealed | superseded | suspended
@@ -191,7 +210,7 @@ current state on read.** Law is the same shape.
 ### The Roll — chronological, append-only, authoritative
 
 ```
-/law/terminus/city/roll/0047
+/domain/terminus/law/roll/0047
   instrument:  prohibition
   text:        "No person shall bear arms within University grounds…"
   clauses:     [ … ]
@@ -208,7 +227,7 @@ any other entry.
 Organized by subject, assembled from every in-force provision
 touching it, **every clause carrying its citation trail**:
 
-> `/law/terminus/city/code/arms` — *current text* · enacted by Roll
+> `/domain/terminus/law/code/arms` — *current text* · enacted by Roll
 > 12 (founding), amended by Roll 47 (year 3), §4 repealed by Roll 88
 > (year 5)
 
@@ -294,7 +313,7 @@ would you query it across all jurisdictions?* A press trawling
 |---|---|---|
 | **answers** | *what is the law of Terminus?* | *what is happening, anywhere?* |
 | **shape** | jurisdictional | cross-jurisdictional |
-| **lives in** | **the tree** (`/law/<institution>/`) | **a collection** |
+| **lives in** | **the tree** (`<institution extent>/law/`) | **a collection** |
 | **authority** | authoritative | an **index** |
 
 One enactment produces both: it appends to Terminus's Roll **and**
@@ -772,7 +791,8 @@ instead of a method axis:
 > the existing ownership rungs **AND**, if any ancestor declares
 > `writers`, the calling module must be one of them.
 
-So `/law/**` declares `writers: [LawLogic]`. A direct
+So each institution's `<extent>/law/**` declares `writers: [LawLogic]`
+(⚠ per-institution now, not one root — see branch-policy-slate). A direct
 `DocumentApi.save` into a law branch fails **regardless of who owns
 the parcel** — the only door is `LawApi.enact`, which performs the
 charter check. **The chokepoint becomes a property of the tree**,
@@ -831,11 +851,11 @@ thing saved is the drafting and the footgun-hunting"). This
 generalizes it to ordinary law.
 
 ```
-/law/catalog/theft@v3                    canonical: prose, clauses, DECLARED PARAMETERS
-/law/catalog/preset/municipal-standard   a distro: a named set of statutes
+/compact/law/catalog/theft@v3                    canonical: prose, clauses, DECLARED PARAMETERS
+/compact/law/catalog/preset/municipal-standard   a distro: a named set of statutes
 
-<law_events>  0012: adopt catalog/theft@v3 at /law/terminus/city, fine = 50
-/law/terminus/city/code/theft            DERIVED in-force view
+<law_events>  0012: adopt catalog/theft@v3 at /domain/terminus/law, fine = 50
+/domain/terminus/law/code/theft            DERIVED in-force view
 ```
 
 - **A parcel's law is mostly references, parameters, and history** —
@@ -938,8 +958,8 @@ Proposals are jurisdictional, so they are tree-shaped and the
 [branch policy](./branch-policy-slate.md) already protects them:
 
 ```
-/law/terminus/city/proposals/0031             the pending instrument + SNAPSHOTTED process
-/law/terminus/city/proposals/0031/votes/<voter>
+/domain/terminus/law/proposals/0031             the pending instrument + SNAPSHOTTED process
+/domain/terminus/law/proposals/0031/votes/<voter>
 ```
 
 Votes are written by `LawApi.vote` (which checks eligibility); the

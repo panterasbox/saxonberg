@@ -10,9 +10,10 @@ data:
   name: Glowlight
   verb: create
   noun: light
-  requiredBand: novice
   cost: 10
-  castSeconds: 2
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 2
   targeting: none
   durationSeconds: 3600
   effects:

@@ -98,8 +98,13 @@ gap this lens finds (implication 3).
 ### Q5 — Currencies: one money, many meanings — fungibility follows legitimacy
 
 The design's answer is unusually crisp. **One universal fungible
-money** (coinage + account balances; multi-currency explicitly
-dismissed, a future currency-reset event the one live seam). Beside
+money** (coinage + account balances; ⭐ *refined 2026-08-04 — the
+**issuer** is generalized so a second currency is possible, but **zero**
+second currencies ship; see
+[currency-slate](../slates/builds/currency-slate.md). The lens's finding
+is unchanged: one money in practice. The money is the **zorkmid**.*) —
+with a currency-reset event, and now company scrip, as the live seams.
+Beside
 it, **many specialized non-fungible standings**: influence stocks
 (non-fungible per stock, conviction non-transferable), renown by
 scope, competence bands, credentials and keys. None convert to
