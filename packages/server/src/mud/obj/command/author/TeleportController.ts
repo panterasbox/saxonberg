@@ -26,7 +26,7 @@ import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi, ContainmentError } from "../../../api/containment";
 import { AccessApi } from "../../../api/access";
 import { StuffApi } from "../../../api/stuff";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { AppApi } from "../../../api/app";
@@ -384,10 +384,10 @@ export default class TeleportController extends CommandController<TeleportModel>
     if (cityBudgetAccount) {
       payeeAccountId = cityBudgetAccount;
       if (networkFee > 0 && tpaAccount) {
-        splits.push({ accountId: tpaAccount, amount: Money.of(networkFee), category: "networkFee" });
+        splits.push({ accountId: tpaAccount, amount: Money.of(networkFee, Currency.compact()), category: "networkFee" });
       }
       if (destOperatorAccount && surcharge > 0) {
-        splits.push({ accountId: destOperatorAccount, amount: Money.of(surcharge), category: "fare" });
+        splits.push({ accountId: destOperatorAccount, amount: Money.of(surcharge, Currency.compact()), category: "fare" });
       }
     } else {
       // Surcharge-only (free route into a surcharged destination). Reached only
@@ -397,7 +397,7 @@ export default class TeleportController extends CommandController<TeleportModel>
     }
 
     const charge: Charge = {
-      amount: Money.of(total),
+      amount: Money.of(total, Currency.compact()),
       reason: "TPA fare",
       presented: true,
       payeeAccountId,

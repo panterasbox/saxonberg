@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Terms } from "../Terms";
 import BankCounter from "../../../obj/BankCounter";
@@ -56,8 +56,16 @@ function makeAvatar(path: string): TestAvatar {
 }
 
 function makeCoinsIn(holder: Stuff, qty: number): Coin {
-  const c = makeStuffAtPath(() => new Coin(), "/obj/Coin");
-  c.setQuantity(qty);
+  const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // mechanics and the cash faucet may resize a money stack), so a test
+  // building a starting stack writes the field, it does not mint.
+  c.quantity = qty;
   ContainmentApi.move(c, holder as never);
   return c;
 }
@@ -79,7 +87,12 @@ function stubSettings(values: Partial<Record<string, string>>): void {
 /** A partial withdraw splits a vault stack (clones /obj/Coin) — stub the clone. */
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-    return makeStuffAtPath(() => new Coin(), path);
+    return makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
   }) as unknown as typeof StuffApi.clone);
 }
 
@@ -114,7 +127,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     await asOwner(alice, async () => {
-      await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
     });
     // The vault now holds the coin. A loose grab is vetoed by till security.
@@ -126,7 +139,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     // The coin stayed in the vault.
     expect(bank.getTillLiquidity().minor).toBe(100);
     // But the banking verb opens the disbursement window and dispenses it.
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())));
     expect(bank.getTillLiquidity().minor).toBe(0);
   });
 });
@@ -148,17 +161,17 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
       return id;
     });
     // First 50 is under the 60 cap.
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
     // A further 25 would breach the cap (50 already drawn + 25 > 60) → refused
     // (the quota derives the day's withdrawals over the ledger).
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(25))),
+      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(25, Currency.compact()))),
     ).rejects.toThrow(/limit/);
     // The balance is untouched by the refusal.
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
@@ -174,14 +187,14 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
       return id;
     });
     // Enrol Alice into the Circle (the real enrollment write) → raised cap.
     expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
     // 90 would breach the stranger cap (60) but is under the Circle cap (500).
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(90)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(90, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(10);
   });
 });
@@ -202,15 +215,15 @@ describe("Fees + corpo royalty — conserved, split to the treasury", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins); // credits 100, then a 10 fee
       return id;
     });
     // Customer paid the 10 fee out of the 100 deposited.
     expect(BankingApi.balanceOf(acct).minor).toBe(90);
     // 50% royalty → the Goodkin treasury; the rest → the branch account.
-    const treasury = await BankingApi.ensureCorpoTreasury("goodkin", "goodkin");
-    const branch = await BankingApi.ensureVenueAccount(BANK_PATH, "goodkin", "goodkin");
+    const treasury = await BankingApi.ensureCorpoTreasury("goodkin", "goodkin", Currency.compact());
+    const branch = await BankingApi.ensureVenueAccount(BANK_PATH, "goodkin", "goodkin", Currency.compact());
     expect(BankingApi.balanceOf(treasury).minor).toBe(5);
     expect(BankingApi.balanceOf(branch).minor).toBe(5);
     // The fee split conserves: customer −10, branch +5, treasury +5.

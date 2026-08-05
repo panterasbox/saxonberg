@@ -125,6 +125,15 @@ binding re-validates against the new chain).
 - Coin-with-fields above behaves more carefully — only same-denomination
   same-tarnish stacks merge.
 
+> ⚠⚠ **The shipped `obj/Coin` keys on `['currency', 'denomination']`, and
+> the currency half is load-bearing.** Denomination identity is
+> `(currency, faceValue)`, so without the currency in the key two issuers'
+> like-valued coins would **merge into one stack — creating money by a
+> merge**, with no ledger row and no error. Glob identity is the defence
+> here, not a rule someone remembers. Any future value-bearing glob (scrip,
+> a bearer token) inherits the same obligation. See
+> [banking.md](./banking.md).
+
 ---
 
 ## `GlobbableApi.split`

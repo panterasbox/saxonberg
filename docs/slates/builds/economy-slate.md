@@ -776,8 +776,27 @@ game with real players to measure:
   the **denomination ceiling** (the cash-disincentive dial); and whether to
   lean into an off-books **grey market** as gameplay (smuggling/tax-dodging)
   or leave it inert friction.
-- **Multiple currencies — considered and dismissed (2026-07).** The
-  exchange-rate/arbitrage lesson is real (corpo-treasury scrips as
+- **Multiple currencies — dismissed 2026-07, ⭐ REFINED 2026-08-04.** See
+  [currency-slate](./currency-slate.md). **The two positions do not
+  actually conflict, once stated precisely** — and the distinction is the
+  whole design:
+
+  > **What was dismissed: standing multiple *live* currencies.**
+  > **What is now adopted: generalizing the *issuer*, and shipping with
+  > exactly ZERO second currencies.**
+
+  ⭐ **The dismissal's reasoning below is preserved and vindicated, not
+  overturned** — "every paper needs a living demand-ecosystem to be worth
+  holding" is precisely *why* the new scope empowers nobody to mint a
+  second currency. What changed is the recognition that the *capability*
+  can sit inert and provably correct (the `grants[]` / `allowance`
+  pattern), and that it is far cheaper to build against a young ledger
+  than a populated one. ⚠ The Compact's currency is now the **zorkmid**
+  (the rename gives `credit` back to the deferred lending subsystem).
+
+  The original reasoning, which still stands:
+
+  The exchange-rate/arbitrage lesson is real (corpo-treasury scrips as
   independent fiats, inventory-pressure money changers, mass-limited
   robbable arbitrage runs — the design sketch survives in this row), but
   standing multi-currency was judged **too hard to balance**: every paper

@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import DrawController from "../DrawController";
 import BusinessEntity from "../../../Business";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { MessageApi } from "../../../../api/message";
 import { ExecutionContextApi } from "../../../../api/execution-context";
 import { Idea } from "../../../../lib/stuff/Idea";
@@ -74,14 +74,12 @@ describe("DrawController", () => {
     bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     daveAcct = await BankingApi.ensureVenueAccount(
       DAVE,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
-    await BankingApi.mint(bizAcct, Money.of(200));
+      "", Currency.compact());
+    await BankingApi.mint(bizAcct, Money.of(200, Currency.compact()));
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -101,7 +99,7 @@ describe("DrawController", () => {
     const rows = await BankingApi.entriesFor(daveAcct);
     const leg = rows.find((r) => r.kind === "draw");
     expect(leg?.category).toBe("draw");
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("a non-proprietor is refused by the participant gate", async () => {

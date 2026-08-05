@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { Employment } from "../../../lib/employment/Employment";
 import BusinessEntity from "../../../obj/Business";
@@ -78,11 +78,10 @@ describe("Terminus city-budget wage loop", () => {
     const cityAccount = await BankingApi.ensureVenueAccount(
       BUDGET,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
-    await BankingApi.mint(cityAccount, Money.of(1000), "fare income (seed)", "fare");
+      "", Currency.compact());
+    await BankingApi.mint(cityAccount, Money.of(1000, Currency.compact()), "fare income (seed)", "fare");
 
-    const supplyBefore = BankingApi.moneySupply().minor;
+    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
     const cityBefore = BankingApi.balanceOf(cityAccount).minor;
 
     // The clerk has NO account — the worker-account guard must provision one.
@@ -93,8 +92,8 @@ describe("Terminus city-budget wage loop", () => {
 
     expect(await balanceOf(CLERK)).toBe(32); // paid (account auto-provisioned)
     expect(BankingApi.balanceOf(cityAccount).minor).toBe(cityBefore - 32);
-    expect(BankingApi.moneySupply().minor).toBe(supplyBefore); // no mint on wage
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore); // no mint on wage
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("resolves the municipal budget as the operator of the departure terminal", async () => {

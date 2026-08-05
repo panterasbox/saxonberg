@@ -14,7 +14,7 @@ import JobController from "../JobController";
 import FulfillController from "../FulfillController";
 import JobBoard from "../../../JobBoard";
 import CredentialWalletUpdate from "../../../CredentialWalletUpdate";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ContractApi } from "../../../../api/contract";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
 import { MessageApi } from "../../../../api/message";
@@ -118,17 +118,15 @@ describe("work verbs", () => {
       BankingApi.ensureVenueAccount(
         POSTER,
         BankingApi.defaultCustodianBank(),
-        "",
-      ),
+        "", Currency.compact()),
     );
-    await BankingApi.mint(acct, Money.of(100));
+    await BankingApi.mint(acct, Money.of(100, Currency.compact()));
     // The courier is a player (the /obj/Avatar/ namespace): players hold
     // their own accounts (never silently signed up at settle).
     await BankingApi.ensureVenueAccount(
       COURIER,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
   });
   afterEach(() => {
     vi.restoreAllMocks();

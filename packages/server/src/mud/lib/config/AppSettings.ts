@@ -226,6 +226,14 @@ export const AppSettingKeys = {
   /** Scripting — recursion-depth ceiling, platform (large). */
   scriptMaxDepthPlatform: "script.maxDepth.platform",
   /**
+   * Banking — **the currency the Compact transacts and denominates its
+   * obligations in.** Policy data, not a property of the money: this is
+   * where the zorkmid's "specialness" lives, so no code path compares a
+   * currency to a literal (reserve status is functional, never decreed).
+   * Read only through `Currency.compact()`. See docs/subsystems/banking.md.
+   */
+  bankingCompactCurrency: "banking.compactCurrency",
+  /**
    * Banking — the **demo** sales-tax rate, a fraction of a purchase remitted
    * to the placeholder treasury via the remittance-split seam. Authored and
    * **inert** (recorded, not governed — the corpo-affiliation-edge

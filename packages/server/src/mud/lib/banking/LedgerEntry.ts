@@ -115,6 +115,8 @@ export interface ProfitAndLoss {
  * the cash-in-hand figure even though cash transactions are off-ledger.
  */
 export interface ReconcileResult {
+  /** The currency this reconciliation is for. Reports never sum across. */
+  currency: string;
   /** Σ mints − Σ drains over the central-bank log. */
   supply: number;
   /** Σ of every materialized account balance. */
@@ -125,6 +127,32 @@ export interface ReconcileResult {
   cashInExistence: number;
   /** Whether `supply === accountTotal + circulatingCoin`. */
   balanced: boolean;
+}
+
+/**
+ * The **complete** conservation read — the follow-the-money instrument.
+ *
+ * {@link ReconcileResult} is *circulating*-value only: it walks live coin
+ * instances, so it cannot see coin captured into `holder_snapshots`, and it
+ * excludes vault float. Both are real reservoirs of durable value, and an
+ * audit conducted with a gauge that cannot see them is theatre. This shape
+ * adds the two missing terms, at the cost of being async (the snapshot term
+ * is a collection read).
+ *
+ * Use this wherever the question is *"is the money right?"*; use the sync
+ * {@link ReconcileResult} only where a hot path forbids an await.
+ */
+export interface FullReconcileResult extends ReconcileResult {
+  /** Σ face value of coins resting in a bank vault. */
+  vaultCoin: number;
+  /** Σ face value of coins captured inside `holder_snapshots`. */
+  snapshotCoin: number;
+  /**
+   * Whether
+   * `supply === accountTotal + circulatingCoin + vaultCoin + snapshotCoin`.
+   * This is the identity that actually holds.
+   */
+  fullyBalanced: boolean;
 }
 
 /**
@@ -145,6 +173,8 @@ export interface LedgerEntryFields {
   toAccount: string;
   /** Positive minor units moved by this leg. */
   amount: number;
+  /** The currency this leg is denominated in. */
+  currency: string;
   /** Free-text note for the row. */
   memo?: string;
   /** The P&L line this row rolls up into. */
@@ -168,6 +198,7 @@ export default class LedgerEntry extends Document {
     fromAccount: { persistent: true },
     toAccount: { persistent: true },
     amount: { persistent: true },
+    currency: { persistent: true },
     memo: { persistent: true },
     category: { persistent: true },
     actor: { persistent: true },
@@ -185,6 +216,20 @@ export default class LedgerEntry extends Document {
   toAccount = "";
   /** Positive minor units moved by this leg. */
   amount = 0;
+  /**
+   * The currency this leg is denominated in.
+   *
+   * ⚠⚠ **A leg may never cross currencies** — `fromAccount` and `toAccount`
+   * are always denominated the same. There is no leg kind that converts, and
+   * this is a **permanent invariant, not a seam awaiting an exchange**:
+   * currencies are goods, bought and sold in the market that already exists
+   * at whatever price people pay. Relaxing it would create money in one
+   * currency and destroy it in another — an invisible mint, the one bug
+   * class an economy cannot recover from.
+   *
+   * ⚠ Defaults to `""` so an unmigrated row is loud, never plausible.
+   */
+  currency = "";
   /** Free-text note. */
   memo = "";
   /** The P&L line this row rolls up into. */

@@ -20,7 +20,7 @@ import ChattelRegistry from "../../../ChattelRegistry";
 import { EmploymentApi } from "../../../../api/employment";
 import BusinessEntity from "../../../Business";
 import { ChattelApi } from "../../../../api/chattel";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
 import { StuffApi } from "../../../../api/stuff";
 import { ExecutionContextApi } from "../../../../api/execution-context";
@@ -89,7 +89,12 @@ function stubClones(): void {
       return t;
     }
     if (path === POT) return makePot(path);
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.008, "kg"));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -205,9 +210,9 @@ describe("BuyController — buy that stamps", () => {
     }, BANK);
 
     // Fund the patron.
-    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     const cash = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(300)),
+      BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
     const storeAcct = await makeStoreBusiness();
@@ -228,7 +233,7 @@ describe("BuyController — buy that stamps", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/pat" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(stock.onHand(TORCH)).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {
@@ -237,7 +242,7 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(giver as never, loc as never);
     // Coin on hand, no card.
     const coins = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(20)),
+      BankingApi.issueCash(giver as never, Money.of(20, Currency.compact())),
     );
     void coins;
     const storeAcct = await makeStoreBusiness();
@@ -259,7 +264,7 @@ describe("BuyController — buy that stamps", () => {
       templatePath: "/obj/Avatar/cash",
     });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("the gardening line buys like any other good — a pot changes hands, stamped", async () => {
@@ -278,9 +283,9 @@ describe("BuyController — buy that stamps", () => {
       b.setCorpoKey("goodkin");
       return b;
     }, BANK);
-    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     const cash = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(300)),
+      BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
     const storeAcct = await makeStoreBusiness();
@@ -299,7 +304,7 @@ describe("BuyController — buy that stamps", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/gardener" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(8);
     expect(stock.onHand(POT)).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
     // …and it is a working pot, not a prop: empty of soil, one plant slot.
     expect(pot.hasSoil()).toBe(false);
     expect(pot.getSlotNames()).toContain(PLANT_SLOT);

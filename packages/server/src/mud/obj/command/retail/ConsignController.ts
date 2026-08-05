@@ -22,7 +22,7 @@ import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { ChattelApi } from "../../../api/chattel";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -128,7 +128,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You put ${Mml.item(item)} up for sale at ${Money.of(ask).render()}. It's still yours until it sells.`,
+        Mml.compose`You put ${Mml.item(item)} up for sale at ${Money.of(ask, Currency.compact()).render()}. It's still yours until it sells.`,
       )
       .toPeers(Mml.compose`${Mml.name(giver)} sets ${Mml.item(item)} on the consignment shelf.`)
       .send();

@@ -27,6 +27,7 @@ import {
   Employment,
   type EmploymentStatus,
 } from '../../lib/employment/Employment';
+import { Currency } from "../../lib/banking/Currency";
 
 /** One game-hour in game-seconds — the roster tick cadence. */
 const ONE_GAME_HOUR_S = 3_600;
@@ -329,6 +330,7 @@ async function operatingAccountOfImpl(
     business.getAccountPath(),
     banksAt,
     '',
+    Currency.compact(),
   );
 }
 
@@ -349,7 +351,14 @@ async function ensurePayableWorker(
   if (live && PlayerApi.isAvatarStuff(live)) return false;
   const banksAt = business.getBanksAt();
   if (!banksAt) return false;
-  await BankingApi.ensureVenueAccount(employeeKey, banksAt, '');
+  // A worker's first account opens in the PAYER's currency — which is how
+  // company-scrip wages will eventually work. Nothing else here is scrip.
+  await BankingApi.ensureVenueAccount(
+    employeeKey,
+    banksAt,
+    '',
+    Currency.compact(),
+  );
   return true;
 }
 
@@ -401,7 +410,7 @@ async function settleShiftWageImpl(
     );
     return;
   }
-  await BankingApi.payWage(account, employeeKey, Money.of(amount));
+  await BankingApi.payWage(account, employeeKey, Money.of(amount, Currency.compact()));
 }
 
 /**
@@ -450,7 +459,7 @@ async function settlePieceworkImpl(
   await BankingApi.payWage(
     account,
     employeeKey,
-    Money.of(amount),
+    Money.of(amount, Currency.compact()),
     'piecework',
     'piecework',
   );
@@ -498,7 +507,7 @@ async function flowSplitsForImpl(
     if (!account) continue;
     splits.push({
       accountId: account,
-      amount: Money.of(cut),
+      amount: Money.of(cut, Currency.compact()),
       category: 'commission',
     });
     total += cut;
