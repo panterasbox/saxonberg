@@ -87,6 +87,11 @@ W2. Armor D21 → W2. Less-lethal D19/D20 → W3. Acoustics D24 → W3.
 Readout ladder D22/D23 → W3. Formations D38 → W2. NPC brains
 D39/D40/D41 → W3. Fast-wear axis D31 → W4. Full roster in §10.
 
+Two further deferrals settled with the user (§9): **D14's lingering
+residue hazard** and **the `vapour` route** both go to W2. Wave 1's
+potion roster is `contact`-route only; a thrown `oral` or `vapour`
+potion is an honest wasted flask, not a stub.
+
 **D13 is *introduced*, not *exercised*.** `EnergySource` ships as a
 closed vocabulary with a pure readiness projection, unit-tested across
 all three members. Only `muscle` (thrown, instantaneous readiness, aim
@@ -118,8 +123,8 @@ floor through the **shipped** `BulkableApi.floorSurfaceNear` path — the
 same path `pour` already uses, which is what "spills its contents onto
 real surfaces" means in the Goals. A persistent residue hazard needs a
 lifetime/expiry model traps do not have (hazard.md: one-shot v1,
-"resettable/rearming traps" deferred). Escalated as an open question in
-§9.
+"resettable/rearming traps" deferred). **Confirmed deferred to W2 —
+§9 Q1.**
 
 ---
 
@@ -399,7 +404,8 @@ shipped `CombatOpenOptions.ambush`). Generalize `resolveClose` →
 > with an approach beat. That is what D37 asks for and it is playable
 > (`advance` exists), but the gym's win-rate baselines and several
 > `CombatLogic.test.ts` assertions move. Budget for the re-baseline; do
-> not paper over it. **See §9 Q3 — this is an open question.**
+> not paper over it. **Confirmed with the user — §9 Q3.** Re-derive the
+> expected values honestly; never relax an assertion to make it pass.
 
 **Done when:** AC 5, AC 52 (the ambush half), gym green on a re-derived
 baseline.
@@ -774,51 +780,52 @@ wrong is a Wave 1 defect, not polish.
 
 ---
 
-## 9. Open questions for the user
+## 9. Questions — resolved 2026-08-05
 
-Everything else was resolved from the requirements doc or shipped
-precedent. These four are genuine forks.
+All four settled with the user. Recorded here so the resolutions travel
+with the plan. **Nothing in this section is open; do not re-litigate.**
 
-1. **D14's placed residue hazard — in or out of Wave 1?** D14's text
-   says the arrival "creates a placed hazard through the shipped
-   self-resolving `HazardMixin`," but no AC requires it, and hazards are
-   one-shot with no lifetime/expiry model (hazard.md § Deferred:
-   "resettable/rearming traps … one-shot v1"). The plan spills to the
-   floor slot via the shipped `pour` path and defers the lingering
-   caustic pool to Wave 2 with cover/area. **Confirm the deferral, or
-   budget the expiry model.**
+**Q1 — D14's placed residue hazard. ✅ DEFERRED to W2.** D14's text says
+the arrival "creates a placed hazard through the shipped self-resolving
+`HazardMixin`," but no AC requires it and hazards are one-shot with no
+lifetime/expiry model (hazard.md § Deferred: "resettable/rearming traps
+… one-shot v1"). Wave 1 resolves the splash at arrival and spills the
+remainder to the floor slot via the shipped `pour` path — which is what
+"spills its contents onto real surfaces" means in the Goals. The
+lingering caustic pool goes to W2 alongside cover and area, where the
+expiry model can be budgeted properly rather than smuggled in.
 
-2. **The `vapour` route.** Wave 1 fires `contact` only; a thrown
-   `vapour` potion breaks and disperses with a distinct "it wants an
-   enclosure" line. Firing vapour on the splash set would need a
-   *second* splash-magnitude rule (a gas is not a volume divided among
-   skins), which is exactly the invention to avoid. **Confirm `vapour`
-   defers to Wave 2.**
+**Q2 — the `vapour` route. ✅ DEFERRED to W2.** Wave 1 fires `contact`
+only. A thrown `vapour` potion breaks and disperses with a distinct
+"it wants an enclosure" line — an honest outcome, not a stub. Firing
+vapour across the splash set would need a *second* splash-magnitude rule
+(a gas is not a volume divided among skins), which is exactly the
+invention §3.5 exists to prevent.
 
-3. **The opening-band change to shipped melee.** D37 makes every fight
-   open at the arena's maximum, so in a default 3 m room dagger-vs-dagger
-   now opens at `reach` instead of `close`. This is required by D37 and
-   playable (`advance` exists), but it shifts the gym baselines and adds
-   an approach beat to the treeline cull and the hollow duel. **Confirm
-   this is intended and the re-baseline is acceptable**, or scope D37's
-   initiation half to Wave 2 and open Wave 1 fights on the shipped
-   heuristic (the thrown demonstrator still works — it just always
-   starts in melee).
+**Q3 — the opening-band change to shipped melee. ✅ KEPT.** D37 lands in
+full: every fight opens at the arena's maximum, so in a default 3 m room
+dagger-vs-dagger now opens at `reach` rather than `close`, and the
+treeline cull and hollow duel gain an approach beat.
 
-4. **`throw`'s command category.** Recommended: `inventory`, afforded by
-   `ContainerMixin` alongside `drop`/`put`/`give` — the category names
-   the substrate (containment), and it is what makes "works outside
-   combat" free. Alternative: `combat`, afforded by `CombatantMixin`
-   beside `attack`, which reads better for initiation but makes throwing
-   a rock at a window a combat capability. **One-line confirm.**
+This is a deliberate change to already-shipped combat, taken with the
+tradeoff stated. **The re-baseline is accepted, not absorbed** — P3 must
+re-derive the gym's win-rate baselines and the ~10 `CombatLogic.test.ts`
+opening assertions honestly. A build agent that finds those tests red
+should re-derive the expected values, never relax the assertion.
+
+**Q4 — `throw`'s command category. ✅ `inventory`.** Afforded by
+`ContainerMixin` alongside `drop`/`put`/`give`, per §3.9. The category
+names the substrate (containment), not the drama — the same reasoning
+that put `disarm` under `device` and `drink` under `bulk`. It is also
+what makes D43's "works outside combat" free: a Container can throw, and
+being a Combatant is not required.
 
 Minor, decided but worth a glance: `penetration` is deferred from
 `DeliveryProfile` (no Wave 1 consumer — it is a sectional-behaviour axis
 that only earns its keep against armor, W2); the flask's **impact
 wound** (a small `blunt` `InflictSpec` from
 `DeliveryProfile.toInflictSpec`) is included because it is the cheapest
-real proof of the profile→inflict path, and is droppable if you want
-Wave 1 tighter.
+real proof of the profile→inflict path.
 
 ---
 
@@ -826,7 +833,7 @@ Wave 1 tighter.
 
 | Wave | Covers | Why here |
 |---|---|---|
-| **W2 — Cover, armor, the answer ladder** | **D25** cover (authored, directional, destructible, capacity-leased) · **D27** overturnable furnishings · **D21** armor on the response grid, point→blunt conversion · **D10** suppression / held aim on a zone · **D6** the committed-held-shot half · **D38** formation band preference + `skirmish`/`firing-line` · **D22/D23** the readout ladder + the cross-reading split · D14's lingering residue hazard · `DeliveryProfile.penetration` | Cover and armor are what make the `cover` and `counter` answers real, which is what finishes D7's matrix wiring. Armor is what makes the aim ladder *matter* (it forces the shooter up it). |
+| **W2 — Cover, armor, the answer ladder** | **D25** cover (authored, directional, destructible, capacity-leased) · **D27** overturnable furnishings · **D21** armor on the response grid, point→blunt conversion · **D10** suppression / held aim on a zone · **D6** the committed-held-shot half · **D38** formation band preference + `skirmish`/`firing-line` · **D22/D23** the readout ladder + the cross-reading split · D14's lingering residue hazard (§9 Q1) · the **`vapour` route** and its own splash-magnitude rule (§9 Q2) · `DeliveryProfile.penetration` | Cover and armor are what make the `cover` and `counter` answers real, which is what finishes D7's matrix wiring. Armor is what makes the aim ladder *matter* (it forces the shooter up it). |
 | **W3 — Bows, crossbows, less-lethal, acoustics** | **D12** graded archery fit · **D16** readiness as committed engagement actions + the bow's folded readiness · **D42** `elasticity` as a material property · **D13**'s `stored-elastic` branch, the hold window, dry-firing · **D19/D20** the incapacitation rung + the less-lethal payload family · **D24** per-metre sound attenuation · **D39/D40/D41** the four brains, brain-local morale, NPC ammunition · **D37**'s archer-defeat half of AC 52 | This is where `energySource` earns its keep: bow vs crossbow sharing `stored-elastic` while differing on who holds the draw is the model's sharpest test (**D28** names the crossbow non-optional for exactly this). |
 | **W4 — Guns** | **D29** the field model · **D30** reliability-vs-output degradation · **D31** the generalized fast-wear axis (`keenness`/`fouling`) · **D32** four components · **D33** pattern keys · **D34** grade buys reliability · **D35** catastrophic failure on the readable-state rail · **D36** registration as the chattel ledger · **D17**'s negligent-discharge leg (reusing Wave 1's `mayDeliverTo` verbatim) · **D44** kernel neutrality | Guns are the largest, most content-adjacent slab and the one with the most in-world-law surface. It lands last because everything it needs — bands, profile, resolution, consent gate, readiness axis — is already load-bearing by then. |
 | **Content, per D28** | The Practicum range, the armory venue, guard patrol density, the accessory catalogue, the installed launch regime | Systems over content; venues are expensive just-in-time carves. |
