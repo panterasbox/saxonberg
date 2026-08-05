@@ -116,6 +116,18 @@ export class MagicApi {
    * D1 is internal plumbing beneath this gate.
    */
   /**
+   * **Would firing this item's working demand a mark?** True only when
+   * *every* effect needs one — a working that still does something
+   * useful untargeted is allowed to fire untargeted.
+   *
+   * The question a door asks *before* spending anything, so it can ask
+   * the player which mark rather than refusing at them.
+   */
+  public static requiresMark(item: Stuff): boolean {
+    return logic().requiresMark(item);
+  }
+
+  /**
    * **Move a caster's reserve into a shell** — the single
    * implementation behind both doors (`recharge`, and any effect that
    * reaches for a `charge` reserve).

@@ -19,6 +19,7 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MessageApi } from '../../../api/message';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
@@ -54,7 +55,34 @@ export default class ZapController extends CommandController<ZapModel> {
       return;
     }
 
-    const target = model.target?.stuff ?? undefined;
+    // `zap wand at troll` keeps its preposition — pointing a wand IS a
+    // directional act. What it should never do is REFUSE a bare `zap`
+    // when the working simply needs to know what at: that is a question,
+    // and the prompt substrate is how a command asks one.
+    let target = model.target?.stuff ?? undefined;
+    if (!target && MagicApi.requiresMark(item)) {
+      const picked = await this.promptForObject(
+        context,
+        'What do you want to point it at?',
+        this.reachableMarks(context),
+      );
+      if (!picked) {
+        MessageApi.scene(actor)
+          .topic(TOPIC)
+          .toSelf(
+            Mml.compose`You raise ${Mml.item(item)} and lower it again — nothing you have settled on to aim at.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'no-mark-chosen',
+          detail: 'working needs a mark; none chosen',
+        });
+        return;
+      }
+      target = picked;
+    }
+
     const outcome = await MagicApi.discharge(item, target);
 
     if (!outcome.ok) {
@@ -81,4 +109,5 @@ export default class ZapController extends CommandController<ZapModel> {
       )
       .send();
   }
+
 }

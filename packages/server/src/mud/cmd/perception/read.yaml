@@ -17,9 +17,10 @@ help: |
   separate verb for that, deliberately: if there were, the verb
   showing up in your list would tell you what you were holding.
 
-  Some workings need something to act on — `read scroll at flask`.
-  A scroll whose working needs a mark and is given none refuses
-  before it is spent, so a misaimed reading costs you nothing.
+  Some workings need something to act on. Reading is not aimed —
+  you read a scroll, you do not read *at* a flask — so when the
+  working needs a mark it simply asks you which one, and a scroll
+  is never spent on a question you did not answer.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -29,11 +30,5 @@ args:
     required: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    prepositions: [at]
     validators:
       - /lib/command/validators/mustBeVisible
-  - name: mark
-    type: object
-    required: false
-    scope: "reachable"
-    prepositions: [at, on, upon]

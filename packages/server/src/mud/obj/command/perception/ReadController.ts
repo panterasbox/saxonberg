@@ -142,7 +142,7 @@ export default class ReadController extends CommandController<ReadModel> {
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
 
     // ── …and whatever reading it sets off ──
-    await this.fireAnyWorking(target, context, model.mark?.stuff ?? undefined);
+    await this.fireAnyWorking(target, context);
   }
 
   /**
@@ -158,7 +158,6 @@ export default class ReadController extends CommandController<ReadModel> {
   private async fireAnyWorking(
     target: Stuff,
     context: CommandContext,
-    mark?: Stuff,
   ): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isArcane(target)) return;
@@ -182,6 +181,35 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
+    // ⚠ **Reading is not aimed.** `read scroll at flask` used to exist
+    // and was a preposition on a verb where aiming means nothing —
+    // invented because the prompt substrate went unused. When the
+    // working wants a mark, ASK; a scroll is never spent on a question
+    // that went unanswered.
+    let mark: Stuff | undefined;
+    if (MagicApi.requiresMark(target)) {
+      const picked = await this.promptForObject(
+        context,
+        'What do you want to use it on?',
+        this.reachableMarks(context),
+      );
+      if (!picked) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(
+            Mml.compose`You hold the reading in your head, unspent — there is nothing you have settled on to use it on.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'no-mark-chosen',
+          detail: 'working needs a mark; none chosen',
+        });
+        return;
+      }
+      mark = picked;
+    }
+
     const outcome = await MagicApi.discharge(target, mark, {
       source: giver,
     });
@@ -202,4 +230,5 @@ export default class ReadController extends CommandController<ReadModel> {
     // Spent on use — the vessel, if any, is left behind.
     if (MixinApi.isConsumable(target)) await target.consume();
   }
+
 }

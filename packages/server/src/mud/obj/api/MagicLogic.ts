@@ -250,6 +250,20 @@ export class MagicLogic extends ApiLogic {
 
   /** See {@link MagicApi.discharge}. */
   @CallSecurity(MagicApiCallers)
+  /** See {@link MagicApi.requiresMark}. */
+  @CallSecurity(MagicApiCallers)
+  public requiresMark(item: Stuff): boolean {
+    if (!MixinApi.isArcane(item)) return false;
+    const path = item.getCarriedSpellPath();
+    if (path.length === 0) return false;
+    const spell = catalogue()?.getSpellAt(path) ?? null;
+    if (!spell) return false;
+    const band = MixinApi.isBlessable(item)
+      ? item.getBlessing().getBand()
+      : 'uncursed';
+    return MagicEffects.everyEffectNeedsTarget(effectsAtBand(spell, band));
+  }
+
   /** See {@link MagicApi.transferCharge}. */
   @CallSecurity(MagicApiCallers)
   public transferCharge(

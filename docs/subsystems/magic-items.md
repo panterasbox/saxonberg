@@ -148,10 +148,10 @@ glass** for this to be visible, and both do:
   that contract; identification is the first thing that needed it), so
   every path that renders a long description gets it — see
   [bulk.md](./bulk.md) § `getContentsDescriptionFor`.
-- `read scroll at flask` → the identify effect makes the **same**
-  redirect. Without it the answer is "there is nothing hidden to learn
-  about a stoppered glass flask" — true of the glass and useless to the
-  player holding it.
+- `read scroll` → the identify effect makes the **same** redirect: the
+  flask's *contents* are what gets identified, never the glass. Without
+  it the answer is "there is nothing hidden to learn about a stoppered
+  glass flask" — true of the glass and useless to the player holding it.
 
 One identification therefore covers **every flask of that draught**, and
 decanting carries the knowledge because it carries the substance. The
@@ -973,13 +973,26 @@ the seam is in place: unknown scripts are **withheld, never mangled**
 a bug), and the reader-side "which systems do you know?" lookup slots
 into `decode` without disturbing `perceive`.
 
-**A working that needs a mark takes one from the same verb**:
-`read scroll at flask`. `read`'s second argument is optional, so
-`read scroll` is unchanged for a scroll whose working needs nothing —
-and a scroll that *does* need a mark and is given none refuses **before
-it is spent**, so a misaimed reading costs nothing. That refusal is the
-shared targeting floor (`MagicEffects.needsTarget`), not a `read`
-special case: the `cast` path takes the same one.
+**A working that needs a mark ASKS for one.** `read scroll` is the only
+form; when `MagicApi.requiresMark` says the working demands a target,
+the controller raises a `PromptApi.mqlObject` over reachable candidates
+and spends nothing until one comes back.
+
+> ⚠ It briefly took the mark as a preposition — `read scroll at flask`.
+> That was wrong and the reason is worth keeping: **reading is not
+> aimed.** You read a scroll; you do not read *at* a flask. The clause
+> existed because the prompt substrate went unused, not because the act
+> is directional, and `read sign at flask` parsed happily.
+>
+> The test is whether the **act** is aimed, not whether the *working*
+> is. `zap wand at troll` keeps its preposition — pointing a wand is a
+> real directional act — and gained the same prompt for its bare form,
+> because refusing a `zap` that only needs to know *what at* is
+> answering a question with a wall.
+
+The demand itself is the shared targeting floor
+(`MagicEffects.everyEffectNeedsTarget`), not a `read` special case: the
+`cast` path reads the same one.
 
 ---
 
