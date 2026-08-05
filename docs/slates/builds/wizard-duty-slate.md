@@ -117,6 +117,101 @@ can leave and take it with you.* **So "who watches the founder" answers
 
 ---
 
+# ⭐⭐⭐ Carve-outs: prohibition is the wrong shape
+
+> **User: "we may need carve-outs for snooping — it can't be abolished,
+> because the game has bugs and you need to troubleshoot things sometimes
+> from a player's perspective. Same with impersonation to a lesser
+> degree; we even have an `su` command designed somewhere to switch users
+> in the current shell."**
+
+Correct, and it reshapes the duty. Sysadmins read your data and support
+impersonates customers because **that is the job**. The control was never
+*"don't."*
+
+> ⭐⭐⭐ **Not WHETHER, but WHY — and did you say so.**
+
+**HIPAA is the exact model:** you may read a chart for treatment, payment
+or operations; reading your neighbour's is a firing offence. **Same act,
+different purpose** — declared, not inferred.
+
+## ⭐⭐ Break-glass already is the corpus's vocabulary
+
+branch-policy: *"the wizard axis **breaks glass**, and the override is
+logged loudly."*
+
+> **Extend break-glass from WRITES to READS and IMPERSONATION.**
+
+| | |
+|---|---|
+| the act | **stays available** — never blocked |
+| the purpose | **declared**, at use |
+| the log | **conspicuous**, not quiet |
+| the check | ⭐ **reviewed AFTER, never approved before** |
+
+⭐ **Approval-before is the trap.** You need this at 3am with the thing
+broken, so an approval gate fails exactly when it is needed. Hospitals
+landed on break-glass for precisely this reason.
+
+## ⭐⭐⭐⭐ `su` should be AGENCY, not identity substitution
+
+The danger in `su` is not reading — it is that **an act taken while su'd
+writes to the target's record.** A wizard reproducing a bug could post
+messages, spend money, or mint chronicle entries *as the player*.
+
+[agency-slate](./agency-slate.md) already answers it:
+
+> **Authority from the principal, attribution to the agent.**
+
+So `su` should not make you *become* the player — it should make you
+their **agent**. Every act then carries both: the player's authority, the
+wizard's name.
+
+> ⭐⭐⭐ **Impersonation stops being perfect BY CONSTRUCTION.** The record
+> reads *"Alice's account, acted by wizard Bob"* — because attribution is
+> a separate field from authority, not a courtesy.
+
+⭐ It costs nothing new: **`su` becomes a consumer of agency** rather
+than its own mechanism, and the scariest capability becomes an auditable
+one.
+
+## ⭐⭐⭐ The meta-design that makes it hold
+
+A wizard can still bypass `su` and write code that acts as the player
+directly. Unpreventable. But:
+
+> **Make the sanctioned path so convenient that using anything else is
+> itself evidence of intent.**
+
+That is how security actually works — do not block the bad path; make the
+good path frictionless and treat **deviation as the signal**. And
+deviation is exactly what external anchoring can catch.
+
+## ⚠ The honest limit, and why it is acceptable
+
+> **Break-glass is a GOOD-FAITH instrument.** It does not catch a hostile
+> wizard — nothing does. It makes a good-faith wizard's actions
+> **legible**, which makes a hostile one's **conspicuous by contrast.**
+
+State that rather than overselling it.
+
+## ⭐ The asymmetry psychology makes uncomfortable
+
+**You cannot read yourself — but a wizard can read you.**
+`disposition_events`, `beliefs`, and specifically **the slice you
+deliberately withheld** from your therapist
+([psychology-slate](./psychology-slate.md)).
+
+⚠ That deserves naming out loud rather than being discovered, and it
+argues for the **strong** break-glass on that data:
+
+> **The subject is notified their record was accessed — by whom, when,
+> and for what stated reason.** Some medical systems do exactly this.
+
+A hostile wizard suppresses the notice. Again: **not who it is for.**
+
+---
+
 # The mechanisms, ranked by whether they survive a hostile wizard
 
 | | Mechanism | Survives? |
@@ -154,7 +249,12 @@ persuade in a way descriptions cannot.
 # Open questions
 
 1. **Snooping and impersonation: one duty or two?** Real law splits them;
-   *leans one duty of loyalty* at this scale.
+   *leans one duty of loyalty* at this scale. ⚠ Note both are
+   **carve-outs, not prohibitions** — see above.
+0. ⭐ **Does `su` land on agency before or after agency itself is built?**
+   `su` is the most compelling first consumer, which argues for
+   co-designing them rather than shipping `su` on a bespoke path that
+   later has to be unpicked.
 2. ⚠ **What is the safe harbour?** Without a business-judgment equivalent
    the role is unfillable — a wizard who breaks something in good faith
    must not be treated as one who snooped.
