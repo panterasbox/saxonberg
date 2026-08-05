@@ -210,7 +210,7 @@ describe("BuyController — buy that stamps", () => {
     }, BANK);
 
     // Fund the patron.
-    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     const cash = await asOwner(giver, () =>
       BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
@@ -233,7 +233,7 @@ describe("BuyController — buy that stamps", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/pat" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(stock.onHand(TORCH)).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {
@@ -264,7 +264,7 @@ describe("BuyController — buy that stamps", () => {
       templatePath: "/obj/Avatar/cash",
     });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("the gardening line buys like any other good — a pot changes hands, stamped", async () => {
@@ -283,7 +283,7 @@ describe("BuyController — buy that stamps", () => {
       b.setCorpoKey("goodkin");
       return b;
     }, BANK);
-    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     const cash = await asOwner(giver, () =>
       BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
@@ -304,7 +304,7 @@ describe("BuyController — buy that stamps", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/obj/Avatar/gardener" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(8);
     expect(stock.onHand(POT)).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
     // …and it is a working pot, not a prop: empty of soil, one plant slot.
     expect(pot.hasSoil()).toBe(false);
     expect(pot.getSlotNames()).toContain(PLANT_SLOT);

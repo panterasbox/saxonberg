@@ -5,11 +5,13 @@ import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import LedgerEntry from "../../lib/banking/LedgerEntry";
+import { PersistedRecord } from "../../lib/persistence/PersistedRecord";
 import type {
   LedgerKind,
   PnlCategory,
   ProfitAndLoss,
   ReconcileResult,
+  FullReconcileResult,
   EscrowHoldResult,
 } from "../../lib/banking/LedgerEntry";
 import AccountBalance from "../../lib/banking/AccountBalance";
@@ -193,13 +195,18 @@ async function accountByIdImpl(
 async function openAccountImpl(
   bank: string,
   corpoKey: string,
+  currency: string,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.openAccount: no persistence connection");
   }
   const owner = actingActorKey();
   const owned = await accountsOfImpl(owner);
-  const already = owned.find((a) => a.bank === bank);
+  // An account is single-currency, so `(bank, currency)` is the identity: a
+  // holder with zorkmid and scrip accounts at one bank has two rows.
+  const already = owned.find(
+    (a) => a.bank === bank && a.currency === currency,
+  );
   if (already) {
     // Re-open by an existing holder: the wallet credential is
     // session-durable, so a returning player's implant carries an
@@ -216,8 +223,9 @@ async function openAccountImpl(
   row.isPrimary = owned.length === 0;
   row.isActive = true;
   row.balance = 0;
+  row.currency = currency;
   await row.save();
-  AccountBalance.putCached(row.accountId, 0);
+  AccountBalance.putCached(row.accountId, 0, currency);
   // Auto-register the new account onto the owner's implant wallet (the
   // implant links all the owner's accounts; first opened becomes active).
   autoLinkToWallet(actingPrincipal(), row.accountId);
@@ -296,6 +304,7 @@ async function ensureVenueAccountImpl(
   ownerPath: string,
   bank: string,
   corpoKey: string,
+  currency: string,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
@@ -318,8 +327,9 @@ async function ensureVenueAccountImpl(
   row.isPrimary = true;
   row.isActive = true;
   row.balance = 0;
+  row.currency = currency;
   await row.save();
-  AccountBalance.putCached(row.accountId, 0);
+  AccountBalance.putCached(row.accountId, 0, currency);
   return row.accountId;
 }
 
@@ -448,7 +458,10 @@ function royaltyRate(): number {
  * dynamically imported to dodge the banking↔employment module cycle (the
  * DiagnosticApi precedent).
  */
-async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
+async function resolveBranchAccountImpl(
+  bank: Stuff & Bank,
+  currency: string,
+): Promise<string> {
   const bankPath = bank.getBankPath();
   const corpoKey = bank.getCorpoKey();
   let ownerPath = bankPath;
@@ -463,7 +476,12 @@ async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
   } catch {
     // No employment engine available (unit tests / pre-boot) → branch-keyed.
   }
-  return ensureVenueAccountImpl(ownerPath, institution, corpoKey);
+  return ensureVenueAccountImpl(
+    ownerPath,
+    institution,
+    corpoKey,
+    currency,
+  );
 }
 
 /**
@@ -475,8 +493,9 @@ async function resolveBranchAccountImpl(bank: Stuff & Bank): Promise<string> {
 async function ensureCorpoTreasuryImpl(
   corpoKey: string,
   bank: string,
+  currency: string,
 ): Promise<string> {
-  return ensureVenueAccountImpl(`corpo:${corpoKey}`, bank, corpoKey);
+  return ensureVenueAccountImpl(`corpo:${corpoKey}`, bank, corpoKey, currency);
 }
 
 /**
@@ -490,11 +509,12 @@ async function seedFloatImpl(
   amount: Money,
 ): Promise<boolean> {
   if (amount.minor <= 0) return false;
-  const branchAccount = await resolveBranchAccountImpl(bank);
+  const branchAccount = await resolveBranchAccountImpl(bank, amount.currency);
   if (balanceMinor(branchAccount) > 0) return false;
   await issueCashImpl(bank as unknown as Stuff & Container, amount, "float");
   await postTransaction("deposit", [
     {
+    currency: amount.currency,
       from: Account.CASH_BRIDGE,
       to: branchAccount,
       amount: amount.minor,
@@ -530,16 +550,26 @@ async function chargeFeeImpl(
   memo: string,
 ): Promise<void> {
   if (feeMinor <= 0) return;
-  const branchAccount = await resolveBranchAccountImpl(bank);
+  // The fee rides the customer's own money: a fee in currency X must reach a
+  // branch account AND a corpo treasury in X, or the leg crosses and throws.
+  const customerCurrency = AccountBalance.cachedCurrency(customerAccountId);
+  const branchAccount = await resolveBranchAccountImpl(bank, customerCurrency);
   if (branchAccount === customerAccountId) return;
   const corpoKey = bank.getCorpoKey();
   const rate = royaltyRate();
   let royalty = 0;
+  // NOTE: declared above the treasury resolve — a fee in currency X must
+  // reach a branch account AND a corpo treasury in X, or the leg crosses
+  // and postTransaction throws.
   let treasury: string | null = null;
   if (corpoKey && rate > 0) {
     royalty = Math.floor(feeMinor * rate);
     if (royalty > 0) {
-      treasury = await ensureCorpoTreasuryImpl(corpoKey, bank.getBank());
+      treasury = await ensureCorpoTreasuryImpl(
+        corpoKey,
+        bank.getBank(),
+        customerCurrency,
+      );
       // A treasury that resolves to the branch itself (or the customer) can't
       // take a distinct royalty leg — fold it back into the branch share.
       if (treasury === branchAccount || treasury === customerAccountId) {
@@ -552,6 +582,7 @@ async function chargeFeeImpl(
   const toBranch = feeMinor - royalty;
   if (toBranch > 0) {
     legs.push({
+    currency: customerCurrency,
       from: customerAccountId,
       to: branchAccount,
       amount: toBranch,
@@ -561,6 +592,7 @@ async function chargeFeeImpl(
   }
   if (royalty > 0 && treasury) {
     legs.push({
+    currency: customerCurrency,
       from: customerAccountId,
       to: treasury,
       amount: royalty,
@@ -732,6 +764,7 @@ async function settleImpl(
     const bridgeMain = charge.amount.minor - cashSplitTotal;
     if (bridgeMain > 0) {
       bridgeLegs.push({
+      currency: charge.amount.currency,
         from: Account.CASH_BRIDGE,
         to: charge.payeeAccountId,
         amount: bridgeMain,
@@ -741,6 +774,7 @@ async function settleImpl(
     }
     for (const sp of cashSplits) {
       bridgeLegs.push({
+      currency: charge.amount.currency,
         from: Account.CASH_BRIDGE,
         to: sp.accountId,
         amount: sp.amount.minor,
@@ -789,6 +823,7 @@ async function settleImpl(
   const mainAmount = charge.amount.minor - splitTotal;
   if (mainAmount > 0) {
     legs.push({
+    currency: charge.amount.currency,
       from: routingAccount,
       to: charge.payeeAccountId,
       amount: mainAmount,
@@ -798,6 +833,7 @@ async function settleImpl(
   }
   for (const sp of splits) {
     legs.push({
+    currency: charge.amount.currency,
       from: routingAccount,
       to: sp.accountId,
       amount: sp.amount.minor,
@@ -834,6 +870,7 @@ async function payWageImpl(
   // employment build can gate player employers on solvency.)
   await postTransaction("wage", [
     {
+    currency: amount.currency,
       from: employerAccountId,
       to: workerAccount,
       amount: amount.minor,
@@ -895,11 +932,13 @@ async function escrowHoldImpl(
     row.isPrimary = false;
     row.isActive = true;
     row.balance = 0;
+    row.currency = amount.currency;
     await row.save();
-    AccountBalance.putCached(escrowId, 0);
+    AccountBalance.putCached(escrowId, 0, amount.currency);
   }
   const txId = await postTransaction("escrow-hold", [
     {
+    currency: amount.currency,
       from: fromAccountId,
       to: escrowId,
       amount: amount.minor,
@@ -933,6 +972,7 @@ async function escrowMoveImpl(
   }
   return postTransaction(kind, [
     {
+    currency: amount.currency,
       from: escrowId,
       to: toAccountId,
       amount: amount.minor,
@@ -995,6 +1035,7 @@ async function payDrawImpl(
   }
   await postTransaction("draw", [
     {
+    currency: amount.currency,
       from: businessAccountId,
       to: drawAccount,
       amount: amount.minor,
@@ -1109,6 +1150,7 @@ async function remitDemoTaxImpl(
   if (tax <= 0) return Money.zero(Currency.compact());
   await postTransaction("tax", [
     {
+    currency: saleAmount.currency,
       from: sellerAccountId,
       to: treasury,
       amount: tax,
@@ -1135,6 +1177,7 @@ async function issueCashImpl(
   }
   await postTransaction("mint", [
     {
+    currency: amount.currency,
       from: Account.ISSUANCE,
       to: Account.CASH_BRIDGE,
       amount: amount.minor,
@@ -1164,31 +1207,134 @@ async function issueCashImpl(
   return representative as Stuff;
 }
 
-/**
- * The conservation audit: top-down supply vs bottom-up (Σ balances + Σ
- * circulating coins outside vaults). A sync read over the warmed caches +
- * the live coin instances — the reconciliation invariant the operator
- * dogfaods the deficit with.
- */
-function reconcileImpl(): ReconcileResult {
-  const supply = SupplyAggregate.cachedSupply();
-  let accountTotal = 0;
-  for (const v of AccountBalance.cached().values()) accountTotal += v;
-  let circulatingCoin = 0;
+/** Σ face value of live coin of `currency`, split vault vs circulating. */
+function liveCoinOf(currency: string): {
+  circulating: number;
+  vault: number;
+} {
+  let circulating = 0;
+  let vault = 0;
   for (const coin of StuffApi.findAllByTemplatePath(COIN_PATH)) {
     if (!isCashLike(coin)) continue;
+    if (coin.getCurrency() !== currency) continue;
     const container = (
       coin as unknown as { getContainer?(): Stuff | null }
     ).getContainer?.();
-    if (container && MixinApi.isBank(container)) continue; // vault cash
-    circulatingCoin += stackValue(coin);
+    if (container && MixinApi.isBank(container)) vault += stackValue(coin);
+    else circulating += stackValue(coin);
   }
+  return { circulating, vault };
+}
+
+/**
+ * Σ face value of coin captured inside `holder_snapshots` for `currency`.
+ *
+ * ⚠⚠ **This is the term the audit was missing.** `findAllByTemplatePath`
+ * reads the in-memory index, so it sees live instances only — and a
+ * logged-out player's cash lives in a snapshot blob, not in memory. An audit
+ * blind to the largest reservoir of durable coin is theatre, so the complete
+ * read pays a collection scan to see it.
+ */
+async function snapshotCoinOf(currency: string): Promise<number> {
+  if (!active()) return 0;
+  const records = await PersistedRecord.find<PersistedRecord>({});
+  let total = 0;
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const child of node) visit(child);
+      return;
+    }
+    if (!node || typeof node !== "object") return;
+    const obj = node as Record<string, unknown>;
+    if (obj.templatePath === COIN_PATH) {
+      const fields = collectCoinFields(obj);
+      if (fields.currency === currency && typeof fields.denomination === "number") {
+        total +=
+          Currency.faceValueOf(currency, fields.denomination) *
+          (fields.quantity ?? 1);
+      }
+    }
+    for (const value of Object.values(obj)) visit(value);
+  };
+  for (const record of records) visit(record.state);
+  return total;
+}
+
+/** Pull a captured coin's identity fields out of an opaque snapshot entry. */
+function collectCoinFields(entry: Record<string, unknown>): {
+  currency?: string;
+  denomination?: number;
+  quantity?: number;
+} {
+  const out: { currency?: string; denomination?: number; quantity?: number } = {};
+  const scan = (node: unknown): void => {
+    if (!node || typeof node !== "object") return;
+    const obj = node as Record<string, unknown>;
+    if (typeof obj.currency === "string" && out.currency === undefined) {
+      out.currency = obj.currency;
+    }
+    if (typeof obj.denomination === "number" && out.denomination === undefined) {
+      out.denomination = obj.denomination;
+    }
+    if (typeof obj.quantity === "number" && out.quantity === undefined) {
+      out.quantity = obj.quantity;
+    }
+    for (const value of Object.values(obj)) {
+      if (value && typeof value === "object") scan(value);
+    }
+  };
+  scan(entry);
+  return out;
+}
+
+/**
+ * The conservation audit for ONE currency: top-down supply vs bottom-up
+ * (Σ balances + Σ circulating coin). A sync read over the warmed caches +
+ * the live coin instances.
+ *
+ * ⚠ **Circulating-value only, and honest about it.** It cannot see coin in
+ * `holder_snapshots` (a logged-out player's cash) and it excludes vault
+ * float, so `balanced` is a *circulating*-value identity, not a total-value
+ * one. Use {@link fullReconcileImpl} wherever the question is actually "is
+ * the money right?"; this stays sync for the paths that cannot await.
+ */
+function reconcileImpl(currency: string): ReconcileResult {
+  const supply = SupplyAggregate.cachedSupply(currency);
+  const accountTotal =
+    AccountBalance.cachedTotalsByCurrency().get(currency) ?? 0;
+  const { circulating: circulatingCoin } = liveCoinOf(currency);
   return {
+    currency,
     supply,
     accountTotal,
     circulatingCoin,
     cashInExistence: supply - accountTotal,
     balanced: supply === accountTotal + circulatingCoin,
+  };
+}
+
+/**
+ * The **complete** conservation audit for one currency — the follow-the-money
+ * instrument. Adds the two reservoirs the sync read cannot see: vault float
+ * and coin captured in `holder_snapshots`.
+ *
+ * `supply === accountTotal + circulatingCoin + vaultCoin + snapshotCoin` is
+ * the identity that actually holds; anything else is a gauge with a hole in
+ * it, and an audit run against a leaky gauge proves nothing.
+ */
+async function fullReconcileImpl(
+  currency: string,
+): Promise<FullReconcileResult> {
+  const base = reconcileImpl(currency);
+  const { vault } = liveCoinOf(currency);
+  const snapshotCoin = await snapshotCoinOf(currency);
+  const bottomUp =
+    base.accountTotal + base.circulatingCoin + vault + snapshotCoin;
+  return {
+    ...base,
+    vaultCoin: vault,
+    snapshotCoin,
+    fullyBalanced: base.supply === bottomUp,
   };
 }
 
@@ -1252,6 +1398,32 @@ async function postTransaction(
   // Conservation is asserted FIRST — a malformed posting throws with or
   // without a DB connection (the contract violation is the same offline).
   BankTransaction.assertConserving(kind, legs);
+
+  // ⚠⚠ The ENDPOINT CHECK — the impure half of the no-crossing invariant.
+  //
+  // assertConserving proves the legs agree with each other; this proves they
+  // agree with the ACCOUNTS they touch. Without it a same-currency pair of
+  // legs could still move zorkmids into a scrip account, which is an
+  // invisible mint by a different door.
+  //
+  // Reads the warmed cache only — never an await per endpoint. A cost on the
+  // posting path is a cost someone eventually removes, and this check must
+  // never be the thing that gets removed. An account the cache has never seen
+  // is NEW (applyDelta is about to create it), so an empty currency adopts
+  // the leg's rather than failing.
+  for (const leg of legs) {
+    for (const endpoint of [leg.from, leg.to]) {
+      if (Account.isSentinel(endpoint)) continue;
+      const held = AccountBalance.cachedCurrency(endpoint);
+      if (held && held !== leg.currency) {
+        throw new Error(
+          `BankingLogic.postTransaction: account '${endpoint}' is denominated ` +
+            `in ${held} but the leg is in ${leg.currency} — a leg may never ` +
+            `cross currencies (permanent invariant)`,
+        );
+      }
+    }
+  }
   if (!active()) return "";
 
   const at = WorldClockApi.getNow().rawValue();
@@ -1271,6 +1443,7 @@ async function postTransaction(
     row.fromAccount = leg.from;
     row.toAccount = leg.to;
     row.amount = leg.amount;
+    row.currency = leg.currency;
     row.memo = leg.memo ?? "";
     row.category = leg.category ?? defaultCategory(kind);
     row.actor = actor;
@@ -1289,13 +1462,22 @@ async function postTransaction(
       }
       continue;
     }
-    if (!Account.isSentinel(leg.from)) await applyDelta(leg.from, -leg.amount);
-    if (!Account.isSentinel(leg.to)) await applyDelta(leg.to, leg.amount);
+    if (!Account.isSentinel(leg.from)) {
+      await applyDelta(leg.from, -leg.amount, leg.currency);
+    }
+    if (!Account.isSentinel(leg.to)) {
+      await applyDelta(leg.to, leg.amount, leg.currency);
+    }
   }
 
   if (circleScope === null) {
-    const { minted, drained } = BankTransaction.supplyDelta(kind, legs);
-    if (minted !== 0 || drained !== 0) await bumpSupply(minted, drained);
+    const { currency, minted, drained } = BankTransaction.supplyDelta(
+      kind,
+      legs,
+    );
+    if (minted !== 0 || drained !== 0) {
+      await bumpSupply(currency, minted, drained);
+    }
   }
   return txId;
 }
@@ -1325,19 +1507,34 @@ function defaultCategory(kind: LedgerKind): PnlCategory {
 }
 
 /** Find-or-create a real account's row, apply a signed delta, keep the cache. */
-async function applyDelta(accountId: string, delta: number): Promise<void> {
+async function applyDelta(
+  accountId: string,
+  delta: number,
+  currency: string,
+): Promise<void> {
   const [existing] = await AccountBalance.find<AccountBalance>({ accountId });
   const row = existing ?? new AccountBalance();
   if (!existing) row.accountId = accountId;
+  // A row created inside the transaction adopts the leg's currency; an
+  // existing one keeps its own (the endpoint check already proved they agree).
+  if (!row.currency) row.currency = currency;
   row.balance += delta;
   await row.save();
-  AccountBalance.putCached(accountId, row.balance);
+  AccountBalance.putCached(accountId, row.balance, row.currency);
 }
 
-/** Find-or-create the single supply row, add the deltas, keep the mirror. */
-async function bumpSupply(minted: number, drained: number): Promise<void> {
-  const [existing] = await SupplyAggregate.find<SupplyAggregate>({});
+/**
+ * Find-or-create **this currency's** supply row, add the deltas, keep the
+ * mirror. Conservation is N independent domains — one row per currency.
+ */
+async function bumpSupply(
+  currency: string,
+  minted: number,
+  drained: number,
+): Promise<void> {
+  const [existing] = await SupplyAggregate.find<SupplyAggregate>({ currency });
   const row = existing ?? new SupplyAggregate();
+  if (!existing) row.currency = currency;
   row.minted += minted;
   row.drained += drained;
   await row.save();
@@ -1371,17 +1568,33 @@ async function rebuildBalanceImpl(accountId: string): Promise<number> {
 async function recomputeSupplyImpl(): Promise<void> {
   if (!active()) return;
   const rows = await LedgerEntry.find<LedgerEntry>({});
-  let minted = 0;
-  let drained = 0;
+  // Group the full scan by currency: conservation is N independent domains,
+  // so the rebuild produces one row per currency, not one headline.
+  const totals = new Map<string, { minted: number; drained: number }>();
   for (const r of rows) {
-    if (r.kind === "mint") minted += r.amount;
-    if (r.kind === "drain") drained += r.amount;
+    if (r.kind !== "mint" && r.kind !== "drain") continue;
+    const currency = r.currency;
+    if (!currency) {
+      throw new Error(
+        `BankingLogic.recomputeSupply: ledger row ${r.txId} has no currency ` +
+          `— migrate before rebuilding ` +
+          `(packages/server/scripts/migrate-currency.ts --apply)`,
+      );
+    }
+    const seen = totals.get(currency) ?? { minted: 0, drained: 0 };
+    if (r.kind === "mint") seen.minted += r.amount;
+    else seen.drained += r.amount;
+    totals.set(currency, seen);
   }
-  const [existing] = await SupplyAggregate.find<SupplyAggregate>({});
-  const row = existing ?? new SupplyAggregate();
-  row.minted = minted;
-  row.drained = drained;
-  await row.save();
+  const existing = await SupplyAggregate.find<SupplyAggregate>({});
+  const byCurrency = new Map(existing.map((r) => [r.currency, r]));
+  for (const [currency, { minted, drained }] of totals) {
+    const row = byCurrency.get(currency) ?? new SupplyAggregate();
+    row.currency = currency;
+    row.minted = minted;
+    row.drained = drained;
+    await row.save();
+  }
   await SupplyAggregate.warm();
 }
 
@@ -1423,6 +1636,7 @@ export class BankingLogic extends ApiLogic {
   ): Promise<void> {
     await postTransaction("mint", [
       {
+      currency: amount.currency,
         from: Account.ISSUANCE,
         to: toAccountId,
         amount: amount.minor,
@@ -1448,7 +1662,13 @@ export class BankingLogic extends ApiLogic {
       );
     }
     await postTransaction("drain", [
-      { from: fromAccountId, to: Account.ISSUANCE, amount: amount.minor, memo },
+      {
+        from: fromAccountId,
+        to: Account.ISSUANCE,
+        amount: amount.minor,
+        currency: amount.currency,
+        memo,
+      },
     ]);
   }
 
@@ -1457,6 +1677,7 @@ export class BankingLogic extends ApiLogic {
   public async float(accountId: string, amount: Money): Promise<void> {
     await postTransaction("mint", [
       {
+      currency: amount.currency,
         from: Account.ISSUANCE,
         to: accountId,
         amount: amount.minor,
@@ -1478,10 +1699,10 @@ export class BankingLogic extends ApiLogic {
     scopedBalanceOverlay.delete(scope);
   }
 
-  /** See {@link BankingApi.moneySupply}. Sync warm read. */
+  /** See {@link BankingApi.moneySupply}. Sync warm read, per currency. */
   @CallSecurity(BankingApiCallers)
-  public moneySupply(): Money {
-    return Money.of(SupplyAggregate.cachedSupply(), Currency.compact());
+  public moneySupply(currency: string): Money {
+    return Money.of(SupplyAggregate.cachedSupply(currency), currency);
   }
 
   /** See {@link BankingApi.entriesFor}. */
@@ -1506,8 +1727,12 @@ export class BankingLogic extends ApiLogic {
 
   /** See {@link BankingApi.openAccount}. */
   @CallSecurity(BankingApiCallers)
-  public async openAccount(bank: string, corpoKey: string): Promise<string> {
-    return openAccountImpl(bank, corpoKey);
+  public async openAccount(
+    bank: string,
+    corpoKey: string,
+    currency: string,
+  ): Promise<string> {
+    return openAccountImpl(bank, corpoKey, currency);
   }
 
   /** See {@link BankingApi.myAccountAt}. The actor's account at a bank. */
@@ -1560,7 +1785,12 @@ export class BankingLogic extends ApiLogic {
       bank as unknown as Stuff & Container,
     );
     await postTransaction("deposit", [
-      { from: Account.CASH_BRIDGE, to: account.accountId, amount: value },
+      {
+        from: Account.CASH_BRIDGE,
+        to: account.accountId,
+        amount: value,
+        currency: account.currency,
+      },
     ]);
     // The convenience fee (Terms), conserved → branch + corpo royalty. Zero
     // for Goodkin (no-op); charged out of the just-credited balance.
@@ -1640,6 +1870,7 @@ export class BankingLogic extends ApiLogic {
     }
     await postTransaction("withdraw", [
       {
+      currency: amount.currency,
         from: account.accountId,
         to: Account.CASH_BRIDGE,
         amount: amount.minor,
@@ -1693,7 +1924,13 @@ export class BankingLogic extends ApiLogic {
       );
     }
     await postTransaction("transfer", [
-      { from: fromAccountId, to: toAccountId, amount: amount.minor, memo },
+      {
+        from: fromAccountId,
+        to: toAccountId,
+        amount: amount.minor,
+        currency: amount.currency,
+        memo,
+      },
     ]);
     if (wireFee > 0) {
       const sourceBank = findBranchOf(from.bank);
@@ -1839,10 +2076,20 @@ export class BankingLogic extends ApiLogic {
     return issueCashImpl(into, amount, category);
   }
 
-  /** See {@link BankingApi.reconcile}. The conservation audit (sync). */
+  /**
+   * See {@link BankingApi.reconcile}. The circulating-value audit (sync).
+   * ⚠ Blind to vault float and to coin captured in `holder_snapshots` — use
+   * {@link fullReconcile} when the question is "is the money right?".
+   */
   @CallSecurity(BankingApiCallers)
-  public reconcile(): ReconcileResult {
-    return reconcileImpl();
+  public reconcile(currency: string): ReconcileResult {
+    return reconcileImpl(currency);
+  }
+
+  /** See {@link BankingApi.fullReconcile}. The complete audit (async). */
+  @CallSecurity(BankingApiCallers)
+  public async fullReconcile(currency: string): Promise<FullReconcileResult> {
+    return fullReconcileImpl(currency);
   }
 
   /** See {@link BankingApi.ensureVenueAccount}. Lazily create a venue account. */
@@ -1851,8 +2098,9 @@ export class BankingLogic extends ApiLogic {
     ownerPath: string,
     bank: string,
     corpoKey: string,
+    currency: string,
   ): Promise<string> {
-    return ensureVenueAccountImpl(ownerPath, bank, corpoKey);
+    return ensureVenueAccountImpl(ownerPath, bank, corpoKey, currency);
   }
 
   /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */
@@ -1860,8 +2108,9 @@ export class BankingLogic extends ApiLogic {
   public async ensureCorpoTreasury(
     corpoKey: string,
     bank: string,
+    currency: string,
   ): Promise<string> {
-    return ensureCorpoTreasuryImpl(corpoKey, bank);
+    return ensureCorpoTreasuryImpl(corpoKey, bank, currency);
   }
 
   // The opening float (seedFloatImpl) and the withdrawal-quota reader

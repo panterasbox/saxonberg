@@ -42,14 +42,14 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     expect(BankingApi.balanceOf(ISSUER).minor).toBe(40);
     expect(BankingApi.escrowBalanceOf(CONTRACT).minor).toBe(60);
     // In flight: the held funds sit in a REAL row, so the audit stays green.
-    expect(BankingApi.reconcile().balanced).toBe(true);
-    expect(BankingApi.moneySupply().minor).toBe(100);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(100);
 
     await BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(60, Currency.compact()));
     expect(BankingApi.balanceOf(CONTRACTOR).minor).toBe(60);
     expect(BankingApi.escrowBalanceOf(CONTRACT).minor).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
-    expect(BankingApi.moneySupply().minor).toBe(100);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(100);
 
     // The ledger rows carry the distinct kinds + the escrow category.
     const legs = await BankingApi.entriesFor(
@@ -68,7 +68,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     await BankingApi.escrowRevert(CONTRACT, ISSUER, Money.of(60, Currency.compact()));
     expect(BankingApi.balanceOf(ISSUER).minor).toBe(100);
     expect(BankingApi.escrowBalanceOf(CONTRACT).minor).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("a hold against insufficient funds refuses before any row is written", async () => {
@@ -145,7 +145,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
       AccountBalance.cached().has(Account.escrowAccountFor(CONTRACT)),
     ).toBe(false);
     // No lingering row for a terminal contract; the audit stays green.
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
     // Idempotent — a second close is a no-op.
     await expect(BankingApi.escrowClose(CONTRACT)).resolves.toBeUndefined();
   });

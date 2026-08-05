@@ -37,11 +37,51 @@
 
 import Thing from "../lib/stuff/Thing";
 import { GlobbableMixin } from "../lib/stuff/Globbable";
+import { SecurityPolicies } from "../lib/security/SecurityPolicies";
+import { CallSecurity, Final, Unshadowable } from "../lib/security/decorators";
 import { Currency } from "../lib/banking/Currency";
 import { Quantity } from "../lib/quantity";
 import type { FieldMeta } from "../lib/mixin";
 
 const CoinBase = GlobbableMixin(Thing);
+
+/**
+ * ⚠⚠ Who may change a coin stack's size — the cash-side conservation gate.
+ *
+ * `setQuantity` on a coin **mints money by assignment**: it moves value with
+ * no ledger row, no conservation check and no error. The ledger has a sealed
+ * chokepoint (`postTransaction`, the single writer); cash, being ordinary
+ * `Stuff`, had nothing equivalent. This closes that asymmetry with the
+ * discipline `Stuff.destroy()` already uses.
+ *
+ * The realistic threat is not an attacker — it is a future contributor's
+ * well-meant feature inflating the supply while nobody notices. This caller
+ * set IS the policy: the glob mechanics (split/merge) and the cash faucet.
+ * Anything else is a design conversation, not a list edit.
+ *
+ * ⚠ Gated **here and not on `GlobbableMixin`**: a glob is not necessarily
+ * money. Gating the mixin would gate every pile of ore and every stack of
+ * apples in the world, which is both wrong and enormously disruptive. The
+ * generalization — a *value-bearing* marker that a scrip token or a bearer
+ * credential could also carry — is the money-integrity slate's own cycle
+ * (docs/slates/builds/money-integrity-slate.md § open question 2). Until
+ * then, `Coin` is the value-bearing glob, and scrip will be a `Coin` with a
+ * different currency, so it inherits this gate for free.
+ */
+const CoinQuantityMutators = SecurityPolicies.AnyOf(
+  // The glob mechanics: split subtracts what it hands out, merge sums what it
+  // absorbs — both conserve by construction.
+  SecurityPolicies.FromModule("/api/glob#GlobbableApi", {
+    includeSubclasses: false,
+  }),
+  SecurityPolicies.FromTemplate("/obj/api/glob"),
+  // The cash faucet: `issueCash` sizes a freshly minted stack, and every mint
+  // it performs is a logged `mint` leg through the conservation chokepoint.
+  SecurityPolicies.FromModule("/api/banking#BankingApi", {
+    includeSubclasses: false,
+  }),
+  SecurityPolicies.FromTemplate("/obj/api/banking"),
+);
 
 export default class Coin extends CoinBase {
   static fieldMeta: FieldMeta = {
@@ -60,6 +100,17 @@ export default class Coin extends CoinBase {
    * its identity within the currency (there is no name).
    */
   public denomination: number = 0;
+
+  /**
+   * ⚠⚠ The cash-side conservation gate — see {@link CoinQuantityMutators}.
+   * Only the glob mechanics and the cash faucet may resize a money stack.
+   */
+  @CallSecurity(CoinQuantityMutators)
+  @Final
+  @Unshadowable
+  public override setQuantity(n: number): void {
+    super.setQuantity(n);
+  }
 
   /** Inter-stuff read of the currency. */
   public getCurrency(): string {

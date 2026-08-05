@@ -83,7 +83,7 @@ describe("Reconciliation invariant", () => {
     const worker = avatar("/obj/Avatar/wenna");
 
     const expectBalanced = (supply: number) => {
-      const r = BankingApi.reconcile();
+      const r = BankingApi.reconcile(Currency.compact());
       expect(r.balanced).toBe(true);
       expect(r.supply).toBe(supply);
       expect(r.accountTotal + r.circulatingCoin).toBe(supply);
@@ -94,20 +94,20 @@ describe("Reconciliation invariant", () => {
       BankingApi.issueCash(alice as never, Money.of(500, Currency.compact()))
     )) as Stuff & Globbable;
     expectBalanced(500);
-    expect(BankingApi.reconcile().circulatingCoin).toBe(500);
+    expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(500);
 
     // 2. open an account + deposit the whole stack → coin into the vault
     const aliceAcct = await asOwner(alice, () =>
-      BankingApi.openAccount("goodkin", "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
     await asOwner(alice, () => BankingApi.deposit(bank, cash));
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(500);
-    expect(BankingApi.reconcile().circulatingCoin).toBe(0); // all in the vault
+    expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(0); // all in the vault
     expectBalanced(500);
 
     // 3. withdraw 200 → coin back into circulation
     await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(200, Currency.compact())));
-    expect(BankingApi.reconcile().circulatingCoin).toBe(200);
+    expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(200);
     expectBalanced(500);
 
     // 4. CB mints 1000 to a merchant account
@@ -118,7 +118,7 @@ describe("Reconciliation invariant", () => {
     await asOwner(alice, () =>
       BankingApi.transfer(aliceAcct, "merchant", Money.of(100, Currency.compact()))
     );
-    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     await BankingApi.payWage("merchant", "/obj/Avatar/wenna", Money.of(50, Currency.compact()));
     expectBalanced(1500);
 
@@ -127,6 +127,6 @@ describe("Reconciliation invariant", () => {
     expectBalanced(1400);
 
     // money supply query
-    expect(BankingApi.moneySupply().minor).toBe(1400);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(1400);
   });
 });

@@ -71,7 +71,11 @@ export default class BankController extends BankingControllerBase<BankModel> {
 
   private async open(bank: Stuff & Bank, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+    await BankingApi.openAccount(
+      bank.getBank(),
+      bank.getCorpoKey(),
+      Currency.compact(),
+    );
     const corpo = CorpoApi.getCorpo(bank.getCorpoKey());
     const house = corpo ? corpo.label : "the bank";
     MessageApi.scene(giver)

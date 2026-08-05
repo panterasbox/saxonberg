@@ -52,7 +52,7 @@ async function fundedPayer(
   const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
   ContainmentApi.move(card, who as never);
   const accountId = await asOwner(who, () =>
-    BankingApi.openAccount(BANK_A, "goodkin")
+    BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
   );
   await BankingApi.mint(accountId, Money.of(funds, Currency.compact()));
   return { who, accountId };
@@ -66,7 +66,10 @@ function coinsIn(holder: Stuff, qty: number): Coin {
     return coin;
   }, "/obj/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
-  c.setQuantity(qty);
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // mechanics and the cash faucet may resize a money stack), so a test
+  // building a starting stack writes the field, it does not mint.
+  c.quantity = qty;
   ContainmentApi.move(c, holder as never);
   return c;
 }
@@ -107,7 +110,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     const alice = avatar("/obj/Avatar/alice");
     const bob = avatar("/obj/Avatar/bob");
     coinsIn(alice, 100);
-    const supplyBefore = BankingApi.moneySupply().minor;
+    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
 
     const charge: Charge = {
       amount: Money.of(40, Currency.compact()),
@@ -126,7 +129,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     ) as Coin[];
     expect(bobCoins.reduce((n, c) => n + c.getQuantity(), 0)).toBe(40);
     // off-ledger: total supply unchanged (coin only moved)
-    expect(BankingApi.moneySupply().minor).toBe(supplyBefore);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore);
   });
 
   it("credential clears on-ledger via the routed account", async () => {
@@ -136,7 +139,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     );
     const bob = avatar("/obj/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne")
+      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
 
     const charge: Charge = {
@@ -164,7 +167,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     coinsIn(alice, 100);
     const bob = avatar("/obj/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne")
+      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
 
     // stated transfer by credential
@@ -209,7 +212,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     );
     const bob = avatar("/obj/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne")
+      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
     // the treasury account row is created on first credit by postTransaction
 

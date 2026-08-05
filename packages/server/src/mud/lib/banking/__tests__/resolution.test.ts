@@ -51,7 +51,7 @@ describe("Account resolution (AC#7, AC#8)", () => {
   it("resolves your account by identity + branch — no number typed", async () => {
     const alice = avatar(ALICE);
     const id = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin")
+      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
     );
     const resolved = await asOwner(alice, () => BankingApi.myAccountAt(BANK_A));
     expect(resolved).toBe(id);
@@ -63,8 +63,8 @@ describe("Account resolution (AC#7, AC#8)", () => {
   it("holds independent accounts across banks; first is primary", async () => {
     const alice = avatar(ALICE);
     const [idA, idB] = await asOwner(alice, async () => {
-      const a = await BankingApi.openAccount(BANK_A, "goodkin");
-      const b = await BankingApi.openAccount(BANK_B, "vionne");
+      const a = await BankingApi.openAccount(BANK_A, "goodkin", Currency.compact());
+      const b = await BankingApi.openAccount(BANK_B, "vionne", Currency.compact());
       return [a, b];
     });
     expect(idA).not.toBe(idB);
@@ -83,10 +83,10 @@ describe("Account resolution (AC#7, AC#8)", () => {
   it("opening again at the same bank is idempotent", async () => {
     const alice = avatar(ALICE);
     const first = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin")
+      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
     );
     const again = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin")
+      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
     );
     expect(again).toBe(first);
   });
@@ -100,10 +100,10 @@ describe("Transfer — identity-addressed, own-account only", () => {
     const alice = avatar(ALICE);
     const bob = avatar(BOB);
     const aliceId = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin")
+      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
     );
     const bobId = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne")
+      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
     await BankingApi.mint(aliceId, Money.of(500, Currency.compact())); // fund alice
 
@@ -121,10 +121,10 @@ describe("Transfer — identity-addressed, own-account only", () => {
     const alice = avatar(ALICE);
     const bob = avatar(BOB);
     const aliceId = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin")
+      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
     );
     const bobId = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne")
+      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
     await BankingApi.mint(aliceId, Money.of(500, Currency.compact()));
 

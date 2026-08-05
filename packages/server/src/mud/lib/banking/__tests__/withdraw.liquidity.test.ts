@@ -61,7 +61,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
     );
     // Credit the balance WITHOUT backing cash (a CB mint to the account) —
     // the account is solvent, but the till holds no coin.
@@ -81,7 +81,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
     );
     // Float the branch with 50 physical coins (the till) ...
     const float = makeStuffAtPath(() => {
@@ -91,7 +91,10 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     return coin;
   }, "/obj/Coin");
     float.setMass(Quantity.of(0.01, "kg"));
-    float.setQuantity(50);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    float.quantity = 50;
     ContainmentApi.move(float, bank as never);
     // ... and credit a larger balance with no further cash.
     await BankingApi.mint(accountId, Money.of(1000, Currency.compact()));

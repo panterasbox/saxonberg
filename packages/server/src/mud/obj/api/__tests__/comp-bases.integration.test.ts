@@ -69,8 +69,7 @@ async function bizAccount(b: BusinessEntity): Promise<string> {
   const acct = await BankingApi.ensureVenueAccount(
     b.getAccountPath(),
     BankingApi.defaultCustodianBank(),
-    "",
-  );
+    "", Currency.compact());
   return acct;
 }
 
@@ -112,7 +111,7 @@ describe("compensation bases", () => {
     );
     const leg = rows.find((r) => r.kind === "wage");
     expect(leg?.category).toBe("piecework");
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("per-settlement refuses a non-employee and a time-basis employee", async () => {
@@ -147,13 +146,11 @@ describe("compensation bases", () => {
     // The splits are exactly the settle's rider shape (real accounts only).
     expect(() =>
       BankTransaction.assertConserving("payment", [
-        { from: payerAcct, to: acct, amount: 40 },
-        {
-          from: payerAcct,
+        { from: payerAcct, to: acct, amount: 40, currency: Currency.compact() },
+        { from: payerAcct,
           to: splits[0]!.accountId,
           amount: splits[0]!.amount.minor,
-          category: splits[0]!.category,
-        },
+          category: splits[0]!.category, currency: Currency.compact() },
       ]),
     ).not.toThrow();
     // And no splits exist for a business with no share-of-flow holder.
@@ -200,6 +197,6 @@ describe("compensation bases", () => {
       }),
     );
     expect(await balanceOfKey(HEWER)).toBe(0);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 });

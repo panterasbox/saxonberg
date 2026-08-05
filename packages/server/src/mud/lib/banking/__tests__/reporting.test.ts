@@ -60,7 +60,7 @@ async function barWith(funds: number): Promise<{
   const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
   ContainmentApi.move(card, operator as never);
   const barAcct = await asOwner(operator, () =>
-    BankingApi.openAccount("goodkin", "goodkin")
+    BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
   );
   if (funds > 0) await BankingApi.mint(barAcct, Money.of(funds, Currency.compact()), "float", "subsidy");
   return { operator, barAcct };
@@ -74,7 +74,7 @@ describe("Wages", () => {
     const { barAcct } = await barWith(1000);
     const worker = avatar("/obj/Avatar/wenna");
     const workerAcct = await asOwner(worker, () =>
-      BankingApi.openAccount("goodkin", "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
 
     await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(80, Currency.compact()));
@@ -129,12 +129,12 @@ describe("Deficit-as-target P&L", () => {
     // The bar starts with a small float; a supplier + a worker + a patron.
     const { operator, barAcct } = await barWith(0);
     const worker = avatar("/obj/Avatar/wenna");
-    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     const patron = avatar("/obj/Avatar/patron");
     const patronCard = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
     ContainmentApi.move(patronCard, patron as never);
     const patronAcct = await asOwner(patron, () =>
-      BankingApi.openAccount("goodkin", "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
     await BankingApi.mint(patronAcct, Money.of(1000, Currency.compact()));
 

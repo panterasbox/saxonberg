@@ -52,7 +52,10 @@ describe("Law 1 — count, don't price (no worth on goods)", () => {
     return coin;
   }, "/obj/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
-    coin.setQuantity(10);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coin.quantity = 10;
     // denomination is identity; there is no worth/value/price on the good
     expect(coin.getCurrency()).toBe("zorkmid");
     expect(coin.getDenomination()).toBe(1);
@@ -83,7 +86,7 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
   it("an idle balance and coin stack are unchanged over a game-clock advance", async () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), "/obj/Avatar/alice");
     const acct = await asOwner(alice, () =>
-      BankingApi.openAccount("/domain/test/bank", "goodkin")
+      BankingApi.openAccount("/domain/test/bank", "goodkin", Currency.compact())
     );
     await BankingApi.mint(acct, Money.of(1000, Currency.compact()));
     const coin = makeStuffAtPath(() => {
@@ -93,7 +96,10 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
     return coin;
   }, "/obj/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
-    coin.setQuantity(50);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coin.quantity = 50;
 
     expect(BankingApi.balanceOf(acct).minor).toBe(1000);
 

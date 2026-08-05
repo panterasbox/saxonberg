@@ -228,8 +228,7 @@ describe("TPA fare settlement (integration)", () => {
     cityAccount = await BankingApi.ensureVenueAccount(
       BIZ,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
   });
   afterEach(() => {
     teardownBankingHarness();
@@ -243,7 +242,7 @@ describe("TPA fare settlement (integration)", () => {
     await fundAccount(t, "alice-acct", 100);
     ContainmentApi.move(t, dRoom);
 
-    const supplyBefore = BankingApi.moneySupply().minor;
+    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
     await ride(t, dRoom);
 
     // fee 15, rate .15, base 1 → networkFee = min(15, 1+floor(2.25)) = 3
@@ -252,8 +251,8 @@ describe("TPA fare settlement (integration)", () => {
     expect(await tpaBal()).toBe(3);
     const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
     expect(t.getContainer()).toBe(rRoom); // arrived
-    expect(BankingApi.moneySupply().minor).toBe(supplyBefore); // no mint
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore); // no mint
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("the TPA collects a non-zero fee on a micro-fare (flat base)", async () => {
@@ -307,15 +306,15 @@ describe("TPA fare settlement (integration)", () => {
       ExecutionContextApi.tagActingAuthor(t as unknown as Stuff);
       await BankingApi.issueCash(t as unknown as Stuff & Container, Money.of(20, Currency.compact()));
     });
-    const supplyBefore = BankingApi.moneySupply().minor;
+    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
 
     await ride(t, dRoom);
     const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
     expect(t.getContainer()).toBe(rRoom); // arrived
     expect(await bal(cityAccount)).toBe(12);
     expect(await tpaBal()).toBe(3);
-    expect(BankingApi.moneySupply().minor).toBe(supplyBefore); // supply-neutral
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore); // supply-neutral
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("an arrival surcharge splits a third operator: total = fee + surcharge", async () => {
@@ -326,8 +325,7 @@ describe("TPA fare settlement (integration)", () => {
     const destAccount = await BankingApi.ensureVenueAccount(
       DEST_BIZ,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
 
     await ride(t, dRoom);
     // total 17: departure city 12 (15−3), TPA 3 (network fee on the fee only),
@@ -338,7 +336,7 @@ describe("TPA fare settlement (integration)", () => {
     expect(await bal(destAccount)).toBe(2);
     const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
     expect(t.getContainer()).toBe(rRoom); // arrived
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("a surcharge with no destination operator refuses the ride", async () => {
@@ -364,8 +362,7 @@ describe("TPA fare settlement (integration)", () => {
     const destAccount = await BankingApi.ensureVenueAccount(
       DEST_BIZ,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
 
     await ride(t, dRoom);
     expect(await bal("heidi-acct")).toBe(98); // −2 (surcharge only)
@@ -374,6 +371,6 @@ describe("TPA fare settlement (integration)", () => {
     expect(await tpaBal()).toBe(0); // no network fee on a free route
     const rRoom = await StuffApi.singleton<Stuff & Container>(R_ROOM);
     expect(t.getContainer()).toBe(rRoom); // arrived
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 });

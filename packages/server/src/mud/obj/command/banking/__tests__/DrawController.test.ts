@@ -74,13 +74,11 @@ describe("DrawController", () => {
     bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     daveAcct = await BankingApi.ensureVenueAccount(
       DAVE,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     await BankingApi.mint(bizAcct, Money.of(200, Currency.compact()));
   });
   afterEach(() => {
@@ -101,7 +99,7 @@ describe("DrawController", () => {
     const rows = await BankingApi.entriesFor(daveAcct);
     const leg = rows.find((r) => r.kind === "draw");
     expect(leg?.category).toBe("draw");
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("a non-proprietor is refused by the participant gate", async () => {

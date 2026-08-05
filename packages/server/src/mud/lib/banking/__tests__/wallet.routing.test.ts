@@ -66,10 +66,10 @@ describe("Wallet routing", () => {
     ContainmentApi.move(card, alice as never);
 
     const acctA = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin")
+      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
     );
     const acctB = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_B, "vionne")
+      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
     await BankingApi.mint(acctA, Money.of(1000, Currency.compact()));
     await BankingApi.mint(acctB, Money.of(1000, Currency.compact()));

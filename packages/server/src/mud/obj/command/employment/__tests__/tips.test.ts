@@ -142,7 +142,10 @@ describe('tips — the tip jar', () => {
     return coin;
   }, '/obj/Coin');
     coins.setMass(Quantity.of(0.01, 'kg'));
-    coins.setQuantity(qty);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coins.quantity = qty;
     ContainmentApi.move(coins, holder as never);
   }
 
@@ -156,7 +159,7 @@ describe('tips — the tip jar', () => {
   it('cash tip moves coin patron→jar, touching no account', async () => {
     const { loc, patron, jar } = scene();
     giveCoin(patron, 100);
-    const supplyBefore = BankingApi.moneySupply().minor;
+    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
 
     await asGiver(patron, () =>
       makeStuff(() => new TipController()).execute(
@@ -170,7 +173,7 @@ describe('tips — the tip jar', () => {
     // Off every ledger — no account created for the server, no ledger
     // movement (cash is off the governed supply).
     expect(await BankingApi.primaryAccountIdOf(MARA)).toBeNull();
-    expect(BankingApi.moneySupply().minor).toBe(supplyBefore);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore);
   });
 
   it('the on-shift bartender collects the whole jar', async () => {
@@ -237,9 +240,9 @@ describe('tips — the tip jar', () => {
     const { loc, patron, bartender } = scene();
     // Both hold accounts; the patron funds theirs with cash.
     const patronAcct = await asGiver(patron, () =>
-      BankingApi.openAccount('goodkin', ''),
+      BankingApi.openAccount('goodkin', '', Currency.compact()),
     );
-    await asGiver(bartender, () => BankingApi.openAccount('goodkin', ''));
+    await asGiver(bartender, () => BankingApi.openAccount('goodkin', '', Currency.compact()));
     giveCoin(patron, 50);
     // Deposit isn't wired here; float the patron's account directly.
     await BankingApi.float(patronAcct, Money.of(50, Currency.compact()));

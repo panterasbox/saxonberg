@@ -108,14 +108,32 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       .send();
   }
 
-  private supply(context: CommandContext): void {
-    const r = BankingApi.reconcile();
-    const body =
-      `Money supply: ${Money.of(r.supply, Currency.compact()).render()}\n` +
-      `  in accounts:  ${Money.of(r.accountTotal, Currency.compact()).render()}\n` +
-      `  in circulation: ${Money.of(r.circulatingCoin, Currency.compact()).render()}\n` +
-      `  cash in existence: ${Money.of(r.cashInExistence, Currency.compact()).render()}\n` +
-      `  reconciliation: ${r.balanced ? "balanced" : "OUT OF BALANCE"}`;
+  /**
+   * One block per registered currency, from the COMPLETE audit — supply
+   * against every reservoir, including vault float and coin captured in
+   * `holder_snapshots`.
+   *
+   * ⚠ It never sums across currencies. There is no rate, so a combined total
+   * would be a number nobody can justify — and asking for one is the first
+   * step toward an exchange this design deliberately refuses.
+   */
+  private async supply(context: CommandContext): Promise<void> {
+    const blocks: string[] = [];
+    for (const record of Currency.all()) {
+      const c = record.key;
+      const r = await BankingApi.fullReconcile(c);
+      const amount = (minor: number): string => Money.of(minor, c).render();
+      blocks.push(
+        `Money supply (${record.plural}): ${amount(r.supply)}\n` +
+          `  in accounts:       ${amount(r.accountTotal)}\n` +
+          `  in circulation:    ${amount(r.circulatingCoin)}\n` +
+          `  in bank vaults:    ${amount(r.vaultCoin)}\n` +
+          `  held offline:      ${amount(r.snapshotCoin)}\n` +
+          `  cash in existence: ${amount(r.cashInExistence)}\n` +
+          `  reconciliation: ${r.fullyBalanced ? "balanced" : "OUT OF BALANCE"}`,
+      );
+    }
+    const body = blocks.join("\n\n");
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(Mml.compose`${body}`).send();
   }
 }

@@ -112,8 +112,7 @@ describe("contract lifecycle", () => {
       BankingApi.ensureVenueAccount(
         ISSUER,
         BankingApi.defaultCustodianBank(),
-        "",
-      ),
+        "", Currency.compact()),
     );
     await BankingApi.mint(issuerAcct, Money.of(100, Currency.compact()));
     // The couriers live under /obj/Avatar/ — the PLAYER namespace — so per
@@ -123,8 +122,7 @@ describe("contract lifecycle", () => {
       await BankingApi.ensureVenueAccount(
         key,
         BankingApi.defaultCustodianBank(),
-        "",
-      );
+        "", Currency.compact());
     }
   });
   afterEach(() => {
@@ -150,7 +148,7 @@ describe("contract lifecycle", () => {
     // Exclusive: escrow held at claim.
     expect(BankingApi.balanceOf(issuerAcct).minor).toBe(100 - REWARD);
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(REWARD);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
 
     deliver();
     // NOTHING settles on the move itself — no ambient detection.
@@ -167,7 +165,7 @@ describe("contract lifecycle", () => {
       (d) => d.accountId === `escrow:contract:${id}`,
     );
     expect(escrowRow).toBeUndefined();
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
 
     const record = await ContractApi.contractById(id);
     expect(record?.state).toBe("settled");
@@ -193,7 +191,7 @@ describe("contract lifecycle", () => {
 
     const done = await as(courier, () => ContractApi.complete(id));
     expect(done).toEqual({ ok: true, paidMinor: REWARD });
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("capture refusals: not-done / still-carried / away / duplicate / not-your-claim", async () => {
@@ -291,7 +289,7 @@ describe("contract lifecycle", () => {
     expect(events).toContain("breached");
     expect(events).toContain("released-back");
     expect(RegardApi.getRegard(issuer, courier)).toBe(-15);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("abandon: same breach consequences, then a re-claim can succeed", async () => {
@@ -321,7 +319,7 @@ describe("contract lifecycle", () => {
     expect(
       (await ContractApi.eventsFor(id)).map((e) => e.event),
     ).toContain("reverted");
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("open-bounty: escrow at post, no claim step, first verified completer paid, terminal guard", async () => {
@@ -348,7 +346,7 @@ describe("contract lifecycle", () => {
       ok: false,
       reason: expect.stringMatching(/closed/),
     });
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("a fulfilled row redeems only for its own actor (bounty)", async () => {
@@ -434,8 +432,7 @@ describe("contract lifecycle", () => {
     const bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     await BankingApi.mint(bizAcct, Money.of(100, Currency.compact()));
 
     const posted = await as(dave, () =>
@@ -459,7 +456,7 @@ describe("contract lifecycle", () => {
       paidMinor: REWARD,
     });
     expect(await balanceOfKey(COURIER)).toBe(REWARD);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("an unbanked player completer is refused before the terminal flip", async () => {
@@ -483,8 +480,7 @@ describe("contract lifecycle", () => {
     await BankingApi.ensureVenueAccount(
       "/obj/Avatar/walkin",
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     expect(await as(walkin, () => ContractApi.complete(id))).toEqual({
       ok: true,
       paidMinor: REWARD,
@@ -498,6 +494,6 @@ describe("contract lifecycle", () => {
     for (const row of [...col(Collections.BankLedger).values()]) {
       expect(LEDGER_KINDS).toContain(row.kind);
     }
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 });

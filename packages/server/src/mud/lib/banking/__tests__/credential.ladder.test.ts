@@ -66,7 +66,7 @@ async function pocket(
   const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
   ContainmentApi.move(card, alice as never);
   const accountId = await asOwner(alice, () =>
-    BankingApi.openAccount(BANK_A, "goodkin")
+    BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
   ); // auto-links + active on the carried card
   await BankingApi.mint(accountId, Money.of(funds, Currency.compact()));
   card.getCredential("payment")!.setSpendCap(cap);

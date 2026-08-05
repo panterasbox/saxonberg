@@ -330,6 +330,7 @@ async function operatingAccountOfImpl(
     business.getAccountPath(),
     banksAt,
     '',
+    Currency.compact(),
   );
 }
 
@@ -350,7 +351,14 @@ async function ensurePayableWorker(
   if (live && PlayerApi.isAvatarStuff(live)) return false;
   const banksAt = business.getBanksAt();
   if (!banksAt) return false;
-  await BankingApi.ensureVenueAccount(employeeKey, banksAt, '');
+  // A worker's first account opens in the PAYER's currency — which is how
+  // company-scrip wages will eventually work. Nothing else here is scrip.
+  await BankingApi.ensureVenueAccount(
+    employeeKey,
+    banksAt,
+    '',
+    Currency.compact(),
+  );
   return true;
 }
 

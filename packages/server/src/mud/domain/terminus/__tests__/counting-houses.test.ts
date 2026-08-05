@@ -170,15 +170,15 @@ describe("Goodkin — the new-player money arc", () => {
     );
     const counter = makeCounter();
     const alice = avatar(ALICE);
-    await asOwner(alice, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(alice, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     // Coin in the till, backed by the branch's own operating balance.
     expect(counter.getTillLiquidity().minor).toBe(500);
-    const branch = await BankingApi.ensureVenueAccount(COUNTER_PATH, "goodkin", "goodkin");
+    const branch = await BankingApi.ensureVenueAccount(COUNTER_PATH, "goodkin", "goodkin", Currency.compact());
     expect(BankingApi.balanceOf(branch).minor).toBe(500);
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
     // Idempotent — a second customer's open doesn't re-seed the float.
     const bob = avatar("/obj/Avatar/bob");
-    await asOwner(bob, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(bob, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     expect(counter.getTillLiquidity().minor).toBe(500);
   });
 
@@ -190,7 +190,7 @@ describe("Goodkin — the new-player money arc", () => {
       BankingApi.issueCash(alice as never, Money.of(20, Currency.compact())),
     )) as Stuff;
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount("goodkin", "goodkin");
+      const id = await BankingApi.openAccount("goodkin", "goodkin", Currency.compact());
       await BankingApi.deposit(counter, cash as never);
       return id;
     });
@@ -217,7 +217,7 @@ describe("Goodkin — the new-player money arc", () => {
       BankingApi.issueCash(alice as never, Money.of(100, Currency.compact())),
     )) as Stuff;
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount("goodkin", "goodkin");
+      const id = await BankingApi.openAccount("goodkin", "goodkin", Currency.compact());
       await BankingApi.deposit(counter, cash as never);
       return id;
     });

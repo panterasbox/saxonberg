@@ -22,7 +22,7 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
   it("throws when a transfer leg touches the issuance sentinel (money from nowhere)", () => {
     expect(() =>
       BankTransaction.assertConserving("transfer", [
-        { from: Account.ISSUANCE, to: "acct-a", amount: 100 },
+        { from: Account.ISSUANCE, to: "acct-a", amount: 100, currency: Currency.compact() },
       ])
     ).toThrow(/move between real accounts/);
   });
@@ -30,7 +30,7 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
   it("throws when a payment leg drains to the cash bridge", () => {
     expect(() =>
       BankTransaction.assertConserving("payment", [
-        { from: "acct-a", to: Account.CASH_BRIDGE, amount: 100 },
+        { from: "acct-a", to: Account.CASH_BRIDGE, amount: 100, currency: Currency.compact() },
       ])
     ).toThrow(/move between real accounts/);
   });
@@ -38,12 +38,12 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
   it("throws on a non-positive or non-integer amount", () => {
     expect(() =>
       BankTransaction.assertConserving("transfer", [
-        { from: "a", to: "b", amount: 0 },
+        { from: "a", to: "b", amount: 0, currency: Currency.compact() },
       ])
     ).toThrow(/positive integer/);
     expect(() =>
       BankTransaction.assertConserving("transfer", [
-        { from: "a", to: "b", amount: 1.5 },
+        { from: "a", to: "b", amount: 1.5, currency: Currency.compact() },
       ])
     ).toThrow(/positive integer/);
   });
@@ -51,7 +51,7 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
   it("throws when a mint isn't sourced from issuance", () => {
     expect(() =>
       BankTransaction.assertConserving("mint", [
-        { from: "acct-a", to: "acct-b", amount: 100 },
+        { from: "acct-a", to: "acct-b", amount: 100, currency: Currency.compact() },
       ])
     ).toThrow(/'mint' leg must be sourced from issuance/);
   });
@@ -59,27 +59,27 @@ describe("BankTransaction.assertConserving — the throwing rule", () => {
   it("accepts a well-formed transfer / mint / drain / deposit / withdraw", () => {
     expect(() =>
       BankTransaction.assertConserving("transfer", [
-        { from: "a", to: "b", amount: 10 },
+        { from: "a", to: "b", amount: 10, currency: Currency.compact() },
       ])
     ).not.toThrow();
     expect(() =>
       BankTransaction.assertConserving("mint", [
-        { from: Account.ISSUANCE, to: "a", amount: 10 },
+        { from: Account.ISSUANCE, to: "a", amount: 10, currency: Currency.compact() },
       ])
     ).not.toThrow();
     expect(() =>
       BankTransaction.assertConserving("drain", [
-        { from: "a", to: Account.ISSUANCE, amount: 10 },
+        { from: "a", to: Account.ISSUANCE, amount: 10, currency: Currency.compact() },
       ])
     ).not.toThrow();
     expect(() =>
       BankTransaction.assertConserving("deposit", [
-        { from: Account.CASH_BRIDGE, to: "a", amount: 10 },
+        { from: Account.CASH_BRIDGE, to: "a", amount: 10, currency: Currency.compact() },
       ])
     ).not.toThrow();
     expect(() =>
       BankTransaction.assertConserving("withdraw", [
-        { from: "a", to: Account.CASH_BRIDGE, amount: 10 },
+        { from: "a", to: Account.CASH_BRIDGE, amount: 10, currency: Currency.compact() },
       ])
     ).not.toThrow();
   });
@@ -91,17 +91,17 @@ describe("the escrow/draw kinds — real accounts only (the audit's new rows)", 
     (kind) => {
       expect(() =>
         BankTransaction.assertConserving(kind, [
-          { from: Account.ISSUANCE, to: "acct-a", amount: 100 },
+          { from: Account.ISSUANCE, to: "acct-a", amount: 100, currency: Currency.compact() },
         ])
       ).toThrow(/move between real accounts/);
       expect(() =>
         BankTransaction.assertConserving(kind, [
-          { from: "acct-a", to: Account.CASH_BRIDGE, amount: 100 },
+          { from: "acct-a", to: Account.CASH_BRIDGE, amount: 100, currency: Currency.compact() },
         ])
       ).toThrow(/move between real accounts/);
       expect(() =>
         BankTransaction.assertConserving(kind, [
-          { from: "acct-a", to: "acct-b", amount: 100 },
+          { from: "acct-a", to: "acct-b", amount: 100, currency: Currency.compact() },
         ])
       ).not.toThrow();
     }
@@ -114,18 +114,18 @@ describe("the leg-kind vocabulary — no untyped legs", () => {
     // either accepts a well-formed leg or refuses it with its own rule —
     // never the fall-through error. Drive each kind with its correct shape.
     const wellFormed: Record<(typeof LEDGER_KINDS)[number], LedgerLeg> = {
-      mint: { from: Account.ISSUANCE, to: "a", amount: 1 },
-      drain: { from: "a", to: Account.ISSUANCE, amount: 1 },
-      deposit: { from: Account.CASH_BRIDGE, to: "a", amount: 1 },
-      withdraw: { from: "a", to: Account.CASH_BRIDGE, amount: 1 },
-      transfer: { from: "a", to: "b", amount: 1 },
-      payment: { from: "a", to: "b", amount: 1 },
-      wage: { from: "a", to: "b", amount: 1 },
-      tax: { from: "a", to: "b", amount: 1 },
-      "escrow-hold": { from: "a", to: "b", amount: 1 },
-      "escrow-release": { from: "a", to: "b", amount: 1 },
-      "escrow-revert": { from: "a", to: "b", amount: 1 },
-      draw: { from: "a", to: "b", amount: 1 },
+      mint: { from: Account.ISSUANCE, to: "a", amount: 1, currency: Currency.compact() },
+      drain: { from: "a", to: Account.ISSUANCE, amount: 1, currency: Currency.compact() },
+      deposit: { from: Account.CASH_BRIDGE, to: "a", amount: 1, currency: Currency.compact() },
+      withdraw: { from: "a", to: Account.CASH_BRIDGE, amount: 1, currency: Currency.compact() },
+      transfer: { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      payment: { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      wage: { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      tax: { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      "escrow-hold": { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      "escrow-release": { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      "escrow-revert": { from: "a", to: "b", amount: 1, currency: Currency.compact() },
+      draw: { from: "a", to: "b", amount: 1, currency: Currency.compact() },
     };
     for (const kind of LEDGER_KINDS) {
       expect(() =>
@@ -137,7 +137,7 @@ describe("the leg-kind vocabulary — no untyped legs", () => {
   it("an out-of-vocabulary kind is refused outright (the backstop)", () => {
     expect(() =>
       BankTransaction.assertConserving("bribe" as never, [
-        { from: "a", to: "b", amount: 1 },
+        { from: "a", to: "b", amount: 1, currency: Currency.compact() },
       ])
     ).toThrow(/no counterparty rule/);
   });
@@ -145,12 +145,14 @@ describe("the leg-kind vocabulary — no untyped legs", () => {
 
 describe("BankTransaction.supplyDelta — only mint/drain change supply", () => {
   it("mint adds, drain removes, everything else is neutral", () => {
-    const legs = [{ from: "a", to: "b", amount: 100 }];
+    const legs = [{ from: "a", to: "b", amount: 100, currency: Currency.compact() }];
     expect(BankTransaction.supplyDelta("mint", legs)).toEqual({
+      currency: Currency.compact(),
       minted: 100,
       drained: 0,
     });
     expect(BankTransaction.supplyDelta("drain", legs)).toEqual({
+      currency: Currency.compact(),
       minted: 0,
       drained: 100,
     });
@@ -167,7 +169,8 @@ describe("BankTransaction.supplyDelta — only mint/drain change supply", () => 
       "draw",
     ] as const) {
       expect(BankTransaction.supplyDelta(kind, legs)).toEqual({
-        minted: 0,
+        currency: Currency.compact(),
+      minted: 0,
         drained: 0,
       });
     }
@@ -179,12 +182,12 @@ describe("BankingApi — supply under a mixed mint/drain sequence", () => {
   afterEach(() => teardownBankingHarness());
 
   it("supply tracks Σ mints − Σ drains", async () => {
-    expect(BankingApi.moneySupply().minor).toBe(0);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(0);
     await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
     await BankingApi.mint("acct-b", Money.of(500, Currency.compact()));
-    expect(BankingApi.moneySupply().minor).toBe(1500);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(1500);
     await BankingApi.drain("acct-a", Money.of(300, Currency.compact()));
-    expect(BankingApi.moneySupply().minor).toBe(1200);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(1200);
   });
 
   it("refuses to drain more than an account holds (would destroy absent money)", async () => {
@@ -193,6 +196,6 @@ describe("BankingApi — supply under a mixed mint/drain sequence", () => {
       /holds less than/
     );
     // supply unchanged by the rejected drain
-    expect(BankingApi.moneySupply().minor).toBe(100);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(100);
   });
 });

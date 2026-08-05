@@ -34,7 +34,7 @@ describe("BankingApi — supply query + reconciliation", () => {
     await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
     await BankingApi.mint("acct-b", Money.of(400, Currency.compact()));
     await BankingApi.drain("acct-b", Money.of(150, Currency.compact()));
-    expect(BankingApi.moneySupply().minor).toBe(1250);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(1250);
   });
 
   it("reconciles: supply == Σ account balances (Phase-1, no coin bridge)", async () => {
@@ -43,20 +43,20 @@ describe("BankingApi — supply query + reconciliation", () => {
     await BankingApi.drain("acct-a", Money.of(200, Currency.compact()));
     // transfers conserve, so move some between accounts via two postings is
     // a Phase-2 op; here mint/drain/float already exercise both sign changes.
-    expect(BankingApi.moneySupply().minor).toBe(sumBalances());
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(sumBalances());
   });
 
   it("recomputeSupply rebuilds the headline from the ledger", async () => {
     await BankingApi.mint("acct-a", Money.of(900, Currency.compact()));
     await BankingApi.drain("acct-a", Money.of(100, Currency.compact()));
-    const before = BankingApi.moneySupply().minor;
+    const before = BankingApi.moneySupply(Currency.compact()).minor;
 
     // Corrupt the aggregate + drop the mirror; only the ledger is truth.
     col(Collections.BankSupply).clear();
     SupplyAggregate._resetForTesting();
-    expect(BankingApi.moneySupply().minor).toBe(0);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(0);
 
     await BankingApi.recomputeSupply();
-    expect(BankingApi.moneySupply().minor).toBe(before);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(before);
   });
 });

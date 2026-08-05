@@ -62,7 +62,10 @@ function makeCoinsIn(holder: Stuff, qty: number): Coin {
     coin.denomination = 1;
     return coin;
   }, "/obj/Coin");
-  c.setQuantity(qty);
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // mechanics and the cash faucet may resize a money stack), so a test
+  // building a starting stack writes the field, it does not mint.
+  c.quantity = qty;
   ContainmentApi.move(c, holder as never);
   return c;
 }
@@ -124,7 +127,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     await asOwner(alice, async () => {
-      await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
     });
     // The vault now holds the coin. A loose grab is vetoed by till security.
@@ -158,7 +161,7 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
       return id;
     });
@@ -184,7 +187,7 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
       return id;
     });
@@ -212,15 +215,15 @@ describe("Fees + corpo royalty — conserved, split to the treasury", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins); // credits 100, then a 10 fee
       return id;
     });
     // Customer paid the 10 fee out of the 100 deposited.
     expect(BankingApi.balanceOf(acct).minor).toBe(90);
     // 50% royalty → the Goodkin treasury; the rest → the branch account.
-    const treasury = await BankingApi.ensureCorpoTreasury("goodkin", "goodkin");
-    const branch = await BankingApi.ensureVenueAccount(BANK_PATH, "goodkin", "goodkin");
+    const treasury = await BankingApi.ensureCorpoTreasury("goodkin", "goodkin", Currency.compact());
+    const branch = await BankingApi.ensureVenueAccount(BANK_PATH, "goodkin", "goodkin", Currency.compact());
     expect(BankingApi.balanceOf(treasury).minor).toBe(5);
     expect(BankingApi.balanceOf(branch).minor).toBe(5);
     // The fee split conserves: customer −10, branch +5, treasury +5.

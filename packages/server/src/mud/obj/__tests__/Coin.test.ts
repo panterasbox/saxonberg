@@ -48,7 +48,10 @@ function makeCoins(qty: number, denom = 1, currency = "zorkmid"): Coin {
     coin.denomination = denom;
     return coin;
   }, COIN_PATH);
-  c.setQuantity(qty);
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // mechanics and the cash faucet may resize a money stack), so a test
+  // building a starting stack writes the field, it does not mint.
+  c.quantity = qty;
   return c;
 }
 

@@ -577,7 +577,12 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
     if (!custodian) {
       return { ok: false, reason: "the stake's bank can't be resolved" };
     }
-    payee = await BankingApi.ensureVenueAccount(key, custodian, "");
+    payee = await BankingApi.ensureVenueAccount(
+      key,
+      custodian,
+      "",
+      Currency.compact(),
+    );
   }
 
   // The compare-and-set state guard: re-read, flip terminal, save — a

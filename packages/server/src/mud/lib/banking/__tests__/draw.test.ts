@@ -46,8 +46,7 @@ describe("BankingApi.payDraw", () => {
       BankingApi.ensureVenueAccount(
         DAVE,
         BankingApi.defaultCustodianBank(),
-        "",
-      ),
+        "", Currency.compact()),
     );
     await BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(200, Currency.compact()));
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(300);
@@ -56,7 +55,7 @@ describe("BankingApi.payDraw", () => {
     const draw = rows.find((r) => r.kind === "draw");
     expect(draw).toBeDefined();
     expect(draw?.category).toBe("draw");
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 
   it("refuses when the business balance is short (solvency-checked)", async () => {
@@ -65,8 +64,7 @@ describe("BankingApi.payDraw", () => {
       BankingApi.ensureVenueAccount(
         DAVE,
         BankingApi.defaultCustodianBank(),
-        "",
-      ),
+        "", Currency.compact()),
     );
     await expect(
       BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(51, Currency.compact())),
@@ -86,8 +84,7 @@ describe("BankingApi.payDraw", () => {
     const workerAcct = await BankingApi.ensureVenueAccount(
       worker,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     // Business holds nothing — the wage is owed regardless (CB subsidizes).
     await BankingApi.payWage(BIZ_ACCT, worker, Money.of(75, Currency.compact()));
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(-75);

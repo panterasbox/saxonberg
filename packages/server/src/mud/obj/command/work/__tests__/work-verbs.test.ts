@@ -118,8 +118,7 @@ describe("work verbs", () => {
       BankingApi.ensureVenueAccount(
         POSTER,
         BankingApi.defaultCustodianBank(),
-        "",
-      ),
+        "", Currency.compact()),
     );
     await BankingApi.mint(acct, Money.of(100, Currency.compact()));
     // The courier is a player (the /obj/Avatar/ namespace): players hold
@@ -127,8 +126,7 @@ describe("work verbs", () => {
     await BankingApi.ensureVenueAccount(
       COURIER,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
   });
   afterEach(() => {
     vi.restoreAllMocks();

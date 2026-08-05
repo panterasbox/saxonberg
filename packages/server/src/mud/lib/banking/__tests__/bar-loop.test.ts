@@ -89,12 +89,11 @@ describe("The bar money loop (end to end)", () => {
     const barAcct = await BankingApi.ensureVenueAccount(
       BAR,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
 
     // 1. open an account + deposit cash
     const patronAcct = await asOwner(patron, () =>
-      BankingApi.openAccount("goodkin", "goodkin")
+      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
     const cash = (await asOwner(patron, () =>
       BankingApi.issueCash(patron as never, Money.of(300, Currency.compact()))
@@ -115,7 +114,7 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
 
     // 3. the bar pays a wage that exceeds its takings → it runs RED
-    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(150, Currency.compact()));
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
 
@@ -131,6 +130,6 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
 
     // 6. the conservation invariant holds across the whole loop
-    expect(BankingApi.reconcile().balanced).toBe(true);
+    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
   });
 });
