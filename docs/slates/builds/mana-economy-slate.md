@@ -22,7 +22,7 @@ conservation of energy.**
 
 Related: [arcane-science.md](../../arcane-science.md) (**the postulate, the
 budget, the price list — read it first**),
-[magic-items-slate](./magic-items-slate.md) (⭐ **the charge economy; most
+[magic-items-slate](../tails/magic-items-slate.md) (⭐ **the charge economy; most
 of this slate's guards are already in it**),
 [magic.md](../../subsystems/magic.md),
 [fasttravel.md](../../subsystems/fasttravel.md) (the TPA — the marquee
@@ -50,7 +50,7 @@ a mage is a worse prime mover than their own legs — therefore magic could
 never matter economically.
 
 **That is true of a caster and false of magic**, and
-[magic-items-slate](./magic-items-slate.md) already draws the line:
+[magic-items-slate](../tails/magic-items-slate.md) already draws the line:
 
 | | supplies | ceiling |
 |---|---|---|
@@ -498,7 +498,7 @@ it* — and the cost is a clock, which is the story. It also mints the
 **dead battery**: a failure that is nobody's fault and is recoverable.
 
 > ⭐⭐ **Cheapest possible implementation: a capacitor is a CHARGED ITEM with
-> no spell attached.** [magic-items-slate](./magic-items-slate.md) already
+> no spell attached.** [magic-items-slate](../tails/magic-items-slate.md) already
 > ships charge, self-discharge and *"you find shells; you buy charge."* A
 > mana cell is that object with its specification set to *hold and release*.
 > **Nothing new is required.**
