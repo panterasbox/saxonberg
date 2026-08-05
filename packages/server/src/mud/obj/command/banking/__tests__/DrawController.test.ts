@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import DrawController from "../DrawController";
 import BusinessEntity from "../../../Business";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { MessageApi } from "../../../../api/message";
 import { ExecutionContextApi } from "../../../../api/execution-context";
 import { Idea } from "../../../../lib/stuff/Idea";
@@ -81,7 +81,7 @@ describe("DrawController", () => {
       BankingApi.defaultCustodianBank(),
       "",
     );
-    await BankingApi.mint(bizAcct, Money.of(200));
+    await BankingApi.mint(bizAcct, Money.of(200, Currency.compact()));
   });
   afterEach(() => {
     vi.restoreAllMocks();

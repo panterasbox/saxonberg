@@ -2,8 +2,8 @@
  * Coin — the physical cash object. Covers the AC#1 guarantees:
  *   - it is a Globbable with mass (count / split / merge work);
  *   - a stack's total mass = per-coin mass × quantity, where the per-coin mass
- *     is DERIVED from the denomination ({@link Coinage.perCoinMass}) so a
- *     25-credit sovereign is heavier per coin than a 1-credit piece;
+ *     is DERIVED from `(currency, denomination)` ({@link Currency.perCoinMass})
+ *     so a 25-value coin is heavier per coin than a 1-value piece;
  *   - a large stack measurably reduces carry capacity through the shipped
  *     `LoadBearing` gauge (the cap on cash is the honest physics).
  */
@@ -41,9 +41,10 @@ class TestContainer extends ContainerMixin(ContainableMixin(Idea)) {
  * A registered Coin stack of `qty` of `denom`. Per-coin mass is derived from
  * the denomination (not set here) — that is the point of the coinage model.
  */
-function makeCoins(qty: number, denom = "credit"): Coin {
+function makeCoins(qty: number, denom = 1, currency = "zorkmid"): Coin {
   const c = makeStuffAtPath(() => {
     const coin = new Coin();
+    coin.currency = currency;
     coin.denomination = denom;
     return coin;
   }, COIN_PATH);
@@ -72,7 +73,7 @@ describe("Coin — composition", () => {
   it("counts: getQuantity reflects the stack size", () => {
     const c = makeCoins(50);
     expect(c.getQuantity()).toBe(50);
-    expect(c.getDenomination()).toBe("credit");
+    expect(c.getDenomination()).toBe(1);
   });
 });
 
@@ -81,21 +82,21 @@ describe("Coin — mass scales with the stack and the denomination", () => {
   afterEach(() => StuffApi.clearAll());
 
   it("getMass() = per-coin (denomination) mass × quantity", () => {
-    expect(makeCoins(1, "credit").getMass().rawValue()).toBeCloseTo(CREDIT_KG);
-    expect(makeCoins(1000, "credit").getMass().rawValue()).toBeCloseTo(
+    expect(makeCoins(1).getMass().rawValue()).toBeCloseTo(CREDIT_KG);
+    expect(makeCoins(1000).getMass().rawValue()).toBeCloseTo(
       1000 * CREDIT_KG, // 2 kg
     );
   });
 
-  it("a higher denomination is heavier per coin, lighter per credit", () => {
-    // 25 credits: one sovereign (8 g) vs twenty-five 1-credit coins (50 g).
-    const oneSovereign = makeCoins(1, "sovereign").getMass().rawValue();
-    const twentyFiveCredits = makeCoins(25, "credit").getMass().rawValue();
+  it("a higher denomination is heavier per coin, lighter per unit", () => {
+    // 25 zorkmids: one 25-coin (8 g) vs twenty-five 1-coins (50 g).
+    const oneSovereign = makeCoins(1, 25).getMass().rawValue();
+    const twentyFiveCredits = makeCoins(25).getMass().rawValue();
     expect(oneSovereign).toBeCloseTo(SOVEREIGN_KG);
     expect(twentyFiveCredits).toBeCloseTo(25 * CREDIT_KG);
     expect(oneSovereign).toBeLessThan(twentyFiveCredits); // value-density
     // Crown sits between.
-    expect(makeCoins(1, "crown").getMass().rawValue()).toBeCloseTo(CROWN_KG);
+    expect(makeCoins(1, 5).getMass().rawValue()).toBeCloseTo(CROWN_KG);
   });
 });
 
@@ -111,17 +112,22 @@ describe("Coin — split / merge", () => {
     // test doesn't need the domain collection (the glob.test precedent).
     // No setMass needed — mass derives from the copied `denomination`.
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-      return makeStuffAtPath(() => new Coin(), path);
+      return makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     }) as unknown as typeof StuffApi.clone);
 
-    const stack = makeCoins(100, "sovereign");
+    const stack = makeCoins(100, 25);
     const env = makeStuff(() => new TestContainer());
     ContainmentApi.move(stack, env);
 
     const splitoff = await asApiCaller(() => GlobbableApi.split(stack, 30));
     expect((splitoff as Coin).getQuantity()).toBe(30);
     expect(stack.getQuantity()).toBe(70);
-    expect((splitoff as Coin).getDenomination()).toBe("sovereign");
+    expect((splitoff as Coin).getDenomination()).toBe(25);
     // per-coin mass intact → stack masses reflect the new counts
     expect((splitoff as Coin).getMass().rawValue()).toBeCloseTo(
       30 * SOVEREIGN_KG,
@@ -130,11 +136,11 @@ describe("Coin — split / merge", () => {
   });
 
   it("merges same-denomination stacks; refuses different denominations", () => {
-    const a = makeCoins(10, "credit");
-    const b = makeCoins(5, "credit");
+    const a = makeCoins(10);
+    const b = makeCoins(5);
     expect(a.canMergeWith(b)).toBe(true);
 
-    const other = makeCoins(5, "crown");
+    const other = makeCoins(5, 5);
     expect(a.canMergeWith(other)).toBe(false);
   });
 });
@@ -145,11 +151,11 @@ describe("Coin — mass → encumbrance coupling (AC#1)", () => {
 
   it("a large stack measurably reduces carry capacity headroom", () => {
     const small = bearerCreature(70);
-    ContainmentApi.move(makeCoins(10, "credit"), small);
+    ContainmentApi.move(makeCoins(10), small);
     const smallRatio = small.getLoadRatio();
 
     const big = bearerCreature(70);
-    ContainmentApi.move(makeCoins(100_000, "credit"), big); // 200 kg of coin
+    ContainmentApi.move(makeCoins(100_000), big); // 200 kg of coin
     const bigRatio = big.getLoadRatio();
 
     // Same bearer physiology; only the coin count differs. The heavy stack

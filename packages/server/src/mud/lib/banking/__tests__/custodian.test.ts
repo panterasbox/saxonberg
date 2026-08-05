@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
@@ -147,8 +147,8 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     await seedRow({ accountId: "acct-worker", owner: "/obj/Avatar/wenna", bankPath: "", balance: 25 });
     await seedRow({ accountId: "acct-cust", owner: "/obj/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
     await seedRow({ accountId: "acct-corpo", owner: "corpo:goodkin", bankPath: LIVE_BANK_PATH, balance: 40, corpoKey: "goodkin" });
-    await BankingApi.mint("acct-sink", Money.of(735));
-    await BankingApi.drain("acct-sink", Money.of(735));
+    await BankingApi.mint("acct-sink", Money.of(735, Currency.compact()));
+    await BankingApi.drain("acct-sink", Money.of(735, Currency.compact()));
     const supplyBefore = BankingApi.moneySupply().minor;
 
     await BankingApi.boot();

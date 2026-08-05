@@ -49,6 +49,7 @@ import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
 import type { Globbable } from "../../lib/stuff/Globbable";
+import { Currency } from "../../lib/banking/Currency";
 
 const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 );
@@ -131,13 +132,16 @@ function actingPrincipal(): Stuff | null {
 
 /** Coin-shaped duck type — avoids importing the Coin class here. */
 interface CashLike {
-  getDenomination(): string;
+  getCurrency(): string;
+  /** Face value in minor units — the denomination's identity. */
+  getDenomination(): number;
   getQuantity(): number;
 }
 
 function isCashLike(stuff: unknown): stuff is Stuff & Globbable & CashLike {
   const s = stuff as Partial<CashLike>;
   return (
+    typeof s?.getCurrency === "function" &&
     typeof s?.getDenomination === "function" &&
     typeof s?.getQuantity === "function"
   );
@@ -145,7 +149,10 @@ function isCashLike(stuff: unknown): stuff is Stuff & Globbable & CashLike {
 
 /** The face value (minor units) of a coin stack. */
 function stackValue(stack: CashLike): number {
-  return Money.faceValueOf(stack.getDenomination()) * stack.getQuantity();
+  return (
+    Currency.faceValueOf(stack.getCurrency(), stack.getDenomination()) *
+    stack.getQuantity()
+  );
 }
 
 /** Find every account owned by `ownerKey`. */
@@ -221,7 +228,7 @@ async function openAccountImpl(
   const floatMinor = openingFloatMinor();
   const branch = findBranchOf(bank);
   if (floatMinor > 0 && branch) {
-    await seedFloatImpl(branch, Money.of(floatMinor)).catch(() => {
+    await seedFloatImpl(branch, Money.of(floatMinor, Currency.compact())).catch(() => {
       /* best-effort — a float failure never blocks opening an account */
     });
   }
@@ -316,12 +323,17 @@ async function ensureVenueAccountImpl(
   return row.accountId;
 }
 
-/** The cash-like contents of a container, grouped by denomination (per-stack). */
-function cashSupply(holder: Stuff & Container): CoinSupply[] {
+/**
+ * The cash-like contents of a container, grouped per stack. Filtered to one
+ * currency: a payer holding two currencies pays in the one the charge names,
+ * and a till makes change only out of its own money.
+ */
+function cashSupply(holder: Stuff & Container, currency: string): CoinSupply[] {
   const supply: CoinSupply[] = [];
   for (const item of holder.getContents()) {
-    if (isCashLike(item)) {
+    if (isCashLike(item) && item.getCurrency() === currency) {
       supply.push({
+        currency,
         denomination: item.getDenomination(),
         quantity: item.getQuantity(),
       });
@@ -374,8 +386,9 @@ async function moveCoins(
   from: Stuff & Container,
   to: Stuff & Container,
   value: number,
+  currency: string,
 ): Promise<boolean> {
-  const plan = Coinage.planSpend(cashSupply(from), value);
+  const plan = Coinage.planSpend(currency, cashSupply(from, currency), value);
   if (!plan) return false;
   return takeCoins(from, plan, (piece) => ContainmentApi.move(piece, to));
 }
@@ -399,8 +412,13 @@ function cashOnHand(holder: Stuff & Container): number {
 async function drainCoins(
   holder: Stuff & Container,
   value: number,
+  currency: string,
 ): Promise<boolean> {
-  const plan = Coinage.planSpend(cashSupply(holder), value);
+  const plan = Coinage.planSpend(
+    currency,
+    cashSupply(holder, currency),
+    value,
+  );
   if (!plan) return false;
   return takeCoins(holder, plan, (piece) =>
     StuffApi.destruct(piece as unknown as Stuff),
@@ -676,6 +694,7 @@ async function settleImpl(
         payer as Stuff & Container,
         charge.payeeContainer,
         charge.amount.minor,
+        charge.amount.currency,
       );
       if (!ok) throw new Error("BankingLogic.settle: not enough cash on hand");
       return { method: "cash" };
@@ -699,7 +718,11 @@ async function settleImpl(
     }
     // Exact-cash-or-card: consume coins summing to exactly the charge, or
     // refuse before any ledger leg posts (the caller falls back to the card).
-    const drained = await drainCoins(payerC, charge.amount.minor);
+    const drained = await drainCoins(
+      payerC,
+      charge.amount.minor,
+      charge.amount.currency,
+    );
     if (!drained) {
       throw new Error(
         "BankingLogic.settle: can't make the exact amount in cash",
@@ -1081,9 +1104,9 @@ async function remitDemoTaxImpl(
   saleAmount: Money,
 ): Promise<Money> {
   const { rate, treasury } = demoTaxConfig();
-  if (rate <= 0) return Money.zero();
+  if (rate <= 0) return Money.zero(Currency.compact());
   const tax = Math.floor(saleAmount.minor * rate);
-  if (tax <= 0) return Money.zero();
+  if (tax <= 0) return Money.zero(Currency.compact());
   await postTransaction("tax", [
     {
       from: sellerAccountId,
@@ -1093,7 +1116,7 @@ async function remitDemoTaxImpl(
       memo: "sales tax",
     },
   ]);
-  return Money.of(tax);
+  return Money.of(tax, Currency.compact());
 }
 
 /**
@@ -1121,13 +1144,17 @@ async function issueCashImpl(
   ]);
   // Dispense largest-first: a real cash faucet hands out efficient coins
   // (25s, then 5s, then 1s), not a heap of ones. Each denomination is its own
-  // stack (they never merge — `globIdentityFields = ['denomination']`).
-  const lines = Coinage.dispense(amount.minor);
+  // stack (they never merge — glob identity is `(currency, denomination)`).
+  const lines = Coinage.dispense(amount.currency, amount.minor);
   let representative: Stuff | null = null;
   for (const line of lines) {
     const coin = await StuffApi.clone(COIN_PATH);
-    (coin as unknown as { denomination: string }).denomination =
-      line.denomination;
+    const stamped = coin as unknown as {
+      currency: string;
+      denomination: number;
+    };
+    stamped.currency = line.currency;
+    stamped.denomination = line.denomination;
     (coin as unknown as Globbable).setQuantity(line.count);
     ContainmentApi.move(coin as unknown as Stuff & Containable, into);
     if (!representative) representative = coin;
@@ -1442,7 +1469,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.balanceOf}. Sync warm read. */
   @CallSecurity(BankingApiCallers)
   public balanceOf(accountId: string): Money {
-    return Money.of(balanceMinor(accountId));
+    return Money.of(balanceMinor(accountId), Currency.compact());
   }
 
   /** See {@link BankingApi.discardScopeOverlay}. */
@@ -1454,7 +1481,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.moneySupply}. Sync warm read. */
   @CallSecurity(BankingApiCallers)
   public moneySupply(): Money {
-    return Money.of(SupplyAggregate.cachedSupply());
+    return Money.of(SupplyAggregate.cachedSupply(), Currency.compact());
   }
 
   /** See {@link BankingApi.entriesFor}. */
@@ -1466,7 +1493,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.rebuildBalance}. */
   @CallSecurity(BankingApiCallers)
   public async rebuildBalance(accountId: string): Promise<Money> {
-    return Money.of(await rebuildBalanceImpl(accountId));
+    return Money.of(await rebuildBalanceImpl(accountId), Currency.compact());
   }
 
   /** See {@link BankingApi.recomputeSupply}. */
@@ -1599,7 +1626,13 @@ export class BankingLogic extends ApiLogic {
     // till-low, checked before the ledger moves so the debit never outruns the
     // coin. Exact-cash-or-card: push the customer onto card / transfer.
     const bankContainer = bank as unknown as Stuff & Container;
-    if (Coinage.planSpend(cashSupply(bankContainer), amount.minor) === null) {
+    if (
+      Coinage.planSpend(
+        amount.currency,
+        cashSupply(bankContainer, amount.currency),
+        amount.minor,
+      ) === null
+    ) {
       throw new Error(
         `BankingLogic.withdraw: the branch can't make ${amount.render()} ` +
           `in exact change right now (try a card payment or transfer)`,
@@ -1617,7 +1650,12 @@ export class BankingLogic extends ApiLogic {
     // the till stays vetoed). `finally` guarantees the window closes.
     bank._beginDisbursing();
     try {
-      await moveCoins(bankContainer, principal, amount.minor);
+      await moveCoins(
+        bankContainer,
+        principal,
+        amount.minor,
+        amount.currency,
+      );
     } finally {
       bank._endDisbursing();
     }
@@ -1753,6 +1791,7 @@ export class BankingLogic extends ApiLogic {
   public escrowBalanceOf(contractId: string): Money {
     return Money.of(
       balanceMinor(Account.escrowAccountFor(contractId)),
+      Currency.compact()
     );
   }
 

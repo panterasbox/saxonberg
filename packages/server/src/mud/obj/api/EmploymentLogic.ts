@@ -27,6 +27,7 @@ import {
   Employment,
   type EmploymentStatus,
 } from '../../lib/employment/Employment';
+import { Currency } from "../../lib/banking/Currency";
 
 /** One game-hour in game-seconds — the roster tick cadence. */
 const ONE_GAME_HOUR_S = 3_600;
@@ -401,7 +402,7 @@ async function settleShiftWageImpl(
     );
     return;
   }
-  await BankingApi.payWage(account, employeeKey, Money.of(amount));
+  await BankingApi.payWage(account, employeeKey, Money.of(amount, Currency.compact()));
 }
 
 /**
@@ -450,7 +451,7 @@ async function settlePieceworkImpl(
   await BankingApi.payWage(
     account,
     employeeKey,
-    Money.of(amount),
+    Money.of(amount, Currency.compact()),
     'piecework',
     'piecework',
   );
@@ -498,7 +499,7 @@ async function flowSplitsForImpl(
     if (!account) continue;
     splits.push({
       accountId: account,
-      amount: Money.of(cut),
+      amount: Money.of(cut, Currency.compact()),
       category: 'commission',
     });
     total += cut;

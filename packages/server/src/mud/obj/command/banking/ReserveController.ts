@@ -9,7 +9,7 @@
 
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../api/command";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
 import { Mml } from "../../../api/mml";
@@ -53,10 +53,10 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "mint" });
       return;
     }
-    await BankingApi.mint(account, Money.of(minor), "operator subsidy", "subsidy");
+    await BankingApi.mint(account, Money.of(minor, Currency.compact()), "operator subsidy", "subsidy");
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`The reserve mints ${Money.of(minor).render()} of subsidy into the house account.`)
+      .toSelf(Mml.compose`The reserve mints ${Money.of(minor, Currency.compact()).render()} of subsidy into the house account.`)
       .send();
   }
 
@@ -96,11 +96,11 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       context.note({ kind: "controller-rejected", reason: "no-hands", detail: "issue" });
       return;
     }
-    await BankingApi.issueCash(giver, Money.of(minor), "float");
+    await BankingApi.issueCash(giver, Money.of(minor, Currency.compact()), "float");
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`The reserve issues ${Money.of(minor).render()} in fresh currency into your hands.`,
+        Mml.compose`The reserve issues ${Money.of(minor, Currency.compact()).render()} in fresh currency into your hands.`,
       )
       .toPeers(
         Mml.compose`${Mml.name(giver)} draws fresh currency from the reserve.`,
@@ -111,10 +111,10 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
   private supply(context: CommandContext): void {
     const r = BankingApi.reconcile();
     const body =
-      `Money supply: ${Money.of(r.supply).render()}\n` +
-      `  in accounts:  ${Money.of(r.accountTotal).render()}\n` +
-      `  in circulation: ${Money.of(r.circulatingCoin).render()}\n` +
-      `  cash in existence: ${Money.of(r.cashInExistence).render()}\n` +
+      `Money supply: ${Money.of(r.supply, Currency.compact()).render()}\n` +
+      `  in accounts:  ${Money.of(r.accountTotal, Currency.compact()).render()}\n` +
+      `  in circulation: ${Money.of(r.circulatingCoin, Currency.compact()).render()}\n` +
+      `  cash in existence: ${Money.of(r.cashInExistence, Currency.compact()).render()}\n` +
       `  reconciliation: ${r.balanced ? "balanced" : "OUT OF BALANCE"}`;
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(Mml.compose`${body}`).send();
   }

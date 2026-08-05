@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
 import BankCounter from "../../../obj/BankCounter";
 import PaymentCard from "../../../obj/PaymentCard";
@@ -49,7 +49,12 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.008, "kg"));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -86,7 +91,7 @@ describe("Reconciliation invariant", () => {
 
     // 1. issue cash into Alice's hand → circulating
     const cash = (await asOwner(alice, () =>
-      BankingApi.issueCash(alice as never, Money.of(500))
+      BankingApi.issueCash(alice as never, Money.of(500, Currency.compact()))
     )) as Stuff & Globbable;
     expectBalanced(500);
     expect(BankingApi.reconcile().circulatingCoin).toBe(500);
@@ -101,24 +106,24 @@ describe("Reconciliation invariant", () => {
     expectBalanced(500);
 
     // 3. withdraw 200 → coin back into circulation
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(200)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(200, Currency.compact())));
     expect(BankingApi.reconcile().circulatingCoin).toBe(200);
     expectBalanced(500);
 
     // 4. CB mints 1000 to a merchant account
-    await BankingApi.mint("merchant", Money.of(1000));
+    await BankingApi.mint("merchant", Money.of(1000, Currency.compact()));
     expectBalanced(1500);
 
     // 5. a transfer + a wage (balance-neutral to supply)
     await asOwner(alice, () =>
-      BankingApi.transfer(aliceAcct, "merchant", Money.of(100))
+      BankingApi.transfer(aliceAcct, "merchant", Money.of(100, Currency.compact()))
     );
     await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin"));
-    await BankingApi.payWage("merchant", "/obj/Avatar/wenna", Money.of(50));
+    await BankingApi.payWage("merchant", "/obj/Avatar/wenna", Money.of(50, Currency.compact()));
     expectBalanced(1500);
 
     // 6. drain 100 from the merchant → supply shrinks
-    await BankingApi.drain("merchant", Money.of(100));
+    await BankingApi.drain("merchant", Money.of(100, Currency.compact()));
     expectBalanced(1400);
 
     // money supply query

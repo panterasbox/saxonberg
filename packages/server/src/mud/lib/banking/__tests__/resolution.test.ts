@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
@@ -105,13 +105,13 @@ describe("Transfer — identity-addressed, own-account only", () => {
     const bobId = await asOwner(bob, () =>
       BankingApi.openAccount(BANK_B, "vionne")
     );
-    await BankingApi.mint(aliceId, Money.of(500)); // fund alice
+    await BankingApi.mint(aliceId, Money.of(500, Currency.compact())); // fund alice
 
     const payeeAccount = await BankingApi.primaryAccountIdOf(BOB);
     expect(payeeAccount).toBe(bobId);
 
     await asOwner(alice, () =>
-      BankingApi.transfer(aliceId, bobId, Money.of(200))
+      BankingApi.transfer(aliceId, bobId, Money.of(200, Currency.compact()))
     );
     expect(BankingApi.balanceOf(aliceId).minor).toBe(300);
     expect(BankingApi.balanceOf(bobId).minor).toBe(200);
@@ -126,11 +126,11 @@ describe("Transfer — identity-addressed, own-account only", () => {
     const bobId = await asOwner(bob, () =>
       BankingApi.openAccount(BANK_B, "vionne")
     );
-    await BankingApi.mint(aliceId, Money.of(500));
+    await BankingApi.mint(aliceId, Money.of(500, Currency.compact()));
 
     // bob tries to pull from alice's account → refused
     await expect(
-      asOwner(bob, () => BankingApi.transfer(aliceId, bobId, Money.of(100)))
+      asOwner(bob, () => BankingApi.transfer(aliceId, bobId, Money.of(100, Currency.compact())))
     ).rejects.toThrow(/isn't your account/);
     expect(BankingApi.balanceOf(aliceId).minor).toBe(500);
   });

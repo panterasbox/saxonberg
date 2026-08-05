@@ -19,7 +19,12 @@
  */
 
 import { Money } from "../lib/banking/Money";
-import type { Currency } from "../lib/banking/Money";
+import type { CurrencyTag } from "../lib/banking/Money";
+import { Currency } from "../lib/banking/Currency";
+import type {
+  CurrencyRecord,
+  Denomination,
+} from "../lib/banking/Currency";
 import { Account } from "../lib/banking/Account";
 import type LedgerEntry from "../lib/banking/LedgerEntry";
 import type {
@@ -50,9 +55,11 @@ import { BankingLogic } from "../obj/api/BankingLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-export { Money, Account };
+export { Money, Account, Currency };
 export type {
-  Currency,
+  CurrencyTag,
+  CurrencyRecord,
+  Denomination,
   LedgerKind,
   PnlCategory,
   LedgerEntryFields,

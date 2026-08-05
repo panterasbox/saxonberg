@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import PaymentCard from "../../../obj/PaymentCard";
 import { AppSettings } from "../../config/AppSettings";
@@ -62,7 +62,7 @@ async function barWith(funds: number): Promise<{
   const barAcct = await asOwner(operator, () =>
     BankingApi.openAccount("goodkin", "goodkin")
   );
-  if (funds > 0) await BankingApi.mint(barAcct, Money.of(funds), "float", "subsidy");
+  if (funds > 0) await BankingApi.mint(barAcct, Money.of(funds, Currency.compact()), "float", "subsidy");
   return { operator, barAcct };
 }
 
@@ -77,7 +77,7 @@ describe("Wages", () => {
       BankingApi.openAccount("goodkin", "goodkin")
     );
 
-    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(80));
+    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(80, Currency.compact()));
     expect(BankingApi.balanceOf(workerAcct).minor).toBe(80);
 
     const pnl = await BankingApi.profitAndLoss(barAcct);
@@ -96,7 +96,7 @@ describe("Demo sales tax", () => {
     await seedTax("0.08");
     const { barAcct } = await barWith(1000);
 
-    const tax = await BankingApi.remitDemoTax(barAcct, Money.of(100));
+    const tax = await BankingApi.remitDemoTax(barAcct, Money.of(100, Currency.compact()));
     expect(tax.minor).toBe(8); // floor(100 * 0.08)
     expect(BankingApi.balanceOf("treasury").minor).toBe(8);
 
@@ -106,13 +106,13 @@ describe("Demo sales tax", () => {
     expect(treasuryPnl.lines.tax).toBe(8); // accumulates
 
     // another sale accumulates more; the treasury only grows
-    await BankingApi.remitDemoTax(barAcct, Money.of(50));
+    await BankingApi.remitDemoTax(barAcct, Money.of(50, Currency.compact()));
     expect(BankingApi.balanceOf("treasury").minor).toBe(12);
   });
 
   it("is inert when no rate is configured (no tax)", async () => {
     const { barAcct } = await barWith(1000);
-    const tax = await BankingApi.remitDemoTax(barAcct, Money.of(100));
+    const tax = await BankingApi.remitDemoTax(barAcct, Money.of(100, Currency.compact()));
     expect(tax.minor).toBe(0);
   });
 });
@@ -136,12 +136,12 @@ describe("Deficit-as-target P&L", () => {
     const patronAcct = await asOwner(patron, () =>
       BankingApi.openAccount("goodkin", "goodkin")
     );
-    await BankingApi.mint(patronAcct, Money.of(1000));
+    await BankingApi.mint(patronAcct, Money.of(1000, Currency.compact()));
 
     // cogs: the operator buys booze from a supplier (out of the bar account)
-    await BankingApi.mint(barAcct, Money.of(200), "opening float", "subsidy");
+    await BankingApi.mint(barAcct, Money.of(200, Currency.compact()), "opening float", "subsidy");
     const cogs: Charge = {
-      amount: Money.of(150),
+      amount: Money.of(150, Currency.compact()),
       reason: "booze in",
       presented: true,
       payeeAccountId: "supplier-acct",
@@ -151,17 +151,17 @@ describe("Deficit-as-target P&L", () => {
 
     // sales: a patron buys a drink (into the bar account) + tax remitted
     const sale: Charge = {
-      amount: Money.of(60),
+      amount: Money.of(60, Currency.compact()),
       reason: "a martini",
       presented: true,
       payeeAccountId: barAcct,
       category: "sales",
     };
     await asOwner(patron, () => BankingApi.settle(sale, { kind: "credential" }));
-    await BankingApi.remitDemoTax(barAcct, Money.of(60));
+    await BankingApi.remitDemoTax(barAcct, Money.of(60, Currency.compact()));
 
     // wages: pay the worker
-    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(120));
+    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(120, Currency.compact()));
 
     // running balance: 200(float) − 150(cogs) + 60(sales) − 4(tax) − 120(wages)
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-14); // red by design
@@ -174,7 +174,7 @@ describe("Deficit-as-target P&L", () => {
     expect(pnl.balance).toBe(-14);
 
     // the CB mints subsidy to cover the red — a logged, visible faucet
-    await BankingApi.mint(barAcct, Money.of(14), "deficit subsidy", "subsidy");
+    await BankingApi.mint(barAcct, Money.of(14, Currency.compact()), "deficit subsidy", "subsidy");
     expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
     const covered = await BankingApi.profitAndLoss(barAcct);
     expect((covered.lines.subsidy ?? 0)).toBe(214); // 200 float + 14 cover

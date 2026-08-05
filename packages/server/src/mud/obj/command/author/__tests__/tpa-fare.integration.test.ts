@@ -28,7 +28,7 @@ import { AccessApi } from "../../../../api/access";
 import { AppApi } from "../../../../api/app";
 import { AppSettings } from "../../../../lib/config/AppSettings";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
 import { ExecutionContextApi } from "../../../../api/execution-context";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";
@@ -195,7 +195,7 @@ async function fundAccount(t: Stuff, acct: string, amount: number): Promise<void
   const pay = walletOf(t).getCredential("payment")!;
   pay.linkAccount(acct);
   pay.setActiveAccount(acct);
-  await BankingApi.mint(acct, Money.of(amount), "seed", "float");
+  await BankingApi.mint(acct, Money.of(amount, Currency.compact()), "seed", "float");
 }
 
 describe("TPA fare settlement (integration)", () => {
@@ -206,7 +206,12 @@ describe("TPA fare settlement (integration)", () => {
     // issueCash / GlobbableApi.split clone /obj/Coin — stub the clone so the
     // coin stack round-trips without a full domain-store hydration.
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-      const c = makeStuffAtPath(() => new Coin(), path);
+      const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
       c.setMass(Quantity.of(0.01, "kg"));
       return c;
     }) as unknown as typeof StuffApi.clone);
@@ -300,7 +305,7 @@ describe("TPA fare settlement (integration)", () => {
     // cash (three crowns) — the coinage make-change path, not just 1s.
     await withRootContext(null, "fund", async () => {
       ExecutionContextApi.tagActingAuthor(t as unknown as Stuff);
-      await BankingApi.issueCash(t as unknown as Stuff & Container, Money.of(20));
+      await BankingApi.issueCash(t as unknown as Stuff & Container, Money.of(20, Currency.compact()));
     });
     const supplyBefore = BankingApi.moneySupply().minor;
 

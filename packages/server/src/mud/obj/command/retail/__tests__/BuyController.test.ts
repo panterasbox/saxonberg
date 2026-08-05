@@ -20,7 +20,7 @@ import ChattelRegistry from "../../../ChattelRegistry";
 import { EmploymentApi } from "../../../../api/employment";
 import BusinessEntity from "../../../Business";
 import { ChattelApi } from "../../../../api/chattel";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
 import { StuffApi } from "../../../../api/stuff";
 import { ExecutionContextApi } from "../../../../api/execution-context";
@@ -89,7 +89,12 @@ function stubClones(): void {
       return t;
     }
     if (path === POT) return makePot(path);
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.008, "kg"));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -207,7 +212,7 @@ describe("BuyController — buy that stamps", () => {
     // Fund the patron.
     await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
     const cash = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(300)),
+      BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
     const storeAcct = await makeStoreBusiness();
@@ -237,7 +242,7 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(giver as never, loc as never);
     // Coin on hand, no card.
     const coins = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(20)),
+      BankingApi.issueCash(giver as never, Money.of(20, Currency.compact())),
     );
     void coins;
     const storeAcct = await makeStoreBusiness();
@@ -280,7 +285,7 @@ describe("BuyController — buy that stamps", () => {
     }, BANK);
     await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin"));
     const cash = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(300)),
+      BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
     );
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
     const storeAcct = await makeStoreBusiness();

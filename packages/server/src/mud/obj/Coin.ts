@@ -10,25 +10,34 @@
  *
  * Cash is the **bearer** money form: off the *governed* account ledger
  * (hand-to-hand moves change location, not total supply), self-limiting by
- * mass, no recourse if lost. Its denomination is its *identity* (a "credit"
- * coin), NOT a worth stamped on the good (banking Law 1) — how many minor
- * units a denomination represents is intrinsic to the currency
- * ({@link Money.faceValueOf}), read by the banking layer, never written here.
+ * mass, no recourse if lost.
+ *
+ * **Identity is `(currency, denomination)`** — the currency key plus the
+ * coin's face value in minor units. There is no coin *name*: `zorkmid` is
+ * the only authored money noun, and a coin presents as *"a 25-zorkmid
+ * piece"*, derived from the pair via {@link Currency.describeDenomination}.
+ * A second issuer's coins therefore render and stack correctly the moment
+ * its currency record exists, with no naming ceremony and no content edit.
+ * (banking Law 1 still holds: the face value is intrinsic to the
+ * *currency*, read by the banking layer — the number here is the
+ * denomination's structural key, not a worth stamped on the good, and a
+ * pair that does not resolve **throws** rather than being worth what it
+ * says.)
+ *
+ * ⚠⚠ `globIdentityFields = ['currency', 'denomination']`: two stacks merge
+ * only when **both** match. The currency half is load-bearing — without it
+ * two issuers' like-valued coins would merge into one stack, creating money
+ * by a merge with no ledger row and no error. The key is the defence, not a
+ * rule someone remembers.
  *
  * A concrete standalone content object that composes only shipped mixins, so
  * it lives at top-level `/obj/` beside `Flask` / `AirTank` / `Campfire`
- * (memory: *obj vs lib Stuff placement*) — not in `lib/banking/`. Contrast
- * the credential mixin classes, which instantiate banking-defined mixins.
- *
- * `globIdentityFields = ['denomination']`: two coin stacks merge only when
- * the same denomination, so future denominations stack separately (the glob
- * coin exemplar).
+ * (memory: *obj vs lib Stuff placement*) — not in `lib/banking/`.
  */
 
 import Thing from "../lib/stuff/Thing";
 import { GlobbableMixin } from "../lib/stuff/Globbable";
-import { DEFAULT_CURRENCY } from "../lib/banking/Money";
-import { Coinage } from "../lib/banking/Coinage";
+import { Currency } from "../lib/banking/Currency";
 import { Quantity } from "../lib/quantity";
 import type { FieldMeta } from "../lib/mixin";
 
@@ -36,29 +45,81 @@ const CoinBase = GlobbableMixin(Thing);
 
 export default class Coin extends CoinBase {
   static fieldMeta: FieldMeta = {
+    currency: { persistent: true, globIdentity: true },
     denomination: { persistent: true, globIdentity: true },
   };
 
-  /** The coin's denomination (its identity / kind). v1: `'credit'`. */
-  public denomination: string = DEFAULT_CURRENCY;
+  /**
+   * The currency this coin is money of. Unstamped (`""`) on a bare clone —
+   * `issueCash` stamps it, and an unstamped coin cannot be valued.
+   */
+  public currency: string = "";
 
-  /** Inter-stuff read of the denomination. */
-  public getDenomination(): string {
+  /**
+   * The coin's denomination: its **face value in minor units**, which is
+   * its identity within the currency (there is no name).
+   */
+  public denomination: number = 0;
+
+  /** Inter-stuff read of the currency. */
+  public getCurrency(): string {
+    return this.currency;
+  }
+
+  /** Inter-stuff read of the denomination (face value in minor units). */
+  public getDenomination(): number {
     return this.denomination;
   }
 
   /**
-   * The **stack's** total mass: the per-coin mass — derived from the
-   * denomination ({@link Coinage.perCoinMass}, currency-intrinsic like face
-   * value, NOT a worth on the good) — scaled by the stack size. Deriving from
-   * the denomination (a preserved `globIdentityField`) makes mass correct
-   * across clone / split / merge without depending on the stored `Tangible`
-   * mass, so a 25-credit sovereign stack is always heavier per coin than a
-   * pile of 1-credit pieces of the same value. This is what flows through the
-   * shipped `LoadBearing` tree-walk (which reads `getMass()`), so a large
-   * fortune measurably blows past carry capacity — the honest-physics cash cap.
+   * The **stack's** total mass: the per-coin mass — derived from
+   * `(currency, denomination)` ({@link Currency.perCoinMass},
+   * currency-intrinsic like face value, NOT a worth on the good) — scaled
+   * by the stack size. Deriving from preserved `globIdentityField`s makes
+   * mass correct across clone / split / merge without depending on the
+   * stored `Tangible` mass, so a 25-value stack is always heavier per coin
+   * than a pile of 1-value pieces of the same total. This is what flows
+   * through the shipped `LoadBearing` tree-walk, so a large fortune
+   * measurably blows past carry capacity — the honest-physics cash cap.
+   *
+   * ⚠ **Throws on an unstamped or unresolvable pair.** Valuation must never
+   * guess: the retired `?? 1` fallback silently revalued high denominations
+   * on an unmigrated rename, and the conservation audit passed anyway
+   * because it recomputed from the same broken lookup.
    */
   public override getMass(): Quantity<"kg"> {
-    return Coinage.perCoinMass(this.denomination).scale(this.getQuantity());
+    return Currency.perCoinMass(this.currency, this.denomination).scale(
+      this.getQuantity()
+    );
+  }
+
+  /**
+   * How the stack presents — derived from `(currency, denomination)`, or
+   * the issuer's chosen `label` when it named its coins.
+   *
+   * ⚠ **The asymmetry with {@link getMass} is deliberate**: presentation
+   * degrades to a blank rather than throwing, because an unstamped coin
+   * must never crash a `look`; valuation throws, because it must never lie.
+   */
+  public override getShortDescription(): string {
+    try {
+      return Currency.describeDenomination(this.currency, this.denomination);
+    } catch {
+      return "a blank coin";
+    }
+  }
+
+  /**
+   * Keywords gain the currency vocabulary. The `Perceptible` keyword getter
+   * already tokenizes {@link getShortDescription} on whitespace, so
+   * `"a 25-zorkmid piece"` also yields `25-zorkmid` and `piece` for free —
+   * which is what makes a 25-value stack separately addressable from a
+   * 1-value one at the parser.
+   */
+  public override getKeywords(): string[] {
+    const base = super.getKeywords();
+    if (!this.currency || !Currency.has(this.currency)) return base;
+    const record = Currency.of(this.currency);
+    return [...base, record.unit, record.plural];
   }
 }

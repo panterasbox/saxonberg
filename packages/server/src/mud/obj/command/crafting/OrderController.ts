@@ -21,6 +21,7 @@ import { EmploymentApi } from '../../../api/employment';
 import type { Attendant } from '../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
+import { Currency } from "../../../lib/banking/Currency";
 
 const TOPIC = 'world.narration.action';
 
@@ -158,7 +159,7 @@ export default class OrderController extends CraftController<OrderModel> {
       return null; // no authored bank → the venue can't take payment
     }
     const charge: Charge = {
-      amount: Money.of(price),
+      amount: Money.of(price, Currency.compact()),
       reason: 'a drink',
       presented: true,
       payeeAccountId: venueAccount,
@@ -185,9 +186,9 @@ export default class OrderController extends CraftController<OrderModel> {
         return null; // no funds at all — the bar floats it
       }
     }
-    await BankingApi.remitDemoTax(venueAccount, Money.of(price));
+    await BankingApi.remitDemoTax(venueAccount, Money.of(price, Currency.compact()));
     return receipt.corpoKey
-      ? `(${Money.of(price).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(price).render()})`;
+      ? `(${Money.of(price, Currency.compact()).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(price, Currency.compact()).render()})`;
   }
 }

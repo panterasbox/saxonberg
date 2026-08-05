@@ -22,7 +22,7 @@ import ChattelRegistry from "../../../ChattelRegistry";
 import { EmploymentApi } from "../../../../api/employment";
 import BusinessEntity from "../../../Business";
 import { ChattelApi } from "../../../../api/chattel";
-import { BankingApi, Money } from "../../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ContainmentApi } from "../../../../api/containment";
 import { StuffApi } from "../../../../api/stuff";
 import { ExecutionContextApi } from "../../../../api/execution-context";
@@ -85,7 +85,12 @@ function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function stubClones(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.008, "kg"));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -115,7 +120,7 @@ async function fundedAvatar(path: string, minor: number): Promise<TestGiver> {
   if (minor > 0) {
     const bank = StuffApi.findByTemplatePath<BankCounter>(BANK)!;
     const cash = await asOwner(av, () =>
-      BankingApi.issueCash(av as never, Money.of(minor)),
+      BankingApi.issueCash(av as never, Money.of(minor, Currency.compact())),
     );
     await asOwner(av, () => BankingApi.deposit(bank, cash as never));
   }

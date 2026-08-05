@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { ContractApi } from "../../../api/contract";
 import type { GigSpec } from "../../../api/contract";
 import { RegardApi } from "../../../api/regard";
@@ -115,7 +115,7 @@ describe("contract lifecycle", () => {
         "",
       ),
     );
-    await BankingApi.mint(issuerAcct, Money.of(100));
+    await BankingApi.mint(issuerAcct, Money.of(100, Currency.compact()));
     // The couriers live under /obj/Avatar/ — the PLAYER namespace — so per
     // the players-hold-their-own-accounts rule they arrive banked (the
     // no-account refusal has its own test below).
@@ -410,7 +410,7 @@ describe("contract lifecycle", () => {
     const posted = await as(issuer, () => ContractApi.post(spec()));
     const id = posted.ok ? posted.contractId : "";
     // Funds move away between post and claim.
-    await BankingApi.drain(issuerAcct, Money.of(90));
+    await BankingApi.drain(issuerAcct, Money.of(90, Currency.compact()));
     expect(await as(courier, () => ContractApi.claim(id))).toMatchObject({
       ok: false,
       reason: expect.stringMatching(/no longer fund/),
@@ -436,7 +436,7 @@ describe("contract lifecycle", () => {
       BankingApi.defaultCustodianBank(),
       "",
     );
-    await BankingApi.mint(bizAcct, Money.of(100));
+    await BankingApi.mint(bizAcct, Money.of(100, Currency.compact()));
 
     const posted = await as(dave, () =>
       ContractApi.post(spec({ asBusiness: true, claimMode: "open-bounty" })),

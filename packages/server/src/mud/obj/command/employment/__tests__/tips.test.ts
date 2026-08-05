@@ -38,6 +38,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from '../../../../lib/banking/__tests__/banking-test-harness';
+import { Currency } from "../../../../lib/banking/Currency";
 
 const PATRON = '/obj/Avatar/patron';
 const MARA = '/domain/lounge/npc/mara';
@@ -94,7 +95,12 @@ function coinIn(holder: Stuff): number {
 /** Stub clone so partial coin-stack splits work without a domain collection. */
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.01, 'kg'));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -129,7 +135,12 @@ describe('tips — the tip jar', () => {
 
   function giveCoin(holder: Stuff, qty: number): void {
     // At `/obj/Coin` so GlobbableApi.split can clone a sibling stack.
-    const coins = makeStuffAtPath(() => new Coin(), '/obj/Coin');
+    const coins = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, '/obj/Coin');
     coins.setMass(Quantity.of(0.01, 'kg'));
     coins.setQuantity(qty);
     ContainmentApi.move(coins, holder as never);
@@ -231,7 +242,7 @@ describe('tips — the tip jar', () => {
     await asGiver(bartender, () => BankingApi.openAccount('goodkin', ''));
     giveCoin(patron, 50);
     // Deposit isn't wired here; float the patron's account directly.
-    await BankingApi.float(patronAcct, Money.of(50));
+    await BankingApi.float(patronAcct, Money.of(50, Currency.compact()));
 
     await asGiver(patron, () =>
       makeStuff(() => new TipController()).execute(

@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import PaymentCard from "../../../obj/PaymentCard";
 import { Idea } from "../../stuff/Idea";
@@ -48,7 +48,7 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function charge(amount: number): Charge {
   return {
-    amount: Money.of(amount),
+    amount: Money.of(amount, Currency.compact()),
     reason: "purchase",
     presented: true,
     payeeAccountId: MERCHANT,
@@ -71,8 +71,8 @@ describe("Wallet routing", () => {
     const acctB = await asOwner(alice, () =>
       BankingApi.openAccount(BANK_B, "vionne")
     );
-    await BankingApi.mint(acctA, Money.of(1000));
-    await BankingApi.mint(acctB, Money.of(1000));
+    await BankingApi.mint(acctA, Money.of(1000, Currency.compact()));
+    await BankingApi.mint(acctB, Money.of(1000, Currency.compact()));
 
     // the one credential links both accounts; first opened is active
     const pay = card.getCredential("payment")!;

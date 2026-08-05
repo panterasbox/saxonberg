@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import PaymentCard from "../../../obj/PaymentCard";
 import Coin from "../../../obj/Coin";
@@ -54,12 +54,17 @@ async function fundedPayer(
   const accountId = await asOwner(who, () =>
     BankingApi.openAccount(BANK_A, "goodkin")
   );
-  await BankingApi.mint(accountId, Money.of(funds));
+  await BankingApi.mint(accountId, Money.of(funds, Currency.compact()));
   return { who, accountId };
 }
 
 function coinsIn(holder: Stuff, qty: number): Coin {
-  const c = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+  const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
   c.setQuantity(qty);
   ContainmentApi.move(c, holder as never);
@@ -76,7 +81,12 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 /** Stub clone so partial coin-stack splits work without a domain collection. */
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-    const c = makeStuffAtPath(() => new Coin(), path);
+    const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
     c.setMass(Quantity.of(0.01, "kg"));
     return c;
   }) as unknown as typeof StuffApi.clone);
@@ -100,7 +110,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     const supplyBefore = BankingApi.moneySupply().minor;
 
     const charge: Charge = {
-      amount: Money.of(40),
+      amount: Money.of(40, Currency.compact()),
       reason: "drinks",
       presented: false,
       payeeAccountId: "",
@@ -130,7 +140,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     );
 
     const charge: Charge = {
-      amount: Money.of(200),
+      amount: Money.of(200, Currency.compact()),
       reason: "a round",
       presented: true, // the bar priced it
       payeeAccountId: bobAcct,
@@ -161,7 +171,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     await asOwner(alice, () =>
       BankingApi.settle(
         {
-          amount: Money.of(150),
+          amount: Money.of(150, Currency.compact()),
           reason: "gift",
           presented: false,
           payeeAccountId: bobAcct,
@@ -176,7 +186,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     await asOwner(alice, () =>
       BankingApi.settle(
         {
-          amount: Money.of(30),
+          amount: Money.of(30, Currency.compact()),
           reason: "cash gift",
           presented: false,
           payeeAccountId: bobAcct,
@@ -206,12 +216,12 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     await asOwner(alice, () =>
       BankingApi.settle(
         {
-          amount: Money.of(100),
+          amount: Money.of(100, Currency.compact()),
           reason: "taxed sale",
           presented: true,
           payeeAccountId: bobAcct,
           category: "sales",
-          splits: [{ accountId: TREASURY, amount: Money.of(10), category: "tax" }],
+          splits: [{ accountId: TREASURY, amount: Money.of(10, Currency.compact()), category: "tax" }],
         },
         { kind: "credential" }
       )

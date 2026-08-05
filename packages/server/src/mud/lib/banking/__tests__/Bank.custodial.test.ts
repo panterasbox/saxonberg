@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import BankCounter from "../../../obj/BankCounter";
 import Coin from "../../../obj/Coin";
@@ -50,7 +50,12 @@ function makeAvatar(path: string): TestAvatar {
 }
 
 function makeCoinsIn(holder: Stuff, qty: number): Coin {
-  const c = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+  const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
   c.setQuantity(qty);
   ContainmentApi.move(c, holder as never);
@@ -125,7 +130,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     expect(bank.getTillLiquidity().minor).toBe(100);
     expect(BankingApi.balanceOf(accountId).minor).toBe(100);
 
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())));
     // After withdraw: vault 0, balance 0 — 1:1, coin back with alice.
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(0);
@@ -137,7 +142,12 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
 
   it("partial withdraw splits the vault, holding 1:1 (clone stubbed)", async () => {
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-      const c = makeStuffAtPath(() => new Coin(), path);
+      const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
       c.setMass(Quantity.of(0.01, "kg"));
       return c;
     }) as unknown as typeof StuffApi.clone);
@@ -149,7 +159,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const accountId = await asOwner(alice, async () => {
       const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
       await BankingApi.deposit(bank, coins);
-      await BankingApi.withdraw(bank, Money.of(30));
+      await BankingApi.withdraw(bank, Money.of(30, Currency.compact()));
       return id;
     });
 

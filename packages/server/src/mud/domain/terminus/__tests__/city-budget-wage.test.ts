@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { Employment } from "../../../lib/employment/Employment";
 import BusinessEntity from "../../../obj/Business";
@@ -80,7 +80,7 @@ describe("Terminus city-budget wage loop", () => {
       BankingApi.defaultCustodianBank(),
       "",
     );
-    await BankingApi.mint(cityAccount, Money.of(1000), "fare income (seed)", "fare");
+    await BankingApi.mint(cityAccount, Money.of(1000, Currency.compact()), "fare income (seed)", "fare");
 
     const supplyBefore = BankingApi.moneySupply().minor;
     const cityBefore = BankingApi.balanceOf(cityAccount).minor;

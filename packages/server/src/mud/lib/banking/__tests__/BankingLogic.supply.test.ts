@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import AccountBalance from "../AccountBalance";
 import SupplyAggregate from "../SupplyAggregate";
@@ -31,24 +31,24 @@ describe("BankingApi — supply query + reconciliation", () => {
   afterEach(() => teardownBankingHarness());
 
   it("supply = Σ mints − Σ drains", async () => {
-    await BankingApi.mint("acct-a", Money.of(1000));
-    await BankingApi.mint("acct-b", Money.of(400));
-    await BankingApi.drain("acct-b", Money.of(150));
+    await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
+    await BankingApi.mint("acct-b", Money.of(400, Currency.compact()));
+    await BankingApi.drain("acct-b", Money.of(150, Currency.compact()));
     expect(BankingApi.moneySupply().minor).toBe(1250);
   });
 
   it("reconciles: supply == Σ account balances (Phase-1, no coin bridge)", async () => {
-    await BankingApi.mint("acct-a", Money.of(1000));
-    await BankingApi.float("acct-b", Money.of(500));
-    await BankingApi.drain("acct-a", Money.of(200));
+    await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
+    await BankingApi.float("acct-b", Money.of(500, Currency.compact()));
+    await BankingApi.drain("acct-a", Money.of(200, Currency.compact()));
     // transfers conserve, so move some between accounts via two postings is
     // a Phase-2 op; here mint/drain/float already exercise both sign changes.
     expect(BankingApi.moneySupply().minor).toBe(sumBalances());
   });
 
   it("recomputeSupply rebuilds the headline from the ledger", async () => {
-    await BankingApi.mint("acct-a", Money.of(900));
-    await BankingApi.drain("acct-a", Money.of(100));
+    await BankingApi.mint("acct-a", Money.of(900, Currency.compact()));
+    await BankingApi.drain("acct-a", Money.of(100, Currency.compact()));
     const before = BankingApi.moneySupply().minor;
 
     // Corrupt the aggregate + drop the mirror; only the ledger is truth.

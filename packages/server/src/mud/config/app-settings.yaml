@@ -157,6 +157,13 @@ settings:
     value: "64"
   - key: script.maxDepth.platform
     value: "256"
+  # Banking — THE CURRENCY THE COMPACT TRANSACTS IN. Policy data, not a
+  # property of the money: the substrate never compares a currency to a
+  # literal, it asks which one the Compact uses. Making Compact obligations
+  # payable only in this currency is what makes it the reserve currency BY
+  # CONSTRUCTION rather than by decree. Read only through Currency.compact().
+  - key: banking.compactCurrency
+    value: zorkmid
   # Banking — the DEMO sales-tax rate (a fraction of a purchase remitted to
   # the placeholder treasury via the remittance-split seam). Authored and
   # INERT: recorded + instrumented, not governed. Live taxation is the

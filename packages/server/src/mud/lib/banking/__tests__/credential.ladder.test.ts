@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
 import PaymentCard from "../../../obj/PaymentCard";
 import CredentialWalletUpdate from "../../../obj/CredentialWalletUpdate";
@@ -49,7 +49,7 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function charge(amount: number): Charge {
   return {
-    amount: Money.of(amount),
+    amount: Money.of(amount, Currency.compact()),
     reason: "a purchase",
     presented: true,
     payeeAccountId: MERCHANT,
@@ -68,7 +68,7 @@ async function pocket(
   const accountId = await asOwner(alice, () =>
     BankingApi.openAccount(BANK_A, "goodkin")
   ); // auto-links + active on the carried card
-  await BankingApi.mint(accountId, Money.of(funds));
+  await BankingApi.mint(accountId, Money.of(funds, Currency.compact()));
   card.getCredential("payment")!.setSpendCap(cap);
   return { alice, card, accountId };
 }

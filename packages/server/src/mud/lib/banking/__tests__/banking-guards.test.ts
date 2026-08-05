@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Terms } from "../Terms";
 import BankCounter from "../../../obj/BankCounter";
@@ -56,7 +56,12 @@ function makeAvatar(path: string): TestAvatar {
 }
 
 function makeCoinsIn(holder: Stuff, qty: number): Coin {
-  const c = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+  const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
   c.setQuantity(qty);
   ContainmentApi.move(c, holder as never);
   return c;
@@ -79,7 +84,12 @@ function stubSettings(values: Partial<Record<string, string>>): void {
 /** A partial withdraw splits a vault stack (clones /obj/Coin) — stub the clone. */
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-    return makeStuffAtPath(() => new Coin(), path);
+    return makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
   }) as unknown as typeof StuffApi.clone);
 }
 
@@ -126,7 +136,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     // The coin stayed in the vault.
     expect(bank.getTillLiquidity().minor).toBe(100);
     // But the banking verb opens the disbursement window and dispenses it.
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())));
     expect(bank.getTillLiquidity().minor).toBe(0);
   });
 });
@@ -153,12 +163,12 @@ describe("Withdrawal quota — the common-pool till guard", () => {
       return id;
     });
     // First 50 is under the 60 cap.
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
     // A further 25 would breach the cap (50 already drawn + 25 > 60) → refused
     // (the quota derives the day's withdrawals over the ledger).
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(25))),
+      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(25, Currency.compact()))),
     ).rejects.toThrow(/limit/);
     // The balance is untouched by the refusal.
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
@@ -181,7 +191,7 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     // Enrol Alice into the Circle (the real enrollment write) → raised cap.
     expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
     // 90 would breach the stranger cap (60) but is under the Circle cap (500).
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(90)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(90, Currency.compact())));
     expect(BankingApi.balanceOf(acct).minor).toBe(10);
   });
 });

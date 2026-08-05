@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import { BankTransaction } from "../Transaction";
@@ -180,16 +180,16 @@ describe("BankingApi — supply under a mixed mint/drain sequence", () => {
 
   it("supply tracks Σ mints − Σ drains", async () => {
     expect(BankingApi.moneySupply().minor).toBe(0);
-    await BankingApi.mint("acct-a", Money.of(1000));
-    await BankingApi.mint("acct-b", Money.of(500));
+    await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
+    await BankingApi.mint("acct-b", Money.of(500, Currency.compact()));
     expect(BankingApi.moneySupply().minor).toBe(1500);
-    await BankingApi.drain("acct-a", Money.of(300));
+    await BankingApi.drain("acct-a", Money.of(300, Currency.compact()));
     expect(BankingApi.moneySupply().minor).toBe(1200);
   });
 
   it("refuses to drain more than an account holds (would destroy absent money)", async () => {
-    await BankingApi.mint("acct-a", Money.of(100));
-    await expect(BankingApi.drain("acct-a", Money.of(101))).rejects.toThrow(
+    await BankingApi.mint("acct-a", Money.of(100, Currency.compact()));
+    await expect(BankingApi.drain("acct-a", Money.of(101, Currency.compact()))).rejects.toThrow(
       /holds less than/
     );
     // supply unchanged by the rejected drain

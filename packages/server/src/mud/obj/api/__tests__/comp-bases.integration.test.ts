@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { Employment } from "../../../lib/employment/Employment";
 import BusinessEntity from "../../Business";
@@ -102,7 +102,7 @@ describe("compensation bases", () => {
     const hewer = makeStuffAtPath(() => new Worker(), HEWER);
     EmploymentApi.hire(biz, hewer, "hewer");
     const acct = await bizAccount(biz);
-    await BankingApi.mint(acct, Money.of(100));
+    await BankingApi.mint(acct, Money.of(100, Currency.compact()));
 
     await EmploymentApi.settlePiecework(biz, HEWER, 4);
     expect(await balanceOfKey(HEWER)).toBe(12); // 4 × 3
@@ -140,7 +140,7 @@ describe("compensation bases", () => {
 
     // Settle a 50 charge carrying the splits: payer → venue 40 + holder 10.
     const payerAcct = "acct-payer";
-    await BankingApi.mint(payerAcct, Money.of(100));
+    await BankingApi.mint(payerAcct, Money.of(100, Currency.compact()));
     const { BankTransaction } = await import(
       "../../../lib/banking/Transaction"
     );
@@ -168,7 +168,7 @@ describe("compensation bases", () => {
   it("time-basis shift wage settles identically; a non-time basis accrues none", async () => {
     const biz = seedBusiness();
     const acct = await bizAccount(biz);
-    await BankingApi.mint(acct, Money.of(1000));
+    await BankingApi.mint(acct, Money.of(1000, Currency.compact()));
     vi.spyOn(WorldClockApi, "getNow").mockReturnValue(
       Quantity.of(10 * HOUR, "s"),
     );

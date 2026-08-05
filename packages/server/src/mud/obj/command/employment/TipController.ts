@@ -19,6 +19,7 @@ import { EmploymentApi } from '../../../api/employment';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import TipJar from '../../../domain/lounge/TipJar';
+import { Currency } from "../../../lib/banking/Currency";
 
 const TOPIC = 'world.narration.action';
 
@@ -50,7 +51,7 @@ export default class TipController extends CommandController<TipModel> {
     // Cash route (default): drop coin in the jar — off the books.
     if (!model.eft && jar) {
       const charge: Charge = {
-        amount: Money.of(minor),
+        amount: Money.of(minor, Currency.compact()),
         reason: 'a tip',
         presented: false,
         payeeAccountId: '',
@@ -60,7 +61,7 @@ export default class TipController extends CommandController<TipModel> {
         await BankingApi.settle(charge, { kind: 'cash' });
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You drop ${Money.of(minor).render()} into the tip jar.`)
+          .toSelf(Mml.compose`You drop ${Money.of(minor, Currency.compact()).render()} into the tip jar.`)
           .toPeers(Mml.compose`${Mml.name(giver)} drops a tip in the jar.`)
           .send();
         return;
@@ -121,12 +122,12 @@ export default class TipController extends CommandController<TipModel> {
       await BankingApi.transfer(
         patronAccount,
         recipientAccount,
-        Money.of(minor),
+        Money.of(minor, Currency.compact()),
         'a tip',
       );
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You tip ${Money.of(minor).render()} to ${Mml.name(recipient)}.`)
+        .toSelf(Mml.compose`You tip ${Money.of(minor, Currency.compact()).render()} to ${Mml.name(recipient)}.`)
         .toPeers(Mml.compose`${Mml.name(giver)} tips ${Mml.name(recipient)}.`)
         .send();
     } catch (err) {

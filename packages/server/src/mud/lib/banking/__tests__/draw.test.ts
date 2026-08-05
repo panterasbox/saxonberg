@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Idea } from "../../stuff/Idea";
@@ -40,7 +40,7 @@ describe("BankingApi.payDraw", () => {
   afterEach(() => teardownBankingHarness());
 
   it("posts kind 'draw' to the proprietor's primary account", async () => {
-    await BankingApi.mint(BIZ_ACCT, Money.of(500));
+    await BankingApi.mint(BIZ_ACCT, Money.of(500, Currency.compact()));
     // The proprietor opens a primary account (context-derived owner).
     const primary = await asActor(DAVE, () =>
       BankingApi.ensureVenueAccount(
@@ -49,7 +49,7 @@ describe("BankingApi.payDraw", () => {
         "",
       ),
     );
-    await BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(200));
+    await BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(200, Currency.compact()));
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(300);
     expect(BankingApi.balanceOf(primary).minor).toBe(200);
     const rows = await BankingApi.entriesFor(primary);
@@ -60,7 +60,7 @@ describe("BankingApi.payDraw", () => {
   });
 
   it("refuses when the business balance is short (solvency-checked)", async () => {
-    await BankingApi.mint(BIZ_ACCT, Money.of(50));
+    await BankingApi.mint(BIZ_ACCT, Money.of(50, Currency.compact()));
     await asActor(DAVE, () =>
       BankingApi.ensureVenueAccount(
         DAVE,
@@ -69,15 +69,15 @@ describe("BankingApi.payDraw", () => {
       ),
     );
     await expect(
-      BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(51)),
+      BankingApi.payDraw(BIZ_ACCT, DAVE, Money.of(51, Currency.compact())),
     ).rejects.toThrow(/holds less than/);
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(50);
   });
 
   it("refuses when the proprietor has no account", async () => {
-    await BankingApi.mint(BIZ_ACCT, Money.of(500));
+    await BankingApi.mint(BIZ_ACCT, Money.of(500, Currency.compact()));
     await expect(
-      BankingApi.payDraw(BIZ_ACCT, "/obj/Avatar/nobody", Money.of(10)),
+      BankingApi.payDraw(BIZ_ACCT, "/obj/Avatar/nobody", Money.of(10, Currency.compact())),
     ).rejects.toThrow(/no account/);
   });
 
@@ -89,7 +89,7 @@ describe("BankingApi.payDraw", () => {
       "",
     );
     // Business holds nothing — the wage is owed regardless (CB subsidizes).
-    await BankingApi.payWage(BIZ_ACCT, worker, Money.of(75));
+    await BankingApi.payWage(BIZ_ACCT, worker, Money.of(75, Currency.compact()));
     expect(BankingApi.balanceOf(BIZ_ACCT).minor).toBe(-75);
     expect(BankingApi.balanceOf(workerAcct).minor).toBe(75);
   });

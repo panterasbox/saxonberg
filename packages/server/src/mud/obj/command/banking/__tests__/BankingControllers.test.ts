@@ -93,7 +93,12 @@ describe("Banking controllers — verb wiring", () => {
       return b;
     }, BANK_PATH);
     ContainmentApi.move(bank, loc);
-    const coins = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+    const coins = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
     coins.setMass(Quantity.of(0.01, "kg"));
     coins.setQuantity(100);
     ContainmentApi.move(coins, giver);
@@ -138,7 +143,12 @@ describe("Banking controllers — verb wiring", () => {
       return b;
     }, BANK_PATH);
     ContainmentApi.move(bank, loc);
-    const coins = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+    const coins = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
     coins.setMass(Quantity.of(0.01, "kg"));
     coins.setQuantity(100);
     ContainmentApi.move(coins, giver);

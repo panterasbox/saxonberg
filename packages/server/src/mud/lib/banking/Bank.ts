@@ -36,6 +36,7 @@ import type { VetoResult } from "../errors";
 import { Money } from "./Money";
 import { Terms } from "./Terms";
 import type { TermsData } from "./Terms";
+import { Currency } from "./Currency";
 
 /**
  * The banking subsystem's own gate — admits the `BankingApi` face and the
@@ -77,13 +78,16 @@ export interface Bank {
 
 /** Coin-shaped duck type — avoids a lib→obj import of the Coin class. */
 interface CashLike {
-  getDenomination(): string;
+  getCurrency(): string;
+  /** Face value in minor units — the denomination's identity. */
+  getDenomination(): number;
   getQuantity(): number;
 }
 
 function isCashLike(stuff: unknown): stuff is CashLike {
   const s = stuff as Partial<CashLike>;
   return (
+    typeof s?.getCurrency === "function" &&
     typeof s?.getDenomination === "function" &&
     typeof s?.getQuantity === "function"
   );
@@ -91,7 +95,10 @@ function isCashLike(stuff: unknown): stuff is CashLike {
 
 /** The face value (minor units) of a coin stack resting in the vault. */
 function stackValue(stuff: CashLike): number {
-  return Money.faceValueOf(stuff.getDenomination()) * stuff.getQuantity();
+  return (
+    Currency.faceValueOf(stuff.getCurrency(), stuff.getDenomination()) *
+    stuff.getQuantity()
+  );
 }
 
 export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -168,7 +175,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const item of (this as unknown as Stuff & Container).getContents()) {
         if (isCashLike(item)) total += stackValue(item);
       }
-      return Money.of(total);
+      return Money.of(total, Currency.compact());
     }
 
     /**

@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
@@ -30,12 +30,12 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
   afterEach(() => teardownBankingHarness());
 
   async function fund(accountId: string, minor: number): Promise<void> {
-    await BankingApi.mint(accountId, Money.of(minor));
+    await BankingApi.mint(accountId, Money.of(minor, Currency.compact()));
   }
 
   it("hold → release round-trips issuer → escrow → contractor with the escrow kinds", async () => {
     await fund(ISSUER, 100);
-    const held = await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
+    const held = await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
     expect(held.ok).toBe(true);
     if (held.ok) expect(held.txId).toMatch(/^tx-/);
 
@@ -45,7 +45,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     expect(BankingApi.reconcile().balanced).toBe(true);
     expect(BankingApi.moneySupply().minor).toBe(100);
 
-    await BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(60));
+    await BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(60, Currency.compact()));
     expect(BankingApi.balanceOf(CONTRACTOR).minor).toBe(60);
     expect(BankingApi.escrowBalanceOf(CONTRACT).minor).toBe(0);
     expect(BankingApi.reconcile().balanced).toBe(true);
@@ -64,8 +64,8 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
 
   it("hold → revert returns the stake to the issuer", async () => {
     await fund(ISSUER, 100);
-    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
-    await BankingApi.escrowRevert(CONTRACT, ISSUER, Money.of(60));
+    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
+    await BankingApi.escrowRevert(CONTRACT, ISSUER, Money.of(60, Currency.compact()));
     expect(BankingApi.balanceOf(ISSUER).minor).toBe(100);
     expect(BankingApi.escrowBalanceOf(CONTRACT).minor).toBe(0);
     expect(BankingApi.reconcile().balanced).toBe(true);
@@ -73,7 +73,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
 
   it("a hold against insufficient funds refuses before any row is written", async () => {
     await fund(ISSUER, 10);
-    const result = await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
+    const result = await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
     expect(result).toEqual({ ok: false, reason: "insufficient-funds" });
     expect(BankingApi.balanceOf(ISSUER).minor).toBe(10);
     // No escrow account row was minted for the refused hold.
@@ -85,9 +85,9 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
 
   it("an over-release throws (the per-contract account makes it loud)", async () => {
     await fund(ISSUER, 100);
-    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
+    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
     await expect(
-      BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(61)),
+      BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(61, Currency.compact())),
     ).rejects.toThrow(/over-release/);
     expect(BankingApi.escrowBalanceOf(CONTRACT).minor).toBe(60);
   });
@@ -111,7 +111,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     await funded.save();
     AccountBalance.putCached(ISSUER, 0);
     await fund(ISSUER, 100);
-    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
+    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
     const row = [...col(Collections.BankAccounts).values()].find(
       (d) => d.accountId === Account.escrowAccountFor(CONTRACT),
     );
@@ -122,7 +122,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
 
   it("a bare (legacy) funding account falls back to the default custodian", async () => {
     await fund(ISSUER, 100); // applyDelta bare auto-create — no custodian
-    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
+    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
     const row = [...col(Collections.BankAccounts).values()].find(
       (d) => d.accountId === Account.escrowAccountFor(CONTRACT),
     );
@@ -131,11 +131,11 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
 
   it("escrowClose removes the zero-balance row and refuses a non-zero one", async () => {
     await fund(ISSUER, 100);
-    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60));
+    await BankingApi.escrowHold(ISSUER, CONTRACT, Money.of(60, Currency.compact()));
     await expect(BankingApi.escrowClose(CONTRACT)).rejects.toThrow(
       /still holds/,
     );
-    await BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(60));
+    await BankingApi.escrowRelease(CONTRACT, CONTRACTOR, Money.of(60, Currency.compact()));
     await BankingApi.escrowClose(CONTRACT);
     const row = [...col(Collections.BankAccounts).values()].find(
       (d) => d.accountId === Account.escrowAccountFor(CONTRACT),
