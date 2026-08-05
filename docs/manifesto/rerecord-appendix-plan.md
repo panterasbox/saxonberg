@@ -74,9 +74,11 @@ A candidate earns its own video when **all three** hold:
 | **D** | ⭐⭐⭐ **Who counts** | 14 incorporation + equal protection, 15/19/26 suffrage by category. **Structurally the biggest** per the walk, and where the clade allegory has teeth: *does the floor bind localities, or only the Compact?* |
 | **E** | ⭐⭐ **Your data, your record, and who answers for it** | ⭐ **the differentiated one — see below** |
 
-> ⭐⭐ **Two more emerged after this table was drafted — see below: video
-> W ("Work"), which the vocational reframe demands, and video O ("The
-> constitutions you have already signed"), which may belong first.**
+> ⭐⭐ **Three more emerged after this table was drafted — see below:
+> video W ("Work"), which the vocational reframe demands; video O ("The
+> constitutions you have already signed"), which may belong first; and
+> video X ("The people who can see everything"), the operator-limits
+> admission. ⚠ Which makes the slate too large — see the SCOPE CHECK.**
 
 ## Two if there is appetite
 
@@ -334,6 +336,65 @@ in the Bill of Rights.** It reframes the Compact from exotic to
 hold someone with no interest in civics.
 
 ⭐ **Candidate for the FIRST appendix**, ahead of A.
+
+---
+
+# ⭐⭐ Video X — "The people who can see everything"
+
+From [wizard-duty-slate](../slates/builds/wizard-duty-slate.md), the last
+law source: **law suggested by the technology itself** (Schell's fourth
+tetrad corner — *the one the player never sees*).
+
+**The argument:** runtime guards constrain code that goes *through* the
+framework, and a wizard has left it by definition. So the honest
+statement is —
+
+> **The record is unforgeable relative to players. It is NOT unforgeable
+> relative to operators.**
+
+— and the answer is **duty rather than structure**: wizardry as a
+fiduciary role, break-glass carve-outs (*not whether, but why, and did
+you say so*), `su` as **agency** so impersonation leaves a trace by
+construction, and **exit as the check that survives** when no
+institutional one does.
+
+⭐⭐ **Every platform has these people. Almost none talk about it.**
+Saying plainly what the operator can do — and therefore what you cannot
+promise — is a rare and disproportionately credible move to an audience
+that has watched platforms abuse exactly this reach.
+
+⚠ **Register exception.** A and B are explicitly *descriptive, not
+persuasive*. **X should ARGUE** — because the argument is an
+**admission**, and admissions persuade in a way descriptions cannot.
+
+---
+
+# ⚠⚠ Scope check — this is now too many videos
+
+Counting honestly: **O · A · B · W · C · D · E · X**, plus F and G as
+maybes. At 5–10 minutes each that is **40–80 minutes of optional depth on
+top of seven chapters.**
+
+> ⚠ **Two failure modes, both likely: never finishing, and diluting the
+> good ones by making all of them.**
+
+⭐ So the plan needs a second filter beyond *"can you narrate it"* —
+**"will you actually make it."**
+
+## The tiering
+
+| Tier | | Why |
+|---|---|---|
+| ⭐⭐ **Make** | **A · O · W · X** | **frame · hook · life · limits.** A complete and *distinctive* series on its own — none of these is an appendix a civics course would also have |
+| **Then** | **E** | the most contemporary, and beat 5 (*carrying is publishing*) is the best payoff in the set |
+| **If it lands** | **C · D** | genuinely excellent, and the **least differentiated** — due process and equal protection are what any constitutional course covers |
+| **Already written** | **B** | script exists; cheap to keep |
+| **Later** | F · G | |
+
+⭐ **A + O + W + X is the argument.** *Here is how it changes · you have
+already lived under constitutions like this · here is the life it governs
+· and here is what we cannot promise you.* That last beat is the one
+nobody else makes.
 
 ---
 
