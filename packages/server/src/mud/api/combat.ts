@@ -23,6 +23,8 @@ import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
+import type { TermsProposal } from "../lib/combat/CombatTerms";
+import type { InitiateResult } from "../obj/api/CombatLogic";
 import type {
   CombatInfluence,
   InfluenceResult,
@@ -296,6 +298,45 @@ export class CombatApi {
    */
   public static rangeStanding(actor: Stuff): RangeStanding | null {
     return logic().rangeStanding(actor);
+  }
+
+  /**
+   * **Start a fight** — the one initiation handshake, wherever the act
+   * comes from.
+   *
+   * Reconciles both sides' standing terms, prompts on a conflict (via the
+   * caller's `onConflict`, because asking is a UI act), snapshots melee
+   * competence, warms the formation Ideas, reads the ambush *before*
+   * revealing the attacker, and then opens / joins / merges as the
+   * situation requires.
+   *
+   * Every initiating verb must go through this rather than reproducing
+   * the sequence. `attack` and `throw ... at` routing "identically" is a
+   * fact only while there is one copy of it.
+   */
+  public static initiate(
+    initiator: Stuff,
+    target: Stuff,
+    overrides?: { lethal?: boolean; to?: string },
+    onConflict?: (
+      target: Stuff,
+      mine: TermsProposal,
+    ) => Promise<boolean | null | "cancelled">,
+  ): Promise<InitiateResult> {
+    return logic().initiate(initiator, target, overrides, onConflict);
+  }
+
+  /**
+   * A combatant's standing combat terms — the player-side `combat.*`
+   * settings and the authored `CombatantMixin` posture, folded. Either
+   * surface declaring `lethal` brings lethal terms.
+   */
+  public static standingTermsOf(
+    combatant: Stuff,
+    lethal?: boolean,
+    to?: string,
+  ): TermsProposal {
+    return logic().standingTermsOf(combatant, lethal, to);
   }
 
   /**

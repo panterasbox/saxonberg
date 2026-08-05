@@ -534,3 +534,120 @@ describe("CombatLogic — the commit-time consent gate (AC 25, AC 31)", () => {
     expect(verdict.ok).toBe(true);
   });
 });
+
+describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
+  const person = (room: unknown) => makeFighter(room as TestRoom, 0.9, true);
+
+  it("agreed terms open silently and consented", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const b = person(room);
+
+    // Both sides default to non-lethal, so reconciliation agrees and
+    // nobody is prompted — the frictionless bar scuffle.
+    const res = await CombatApi.initiate(a as never, b as never);
+    expect(res.ok).toBe(true);
+    expect(res.consented).toBe(true);
+    expect(res.terms?.lethality).toBe("non-lethal");
+    const s = CombatApi.sessionFor(a as never);
+    expect(s).toBeDefined();
+    if (s) openSessions.push(s);
+  });
+
+  it("a conflict with nobody to ask IMPOSES the initiator's terms", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const b = person(room);
+
+    // `--lethal` against a non-lethal defender with no prompt handler is
+    // the attacking-the-unwilling path: the fight still happens, and the
+    // missing consent is what the blame ledger reads.
+    const res = await CombatApi.initiate(a as never, b as never, {
+      lethal: true,
+    });
+    expect(res.ok).toBe(true);
+    expect(res.consented).toBe(false);
+    expect(res.terms?.lethality).toBe("lethal");
+    const s = CombatApi.sessionFor(a as never);
+    if (s) openSessions.push(s);
+  });
+
+  it("a defender who ACCEPTS the escalation makes it a consented duel", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const b = person(room);
+
+    const res = await CombatApi.initiate(
+      a as never,
+      b as never,
+      { lethal: true },
+      async () => true,
+    );
+    expect(res.ok).toBe(true);
+    expect(res.consented).toBe(true);
+    expect(res.terms?.lethality).toBe("lethal");
+    const s = CombatApi.sessionFor(a as never);
+    if (s) openSessions.push(s);
+  });
+
+  it("a defender who DECLINES folds the fight to their own terms", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const b = person(room);
+
+    const res = await CombatApi.initiate(
+      a as never,
+      b as never,
+      { lethal: true },
+      async () => false,
+    );
+    expect(res.ok).toBe(true);
+    // Declining is not refusing the fight — it refuses the ESCALATION.
+    expect(res.consented).toBe(true);
+    expect(res.terms?.lethality).toBe("non-lethal");
+    const s = CombatApi.sessionFor(a as never);
+    if (s) openSessions.push(s);
+  });
+
+  it("a cancelled prompt starts no fight at all", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const b = person(room);
+
+    const res = await CombatApi.initiate(
+      a as never,
+      b as never,
+      { lethal: true },
+      async () => "cancelled" as const,
+    );
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("cancelled");
+    expect(CombatApi.sessionFor(a as never)).toBeUndefined();
+  });
+
+  it("initiating onto someone already fighting JOINS their melee", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const b = person(room);
+    const c = person(room);
+
+    const first = await CombatApi.initiate(a as never, b as never);
+    expect(first.ok).toBe(true);
+    const s = CombatApi.sessionFor(a as never)!;
+    openSessions.push(s);
+
+    const second = await CombatApi.initiate(c as never, b as never);
+    expect(second.ok).toBe(true);
+    // One fight, three fighters — not two sessions.
+    expect(CombatApi.sessionFor(c as never)).toBe(s);
+  });
+
+  it("refuses a target that cannot fight", async () => {
+    const room = makeArena(12);
+    const a = person(room);
+    const prop = makeStuff(() => new TestRoom());
+    const res = await CombatApi.initiate(a as never, prop as never);
+    expect(res.ok).toBe(false);
+    expect(res.reason).toBe("not-a-combatant");
+  });
+});

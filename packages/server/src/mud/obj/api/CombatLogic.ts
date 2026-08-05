@@ -20,6 +20,8 @@ import { PartyApi } from "../../api/party";
 import { ChronicleApi } from "../../api/chronicle";
 import { RegardApi } from "../../api/regard";
 import { AdvancementApi } from "../../api/advancement";
+import { PerceptionApi } from "../../api/perception";
+import { ShellApi } from "../../api/shell";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { AccountabilityApi } from "../../api/accountability";
 import type { AccountabilityFields } from "../../api/accountability";
@@ -61,7 +63,14 @@ import type {
   CombatInfluence,
   InfluenceResult,
 } from "../../lib/combat/CombatInfluence";
-import type { CombatTerms } from "../../lib/combat/CombatTerms";
+import {
+  CombatTerms,
+  DEFAULT_TERMS,
+  STOP_CONDITIONS,
+  type TermsProposal,
+  type Lethality,
+  type StopCondition,
+} from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
 import { CombatFlags } from "../../lib/combat/CombatFlags";
@@ -179,6 +188,28 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public sessionFor(combatant: Stuff): CombatSession | undefined {
     return sessionForImpl(combatant);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public async initiate(
+    initiator: Stuff,
+    target: Stuff,
+    overrides?: { lethal?: boolean; to?: string },
+    onConflict?: (
+      target: Stuff,
+      mine: TermsProposal,
+    ) => Promise<boolean | null | "cancelled">,
+  ): Promise<InitiateResult> {
+    return initiateImpl(initiator, target, overrides, onConflict);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public standingTermsOf(
+    combatant: Stuff,
+    lethal?: boolean,
+    to?: string,
+  ): TermsProposal {
+    return standingTermsImpl(combatant, lethal, to);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -3508,6 +3539,205 @@ function termsFor(
   victim: Stuff,
 ): CombatTerms {
   return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
+}
+
+/** The discipline whose competence band drives combat sharpness. */
+const MELEE_COMBAT_DISCIPLINE = "melee-combat";
+
+/** What an initiation resolved to. `terms` and `consented` are present
+ * only on success — a caller that wants to narrate the opening needs to
+ * know whether it was agreed or imposed. */
+export interface InitiateResult {
+  ok: boolean;
+  reason?: string;
+  terms?: CombatTerms;
+  consented?: boolean;
+}
+
+/**
+ * Read a combatant's standing combat terms (defaults are frictionless).
+ *
+ * Posture comes from two surfaces: the player-side `combat.lethality` /
+ * `combat.stopCondition` **settings** (which only resolve for
+ * `Environment` hosts — i.e. players), and the **authored
+ * `CombatantMixin` fields** an NPC seeds (an NPC isn't an Environment, so
+ * it can't carry settings). Either surface declaring `lethal` makes this
+ * combatant bring lethal terms.
+ */
+function standingTermsImpl(
+  combatant: Stuff,
+  lethalOverride?: boolean,
+  stopOverride?: string,
+): TermsProposal {
+  const lethSetting = ShellApi.resolveSetting<string>(
+    combatant,
+    "combat.lethality",
+  );
+  const stopSetting = ShellApi.resolveSetting<string>(
+    combatant,
+    "combat.stopCondition",
+  );
+  const lethField = MixinApi.isCombatant(combatant)
+    ? combatant.getStandingLethality()
+    : "";
+  const stopField = MixinApi.isCombatant(combatant)
+    ? combatant.getStandingStopCondition()
+    : "";
+  const lethality: Lethality =
+    lethalOverride === true ||
+    lethSetting === "lethal" ||
+    lethField === "lethal"
+      ? "lethal"
+      : "non-lethal";
+  const rawStop = stopOverride ?? stopSetting ?? stopField ?? "";
+  const stopCondition = (STOP_CONDITIONS as readonly string[]).includes(rawStop)
+    ? (rawStop as StopCondition)
+    : DEFAULT_TERMS.stopCondition;
+  return { lethality, stopCondition, stakes: "" };
+}
+
+/**
+ * Ambush read — is the attacker striking from concealment the defender
+ * does not perceive? Reads the attacker's hidden state FIRST (warming the
+ * defender's `awareness` so `perceives` uses their real capacity), then
+ * clears the attacker's hide, because striking reveals you, ambush or not.
+ */
+async function resolveAmbushImpl(
+  attacker: Stuff,
+  defender: Stuff,
+): Promise<boolean> {
+  if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
+  await PerceptionApi.preloadForSenseGate(defender);
+  const unseen = !PerceptionApi.perceives(defender, attacker);
+  attacker.breakHide();
+  return unseen;
+}
+
+/** Warm each side's formation Idea into residency (best-effort). */
+async function warmFormationsImpl(combatants: Stuff[]): Promise<void> {
+  for (const c of combatants) {
+    try {
+      await StuffApi.singleton(PartyApi.formationPathOf(c));
+    } catch {
+      // Falls back to CombatFormation.DEFAULT_POLICY at consult time.
+    }
+  }
+}
+
+/** Snapshot melee competence BEFORE opening — the read-fog and poise
+ * recovery need it, and `bandFor` is async so it cannot be read mid-beat
+ * (a single session must stay deterministic). */
+async function snapshotBandsImpl(
+  combatants: Stuff[],
+): Promise<CombatOpenOptions> {
+  const competenceBands = new Map<string, CompetenceBandName>();
+  for (const c of combatants) {
+    const key = c.getTemplatePath();
+    if (!key) continue;
+    try {
+      competenceBands.set(
+        key,
+        await AdvancementApi.bandFor(c, MELEE_COMBAT_DISCIPLINE),
+      );
+    } catch {
+      // Unresolved → the combatant defaults to `untrained` sharpness.
+    }
+  }
+  return { competenceBands };
+}
+
+/**
+ * **The initiation handshake** — one act of starting a fight, wherever it
+ * is started from.
+ *
+ * This was the body of `AttackController` and is extracted so that every
+ * initiating verb runs *the same* sequence rather than a copy of it.
+ * `throw <thing> at <someone>` is an initiation too, and "routes exactly
+ * as attack does" has to be a fact rather than a claim — a duplicated
+ * 150-line handshake would drift on its first edit.
+ *
+ * The order is load-bearing and unchanged from the shipped controller:
+ * reconcile terms → prompt on conflict → snapshot competence → warm
+ * formations → read ambush (before revealing) → open/join/merge.
+ *
+ * `onConflict` is supplied by the caller because prompting is a UI act:
+ * the logic tier decides *that* a conflict must be answered, the
+ * controller decides *how* to ask. A caller with nobody to ask passes
+ * nothing, and the initiator's terms are imposed unconsented — which is
+ * the attacking-the-unwilling path, not an error.
+ */
+async function initiateImpl(
+  initiator: Stuff,
+  target: Stuff,
+  overrides: { lethal?: boolean; to?: string } = {},
+  onConflict?: (
+    target: Stuff,
+    mine: TermsProposal,
+  ) => Promise<boolean | null | "cancelled">,
+): Promise<InitiateResult> {
+  if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(target)) {
+    return { ok: false, reason: "not-a-combatant" };
+  }
+
+  const mine = standingTermsImpl(initiator, overrides.lethal, overrides.to);
+  const theirs = standingTermsImpl(target);
+  const reconciliation = CombatTerms.reconcile(mine, theirs);
+
+  let resolved: TermsProposal;
+  let consented: boolean;
+  if (reconciliation.status === "agreed") {
+    resolved = reconciliation.terms;
+    consented = true;
+  } else {
+    const accepted = onConflict ? await onConflict(target, mine) : null;
+    if (accepted === "cancelled") return { ok: false, reason: "cancelled" };
+    if (accepted) {
+      resolved = mine;
+      consented = true;
+    } else if (accepted === false) {
+      // Defender declined the escalation → fold to their terms.
+      resolved = theirs;
+      consented = true;
+    } else {
+      // No live defender to consent → the initiator's terms are imposed.
+      resolved = mine;
+      consented = false;
+    }
+  }
+
+  const terms = CombatTerms.agreed(
+    initiator.getTemplatePath() ?? "",
+    resolved,
+    consented,
+  );
+
+  const opts = await snapshotBandsImpl([initiator, target]);
+  await warmFormationsImpl([initiator, target]);
+  opts.ambush = await resolveAmbushImpl(initiator, target);
+
+  // Attacking someone already fighting JOINS their melee; attacking from
+  // mid-fight DRAWS the target in; two separate fights colliding MERGE;
+  // otherwise a fresh session opens.
+  const initiatorSession = sessionForImpl(initiator);
+  const targetSession = sessionForImpl(target);
+  let result: { ok: boolean; reason?: string };
+  if (
+    initiatorSession &&
+    targetSession &&
+    initiatorSession !== targetSession
+  ) {
+    mergeImpl(initiatorSession, targetSession);
+    result = { ok: true };
+  } else if (targetSession) {
+    result = joinImpl(initiator, target, terms, opts);
+  } else if (initiatorSession) {
+    result = joinImpl(target, initiator, terms, opts);
+  } else {
+    const opened = openSessionImpl(initiator, target, terms, opts);
+    result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
+  }
+  if (!result.ok) return { ok: false, reason: result.reason ?? "failed" };
+  return { ok: true, terms, consented };
 }
 
 /**
