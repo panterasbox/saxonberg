@@ -25,3 +25,10 @@ unidentifiedLong: >
   {A} {descriptor} volume, of the size that fits a satchel rather
   than a shelf. The contents would tell you what it is; the outside is
   doing its level best not to.
+unidentifiedDetails:
+  spine: >
+    Cracked in three places, all of them near the front. Whoever owned
+    this did not finish it either.
+  binding: >
+    Sewn rather than glued, and repaired at least once by somebody
+    with more patience than skill.

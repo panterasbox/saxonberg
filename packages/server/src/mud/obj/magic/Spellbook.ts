@@ -59,13 +59,21 @@ import Thing from '../../lib/stuff/Thing';
 import { MarkedMixin } from '../../lib/description/Marked';
 import { LabelledMixin } from '../../lib/description/Labelled';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
+import { DetailedMixin } from '../../lib/description/Detailed';
 import { GradedMixin } from '../../lib/craft/Graded';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import type { FieldMeta } from '../../lib/mixin';
 import type { CommandContributions } from '../../api/command';
 
+// `Detailed`: an item you cannot name is exactly the one you want to look
+// at closely, so these three classes are examinable in parts. Safe only
+// because `Identifiable` lenses the tree — a detail key is a parser
+// token, so an unidentified item shows its CLASS's parts (`grip`, `seal`)
+// and never its own. See `Detailed.detailRoot`.
 const SpellbookBase = CirculatingMixin(
-  GradedMixin(IdentifiableMixin(LabelledMixin(MarkedMixin(Thing)))),
+  GradedMixin(
+    IdentifiableMixin(LabelledMixin(MarkedMixin(DetailedMixin(Thing)))),
+  ),
 );
 
 export default class Spellbook extends SpellbookBase {

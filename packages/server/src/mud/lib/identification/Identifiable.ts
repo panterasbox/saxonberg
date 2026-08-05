@@ -23,6 +23,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { DetailMap } from '../description/Detailed';
 import { SecurityApi } from '../../api/security';
 import { GrammarApi } from '../../api/grammar';
 import { RecognitionApi } from '../../api/recognition';
@@ -91,6 +92,21 @@ export interface Identifiable {
    * writes an unidentified variant of their own prose.
    */
   renderUnidentifiedLong(generation: number, progress: number): string;
+
+  /**
+   * **The detail tree this item shows `viewer`**, or `null` for "no
+   * opinion — show your own."
+   *
+   * `DetailedMixin` asks this through the mixin registry rather than
+   * `IdentifiableMixin` overriding `detailRoot`, and the direction is
+   * deliberate: an override would only bind when `Identifiable`
+   * composes *above* `Detailed`, which is true of every class today
+   * and enforced by nothing. Asking is order-independent. It also
+   * keeps `Detailed` from importing the identification tree at all —
+   * the same duck-typing `BulkableApi.ingest` uses to fire
+   * `PotableMixin` without bulk importing magic.
+   */
+  unidentifiedDetailRootFor(viewer: Stuff): DetailMap | null;
 
   // ---------- storage (public for the Hydrator) ----------
   identifiedName: string;
@@ -201,6 +217,40 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
         .replaceAll('{a}', article)
         .replaceAll('{A}', article.charAt(0).toUpperCase() + article.slice(1))
         .replace(/\s{2,}/g, ' ');
+    }
+
+    /**
+     * ⚠ **An unidentified item presents its CLASS's parts, not its
+     * own** — the `getLongFor` rule one layer down, where it bites
+     * harder because a detail key is a **parser token**. An author
+     * names a part for what it does (`sigil`, `scorch`, `focus-lens`),
+     * so `look at sigil on wand` resolving-or-not is a free
+     * identification oracle regardless of what the text says.
+     *
+     * ⚠ **The fallthrough inverts.** `getLongFor` falls back to the
+     * authored paragraph when the bank says nothing, because an item
+     * with no description is broken. Here silence shows **nothing**: an
+     * item with no examinable parts is an ordinary item, so hiding
+     * costs nothing and leaking costs everything. Fail closed.
+     *
+     * An item with **no descriptor class** is not playing this game at
+     * all (`renderAppearance` returns `''` for it, its short
+     * description *is* its unidentified look) and passes straight
+     * through — the same guard, in the same place, as the appearance.
+     */
+    unidentifiedDetailRootFor(viewer: Stuff): DetailMap | null {
+      if (this.descriptorClass.length === 0) return null;
+      if (RecognitionApi.knowsTrueType(viewer, this as unknown as Stuff)) {
+        return null;
+      }
+      const generic = DescriptorBank.cached(this.descriptorClass)
+        ?.unidentifiedDetails;
+      const out: DetailMap = new Map();
+      for (const [key, text] of Object.entries(generic ?? {})) {
+        if (typeof text !== 'string' || text.length === 0) continue;
+        out.set(key, { vision: text, details: undefined });
+      }
+      return out;
     }
 
     /**

@@ -692,6 +692,56 @@ sentence, and a check that cries wolf trains authors to add exemptions.
 The first two fail structurally; "does this sentence assert a substance"
 is a reading, and readings are review's job.
 
+### The parts leak harder than the prose
+
+The same split, one layer down: a bank also carries
+**`unidentifiedDetails`**, and `Wand` / `Scroll` / `Spellbook` compose
+`DetailedMixin` so there is something to lens. An unidentified item is
+exactly the one you want to look at closely.
+
+> ⚠ **A detail key is a parser token.** An author names a part for what
+> it *does* — `sigil`, `scorch`, `focus-lens` — so the key gives the
+> answer away before the text is read, and `look wand:sigil` resolving
+> *or not* is a free identification oracle. Same shape as a flat wand
+> dropping `zap` from its affordance list (D34), one layer down.
+
+So an unidentified item presents its class's parts (`grip`, `tip`) and
+its own are unaddressable. Four surfaces reach a detail, and **all four**
+now take the viewer they always had:
+
+| Surface | Was |
+|---|---|
+| `look wand:sigil` (MQL chain → controller) | resolved by key, printed the text |
+| the MQL **candidate walk** | offered authored keys as targets |
+| the **inspection pane** projection | `read: (stuff)` — enumerated every key + description to anyone with the pane open, with no viewer in the signature at all |
+| the **detail-key augmenter** | anchored any key-matching word in the prose |
+
+> ⚠ **Two rules invert here, and both are deliberate.**
+>
+> **Silence fails closed.** `unidentifiedLong` falls back to the authored
+> paragraph, because an item with no description is broken. An item with
+> no examinable *parts* is an ordinary item, so silence shows nothing.
+>
+> **The keys ARE linted** for material collision, where the prose is not
+> — because they are parsed. `look at amber` cannot have two answers.
+
+The lensing lives in **`Detailed.detailRoot(viewer)`**, the single root
+every read starts from. `Detailed` *asks* through the mixin registry
+rather than `Identifiable` overriding it: an override binds only when
+`Identifiable` composes above `Detailed`, which is true of every class
+today and enforced by nothing. Asking is order-independent, and keeps
+`Detailed` from importing the identification tree at all — the same
+duck-typing that lets `BulkableApi.ingest` fire `PotableMixin` without
+bulk importing magic.
+
+The augmenter row is worth its own line: **tests could not have caught
+it.** It needs prose and keys authored independently to collide, and
+they did — the unidentified scroll's class prose says *"in a hurried
+hand"*, the scroll has an authored `hand` detail, and the paragraph came
+back with `<detail key="hand">` in it. Nothing in the text revealed
+anything; the anchor did, by asserting the thing has a part called that.
+It took driving the game.
+
 ### BUC and merge behaviour
 
 Stack identity keys on the per-instance **bucket** (`unknown` until

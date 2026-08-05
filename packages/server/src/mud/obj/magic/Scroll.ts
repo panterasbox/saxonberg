@@ -27,6 +27,7 @@ import { MarkedMixin } from '../../lib/description/Marked';
 import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { ConsumableMixin } from '../../lib/magic/Consumable';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
+import { DetailedMixin } from '../../lib/description/Detailed';
 import { LabelledMixin } from '../../lib/description/Labelled';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { BlessableMixin } from '../../lib/magic/Blessable';
@@ -38,10 +39,17 @@ import { BlessableMixin } from '../../lib/magic/Blessable';
 // working's own low/high branch, a scroll is the ARCHETYPE: NetHack's
 // cursed scroll of remove curse lays curses instead of lifting them,
 // and that is the one demonstration the whole model rests on.
+// `Detailed`: an item you cannot name is exactly the one you want to look
+// at closely, so these three classes are examinable in parts. Safe only
+// because `Identifiable` lenses the tree — a detail key is a parser
+// token, so an unidentified item shows its CLASS's parts (`grip`, `seal`)
+// and never its own. See `Detailed.detailRoot`.
 const ScrollBase = CirculatingMixin(
   BlessableMixin(
     IdentifiableMixin(
-      LabelledMixin(ConsumableMixin(ArcaneMixin(MarkedMixin(Thing)))),
+      LabelledMixin(
+        ConsumableMixin(ArcaneMixin(MarkedMixin(DetailedMixin(Thing)))),
+      ),
     ),
   ),
 );

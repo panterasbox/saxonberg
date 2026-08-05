@@ -31,3 +31,15 @@ data:
   # It visibly resolves something — the ring comes off, or it doesn't.
   # You learn what the scroll was by watching it work.
   selfIdentifying: true
+  details:
+    seal:
+      keywords: [seal, wax]
+      description: >
+        A temple seal, broken cleanly. Whoever commissioned this paid
+        for the good copy.
+    hand:
+      keywords: [hand, writing, letters]
+      description: >
+        A clean liturgical hand, every stroke of the lifting-formula
+        finished before the next begins. It is meant to be read aloud
+        without stumbling.

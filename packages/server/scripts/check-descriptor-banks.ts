@@ -197,6 +197,7 @@ interface BankFile {
   primary: string[];
   secondary: string[];
   unidentifiedLong: string;
+  unidentifiedDetails: Record<string, unknown>;
   file: string;
 }
 
@@ -224,6 +225,12 @@ function collectBanks(): BankFile[] {
           : [],
         unidentifiedLong:
           typeof doc.unidentifiedLong === 'string' ? doc.unidentifiedLong : '',
+        unidentifiedDetails:
+          doc.unidentifiedDetails &&
+          typeof doc.unidentifiedDetails === 'object' &&
+          !Array.isArray(doc.unidentifiedDetails)
+            ? (doc.unidentifiedDetails as Record<string, unknown>)
+            : {},
         file,
       });
     }
@@ -298,6 +305,28 @@ function main(): void {
       // The two rules above fail STRUCTURALLY and can be seen from the
       // outside. "Does this sentence assert a substance?" is a reading,
       // and readings are review's job.
+    }
+
+    // ── The unidentified detail keys ──
+    // ⚠ Unlike the prose, these ARE parsed: `look at <key> on <item>`
+    // resolves against them. So they land squarely under the same
+    // disjointness invariant the descriptor axes do — `look at amber`
+    // cannot have two answers — and they must be single lowercase
+    // tokens for the same reason.
+    for (const key of Object.keys(bank.unidentifiedDetails)) {
+      if (!/^[a-z][a-z-]*$/.test(key)) {
+        prose.push(
+          `  ${bank.key}: detail key '${key}' is not a single lowercase ` +
+            `token. Keys are typed by players ('look at ${key}').`,
+        );
+      }
+      const where = reserved.get(normalize(key));
+      if (where) {
+        prose.push(
+          `  ${bank.key}: detail key '${key}' is reserved by ${where} — ` +
+            `'look at ${key}' would have two answers.`,
+        );
+      }
     }
     // A duplicated word inside one axis silently shrinks the pool.
     for (const axis of [bank.primary, bank.secondary]) {

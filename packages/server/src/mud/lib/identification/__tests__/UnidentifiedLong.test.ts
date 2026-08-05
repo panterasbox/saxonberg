@@ -35,6 +35,7 @@ import { Appearance } from '../Appearance';
 import { DescriptorBank } from '../DescriptorBank';
 import { IdentifiableMixin } from '../Identifiable';
 import { VisibleMixin } from '../../description/Visible';
+import { DetailedMixin } from '../../description/Detailed';
 import { ContainableMixin } from '../../spatial/Containable';
 import { BeliefStoreMixin, IDENTIFICATION } from '../../belief/BeliefStore';
 import { PerceptionMixin } from '../../perception/Perception';
@@ -73,6 +74,8 @@ function installBanks(): void {
       bank.primaryAxis = (doc.primaryAxis as string) ?? '';
       bank.secondaryAxis = (doc.secondaryAxis as string) ?? '';
       bank.unidentifiedLong = ((doc.unidentifiedLong as string) ?? '').trim();
+      bank.unidentifiedDetails =
+        (doc.unidentifiedDetails as Record<string, string>) ?? {};
       return bank;
     });
   DescriptorBank.primeCache(banks);
@@ -220,5 +223,183 @@ describe('the unidentified long description', () => {
         viewer as unknown as Stuff,
       ),
     ).toBe('A rock.');
+  });
+});
+
+/**
+ * **The detail keys, which leak harder than the prose.**
+ *
+ * A detail is authored for the identified item and names the part by
+ * what it *does* — `sigil`, `scorch`, `focus-lens`. The key alone gives
+ * the answer away before the text is read, and unlike prose the key is
+ * **parsed**: `look at sigil on wand` either resolves or it does not,
+ * and which one it does is a free identification oracle. Exactly the
+ * D34 shape as a flat wand dropping `zap` from its affordance list.
+ *
+ * ⚠ The fallthrough **inverts** relative to `unidentifiedLong`. Silence
+ * there falls back to the authored paragraph, because an item with no
+ * description is broken. Silence here shows nothing: an item with no
+ * examinable parts is an ordinary item, so hiding costs nothing and
+ * leaking costs everything.
+ */
+describe('the unidentified detail tree', () => {
+  class DetailedWand extends IdentifiableMixin(
+    DetailedMixin(VisibleMixin(ContainableMixin(Idea))),
+  ) {}
+
+  function makeDetailed(descriptorClass = 'wand'): DetailedWand {
+    const w = makeStuffAtPath(
+      () => new DetailedWand(),
+      `/obj/test/dwand-${seq++}`,
+    );
+    w.setShortDescription('a wand');
+    w.setIdentifiedName('a wand of firebolt');
+    w.setDescriptorClass(descriptorClass);
+    w.setDetail(['sigil', 'glyph'], 'The firebolt glyph, cut deep.');
+    w.setDetail(['grip'], 'Ash worn smooth, and warm even now.');
+    return w;
+  }
+
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 100000);
+    Appearance.clearMemo();
+    DescriptorBank.clearCache();
+    installBanks();
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    DescriptorBank.clearCache();
+    vi.restoreAllMocks();
+  });
+
+  it('⭐ the KEYS are the leak — an unidentified item offers only its class\'s', () => {
+    const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
+    const wand = makeDetailed();
+    const ids = wand.getDetailIds(undefined, viewer) ?? [];
+    expect(ids).not.toContain('sigil');
+    expect(ids).not.toContain('glyph');
+    expect(ids).toContain('grip'); // the bank's generic part
+    expect(ids).toContain('tip');
+  });
+
+  it('the authored TEXT is unreachable even by exact key', () => {
+    const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
+    const wand = makeDetailed();
+    expect(wand.getDetailFor(viewer, 'sigil')).toBeNull();
+    expect(wand.hasDetail('sigil', undefined, viewer)).toBe(false);
+    // …and the shared key reads the CLASS's text, not the item's.
+    expect(wand.getDetailFor(viewer, 'grip')).toContain('carried far more');
+    expect(wand.getDetailFor(viewer, 'grip')).not.toContain('warm even now');
+  });
+
+  it('identifying it hands over the authored parts', () => {
+    const viewer = makeStuff(() => new Viewer());
+    const wand = makeDetailed();
+    viewer.know(IDENTIFICATION, wand.getTemplatePath()!, { typeKnown: true });
+    const v = viewer as unknown as Stuff;
+    expect(wand.getDetailIds(undefined, v)).toContain('sigil');
+    expect(wand.getDetailFor(v, 'sigil')).toContain('firebolt glyph');
+    expect(wand.getDetailFor(v, 'grip')).toContain('warm even now');
+  });
+
+  it('⚠ silence FAILS CLOSED — the opposite of the prose fallthrough', () => {
+    // An item with no examinable parts is an ordinary item. Falling
+    // through to the authored tree here would re-open the whole leak.
+    const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
+    const bank = DescriptorBank.cached('wand')!;
+    bank.unidentifiedDetails = {};
+    const wand = makeDetailed();
+    expect(wand.getDetailIds(undefined, viewer)).toEqual([]);
+    expect(wand.getDetailFor(viewer, 'sigil')).toBeNull();
+  });
+
+  it('no descriptor class ⇒ not playing this game; details pass through', () => {
+    // Same guard, same place, as `renderAppearance`: an item with no
+    // bank has no derived appearance, so its own short description IS
+    // its unidentified look and its own details are its own.
+    const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
+    const plain = makeDetailed('');
+    expect(plain.getDetailIds(undefined, viewer)).toContain('sigil');
+  });
+
+  it('the AUTHORING read is unfiltered — no viewer, nothing to withhold from', () => {
+    // Hydration, the composer and MQL system mode all read viewer-blind.
+    const wand = makeDetailed();
+    expect(wand.getDetailIds()).toContain('sigil');
+    expect(wand.getDetail('sigil')).toContain('firebolt glyph');
+  });
+
+  it('a non-identifiable Detailed host is completely untouched', () => {
+    class Door extends DetailedMixin(VisibleMixin(ContainableMixin(Idea))) {}
+    const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
+    const door = makeStuff(() => new Door());
+    door.setDetail(['handle'], 'A brass handle.');
+    expect(door.getDetailIds(undefined, viewer)).toEqual(['handle']);
+    expect(door.getDetailFor(viewer, 'handle')).toBe('A brass handle.');
+  });
+});
+
+/**
+ * ⚠ The **fourth** surface, and the one only a live drive found.
+ *
+ * `wrapDetailKeysAugmenter` anchors any word in the finished prose that
+ * matches a detail key. The unidentified scroll's *class* prose says
+ * "in a hurried hand" — and the scroll has an authored `hand` detail —
+ * so the paragraph came back with `<detail key="hand">hand</detail>` in
+ * it. Nothing was revealed by the text; the **anchor** did it, by
+ * asserting that this thing has a part called that.
+ *
+ * Tests could not have caught it: it needs prose and keys authored
+ * independently, in the same world, to collide.
+ */
+describe('the detail-key augmenter', () => {
+  class Scroll extends IdentifiableMixin(
+    DetailedMixin(VisibleMixin(ContainableMixin(Idea))),
+  ) {}
+
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 100000);
+    Appearance.clearMemo();
+    DescriptorBank.clearCache();
+    installBanks();
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    DescriptorBank.clearCache();
+    vi.restoreAllMocks();
+  });
+
+  function makeScroll(): Scroll {
+    const s = makeStuffAtPath(() => new Scroll(), `/obj/test/scroll-${seq++}`);
+    s.setShortDescription('a scroll');
+    s.setIdentifiedName('a scroll of remove curse');
+    s.setDescriptorClass('scroll');
+    // The collision: the class prose contains the word "hand", and the
+    // ITEM has a detail keyed `hand`.
+    s.setDetail(['hand'], 'A clean liturgical hand.');
+    return s;
+  }
+
+  it('⭐ does not anchor an AUTHORED key inside the class prose', () => {
+    const viewer = makeStuff(() => new Viewer()) as unknown as Stuff;
+    const scroll = makeScroll();
+    const markup = (
+      scroll as unknown as { getMarkupLong(v: Stuff): string }
+    ).getMarkupLong(viewer);
+    expect(markup).toContain('hurried hand');
+    expect(markup).not.toContain('detail key="hand"');
+  });
+
+  it('…and DOES anchor it once you know what the thing is', () => {
+    const viewer = makeStuff(() => new Viewer());
+    const scroll = makeScroll();
+    scroll.setLongDescription('Vellum, and a practised hand.');
+    viewer.know(IDENTIFICATION, scroll.getTemplatePath()!, { typeKnown: true });
+    const markup = (
+      scroll as unknown as { getMarkupLong(v: Stuff): string }
+    ).getMarkupLong(viewer as unknown as Stuff);
+    expect(markup).toContain('detail key="hand"');
   });
 });

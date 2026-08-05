@@ -80,6 +80,7 @@ export class DescriptorBank extends Document {
     primaryAxis: { persistent: true },
     secondaryAxis: { persistent: true },
     unidentifiedLong: { persistent: true },
+    unidentifiedDetails: { persistent: true },
   };
 
   /** Unique bank key — the item class (`potion`, `wand`, `ring`, …). */
@@ -129,6 +130,36 @@ export class DescriptorBank extends Document {
    * description gives nothing away).
    */
   public unidentifiedLong: string = '';
+
+  /**
+   * **The examinable sub-parts an UNIDENTIFIED item of this class has**,
+   * as `key → what you see`. The `unidentifiedLong` argument one layer
+   * down, and the layer where it bites harder.
+   *
+   * A detail is authored for the identified item and *names the part by
+   * what it does* — `sigil`, `scorch`, `focus-lens`. The key alone gives
+   * the answer away before the text is even read, and the key is
+   * **parsed**: `look at sigil on wand` either resolves or it doesn't,
+   * and which one it does is a free identification oracle. So an
+   * unidentified item presents this set and nothing else.
+   *
+   * ⚠ **The fallthrough goes the OTHER WAY from `unidentifiedLong`.**
+   * Silence there falls back to the authored paragraph, because an item
+   * with no description is broken. Silence *here* shows **nothing** —
+   * an item with no examinable parts is an ordinary item, so hiding
+   * costs nothing and leaking costs everything. Fail closed.
+   *
+   * Vision slot only. Details carry a per-sense slot map and nest, but
+   * class-level parts are the generic case by construction: *a grip*,
+   * *the seal*, *the binding*. An item that wants a smell on a part
+   * wants that for the part it really has, which is the identified set.
+   *
+   * ⚠ Keys are **parser tokens** and land under the same disjointness
+   * rule the descriptor axes do — `look at amber` cannot have two
+   * answers. `lint:descriptors` checks them; it does not check the
+   * prose, which is never parsed.
+   */
+  public unidentifiedDetails: Record<string, string> = {};
 
   /**
    * Cache of key → bank. Banks are immutable reference data; the first

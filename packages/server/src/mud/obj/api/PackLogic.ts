@@ -69,6 +69,8 @@ interface DescriptorBankFile {
   secondaryAxis: string;
   /** Class-level prose for an unidentified item; `{descriptor}` interpolates. */
   unidentifiedLong: string;
+  /** Class-level examinable parts an unidentified item shows. */
+  unidentifiedDetails: Record<string, string>;
   /** Pack-relative file path, for diagnostics. */
   relFile: string;
 }
@@ -291,6 +293,7 @@ function readContent(pack: ResolvedPack): PackContent {
         typeof doc.unidentifiedLong === 'string'
           ? doc.unidentifiedLong.trim()
           : '',
+      unidentifiedDetails: stringMap(doc.unidentifiedDetails),
       relFile: relative(pack.root, file),
     });
   }
@@ -308,6 +311,16 @@ function readContent(pack: ResolvedPack): PackContent {
 function stringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((v): v is string => typeof v === 'string');
+}
+
+/** A `key: text` block, with non-string values dropped. */
+function stringMap(value: unknown): Record<string, string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof v === 'string' && v.trim().length > 0) out[k] = v.trim();
+  }
+  return out;
 }
 
 // --- requires-kernel -------------------------------------------------------
@@ -457,6 +470,7 @@ interface DescriptorBankRow extends Record<string, unknown> {
   primaryAxis: string;
   secondaryAxis: string;
   unidentifiedLong: string;
+  unidentifiedDetails: Record<string, string>;
   sourcePack: string;
 }
 
@@ -579,6 +593,7 @@ async function reconcileDescriptorBanks(
       primaryAxis: f.primaryAxis,
       secondaryAxis: f.secondaryAxis,
       unidentifiedLong: f.unidentifiedLong,
+      unidentifiedDetails: f.unidentifiedDetails,
       sourcePack: packId,
     };
     const stamped = stampedByKey.get(f.key);
@@ -590,6 +605,7 @@ async function reconcileDescriptorBanks(
           primaryAxis: stamped.primaryAxis,
           secondaryAxis: stamped.secondaryAxis,
           unidentifiedLong: stamped.unidentifiedLong ?? '',
+          unidentifiedDetails: stamped.unidentifiedDetails ?? {},
         }) ===
         canonical({
           primary: f.primary,
@@ -597,6 +613,7 @@ async function reconcileDescriptorBanks(
           primaryAxis: f.primaryAxis,
           secondaryAxis: f.secondaryAxis,
           unidentifiedLong: f.unidentifiedLong,
+          unidentifiedDetails: f.unidentifiedDetails,
         });
       if (!same) {
         await PersistApi.save(Collections.DescriptorBanks, {
@@ -722,6 +739,7 @@ async function reconcilePack(
         bank.primaryAxis = f.primaryAxis;
         bank.secondaryAxis = f.secondaryAxis;
         bank.unidentifiedLong = f.unidentifiedLong;
+        bank.unidentifiedDetails = f.unidentifiedDetails;
         return bank;
       }),
     );

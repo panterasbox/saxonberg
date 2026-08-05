@@ -243,6 +243,18 @@ export const DETAIL_FIELDS: FieldSet = [
 ];
 ```
 
+> ⚠ **`details` is per-viewer too, and was the widest identification
+> leak in the codebase.** Its descriptor read `(stuff)` while its
+> neighbour `longDescription` read `(stuff, viewer)` — so the pane
+> enumerated every detail key *and* description regardless of what the
+> reader knew, and a detail key names the part by what it does
+> (`sigil`, `scorch`). `look` at least had to be asked a question; the
+> pane just handed it over. Both layers (`read` and `perDetailRead`)
+> now pass the viewer they were always given, through to
+> `Detailed.detailRoot(viewer)`. See
+> [magic-items.md](./magic-items.md) § *The parts leak harder than the
+> prose*.
+
 The `contents` descriptor lives on `ContainerMixin.subscribableFields`.
 For container hosts, it ships an array of `'ref'`-shape records
 (via `projectFields(child, REF_FIELDS, viewer)`) for visible

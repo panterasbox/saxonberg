@@ -32,6 +32,7 @@ import { ArcaneMixin } from '../../lib/magic/Arcane';
 import { ChargedMixin } from '../../lib/magic/Charged';
 import { CirculatingMixin } from '../../lib/residency/Circulating';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
+import { DetailedMixin } from '../../lib/description/Detailed';
 import { LabelledMixin } from '../../lib/description/Labelled';
 import { BlessableMixin } from '../../lib/magic/Blessable';
 import { WieldableMixin } from '../../lib/slot/Wieldable';
@@ -49,12 +50,19 @@ import { SlottableMixin } from '../../lib/slot/Slottable';
 // (see `Blessing`). It is composed here and not on `Thing` for exactly
 // that reason: a cursed chair has no model behind it, so it does not
 // get the field.
+// `Detailed`: an item you cannot name is exactly the one you want to look
+// at closely, so these three classes are examinable in parts. Safe only
+// because `Identifiable` lenses the tree — a detail key is a parser
+// token, so an unidentified item shows its CLASS's parts (`grip`, `seal`)
+// and never its own. See `Detailed.detailRoot`.
 const WandBase = CirculatingMixin(
   WieldableMixin(
     SlottableMixin(
       BlessableMixin(
         IdentifiableMixin(
-          LabelledMixin(ChargedMixin(ReservedMixin(ArcaneMixin(Thing)))),
+          LabelledMixin(
+            ChargedMixin(ReservedMixin(ArcaneMixin(DetailedMixin(Thing)))),
+          ),
         ),
       ),
     ),

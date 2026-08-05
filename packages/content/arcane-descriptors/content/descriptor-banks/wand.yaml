@@ -26,3 +26,12 @@ unidentifiedLong: >
   than a stick needs and labelled nowhere. Whatever a maker bound into
   it is not written on the outside — you would have to use it, or find
   somebody who could tell you.
+# The parts an unidentified one has. Keys are PARSER TOKENS — generic by
+# necessity, since the real parts are named for what the thing does.
+unidentifiedDetails:
+  grip: >
+    Worn smooth in a band about a third of the way along, the way a
+    thing gets when it is carried far more often than it is used.
+  tip: >
+    Blunted, and darker than the rest — whatever comes out comes out
+    here, and has been doing so for a while.

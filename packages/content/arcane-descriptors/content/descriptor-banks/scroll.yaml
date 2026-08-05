@@ -19,6 +19,13 @@ secondary: []
 # `{descriptor}`: half the bank is vowel-initial, so write `{a}` (or
 # `{A}`) and let it resolve against the word actually drawn.
 unidentifiedLong: >
-  A sheet rolled and tied, covered edge to edge in {a} {descriptor}
+  A sheet rolled and tied, its whole face covered in {a} {descriptor}
   hand. What is set down there is the working itself, and a working is
   not a thing you read off at a glance.
+unidentifiedDetails:
+  seal: >
+    Broken once and pressed back down. The impression is too worn to
+    read, which may be the point.
+  edge: >
+    Trimmed square and beginning to fray, the way paper does when it
+    has been rolled and unrolled a great many times.

@@ -59,3 +59,18 @@ data:
   # (`remove-curse`). *Calibrate at launch* — D21 holds every
   # distribution constant to that.
   blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }
+  # The identified parts: named for what the thing DOES, which is why
+  # they cannot show before you know. `sigil` alone answers the question.
+  details:
+    sigil:
+      keywords: [sigil, glyph, mark]
+      description: >
+        A firebolt glyph cut deep into the brass band and blackened by
+        its own work — the maker's, and legible to anyone taught to read
+        the grid.
+    grip:
+      keywords: [grip, handle]
+      description: >
+        Ash worn smooth, and warm even now. Firing this heats the wand
+        rather than the hand holding it, which is the whole reason the
+        class is safe to sell.
