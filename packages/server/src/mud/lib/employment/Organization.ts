@@ -169,10 +169,20 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     public appointingAuthority: PrincipalRef | string | null = null;
 
     /**
-     * ⚠ **Legacy hydration slot.** Shipped seeds author `proprietorPath: <path>`;
-     * it reads as `{kind: 'entity', path}` so they keep working untouched.
-     * New content authors `appointingAuthority`, which wins when both are
-     * present.
+     * ⚠⚠ **Legacy hydration slot. Do NOT delete it because the seeds are
+     * clean.** No shipped seed authors `proprietorPath` any more — that is
+     * asserted by `seeds/__tests__/business-authority.test.ts` — so a grep
+     * makes this look dead. It is not.
+     *
+     * `SeederManager` is **insert-only** (`if (existing) continue`), so every
+     * box seeded before the port still has `proprietorPath` in its `domain`
+     * rows and will keep it until those rows are deleted and reseeded. This
+     * slot is what makes those rows keep working: it reads as
+     * `{kind: 'entity', path}`, which is byte-identical to what they resolved
+     * to before.
+     *
+     * `appointingAuthority` wins when both are present, so a reseeded row
+     * upgrades silently and no migration is required to *stay* correct.
      */
     public proprietorPath: string = '';
 
