@@ -367,6 +367,19 @@ pushed below**, which is what makes the tenure kernel's protected bundle
 real: you can lose the keys to the engine and still hold your ground,
 your builds, and your capacity to author.
 
+> ⚠⚠ **Inalienable means the CAPACITY, not any particular WORK.** You can
+> never be stripped of the ability to make things. A specific thing you
+> made can still be removed — by moderation, by a locality's rules, by
+> the owner of the ground it sits on.
+
+**Clarified 2026-08-04**, because the unqualified phrasing reads as *"my
+content can never be taken down"* and will be quoted that way.
+**Authorship and hosting are different questions**: the floor is a
+guarantee about *you*, not an easement over somebody else's parcel — and
+it has to coexist with moderation or a community cannot govern its own
+space. ⭐ The provenance record is the part that genuinely never goes:
+`authoring_events` says you made it whether or not it still stands.
+
 ⭐ **The claim survives, bounded more honestly:** the polity governs
 **who holds the keys**, not **what the engine does**. See Part 6 for the
 chain.
