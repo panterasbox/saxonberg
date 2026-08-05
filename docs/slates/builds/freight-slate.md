@@ -112,7 +112,74 @@ And it buys **observability**: the wagon is physically present in each
 room as it passes, so a busy trade road is *visibly* busy — which is
 what makes interception possible **without an interception system**.
 
-### ⭐ The road network is emergent, not authored
+#### ⭐⭐⭐⭐ The invariant this actually protects: no economic rate may be wall-clock
+
+**Added 2026-08-05.**
+
+> **User: "nothing in this economy can be based on how fast you're able to
+> get commands processed over the wire and inside the event loop… encumbrance
+> is one constraint we already have, but time is a different beast."**
+
+Stated as the rule:
+
+> ⭐⭐⭐⭐ **NO ECONOMIC ENTITLEMENT MAY DEPEND ON THE RATE AT WHICH A
+> MEMBER'S COMMANDS ARE PROCESSED.** Latency may cost convenience. It may
+> never cost output.
+
+## ⭐⭐ Audited: every production system already complies — except movement
+
+| system | what meters it | wall-clock? |
+|---|---|---|
+| foraging / consumables / ore | ⭐ a **stock with an inflow**, derive-on-read | ✅ no — hammering the verb gets nothing |
+| growing · fermenting · aging | the **game clock** | ✅ no |
+| crafting | **inputs** — you can only craft what you hold | ✅ effectively no |
+| metabolism · thermal · husbandry | reconcile-on-read on game-time | ✅ no |
+| ⚠ **carrying things** | **encumbrance — a CAPACITY, not a RATE** | ⚠ **yes** |
+
+> ⭐⭐⭐ **Encumbrance meters WHAT you can carry. Nothing meters HOW OFTEN.**
+> That is the entire hole, and it is why logistics is the one that stands
+> out — movement produces nothing, so there is no stock to deplete and time
+> is the only cost.
+
+## Why the design already closes it, and closes it exactly far enough
+
+The two halves compose:
+
+- **The durative journey removes wall-clock from the bulk path entirely** —
+  the command bus issues the *order*, the scheduler advances the legs at
+  *mode speed + exit cost + **load***. Typing faster does not arrive sooner.
+- ⭐⭐ **Encumbrance caps the synchronous path's advantage.** Pedestrian
+  movement stays real-time deliberately (*"game responsiveness is a selling
+  point"*), but a back is ~20 kg and a wagon is ~500 kg — **so a fast typer
+  shuttling packs can never reach commercial scale.**
+
+> ⭐⭐⭐ **Capacity bounds the leak; duration removes it at scale.** The
+> economy is never throughput-priced where it matters, and the residue is
+> physics rather than an oversight.
+
+## ⚠⚠ The legal implication: this one CANNOT be a statute
+
+[balance-slate](./balance-slate.md)'s doctrine is *a statute is a constraint
+on a **meter***. Here there is no meter:
+
+> **The polity cannot legislate ping.** It can constrain what it can
+> measure, and it can never measure a member's connection.
+
+> ⭐⭐⭐⭐ **So the corollary to the meter doctrine is: WHAT THE POLITY CANNOT
+> MEASURE, THE KERNEL MUST FORECLOSE.** This belongs in the floor, not in the
+> Schedule — it is not a dial and no community may turn it off.
+
+⭐ **The commercial half is already forbidden and needs nothing new**: selling
+priority is **money buying advantage**, which is Art. I §2 — an *eternity*
+clause. **An operator may not sell latency.**
+
+⚠ **The non-commercial half is what needs the kernel rule.** A member with a
+better connection was sold nothing, so the firewall does not reach them —
+and no law can. **That is precisely why the engine has to hold the line the
+law structurally cannot**, and why the invariant is worth stating as a rule
+rather than leaving as an emergent property of good design.
+
+## ⭐ The road network is emergent, not authored
 
 **You do not author roads.** You author **which exits admit `wheeled`
 traffic**, and the road network is the induced subgraph. `passageMode`

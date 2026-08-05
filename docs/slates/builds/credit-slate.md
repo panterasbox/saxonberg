@@ -239,6 +239,98 @@ that moment for money.)*
 
 ---
 
+# Part 3b — ⭐⭐⭐ The rate: whose it is, and why the CB has none yet
+
+> **User: "the CB sets the prime rate. I'm not sure where all that goes in
+> the rest of our design, and what should the prime rate be?"**
+
+## ⚠ First, the precision — because it *is* the design question
+
+**The CB does not set the prime rate. Banks do.** The prime is what a bank
+charges its best customers (conventionally the policy rate + 3), and in the
+US it is literally **a survey of banks published by a newspaper**. What a
+central bank sets is its **own** rate: what *it* will lend at.
+
+## Where a rate may legitimately live
+
+[currency-slate](./currency-slate.md) settled this shape for pegs and it
+generalizes without amendment:
+
+| | |
+|---|---|
+| ⛔ **World oracle** | a rate the world agrees on that trades settle at. **Refused** — it makes the rate authoritative, breaking *a price is an event between two parties* |
+| ✅ **The issuer's standing offer** | *"I will lend at X, at my window, for as long as I choose."* One party's posted terms; nothing else reads it |
+
+**A CB policy rate is the second shape**, so it is already permitted — the
+same object as a currency board's redemption promise. A bank's lending rate
+likewise. ⭐ And the currency build now *enforces* the refusal: the currency
+record carries **no rate and no cross-reference**, by design.
+
+> ⭐⭐⭐⭐ **Which makes the prime rate JOURNALISM, not mechanism.** Somebody
+> surveys the banks and publishes *"the prime is 8."* **Not a game-ism — it
+> is how the Wall Street Journal prime rate actually works.**
+
+Two payoffs: the number is **contestable** (a rival paper surveys
+differently) rather than authoritative, and [press-slate](./press-slate.md)
+gets its first genuinely **economic** product instead of only covering
+politics.
+
+## The CB posts no rate in v1 — and the one it eventually posts is a penalty
+
+Part 4's conclusion holds: **the CB's only counterparty is the state, which
+cannot default, so there is no risk to price** — and the amendment library
+already specifies **quantity-not-price** monetary policy. A CB rate would be
+decoration.
+
+> **The one rate the CB should ever post is the discount-window rate, and
+> its job is not risk-pricing — it is DETERRENCE.** Bagehot: *lend freely, at
+> a **penalty** rate, against good collateral.* Above market on purpose, so
+> the window is used in need rather than for profit.
+
+Which arrives with commercial banks — exactly where the build order already
+sequenced it.
+
+## ⚠⚠ What it should be, and the trap in the number
+
+**~5% per game-year** is the historical anchor for safe credit — remarkably
+stable across three millennia, because it approximates the real return on
+productive capital. Penalty rate ≈ **+3 over that.** Both **organic-tier
+Schedule rows** (calibrate at launch, the affected chamber's to tune).
+
+> ⚠⚠ **The clock runs at 12×, so a GAME-YEAR IS A REAL MONTH.** A "5% per
+> annum" loan compounds visibly inside a real month.
+
+⭐ That is a **feature** — interest becomes legible instead of theoretical,
+which is the whole education value — but it must be stated, or somebody
+authors 5% thinking it is slow and ships something punitive. **Quote rates
+per game-year, with the 12× conversion written beside them.**
+
+## ⭐⭐⭐⭐ And the reason the rate matters more than lending does
+
+[supply-chain-slate](./supply-chain-slate.md) established that a parcel's
+worth is **locational** — footfall → demand → entitlement → **rent**. But
+rent is a *flow*. It becomes a *price* only through a discount rate:
+
+> **Land value = rent ÷ interest rate.**
+
+> ⭐⭐⭐ **So the rate is the bridge between "this lot earns" and "this lot
+> is worth" — which is what makes Part 7's collateral question computable at
+> all.**
+
+⚠ **This corrects Part 7's conclusion.** That section reasoned that most
+lending would be **unsecured**, because nobody could say what a parcel was
+worth. **A rate closes that gap**: a locational rent plus a discount rate is
+a valuation, so **secured lending against land becomes real** — it was only
+missing its second term.
+
+⭐ It also prices the **forward contract** (supply-chain stage 3) and makes
+capital budgeting possible at all — *is this venture worth borrowing for?*
+is unanswerable without one. And it makes arguably the most useful equation
+in economics **demonstrable rather than asserted**: raise the rate, watch
+land prices fall, in a world where anyone can check.
+
+---
+
 # Part 4 — The lanes, and which carry risk
 
 > **User: "the CB lends to business and players work for pay. it also lends
