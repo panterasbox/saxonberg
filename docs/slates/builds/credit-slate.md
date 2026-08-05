@@ -571,8 +571,16 @@ build the NPC a bespoke non-command path — destroying the property.)
 `requiresWizard`, Katie is deliberately not a wizard, and her intake
 dialogue dispatches it.** The authorization was moved to `execute()` on the
 belief the YAML gate would be skipped; it is not skipped. **Needs
-live-driving** ([[verify-by-driving-not-by-suite]]) — the existing test
-calls `isDormsAgent` directly and never dispatches through the chain.
+live-driving** — the existing test calls `isDormsAgent` directly and never
+dispatches through the chain.
+
+⭐ **The fix is a RE-GATE, not a deletion** — and it belongs to
+[wizard-duty-slate § Axis hygiene](./wizard-duty-slate.md), not here.
+*(User: "none of this shit should be using `requiresWizard` anyway, that's
+for exactly one thing — writing TypeScript code.")* **Four of the eight
+`requiresWizard` call sites are standing in for an axis that already
+exists** — `house` wants title, `provision` wants agency, `config` wants an
+office — and `reserve`'s own re-gate to `requiresGovernor` is the template.
 
 ⭐ **The trap that hid it for a year:** validators are resolved onto
 `_resolvedValidators` **only by `CommandApi.preloadAll`**, and
