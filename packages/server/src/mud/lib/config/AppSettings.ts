@@ -226,6 +226,14 @@ export const AppSettingKeys = {
   /** Scripting — recursion-depth ceiling, platform (large). */
   scriptMaxDepthPlatform: "script.maxDepth.platform",
   /**
+   * Banking — **the currency the Compact transacts and denominates its
+   * obligations in.** Policy data, not a property of the money: this is
+   * where the zorkmid's "specialness" lives, so no code path compares a
+   * currency to a literal (reserve status is functional, never decreed).
+   * Read only through `Currency.compact()`. See docs/subsystems/banking.md.
+   */
+  bankingCompactCurrency: "banking.compactCurrency",
+  /**
    * Banking — the **demo** sales-tax rate, a fraction of a purchase remitted
    * to the placeholder treasury via the remittance-split seam. Authored and
    * **inert** (recorded, not governed — the corpo-affiliation-edge
@@ -364,19 +372,37 @@ export const AppSettingKeys = {
   socialIdleAfter: "social.idleAfter",
 
   /**
-   * Bulletin (news ticker) — the server-owned ticker semantics. The engine
+   * Press (news ticker) — the server-owned ticker semantics. The engine
    * ships the pins-first/recency window + soft-retract/expiry; these are the
    * operator-tunable limits, read with a try/catch fallback so a pre-warm /
-   * test read is still safe. See docs/subsystems/bulletin.md.
+   * test read is still safe. See docs/subsystems/press.md.
    */
-  /** Bulletin — max bulletins in the live ticker window. */
-  bulletinTickerWindow: "bulletin.tickerWindow",
-  /** Bulletin — max pinned bulletins held at the top of the window. */
-  bulletinMaxPins: "bulletin.maxPins",
-  /** Bulletin — max rendered length (chars) of a headline. */
-  bulletinHeadlineMaxLength: "bulletin.headlineMaxLength",
-  /** Bulletin — max rendered length (chars) of a body. */
-  bulletinBodyMaxLength: "bulletin.bodyMaxLength",
+  /** Press — max releases in the live ticker window. */
+  pressTickerWindow: "press.tickerWindow",
+  /** Press — max pinned releases held at the top of the window. */
+  pressMaxPins: "press.maxPins",
+  /** Press — max rendered length (chars) of a headline. */
+  pressHeadlineMaxLength: "press.headlineMaxLength",
+  /** Press — max rendered length (chars) of a body. */
+  pressBodyMaxLength: "press.bodyMaxLength",
+  /**
+   * Press — which publisher organizations the **anonymous** start-screen
+   * press room shows, as a comma-separated list of organization paths.
+   *
+   * ⚠ **Placement, not permission.** Being on this list puts a publisher
+   * on the app's front door; it says nothing about who may read a given
+   * release, which is the visibility clamp's job. A publisher can be
+   * public and off the list; a listed publisher can still have a
+   * members-only release. Collapsing the two would make placement imply
+   * permission.
+   *
+   * ⚠ A comma-separated string because `AppApi.setting()` returns a
+   * `string` — there is no array type. An entry that does not resolve is
+   * **skipped and logged**: a typo would otherwise empty the front page
+   * with no signal, and "looking deliberate while empty" is precisely
+   * this surface's failure mode.
+   */
+  pressFrontPage: "press.frontPage",
 
   /**
    * Residency — scheduled object self-maintenance (see
@@ -1189,6 +1215,28 @@ export const AppSettingKeys = {
   craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
   /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
   craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
+
+  /*
+   * Wiki — the render budget (docs/subsystems/wiki.md).
+   *
+   * A page is community-authored input that runs a resolver: snippets
+   * expand to fixpoint and components reach live sources, and both are
+   * written by players. Every bound below fails with an inline error
+   * rather than a hang, because the failure mode this guards against is
+   * not a wrong answer but a request that never returns.
+   */
+  /** Wiki — how deep snippet expansion may nest (catches self-inclusion). */
+  wikiRenderSnippetDepth: "wiki.render.snippetDepth",
+  /** Wiki — total snippet expansions per render (catches the mutually
+   *  -including PAIR, which alternates and so never gets deep). */
+  wikiRenderMaxSnippets: "wiki.render.maxSnippets",
+  /** Wiki — how many components one render may resolve. */
+  wikiRenderMaxComponents: "wiki.render.maxComponents",
+  /** Wiki — per-component timeout; one slow source stalls a widget, never
+   *  the page. */
+  wikiRenderComponentTimeoutMs: "wiki.render.componentTimeoutMs",
+  /** Wiki — the emitted-body ceiling, in characters (expansion bombs). */
+  wikiRenderMaxOutputChars: "wiki.render.maxOutputChars",
 } as const;
 
 export type AppSettingKey =

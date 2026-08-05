@@ -26,7 +26,9 @@
 # behaviour, kept current by the pre-merge sweep. That is the half a
 # stranger is actually asking about, so that is the half we publish.
 #
-#   published  — docs/subsystems/** + the standing top-level references
+#   published  — docs/subsystems/** (what is BUILT)
+#                docs/governance/** (the instruments that BIND)
+#                + the standing top-level references
 #   withheld   — docs/slates/** (deliberative), docs/manifesto/**,
 #                deployment.md + workflow.md (operational, not about the
 #                game), and the source tree
@@ -85,11 +87,26 @@ TOP_LEVEL_DOCS=(
 
 echo "docs-mirror: building into $OUT"
 rm -rf "$OUT"
-mkdir -p "$OUT/docs/subsystems"
+mkdir -p "$OUT/docs/subsystems" "$OUT/docs/governance"
 
 # Subsystem docs — the bulk of the corpus, and the source of truth.
 cp docs/subsystems/*.md "$OUT/docs/subsystems/"
 SUB_COUNT=$(find "$OUT/docs/subsystems" -name '*.md' | wc -l | tr -d ' ')
+
+# Governance INSTRUMENTS. Publishing these is the repo's own call, not a
+# judgement of mine — docs/governance/README.md draws exactly the line
+# this whitelist runs on:
+#
+#   "Normative governance INSTRUMENTS for the Compact — the documents
+#    that BIND, as distinct from the design slates that EXPLORE."
+#
+# Instruments bind, so they are authoritative and belong here; slates
+# explore, so they do not. The constitution is a DRAFT with five [OPEN]
+# points, but it says so in its own status line — a reader (or a model)
+# gets that caveat from the text itself, the same way subsystem docs
+# carry their own "What's NOT in this build".
+cp docs/governance/*.md "$OUT/docs/governance/"
+GOV_COUNT=$(find "$OUT/docs/governance" -name '*.md' | wc -l | tr -d ' ')
 
 # Standing top-level references. Missing entries are reported, not
 # fatal — a doc can be renamed upstream without breaking the pipeline.
@@ -245,6 +262,16 @@ summarize() {
     echo "- [$title]($f) — $summary"
   done
   echo
+  echo "## Governance instruments"
+  echo
+  echo "The documents that BIND — normative, as distinct from design exploration."
+  echo
+  for f in "$OUT"/docs/governance/*.md; do
+    rel="docs/governance/$(basename "$f")"
+    IFS=$'\t' read -r title summary < <(summarize "$f")
+    echo "- [$title]($rel) — $summary"
+  done
+  echo
   echo "## Subsystems"
   echo
   echo "One doc per subsystem; each is the source of truth for its area."
@@ -300,7 +327,7 @@ carry no such ambiguity.
   canonical repository holds the history.
 EOF
 
-echo "docs-mirror: $SUB_COUNT subsystem docs + $TOP_COUNT references"
+echo "docs-mirror: $SUB_COUNT subsystem docs + $GOV_COUNT governance instruments + $TOP_COUNT references"
 echo "docs-mirror: $(find "$OUT" -name '*.md' | wc -l | tr -d ' ') files, $(du -sh "$OUT" | cut -f1) total"
 
 # ---------------------------------------------------------------------

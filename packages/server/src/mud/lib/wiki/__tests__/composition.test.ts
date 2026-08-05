@@ -1,0 +1,611 @@
+/**
+ * `<composition>` — the live architecture panel.
+ *
+ * Gates acceptance criteria **12** (⭐ renders a subject's live mixin
+ * architecture, and CHANGES when the subject's composition changes,
+ * with no edit to the page), **27** (⭐ a `spoiler`-declared field is
+ * gated in a derived panel exactly as tagged prose is — asserted on a
+ * REAL render, not on a tag scan) and **65** (a dangling subject
+ * renders a note, and the page still renders).
+ *
+ * Criterion 28's enumerating audit is its own file
+ * (`wiki-spoiler-fields.snapshot.test.ts`) — a snapshot belongs apart
+ * from behavioural assertions, because its failures mean something
+ * completely different: "review this diff", not "this broke".
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { component as composition } from '../components/composition';
+import WikiRenderer from '../../../obj/WikiRenderer';
+import { Idea } from '../../stuff/Idea';
+import { Template } from '../../stuff/Template';
+import { AccessApi } from '../../../api/access';
+import { AppApi } from '../../../api/app';
+import { CommandApi } from '../../../api/command';
+import { MixinApi } from '../../../api/mixin';
+import { ShellApi } from '../../../api/shell';
+import { StuffApi } from '../../../api/stuff';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { ProxyApi } from '../../../api/proxy';
+import { makeStuff } from '../../security/__tests__/test-setup';
+import { RenderBudget } from '../RenderBudget';
+import { SpoilerLevels, type ComponentContext } from '../render';
+import type { FieldMeta } from '../../mixin';
+import type { MmlNode } from '../../../api/mml';
+import type { Stuff } from '../../stuff/Stuff';
+
+class Principal extends Idea {}
+
+/**
+ * A subject with an ordinary field and a **spoilery** one.
+ *
+ * `fireVulnerability` is exactly the case D9 was written for: a
+ * creature's weakness, which is a spoiler wherever it surfaces —
+ * whereas its mass is not.
+ */
+class Mimic extends Idea {
+  static fieldMeta: FieldMeta = {
+    mass: { persistent: true },
+    fireVulnerability: { persistent: true, spoiler: 3 },
+  };
+  mass = 40;
+  fireVulnerability = 'catastrophic';
+}
+
+/** The same shape with nothing declared spoilery. */
+class Oak extends Idea {
+  static fieldMeta: FieldMeta = {
+    density: { persistent: true, marshaller: '/obj/persistence/QuantityMarshaller/kg-per-m3' },
+    hardness: { persistent: true },
+    edible: { persistent: true },
+    meltingPoint: { persistent: true },
+  };
+  density = 750;
+  hardness = 1360;
+}
+
+/**
+ * A subject whose measurement is content but whose SCHEMA is not: the
+ * existence of a `density` is what `help` publishes anyway, the number
+ * is the part worth working for.
+ */
+class Timber extends Idea {
+  static fieldMeta: FieldMeta = {
+    density: { persistent: true, spoiler: 1, spoilerName: 0 },
+    // The unsplit case, for contrast: the name hides with the value.
+    weakness: { persistent: true, spoiler: 1 },
+    // ⚠ Incoherent as declared — a name more secret than its value.
+    inverted: { persistent: true, spoiler: 1, spoilerName: 3 },
+  };
+}
+
+const TIMBER_DATA = { density: 750, weakness: 'fire', inverted: 'x' };
+
+/** What the oak TEMPLATE declares — `meltingPoint` deliberately unset. */
+const OAK_DATA = { density: 750, hardness: 1360, edible: false };
+
+const ctx: ComponentContext = { budget: new RenderBudget() };
+
+/** Render the component directly and flatten to a searchable string. */
+async function panel(props: Record<string, string>): Promise<string> {
+  const nodes = await composition.render(props, [], ctx);
+  return JSON.stringify(nodes);
+}
+
+/**
+ * A fake Template row.
+ *
+ * ⚠ `data` is not optional dressing: the panel renders the values a
+ * template DECLARES, so a row with no data renders no fields. A
+ * fixture without it would make every assertion below vacuous.
+ */
+function template(
+  path: string,
+  classPath: string,
+  data: Record<string, unknown> = {},
+): Template {
+  return { path, class: classPath, data } as unknown as Template;
+}
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  vi.spyOn(AppApi, 'setting').mockReturnValue('');
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  StuffApi.clearAll();
+});
+
+describe('⭐ the template panel — what is this thing made of (12)', () => {
+  beforeEach(() => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/material/oak', '/obj/Oak', OAK_DATA),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Oak as never);
+  });
+
+  it('names the class and the composed mixins', async () => {
+    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(out).toContain('/obj/Oak');
+    expect(out).toContain('composes');
+  });
+
+  it('⭐ reports each field\'s VALUE — this is a game reference', async () => {
+    // It shipped printing each field's storage class instead, which on
+    // a material meant a column reading `persistent` twenty-six times.
+    // The schema view is what `help` and the generated API docs are
+    // for; a reader of an oak article wants oak's density.
+    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(out).toContain('density');
+    expect(out).toContain('750');
+    expect(out).toContain('1360');
+    expect(out).not.toContain('persistent');
+  });
+
+  it('renders a boolean as an answer, not a literal', async () => {
+    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(out).toContain('edible');
+    expect(out).toContain('no');
+  });
+
+  it('⚠ omits a declared field the template never set', async () => {
+    // Oak has no melting point — wood chars rather than melts. A blank
+    // row states that no better than its absence does, and twenty of
+    // them bury the fields that do have values.
+    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(out).not.toContain('meltingPoint');
+  });
+
+  it('⭐ CHANGES when the subject changes, with no edit to the page', async () => {
+    // Criterion 12. The panel is derived at read time, so it cannot go
+    // stale — which is the whole reason the wiki carries one at all.
+    const before = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(before).not.toContain('flammable');
+
+    class OakV2 extends Idea {
+      static fieldMeta: FieldMeta = {
+        density: { persistent: true },
+        hardness: { persistent: true },
+        flammable: { persistent: true },
+      };
+    }
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(OakV2 as never);
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/material/oak', '/obj/Oak', { ...OAK_DATA, flammable: true }),
+    );
+
+    const after = await panel({ kind: 'template', of: '/obj/material/oak' });
+    expect(after).toContain('flammable');
+  });
+
+  it('infers the kind from a `/`-rooted reference', async () => {
+    const out = await panel({ of: '/obj/material/oak' });
+    expect(out).toContain('density');
+  });
+});
+
+describe('a dangling subject still renders (65)', () => {
+  it('a missing template is a NOTE, not a failure', async () => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
+    const out = await panel({ kind: 'template', of: '/obj/material/gone' });
+    expect(out).toContain('no template');
+    expect(out).toContain('renamed or removed');
+  });
+
+  it('a template with no class is a note', async () => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/x', ''),
+    );
+    expect(await panel({ of: '/obj/x' })).toContain('declares no class');
+  });
+
+  it('a class that will not load is a note, not a throw', async () => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/x', '/obj/Missing'),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockRejectedValue(
+      new Error('not found'),
+    );
+    expect(await panel({ of: '/obj/x' })).toContain('will not load');
+  });
+
+  it('refuses an unknown kind, naming the three', async () => {
+    const out = await panel({ kind: 'nonsense', of: 'x' });
+    expect(out).toContain('template');
+    expect(out).toContain('mixin');
+    expect(out).toContain('command');
+  });
+
+  it('refuses an empty subject', async () => {
+    expect(await panel({ kind: 'template', of: '' })).toContain('needs an');
+  });
+});
+
+describe('⭐ the mixin panel and its INVERSE', () => {
+  class Torch extends Idea {}
+  class Log extends Idea {}
+  class Rock extends Idea {}
+
+  beforeEach(() => {
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+      template('/obj/Torch', '/obj/Torch'),
+      template('/obj/Log', '/obj/Log'),
+      template('/obj/Rock', '/obj/Rock'),
+    ]);
+    vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(
+      async (p: string) =>
+        (p === '/obj/Torch' ? Torch : p === '/obj/Log' ? Log : Rock) as never,
+    );
+    vi.spyOn(MixinApi, 'queryMixins').mockImplementation((ctor) =>
+      ctor === Torch || ctor === Log
+        ? ([{ _mixinName: 'CombustibleMixin' }] as never)
+        : [],
+    );
+  });
+
+  it('⭐ answers "what in this world can burn" — the question no template can', async () => {
+    // A template page asks what oak composes; a mixin page asks what
+    // composes Combustible. The inverse is the labour-facing view, and
+    // it is a thing the wiki can do that a help page cannot.
+    const out = await panel({ kind: 'mixin', of: 'CombustibleMixin' });
+    expect(out).toContain('/obj/Torch');
+    expect(out).toContain('/obj/Log');
+    expect(out).not.toContain('/obj/Rock');
+  });
+
+  it('says so when nothing composes it', async () => {
+    const out = await panel({ kind: 'mixin', of: 'NobodyHasThisMixin' });
+    expect(out).toContain('nothing yet');
+  });
+
+  it('infers the kind from a `*Mixin` name', async () => {
+    const out = await panel({ of: 'CombustibleMixin' });
+    expect(out).toContain('/obj/Torch');
+  });
+
+  it('scans the WORLD, not the source tree', async () => {
+    // The question is what in this world can burn, not what classes
+    // exist. A class nothing instantiates is not part of the answer.
+    const spy = vi.mocked(Template.findDescendants);
+    await panel({ kind: 'mixin', of: 'CombustibleMixin' });
+    expect(spy).toHaveBeenCalledWith('/obj');
+  });
+
+  it('⚠ reports truncation rather than lying about completeness', async () => {
+    // "These twelve things" when it means "the first twelve I looked
+    // at" is worse than refusing.
+    const many = Array.from({ length: 500 }, (_, i) =>
+      template(`/obj/T${i}`, `/obj/T${i}`),
+    );
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue(many);
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Torch as never);
+    const out = await panel({ kind: 'mixin', of: 'CombustibleMixin' });
+    expect(out).toContain('truncated');
+  });
+});
+
+describe('the command panel — what can I type, and what gates it', () => {
+  it('names the verbs, subcommands and validators', async () => {
+    vi.spyOn(CommandApi, 'getCommand').mockReturnValue({
+      verbs: ['plant'],
+      description: 'Put a seed in the ground',
+      subcommands: { here: {} },
+      validators: ['/lib/command/validators/requiresAnimate'],
+    } as never);
+    const out = await panel({ kind: 'command', of: 'inventory/plant.yaml' });
+    expect(out).toContain('plant');
+    expect(out).toContain('Put a seed in the ground');
+    expect(out).toContain('here');
+    expect(out).toContain('requiresAnimate');
+  });
+
+  it('says "nothing" when a verb is ungated', async () => {
+    vi.spyOn(CommandApi, 'getCommand').mockReturnValue({
+      verbs: ['look'],
+      description: '',
+    } as never);
+    expect(await panel({ kind: 'command', of: 'perception/look.yaml' })).toContain(
+      '(nothing)',
+    );
+  });
+
+  it('a renamed spec is a note, not a failure', async () => {
+    vi.spyOn(CommandApi, 'getCommand').mockReturnValue(null);
+    expect(await panel({ kind: 'command', of: 'gone.yaml' })).toContain(
+      'no command spec',
+    );
+  });
+
+  it('infers the kind from a `.yaml` reference', async () => {
+    vi.spyOn(CommandApi, 'getCommand').mockReturnValue({
+      verbs: ['x'],
+    } as never);
+    expect(await panel({ of: 'a/b.yaml' })).toContain('x');
+  });
+});
+
+describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
+  let renderer: WikiRenderer;
+  let reader: Stuff;
+
+  /** Drive the whole pipeline, component included. */
+  async function render(body: string): Promise<string> {
+    const raw = ProxyApi.unwrap(
+      renderer as unknown as Stuff,
+    ) as unknown as WikiRenderer;
+    return ExecutionContextApi.runRoot(null, 'wiki.read', async () => {
+      ExecutionContextApi.tagActingAuthor(reader);
+      return (await raw.render(body)).body;
+    });
+  }
+
+  beforeEach(() => {
+    renderer = makeStuff(() => new WikiRenderer());
+    reader = makeStuff(() => new Principal()) as unknown as Stuff;
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/npc/mimic', '/obj/Mimic', {
+        mass: 40,
+        fireVulnerability: 'catastrophic',
+      }),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Mimic as never);
+    // Resolve the real component module by path.
+    vi.spyOn(StuffApi, 'resolveExport').mockImplementation(
+      async (path: string, name: string) =>
+        path === '/lib/wiki/components/composition' && name === 'component'
+          ? (composition as never)
+          : null,
+    );
+  });
+
+  it('OMITS the spoilery field for a reader below its level', async () => {
+    // Asserted on the emitted STRING of a real render — not on a tag
+    // scan, and not on the component's own output. What matters is
+    // what crosses the wire.
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
+
+    const out = await render('<composition of="/obj/npc/mimic"/>');
+    expect(out).toContain('mass');
+    expect(out).not.toContain('fireVulnerability');
+    // ⭐ And the VALUE, which is the thing worth hiding. The panel now
+    // carries real values, so this is the assertion the per-field
+    // level was written for — it used to be guarding the word
+    // "persistent".
+    expect(out).not.toContain('catastrophic');
+  });
+
+  it('TAGS it for a reader who may see it but did not ask to', async () => {
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true); // ceiling 3
+    vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(0 as unknown as never);
+
+    const out = await render('<composition of="/obj/npc/mimic"/>');
+    expect(out).toContain('fireVulnerability');
+    expect(out).toContain('catastrophic');
+    expect(out).toContain('<spoiler level="3">');
+  });
+
+  it('shows it plainly to a reader who asked for everything', async () => {
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
+
+    const out = await render('<composition of="/obj/npc/mimic"/>');
+    expect(out).toContain('fireVulnerability');
+    expect(out).toContain('catastrophic');
+    expect(out).not.toContain('<spoiler');
+  });
+
+  it('⚠ hides the field NAME too, not just its value', async () => {
+    // On a creature whose fireVulnerability is a spoiler, the
+    // EXISTENCE of that field is the reveal as much as its value.
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
+    const out = await render('<composition of="/obj/npc/mimic"/>');
+    expect(out.toLowerCase()).not.toContain('vulnerab');
+  });
+
+  it('⭐ the component itself never learns who is reading', async () => {
+    // C1 in practice. The gating above happened entirely in the
+    // pipeline; this file contains no capability check at all.
+    const source = composition.render.toString();
+    expect(source).not.toMatch(/isWizard|canMutateZone|getActingAuthor|ceiling/);
+  });
+});
+
+describe('SpoilerLevels.ofField — the one seam', () => {
+  it('reads a declared level', () => {
+    expect(SpoilerLevels.ofField(Mimic, 'fireVulnerability')).toBe(3);
+  });
+
+  it('⚠ an UNDECLARED field is level 0 — open, deliberately', () => {
+    // A reveal system defaulting to reveal. Default-spoiler would
+    // empty every panel until several hundred mundane fields were
+    // tagged, and would train authors to tag reflexively.
+    expect(SpoilerLevels.ofField(Mimic, 'mass')).toBe(0);
+    expect(SpoilerLevels.ofField(Oak, 'density')).toBe(0);
+  });
+
+  it('an unknown field is 0, not a throw', () => {
+    expect(SpoilerLevels.ofField(Mimic, 'nosuchfield')).toBe(0);
+  });
+
+  it('a non-class is 0', () => {
+    expect(SpoilerLevels.ofField(null, 'x')).toBe(0);
+    expect(SpoilerLevels.ofField({}, 'x')).toBe(0);
+  });
+
+  it('⭐ property-level merge: a subclass adds `spoiler` and keeps `persistent`', () => {
+    // Why `spoiler` needed no new mechanism — `getAllFieldMeta` already
+    // merges per property, so a subclass tagging a field its base
+    // declares persistent gets both.
+    class Base extends Idea {
+      static fieldMeta: FieldMeta = { weakness: { persistent: true } };
+    }
+    class Derived extends Base {
+      static fieldMeta: FieldMeta = { weakness: { spoiler: 2 } };
+    }
+    const merged = MixinApi.getAllFieldMeta(Derived);
+    expect(merged.weakness?.persistent).toBe(true);
+    expect(merged.weakness?.spoiler).toBe(2);
+    expect(SpoilerLevels.ofField(Derived, 'weakness')).toBe(2);
+  });
+});
+
+describe('the node shape', () => {
+  it('returns MML nodes, never a string', async () => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/x', '/obj/Oak'),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Oak as never);
+    const nodes = await composition.render({ of: '/obj/x' }, [], ctx);
+    expect(Array.isArray(nodes)).toBe(true);
+    for (const n of nodes as MmlNode[]) {
+      expect(['text', 'tag']).toContain(n.kind);
+    }
+  });
+
+  it('reads the budget without spending it (D-5)', async () => {
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([]);
+    const budget = new RenderBudget();
+    await composition.render({ kind: 'mixin', of: 'XMixin' }, [], { budget });
+    expect(budget.getComponentCount()).toBe(0);
+  });
+});
+
+/**
+ * ⭐ **Name and value can carry different levels.**
+ *
+ * The distinction: a field's EXISTENCE is schema and its VALUE is
+ * content. "This material has a density" is what `help` and the
+ * generated API docs publish anyway; `750 kg/m³` is the part worth
+ * working for. Split, a reader gets the property list with the numbers
+ * collapsed instead of a table of blanks that says nothing about what
+ * is there to find.
+ */
+describe('per-cell reveal levels', () => {
+  beforeEach(() => {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/material/timber', '/obj/Timber', TIMBER_DATA),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Timber as never);
+  });
+
+  /** The row whose first text anywhere inside it is `label`. */
+  async function rowFor(label: string): Promise<MmlNode> {
+    const nodes = await composition.render(
+      { kind: 'template', of: '/obj/material/timber' },
+      [],
+      ctx,
+    );
+    const rows: MmlNode[] = [];
+    const walk = (ns: readonly MmlNode[]): void => {
+      for (const n of ns) {
+        if (n.kind !== 'tag') continue;
+        if (n.tag === 'tr') rows.push(n);
+        walk(n.children);
+      }
+    };
+    walk(nodes);
+    const hit = rows.find((r) => JSON.stringify(r).includes(`"${label}"`));
+    expect(hit, `no row for ${label}`).toBeDefined();
+    return hit!;
+  }
+
+  /** `[tag, …]` of a node's direct children. */
+  function childTags(node: MmlNode): string[] {
+    if (node.kind !== 'tag') return [];
+    return node.children.map((c) => (c.kind === 'tag' ? c.tag : 'text'));
+  }
+
+  it('wraps only the VALUE cell when the name is declared lower', async () => {
+    const tr = await rowFor('density');
+    // Structural, not a substring match: the row's own children are
+    // the bare label cell and a WRAPPED value cell.
+    expect(childTags(tr)).toEqual(['td', 'spoiler']);
+    const [label, wrapped] = (tr as Extract<MmlNode, { kind: 'tag' }>).children;
+    expect(JSON.stringify(label)).toContain('density');
+    expect(JSON.stringify(wrapped)).toContain('750');
+    expect(childTags(wrapped!)).toEqual(['td']);
+  });
+
+  it('⭐ an unsplit field still hides NAME AND VALUE together', async () => {
+    // The conservative default, and the reason it is the default: on a
+    // creature whose `fireVulnerability` is a spoiler, knowing it HAS
+    // one is most of the information. So the `tr` sits INSIDE the
+    // spoiler rather than containing one.
+    const tr = await rowFor('weakness');
+    expect(childTags(tr)).toEqual(['td', 'td']);
+    const nodes = await composition.render(
+      { kind: 'template', of: '/obj/material/timber' },
+      [],
+      ctx,
+    );
+    const flat = JSON.stringify(nodes);
+    // The label is inside the spoiler's subtree, which is what the
+    // split case is NOT.
+    expect(flat).toMatch(/"tag":"spoiler"[\s\S]*?weakness/);
+  });
+
+  it('⚠ clamps a name level declared ABOVE its value', async () => {
+    // A name more secret than the thing it names would render as a
+    // value in a row with no label. `ofFieldName` refuses it rather
+    // than trusting the declaration.
+    expect(SpoilerLevels.ofFieldName(Timber, 'inverted')).toBe(1);
+    expect(SpoilerLevels.ofField(Timber, 'inverted')).toBe(1);
+  });
+
+  it('an undeclared name level follows its value', async () => {
+    expect(SpoilerLevels.ofFieldName(Timber, 'weakness')).toBe(1);
+    expect(SpoilerLevels.ofFieldName(Timber, 'density')).toBe(0);
+  });
+});
+
+/**
+ * ⚠ Nested authored values, found on a live page: a bullfrog's
+ * `vitalProfile` rendered `coreTemperature: [object Object],
+ * heartRate: [object Object]` — the one field on the page actually
+ * worth reading, and the panel could say nothing about it.
+ */
+describe('nested values are spelled out, to a floor', () => {
+  class Frog extends Idea {
+    static fieldMeta: FieldMeta = {
+      vitals: { persistent: true },
+      deep: { persistent: true },
+      empty: { persistent: true },
+    };
+  }
+
+  async function frogPanel(data: Record<string, unknown>): Promise<string> {
+    vi.spyOn(Template, 'findByPath').mockResolvedValue(
+      template('/obj/species/frog', '/obj/Frog', data),
+    );
+    vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Frog as never);
+    return panel({ kind: 'template', of: '/obj/species/frog' });
+  }
+
+  it('renders one level of nesting rather than [object Object]', async () => {
+    const out = await frogPanel({
+      vitals: { heartRate: { baseline: 50, survivableMax: 120 } },
+    });
+    expect(out).not.toContain('object Object');
+    expect(out).toContain('heartRate');
+    expect(out).toContain('baseline 50');
+    expect(out).toContain('survivableMax 120');
+  });
+
+  it('⚠ elides past the depth floor — a row is not a data dump', async () => {
+    const out = await frogPanel({ deep: { a: { b: { c: { d: 1 } } } } });
+    expect(out).toContain('…');
+    expect(out).not.toContain('object Object');
+  });
+
+  it('omits a field whose nested value is entirely empty', async () => {
+    const out = await frogPanel({ empty: { a: null, b: '' } });
+    expect(out).not.toContain('empty');
+  });
+});

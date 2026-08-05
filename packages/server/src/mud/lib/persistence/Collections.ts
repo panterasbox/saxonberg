@@ -56,7 +56,6 @@ export enum Collections {
   Positions = 'positions',
   Recipes = 'recipes',
   Blueprints = 'blueprints',
-  Bulletins = 'bulletins',
   Documents = 'documents',
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',
@@ -74,5 +73,7 @@ export enum Collections {
   WorldState = 'world_state',
   MediaAssets = 'media_assets',
   OfficeHolders = 'office_holders',
+  Wiki = 'wiki',
+  WikiRevisions = 'wiki_revisions',
 }
 

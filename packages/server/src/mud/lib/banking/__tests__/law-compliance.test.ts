@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";
 import { WorldClockApi } from "../../../api/worldclock";
 import { ExecutionContextApi } from "../../../api/execution-context";
@@ -45,11 +45,20 @@ describe("Law 1 — count, don't price (no worth on goods)", () => {
   beforeEach(() => installBankingHarness());
 
   it("a coin carries a denomination, not a readable worth property", () => {
-    const coin = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+    const coin = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
-    coin.setQuantity(10);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coin.quantity = 10;
     // denomination is identity; there is no worth/value/price on the good
-    expect(coin.getDenomination()).toBe("credit");
+    expect(coin.getCurrency()).toBe("zorkmid");
+    expect(coin.getDenomination()).toBe(1);
     for (const banned of ["worth", "value", "price"]) {
       expect(banned in coin).toBe(false);
       expect(
@@ -58,8 +67,12 @@ describe("Law 1 — count, don't price (no worth on goods)", () => {
         ]
       ).not.toBe("function");
     }
-    // value is a currency property, not a good property
-    expect(Money.faceValueOf("credit")).toBe(1);
+    // value is a currency property, not a good property. The number on the
+    // good is the denomination's STRUCTURAL KEY: the currency validates and
+    // prices it, and a pair that does not resolve throws rather than being
+    // worth what it says.
+    expect(Currency.faceValueOf("zorkmid", 1)).toBe(1);
+    expect(() => Currency.faceValueOf("zorkmid", 7)).toThrow();
   });
 });
 
@@ -73,12 +86,20 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
   it("an idle balance and coin stack are unchanged over a game-clock advance", async () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), "/obj/Avatar/alice");
     const acct = await asOwner(alice, () =>
-      BankingApi.openAccount("/domain/test/bank", "goodkin")
+      BankingApi.openAccount("/domain/test/bank", "goodkin", Currency.compact())
     );
-    await BankingApi.mint(acct, Money.of(1000));
-    const coin = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+    await BankingApi.mint(acct, Money.of(1000, Currency.compact()));
+    const coin = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
-    coin.setQuantity(50);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coin.quantity = 50;
 
     expect(BankingApi.balanceOf(acct).minor).toBe(1000);
 

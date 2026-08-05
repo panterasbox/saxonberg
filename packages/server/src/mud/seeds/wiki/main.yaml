@@ -1,0 +1,10 @@
+# main — where articles live. The default namespace, so `wiki oak` and
+# `[[Oak]]` both land here without anybody typing `main:`.
+#
+# Declares no `protection`, so it inherits `anyone` from /wiki. That
+# inheritance is the mechanism, not an oversight: tightening a
+# namespace is adding one field to its seed, and needs no code.
+class: /obj/WikiNamespaceZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: main

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import BankCounter from "../../../obj/BankCounter";
 import Coin from "../../../obj/Coin";
@@ -61,16 +61,16 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
     );
     // Credit the balance WITHOUT backing cash (a CB mint to the account) —
     // the account is solvent, but the till holds no coin.
-    await BankingApi.mint(accountId, Money.of(1000));
+    await BankingApi.mint(accountId, Money.of(1000, Currency.compact()));
     expect(BankingApi.balanceOf(accountId).minor).toBe(1000);
     expect(bank.getTillLiquidity().minor).toBe(0);
 
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100)))
+      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())))
     ).rejects.toThrow(/till low/);
     // balance untouched by the refused withdrawal
     expect(BankingApi.balanceOf(accountId).minor).toBe(1000);
@@ -81,24 +81,32 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
     );
     // Float the branch with 50 physical coins (the till) ...
-    const float = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+    const float = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
     float.setMass(Quantity.of(0.01, "kg"));
-    float.setQuantity(50);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    float.quantity = 50;
     ContainmentApi.move(float, bank as never);
     // ... and credit a larger balance with no further cash.
-    await BankingApi.mint(accountId, Money.of(1000));
+    await BankingApi.mint(accountId, Money.of(1000, Currency.compact()));
 
     expect(bank.getTillLiquidity().minor).toBe(50);
     // 50 is coverable; 51 is not (till bound, not balance).
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(50, Currency.compact())));
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(950);
 
     await expect(
-      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(1)))
+      asOwner(alice, () => BankingApi.withdraw(bank, Money.of(1, Currency.compact())))
     ).rejects.toThrow(/till low/);
   });
 });

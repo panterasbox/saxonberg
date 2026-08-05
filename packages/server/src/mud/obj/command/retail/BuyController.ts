@@ -27,7 +27,7 @@ import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { ChattelApi } from "../../../api/chattel";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge, RemittanceSplit } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { AppApi } from "../../../api/app";
@@ -169,7 +169,7 @@ export default class BuyController extends CommandController<BuyModel> {
         ? [
             {
               accountId: consignorPrimary,
-              amount: Money.of(remainder),
+              amount: Money.of(remainder, Currency.compact()),
               category: "consignment",
             },
           ]
@@ -215,7 +215,7 @@ export default class BuyController extends CommandController<BuyModel> {
       return null;
     }
     const charge: Charge = {
-      amount: Money.of(amount),
+      amount: Money.of(amount, Currency.compact()),
       reason,
       presented: true,
       payeeAccountId: account,
@@ -232,10 +232,10 @@ export default class BuyController extends CommandController<BuyModel> {
         return null;
       }
     }
-    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable));
+    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, Currency.compact()));
     return receipt.corpoKey
-      ? `(${Money.of(amount).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(amount).render()})`;
+      ? `(${Money.of(amount, Currency.compact()).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(amount, Currency.compact()).render()})`;
   }
 
   private commissionRate(): number {

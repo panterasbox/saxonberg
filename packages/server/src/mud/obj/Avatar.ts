@@ -37,7 +37,7 @@ import {
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
-import { BulletinApi } from "../api/bulletin";
+import { PressApi } from "../api/press";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
 import { ForkableMixin } from "../lib/persistence/Forkable";
@@ -149,6 +149,14 @@ export default class Avatar extends AvatarBase {
     self: [
       "system/ping.yaml",
       "system/help.yaml",
+      // The wiki sits beside `help` deliberately. Both are reference
+      // surfaces a player carries rather than reaches for: `help` tells
+      // you what a verb does, `wiki` tells you what a thing IS. Reading
+      // is open to everyone by design (D11 — an open commons, netted by
+      // rollback), so gating the verb behind a hosted aether update the
+      // way `forum`/`chat` are gated would contradict the access model
+      // the build actually implements.
+      "system/wiki.yaml",
       "system/clear.yaml",
       "system/affordances.yaml",
       "author/player.yaml",
@@ -247,6 +255,15 @@ export default class Avatar extends AvatarBase {
    * concept lives. Autosave is purely Avatar-lifecycle policy, so
    * Avatar is the right home. A future persistence/autosave mixin would
    * pull this entry up to that mixin and Avatar would compose it.
+   *
+   * ⚠ `wiki.spoilerAppetite` sits here for a MECHANICAL reason, not a
+   * conceptual one: the schema walk is over the host's prototype chain,
+   * and the wiki adds no mixin (D7 withdrew `DocumentedMixin`), so
+   * there is no other layer on an Avatar to hang it from. It is a
+   * READER PREFERENCE — how much of a thing you would rather find out
+   * for yourself — not a wiki field on a game model, and it stores
+   * nothing about any page. A future reader-preferences mixin should
+   * take it, and Avatar should compose that.
    */
   static settings: SettingsSchemaEntry[] = [
     {
@@ -258,6 +275,22 @@ export default class Avatar extends AvatarBase {
         "periodic backstop. Resolved once at login time; mid-session " +
         "changes do not restart the running timer (effect lands at " +
         "next login).",
+    },
+    {
+      key: "wiki.spoilerAppetite",
+      type: SettingTypes.Number,
+      default: 0,
+      description:
+        "How much revealed content you want shown outright when " +
+        "reading the wiki (0 = only what is open; 3 = everything you " +
+        "are entitled to). Content ABOVE this but within your reach " +
+        "still arrives — collapsed, so you choose. Content beyond " +
+        "your reach is never sent at all, and this setting cannot " +
+        "change that.",
+      validator: (value: unknown) =>
+        typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 3
+          ? true
+          : "spoiler appetite must be an integer from 0 to 3",
     },
   ];
 
@@ -619,10 +652,10 @@ export default class Avatar extends AvatarBase {
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
       // The live news-ticker window (pins-first, recency-ordered, already
-      // retract/expiry-filtered + length-capped by the BulletinBoard). The
+      // retract/expiry-filtered + length-capped by the PressBoard). The
       // client seeds its feed pane from this as a `snapshot`, exactly as it
-      // caches `topicCatalogue`; live deltas ride `world.bulletin.feed`.
-      bulletinWindow: BulletinApi.recent().map((b) => BulletinApi.toRow(b)),
+      // caches `topicCatalogue`; live deltas ride `world.press.feed`.
+      releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
       clientState: this.snapshotClientState(),
       reactionPrefs: {
         intensity:

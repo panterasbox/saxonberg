@@ -1,0 +1,37 @@
+# The Compact press office — the meta institution's own publisher.
+#
+# ⚠ It ships UNFILLED, and that is the design rather than an oversight:
+# the appointing authority's power is to FILL the position, never to
+# exercise it, so an organization with nobody in `communications-director`
+# publishes nothing until somebody is appointed. The gazette slate's own
+# "a locality with no gazette is a fact about that locality."
+#
+# ⚠ The authority is a COMMITTEE, not the operator axis. Only the `office`
+# and `committee` kinds carry the Art. XI founder default, and
+# `AccessApi.isAuthor` resolves to membership of a `core` group that
+# seeds EMPTY — so an operator-axis authority here would be one nobody
+# could satisfy on a fresh box until a human edited a group by hand. The
+# committee over `/compact` is the group holding title over it, which is
+# `core`; the founder passes by the pool-of-one backstop.
+#
+# Realm `ooc`: the Compact speaks as the operator, out of character.
+# Visibility `public`: this is the feed an anonymous visitor reads on the
+# start screen. A release may narrow that; it may never widen it.
+class: /obj/Organization
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: committee
+    parcel: /compact
+  positions:
+    - key: communications-director
+      label: speaking for the Compact
+      wageRate: 0
+      confers: []
+  rosterSlots: []
+  label: "the Compact"
+  realm: ooc
+  visibility: public
+  feedPath: /compact/press/feed
+  publishingPositions:
+    - communications-director

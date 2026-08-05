@@ -302,13 +302,24 @@ export class CommandDefinition {
   }
 
   /**
-   * Verb-scoped options for the assemble() phase. The map keys are
-   * option names; pre-resolve short-flag aliases via `getOption`.
+   * Options in scope for the assemble() phase. The map keys are option
+   * names; pre-resolve short-flag aliases via `getOption`.
+   *
+   * ⚠ **A subcommand's scope INCLUDES the verb's own options**, with the
+   * subcommand's winning on a name collision (more specific wins). Every
+   * YAML that writes `# verb-scoped: in scope for the bare form AND the
+   * subcommands` was describing this — and before it was implemented, it
+   * was describing a lie: verb options bind only in the binder's Phase 1,
+   * *before* the subcommand token is consumed, so `verb --flag sub arg`
+   * worked and `verb sub arg --flag` failed with "unknown option at
+   * sub-level". It went unnoticed because controller suites drive a bound
+   * model directly and never exercise the binder.
    */
   getOptions(scope: 'verb' | string): Record<string, OptionDefinition> {
     if (scope === 'verb') return this.verbOptions;
     const sub = this.subcommands[scope];
-    return sub?.options ?? {};
+    if (!sub?.options) return this.verbOptions;
+    return { ...this.verbOptions, ...sub.options };
   }
 
   /**

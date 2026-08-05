@@ -44,14 +44,48 @@ jurisdiction). Self-describing, in the tree, browsable by the CMS
 like anything else.
 
 ```yaml
-# /law/.policy
+# /domain/terminus/law/.policy
 kind: policy
 writers: ["/obj/api/LawLogic"]
 ```
 
-**A policy at a high prefix protects everything beneath it**, which
-is the useful default: the Compact sets `/law/**` **once** and every
-institution's code is chokepointed with no per-institution setup.
+**A policy at a high prefix protects everything beneath it.**
+
+⚠⚠ **CORRECTED 2026-08-04 — and this correction WEAKENS the design; it is
+not a rename.** This section originally read *"the Compact sets `/law/**`
+**once** and every institution's code is chokepointed with no
+per-institution setup."* That assumed a top-level `/law/` tree. Law
+actually nests **under each institution's own extent**
+(`/domain/terminus/law/`, `<guild extent>/law/` — see
+[legal-code-slate](./legal-code-slate.md), corrected the same day), so:
+
+> ⚠ **There is no single prefix covering all law. The set-it-once
+> guarantee is gone; policy becomes PER-INSTITUTION.**
+
+**State the cost plainly: an institution that never sets a policy is not
+chokepointed.** A guild could `DocumentApi.save` straight into its own
+code branch, because it owns that ground and no ancestor policy narrows
+it.
+
+⭐ **The mitigation is the pack provisioning mechanism**
+([content-packs-slate](./content-packs-slate.md)): a locality or
+institution pack **declares the policy as a requirement**, so it is
+created at install and shows on the derived checklist until it exists.
+That converts *"someone must remember"* into *"the installer did it, or
+it is visibly outstanding."*
+
+⭐ **And the loss aligns with doctrine rather than fighting it.**
+legal-code's own rule is that **hierarchy is DECLARED, never assumed** —
+so a Compact policing every institution's law by prefix was always
+assuming a hierarchy the constitution says must be declared. The old
+shape let path structure smuggle in an incorporation the charter
+mechanism is supposed to establish explicitly.
+
+⚠ **Rejected alternative: glob policies** (`**/law/**`). It would restore
+the one-line guarantee, but pattern-matched security policy brings
+precedence and accidental-breadth problems that a longest-prefix trie
+does not have, and this slate's whole safety argument rests on that trie.
+Not worth trading a proof for a convenience.
 
 ## The invariant that makes it safe
 
@@ -74,8 +108,8 @@ nothing writable.)
 
 Protection against a deeper branch re-opening itself falls out with
 **no special rule**: **the policy document is itself governed by the
-policy above it.** Writing `/law/guild/x/.policy` must first satisfy
-`/law/**`'s policy. So widening is **possible but governed** — the
+policy above it.** Writing `<guild extent>/law/sub/.policy` must first
+satisfy the policy at `<guild extent>/law/`. So widening is **possible but governed** — the
 right answer, and free.
 
 ## Self-amendment
@@ -121,7 +155,7 @@ doctrine already holds code-trust as the one axis nothing opens.
 
 | Branch | Writer | Why |
 |---|---|---|
-| `/law/**` | `LawLogic` | the enactment chokepoint — the hard requirement |
+| each institution's `<extent>/law/**` | `LawLogic` | the enactment chokepoint — the hard requirement. ⚠ Per-institution, not one root |
 | a guild's charter branch | `GuildLogic` | charters must not be hand-edited |
 | CMS go-live records | the go-live path | provenance integrity |
 | contract records | `ContractLogic` | terms must move through the escrow path |

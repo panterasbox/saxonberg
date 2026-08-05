@@ -85,7 +85,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contacts.md](./docs/subsystems/contacts.md) — per-Avatar named lists, durable identifiers only, owner-only privacy
   - [social-graph.md](./docs/subsystems/social-graph.md) — attention rules (NotifyPolicy), display-lensing, presence relay, the `notify` verb
   - [forums.md](./docs/subsystems/forums.md) — Subject layer, Board→Thread→Post + Entry tree, popularity/argument organizers, `forum_events`
-  - [bulletin.md](./docs/subsystems/bulletin.md) — staff→player news ticker: Bulletin docs, BulletinBoard window, `bulletin` verb, NewsTickerPane
+  - [press.md](./docs/subsystems/press.md) — publishers, releases, the news ticker: PublisherMixin, appointing-authority-appoints/position-publishes, Release docs, `press` verb, the anonymous press room
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, lookup chain, `settings`/`var`
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — per-character verb aliases, expandAliases, the `alias` verb
   - [prose.md](./docs/subsystems/prose.md) — ProseApi Liquid templating, Mml-aware output, default filters
@@ -188,6 +188,7 @@ behavior. Read the relevant doc before editing in its area.
   - [time.md](./docs/subsystems/time.md) — game-time: WorldClockApi, SchedulerApi, CelestialApi, the calendar; the Timekeeping display seam
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
+  - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
 
 ## ⚠ Worktrees — read before committing
 
@@ -921,7 +922,6 @@ side — `backend/PersistenceManager` re-exports it).
 - `positions` — held conviction stakes (influence.md)
 - `recipes` — crafting reference data, never cloned (crafting.md)
 - `blueprints` — the Studio composition catalogue (studio.md)
-- `bulletins` — the staff→player broadcast feed (bulletin.md)
 - `documents` — the path-addressed, kind-tagged document store (document-store.md)
 - `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
 - `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
@@ -932,6 +932,8 @@ side — `backend/PersistenceManager` re-exports it).
 - `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
 - `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
 - `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)
+- `wiki` — the encyclopedia's current page state, one row per article (wiki.md)
+- `wiki_revisions` — the append-only edit log; a separate collection so a page READ never drags its history (wiki.md)
 
 ## Session Notes for Claude
 

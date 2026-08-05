@@ -96,18 +96,34 @@ export default class Biome extends Idea {
   /** Ambient smell MML. Same shape as `_ambientSoundMml`. */
   protected _ambientSmellMml: string | null = null;
 
+  /**
+   * ⭐ **What you SENSE is open; what you'd MEASURE is level 1.**
+   *
+   * The same cut as `Material`, for the same reason. The ambient sound
+   * and smell are what arriving in the place is like — withholding
+   * them would withhold the description itself. The temperature in
+   * kelvin, the pressure in pascals, the gravity: those are readings,
+   * and there are instruments in this world that take them. A number
+   * an instrument earns should not be free on a web page by default.
+   *
+   * Level 1, collapsed rather than gated, `spoilerName: 0` so the
+   * reader can see WHICH readings exist to be taken.
+   */
   static fieldMeta: FieldMeta = {
+    // ── Identity, and what arriving there is like ──
     name: { persistent: true },
     _extendsBiomePath: { persistent: true },
-    _defaultTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K') },
-    _defaultPressure: { persistent: true, marshaller: QuantityMarshaller.pathFor('Pa') },
-    _defaultHumidity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-    _defaultWind: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s') },
-    _defaultGravity: { persistent: true, marshaller: QuantityMarshaller.pathFor('m/s²') },
-    _defaultAtmosphere: { persistent: true },
-    _defaultAmbientSoundLevel: { persistent: true, marshaller: QuantityMarshaller.pathFor('dB') },
     _ambientSoundMml: { persistent: true },
     _ambientSmellMml: { persistent: true },
+    _defaultAtmosphere: { persistent: true },
+
+    // ── Readings an instrument takes ──
+    _defaultTemperature: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
+    _defaultPressure: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('Pa') },
+    _defaultHumidity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
+    _defaultWind: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s') },
+    _defaultGravity: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s²') },
+    _defaultAmbientSoundLevel: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('dB') },
   };
 
   // ---------- name ----------

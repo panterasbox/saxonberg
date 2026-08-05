@@ -16,6 +16,7 @@ import {
   UNCAPPED,
 } from "../Credential";
 import { Money } from "../../banking/Money";
+import { Currency } from "../../banking/Currency";
 
 describe("TravelCredential record", () => {
   it("is born with all three floor nodes registered", () => {
@@ -80,12 +81,12 @@ describe("PaymentCredential record", () => {
   it("authorize: uncapped admits anything; cap and freeze refuse", () => {
     const c = new PaymentCredential();
     expect(c.getSpendCap()).toBe(UNCAPPED);
-    expect(c.authorize(Money.of(10_000))).toBe(true);
+    expect(c.authorize(Money.of(10_000, Currency.compact()))).toBe(true);
     c.setSpendCap(100);
-    expect(c.authorize(Money.of(100))).toBe(true);
-    expect(c.authorize(Money.of(101))).toBe(false); // over cap
+    expect(c.authorize(Money.of(100, Currency.compact()))).toBe(true);
+    expect(c.authorize(Money.of(101, Currency.compact()))).toBe(false); // over cap
     c.setFrozen(true);
-    expect(c.authorize(Money.of(1))).toBe(false); // frozen refuses all
+    expect(c.authorize(Money.of(1, Currency.compact()))).toBe(false); // frozen refuses all
   });
 
   it("survives a serialize round-trip (links, active, cap, frozen)", () => {

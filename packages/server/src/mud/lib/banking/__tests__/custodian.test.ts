@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
@@ -73,7 +73,7 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
 
   it("throws on an empty custodian (an account held nowhere)", async () => {
     await expect(
-      BankingApi.ensureVenueAccount(VENUE, "", ""),
+      BankingApi.ensureVenueAccount(VENUE, "", "", Currency.compact()),
     ).rejects.toThrow(/not a real custodian/);
   });
 
@@ -81,7 +81,7 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
     // The old shape passed the owner's own path as the custodian — a path
     // is not an institution, and no branch of any such bank is live.
     await expect(
-      BankingApi.ensureVenueAccount(VENUE, VENUE, ""),
+      BankingApi.ensureVenueAccount(VENUE, VENUE, "", Currency.compact()),
     ).rejects.toThrow(/not a real custodian/);
   });
 
@@ -90,25 +90,23 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
       BankingApi.ensureVenueAccount(
         "treasury-owner",
         Account.CENTRAL_BANK_INSTITUTION,
-        "",
-      ),
+        "", Currency.compact()),
     ).resolves.toBeTruthy();
     await expect(
       BankingApi.ensureVenueAccount(
         VENUE,
         BankingApi.defaultCustodianBank(),
-        "",
-      ),
+        "", Currency.compact()),
     ).resolves.toBeTruthy();
     // An institution beyond the default is real iff one of its branches
     // is live (veshko's counter stands → veshko custody accepted).
     makeBank("/domain/test/veshko-bank", "veshko");
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other", "veshko", "veshko"),
+      BankingApi.ensureVenueAccount("/domain/test/other", "veshko", "veshko", Currency.compact()),
     ).resolves.toBeTruthy();
     // …and an institution with no live branch is refused.
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other2", "hollis", ""),
+      BankingApi.ensureVenueAccount("/domain/test/other2", "hollis", "", Currency.compact()),
     ).rejects.toThrow(/not a real custodian/);
   });
 
@@ -119,8 +117,7 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
     const found = await BankingApi.ensureVenueAccount(
       VENUE,
       BankingApi.defaultCustodianBank(),
-      "",
-    );
+      "", Currency.compact());
     expect(found).toBe("acct-legacy");
     const rows = [...col(Collections.BankAccounts).values()].filter(
       (d) => d.owner === VENUE,
@@ -147,9 +144,9 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     await seedRow({ accountId: "acct-worker", owner: "/obj/Avatar/wenna", bankPath: "", balance: 25 });
     await seedRow({ accountId: "acct-cust", owner: "/obj/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
     await seedRow({ accountId: "acct-corpo", owner: "corpo:goodkin", bankPath: LIVE_BANK_PATH, balance: 40, corpoKey: "goodkin" });
-    await BankingApi.mint("acct-sink", Money.of(735));
-    await BankingApi.drain("acct-sink", Money.of(735));
-    const supplyBefore = BankingApi.moneySupply().minor;
+    await BankingApi.mint("acct-sink", Money.of(735, Currency.compact()));
+    await BankingApi.drain("acct-sink", Money.of(735, Currency.compact()));
+    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
 
     await BankingApi.boot();
 
@@ -165,7 +162,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     expect(storedRow("treasury")?.balance).toBe(80);
     expect(storedRow("acct-venue")?.balance).toBe(500);
     expect(storedRow("acct-worker")?.balance).toBe(25);
-    expect(BankingApi.moneySupply().minor).toBe(supplyBefore);
+    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore);
 
     // Idempotent — a second boot changes nothing.
     await BankingApi.boot();

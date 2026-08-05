@@ -27,7 +27,7 @@
  */
 
 import type {
-  BulletinFeedFrame,
+  ReleaseFeedFrame,
   CharGenRosterPayload,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
@@ -42,6 +42,7 @@ import type {
   RosterFrame,
   StuffDetailRecord,
   StuffRefRecord,
+  WikiPageFrame,
 } from "@saxonberg/types";
 import { INTENTIONAL_LEAVE_CLOSE_CODE } from "@saxonberg/types";
 import { nanoid } from "nanoid";
@@ -180,26 +181,37 @@ class WebSocketClient {
           break;
       }
     });
-    // The bulletin news-ticker (`world.bulletin.feed`). Empty body
+    // The release news-ticker (`world.press.feed`). Empty body
     // (payload-bearing), so it never renders a scrollback line. The
-    // initial snapshot rides the welcome payload (`bulletinWindow`);
+    // initial snapshot rides the welcome payload (`releaseWindow`);
     // these frames carry live `upsert` / `remove` deltas — route by
     // `action` to the store.
-    this.onTopic("world.bulletin.feed", (frame) => {
-      const payload = frame.payload as BulletinFeedFrame | undefined;
-      if (!payload || payload.kind !== "bulletin") return;
+    this.onTopic("world.press.feed", (frame) => {
+      const payload = frame.payload as ReleaseFeedFrame | undefined;
+      if (!payload || payload.kind !== "release") return;
       const store = useStore.getState();
       switch (payload.action) {
         case "snapshot":
-          store.applyBulletinSnapshot(payload.rows);
+          store.applyReleaseSnapshot(payload.rows);
           break;
         case "upsert":
-          store.applyBulletinUpsert(payload.row);
+          store.applyReleaseUpsert(payload.row);
           break;
         case "remove":
-          store.applyBulletinRemove(payload.bulletinId);
+          store.applyReleaseRemove(payload.releaseId);
           break;
       }
+    });
+
+    // The wiki pane's side-channel (`world.wiki.page`). Empty body —
+    // the article's prose already went to the scroll on
+    // `system.shell.wiki`; this is the structured twin, carrying the
+    // SAME rendered body so the pane inherits the server's gate rather
+    // than re-deriving it.
+    this.onTopic("world.wiki.page", (frame) => {
+      const payload = frame.payload as WikiPageFrame | undefined;
+      if (!payload || payload.kind !== "wiki-page") return;
+      useStore.getState().setWikiPage(payload);
     });
   }
 
@@ -761,6 +773,7 @@ class WebSocketClient {
           ...(note.placeholder !== undefined
             ? { placeholder: note.placeholder }
             : {}),
+          ...(note.initial !== undefined ? { initial: note.initial } : {}),
           ...(note.allowEditorEscalation !== undefined
             ? { allowEditorEscalation: note.allowEditorEscalation }
             : {}),

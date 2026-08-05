@@ -592,15 +592,29 @@ export default class Condition extends SingletonMixin(
    */
   protected mentalBands: ResistBand[] | null = null;
 
+  /**
+   * ⭐ **The SIGNS are open; the mechanism is level 1.**
+   *
+   * `observableSigns` is the one field whose whole purpose is to be
+   * seen — a sign nobody can read is not a sign — and hiding it would
+   * break the diagnosis loop the medic vertical is built on. Naming
+   * the condition is likewise public.
+   *
+   * How it progresses, what resolves it, how it spreads: that is the
+   * medicine, and medicine is learned. Level 1 keeps it **one click
+   * away rather than gated** — looking up a cure is exactly what a
+   * community wiki is for, and a player who would rather work it out
+   * from the signs is not spoiled by opening the page.
+   */
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
-    signature: { persistent: true },
-    progression: { persistent: true },
-    resolution: { persistent: true },
     observableSigns: { persistent: true },
-    contagion: { persistent: true },
-    toxinBehavior: { persistent: true },
-    mentalBands: { persistent: true },
+    signature: { persistent: true, spoiler: 1, spoilerName: 0 },
+    progression: { persistent: true, spoiler: 1, spoilerName: 0 },
+    resolution: { persistent: true, spoiler: 1, spoilerName: 0 },
+    contagion: { persistent: true, spoiler: 1, spoilerName: 0 },
+    toxinBehavior: { persistent: true, spoiler: 1, spoilerName: 0 },
+    mentalBands: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   public getName(): string {

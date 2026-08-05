@@ -337,13 +337,52 @@ A correction to the opening framing worth keeping in front:
 
 | Tier | Governed by |
 |---|---|
-| the **runtime** | wizards; out of fiction; the sandbox doctrine's one axis nothing opens |
+| the **runtime** | wizards; out of fiction. ⭐ Nothing *reaches in* — no content edit, no law, no clever composition escalates to code-trust. It is **assigned** from above (below), never climbed to |
 | the **Compact** | the polity — the rules of the game |
 | the **holder** | themselves, over everything unreserved |
 
-> ⭐⭐⭐ **No law can make you a wizard.** Otherwise the legislature has a
-> legal path to code-trust and the capture-resistance claim evaporates.
-> (See Part 6 for the succession form of the same rule.)
+⚠⚠ **CORRECTED 2026-08-04 — the original rule here was backwards.** It
+read *"no law can make you a wizard,"* on the reasoning that a legal path
+to code-trust would evaporate the capture-resistance claim. **Rejected:**
+
+> **User: "if a new PM comes in and wants to change every wizard and
+> archwizard in the game that's their prerogative. But no one ever loses
+> the ability to create content with the exception of compute quotas,
+> just typescript code."**
+
+The guarantee was aimed at the wrong side of the transaction. Code-trust
+is **a job assignment**, and an executive the polity chose is entitled to
+make it. What matters is not what can be *granted* but:
+
+> ⭐⭐⭐⭐⭐ **THE GUARANTEE IS ABOUT WHAT CANNOT BE TAKEN.**
+
+| | |
+|---|---|
+| **TypeScript / code-trust** | grantable **and revocable** by the executive |
+| ⭐ **content authorship** | **INALIENABLE** — nobody ever loses the ability to make things |
+| **compute** | the *only* legitimate throttle, and a **quota**, never a permission |
+
+So **"protowizard" is not a lesser tier — it is the floor nobody can be
+pushed below**, which is what makes the tenure kernel's protected bundle
+real: you can lose the keys to the engine and still hold your ground,
+your builds, and your capacity to author.
+
+> ⚠⚠ **Inalienable means the CAPACITY, not any particular WORK.** You can
+> never be stripped of the ability to make things. A specific thing you
+> made can still be removed — by moderation, by a locality's rules, by
+> the owner of the ground it sits on.
+
+**Clarified 2026-08-04**, because the unqualified phrasing reads as *"my
+content can never be taken down"* and will be quoted that way.
+**Authorship and hosting are different questions**: the floor is a
+guarantee about *you*, not an easement over somebody else's parcel — and
+it has to coexist with moderation or a community cannot govern its own
+space. ⭐ The provenance record is the part that genuinely never goes:
+`authoring_events` says you made it whether or not it still stands.
+
+⭐ **The claim survives, bounded more honestly:** the polity governs
+**who holds the keys**, not **what the engine does**. See Part 6 for the
+chain.
 
 ---
 
@@ -603,6 +642,31 @@ needs the higher bar — supermajority, sunset, or compensation. All
 > taxonomy already has. Consistent with the rest: quarantine not
 > confiscation, price your own retroactivity.
 
+### ⚠ The parked case this rule already names: the Compact's own allowance
+
+> **Recorded 2026-08 by the organizations build, which carved `/compact`
+> and deliberately did not decide this.**
+
+`/compact` is now a claimed, core-held path-branch title
+([parcel.md](../../subsystems/parcel.md)) — the **publications** namespace,
+where the Compact's documents live. It will eventually need a resource
+allowance of its own, separate from any locality's.
+
+⚠ **Who sets it is genuinely unresolved, and the reason is exactly the
+rule above:** *the executive is the same branch that provisions parcels in
+the first place.* An executive that grants its own branch a looser bound
+than the class default is not doing its job; it is the textbook **particular
+EXEMPTION**, self-dealing through the provisioning power rather than
+through the legislative one. And a Compact that cannot fund its own
+publications is a different failure.
+
+Nothing decides it yet, and nothing needs to: `ParcelRecord.allowance` is
+an **inert 0a seam** and the allowance cascade is unbuilt. The cascade
+build settles it **with the mint model in front of it**, which is the only
+place the trade-off is legible. This paragraph exists so that build does
+not rediscover the tension from scratch — it belongs here, where the meter
+doctrine already lives, rather than in a slate of its own.
+
 ---
 
 # Part 4 — Detection and adjudication
@@ -762,21 +826,175 @@ But "regulatory agency" carries the hazard to design against:
 > **whether to bring the exception case**, and the relator rung checks
 > even that.
 
-## ⚠⚠ The PM: two hats, never one office
+## ⭐⭐ The PM heads the executive, period
 
-The deferred Prime Minister in access.md sits atop **operator/root →
-archwizards → wizards** — the *code-trust* chain, out of fiction. The PM
-who seats a cabinet is a **diegetic** head of government.
+⚠⚠ **CORRECTED 2026-08-04.** This section previously argued *"two hats,
+never one office"* — that the diegetic PM must be kept apart from the
+code-trust chain or the executive would inherit code-trust by succession.
+**That was the same backwards guarantee as Part 1's, and it is rejected
+for the same reason.** The user's call:
 
-> ⚠⚠ **If those are the same seat, the fiction's executive inherits
-> code-trust by SUCCESSION.** That is *no law can make you a wizard*
-> defeated from the other direction — no law needed, just an appointment.
+> **User: "the PM. And the PM seats the ops office. The PM heads the
+> executive period."**
 
-They are the same person at launch (founder-default, and fine). But it
-must be **two hats, never one office**, or the succession rule quietly
-becomes the escalation path. The companion rule to Part 1's:
+So the seat access.md defers *above* `archwizards` is now specified, and
+it is one office:
 
-> **No law can make you a wizard, and NO OFFICE MAY INHERIT CODE-TRUST.**
+> **PM → archwizards → wizards**, with the PM seated by the polity.
+
+⭐⭐ **This makes code-trust politically accountable for the first
+time.** Archwizard membership is env-seeded and operator-managed today —
+entirely outside the fiction. An elected seat above it means the whole
+chain answers to somebody, and the *"community governs its world"* claim
+stops being partial.
+
+⚠ The obvious risk — **a captured PM revoking every wizard** — is exactly
+what Part 1's inalienable-content floor absorbs. They can take the keys
+to the engine; they can never take your ability to author. **That floor
+is the backstop, not decoration.**
+
+⭐ **Appointment is not exercise.** Build-1's organization doctrine keeps
+the powers apart with no extra machinery: *the appointing authority
+appoints, the position acts.* The PM **seats** the ops office without
+**holding** ops — and a PM who wants to do ops themselves must appoint
+themselves, which is a visible line on the chart rather than a quiet
+capability.
+
+### ⭐⭐⭐ Why ops is its own seat: it encapsulates the unmeasurable
+
+> **User: "we'd want to encapsulate everything we can't track inside the
+> engine: aws, mongo, the blockchain. We probably don't want that leaking
+> out to other institutions."**
+
+That is a principled reason for the office rather than an org-chart
+convenience, and it is **the exact complement of this slate's own rule**:
+
+| | |
+|---|---|
+| *A matter cannot be legislated until it is metered* (Part 2) | everything else |
+| ⭐ **Ops is the domain where metering is IMPOSSIBLE — so it gets a person instead of a bound** | AWS · Mongo · the anchoring chain |
+
+Consequences worth holding:
+
+- ⚠ **Its accountability is TESTIMONY, not measurement.** Everywhere else
+  the record derives and cannot be forged; here it is self-reported.
+  Pretending otherwise would be the dishonest move — the answer is not a
+  better audit but **keeping the surface small**.
+- ⭐ **The office should SHRINK.** Anything that becomes measurable leaves
+  ops for ordinary governance. **Compute is the first candidate** — a
+  metaresource today whose allowance ships inert, so it sits in ops until
+  the meter exists and then departs.
+- **Containment is the point**: these capabilities must not be reachable
+  from a locality committee, a guild or a corpo — not because those
+  bodies are untrustworthy, but because **no mechanism could hold them to
+  account for it.** There is no ledger to check them against.
+
+⚠ **Authority and delivery separate.** The office is the *legitimating*
+fact; the **delivery path must not require a healthy world.** An
+operational announcement is needed precisely when things are broken, so
+if it depends on the office registry being readable, the outage eats the
+outage announcement.
+
+## ⭐⭐⭐⭐ Publishing is three different problems, and only one is governed
+
+Captured 2026-08-04, after an earlier draft built an elaborate editorial
+apparatus for all of it. **User: *"you're overthinking a lot of this."***
+Their decomposition, which is the one to keep:
+
+| | What it actually is | What it needs |
+|---|---|---|
+| **operator announcements** | ops, out of fiction; *"the medium doesn't really matter"* | the ops seat above. **No committee, no lineup, no editorial anything** |
+| **"she's live"** | a **product feature** | a notification default, **opt-out**. ⭐ No authority near it |
+| **everything else** | *"an industry publishing and broadcasting, modelled in fiction, staffed by committee"* | the editorial apparatus — **and it is CONTENT** |
+
+### ⭐⭐ The third case is a trade pack, not platform architecture
+
+Broadcasting is an industry like any other — tools, a workspace, roles,
+output, consumers. So it ships in a pack
+([content-packs-slate](./content-packs-slate.md)) and gets staffed like
+any organization. Which dissolves most of what an earlier draft was
+building:
+
+> ⭐⭐⭐ **There is no "the" editorial office.** There are **many
+> publishers**, each governed by whoever holds it — a council channel by
+> its committee, a corpo affiliate by its owner. The front page is not a
+> seat of power; it is whichever publisher the client shows first.
+
+Same for ranking. It is not one legislated formula for the world, it is
+**a publisher's editorial policy**, and how it is authored depends on who
+owns that publisher.
+
+### ⭐⭐⭐ Authority is required to PUSH, never to PUBLISH
+
+The rule underneath all three cases, and **the third time it has
+appeared** — [gazette-slate](./gazette-slate.md) reached it as *"the
+state publishes to a PLACE; a publisher pushes to PEOPLE."*
+
+> **Anyone may speak. Only a position may make everyone hear it.**
+
+- **Tuning in is unrestricted** — ⭐ and the source *need not be a player,
+  in the fiction, or a user at all*. **You can tune into anyone.**
+- **Syndication is the editorial act** — deciding what goes on a channel
+  others receive by default. That is the thing worth democratizing.
+- ⭐ **Promotion is therefore a publication, not a permission.** A
+  publisher does not grant you a capability; it publishes *"X is live."*
+  Attributed, on the record, no new mechanism.
+
+⭐ **Democratic ≠ algorithm-free** (user's correction). *"It just means
+the algorithm is authored democratically as well."* An algorithm is not
+undemocratic — **an unamendable one is.** And a ranking formula is a
+weighted composite, so this is Part 2's rule again: **the weights are the
+denominator, and the denominator is where all the design is.**
+
+### The two senses of public/private that actually cause trouble
+
+User's, and worth fixing as vocabulary because they cross-cut:
+
+> ⭐⭐ **Fiction-public means answerable to a CONSTITUENCY. Parcel-public
+> means NOBODY HOLDS TITLE.**
+
+A Terminus city council is the first without the second — a public body
+operating on privately-held ground, which is the normal case rather than
+a contradiction. A corpo network affiliate is neither.
+
+⚠ Note `/compact` is **not a parcel at all** — build-1 is carving it as a
+publications namespace that is explicitly *not a place*. Which reinforces
+the split: **the public tier is a namespace, not land.** Public bodies
+publish there; everything else publishes where its owner's title is.
+
+### The one concrete gap in case 2
+
+Notifications are **already per-user**, with **no way to set a default or
+mandate one**. That is a tier in an existing chain, not a subsystem —
+`LocomotionApi.defaultModeFor` already resolves *explicit setting →
+bodyplan → universe*:
+
+> **explicit user setting → community default → platform default**
+
+**Opt-out falls out for free**, because the user's explicit value already
+wins. ⚠ Keep *default* and *mandate* separate and be stingy with the
+second — an unoverridable notification is a spam vector, and the only
+honest use is ops-critical, which is case 1 and a different path anyway.
+
+### ⚠ Proposals here that the user has NOT ruled on
+
+Recorded so they are not mistaken for decisions:
+
+- **A docket of what was NOT carried.** Editorial power is the power to
+  exclude, so a lineup alone shows only winners — *the same Roll/docket
+  split legal-code already uses.* Argued twice; not adjudicated. Cheap to
+  add while build-1's feed is being built, expensive after.
+- **Must-carry obligations** (emergencies, right of reply, *"N slots for
+  first-timers"*) as legislated floors under editorial discretion.
+- ⭐ **Putting something on air is editorial; taking it off is
+  operational.** Different act, different gate — and a kill switch that
+  needs an appointment is not a kill switch. Watch that it does not
+  quietly become a backdoor editorial veto.
+- **Discovery by world context rather than category** — *"three people
+  are streaming from the Ferrow delve."* ⚠ Only matters at scale; with a
+  dozen streamers a complete list *is* discovery.
+- **The lounge screen + remote** as the same problem at room scale (the
+  remote is pull, the channel is push). User: *"I don't hate any of it."*
 
 ## ⭐⭐⭐ Removal, not confirmation, is the lever — and conviction already provides it
 

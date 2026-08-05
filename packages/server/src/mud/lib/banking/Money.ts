@@ -5,36 +5,29 @@
  * Money is a *transient settlement quantity* — a stance between parties at
  * the moment of a transaction and the unit the {@link LedgerEntry} records.
  * It is **never stamped on a good** as a "worth N" property (banking Law 1):
- * a coin carries a `denomination` (its identity / kind), and how many minor
- * units that denomination represents is intrinsic to the *currency*
- * ({@link Money.faceValueOf}), not a value written onto the object.
+ * a coin carries a `(currency, denomination)` pair — its *identity* — and
+ * how many minor units that denomination represents is intrinsic to the
+ * **currency** ({@link Currency.faceValueOf}), not a value written onto the
+ * object. A coin whose pair does not resolve **throws** rather than being
+ * worth what it says: the good never prices itself; the currency validates
+ * and prices it.
  *
  * All ledger math is integer minor units — never floats — so balances
- * reconcile exactly. The currency is the civic **credit**, minted in the
- * denomination set held by {@link Coinage} (1 / 5 / 25); the substrate keys
- * on the currency tag and a denomination→value map so a richer set (or a
- * second currency) is an additive change, not a refactor.
+ * reconcile exactly.
+ *
+ * ⚠ **The currency is required, never defaulted.** A default would let a
+ * call site silently assume the wrong currency, caught (if at all) only at
+ * runtime by the ledger's endpoint check. Required, the compiler enumerates
+ * every site — the strongest available defence against an invisible mint,
+ * which is the one bug class an economy cannot recover from.
  *
  * The home that kills a `types.ts` reflex for the banking subsystem.
  */
 
-import { Coinage } from "./Coinage";
+import { Currency } from "./Currency";
 
-/** A currency tag. v1 ships exactly one: {@link DEFAULT_CURRENCY}. */
-export type Currency = string;
-
-/** The single v1 currency. */
-export const DEFAULT_CURRENCY: Currency = "credit";
-
-/**
- * Coin face values in minor units, keyed by denomination — the *currency's*
- * coin spec (intrinsic to what the money is), NOT a worth stamped on any
- * good. Derived from {@link Coinage.DENOMINATIONS} (the single source of the
- * face-value ⊕ per-coin-mass spec). Unknown denominations resolve to 1, so a
- * coin always has a well-defined value for reconciliation.
- */
-export const COIN_FACE_VALUES: Readonly<Record<string, number>> =
-  Object.fromEntries(Coinage.DENOMINATIONS.map((d) => [d.key, d.value]));
+/** A currency tag — the `key` of a {@link CurrencyRecord}. */
+export type CurrencyTag = string;
 
 export class Money {
   /**
@@ -45,27 +38,25 @@ export class Money {
     /** The amount in integer minor units (can be negative for a delta). */
     public readonly minor: number,
     /** The currency tag. */
-    public readonly currency: Currency
+    public readonly currency: CurrencyTag
   ) {}
 
   /** A Money of `minor` integer units. Throws on a non-integer amount. */
-  public static of(minor: number, currency: Currency = DEFAULT_CURRENCY): Money {
+  public static of(minor: number, currency: CurrencyTag): Money {
     if (!Number.isInteger(minor)) {
       throw new Error(
         `Money.of: amount must be an integer minor-unit value (got ${minor})`
       );
     }
+    if (!currency) {
+      throw new Error("Money.of: a currency is required");
+    }
     return new Money(minor, currency);
   }
 
   /** The zero amount in `currency`. */
-  public static zero(currency: Currency = DEFAULT_CURRENCY): Money {
-    return new Money(0, currency);
-  }
-
-  /** The face value (minor units) of one coin of `denomination`. */
-  public static faceValueOf(denomination: string): number {
-    return COIN_FACE_VALUES[denomination] ?? 1;
+  public static zero(currency: CurrencyTag): Money {
+    return Money.of(0, currency);
   }
 
   private assertSameCurrency(other: Money): void {
@@ -119,9 +110,11 @@ export class Money {
     return this.currency === other.currency && this.minor === other.minor;
   }
 
-  /** A human string — `"12 credits"` / `"1 credit"`. */
+  /**
+   * A human string — `"12 zorkmids"` / `"1 zorkmid"`. The unit vocabulary
+   * is read off the currency record; no unit string is hardcoded here.
+   */
   public render(): string {
-    const unit = this.minor === 1 || this.minor === -1 ? "credit" : "credits";
-    return `${this.minor} ${unit}`;
+    return Currency.renderMinor(this.minor, this.currency);
   }
 }

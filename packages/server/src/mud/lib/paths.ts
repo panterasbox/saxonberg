@@ -31,6 +31,10 @@ export const TemplatePaths = {
   mqlSubscriptionRegistry: "/obj/MqlSubscriptionRegistry",
   forumSubscriptionRegistry: "/obj/ForumSubscriptionRegistry",
   reactionRegistry: "/obj/ReactionRegistry",
+  /** The wiki's page/revision state + mutations (docs/subsystems/wiki.md). */
+  wikiRegistry: "/obj/WikiRegistry",
+  /** The wiki's article render pipeline — and its ONE reveal gate. */
+  wikiRenderer: "/obj/WikiRenderer",
 
   // Singleton catalogues.
   channelCatalogue: "/obj/ChannelCatalogue",
@@ -40,7 +44,7 @@ export const TemplatePaths = {
   corpoCatalogue: "/obj/CorpoCatalogue",
   governmentCatalogue: "/obj/GovernmentCatalogue",
   helpCatalogue: "/obj/HelpCatalogue",
-  bulletinBoard: "/obj/BulletinBoard",
+  pressBoard: "/obj/PressBoard",
 
   // Persistence infra (declared as `static templatePath` on these classes).
   persistentHydrator: "/obj/persistence/PersistentHydrator",

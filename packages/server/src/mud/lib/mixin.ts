@@ -100,6 +100,75 @@ export interface FieldMetaEntry {
    * A **subset** of `persistent`, not a contradiction with it.
    */
   runtimeState?: true;
+
+  /**
+   * **Reveal level of this field's VALUE wherever it surfaces.**
+   *
+   * A derived panel emits live field values, and some of those are
+   * spoilers — a species' resistances, a hazard's trigger, a creature's
+   * weakness. Authored prose carries page defaults and inline tags;
+   * derived fields carry nothing, so without this a composition panel
+   * is a hole straight through the reveal model.
+   *
+   * ⭐ **Declared on the field, not in the component**, because the
+   * same field is a spoiler *wherever* it surfaces — a wiki panel, the
+   * Studio, help, a future codex. A policy table owned by the wiki
+   * would be wrong the moment anything else rendered the same value.
+   *
+   * ⚠ **Absent means level 0 — OPEN.** This is a reveal system
+   * defaulting to reveal, so the reasoning is worth stating: the
+   * alternative empties every panel until several hundred mundane
+   * fields are tagged, and trains authors to tag reflexively rather
+   * than thoughtfully.
+   *
+   * ⭐ **The line the sweep settled on: collapse what the WORLD
+   * measures; never collapse what the PLAYER operates.** A material's
+   * density, a biome's temperature, a species' natural attacks, a
+   * recipe's inputs, a condition's cure — all level 1, because a
+   * reader may want to meet those in play and can open any of them in
+   * one click. A locomotion mode's speed and a combat formation's
+   * roles stay open: those are the player's own controls, and hiding
+   * how your own legs work teaches nothing.
+   *
+   * (This note used to say "density and hardness are not spoilers".
+   * They are now level 1 — a deliberate reversal, not drift. What
+   * makes it coherent is the **reader rung**: level 1 is collapsed by
+   * default rather than forbidden, so tagging a measurement costs a
+   * reader one click instead of locking them out. Before that rung
+   * existed, level 1 meant "no ordinary player, ever", and under those
+   * semantics the old advice was right.)
+   *
+   * The cost is real and is not being papered over — a newly-added
+   * spoilery field is visible until somebody tags it. It is covered
+   * the way the sandbox boundary exemptions are: **by enumeration, not
+   * inference.** A snapshot test lists every field a panel can surface
+   * with its level, so introducing a spoiler without a tag shows up as
+   * a diff in review rather than as a leak in production.
+   */
+  spoiler?: 0 | 1 | 2 | 3;
+
+  /**
+   * **Reveal level of this field's NAME** — the level at which a
+   * reader learns the field *exists at all*. Defaults to
+   * {@link spoiler}, which is the whole-row behaviour: on a creature
+   * whose `fireVulnerability` is a spoiler, knowing it HAS one is most
+   * of the information, so name and value hide together.
+   *
+   * ⭐ Declare it lower than `spoiler` where **the existence is schema
+   * and only the measurement is content**. "This material has a
+   * density" is not a secret — it is what `help` and the generated API
+   * docs publish. `750 kg/m³` is the thing worth working for. So
+   * `Material`'s measured properties carry `spoilerName: 0` beside
+   * `spoiler: 1`, and a reader sees the property list with the numbers
+   * collapsed rather than a table of blanks.
+   *
+   * ⚠ Splitting them is **opting into a redaction marker**, which the
+   * reveal model refuses everywhere else. That is coherent only
+   * because the marker reveals nothing here: the name was already
+   * public. Do not split a field whose existence is the reveal — the
+   * empty cell would announce exactly what the level was protecting.
+   */
+  spoilerName?: 0 | 1 | 2 | 3;
 }
 
 /** One class body's field declarations, keyed by instance field name. */
@@ -281,10 +350,17 @@ export const Mixins = {
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
-  // Employment — the standalone Business entity and an actor's employment
-  // relationships (an on-shift Position confers its duties via augments).
+  // Employment — the org chart (positions + holders + the appointing
+  // authority), the Business that trades on top of it, and an actor's
+  // employment relationships (an on-shift Position confers its duties via
+  // augments). A ministry is an organization that does not trade.
+  Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Press — an organization that publishes: the realm it speaks in, the
+  // reach of what it publishes, its feed branch, and which of its
+  // positions may publish through it.
+  Publisher: 'PublisherMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',

@@ -239,6 +239,34 @@ placed, not re-exported**. See [antipatterns.md](./antipatterns.md) for
 the `<Concept><Role>` naming rule that lets you guess a type's face from
 a bare name.
 
+### Path-resolved modules — brains, and now wiki components
+
+Two module families are **not imported by anything**. They are resolved
+by path, per invocation, through `StuffApi.resolveExport(path, name)`,
+so adding one is dropping in a file and there is no registry to edit —
+and so hot-reload propagates without a restart.
+
+| family | home | sole export | resolved by |
+|---|---|---|---|
+| **brains** | `lib/behavior/<verb>.ts` | `export const brain = class {…}` | `BehavedMixin`, per fire |
+| **wiki components** | `lib/wiki/components/<name>.ts` | `export const component = class {…}` | the wiki render pipeline, per occurrence |
+
+Both are **named class-expressions**, and that is load-bearing rather
+than stylistic: the hot-reload registry retains only class-like exports,
+so a plain object or an arrow function would silently fail to
+re-resolve after a reload. Both are duck-typed at the call site rather
+than `instanceof`-checked, for the same reason — after a reload the
+constructor identity differs from any reference held elsewhere.
+
+⚠ A component's tag name becomes its **module basename**, so the
+`[a-z][a-z0-9-]*` charset rule in `api/mml/tags.ts` is a security
+boundary, not tidiness: `../`, slashes and dots must be unrepresentable
+*before* any resolver sees the string, not sanitised after.
+
+⚠ A component receives **no reader identity** — see
+[wiki.md](./subsystems/wiki.md) § the reveal model. That absence is what
+keeps the reveal model to one gate instead of N.
+
 ### Export discipline & the sanctioned-exception registry
 
 The surface is now normalized: **every module exports classes and types
@@ -930,8 +958,10 @@ registry) lives in `lib/mixin.ts`.
 | `lib/material/` | `ConstructedMixin` | the **form axis** (sibling of `Tangible`'s material axis): a durable `constructionForm` word + a resolve-on-read `getConstruction()` `Construction` value-object, plus a `markupAugmenters` per-channel legibility-pips line. Composed by `Armor`/`Weapon`/`Shield` (a shield = a `Wieldable` armor-`Construction`); `MixinApi.isConstructed`. See [materials-response.md](./subsystems/materials-response.md). |
 | `lib/craft/` | `CraftedMixin` | the per-instance maker's mark (composes `GradedMixin`): `{maker, recipe, craftedAt}` stamped once at craft-resolve + the DF-style `renderVerdict()` (band-word + prose + maker, never a number). Un-spoofable (maker derived from context). Composed by `CraftedDrink`. See [crafting.md](./subsystems/crafting.md). |
 | `lib/craft/` | `MakerMixin` | minimal role marker (`isMaker()`) identifying an agent that can fulfill an `order` (the bartender). **Augment-gated** (`_augmentGated = true`): active only while conferred (the on-shift Position), so `MixinApi.isMaker` (routed through `isActive`) selects the on-shift bartender. Not used to gate `serve`/`mix`. Composed by `Crafter`. See [crafting.md](./subsystems/crafting.md) + [employment.md](./subsystems/employment.md). |
-| `lib/employment/` | `BusinessMixin` | the standalone **`Business`** entity (concrete default-export `BusinessEntity`): proprietor edge + positions + roster + operating-locations + account path. NOT a mixin on the venue — a job spans locations and outlives its proprietor. Composed by `BusinessEntity` (over `PostRegistrationMixin(Idea)`). See [employment.md](./subsystems/employment.md). |
-| `lib/employment/` | `EmployedMixin` | an actor's employment relationships (sparse null-default `employments` store, gated `ApiOnly` mutators, `getConferredMixinNames` = the on-shift Position's `confers` — the augment conferral seam). Composed by `Character` (actor-agnostic; NPCs are the v1 consumer). See [employment.md](./subsystems/employment.md). |
+| `lib/employment/` | `OrganizationMixin` | the **org chart**, lifted out of `BusinessMixin`: appointing authority (a `PrincipalRef` — `entity`/`office`/`seat`/`committee`) + positions + roster + `parentOrganization` nesting. Answers *who holds position P in organization O?* identically for a ministry, a shop and a press office — a thing that does not trade no longer has to pretend to. Composed by `OrganizationEntity` and (via the base constraint below) `BusinessEntity`. `MixinApi.isOrganization`. See [employment.md](./subsystems/employment.md). |
+| `lib/employment/` | `BusinessMixin` | what's left once the chart moves out: the **trading** half only — operating locations + `banksAt` + account path. ⚠ Requires `OrganizationMixin` as a **base constraint** (`TBase extends MixinConstructor<Organization & OrganizationFields>`) rather than nesting it, because a nested generic mixin silently loses the inner mixin's whole surface at the type level; the constraint makes applying it to a non-organization base a compile error. Composed by `BusinessEntity`. `MixinApi.isBusiness`. See [employment.md](./subsystems/employment.md) + [mixins.md](./subsystems/mixins.md). |
+| `lib/press/` | `PublisherMixin` | an organization that **publishes** (same base constraint on `Organization`): `label`/`realm`/`visibility`/`feedPath`/`publishingPositions`. Releases are `StoredDocument`s under the publisher's own `feedPath` branch; `realm` and `visibility` **derive** from the publisher, so nobody claims a masthead by passing a flag. Composed by `OrganizationEntity`. `MixinApi.isPublisher`. See [press.md](./subsystems/press.md). |
+| `lib/employment/` | `EmployedMixin` | an actor's employment relationships (sparse null-default `employments` store, `getConferredMixinNames` = the on-shift Position's `confers` — the augment conferral seam). Mutators are gated by a **participant contract**, not `ApiOnly`: `FromMixin(Mixins.Organization, …)` — the employing organization is the legitimate caller, and the gate says *who*, not merely *not you*. Composed by `Character` (actor-agnostic; NPCs are the v1 consumer). See [employment.md](./subsystems/employment.md). |
 | `lib/attendant/` | `AttendantMixin` | the **storefront-attention** service-point capability (on a `Thing` fixture, the `BankMixin`-on-a-fixture precedent): owns the queue + leases **and the behavior over them** (`requestAttention`/`release`/`serveNext`/`evictIdleLeases`/`dropCustomer` are mixin methods called directly — no Api hop) + per-venue config (`discipline`/`serverPositionKeys`/`staffingPolicy`/`attendDurationMs`/`skin`). Being-attended = an `AttendanceEngagement` on the **server's** attention slot (one-at-a-time falls out of the slot; waiting is free). The lease's idle-eviction sweep is the one Api-shaped piece (`AttendantApi`/`AttendantLogic`, the `ResidencyLogic` "engine informs, object decides" shape). Composed by `AttendancePoint` (and `BankCounter`). `MixinApi.isAttendant`. See [attendant.md](./subsystems/attendant.md). |
 | `lib/persistence/` | `PersistableMixin` | the self-persistence-spine **host** capability: marks a `Stuff` as a singleton persistence host (keyed by `templatePath`) whose runtime state captures into a `PersistedRecord` (`holder_snapshots`) and restores on materialize. Drives materialize-on-`postRegister` / seed-then-persist, the capture-on-`cleanupOnDestruct` backstop, the persistable `canEvict` fall-through, and the `shouldPersist()` opt-out hook (Avatar → `!isGuest`). Composed **outermost** by `Avatar` (and by authored persistable rooms / host chests). Logic in `PersistableApi`/`PersistableLogic`. See [persistence.md](./subsystems/persistence.md). |
 | `lib/combat/` | `CombatantMixin` | the "I can fight" capability: the `attack` + `fight` + `intervene` command affordances, the species-declared innate-attack hook (`naturalAttackChannel` → `getNaturalAttackChannel`), a banded `look` augmenter (the combat-state line while a fight is live), and (Build 2) the **standing combat posture** the consent handshake reads — the player-side `combat.lethality`/`combat.stopCondition` settings schema **plus** the authored `standingLethality`/`standingStopCondition` fields NPCs carry (NPCs aren't `Environment`s, so they can't hold settings). Carries **no** transient fight state — poise/tempo/flags all live on the `CombatSession`, never on the `Creature`. Composed by `Character`. Cycle 2 adds the canonical `defend` verb affordance. The combat-hooks build adds the seven **participant witness terminals** (`onSessionEntered`/`onExchangeResolved`/`onPoiseBandChanged`/`onDowned`/`onDefeated`/`onDefeatedFoe`/`onCoupBegun` — `@hook` no-op terminals, `super`-composed) and demotes `naturalAttackChannel` to the legacy single-attack fallback under `Species.naturalAttacks[]`. See [combat.md](./subsystems/combat.md) + [combat-hooks.md](./subsystems/combat-hooks.md). |

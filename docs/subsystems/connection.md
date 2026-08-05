@@ -632,14 +632,51 @@ ws 'message' → Backend.handleWebSocketMessage(socketId, data)
 ```
 
 `Backend.handleWebSocketMessage` parses JSON and dispatches under
-another root frame. Bad JSON sends back an `error` frame. A client's
-messages are **serialized per socket** — `Backend` chains each message
-behind the prior one (`inboundChainBySocketId`) so an actor's commands
-process in arrival order, never interleaved. (Without this, two rapid
-commands that clone the same controller template would trip
+another root frame. Bad JSON sends back an `error` frame.
+
+### ⭐ Two inbound lanes per socket
+
+A client's messages are **serialized per socket** so an actor's
+commands process in arrival order, never interleaved. (Without this,
+two rapid commands that clone the same controller template would trip
 `StuffApi.clone`'s in-flight cycle guard — see
 [char-gen.md](./char-gen.md).) `Application.processUserMessage` is
-`async` and awaits its handler so the chain spans the full dispatch.
+`async` and awaits its handler, so a lane spans the full dispatch.
+
+⚠ That is exactly why there are **two** lanes. A command that raises a
+prompt does not settle until the prompt is answered, so putting the
+ANSWER in the same lane deadlocks the socket: `prompt-response` waits
+for the command, which waits for `prompt-response`. Every interactive
+prompt raised from inside a command dispatch was unanswerable — a
+well-formed frame, no error, nothing logged, and a prompt that hung
+forever.
+
+`prompt-response` and `prompt-cancel` therefore ride a **second lane**.
+They are replies addressed by `promptId` rather than by position — an
+interrupt, which is what a prompt is — so they keep order against each
+other while never waiting on a command. Bypassing sequencing
+altogether would have fixed the deadlock too, and would have let a
+reply interleave with an unrelated queued command; a second lane costs
+one Map and gives that up for nothing.
+
+**Who owns what:** `ConnectionApi.sequenceInbound` decides *which lane*
+(module-scope state in `ConnectionLogic`, the `PromptLogic` registry
+precedent, so an in-flight ordering guarantee survives the singleton's
+dest/recreate). `Backend` supplies *what frame it runs in* — the root
+frame and the socket's circle scope. That split is not taste:
+`ExecutionContextApi`'s frame mutators are gated to boundary files
+(`backend/**`, `mud/api/**`, security, `CommandGiver`), a logic
+singleton is not a boundary, and an inbound turn genuinely begins at
+the transport.
+
+> ⚠ The `--async` interaction, because it is not obvious. The async
+> detach happens at `_executeOne`, *after* everything accept-time — so
+> a prompt raised in a controller BODY under `async: true` was never in
+> a lane and always worked, while an **accept-time** prompt (the
+> `confirm-prompt` phase, MQL disambiguation) sat in the lane and
+> deadlocked regardless of mode. `--async` was an accidental workaround
+> for half the bug. A verb carrying `async: true` because "prompts
+> hang" should be re-examined on its own merits.
 
 `Application.processUserMessage` looks up the Interactive by
 socketId, then switches on `message.type`:

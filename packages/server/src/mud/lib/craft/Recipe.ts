@@ -68,21 +68,39 @@ export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
 export class Recipe extends Document {
   static collectionName = 'recipes';
+  /**
+   * ⭐ **How to FIND a recipe is open; what it takes is level 1.**
+   *
+   * Name, keywords and discipline are how a recipe is looked up at
+   * all, and a search index nobody can read indexes nothing. The
+   * inputs, the tools, the heat, the difficulty and what comes out are
+   * the recipe — the thing a crafter works out, buys, or is taught.
+   *
+   * Level 1 rather than higher **because looking a recipe up is a
+   * legitimate way to learn it**, and a wiki whose crafting pages were
+   * blank to ordinary players would just move that traffic to a
+   * third-party site nobody here controls. Collapsed by default is the
+   * whole intent: the discovery stays available to anyone who wants
+   * it, and unspoiled for anyone who does not.
+   */
   static fieldMeta: FieldMeta = {
+    // ── How you find it ──
     recipeId: { persistent: true },
     name: { persistent: true },
     keywords: { persistent: true },
-    inputSlots: { persistent: true },
-    toolCapabilities: { persistent: true },
-    outputTemplate: { persistent: true },
-    outputMaterial: { persistent: true },
-    baseGradeBand: { persistent: true },
-    requiresHeatK: { persistent: true },
-    outputApplication: { persistent: true },
-    outputPortionL: { persistent: true },
-    outputAppearance: { persistent: true },
-    difficulty: { persistent: true },
     discipline: { persistent: true },
+
+    // ── What it actually takes, and yields ──
+    inputSlots: { persistent: true, spoiler: 1, spoilerName: 0 },
+    toolCapabilities: { persistent: true, spoiler: 1, spoilerName: 0 },
+    outputTemplate: { persistent: true, spoiler: 1, spoilerName: 0 },
+    outputMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
+    baseGradeBand: { persistent: true, spoiler: 1, spoilerName: 0 },
+    requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
+    outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
+    outputPortionL: { persistent: true, spoiler: 1, spoilerName: 0 },
+    outputAppearance: { persistent: true, spoiler: 1, spoilerName: 0 },
+    difficulty: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** Canonical id; unique-indexed at the collection level. */

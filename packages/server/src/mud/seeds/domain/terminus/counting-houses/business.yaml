@@ -15,7 +15,25 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  proprietorPath: ""
+  # ⭐ GOODKIN's board hires Goodkin's tellers — not the city.
+  #
+  # The city owns the district this counter stands in
+  # (`/domain/terminus/counting-houses` is the `terminus` group's), so the
+  # committee over the GROUND would have been the wrong appointer, and
+  # `entity` cannot name a corpo (that kind matches the principal's own
+  # templatePath, and a Corpo is a mark, not an actor). The branch shipped
+  # unauthored for exactly that reason.
+  #
+  # Giving each corpo its own `/corpo/<key>` branch and board group closes
+  # it with no new authority kind: the committee here is Goodkin's, over
+  # Goodkin's own ground, and the municipality satisfies it no more than a
+  # stranger does.
+  appointingAuthority:
+    kind: committee
+    parcel: /corpo/goodkin
+  # The branch sits INSIDE the company — the first content consumer of
+  # organization parentage. `organizationChainOf` walks it.
+  parentOrganization: /corpo/goodkin
   positions:
     - key: teller
       label: working the Goodkin counter

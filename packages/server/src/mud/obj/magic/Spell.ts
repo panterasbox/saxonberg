@@ -124,6 +124,24 @@ export default class Spell extends Idea {
   /** Authored prose. */
   public description: string = '';
 
+  /**
+   * ⚠ **Deliberately untagged — every field here is level 0.**
+   *
+   * Recorded rather than left blank, because a spell's cost and
+   * duration look exactly like the kind of number that got collapsed
+   * on `Material` and `Biome`, and the next person to sweep will
+   * reach for it.
+   *
+   * Magic in this world is a **published science**: one postulate, the
+   * laws, and *the price list* (see docs/arcane-science.md). The price
+   * being knowable is the premise. Collapsing what a spell costs would
+   * not make casting more discoverable — it would contradict the
+   * fiction that a caster can reason about the cost before paying it.
+   *
+   * If a particular spell's effect is a plot spoiler, that belongs on
+   * the wiki PAGE (a `<spoiler>` in authored prose), not on the field
+   * — the field level applies to every spell at once.
+   */
   static fieldMeta: FieldMeta = {
     spellId: { persistent: true },
     name: { persistent: true },

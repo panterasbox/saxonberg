@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import AccountBalance from "../AccountBalance";
 import { Collections } from "../../../../backend/PersistenceManager";
@@ -23,9 +23,9 @@ describe("AccountBalance — rebuild from log", () => {
   afterEach(() => teardownBankingHarness());
 
   it("cached balance equals the replay-from-log balance", async () => {
-    await BankingApi.mint(A, Money.of(1000));
-    await BankingApi.mint(B, Money.of(250));
-    await BankingApi.drain(A, Money.of(100));
+    await BankingApi.mint(A, Money.of(1000, Currency.compact()));
+    await BankingApi.mint(B, Money.of(250, Currency.compact()));
+    await BankingApi.drain(A, Money.of(100, Currency.compact()));
 
     expect(BankingApi.balanceOf(A).minor).toBe(900);
     expect(BankingApi.balanceOf(B).minor).toBe(250);
@@ -37,8 +37,8 @@ describe("AccountBalance — rebuild from log", () => {
   });
 
   it("dropping the materialized collection + cache and replaying reproduces it", async () => {
-    await BankingApi.mint(A, Money.of(777));
-    await BankingApi.drain(A, Money.of(77));
+    await BankingApi.mint(A, Money.of(777, Currency.compact()));
+    await BankingApi.drain(A, Money.of(77, Currency.compact()));
     const before = BankingApi.balanceOf(A).minor;
 
     // Drop the materialized rows + warm cache: only the ledger survives.
