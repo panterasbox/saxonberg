@@ -174,10 +174,18 @@ W3 the durable spine: LedgerEntry / AccountBalance / SupplyAggregate
  ├── W4 cash: Coin (currency, faceValue), glob identity, presentation
  └── W5 issuer + per-issuer mint authority + per-currency reporting
  │
+W5b money integrity: the gates + the instrument   ── MUST precede W6
+ │
 W6 migration + rehearsal (the deploy gate)
  │
 W7 the acceptance test + banking.md + deployment.md
 ```
+
+⚠ **W5b is not optional and its position is load-bearing.** W6's
+rehearsal uses `reserve supply → balanced: true` as its verification gate.
+`reconcile` today has two structural blind spots (§7b), so **that gate is
+untrustworthy until W5b lands.** Fixing the instrument after the
+migration would mean the migration was never actually verified.
 
 Each wave leaves the tree green (`pnpm test`, `pnpm lint`, `pnpm build`) and
 is independently reviewable.
@@ -639,6 +647,99 @@ Low. The verb-layer surface only; the substrate is untouched.
 
 ---
 
+## 7b. Wave 5b — money integrity: the gates and the instrument
+
+Scoped in from [money-integrity-slate](../slates/builds/money-integrity-slate.md).
+**Only the four items that ride paths this build already rewrites** — the
+full follow-the-money sweep is that slate's own cycle. Do not widen this
+wave.
+
+### Why it is here and not deferred
+
+> ⭐⭐⭐ **There are two conservation domains and only one is sealed.**
+> The ledger is genuinely well defended: `postTransaction` is the single
+> writer, `assertConserving` validates per leg, `mint`/`drain` are the
+> only supply-changing kinds. **Cash is not.** A `Coin` is ordinary
+> `Stuff`, so anything that can make, mutate or restore Stuff can make,
+> mutate or restore *money* — and `issueCash`/`deposit`/`withdraw` bridge
+> the two, so a cash-side leak is a **total-supply** leak.
+
+Two of the four items below are the audit's *instrument*. The rest of the
+audit cannot be trusted until they land, and neither can W6.
+
+### 7b.1 Gate `setQuantity` (the direct mint)
+
+`GlobbableMixin.setQuantity(n)` carries **no `@CallSecurity`, no
+`@Final`, no `@Unshadowable`** — only a positive-integer check. Any code
+holding a coin reference can mint by assignment.
+
+- Apply the shipped discipline: `@CallSecurity(...)` naming the
+  legitimate callers, plus `@Final @Unshadowable`. The existing callers
+  are `GlobbableLogic` (split/merge), `BankingLogic` (`issueCash`), and
+  `CraftingLogic` (consumption) — that caller set **is** the policy.
+- ⚠ `Stuff.destroy()` is the precedent to copy exactly
+  (`ApiOnly + @Final + @Unshadowable`).
+- ⚠ **Gate the mixin method, not `Coin`.** A subclass or a second
+  value-bearing glob (scrip, bearer credentials) must inherit the gate,
+  not need its own.
+- Tests: a call from an unlisted module throws; every existing legitimate
+  caller still works; a shadow cannot intercept it.
+
+### 7b.2 Complete the instrument — `reconcile` sees all coin
+
+Today `reconcileImpl` walks `StuffApi.findAllByTemplatePath(COIN_PATH)`,
+which reads the **in-memory index — live instances only**, and skips vault
+cash (`if (container && MixinApi.isBank(container)) continue`). So
+`balanced` is blind to (a) coins inside `holder_snapshots` and (b)
+anything in a vault.
+
+- **Count snapshotted coin.** `reconcile` gains a term for coin held in
+  `holder_snapshots` records. ⚠ This is necessarily an **async** read,
+  while `reconcile` is sync today — so split the surface rather than
+  breaking the sync read:
+  `reconcile(currency)` stays sync and circulating-only (its current
+  meaning, now honest about it), and a new
+  `reconcileFull(currency): Promise<FullReconcile>` adds the snapshot and
+  vault terms. The verb (`reserve supply`) awaits the full form; anything
+  on a hot path keeps the sync one.
+- **Account for vault cash explicitly** — a named `vaultCoin` term rather
+  than a `continue`, so it is visible rather than excluded.
+- The identity becomes, per currency:
+  `supply === accountTotal + circulatingCoin + vaultCoin + snapshotCoin`.
+- Tests: a coin captured into a snapshot still balances; a coin in a vault
+  still balances; deliberately corrupting a snapshot's quantity makes
+  `balanced` go **false** (the instrument detects what it exists to
+  detect).
+
+### 7b.3 + 7b.4 — already in scope, recorded here for the audit trail
+
+- **Glob identity gains the currency** (§6/W4) — closes the
+  merge-two-issuers'-coins invisible mint.
+- **The `?? 1` fallback becomes a throw** (§3/W1) — closes the silent
+  revalue.
+
+Both are already planned; this section exists so the money-integrity
+sweep can tick them off without re-deriving them.
+
+### Risk
+
+- ⚠ **7b.2's async split is the subtle part.** Do not make `reconcile`
+  async — `balanceOf` and the posting path depend on sync reads. Two
+  named surfaces with honest names beats one that lies.
+- Gating `setQuantity` may surface call sites the grep missed (a shadow, a
+  test helper). Each one is a finding, not an obstacle — record it.
+
+### What this wave explicitly does NOT do
+
+Crafting yields, content packs, the CMS coin-row edit, clone-a-coin,
+materialize idempotency, the sandbox cash boundary, and the
+destroy-without-drain direction. All enumerated in
+[money-integrity-slate](../slates/builds/money-integrity-slate.md) § *The
+audit surface*, all for that cycle. ⚠ **Do not let this wave grow** — the
+whole reason it is bounded is so the currency MR stays reviewable.
+
+---
+
 ## 8. Wave 6 — the migration and its rehearsal (the gate)
 
 ⚠ **Nothing deploys until the rehearsal passes.** This is the requirements'
@@ -907,6 +1008,8 @@ build**; its Half B record survives as the record of what was considered.
 | Presentation throwing on an unstamped coin | 4 | `getShortDescription` degrades, `getMass` throws — asymmetry documented |
 | `Money.of` sweep churn hiding a real change | 2 | Wave 2 is mechanical **and nothing else**; behaviour-change-free, whole suite green |
 | The crossing rejection re-read as a seam | 3, 7 | Doc comment + `banking.md` say *permanent invariant*; the word `convert` appears nowhere |
+| ⚠⚠ **Cash is a second, unsealed conservation domain** — `setQuantity` mints by assignment | 5b | Gate the mixin method with the `Stuff.destroy()` discipline; the legitimate caller set is the policy |
+| ⚠⚠ **The rehearsal's own gate is blind** — `reconcile` cannot see snapshotted or vault coin | 5b before 6 | `reconcileFull` adds both terms; W5b is sequenced *before* the migration for exactly this reason |
 
 ## 11. Concerns — where this plan pushes back on, or extends, the requirements
 
@@ -917,8 +1020,12 @@ build**; its Half B record survives as the record of what was considered.
    requirements name an invisible mint as the one bug class an economy cannot
    recover from. If a reviewer wants it smaller, the only acceptable reduction
    is a default of `Currency.compact()` (never a literal) — and it trades
-   compiler enforcement for runtime enforcement at the endpoint check. **Do not
-   make that trade unilaterally; raise it.**
+   compiler enforcement for runtime enforcement at the endpoint check.
+
+   > ✅ **SETTLED 2026-08-04 — required, no default.** User: *"no shortcuts
+   > or half measures, whatever needs to be done for this do it blast radius
+   > be damned."* The 174 call sites are the point: the compiler enumerates
+   > the migration instead of leaving it to runtime.
 
 2. **`Coin.denomination` holding a number is in tension with the letter of
    Banking Law 1** (*"face value is intrinsic to the currency and is never a

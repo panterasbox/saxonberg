@@ -46,6 +46,14 @@ decision layer) and [multi-currency-slate](../slates/tails/multi-currency-slate.
   before.
 - **The generalization is proven, not asserted** — exercised by a
   test-only second currency that never exists in play.
+- ⚠⚠ **Only the issuer can create value, on the cash side as well as the
+  ledger side.** The quantity of a value-bearing stack cannot be changed
+  by ungated code — the gating discipline `Stuff.destroy()` already uses
+  is applied to the money path.
+- ⚠⚠ **The conservation audit can see all coin.** `reconcile` accounts
+  for coin held in `holder_snapshots` and in vaults, not only live
+  circulating instances — so "follow the money" has a trustworthy
+  instrument.
 
 ## Non-goals
 
@@ -78,6 +86,15 @@ decision layer) and [multi-currency-slate](../slates/tails/multi-currency-slate.
   never sum across.
 - **No corpo scrip content.** The use case this generalization exists
   for, built later ([corpos-slate](../slates/builds/corpos-slate.md)).
+- ⚠ **No full follow-the-money audit.** This build closes the four
+  value-integrity holes that sit on paths it already rewrites (the
+  `setQuantity` gate, the `reconcile` blind spots, coin glob identity,
+  the `?? 1` throw). The rest of the surface — crafting yields, content
+  packs, the CMS coin-row edit, clone-a-coin, `materialize` idempotency,
+  the sandbox cash boundary, and destroy-without-drain — is enumerated in
+  [money-integrity-slate](../slates/builds/money-integrity-slate.md) and
+  is **its own cycle**. Mixing a 174-site refactor with a security sweep
+  makes both unreviewable.
 
 ## Surface decisions
 
@@ -281,6 +298,17 @@ rehearsal — not two.
 - **Coins present distinguishably**: a 25-value coin and a 1-value coin
   differ in `shortDescription` and are separately addressable by the
   parser; a test covers the parse.
+- **`setQuantity` is gated** on the value-bearing path — a call from an
+  unlisted module throws, a shadow cannot intercept it, and every
+  legitimate caller (split/merge, `issueCash`, crafting consumption)
+  still works. The gate sits on the **mixin**, so a future value-bearing
+  glob inherits it.
+- **`reconcile` sees all coin** — the per-currency identity is
+  `supply === accountTotal + circulatingCoin + vaultCoin + snapshotCoin`.
+  A test proves a coin captured into a snapshot still balances, a coin in
+  a vault still balances, and that **corrupting a snapshot's quantity
+  makes `balanced` go false** (the instrument detects what it exists to
+  detect).
 - **Migration proven on a copy of live data**: every account balance,
   ledger row and coin has identical value before and after; total supply
   is unchanged. Rehearsed before the deploy, not during.
