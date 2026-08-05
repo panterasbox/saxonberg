@@ -124,6 +124,51 @@ describe("CombatGraph", () => {
       expect(g.rangeBetween(node("x"), node("y"))).toBe("close");
     });
 
+    it("carries the two ranged bands symmetrically too", () => {
+      const g = new CombatGraph();
+      const a = node("a");
+      const b = node("b");
+      g.addEdge(a, b, terms("a"));
+      g.addEdge(b, a, terms("b"));
+      for (const band of ["near", "far"] as const) {
+        g.setRange(a, b, band);
+        expect(g.edgeBetween(a, b)!.range).toBe(band);
+        expect(g.edgeBetween(b, a)!.range).toBe(band);
+        expect(g.rangeBetween(b, a)).toBe(band);
+      }
+    });
+
+    /**
+     * AC 2 — bands are a PER-PAIR relationship and do not compose. A
+     * configuration that would be geometrically impossible on a map is
+     * legal here and means something readable: "you're keeping the
+     * swordsman at bowshot while his partner is already on top of you."
+     * There is no triangle inequality to satisfy and no derived position
+     * to reconcile.
+     */
+    it("a crowd may hold geometrically impossible bands — no composition", () => {
+      const g = new CombatGraph();
+      const archer = node("archer");
+      const a = node("a");
+      const b = node("b");
+      for (const [x, y] of [
+        [archer, a],
+        [archer, b],
+        [a, b],
+      ] as const) {
+        g.addEdge(x, y, terms("t"));
+        g.addEdge(y, x, terms("t"));
+      }
+      g.setRange(archer, a, "far");
+      g.setRange(archer, b, "close");
+      g.setRange(a, b, "close");
+
+      // Each edge keeps exactly what it was given; nothing propagates.
+      expect(g.rangeBetween(archer, a)).toBe("far");
+      expect(g.rangeBetween(archer, b)).toBe("close");
+      expect(g.rangeBetween(a, b)).toBe("close");
+    });
+
     it("redirect carries the range onto the new edge", () => {
       const g = new CombatGraph();
       const attacker = node("attacker");

@@ -66,6 +66,8 @@ import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
 import { CombatFlags } from "../../lib/combat/CombatFlags";
 import type { RangeState } from "../../lib/combat/CombatGraph";
+import type { CombatGraph } from "../../lib/combat/CombatGraph";
+import { RangeBand } from "../../lib/combat/RangeBand";
 import { Gambit, type GambitSpec } from "../../lib/combat/Gambit";
 import { Sharpness, type SharpnessConfig } from "../../lib/combat/Sharpness";
 import {
@@ -585,11 +587,35 @@ function seedRange(session: CombatSession, a: Stuff, b: Stuff): void {
 }
 
 /**
+ * Does this pair already carry a range — in EITHER direction?
+ *
+ * The honest "have these two met yet" question, and it must be asked
+ * **before** `addEdge`. `rangeBetween` cannot answer it: it falls back to
+ * `close` when no edge exists, so `=== "close"` was standing in for "no
+ * range yet" and could not tell a genuinely-clinched pair from a fresh one.
+ * A pair that had fought its way to `close` was therefore re-seeded back to
+ * the opening range every time the engine re-picked the target — silently,
+ * because the wrong answer was also a legal band.
+ */
+function pairHasRange(graph: CombatGraph, a: Stuff, b: Stuff): boolean {
+  return (
+    graph.edgeBetween(a, b) !== undefined ||
+    graph.edgeBetween(b, a) !== undefined
+  );
+}
+
+/**
  * The reach advantage the actor's strike carries against `target` right now:
  * at `reach` a longer weapon is advantaged (positive), the shorter penalised
  * (negative); at `close` it **reverses** (the dagger/unarmed owns the
  * clinch). Zero for equal reach. A deterministic function of reach ranks ×
  * the current range — no RNG.
+ *
+ * **Zero outside the melee bands.** Reach is a term about weapon *length*
+ * against a foe you can touch; at `near`/`far` it has nothing to say. That a
+ * melee strike cannot connect from there is a separate fact, carried by
+ * {@link inMeleeBand} at the strike and counter sites — not smuggled in as a
+ * large negative number here, which would make the reach term lie.
  */
 function reachAdvantage(
   session: CombatSession,
@@ -597,8 +623,20 @@ function reachAdvantage(
   target: Stuff,
 ): number {
   const range = session.getGraph().rangeBetween(actor, target);
+  if (!RangeBand.isMelee(range)) return 0;
   const diff = reachRankOf(actor) - reachRankOf(target);
   return range === "reach" ? diff : -diff;
+}
+
+/**
+ * Is this pair inside the melee bands (`close`/`reach`)? A hand weapon can
+ * only act across those two; at `near`/`far` a melee strike whiffs — not
+ * because it is out-reached, but because the fighters are not in melee at
+ * all. The gate that keeps the shipped reach dance from silently applying
+ * across a ranged gap.
+ */
+function inMeleeBand(session: CombatSession, a: Stuff, b: Stuff): boolean {
+  return RangeBand.isMelee(session.getGraph().rangeBetween(a, b));
 }
 
 /** A small clamp helper (bands the reach scale). */
@@ -1122,12 +1160,13 @@ function pickSustained(
   }
   for (const s of session.getStates()) {
     if (s === actorState || s.down || s.side === actorState.side) continue;
+    // A freshly-picked foe opens at the reach-derived range — but a pair
+    // that already has a range keeps it. Asked BEFORE `addEdge`, because
+    // `addEdge` mints the edge at the `close` default and would make every
+    // pair look freshly-seeded.
+    const known = pairHasRange(graph, actor, s.combatant);
     graph.addEdge(actor, s.combatant, session.getTerms());
-    // A freshly-picked foe opens at the reach-derived range (unless an edge
-    // the other direction already set it).
-    if (graph.rangeBetween(actor, s.combatant) === "close") {
-      seedRange(session, actor, s.combatant);
-    }
+    if (!known) seedRange(session, actor, s.combatant);
     return s;
   }
   return null;
@@ -1143,10 +1182,12 @@ function engageToward(
   const graph = session.getGraph();
   const actor = actorState.combatant;
   if (!graph.edgeBetween(actor, target.combatant)) {
+    // Same rule as `pickSustained`: the reverse edge may already carry a
+    // range this pair fought to, and minting the forward edge must not
+    // reset it.
+    const known = pairHasRange(graph, actor, target.combatant);
     graph.addEdge(actor, target.combatant, session.getTerms());
-    if (graph.rangeBetween(actor, target.combatant) === "close") {
-      seedRange(session, actor, target.combatant);
-    }
+    if (!known) seedRange(session, actor, target.combatant);
   }
   return target;
 }
@@ -1507,7 +1548,12 @@ function resolveExchange(
   const reachCoef = dial(AppSettingKeys.combatReachAdvantageEnergy, 0.2);
   const reachScale = clampNum(1 + reachAdv * reachCoef, 0.3, 2);
   const effectiveDamage = poiseDamage * reachScale;
-  const outOfRange = reachAdv <= -REACH_OUT_OF_RANGE_GAP;
+  // Out of range two ways: out-reached inside melee (the shipped reach
+  // dance), or not in melee at all (`near`/`far` — a hand weapon cannot
+  // cross a ranged band).
+  const outOfRange =
+    reachAdv <= -REACH_OUT_OF_RANGE_GAP ||
+    !inMeleeBand(session, actorState.combatant, targetState.combatant);
   // The target's shield fronts this attacker only if it faces them (bypassed
   // by a flanking blow under focus-fire).
   const shieldFacing = shieldFacesAttacker(
@@ -1729,6 +1775,7 @@ function reactiveDispatch(
     // dagger-wielder held at a spear's `reach` can't riposte the spear (this
     // is what makes reach control decisive, not just a poise nudge).
     if (
+      !inMeleeBand(session, defenderState.combatant, attackerState.combatant) ||
       reachAdvantage(
         session,
         defenderState.combatant,
