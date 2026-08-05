@@ -54,8 +54,15 @@ never matter economically.
 
 | | supplies | ceiling |
 |---|---|---|
-| **Focus** — rod, lens, staff | specification only | **your reserve** |
-| ⭐ **Charged** — wand, orb, wearable | energy **+** specification | **energy density** |
+| ⭐ **Charged** — wand, orb, ring | energy **+** specification | **energy density** |
+| **Consumable** — potion, scroll | one packaged act | one use |
+
+⚠ **`Focus` was CUT before merge** (magic-items build) — it duplicated an
+existing decision and shipped with no verb to fire it. **The argument here
+survives and simplifies**: `Charged` is now the *only* powered class, and it
+is bounded by energy density, full stop. The *"mages should have gear"*
+intuition moved to [implements-slate](./implements-slate.md) — an item that
+**modifies what happens when you cast**, not one that casts on your mana.
 
 > **A magic car is a charged item. Its limit is what the tank holds, not
 > what a body can channel.**
@@ -172,6 +179,104 @@ minor units while `Charge` carries a currency — so a charger's price is
 denominated **by convention** at the settling site. Harmless at one
 currency; see [supply-chain-slate](./supply-chain-slate.md) § *the offer
 layer has no currency*.
+
+# Part 2b — ⚠⚠ REFRESHED 2026-08-05: the magic-items build shipped the charge economy
+
+Written against the slate; **the subsystem doc**
+([magic-items.md](../../subsystems/magic-items.md)) **now supersedes it**,
+and it is both stronger than assumed and in one place **in tension with this
+slate.**
+
+## ⭐⭐⭐ The equilibrium is now an equation, not a hand-wave
+
+This slate argued demurrage from a self-discharge rate. The build derives
+it properly:
+
+```
+  dS/dt = inflow − d·S      ⟹      S* = inflow / d
+```
+
+> *"**Two dials whose ratio is the answer**, and a system that settles
+> instead of inflating… Throttling inflow alone cannot work — stock grows
+> without bound at any throttle, because nothing ever leaves."*
+
+⭐ And the canon line is better than mine: **"magic perishes, matter
+doesn't"** — the ruins hold perfect blades and faded rings.
+
+⚠ Note the build's own warning, which **matches the call
+[supply-chain-slate](./supply-chain-slate.md) made independently for
+fermentation**: charge decay has **no far-past absence guard** — *"an item
+must decay while nobody is looking, because that is the entire basis of the
+equilibrium. Follow **husbandry**, not metabolism."*
+
+## ⭐⭐⭐⭐ A FOURTH guard, and it is the strongest one
+
+> *"**You find shells and buy charge.** Wealth cannot corner the found
+> channel, because **what money buys is caster-labour, which is capped.**"*
+
+Because charge cannot enter an item any other way:
+
+> ⚠ *"`adjust-reserve` now routes **any** positive delta on a `charge`
+> reserve through the one implementation (`MagicApi.transferCharge`), so
+> **no effect can add charge without a coupling**."*
+
+And a coupling needs three things — **your reserve**, the `transfer` working,
+and a **conduit** — with `delivered = committed × coupling × competence`
+(crude 0.6 · field 0.85 · bench 0.98), and ⭐ **efficiency that can never
+reach 1 by construction**, because *"1 τ ≡ 1 kJ against a conservation law,
+so a lossless pump is a perpetual-motion machine."*
+
+⭐⭐ **That is the conversion table Part 1 proposed, shipped** — along with
+`lib/magic/PriceList.ts`, which prices `transform` three orders of magnitude
+above every other verb so rarity falls out of **arithmetic rather than a
+rule somebody has to remember.**
+
+## ⚠⚠⚠ The tension: a city-scale node breaks `S* = inflow / d`
+
+This slate said a node may *"fart out enough energy to power a city."* The
+shipped economy says **all item-charge is caster-sourced and deliberately
+capped** — and the cap is load-bearing, because it is *why* wealth cannot
+corner the channel.
+
+> **An unbounded node inflow sends `S*` to infinity and dissolves the
+> guarantee the item build rests on.**
+
+### ⭐⭐⭐⭐ But the coupling already resolves it, and elegantly
+
+**A node has no reserve, and charge requires a caster's reserve as one of
+its three supplies.** So:
+
+> ⭐⭐⭐ **A node can power a city's MACHINES. It cannot charge a wand.**
+> Items are charged by people, full stop — not by decree, but because the
+> coupling demands an endpoint a node does not have.
+
+Two economies, separated by mechanism rather than by rule:
+
+| | supply | bounded by |
+|---|---|---|
+| **grid / machine power** | nodes, hydro, fire | the site — Ricardian rent |
+| ⭐ **item charge** | **caster labour** | metabolism, and it is *capped* |
+
+⭐⭐ And that yields the best version of Part 7's development arc, now
+*mechanically* true instead of asserted:
+
+> **Magic power is expensive because it is HAND-MADE. The grid is cheap
+> because it is mechanised.** Artisanal → industrial, which is the actual
+> history, and here it is a consequence of the coupling rather than a
+> balance decision.
+
+⚠ **The open call this leaves:** whether anything may ever *be* a reserve
+that is not a body. **Say no and the cap holds forever**; say yes and
+`S* = inflow / d` needs the polity to govern `inflow` — which is exactly the
+quota/rent machinery this slate already describes, so it is answerable
+either way. **But it must be answered deliberately, because it is the one
+decision that can silently undo the item economy.**
+
+⭐ Note the build's own instinct points the same way: `transfer` is
+**gated at `novice` on purpose** — *"it is the part that makes a mage useful
+to other people. Gating it high would turn a service anyone can sell into a
+specialist's monopoly."* **Charge is meant to be a broad labour market, not
+a chokepoint** — which an industrial node would flatten.
 
 ---
 

@@ -196,6 +196,14 @@ one set of rights, one political fight.**
 | **cells + nodes** | ⭐ **anywhere, day one** | expensive | nothing |
 | **the grid** | only where built | cheap | capital, rights-of-way, politics |
 
+> ⭐⭐ **Refreshed 2026-08-05 — the magic-items build makes the "expensive"
+> column MECHANICAL.** Item charge is caster-sourced and capped by
+> metabolism (*"what money buys is caster-labour, which is capped"*), and no
+> effect can add charge without a coupling. ⇒ **frontier power is literally
+> hand-made**, while a grid is mechanised — so *magic is expensive* stops
+> being a balance dial and becomes a consequence. See
+> [mana-economy-slate § Part 2b](./mana-economy-slate.md).
+
 > ⭐⭐⭐⭐ **A community's development arc IS the replacement of magic by
 > infrastructure.** Portable-and-expensive → networked-and-cheap. It is what
 > actually happened (artisanal power → reticulated power), it is

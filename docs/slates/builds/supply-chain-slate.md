@@ -120,6 +120,11 @@ timer — **you have to be there to catch the batch.**
 failure mode still feeds someone downstream — the value drops, it does not
 vanish (*everything is a business*).
 
+⭐ **Independently confirmed 2026-08-05:** the magic-items build reached the
+same call for charge decay — *"an item must decay while nobody is looking,
+because that is the entire basis of the equilibrium. **Follow husbandry, not
+metabolism.**"* Two subsystems, same choice, arrived at separately.
+
 ⚠ **The tension, and its diegetic answer.** Husbandry deliberately has **no
 far-past guard**, so a fortnight away means a spoiled batch — harsher than a
 sickly carrot. The mitigation should be a *place*, not a rule: **a cold
