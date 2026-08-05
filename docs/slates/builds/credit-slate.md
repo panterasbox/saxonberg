@@ -559,14 +559,28 @@ NPC… the 'NPCs do their jobs' seam"* — via `CommandApi.forceCommand`.
 > ⭐⭐ **There is one cockpit because there is one dispatch chain.** Seat the
 > NPC and `requiresGovernor` binds it exactly as it binds a person.
 
-⚠⚠ **But `npc-dialogue.md` claims `forced:true` "bypasses the
-affordance/YAML-validator gates."** **The code contradicts it** —
-`forceCommand` only sets a flag; the three uses of `forced` in
-`CommandGiver` are the input-mode prefix and frame metadata; the chain runs
-affordance → resolve → preload → **validators** regardless, and the only
-test asserts the metadata stamp. ⭐ **Correcting that doc is what makes this
-design legal** — believed as written it pushes an author to build the NPC a
-bespoke non-command path, which is precisely what destroys the property.
+⚠⚠ **`npc-dialogue.md` claimed `forced:true` "bypasses the
+affordance/YAML-validator gates." PROVEN FALSE 2026-08-04 and corrected** —
+the same gated verb dispatched forced and un-forced yields the *identical*
+`validator-failed` note. ⭐ **Good news for this design**: the Governor gate
+binds an NPC exactly as it binds a person, so the cockpit really is one
+cockpit. (Believed as written, the claim would have pushed an author to
+build the NPC a bespoke non-command path — destroying the property.)
+
+⚠⚠⚠ **And it left a probable live defect: `provision` carries verb-level
+`requiresWizard`, Katie is deliberately not a wizard, and her intake
+dialogue dispatches it.** The authorization was moved to `execute()` on the
+belief the YAML gate would be skipped; it is not skipped. **Needs
+live-driving** ([[verify-by-driving-not-by-suite]]) — the existing test
+calls `isDormsAgent` directly and never dispatches through the chain.
+
+⭐ **The trap that hid it for a year:** validators are resolved onto
+`_resolvedValidators` **only by `CommandApi.preloadAll`**, and
+`runValidators` guards on `if (command._resolvedValidators)`. A harness that
+calls `getCommand` without preloading **silently skips every verb-level
+validator** — so a naive probe shows forced and un-forced both reaching the
+controller and *looks* like proof of a bypass. My first probe did exactly
+that. The control arm is what caught it.
 
 ## ⚠ `ReserveController.execute()` has no authorization of its own
 
