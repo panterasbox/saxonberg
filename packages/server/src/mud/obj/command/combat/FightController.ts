@@ -39,6 +39,8 @@ const GAMBITS = new Set([
   "shove",
   "defend",
   "close",
+  "advance",
+  "withdraw",
   "bash",
   "sweep",
   "entangle",

@@ -39,6 +39,9 @@ import { Quantity } from "../../../lib/quantity";
 import { CombatApi } from "../../../api/combat";
 import { CombatTerms, type TermsProposal } from "../../../lib/combat/CombatTerms";
 import type { CombatSession } from "../../../lib/combat/CombatSession";
+import CartesianLocation from "../../../lib/location/CartesianLocation";
+import CartesianZone from "../../location/CartesianZone";
+import { Stuff } from "../../../lib/stuff/Stuff";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../api/event";
 
@@ -131,6 +134,31 @@ function open(a: TestFighter, b: TestFighter): CombatSession {
   return res.session;
 }
 
+/**
+ * Queue a gambit and advance until it actually resolves.
+ *
+ * A combatant only acts when `tempo.advance()` grants them an action, and
+ * on the first beat of a fight it usually grants none — which is why the
+ * shipped suite drives its assertions over many beats rather than one.
+ * `queuedGambit` is cleared the moment the exchange runs, so that is the
+ * honest signal that the beat we care about happened.
+ */
+function act(
+  s: CombatSession,
+  actor: TestFighter,
+  gambit: string,
+  maxBeats = 20,
+): void {
+  const elig = CombatApi.queueGambit(actor as never, gambit);
+  if (!elig.ok) throw new Error(`gambit ${gambit} ineligible: ${elig.reason}`);
+  for (let i = 0; i < maxBeats && s.isActive(); i++) {
+    CombatApi.advance(s);
+    const st = s.getState(actor) as unknown as { queuedGambit: unknown };
+    if (st.queuedGambit == null) return;
+  }
+  throw new Error(`gambit ${gambit} never resolved in ${maxBeats} beats`);
+}
+
 beforeAll(async () => {
   await bootRegistry();
 });
@@ -162,7 +190,7 @@ describe("CombatLogic — a pair's established band survives re-targeting", () =
     const session = open(spear, dagger);
     const graph = session.getGraph();
 
-    // Unequal reach → the shipped heuristic opens the pair at `reach`.
+    // The arena (a plain container, no extent) caps the pair at `reach`.
     expect(graph.rangeBetween(spear, dagger)).toBe("reach");
 
     // The dagger fights its way inside.
@@ -179,23 +207,26 @@ describe("CombatLogic — a pair's established band survives re-targeting", () =
     expect(graph.rangeBetween(spear, dagger)).toBe("close");
   });
 
-  it("a genuinely fresh pair still opens at the reach-derived band", () => {
+  it("a genuinely fresh pair still gets seeded at all", () => {
     const room = makeStuff(() => new TestRoom());
     const spear = makeFighter(room, 2.0);
     const dagger = makeFighter(room, 0.3);
     const session = open(spear, dagger);
 
-    // The other half of the same rule: not re-seeding an established pair
-    // must not stop a first meeting from being seeded at all.
+    // The other half of the pairHasRange rule: not re-seeding an
+    // established pair must not stop a first meeting from being seeded.
     expect(session.getGraph().rangeBetween(spear, dagger)).toBe("reach");
   });
 
-  it("equal reach still opens at `close` — no approach phase", () => {
+  it("equal reach opens at the ARENA band, not `close` (D37)", () => {
+    // Re-derived from P1, where this pinned the old reach-rank rule. A
+    // plain container reports no linear extent, so the conservative melee
+    // cap applies to everyone regardless of weapon length.
     const room = makeStuff(() => new TestRoom());
     const a = makeFighter(room, 0.9);
     const b = makeFighter(room, 0.9);
     const session = open(a, b);
-    expect(session.getGraph().rangeBetween(a, b)).toBe("close");
+    expect(session.getGraph().rangeBetween(a, b)).toBe("reach");
   });
 });
 
@@ -264,5 +295,97 @@ describe("CombatLogic — the reach dance stays inside the melee bands", () => {
     CombatApi.advance(session);
 
     expect(graph.rangeBetween(spear, dagger)).toBe("near");
+  });
+});
+
+/** A real Location (not a bare container) with an authored linear extent —
+ * the only kind of room that can arm the ranged bands. */
+function makeArena(extentMetres: number): CartesianLocation {
+  const zone = makeStuff(() => new CartesianZone());
+  const room = makeStuff(() => new CartesianLocation());
+  Stuff._stampZone(room, zone);
+  room.setExtent(extentMetres);
+  return room;
+}
+
+function fightersIn(room: unknown): [TestFighter, TestFighter] {
+  return [
+    makeFighter(room as TestRoom, 0.9),
+    makeFighter(room as TestRoom, 0.9),
+  ];
+}
+
+describe("CombatLogic — the arena caps the ladder (AC 3, AC 5)", () => {
+  it("a 3 m cell opens at `reach` — bar fights stay knife fights", () => {
+    const [a, b] = fightersIn(makeArena(3));
+    const s = open(a, b);
+    expect(s.getGraph().rangeBetween(a, b)).toBe("reach");
+  });
+
+  it("a 12 m yard opens at `near` — you notice someone across it", () => {
+    const [a, b] = fightersIn(makeArena(12));
+    const s = open(a, b);
+    expect(s.getGraph().rangeBetween(a, b)).toBe("near");
+  });
+
+  it("a 30 m field opens at `far`", () => {
+    const [a, b] = fightersIn(makeArena(30));
+    const s = open(a, b);
+    expect(s.getGraph().rangeBetween(a, b)).toBe("far");
+  });
+
+  it("`fight advance` buys one band inward, at a poise cost", () => {
+    const [a, b] = fightersIn(makeArena(30));
+    const s = open(a, b);
+    expect(s.getGraph().rangeBetween(a, b)).toBe("far");
+
+    const bandBefore = s.getState(a)!.poise.band();
+    act(s, a, "advance");
+    expect(s.getGraph().rangeBetween(a, b)).toBe("near");
+
+    // One rung per beat — not a teleport to the clinch.
+    act(s, a, "advance");
+    expect(s.getGraph().rangeBetween(a, b)).toBe("reach");
+    expect(bandBefore).toBe("steady");
+  });
+
+  it("`fight withdraw` opens a band, and the ROOM caps how far", () => {
+    const [a, b] = fightersIn(makeArena(12));
+    const s = open(a, b);
+    s.getGraph().setRange(a, b, "close");
+
+    act(s, a, "withdraw");
+    expect(s.getGraph().rangeBetween(a, b)).toBe("reach");
+
+    act(s, a, "withdraw");
+    expect(s.getGraph().rangeBetween(a, b)).toBe("near");
+
+    // The 12 m yard affords `near` and no further — you cannot back away
+    // further than the room is big.
+    act(s, a, "withdraw");
+    expect(s.getGraph().rangeBetween(a, b)).toBe("near");
+  });
+
+  it("`close` still works — it is an alias onto `advance`", () => {
+    const [a, b] = fightersIn(makeArena(12));
+    const s = open(a, b);
+    expect(s.getGraph().rangeBetween(a, b)).toBe("near");
+    act(s, a, "close");
+    expect(s.getGraph().rangeBetween(a, b)).toBe("reach");
+  });
+
+  it("an ambush opens at `close` however big the room is (AC 52)", () => {
+    const room = makeArena(30);
+    const [a, b] = fightersIn(room);
+    const terms = CombatTerms.agreed(a.getTemplatePath() ?? "a", nonLethal, true);
+    const res = CombatApi.openSession(a as never, b as never, terms, {
+      ambush: true,
+    });
+    if (!res.ok) throw new Error(res.reason);
+    openSessions.push(res.session);
+
+    // Concealment is what buys the opening band — which is why a
+    // knife-fighter can reach a bowman at all.
+    expect(res.session.getGraph().rangeBetween(a, b)).toBe("close");
   });
 });

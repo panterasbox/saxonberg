@@ -68,6 +68,8 @@ import { CombatFlags } from "../../lib/combat/CombatFlags";
 import type { RangeState } from "../../lib/combat/CombatGraph";
 import type { CombatGraph } from "../../lib/combat/CombatGraph";
 import { RangeBand } from "../../lib/combat/RangeBand";
+import type { RangeBandConfig } from "../../lib/combat/RangeBand";
+import Location from "../../lib/stuff/Location";
 import { Gambit, type GambitSpec } from "../../lib/combat/Gambit";
 import { Sharpness, type SharpnessConfig } from "../../lib/combat/Sharpness";
 import {
@@ -572,18 +574,37 @@ function reachRankOf(combatant: Stuff): number {
 }
 
 /**
- * The engagement range a fresh pair opens at: `reach` when their reaches
- * DIFFER (someone controls the approach — spear-vs-dagger), `close` when
- * they're equal (no approach phase — dagger-vs-dagger, sword-vs-sword).
+ * The engagement range a fresh pair opens at: **the arena's maximum
+ * band** — you notice someone across the room before you are on top of
+ * them, so a fight starts at whatever distance the room actually affords.
+ *
+ * ⚠ **This changed shipped melee.** The old rule read the two fighters'
+ * reach ranks (`reach` when they differed, `close` when equal), so
+ * dagger-vs-dagger began in the clinch. Now a 3 m cell opens every pair
+ * at `reach` and a 12 m yard opens them at `near`, and closing the gap
+ * is a beat somebody has to spend. That approach beat is the point: it
+ * is what gives the archer something to defend and the closer something
+ * to buy.
+ *
+ * **An ambush opens at `close`.** A concealed approach is exactly what
+ * buys the opening band — the shipped concealment substrate doing the
+ * work — which is why a knife-fighter can reach a bowman at all, and why
+ * stealth pays out in position rather than in a damage multiplier.
  */
-function openingRangeFor(a: Stuff, b: Stuff): RangeState {
-  return reachRankOf(a) !== reachRankOf(b) ? "reach" : "close";
+function openingRangeFor(a: Stuff, b: Stuff, ambush = false): RangeState {
+  if (ambush) return "close";
+  return arenaMaxBandFor(a);
 }
 
 /** Seed the opening range on the pair's edges (called right after the pair's
  * threat edges are created). */
-function seedRange(session: CombatSession, a: Stuff, b: Stuff): void {
-  session.getGraph().setRange(a, b, openingRangeFor(a, b));
+function seedRange(
+  session: CombatSession,
+  a: Stuff,
+  b: Stuff,
+  ambush = false,
+): void {
+  session.getGraph().setRange(a, b, openingRangeFor(a, b, ambush));
 }
 
 /**
@@ -639,6 +660,35 @@ function inMeleeBand(session: CombatSession, a: Stuff, b: Stuff): boolean {
   return RangeBand.isMelee(session.getGraph().rangeBetween(a, b));
 }
 
+/** The band-ladder thresholds, read from settings with seeded fallbacks. */
+function rangeBandConfig(): RangeBandConfig {
+  return {
+    nearMetres: dial(AppSettingKeys.combatRangeNearMetres, 6),
+    farMetres: dial(AppSettingKeys.combatRangeFarMetres, 20),
+  };
+}
+
+/**
+ * The widest band this arena affords — derived from the room's real linear
+ * extent, never authored. A 3 m cell affords only the melee tiers; an
+ * authored 20 m outdoor cell affords `far`.
+ *
+ * Reads the combatant's environment rather than taking a Location, because
+ * the callers all have a fighter in hand and a fighter is always somewhere.
+ * A combatant in no location, or in one that reports no extent, gets the
+ * conservative melee cap.
+ */
+function arenaMaxBandFor(who: Stuff): RangeState {
+  const env = MixinApi.isContainable(who) ? who.getContainer() : null;
+  // `instanceof Location` is the shipped narrowing for the sibling
+  // geometry accessors (VisionModality does exactly this for
+  // `getSizeScale`) — Location is a class, not a mixin, so there is no
+  // MixinApi predicate to reach for.
+  const extent =
+    env !== null && env instanceof Location ? env.getLinearExtent() : null;
+  return RangeBand.maxForExtent(extent, rangeBandConfig());
+}
+
 /** A small clamp helper (bands the reach scale). */
 function clampNum(n: number, lo: number, hi: number): number {
   return n < lo ? lo : n > hi ? hi : n;
@@ -664,38 +714,75 @@ function reachOrderScore(
 }
 
 /**
- * The `close` maneuver: step inside a longer weapon (flip the pair to
- * `close`). A tempo-costed opposed beat — the closer always pays the poise
- * cost; the reach-holder KEEPS them out only while composed (steady/pressed)
- * and genuinely longer (a gap ≥ `contestStrength`). A reeling/broken holder,
- * or an equal/shorter one, can't stop the close. Deterministic — no RNG.
+ * The band-step maneuver — one rung along the ladder, in either
+ * direction. The generalization of the shipped `close`, which was this
+ * function with the destination hard-coded to `close`.
+ *
+ * A tempo-costed opposed beat: the mover always pays the poise cost; the
+ * holder KEEPS them out only while composed (steady/pressed) and
+ * genuinely longer (a gap ≥ `contestStrength`). A reeling/broken holder,
+ * or an equal/shorter one, cannot stop it. Deterministic — no RNG.
+ *
+ * Two rules the four-band ladder adds:
+ *
+ *  - **The arena caps a withdrawal.** You cannot back further away than
+ *    the room is big; a 3 m cell has nowhere to go past `reach`.
+ *  - **Only an advance is contested.** Reach is a tool for keeping
+ *    someone *out*; a spear-holder has no special power to stop you
+ *    leaving. Withdrawal's cost is the beat and the poise, not a contest.
  */
-function resolveClose(
+function resolveBandStep(
   session: CombatSession,
   actorState: CombatantState,
   targetState: CombatantState,
   beat: number,
+  direction: -1 | 1,
 ): void {
   const graph = session.getGraph();
   const actor = actorState.combatant;
   const target = targetState.combatant;
-  const spec = Gambit.get("close")!;
-  actorState.poise.spend(dial(AppSettingKeys.combatReachCloseCost, 0.18), beat);
+  const inward = direction < 0;
+  const spec = Gambit.get(inward ? "advance" : "withdraw")!;
+  actorState.poise.spend(
+    dial(
+      inward
+        ? AppSettingKeys.combatReachCloseCost
+        : AppSettingKeys.combatRangeWithdrawCost,
+      inward ? 0.18 : 0.22,
+    ),
+    beat,
+  );
 
-  if (graph.rangeBetween(actor, target) === "close") {
-    // Already inside — the cost of the wasted beat is the only effect.
+  const current = graph.rangeBetween(actor, target);
+  const wanted = RangeBand.step(current, direction);
+  if (wanted === current) {
+    // Already at the end of the ladder in this direction — the wasted
+    // beat is the only effect (the shipped already-inside behaviour).
     return;
   }
-  const gap = reachRankOf(target) - reachRankOf(actor);
-  const holderBand = targetState.poise.band();
-  const holderComposed = holderBand === "steady" || holderBand === "pressed";
-  const contest = dial(AppSettingKeys.combatReachContestStrength, 0.5);
-  if (gap >= contest && holderComposed) {
-    // Kept at bay — the reach-holder holds distance; the close fails.
+  if (!inward && RangeBand.beyond(wanted, arenaMaxBandFor(actor))) {
+    // The room runs out before you do.
     narrate(actorState, targetState, spec, "control", null, false, beat);
     return;
   }
-  graph.setRange(actor, target, "close");
+  if (inward) {
+    const gap = reachRankOf(target) - reachRankOf(actor);
+    const holderBand = targetState.poise.band();
+    const holderComposed = holderBand === "steady" || holderBand === "pressed";
+    const contest = dial(AppSettingKeys.combatReachContestStrength, 0.5);
+    // The reach contest is a MELEE fact: a long weapon keeps you at the
+    // end of it. It has nothing to say about crossing a bowshot, so it
+    // only guards the last rung inward.
+    if (
+      RangeBand.isMelee(current) &&
+      gap >= contest &&
+      holderComposed
+    ) {
+      narrate(actorState, targetState, spec, "control", null, false, beat);
+      return;
+    }
+  }
+  graph.setRange(actor, target, wanted);
   narrate(actorState, targetState, spec, "control", null, true, beat);
 }
 
@@ -828,9 +915,10 @@ function openSessionImpl(
   const graph = session.getGraph();
   graph.addEdge(initiator, defender, terms);
   graph.addEdge(defender, initiator, terms);
-  // Reach tier: the pair opens at `reach` when their reaches differ (a spear
-  // controls the approach), `close` when equal.
-  seedRange(session, initiator, defender);
+  // The pair opens at the arena's maximum band — you notice someone across
+  // the room before you are on top of them — unless this was an ambush from
+  // concealment, which is exactly what buys the clinch.
+  seedRange(session, initiator, defender, opts?.ambush === true);
 
   // Each participant occupies `body` via its own hold; the session owns
   // the beat (a real-time recurring tick, not a participant's emission).
@@ -1519,8 +1607,14 @@ function resolveExchange(
     return;
   }
 
-  if (key === "close") {
-    resolveClose(session, actorState, targetState, beat);
+  // `close` is kept as an alias onto `advance` — the shipped brain, the
+  // `fight close` verb and the Gambit narration lookups all still name it.
+  if (key === "close" || key === "advance") {
+    resolveBandStep(session, actorState, targetState, beat, -1);
+    return;
+  }
+  if (key === "withdraw") {
+    resolveBandStep(session, actorState, targetState, beat, 1);
     return;
   }
 

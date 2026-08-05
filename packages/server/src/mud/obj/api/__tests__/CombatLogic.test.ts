@@ -820,18 +820,35 @@ describe("CombatLogic — reach range tier (control until closed, reversed insid
     weaponLength: 0.25,
   } as const;
 
-  it("a longer weapon opens the pair at `reach`; equal reaches open `close`", () => {
+  /**
+   * ⚠ **Re-derived for D37.** This used to assert that reach rank decided
+   * the opening band — `reach` when the pair's reaches differed, `close`
+   * when equal. The ranged build moved that: a fight now opens at
+   * whatever band the ARENA affords, because you notice someone across a
+   * room before you are on top of them.
+   *
+   * Reach rank did not stop mattering; it moved to where it belongs — who
+   * controls the gap once the fight is on (the contest below), not where
+   * the fight starts.
+   */
+  it("the ARENA opens the pair's band — reach rank no longer decides it", () => {
     const room = makeStuff(() => new TestRoom());
     const spear = makeFighter(room, spearOpts);
     const dagger = makeFighter(room, daggerOpts);
     const s = open(spear, dagger, nonLethal);
-    expect(s.getGraph().rangeBetween(spear, dagger)).toBe("reach");
+    const mixedReach = s.getGraph().rangeBetween(spear, dagger);
 
     const room2 = makeStuff(() => new TestRoom());
     const d1 = makeFighter(room2, daggerOpts);
     const d2 = makeFighter(room2, daggerOpts);
     const s2 = open(d1, d2, nonLethal);
-    expect(s2.getGraph().rangeBetween(d1, d2)).toBe("close");
+    const equalReach = s2.getGraph().rangeBetween(d1, d2);
+
+    // Same room shape → same opening band, whatever the weapons are.
+    expect(equalReach).toBe(mixedReach);
+    // And that band is the conservative melee cap: a plain container
+    // reports no linear extent, so it cannot promise ranged distance.
+    expect(mixedReach).toBe("reach");
   });
 
   function trauma(f: TestFighter): number {
@@ -910,18 +927,35 @@ describe("CombatLogic — reach range tier (control until closed, reversed insid
     expect(s.getGraph().rangeBetween(spear, dagger)).toBe("close");
   });
 
-  it("a 2v1 carries independent per-edge ranges (one reach, one close)", () => {
+  /**
+   * ⚠ **Re-derived for D37.** The subject — per-edge independence — is
+   * unchanged and matters more under four bands than it did under two.
+   * What changed is the setup: both edges now OPEN at the same arena
+   * band, so the independence has to be demonstrated by moving one and
+   * showing the other does not follow, rather than by relying on the two
+   * pairs opening differently.
+   *
+   * This is the model's core claim stated as prose: *you're keeping the
+   * swordsman at bowshot while his partner is already on top of you.*
+   */
+  it("a 2v1 carries independent per-edge ranges", () => {
     const room = makeStuff(() => new TestRoom());
     const spear = makeFighter(room, spearOpts);
     const target = makeFighter(room, daggerOpts);
     const dagger2 = makeFighter(room, daggerOpts);
     const s = open(spear, target, nonLethal);
-    // A second dagger joins onto the target (short vs short → close), while
-    // the spear stays at reach with the same target.
     const joined = CombatApi.join(dagger2 as never, target as never, s.getTerms());
     expect(joined.ok).toBe(true);
+
+    // Both pairs open at the same arena band.
     expect(s.getGraph().rangeBetween(spear, target)).toBe("reach");
+    expect(s.getGraph().rangeBetween(dagger2, target)).toBe("reach");
+
+    // Move ONE pair inside. The other is untouched — no composition, no
+    // propagation, no derived position.
+    s.getGraph().setRange(dagger2, target, "close");
     expect(s.getGraph().rangeBetween(dagger2, target)).toBe("close");
+    expect(s.getGraph().rangeBetween(spear, target)).toBe("reach");
   });
 });
 
@@ -2089,26 +2123,34 @@ describe("CombatLogic — the species combat vocabulary (DECISION L)", () => {
     expect(viaSpecies).toEqual(viaLegacy);
   });
 
-  it("a large hint-less body opens at `reach` against a neutral body", () => {
-    // The hint-less body-scale band: a 400 kg body derives one reach rank
-    // ("an ogre punches at ogre reach") while the neutral body stays at
-    // rank 0 — differing ranks open the pair at `reach` (the reach-holder
-    // then resolves first via the reach-sorted exchange loop, the same
-    // tier the spear-vs-dagger suite pins).
+  /**
+   * ⚠ **Re-derived for D37.** The subject is the species vocabulary — a
+   * 400 kg hint-less body derives one reach rank, *"an ogre punches at
+   * ogre reach"*, while a neutral body stays at rank 0. That is unchanged
+   * and still worth pinning.
+   *
+   * What changed is where it is OBSERVABLE. It used to show up in the
+   * opening band, because differing ranks opened a pair at `reach`; now
+   * the arena opens every pair, so the opening band says nothing about
+   * anatomy. The rank itself is read through `rangeStanding().reachDelta`
+   * — the same number the exchange loop sorts on.
+   */
+  it("a large hint-less body carries one reach rank over a neutral body", () => {
     const room = makeStuff(() => new TestRoom());
     const ogre = makeFighter(room, { natural: "blunt" });
     ogre.getSpecies()!.getBodyPlan()!.setBaseMass(400);
     const human = makeFighter(room, { natural: "blunt" });
-    const session = open(ogre, human, nonLethal);
-    expect(session.getGraph().rangeBetween(ogre, human)).toBe("reach");
+    open(ogre, human, nonLethal);
 
-    // A neutral pair (both sub-threshold hint-less bodies) opens `close` —
-    // the byte-parity band.
+    expect(CombatApi.rangeStanding(ogre as never)!.reachDelta).toBe(1);
+    expect(CombatApi.rangeStanding(human as never)!.reachDelta).toBe(-1);
+
+    // A neutral pair is level — the byte-parity control.
     const room2 = makeStuff(() => new TestRoom());
     const h1 = makeFighter(room2, { natural: "blunt" });
     const h2 = makeFighter(room2, { natural: "blunt" });
-    const s2 = open(h1, h2, nonLethal);
-    expect(s2.getGraph().rangeBetween(h1, h2)).toBe("close");
+    open(h1, h2, nonLethal);
+    expect(CombatApi.rangeStanding(h1 as never)!.reachDelta).toBe(0);
   });
 
   it("species-afforded gambits: a tailed species sweeps bodily, unarmed", () => {

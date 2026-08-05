@@ -596,6 +596,18 @@ settings:
     value: "0.2"
   - key: combat.reach.contestStrength
     value: "1"
+  # The engagement band ladder. A room's REAL linear extent decides which
+  # bands its arena affords, so a 3 m cell (the default) affords only the
+  # melee tiers — bar fights stay knife fights, by physics — a 6 m hall
+  # arms `near`, and an authored 20 m outdoor cell arms `far`. Nobody
+  # authors a band; outdoor cells are already authored larger, so the
+  # frontier arms itself.
+  - key: combat.range.nearMetres
+    value: "6"
+  - key: combat.range.farMetres
+    value: "20"
+  - key: combat.range.withdrawCost
+    value: "0.22"
   # Hand-slot economy — switching armament is a vulnerable durative beat;
   # the sidearm draws fast (the disarm answer). Game-time seconds.
   - key: combat.switch.seconds

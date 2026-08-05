@@ -729,6 +729,15 @@ export const AppSettingKeys = {
   /** The reach-holder's contest strength when a foe tries to close. */
   combatReachContestStrength: "combat.reach.contestStrength",
 
+  /* ── the engagement band ladder (close|reach|near|far). ── */
+  /** Room linear extent (m) at/above which the `near` band is affordable. */
+  combatRangeNearMetres: "combat.range.nearMetres",
+  /** Room linear extent (m) at/above which the `far` band is affordable. */
+  combatRangeFarMetres: "combat.range.farMetres",
+  /** Poise spent opening one band of distance (withdrawal costs more than
+   * an advance — leaving under pressure is the harder act). */
+  combatRangeWithdrawCost: "combat.range.withdrawCost",
+
   /* ── hand-slot economy. ── */
   /** Weapon-switch vulnerable-beat window (game-time seconds). */
   combatSwitchSeconds: "combat.switch.seconds",
