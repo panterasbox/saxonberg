@@ -182,13 +182,20 @@ Every effect is one of two **families**, derived from its kind:
 ## The ranged-integration seam + accountability
 
 All **hostile channel-delivery** routes through ONE internal leg —
-`MagicLogic.deliverAt` — the documented **ranged-integration seam**:
-v1 body = the reachable, in-scene envelope (no projectile / cover /
-LoS / attenuation — v1 magic is deliberately room-scoped; the
-mundane-first doctrine says the ranged build grounds the delivery
-model and magic then adopts it by swapping this leg — the
-`HazardDelivery` reserved-`range` precedent). The magic↔ranged
-interplay questions are banked in `combat-tactics-slate.md`.
+`MagicLogic.deliverAt` — the **ranged-integration seam, now adopted.**
+The same-scene check STAYS (cross-room fire is out of scope, which is
+what makes leaving through an exit a real escape); on top of it the leg
+now asks a **band** question via `CombatApi.bandBetween`. The envelope
+defaults to the `magic.spellEnvelope` dial, seeded `far` — i.e. anywhere
+in the scene — so **every shipped spell behaves exactly as it did**, and
+the gate bites only for a carrier that declares a tighter reach (a
+thrown contact payload reaches `close`).
+
+`DischargeOptions.origin` is the sibling of `source`, and load-bearing
+for carriers: reachability measures from the ORIGIN, and a `Material`
+singleton has no place of its own, so a thrown flask's payload would
+otherwise issue from the *thrower* and refuse across the gap it just
+crossed. See [ranged.md](./ranged.md).
 
 After a landed damaging delivery on a non-consenting **sentient**
 victim outside a shared combat session, `deliverAt` appends an
@@ -236,8 +243,8 @@ magnitudes not yet worth a dial ride module `MAGIC_DEFAULTS` literals
 
 ## Deliberate boundaries / deferred
 
-- **Ranged delivery** — the `deliverAt` seam waits for the ranged
-  build (combat-tactics-slate Thesis 1).
+- ~~**Ranged delivery**~~ — SHIPPED. `deliverAt` carries a band
+  envelope; see [ranged.md](./ranged.md).
 - **Wards** as mental-axis mitigators — the fold ships N-axis; wards
   are later Arcana content.
 - **The inquiry substrate** (discovery / predict / publish) — its own
