@@ -129,6 +129,65 @@ your public record.** That matters:
 chronicle.** The moment a therapist's opinion becomes part of your public
 record, disclosure stops being safe and the whole mechanic collapses.
 
+## ⭐⭐⭐⭐ The one profession that must not be an NPC
+
+> **User: "this is probably the only profession in the game that must not
+> be done by an NPC. If you reveal your secrets to an NPC it's just the
+> engine reading itself and you haven't revealed anything. The trust is
+> the mechanic."**
+
+The sharp form of why:
+
+> **An NPC practitioner has neither IGNORANCE nor UNCERTAINTY, and the
+> practice requires both.** It cannot be trusted — it already knew. It
+> cannot be skilled — it has ground truth. The disclosure grant transfers
+> nothing; it is a UI gesture.
+
+⭐⭐ **The law this implies, which is reusable well beyond therapy:**
+
+> **A disclosure mechanic is only real if the recipient COULD HAVE NOT
+> KNOWN.** An NPC always could have.
+
+### ⭐⭐⭐ The proxy for trust: it is the FILE, not the reader
+
+> **User: "if you could find some other proxy for trust, then the NPCs
+> could participate… if you could proxy the trust that could give the
+> design a little more latitude."**
+
+There is one, and it is stronger than anonymity:
+
+> **The risk was never "the therapist learns something." It is that a
+> RECORD OF YOUR DISCLOSURE NOW EXISTS SOMEWHERE YOU DO NOT CONTROL.**
+
+The practitioner's file is already a real object in this design — held by
+them, not you, and the thing privilege protects. **An NPC practice still
+creates that file**, and it can be subpoenaed, leaked, stolen or sold.
+The exposure is real even though the reader is code.
+
+⭐⭐ So the trust extended to an NPC clinic is **institutional rather than
+personal** — which is how most people actually experience healthcare.
+Nobody trusts their doctor *as a person*; they trust that the system will
+not leak. It is also a far more contemporary anxiety than *"my therapist
+might gossip,"* and it wires straight into the data-rights material.
+
+### The gradient this produces
+
+| | Trust | Reading |
+|---|---|---|
+| **NPC clinic** | **institutional** — you are trusting the file will not get out | shallow, fixed, cheap |
+| ⭐ **player practitioner** | **personal** — someone who could have not known, now knows | deep, relational, improves, and **you chose them** |
+
+A **lesser but legitimate form**, not a substitute. And the NPC's skill
+can simply be **low and static** — no perception economy needed; the
+ceiling is the limit.
+
+⚠ **Do not use this to solve cold-start.** *"Traits stay invisible until
+somebody learns to read them"* is the vocations rule working as designed —
+**unmet demand creating a profession** — and the first player
+psychologist being a notable event is worth more than early convenience.
+**The NPC clinic belongs as the cheap tier AFTER the real thing exists,
+never as the bootstrap.**
+
 ---
 
 # The four tie-ins
