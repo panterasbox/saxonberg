@@ -221,15 +221,33 @@ their own circuit.
 
 Two ways out, and this slate does **not** default one:
 
-| | | Cost |
-|---|---|---|
-| **(a)** terminals contain a **bound endpoint** — a device that genuinely *is* one end of a transfer | keeps the postulate intact | needs a narrative for what that device is, and it will be asked about |
-| **(b)** the endpoint clause takes a **stated exception for built devices** | simpler | ⚠ **a second impossible thing** — and the doc's whole discipline is *one* |
+## ⭐⭐⭐ RESOLVED 2026-08-04 — the traveler IS the caster
 
-⭐ *Leans (a)*, because the doc's hard rule is that invented content stays
-confined to a single postulate, and because a **bound endpoint is a
-manufacturable object** — which makes it a trade, a capital good, and a
-thing that can be stolen or fail.
+The problem dissolved on a clarification:
+
+> **User: "by 'operator' I meant the teleporter — the person using the
+> terminal to teleport themselves. There's only one person at the
+> terminal."**
+
+> ⭐⭐⭐⭐ **The traveler is the caster. Their own body is one endpoint; the
+> destination is the chosen point.** The postulate is satisfied
+> **verbatim** — no bound device, no stated exception, no second impossible
+> thing. The terminal is a **charged item supplying the energy**; the
+> traveler supplies the **endpoint**.
+
+⭐⭐ **And it settles the TPA-vs-freight question structurally rather than by
+pricing.** Goods have no body to be an endpoint, so **the TPA moves
+people.** Your pack rides because you are carrying it; a wagonload does
+not.
+
+> **Encumbrance is the boundary** — which is exactly what
+> [freight-slate](./freight-slate.md) already resolved: *"the line is
+> capacity, not goods."*
+
+⭐ So matter-teleport needs no amendment to `arcane-science.md` after all:
+what moves is **a person and what they carry**, and a person is a caster.
+The Part 6 amendment above is **withdrawn as unnecessary** — kept only as a
+record of why the endpoint clause matters.
 
 ## On teleporting matter at all
 
@@ -247,6 +265,95 @@ price of moving mass as the design lever** — expensive but finite, so the
 TPA is a business rather than a miracle.
 
 ---
+
+# Part 6b — ⭐⭐⭐⭐ Mana nodes: terminus conditions × access modes
+
+> **User: "I don't want this to be anything goes — there should be some
+> science behind it. Or rather, the magic science we have should intersect
+> with the other sciences in interesting ways, like the mana spring does
+> with geology. Like maybe it's not material-based at all but mechanical,
+> like hydro is just not based on water. Or based on radiation like solar
+> but not the sun. Or maybe all of the above."**
+
+## The framing that keeps it principled
+
+The postulate already says energy arrives at a place from an unknown far
+end (Part 6). So the only open question is:
+
+> **What determines WHERE a standing transfer terminates?**
+
+And that question does not belong to magic — it belongs to whichever
+ordinary science governs the place.
+
+> ⭐⭐⭐⭐ **Magic does not get its own science. It gets a FOOTHOLD in every
+> other one.** One postulate, several **terminus conditions**, each of which
+> is a different discipline's question.
+
+## Axis 1 — the terminus condition (the physics)
+
+| condition | output profile | intersects | consequence |
+|---|---|---|---|
+| **Geological** — bound to a vein, intrusion, or structure | ⭐ **constant, depletable** | geology, mining, materials | found by *prospecting*; can be worked out |
+| **Dynamic** — needs persistent motion (a gyre, a race, a standing wind) | **variable, renewable** | ⭐ **weather — already ships as a procedural field** | output swings with storm and season |
+| **Celestial** — fed by incident radiation that is *not* sunlight | ⭐⭐ **periodic, predictable** | astronomy, `CelestialApi` | an **almanac becomes saleable** |
+| **Biotic** — forms where life is dense | **slow, destructible** | ecology | clearing the forest kills the node |
+
+⭐ The celestial row is already half-written: [discovery-slate](./discovery-slate.md)
+says *"astrology needs no special case — it is a **time-varying inflow
+term**, periodic coefficient, predictable, which is what makes it saleable
+as an almanac."* **A celestial node is that term pointed at power.**
+
+## ⭐⭐⭐ Axis 2 — the access mode (the economics)
+
+**Independent of the physics**, and it is what decides who can have one:
+
+| mode | where it is | who can tap it |
+|---|---|---|
+| **Surface** — it simply outcrops or seeps | in the open | ⭐ **anyone — this is the foraging case** |
+| **Subsurface solid** | in rock | a **miner**; capital + a shaft |
+| ⭐ **Subsurface fluid** | under pressure | a **driller**; capital + a well — **and it comes to you** |
+
+> **A mana SPRING is geological × fluid.** Where it surfaces on its own it
+> is foraged; where it does not, you drill for it.
+
+⭐⭐ And that pairing writes its own history:
+
+> **The seep → drill arc is the entire history of oil.** Surface seeps were
+> known for millennia and used at trivial scale; **drilling made the
+> industry.** Free to find, tiny; expensive to reach, enormous.
+
+⭐⭐⭐ Which is also the **frontier → developed** arc: a new settlement uses
+what surfaces, a developed one drills. **Nobody has to author the
+transition — capital does it**, exactly as it did in reality.
+
+## ⭐⭐ The portfolio, and why capacitors stop being optional
+
+Read the profile column and it is a real energy portfolio: **baseload
+(geological), intermittent (dynamic), predictable-variable (celestial),
+slow-and-political (biotic).** Which means grid management becomes a
+genuine engineering problem whose right answer varies by site.
+
+> ⭐⭐⭐⭐ **Intermittent sources require storage. So capacitors are
+> STRUCTURAL, not merely narrative** — and the two justifications reinforce
+> instead of competing.
+
+## Capacitors as a storytelling primitive
+
+> **User: "I think we're going to need capacitors right away even if we're
+> still pre-industrial, just as a narrative tool. It's like how cell phones
+> changed screenwriting — batteries change what stories people can tell in
+> an open world (see TPA again)."**
+
+⭐ The analogy is exact. A battery **decouples power from place**, which is
+what lets an author put a powered thing on the frontier *without lying about
+it* — and the cost is a clock, which is the story. It also mints the
+**dead battery**: a failure that is nobody's fault and is recoverable.
+
+> ⭐⭐ **Cheapest possible implementation: a capacitor is a CHARGED ITEM with
+> no spell attached.** [magic-items-slate](./magic-items-slate.md) already
+> ships charge, self-discharge and *"you find shells; you buy charge."* A
+> mana cell is that object with its specification set to *hold and release*.
+> **Nothing new is required.**
 
 # Part 7 — What this does to the wood question
 
