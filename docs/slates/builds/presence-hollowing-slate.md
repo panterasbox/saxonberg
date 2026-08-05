@@ -13,7 +13,7 @@ See also:
 between person and thing,"* capture, the Feed, *"a world that runs perfectly and
 contains no one"*) · the build-1 `alignment-slate.md` (the moral-gravity axis —
 **kept distinct**: alignment is *derived, non-mechanical, undetectable*; this is
-the *physical, perceivable* layer) · [magic-items-slate](./magic-items-slate.md)
+the *physical, perceivable* layer) · [magic-items-slate](../tails/magic-items-slate.md)
 (where this surfaced — sanctity/holy water + ESP) ·
 [vitals.md](../../subsystems/vitals.md) (`getConsciousness` — *adjacent but
 distinct*, below) · [belief.md](../../subsystems/belief.md) (the *person↔thing
@@ -48,7 +48,7 @@ The build-signal is that two unrelated item features both need it:
 
 - **Sanctity / holy water *reacts* to the hollow** — a consecrated instrument of
   presence disrupts the animate-but-no-one (a nature-conditional effect reading
-  this state). See [magic-items-slate](./magic-items-slate.md) §Sanctity.
+  this state). See [magic-items-slate](../tails/magic-items-slate.md) §Sanctity.
 - **ESP *fails to perceive* the hollow** — `VerbalESP`/`EmotiveESP` sense
   mind-activity = they sense *presence*; a hollow emits nothing, so it reads as
   **absence**. One reacts to it, the other can't see it — both key on the same

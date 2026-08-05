@@ -35,7 +35,7 @@ Related: [vitals.md](../../subsystems/vitals.md),
 [activity.md](../../subsystems/activity.md),
 [residency.md](../../subsystems/residency.md),
 [inquiry-slate](./inquiry-slate.md) (the science of magic),
-[magic-items-slate](./magic-items-slate.md),
+[magic-items-slate](../tails/magic-items-slate.md),
 [pharma-slate](./pharma-slate.md) (**the industry this opens**),
 [discovery-slate](./discovery-slate.md) (the wild input),
 [mind-slate](./mind-slate.md) (the mental layer).
