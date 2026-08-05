@@ -246,6 +246,60 @@ persuade in a way descriptions cannot.
 
 ---
 
+# ⚠⚠ Axis hygiene — `requiresWizard` is doing work that is not its job
+
+**Captured 2026-08-04**, found while designing
+[credit-slate](./credit-slate.md).
+
+> **User: "none of this shit should be using `requiresWizard` anyway,
+> that's for exactly one thing — writing TypeScript code."**
+
+⭐ **The correction already has a precedent in the codebase.** banking.md:
+*"`reserve` is now Governor-gated… no longer `requiresWizard`: minting money
+is a **monetary-authority act, not a code-trust one**."* That re-gating is
+the template; it was simply never generalized.
+
+**Every `requiresWizard` call site, classified:**
+
+| Verb | Really code-trust? |
+|---|---|
+| `author/eval` — run a code snippet | ✅ **yes** — the axis exists for this |
+| `author/reload` — hot-reload a template/instance | ✅ yes |
+| `system/git` — engine source VCS | ✅ yes |
+| `author/pack` — reconcile a content pack | ◐ borderline — packs may name `class:`, which *is* code-trust |
+| `author/practice` — record an advancement deed | ⚠ **no** — a dev/debug harness |
+| `system/config` — app settings | ⚠ **no** — an *administrative* axis (PM / ops) |
+| `banking/house` — venue P&L + payroll | ⚠ **no** — **ownership.** Should ride `AccessApi.can` / parcel title. banking.md consciously parked it: *"(`house` stays operator-gated.)"* |
+| `provision` / `unprovision` — dorm leasing | ⚠⚠ **no** — pure property + agency |
+
+> ⭐⭐ **The tell: four of the eight are standing in for an axis that
+> exists.** `house` wants title, `provision` wants agency, `config` wants an
+> office. `requiresWizard` is being used as a generic *"an adult should do
+> this"* gate — which is exactly the conflation
+> [access.md](../../subsystems/access.md)'s six orthogonal axes exist to
+> prevent, and exactly what the wizard-duty argument above depends on
+> staying clean. **A duty attaches to a capability; it cannot if the
+> capability means four different things.**
+
+## ⚠⚠⚠ And one of them is a probable live defect
+
+`provision` carries verb-level `requiresWizard`; **Katie is deliberately not
+a wizard** (`KatieProvisioning.test` asserts `isWizard(katie) === false`);
+her intake dialogue `dispatch`es `provision $player`. The authorization was
+moved to `execute()` (`isDormsAgent` — *wizard OR agent of the dorms owner*,
+the **correct** predicate) on the belief that a forced dispatch skips YAML
+validators. **It does not** — proven by experiment 2026-08-04, see
+[npc-dialogue.md § dispatch](../../subsystems/npc-dialogue.md).
+
+⚠ **The fix is the re-gate, NOT deleting the validator.** An earlier
+suggestion to "just drop `requiresWizard` from the verb" was the wrong
+shape: it leaves the verb ungated at the YAML layer and keeps treating the
+axis as noise. **`provision` should carry a dorms-agent/ownership validator
+that says what it means** — the same move `reserve` already made.
+
+⭐ Needs **live-driving**, not another green test: the existing test calls
+`isDormsAgent` directly and never dispatches through the chain.
+
 # Open questions
 
 1. **Snooping and impersonation: one duty or two?** Real law splits them;
