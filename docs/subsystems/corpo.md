@@ -160,6 +160,63 @@ venues / shops), and approval → benefit/access conversion. Portfolios beyond
 booze (augments, food, tools, media) are authored as consumers need them.
 The price ≠ quality economics belong to the bar / economy / crafting builds.
 
+## ⭐ A corpo is a mark; its ORGANIZATION is the chart
+
+A `Corpo` is a **mark** — a key, a sector, an ethos, a set of rivals. A
+mark cannot hold a position or hire anyone, which is why this doc could
+not answer *"who runs Veshko?"* and why the Goodkin branch had no
+expressible appointer.
+
+Each corpo now has an **organization** beside its mark
+([employment.md](./employment.md)):
+
+| | |
+|---|---|
+| the mark | `/obj/corpo/Corpo/<key>` — sector, ethos, aesthetic, rivals |
+| the chart | `/corpo/<key>` — an `/obj/Organization` with a `chief-executive` position |
+| the board | the `<key>` managed group, holding title over `/corpo/<key>` |
+
+⭐ **The board is the committee.** `CompactApi.committeeOf` derives a
+committee from **parcel title**, so a group holding title over
+`/corpo/goodkin` *is* Goodkin's committee, and
+`{kind: 'committee', parcel: '/corpo/goodkin'}` is an authority Goodkin's
+board satisfies and nobody else does.
+
+⭐ **This needed no new `PrincipalRef` kind.** The gap looked like it
+demanded a fifth, corpo-shaped authority; what it actually wanted was for
+a corpo to own some ground of its own. The substrate generalized without
+growing.
+
+### What it fixes
+
+The Goodkin branch (`/domain/terminus/counting-houses/business`) shipped
+**unauthored** because neither `committee` nor `entity` could name its
+appointer: the city holds title over the district the counter stands in,
+and `entity` matches the principal's own templatePath, which a mark can
+never be. It now names `{kind: 'committee', parcel: '/corpo/goodkin'}` —
+and `parentOrganization: /corpo/goodkin`, the first content consumer of
+organization nesting.
+
+⚠ **The load-bearing assertion is the negative one**: Goodkin's committee
+**refuses a city staffer**. If `/corpo/goodkin` ever loses its parcel row,
+`committeeOf` falls through to the state default (`core`) and every corpo
+authority silently starts admitting the operator — a failure that would
+otherwise pass review, so it is pinned by test.
+
+### What ships empty, and why that is the honest state
+
+Every board group has **no members** and every `chief-executive` position
+is **unfilled**. Nobody works for these companies yet; that is a fact
+about the companies, not a gap in the model — the same empty state the
+Compact's press office ships in. The founder passes by the Art. XI
+pool-of-one backstop, so a cold box can still staff them.
+
+⚠ **A corpo organization is NOT a Business.** The holding company banks
+nothing; its **subsidiaries** trade — the Goodkin branch today, a Veshko
+yard later — each a Business with its own account naming the corpo as
+`parentOrganization`. Nesting is not inheritance: a position is held where
+it is authored, so the branch's tellers stay the branch's.
+
 ## Cross-references
 
 - [corpos-slate.md](../slates/builds/corpos-slate.md) — the model + the

@@ -350,10 +350,17 @@ export const Mixins = {
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
   Hauler: 'HaulerMixin',
-  // Employment — the standalone Business entity and an actor's employment
-  // relationships (an on-shift Position confers its duties via augments).
+  // Employment — the org chart (positions + holders + the appointing
+  // authority), the Business that trades on top of it, and an actor's
+  // employment relationships (an on-shift Position confers its duties via
+  // augments). A ministry is an organization that does not trade.
+  Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
   Employed: 'EmployedMixin',
+  // Press — an organization that publishes: the realm it speaks in, the
+  // reach of what it publishes, its feed branch, and which of its
+  // positions may publish through it.
+  Publisher: 'PublisherMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',

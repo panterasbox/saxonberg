@@ -24,7 +24,7 @@ trials, no arrest mechanics): enforcement is content built on existing
 substrates, and diegetic justice moves real-substrate value only
 through the real chokepoints.
 
-Source: `lib/civics/Government.ts`, `obj/GovernmentCatalogue.ts`,
+Source: `obj/Government.ts`, `obj/GovernmentCatalogue.ts`,
 `obj/api/GovernmentLogic.ts`, `api/government.ts`,
 `cmd/civics/government.yaml` + `obj/command/civics/GovernmentController.ts`.
 The meta-side committee concept lives on **`CompactApi`**
@@ -32,7 +32,7 @@ The meta-side committee concept lives on **`CompactApi`**
 
 ## The Government Idea + catalogue
 
-`Government` (`lib/civics/Government.ts`, templates under
+`Government` (`obj/Government.ts`, templates under
 `/obj/Government/<key>`) is a pure-data leaf `Idea` read from
 `template.data`, never cloned live. Fields — every non-identity field a
 **durable-string reference into an existing substrate**, never a live
@@ -44,12 +44,20 @@ ref:
   it yet, no StoredDocument is seeded — deferred);
 - `treasury` — a bank-account key (the city points at the shipped
   municipal budget `/domain/terminus/budget`);
-- `departments` — Business templatePaths (a Business's path IS its
-  durable key in the employment substrate);
+- `departments` — **organization** templatePaths (an organization's path
+  IS its durable key in the employment substrate). ⚠ They were Business
+  paths, and that was the conflation the organizations build fixed: a
+  registry keeps records and does not trade, and was a Business purely
+  because that is where positions lived. Terminus's Registry is still a
+  Business and resolves unchanged; new departments name
+  `/obj/Organization`.
 - `seats` — `{ key, label, department, positionKey }` references: **a
-  seat is an employment position**, never a second Office apparatus
-  (the real polity's code-authored Office substrate is deliberately not
-  reused — see the two-staffs contrast below).
+  seat is a position on an organization's chart**, never a second Office
+  apparatus (the real polity's code-authored Office substrate is
+  deliberately not reused — see the two-staffs contrast below). ⭐ The
+  seat/staff line is exactly whether a constitutional document *points
+  at* the position: a seat is pointed at, personal staff is not — see
+  [employment.md](./employment.md).
 
 `GovernmentCatalogue` (`/obj/GovernmentCatalogue`, manifest-warmed) is
 the corpo-recipe data-cache: one boot query, sync reads, defensive
@@ -83,7 +91,7 @@ dedupe preserving the most-local position, resolve to descriptors.
 | `subjectTo(scope)` | async | the chain over where the scope IS — what binds a visitor (the full resolve walk's zone step awaits) |
 | `residentOf(character)` | sync | the chain over the **domicile** — membership standing (the future franchise/petition/services hook) |
 | `domicileAddressOf(character)` | sync | the residence seam's face |
-| `holdsSeat(character, govKey, seatKey)` | async | the authority predicate (the `requiresGovernor` analogue as data) — live `Employment` records first (active statuses win; an explicit quit/fired record **suppresses** the roster path — an exit is never resurrected), then the authored roster (live Business if standing, else the template row — what makes a lazily-stood-up department's seat provable) |
+| `holdsSeat(character, govKey, seatKey)` | async | the authority predicate (the `requiresGovernor` analogue as data) — live `Employment` records first (active statuses win; an explicit quit/fired record **suppresses** the roster path — an exit is never resurrected), then the authored roster (the live organization if standing, else the template row — what makes a lazily-stood-up department's seat provable) |
 | `seatsOf(govKey)` | async | each seat resolved to its roster holder |
 
 **Never-throws:** every read returns `[]`/`null`/`false` off-grid, for
@@ -186,7 +194,7 @@ district (staging).
   government stack + the city's charter-text structure
 - [address.md](./address.md) — Locality, the coverage walk, tier fields
 - [corpo.md](./corpo.md) — the data-Idea/catalogue recipe
-- [employment.md](./employment.md) — Business/Position (departments,
+- [employment.md](./employment.md) — organization/Position (departments,
   seats)
 - [residence.md](./residence.md) — the dorm home the domicile stamp
   rides

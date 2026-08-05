@@ -17,7 +17,7 @@
 import { create } from "zustand";
 import type {
   AuthState,
-  BulletinRow,
+  ReleaseRow,
   CharGenRosterEntry,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
@@ -328,7 +328,7 @@ interface StoreState extends CmsSlice, StudioSlice {
   /**
    * Which right-column cockpit pane the world layout shows —
    * `'inspect'` (the inspection pane), `'who'` (the "Who's Online"
-   * roster), or `'news'` (the bulletin news-ticker). Ephemeral
+   * roster), or `'news'` (the release news-ticker). Ephemeral
    * client-only UI state, never persisted. Consulted by the world
    * layout's right-column pane switch.
    */
@@ -366,30 +366,30 @@ interface StoreState extends CmsSlice, StudioSlice {
   applyRosterRemove: (handle: string) => void;
 
   /**
-   * The bulletin news-ticker feed (`world.bulletin.feed` topic). `feed`
-   * maps each bulletin's stable `bulletinId` → the {@link BulletinRow}
+   * The release news-ticker feed (`world.press.feed` topic). `feed`
+   * maps each release's stable `releaseId` → the {@link ReleaseRow}
    * projection; `feedOrder` is the display order (pins first, then by
    * `publishedAt` desc — a STABLE tiebreaker over the already-server-
    * ordered payload; the server is authoritative on order, the client
    * re-sort only keeps the keyed map deterministic). The initial
-   * `snapshot` rides the welcome payload (`bulletinWindow` in
+   * `snapshot` rides the welcome payload (`releaseWindow` in
    * `setConnected`); live `upsert` / `remove` frames flow through
-   * `services/websocket.ts` (the `world.bulletin.feed` handler).
+   * `services/websocket.ts` (the `world.press.feed` handler).
    */
-  feed: Record<string, BulletinRow>;
+  feed: Record<string, ReleaseRow>;
   feedOrder: string[];
   /** Replace the whole feed (a `snapshot` frame / the welcome window). */
-  applyBulletinSnapshot: (rows: BulletinRow[]) => void;
-  /** Upsert one row by `bulletinId` (an `upsert` frame). */
-  applyBulletinUpsert: (row: BulletinRow) => void;
-  /** Delete one row by `bulletinId` (a `remove` frame). */
-  applyBulletinRemove: (bulletinId: string) => void;
+  applyReleaseSnapshot: (rows: ReleaseRow[]) => void;
+  /** Upsert one row by `releaseId` (an `upsert` frame). */
+  applyReleaseUpsert: (row: ReleaseRow) => void;
+  /** Delete one row by `releaseId` (a `remove` frame). */
+  applyReleaseRemove: (releaseId: string) => void;
   /**
    * Append a batch of older rows (the REST archive "load older"
-   * control). Upserts each by `bulletinId`; the stable tiebreaker
+   * control). Upserts each by `releaseId`; the stable tiebreaker
    * folds them into the existing order.
    */
-  appendBulletins: (rows: BulletinRow[]) => void;
+  appendReleases: (rows: ReleaseRow[]) => void;
 
   /**
    * The forum view's current navigation target. `boardHandle` is the
@@ -915,21 +915,21 @@ function orderRoster(roster: Record<string, RosterRow>): string[] {
 }
 
 /**
- * Stable display order for the bulletin news-ticker: pinned rows first,
- * then by `publishedAt` descending (newest first), with `bulletinId` as
+ * Stable display order for the release news-ticker: pinned rows first,
+ * then by `publishedAt` descending (newest first), with `releaseId` as
  * the final tiebreaker so the order is deterministic. This is a STABLE
  * tiebreaker over the already-server-ordered payload — the server owns
  * order/pins; the client re-sort only keeps the keyed map deterministic
  * after individual upserts/removes.
  */
-function orderFeed(feed: Record<string, BulletinRow>): string[] {
+function orderFeed(feed: Record<string, ReleaseRow>): string[] {
   return Object.values(feed)
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       if (a.publishedAt !== b.publishedAt) return b.publishedAt - a.publishedAt;
-      return a.bulletinId.localeCompare(b.bulletinId);
+      return a.releaseId.localeCompare(b.releaseId);
     })
-    .map((row) => row.bulletinId);
+    .map((row) => row.releaseId);
 }
 
 /**
@@ -1077,33 +1077,33 @@ export const useStore = create<StoreState>((set, get) => ({
       return { roster, rosterOrder: orderRoster(roster) };
     }),
 
-  // Bulletin news-ticker feed (world.bulletin.feed). Keyed by stable
-  // bulletinId; ordering recomputed on every mutation (pins first, then
+  // Release news-ticker feed (world.press.feed). Keyed by stable
+  // releaseId; ordering recomputed on every mutation (pins first, then
   // publishedAt desc) as a stable tiebreaker over the server's order.
   feed: {},
   feedOrder: [],
-  applyBulletinSnapshot: (rows) =>
+  applyReleaseSnapshot: (rows) =>
     set(() => {
-      const feed: Record<string, BulletinRow> = {};
-      for (const row of rows) feed[row.bulletinId] = row;
+      const feed: Record<string, ReleaseRow> = {};
+      for (const row of rows) feed[row.releaseId] = row;
       return { feed, feedOrder: orderFeed(feed) };
     }),
-  applyBulletinUpsert: (row) =>
+  applyReleaseUpsert: (row) =>
     set((state) => {
-      const feed = { ...state.feed, [row.bulletinId]: row };
+      const feed = { ...state.feed, [row.releaseId]: row };
       return { feed, feedOrder: orderFeed(feed) };
     }),
-  applyBulletinRemove: (bulletinId) =>
+  applyReleaseRemove: (releaseId) =>
     set((state) => {
-      if (!(bulletinId in state.feed)) return {};
-      const { [bulletinId]: _drop, ...feed } = state.feed;
+      if (!(releaseId in state.feed)) return {};
+      const { [releaseId]: _drop, ...feed } = state.feed;
       return { feed, feedOrder: orderFeed(feed) };
     }),
-  appendBulletins: (rows) =>
+  appendReleases: (rows) =>
     set((state) => {
       if (rows.length === 0) return {};
       const feed = { ...state.feed };
-      for (const row of rows) feed[row.bulletinId] = row;
+      for (const row of rows) feed[row.releaseId] = row;
       return { feed, feedOrder: orderFeed(feed) };
     }),
 
@@ -1189,11 +1189,11 @@ export const useStore = create<StoreState>((set, get) => ({
       topicMap.set(d.topic, d);
     }
     // Seed the news-ticker feed from the welcome snapshot, exactly as the
-    // topic catalogue is consumed — bulletins have no presence event to
+    // topic catalogue is consumed — releases have no presence event to
     // hang a snapshot on, so the welcome window is the initial `snapshot`.
-    const feed: Record<string, BulletinRow> = {};
-    for (const row of payload.bulletinWindow ?? []) {
-      feed[row.bulletinId] = row;
+    const feed: Record<string, ReleaseRow> = {};
+    for (const row of payload.releaseWindow ?? []) {
+      feed[row.releaseId] = row;
     }
     set((state) => ({
       // Entering the world from char-gen or the roster starts a fresh

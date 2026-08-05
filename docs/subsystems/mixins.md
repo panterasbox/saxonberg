@@ -488,6 +488,52 @@ the bound. Specifically:
 Don't use the runtime hook as a replacement for a documented bound;
 the bound is cheaper, earlier, and more specific.
 
+#### ⚠ Prefer the bound over NESTING, too — and this one is measured
+
+When mixin A requires mixin B, the tempting shape is to nest:
+
+```typescript
+export function AMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class AMixin extends BMixin(Base) { … };   // ⚠ don't
+}
+```
+
+It works at runtime and **loses B's entire surface at the type level**.
+TypeScript does not surface an anonymous mixin base's members through a
+generic factory, so `class Entity extends AMixin(Concrete)` sees A's
+members and the *base's*, and none of B's. Measured in isolation: a
+two-level nest makes B's methods and fields invisible on the leaf class,
+which then shows up as dozens of "property does not exist" errors at
+every consumer and every test.
+
+Neither escape works either. Declaration merging (`interface Entity
+extends B {}`) is banned by `no-unsafe-declaration-merging` — correctly,
+since it *asserts* a surface nothing verifies. And annotating the factory
+`: TBase & MixinConstructor<B>` is worse than useless: extending an
+intersection of construct signatures inherits **nothing at all**.
+
+So state the requirement as a **base constraint** and compose at the
+concrete class:
+
+```typescript
+export function AMixin<TBase extends MixinConstructor<B>>(Base: TBase) {
+  return class AMixin extends Base implements AOwnSurface { … };
+}
+
+class Entity extends AMixin(BMixin(Concrete)) {}   // ✓ everything visible
+```
+
+Applying A to a non-B base is now a **compile error** rather than a
+convention, and the leaf class carries the whole composed surface. The
+one cost is that A can only `implements` its *own* half of the interface
+— which is why `Business` is `interface Business extends Organization,
+BusinessTrade {}` with the mixin implementing `BusinessTrade`.
+
+`CraftedMixin extends GradedMixin(Base)` predates this and takes the
+other trade-off: it accepts the type loss and narrows through
+`MixinApi.isCrafted` instead. That still works; it just means the graded
+surface is invisible on the concrete class.
+
 #### HMR semantics
 
 `HotReloadApi.reload(path)` re-evaluates a module and registers a
@@ -529,7 +575,8 @@ notices a constraint isn't taking and re-reloads the leaf.
 Everything else with a documented constraint is enforced at compile
 time through the `MixinConstructor<Stuff & X>` bound (`Adornable`,
 `Mobile`, `Wearable` / `Wieldable`, `Postured` / `Mountable` /
-`Drivable`, `Workspace`). When you add a new mixin, prefer the
+`Drivable`, `Workspace`, `Business` over `Organization`, `Publisher`
+over `Organization`). When you add a new mixin, prefer the
 bound; reach for `__validateComposition__` only for `⊥` (mutual-
 exclusion) rules and for cross-static-data checks the bound can't
 express (`globIdentityFields ⊂ persistentFields`).

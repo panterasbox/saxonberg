@@ -57,3 +57,38 @@ groups:
     # the lazy owner-ref resolution converge on one group.
     owner: system
     members: []
+
+  # ── The corpo boards ────────────────────────────────────────────────
+  #
+  # ⭐ One group per corpo, each holding title over its own `/corpo/<key>`
+  # branch in parcels.yaml — which is what makes it a COMMITTEE
+  # (`CompactApi.committeeOf` derives the committee from parcel title: the
+  # group holding title IS the committee). That is how a corpo appoints.
+  #
+  # Deliberately EMPTY, like the Hinkley Hills District above: nobody works
+  # for these companies yet, and a board with nobody on it is the honest
+  # shape for a company that exists only on paper. The founder passes by
+  # the Art. XI pool-of-one backstop, so a cold box can still staff them.
+  #
+  # Owner `system`, matching ParcelRegistry's mint-or-find so this seed and
+  # the lazy owner-ref resolution converge on one group.
+  - name: aevex
+    # Aevex — tech / augments / synthetics.
+    owner: system
+    members: []
+  - name: goodkin
+    # Goodkin — consumer staples / food / household.
+    owner: system
+    members: []
+  - name: hollis
+    # Hollis — mass retail / fast food / cheap goods.
+    owner: system
+    members: []
+  - name: veshko
+    # Veshko — heavy industry / materials / logistics.
+    owner: system
+    members: []
+  - name: vionne
+    # Vionne — luxury goods / fashion / media.
+    owner: system
+    members: []

@@ -12,7 +12,12 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  proprietorPath: ''
+  # City-run: the COMMITTEE over the ground it operates on
+  # (`/domain/terminus/terminal` is the `terminus` group's). Whoever holds
+  # the terminal staffs its ticket office.
+  appointingAuthority:
+    kind: committee
+    parcel: /domain/terminus/terminal
   # The one city position: the terminal clerk. `wageRate` is minor units per
   # game-hour on shift (demo). `confers` is empty — the clerk staffs the
   # window, it doesn't craft (no MakerMixin).

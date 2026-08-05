@@ -85,7 +85,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contacts.md](./docs/subsystems/contacts.md) — per-Avatar named lists, durable identifiers only, owner-only privacy
   - [social-graph.md](./docs/subsystems/social-graph.md) — attention rules (NotifyPolicy), display-lensing, presence relay, the `notify` verb
   - [forums.md](./docs/subsystems/forums.md) — Subject layer, Board→Thread→Post + Entry tree, popularity/argument organizers, `forum_events`
-  - [bulletin.md](./docs/subsystems/bulletin.md) — staff→player news ticker: Bulletin docs, BulletinBoard window, `bulletin` verb, NewsTickerPane
+  - [press.md](./docs/subsystems/press.md) — publishers, releases, the news ticker: PublisherMixin, appointing-authority-appoints/position-publishes, Release docs, `press` verb, the anonymous press room
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, lookup chain, `settings`/`var`
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — per-character verb aliases, expandAliases, the `alias` verb
   - [prose.md](./docs/subsystems/prose.md) — ProseApi Liquid templating, Mml-aware output, default filters
@@ -920,7 +920,6 @@ side — `backend/PersistenceManager` re-exports it).
 - `positions` — held conviction stakes (influence.md)
 - `recipes` — crafting reference data, never cloned (crafting.md)
 - `blueprints` — the Studio composition catalogue (studio.md)
-- `bulletins` — the staff→player broadcast feed (bulletin.md)
 - `documents` — the path-addressed, kind-tagged document store (document-store.md)
 - `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
 - `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)

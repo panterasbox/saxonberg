@@ -193,7 +193,6 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.ProducerEvents]: { verb: 'refuse' },
   [Collections.Positions]: { verb: 'refuse' },
   [Collections.Recipes]: { verb: 'refuse' },
-  [Collections.Bulletins]: { verb: 'refuse' },
   [Collections.Parcels]: { verb: 'refuse' },
   [Collections.ParcelEvents]: { verb: 'refuse' },
   [Collections.Contracts]: { verb: 'refuse' },
@@ -1029,18 +1028,20 @@ export class PersistenceManager {
         { unique: true }
       );
 
-      // Bulletins: unique bulletinId for the edit/retract address + the
-      // window/archive de-dup. The compound { realm, kind, publishedAt:-1 }
-      // serves the REST archive query (realm/kind filter, recency-desc page).
-      await this.getCollection(Collections.Bulletins).createIndex(
-        { bulletinId: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Bulletins).createIndex({
-        realm: 1,
-        kind: 1,
-        publishedAt: -1,
-      });
+      // Documents: the path-addressed tree. Releases live here now
+      // (`kind: 'release'`) rather than in a collection of their own —
+      // they are owner-scoped content with a place, and nobody queries
+      // them across jurisdictions. `path` serves find-or-create and the
+      // prefix walk; `kind` serves the warm-window rebuild that replaced
+      // the retired `bulletins` scan.
+      //
+      // ⚠ `path` is deliberately NOT unique even though one document per
+      // path is the invariant: this collection predates the release move
+      // and a unique index that a live row violates fails at BOOT. The
+      // invariant is enforced at the write (find-or-create), where a
+      // violation is visible and fixable.
+      await this.getCollection(Collections.Documents).createIndex({ path: 1 });
+      await this.getCollection(Collections.Documents).createIndex({ kind: 1 });
 
       // Groups: queryable owner / member shape (Phase 2B).
       await this.getCollection(Collections.Groups).createIndex({ owner: 1 });

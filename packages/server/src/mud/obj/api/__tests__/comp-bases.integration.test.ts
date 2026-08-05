@@ -178,7 +178,7 @@ describe("compensation bases", () => {
       biz,
       WENNA,
       Employment.of({
-        businessPath: BUSINESS,
+        organizationPath: BUSINESS,
         positionKey: "bartender",
         status: "on-shift",
         hiredAt: 0,
@@ -192,7 +192,7 @@ describe("compensation bases", () => {
       biz,
       HEWER,
       Employment.of({
-        businessPath: BUSINESS,
+        organizationPath: BUSINESS,
         positionKey: "hewer",
         status: "on-shift",
         hiredAt: 0,

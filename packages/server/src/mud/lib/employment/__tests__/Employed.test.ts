@@ -18,7 +18,7 @@ const BUSINESS = '/domain/lounge/business';
 
 function rec(over: Partial<EmploymentData> = {}): EmploymentData {
   return {
-    businessPath: BUSINESS,
+    organizationPath: BUSINESS,
     positionKey: 'bartender',
     status: 'employed',
     hiredAt: 0,

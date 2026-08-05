@@ -586,7 +586,7 @@ export class SecurityApi {
       // ceremony reads it to build a client's bootstrap payload — so a
       // player crossing into a circle must be able to reach it, or the
       // whole ceremony throws and they arrive to a blank screen.
-      '/obj/BulletinBoard',
+      '/obj/PressBoard',
       '/obj/SoulCatalogue',
       '/obj/SubjectCatalogue',
       '/obj/ChannelCatalogue',

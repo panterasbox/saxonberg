@@ -66,7 +66,7 @@ function seedBusiness(): BusinessEntity {
 /** An employment on shift since `onSince`. */
 function shift(onSince: number): Employment {
   return Employment.of({
-    businessPath: BUSINESS,
+    organizationPath: BUSINESS,
     positionKey: 'bartender',
     status: 'on-shift',
     hiredAt: 0,

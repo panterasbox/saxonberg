@@ -2,7 +2,7 @@
  * ErrorsController — the `errors` verb maps the bound model onto
  * DiagnosticApi.list / rawTail / clear and gates raw (wizard-only) + clear
  * (author-of-path, via the -1 sentinel). Output is captured by spying
- * Mml.fromMarkup + a no-op scene chainable (the BulletinController.test
+ * Mml.fromMarkup + a no-op scene chainable (the PressController.test
  * harness); DiagnosticApi / AccessApi are stubbed.
  */
 

@@ -1,32 +1,33 @@
 /**
- * NewsTickerPane — the bulletin news-ticker right-column cockpit pane
- * (bulletin build, client half). A pure render of the server-projected
- * bulletin feed: the `world.bulletin.feed` frames land in the store
- * (`feed` / `feedOrder`, see `store/index.ts` + the `world.bulletin.feed`
+ * NewsTickerPane — the release news-ticker right-column cockpit pane
+ * (release build, client half). A pure render of the server-projected
+ * release feed: the `world.press.feed` frames land in the store
+ * (`feed` / `feedOrder`, see `store/index.ts` + the `world.press.feed`
  * handler in `services/websocket.ts`), seeded on connect from the welcome
- * payload's `bulletinWindow`. This pane reads them reactively.
+ * payload's `releaseWindow`. This pane reads them reactively.
  *
  * The client owns ZERO semantics here. Ordering, pin status, and the
  * realm/kind classifications are all server-decided — the pane only
  * styles them (pins first, a pin indicator, realm/kind chips). The MML
  * `headline` / `body` render through the shared `MmlRenderer`, so any
- * clickable element inside a bulletin previews its command on hover
+ * clickable element inside a release previews its command on hover
  * (`onCommandPreview`) and issues it on click (`onSendCommand`) — the
  * same command bus every other clickable rides. Bodies expand inline on
  * click of the row's headline (local UI state only).
  *
  * A "Load older" control reaches past the live window into the REST
- * archive (`GET /api/bulletins/archive`) and appends the result — the
+ * archive (`GET /api/press/archive`) and appends the result — the
  * help-pane fetch transport precedent. No request RPC for the live feed:
  * a full snapshot arrives automatically on connect.
  */
 
 import React from "react";
 import styled from "styled-components";
+import { SERVER_URL } from "../config";
 import { useStore } from "../store/index";
 import { tokens } from "./ui";
 import { MmlRenderer } from "./MmlRenderer";
-import type { BulletinRow } from "@saxonberg/types";
+import type { ReleaseRow } from "@saxonberg/types";
 
 export interface NewsTickerPaneProps {
   /** Outbound command sink — the same path `CommandBar.onSend` uses. */
@@ -174,7 +175,7 @@ function NewsRow({
   onSendCommand,
   onCommandPreview,
 }: {
-  row: BulletinRow;
+  row: ReleaseRow;
   expanded: boolean;
   onToggle: () => void;
   onSendCommand: (text: string) => void;
@@ -220,7 +221,7 @@ export function NewsTickerPane({
 }: NewsTickerPaneProps): React.ReactElement {
   const feed = useStore((s) => s.feed);
   const feedOrder = useStore((s) => s.feedOrder);
-  const appendBulletins = useStore((s) => s.appendBulletins);
+  const appendReleases = useStore((s) => s.appendReleases);
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   const [loading, setLoading] = React.useState(false);
 
@@ -229,7 +230,7 @@ export function NewsTickerPane({
 
   const loadOlder = async (): Promise<void> => {
     // The oldest live row's publish time is the archive cursor — fetch
-    // strictly older bulletins. With an empty feed there is nothing to
+    // strictly older releases. With an empty feed there is nothing to
     // page before, so the control is disabled.
     const oldest = feedOrder
       .map((id) => feed[id]?.publishedAt)
@@ -238,13 +239,18 @@ export function NewsTickerPane({
     if (!Number.isFinite(oldest)) return;
     setLoading(true);
     try {
+      // ⚠ Absolute, via SERVER_URL. A relative `/api/...` reaches Vite on
+      // :5173 in development, which proxies nothing — so "Load older" was
+      // broken in dev while working in production, where client and server
+      // share an origin. Every other client fetch already goes through
+      // SERVER_URL; this one didn't.
       const res = await fetch(
-        `/api/bulletins/archive?before=${oldest}&limit=30`,
+        `${SERVER_URL}/api/press/archive?before=${oldest}&limit=30`,
         { credentials: "include" },
       );
       if (!res.ok) return;
-      const rows = (await res.json()) as BulletinRow[];
-      appendBulletins(rows);
+      const rows = (await res.json()) as ReleaseRow[];
+      appendReleases(rows);
     } finally {
       setLoading(false);
     }
@@ -258,7 +264,7 @@ export function NewsTickerPane({
       </Header>
       <Body>
         {feedOrder.length === 0 ? (
-          <Empty>No bulletins yet.</Empty>
+          <Empty>No releases yet.</Empty>
         ) : (
           <>
             {feedOrder.map((id) => {

@@ -11,6 +11,12 @@
  *
  * `wageRate` is denominated in banking **minor units per game-hour**; the
  * shift-end settlement multiplies it by the shift's game-hour span.
+ *
+ * `reportsTo` is the chart's vertical edge — the key of the position this
+ * one answers to *within the same organization*. "The Press Secretary
+ * reports to the Communications Director" stops being prose and becomes
+ * something a read can walk. Optional and with no existing consumer, so
+ * every shipped Position is unchanged.
  */
 
 import type { CompBasis, CompensationData } from './Compensation';
@@ -31,6 +37,12 @@ export interface PositionData {
    * `wageRate` behaves exactly as before). See {@link Compensation}.
    */
   compensation?: CompensationData;
+  /**
+   * The key of the position this one reports to, in the same
+   * organization. Absent = reports to nobody (the top of the chart, or a
+   * flat organization).
+   */
+  reportsTo?: string;
 }
 
 export class Position {
@@ -45,6 +57,8 @@ export class Position {
     public readonly confers: readonly string[],
     /** The compensation term, or undefined (= the time default). */
     public readonly compensation?: CompensationData,
+    /** The position this one reports to, or undefined. */
+    public readonly reportsTo?: string,
   ) {}
 
   /** Build a Position from an already-typed descriptor. */
@@ -55,6 +69,7 @@ export class Position {
       data.wageRate,
       [...data.confers],
       data.compensation,
+      data.reportsTo,
     );
   }
 
@@ -82,6 +97,9 @@ export class Position {
               : {}),
           }
         : undefined,
+      typeof data.reportsTo === 'string' && data.reportsTo.length > 0
+        ? data.reportsTo
+        : undefined,
     );
   }
 
@@ -98,6 +116,7 @@ export class Position {
       wageRate: this.wageRate,
       confers: [...this.confers],
       ...(this.compensation ? { compensation: { ...this.compensation } } : {}),
+      ...(this.reportsTo ? { reportsTo: this.reportsTo } : {}),
     };
   }
 }

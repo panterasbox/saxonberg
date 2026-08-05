@@ -37,7 +37,7 @@ import {
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
-import { BulletinApi } from "../api/bulletin";
+import { PressApi } from "../api/press";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
 import { ForkableMixin } from "../lib/persistence/Forkable";
@@ -652,10 +652,10 @@ export default class Avatar extends AvatarBase {
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
       // The live news-ticker window (pins-first, recency-ordered, already
-      // retract/expiry-filtered + length-capped by the BulletinBoard). The
+      // retract/expiry-filtered + length-capped by the PressBoard). The
       // client seeds its feed pane from this as a `snapshot`, exactly as it
-      // caches `topicCatalogue`; live deltas ride `world.bulletin.feed`.
-      bulletinWindow: BulletinApi.recent().map((b) => BulletinApi.toRow(b)),
+      // caches `topicCatalogue`; live deltas ride `world.press.feed`.
+      releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
       clientState: this.snapshotClientState(),
       reactionPrefs: {
         intensity:

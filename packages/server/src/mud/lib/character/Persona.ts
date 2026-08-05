@@ -78,6 +78,14 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // holding title over a subdivision) — a public read like the two
         // above; the one mutation (channel ensure) is idempotent.
         'system/committee.yaml',
+        // The `appoint` verb (employment) — fill a position on an
+        // organization's chart. Universal for the same reason `office` is:
+        // the gate is the authority, not the affordance. The
+        // `mustHoldAppointingAuthority` FIELD validator on the
+        // organization argument does the refusing — a verb-level one
+        // cannot, because the authority belongs to the organization the
+        // argument names and `CommandContext` carries no bound model.
+        'employment/appoint.yaml',
         // The `title` verb (civics) — what ground you hold and what is
         // for sale. Universal for the same reason `government` is: your
         // own holdings are a self-read, and a plat book is public. The

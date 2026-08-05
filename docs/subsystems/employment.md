@@ -8,6 +8,38 @@ capability faked by location). Lives in `lib/employment/` with the gated
 are supported at the *relationship* layer for free and blocked only at the
 *capability* layer by a named, deferred seam.
 
+## ⭐ The governing split — Business models the economy; an organization models the chart
+
+> **Business models participation in the economy. An organization models
+> the chart.** Business carried both, and that was the conflation.
+
+The org chart — **positions**, **holders**, and the **appointing
+authority** — lives on `OrganizationMixin` (`lib/employment/Organization.ts`),
+which answers *who holds position P in organization O?* and its inverse
+*what does actor A hold, anywhere?* identically for a ministry, a shop and
+a newspaper. `BusinessMixin` **requires it on its base** and adds only what
+trades: `banksAt`, `operatingLocations`, the P&L account path, wage
+settlement.
+
+Before the split, content that needed a position had to stand up a
+*Business* — a thing that does not trade, pretending to. Terminus's
+Registry keeps records and has a Magistrate's seat; it was a Business
+purely because that is where positions lived. `obj/Organization.ts` is
+what such content names now.
+
+**The seat/staff line, expressible for the first time:**
+
+| | prescribed by law? | is |
+|---|---|---|
+| Compact **Office** | yes | `OFFICE_APPARATUS` |
+| government **seat** | yes | a `Government.seats` entry **pointing at** a position |
+| **personal staff** | **no — serves at pleasure** | **a position nobody points at** |
+
+⭐ **The difference is whether a constitutional document points at the
+position. Same substrate; the pointer is the law.** So a Communications
+Director is a *position*, never an Office — nothing in a constitutional
+document points at it.
+
 ## The governing decision — Business is its own entity
 
 The thing that owns the proprietor, the positions, the roster, the account,
@@ -31,48 +63,169 @@ field on the room.
 Four value objects + two mixins + the concrete entity:
 
 - **`Position`** — a job's terms: `{ key, label, wageRate /* minor units
-  per game-hour */, confers /* mixin names */ }`. The `Money`/`Charge`
-  precedent (data + `serialize`/`fromData`). `confers` is the knowing→doing
-  seam — the mixins an on-shift holder's Position grants (v1:
-  `['MakerMixin']` for the bartender).
-- **`Employment`** — one actor's relationship to one Business:
-  `{ businessPath, positionKey, status, hiredAt, onShiftSince }`. Immutable
-  value object (`withStatus` returns a copy). `EmploymentStatus` vocabulary
-  = `employed | on-shift | off-shift | quit | fired` (+ `EMPLOYMENT_STATUSES`
-  validation array).
+  per game-hour */, confers /* mixin names */, reportsTo? }`. The
+  `Money`/`Charge` precedent (data + `serialize`/`fromData`). `confers` is
+  the knowing→doing seam — the mixins an on-shift holder's Position grants
+  (v1: `['MakerMixin']` for the bartender). ⚠ **`wageRate` stays on
+  `Position`**: compensation attaches to the *position*, which is what
+  makes the roster's `{positionKey, assignee}` shape right rather than
+  incidental.
+- **`Authority`** — the `PrincipalRef` tagged union: *who may fill this
+  organization's positions?* See below.
+- **`Employment`** — one actor's relationship to one **organization**:
+  `{ organizationPath, positionKey, status, hiredAt, onShiftSince }`.
+  Immutable value object (`withStatus` returns a copy). `EmploymentStatus`
+  vocabulary = `employed | on-shift | off-shift | quit | fired` (+
+  `EMPLOYMENT_STATUSES` validation array). One holder relation for
+  everything: a volunteer is a **wage-0 employee**, wage and shifts stay
+  optional, and there is no consent model on top. ⚠ `fromData` still reads
+  the legacy `businessPath` key, so records stored before the split hydrate
+  with no migration — paths did not move, only the name.
 - **`Roster`** — a Business's schedule: ordered `RosterAssignment
   { positionKey, assignee /* templatePath */, schedule: ShiftEntry[] }`;
   `ShiftEntry { days: number[], hours: [start, end) }`. `evaluate(assignment,
   date)` is the pure day/hour-window match lifted verbatim from what the
   `shifts` brain read inline before this build.
+- **`OrganizationMixin`** (`lib/employment/Organization.ts`, marker
+  `_mixinName='OrganizationMixin'`) — the chart. Persistent fields
+  `appointingAuthority`, `proprietorPath` (the legacy hydration slot),
+  `positions`, `rosterSlots`, `parentOrganization`; the reads
+  (`getPositions`/`getRoster`/`getReportingChain`/…) and the **seven holder
+  transitions** `hire` / `endEmployment` / `ensureRostered` / `beginShift`
+  / `endShift` / `beginCover` / `endCover`, gated
+  `AnyOf(SelfOnly, FromTemplate('/obj/api/employment'))`. Every record
+  write is keyed on the organization's own path — which *is* the
+  participant contract below. `obj/Organization.ts` is the concrete
+  instanceable non-trading organization.
 - **`Business`** — `BusinessMixin` (marker `_mixinName='BusinessMixin'`) +
   the concrete **default-export `BusinessEntity`** (`class BusinessEntity
   extends BusinessMixin(PostRegistrationMixin(Idea))`). The concrete class
   name differs from the `Business` **interface** + `BusinessMixin` on purpose
   (the `Bank`→`BankCounter` convention — a same-named class+interface+mixin
-  triad recurses as a base type). Persistent fields `['proprietorPath',
-  'positions', 'rosterSlots', 'operatingLocations', 'banksAt']` are stored
-  as the raw seed shapes; the accessors (`getPositions`/`getRoster`/…) wrap them in the
-  value objects on read (the `Biome` field-plus-getter precedent).
-  `canDestruct()` refuses (seeded singleton-style).
+  triad recurses as a base type). It **requires `OrganizationMixin` on its
+  base** — a compile-time constraint, the `MountableMixin`-requires-`Slotted`
+  idiom, rather than a nested factory: TypeScript loses an anonymous mixin
+  base's members through a nested generic mixin, which would make
+  `positions` and `getProprietor` invisible on every concrete Business.
+  Its own persistent fields are `['operatingLocations', 'banksAt']`; the
+  chart's are on the mixin below it. `canDestruct()` refuses (seeded
+  singleton-style).
 - **`EmployedMixin`** — on `Character` (actor-agnostic; sparse null-default
   `employments` field — the `BeliefStore`/`Status` precedent, so an
   unemployed Character carries nothing). Pure storage + the derived
   conferral read. The privileged mutators (`_setEmploymentStatus` /
   `_upsertEmployment` / `_removeEmployment`) carry a **participant
-  contract** — the caller must be the **Business party to the record**
-  (`FromMixin(Mixins.Business)` + a relational `where` requiring the
-  written record key to be the calling business's own path), with a
+  contract** — the caller must be the **organization party to the record**
+  (`FromMixin(Mixins.Organization)` + a relational `where` requiring the
+  written record key to be the calling organization's own path), with a
   narrow `FromTemplate('/obj/api/employment')` janitorial arm (lazy
-  standup means a `quit` can outlive its business's live Idea). The
-  employment *transitions* live on `BusinessMixin` itself — `hire` /
-  `endEmployment` / `ensureRostered` / `beginShift` / `endShift` /
-  `beginCover` / `endCover` (gated `AnyOf(SelfOnly,
-  FromTemplate('/obj/api/employment'))`) — so the business acts on its
-  own employee records and the engine keeps orchestration (roster
-  evaluation, wage settlement, the clock).
+  standup means a `quit` can outlive its organization's live Idea). The
+  transitions themselves live on `OrganizationMixin` — so the
+  organization acts on its own employee records and the engine keeps
+  orchestration (roster evaluation, wage settlement, the clock).
   `getConferredMixinNames()` = the `confers` of every **on-shift**
   Employment's Position — the augment substrate's conferral seam (below).
+  `getActiveEmployments()` is the *what does A hold, anywhere?* read.
+
+## ⭐ The appointing authority
+
+`lib/employment/Authority.ts`. `proprietorPath` was a templatePath — a
+**specific entity** — so authority under it could never be handed off,
+exactly the defect the check-the-office doctrine exists to prevent. It
+becomes a tagged `PrincipalRef`:
+
+| kind | resolves through | founder passes? |
+|---|---|---|
+| `entity` | templatePath match — the shipped proprietor edge | no |
+| `office` | `CompactApi.holdsOffice` | **yes — founder default** |
+| `seat` | `GovernmentApi.holdsSeat` | no |
+| `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one backstop** |
+
+⭐ **Staff follows the seat.** Because the authority *is* the office, a
+handover moves who may appoint **with no employment or roster record
+touched**.
+
+`EmploymentApi.holdsAuthority(principal, ref)` is **one function answering
+one question**, dispatching on the tag and nothing else. There is
+deliberately **no** "which authority does this actor satisfy?" helper —
+that shape turns a refusal into a downgrade. It fails closed throughout:
+an unauthored authority refuses everyone, each delegate already fails
+closed with no registry, and the `committee` arm narrows with
+`PlayerApi.isAvatarStuff` before the playerId-keyed group read.
+
+⚠ **The *founder passes* column is load-bearing, not trivia.** Only
+`office` and `committee` carry the Art. XI default, so **an authority the
+founder cannot satisfy is one nobody can satisfy on a cold box** until a
+human edits a group by hand — `AccessApi.isAuthor` resolves to membership
+of a `core` group that `seedCoreGroup()` creates **empty**.
+
+⚠ **There is deliberately no `author` kind.** The operator axis is an
+override layered *on top of* an authority (`isProprietorOf`'s existing
+`AccessApi.isAuthor` arm), never an appointing authority in its own right.
+
+⚠ **No seed edits were needed.** `Authority.fromData` reads a bare string
+as `{kind: 'entity', path}` — the legacy shape, same value under the new
+type — and the mixin keeps `proprietorPath` as a legacy hydration slot
+that `appointingAuthority` overrides when both are present.
+
+## Nesting
+
+`Position.reportsTo` walks *within* an organization
+(`getReportingChain(positionKey)`, nearest superior first);
+`parentOrganization` walks *between* them
+(`EmploymentApi.organizationChainOf`, nearest parent first). Both are
+optional, so every shipped Position and Business is unchanged.
+
+⭐ **The first content consumer is the Goodkin branch**, which names
+`/corpo/goodkin` as its parent ([corpo.md](./corpo.md)): a subsidiary that
+trades, inside a holding company that does not. ⚠ **Nesting is not
+inheritance** — a position is held where it is authored, so the branch's
+tellers stay the branch's and do not appear on the company's chart.
+
+⚠ **Both walks refuse a cycle rather than looping** — loudly, not by
+truncating: a truncated chain looks like a valid answer, and the failure a
+guard actually prevents takes the process with it. A *dangling* superior
+or an unresolved parent just ends the chain: that is a gap, not a
+contradiction.
+
+## The uniform reads
+
+`EmploymentApi.holdersOf(organization, positionKey)` answers *who holds P
+in O?* — durable templatePaths, identical for a ministry, a shop and a
+publisher. Its inverse is the actor's own `getActiveEmployments()`.
+
+⭐ Both, plus the publishing entitlement, read **one** module-private
+`holdersByPositionImpl` scan: live non-terminal `Employment` records
+unioned with the authored roster (what makes a never-ticked, lazily
+stood-up organization's holder provable), with **an explicit exit
+suppressing the roster entry**. That is deliberate — it means the
+quit/fired suppression `holdsSeat` implements exists exactly once and
+cannot drift into a second copy.
+
+## Appointment — the `appoint` verb
+
+`appoint <player> to <position> at <organization>` (`employment`
+category), afforded universally on `Persona.commandContributions.self` for
+the same reason `office` is: the gate is the authority, not the
+affordance.
+
+⚠ The gate is a **field** validator, `mustHoldAppointingAuthority`, on the
+`organization` argument — not a verb-level one. `CommandContext` carries
+the giver but not the bound model, so a `requiresX` validator can only ask
+giver-side questions, and the authority here belongs to *the organization
+the argument names*. Same gate, homed where it can see the thing it gates
+on; the controller re-derives no authority.
+
+Without this verb **no position could ever be filled by a human**, which
+is the same defect as the broken `office assign`.
+
+## ⚠ Employment is independent of money movement
+
+`postTransaction` is the banking chokepoint and **takes no employment
+argument**; nothing in it consults employment. Paying someone with no
+employment record must remain *identical* to paying an employee off-book —
+that is what makes paying under the table an emergent act rather than an
+unmodellable one. **Do not couple them.**
 
 ## The gated Api/Logic pair
 
@@ -80,14 +233,20 @@ Four value objects + two mixins + the concrete entity:
 `EmploymentLogic` (`obj/api/EmploymentLogic.ts`, `@internal @Unshadowable
 extends Idea` at `/obj/api/employment`, HMR-able; every method gated
 `FromModule('/api/employment#EmploymentApi')`). Surface:
-`employmentOf` / `isProprietorOf` / `hire` / `fire` / `quit` / `businessAt`
-/ `businessOfProprietor` / `beginCover` / `endCover` / `tipRecipientFor` /
+`holdsAuthority` / `mayPublishAs` / `holdersOf` / `organizationChainOf` /
+`isProprietorOf` / `hire` / `fire` / `quit` / `businessAt` /
+`businessOfProprietor` / `beginCover` / `endCover` / `tipRecipientFor` /
 `shiftStateOf` / `settleShiftWage` / `tickRoster` / `boot`.
 
-- **Proprietor authority** = the direct `proprietorPath` edge, checked by
-  `isProprietorOf` (subject templatePath === proprietor **OR**
-  `AccessApi.isAuthor` as the orthogonal operator override). Not a Zone
-  `ownerGroup` — `AccessApi` cannot represent an NPC owner.
+- **Proprietor authority** = the organization's **appointing authority**,
+  checked by `isProprietorOf`, with `AccessApi.isAuthor` as the orthogonal
+  operator override. Not a Zone `ownerGroup` — `AccessApi` cannot
+  represent an NPC owner. For an `entity` authority this is
+  byte-identical to the shipped `proprietorPath` check.
+- **`mayPublishAs`** lives here rather than on the press face because it
+  reads the one holder-resolution path — routing it through a press logic
+  singleton would mean either a thin wrapper or a cross-logic import, both
+  banned. See [press.md](./press.md).
 - **Business index** — businesses are found by the `BusinessMixin` marker
   (the `SlotLogic`/`LocomotionLogic` enumerate-by-scan precedent), cached on
   the **singleton instance** (a `StuffApi.clearAll` recreates the singleton
@@ -361,3 +520,15 @@ plan. Notable design→implementation shifts:
 > payer-derived `ensurePayableWorker` rule (NPCs open at the employer's
 > bank; players are never silently signed up). The gig half lives in
 > [contract.md](./contract.md).
+
+> **Organizations build.** Factored the org chart out of `Business` into
+> `OrganizationMixin`, generalized `proprietorPath` into the polymorphic
+> **appointing authority**, added nesting and the **`appoint`** verb, and
+> renamed `Employment.businessPath` → `organizationPath` (legacy key still
+> read on hydration; no migration). The Business half — `banksAt`,
+> `operatingLocations`, the P&L account, wage settlement — is unchanged,
+> and no existing assertion in the employment, Dave's Bar, civics,
+> Terminus or banking suites was edited. Its first consumer is the press
+> substrate ([press.md](./press.md)); the obvious next one is `Corpo`,
+> which cannot answer *who runs Veshko?* while positions live only on
+> Businesses.

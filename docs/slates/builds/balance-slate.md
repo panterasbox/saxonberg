@@ -642,6 +642,31 @@ needs the higher bar — supermajority, sunset, or compensation. All
 > taxonomy already has. Consistent with the rest: quarantine not
 > confiscation, price your own retroactivity.
 
+### ⚠ The parked case this rule already names: the Compact's own allowance
+
+> **Recorded 2026-08 by the organizations build, which carved `/compact`
+> and deliberately did not decide this.**
+
+`/compact` is now a claimed, core-held path-branch title
+([parcel.md](../../subsystems/parcel.md)) — the **publications** namespace,
+where the Compact's documents live. It will eventually need a resource
+allowance of its own, separate from any locality's.
+
+⚠ **Who sets it is genuinely unresolved, and the reason is exactly the
+rule above:** *the executive is the same branch that provisions parcels in
+the first place.* An executive that grants its own branch a looser bound
+than the class default is not doing its job; it is the textbook **particular
+EXEMPTION**, self-dealing through the provisioning power rather than
+through the legislative one. And a Compact that cannot fund its own
+publications is a different failure.
+
+Nothing decides it yet, and nothing needs to: `ParcelRecord.allowance` is
+an **inert 0a seam** and the allowance cascade is unbuilt. The cascade
+build settles it **with the mint model in front of it**, which is the only
+place the trade-off is legible. This paragraph exists so that build does
+not rediscover the tension from scratch — it belongs here, where the meter
+doctrine already lives, rather than in a slate of its own.
+
 ---
 
 # Part 4 — Detection and adjudication

@@ -6,7 +6,7 @@ gap). The press is the institution the verification architecture has
 been assuming without ever naming.
 
 Related: [forums.md](../../subsystems/forums.md) (⚠ **NOT the substrate** — see § *What a publication is*; the layer a linked discussion
-publication rides), [bulletin.md](../../subsystems/bulletin.md) (the
+publication rides), [press.md](../../subsystems/press.md) (the
 staff-side sibling), [belief.md](../../subsystems/belief.md) (the
 witness path), [enforcement-slate](./enforcement-slate.md) (the
 evidence firewall and the testimony model),
@@ -45,6 +45,48 @@ exactly three paths:
    you have a story **you actually found**. Investigative journalism
    is genuinely playable here — not as a minigame, but as reading
    what the world already keeps.
+
+## ⭐ A newspaper is an ORGANIZATION that trades and publishes
+
+> **Recorded 2026-08 by the organizations build**
+> ([employment.md](../../subsystems/employment.md),
+> [press.md](../../subsystems/press.md)).
+
+The substrate this slate needs is now partly built, and it arrived from a
+direction this slate did not anticipate — through the **org chart**,
+factored out of `Business` so that positions, holders and an appointing
+authority stop being a thing only a *trading* entity can have.
+
+The consequence for the press build is a simplification worth stating
+plainly:
+
+⭐ ***"Who is the editor in chief?"* is the same read as *"who is the
+comms director?"*** — `EmploymentApi.holdersOf(organization, positionKey)`.
+A newspaper is one entity wearing three hats: `OrganizationMixin` (the
+chart), `BusinessMixin` (it sells things and pays people), and
+`PublisherMixin` (it puts things out). Nothing about a masthead needs its
+own machinery — a masthead **is** an org chart, and the reason it looked
+like it needed one is that positions used to live only on Businesses.
+
+What that buys the press build for free:
+
+- **Bylines and beats are positions**, with `reportsTo` giving a real
+  masthead hierarchy (a stringer reports to an editor reports to the
+  editor in chief).
+- **Who may publish under the masthead** is `publishingPositions` — the
+  editorial gate is the same shape as the ministry's, so a press
+  credential later issues to a *position*, not a person.
+- **Ownership vs newsroom is already two different questions.** The
+  appointing authority (who may fill the editor's chair — an owner, a
+  trust, a co-op's committee) is structurally distinct from the position
+  that does the work. That distinction is the whole of press independence,
+  and it is now mechanism rather than fiction.
+- **The publisher's feed branch is a document-tree path it owns**, which
+  is what this slate asked for as `/feed/<publisher>/`.
+
+⚠ Still unbuilt and still this slate's job: subscription (PULL → PUSH),
+the stance action, the paywall, the three source paths, the recording
+instrument, and the docket.
 
 ## What a publication is
 

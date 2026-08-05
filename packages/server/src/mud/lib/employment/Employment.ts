@@ -1,12 +1,18 @@
 /**
- * Employment — one actor's relationship to one Business.
+ * Employment — one actor's relationship to one **organization**.
  *
  * A value object (the `Money` / `Position` precedent): plain data plus
  * `serialize` / `fromData`, stored on the actor's {@link EmployedMixin}.
- * It names the `businessPath` and the `positionKey` held there, the current
- * shift `status`, when the actor was `hiredAt`, and — while on shift — the
- * game-time instant the current shift began (`onShiftSince`, the wage
- * settlement's clock).
+ * It names the `organizationPath` and the `positionKey` held there, the
+ * current shift `status`, when the actor was `hiredAt`, and — while on
+ * shift — the game-time instant the current shift began (`onShiftSince`,
+ * the wage settlement's clock).
+ *
+ * The counterparty is an **organization**, not specifically a Business: a
+ * ministry, a shop and a newspaper all employ through this one relation.
+ * Wage and shifts stay optional, so a volunteer is a wage-0 employee.
+ * `fromData` reads the legacy `businessPath` key as well, so records
+ * stored before the split hydrate with no migration.
  *
  * Employments are **materialized from the roster** (the roster is the
  * single source of truth for who works where and when); the record is the
@@ -34,9 +40,9 @@ export const EMPLOYMENT_STATUSES: readonly EmploymentStatus[] = [
 
 /** The stored / wire shape of an {@link Employment}. */
 export interface EmploymentData {
-  /** templatePath of the employing Business. */
-  businessPath: string;
-  /** The Position key held at that Business. */
+  /** templatePath of the employing organization. */
+  organizationPath: string;
+  /** The Position key held at that organization. */
   positionKey: string;
   /** Current shift-lifecycle status. */
   status: EmploymentStatus;
@@ -46,11 +52,19 @@ export interface EmploymentData {
   onShiftSince: number | null;
 }
 
+/**
+ * The legacy stored key this record used before Business and organization
+ * were split. Read on hydration, never written.
+ */
+interface LegacyEmploymentData {
+  businessPath?: unknown;
+}
+
 export class Employment {
   private constructor(
-    /** templatePath of the employing Business. */
-    public readonly businessPath: string,
-    /** The Position key held at that Business. */
+    /** templatePath of the employing organization. */
+    public readonly organizationPath: string,
+    /** The Position key held at that organization. */
     public readonly positionKey: string,
     /** Current shift-lifecycle status. */
     public readonly status: EmploymentStatus,
@@ -63,7 +77,7 @@ export class Employment {
   /** Build an Employment from an already-typed descriptor. */
   public static of(data: EmploymentData): Employment {
     return new Employment(
-      data.businessPath,
+      data.organizationPath,
       data.positionKey,
       data.status,
       data.hiredAt,
@@ -71,11 +85,17 @@ export class Employment {
     );
   }
 
-  /** Coerce a loosely-typed (hydrated) blob into an Employment. */
-  public static fromData(data: Partial<EmploymentData>): Employment {
+  /**
+   * Coerce a loosely-typed (hydrated) blob into an Employment. Reads the
+   * legacy `businessPath` key when `organizationPath` is absent — the same
+   * value under the old name, so pre-split records need no migration.
+   */
+  public static fromData(
+    data: Partial<EmploymentData> & LegacyEmploymentData,
+  ): Employment {
     const status = data.status ?? 'employed';
     return new Employment(
-      String(data.businessPath ?? ''),
+      String(data.organizationPath ?? data.businessPath ?? ''),
       String(data.positionKey ?? ''),
       EMPLOYMENT_STATUSES.includes(status as EmploymentStatus)
         ? (status as EmploymentStatus)
@@ -100,7 +120,7 @@ export class Employment {
     onShiftSince: number | null,
   ): Employment {
     return new Employment(
-      this.businessPath,
+      this.organizationPath,
       this.positionKey,
       status,
       this.hiredAt,
@@ -111,7 +131,7 @@ export class Employment {
   /** The plain-data round-trip form. */
   public serialize(): EmploymentData {
     return {
-      businessPath: this.businessPath,
+      organizationPath: this.organizationPath,
       positionKey: this.positionKey,
       status: this.status,
       hiredAt: this.hiredAt,

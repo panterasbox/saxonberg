@@ -14,7 +14,10 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  proprietorPath: ''
+  # City-run, same committee as the terminal it sits in.
+  appointingAuthority:
+    kind: committee
+    parcel: /domain/terminus/terminal
   positions: []
   operatingLocations: []
   banksAt: goodkin

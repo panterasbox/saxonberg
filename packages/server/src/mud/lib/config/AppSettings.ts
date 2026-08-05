@@ -364,19 +364,37 @@ export const AppSettingKeys = {
   socialIdleAfter: "social.idleAfter",
 
   /**
-   * Bulletin (news ticker) — the server-owned ticker semantics. The engine
+   * Press (news ticker) — the server-owned ticker semantics. The engine
    * ships the pins-first/recency window + soft-retract/expiry; these are the
    * operator-tunable limits, read with a try/catch fallback so a pre-warm /
-   * test read is still safe. See docs/subsystems/bulletin.md.
+   * test read is still safe. See docs/subsystems/press.md.
    */
-  /** Bulletin — max bulletins in the live ticker window. */
-  bulletinTickerWindow: "bulletin.tickerWindow",
-  /** Bulletin — max pinned bulletins held at the top of the window. */
-  bulletinMaxPins: "bulletin.maxPins",
-  /** Bulletin — max rendered length (chars) of a headline. */
-  bulletinHeadlineMaxLength: "bulletin.headlineMaxLength",
-  /** Bulletin — max rendered length (chars) of a body. */
-  bulletinBodyMaxLength: "bulletin.bodyMaxLength",
+  /** Press — max releases in the live ticker window. */
+  pressTickerWindow: "press.tickerWindow",
+  /** Press — max pinned releases held at the top of the window. */
+  pressMaxPins: "press.maxPins",
+  /** Press — max rendered length (chars) of a headline. */
+  pressHeadlineMaxLength: "press.headlineMaxLength",
+  /** Press — max rendered length (chars) of a body. */
+  pressBodyMaxLength: "press.bodyMaxLength",
+  /**
+   * Press — which publisher organizations the **anonymous** start-screen
+   * press room shows, as a comma-separated list of organization paths.
+   *
+   * ⚠ **Placement, not permission.** Being on this list puts a publisher
+   * on the app's front door; it says nothing about who may read a given
+   * release, which is the visibility clamp's job. A publisher can be
+   * public and off the list; a listed publisher can still have a
+   * members-only release. Collapsing the two would make placement imply
+   * permission.
+   *
+   * ⚠ A comma-separated string because `AppApi.setting()` returns a
+   * `string` — there is no array type. An entry that does not resolve is
+   * **skipped and logged**: a typo would otherwise empty the front page
+   * with no signal, and "looking deliberate while empty" is precisely
+   * this surface's failure mode.
+   */
+  pressFrontPage: "press.frontPage",
 
   /**
    * Residency — scheduled object self-maintenance (see
