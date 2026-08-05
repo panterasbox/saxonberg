@@ -81,6 +81,7 @@ import type { Caster } from '../../lib/magic/Caster';
 import { Faculty } from '../../lib/magic/Faculty';
 import { MagicEffects } from '../../lib/magic/Effect';
 import type { Effect, InjectChannelEffect } from '../../lib/magic/Effect';
+import { Charge } from '../../lib/magic/Charge';
 import { MagicGrid } from '../../lib/magic/Grid';
 import { Blessing } from '../../lib/magic/Blessing';
 import type { BlessingBand } from '../../lib/magic/Blessing';
@@ -249,6 +250,16 @@ export class MagicLogic extends ApiLogic {
 
   /** See {@link MagicApi.discharge}. */
   @CallSecurity(MagicApiCallers)
+  /** See {@link MagicApi.transferCharge}. */
+  @CallSecurity(MagicApiCallers)
+  public transferCharge(
+    actor: Stuff,
+    shell: Stuff,
+    committedPt: number,
+  ): Promise<ChargeTransfer> {
+    return transferChargeImpl(actor, shell, committedPt);
+  }
+
   public discharge(
     item: Stuff,
     target?: Stuff,
@@ -831,6 +842,24 @@ async function executeOne(
       const t = landsOn ?? ctx.actor;
       if (!MixinApi.isReserved(t) || !t.hasReserve(effect.reserveKey)) {
         return 'Nothing there answers the draw.';
+      }
+      // ⚠ **Charge is not fillable by fiat.** Every other reserve is a
+      // property of the thing that has it; a shell's charge is energy
+      // that had to come from somewhere and cross something. An effect
+      // that simply added it would mint joules — `transfer` authored
+      // `delta: 20` against a `cost: 4` and was generating 16 kJ a cast,
+      // a lossless back door around the entire coupling model.
+      //
+      // So the charge case routes through the ONE implementation, which
+      // debits the actor and charges them the coupling loss. This gates
+      // ANY effect that reaches for charge, not just the one that did.
+      if (effect.delta > 0 && effect.reserveKey === Charge.RESERVE_KEY) {
+        const moved = await transferChargeImpl(
+          ctx.actor,
+          t as unknown as Stuff,
+          effect.delta * ctx.potency,
+        );
+        return moved.report;
       }
       const unit = t.getReserve(effect.reserveKey)!.current.unit;
       t.adjustReserve(
@@ -1642,6 +1671,128 @@ async function potencyFactor(
   );
   const above = Math.max(0, minRank - CompetenceBand.rank(spell.castingProfile.requiredBand));
   return 1 + dial(AppSettingKeys.magicPotencyCompetenceFactor, 0.25) * above;
+}
+
+/**
+ * **The one implementation of moving a caster's reserve into a shell**,
+ * and the only way charge enters the world outside manufacture.
+ *
+ * Both doors call it: `recharge <item> [amount]` (the amount-controlled
+ * one) and any effect that reaches for a `charge` reserve. That is the
+ * magic-items rule applied to itself — *an item is a new trigger, never
+ * a new mechanism* — and it is what makes "you cannot fill a shell
+ * without a coupling" true rather than merely intended.
+ *
+ * `committedPt` is what the caster puts in. What the shell gets is
+ * `committed × coupling × competence`, **both factors below 1**; the
+ * difference is heat in the coupling. The caster is debited for the
+ * loss too — that energy left them whether or not it arrived.
+ */
+export interface ChargeTransfer {
+  /** kJ that actually reached the shell. */
+  delivered: number;
+  /** Reserve points actually taken from the caster. */
+  spent: number;
+  /** kJ lost to the coupling. */
+  lost: number;
+  /** Player-facing line. */
+  report: string;
+  /** Why nothing moved, when nothing did. */
+  refusal: string | null;
+}
+
+/** The skill half — Tarn's Rule over control·arcana, as a LOSS < 1. */
+const COMPETENCE_EFFICIENCY = [0.4, 0.55, 0.78, 0.86, 0.92] as const;
+
+async function transferChargeImpl(
+  actor: Stuff,
+  shell: Stuff,
+  committedPt: number,
+): Promise<ChargeTransfer> {
+  const nil = (refusal: string): ChargeTransfer => ({
+    delivered: 0,
+    spent: 0,
+    lost: 0,
+    report: refusal,
+    refusal,
+  });
+  if (!MixinApi.isCharged(shell)) {
+    return nil('There is nothing in it that would hold a charge.');
+  }
+  if (!MixinApi.isCaster(actor) || !MixinApi.isReserved(actor)) {
+    return nil('You have no gift to pour into it.');
+  }
+  const conduit = bestConduitFor(actor);
+  if (!conduit) {
+    return nil(
+      'You hold the shape of it, and it goes nowhere — bare hands are a ' +
+        'poor road for that much energy.',
+    );
+  }
+  const available = actor.getMana()?.current.rawValue() ?? 0;
+  const committed = Math.max(0, Math.min(committedPt, available));
+  if (committed <= 0) return nil('You have nothing left to give it.');
+
+  const efficiency =
+    conduit.getCouplingEfficiency() * (await competenceEfficiency(actor));
+  const offered = committed * efficiency;
+  const delivered = shell.receiveCharge(offered);
+  // Bill in proportion to what the shell accepted — a full tank
+  // refusing the back half must not charge for it.
+  const spent = offered > 0 ? committed * (delivered / offered) : 0;
+  if (spent > 0) {
+    actor.adjustReserve(MANA_RESERVE_KEY, Quantity.of(-spent, 'pt'));
+  }
+  const lost = Math.max(0, spent - delivered);
+  return {
+    delivered,
+    spent,
+    lost,
+    refusal: null,
+    report:
+      delivered > 0
+        ? `The shell drinks it down and warms in your hand. ` +
+          `${delivered.toFixed(0)} kJ in, ${lost.toFixed(0)} kJ gone to the coupling.`
+        : 'It is already as full as it will get.',
+  };
+}
+
+/** The best coupling in reach: carried, or present where the actor is. */
+function bestConduitFor(
+  actor: Stuff,
+): (Stuff & { getCouplingEfficiency(): number }) | null {
+  const candidates: Stuff[] = [];
+  if (MixinApi.isContainer(actor)) candidates.push(...actor.getContents());
+  if (MixinApi.isContainable(actor)) {
+    const env = actor.getContainer();
+    if (env && MixinApi.isContainer(env)) candidates.push(...env.getContents());
+  }
+  let best: (Stuff & { getCouplingEfficiency(): number }) | null = null;
+  for (const c of candidates) {
+    if (!MixinApi.isConduit(c)) continue;
+    if (!best || c.getCouplingEfficiency() > best.getCouplingEfficiency()) {
+      best = c as Stuff & { getCouplingEfficiency(): number };
+    }
+  }
+  return best;
+}
+
+/**
+ * ⚠ Deliberately NOT `potencyFactor`, whose competence term is a bonus
+ * `>= 1` above the required band. Multiplying delivered energy by that
+ * would let a good caster deliver more than they spent.
+ */
+async function competenceEfficiency(actor: Stuff): Promise<number> {
+  const [verbBand, nounBand] = await Promise.all([
+    AdvancementApi.bandFor(actor, MagicGrid.verbDisciplineKey('control')),
+    AdvancementApi.bandFor(actor, MagicGrid.nounDisciplineKey('arcana')),
+  ]);
+  const rank = Math.min(
+    CompetenceBand.rank(verbBand),
+    CompetenceBand.rank(nounBand),
+  );
+  const i = Math.max(0, Math.min(COMPETENCE_EFFICIENCY.length - 1, rank));
+  return COMPETENCE_EFFICIENCY[i]!;
 }
 
 /** The Transcript difficulty a spell's floor band implies. */

@@ -38,6 +38,7 @@ import type {
 import type { MagicSuppression } from '../lib/magic/Suppression';
 import type { SpellDescriptor } from '../obj/magic/Spell';
 import { fileURLToPath } from 'url';
+import type { ChargeTransfer } from '../obj/api/MagicLogic';
 import { SecurityApi } from './security';
 
 export type { PrepareOutcome, CastOutcome, SpellsView, DischargeOptions };
@@ -114,6 +115,25 @@ export class MagicApi {
    * the `ProvenanceApi.recordAuthoring` precedent. The effect context of
    * D1 is internal plumbing beneath this gate.
    */
+  /**
+   * **Move a caster's reserve into a shell** — the single
+   * implementation behind both doors (`recharge`, and any effect that
+   * reaches for a `charge` reserve).
+   *
+   * `committedPt` is what the caster puts in; what arrives is
+   * `committed × coupling × competence`, both factors below 1. The
+   * caster is debited for the loss as well: that energy left them
+   * whether or not it arrived. Refuses (with `refusal` set, nothing
+   * moved) when there is no faculty, no coupling, or nothing to give.
+   */
+  public static transferCharge(
+    actor: Stuff,
+    shell: Stuff,
+    committedPt: number
+  ): Promise<ChargeTransfer> {
+    return logic().transferCharge(actor, shell, committedPt);
+  }
+
   public static discharge(
     item: Stuff,
     target?: Stuff,

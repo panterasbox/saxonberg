@@ -150,6 +150,7 @@ import type { Marked } from '../lib/description/Marked';
 import type { Labelled } from '../lib/description/Labelled';
 import type { Memorized } from '../lib/magic/Memorized';
 import type { Circulating } from '../lib/residency/Circulating';
+import type { Conduit } from '../lib/magic/Conduit';
 import type { Charged } from '../lib/magic/Charged';
 import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
@@ -1249,6 +1250,14 @@ export class MixinApi {
    */
   public static isCharged(obj: Stuff): obj is Stuff & Charged {
     return this.hasMixin(obj, Mixins.Charged);
+  }
+
+  /**
+   * Does this thing couple an arcane reserve to a shell? The apparatus
+   * half of `recharge` — see {@link ConduitMixin}.
+   */
+  public static isConduit(obj: Stuff): obj is Stuff & Conduit {
+    return this.hasMixin(obj, Mixins.Conduit);
   }
 
 

@@ -13,11 +13,35 @@
  * - shell inflation is therefore **harmless**, and distribution can
  *   afford to be generous.
  *
- * Both charged items and foci answer to this verb, because from the
- * user's side it is one act: spend your reserve, make the thing work
- * again. What differs is the **cost basis** (D9) — filling a tank is a
- * transfer of energy; re-impressing a pattern is *work*, buying back
- * order rather than energy, and it costs more per point restored.
+ * ## What it takes to do it at all
+ *
+ * Three things, and until this build only the first was checked:
+ *
+ * | | supplies | without it |
+ * |---|---|---|
+ * | your **reserve** | the energy | "You have no gift to pour into it." |
+ * | a **working** (`transfer`) | the specification | you know of no way to move it |
+ * | a **conduit** | the coupling | you have nothing to carry it through |
+ *
+ * The energy was always yours — mana is a metabolic fraction, so what
+ * ends up in the wand was food and water a few hours ago. What was
+ * missing was any account of *how it crosses*, and the answer is that
+ * it does not cross by intent: it crosses through a coupling, and
+ * couplings have impedance (see {@link ConduitMixin}).
+ *
+ * ⚠ **The verb stays afforded when you cannot use it.** `ChargedMixin`
+ * contributes it, so the affordance follows the *target* — and a caster
+ * with no conduit sees `recharge` and fails audibly, exactly as a flat
+ * wand still affords `zap` (D34). Hiding it would turn the affordance
+ * list into a free inventory check on everyone in the room.
+ *
+ * ## Efficiency
+ *
+ * `delivered = committed × coupling × competence`, and **both factors
+ * are below 1** — an efficiency of 1 was a perfect pump, the one free
+ * lunch in a model where a firebolt spends 35.2 τ to deliver 29.9. The
+ * shortfall is not bookkeeping: it is heat in the coupling, which is
+ * where transfer losses go.
  *
  * The controller keeps only machinery (the MVC rule): resolve, gate,
  * move the reserve, narrate.
@@ -28,41 +52,22 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
-import { AppApi } from '../../../api/app';
-import { AppSettingKeys } from '../../../lib/config/AppSettings';
-import { Quantity } from '../../../lib/quantity';
-import { MANA_RESERVE_KEY } from '../../../lib/magic/Caster';
+import { MagicApi } from '../../../api/magic';
+import { SpellKnowledge } from '../../../lib/magic/SpellKnowledge';
 import { Mml } from '../../../api/mml';
 
 const TOPIC = 'world.magic.cast';
 
-/** kJ delivered into a tank per point of the caster's reserve spent. */
-const KJ_PER_MANA_PT = 1;
-/**
- * Pattern integrity restored per point spent. Re-impressing order is
- * dearer than pouring energy — a focus is cheap to own and expensive to
- * maintain, which is the counterweight to it having no tank to run dry.
- */
-const PATTERN_PER_MANA_PT = 0.004;
+/** The working that specifies the transfer. */
+const TRANSFER_SPELL_PATH = '/obj/magic/Spell/transfer';
 
 interface RechargeModel extends CommandModel {
   target: MqlOneResult;
   amount?: number;
 }
 
-function dial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw === '' || raw == null) return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export default class RechargeController extends CommandController<RechargeModel> {
-  execute(model: RechargeModel, context: CommandContext): void {
+  async execute(model: RechargeModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
     const target = model.target?.stuff ?? null;
 
@@ -76,8 +81,7 @@ export default class RechargeController extends CommandController<RechargeModel>
       return;
     }
 
-    const charged = MixinApi.isCharged(target);
-    if (!charged) {
+    if (!MixinApi.isCharged(target)) {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(
@@ -101,9 +105,27 @@ export default class RechargeController extends CommandController<RechargeModel>
       return;
     }
 
+    // ── the specification ──
+    if (!(await SpellKnowledge.knowsOf(actor, TRANSFER_SPELL_PATH))) {
+      MessageApi.scene(actor)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You can feel where the energy would have to go, and no idea how to send it. There is a working for this, and you do not have it.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'unknown-working',
+        detail: TRANSFER_SPELL_PATH,
+      });
+      return;
+    }
+
+    // ⚠ No conduit pre-check here: `MagicApi.transferCharge` owns that
+    // refusal, and duplicating it would let the two drift.
     const pool = actor.getMana();
     const available = pool?.current.rawValue() ?? 0;
-    // How much of the caster's own reserve to spend: what they asked
+    // How much of the caster's own reserve to commit: what they asked
     // for, or everything they can spare.
     const asked =
       typeof model.amount === 'number' && Number.isFinite(model.amount)
@@ -138,30 +160,20 @@ export default class RechargeController extends CommandController<RechargeModel>
       return;
     }
 
-    // Charge first: a thing that is both takes the tank before the
-    // pattern, because a slack pattern on a full tank is still useful
-    // and a sharp pattern on an empty one is not.
-    let spent = 0;
-    const reports: string[] = [];
-    if (charged) {
-      const perPt = dial(AppSettingKeys.magicRechargeKJPerManaPt, KJ_PER_MANA_PT);
-      const taken = target.receiveCharge(asked * perPt);
-      const cost = perPt > 0 ? taken / perPt : 0;
-      spent += cost;
-      if (taken > 0) {
-        reports.push('The shell drinks it down and warms in your hand.');
-      } else {
-        reports.push('It is already as full as it will get.');
-      }
-    }
-
-    if (spent > 0) {
-      actor.adjustReserve(MANA_RESERVE_KEY, Quantity.of(-spent, 'pt'));
+    const moved = await MagicApi.transferCharge(actor, target, asked);
+    if (moved.refusal) {
+      MessageApi.scene(actor).topic(TOPIC).toSelf(Mml.text(moved.refusal)).send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'transfer-refused',
+        detail: moved.refusal,
+      });
+      return;
     }
 
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.text(reports.join(' ')))
+      .toSelf(Mml.text(moved.report))
       .toPeers(
         Mml.compose`${Mml.name(actor)} holds ${Mml.item(target)} still, and something passes between them.`,
       )

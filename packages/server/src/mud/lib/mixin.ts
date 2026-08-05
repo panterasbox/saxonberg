@@ -344,6 +344,7 @@ export const Mixins = {
   // settles at S* = inflow/d. The item is its own endpoint, so recoil
   // and waste heat land on it. See D5/D6/D7.
   Charged: 'ChargedMixin',
+  Conduit: 'ConduitMixin',
   // Focus — supplies SPECIFICATION only; the user pays the energy and
   // is therefore the endpoint. Perishes by pattern rot on a much slower
   // schedule than charge: a binding is a state held away from

@@ -1,0 +1,33 @@
+# A manual of transfer — the working that makes `recharge` possible.
+#
+# `comprehensionBand: untrained` against transfer's `novice` casting
+# floor: anyone literate can take the plumbing on board. That is
+# deliberate and it is the point of the whole item — transfer is not the
+# interesting part of being a mage, it is the part that makes a mage
+# *useful to other people*, and gating it behind competence would turn a
+# service anyone can sell into a specialist's monopoly.
+#
+# `gradeBand: fair`: this is a trade manual, not a treasure. It should
+# be the cheapest book on the shelf and the one every working mage owns.
+class: /obj/magic/Spellbook
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a stitched trade manual
+  primaryKeyword: manual
+  longDescription: >
+    A cheap workshop binding, thickened by damp and re-sewn twice. Most
+    of it is tables. The margins carry three different hands arguing
+    about brass.
+  identifiedName: a manual of transfer
+  descriptorClass: spellbook
+  teachesSpellPath: /obj/magic/Spell/transfer
+  comprehensionBand: untrained
+  gradeBand: fair
+  markText: >-
+    a workmanlike account of holding a channel open, mostly tables of
+    coupling losses against metal and section
+  markForm: inked
+  censusKey: spellbook
+  materialTags: [paper, board]
+  regionTarget: 2
+  selfIdentifying: false
