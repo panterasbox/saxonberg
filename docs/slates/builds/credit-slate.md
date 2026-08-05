@@ -57,6 +57,46 @@ Surveyed, not assumed:
 | **The Treasury** | ⚠ **not built.** Art. VIII §4 specifies *tax → budget → appropriate → disburse*; the corpus has `remitDemoTax` and a city-budget account taking TPA fares. Fragments, no cycle |
 | **A Treasury seat** | ⚠ **does not exist.** `OFFICE_APPARATUS` has five seats and the Governor is the only economic one |
 
+## ⚠ Refreshed 2026-08-05 — the currency build merged (MR !169)
+
+Re-surveyed against `master`. **The load-bearing claims survive**; three
+things changed and one of them is a gift.
+
+| | |
+|---|---|
+| **The three mint call sites** | ✅ **unchanged** — `EnrollController`, `reserve mint`, `reserve issue` |
+| **`reserve mint` still fuses issuance + appropriation** | ✅ unchanged — Part 0's headline finding stands |
+| ⭐⭐ **`credit` was RETIRED as the money noun** | the currency is the **ZORKMID** |
+| **Conservation is now per-currency** | `LedgerEntry.currency`; **a leg may never cross currencies** |
+| **`Money.of()` takes a required currency** | `Money.of(n, Currency.compact())` — build-order step 1 must thread it |
+| ⭐ **`fullReconcile(currency)`** | richer than assumed — supply vs. accounts, circulation, **vault float** and **coin held offline** in `holder_snapshots` |
+
+> ⭐⭐⭐ **The gift: the rename freed the word `credit` FOR THIS BUILD.**
+> [currency-slate](./currency-slate.md) renamed the money noun partly because
+> *"it gives back the word `credit`, which terminus-banking §7 needs for the
+> entire deferred lending subsystem."* **This slate is that subsystem.** So
+> lending can be called credit without colliding with the unit it is
+> denominated in — and every ledger leg already uses `credit` for
+> *direction*, which is the sense that was always going to win.
+
+Three consequences worth carrying:
+
+- ⭐⭐ **Reserve-by-construction now SHIPS.** `banking.compactCurrency` (an
+  AppSetting, read only through `Currency.compact()`) names what the Compact
+  transacts in — *"policy data, not a property of the money."* ⇒ **state
+  obligations are denominated by construction**, which is exactly the
+  mechanism Part 4's state lane assumed and no longer has to argue for.
+- ⭐⭐ **The no-benchmark-rate answer is now ENFORCED, not merely preferred.**
+  banking.md: *"the record carries **no rate**, and no reference to another
+  currency… every reader would get an authoritative cross-currency rate for
+  free."* ⇒ open question 7 is settled by shipped code: **a benchmark-rate
+  object would violate a rule that already exists.** Bank terms stay the
+  issuer's own standing offer.
+- ⚠ **The CB cockpit is per-currency and must never total.** `reserve supply`
+  now renders one block per currency and refuses to sum, because *"asking for
+  one is the first step toward an exchange this design deliberately
+  refuses."* **The autopilot's dashboard inherits that rule.**
+
 > ⭐⭐⭐⭐ **`reserve mint <amount>` fuses issuance and appropriation.** It
 > creates money **and** directs it to a specific venue — *"the present
 > venue's account"*, so the lever is bound to where the Governor is
@@ -164,6 +204,14 @@ system, it is naming one that exists** — and it makes one of the genuinely
 counterintuitive true facts about fiat systems structurally visible rather
 than asserted. Near-free for the education vertical.
 
+> ⭐ **Refreshed 2026-08-05 — the identity is now PER CURRENCY**, and that is
+> an improvement rather than a complication. Supply, reconciliation and every
+> ledger leg carry a currency (`LedgerEntry.currency`), so *"the supply is the
+> debt"* holds **once per issuer**: the Compact's zorkmid supply is the
+> Compact's debt, and a locality's scrip supply would be that locality's.
+> ⇒ **the perpetual is TYPED** — a zorkmid perpetual backs zorkmid supply, and
+> the never-cross-currencies rule keeps the two books from touching.
+
 ## No interest, and no debt ceiling
 
 - **Quantity, not price** — already decided (the amendment library specifies
@@ -248,7 +296,7 @@ subsidy = min(cap_remaining, match_rate × deficit)     match_rate < 1
   part of every loss or it has no reason to become profitable. **That one
   number is the entire policy.**
 - ⚠ **Known cost, kept deliberately:** a taper on revenue is a **high
-  effective marginal rate** — each credit earned costs `match_rate` of
+  effective marginal rate** — every zorkmid earned costs `match_rate` of
   subsidy. That is the real welfare-cliff problem, demonstrated honestly
   rather than hidden. ⭐ For the education vertical that is a feature.
 
