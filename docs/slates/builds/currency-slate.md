@@ -173,6 +173,40 @@ shipping inert in property 0a, a pattern this codebase already trusts.
 
 ⭐ **The generalization is the deliverable. A second currency is not.**
 
+# ⚠ Credit — WANTED, deferred, not rejected
+
+`banking.md` lists *"Lending / fractional reserve / interest / bank
+failure + deposit insurance"* among its non-goals. **That reads as
+rejected. It is not.**
+
+> **User (2026-08-04): "we definitely want credit, I just need to
+> understand the entire economy before we can figure out how it works,
+> and that depends on most of the rest of the systems being built out
+> first."**
+
+⭐ Worth recording because the absence has consequences somebody will
+otherwise mistake for design:
+
+> **No credit means no INVESTMENT.** You cannot borrow to start a
+> business, so capital formation is savings-only — and combined with
+> *capital gets voice but no equity*, there is presently **no mechanism
+> by which money finds a venture.**
+
+And it forecloses a whole limb of law that several appendix candidates
+want: **debt · bankruptcy · usury · mortgages · bonds · foreclosure ·
+credit rating.** ⚠ Notably **bankruptcy**, which
+[rerecord-appendix-plan](../../manifesto/rerecord-appendix-plan.md) names
+as the humane answer to the 13th-amendment module — **unbuildable until
+debt exists.**
+
+**The blocker is deliberate and correct:** credit prices risk, and you
+cannot price risk in an economy whose sinks and flows are not yet built
+([content-packs-slate](./content-packs-slate.md) § *seed the economy
+backwards*). ⭐ **Sequence it after the trades close their loops**, not
+before.
+
+---
+
 # Open questions
 
 1. **Per-currency balances on one account, or an account per currency?**
