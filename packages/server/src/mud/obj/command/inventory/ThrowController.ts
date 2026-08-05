@@ -31,11 +31,22 @@ import { PromptApi, PromptCancelledError } from "../../../api/prompt";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { BulkableApi } from "../../../api/bulk";
+import { ConditionApi } from "../../../api/condition";
 import { CombatApi } from "../../../api/combat";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
 const TOPIC = "world.narration.action";
+
+/**
+ * Where a thrown thing lands on a body, first match wins.
+ *
+ * Torso first because it is the biggest target and the one a thrower
+ * actually aims at; head and limbs are the fallbacks for anatomies that
+ * lack one. A body with none of these takes no wound — the graceful
+ * no-op, not an error.
+ */
+const IMPACT_SITES = ["body.torso", "body.head", "body.arm.right"] as const;
 
 interface ThrowModel extends CommandModel {
   item?: MqlOneResult;
@@ -137,6 +148,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
       target,
       {
         litres,
+        massKg: this.massOf(item),
         toughness: this.numberOf(item, "getToughness"),
         hardness: this.numberOf(item, "getHardness"),
       },
@@ -157,6 +169,22 @@ export default class ThrowController extends CommandController<ThrowModel> {
         .topic(TOPIC)
         .toSelf(Mml.compose`It goes wide.`)
         .send();
+    } else {
+      // ── The KINETIC half. ──
+      //
+      // A thrown thing has mass and it arrives; that is true of a rock,
+      // a chair and a flask alike, and it is what makes `throw` a real
+      // act rather than a delivery mechanism for potions. The profile
+      // already carries the channel and the joules — this is the one
+      // call that turns them into a wound, and the materials-response
+      // grid decides what the energy actually costs.
+      //
+      // `null` back is the honest no-op: too little energy to matter (a
+      // thrown coin) or no matching anatomy. Nothing is invented to
+      // make a throw "feel" like it did something.
+      const site = this.impactSite(target);
+      const spec = site === null ? null : plan.profile.toInflictSpec(site);
+      if (spec !== null) ConditionApi.inflict(target, spec);
     }
 
     // The vessel breaks by ITS OWN material — glass, not the draught it
@@ -203,6 +231,36 @@ export default class ThrowController extends CommandController<ThrowModel> {
       // The vessel is gone — it broke. Destroying it is the honest
       // outcome, and `StuffApi.destruct` is the only way to do that.
       await StuffApi.destruct(item);
+    }
+  }
+
+  /**
+   * Where a thrown thing lands on THIS body — first of {@link IMPACT_SITES}
+   * the victim actually has.
+   *
+   * The walk lives here rather than on `DeliveryProfile` because that is
+   * a pure value-object with no business reaching into anatomy. `null`
+   * for a body with none of these parts, which is the graceful no-op.
+   */
+  private impactSite(victim: Stuff): string | null {
+    if (!MixinApi.isVitals(victim)) return null;
+    for (const key of IMPACT_SITES) {
+      if (victim.getPart(key) != null) return key;
+    }
+    return null;
+  }
+
+  /**
+   * The thrown object's real mass in kg. `mustBeTangible` guarantees the
+   * mixin is there; a mass that will not read is 0, which lands the
+   * arrival under the inert floor rather than inventing a weight.
+   */
+  private massOf(item: Stuff): number {
+    if (!MixinApi.isTangible(item)) return 0;
+    try {
+      return item.getMass().rawValue();
+    } catch {
+      return 0;
     }
   }
 

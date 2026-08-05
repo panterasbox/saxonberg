@@ -41,6 +41,7 @@
  * required.
  */
 
+import type { CommandContributions } from '../../api/command';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
@@ -102,6 +103,23 @@ export interface Tangible {
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class TangibleMixin extends Base {
     static _mixinName = 'TangibleMixin';
+
+    /**
+     * **The thing with mass confers the verb.** Anything Tangible is
+     * throwable, so holding one grants `throw` — the tools-confer
+     * pattern (a wand grants `zap`), not a property of the thrower.
+     *
+     * It deliberately does NOT ride `ContainerMixin.self`. Container is
+     * "I can hold things", which is the right home for `drop`/`give`
+     * but says nothing about whether what you are holding can be
+     * thrown — and a room is a Container.
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      inventory: ['inventory/throw.yaml'],
+      environment: [],
+      peers: [],
+    };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound
      * QuantityMarshaller; the runtime accessor pair stays strict on

@@ -770,15 +770,35 @@ function AimResolutionRank(p: string): number {
 }
 
 describe("throw — the affordance actually reaches a player (the binder gap)", () => {
-  it("ContainerMixin contributes inventory/throw.yaml", async () => {
-    // Controller tests skip the YAML binder, so the ONLY thing standing
-    // between a working controller and a verb nobody can type is this
-    // contribution. antipatterns.md documents four defects that lived in
-    // exactly this gap.
+  /**
+   * Controller tests skip the YAML binder, so this contribution is the
+   * ONLY thing standing between a working controller and a verb nobody
+   * can type. antipatterns.md documents four defects that lived in
+   * exactly this gap.
+   */
+  it("the THING WITH MASS confers `throw` on whoever holds it", async () => {
+    const { TangibleMixin } = await import("../../../lib/material/Tangible");
+    const composed = TangibleMixin(Idea) as unknown as {
+      commandContributions: { inventory: string[] };
+    };
+    expect(composed.commandContributions.inventory).toContain(
+      "inventory/throw.yaml",
+    );
+  });
+
+  it("Container does NOT confer it — a room is a Container", async () => {
+    // Container is "I can hold things", the right home for drop/give and
+    // the wrong one for throw: it says nothing about whether what you
+    // hold can be thrown, and it would offer the verb to rooms.
     const { ContainerMixin: CM } = await import("../../../lib/spatial/Container");
     const composed = CM(Idea) as unknown as {
-      commandContributions: { self: string[] };
+      commandContributions: { self: string[]; inventory?: string[] };
     };
-    expect(composed.commandContributions.self).toContain("inventory/throw.yaml");
+    expect(composed.commandContributions.self).not.toContain(
+      "inventory/throw.yaml",
+    );
+    expect(composed.commandContributions.inventory ?? []).not.toContain(
+      "inventory/throw.yaml",
+    );
   });
 });

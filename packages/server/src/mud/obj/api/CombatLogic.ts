@@ -3683,7 +3683,12 @@ export interface ThrownDelivery {
 function resolveThrownImpl(
   thrower: Stuff,
   target: Stuff,
-  contents: { litres: number; toughness?: number; hardness?: number; massKg?: number },
+  contents: {
+    litres: number;
+    toughness?: number;
+    hardness?: number;
+    massKg?: number;
+  },
   splash: readonly Stuff[],
 ): ThrownDelivery {
   const band = bandBetweenImpl(thrower, target) ?? "close";
@@ -3693,7 +3698,9 @@ function resolveThrownImpl(
   );
   const profile = DeliveryProfile.derive({
     energySource: "muscle",
-    massKg: contents.massKg ?? 0.4,
+    // The thrown object's REAL mass. A default here would mean every
+    // thrown thing weighed the same, which is the whole ½mv² input.
+    massKg: contents.massKg ?? 0,
     speedMs: dial(AppSettingKeys.combatRangeThrowSpeed, 12),
     channel: "blunt",
     band,

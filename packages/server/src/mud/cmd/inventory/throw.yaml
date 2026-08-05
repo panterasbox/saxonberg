@@ -33,7 +33,8 @@ args:
     scope: "inventory"
     validators:
       - /lib/command/validators/mustBeInInventory
-      - /lib/command/validators/mustBeContainable
+      # Mass is what makes a thing throwable — and it is the ½mv² input.
+      - /lib/command/validators/mustBeTangible
   - name: target
     type: object
     required: false

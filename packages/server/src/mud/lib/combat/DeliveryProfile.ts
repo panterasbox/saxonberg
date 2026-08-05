@@ -34,8 +34,10 @@
  */
 
 import type { Channel } from "../material/Channel";
+import type { InflictSpec } from "../../api/condition";
 import { RangeBand, type RangeState } from "./RangeBand";
 import { EnergySource, type EnergySourceKind } from "./EnergySource";
+import { Quantity } from "../quantity";
 
 /** Flight quality, ascending. Steps the placement ladder when poor. */
 export const STABILITIES = ["poor", "fair", "true"] as const;
@@ -182,4 +184,39 @@ export class DeliveryProfile {
   stabilityIsPoor(): boolean {
     return this.stability === "poor";
   }
+
+  /**
+   * Build the `InflictSpec` this arrival produces at `site` — the bridge
+   * from "what crossed the gap" to "what it did", and the reason a
+   * thrown rock is not merely narration.
+   *
+   * Takes a RESOLVED site rather than a victim, deliberately: this is a
+   * pure value-object and reaching into anatomy would give it a world
+   * dependency it has no business having. The caller owns the
+   * first-match walk over the body it already holds. (`HazardDelivery`
+   * resolves its own site because it *owns* a `siteSelector`; a delivery
+   * profile owns no anatomy at all.)
+   *
+   * Same shape as the hazard path: a mechanical channel yields an energy
+   * spec the covering stack mitigates for free; `shock` skips the fold
+   * and reads energy as amperes. **This decides nothing about severity**
+   * — the materials-response grid does, which is where armor hooks in.
+   *
+   * `null` when the arrival is inert (too little energy to matter) or
+   * the channel is not a mechanical insult. A thrown coin lands and does
+   * nothing, honestly.
+   */
+  toInflictSpec(
+    site: string,
+    config: DeliveryProfileConfig = DEFAULT_DELIVERY_PROFILE_CONFIG,
+  ): InflictSpec | null {
+    if (this.isInert(config)) return null;
+    if (this.channel === "shock") {
+      return { mechanism: "shock", site, current: Quantity.of(this.energyJ, "A") };
+    }
+    // Heat is the fire substrate's business, not a mechanical insult.
+    if (this.channel === "heat") return null;
+    return { mechanism: this.channel, site, energy: this.energyJ };
+  }
+
 }

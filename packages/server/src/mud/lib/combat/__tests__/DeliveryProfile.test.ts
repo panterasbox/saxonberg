@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "fs";
 import {
   DeliveryProfile,
   DEFAULT_DELIVERY_PROFILE_CONFIG,
@@ -179,5 +180,63 @@ describe("DeliveryProfile — determinism", () => {
       expect(STABILITIES).toContain(p.stability);
       expect(INTEGRITIES).toContain(p.integrity);
     }
+  });
+});
+
+describe("DeliveryProfile.toInflictSpec — the kinetic half", () => {
+  const rock = {
+    energySource: "muscle" as const,
+    massKg: 0.8,
+    speedMs: 12,
+    channel: "blunt" as const,
+    band: "near" as const,
+    envelope: "near" as const,
+    toughness: 200,
+    hardness: 600,
+  };
+
+  it("a thrown rock produces a real mechanical insult", () => {
+    // The gap this closes: before, `throw rock at wolf` narrated and did
+    // nothing at all. Energy and channel existed and reached no consumer.
+    const spec = DeliveryProfile.derive(rock).toInflictSpec("body.torso");
+    expect(spec).not.toBeNull();
+    expect(spec).toMatchObject({ mechanism: "blunt", site: "body.torso" });
+    expect((spec as { energy: number }).energy).toBeCloseTo(0.5 * 0.8 * 144, 6);
+  });
+
+  it("MASS is what varies the wound — not a constant", () => {
+    // The bug the affordance question surfaced: mass was hardcoded at
+    // 0.4 kg, so a coin and an anvil hit identically.
+    const light = DeliveryProfile.derive({ ...rock, massKg: 0.2 })
+      .toInflictSpec("body.torso") as { energy: number };
+    const heavy = DeliveryProfile.derive({ ...rock, massKg: 4 })
+      .toInflictSpec("body.torso") as { energy: number };
+    expect(heavy.energy).toBeCloseTo(light.energy * 20, 6);
+  });
+
+  it("an inert arrival wounds nothing — a thrown coin just lands", () => {
+    const coin = DeliveryProfile.derive({ ...rock, massKg: 0.005, speedMs: 5 });
+    expect(coin.isInert()).toBe(true);
+    expect(coin.toInflictSpec("body.torso")).toBeNull();
+  });
+
+  it("shock reads energy as amperes; heat defers to the fire substrate", () => {
+    expect(
+      DeliveryProfile.derive({ ...rock, channel: "shock" }).toInflictSpec("body.torso"),
+    ).toMatchObject({ mechanism: "shock" });
+    expect(
+      DeliveryProfile.derive({ ...rock, channel: "heat" }).toInflictSpec("body.torso"),
+    ).toBeNull();
+  });
+
+  it("stays a PURE value-object — no world imports crept in", () => {
+    // It takes a resolved site, not a victim. Reaching into anatomy here
+    // would give a pure value-object a dependency on Stuff.
+    const src = readFileSync(
+      new URL("../DeliveryProfile.ts", import.meta.url),
+      "utf8",
+    );
+    expect(src).not.toMatch(/from "\.\.\/stuff\/Stuff"/);
+    expect(src).not.toMatch(/MixinApi/);
   });
 });
