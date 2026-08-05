@@ -50,7 +50,10 @@
 > ([study-com-vertical-survey.md](./study-com-vertical-survey.md)), and the
 > vertical **fidelity audit** — do our modeled industries teach the
 > discipline's reasoning?
-> ([study-com-vertical-fidelity-audit.md](./study-com-vertical-fidelity-audit.md)).
+> ([study-com-vertical-fidelity-audit.md](./study-com-vertical-fidelity-audit.md)),
+> and the **teachability boundary** — what the game can teach and how
+> (direct enactment / allegory / reference)
+> ([study-com-teachability-boundary.md](./study-com-teachability-boundary.md)).
 
 ---
 
