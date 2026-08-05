@@ -151,10 +151,20 @@ developer-gated. **Country-not-IP is band-not-milliseconds.** Follow it.
    *Leans: derived client-side, published only on opt-in* — the honest
    default, with no verification, because **there is nothing here worth
    policing.**
-4. ⚠ **Does jitter matter more than latency?** For "can this person keep
-   up," **variance is the better signal than mean** — steady 200 ms is
-   playable; swinging 40–400 ms is not. If only one number is derived, it
-   should probably be the unstable-ness, not the ping.
+4. ⭐ **Jitter, not latency — LEANED 2026-08-05.** For *"can this person keep
+   up,"* **variance beats mean**: steady 200 ms is playable, swinging
+   40–400 ms is not. So the one derived signal should be the
+   **unstable-ness**, not the ping.
+
+   > **User: "it depends on how closely people watch this stuff, but you're
+   > probably right that jitter is what people care about."**
+
+   ⭐⭐ **And the caveat argues the same way.** If most people are *not*
+   watching closely, a number is wasted precision — it rewards attention
+   nobody is paying. **A state surfaces only when it is actionable**, which
+   is exactly the granularity an unwatched signal should have. *Nobody
+   watches this closely* is an argument FOR the band, not against the
+   feature.
 5. **Does the operator's diagnostic read need to be per-player at all?**
    *Leans aggregate first* — a distribution answers *"is the server sick"*
    without naming anybody, and the per-player read is the break-glass case.
