@@ -33,8 +33,11 @@ layers: the rules themselves, and the settings filled in around them.
 Ratification is where a community's arrangements stop being provisional and become
 permanent. What it fixes is the community's **configuration** — and the constitution keeps
 that configuration in one place, a Schedule held separate from the articles, so that the
-logic of the system and its settings never tangle. This appendix is a tour of that
-configuration: what gets set, and how firmly.
+logic of the system and its settings never tangle.
+
+The more useful question, though, is not what a community sets. It is **how much is
+actually theirs to set.** That is what this appendix lays out: the configuration, the parts
+of it that lock, and the parts that were never on the table.
 
 **[1 — two kinds of setting]**
 There are two kinds of thing to set. The first is **modules** — which capabilities a
@@ -45,14 +48,14 @@ the reserve and central bank come online. There are modules for property, for ex
 for how land is held, for term limits. Adopting one is an amendment; a community picks from
 a vetted library or drafts its own.
 
-The second is **parameters** — the numbers. Not *whether* the court draws a jury, but how
-many jurors, how long they have, how many levels of appeal. Not *whether* a bill can pass,
-but what share it must carry and what quorum makes the vote count. Every such value lives
-in the Schedule, named once.
+The second is **parameters** — the numbers. Not *whether* a bill can pass, but what share
+it must carry and what quorum makes the vote count. Not *whether* the court draws a jury,
+but how large it is. Every such value lives in the Schedule, named once.
 
 **[2 — how firmly each is fixed]**
-The settings do not all lock the same way. Each carries a **tier** — how hard it is to
-change after ratification.
+The settings do not all belong to a community in the same way. Each carries a **tier** —
+and the ladder measures less how hard a thing is to change than how far it is theirs at
+all.
 
 Some are **eternity**: they cannot be amended at all, only left behind by forking. These
 are not really dials — the separation of money from power, the co-equality of the
@@ -97,7 +100,8 @@ number is measured *against*. That choice is where the politics lives, and it is
 
 **[4 — presets and composition]**
 Few communities set all of this by hand. Most begin from a **preset** — a bundle assembled
-for a common archetype — and adjust. The **operator's table** is the default made explicit:
+for a common archetype — and adjust. Which is to say most communities accept somebody
+else's answer to nearly all of it, and argue about the rest. The **operator's table** is the default made explicit:
 the court at a jury of one, no discretion surrendered — where a streamer begins. The
 **creator collective** is producer-weighted, with property and expression on. The **full
 republic** runs the whole apparatus. And the library **composes like a package manager**:
@@ -108,17 +112,17 @@ setting a parameter writes it into the community's constitution and into the rec
 
 **[5 — the frame this sets]**
 So ratification is where the configuration is written and locked, each setting at the
-firmness its tier carries. The appendices that follow describe the areas this configuration
-governs — the land and its scarcity, the courts, the economy. Each is a value on a dial set
-here.
+firmness its tier carries. The appendices that follow describe the areas it governs — the
+land and its scarcity, the courts, the economy. Each is a value on a dial set here.
 
-One kind of number is deliberately absent from the Schedule. A parameter configures the
-machine — how many jurors, what threshold. A **bound** constrains an outcome — how fast
-something may accumulate, and measured against what. Bounds are not set at ratification.
-Adjusting them against a running world is the ordinary work of the legislature, and it
-never finishes.
+Three things are not. The **kernel** that holds the Schedule is not on the menu at all. The
+**eternity** tier is on the menu and cannot be moved — only left behind. And one kind of
+number is deliberately absent: a parameter configures the machine, how many jurors, what
+threshold; a **bound** constrains an outcome — how fast something may accumulate, and
+measured against what. Bounds are not set at ratification. Adjusting them against a running
+world is the ordinary work of the legislature, and it never finishes.
 
-The one thing with no dial is the kernel that holds the Schedule.
+What a community configures is what remains when those three are set aside.
 
 ## Visual cue sheet
 
@@ -150,19 +154,41 @@ Corner / no-face throughout; explanatory schematics, flat register.
 - **4 — no-face.** Three **presets** (operator's table / creator collective / full
   republic) as pre-filled panels with "adjust from here" arrows; a **package-manager** inset
   — dependency arrows, one conflict mark, a standard/community tier badge.
-- **5 — corner.** A third column appears beside MODULES and PARAMETERS — **BOUNDS**, greyed
-  and captioned *"not set here"*, with a small forward arrow labelled *ongoing*. Then the
-  whole configuration greys as "this community's choices," over the one lit **kernel** box
-  that holds the Schedule — "not on the menu."
+- **5 — corner.** ⭐ **The three-things close, built as a subtraction.** Start on the full
+  Schedule lit. Grey out the **kernel** box ("not on the menu"), then the **eternity** rows
+  ("only left behind"), then a third column appears beside MODULES and PARAMETERS —
+  **BOUNDS**, greyed, captioned *"not set here"* with a small forward arrow marked
+  *ongoing*. What stays lit at the end **is** the community's configuration: the remainder.
 
 ## Notes
 
-- **Length: 939 words ≈ 6.5 min @145wpm (7.2 @130).** ⭐ The house rhythm across Ch 1 (1004),
+- **Length: 1025 words ≈ 7.1 min @145wpm (7.9 @130).** ⭐ The house rhythm across Ch 1 (1004),
   this (939) and Appendix B (840) is **~900 words ≈ 6–7 min** — treat that as the budget for
   every appendix, which is roughly **five beats**.
 - **Register: descriptive** (matches Appendix B) — documentation, not advocacy. The
   prohibition/repeal beat stays inside it: it documents the mechanism working, it is not a
   flourish.
+- **⭐⭐ THESIS ROTATED 2026-08-04 — the subject is the BOUNDARY OF CHOICE, not the
+  settings.** The draft read as a configuration manual: articles-vs-Schedule,
+  modules-vs-parameters, presets-as-distros, package-manager, kernel. All true, and it is
+  the **mechanism** — but it occupied the slot where the *what-this-is-about* belongs, at
+  three costs: it casts the viewer as an **operator** rather than a member; it makes politics
+  sound **already solved** (a menu, when the denominator line says the opposite); and it
+  implies a **setup phase that ends**, which the bound handoff contradicts.
+
+  > **Ratification is where a community finds out how much is actually theirs to decide.**
+
+  ⭐ The structure was already this — it *closes* on the kernel, calls eternity "the floor,"
+  and now adds bounds as never-settled. **Three things sit outside the community's control
+  and they are the emphatic beats; the configuration is the remainder.** That also aligns A
+  with the appendix spine (*chapters are the machine; appendices are what it may and may not
+  do to you*) — A is the first appendix and should establish that frame, not a different one.
+
+  **Cost: four framing sentences.** Every worked example, both presets, the tier ladder, the
+  prohibition beat and ⭐ **the package-manager beat survive untouched** (user's call — it is
+  the most distinctive thirty seconds in the video).
+- **Also cut**: [1] used a jury to illustrate *parameters*, which [3] then walked properly as
+  a worked row. Same list twice — [1] now leads on the bill and keeps one clause of jury.
 - **⭐ Revised 2026-08-04.** Four changes: a familiarity opener ([0] — the two layers are
   legible from a lease before they are named); prohibition/repeal as the concrete
   amendment-tier case ([2]); **[3] cut from 287 words to 176** — the cue sheet already
