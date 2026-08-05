@@ -86,29 +86,39 @@ the fix is one pattern (§4), applied per vocation.
 - **Mechanism (honest ✅, built):** a conserved two-tier ledger, one sealed
   write chokepoint, structural conservation per leg (banking.md:35-74).
   Rigorous economic mechanism.
-- **Reasoning loop: designed, but UNBUILT — and it leans "read," not
-  "recommend."** The insurance-slate is *organized around* judgment —
-  **"if both sides know the same things, build a MENU; if one side knows
-  more, build a VOCATION"** (insurance-slate.md:276-278); **"portfolio
-  construction … is the real skill"** with correlation making a
-  concentrated book **"insolvent by design"** (insurance-slate.md:26-34) —
-  a genuine assess-risk → decide-exposure → **bear-consequence** cycle,
-  made *legible by the public record* ("a bad actuary is provably bad,
-  after the fact", insurance-slate.md:190-206). **But none of it is built**
-  — the built layer is a payments **MENU with deliberately no
-  practitioner** ("the vocation does not exist", insurance-slate.md:256).
-  And even the design reframes judgment as **"better reading of public
-  data"** (insurance-slate.md:198-202) rather than a *recommendation*.
+- **Reasoning loop: fully designed, but UNBUILT.** The insurance-slate is
+  *organized around* judgment — **"if both sides know the same things,
+  build a MENU; if one side knows more, build a VOCATION"**
+  (insurance-slate.md:276-278); portfolio construction with correlation
+  making a concentrated book **"insolvent by design"**
+  (insurance-slate.md:26-34) — a genuine assess-risk → decide-exposure →
+  **bear-consequence** cycle, made *legible by the public record*
+  (insurance-slate.md:190-206). **The post-merge `credit-slate` (verified
+  2026-08-05) deepens this into a full lending loop** — assess
+  creditworthiness → decide to lend / set terms → **bear default**
+  (foreclosure, distressed-debt, discharge) — with a **human practitioner
+  deliberately seated at the locality / commercial-bank layer** ("local
+  knowledge substitutes for credit scoring", credit-slate.md:435-437),
+  while the **central bank stays deliberately practitioner-free** ("the CB
+  never makes a credit judgment at all", credit-slate.md:176-178). So the
+  earlier "leans *read*, not *recommend*" read **softens — the design now
+  models decide-and-bear-consequence.** **But none of it is built** — the
+  built layer is a *per-currency* conserved ledger + a payments **MENU with
+  no practitioner** ("the vocation does not exist", insurance-slate.md:256;
+  lending still deferred, banking.md:546-548), and `credit-slate` is
+  explicitly "Not requirements."
 - **Study pedagogy:** Securities/Insurance licensure grades **suitability**
   — match a *product* to a *client's* need, risk tolerance, and the
   regulation, under fiduciary duty. Concepts present: **"Suitability
   analysis," "Underwriting," "Risk assessment," "Medical underwriting."**
 - **The gap:** the finance family is *closer* than the medic (judgment is
-  designed, and public-record legibility is arguably a *better* assessment
-  than an MCQ), but (a) it's **unbuilt**, and (b) it's light on the
-  **client-suitability recommendation** that licensure centers on — the
-  design models *reading risk*, not *recommending to a client and bearing
-  the complaint.*
+  now *fully* designed, and public-record legibility is arguably a *better*
+  assessment than an MCQ), but (a) it's **unbuilt**, and (b) even with
+  `credit-slate`'s *lender-side* underwriting loop, it doesn't model the
+  **securities client-suitability** frame licensure centers on — an
+  *adviser recommending a product to a client under fiduciary duty and
+  bearing the complaint*, a different loop from a lender assessing a
+  borrower.
 - **The fix:** build the designed vocation layer, and add the **suitability
   decision** — recommend the right instrument for a *modeled client's*
   need/risk, and bear the consequence (complaint, loss, discoverable

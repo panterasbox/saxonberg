@@ -87,8 +87,11 @@ actor-agnostic ([employment.md](./subsystems/employment.md)):
 
 **The one honest gap:** a *player* professor needs the teaching-capability
 mixin composed on `Avatar`, which is a named, deferred build-time seam
-("runtime mixin-composition is its own deferred thing", employment.md:325-328).
-The *relationship* is already actor-agnostic; only the capability
+("runtime mixin-composition is its own deferred thing", employment.md:484-485
+— anchor re-pointed after the master merge). The *relationship* is already
+actor-agnostic — and the post-merge **`appoint` verb** now lets a player
+*be appointed* to a Position (authority-gated, employment.md:225-226),
+strengthening the relationship side further; only the capability
 composition waits. So: **NPC-taught classrooms ship on today's substrate;
 player-taught ones are one deferred seam away.**
 
