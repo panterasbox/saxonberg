@@ -186,15 +186,16 @@ export default class Coin extends CoinBase {
    * money is the surface where it shows most.)
    */
   public getPluralForm(): string {
+    let singular = "";
     try {
-      const singular = Currency.describeDenomination(
-        this.currency,
-        this.denomination
+      singular = String(
+        Currency.describeDenomination(this.currency, this.denomination) ?? ""
       );
-      return `${singular.replace(/^(a|an|the) /i, "")}s`;
     } catch {
-      return "blank coins";
+      singular = "";
     }
+    if (!singular) return "coins";
+    return `${singular.replace(/^(a|an|the) /i, "")}s`;
   }
 
   /**

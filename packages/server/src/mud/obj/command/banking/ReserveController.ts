@@ -127,7 +127,7 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
         `Money supply (${record.plural}): ${amount(r.supply)}\n` +
           `  in accounts:       ${amount(r.accountTotal)}\n` +
           `  in circulation:    ${amount(r.circulatingCoin)}\n` +
-          `  in bank vaults:    ${amount(r.vaultCoin)}\n` +
+          `  in bank vaults:    ${amount(r.vaultCoin)} (backed on-ledger)\n` +
           `  held offline:      ${amount(r.snapshotCoin)}\n` +
           `  cash in existence: ${amount(r.cashInExistence)}\n` +
           `  reconciliation: ${r.fullyBalanced ? "balanced" : "OUT OF BALANCE"}`,

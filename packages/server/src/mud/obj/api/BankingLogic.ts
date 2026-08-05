@@ -1328,8 +1328,18 @@ async function fullReconcileImpl(
   const base = reconcileImpl(currency);
   const { vault } = liveCoinOf(currency);
   const snapshotCoin = await snapshotCoinOf(currency);
-  const bottomUp =
-    base.accountTotal + base.circulatingCoin + vault + snapshotCoin;
+  // ⚠⚠ VAULT FLOAT IS REPORTED BUT NOT ADDED. `seedFloat` mints coin into the
+  // till AND credits the branch's own operating account 1:1 against it, so
+  // the float is ALREADY represented on the ledger by that balance. Adding
+  // `vault` to the bottom-up term would double-count it by exactly the float
+  // — which is why the original `reconcile` skipped vault cash. That skip was
+  // load-bearing accounting, not an oversight; found by driving, when the
+  // audit reported a bottom-up EXCEEDING supply.
+  //
+  // `snapshotCoin` is different in kind: coin captured into `holder_snapshots`
+  // has no on-ledger counterpart at all, so it is a genuinely missing
+  // reservoir and DOES belong in the identity.
+  const bottomUp = base.accountTotal + base.circulatingCoin + snapshotCoin;
   return {
     ...base,
     vaultCoin: vault,
