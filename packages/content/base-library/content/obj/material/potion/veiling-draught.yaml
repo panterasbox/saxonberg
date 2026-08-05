@@ -20,9 +20,13 @@
 # nothing left to renew the hold. That is why long-lived sustained
 # effects are forged as rings and not bottled.
 #
-# Dose response is `graded`: half a flask veils you for half as long,
-# because a graded modifier scales in DURATION. Real dose-response, and
-# the reason magnitudes are authored per reference dose.
+# Dose response is `graded`: half a flask veils you for half as long.
+#
+# ⚠ That claim was FALSE for a while — potency reached `inject-channel`
+# and nothing else, so a sip and a whole flask both bought the full
+# 1800 seconds. Duration is the sustained family's delivered quantity and
+# now scales with potency like any other magnitude. See MagicLogic's
+# potency doctrine: scale it if it has a size, gate it if it does not.
 class: /obj/material/PotionMaterial
 hydratorClass: /obj/persistence/PersistentHydrator
 data:

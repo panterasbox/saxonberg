@@ -14,6 +14,7 @@
     "docs:project": "tsx scripts/project-author-surface.ts",
     "docs:clean": "rm -rf docs/api",
     "lint:gates": "tsx scripts/check-gate-strings.ts",
+    "lint:blessed-bands": "tsx scripts/check-blessed-bands.ts",
     "lint:field-meta": "tsx scripts/check-field-meta.ts --lint",
     "lint:module-scope": "tsx scripts/check-module-scope.ts",
     "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",

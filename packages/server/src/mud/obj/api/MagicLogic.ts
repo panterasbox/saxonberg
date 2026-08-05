@@ -134,11 +134,25 @@ export interface DischargeOptions {
    */
   readonly potencyScale?: number;
   /**
-   * What paid for this firing, when it is not the item: a **focus**
-   * spends the *user's* reserve, which is the whole distinction between
-   * a focus and a charged shell (D5).
+   * What paid for this firing, when it is not the item — a scroll names
+   * its reader.
    */
   readonly source?: Stuff;
+  /**
+   * **Fire as if this band, whatever the item actually is.**
+   *
+   * Defaults to the item's own band, so every shipped verb behaves
+   * exactly as it reads. The override exists because the band is a
+   * *parameter of the firing*, not a property the executor should be
+   * digging out of the item: an author wants to preview a working at
+   * each band, a trap wants to fire cursed from an uncursed housing, and
+   * a test wants to assert all three without minting three items.
+   *
+   * Hard-wiring the read would have made every one of those need a
+   * separate mechanism. Potency is already open this way
+   * ({@link potencyScale}); this is the same principle one axis over.
+   */
+  readonly band?: BlessingBand;
 }
 
 /** One roster row of the `spells` self-view (bands, never numbers). */
@@ -161,6 +175,33 @@ export interface SpellsView {
 
 /** The bound-emitter and spark-locus template paths. */
 const GLOWLIGHT_ORB_PATH = '/obj/magic/GlowlightOrb';
+
+/**
+ * **What potency means, once, for every effect kind.**
+ *
+ * Potency is the fraction of the working that landed — `deliveryEfficiency
+ * × dose × competence`, all multiplying. Every effect then falls into one
+ * of two shapes, and there are no other cases:
+ *
+ * | shape | kinds | what potency does |
+ * |---|---|---|
+ * | **magnitude** — has one delivered quantity | inject-channel · adjust-reserve · conjure · cloak · emit-field · afflict *(banded)* | scales it, continuously |
+ * | **outcome** — no quantity, it happens or it does not | move · sense · afflict *(flat)* | must clear {@link OUTCOME_FLOOR}; below it, nothing |
+ *
+ * > **Scale it if it has a size; gate it if it does not.**
+ *
+ * The point is that an author never writes anything for this. They
+ * author the full-strength value and the engine knows what "less of this
+ * kind" means — so dose, competence and a maker's efficiency all work on
+ * every working ever authored, for free.
+ *
+ * Before this, potency reached `inject-channel` and nothing else. A
+ * half-flask of a healing draught healed fully; half a veiling draught
+ * veiled for the full term. `dose:` was authored on potions where it
+ * could not possibly do anything, which is the worst kind of gap —
+ * silent, and it looks configured.
+ */
+const OUTCOME_FLOOR = 0.5;
 
 /** Magnitudes not yet worth a dial (the HARM_DEFAULTS precedent). */
 const MAGIC_DEFAULTS = {
@@ -489,15 +530,11 @@ async function dischargeImpl(
   // **The band picks the working's own low/high branch** — not a global
   // multiplier. Resolved HERE, ahead of the shape gate, because the gate
   // must judge the list that will actually fire.
-  const band = MixinApi.isBlessable(item)
-    ? item.getBlessing().getBand()
-    : 'uncursed';
-  const effects =
-    band === 'cursed'
-      ? spell.cursedEffects
-      : band === 'blessed'
-        ? spell.blessedEffects
-        : spell.effects;
+  // The caller may name the band; absent that, the item's own.
+  const band =
+    opts?.band ??
+    (MixinApi.isBlessable(item) ? item.getBlessing().getBand() : 'uncursed');
+  const effects = effectsAtBand(spell, band);
 
   // The spell's own targeting demand — shape only, exactly as a cast.
   const shapeRefusal = targetingRefusal(spell, actor, target, effects);
@@ -761,6 +798,21 @@ function appliesTo(effect: Effect, subject: Stuff): boolean {
   }
 }
 
+/**
+ * The effect list a working fires **at a given band** — the one place
+ * that selection happens, so nothing else has to know the shape.
+ */
+function effectsAtBand(
+  spell: SpellDescriptor,
+  band: BlessingBand,
+): readonly Effect[] {
+  return band === 'cursed'
+    ? spell.cursedEffects
+    : band === 'blessed'
+      ? spell.blessedEffects
+      : spell.effects;
+}
+
 /** One effect against ONE subject — the un-scoped core. */
 async function executeOne(
   ctx: EffectContext,
@@ -781,16 +833,27 @@ async function executeOne(
         return 'Nothing there answers the draw.';
       }
       const unit = t.getReserve(effect.reserveKey)!.current.unit;
-      t.adjustReserve(effect.reserveKey, Quantity.of(effect.delta, unit));
+      t.adjustReserve(
+        effect.reserveKey,
+        Quantity.of(effect.delta * ctx.potency, unit),
+      );
       return effect.delta >= 0 ? 'Vigor flows in.' : 'Something is drawn away.';
     }
     case 'adjust-blessing':
       return execAdjustBlessing(landsOn, effect.steps, effect.limit);
     case 'move':
+      // Outcome, not magnitude: a shove puts you down or it does not.
+      if (ctx.potency < OUTCOME_FLOOR) {
+        return 'The push comes, and it is not enough to move anything.';
+      }
       return execMove(ctx, landsOn, effect.move);
     case 'conjure':
       return execConjure(ctx, landsOn, effect);
     case 'sense':
+      // Outcome, not magnitude: you learn it or you do not.
+      if (ctx.potency < OUTCOME_FLOOR) {
+        return 'The impression will not resolve — too little of it got through.';
+      }
       if (effect.sense === 'misidentify') return execMisidentify(ctx, landsOn);
       return effect.sense === 'identify-item'
         ? execIdentify(ctx, landsOn)
@@ -933,6 +996,15 @@ async function execAfflict(
     return 'The working needs a living mark.';
   }
   const seed = StuffApi.findByTemplatePath<Condition>(e.conditionPath);
+
+  // **Afflict is magnitude where it HAS one, outcome where it does not.**
+  // A seed with `mentalBands` scales its stage below (the resist fold
+  // already threads potency). A flat stage-1 condition has no size to
+  // scale down to except zero, so it gates instead — which is the same
+  // rule, honestly applied, rather than fake precision on an integer.
+  if (e.resist?.axis !== 'mental' && ctx.potency < OUTCOME_FLOOR) {
+    return 'The working thins out before it can take hold.';
+  }
 
   let stage = 1;
   if (e.resist?.axis === 'mental') {
@@ -1096,7 +1168,8 @@ async function execConjure(
         : BulkableApi.floorSurfaceNear(ctx.origin);
     if (!to) return 'There is nothing here to hold it.';
     const litres =
-      e.litres ?? dial(AppSettingKeys.magicConjureWaterLitres, 1);
+      (e.litres ?? dial(AppSettingKeys.magicConjureWaterLitres, 1)) *
+      ctx.potency;
     const result = BulkableApi.transfer(from, to, {
       kind: 'measure',
       litres,
@@ -1589,11 +1662,16 @@ function sustainedRecord(
   spell: SpellDescriptor,
   fields: Partial<SustainedEffect> & { realizes: string },
 ): SustainedEffect {
+  // **Duration IS the sustained family's delivered quantity.** A cloak
+  // and a field have no magnitude field to scale, so a half dose buys
+  // half the term — which is what the veiling draught's own seed claimed
+  // all along while nothing implemented it.
+  const seconds = spell.durationSeconds * ctx.potency;
   let expiresAt: number | undefined;
-  if (spell.durationSeconds > 0) {
+  if (seconds > 0) {
     try {
       if (StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
-        expiresAt = WorldClockApi.getNow().rawValue() + spell.durationSeconds;
+        expiresAt = WorldClockApi.getNow().rawValue() + seconds;
       }
     } catch {
       expiresAt = undefined;
@@ -1614,7 +1692,7 @@ function sustainedRecord(
     magicOrigin: ctx.tag,
     expiresAt,
     sustainedBy,
-    sustainedFor: spell.durationSeconds > 0 ? spell.durationSeconds : undefined,
+    sustainedFor: seconds > 0 ? seconds : undefined,
     ...fields,
   } as SustainedEffect;
 }

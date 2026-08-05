@@ -319,6 +319,53 @@ narrated it with the ordinary bolt's line, so a cursed firing looked
 like the same sentence printed twice and the player learned nothing.
 A hidden axis cannot afford that.
 
+### Potency: scale it if it has a size, gate it if it does not
+
+Potency is the fraction of the working that landed —
+`deliveryEfficiency × dose × competence`, all multiplying. Every effect
+kind falls into one of two shapes, decided **once in the engine**, so an
+author never writes anything for it:
+
+| shape | kinds | what potency does |
+|---|---|---|
+| **magnitude** | `inject-channel` (energy) · `adjust-reserve` (delta) · `conjure` (volume) · `cloak`/`emit-field` (**duration**) · `afflict` *(banded)* | scales it continuously |
+| **outcome** | `move` · `sense` · `afflict` *(flat)* | must clear `OUTCOME_FLOOR`; below it, nothing |
+
+An author writes the full-strength value; dose, competence and a maker's
+efficiency then work on every working ever authored, for free.
+
+> ⚠ **It used to reach `inject-channel` and nothing else.** A half-flask
+> of a healing draught healed fully; half a veiling draught veiled for
+> the full term — while the draught's own seed *claimed* "half a flask
+> veils you for half as long". Silent, and it looked configured. That is
+> the failure mode this doctrine exists to close.
+
+### The band is a PARAMETER, not something read off the item
+
+`DischargeOptions.band` names the band to fire at, defaulting to the
+item's own. The shipped verbs therefore behave exactly as they read,
+while an author can preview a working at each band, a trap can fire
+cursed from an uncursed housing, and a test can assert all three without
+minting three items. Hard-wiring the read would have made each of those
+need its own mechanism. Potency was already open this way
+(`potencyScale`); this is the same principle one axis over.
+
+### ⭐ Composing `Blessable` obliges you to author it
+
+**Not optional.** `pnpm lint:blessed-bands` (CI-gating) fails the build
+when a template whose class composes `BlessableMixin` carries a working
+with no band variation — naming the item, the class and the working, and
+offering both exits: author the bands, or stop composing the mixin.
+
+Before it, "band-indifferent" was a quiet default: a cursed item fired
+identically to an ordinary one, still reported its band, still answered
+`remove curse`, and nothing said the axis was inert.
+
+The lint checks **presence, not quality** — `energy: [2, 2, 4]` passes
+while leaving cursed identical to uncursed. Same boundary the slate drew
+around the monotonic contract: the lint stops silence, review stops
+laziness.
+
 ### ⚠ …and the high end must not betray the working's identity
 
 The first draft gave blessed remove-curse `limit: blessed`, so it
