@@ -594,10 +594,11 @@ async function dischargeImpl(
   // recoverable entropy, never a cliff).
   //
   // `source` is WHO PAYS, and therefore also who takes the reaction
-  // (see `recoilOnto`). A focus's payer is the user; a charged shell's
-  // is itself. An explicit option wins — a scroll names its reader.
-  let classScale = 1;
-  let payer: Stuff = opts?.source ?? item;
+  // (see `recoilOnto`). A charged shell pays for itself; a consumable's
+  // payer is its user. An explicit option wins — a scroll names its
+  // reader.
+  const classScale = 1;
+  const payer: Stuff = opts?.source ?? item;
   if (MixinApi.isCharged(item)) {
     const costKJ = spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1);
     if (!item.spendCharge(costKJ)) {
@@ -1392,7 +1393,18 @@ function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string 
   // Borrow another identifiable class's true name. Drawn from the world
   // rather than invented, so the lie is plausible — it names a thing
   // that really exists, which is exactly why it is believable.
-  const others = StuffApi.getAllObjects().filter(
+  //
+  // ⚠ A **system-mode MQL query**, not a `getAllObjects()` filter-loop.
+  // The raw enumeration is allowlisted to three engine homes and this is
+  // not one of them (`lint:world-scan`, CI-gating); the declarative form
+  // is the sanctioned way to ask the world a question. `commandGiver:
+  // null` is what makes the `mixin.` filter legal here — those are
+  // author-gated for a real caller, and system mode has no principal to
+  // gate. Same shape as `Census.takeCensus`.
+  const others = MqlApi.resolveMany('world:[mixin.IdentifiableMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter(
     (o) =>
       MixinApi.isIdentifiable(o) &&
       o.getTemplatePath() !== signature &&

@@ -1,7 +1,33 @@
 # Magic items slate (working doc) — NetHack's consumables + the BUC axis
 
-> **Status (2026-07): design in progress — the BUC substrate is settled
-> end-to-end; the item catalog is mapped but not yet spec'd.** The premise:
+> **Status (2026-08-05): SHIPPED as a tail** →
+> [magic-items.md](../../subsystems/magic-items.md). The substrate landed
+> whole — effect context, three item classes (`Focus` cut), charge
+> economy, BUC, identification, the memory loop, distribution. What is
+> left in here is **the catalog map: the backlog for the item-by-item
+> walk**, plus the gap roundup that ranks it.
+>
+> ### ⭐ Where the catalog work actually lives
+>
+> Not here, and not in a build. **The remaining work is CONTENT, and
+> content ships as a pack** (`packages/content/`, the `PackApi` reconcile
+> installer — see [content-packs.md](../../subsystems/content-packs.md)).
+> The substrate it needs is already merged; a new wand is a template and
+> a spell seed, not a mixin. This slate is the *source* the pack authors
+> read from, which is exactly what a tail is for.
+>
+> ⚠ **The open question is how to CUT it.** The shipped packs are scoped
+> by substrate area (`base-library`, `species-and-names`,
+> `arcane-descriptors`), and "round out the assortment" is a horizontal
+> cut across every item class at once — twenty wands, thirty potions.
+> That is the shape most likely to produce a pile of variations nobody
+> meets. The alternative is a **vertical** cut: everything one shop
+> stocks, or one trade's line end to end, so each pack is a place a
+> player can actually go. Decide that before authoring, because it is
+> the difference between a catalog and a location.
+>
+> *(Original status, 2026-07: design in progress — the BUC substrate is
+> settled end-to-end; the item catalog is mapped but not yet spec'd.)* The premise:
 > NetHack's potions / scrolls / rings / amulets are a stress-test suite for
 > the immsim substrate — most of the catalog *lands somewhere* on systems
 > already shipped (belief, augmentation, thermal, metabolism, respiration,

@@ -909,6 +909,7 @@ side — `backend/PersistenceManager` re-exports it).
 - `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `name_banks` — char-gen name pools, installed by the species-and-names pack
+- `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
 - `beliefs` — per-viewer identity-memory rows (belief.md)
 - `chronicles` — per-character append-only identity ledger (chronicle.md)
 - `transcripts` — advancement evidence ledger; Competence derives on read (advancement.md)

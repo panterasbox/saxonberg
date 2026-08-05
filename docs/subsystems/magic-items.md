@@ -208,12 +208,69 @@ item lasts months — a real tactical choice that bites hardest on exactly
 the class most prone to inflation, because people wear rings and stow
 wands.
 
-**Foci perish too, by pattern rot.** A specification-only item has no
-energy to leak and looks immortal. It is not: a binding is a state held
-away from equilibrium, and a pattern that does work cannot *be* at
-equilibrium. Two orders of magnitude slower than charge, because it is
-losing **order** rather than energy. The canon line is *magic perishes,
-matter doesn't* — the ruins hold perfect blades and faded rings.
+The canon line is *magic perishes, matter doesn't* — the ruins hold
+perfect blades and faded rings. (D9's pattern-rot clock was the
+`Focus` half of that and went with the class; a conduit has no pattern
+to rot, only a tool's ordinary wear.)
+
+### Recharging: three things, and a coupling that loses some
+
+`recharge` used to move a caster's reserve into a shell on the strength
+of **intent alone** — any caster in reach of a charged item could top it
+up, at a flat 1:1, with no apparatus, no working and no competence.
+Nothing in the fiction said how it crossed, and the flat rate made the
+caster a **perfect pump**: the one free lunch in a model where a
+firebolt spends 35.2 τ to deliver 29.9, and where mana is a metabolic
+fraction (what ends up in the wand was food and water a few hours ago).
+
+The physics was already in the tree and nothing read it —
+[electricity.md](./electricity.md) ships an Ohm's-law core with
+resistance, and the descriptor doctrine already asserts of wands that *a
+wand IS brass, which tells you real things: **it conducts***. So:
+
+> **Energy does not cross from a reserve into a shell by wanting it to.
+> It crosses through a coupling, and couplings have impedance.**
+
+Efficiency stops being a balance dial and becomes what it physically is.
+It also makes a wand's material load-bearing for the first time, which
+the doctrine always claimed and no mechanism ever cashed.
+
+| supplies | without it |
+|---|---|
+| your **reserve** | *"You have no gift to pour into it."* |
+| the **working** (`transfer`) | *"…no idea how to send it."* |
+| a **conduit** (`ConduitMixin`) | *"…bare hands are a poor road for that much energy."* |
+
+`delivered = committed × coupling × competence` — crude 0.6 · field 0.85
+· bench 0.98, against bands 0.40 → 0.92.
+
+> ⚠ **Efficiency can never reach 1, by construction.** Both factors are
+> below one, the setter clamps, and a nonsense value degrades to *crude*
+> rather than perfect. Not tuning: 1 τ ≡ 1 kJ against a conservation
+> law, so a lossless pump is a perpetual-motion machine. This is also
+> why it does **not** reuse `potencyFactor`, whose competence term is a
+> bonus `≥ 1` above the required band — multiplying delivered energy by
+> that mints joules.
+
+**`transfer` is gated at `novice` on purpose.** It is plumbing, not the
+interesting part of being a mage — and it is the part that makes a mage
+*useful to other people*. Gating it high would turn a service anyone can
+sell into a specialist's monopoly; competence still bites, continuously,
+through the ladder rather than as a cliff.
+
+> ⚠ **The back door is closed at the mechanism, not at the spell.**
+> `transfer` authored `delta: 20` against `cost: 4` and was generating
+> 16 kJ a cast, straight past the coupling. `adjust-reserve` now routes
+> **any** positive delta on a `charge` reserve through the one
+> implementation (`MagicApi.transferCharge`), so *no effect can add
+> charge without a coupling* — not just the one that did. The
+> `recharge` controller calls the same method: one mechanism, two
+> triggers, which is this subsystem's own rule applied to itself.
+
+The verb stays contributed by `ChargedMixin`, so the affordance follows
+the **target** and a conduit-less caster fails audibly — exactly as a
+flat wand still affords `zap` (D34). Hiding it would turn the affordance
+list into a free inventory check.
 
 ### Mana recovery spends satiation and hydration
 
@@ -407,7 +464,7 @@ which is the common and honest case.
 
 ### Scoped to things with an effect axis
 
-`BlessableMixin` is composed by `Wand`, `Rod` and `Scroll` — everything
+`BlessableMixin` is composed by `Wand` and `Scroll` — everything
 that fires a working. `Scroll` earned it once the band selected the
 working's own branch; while BUC's only consumer was the release gate it
 was meaningless for a one-shot, and now it is the archetype.
@@ -442,7 +499,7 @@ cursed thing can never end up half off. The occupant makes the refusal
 permit), and the slot substrate never imports the magic tree — it asks
 through `MixinApi.isBlessable`.
 
-`Wand` and `Rod` are `Wieldable` so there is a slot for a curse to stick
+`Wand` is `Wieldable` so there is a slot for a curse to stick
 to. Without a slot claim the gate has nothing to bite: a cursed wand in
 your **pack** refuses nothing, because the curse is a fact about
 wielding it, not about owning it.
@@ -1010,12 +1067,12 @@ The demand itself is the shared targeting floor
 `Arcane.ts` · `Grid.ts` · `obj/api/MagicLogic.ts` (`discharge`)
 
 **Item classes** — `lib/magic/Charged.ts` · `Focus.ts` · `Consumable.ts` ·
-`Potable.ts` · `Charge.ts` · `Dose.ts` · `obj/magic/Wand.ts` · `Rod.ts` ·
+`Potable.ts` · `Charge.ts` · `Dose.ts` · `Conduit.ts` · `obj/magic/Wand.ts` ·
 `Scroll.ts` · `Spellbook.ts` · `obj/material/PotionMaterial.ts`
 
 **BUC** — `lib/magic/Blessing.ts` (`draw`/`hasOdds`) · `Blessable.ts`
 (`applyMintOdds`) · `obj/api/ResidencyLogic.ts` (the mint-site roll) ·
-`lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts` + `Rod.ts`
+`lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts`
 (the only composers) · `obj/api/MagicLogic.ts` (`BUC_POTENCY`,
 `execAdjustBlessing`) · `seeds/obj/magic/Spell/remove-curse.yaml` ·
 `seeds/obj/items/scroll-of-remove-curse.yaml` ·

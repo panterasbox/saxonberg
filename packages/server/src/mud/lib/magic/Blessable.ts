@@ -137,7 +137,7 @@ export interface Blessable {
    * the odds that produced it are not a fact about it. It lives here
    * rather than on `Circulating` because the field is meaningless
    * without an effect axis to displace, which is the same reason the
-   * mixin is scoped to `Wand`/`Rod`.
+   * mixin is scoped to `Wand`/`Scroll`.
    */
   getBlessingOdds(): BlessingOdds | null;
   setBlessingOdds(odds: BlessingOdds | null): void;

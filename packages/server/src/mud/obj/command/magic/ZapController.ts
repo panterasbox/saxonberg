@@ -19,7 +19,6 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
-import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MessageApi } from '../../../api/message';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
