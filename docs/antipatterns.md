@@ -839,7 +839,6 @@ subclass with overridden `hydrate()`.
 
 ```typescript
 avatar.questStarted = true;
-avatar.gold = 100;
 avatar.activeBuffs = [...];
 location.occupancy = location.occupancy + 1;
 ```
@@ -855,20 +854,47 @@ Stuff sees them, but only by luck of being enumerable.
 
 ```typescript
 avatar.setProp(Property.of<boolean>('quest_started'), true);
-
-avatar.initProp(Property.of<number>('gold'), {
-  transient: false,                         // saved across reload
-  checkAccess: (_p, op) =>
-    op !== PropOperations.Set ||             // only owner can write
-    ExecutionContextApi.getCaller() === avatar,
-});
-avatar.setProp(Property.of<number>('gold'), 100);
 ```
 
-Now: `gold` round-trips through the persistence pipeline (saved
-because `savedProps` is on `PropertiedMixin.persistentFields`); writes
-go through `checkAccess`; the property is enumerable via
-`getAllPropNames`; introspectable via `checkProp`.
+It round-trips through the persistence pipeline (saved because
+`savedProps` is on `PropertiedMixin.persistentFields`); writes go
+through `checkAccess`; it is enumerable via `getAllPropNames` and
+introspectable via `checkProp`.
+
+### ⚠ What a prop is FOR — the key you cannot know in advance
+
+There are exactly **two** production prop call sites, and they are the
+same shape:
+
+| Site | Key |
+|---|---|
+| `api/event.ts` — the EventRegistry | `Property.of(eventName)` — one slot per authored event |
+| `obj/api/BankingLogic.ts` — corpo circle membership | `circleProp(corpoKey)` — one flag per corpo |
+
+Neither key exists at authoring time, which is the whole point:
+
+> **A mixin field needs a statically known name. A prop is for a slot
+> whose key is computed at runtime.**
+
+That is a sharper test than "is it dynamic", and it explains why the
+count is two rather than two hundred. This codebase is *designed* —
+one mind, everything named up front — so the organic, unforeseen state
+props exist to absorb mostly has not arisen. **That is the expected
+state, not an under-use to correct.** Reach for a prop when something
+genuinely unplanned shows up (a player script's scratch space, a
+per-corpo flag), not to avoid declaring a field.
+
+### ⚠⚠ Money is NOT a prop — nor a field
+
+This section used to demonstrate props with `avatar.gold = 100`. That
+example predates the banking build and is now **exactly the breach the
+money system exists to prevent**.
+
+Money lives in `bank_ledger`, written only by the sealed
+`postTransaction` chokepoint, which enforces
+`supply == Σ account balances + Σ circulating coins`. A number on an
+avatar — prop or field — mints currency from nowhere and bypasses
+conservation entirely. See [banking.md](./subsystems/banking.md).
 
 ### When a class field IS the right answer
 
@@ -876,6 +902,28 @@ Structural state — what a `Door` *is* — stays a class field
 (`open`, `lockKey`, `keywords`). Persistent fields a class needs at
 all times, with shape that's part of the type, are still declared as
 fields and listed in a `persistent` entry in `fieldMeta`.
+
+Two mechanical tests settle nearly every case, and **either one alone
+is decisive for a field**:
+
+1. **Can a content author write it in YAML?** The Hydrator reflects
+   into **fields**, never props, and `fieldMeta.authorable` is what
+   puts a key in a template's `data:` block and in the Studio
+   `@authorable` schema. **Props are unreachable from content.**
+2. **Does anything narrow on it?** `MixinApi.isX(obj)` threads a
+   mixin's interface into TypeScript's control flow. `getProp` returns
+   `T | undefined` on *every* Stuff, so there is no compile-time
+   notion of "a thing that has this".
+
+A third, narrower: **glob identity**. `globIdentity` is declared in
+`fieldMeta`; props have no equivalent, so anything stack-merge
+identity keys on must be a field.
+
+The upshot: a "data-only" mixin is usually still a mixin.
+`LabelledMixin` is three accessors and no logic, yet it carries a
+setter invariant the Hydrator routes through, contributes the `label`
+verb, is narrowed on by `RecognitionApi`, vetoes stack merges, and is
+authorable. **A mixin is a TYPE; a prop is a VALUE.**
 
 Props handle the dynamic, per-instance, possibly-protected,
 possibly-transient state on top of that — quest flags, capabilities,

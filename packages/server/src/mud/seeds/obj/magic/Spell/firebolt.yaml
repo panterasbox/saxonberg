@@ -10,15 +10,38 @@ data:
   name: Firebolt
   verb: create
   noun: fire
-  requiredBand: novice
   cost: 20
-  castSeconds: 3
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
   targeting: any
   effects:
+    # The bolt itself. [cursed · uncursed · blessed] — magnitude, which
+    # stays authored per working rather than engine-fixed, because how
+    # much a guttering firebolt loses is a fact about FIREBOLT.
     - kind: inject-channel
       channel: heat
-      energy: 2
-      joules: 900000
+      energy: [1, 2, 4]
+      joules: [300000, 900000, 1800000]
+    # ── and firebolt's OWN answer to being cursed ──
+    #
+    # ⚠ This is firebolt's expression, NOT a rule about cursed wands. A
+    # frost wand might go brittle; a rod of shoving might shove the
+    # wielder; a cursed scroll might lay the curse it was meant to lift.
+    # The engine offers the CAPABILITY (`bands` + `self`); what the low
+    # end of a working feels like is the author's to decide, and it
+    # should fit that working's identity.
+    #
+    # For a bolt of fire the honest bad end is that it comes out the
+    # wrong side. Cursed is not merely weaker — the feeble bolt still
+    # flies, and the rest of it goes into the hand holding the wand.
+    - kind: inject-channel
+      bands: [cursed]
+      self: true
+      channel: heat
+      energy: 3
+      joules: 250000
+      site: body.arm.right.hand
       resist: { axis: channel, intensity: 2 }
   description: >-
     A lance of true flame. What it touches, it heats — flesh burns, tinder

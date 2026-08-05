@@ -383,6 +383,15 @@ export class CommandLogic extends ApiLogic {
     return { loaded, failed };
   }
 
+  /** See {@link CommandApi.collectContributions}. */
+  @CallSecurity(CommandApiCallers)
+  public collectContributions(
+    ctor: unknown,
+    bucket: 'self' | 'inventory' | 'environment' | 'peers',
+  ): CommandDefinition[] {
+    return collectBucketDefs(ctor, bucket);
+  }
+
   /** See {@link CommandApi.collectSelfDefs}. */
   @CallSecurity(CommandApiCallers)
   public collectSelfDefs(ctor: unknown): CommandDefinition[] {
@@ -1827,15 +1836,33 @@ function bindPositionals(
       } else if (stopAt < positionals.length) {
         // Build the substring from the original source to preserve
         // whitespace, but cut it just before the boundary token.
+        // ⚠ `raw.length`, not `value.length`: a quoted or escaped token's
+        // source span is longer than its stripped value, so measuring by
+        // the value cuts the last word short (`"hello world"` → `"hello
+        // worl`). `raw` is the verbatim slice, which is what it is for.
         const startInSource = first.pos - parsed.start;
         const last = positionals[stopAt - 1]!;
-        const endInSource = last.pos + last.value.length - parsed.start;
+        const endInSource = last.pos + last.raw.length - parsed.start;
         const slice = parsed.source.substring(startInSource, endInSource);
         const processed = CommandLineApi.processOutsideEscapes(slice).trimEnd();
         bound[name] = expand(processed);
       } else {
+        // ⚠ Cut at the LAST POSITIONAL's end, not at end-of-source.
+        // Option tokens were already bound and skipped in Phase 3, but
+        // they are still present in the raw source — so slicing to the
+        // end swallows them into the text. `press post Some headline
+        // --as /compact/press` bound the publisher correctly AND
+        // published a headline reading "Some headline --as
+        // /compact/press". (The boundary-preposition branch above always
+        // cut at a token end and never had this.)
+        //
+        // Found by driving the verb in a browser: every controller suite
+        // constructs a bound model directly, so nothing exercised the
+        // greedy binder against trailing options.
         const startInSource = first.pos - parsed.start;
-        const slice = parsed.source.substring(startInSource);
+        const last = positionals[positionals.length - 1]!;
+        const endInSource = last.pos + last.raw.length - parsed.start;
+        const slice = parsed.source.substring(startInSource, endInSource);
         const processed = CommandLineApi.processOutsideEscapes(slice);
         bound[name] = expand(processed);
       }

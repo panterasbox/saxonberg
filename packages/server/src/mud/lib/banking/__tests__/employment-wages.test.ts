@@ -24,6 +24,7 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from './banking-test-harness';
+import { Currency } from "../Currency";
 
 const BUSINESS = '/domain/lounge/business';
 const BANK = '/domain/terminus/counting-houses/bank-counter';
@@ -66,7 +67,7 @@ function seedBusiness(): BusinessEntity {
 /** An employment on shift since `onSince`. */
 function shift(onSince: number): Employment {
   return Employment.of({
-    businessPath: BUSINESS,
+    organizationPath: BUSINESS,
     positionKey: 'bartender',
     status: 'on-shift',
     hiredAt: 0,
@@ -92,7 +93,7 @@ describe('employment shift-wage settlement', () => {
   it('pays rate × shift-hours once, at the boundary', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Person(), MARA);
-    await asOwner(mara, () => BankingApi.openAccount('goodkin', ''));
+    await asOwner(mara, () => BankingApi.openAccount('goodkin', '', Currency.compact()));
 
     // onShiftSince = 0, now = 8h  →  8 game-hours × 12 = 96
     await EmploymentApi.settleShiftWage(biz, MARA, shift(0));
@@ -106,7 +107,7 @@ describe('employment shift-wage settlement', () => {
   it('pays the partial for an early clock-out', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Person(), MARA);
-    await asOwner(mara, () => BankingApi.openAccount('goodkin', ''));
+    await asOwner(mara, () => BankingApi.openAccount('goodkin', '', Currency.compact()));
 
     // onShiftSince = 5h, now = 8h  →  3 game-hours × 12 = 36
     await EmploymentApi.settleShiftWage(biz, MARA, shift(5 * HOUR));
@@ -116,7 +117,7 @@ describe('employment shift-wage settlement', () => {
   it('pays a proprietor-held cover nothing (no self-wage)', async () => {
     const biz = seedBusiness();
     const dave = makeStuffAtPath(() => new Person(), DAVE);
-    await asOwner(dave, () => BankingApi.openAccount('goodkin', ''));
+    await asOwner(dave, () => BankingApi.openAccount('goodkin', '', Currency.compact()));
 
     await EmploymentApi.settleShiftWage(biz, DAVE, shift(0));
     expect(await balanceOf(DAVE)).toBe(0);
@@ -125,7 +126,7 @@ describe('employment shift-wage settlement', () => {
   it('pays nothing for a zero-length (paused-clock) shift', async () => {
     const biz = seedBusiness();
     const mara = makeStuffAtPath(() => new Person(), MARA);
-    await asOwner(mara, () => BankingApi.openAccount('goodkin', ''));
+    await asOwner(mara, () => BankingApi.openAccount('goodkin', '', Currency.compact()));
 
     // onShiftSince == now → zero hours
     await EmploymentApi.settleShiftWage(biz, MARA, shift(8 * HOUR));

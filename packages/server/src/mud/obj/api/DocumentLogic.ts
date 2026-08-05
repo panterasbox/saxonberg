@@ -10,7 +10,10 @@ import { ParcelApi } from "../../api/parcel";
 import { ProvenanceApi } from "../../api/provenance";
 import { ExecutionContextApi } from "../../api/execution-context";
 import { StoredDocument } from "../../lib/document/StoredDocument";
+import { MixinApi } from "../../api/mixin";
 import type { Stuff } from "../../lib/stuff/Stuff";
+import type { Publisher } from "../../lib/press/Publisher";
+import { RELEASE_DOCUMENT_KIND } from "../../lib/press/Release";
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -83,6 +86,73 @@ async function listImpl(prefix: string): Promise<StoredDocument[]> {
   return StoredDocument.findByPrefix(prefix);
 }
 
+async function listOfKindImpl(kind: string): Promise<StoredDocument[]> {
+  return StoredDocument.findByKind(kind);
+}
+
+/**
+ * Write a release document **owned by its publisher organization**.
+ *
+ * ⚠⚠ **This is an ownership bypass by construction, and the only thing
+ * keeping it narrow is the shape of its signature plus its gate.**
+ * `save` gates on self-home / covering zone / slice-walk, which admits the
+ * *parcel owner* — not the comms director. Making every comms director a
+ * landowner is obviously wrong, so the press path writes through here
+ * instead, the way `PersistableApi` routes capture as the owning
+ * principal.
+ *
+ * Three things keep it honest, and all three are load-bearing:
+ *
+ *   1. **It takes no caller-supplied owner.** It takes the publisher
+ *      organization and derives the owner from it, so there is no
+ *      parameter to lie in.
+ *   2. **It refuses a path outside that publisher's own feed branch.**
+ *      Otherwise a publisher could stamp its ownership anywhere in the
+ *      tree.
+ *   3. **The `kind` is fixed here, not passed.** It cannot be used to
+ *      write anything but a release.
+ *
+ * The authorization that the caller may publish as this publisher is
+ * `mayPublishAs`, in front of this — see `PressLogic`.
+ */
+async function saveReleaseImpl(
+  publisher: Stuff & Publisher,
+  path: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  if (!MixinApi.isPublisher(publisher)) {
+    throw new Error(
+      "DocumentApi.saveRelease: the owner must be a publisher organization",
+    );
+  }
+  const owner = publisher.getTemplatePath() ?? "";
+  if (owner.length === 0) {
+    throw new Error(
+      "DocumentApi.saveRelease: the publisher has no durable path to own by",
+    );
+  }
+  const feed = publisher.getFeedPath();
+  if (feed.length === 0 || !path.startsWith(`${feed}/`)) {
+    throw new Error(
+      `DocumentApi.saveRelease: ${path} is not under ${owner}'s feed ` +
+        `(${feed || "unauthored"})`,
+    );
+  }
+
+  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = owner;
+  doc.kind = RELEASE_DOCUMENT_KIND;
+  doc.data = data;
+  await doc.save();
+
+  // Authorship is still the acting author's, keyed on the path — the
+  // publisher owns the document, a person wrote it. DocumentLogic is an
+  // admitted authoring transport (the `recordAuthoring` gate names
+  // `/obj/api/document`).
+  await ProvenanceApi.recordAuthoring({ path });
+}
+
 async function saveImpl(
   path: string,
   kind: string,
@@ -130,6 +200,27 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async list(prefix: string): Promise<StoredDocument[]> {
     return listImpl(prefix);
+  }
+
+  /** See {@link DocumentApi.listOfKind}. */
+  @CallSecurity(DocumentApiCallers)
+  public async listOfKind(kind: string): Promise<StoredDocument[]> {
+    return listOfKindImpl(kind);
+  }
+
+  /**
+   * See {@link DocumentApi.saveRelease}. ⚠⚠ This is the ownership bypass.
+   * The narrowing that matters lives on the **Api static** — every logic
+   * method's caller is its own face, so a policy here would name
+   * `DocumentApi` and narrow nothing.
+   */
+  @CallSecurity(DocumentApiCallers)
+  public async saveRelease(
+    publisher: Stuff & Publisher,
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return saveReleaseImpl(publisher, path, data);
   }
 
   /** See {@link DocumentApi.save}. */

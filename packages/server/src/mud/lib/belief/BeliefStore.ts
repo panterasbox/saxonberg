@@ -108,10 +108,52 @@ export const DISCOVERY = 'discovery';
 export interface BeliefPayload {
   /**
    * Identification realm: the viewer knows what *kind* of thing the
-   * referent is. Binary in v1 (unidentified ↔ identified); partial
-   * levels defer. Read the actual type name live; this is just the gate.
+   * referent is. Read the actual type name live; this is just the gate.
    */
   typeKnown?: boolean;
+  /**
+   * Identification realm: **a name this viewer believes and that may be
+   * FALSE.** Overrides the referent's own identified name on read.
+   *
+   * The store is a record of what someone *thinks*, not a cache of what
+   * is true — and until this field existed nothing exercised that. A
+   * cursed identify plants one: a record indistinguishable from a real
+   * identification, naming a different real thing. The holder finds out
+   * by acting on it, which is what makes bad information strictly worse
+   * than none.
+   *
+   * Absent ⇒ the referent's own `identifiedName`, i.e. the truth.
+   */
+  believedName?: string;
+  /**
+   * Identification realm: **the facts this viewer holds about the
+   * referent's class** — and the state from which any band derives
+   * (magic-items D25).
+   *
+   * There is deliberately **no `identificationLevel` scalar**. A stored
+   * percentage of knowing is exactly the shape this codebase avoids:
+   * competence bands derive, renown derives, nothing stores a fraction
+   * of a fact. You know *facts*; how identified something is falls out
+   * of which facts you hold.
+   *
+   * A `string[]` rather than a flag set because the vocabulary is
+   * open-ended content (`'type'`, `'kind'`, later `'potency'`,
+   * `'origin'`) and each entry is a fact a different act can teach.
+   */
+  knownAttributes?: string[];
+  /**
+   * Identification realm: **which descriptor generation this record was
+   * learned in** (D28).
+   *
+   * The descriptor pool is finite, so a descriptor is eventually
+   * reissued meaning something else — the one moment a stale record
+   * could assert something false. Stamping the generation lets the
+   * display **hedge rather than lie**: *"a blue potion — you once knew
+   * blue to mean healing"*. One field, no sweep, and it only does work
+   * in the rare case. Knowledge is never invalidated; only its
+   * applicability fades.
+   */
+  learnedGeneration?: number;
   /**
    * Regard realm: the viewer's signed attitude toward the referent
    * (`-100..+100`; absent or `0` = no opinion). A **value**, not a flag —
@@ -250,12 +292,38 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (update.knownAs != null) existing.knownAs = update.knownAs;
         if (update.typeKnown !== undefined) {
           existing.payload.typeKnown = update.typeKnown;
+          // ⚠ **A type-learning act REPLACES what you believe the type
+          // is**, including replacing a lie with nothing. `believedName`
+          // is therefore assigned unconditionally here rather than
+          // guarded like its neighbours: an honest identification omits
+          // the field, and omitting it must CLEAR a planted name, not
+          // leave it standing. Guarding it would make a curse permanent
+          // — the one thing the design says it must not be, since
+          // finding out is how the holder recovers.
+          existing.payload.believedName = update.believedName;
         }
         // Regard overwrites (not raise-only): the consumer computes the
         // new value before calling.
         if (update.regard !== undefined) existing.payload.regard = update.regard;
         // Discovery flag: a bare found-flag (flag-by-default).
         if (update.found !== undefined) existing.payload.found = update.found;
+        // Identification attributes UNION rather than overwrite — each
+        // is a fact some act taught, and a second act teaching a second
+        // fact must not erase the first (magic-items D25).
+        if (update.knownAttributes !== undefined) {
+          existing.payload.knownAttributes = [
+            ...new Set([
+              ...(existing.payload.knownAttributes ?? []),
+              ...update.knownAttributes,
+            ]),
+          ];
+        }
+        // The generation OVERWRITES: re-learning refreshes what the
+        // record is current for, which is what makes re-identification
+        // clear a hedge (D28).
+        if (update.learnedGeneration !== undefined) {
+          existing.payload.learnedGeneration = update.learnedGeneration;
+        }
         this._writeThrough(existing);
         return;
       }
@@ -263,6 +331,15 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (update.typeKnown !== undefined) payload.typeKnown = update.typeKnown;
       if (update.regard !== undefined) payload.regard = update.regard;
       if (update.found !== undefined) payload.found = update.found;
+      if (update.knownAttributes !== undefined) {
+        payload.knownAttributes = [...new Set(update.knownAttributes)];
+      }
+      if (update.learnedGeneration !== undefined) {
+        payload.learnedGeneration = update.learnedGeneration;
+      }
+      if (update.believedName !== undefined) {
+        payload.believedName = update.believedName;
+      }
       const record: BeliefRecord = {
         realm,
         referent,

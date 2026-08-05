@@ -189,32 +189,41 @@ export type RosterFrame =
   | { kind: 'roster'; action: 'snapshot'; rows: RosterRow[] };
 
 /**
- * Which broadcast realm a bulletin belongs to — `ooc` (out-of-character /
- * operator) vs `world` (in-fiction). Mirrors the server `BulletinRealm`.
+ * Which broadcast realm a release belongs to — `ooc` (out-of-character /
+ * operator) vs `world` (in-fiction). Mirrors the server `ReleaseRealm`.
  */
-export type BulletinRealm = 'ooc' | 'world';
+export type ReleaseRealm = 'ooc' | 'world';
 
 /**
- * The editorial classification of a bulletin. Mirrors the server
- * `BulletinKind`.
+ * The editorial classification of a release. Mirrors the server
+ * `ReleaseKind`.
  */
-export type BulletinKind = 'changelog' | 'decision' | 'event' | 'notice';
+export type ReleaseKind =
+  | 'changelog'
+  | 'decision'
+  | 'event'
+  | 'notice'
+  | 'repost';
 
 /**
- * The client-facing projection of one bulletin (the news-ticker row). The
+ * The client-facing projection of one release (the news-ticker row). The
  * server owns all semantics (ordering, pin-cap, expiry, soft-retract) — a
- * **retracted** bulletin is never projected to the client. MML `headline` /
+ * **retracted** release is never projected to the client. MML `headline` /
  * `body` render through the existing parse path; the client owns zero
  * ordering/recognition semantics.
  */
-export interface BulletinRow {
-  bulletinId: string;
-  realm: BulletinRealm;
-  kind: BulletinKind;
+export interface ReleaseRow {
+  releaseId: string;
+  /** The publisher organization's durable path. */
+  publisher: string;
+  realm: ReleaseRealm;
+  kind: ReleaseKind;
   headline: string;
   body: string;
-  /** The publisher's durable identity string, when present. */
+  /** The acting author's durable identity string, when present. */
   author?: string;
+  /** Where a `repost`'s substance came from; absent on an original. */
+  source?: string;
   /** Publish time, epoch-ms. */
   publishedAt: number;
   pinned: boolean;
@@ -223,12 +232,41 @@ export interface BulletinRow {
 }
 
 /**
- * Payload of a `world.bulletin.feed` frame (the news-ticker fan-out;
+ * The **anonymous** projection of one release — what an unauthenticated
+ * visitor reads on the start screen's press room.
+ *
+ * ⚠ **A standalone interface, deliberately.** Not a `Pick<ReleaseRow>` and
+ * not an extension of it: structural sharing is how a field added to the
+ * authenticated row later leaks to the open internet without anyone
+ * noticing. The key set is frozen and asserted as frozen.
+ *
+ * ⚠ **No `author` and no `expiresAt`.** An expiry is operational metadata,
+ * not press-room content, and the person who typed a release is not part
+ * of what a publisher published — the organization is the speaker.
+ */
+export interface PublicReleaseRow {
+  releaseId: string;
+  /** The publisher organization's durable path. */
+  publisher: string;
+  /** The publisher's display name. */
+  publisherLabel: string;
+  realm: ReleaseRealm;
+  kind: ReleaseKind;
+  /** Where a `repost`'s substance came from; absent on an original. */
+  source?: string;
+  headline: string;
+  body: string;
+  publishedAt: number;
+  pinned: boolean;
+}
+
+/**
+ * Payload of a `world.press.feed` frame (the news-ticker fan-out;
  * mirrors the server-side fan). Rides the ordinary `MessageFrame` channel
  * (empty body, structured payload). The client routes by `action`:
  * `snapshot` replaces the whole feed, `upsert` inserts/replaces one row by
- * `bulletinId`, `remove` deletes by `bulletinId`. The initial `snapshot`
- * arrives on connect via `ConnectionEstablishedPayload.bulletinWindow`
+ * `releaseId`, `remove` deletes by `releaseId`. The initial `snapshot`
+ * arrives on connect via `ConnectionEstablishedPayload.releaseWindow`
  * (the welcome payload, not a frame) — there is no request RPC.
  */
 /**
@@ -282,10 +320,10 @@ export interface WikiPageFrame {
   preview?: boolean;
 }
 
-export type BulletinFeedFrame =
-  | { kind: 'bulletin'; action: 'upsert'; row: BulletinRow }
-  | { kind: 'bulletin'; action: 'remove'; bulletinId: string }
-  | { kind: 'bulletin'; action: 'snapshot'; rows: BulletinRow[] };
+export type ReleaseFeedFrame =
+  | { kind: 'release'; action: 'upsert'; row: ReleaseRow }
+  | { kind: 'release'; action: 'remove'; releaseId: string }
+  | { kind: 'release'; action: 'snapshot'; rows: ReleaseRow[] };
 
 /**
  * One row of the `social.rules` client-state projection — a flattened,
@@ -432,6 +470,13 @@ export interface CommandRejectedNote {
   reason:
     | 'parse-failed'
     | 'unknown-verb'
+    /**
+     * The verb EXISTS but nothing here affords it — *"there is nothing
+     * to drink"*, never *"unknown command"*. Distinct from
+     * `unknown-verb` on purpose: conferral controls the affordance
+     * list, never the parser, and the two answers teach opposite
+     * things about whether the verb is real.
+     */
     | 'shape-fall-through'
     | 'bind-failed'
     | 'missing-subcommand'
@@ -1755,10 +1800,10 @@ export interface ConnectionEstablishedPayload {
    * The live news-ticker window at connect time — the pins-first,
    * recency-ordered, retract/expiry-filtered slice the client seeds its
    * feed pane from (consumed as a `snapshot`, exactly as `topicCatalogue`
-   * is). Live deltas thereafter ride `world.bulletin.feed` frames. Empty
+   * is). Live deltas thereafter ride `world.press.feed` frames. Empty
    * when nothing is published.
    */
-  bulletinWindow: BulletinRow[];
+  releaseWindow: ReleaseRow[];
 }
 
 /**

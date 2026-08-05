@@ -100,12 +100,17 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
 
+  packages/content/arcane-descriptors: {}
+
   packages/content/base-library: {}
 
   packages/content/species-and-names: {}
 
   packages/server:
     dependencies:
+      '@saxonberg/content-arcane-descriptors':
+        specifier: workspace:*
+        version: link:../content/arcane-descriptors
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../content/base-library

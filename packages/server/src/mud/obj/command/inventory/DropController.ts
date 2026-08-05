@@ -78,7 +78,9 @@ export default class DropController extends CommandController<DropModel> {
       inInventory,
       quantity,
       async (operand, applied) => {
-        this.dropOperand(operand, context);
+        if (!this.dropOperand(operand, context)) {
+          return { ok: false, reason: 'it will not leave your hand' };
+        }
         return { ok: true, payload: { operand, applied } };
       },
       { field: 'targets', query: raw }
@@ -106,7 +108,7 @@ export default class DropController extends CommandController<DropModel> {
       if (!inventory.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
-      this.dropOperand(target, context);
+      if (!this.dropOperand(target, context)) continue;
       droppedNames.push(target.getPresentation());
     }
     if (droppedNames.length === 0) {
@@ -170,16 +172,45 @@ export default class DropController extends CommandController<DropModel> {
   }
 
   /**
-   * Move one operand into the location and emit the per-operand
-   * scene. Shared by both the bareword whole-set path and the
-   * quantity-bearing `applyQuantity` action callback so the move +
-   * scene pair stays in one place.
+   * Move one operand into the location and emit the per-operand scene.
+   * Shared by both the bareword whole-set path and the quantity-bearing
+   * `applyQuantity` action callback so the move + scene pair stays in
+   * one place. `false` ⇒ it refused and stayed put
+   * (the refusal has already been narrated).
+   *
+   * **Leaving your inventory means leaving your body first.** Dropping
+   * was moving the Stuff without ever vacating the slot it occupied, so
+   * a dropped sword lay on the floor while the hand it came from stayed
+   * full — a phantom occupant, for all equipment, not just cursed
+   * things. It was also the hole that made the cursed-release gate
+   * decorative: you could not unwield a cursed wand, but you could drop
+   * it.
    */
-  private dropOperand(operand: Stuff, context: CommandContext): void {
+  private dropOperand(operand: Stuff, context: CommandContext): boolean {
     if (!MixinApi.isContainable(operand)) {
       throw new Error(
         `DropController: operand ${operand.stuffId} is not Containable`
       );
+    }
+    const giver = context.commandGiver;
+    if (MixinApi.isSlotted(giver) && MixinApi.isSlottable(operand)) {
+      const release = giver.tryReleaseFromSlots(operand);
+      if (!release.released) {
+        MessageApi.scene(giver)
+          .topic('world.perception.inventory')
+          .toSelf(
+            release.dumpedKJ > 0
+              ? Mml.compose`You cannot let go of ${Mml.item(operand)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.item(operand)}. It has no intention of being put down.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'cursed-will-not-release',
+          detail: `${operand.getPresentation()} refuses release`,
+        });
+        return false;
+      }
     }
     ContainmentApi.move(operand, context.location);
     // Custody moved; title did not. Re-derive where the owner keeps it, so
@@ -194,5 +225,6 @@ export default class DropController extends CommandController<DropModel> {
         Mml.compose`${Mml.name(context.commandGiver)} drops ${Mml.item(operand)}.`
       )
       .send();
+    return true;
   }
 }

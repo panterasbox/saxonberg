@@ -998,6 +998,12 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             return outer;
           }
         }
+        // Nothing here affords this verb. That IS an unknown verb from
+        // the actor's position — a verb reaches you by being contributed
+        // (`commandContributions`, `self` for one that should always be
+        // available), and a refusal with a reason is a validator's job.
+        // Both models already exist; a third that dispatches a message
+        // for a verb nobody assigned is a shadow affordance.
         outer.note({
           kind: 'command-rejected',
           reason: 'unknown-verb',

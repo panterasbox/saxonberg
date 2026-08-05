@@ -116,7 +116,7 @@ export default class SenseController extends CommandController<SenseModel> {
     // single-sense verbs are the path for smell/touch/etc. detail
     // prose.
     const dotted = detailPath.join('.');
-    const description = host.getDetail(dotted, 'vision');
+    const description = host.getDetailFor(context.commandGiver, dotted, 'vision');
     if (description === null) {
       MessageApi.scene(actor)
         .topic(SCENE_TOPIC)

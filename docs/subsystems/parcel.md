@@ -86,11 +86,40 @@ act: *"this ground is residential, at this size."*
   unwrapping.
 
 > **⚠ `wild` admits nothing, and that default is load-bearing.** Most rows
-> in this collection are not ground at all — `/studio`, `/obj/lounge` and
-> the `/obj/…` roots are path-branch titles over the template tree, and
-> they all answer `wild`. Were `wild` to admit cultivation, it would be
+> in this collection are not ground at all — `/studio`, `/compact`,
+> `/obj/lounge` and the `/obj/…` roots are path-branch titles over the
+> template tree, and they all answer `wild`. Were `wild` to admit cultivation, it would be
 > legal on every branch nobody thought to zone. Leave those rows unzoned;
 > the fail-closed answer is the correct one.
+
+### The `/compact` title
+
+`config/parcels.yaml` carves one row for the Compact's **publications**
+namespace:
+
+```yaml
+  - extent: /compact
+    owner: { kind: group, name: core }
+```
+
+⚠ **No `landUse`, no `areaM2`** — a path-branch title, not ground. The
+`/studio` row is the shape precedent; the *concept* is not (that is a
+workspace namespace, the multiseat `/home`). See the four-namespace
+taxonomy in [document-store.md](./document-store.md).
+
+It earns its keep three ways: it gives the press feed paths an **owner**,
+gives `CompactApi.committeeOf('/compact')` a claimed title to resolve
+rather than falling through to the state default — which is what makes
+`{kind: 'committee', parcel: '/compact'}` a usable appointing authority
+([press.md](./press.md)) — and gives the branch a chain of title that can
+be subdivided or transferred later.
+
+⚠ **Quotas over it are parked, deliberately.** The Compact has its own
+resource allowance, separate from any locality's, and the authority to set
+it is genuinely unresolved because *the executive is the same branch that
+provisions parcels in the first place.* `ParcelRecord.allowance` is inert
+and the allowance cascade is unbuilt, so nothing here decides it — see
+[balance-slate](../slates/builds/balance-slate.md).
 
 > **⚠ Area is NEVER derived from room geometry.** `Location.getSizeScale()`
 > is m² as well, but it is a **photometric denominator** (flux ÷ area →

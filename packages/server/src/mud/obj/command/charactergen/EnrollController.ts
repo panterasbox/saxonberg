@@ -26,7 +26,7 @@ import { Mml } from "../../../api/mml";
 import { StuffApi } from "../../../api/stuff";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { ConnectionApi } from "../../../api/connection";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";
@@ -610,7 +610,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
       const stipend =
         Number(AppApi.setting(AppSettingKeys.bankingOnboardingStipend)) || 0;
       if (stipend > 0) {
-        await BankingApi.issueCash(avatar, Money.of(stipend), "onboarding");
+        await BankingApi.issueCash(avatar, Money.of(stipend, Currency.compact()), "onboarding");
       }
     }
 

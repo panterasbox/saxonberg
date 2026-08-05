@@ -8,6 +8,11 @@
  * provider set is a data-shaped list, not hardcoded anchors, so adding
  * Twitch later is a list entry + wiring (the auth-providers slate owns
  * the mechanics — here it's an inert slot).
+ *
+ * Beside the sign-in panel sits the {@link PressRoom} — what the world can
+ * read without signing in. ⚠ It is **never awaited**: the sign-in and
+ * guest controls paint regardless of whether it loads, is empty, or is
+ * gone, and it renders `null` rather than an error in the last case.
  */
 
 import React, { useState } from "react";
@@ -16,11 +21,14 @@ import { SERVER_URL, WS_URL } from "../config";
 import { websocketClient } from "../services/websocket";
 import { useStore } from "../store/index";
 import { tokens } from "./ui";
+import { PressRoom } from "./PressRoom";
 
 const Screen = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: ${tokens.space.xl};
+  flex-wrap: wrap;
   height: 100vh;
   background: ${tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
@@ -251,6 +259,7 @@ export const StartScreen: React.FC = () => {
         </Action>
         {import.meta.env.DEV && <DevLogin />}
       </Panel>
+      <PressRoom />
     </Screen>
   );
 };

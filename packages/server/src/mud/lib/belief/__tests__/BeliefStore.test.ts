@@ -180,6 +180,45 @@ describe('BeliefStoreMixin', () => {
     expect(viewer.allBeliefs()).toHaveLength(2);
   });
 
+  it('⚠ a believedName is STORED — the field the false-belief path rides', () => {
+    // It was declared on `BeliefPayload`, documented as the whole point
+    // of the store being a record of what someone *thinks*, and `know`
+    // silently dropped it — so the cursed-identify effect wrote a
+    // record indistinguishable from an honest one and planted nothing.
+    const viewer = makeStuff(() => new Knower());
+    referentAt('/obj/item/vial');
+    viewer.know(IDENTIFICATION, '/obj/item/vial', {
+      typeKnown: true,
+      believedName: 'a potion of healing',
+    });
+    expect(
+      viewer.recall(IDENTIFICATION, '/obj/item/vial')!.payload.believedName,
+    ).toBe('a potion of healing');
+  });
+
+  it('⭐ an honest identification CLEARS a planted name', () => {
+    // The recovery path, and the reason `believedName` is assigned
+    // rather than guarded: a real identification omits the field, and
+    // omitting it has to mean "you now believe the truth". Guarded, a
+    // curse would be permanent — and finding out is how you recover.
+    const viewer = makeStuff(() => new Knower());
+    referentAt('/obj/item/vial');
+    viewer.know(IDENTIFICATION, '/obj/item/vial', {
+      typeKnown: true,
+      believedName: 'a potion of healing',
+    });
+    viewer.know(IDENTIFICATION, '/obj/item/vial', {
+      typeKnown: true,
+      knownAttributes: ['type'],
+    });
+    const rec = viewer.recall(IDENTIFICATION, '/obj/item/vial')!;
+    expect(rec.payload.believedName).toBeUndefined();
+    // …and the rest of the record survives: attributes UNION, they do
+    // not get reset alongside the lie.
+    expect(rec.payload.typeKnown).toBe(true);
+    expect(rec.payload.knownAttributes).toContain('type');
+  });
+
   it('loadBelief installs a hydrated record verbatim', () => {
     const viewer = makeStuff(() => new Knower());
     referentAt('/obj/npc/mara');

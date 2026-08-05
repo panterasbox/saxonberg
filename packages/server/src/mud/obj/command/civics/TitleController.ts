@@ -67,6 +67,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MqlApi } from '../../../api/mql';
 import PlatBook from '../../PlatBook';
 import type LotHolder from '../../LotHolder';
+import { Currency } from "../../../lib/banking/Currency";
 
 const TOPIC = 'world.narration.action';
 
@@ -171,7 +172,7 @@ export default class TitleController extends CommandController<TitleModel> {
 
     const lines: string[] = [];
     for (const book of this.books()) {
-      const price = Money.of(book.getPriceMinor());
+      const price = Money.of(book.getPriceMinor(), Currency.compact());
       const area = Quantity.of(book.getAreaM2(), 'm²');
       const use = book.getLandUse();
       lines.push(`${book.getLabel()}:`);
@@ -273,7 +274,7 @@ export default class TitleController extends CommandController<TitleModel> {
       this.reject(
         context,
         giver,
-        Mml.compose`You can't cover ${Money.of(price).render()} for that lot.`,
+        Mml.compose`You can't cover ${Money.of(price, Currency.compact()).render()} for that lot.`,
         'insufficient-funds',
         `could not settle ${price} for ${extent}`,
       );
@@ -363,7 +364,7 @@ export default class TitleController extends CommandController<TitleModel> {
       return false;
     }
     const charge: Charge = {
-      amount: Money.of(amount),
+      amount: Money.of(amount, Currency.compact()),
       reason: `title to ${extent}`,
       presented: true,
       payeeAccountId: account,

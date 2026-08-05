@@ -8,9 +8,10 @@ data:
   name: Arcane Sight
   verb: perceive
   noun: arcana
-  requiredBand: novice
   cost: 8
-  castSeconds: 2
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 2
   targeting: any
   effects:
     - kind: sense

@@ -26,6 +26,14 @@ export enum Collections {
   Domain = 'domain',
   Emotes = 'emotes',
   NameBanks = 'name_banks',
+  /**
+   * Descriptor banks — the pools an unidentified magic item draws its
+   * appearance from, one per item class. Immutable reference data
+   * installed by the `arcane-descriptors` content pack; the
+   * `lint:descriptors` build check proves them disjoint from the
+   * materials vocabulary. See magic-items D32.
+   */
+  DescriptorBanks = 'descriptor_banks',
   Groups = 'groups',
   Channels = 'channels',
   Parties = 'parties',
@@ -48,7 +56,6 @@ export enum Collections {
   Positions = 'positions',
   Recipes = 'recipes',
   Blueprints = 'blueprints',
-  Bulletins = 'bulletins',
   Documents = 'documents',
   BankLedger = 'bank_ledger',
   BankAccounts = 'bank_accounts',

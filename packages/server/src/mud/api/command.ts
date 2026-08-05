@@ -1069,6 +1069,21 @@ export interface CommandView {
    * synthesized syntax block by `CommandDefinition.getHelpText()`.
    */
   help?: string;
+  /**
+   * **The parser floor.** What to answer when this verb is typed but
+   * nothing here affords it — *"there is nothing to drink"* rather than
+   * *"unknown command"*.
+   *
+   * Conferral controls the affordance **list**, never the **parser**
+   * (requirements D23). Hiding a verb from a list is helpful; hiding it
+   * from the parser teaches players that verbs evaporate, which is worse
+   * than never listing them at all. So a verb that exists anywhere in
+   * the catalogue always parses, and this field is the reason it gives.
+   *
+   * Optional — a verb without one gets a generic legible refusal rather
+   * than `unknown-verb`. The mechanism is general: authoring this on a
+   * capability verb satisfies the requirement for that verb, and every
+   * verb benefits from the non-`unknown-verb` floor for free.
   /** Worked invocations shown under an Examples heading. */
   examples?: ExampleDefinition[];
   args?: PositionalDefinition[];
@@ -1257,6 +1272,25 @@ export class CommandApi {
    */
   static collectSelfDefs(ctor: unknown): CommandDefinition[] {
     return logic().collectSelfDefs(ctor);
+  }
+
+  /**
+   * **What a class actually affords in one bucket**, unioned across its
+   * whole mixin chain.
+   *
+   * The read that matters, and the one to reach for over the raw
+   * `commandContributions` static: that static is a *static*, so on a
+   * class composing two capability mixins the outermost declaration
+   * SHADOWS the inner ones on the class object — while dispatch walks
+   * the chain and unions. A scroll composing `Marked` and `Labelled`
+   * affords both `read` and `label`; reading the static would see only
+   * one of them and be wrong about the other.
+   */
+  static collectContributions(
+    ctor: unknown,
+    bucket: 'self' | 'inventory' | 'environment' | 'peers',
+  ): CommandDefinition[] {
+    return logic().collectContributions(ctor, bucket);
   }
 
   /**

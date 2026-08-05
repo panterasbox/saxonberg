@@ -28,6 +28,16 @@ Three population-shaped concepts, deliberately distinct:
   substrate is deliberately *not* a `Group`: an office carries a branch,
   an origin, a single-holder-with-founder-default model, and
   apparatus-defined identity the group model lacks.
+- **Position** ([employment.md](./employment.md)) — a slot on an
+  **organization's** chart, filled by whoever holds the organization's
+  appointing authority. ⭐ **The line between an Office and ordinary staff
+  is whether a constitutional document points at the position.** A
+  government *seat* is a `Government.seats` entry pointing at
+  `(organization, positionKey)` ([civics.md](./civics.md)); an Office is
+  named in `OFFICE_APPARATUS`; **personal staff is a position nobody
+  points at** — a Communications Director serves at pleasure and is
+  prescribed by nothing, so it is never minted as an Office. Same
+  substrate throughout; the pointer is the law.
 - **Chamber** ([influence.md](./influence.md)) — a population that
   *falls out of* influence (the Producer / Capital / Consumer Houses),
   never "filled". This build models only the Speaker **seats** of those

@@ -17,6 +17,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { SensorMixin } from '../../../../lib/message/Sensor';
+import { PerceptionMixin } from '../../../../lib/perception/Perception';
 import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
 import { UnboundedSourceMixin } from '../../../../lib/bulk/UnboundedSource';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -30,6 +31,12 @@ import { StuffApi } from '../../../../api/stuff';
 import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
 import { BulkableApi } from '../../../../api/bulk';
+import { MessageApi } from '../../../../api/message';
+import { IdentifiableMixin } from '../../../../lib/identification/Identifiable';
+import { Appearance } from '../../../../lib/identification/Appearance';
+import { DescriptorBank } from '../../../../lib/identification/DescriptorBank';
+import { WorldClockApi } from '../../../../api/worldclock';
+import '../../../WorldClockRegistry';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import {
   CommandApi,
@@ -42,8 +49,13 @@ import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
 
-class TestActor extends SensorMixin(
-  CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+// `Perception` as well as `Sensor`: `RecognitionApi.describe` refuses to
+// resolve a viewer-aware identity for anything that cannot run perception
+// queries, and the drink prose reads through it.
+class TestActor extends PerceptionMixin(
+  SensorMixin(
+    CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
+  ),
 ) {
   static _mixinName = 'TestActor';
   public ingested: Array<{ material: string; litres: number }> = [];
@@ -55,6 +67,9 @@ class TestActor extends SensorMixin(
 class Receptacle extends BulkableMixin(Thing) {
   static _mixinName = 'Receptacle';
 }
+
+/** A substance you can learn — the potion case (magic-items D24/D26). */
+class IdentifiableMaterial extends IdentifiableMixin(Material) {}
 
 class UnboundedReceptacle extends UnboundedSourceMixin(BulkableMixin(Thing)) {
   static _mixinName = 'UnboundedReceptacle';
@@ -92,6 +107,25 @@ function vessel(
       v.setBulkAmount('interior', Quantity.of(opts.amountL, 'L'));
     return v;
   }) as unknown as Stuff;
+}
+
+/** Capture what a controller says to the actor, as flat text. */
+function captureSelfLines(): string[] {
+  const said: string[] = [];
+  vi.spyOn(MessageApi, 'scene').mockImplementation(
+    () =>
+      ({
+        topic: () => ({
+          toSelf: (m: { toMarkup?: () => string }) => {
+            said.push(
+              typeof m?.toMarkup === 'function' ? m.toMarkup() : String(m),
+            );
+            return { toPeers: () => ({ send: () => undefined }), send: () => undefined };
+          },
+        }),
+      }) as never,
+  );
+  return said;
 }
 
 function floorIn(loc: Stuff): Stuff {
@@ -223,6 +257,38 @@ describe('Bulk verbs — fill / sip / drink', () => {
     expect(amountL(thermos)).toBeCloseTo(0.5);
   });
 
+  it('drink takes a NAMED MEASURE, not just the whole slot', async () => {
+    await makeStuff(() => new FillController()).execute(
+      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
+      ctxFor(actor, loc, 'fill'),
+    );
+    expect(amountL(thermos)).toBeCloseTo(0.5);
+
+    // `drink thermos --amount 1cup`. An OPTION, not an inline measure:
+    // the shape-matcher only extracts a leading quantity for greedy
+    // plural args (`drop 5 coin` works; `pour 2 cups urn into mug`
+    // never has), so for a singular arg the option is the only
+    // unambiguous door. Before this the controller drank everything,
+    // and the only sizes a player could ask for were "all" and sip's
+    // fixed 0.03 L — which made the continuous dose model unreachable.
+    await makeStuff(() => new DrinkController()).execute(
+      model({
+        amount: '1cup' as never,
+        target: one(thermos, 'thermos'),
+      }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    expect(amountL(thermos)).toBeGreaterThan(0); // NOT drained
+    expect(actor.ingested.at(-1)!.litres).toBeCloseTo(0.24, 2);
+
+    // …and with no measure it still finishes the container.
+    await makeStuff(() => new DrinkController()).execute(
+      model({ target: one(thermos, 'thermos') }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    expect(amountL(thermos)).toBeCloseTo(0);
+  });
+
   it('drink coffee resolves through via.bulk to the holder', async () => {
     await makeStuff(() => new FillController()).execute(
       model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
@@ -270,11 +336,15 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('pour 2 cups water into mug → mug gains ~0.35 L (clamped at capacity)', async () => {
+  it('pour --amount 2cups → mug gains ~0.35 L (clamped at capacity)', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
     await makeStuff(() => new PourController()).execute(
       model({
-        source: one(waterSrc, '2 cups water', { quantity: MEASURE(2, 'cup') }),
+        // `--amount 2cups` — the option, not an inline measure. The
+        // inline form never parsed for a singular arg; see
+        // `BulkableApi.amountFromOption`.
+        amount: '2cups' as never,
+        source: one(waterSrc, 'water'),
         target: one(mug, 'mug'),
       }),
       ctx,
@@ -286,13 +356,15 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     );
   });
 
-  it('pour water:{99 cups} into mug (strict) → declined, rejected note', async () => {
+  it('pour --amount 99cups --exact → declined, rejected note', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
     await makeStuff(() => new PourController()).execute(
       model({
-        source: one(waterSrc, 'water', {
-          quantity: { value: { kind: 'measure', value: 99, unit: 'cup' }, mode: 'strict' },
-        }),
+        // `--amount 99cups --exact`: strict mode, reachable from a
+        // player for the first time.
+        amount: '99cups' as never,
+        exact: true as never,
+        source: one(waterSrc, 'water'),
         target: one(mug, 'mug'),
       }),
       ctx,
@@ -327,7 +399,11 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     const ctx = ctxFor(actor, loc, 'pour');
     await makeStuff(() => new PourController()).execute(
       model({
-        source: one(waterSrc, '2 cups water', { quantity: MEASURE(2, 'cup') }),
+        // `--amount 2cups` — the option, not an inline measure. The
+        // inline form never parsed for a singular arg; see
+        // `BulkableApi.amountFromOption`.
+        amount: '2cups' as never,
+        source: one(waterSrc, 'water'),
         target: one(colander, 'colander'),
       }),
       ctx,
@@ -354,6 +430,78 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     );
     expect(amountL(mug)).toBeCloseTo(0);
     expect(surfaceAmountL(floor)).toBeCloseTo(before);
+  });
+});
+
+describe('Bulk verbs — drink prose, and the two article rules', () => {
+  let actor: Stuff;
+  let loc: Stuff;
+
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+    DescriptorBank.clearCache();
+    Appearance.clearMemo();
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 100000);
+    const bank = new DescriptorBank();
+    bank.key = 'potion';
+    bank.primary = ['crimson'];
+    bank.secondary = ['iridescent'];
+    DescriptorBank.primeCache([bank]);
+    loc = makeStuff(() => new Location()) as unknown as Stuff;
+    floorIn(loc);
+    actor = makeStuff(() => new TestActor()) as unknown as Stuff;
+    (actor as unknown as { setName(n: string): void }).setName('bob');
+    ContainmentApi.move(actor as never, loc as never);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+    DescriptorBank.clearCache();
+    Appearance.clearMemo();
+  });
+
+  /** The potion shape: identity rides the MATERIAL, not the flask. */
+  function draught(): Material {
+    return makeStuffAtPath(() => {
+      const m = new IdentifiableMaterial();
+      m.setName('veiling draught');
+      m.setKeywords(['draught']);
+      m.setDescriptorClass('potion');
+      m.setIdentifiedName('a veiling draught');
+      return m;
+    }, '/obj/material/potion/drink-test') as unknown as Material;
+  }
+
+  async function drink(holder: Stuff): Promise<string[]> {
+    const said = captureSelfLines();
+    await makeStuff(() => new DrinkController()).execute(
+      model({ target: one(holder, 'it') }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    return said;
+  }
+
+  it('a plain material keeps its shipped "the"', async () => {
+    const coffee = material('/obj/material/bulk/coffee2', 'coffee');
+    const mug = vessel('a mug', { material: coffee, amountL: 0.3, capacityL: 0.5 });
+    ContainmentApi.move(mug as never, actor as never);
+    // `appearance` is a BARE phrase ("some coffee"), so the verb supplies
+    // the article. This is the shipped wording and must not drift.
+    expect((await drink(mug)).join(' ')).toContain('You drink the some coffee');
+  });
+
+  it('an identifiable substance carries its OWN article', async () => {
+    const potion = draught();
+    const flask = vessel('a flask', { material: potion, amountL: 0.25, capacityL: 0.25 });
+    ContainmentApi.move(flask as never, actor as never);
+    // The per-viewer phrase is a FULL noun phrase ("an iridescent crimson
+    // potion"), so a second article would read "You drink the an …".
+    const said = (await drink(flask)).join(' ');
+    expect(said).toContain('You drink an iridescent crimson potion');
+    expect(said).not.toContain('the an');
   });
 });
 

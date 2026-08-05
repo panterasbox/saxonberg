@@ -46,10 +46,30 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // by `BlueprintSeeder.run` earlier in boot). Resolvable via `StudioApi`'s
   // catalog ops after this entry's postRegister fires.
   { templatePath: '/obj/BlueprintCatalogue' },
-  // BulletinBoard singleton — the runtime news-ticker window. Warmed at
-  // postRegister from the `bulletins` collection; resolvable via
-  // `BulletinApi` after this entry's postRegister fires. No dependsOn.
-  { templatePath: '/obj/BulletinBoard' },
+  // The two seeded organizations — the Compact's own press office and the
+  // Office of the Prime Minister. Warmed here rather than stood up lazily
+  // because they are the targets of `appoint` and of the publish path,
+  // both of which resolve an organization by templatePath: an
+  // organization nobody can find is one nobody can be appointed to. Both
+  // ship UNFILLED, which is the design — see their seeds.
+  { templatePath: '/compact/press' },
+  { templatePath: '/compact/executive' },
+  // The five corpo organizations — the chart each `Corpo` mark hangs off,
+  // and the answer to "who runs Veshko?". Warmed rather than stood up
+  // lazily for the same reason the Compact's two are: `appoint` and the
+  // chart reads resolve an organization by templatePath, and an
+  // organization nobody can find is one nobody can be appointed to.
+  { templatePath: '/corpo/aevex' },
+  { templatePath: '/corpo/goodkin' },
+  { templatePath: '/corpo/hollis' },
+  { templatePath: '/corpo/veshko' },
+  { templatePath: '/corpo/vionne' },
+  // PressBoard singleton — the runtime news-ticker window. Warmed at
+  // postRegister from the release documents in the path-addressed tree;
+  // resolvable via `PressApi` after this entry's postRegister fires. It
+  // follows the two organizations above, whose feed branches it verifies
+  // each release against.
+  { templatePath: '/obj/PressBoard' },
   // DisciplineCatalogue singleton — the advancement Catalog: the authored,
   // typed field-of-study graph. Warms its descriptor cache in postRegister
   // from the per-Discipline leaf templates under `/lib/advancement/

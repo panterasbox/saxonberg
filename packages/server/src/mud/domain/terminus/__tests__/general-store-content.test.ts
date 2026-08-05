@@ -146,9 +146,13 @@ describe("general-store content integrity", () => {
     expect(biz.data?.operatingLocations).toEqual([
       "/domain/terminus/general-store/counter",
     ]);
-    expect(biz.data?.proprietorPath).toBe(
-      "/domain/terminus/general-store/npc/keeper",
-    );
+    // The keeper owns the shop — an `entity` appointing authority. (This
+    // read `proprietorPath` until the shipped Businesses were ported off
+    // the legacy spelling.)
+    expect(biz.data?.appointingAuthority).toEqual({
+      kind: "entity",
+      path: "/domain/terminus/general-store/npc/keeper",
+    });
     const roster = biz.data?.rosterSlots as { positionKey: string; assignee: string }[];
     expect(roster[0]?.assignee).toBe("/domain/terminus/general-store/npc/clerk");
     // The counter's businessPath points back at the Business.

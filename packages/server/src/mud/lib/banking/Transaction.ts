@@ -28,6 +28,13 @@ export interface LedgerLeg {
   to: string;
   /** Positive minor units moved by this leg. */
   amount: number;
+  /**
+   * The currency this leg is denominated in. Required on every leg.
+   *
+   * ⚠⚠ Both endpoints are always denominated the same. See
+   * {@link BankTransaction.assertConserving}.
+   */
+  currency: string;
   /** The P&L line this leg rolls up into. */
   category?: PnlCategory;
   /** Free-text note for the row. */
@@ -44,6 +51,35 @@ export class BankTransaction {
       throw new Error(
         `BankTransaction: a '${kind}' transaction must have at least one leg`
       );
+    }
+    // ⚠⚠ THE NO-CROSSING RULE — a permanent invariant, not a seam.
+    //
+    // Conservation is N independent domains, one per currency. A leg that
+    // crossed would create money in one and destroy it in another: an
+    // invisible mint, which is the one bug class an economy cannot recover
+    // from. There is no flag, option or kind that permits it, and there is
+    // no conversion path to light up later — currencies are goods, bought
+    // and sold in the market that already exists at whatever price people
+    // pay. Nothing in this codebase asks what one currency is worth in
+    // another, and nothing ever should.
+    const currency = legs[0]!.currency;
+    if (!currency) {
+      throw new Error(
+        `BankTransaction: every leg of a '${kind}' transaction must carry a currency`
+      );
+    }
+    for (const leg of legs) {
+      if (!leg.currency) {
+        throw new Error(
+          `BankTransaction: every leg of a '${kind}' transaction must carry a currency`
+        );
+      }
+      if (leg.currency !== currency) {
+        throw new Error(
+          `BankTransaction: a transaction may not cross currencies ` +
+            `(${currency} vs ${leg.currency}) — this is a permanent invariant`
+        );
+      }
     }
     for (const leg of legs) {
       if (!Number.isInteger(leg.amount) || leg.amount <= 0) {
@@ -152,10 +188,12 @@ export class BankTransaction {
   public static supplyDelta(
     kind: LedgerKind,
     legs: LedgerLeg[]
-  ): { minted: number; drained: number } {
+  ): { currency: string; minted: number; drained: number } {
+    // Safe after assertConserving: every leg shares one currency.
+    const currency = legs[0]?.currency ?? "";
     const total = legs.reduce((sum, leg) => sum + leg.amount, 0);
-    if (kind === "mint") return { minted: total, drained: 0 };
-    if (kind === "drain") return { minted: 0, drained: total };
-    return { minted: 0, drained: 0 };
+    if (kind === "mint") return { currency, minted: total, drained: 0 };
+    if (kind === "drain") return { currency, minted: 0, drained: total };
+    return { currency, minted: 0, drained: 0 };
   }
 }

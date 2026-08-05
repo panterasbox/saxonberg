@@ -323,7 +323,7 @@ it came from a spell, a quaffed potion, a scroll, a rune, or a trap. So
 the gallery you get is not just spells — it's every magic item, hazard,
 and monster power, for free. This is the `Consumable`/`Effect` "Gap 0"
 substrate already named in
-[magic-items-slate.md](../builds/magic-items-slate.md) (declarative
+[magic-items-slate.md](../tails/magic-items-slate.md) (declarative
 closed union + a `script` trapdoor); a spell is one more consumer of it.
 
 **The one governing invariant:**

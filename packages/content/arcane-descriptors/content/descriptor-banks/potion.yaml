@@ -1,0 +1,41 @@
+# Potions — colour × clarity.
+#
+# ⚠ Note what is NOT here. D32's original sketch proposed *clear,
+# cloudy, murky* for the clarity axis — and all three are already
+# material APPEARANCE words (water is "clear water", the mixed drink is
+# "a cloudy, improvised mixed drink", salt water is "murky brine"). The
+# lint caught them, which is the lint working: `look at cloudy` would
+# have had two answers. The axis below says the same thing with words
+# the materials vocabulary has not spoken for.
+#
+# A colour word means a POTION. That is the one strict global rule — not
+# for disambiguation (the noun already does that) but for rotation
+# hygiene and prose that reads cleanly.
+primaryAxis: colour
+primary:
+  [azure, crimson, viridian, saffron, violet, umber, ochre, magenta,
+   cerulean, russet, chartreuse, indigo]
+secondaryAxis: clarity
+secondary:
+  [limpid, turbid, effervescent, viscid, opalescent, syrupy, seething,
+   sluggish, iridescent, flecked]
+
+# ── the unidentified long description (class-level, never per item) ──
+# The authored `longDescription` on a template is written for the
+# IDENTIFIED item and routinely gives the answer away. This is what a
+# specimen of the class reads as until the viewer actually knows.
+#
+# ⚠ Two rules. Claim no MATERIAL — a specimen is truly brass or ash or
+# glass, per instance, and class prose that names a substance is simply
+# false on half of them. And never hand-write the ARTICLE before
+# `{descriptor}`: half the bank is vowel-initial, so write `{a}` (or
+# `{A}`) and let it resolve against the word actually drawn.
+unidentifiedLong: >
+  {A} {descriptor} draught, filling its vessel to about the shoulder
+  and moving like something that was mixed rather than merely poured.
+  Nothing about it says what it does: the trade marks its work when it
+  wants the work recognised, and nobody marked this.
+unidentifiedDetails:
+  surface: >
+    It has not quite settled. Whatever is suspended in it is still
+    deciding where to be.

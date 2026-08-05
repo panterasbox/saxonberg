@@ -65,8 +65,11 @@ export type Unit =
   // Blood-alcohol concentration (mass/volume) — the Widmark BAC read,
   // carrying the `'bac'` drunk-ladder tag scale
   | 'g/dL'
-  // Pressure / force / energy / power
-  | 'Pa' | 'N' | 'J' | 'W'
+  // Pressure / force / energy / power. `kJ` is the magic-items charge
+  // scale: `arcane-science.md` prices every working in kilojoules, and
+  // a charged shell's tank is authored and reported in them. Round-trips
+  // to `J` via a converter like every other SI scale here.
+  | 'Pa' | 'N' | 'J' | 'kJ' | 'W'
   // Mechanical material properties (materials-response) — real, tabulated:
   // `MPa` = indentation hardness (pressure-shaped, resistance to a point
   // load); `MJ/m³` = toughness (energy absorbed per unit volume before
@@ -334,6 +337,13 @@ function ensureDefaultRegistrations(): void {
   registerConverter('Ω', 'kΩ', (n) => n / 1000);
   registerConverter('MΩ', 'Ω', (n) => n * 1_000_000);
   registerConverter('Ω', 'MΩ', (n) => n / 1_000_000);
+
+  // Energy: the magic-items charge scale. `arcane-science.md` prices
+  // every working in kilojoules and a charged shell's tank is authored
+  // in them, while the thermal / combustion substrates speak joules — so
+  // the two have to round-trip or the first-law bookkeeping is a lie.
+  registerConverter('kJ', 'J', (n) => n * 1000);
+  registerConverter('J', 'kJ', (n) => n / 1000);
 
   // ---------- substrate-declared tag-scale registrations ----------
   // Registered here (rather than from a channel module) because the

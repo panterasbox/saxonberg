@@ -1,0 +1,21 @@
+# The field conduit — the portable coupling, and the reason a wand is
+# brass rather than decorative.
+#
+# `couplingEfficiency: 0.85` is the field grade: a made, carried path
+# that loses about a seventh of what you commit as heat in the metal.
+# The bench beats it and always will, which is what makes recharging a
+# thing you go somewhere to have done properly.
+class: /obj/magic/Conduit
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a brass conduit
+  primaryKeyword: conduit
+  keywords: [conduit, coil, brass]
+  longDescription: >
+    A hand's length of brass wound back on itself, warm at the grip and
+    unpleasantly hot anywhere else after use. It stores nothing and does
+    nothing on its own; it is a road, and roads are judged by how much
+    arrives at the far end.
+  _materialPath: /obj/material/metal/brass
+  mass: 0.4
+  couplingEfficiency: 0.85

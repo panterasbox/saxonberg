@@ -8,6 +8,10 @@ import { HotReloadApi } from './hot-reload';
 import { ResidencyLogic } from '../obj/api/ResidencyLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { SpawnSweepReport } from '../obj/api/ResidencyLogic';
+import type { WorldCensus } from '../lib/residency/Census';
+
+export type { SpawnSweepReport, WorldCensus };
 
 const LOGIC_PATH = '/obj/api/residency';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -29,14 +33,17 @@ function logic(): ResidencyLogic {
 export class ResidencyApi {
   /**
    * Boot seam (idempotent): install the residency sweeps — the real-time
-   * cold-tail eviction sweep and the game-time reset (repop) sweep.
-   * Activation = the `ResidencyLogic` singleton's presence. Both ship in
-   * observe mode (`residency.eviction.mode` / `residency.reset.mode`), so
-   * booting culls/repops nothing until an operator flips it to `enforce`.
+   * cold-tail eviction sweep, the game-time reset (repop) sweep, and the
+   * game-time **spawn** sweep. Activation = the `ResidencyLogic`
+   * singleton's presence. All three ship in observe mode
+   * (`residency.eviction.mode` / `residency.reset.mode` /
+   * `residency.spawn.mode`), so booting culls, repops and places nothing
+   * until an operator flips one to `enforce`.
    */
   public static boot(): void {
     logic().installEvictionSweep();
     logic().installResetSweep();
+    logic().installSpawnSweep();
   }
 
   /**
@@ -54,6 +61,31 @@ export class ResidencyApi {
    */
   public static resetNow(): Promise<void> {
     return logic().resetNow();
+  }
+
+  /**
+   * Run one spawn sweep now (test / manual seam). Returns what it did —
+   * including how many regions **declined** because they were already at
+   * target, which is the observable half of authored placement
+   * suppressing random spawning.
+   */
+  public static spawnNow(): Promise<SpawnSweepReport> {
+    return logic().spawnNow();
+  }
+
+  /**
+   * **How much circulating stock exists, by region and census key.**
+   *
+   * *Circulation = what is reachable in the world now* — a wand in a
+   * logged-off player's pack is a withdrawal until they log in. That is
+   * the discovery slate's own stock model, and the right quantity for
+   * the decision being made: both injection channels place into LIVE
+   * regions, so live regional stock is what they must not over-fill.
+   *
+   * Computed once per sweep and shared, never per candidate.
+   */
+  public static takeCensus(): Promise<WorldCensus> {
+    return logic().takeCensus();
   }
 }
 

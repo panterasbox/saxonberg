@@ -23,7 +23,7 @@
 
 import { Idea } from '../../lib/stuff/Idea';
 import { TemplatePathPrefixes } from '../../lib/paths';
-import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
+import type { CastingProfile } from '../../lib/magic/CastingProfile';
 import type { Effect, EffectFamily } from '../../lib/magic/Effect';
 import type { MagicNoun, MagicVerb } from '../../lib/magic/Grid';
 import type { FieldMeta } from '../../lib/mixin';
@@ -47,18 +47,49 @@ export type SpellTargeting = (typeof SPELL_TARGETINGS)[number];
  * (modifier iff any effect installs a sustained hold).
  */
 export interface SpellDescriptor {
+  /**
+   * **The durable key** — this spell's template path
+   * (`/obj/magic/Spell/<id>`, or a pack's own extent). Every stored
+   * reference to a working uses THIS, never {@link spellId}: the path is
+   * namespaced and packs claim path extents, so two packs shipping a
+   * `firebolt` stay distinct by construction.
+   */
+  path: string;
+  /**
+   * The **short name**, for players to type and for display. Deliberately
+   * NOT unique across packs — ambiguity here is a disambiguation problem,
+   * exactly as two items sharing a keyword is.
+   */
   spellId: string;
   name: string;
   verb: MagicVerb;
   noun: MagicNoun;
-  /** The band both axes must reach (competence IS access). */
-  requiredBand: CompetenceBandName;
-  /** Mana cost, absolute pt. */
+  /**
+   * The **caster-assuming** half — competence gate + shaping time. An
+   * item path reads `cost`, `targeting`, `effects` and `durationSeconds`
+   * and **ignores this whole object**, rather than silently ignoring two
+   * fields that happened not to apply. See requirements D3.
+   */
+  castingProfile: CastingProfile;
+  /** Energy required, absolute pt. Trigger-neutral — an item pays it too. */
   cost: number;
-  /** Cast time, game-seconds. */
-  castSeconds: number;
   targeting: SpellTargeting;
   effects: Effect[];
+  /**
+   * **What this working does at the low and high ends of its own axis.**
+   *
+   * Built from the SAME authored blobs as {@link effects} — an author
+   * writes band-varying fields inline (`energy: [1, 2, 4]`,
+   * `steps: [-1, 1, 1]`) and validation resolves one list per band. So
+   * there is no duplicated effect data and no second catalogue entry;
+   * see `MagicEffects.validateForBand`.
+   *
+   * Read only through the ITEM door: a caster has no BUC, so a cast
+   * always fires {@link effects}. That is the honest reading of "spells
+   * are spells and items are items" — potency is an instrument fact.
+   */
+  cursedEffects: Effect[];
+  blessedEffects: Effect[];
   family: EffectFamily;
   /** Sustained (modifier) lifetime, game-seconds; 0 = until dispelled. */
   durationSeconds: number;
@@ -77,12 +108,13 @@ export default class Spell extends Idea {
   public verb: string = '';
   /** The grid noun axis (an advancement Discipline `magic-<noun>`). */
   public noun: string = '';
-  /** The band gate on both axes. */
-  public requiredBand: string = 'novice';
-  /** Mana cost (absolute pt; the `magic.costDefault` dial when 0). */
+  /**
+   * The caster-assuming half — `{requiredBand, castSeconds}`. An item
+   * trigger ignores it wholesale (D3). Plain scalars → persists free.
+   */
+  public castingProfile: Record<string, unknown> = {};
+  /** Energy required (absolute pt; the `magic.costDefault` dial when 0). */
   public cost: number = 0;
-  /** Cast time (game-seconds; the `magic.castSecondsDefault` dial when 0). */
-  public castSeconds: number = 0;
   /** Targeting mode. */
   public targeting: string = 'none';
   /** The declarative effect list (validated by the catalogue on warm). */
@@ -115,9 +147,8 @@ export default class Spell extends Idea {
     name: { persistent: true },
     verb: { persistent: true },
     noun: { persistent: true },
-    requiredBand: { persistent: true },
+    castingProfile: { persistent: true },
     cost: { persistent: true },
-    castSeconds: { persistent: true },
     targeting: { persistent: true },
     effects: { persistent: true },
     durationSeconds: { persistent: true },

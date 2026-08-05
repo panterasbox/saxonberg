@@ -182,6 +182,36 @@ export class BulkableApi {
    * its capacity target). A `'count'` is meaningless for bulk and
    * falls back too.
    */
+  /**
+   * **A `--amount` option → a transfer amount.** `100ml`, `2cups`,
+   * `0.5L` — anything `Quantity.parse` accepts, converted to litres at
+   * this boundary.
+   *
+   * An option rather than an inline measure because the command
+   * shape-matcher only extracts a leading quantity for GREEDY PLURAL
+   * args (`drop 5 coin` works; `pour 2 cups urn into mug` never has).
+   * Teaching it the singular case means guessing whether leading tokens
+   * are an amount or part of the noun, in the one component every verb
+   * depends on. An option is unambiguous by construction and already
+   * parses on any arg shape.
+   *
+   * Unparseable input returns `fallback` rather than throwing; the
+   * caller reports the miss, because silently taking everything when a
+   * player asked for a sip is the worse surprise.
+   *
+   * `exact` is the `--exact` flag: **all of it or none.** The substrate
+   * has always had the strict/lenient split (`TransferAmount.mode`) and
+   * nothing player-facing could reach it — lenient moves what fits,
+   * strict refuses a short pour outright.
+   */
+  static amountFromOption(
+    raw: string | undefined,
+    fallback: TransferAmount,
+    exact = false,
+  ): TransferAmount {
+    return logic().amountFromOption(raw, fallback, exact);
+  }
+
   static amountFromQuantity(
     quantity: MqlQuantity | undefined,
     fallback: TransferAmount,

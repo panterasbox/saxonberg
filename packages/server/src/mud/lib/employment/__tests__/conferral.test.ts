@@ -37,7 +37,7 @@ function seedBusiness(): void {
 function employ(w: MakerWorker, status: 'on-shift' | 'off-shift'): void {
   w.employments = [
     {
-      businessPath: BUSINESS,
+      organizationPath: BUSINESS,
       positionKey: 'bartender',
       status,
       hiredAt: 0,

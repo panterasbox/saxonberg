@@ -10,7 +10,19 @@
 class: /obj/Business
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  proprietorPath: ''
+  # ⭐ A city DEPARTMENT — nobody owns it, so the authority is the
+  # COMMITTEE holding title over its ground (`/domain/terminus/registry`
+  # is the `terminus` group's, per config/parcels.yaml). Whoever staffs
+  # the city staffs its registry, and the Magistrate seat below is a
+  # position on this chart rather than a second apparatus.
+  #
+  # ⚠ It stays a BUSINESS, and that is not an oversight: `TitleController`
+  # sells land titles across this counter and settles into its operating
+  # account (`ensureOperatorAt` → `operatingAccountOf`). A registry that
+  # takes money trades.
+  appointingAuthority:
+    kind: committee
+    parcel: /domain/terminus/registry
   positions:
     - key: registrar
       label: keeping the city registry

@@ -108,16 +108,53 @@ command's MQL resolves them); `applyEffects` narrows the NPC to a
 detached loop's context.
 
 **The security model (load-bearing).** The command runs **as the NPC, bounded
-by the NPC's own authority** — but `forceCommand` stamps `forced:true`, which
-bypasses the affordance/YAML-validator gates. So the **real boundary is the
-target controller's `execute()`-level authorization**: an NPC can only
-accomplish what a controller will let *that NPC actor* do. Provisioning, for
-instance, gates `execute()` on "wizard OR agent of the dorms owner", so
-Katie (enrolled in the landlord group) passes and a random NPC's dispatch of
-the same verb is refused. The command string is **not** statically validated
-(the scripting precedent — bounded at runtime by authority, not at save
-time); `DialogueTreeSchema` only checks the effect is well-formed
-(`dispatch` present with a string `command`).
+by the NPC's own authority**, through the **ordinary dispatch chain**:
+affordance match → MQL resolve → validator preload → **validators** →
+`execute()`. A dispatched NPC command is gated exactly as a typed player
+command is.
+
+> ⚠⚠ **CORRECTED 2026-08-04 — this section previously said the opposite.**
+> It read *"`forceCommand` stamps `forced:true`, which bypasses the
+> affordance/YAML-validator gates."* **That is false.** `forceCommand` only
+> sets the flag (`giver.executeCommand(text, {...opts, forced: true})`);
+> `forced` is read in exactly two places — the server-authoritative
+> input-mode prefix (skipped, since a dispatch carries no `barId`) and the
+> Command frame's metadata stamp. **Nothing in the resolve/validator path
+> consults it**, and `runValidators` runs verb-level validators
+> unconditionally.
+>
+> **Verified by experiment, not by reading** — the same gated verb
+> dispatched forced and un-forced produces the *identical*
+> `validator-failed` note. ⭐ Note the trap that hid this: validators are
+> resolved onto `_resolvedValidators` **only by `CommandApi.preloadAll`**,
+> so a test harness that calls `getCommand` without preloading sees
+> declared-but-unresolved validators and **silently skips every one of
+> them** (`runValidators` guards on `if (command._resolvedValidators)`).
+> A probe without `preloadAll` shows forced and un-forced both reaching the
+> controller and looks like proof of a bypass. It is not.
+
+**So `forced` grants an NPC nothing.** The affordance set still applies (the
+verb must be afforded to that NPC) and every YAML validator still runs.
+
+⚠ **This matters more than a documentation nit**, because content was
+authored against the false claim: a verb whose authorization was moved to
+`execute()` *on the belief that the YAML gate would be skipped* still has
+its YAML gate, and will refuse the NPC. **`provision` is exactly this
+shape** — it carries verb-level `requiresWizard`, Katie is deliberately not
+a wizard (`KatieProvisioning.test` asserts `isWizard(katie) === false`), and
+her intake dialogue dispatches it. See [residence.md](./residence.md).
+
+⭐ **Controller-level authorization is still right**, just for the ordinary
+reason rather than the stated one: **defence in depth.** A controller should
+not rely solely on its YAML, and `execute()` is where a *relational* rule
+("an agent of this parcel's owner") belongs, since a validator cannot see
+the bound model. Provisioning's `isDormsAgent` is a good gate. It is simply
+**not the only** gate.
+
+The command string is **not** statically validated (the scripting precedent
+— bounded at runtime by authority, not at save time); `DialogueTreeSchema`
+only checks the effect is well-formed (`dispatch` present with a string
+`command`).
 
 **Best practice (content development).** A player-facing capability gets a
 **diegetic front** — an NPC (or object) doing its job — never a bare typed

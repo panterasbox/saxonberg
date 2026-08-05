@@ -54,7 +54,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
     expect(emp?.positionKey).toBe('bartender');
     expect(emp?.status).toBe('employed');
     const stored = mara.getEmployment(BUSINESS);
-    expect(stored?.businessPath).toBe(BUSINESS);
+    expect(stored?.organizationPath).toBe(BUSINESS);
     expect(stored?.status).toBe('employed');
   });
 

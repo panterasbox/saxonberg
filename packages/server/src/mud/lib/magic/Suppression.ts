@@ -79,6 +79,20 @@ export class Suppressions {
     return false;
   }
 
+  /**
+   * Does this field suppress **any** cell of a multi-cell footprint? The
+   * `Arcane` reader (D35): an item that does two things is blocked by a
+   * ward that blocks either of them — a fire-and-light wand is useless
+   * inside a no-·fire ward even though its light half is untouched,
+   * because the wand fires as one act.
+   */
+  public static suppressesAny(
+    field: MagicSuppression | null | undefined,
+    addresses: readonly { readonly verb: MagicVerb; readonly noun: MagicNoun }[],
+  ): boolean {
+    return addresses.some((a) => Suppressions.suppresses(field, a.verb, a.noun));
+  }
+
   /** Parse an authored field blob; `null` when absent. Throws on malformed data. */
   public static validate(raw: unknown): MagicSuppression | null {
     if (raw == null) return null;

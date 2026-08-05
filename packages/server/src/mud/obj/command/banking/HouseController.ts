@@ -8,7 +8,7 @@
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
@@ -61,11 +61,11 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     const pnl = await BankingApi.profitAndLoss(account);
     const lines = Object.entries(pnl.lines)
-      .map(([cat, net]) => `  ${cat}: ${Money.of(net as number).render()}`)
+      .map(([cat, net]) => `  ${cat}: ${Money.of(net as number, Currency.compact()).render()}`)
       .join("\n");
     const body =
       `P&L:\n${lines || "  (no activity)"}\n` +
-      `  running balance: ${Money.of(pnl.balance).render()}`;
+      `  running balance: ${Money.of(pnl.balance, Currency.compact()).render()}`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${body}`).send();
   }
 
@@ -96,7 +96,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       return;
     }
     try {
-      await BankingApi.payWage(employerAccount, workerKey, Money.of(minor));
+      await BankingApi.payWage(employerAccount, workerKey, Money.of(minor, Currency.compact()));
     } catch (err) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -107,7 +107,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pay ${Mml.name(worker!)} a wage of ${Money.of(minor).render()}.`)
+      .toSelf(Mml.compose`You pay ${Mml.name(worker!)} a wage of ${Money.of(minor, Currency.compact()).render()}.`)
       .send();
   }
 }

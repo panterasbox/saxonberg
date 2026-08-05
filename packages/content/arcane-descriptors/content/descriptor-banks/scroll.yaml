@@ -1,0 +1,31 @@
+# Scrolls — the free case. Arbitrary text, unbounded, so a single axis
+# suffices and the depth requirement is nominal.
+primaryAxis: inscription
+primary:
+  [cramped, sprawling, meticulous, hurried, ornate, faint, blotted,
+   angular, looping, minuscule, jagged, flowing, smudged, precise,
+   slanted, crowded]
+secondaryAxis: ""
+secondary: []
+
+# ── the unidentified long description (class-level, never per item) ──
+# The authored `longDescription` on a template is written for the
+# IDENTIFIED item and routinely gives the answer away. This is what a
+# specimen of the class reads as until the viewer actually knows.
+#
+# ⚠ Two rules. Claim no MATERIAL — a specimen is truly brass or ash or
+# glass, per instance, and class prose that names a substance is simply
+# false on half of them. And never hand-write the ARTICLE before
+# `{descriptor}`: half the bank is vowel-initial, so write `{a}` (or
+# `{A}`) and let it resolve against the word actually drawn.
+unidentifiedLong: >
+  A sheet rolled and tied, its whole face covered in {a} {descriptor}
+  hand. What is set down there is the working itself, and a working is
+  not a thing you read off at a glance.
+unidentifiedDetails:
+  seal: >
+    Broken once and pressed back down. The impression is too worn to
+    read, which may be the point.
+  edge: >
+    Trimmed square and beginning to fray, the way paper does when it
+    has been rolled and unrolled a great many times.

@@ -109,7 +109,11 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
       });
       return;
     }
-    const description = host.getDetail(dotted, this.senseChannel);
+    const description = host.getDetailFor(
+      context.commandGiver,
+      dotted,
+      this.senseChannel,
+    );
     if (description === null) {
       MessageApi.scene(context.commandGiver)
         .topic(this.sceneTopic)

@@ -1,0 +1,53 @@
+verbs: [appoint]
+controller: /obj/command/employment/AppointController
+description: "Fill a position in an organization you have the authority over"
+help: |
+  Put somebody in a job. `appoint <player> to <position> at
+  <organization>` fills a position on an organization's chart —
+  the Communications Director of a press office, the registrar at
+  a city registry, a bartender at a bar.
+
+  You need the organization's **appointing authority** to do it.
+  That is whatever the organization says it is: its proprietor,
+  the holder of a named office, the holder of a government seat,
+  or the committee that holds title over its ground. If the
+  authority is an office and the office changes hands, so does
+  this — the staff follows the seat, with nobody's job touched.
+
+  Holding the authority lets you *fill* a position. It does not
+  let you do the position's work: a president appoints a press
+  secretary, they do not become one.
+
+  Name the organization by its path, e.g. `/compact/press`. To
+  appoint yourself, say `me` — the player argument resolves
+  against who is online, and `me` is how you name yourself there.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: appoint me to communications-director at /compact/press
+    note: Appoint yourself — the founder's first act on a fresh world
+  - cmd: appoint alice to communications-director at /compact/press
+    note: Fill the Compact press office's one position
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "online"
+    validators:
+      - /lib/command/validators/mustBeAgent
+    onExcess: prompt
+  - name: position
+    type: string
+    required: true
+    prepositions: [to]
+  - name: organization
+    type: string
+    required: true
+    prepositions: [at]
+    # ⚠ The authority gate is a FIELD validator, not a verb-level one: the
+    # authority belongs to the organization this argument names, and a
+    # verb-level validator cannot see the bound model. Same gate, homed
+    # where it can see the thing it gates on.
+    validators:
+      - /lib/command/validators/mustHoldAppointingAuthority

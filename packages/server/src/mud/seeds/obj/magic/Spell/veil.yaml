@@ -9,9 +9,10 @@ data:
   name: Veil
   verb: create
   noun: sense
-  requiredBand: competent
   cost: 22
-  castSeconds: 4
+  castingProfile:
+    requiredBand: competent
+    castSeconds: 4
   targeting: self
   durationSeconds: 1800
   effects:

@@ -65,16 +65,20 @@ function domicileOf(character: Stuff): string | null {
 }
 
 /**
- * The current roster assignments for a department Business: the live
- * instance's roster when it is standing (reflects runtime hires), else
- * the authored template row's `rosterSlots` — what makes a never-ticked,
- * lazily-stood-up department's seat provable.
+ * The current roster assignments for a department **organization**: the
+ * live instance's roster when it is standing (reflects runtime hires),
+ * else the authored template row's `rosterSlots` — what makes a
+ * never-ticked, lazily-stood-up department's seat provable.
+ *
+ * A department is an organization, not necessarily a Business: a registry
+ * keeps records and does not trade. It stayed a Business only because
+ * that is where positions used to live.
  */
 async function rosterAssignmentsOf(
   department: string
 ): Promise<readonly RosterAssignment[]> {
   const live = StuffApi.findByTemplatePath(department);
-  if (live && MixinApi.isBusiness(live)) {
+  if (live && MixinApi.isOrganization(live)) {
     return live.getRosterAssignments();
   }
   // Cold-state posture: no store (or no such row) degrades to an empty
@@ -123,7 +127,7 @@ async function holdsSeatImpl(
     let sawExit = false;
     for (const record of character.getEmployments()) {
       if (
-        record.businessPath !== seat.department ||
+        record.organizationPath !== seat.department ||
         record.positionKey !== seat.positionKey
       ) {
         continue;

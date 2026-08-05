@@ -12,7 +12,7 @@
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import { CorpoApi } from "../../../api/corpo";
 import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
@@ -71,7 +71,11 @@ export default class BankController extends BankingControllerBase<BankModel> {
 
   private async open(bank: Stuff & Bank, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+    await BankingApi.openAccount(
+      bank.getBank(),
+      bank.getCorpoKey(),
+      Currency.compact(),
+    );
     const corpo = CorpoApi.getCorpo(bank.getCorpoKey());
     const house = corpo ? corpo.label : "the bank";
     MessageApi.scene(giver)
@@ -150,7 +154,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
       .map(({ r, delta, running: bal }) => {
         const sign = delta >= 0 ? "+" : "";
         const label = r.memo || r.kind;
-        return `  ${sign}${Money.of(delta).render()}  ${label}  (balance ${Money.of(bal).render()})`;
+        return `  ${sign}${Money.of(delta, Currency.compact()).render()}  ${label}  (balance ${Money.of(bal, Currency.compact()).render()})`;
       })
       .join("\n");
     const heading =
@@ -201,13 +205,13 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return this.badAmount(context, model.amount);
     }
     try {
-      await BankingApi.withdraw(bank, Money.of(minor));
+      await BankingApi.withdraw(bank, Money.of(minor, Currency.compact()));
     } catch (err) {
       return this.declineScene(context, "withdraw-refused", err);
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You withdraw ${Money.of(minor).render()} in cash.`)
+      .toSelf(Mml.compose`You withdraw ${Money.of(minor, Currency.compact()).render()} in cash.`)
       .toPeers(Mml.compose`${Mml.name(giver)} makes a withdrawal.`)
       .send();
   }
@@ -251,13 +255,13 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return;
     }
     try {
-      await BankingApi.transfer(fromAccount, toAccount, Money.of(minor));
+      await BankingApi.transfer(fromAccount, toAccount, Money.of(minor, Currency.compact()));
     } catch (err) {
       return this.declineScene(context, "transfer-refused", err);
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You transfer ${Money.of(minor).render()} to ${Mml.name(payee!)}.`)
+      .toSelf(Mml.compose`You transfer ${Money.of(minor, Currency.compact()).render()} to ${Mml.name(payee!)}.`)
       .send();
   }
 

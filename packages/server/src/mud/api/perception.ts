@@ -215,6 +215,24 @@ export class PerceptionApi {
    * penalty from the existing per-viewer vision path (0 in adequate light
    * or when vision can't be evaluated). Pure + deterministic.
    */
+  /**
+   * **The perceive half of `read`** — can `viewer` make out the marks on
+   * `target` at all?
+   *
+   * Reading decomposes into *perceive the marks* + *decode the script*
+   * (magic-items D33), and this is the first half. It asks for the
+   * `'fine'` detail band rather than mere visibility, because seeing
+   * that a scroll is there and being able to read it are different
+   * questions and the gap between them is the mechanic.
+   *
+   * Callers gate on this **only for marks that need light** — embossed
+   * lettering bypasses it, which is why a tactile book reads in the
+   * dark. Ask the marks (`Marked.requiresLightToRead`), then ask this.
+   */
+  public static canMakeOutMarks(viewer: Stuff, target: Stuff): boolean {
+    return logic().canMakeOutMarks(viewer, target);
+  }
+
   public static effectivePerception(
     viewer: Stuff,
     target: Stuff,

@@ -23,11 +23,31 @@
  */
 
 import type { StoredDocument } from "../lib/document/StoredDocument";
+import type { Publisher } from "../lib/press/Publisher";
+import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { DocumentLogic } from "../obj/api/DocumentLogic";
 import { fileURLToPath } from "url";
+import { CallSecurity } from "../lib/security/decorators";
+import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
+
+/**
+ * ⚠⚠ **The release write transport's whole blast radius.** The transport
+ * stamps an owner the ordinary `save` gate would never admit, so the set
+ * of modules that may reach it is the entire safety argument — and it is
+ * one module. If this widens, the document-store ownership story is
+ * broken, not just for releases.
+ *
+ * The gate lives on the Api **static** rather than on the logic method:
+ * every logic method's caller is its own Api face, so a policy there
+ * would name `DocumentApi` and narrow nothing. (The `CompactApi.assignOffice`
+ * → `OfficeController` precedent.)
+ */
+const RELEASE_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
+  "/obj/api/PressLogic#PressLogic",
+);
 
 const LOGIC_PATH = "/obj/api/document";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -58,6 +78,39 @@ export class DocumentApi {
    */
   static list(prefix: string): Promise<StoredDocument[]> {
     return logic().list(prefix);
+  }
+
+  /** Every document of `kind` — e.g. every release, for a warm rebuild. */
+  static listOfKind(kind: string): Promise<StoredDocument[]> {
+    return logic().listOfKind(kind);
+  }
+
+  /**
+   * ⚠⚠ **The release write transport — an ownership bypass by
+   * construction.** Writes a `kind: 'release'` document **owned by its
+   * publisher organization** rather than by the acting author.
+   *
+   * It exists because {@link DocumentApi.save} gates on self-home /
+   * covering zone / slice-walk, which admits the *parcel owner* — not the
+   * comms director, and making every comms director a landowner is
+   * obviously wrong. Same shape as `PersistableApi` routing capture as the
+   * owning principal.
+   *
+   * Its narrowness is the whole safety argument, and every clause of it
+   * is load-bearing: it is **gated to one calling module** (`PressLogic`),
+   * takes **no caller-supplied owner** (it takes the publisher it was
+   * handed and derives the owner), **refuses a path outside that
+   * publisher's own feed branch**, and **pins the `kind`** so it cannot
+   * write anything else. The authorization that the caller may publish as
+   * this publisher (`mayPublishAs`) sits in front of it.
+   */
+  @CallSecurity(RELEASE_TRANSPORT_CALLERS)
+  static saveRelease(
+    publisher: Stuff & Publisher,
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return logic().saveRelease(publisher, path, data);
   }
 
   /**

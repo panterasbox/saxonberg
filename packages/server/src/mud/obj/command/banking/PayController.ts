@@ -13,7 +13,7 @@
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
-import { BankingApi, Money } from "../../../api/banking";
+import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge, SettlementMethod } from "../../../api/banking";
 import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
@@ -90,7 +90,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
     }
 
     const charge: Charge = {
-      amount: Money.of(minor),
+      amount: Money.of(minor, Currency.compact()),
       reason: `pay ${payee.getPresentation()}`,
       presented: false,
       payeeAccountId: payeeAccountId ?? "",
@@ -108,7 +108,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
             : "from your account";
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You pay ${Money.of(minor).render()} to ${Mml.name(payee)} ${how}.`)
+        .toSelf(Mml.compose`You pay ${Money.of(minor, Currency.compact()).render()} to ${Mml.name(payee)} ${how}.`)
         .toPeers(Mml.compose`${Mml.name(giver)} pays ${Mml.name(payee)}.`)
         .send();
     } catch (err) {

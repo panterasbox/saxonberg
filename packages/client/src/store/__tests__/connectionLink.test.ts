@@ -72,7 +72,7 @@ describe("connection.link state machine", () => {
         portraitUrl: "",
       },
       topicCatalogue: [],
-      bulletinWindow: [],
+      releaseWindow: [],
       clientState: {},
     });
     expect(useStore.getState().connection.link).toBe("connected");

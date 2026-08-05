@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { BankingApi } from "../../../api/banking";
+import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import BankCounter from "../../../obj/BankCounter";
 import Coin from "../../../obj/Coin";
@@ -50,9 +50,17 @@ function makeAvatar(path: string): TestAvatar {
 }
 
 function makeCoinsIn(holder: Stuff, qty: number): Coin {
-  const c = makeStuffAtPath(() => new Coin(), "/obj/Coin");
+  const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, "/obj/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
-  c.setQuantity(qty);
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // mechanics and the cash faucet may resize a money stack), so a test
+  // building a starting stack writes the field, it does not mint.
+  c.quantity = qty;
   ContainmentApi.move(c, holder as never);
   return c;
 }
@@ -102,7 +110,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const bank = makeBank();
     const alice = makeAvatar(ALICE);
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
     );
     // The affiliation edge is recorded on the account — the key CorpoApi
     // resolves (the corpo catalogue is warmed at boot, covered by corpo's
@@ -116,7 +124,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const coins = makeCoinsIn(alice, 100);
 
     const accountId = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
       return id;
     });
@@ -125,7 +133,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     expect(bank.getTillLiquidity().minor).toBe(100);
     expect(BankingApi.balanceOf(accountId).minor).toBe(100);
 
-    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100)));
+    await asOwner(alice, () => BankingApi.withdraw(bank, Money.of(100, Currency.compact())));
     // After withdraw: vault 0, balance 0 — 1:1, coin back with alice.
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(0);
@@ -137,7 +145,12 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
 
   it("partial withdraw splits the vault, holding 1:1 (clone stubbed)", async () => {
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
-      const c = makeStuffAtPath(() => new Coin(), path);
+      const c = makeStuffAtPath(() => {
+    const coin = new Coin();
+    coin.currency = "zorkmid";
+    coin.denomination = 1;
+    return coin;
+  }, path);
       c.setMass(Quantity.of(0.01, "kg"));
       return c;
     }) as unknown as typeof StuffApi.clone);
@@ -147,9 +160,9 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const coins = makeCoinsIn(alice, 100);
 
     const accountId = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
       await BankingApi.deposit(bank, coins);
-      await BankingApi.withdraw(bank, Money.of(30));
+      await BankingApi.withdraw(bank, Money.of(30, Currency.compact()));
       return id;
     });
 

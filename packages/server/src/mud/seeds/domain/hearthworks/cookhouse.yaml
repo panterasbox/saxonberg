@@ -23,7 +23,7 @@ data:
     # chest holds the dear cuts the gather walk reaches for a craft —
     # hand-retrieval from containers isn't a shipped verb yet).
     - /domain/hearthworks/root-vegetables
-    - /domain/hearthworks/root-vegetables-2
+    - /domain/hearthworks/root-vegetables
     - /domain/hearthworks/stew-meat
     # Empty dishes for the DIY floor — `plate` needs a real dish in
     # reach (the served path clones its own; the by-hand path doesn't).
