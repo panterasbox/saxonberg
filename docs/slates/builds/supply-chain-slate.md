@@ -174,10 +174,25 @@ evaporates when nothing is ever stamped.**
 - **Partial purchase.** *"Buy 40 kg of grain"* rather than forty
   grain-objects. **Commodity trade is quantity-denominated by nature**, and
   discrete-only would have made the whole middle of the chain feel fake.
-- ⭐ **It has a name and a precedent: the warehouse receipt.** You own a
-  claim against a lot, not identified units — how grain elevators and
-  bullion vaults actually work. The discrete/fungible split maps to law's
-  own **specific vs. fungible goods** distinction.
+- ⭐⭐ **It has a name, a precedent, AND an existing design:
+  [freight-slate § The warehouse receipt](./freight-slate.md).** That slate
+  already reached the same primitive from the other direction — *"a
+  **Document** naming a chattel **or a bulk quantity**,"* on the
+  bearer/registered split (*"a bearer receipt is a Thing you can steal; a
+  registered receipt is a record you cannot"*). **Fungible ownership by
+  document is already the designed answer; this is its first consumer.**
+  The discrete/fungible split maps to law's own **specific vs. fungible
+  goods** distinction.
+
+> ⭐⭐⭐ **And it solves [credit-slate](./credit-slate.md)'s collateral
+> problem.** That slate concluded most lending would be **unsecured**,
+> because a stripped parcel is worthless and seized content is worth less to
+> the creditor than the author. **A warehouse receipt is neither** — it is
+> fungible, market-valued, and transferable without the creditor wanting the
+> goods. freight-slate says it outright: *"the origin of **collateral**: you
+> can borrow against a warehouse receipt, the classic secured loan."*
+> **Inventory financing is the classic small-business loan, and it is
+> exactly what a distiller with aging casks needs.**
 
 > ⭐⭐ **What the lint got wrong: it conflated "sellable" with
 > "chattel-stampable."** Chattel models *specific* goods — this sword,
@@ -313,6 +328,101 @@ so time is the cost.
 > a crop's value is eaten by haulage — so land use sorts by distance,
 > unauthored. The freight slate already expects this; **the supply chain is
 > what makes it happen.**
+
+---
+
+# Part 6 — ⭐⭐ The martini, end to end
+
+> **User: "let's do the martini end to end."**
+
+## The cast already exists in the seeds
+
+The bar's bottles carry brands, and the brands carry a **competitive
+structure nobody has to invent**:
+
+| Brand | Owner | Role |
+|---|---|---|
+| ⭐ **Crowsfoot Gin** | `owner: ""` — *"a small-batch gin out of a little place across town — independent, carried by no corpo"* | **the player-ownable distillery** |
+| **Vionne Rouge** (vermouth) | Vionne | corpo competitor |
+| **Hollis Cane** (rum) | Hollis | corpo competitor |
+
+> ⭐⭐ **A player distiller competes with two corpo brands for Dave's rail** —
+> and the bar's own room description already says *"read the wall and you can
+> read the whole avenue's quarrels."* The industry's politics is seeded.
+
+## Lane A — gin (the independent)
+
+| # | Step | Mechanism | Status |
+|---|---|---|---|
+| 1 | grow **grain** | `CultivableMixin` bed → `GrowingMixin` → harvest, grade from the worst stretch | ✅ substrate · ⚠ new crop |
+| 2 | sell / buy | consign at the store → distiller buys | ⚠ needs **Part 2** if grain is fungible |
+| 3 | **mash** grain + water | heat-gated transform; `/obj/material/bulk/water` ships, and the Hinkley standpipe is an `UnboundedReceptacle` source | ✅ **recipe shape ships** |
+| 4 | ⭐ **ferment** → wash | **the durative transform** (Part 1). Temperature-driven, overshoots to **vinegar** | ❌ **the one new mechanic** |
+| 5 | **distil** → neutral spirit | `requiresHeatK` + a `still` tool capability — *the smithing shape exactly* | ✅ **ships**, needs the tool + recipe |
+| 6 | **compound** spirit + juniper → **gin** | redistil (heat) or macerate (durative) | ✅/❌ per choice |
+| 7 | **bottle** | fill a `GradedReceptacle` (`interiorMaterial` + `interiorAmount`) | ⚠ **see the grade seam** |
+| 8 | **brand** it | `_brandKey: crowsfoot-gin`, `BrandedMixin` resolve-on-read | ✅ ships |
+| 9 | sell to the bar | consign bottles → the owner buys and carries them in | ✅ (Part 3 workaround) |
+
+## Lane B — vermouth, and the convergence that makes it interesting
+
+grapes → **ferment** → wine → **fortify with neutral spirit + infuse
+botanicals** → vermouth.
+
+> ⭐⭐⭐ **Vermouth needs Lane A's own output.** Fortified wine takes spirit,
+> so the vermouth maker must **buy from the distiller** — a real B2B
+> relationship that falls out of the chemistry rather than being authored,
+> and it puts the distiller at the centre of the trade.
+
+## The bar end is untouched
+
+`order martini` → the shipped recipe (gin 0.06 L + vermouth 0.01 L, both
+`minGrade: fair`, `mixing-glass`) → settle a presented Charge → the bar's
+P&L. ⭐ **Nothing changes here. That is the point** — the sink is finished,
+and the whole build is upstream of it.
+
+## ⚠ The grade seam to verify first
+
+`gradeBand: fine` sits on the **receptacle** (`GradedReceptacle`), not on
+the material — a *bottle* is graded, not the gin in the abstract. So
+**filling a bottle from a vat must carry the batch's grade onto the
+bottle.** If it does not, every distilled spirit arrives ungraded and
+`minGrade: fair` rejects it. **Check this before building anything else** —
+it is small, and it is load-bearing for the entire chain.
+
+⭐ **Grade should come from the process, symmetric with husbandry**: a crop's
+band comes off the plant's *worst stretch*; **a batch's band should come off
+its worst temperature stretch.** Same rule, second consumer, no new concept.
+
+## ⭐ Sequencing — the martini is the superset
+
+| | ferment | distil | malt/mash | compound | convergent |
+|---|---|---|---|---|---|
+| **daiquiri** — rum + lime | ✔ | ✔ | — | — | — |
+| **martini** — gin + vermouth | ✔ | ✔ | ✔ | ✔ | ⭐ ✔ |
+
+**Cane ferments directly (no malting) and lime is pressed, not distilled** —
+so the daiquiri is the strictly smaller loop, and the martini chain
+**contains it**. Building the martini gets the daiquiri for **two crops and
+one recipe, with no new mechanics.**
+
+> ⚠ **But the martini also contains the hardest single ingredient** —
+> vermouth, which cannot be made until the gin lane runs. **If one working
+> loop is wanted before anything else, the daiquiri is it; if one push to
+> unlock both is wanted, the martini is right.** The user's instinct is
+> defensible either way — this is a staging call, not a design one.
+
+## What is genuinely new, all in
+
+**Code:** the durative-transform mixin · fungible consignment (Part 2) ·
+grade carry-across on bulk fill (verify — may already work).
+
+**Content:** crops (grain, grapes, juniper) · materials (grain, wash, wine,
+neutral spirit, **vinegar**, juniper) · fixtures (mash tun, fermenting vat,
+still, **a cold cellar**) · recipes (mash, distil, compound, fortify) · a
+`distilling` Discipline · the premises — *"a little place across town."*
+
+⭐ **Everything else in the chain is already shipped substrate.**
 
 ---
 
