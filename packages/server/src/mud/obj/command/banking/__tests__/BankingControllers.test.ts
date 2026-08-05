@@ -100,7 +100,10 @@ describe("Banking controllers — verb wiring", () => {
     return coin;
   }, "/obj/Coin");
     coins.setMass(Quantity.of(0.01, "kg"));
-    coins.setQuantity(100);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coins.quantity = 100;
     ContainmentApi.move(coins, giver);
 
     const runBank = (m: Record<string, unknown>, verb: string) =>
@@ -150,7 +153,10 @@ describe("Banking controllers — verb wiring", () => {
     return coin;
   }, "/obj/Coin");
     coins.setMass(Quantity.of(0.01, "kg"));
-    coins.setQuantity(100);
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // mechanics and the cash faucet may resize a money stack), so a test
+    // building a starting stack writes the field, it does not mint.
+    coins.quantity = 100;
     ContainmentApi.move(coins, giver);
 
     const runBank = (m: Record<string, unknown>, verb: string) =>

@@ -24,18 +24,94 @@ Money exists in two domains, joined only at the bank:
   append-only ledger** (`bank_ledger`), materialized in a warm cache
   (`bank_accounts`), behind the gated `BankingApi` / `BankingLogic` pair.
 
-`Money` is the amount value-object: integer **minor units** + a currency tag
-(v1: one currency, `credit`). It is a *transient settlement quantity* and a
-*ledger record* — **never a "worth N" stamped on a good** (Law 1). A coin
-carries a `denomination` (its identity); how many minor units a denomination
-is worth is intrinsic to the *currency* (`Money.faceValueOf`), read by the
-banking layer, never written onto the object.
+`Money` is the amount value-object: integer **minor units** + a currency tag.
+It is a *transient settlement quantity* and a *ledger record* — **never a
+"worth N" stamped on a good** (Law 1). ⚠ The currency argument is
+**required, never defaulted**: a default lets a call site silently assume the
+wrong currency, caught (if at all) only at runtime, where a required
+parameter turns the whole threading into a compile-error list.
+
+**v1 registers exactly one currency: the ZORKMID.** `credit` was retired
+with the currency build — the word belongs to the deferred lending subsystem
+(tabs, interest, creditworthiness, insolvency) and to the credit/debit
+vocabulary every ledger leg already speaks.
+
+### Currency — the record, and the one place it lives
+
+`lib/banking/Currency.ts` is a **registry** (not a data Idea + catalogue)
+holding every currency-intrinsic fact: the denomination table, the render
+vocabulary, and the issuer.
+
+```ts
+interface CurrencyRecord {
+  key: string;            // 'zorkmid' — the durable join
+  unit: string;           // render, singular
+  plural: string;         // render, plural
+  issuer: string;         // the institution that mints it
+  governorOffice: string; // whose holder may mint it
+  denominations: readonly { value: number; massKg: number; label?: string }[];
+}
+```
+
+A registry because `Currency.faceValueOf` sits on the hot path of
+`Coin.getMass()` and the scope-walk keyword getter and **throws** rather
+than guessing — a catalogue warmed asynchronously from `domain` would
+resolve nothing in every test that skips the clone pipeline. It is also why
+the test-only fixture currency can never reach a live collection: currency
+records are *code*, and code is not a collection. **Adding a currency is a
+code edit at the wizard tier** — the reserved-matter constraint in its
+crudest honest form (a mint is Compact-level, never a locality's own call).
+
+> ⚠⚠ **The record carries no rate, and no reference to another currency —
+> permanently.** A `pegRate` field beside the denominations is the
+> *world-oracle* shape: every reader of the currency would get an
+> authoritative cross-currency rate for free, which makes a price a
+> *property of a thing* rather than *an event between two parties*
+> (economy-slate Law 1). A **peg is an issuer's standing offer to redeem** —
+> reserves plus a published rate honoured at its own window, breakable when
+> the reserves drain — and it belongs to that offer, not to the money.
+> A test asserts the record's shape carries no such field.
+
+**Denomination identity is `(currency, faceValue)`** — structural, not an
+authored name. `zorkmid` is the only authored money noun; a coin presents as
+*"a 25-zorkmid piece"*, derived. The optional `label` is for an issuer that
+wants named coins (a corpo scrip will; the Compact does not). The retired
+`sovereign` / `crown` names had never been seen by a player: one coin
+template, and `issueCash` restamped only the denomination, so every coin read
+*"a credit coin"* and answered to `credit`.
+
+**Which currency?** `banking.compactCurrency` (an AppSetting, read only
+through `Currency.compact()`) names the one the Compact transacts in. That
+is **policy data, not a property of the money** — it is where the zorkmid's
+specialness lives, so no code path compares a currency to a literal. Reserve
+status is functional, never decreed: make Compact obligations payable only
+in zorkmids and it is the reserve *by construction*.
 
 ### Conservation
 
 > **Total money supply** = `Σ(mint amounts) − Σ(drain amounts)` over the
-> central-bank log. It changes **only** by a central-bank mint (faucet) or
-> drain (sink). Every other posting conserves it.
+> central-bank log, **per currency**. It changes **only** by a mint (faucet)
+> or drain (sink). Every other posting conserves it.
+
+Conservation is **N independent domains**, one per currency — `bank_supply`
+holds one row each, and every leg carries the currency it moves.
+
+> ⚠⚠ **A ledger leg may never cross currencies.** `from` and `to` are always
+> denominated the same. There is no leg kind that converts, no flag that
+> permits it, and **this is a permanent invariant, not a seam awaiting an
+> exchange**: currencies are *goods*, bought and sold in the market that
+> already exists at whatever price people pay. Nothing in this codebase asks
+> what one currency is worth in another, and nothing ever should. Relaxing it
+> would create money in one currency and destroy it in another — an invisible
+> mint, the one bug class an economy cannot recover from.
+
+Two independent gates enforce it. `assertConserving` proves the legs agree
+with **each other** (pure, no I/O). `postTransaction`'s **endpoint check**
+proves they agree with the **accounts they touch** — reading the warmed
+currency cache, never an await per endpoint — because a same-currency pair of
+legs could still move zorkmids into a scrip account. An account the cache has
+never seen is *new* (about to be created), so an empty currency adopts the
+leg's rather than failing.
 
 Enforcement is a **sealed posting chokepoint** — `postTransaction`, a
 module-private free function in `BankingLogic`, the **only** code path that
@@ -278,8 +354,13 @@ an unpriced recipe is served free (backward-compatible). The bar's P&L
 account is **lazily ensured** (`ensureVenueAccount`, owner = the venue's
 durable path) on first order/pnl/payroll — no boot seeder.
 
-**Law compliance** — Law 1: no good carries a readable worth (a coin has a
-`denomination`; face value is a currency property, `Money.faceValueOf`). Law
+**Law compliance** — Law 1: no good carries a readable worth. ⚠ A coin's
+`denomination` is a **number** (its face value in minor units) — read that
+as the denomination's *structural key within its currency*, not as an
+assertion of worth: the good does not price itself, the **currency**
+validates and prices it (`Currency.faceValueOf`), and a
+`(currency, denomination)` pair that does not resolve **throws** rather than
+being worth what it says. Law
 2: banking installs **no** scheduled recompute touching balances/coin (the
 renown divergence), so nothing decays — an idle balance/stack is unchanged
 over a game-clock advance.
@@ -287,7 +368,12 @@ over a game-clock advance.
 ## Module layout
 
 `lib/banking/` (the new subsystem folder):
-- `Money.ts` — the amount value-object + currency / coin-face-value consts.
+- `Currency.ts` — **the currency record + registry**: denominations (face
+  value ⊕ per-coin mass ⊕ optional label), render vocabulary, issuer +
+  governing office. ⚠ No rate, no cross-currency reference, permanently.
+- `Money.ts` — the amount value-object (minor units + a required currency).
+- `Coinage.ts` — the make-change **algebra** only (`dispense` / `planSpend`);
+  it holds **no currency data**, reading the table off the record.
 - `Account.ts` — the account-id vocabulary (sentinels, CB account, classify
   / mint helpers as statics).
 - `Transaction.ts` — `BankTransaction`, the pure conservation rule
@@ -295,7 +381,8 @@ over a game-clock advance.
 - `LedgerEntry.ts` — the append-only `bank_ledger` row (`Document`).
 - `AccountBalance.ts` — the materialized account registry + balance
   (`bank_accounts`, warm cache; registry folded onto the row — decision 2).
-- `SupplyAggregate.ts` — the single-row supply headline (`bank_supply`).
+- `SupplyAggregate.ts` — the supply headline, **one row per currency**
+  (`bank_supply`, unique index on `currency`).
 
 `obj/Coin.ts` — the physical cash object (`GlobbableMixin(Thing)`); a
 concrete content object beside `Flask`/`AirTank` (memory: *obj vs lib Stuff
@@ -312,10 +399,34 @@ sealed `postTransaction` chokepoint lives here as a module-private fn.
 
 Collections (`backend/PersistenceManager.ts`): `bank_ledger` (indexed
 `fromAccount`/`toAccount`/`kind`/`at`), `bank_accounts` (unique `accountId`,
-indexed `owner`/`bank`), `bank_supply` (single row). Warm wiring in
-`AppBootstrap` (`AccountBalance.warm` + `SupplyAggregate.warm` +
-`BankingApi.boot`); the `/obj/CentralBank` singleton is in the bootstrap
-manifest.
+indexed `owner`/`bank`), `bank_supply` (**one row per currency**, unique
+`currency`). All three carry a persisted `currency`.
+
+⚠ **Boot ordering is load-bearing**: `BankingApi.boot()` runs **before**
+`AccountBalance.warm()` / `SupplyAggregate.warm()` in `AppBootstrap`, because
+`boot()` carries the idempotent currency backfill and **both warms throw on a
+currency-less row**. Booting on an unmigrated database is therefore a fast,
+harmless failure rather than a world running on money whose denomination
+nobody knows — which is what makes the deploy order (**stop → migrate →
+deploy → start**) enforced by the code instead of remembered from a runbook.
+The `/obj/CentralBank` singleton is in the bootstrap manifest.
+
+## Live-data migration (the currency build)
+
+`packages/server/scripts/migrate-currency.ts` — four backfill targets,
+because money lives in four places and only one is a collection banking owns:
+the three `bank_*` collections; the well-known fixed account ids (`treasury`,
+`central-bank`, suffixed **unconditionally** — a conditional would be exactly
+the zorkmid branch the acceptance test forbids); the **`/obj/Coin` row in
+`domain`** (⚠ the seeder is INSERT-ONLY, so unmigrated it keeps stamping every
+*future* coin stale); and the nested coin blobs in `holder_snapshots` (the
+durable coin population — vault float does not survive a restart, since
+`BankCounter` composes no `PersistableMixin`).
+
+The rehearsal is report-only → apply → report-only against a **restored copy**,
+and the script **exits non-zero** unless every per-account balance, every
+ledger row and every coin has identical value before and after. ⭐ The coin
+term is the one that catches a silent revalue.
 
 ## Open-choice decisions log
 
@@ -366,6 +477,28 @@ The plan flagged 6 open implementation choices; settled as reached:
    Location's own `commandContributions` don't reach its occupants, so the
    affordance must come from a fixture in the room (the `Menu` precedent).
    (Phase 2.)
+
+The currency build added three more:
+
+7. **Registry over data-Idea + catalogue** for `Currency` — `faceValueOf` is
+   on the hot path of `Coin.getMass()` and the scope-walk keyword getter and
+   now *throws*, so an async-warmed catalogue would resolve nothing in every
+   test that skips the clone pipeline; and the test-only fixture currency
+   must never reach a live collection, which a registry gives by
+   construction (records are code, not rows). The door to authored
+   currencies stays one seam wide.
+8. **`Money.of`'s currency is required, not defaulted** — a default lets a
+   site silently assume the wrong currency, caught only at runtime; required,
+   the compiler enumerates every site. 174 call sites, deliberately.
+9. **Currency joins the account-resolution key** — accounts are
+   single-currency, so `(bank, currency)` is the identity. It keeps the
+   scalar `balance` and its warmed cache untouched, where a multi-currency
+   wallet would have rewritten every read site.
+10. **The `setQuantity` gate lives on `Coin`, not on `GlobbableMixin`** — a
+   glob is not necessarily money, and gating the mixin gates every pile of
+   ore in the world. `Coin` is the value-bearing glob (and scrip will be a
+   `Coin`), so it inherits. A general *value-bearing* marker is the
+   money-integrity slate's own cycle.
 
 ## Deferred seams
 
