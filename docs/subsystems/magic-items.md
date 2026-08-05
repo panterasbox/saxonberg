@@ -382,8 +382,16 @@ you. The real high end stays named for when multi-target lands.
 
 A cursed scroll of remove curse **lays** a curse. Not a weaker cure —
 the opposite act, because that is the low end of *remove-curse's own*
-axis. `scroll-of-remove-curse-cursed` is the worked exemplar against its
-ordinary twin: same working, one band down.
+axis.
+
+> ⚠ There is **one** scroll template, not three. A per-band variant is
+> the mistake this axis exists to prevent: BUC is **per-instance**, drawn
+> at mint from `blessingOdds`, so `scroll-of-remove-curse` already
+> produces all three bands. Three templates that differ in one field
+> were briefly authored here and deleted — the test before adding a
+> variant is *"is this difference per-instance state a field already
+> carries?"*, and for BUC, grade, material and charge the answer is
+> always yes.
 
 Resolution happens **once, at validation** (`MagicEffects.validateForBand`),
 so the catalogue holds three concrete effect lists per spell and every
