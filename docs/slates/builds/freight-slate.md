@@ -179,6 +179,11 @@ and no law can. **That is precisely why the engine has to hold the line the
 law structurally cannot**, and why the invariant is worth stating as a rule
 rather than leaving as an emergent property of good design.
 
+⚠ **This is a rule about FORMULAS, not about telemetry** — measuring latency
+is fine and already ships. What may be *published*, and in what form, is
+[connection-quality-slate](../tails/connection-quality-slate.md); it
+cross-cuts, so it lives with connection rather than here.
+
 ## ⭐ The road network is emergent, not authored
 
 **You do not author roads.** You author **which exits admit `wheeled`
