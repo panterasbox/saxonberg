@@ -69,6 +69,21 @@ const CoinBase = GlobbableMixin(Thing);
  * different currency, so it inherits this gate for free.
  */
 const CoinQuantityMutators = SecurityPolicies.AnyOf(
+  // ⚠ The CLONE PIPELINE. A `Hydrator` applies a template's (or a captured
+  // snapshot's) `quantity` through the two-phase `set<Field>` dispatch, so
+  // hydration is how a coin stack legitimately comes into existence at all —
+  // both for a fresh `/obj/Coin` clone and for a logged-out player's cash
+  // being reconstituted from `holder_snapshots`. Reconstituting a stack that
+  // already exists is not minting.
+  //
+  // ⚠ This does mean a template authored with `data.quantity: 1000000` would
+  // clone into a fortune. That is a CONTENT-authoring surface, not a code
+  // one: `class` / `hydratorClass` are wizard-gated fields, and
+  // "can a template mint coins" is enumerated in
+  // docs/slates/builds/money-integrity-slate.md § the audit surface
+  // (clone-a-coin, content packs, the CMS coin row) as that cycle's work.
+  SecurityPolicies.FromModule("/lib/stuff/Hydrator", { includeSubclasses: true }),
+  SecurityPolicies.FromTemplate("/obj/persistence/*Hydrator"),
   // The glob mechanics: split subtracts what it hands out, merge sums what it
   // absorbs — both conserve by construction.
   SecurityPolicies.FromModule("/api/glob#GlobbableApi", {
@@ -157,6 +172,28 @@ export default class Coin extends CoinBase {
       return Currency.describeDenomination(this.currency, this.denomination);
     } catch {
       return "a blank coin";
+    }
+  }
+
+  /**
+   * The counted form — `"4 5-zorkmid pieces"`, not `"4 a 5-zorkmid pieces"`.
+   *
+   * `getPresentation` composes a stack as `` `${n} ${pluralize(base)}` ``
+   * where `base` is the short description, and a short description that
+   * leads with an article reads wrong once a count is prefixed. (This is a
+   * general glob-rendering wart — *"4 a red apples"* — that predates the
+   * currency build; `getPluralForm` is the sanctioned host-side opt-out, and
+   * money is the surface where it shows most.)
+   */
+  public getPluralForm(): string {
+    try {
+      const singular = Currency.describeDenomination(
+        this.currency,
+        this.denomination
+      );
+      return `${singular.replace(/^(a|an|the) /i, "")}s`;
+    } catch {
+      return "blank coins";
     }
   }
 
