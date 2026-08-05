@@ -15,17 +15,46 @@
 >   days. **Worth doing from day 1** (launch one currency), because it is
 >   painful to retrofit onto a populated ledger and cheap to do while the
 >   ledger is young.
-> - **Half B — currency *markets* (FX).** Rates + a conservation-correct
->   conversion + (optionally) price discovery. Design-heavy, its own
->   build. **Deferred**, with the one exchange-model decision named below
->   so Half A can leave the right inert seam.
+> - ⛔ **Half B — currency *markets* (FX). REFUSED 2026-08-04**, not
+>   deferred. `builds/currency-slate.md` decided there is no exchange
+>   subsystem: **currencies are goods**, traded in the market that
+>   already exists, at whatever price people pay. What survives is the
+>   **money-changer as a merchant**; what is refused is any **declared
+>   rate**. ⚠ Half A's currency-crossing rejection is therefore a
+>   **permanent invariant, not an inert seam awaiting Half B** — the one
+>   change to Half A's brief this makes. The original Half B is retained
+>   below as the record of what was considered.
 
 Working slate for **more than one currency** — and, eventually, an
-**exchange** between them. The governing claim, and the reason it's a
-banking *tail* rather than a fresh build: **a second currency is an
-additive change to a substrate that was written for it, not a refactor.**
-`Money.ts` says exactly this in its own doc comment; this slate is the
-work of making the sentence true underneath.
+**exchange** between them.
+
+> ⚠ **Naming (decided 2026-08-04):** the Compact's currency is the
+> **zorkmid**, not the `credit` — the rename gives `credit` back to the
+> deferred lending subsystem
+> ([terminus-banking §7](../../staging/terminus-banking.md)) that needs
+> the word. **Below, `credit` appearing in a description of *today's
+> code* is correct and left alone; `credit` as the *target* currency tag
+> is now `zorkmid`.** Denomination identity also becomes structural —
+> `(currency, faceValue)`, no authored coin names — which changes step 5
+> materially. See
+> [builds/currency-slate](../builds/currency-slate.md).
+
+⚠⚠ **Read the claim below precisely; it has already been misread once.**
+`Money.ts`'s doc comment says a second currency is *"an additive change,
+not a refactor."* **That is true of `Money` and false of everything that
+persists** — and the gap table two sections down is the proof.
+`builds/currency-slate.md` restated the doc comment as though it covered
+the whole substrate, concluded the work was "a catalog problem," and was
+**wrong about the thing that sets the build's cost**. This slate's
+governing claim is the narrower one:
+
+> **The value object was written for N currencies. The durable spine was
+> not.** This slate is the work of making `Money.ts`'s sentence true
+> underneath it.
+
+It stays a banking *tail* rather than a fresh build because the change is
+**mechanical and well-bounded** (~1–2 focused days), not because it is
+free.
 
 See also:
 
@@ -34,11 +63,16 @@ See also:
   balances, the `bank_ledger`/`bank_accounts`/`bank_supply` collections,
   the sealed `postTransaction` conservation chokepoint, `BankingApi`/
   `BankingLogic`.
+- [docs/slates/builds/currency-slate.md](../builds/currency-slate.md) —
+  ⭐ **the DECISION layer above this one** (the zorkmid, structural
+  denominations, reserve-by-obligation, and the refusal to build an
+  exchange). This slate is its Half-A implementation spec. Read that one
+  first; where the two differ, it wins.
 - [docs/slates/builds/economy-slate.md](../builds/economy-slate.md) —
-  the macro-economics home. **FX rate policy (peg vs float) is a monetary
-  question and belongs to that layer's deferred macro problems**, not to
-  the physics this slate builds. Half A is physics; Half B's *rate* is
-  macro.
+  the macro-economics home, and where the **currency reset** (the
+  Rentenmark / Plano Real move) lives. ⛔ *Superseded: this slate used to
+  route "FX rate policy (peg vs float)" here as a deferred macro
+  question. There is no rate policy, because there is no rate.*
 - [docs/slates/builds/cooperative-slate.md](../builds/cooperative-slate.md)
   — the reserve-as-central-bank. Which office issues *which* currency, and
   whether a second currency has its own issuer or the one CB mints all, is
@@ -62,7 +96,7 @@ See also:
 |---|---|
 | A `currency` dimension threaded through ledger / balances / supply / conservation | A rewrite of the money model — `Money` is already currency-tagged |
 | Per-currency conservation (money conserved *within* each currency) | Cross-currency conservation magic (a convert is drain-A + mint-B, see Half B) |
-| Launch with one currency (`credit`); the substrate ready for N | Launching a second live currency (content + issuer decision, deferred) |
+| Launch with one currency (`zorkmid`); the substrate ready for N | Launching a second live currency (content + issuer decision, deferred) |
 | An inert `convert` / exchange-rate seam laid at the conservation chokepoint | The FX market itself — rates, order book, price discovery (Half B) |
 | A per-currency coinage/denomination/render table | A second physical `Coin` cast in v1 (deferrable if the 2nd currency is account-only) |
 
@@ -83,7 +117,7 @@ speaks bare integers with one implicit currency:
 | `SupplyAggregate` (`bank_supply`) | one `{minted, drained}` row + one cached pair | key by currency (row-per-currency + `Map<currency,…>` cache); `cachedSupply(currency)` |
 | `BankTransaction.assertConserving` | conservation is per-*transaction* | conservation per-*currency*: a transfer/payment/wage/tax leg's two ends must be the same currency; `supplyDelta` returns per-currency |
 | `postTransaction` + ~12 call sites | assume `credit` | thread the leg currency through (mint / drain / deposit / withdraw / transfer / payment / wage / tax) |
-| `Coinage` / `Money.render` / `Coin` | hardcodes "credit(s)" + 1/5/25 | a per-currency denomination + display-name table |
+| `Coinage` / `Money.render` / `Coin` | hardcodes "credit(s)" + 1/5/25; `Coin.denomination` **defaults to `DEFAULT_CURRENCY`** (a currency in a denomination field); `globIdentityFields = ['denomination']` | per-currency `[{value, massKg, label?}]`; denomination identity becomes **`(currency, faceValue)`** — ⚠ **glob identity must include the currency or two issuers' like-valued coins MERGE (an invisible mint)**; presentation derives from the pair |
 | Reporting: `bank statement`, `profitAndLoss`, `moneySupply`/`reconcile` | one-currency display | currency-aware display + per-currency reconcile |
 
 The **load-bearing** one is `assertConserving`. Today "money isn't created
@@ -102,11 +136,13 @@ leaving a named, inert `convert` path for Half B to fill.
 **Is an account single-currency, or a multi-currency wallet?**
 
 - **Single-currency account (recommended).** Each `AccountBalance` row
-  carries one `currency`; you hold a `credit` account and (later) a
+  carries one `currency`; you hold a `zorkmid` account and (later) a
   `scrip` account, distinct rows. Matches real banking (a USD account and
   a EUR account are two accounts). The `_cache` keyed on `accountId` is
   unchanged; the currency rides the row. `openAccount` takes a currency
-  (defaulting to `credit`). Reads that *sum* group by currency.
+  (defaulting to `zorkmid`). Reads that *sum* group by currency.
+  ⭐ **Confirmed independently by `builds/currency-slate.md`** — both
+  slates reached account-per-currency by different routes.
   **Cheapest, most honest, and the conservation check stays trivially
   per-currency** (a leg's currency = both endpoints' account currency).
 - **Multi-currency wallet.** One account holds a `Map<currency, balance>`.
@@ -122,7 +158,32 @@ on the roadmap does).
 
 ---
 
-## Half B — currency markets (FX), deferred
+## Half B — currency markets (FX) — ⛔ SUPERSEDED 2026-08-04
+
+> ⛔ **`builds/currency-slate.md` decided against building an exchange
+> at all.** Currencies are *goods*: coins are already `Stuff` with mass,
+> so you buy one currency's coins with another's in the market that
+> already exists, and the rate is whatever people pay. No oracle, no peg,
+> no FX engine. ⭐ Currency crises become **emergent** rather than
+> simulated.
+>
+> **The resolution, component by component:**
+>
+> | Half B component | Verdict |
+> |---|---|
+> | The **money-changer** (bounded both-currency reserves, two same-currency transfers, keeps a spread, can run out) | ✅ **Survives** — it is a *merchant who deals in coins*, not an FX engine. Mints no new conservation rule. |
+> | A **declared rate** (peg, config, governed, oracle) | ⛔ **Refused.** The changer posts its own bid/ask like any merchant; nothing reads a global rate. |
+> | The **`convert` verb** | ⚠ Probably unnecessary — `buy`/`sell` at the changer with the shipped retail verbs. A dedicated verb is what makes exchange feel like a system rather than a shop. |
+> | **Rejecting a currency-crossing leg** at `postTransaction` | ✅ **Keep — PERMANENTLY.** Below it is called an "inert seam Half B fills." **It should never be filled.** The never-cross-currencies rule is the invariant, not a placeholder. |
+>
+> ⭐⭐ **The changer survives; the rate does not.** A person who will
+> trade you zorkmids for scrip at a price they choose is content. A
+> number the world agrees on is an FX engine wearing a hat.
+
+The original Half B design is retained below **as the record of what was
+considered**, not as a build plan. ⚠ Its peg-vs-float decision (item 1)
+and its framing of `convert` as a deferred seam are the two parts
+superseded above.
 
 The actual *exchange* is its own build, and it needs a design decision
 that can't be skipped. Named here so Half A leaves the right seam:
@@ -169,7 +230,7 @@ auditable ledger — no printed FX faucet.
 1. **Decide** single-currency accounts (above) — do this first; every
    later step assumes it.
 2. **Schema** — add `currency` to `LedgerEntry` + `AccountBalance`
-   (persistent fields, default `credit`); key `SupplyAggregate` by
+   (persistent fields, default `zorkmid`); key `SupplyAggregate` by
    currency (row-per-currency + the cache becomes a `Map`).
 3. **Conservation** — `BankTransaction.assertConserving` gains the
    per-currency rule (same-currency endpoints for movement kinds;
@@ -177,25 +238,50 @@ auditable ledger — no printed FX faucet.
    the reserved `convert`-not-supported error.
 4. **Thread** — `postTransaction` takes/propagates the currency; walk the
    ~12 call sites (mint/drain/deposit/withdraw/transfer/payment/wage/tax)
-   so each posts in the right currency (all `credit` at launch — this step
-   is proving the plumbing, not adding a currency).
-5. **Coinage/render** — a per-currency denomination + display-name table
-   (drop the hardcoded "credit(s)" in `Money.render`); `Coin`/`Coinage`
-   parameterized by currency. Deferrable to account-only if the 2nd
-   currency ships without cash.
+   so each posts in the right currency (all `zorkmid` at launch — this
+   step is proving the plumbing, not adding a currency).
+5. **Coinage/render** — a per-currency denomination table
+   (`[{value, massKg, label?}]`); drop the hardcoded "credit(s)" in
+   `Money.render`; `Coin`/`Coinage` parameterized by currency.
+   ⚠ **Three things this step must get right** (see
+   [builds/currency-slate](../builds/currency-slate.md) § *Three concrete
+   hazards*):
+   - **Denomination identity is `(currency, faceValue)`** — structural,
+     not an authored name. `zorkmid` is the only authored money noun;
+     coins present as "a 25-zorkmid piece". The optional `label` is for
+     an issuer who wants named coins (a corpo scrip will; the Compact
+     won't).
+   - ⚠⚠ **`Coin.globIdentityFields` must include the currency**, or two
+     issuers' like-keyed coins merge into one stack — money created by a
+     merge, no ledger row, no error.
+   - ⚠⚠ **The `?? 1` unknown-denomination fallback should become a
+     throw.** As written, re-keying denominations without migrating live
+     coins silently revalues every 25-coin to 1, and the conservation
+     audit still *passes* because the bottom-up term recomputes from the
+     same broken lookup.
+
+   ⚠ **This step is the deploy gate.** It touches live `Coin` instances
+   on the deployed box, and the seeder is INSERT-ONLY, so editing
+   `Coin.yaml` does nothing to rows that already exist. Sequence it with
+   the step-2 schema migration so there is **one** migration window and
+   one backfill, not two. Deferrable to account-only only if the 2nd
+   currency ships without cash — which does not apply to the rename,
+   which lands regardless.
 6. **Reporting** — `bank statement`, `profitAndLoss`, `moneySupply`/
    `reconcile` become currency-aware (per-currency reconcile is the
    audit that proves the threading correct).
 7. **Seam** — the inert `convert` path + a test that a currency-crossing
    transaction throws. Ship one currency; the substrate is now N-ready.
 
-### Half B — FX (its own cycle, deferred)
+### Half B — FX (⛔ superseded; retained as the record of what was considered)
 
-1. Decide **peg vs. market** (governance/macro call).
-2. The **money-changer** (bounded both-currency reserve holder; two
+1. ⛔ Decide **peg vs. market** (governance/macro call). — **Refused: no
+   declared rate of any kind.**
+2. ✅ The **money-changer** (bounded both-currency reserve holder; two
    same-currency transfers + spread; attendant + bounded-participant
-   reuse).
-3. Light up `convert` at the chokepoint (replace the Half-A throw).
+   reuse). — **Survives**, as a merchant who deals in coins.
+3. ⛔ Light up `convert` at the chokepoint (replace the Half-A throw). —
+   **The throw is permanent.** Trade at the changer with `buy`/`sell`.
 4. A second live currency as **content** (its issuer decided with
    governance; a corpo scrip is the natural first).
 
@@ -207,12 +293,17 @@ auditable ledger — no printed FX faucet.
    §*The one decision*).
 2. **Who issues a second currency?** One CB mints all currencies, or each
    currency has its own issuer (a corpo for a scrip)? Governance call
-   (governance.md); doesn't block Half A.
+   (governance.md); doesn't block Half A. ⚠ **`builds/currency-slate`
+   adds a constraint**: authorizing an issuer is a *mint*, so by
+   [balance-slate](../builds/balance-slate.md) it is a **reserved
+   matter** — Compact-level, not a locality's own call. *A locality may
+   run its own currency only with the Compact's leave.*
 3. **Does the 2nd currency have cash?** If account-only, Half A step 5
    (Coinage) is deferrable. Lean: whatever the first real 2nd currency
    wants — probably a corpo scrip that *is* physical (a company token).
-4. **Peg vs. float for v1 FX** — lean peg first (simpler, teaches
-   currency-board mechanics; a float is the capital-markets apex).
+4. ~~**Peg vs. float for v1 FX**~~ — ⛔ **CLOSED 2026-08-04: neither.**
+   No declared rate of any kind; the rate is whatever the market pays.
+   See the Half B supersession above.
 5. **Cross-currency in one account statement** — if accounts are
    single-currency, `bank statement` is naturally per-account/per-currency;
    a combined "net worth across currencies" view would need a rate (Half B)
@@ -225,9 +316,13 @@ auditable ledger — no printed FX faucet.
 
 ## What this slate does NOT cover
 
-- **The FX rate *policy*** (peg level, float dynamics, devaluation events)
-  — a monetary-macro question for the economy/cooperative layer, tuned
-  against a running game, not solved in the abstract.
+- ~~**The FX rate *policy***~~ — ⛔ **there is no rate policy**, because
+  there is no rate (Half B supersession). Devaluation still happens; it
+  happens the way it happens in life, by people declining to hold your
+  paper. The one governed monetary event that survives is the
+  **currency reset** ([economy-slate](../builds/economy-slate.md) —
+  the Rentenmark / Plano Real move), which needs mint/drain + a
+  governance act and no market at all.
 - **Capital markets / securities** — a second currency is not a security;
   the corpo stock exchange stays deferred behind a working retail economy
   (economy-slate § *Capital markets*).
