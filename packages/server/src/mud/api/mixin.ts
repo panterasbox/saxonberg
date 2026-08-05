@@ -151,7 +151,6 @@ import type { Labelled } from '../lib/description/Labelled';
 import type { Memorized } from '../lib/magic/Memorized';
 import type { Circulating } from '../lib/residency/Circulating';
 import type { Charged } from '../lib/magic/Charged';
-import type { Focus } from '../lib/magic/Focus';
 import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
@@ -1252,10 +1251,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Charged);
   }
 
-  /** Supplies specification only; the USER pays and is the endpoint (D5). */
-  public static isFocus(obj: Stuff): obj is Stuff & Focus {
-    return this.hasMixin(obj, Mixins.Focus);
-  }
 
   /**
    * Carries a blessed/uncursed/cursed band — a potency level on the

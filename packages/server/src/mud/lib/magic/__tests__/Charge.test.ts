@@ -13,7 +13,7 @@
  *         charge, and is refused when the caster lacks it.
  * AC 9  — a worn always-on item depletes measurably faster than the same
  *         item used as a trigger.
- * AC 11 — a focus's pattern decays on its own slower schedule and is
+ * (AC 11's focus/pattern arm is retired — see the implements slate.)
  *         refreshed through the same `recharge` path.
  *
  * (AC 10 — mana recovery consumes satiation and hydration — lives in
@@ -25,7 +25,6 @@ import { WorldClockApi } from '../../../api/worldclock';
 import '../../../obj/WorldClockRegistry';
 import { Charge } from '../Charge';
 import { ChargedMixin, CHARGE_DEFAULTS } from '../Charged';
-import { FocusMixin, FOCUS_DEFAULTS } from '../Focus';
 import { ArcaneMixin } from '../Arcane';
 import Thing from '../../stuff/Thing';
 import { ReservedMixin } from '../../reserve';
@@ -33,7 +32,6 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class TestWand extends ChargedMixin(ReservedMixin(ArcaneMixin(Thing))) {}
-class TestRod extends FocusMixin(ArcaneMixin(Thing)) {}
 
 const SCALE = 12;
 let real = 0;
@@ -251,81 +249,5 @@ describe('ChargedMixin — the battery', () => {
       TestWand as unknown as { commandContributions?: { inventory?: string[] } }
     ).commandContributions;
     expect(contributions?.inventory).toContain('magic/zap.yaml');
-  });
-});
-
-describe('FocusMixin — the pattern', () => {
-  beforeEach(() => {
-    installV1QuantityMarshallers();
-    WorldClockApi._resetForTesting();
-    real = 100000;
-    WorldClockApi._setNowProviderForTesting(() => real);
-  });
-  afterEach(() => {
-    WorldClockApi._resetForTesting();
-  });
-
-  it('AC11 — a pattern rots on its own MUCH SLOWER schedule than charge', () => {
-    const rod = makeStuff(() => new TestRod());
-    const wand = makeStuff(() => new TestWand());
-    wand.setCapacityKJ(1000);
-    rod.getPatternIntegrity();
-    wand.getStoredKJ();
-
-    advance(2_000_000);
-    const patternLost = 1 - rod.getPatternIntegrity();
-    const chargeLostFraction = (1000 - wand.getStoredKJ()) / 1000;
-
-    // "Magic perishes, matter doesn't" — but a pattern perishes far
-    // slower than a charge, because it is losing ORDER rather than
-    // energy. The ruins hold perfect blades and faded rings.
-    expect(patternLost).toBeGreaterThan(0);
-    expect(patternLost).toBeLessThan(chargeLostFraction);
-  });
-
-  it('AC11 — fade is felt as falling delivery, never as failure', () => {
-    const rod = makeStuff(() => new TestRod());
-    rod.getPatternIntegrity();
-    advance(200_000_000);
-    const faded = rod.getPatternIntegrity();
-
-    expect(faded).toBeLessThan(1);
-    // Efficiency IS integrity: a faded focus delivers less per point
-    // you spend. Soft, legible, recoverable — never a cliff.
-    expect(rod.getPatternEfficiency()).toBe(faded);
-  });
-
-  it('AC11 — refreshing is the same path, clamped at fully-impressed', () => {
-    const rod = makeStuff(() => new TestRod());
-    rod.getPatternIntegrity();
-    advance(400_000_000);
-    const faded = rod.getPatternIntegrity();
-    expect(faded).toBeLessThan(1);
-
-    const restored = rod.refreshPattern(0.1);
-    expect(restored).toBeCloseTo(0.1, 6);
-    expect(rod.getPatternIntegrity()).toBeCloseTo(faded + 0.1, 6);
-
-    // You cannot over-impress it — a rod is never better than new.
-    rod.refreshPattern(5);
-    expect(rod.getPatternIntegrity()).toBeCloseTo(1, 6);
-    expect(rod.refreshPattern(1)).toBe(0);
-  });
-
-  it('AC11 — below the floor the specification no longer resolves', () => {
-    const rod = makeStuff(() => new TestRod());
-    expect(rod.isPatternUsable()).toBe(true);
-    rod.patternIntegrity = FOCUS_DEFAULTS.USABLE_FLOOR / 2;
-    rod.patternClockStamp = 1; // suppress the first-touch reseed
-    expect(rod.isPatternUsable()).toBe(false);
-  });
-
-  it('the two rate constants carry their units, and rot is the slower', () => {
-    // The 12× game-time factor is where a dishonest number hides, so
-    // both constants are named per GAME second and are asserted to sit
-    // in the intended order of magnitude relative to each other.
-    expect(FOCUS_DEFAULTS.ROT_PER_GAME_SEC).toBeLessThan(
-      CHARGE_DEFAULTS.DECAY_PER_GAME_SEC,
-    );
   });
 });

@@ -77,8 +77,7 @@ export default class RechargeController extends CommandController<RechargeModel>
     }
 
     const charged = MixinApi.isCharged(target);
-    const focus = MixinApi.isFocus(target);
-    if (!charged && !focus) {
+    if (!charged) {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(
@@ -153,21 +152,6 @@ export default class RechargeController extends CommandController<RechargeModel>
         reports.push('The shell drinks it down and warms in your hand.');
       } else {
         reports.push('It is already as full as it will get.');
-      }
-    }
-    if (focus && spent < asked) {
-      const remaining = asked - spent;
-      const perPt = dial(
-        AppSettingKeys.magicRefreshPatternPerManaPt,
-        PATTERN_PER_MANA_PT,
-      );
-      const restored = target.refreshPattern(remaining * perPt);
-      const cost = perPt > 0 ? restored / perPt : 0;
-      spent += cost;
-      if (restored > 0) {
-        reports.push('The pattern tightens under your attention.');
-      } else if (!charged) {
-        reports.push('The pattern is already as sharp as you can make it.');
       }
     }
 

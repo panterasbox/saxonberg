@@ -348,7 +348,6 @@ export const Mixins = {
   // is therefore the endpoint. Perishes by pattern rot on a much slower
   // schedule than charge: a binding is a state held away from
   // equilibrium. "Magic perishes, matter doesn't." See D9.
-  Focus: 'FocusMixin',
   // Blessable — the blessed/uncursed/cursed axis, as a potency level on
   // the item's OWN effect axis (never a hidden alignment tag). Opt-in
   // per template. The paradigm hidden-state axis, so also the paradigm

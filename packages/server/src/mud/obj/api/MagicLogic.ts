@@ -536,7 +536,6 @@ async function dischargeImpl(
   // is itself. An explicit option wins — a scroll names its reader.
   let classScale = 1;
   let payer: Stuff = opts?.source ?? item;
-  if (MixinApi.isFocus(item)) payer = opts?.source ?? actor;
   if (MixinApi.isCharged(item)) {
     const costKJ = spell.cost * dial(AppSettingKeys.magicChargeKJPerCostPt, 1);
     if (!item.spendCharge(costKJ)) {
@@ -546,17 +545,6 @@ async function dischargeImpl(
         reports: [],
       };
     }
-  }
-  if (MixinApi.isFocus(item)) {
-    if (!item.isPatternUsable()) {
-      return {
-        ok: false,
-        refusal: 'The pattern in it has gone slack; nothing takes shape.',
-        reports: [],
-      };
-    }
-    // Fade shows up as falling delivery, never as failure.
-    classScale *= item.getPatternEfficiency();
   }
 
   // The maker's fixed efficiency times whatever the capability supplied

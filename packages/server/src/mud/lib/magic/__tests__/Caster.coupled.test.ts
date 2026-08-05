@@ -32,7 +32,6 @@ import '../../../obj/WorldClockRegistry';
 import SpellCatalogue from '../../../obj/SpellCatalogue';
 import Spell from '../../../obj/magic/Spell';
 import Wand from '../../../obj/magic/Wand';
-import Rod from '../../../obj/magic/Rod';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import Species from '../../../obj/species/Species';
@@ -249,29 +248,6 @@ describe('AC7 — the endpoint takes the reaction', () => {
     });
   });
 
-  it('a caster using a shove FOCUS is displaced — the user is the endpoint', async () => {
-    const room = makeRoom();
-    const user = makeCaster();
-    const mark = makeCaster();
-    ContainmentApi.move(user, room);
-    ContainmentApi.move(mark, room);
-    user.setPosture(Postures.Stand);
-    mark.setPosture(Postures.Stand);
-
-    const rod = makeStuff(() => new Rod());
-    stampTemplatePathForTest(rod, `/obj/test/rod-${seq++}`);
-    rod.setCarriedSpellPath('/obj/magic/Spell/shove');
-    ContainmentApi.move(rod, user);
-    actingAs(user);
-
-    const out = await MagicApi.discharge(rod, mark);
-    expect(out.ok).toBe(true);
-    expect(mark.getPosture()).toBe(Postures.Lie);
-    // A focus supplies the specification only — YOU are still the
-    // endpoint, so the recoil is yours.
-    expect(user.getPosture()).toBe(Postures.Kneel);
-  });
-
   it('a caster firing a braced CHARGED item is NOT displaced — the item is the endpoint', async () => {
     const room = makeRoom();
     const user = makeCaster();
@@ -325,24 +301,5 @@ describe('AC7 — the endpoint takes the reaction', () => {
     expect(flat.refusal).toMatch(/spent|click/i);
   });
 
-  it('a FADED focus delivers less rather than failing', async () => {
-    const room = makeRoom();
-    const user = makeCaster();
-    ContainmentApi.move(user, room);
-    const rod = makeStuff(() => new Rod());
-    stampTemplatePathForTest(rod, `/obj/test/rod-${seq++}`);
-    rod.setCarriedSpellPath('/obj/magic/Spell/shove');
-    rod.patternIntegrity = 0.5;
-    rod.patternClockStamp = 1;
-    ContainmentApi.move(rod, user);
-    actingAs(user);
 
-    expect(rod.getPatternEfficiency()).toBeCloseTo(0.5, 2);
-    const mark = makeCaster();
-    ContainmentApi.move(mark, room);
-    const out = await MagicApi.discharge(rod, mark);
-    // Half-faded still WORKS. Fade is felt as falling delivery, never
-    // as failure — the soft-recoverable-entropy constraint.
-    expect(out.ok).toBe(true);
-  });
 });

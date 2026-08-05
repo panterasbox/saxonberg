@@ -95,12 +95,26 @@ never copies it; a bespoke item *declares*.
 | Class | Supplies | Endpoint | Bounded by |
 |---|---|---|---|
 | **Charged** — wand, orb, ring | energy **+** specification | the item | energy density |
-| **Focus** — rod, lens, staff | specification only | the user | the user's reserve |
+| ~~**Focus**~~ — *cut; see below* | — | — | — |
 | **Consumable** — potion, scroll | one packaged act | varies | one use |
 
-The endpoint column is `ctx.source`, and it is why the classes have
-**opposite ergonomics from one line of code**: a focus that shoves
-recoils onto *you*; a charged item's recoil lands on *the item*.
+The endpoint column is `ctx.source`. A charged item's recoil lands on
+*the item*, which is what makes a spark wand safer than the equivalent
+cast — the wand is in the circuit and the user is not.
+
+> ⚠ **`Focus` was cut before merge.** It shipped a fade clock topped up
+> through the *same* `recharge` verb a wand uses, so player-facing "my
+> wand is low" and "my rod's pattern is fading" were the same sentence —
+> a second instance of an existing decision rather than a new one. It
+> also shipped with **no verb to fire it**, unnoticed for a whole build,
+> because nothing pulled on it. And it was the one class with no NetHack
+> analogue (wand / scroll / potion / spellbook all map one-to-one),
+> which is why nobody had intuitions about it.
+>
+> The intuition worth keeping — **mages should have gear** — is a
+> different mechanic: an item that *modifies what happens when you
+> cast*, rather than one that casts using your mana. See
+> [implements-slate.md](../slates/builds/implements-slate.md).
 
 Consequences that are requirements rather than flavour:
 
