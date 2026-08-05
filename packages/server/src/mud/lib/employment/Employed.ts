@@ -27,8 +27,8 @@ import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 import { Employment, type EmploymentData, type EmploymentStatus } from './Employment';
-import type { Organization } from './Organization';
 
 /**
  * A stored record as it may actually be on disk: pre-split rows carry
@@ -157,12 +157,13 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const out = new Set<string>();
       for (const e of store) {
         if (e.status !== 'on-shift') continue;
-        const organization = StuffApi.findByTemplatePath(
-          recordKey(e),
-        ) as unknown as Organization | null;
-        if (!organization || typeof organization.getPosition !== 'function') {
-          continue;
-        }
+        const organization = StuffApi.findByTemplatePath(recordKey(e));
+        // ⚠ `MixinApi.isOrganization`, not `typeof x.getPosition ===
+        // 'function'`. The duck-type predates the predicate — this build
+        // is what added `Mixins.Organization` — and it narrows by shape,
+        // so anything that happens to expose a `getPosition` would satisfy
+        // it while a genuine organization behind a shadow might not.
+        if (!organization || !MixinApi.isOrganization(organization)) continue;
         const position = organization.getPosition(e.positionKey);
         if (!position) continue;
         for (const name of position.confers) out.add(name);
