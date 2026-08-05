@@ -1692,6 +1692,67 @@ Invariants](../antipatterns.md#per-field-invariants-belong-on-setters-not-in-nor
 There is **no `runAsSystem()` escape hatch.** The whole point of the
 framework is that there is no privileged out-of-band caller identity.
 
+## What a gated call costs
+
+Worth knowing, because it was never priced and it is the engine's most
+common operation. Measured under **`tsx`, the production runtime**
+(`deployment.md` — the server runs from TypeScript source, not a
+compiled build):
+
+| | µs |
+|---|---|
+| field read through the proxy | 0.3 |
+| **gated method call** | **50** (was 68) |
+| the same method, unwrapped | 0.1 |
+
+It is flat in world size, flat in call depth, and not a first-touch
+cost — a constant, paid per dispatch.
+
+> ⚠ **~37 µs of it is one `new Error().stack`.**
+
+Every gated dispatch runs `ExecutionContextApi.run` →
+`_assertFrameMutatorAllowed` → `ModuleApi.getImmediateCallerUrl`, which
+captures a stack to answer "who called me". Building the stack text
+runs the runtime's `prepareStackTrace`, which **source-map remaps every
+frame** — the same capture costs 9.4 µs on plain node and ~37–52 µs
+under `tsx`.
+
+The remap is **per frame**, so `#walkExternalFrames` takes a
+`maxFrames` bound and the immediate-caller lookups pass one: ten frames
+were being formatted to answer a question about one.
+`getImmediateCallerUrl` and `#findCallerUrl` **retry unbounded** if the
+bound finds nothing, so `IMMEDIATE_CALLER_FRAMES` is a performance knob
+and never a correctness one — a truncated capture must not turn into a
+`SecurityError`.
+
+> ⚠ **Do not extract the capture into a helper.** A helper adds one
+> stack frame, and one frame is enough to push a legitimate caller out
+> of V8's 10-frame default window. `assertTestOnly` scans for a test
+> frame *anywhere* below it, and the chain through a nested
+> `_clearAllForTesting` lands on exactly 10 — extracting the capture
+> broke **438 tests**. The hazard is pre-existing and already noted in
+> `assertTestOnly`'s own comment; the inline capture is what keeps it
+> latent.
+
+### The optimization that does NOT work
+
+Swapping in a raw `prepareStackTrace` (`(_e, frames) => frames`) skips
+both the text build and the remap, and takes a gated call from 68 µs to
+**14 µs** — a 4.9× win. **It was tried and reverted**, because
+`CallSite.getFileName()` and the source-mapped rendered stack disagree
+somewhere that changes a **policy decision**: `combat-gym`'s
+feint-vs-turtle cell flips from `A` to `draw`, deterministically, in
+isolation. Probing both forms side by side at several depths showed
+byte-identical URLs, so whatever differs is narrower than the probes —
+and a security gate is the wrong place to ship an unexplained
+behavioural delta. The 4.9× is real and still on the table; it needs
+the disagreement identified first.
+
+**The remaining capture cost is the source-map hook**, which exists
+because production runs from source so authors can `write`/`reload`
+live. That is a deliberate trade, not an oversight — it just has a
+price, and this is it.
+
 ## Errors
 
 All extend `Error`.
