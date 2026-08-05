@@ -20,6 +20,10 @@ const TOPIC = 'world.narration.action';
 
 interface DrinkModel extends CommandModel {
   target: MqlOneResult;
+  /** `--amount 100ml` — how much to take. Absent ⇒ the whole slot. */
+  amount?: string;
+  /** `--exact` — take the full measure or none of it. */
+  exact?: boolean;
 }
 
 export default class DrinkController extends CommandController<DrinkModel> {
@@ -88,9 +92,11 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // the command shape-matcher rejects the phrasing before either is
     // consulted. Pre-existing and its own fix; this side is now ready
     // for it.
-    const amount = BulkableApi.amountFromQuantity(model.target.quantity, {
-      kind: 'all',
-    });
+    const amount = BulkableApi.amountFromOption(
+      model.amount,
+      { kind: 'all' },
+      model.exact === true,
+    );
     const result = BulkableApi.transfer(fromSlot, null, amount);
     for (const note of result.notes) context.note(note);
 

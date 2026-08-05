@@ -264,14 +264,17 @@ describe('Bulk verbs — fill / sip / drink', () => {
     );
     expect(amountL(thermos)).toBeCloseTo(0.5);
 
-    // `drink a cup of it` — the measure rides the target's own MQL
-    // result, exactly as `pour 2 cups` does. Before this the controller
-    // threw the number away and drank everything, so the only sizes a
-    // player could ask for were "all" and sip's fixed 0.03 L — which
-    // made the continuous dose model unreachable from the game.
+    // `drink thermos --amount 1cup`. An OPTION, not an inline measure:
+    // the shape-matcher only extracts a leading quantity for greedy
+    // plural args (`drop 5 coin` works; `pour 2 cups urn into mug`
+    // never has), so for a singular arg the option is the only
+    // unambiguous door. Before this the controller drank everything,
+    // and the only sizes a player could ask for were "all" and sip's
+    // fixed 0.03 L — which made the continuous dose model unreachable.
     await makeStuff(() => new DrinkController()).execute(
       model({
-        target: one(thermos, 'thermos', { quantity: MEASURE(1, 'cup') }),
+        amount: '1cup' as never,
+        target: one(thermos, 'thermos'),
       }),
       ctxFor(actor, loc, 'drink'),
     );
@@ -333,11 +336,15 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('pour 2 cups water into mug → mug gains ~0.35 L (clamped at capacity)', async () => {
+  it('pour --amount 2cups → mug gains ~0.35 L (clamped at capacity)', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
     await makeStuff(() => new PourController()).execute(
       model({
-        source: one(waterSrc, '2 cups water', { quantity: MEASURE(2, 'cup') }),
+        // `--amount 2cups` — the option, not an inline measure. The
+        // inline form never parsed for a singular arg; see
+        // `BulkableApi.amountFromOption`.
+        amount: '2cups' as never,
+        source: one(waterSrc, 'water'),
         target: one(mug, 'mug'),
       }),
       ctx,
@@ -349,13 +356,15 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     );
   });
 
-  it('pour water:{99 cups} into mug (strict) → declined, rejected note', async () => {
+  it('pour --amount 99cups --exact → declined, rejected note', async () => {
     const ctx = ctxFor(actor, loc, 'pour');
     await makeStuff(() => new PourController()).execute(
       model({
-        source: one(waterSrc, 'water', {
-          quantity: { value: { kind: 'measure', value: 99, unit: 'cup' }, mode: 'strict' },
-        }),
+        // `--amount 99cups --exact`: strict mode, reachable from a
+        // player for the first time.
+        amount: '99cups' as never,
+        exact: true as never,
+        source: one(waterSrc, 'water'),
         target: one(mug, 'mug'),
       }),
       ctx,
@@ -390,7 +399,11 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     const ctx = ctxFor(actor, loc, 'pour');
     await makeStuff(() => new PourController()).execute(
       model({
-        source: one(waterSrc, '2 cups water', { quantity: MEASURE(2, 'cup') }),
+        // `--amount 2cups` — the option, not an inline measure. The
+        // inline form never parsed for a singular arg; see
+        // `BulkableApi.amountFromOption`.
+        amount: '2cups' as never,
+        source: one(waterSrc, 'water'),
         target: one(colander, 'colander'),
       }),
       ctx,

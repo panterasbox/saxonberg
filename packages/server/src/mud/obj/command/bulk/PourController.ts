@@ -22,6 +22,10 @@ const TOPIC = 'world.narration.action';
 interface PourModel extends CommandModel {
   source: MqlOneResult;
   target: MqlOneResult;
+  /** `--amount 2cups` — how much to move. Absent ⇒ as much as fits. */
+  amount?: string;
+  /** `--exact` — take the full measure or none of it. */
+  exact?: boolean;
 }
 
 export default class PourController extends CommandController<PourModel> {
@@ -74,9 +78,11 @@ export default class PourController extends CommandController<PourModel> {
       return;
     }
 
-    const amount = BulkableApi.amountFromQuantity(model.source.quantity, {
-      kind: 'all',
-    });
+    const amount = BulkableApi.amountFromOption(
+      model.amount,
+      { kind: 'all' },
+      model.exact === true,
+    );
     const result = BulkableApi.transfer(fromSlot, toSlot, amount);
     for (const note of result.notes) context.note(note);
 

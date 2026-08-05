@@ -12,12 +12,13 @@ import type {
   BulkPayload,
   ClosureLevel,
 } from '../../lib/bulk/Bulkable';
-import { CLOSURE_ORDER } from '../../lib/bulk/Bulkable';
+import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../lib/bulk/Bulkable';
 import type Material from '../../lib/material/Material';
 import type { MqlQuantity } from '../../api/mql';
 import { Quantity } from '../../lib/quantity';
 import { MessageApi } from '../../api/message';
 import { MixinApi } from '../../api/mixin';
+import { QuantityApi } from '../../api/quantity';
 import type {
   BulkNote,
   TransferAmount,
@@ -149,6 +150,47 @@ export class BulkableLogic extends ApiLogic {
       payload,
     );
     return typeof accepted === 'number' ? accepted : litres;
+  }
+
+  /** See {@link BulkableApi.amountFromOption}. */
+  @CallSecurity(BulkableApiCallers)
+  public amountFromOption(
+    raw: string | undefined,
+    fallback: TransferAmount,
+    exact = false,
+  ): TransferAmount {
+    if (typeof raw !== 'string' || raw.trim().length === 0) return fallback;
+    try {
+      // ⚠ `Quantity.parse` wants `<number> <exact-token>` — `2 cup`
+      // parses and `2cups`, `2 cups`, `100ml` and `0.5L` all throw.
+      // That is right for authored data and far too strict for a player
+      // typing an option, so the normalising happens HERE, at the
+      // player boundary, rather than by loosening the parser everything
+      // else depends on.
+      const m = /^([0-9]*\.?[0-9]+)\s*([a-zA-Z]+)$/.exec(raw.trim());
+      if (!m) return fallback;
+      const n = Number(m[1]);
+      const word = m[2]!;
+      const unit =
+        QuantityApi.resolveUnitToken(word) ??
+        // plural → singular, the one form a player reliably types
+        (word.endsWith('s')
+          ? QuantityApi.resolveUnitToken(word.slice(0, -1))
+          : null);
+      if (!unit || !Number.isFinite(n)) return fallback;
+      const litres = Quantity.of(n, unit as 'L').to(BULK_VOLUME_UNIT).rawValue();
+      if (!Number.isFinite(litres) || litres <= 0) return fallback;
+      return {
+        kind: 'measure',
+        litres,
+        mode: exact ? 'strict' : 'lenient',
+      };
+    } catch {
+      // An unparseable measure falls back rather than throwing: the
+      // player typed something, and taking the whole slot is a worse
+      // surprise than saying so — the CALLER reports the miss.
+      return fallback;
+    }
   }
 
   /** See {@link BulkableApi.amountFromQuantity}. */
