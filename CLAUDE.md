@@ -239,6 +239,13 @@ Which branch · does anyone else hold it · am I behind · is anything
 unpushed. **Both 2026-08-02 failures were visible in this output and
 nobody looked.**
 
+7. **Merge on ORIGIN through the GitLab tool, never the git CLI.** A
+   CLI merge performs the join in a worktree — the exact machinery
+   rules 1–6 exist to keep away from — and it bypasses the MR, so the
+   merge commit carries no review record and the remote never observes
+   it. Merging a branch *into your own branch* to catch it up is a
+   different act and is fine; landing it is the MR's job.
+
 **Enforcement** — a tracked hook blocks all three failure modes:
 
 ```bash

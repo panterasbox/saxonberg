@@ -154,7 +154,20 @@ doc-sweep checklist, retirement decisions, the commit.
 step gated on the user — the merge is always the user's call, never
 done autonomously.
 
-**Output.** Merge commit on `master`.
+> ⚠ **Merge on ORIGIN, through the GitLab tool — never the git CLI.**
+> Not a preference: a CLI merge does the join in a *worktree*, which
+> is the machinery this repo has already been burned by (see
+> CLAUDE.md § Worktrees). It also bypasses the MR, so the merge
+> commit loses the review record and the branch's approval state,
+> and nothing on the remote ever observes the merge that happened
+> locally. The MR *is* the merge.
+>
+> Catching a branch up (`git merge origin/master` **into** the
+> branch, then push) is a different act and stays local — that is
+> pre-merge verification, and it is what makes the MR's green tick
+> mean something.
+
+**Output.** Merge commit on `master`, created by GitLab.
 
 **No skill.** One button — the user's.
 
