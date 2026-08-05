@@ -1074,3 +1074,52 @@ build**; its Half B record survives as the record of what was considered.
    currency** is how company-scrip wages will eventually work. This build
    ships it because it falls out of §0.3, not because it is scoped. Do not
    build anything else toward scrip here.
+
+---
+
+## 12. Build record — what actually happened
+
+Filled in during the build; the sweep should read this before retiring the
+plan.
+
+**Wave shape held, wave *boundaries* did not.** W1/W2 merged (removing
+`Money.of`'s default immediately is what produced the compile-error list, so
+there was no green intermediate state worth preserving), and W4's cash work
+had to land with them because nothing compiled without it. W3/W5/W5b/W6
+landed together for the same reason: the account-resolution key threads
+through all of them.
+
+**The `Money.of` sweep cost exactly what §11.1 predicted** — 200 compile
+errors, 60 production + 114 test call sites, now zero. The compiler
+enumerating the migration worked as designed; a scripted pass with a
+balanced-paren matcher did the mechanical part, and the three sites it got
+wrong were all *syntax* errors, i.e. loud.
+
+**⚠ §7b.1 was wrong about where the gate goes.** The plan said to gate
+`setQuantity` on `GlobbableMixin` so future value-bearing globs inherit it.
+That gates **every glob in the world** — 55 tests failed, correctly: a pile
+of ore is not money. The gate belongs on `Coin`, the value-bearing class
+(and scrip will be a `Coin`, so it does inherit for the real case). A
+general *value-bearing marker* is the money-integrity slate's open question
+2, not this build's business. Recorded in `banking.md`'s decision log as #10.
+
+**A second surprise in the same area:** `GlobbableMixin` returns a class
+*expression*, and `experimentalDecorators` refuses decorators on the members
+of one. Gating anything on that mixin needs the `Bank`/`Containable` class-
+declaration form first. Left alone, since the gate moved to `Coin`.
+
+**Test fixtures needed a seam.** ~10 test files built coin stacks by calling
+`setQuantity`, which the gate now refuses. They write the `quantity` field
+directly instead, with a comment saying why — a test constructing raw
+starting state is not minting, and making that distinction visible in the
+fixture is the point.
+
+**Not done, and deliberately so:**
+
+- ⚠⚠ **W0's census and W6's migration have never been RUN.** Both need a
+  restored copy of the live database, which this environment does not have.
+  The rehearsal in §8 is the gate; **it has not been executed**, so the
+  migration is unproven against real data. This is the single largest
+  outstanding risk in the build.
+- The `--report-only` self-check and the fingerprint comparison are
+  unit-tested only through their pure transforms.

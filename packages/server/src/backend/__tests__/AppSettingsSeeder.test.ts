@@ -104,6 +104,7 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.scriptMaxDepthPlayer]: "64",
           [AppSettingKeys.scriptMaxDepthPlatform]: "256",
           [AppSettingKeys.bankingSalesTaxRate]: "0.08",
+          [AppSettingKeys.bankingCompactCurrency]: "zorkmid",
           [AppSettingKeys.bankingTreasuryAccount]: "treasury",
           // Banking onboarding coin + the three fast-travel fare keys.
           [AppSettingKeys.bankingOnboardingStipend]: "20",

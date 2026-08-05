@@ -179,7 +179,7 @@ async function main(): Promise<void> {
     /* ── holder_snapshots: the durable coin population ───────────────── */
     const snapshots = await database.collection("holder_snapshots").find({}).toArray();
     const byDenomination = new Map<string, { stacks: number; quantity: number }>();
-    let unknownDenominations: string[] = [];
+    const unknownDenominations: string[] = [];
     for (const record of snapshots) {
       walkCoinEntries(record, (entry) => {
         const fields = coinFieldsOf(entry);
