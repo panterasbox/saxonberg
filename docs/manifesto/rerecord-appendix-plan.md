@@ -74,6 +74,10 @@ A candidate earns its own video when **all three** hold:
 | **D** | ⭐⭐⭐ **Who counts** | 14 incorporation + equal protection, 15/19/26 suffrage by category. **Structurally the biggest** per the walk, and where the clade allegory has teeth: *does the floor bind localities, or only the Compact?* |
 | **E** | ⭐⭐ **Your data, your record, and who answers for it** | ⭐ **the differentiated one — see below** |
 
+> ⭐⭐ **Two more emerged after this table was drafted — see below: video
+> W ("Work"), which the vocational reframe demands, and video O ("The
+> constitutions you have already signed"), which may belong first.**
+
 ## Two if there is appetite
 
 - **F — Money & taxation.** 16 taxation power, 27 officer pay, and
@@ -171,6 +175,168 @@ written without it.
 
 ---
 
+# ⭐⭐⭐ The vocational reframe — and the video it demands
+
+> **User: "it's become clear that our game is vocational. The primary
+> choice that determines your game experience is who you work for and
+> what your job is… participating in the economy is basically everything.
+> Going it alone will not work well here — it doesn't mean you can't
+> solo, it means you have to participate in the economy or you won't be
+> able to do much but chat."**
+
+This exposes a bias in the slate above: **the Bill of Rights is CIVIC,
+and a player's daily life is ECONOMIC.** A rights series made only of
+speech, process and franchise describes a life nobody in this game leads.
+
+> ⭐⭐ **Video W — "Work."** Who may practise a trade · who sets wages ·
+> can you be fired, and must there be cause · **may workers combine** ·
+> company scrip · debt, and what happens when you cannot pay.
+
+⭐⭐ **Guilds are unions.** In a vocational game the guild *is* the labour
+organisation, and *"may workers combine"* is a real state-constitutional
+question. That connection is free and it is the video's spine.
+
+## ⭐⭐⭐ The beat that is genuinely novel
+
+> **Exclusion from the economy is the harshest sanction in this game —
+> harsher than prison.** Prison is bounded and documented. **Blacklisting
+> is not.**
+
+No doctrine limits it today. Real law has one — occupational liberty,
+*the right to earn a living* — and this game makes it concrete in a way a
+civics course cannot: it is the difference between **playing** and
+**chatting**.
+
+---
+
+# Sources beyond the federal Bill of Rights
+
+The walk is Bill-of-Rights-shaped, which is why it keeps missing things.
+Four further seams, in rough order of yield.
+
+## ⭐⭐ State constitutions
+
+Long, amended constantly, and — unlike the federal document — **they
+regulate the economy at constitutional level**, which is what a
+vocational game needs.
+
+| Clause type | Analogue |
+|---|---|
+| ⭐⭐ **homestead exemption** | your home cannot be seized for debt — **the tenure floor with a real name** |
+| ⭐ **corporations articles** | charter limits; what a corpo may be |
+| **banking articles** | live, given [currency-slate](../slates/builds/currency-slate.md) |
+| ⭐⭐ **education clauses** | *"thorough and efficient"* — straight into the education vertical |
+| **labour articles** | hours, safety, organising |
+| **anti-monopoly** | corpos |
+| **public lands / commons** | `/compact`, parcels |
+| **debt limits on the state** | may the polity borrow? |
+| ⭐ **initiative · referendum · recall** | *all* Compact law is referendum — this **describes** the system rather than contrasting with it |
+
+## Statutory bodies with direct analogues
+
+⭐⭐ **labour law** (the big one) · ⭐⭐ **occupational licensing** (live —
+psychology as a credence good *demands* it) · ⭐⭐ **bankruptcy** ·
+**tort/negligence** (`accountability_events`) · **UCC/commercial**
+(contracts shipped) · **antitrust** · **consumer protection** ·
+**utilities** · **environmental**
+
+⭐⭐⭐ **Bankruptcy deserves its own line.** In an economy you can fail in,
+*"what happens when you cannot pay"* is central — and bankruptcy exists
+precisely to prevent debt peonage. **It is the humane answer to the
+13th-amendment module already in the walk.**
+
+## ⭐⭐ Comparative — one find worth the trip
+
+**Codetermination** (German *Mitbestimmung*): workers on supervisory
+boards. That is **the three-chamber model at firm level** — a business
+with a workers' chamber. Undrafted, squarely on-thesis, and it gives
+corpos an internal politics.
+
+## ⭐⭐⭐⭐ Corporate, HOA and other institutional constitutions
+
+> **User: "corporations all have constitutions, as well as HOAs and other
+> types of institutions. Is there anything we can learn from those that
+> may want expression in the Compact?"**
+
+The richest seam, because these solve problems constitutions do not.
+
+### ⭐⭐⭐⭐ Fiduciary duty — and its shield
+
+Corporate law's central innovation: officers owe **personal duties** —
+care and loyalty — and are liable for breaching them. Constitutions
+constrain by *structure*; corporations constrain by *duty*.
+
+**The Compact has offices, holders and removal — but no duty.** What
+stops a comms director syndicating only their friends? Today, a
+conviction crossing: political, not legal.
+
+⭐⭐ It is also the deeper answer to the editorial-accountability problem:
+the *not-carried docket* is **evidence** — **the duty is what it is
+evidence of.**
+
+> ⭐⭐⭐ **And the business judgment rule is not optional.** Courts will not
+> second-guess a good-faith decision, even a bad one. **You need the duty
+> AND the safe harbour, or offices become unfillable** — nobody serves if
+> every unpopular call is actionable.
+
+**That pair is a module the library does not have and clearly wants.**
+
+### ⭐⭐⭐⭐ Covenants that run with the land
+
+HOAs have a mechanism the Compact lacks entirely: **a CC&R attaches to
+the property, binds every future owner, and survives transfer.** Not a
+law, not a contract — a third thing.
+
+> **A covenant on a parcel extent that binds successors.** *"This land
+> stays agricultural"* with nobody legislating — **the seller imposes
+> it.**
+
+Enormous for a world where localities sell land: it gives a seller policy
+power **without the polity acquiring any**, and it is the missing tool
+for a locality that wants to collectivise *by conveyance* rather than by
+law.
+
+⭐ **Liens** come with it — a claim against property surviving transfer,
+which is also the primitive
+[incapacity-slate](../slates/builds/incapacity-slate.md)'s impound has
+been reaching for.
+
+### ⭐⭐ Sports leagues — a better balance model than a legislature
+
+A league is **a polity whose members agree to limit their own advantage
+because the product dies otherwise** (salary caps, revenue sharing, draft
+order). That is [balance-slate](../slates/builds/balance-slate.md)'s
+problem, solved by people who *are* the competitors — and it reframes
+balance as **collective self-restraint** rather than regulation imposed
+from outside.
+
+### Two independent confirmations
+
+- **Derivative suits** — a shareholder sues on behalf of the entity when
+  the board will not. ⭐ **Exactly the relator rung**, arrived at
+  independently. Their doctrine is more developed if prior art is wanted.
+- **Forking is exit** — open-source governance's ultimate check, and
+  literally the AGPL story. It also supplies **maintainer vs.
+  contributor**, which is the pack-maintainership model `soul` fell into.
+
+### ⭐⭐⭐ And the framing find, which may beat all of it
+
+> **"The constitutions you have already signed."**
+
+Most people have never read a constitution — but they have signed a
+lease, sat on a board, joined a guild, run a Discord. **Your HOA is a
+government. Your employer is a government.**
+
+For the actual audience — community managers and streamers already
+governing without a document — that is a **stronger on-ramp than anything
+in the Bill of Rights.** It reframes the Compact from exotic to
+*familiar*, and it is the one appendix whose first thirty seconds could
+hold someone with no interest in civics.
+
+⭐ **Candidate for the FIRST appendix**, ahead of A.
+
+---
+
 # Reassignments
 
 - ⭐ **per-viewer belief ⊗ equal protection → video D.** Reputation is
@@ -214,3 +380,26 @@ since exit is what makes the floor real)
 3. **Register for E.** A and B are both explicitly *descriptive, not
    persuasive*. E is the one with a live contemporary argument in it —
    does it keep that register, or is it allowed to argue?
+4. ⭐⭐ **Does O come before A?** *"The constitutions you have already
+   signed"* is the better hook for the actual audience, but A is the
+   frame the others fill in. **O first is the stronger funnel; A first is
+   the tidier structure.**
+5. ⭐ **If only three appendices ever get made**, the argument is **A, W
+   and E** — the frame, the life players actually lead, and the
+   contemporary one. C and D are excellent but they are the appendices a
+   civics course would also have.
+
+---
+
+# ⚠ Publish decision (2026-08-04)
+
+**Publish the main series without waiting for the appendices.** They are
+already defined as *optional depth, after the main series + outro*, the
+format is one video per chapter in a playlist, and **a playlist grows.**
+
+⭐ They will also be *better* for waiting — what people ask after Ch 1–7
+tells you which appendix is actually needed, instead of guessing.
+
+⚠ **The one check before publishing:** does any chapter make a *specific*
+forward-promise to a named appendix? A generic *"more depth in the
+appendices"* is fine; *"we cover X in Appendix C"* is a debt.
