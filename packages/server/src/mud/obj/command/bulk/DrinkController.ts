@@ -74,7 +74,24 @@ export default class DrinkController extends CommandController<DrinkModel> {
             model.target.via?.bulk?.affordance,
           )
         : null;
-    const result = BulkableApi.transfer(fromSlot, null, { kind: 'all' });
+    // **A measure if one was named, the whole slot otherwise** — the
+    // `pour` shape, where the quantity rides the target's own MQL
+    // result rather than a separate arg. It matters because dose
+    // response is continuous (`Dose.scaleFor`), so a graded potion has
+    // a real half-dose that nothing could previously ask for: `drink`
+    // took everything and `sip` took a fixed 0.03 L.
+    //
+    // ⚠ NO PLAYER CAN REACH THIS YET. Measures do not parse for ANY
+    // bulk verb — `pour 2 cups urn into mug`, pour's own documented
+    // example, fails shape-matching, as does `urn:{2 cup}`. The
+    // controllers read `.quantity`, MQL has the measure variant, and
+    // the command shape-matcher rejects the phrasing before either is
+    // consulted. Pre-existing and its own fix; this side is now ready
+    // for it.
+    const amount = BulkableApi.amountFromQuantity(model.target.quantity, {
+      kind: 'all',
+    });
+    const result = BulkableApi.transfer(fromSlot, null, amount);
     for (const note of result.notes) context.note(note);
 
     if (result.applied <= 0) {

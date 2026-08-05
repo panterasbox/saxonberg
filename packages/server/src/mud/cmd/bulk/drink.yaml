@@ -1,19 +1,20 @@
 verbs: [drink, quaff]
 controller: /obj/command/bulk/DrinkController
-description: "Drink the entire contents of a holder"
+description: "Drink the contents of a holder"
 help: |
-  Drains a holder dry in one go — point `drink` at a cup, flask,
-  or bottle and you swallow everything in it. Reach for this when
-  you mean to finish a drink, not nurse it; the vessel comes back
-  empty.
+  Point `drink` at a cup, flask or bottle and you swallow what is
+  in it. Without a measure you finish the container and it comes
+  back empty.
 
   You can name the container or the liquid itself, so
   `drink coffee` works as well as `drink mug`. If you only want a
   taste, use `sip` instead, which leaves the rest behind.
 
   `quaff` is the same verb. A potion is a liquid like any other —
-  it is drunk through the same door as ale, and drinking half a
-  flask gets you half a dose.
+  it goes down through the same door as ale, and the measure is
+  real: dose response is continuous, so half a graded draught is
+  half the effect, and a threshold draught does nothing at all
+  below its minimum.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

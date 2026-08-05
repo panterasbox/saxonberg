@@ -257,6 +257,35 @@ describe('Bulk verbs — fill / sip / drink', () => {
     expect(amountL(thermos)).toBeCloseTo(0.5);
   });
 
+  it('drink takes a NAMED MEASURE, not just the whole slot', async () => {
+    await makeStuff(() => new FillController()).execute(
+      model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
+      ctxFor(actor, loc, 'fill'),
+    );
+    expect(amountL(thermos)).toBeCloseTo(0.5);
+
+    // `drink a cup of it` — the measure rides the target's own MQL
+    // result, exactly as `pour 2 cups` does. Before this the controller
+    // threw the number away and drank everything, so the only sizes a
+    // player could ask for were "all" and sip's fixed 0.03 L — which
+    // made the continuous dose model unreachable from the game.
+    await makeStuff(() => new DrinkController()).execute(
+      model({
+        target: one(thermos, 'thermos', { quantity: MEASURE(1, 'cup') }),
+      }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    expect(amountL(thermos)).toBeGreaterThan(0); // NOT drained
+    expect(actor.ingested.at(-1)!.litres).toBeCloseTo(0.24, 2);
+
+    // …and with no measure it still finishes the container.
+    await makeStuff(() => new DrinkController()).execute(
+      model({ target: one(thermos, 'thermos') }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    expect(amountL(thermos)).toBeCloseTo(0);
+  });
+
   it('drink coffee resolves through via.bulk to the holder', async () => {
     await makeStuff(() => new FillController()).execute(
       model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),
