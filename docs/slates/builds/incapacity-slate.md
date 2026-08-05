@@ -7,9 +7,10 @@ tractable.
 
 > **User's call: "impound on a claim, not a clock."**
 
-> **Status: design conversation, captured. Not requirements.** The one
-> live case (escrowed contracts) is real today; the rest is doctrine
-> waiting for a build.
+> **Status: design conversation, captured. Not requirements.** ⚠ **No
+> live case identified** — the one this slate first named (escrowed
+> contracts) turned out to be already solved; see the retraction below.
+> This is doctrine waiting for a consumer.
 
 Related: [mortality.md](../../subsystems/mortality.md) (**`passage` and
 the floor — read it first, it decides the shape**),
@@ -159,17 +160,62 @@ does.
 
 ---
 
-# The one case that is live right now
+# ⚠⚠ RETRACTED — contracts already solve absence, and better
 
-> ⚠⚠ **An escrowed contract with an absent counterparty.** Money locked,
-> work undone, the other party stuck indefinitely.
+A first draft of this slate named *"an escrowed contract with an absent
+counterparty"* as the live case that would bite first, and proposed it as
+the cleanest first build. **Wrong — inferred from the shape of escrow
+without reading the lifecycle.** `contract.md` § *Expiry is lazy*:
 
-Contracts and `contract_events` shipped. This has no answer today, and it
-is the case that will bite first **because it strands somebody else** —
-every other form of absence mostly harms the absent.
+> *"a claim past `claimExpiresAt` → breach + reopen; an open posting past
+> `postingExpiresAt` → revert + `expired`. **No sweep, no counter, no
+> scheduler** — conservation makes laziness safe: the held stake sits in a
+> real account `reconcile` counts while nobody looks; **the refund lands
+> on the next touch.**"*
 
-⭐ It is also the cleanest first build: one claim type, one remedy
-(release or revert the escrow), one custodian, no estate involved.
+| Absent party | What actually happens |
+|---|---|
+| **claimant vanishes** | claim expires → breach + reopen → the gig is free again |
+| **issuer vanishes** | posting expires → revert → their own money returns to their own account |
+| **issuer vanishes mid-settle** | ⭐ **not a thing** — the two-beat turn-in is claimant-driven; the issuer is not in the settle path at all |
+
+**Nobody is stranded**, and it is deliberate — the same observe-first
+pattern as withdrawal quotas and residency.
+
+## ⭐⭐⭐ And observe-first is the pattern this slate should COPY
+
+That is the deeper lesson, not a footnote:
+
+> **Expire-on-touch and impound-on-claim are the same instinct, one layer
+> apart.** Neither needs a sweep, a scheduler, or a counter. Both let the
+> stale state sit harmlessly until somebody who cares next looks at it.
+
+⭐ So *impound on a claim* is not a novel choice — **it is the house
+pattern**, already load-bearing in contracts, banking quotas and
+residency. That is a much stronger argument for it than novelty.
+
+⚠ **And it argues against building an impound mechanism into contracts
+at all.** The subsystem deliberately has **no registry, no `boot()`, no
+sweep and no watch index**; adding a claim type, an adjudicator and a
+custodian path would be a great deal of machinery pointed at a hole that
+is not there.
+
+## What is actually left in contracts: a dial, not a mechanism
+
+**Expiry is optional on both modes.** A posting with no
+`postingExpiresAt` whose issuer never returns holds escrow indefinitely.
+
+Interrogated honestly, that is **arguably correct**: it is the issuer's
+own money, in the issuer's own escrow account, and the gig stays
+claimable by anyone. A standing offer, not a stranding. `reconcile`
+counts it and conservation holds.
+
+The only real defect is cosmetic — **a board accumulating permanently
+open gigs from departed issuers gets noisy**, which is a display filter,
+not a claims system.
+
+> ⭐ **If an escrow-adjacent build is wanted, the honest candidate is the
+> optional-expiry DEFAULT — one dial.**
 
 ---
 
