@@ -79,9 +79,6 @@ in advance.
 A few are **charter**: set by the founder at the outset — the terms of the founder's own
 diminishing hold.
 
-So "the dials a community locks at ratification" is really three things at once: a floor it
-cannot move, commitments it sets for the long term, and settings it keeps adjusting.
-
 **[3 — the configuration, by area]**
 Laid out by area, the configuration covers voting, the executive, the judiciary,
 legislation, recognition, membership, emergency powers, the founder's terms, land and
@@ -98,19 +95,34 @@ arguments will actually happen. The number itself is rarely what gets contested 
 count of jurors, the size of a threshold. What gets contested is the denominator: what the
 number is measured *against*. That choice is where the politics lives, and it is set here.
 
-**[4 — presets and composition]**
+**[4 — three ways to start]**
 Few communities set all of this by hand. Most begin from a **preset** — a bundle assembled
 for a common archetype — and adjust. Which is to say most communities accept somebody
-else's answer to nearly all of it, and argue about the rest. The **operator's table** is the default made explicit:
-the court at a jury of one, no discretion surrendered — where a streamer begins. The
-**creator collective** is producer-weighted, with property and expression on. The **full
-republic** runs the whole apparatus. And the library **composes like a package manager**:
-modules carry dependencies and conflicts — property depends on a records module, term
-limits conflict with a president-for-life module — resolved when a module is adopted, in a
-vetted standard tier and a community tier used at one's own risk. Adopting a module or
-setting a parameter writes it into the community's constitution and into the record.
+else's answer to nearly all of it, and argue about the rest.
 
-**[5 — the frame this sets]**
+The presets differ along one axis: **how much authority the operator gives up.**
+
+The **operator's table** gives up none. The court is a jury of one; there is no economy, no
+property, no term limit. It is the arrangement a streamer already has — written down. And
+writing it down is the only change.
+
+The **creator collective** gives up some. Property and expression switch on, so what a
+member builds is theirs and cannot be taken away. Weight runs to producers. The operator
+still holds the executive, but no longer decides what is true.
+
+The **full republic** gives up nearly all of it. Every module on, the chambers co-equal,
+the founder's hold already lapsed. The operator is a member with a job.
+
+Same engine. Three worlds. The difference is not features — it is where authority sits.
+
+**[5 — how the library composes]**
+The library **composes like a package manager**: modules carry dependencies and conflicts —
+property depends on a records module, term limits conflict with a president-for-life
+module — resolved when a module is adopted, in a vetted standard tier and a community tier
+used at one's own risk. Adopting a module or setting a parameter writes it into the
+community's constitution and into the record.
+
+**[6 — the frame this sets]**
 So ratification is where the configuration is written and locked, each setting at the
 firmness its tier carries. The appendices that follow describe the areas it governs — the
 land and its scarcity, the courts, the economy. Each is a value on a dial set here.
@@ -152,10 +164,18 @@ Corner / no-face throughout; explanatory schematics, flat register.
   reads the breadth while hearing the grain. Close the beat by dimming the *values* and
   lighting what each is measured **against** (votes cast ⟷ eligible weight), for the
   denominator line.
-- **4 — no-face.** Three **presets** (operator's table / creator collective / full
-  republic) as pre-filled panels with "adjust from here" arrows; a **package-manager** inset
-  — dependency arrows, one conflict mark, a standard/community tier badge.
-- **5 — corner.** ⭐ **The three-things close, built as a subtraction.** Start on the full
+- **4 — hero, no-face.** ⭐ **One horizontal axis: AUTHORITY RETAINED BY THE OPERATOR**,
+  full at the left, none at the right. The three presets sit along it as pre-filled Schedule
+  panels that expand as each is named — **operator's table** (left; almost every module off,
+  jury of one) → **creator collective** (middle; property + expression lit, weight shifted
+  to producers, executive still held) → **full republic** (right; every module lit, chambers
+  level, founder row greyed *lapsed*). ⭐⭐ **The three panels must be visibly the SAME
+  panel** — same rows, same order, different values. That is the whole proof: *same engine,
+  three worlds.* Land on all three side by side for the closing line.
+- **5 — no-face.** The **package-manager** inset — dependency arrows (property → records),
+  one conflict mark (term limits ⊗ president-for-life), a **standard / community** tier
+  badge, and an adoption writing a line into both the constitution and the record.
+- **6 — corner.** ⭐ **The three-things close, built as a subtraction.** Start on the full
   Schedule lit. Grey out the **kernel** box ("not on the menu"), then the **eternity** rows
   ("only left behind"), then a third column appears beside MODULES and PARAMETERS —
   **BOUNDS**, greyed, captioned *"not set here"* with a small forward arrow marked
@@ -165,7 +185,7 @@ Corner / no-face throughout; explanatory schematics, flat register.
 
 ## Notes
 
-- **Length: 1025 words ≈ 7.1 min @145wpm (7.9 @130).** ⭐ The house rhythm across Ch 1 (1004),
+- **Length: 1100 words ≈ 7.6 min @145wpm (8.5 @130)** — the longest in the series, which is defensible for the one appendix carrying an evidential job. ⭐ The house rhythm across Ch 1 (1004),
   this (939) and Appendix B (840) is **~900 words ≈ 6–7 min** — treat that as the budget for
   every appendix, which is roughly **five beats**.
 - **Register: descriptive** (matches Appendix B) — documentation, not advocacy. The
@@ -244,11 +264,12 @@ Corner / no-face throughout; explanatory schematics, flat register.
   solution with evidence."** Two consequences worth holding:
   - **What A proves is that the DESIGN ADMITS VARIATION** — demonstrable from the design
     alone, and it is the actual claim being made.
-  - ⚠ **The presets are the evidence.** Three named, genuinely different configurations of
-    one engine is the proof of the claim — and they currently sit inside [4] at 62s, sharing
-    the beat with dependency resolution and the two-tier registry, while [2] runs 110s. [2]
-    is the spine and should stay long, but **for this purpose the payload beat is the densest
-    and third-shortest in the video.** Open call, flagged not taken.
+  - ⭐ **The presets are the evidence, and now have their own beat** (2026-08-04, user's
+    call). Split out of the old combined [4]: presets **75s**, composition **26s**. They are
+    organised on **one axis — how much authority the operator gives up** — which is the same
+    dial Ch 1 closes on, so the beat pays off a thread rather than introducing one. Paid for
+    by cutting [2]'s recap sentence (a restatement of the list immediately above it) and by
+    [2] falling 110s → 98s.
   - ⭐ **The close must read as latitude, not restriction** — hence "the list of exclusions is
     short; the Schedule is long," and the cue-sheet note that the final shot should be
     **mostly still lit.**
