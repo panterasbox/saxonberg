@@ -44,7 +44,7 @@ There are two kinds of thing to set. The first is **modules** — which capabili
 community switches on. The kernel builds every tool once; a module decides whether a given
 tool is bound by rules or left to the operator's discretion. Switch on due process, and
 the court draws a jury of equals rather than the operator alone. Switch on an economy, and
-the reserve and central bank come online. There are modules for property, for expression,
+its treasury and central bank come online. There are modules for property, for expression,
 for how land is held, for term limits. Adopting one is an amendment; a community picks from
 a vetted library or drafts its own.
 
@@ -58,8 +58,8 @@ and the ladder measures less how hard a thing is to change than how far it is th
 all.
 
 Some are **eternity**: they cannot be amended at all, only left behind by forking. These
-are not really dials — the separation of money from power, the co-equality of the
-chambers. The floor.
+are not really dials — the separation of money from power, the co-equality of the chambers,
+the record that cannot be quietly rewritten. The floor.
 
 Some are **amendment-tier**: set at ratification, and afterward movable only by a
 supermajority of every chamber and a referendum. The long-term commitments — the vote
@@ -72,19 +72,19 @@ same instrument and the same threshold, used to install a policy and then to rem
 Amendment-tier means a setting is hard to move. It does not mean it moves only once.
 
 Some are **organic**: tunable as the community goes, by a supermajority of the affected
-chamber alone. These are the game-balance values — the influence curves, the decay rates,
-a bill's lifespan — meant to be adjusted against a running world, never honestly knowable
-in advance.
+chamber alone. These are the game-balance values — how fast standing decays, how long a
+bill may sit unpassed — meant to be adjusted against a running world, never honestly
+knowable in advance.
 
 A few are **charter**: set by the founder at the outset — the terms of the founder's own
 diminishing hold.
 
 **[3 — the configuration, by area]**
-Laid out by area, the configuration covers voting, the executive, the judiciary,
-legislation, recognition, membership, emergency powers, the founder's terms, land and
-economy — and two more: the information rules, and the limits on the operator's own reach.
+The Schedule is laid out by area — eleven in all. Most cover ground this series has already
+walked: voting, the executive, the judiciary, legislation, the founder's terms. Two have
+appendices of their own — the land, and the limits on the operator's own reach.
 
-Two areas show the grain. Under **voting**: the passage threshold, the quorum below which
+The grain is the same in any of them. Under **voting**: the passage threshold, the quorum below which
 a chamber abstains, and whether that threshold is measured against votes cast or against
 eligible weight. The last of those decides whether an absent chamber blocks or abstains.
 Under **the judiciary**: who is drawn into a jury, how many, how long they have to reach a
@@ -107,7 +107,7 @@ property, no term limit. It is the arrangement a streamer already has — writte
 writing it down is the only change.
 
 The **creator collective** gives up some. Property and expression switch on, so what a
-member builds is theirs and cannot be taken away. Weight runs to producers. The operator
+member builds is theirs and cannot be taken away. Weight runs to labor. The operator
 still holds the executive, but no longer decides what is true.
 
 The **full republic** gives up nearly all of it. Every module on, the chambers co-equal,
@@ -118,8 +118,8 @@ is not which features exist, but where authority over them sits.
 
 **[5 — how the library composes]**
 The library **composes like a package manager**: modules carry dependencies and conflicts —
-property depends on a records module, term limits conflict with a president-for-life
-module — resolved when a module is adopted, in a vetted standard tier and a community tier
+property depends on a module that keeps track of who holds what, term limits conflict with
+a president-for-life module — resolved when a module is adopted, in a vetted standard tier and a community tier
 used at one's own risk. Adopting a module or setting a parameter writes it into the
 community's constitution and into the record.
 
@@ -275,8 +275,9 @@ since it is nothing but dimmed and lit rows.
 
 ## Notes
 
-- **⭐ SCRIPT SETTLED 2026-08-04. Length: 1104 words ≈ 7.6 min @145wpm (8.5 @130)**, in seven
-  beats. ⚠ **Over the house budget and knowingly so** — Ch 1 is 1004 and Appendix B 840, so
+- **⭐ SCRIPT SETTLED 2026-08-04. Length: 1130 words ≈ 7.8 min @145wpm (8.7 @130)**, in seven
+  beats. *(1104 at register-pass; the concept audit below spent +32 on glosses and recovered
+  −6 by cutting the eleven-area enumeration.)* ⚠ **Over the house budget and knowingly so** — Ch 1 is 1004 and Appendix B 840, so
   **~900 words ≈ 6–7 min in five beats** is the rhythm everywhere else. A runs long because
   it is the only appendix carrying an **evidential** job rather than an explanatory one, and
   the presets beat is that evidence. *(An earlier note here read "939," a stale figure from
@@ -301,6 +302,59 @@ since it is nothing but dimmed and lit rows.
   impersonal, but Ch 1–7 address the viewer throughout, and A opens the appendix set — the
   familiarity hook is the one place it earns its keep. This is the deliberate seam between
   A's register and B's.
+- **⭐⭐⭐ NEW-CONCEPT AUDIT 2026-08-04 — every noun in the narration checked against Ch 1–7,
+  Appendix B, *and* the draft constitution.** The question was whether A drops specialized
+  systems on a viewer with no grounding. ⚠ **The finding was not what the audit was looking
+  for.** Three things I expected to be gaps were correct in the constitution and *thin in
+  the videos instead*; the real problem was a **list**:
+  - ⭐⭐ **[3] enumerated ELEVEN areas in one breath, and that sentence was where every
+    unexplained concept was hiding.** Spoken aloud, each one-word area is a promise:
+    *recognition* (an opaque rename of the Schedule's **Merit**), *membership*, *emergency
+    powers*, *the information rules* — plus **land and economy**. ⚠⚠ And the enumeration
+    **outran its own source**: the real Schedule has **nine** sections, two of them marked
+    **[OPEN]** in the constitution (Membership, Emergency); *land and economy*, *information*
+    and *the operator* **are not in the Schedule at all**. The doc's own header warned
+    *"re-derive from the Schedule of Parameters before final cut"* and that had not been done.
+    > ⭐⭐⭐ **The fix is subtraction, not explanation.** The cue sheet already splits
+    > **breadth (wide) from grain (crop)** — so the panel may show eleven areas harmlessly,
+    > and the narration should never have read them aloud. It now names the five the series
+    > has walked and hands **the land** and **the operator** to the two appendices that
+    > actually exist (B and X). *Six unexplained concepts removed, no length added, and the
+    > wide/crop design does real work instead of being contradicted by its own script.*
+  - ⚠ **"property depends on a records module"** [5] — faithful to the slate (*Property may
+    depend on a Records/Privacy module*) but **unsayable in this series**: Ch 6 spent a whole
+    chapter making "the record" mean the tamper-evident governance archive, which Art. X §3
+    makes an **eternity clause**. "A records module" therefore reads as *the record can be
+    switched off.* Reworded to *"a module that keeps track of who holds what."*
+  - ⚠ **"weight runs to producers"** [4] → **"to labor."** The locked spine is
+    labor/capital/consumer; *producer* lives only in Ch 3's notes, and Ch 1's notes warn
+    explicitly to lead with the spine, not the gloss.
+  - ⚠ **"the influence curves, the decay rates"** [2] → **"how fast standing decays, how long
+    a bill may sit unpassed."** *Influence* is the constitution's word; **the videos' word is
+    "standing"** (23 occurrences across the narrations, vs. one stray *influence*). Both
+    values are real (`influence.cap_curve`, `vote.decay_rate`, both organic ✅) — only the
+    vocabulary was off, and the rewrite makes decay self-explaining rather than named.
+  - ⚠ **"the reserve and central bank"** [1] → **"its treasury and central bank."** Ch 5
+    establishes the central bank; *reserve* was unglossed. Art. VIII is **the Treasury**.
+  - ⭐ **"eternity" gained the record.** Art. X §3 lists Article I, the firewall, co-equality,
+    **and the tamper-evidence of the record**. A named only the first two — so the one
+    eternity clause the series has *already spent a chapter on* was the one missing. Adding
+    it costs six words and converts a new-sounding tier into a callback to Ch 6.
+  - ✅ **Checked and CORRECT, against my own expectation:** *referendum* (Art. X §2 —
+    supermajority of every chamber, sustained through a deliberation period, **plus a
+    one-member-one-vote referendum**), *franchise* (Art. II; a Schedule section), and A's
+    *eternity* examples. ⚠⚠ **In each case A is right and CH 7 IS THE THIN ONE** — Ch 7 gives
+    the amendment bar as *"a supermajority across every chamber to enact — and the same to
+    repeal,"* omitting both the deliberation period and the referendum. **Fix belongs in
+    Ch 7, not here.** See [[audit-authored-factual-claims]]: the confident reading was wrong
+    three times, and ninety seconds in the constitution settled it each time.
+  - ⚠ **Left alone, flagged: "membership" vs "citizens."** Art. II distinguishes them (a
+    member past the participation threshold **is** a citizen), Ch 7's narration says
+    *citizens*, the locked jargon says *members*. A pre-existing series-wide tangle, not A's
+    to settle.
+  - ✅ **"Land use" was never in this script** — the specific fear. A says *"how land is
+    held"* [1] and now hands the area to Appendix B by name. Statutory land use is
+    balance-slate material and does not appear.
 - **Register: descriptive** (matches Appendix B) — documentation, not advocacy. The
   prohibition/repeal beat stays inside it: it documents the mechanism working, it is not a
   flourish.
