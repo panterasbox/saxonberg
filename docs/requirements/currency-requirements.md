@@ -51,13 +51,16 @@ decision layer) and [multi-currency-slate](../slates/tails/multi-currency-slate.
 
 - **No second live currency**, and nobody empowered to mint one. The
   generalization is the deliverable; a second currency is not.
-- **No exchange, ever** — no rate, peg, oracle, order book, FX engine, or
-  `convert` path. The currency-crossing rejection is a **permanent
-  invariant, not a seam awaiting a later build**
+- **No world exchange rate — permanently.** No oracle, no order book, no
+  FX engine, no `convert` path, and no number the world agrees on. The
+  currency-crossing leg rejection is a **permanent invariant, not a seam
+  awaiting a later build**
   ([currency-slate](../slates/builds/currency-slate.md) § *Do not build
-  exchange*; supersedes the tail's Half B).
-- **No money-changer NPC.** It survives as a *design* (a merchant who
-  deals in coins) but lands with the currency that creates demand for it.
+  exchange*).
+- **No money-changer NPC, and no pegged issuer** — both are *legitimate
+  designs deferred to the currency that creates demand for them*, not
+  refusals. See *A peg is a promise, not a rate* below for the
+  distinction and the constraint it places on this build.
 - **No acceptance field on offers** — deferred to the scrip build; see
   *Surface decisions*.
 - **No governance path to charter a new issuer.** Authorizing an issuer
@@ -155,6 +158,33 @@ one. ⭐ Currency crises become **emergent rather than simulated**.
 Consequence for this build: the currency-crossing leg rejection is
 **permanent**. It must not be written or documented as a placeholder.
 
+### A peg is a promise, not a rate
+
+Two things were conflated under "peg" and only one is refused:
+
+| | Verdict |
+|---|---|
+| **A world oracle rate** — the system knows *1 scrip = 4 zorkmids* and trades settle at it | ⛔ **Refused permanently.** It makes the rate authoritative, which breaks [economy-slate](../slates/builds/economy-slate.md) Law 1 — *a price is an event between two parties, not a property of a thing* — and it needs rate storage, rate governance, and propagation to every price site. |
+| **A peg as an issuer's redemption promise** — the issuer holds zorkmid reserves and redeems its scrip at a published rate **at its own window** | ✅ **Legitimate, deferred to the scrip build.** Not a global rate; one party's standing offer, which **can break when the reserves run out.** |
+
+⭐ The second is the best content in this area and is *already* what the
+slate's philosophy asks for. A breaking peg is the **canonical emergent
+currency crisis** — Bretton Woods, the ERM in 1992, Argentina 2001 — and
+it breaks because somebody drained the reserves, not because a designer
+scripted a devaluation. A currency board is literally *"I will redeem at
+this rate as long as I have reserves."*
+
+It also **settles as two same-currency transfers**, so it is implementable
+without ever crossing a leg. That is a *validation* of the
+never-cross-currencies invariant, not a threat to it.
+
+> ⚠⚠ **The constraint this places on this build: the rate must never live
+> on the currency record.** A `pegRate` field beside the denominations is
+> the natural place to put it and is exactly the world-oracle shape —
+> every reader of the currency would get an authoritative rate for free.
+> **The rate belongs to the issuer's standing offer, not to the money.**
+> Costs nothing to respect today; expensive to undo once things read it.
+
 ### Reserve status is functional, never decreed
 
 The zorkmid's specialness lives in **what the Compact will accept** —
@@ -201,6 +231,12 @@ rehearsal — not two.
   § *Module Categories*) — one data record, not scattered constants.
   Registry-vs-catalogue shape is a planning call; what is required is
   that **no currency constant survives outside it**.
+- ⚠⚠ **The currency record carries no rate, and no reference to another
+  currency.** Denominations, masses, optional labels, and the issuer —
+  nothing that relates one currency's value to another's. A future peg is
+  an *issuer's standing offer*, not a property of the money (see *A peg is
+  a promise, not a rate*). This is the one forward-looking constraint the
+  build must respect to keep that door open.
 - **Banking Law 1 holds**: a denomination is a coin's *identity*; face
   value is intrinsic to the currency and is never a worth stamped on the
   good.
@@ -239,6 +275,9 @@ rehearsal — not two.
   `Coin`, or `Coin.yaml` as a currency tag.
 - **`Money.render()` reads the currency record** — no hardcoded unit
   string.
+- **The currency record holds no rate and no cross-currency reference** —
+  inspectable on the record's shape; nothing in the codebase can ask
+  "what is currency A worth in currency B."
 - **Coins present distinguishably**: a 25-value coin and a 1-value coin
   differ in `shortDescription` and are separately addressable by the
   parser; a test covers the parse.

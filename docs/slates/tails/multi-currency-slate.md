@@ -163,16 +163,19 @@ on the roadmap does).
 > ⛔ **`builds/currency-slate.md` decided against building an exchange
 > at all.** Currencies are *goods*: coins are already `Stuff` with mass,
 > so you buy one currency's coins with another's in the market that
-> already exists, and the rate is whatever people pay. No oracle, no peg,
-> no FX engine. ⭐ Currency crises become **emergent** rather than
-> simulated.
+> already exists, and the rate is whatever people pay. No oracle, no
+> world rate, no FX engine. ⭐ Currency crises become **emergent** rather
+> than simulated — ⭐⭐ *which is exactly why a **pegged issuer** belongs
+> and a world rate does not: a peg that breaks when its reserves drain IS
+> the emergent currency crisis.*
 >
 > **The resolution, component by component:**
 >
 > | Half B component | Verdict |
 > |---|---|
 > | The **money-changer** (bounded both-currency reserves, two same-currency transfers, keeps a spread, can run out) | ✅ **Survives** — it is a *merchant who deals in coins*, not an FX engine. Mints no new conservation rule. |
-> | A **declared rate** (peg, config, governed, oracle) | ⛔ **Refused.** The changer posts its own bid/ask like any merchant; nothing reads a global rate. |
+> | A **world oracle rate** — a number the world agrees on that trades settle at | ⛔ **Refused.** It makes the rate authoritative, breaking economy-slate Law 1. Nothing reads a global rate. |
+> | ⭐ A **peg as the issuer's REDEMPTION PROMISE** (reserves + a published rate at its own window) | ✅ **Survives.** ⚠ *Corrected 2026-08-04* — an earlier revision refused "peg" as a category and cut this with it. It is one party's standing offer, it settles as two same-currency transfers, and **it breaks when the reserves run out** — the canonical emergent currency crisis. |
 > | The **`convert` verb** | ⚠ Probably unnecessary — `buy`/`sell` at the changer with the shipped retail verbs. A dedicated verb is what makes exchange feel like a system rather than a shop. |
 > | **Rejecting a currency-crossing leg** at `postTransaction` | ✅ **Keep — PERMANENTLY.** Below it is called an "inert seam Half B fills." **It should never be filled.** The never-cross-currencies rule is the invariant, not a placeholder. |
 >
@@ -275,8 +278,12 @@ auditable ledger — no printed FX faucet.
 
 ### Half B — FX (⛔ superseded; retained as the record of what was considered)
 
-1. ⛔ Decide **peg vs. market** (governance/macro call). — **Refused: no
-   declared rate of any kind.**
+1. ⭐ Decide **peg vs. market** (governance/macro call). — **PARTLY
+   SURVIVES.** ⛔ A *world oracle* rate is refused. ✅ A **peg as the
+   issuer's redemption promise** (reserves + a published rate at its own
+   window, breakable when the reserves drain) is the good version and is
+   retained for the scrip build. ⚠ *This item was marked wholly refused
+   on 2026-08-04; that was too broad a cut and is corrected here.*
 2. ✅ The **money-changer** (bounded both-currency reserve holder; two
    same-currency transfers + spread; attendant + bounded-participant
    reuse). — **Survives**, as a merchant who deals in coins.
@@ -301,9 +308,13 @@ auditable ledger — no printed FX faucet.
 3. **Does the 2nd currency have cash?** If account-only, Half A step 5
    (Coinage) is deferrable. Lean: whatever the first real 2nd currency
    wants — probably a corpo scrip that *is* physical (a company token).
-4. ~~**Peg vs. float for v1 FX**~~ — ⛔ **CLOSED 2026-08-04: neither.**
-   No declared rate of any kind; the rate is whatever the market pays.
-   See the Half B supersession above.
+4. **Peg vs. float for v1 FX** — ⭐ **RESOLVED 2026-08-04: neither, as
+   posed.** There is no *world* rate to peg or float; the market price is
+   whatever people pay. But a **pegged issuer** — reserves plus a
+   published redemption rate at its own window, breakable when the
+   reserves drain — survives as the good half, deferred to the scrip
+   build. ⚠ *Briefly recorded as wholly closed; that was too broad and is
+   corrected.*
 5. **Cross-currency in one account statement** — if accounts are
    single-currency, `bank statement` is naturally per-account/per-currency;
    a combined "net worth across currencies" view would need a rate (Half B)

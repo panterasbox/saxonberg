@@ -303,7 +303,8 @@ anything else. So:
 > another's in the market that already exists, and the rate is whatever
 > people pay.**
 
-- **no oracle, no peg, no FX engine, no new machinery**
+- **no oracle, no world rate, no FX engine, no new machinery** (⚠ *not*
+  "no peg" — a peg is an issuer's promise, not a world rate; see below)
 - ⭐ **currency crises become EMERGENT rather than simulated** — a scrip
   nobody wants trades at a discount because nobody bids. That is not
   modelled; it is just true
@@ -325,13 +326,49 @@ cleanly once you separate the two things Half B bundles:
 | Half B component | Verdict |
 |---|---|
 | **The money-changer** — an NPC with bounded reserves of both currencies, settling as two same-currency transfers, keeping a spread, able to **run out** | ✅ **Keep.** This is not an FX engine; it is a **merchant who deals in coins**, which "currencies are goods" already permits. It mints no new conservation rule and reuses the shipped attendant + bounded-participant patterns. |
-| **A declared rate** — a peg, a config value, a governed rate, an oracle | ⛔ **Refuse.** This is the part that becomes a subsystem. The changer posts *its own* bid and ask like any merchant prices any good; there is no global rate, and nothing reads one. |
+| **A world oracle rate** — a number the world agrees on, that trades settle at | ⛔ **Refuse.** This is the part that becomes a subsystem, and it makes the rate *authoritative* — breaking economy-slate Law 1 (*a price is an event between two parties, not a property of a thing*). |
+| ⭐ **A peg as an issuer's REDEMPTION PROMISE** — the issuer holds zorkmid reserves and redeems its scrip at a published rate *at its own window* | ✅ **Keep.** ⚠ *Corrected 2026-08-04 — an earlier revision refused "peg" as a category and cut this with it.* It is not a global rate; it is one party's standing offer, and **it can break when the reserves run out.** See below. |
 | **The `convert` verb** | ⚠ **Probably unnecessary.** If the changer is a merchant, you `buy` and `sell` at it with the shipped retail verbs. A dedicated verb is what makes exchange feel like a system rather than a shop. |
 | **A currency-crossing leg rejected at `postTransaction`** | ✅ **Keep, permanently.** The tail frames this as an inert seam Half B later fills. **It should never be filled** — the never-cross-currencies rule is the invariant, not a placeholder. |
 
-> ⭐⭐ **The changer survives; the rate does not.** A person who will
-> trade you zorkmids for scrip at a price they choose is content. A
-> number the world agrees on is an FX engine wearing a hat.
+> ⭐⭐ **The changer survives, and so does a promise. The ORACLE does
+> not.** A person who will trade you zorkmids for scrip at a price they
+> choose is content. A person who *commits* to a price and can fail to
+> honour it is better content. A number the world agrees on is an FX
+> engine wearing a hat.
+
+## ⭐⭐⭐ The peg is a promise, and the promise can break
+
+The single best piece of content in this whole area, and it needs no FX
+machinery at all:
+
+> **A pegged issuer holds reserves of zorkmids and offers to redeem its
+> scrip at a published rate, at its own window, for as long as the
+> reserves last.**
+
+- **It is not a global rate.** Nothing else in the world reads it; it is
+  one merchant's standing offer, and the market may price the scrip
+  anywhere it likes regardless.
+- ⭐⭐ **It breaks endogenously.** When the reserves drain, the peg
+  fails — and that is the **canonical emergent currency crisis**
+  (Bretton Woods, the ERM in 1992, Argentina 2001). It breaks because
+  somebody drained it, not because an author scripted a devaluation.
+  This is exactly what *"currency crises become emergent rather than
+  simulated"* was asking for; the earlier revision refused it by
+  accident.
+- ⭐ **A currency board is literally** *"I will redeem at this rate as
+  long as I have reserves"* — the most legible finance lesson available,
+  and fully endogenous.
+- **It settles as two same-currency transfers**, so it never crosses a
+  leg. ⭐ That makes the peg a *validation* of the never-cross-currencies
+  invariant rather than a threat to it.
+
+> ⚠⚠ **The one constraint this places on the substrate build: the rate
+> must NEVER live on the currency record.** A `pegRate` field beside the
+> denominations is the natural place to put it and is exactly the
+> world-oracle shape — every reader of the currency would get an
+> authoritative rate for free. **The rate belongs to the issuer's
+> standing offer, not to the money.**
 
 ⚠ **Action:** the tail's Half B should be amended to match, and its
 "inert `convert` seam" reframed from *deferred* to *closed*. Left
