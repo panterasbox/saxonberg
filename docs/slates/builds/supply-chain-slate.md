@@ -169,6 +169,63 @@ evaporates when nothing is ever stamped.**
 | **reclaim** | split the remainder back |
 | ⚠ **the one hazard** | two consignors' stacks **merging** on the shelf. Fix: **each listing holds its own lot**, segregated — no `globIdentityFields` change |
 
+## ⭐⭐ Refreshed 2026-08-05 — the currency build merged, and it ARGUES FOR THIS
+
+The currency build (MR !169) had this exact fight and settled it in this
+slate's favour. Its plan called for gating `setQuantity` on
+`GlobbableMixin` so future value-bearing globs would inherit conservation.
+**55 failing tests said no**, and the recorded conclusion was:
+
+> ⭐⭐⭐ ***"A pile of ore is not money."*** The gate belongs on **`Coin`**,
+> the value-bearing class — not on every glob in the world.
+
+⇒ **Ordinary commodity globs are deliberately, and now testedly, NOT
+conservation-gated.** Splitting and merging grain freely is a position the
+codebase has already defended, so fungible consignment is not asking for an
+exception — it is using the substrate as decided.
+
+⭐ `Coin.setQuantity` is now `@CallSecurity`-gated with the caller set
+*"the glob mechanics (split/merge) and the cash faucet"* — so **split and
+merge remain the sanctioned mutators even for money.** Commodity lots need
+nothing beyond them.
+
+### ⚠⚠ CORRECTION to the merge hazard above
+
+Coin now carries **`globIdentityFields = ['currency', 'denomination']`** —
+the currency build's fix for the two-issuers-merge mint. That establishes
+the house pattern for *"these stacks must not fuse"*, and the obvious
+question is whether consignment should add the **consignor** the same way.
+
+> **No — and the reason sharpens the design.**
+>
+> ⭐⭐⭐ **`globIdentityFields` is for what the matter IS, never for who
+> holds it.**
+
+Two things break otherwise: `globIdentityFields ⊂ persistentFields`, so a
+consignor field would put **per-instance ownership back onto fungibles** —
+exactly what [chattel.md](../../subsystems/chattel.md) refuses — and
+identity-by-holder would **fragment a stack on every transfer**, since two
+sacks of the same grain would stop merging the moment they changed hands.
+
+⇒ **Segregated lots stand** (each listing holds its own), now with a better
+justification than convenience: *currency is intrinsic to a coin; a
+consignor is not intrinsic to grain.*
+
+### ⚠ A gap this surfaces: the offer layer has no currency
+
+`PricedOffer.prices` is `Record<offerKey, minorUnits>` — **bare numbers**,
+while `Charge` carries a currency (*"the cut, in the charge's currency"*).
+So the bar's `martini: 12` is denominated **by convention**, resolved at the
+settling site.
+
+> ⚠ Harmless at one currency; **the first locality to issue scrip breaks
+> it** — a shop that wants to price in scrip cannot say so.
+
+⭐ It is the same defect [currency-slate](./currency-slate.md) found one
+layer down (*"the currency tag is dropped the moment money becomes
+durable"*), surviving in the **offer** rather than the ledger. Worth fixing
+when the supply chain gives multiple venues real pricing power, not before.
+
 ## ⭐⭐ Why this is a prerequisite, not a nicety
 
 - **Partial purchase.** *"Buy 40 kg of grain"* rather than forty
@@ -313,7 +370,7 @@ with no schema.
 
 ## Haulage as a service already exists
 
-*"Move 40 kg from Hinkley Hills to Terminus for 15 credits"* is a **gig** —
+*"Move 40 kg from Hinkley Hills to Terminus for 15 zorkmids"* is a **gig** —
 `contract.md` has the board, the escrow and the verifiable condition.
 ⭐ **A courier vocation exists the moment somebody posts one**, with no
 build.
