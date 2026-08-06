@@ -71,8 +71,8 @@ question: **what starts the clock?**
 
 | # | Archetype | Clock starts at | Time behavior | Restored by | Today |
 |---|---|---|---|---|---|
-| **1** | **Use-wear** | **an act of use** | **no clock at all** — integrates nothing | a *service* (`repair`, `sharpen`) | ✅ `DurableMixin.condition` + `KeenMixin.keenness` (tools/weapons/armor) |
-| **2** | **Flux** (growth *and* decay) | **an act that puts it in flux** (plant, catch, cook, harvest) | **runs over absence** — integrates the *full* gap, logged in or not | **slowed by care, never stopped** (water, cold, salt) | ◐ husbandry + soil **ship**; **food-spoilage + room-condition are the gap** |
+| **1** | **Act-driven** (wear *or* deposition) | **an act** — of use, or of living-in | **no clock — freezes in absence** | a *service* or an *act of care* (`repair`, `sharpen`, `clean`) | ✅ `Durable`/`Keen` (wear); ◐ **room condition** (deposition — designed) |
+| **2** | **Flux** (a *continuous* natural process) | **an act starts it** (plant, catch, cook), then it runs on its own | **runs over absence** — integrates the *full* gap, logged in or not | **slowed by care, never stopped** (water, cold, salt) | ◐ husbandry + soil **ship**; **food-spoilage is the gap** |
 | **3** | **Body-affliction** | **an injury / intake event** | **presence-freezes** (fairness — you don't starve while away) | healing / clearance / treatment | ✅ vitals `Condition` (metabolism/harm) — *except the dying arm, which opts out* |
 
 Two verbatim anchors the audit surfaced, because they are the load-bearing
@@ -88,14 +88,24 @@ distinction between archetypes 2 and 3:
   vitals, which opts out — *"disconnecting [would be] a cure for death."*
 
 > ⭐⭐⭐ **Every stewardship loop in the game is one of these three.** A
-> keen blade is 1. A rotting fish, a wilting bouquet, a dirty room, a
-> neglected garden, a losing-condition herd are all 2. A wound, hunger,
-> food-poisoning are 3. There is no fourth kind, and there does not need to
-> be a unified substrate — there needs to be a named **pattern**.
+> keen blade is 1. A rotting fish, a wilting bouquet, a neglected garden, a
+> losing-condition herd are 2. A wound, hunger, food-poisoning are 3. There is
+> no fourth kind, and there does not need to be a unified substrate — there
+> needs to be a named **pattern**.
+>
+> ⚠ **Amendment (2026-08-06, from the room-condition build).** Archetype 2's
+> *"runs over absence"* holds only for **continuous-natural** decay — a process
+> that runs without you (microbes, growth): the fish, the herd, the plant. An
+> **act-deposited** decay — dirt, mess, wear, whose driver is *acts* — **freezes
+> in absence** (no acts, no change), which is archetype **1**'s shape. So **a
+> dirty room is archetype-1-shaped, not archetype 2**: you cook and it greases,
+> you leave and it holds. The real classifier of absence-behavior is the
+> **driver** (a continuous process vs an act), not the domain — see
+> [room-condition-design-pack](./slates/builds/room-condition-design-pack.md).
 
 ---
 
-## Part 2 — ⭐⭐⭐ "The condition model" is not a missing system. It's archetype 2, unnamed.
+## Part 2 — ⭐⭐⭐ "The condition model" is not a missing system. It's two cheap producers, unnamed.
 
 The phrase **"the condition model"** appears in exactly one doc
 (furnishing.md), where it is named as the missing prerequisite that gates
@@ -104,24 +114,28 @@ bedding freshness and tidiness."* It reads as a big, scary, unbuilt system.
 
 It is not. Ask the archetype question of a dirty room and a spoiling fish:
 
-- A room gets dirty **because you live in it** — you cook, you track mud,
-  you let it go. That is *an act that put it in flux*, integrating over
-  world-time, reset by *an act of care* (cleaning). **Archetype 2.**
-- Food spoils **because you caught/cooked it** — *an act that put it in
-  flux*, integrating over world-time, slowed by cold/salt. **Archetype 2.**
+- Food spoils **because you caught/cooked it** — an act starts a *continuous*
+  microbial process that integrates over world-time, slowed by cold/salt.
+  **Archetype 2** (husbandry's clock, a new host). Designed:
+  [spoilage-design-pack](./slates/builds/spoilage-design-pack.md).
+- A room gets dirty **because you live in it** — you cook and it greases, you
+  track mud, you drop crumbs. That is **act-deposited**: it accrues from acts and
+  **freezes in absence**, cleared by an act of care. **Archetype-1-shaped** (the
+  `Durable` deposition shape) — *not* the continuous archetype-2 clock. Designed:
+  [room-condition-design-pack](./slates/builds/room-condition-design-pack.md).
 
-> ⭐⭐⭐ **Both are husbandry's reconcile clock pointed at a new host.** The
-> preservation slate already saw half of this — *"a ~120-line mixin copying
-> `Wet.ts`"* — but the generalization is bigger than food: **the "condition
-> model" furnishing.md keeps deferring is archetype 2 applied to rooms, and
-> it is the same clock already shipped for plants.** The substrate exists.
-> What is missing is two **producers** (a `Freshness` gauge for perishables,
-> a `Tidiness`/condition gauge for rooms), each a thin reconcile-on-read
-> mixin over a clock the codebase has already proven and debugged.
+> ⭐⭐⭐ **Neither is a scary new system — but they are two different clocks.**
+> Food spoilage is husbandry's **continuous** reconcile clock pointed at food
+> (archetype 2, runs over absence — a ~120-line `Freshness` mixin copying
+> `Wet.ts`). Room condition is the **event-deposit** `Durable` shape pointed at
+> rooms and their contents (archetype-1-shaped, freezes in absence — `Soilable`
+> + a room debris field). The *"condition model"* furnishing kept deferring was
+> **these two producers, not one**, and both ride shapes the codebase already
+> ships. The substrate exists; the producers are the work.
 
 That dissolves the deferral. "We can't do room condition until we build the
-condition model" becomes "the condition model is husbandry; point it at the
-room."
+condition model" becomes *"the condition model is two producers you already ship — husbandry's
+continuous clock for food, the `Durable` deposit-shape for rooms."*
 
 ---
 
