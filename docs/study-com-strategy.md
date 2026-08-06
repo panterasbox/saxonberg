@@ -12,6 +12,13 @@ Everything below about study.com is from **published sources only**
 (researched 2026-07); items marked ⚑ are open questions to answer by
 interviewing the resident insider.
 
+> **Engagement / "it's a game" positioning** — how to lead with the
+> fun/gamification story *without* the burned word, why the category failed,
+> the validated novelty claim, and the first-mover / ideal-operator close:
+> [study-com-engagement-and-positioning.md](./study-com-engagement-and-positioning.md).
+> That doc carries the emotional half of the business case this doc makes
+> structurally.
+
 > **⚠️ Business framing corrected (2026-08-05) — read
 > [study-com-platform-business-model.md](./study-com-platform-business-model.md).**
 > The "go-to-market alternatives / deal models" below were written as

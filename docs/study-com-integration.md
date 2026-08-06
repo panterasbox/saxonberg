@@ -66,7 +66,12 @@
 > model's most complete citizen), the world's *danger is load-bearing*
 > ("safe" = register: non-graphic text + cooperative/PvE + moderation, not
 > the absence of combat), and the post-goal retention stack
-> ([study-com-student-experience.md](./study-com-student-experience.md)).
+> ([study-com-student-experience.md](./study-com-student-experience.md)), and
+> the **engagement & positioning** layer — the verified gamification history
+> (why the word is burned), the validated *synthesis*-novelty claim (with the
+> play-to-earn cautionary parallel), the marketing moves that lead with fun
+> without apologizing, and the honest fun-vs-honesty design risk
+> ([study-com-engagement-and-positioning.md](./study-com-engagement-and-positioning.md)).
 
 ---
 
