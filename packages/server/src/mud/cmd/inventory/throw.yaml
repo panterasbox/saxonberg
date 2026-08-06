@@ -38,7 +38,12 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    # ⚠ NOT ["$focus", "reachable"] — an arg carrying `$focus` alongside
+    # a preposition never matches a shape, so `throw X at Y` silently
+    # fell through to "no known command shape". Found by live-driving;
+    # no controller test can catch it, because controller tests skip the
+    # binder entirely.
+    scope: "reachable"
     prepositions: [at]
     validators:
       - /lib/command/validators/mustBeVisible

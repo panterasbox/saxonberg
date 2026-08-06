@@ -155,14 +155,21 @@ export default class ThrowController extends CommandController<ThrowModel> {
       splash,
     );
 
-    MessageApi.scene(giver)
+    // ⚠ `toTarget` requires a Sensor — and you can throw things at
+    // OBJECTS, not just at people. A terminal has nothing to be told.
+    const scene = MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You hurl ${Mml.item(item)} at ${Mml.name(target)}.`)
-      .toTarget(target, Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at you!`)
       .toPeers(
         Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at ${Mml.name(target)}.`,
-      )
-      .send();
+      );
+    if (MixinApi.isSensor(target)) {
+      scene.toTarget(
+        target,
+        Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at you!`,
+      );
+    }
+    scene.send();
 
     if (plan.placement === "miss") {
       MessageApi.scene(giver)
