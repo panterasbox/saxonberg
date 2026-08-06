@@ -125,6 +125,51 @@ the fix is one pattern (§4), applied per vocation.
   misconduct) if it's unsuitable. The public ledger makes the reasoning
   gradable after the fact.
 
+## 3b. Worked audit C — science ↔ academic (the positive-case check)
+
+Run to test whether the audit also *confirms* a match, not only finds gaps.
+I'd flagged science as the "likely MATCH." **Verification flipped it —
+science is a GAP, the same axis as finance: the reasoning loop is fully and
+*well* designed, but unbuilt.** (A clean demonstration of why the audit
+reads real data instead of trusting the prior.)
+
+- **Mechanism (honest ✅, built):** the shipped physics — thermal,
+  electricity, materials, metabolism, ballistics — plus the observe/measure
+  instruments (`measure` / `analyze` / `assess`) that read one honest
+  number off a channel.
+- **Reasoning loop: modeled, gets the pedagogy *right*, but
+  DESIGNED-not-built.** `inquiry-slate.md` specifies the canonical loop
+  (observe → measure → hypothesize → **predict** → verify) and — unlike
+  medic (outcome-only) and finance (leans "read") — it grades the
+  *reasoning*: "the engine exposes measurements, never the model," and
+  "**discovery is gated by *prediction*, not by stating the law** … predict
+  a *novel* case … ungameable by memorization" (inquiry-slate.md:80-88);
+  the college generator's **named characteristic-error distractors** name
+  the misconception a wrong pick reveals (college-slate.md:252-303). *That
+  is exactly the reasoning-grading real science pedagogy uses — and
+  stronger than selected-response.* **But it ships as "sketch /
+  pre-requirements … zero implementing code"** — no `Law` catalog, no
+  `predict` gate, no inquiry Discipline; the five arcane-science labs "run
+  on the shipped build" only as **ungraded demonstrations** ("a teaching
+  laboratory that was only ever missing its theory", arcane-science.md:1480);
+  the college **Practical** mode grades **result-within-tolerance (the
+  outcome)** and "depends on the inquiry build" (college-slate.md:119,
+  724-725).
+- **Study pedagogy (a real match to the design):** Study teaches
+  science-as-reasoning — the concept graph carries **Controlled Experiment,
+  Data analysis, Dimensional analysis, Confounding, Error analysis, History
+  of scientific method**, and the real thermo items are *reasoning* items
+  ("which conclusions correctly explain … according to kinetic molecular
+  theory"), not recall. Per the teachability boundary, science *facts* stay
+  reference (study.com); the *method* is the game's to enact.
+- **The gap + the fix:** identical pattern — **build** the designed inquiry
+  loop (a `Law` catalog + the `predict` gate + a scientific-method /
+  inquiry Discipline) so the reasoning becomes a graded, consequence-checked
+  activity. **Science is the *reference implementation* of the fix:** its
+  design already grades reasoning correctly (predict-a-novel-case,
+  misconception distractors), so building it both closes this gap *and*
+  gives the medic and finance fixes a working template.
+
 ## 4. The reusable fix pattern
 
 For any modeled vocation whose real discipline grades reasoning:
@@ -150,7 +195,7 @@ For any modeled vocation whose real discipline grades reasoning:
 
 | Overlap | Model has the mechanism? | Reasoning loop? (hypothesis) |
 |---|---|---|
-| **science** (thermal/electricity/metabolism/materials/ballistics) ↔ **Academic science** | ✅ | **LIKELY MATCH** — arcane-science is judgment-rich (predict→verify, the misconceptions bank, the four-part paper read) mirroring real science pedagogy + Study's misconception distractors. The one modeled area where reasoning *is* present (the discovery/inquiry loop). Confirm vs Study's course sequencing. |
+| **science** (thermal/electricity/metabolism/materials/ballistics) ↔ **Academic science** | ✅ | **AUDITED → §3b. NOT the hypothesised match — a GAP (inquiry loop designed *right* but unbuilt), the best-designed of the three and the fix's reference implementation.** |
 | `teacher` ↔ **Teaching** | (pedagogy substrate) | **LIKELY MATCH** — "competence *is* the product"; the teacher-role classroom *is* the reasoning loop, if the teaching-deed grades pedagogical decisions ([teacher-vertical](./study-com-teacher-vertical.md)). |
 | `appraiser`/`surveyor` ↔ **Real Estate** | ✅ (information asymmetry) | **PARTIAL** — models appraisal reasoning but misses real-estate law/agency/client-representation reasoning. |
 | `vet` ↔ (veterinary/animal science) | ✅ | **CLOSEST medic-adjacent** — "observation without self-report" is a real diagnostic-under-uncertainty seam; the one place the model leans toward judgment. |
@@ -176,14 +221,21 @@ For any modeled vocation whose real discipline grades reasoning:
 
 ## Bottom line
 
-Saxonberg models the **honest mechanism** faithfully — but the **reasoning
-layer that real pedagogy grades** (clinical judgment, suitability) is
-**absent (medic) or designed-but-unbuilt (finance)**, both for the same
-root reason: the world buys *information* with competence, not *decisions*.
-The planning agents got the mechanism right and the pedagogy half-right.
-The fix is one pattern — **layer the reasoning loop, grade the decision by
-consequence, reuse Study's scaffold** — and it doubles as the applied
-classroom's lab content. Documented; fixable in a session.
+Saxonberg models the **honest mechanism** faithfully — but across **all
+three audited verticals** the **reasoning layer real pedagogy grades**
+(clinical judgment · suitability · scientific inquiry) is **absent (medic)
+or designed-but-unbuilt (finance, science)** — one axis, one root cause:
+the world buys *information* with competence, not *decisions*. **Science is
+the best-designed case** — its inquiry loop already grades the reasoning
+(a predict-a-novel-case gate + misconception distractors) — and so is the
+**reference implementation** of the single fix: **layer the reasoning loop,
+grade the decision by consequence, reuse Study's scaffold** (which doubles
+as the applied classroom's lab content). The planning agents got the
+mechanism right and the pedagogy *designed-right-but-unbuilt*; the lesson of
+the science case is that **verification, not the prior, is what tells a
+match from a gap** — my "likely MATCH" was wrong until the data corrected
+it. Documented; fixable in a session.
 
-*Verified 2026-08-03 (stage DB + subsystem docs). The backlog rows are
-hypotheses, not yet audited with real data.*
+*Verified 2026-08-03; re-verified against merged master + science audited
+2026-08-05 (stage DB + subsystem docs). Remaining backlog rows
+(teacher/appraiser/HR) are hypotheses, not yet audited with real data.*
