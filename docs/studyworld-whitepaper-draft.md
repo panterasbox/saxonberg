@@ -104,9 +104,9 @@ The model is two halves and the loop between them:
   university — on **quests where what they learned has real stakes**. A healer
   heals, a builder builds, a teacher teaches. This is where most of the game
   lives, and where the learning pays off.
-- **The loop is the point.** Learn it in the classroom → apply it in the world →
-  the application demands more learning. *Study to be able to do; do, and find
-  more to study.*
+- **The loop is the point.** Learn it in the classroom, apply it in the world,
+  and the application demands more learning. *Study to be able to do; do, and
+  find more to study.*
 
 Both halves run on the **same learning model, backed by Study.com's content**:
 the classroom *teaches* it; the world *applies and tests* it, in context.
@@ -245,7 +245,7 @@ Study organizes its content by subject, and StudyWorld's course-of-study is
 built to **ingest that organization directly.** It is worth being precise about
 what that means, because it splits cleanly into two parts:
 
-- **Categorization maps for free.** Study's subject taxonomy → the game's
+- **Categorization maps for free.** Study's subject taxonomy into the game's
   subject/mastery structure is a direct, ingestible mapping. So is the mastery
   data above. These are imports, not projects.
 - **Progression is something we build.** What Study's data does *not* contain is
