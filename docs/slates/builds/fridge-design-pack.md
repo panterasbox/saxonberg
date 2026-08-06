@@ -195,6 +195,119 @@ three power tiers — worth listing because the planner should build the
 
 ---
 
+## Part 3A — Physics & pedagogy (the honest model, per mixin)
+
+Four mixins, **one physics domain** — heat transfer + energy conservation —
+that together teach the whole science and history of refrigeration. The honesty
+rule for all of them: **real units, real tabulated constants, behavior derived
+from a law (not a lookup), the exam key computed by the sim's own reconcile,
+effects as diegetic events, derived-on-read over world-time.**
+
+- **`Atmospheric` — microclimate.** Temperature (K) + humidity as **water
+  activity / RH** (the real spoilage driver, not "moistness: 0.5"). The biome
+  resolve-walk *is* the honest nested-climate model. *Teaches* gradients — why
+  the fridge is cold-**and-dry** (heat removal condenses water; freezer burn) vs
+  the cellar cold-**and-humid**. *Wrong-about:* which store keeps a food best =
+  its `(temp, water-activity)` against its spoilage curve.
+- **`Coolbox` — passive cold via latent heat.** Interior ≈ ice temp until
+  `(m·L_fusion)/(ΔT/R)` elapses; composes the **shipped** Meltable plateau +
+  Newton cooling. *Teaches* latent heat of fusion — *a block of ice absorbs as
+  much heat melting as warming that mass of water ~80 °C*, which is **why ice
+  works and a jug of cold water doesn't** — plus the icehouse and the
+  **labor-for-energy substitution** the electric fridge made. *Item:* "4 kg
+  block, walls R, 24 °C kitchen — hours to melt?" key = run the reconcile.
+- **`ClimateControl` — the heat pump (the crown jewel).** Holds setpoint by
+  pumping the leak `Q̇ = ΔT/R`; the electrical work that costs is `Q̇ / COP`,
+  with COP bounded by Carnot `T_c/(T_h − T_c)`. Setpoint above ambient → it
+  *adds* heat (`depositHeat`, shipped) → **oven/heater**, same mixin. *Teaches*
+  the second law, heat pumps, COP, **insulation ↔ bill (derivable)**, and the
+  COP->1 "a heat pump heats with more heat out than electricity in" fact.
+  *Item:* "4 °C in a 22 °C kitchen, R, COP 3 — daily kWh?"; harder: "same fridge
+  in a 35 °C garage — how much more?" (leak up **and** COP down — two effects).
+- **`Powered` — power/energy/bill/grid.** `P = V·I` (Ohm's-law world, honoring
+  the grid's *"one law, two scales"*), the current set by the thermodynamic
+  demand; `E = ∫P dt` (kWh) reconcile-on-read, **running over absence** (a world
+  process, like the food it cools — archetype 2, not presence-frozen); bill =
+  `E × rate` (a banking transfer, never a mint). *Teaches* power-vs-energy
+  (watts vs watt-hours), **duty cycle** (average draw is leak/COP, not the
+  nameplate), standby, demand/peak. *Item:* "100 W × 10 h vs 1 kW × 1 h?" (equal);
+  and the deep one — "8 h outage in a 30 °C heatwave — does the fridge's food
+  cross into the ptomaine band?" (chains Powered→ClimateControl-off→thermal-
+  drift→Freshness→ptomaine, a multi-system computed key).
+
+> ⚠ **The COP fork — settle before build.** Is COP **Carnot-derived** (a fixed
+> irreversibility fraction of `T_c/(T_h−T_c)`, so it moves honestly with the
+> lift) or **tabulated per device** (a real appliance spec)? *Lean:
+> Carnot-fraction* — one honest number gives the right behavior everywhere and
+> stays derivable; a per-device table is a lookup that drifts. It is the **one
+> genuinely new physical quantity** the whole pack introduces.
+
+> ⭐ **The payoff:** the same `insulation ↔ energy-bill` equation a student is
+> graded on is exactly what the real-world mirror (Part 4) reads off a smart
+> meter. **The honest model *is* the education↔stewardship↔mirror bridge** —
+> you don't learn a game-thing and separately own a real-thing; it is one
+> equation.
+
+---
+
+## Part 3B — Interoperation (how these mixins touch the existing world)
+
+The governing principle, and it is the codebase's unified-physics bar: **the
+fridge introduces no special cases. It composes existing mixins, holds a *real*
+cold, and every other system reacts through its own honest model — none of them
+knows "a fridge" exists.**
+
+- **Thermal (native) — the fridge is a *restamp source*.** ClimateControl *is*
+  generalized `FurnaceMixin`; Coolbox composes `Meltable`+`Thermal`; contents
+  read the interior via the biome walk. Putting food in (`onMoved`), opening the
+  door (`Sealable` seal-toggle), the ice melting, the compressor cycling all
+  fire the **restamp seam thermal already ships** for the thermos. No new
+  plumbing.
+- **⭐ The same cold, three reactions.** The cold is *real*, so with one
+  mechanism and zero fridge-awareness: **food** slows its `Freshness`; a **body**
+  in a walk-in freezer cold-stresses via `ThermalRegulation`→`hypothermia`
+  (vitals); **basil in the fridge dies** (husbandry's min-of-four reads the cold
+  as a limiting factor). Three subsystems, one temperature.
+- **⭐ ClimateControl is the whole kitchen.** Cold twin → fridge/AC; hot twin →
+  oven/range, which plugs into **crafting's heat-gated cooking**
+  (`requiresHeatK` / `reachableHeatFor`). One appliance mixin, both halves of the
+  kitchen (and it retro-covers the forge).
+- **⭐ The energy cost is an emergent cross-system chain.** biome/season → room
+  ambient → the lift ΔT → ClimateControl work → Powered draw → the parcel bill
+  (banking) → the civic energy signal (civics/mirror). *"Costs more in summer"*
+  is authored nowhere — and that chain *is* the mirror's real-world signal path.
+- **Metabolism + bulk (the payoff and the reach).** `Freshness`→`ptomaine` rides
+  the ingest toxicity-override rung (per-instance via `BulkPayload`); eating
+  spoiled fridge-food → toxin burden → food poisoning, gated on the
+  **Condition-live** prerequisite (doctrine Part 6). The `Atmospheric`-on-
+  `Container` update lets the fridge hold discrete food **and** bulk vessels
+  (a milk jug), both cold, both spoilable through the same rung.
+- **⚠ Persistence (the subtle one, with teeth).** The fridge + food + their
+  `Freshness`/temperature state must survive dorm/reap. On materialize the
+  reconcile integrates the offline gap **at the cold rate — iff the atmosphere
+  is restored before the contents' reconcile reads it** (furnishing's
+  fixtures-then-overlay ordering; the "plant keeps its growth" precedent). That
+  is what makes *"my food's still good after a week away — the fridge kept
+  running"* true. It forces one real ripple: a **dormant fridge keeps drawing
+  power** (the reconcile accrues it over absence), so a mid-dormancy supply cut
+  means the **power-utility supply-ref needs state-over-time, not just
+  on/off-now.**
+- **Boundary / electricity — emergent hazard.** Door = `Sealable`, dial/switch =
+  `Switchable`, power = `Energized` + the supply-ref. A plugged-in fridge in a
+  flooded kitchen is a node in the conduction graph and **shocks you, for free**
+  (the FloodedCell physics).
+- **Crafting wear (a stewardship loop).** The appliance is a `Durable` good — it
+  wears, a broken fridge stops cooling → food spoils, so **appliance maintenance
+  is a home-stewardship loop** (repair; the armorer-as-career maintenance-
+  relationship). `Grade` ties to the physics — a better-made fridge is
+  better-insulated (higher R) → lower bill.
+- **⭐ No scheduler load.** Everything is reconcile-on-read (the
+  thermal/metabolism/husbandry family), so a fridge that is "always running"
+  adds **zero** push-tick/scheduler cost — residency and activity untouched. The
+  honest model is also the cheap one.
+
+---
+
 ## Part 4 — The real-world mirror layer (the fridge's seams have twins)
 
 The fridge is the mirror-slate thesis with a **second dense domain**. Every
