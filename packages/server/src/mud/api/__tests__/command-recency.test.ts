@@ -10,6 +10,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import Location from '../../lib/stuff/Location';
+import CartesianZone from '../../obj/location/CartesianZone';
+import CartesianLocation from '../../lib/location/CartesianLocation';
+import Exit from '../../lib/boundary/Exit';
+import Door from '../../obj/Door';
 import {
   CommandGiverMixin,
   type CommandGiver,
@@ -53,6 +57,18 @@ class InvProvider extends InvProviderBase {
       peers: [],
     self: [],
     environment: ['system/ping.yaml'],
+  };
+}
+
+/** A plain nestable container — a bag. Affords nothing itself, so it
+ * cannot mask what the thing INSIDE it affords. */
+const BagBase = ContainerMixin(ContainableMixin(Idea));
+class Bag extends BagBase {
+  static commandContributions = {
+    self: [],
+    inventory: [],
+    environment: [],
+    peers: [],
   };
 }
 
@@ -247,5 +263,138 @@ describe('CommandGiverMixin recency stack', () => {
         reason: 'parse-failed',
       }),
     );
+  });
+});
+
+describe('affordance reach — recursion and adjacency', () => {
+  beforeEach(() => {
+    CommandApi.clearCache();
+  });
+
+  /**
+   * THE CASE THE RECURSION EXISTS FOR. MQL targets through nesting
+   * unconditionally, so a rock inside a bag inside your pack can be
+   * NAMED by a command. Before the directional rename its verb never
+   * reached you — it worked only because the bag was Tangible too and
+   * afforded the same verb itself. The bag here affords NOTHING, so
+   * this fails the moment the walk stops being recursive.
+   */
+  it('a provider nested TWO containers deep still grants outward', () => {
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    giver.getAvailableCommands(); // seed self
+
+    const pack = makeStuff(() => new Bag());
+    const inner = makeStuff(() => new Bag());
+    const item = makeStuff(() => new InvProvider());
+
+    ContainmentApi.move(pack, giver as never);
+    ContainmentApi.move(inner, pack as never);
+    ContainmentApi.move(item, inner as never);
+
+    const fromItem = stackOf(giver).filter((e) => e.source === (item as never));
+    expect(fromItem.map((e) => e.bucket)).toContain('environment');
+  });
+
+  it('and loses it again when the whole subtree leaves', () => {
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    giver.getAvailableCommands();
+    const loc2 = makeStuff(() => new Location());
+
+    const pack = makeStuff(() => new Bag());
+    const item = makeStuff(() => new InvProvider());
+    ContainmentApi.move(pack, giver as never);
+    ContainmentApi.move(item, pack as never);
+    expect(
+      stackOf(giver).some((e) => e.source === (item as never)),
+    ).toBe(true);
+
+    // Move the PACK out — the item never moved itself.
+    ContainmentApi.move(pack, loc2 as never);
+    expect(
+      stackOf(giver).some((e) => e.source === (item as never)),
+    ).toBe(false);
+  });
+});
+
+describe('affordance reach — peers one hop away', () => {
+  beforeEach(() => {
+    CommandApi.clearCache();
+  });
+
+  function twoRooms() {
+    const zone = makeStuff(() => new CartesianZone());
+    const here = makeStuff(() => new CartesianLocation());
+    const there = makeStuff(() => new CartesianLocation());
+    zone.addLocation(here, 0, 0, 0);
+    zone.addLocation(there, 0, 1, 0);
+    return { here, there };
+  }
+
+  it('a peer provider NEXT DOOR reaches you through an open exit', async () => {
+    const { here, there } = twoRooms();
+    const exit = makeStuff(
+      () => new Exit({ direction: 'north', source: here, destination: there }),
+    );
+    await here.addExit(exit);
+
+    // The provider is already next door; the giver walks in after.
+    const provider = makeStuff(() => new EnvProvider());
+    ContainmentApi.move(provider, there as never);
+
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    ContainmentApi.move(giver, here as never);
+    giver.getAvailableCommands();
+
+    expect(
+      stackOf(giver).some(
+        (e) => e.source === (provider as never) && e.bucket === 'peers',
+      ),
+    ).toBe(true);
+  });
+
+  /**
+   * A closed door is a closed door. A verb lighting up through one would
+   * claim a reach the world does not have — and this is the assertion
+   * that was previously only true because I had read the code.
+   */
+  it('a CLOSED door stops it', async () => {
+    const { here, there } = twoRooms();
+    const door = makeStuff(() => new Door());
+    door.setOpen(false);
+    const exit = makeStuff(
+      () =>
+        new Exit({
+          direction: 'north',
+          source: here,
+          destination: there,
+          door,
+        }),
+    );
+    await here.addExit(exit);
+
+    const provider = makeStuff(() => new EnvProvider());
+    ContainmentApi.move(provider, there as never);
+
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    ContainmentApi.move(giver, here as never);
+    giver.getAvailableCommands();
+
+    expect(
+      stackOf(giver).some((e) => e.source === (provider as never)),
+    ).toBe(false);
+  });
+
+  it('and an exit with no loaded destination is simply skipped, not thrown', async () => {
+    // `getDestination()` THROWS on an unresolved zone; affordance
+    // redistribution must never force world-loading from a containment
+    // delta. This is the bug that took out 18 sandbox tests.
+    const { here } = twoRooms();
+    const dangling = makeStuff(
+      () => new Exit({ direction: 'north', source: here, destinationPath: '/nowhere/at/all' }),
+    );
+    await here.addExit(dangling);
+
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    expect(() => ContainmentApi.move(giver, here as never)).not.toThrow();
   });
 });

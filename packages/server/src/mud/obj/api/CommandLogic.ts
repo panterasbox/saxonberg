@@ -2363,9 +2363,14 @@ function peerScopesOf(container: Stuff): Stuff[] {
   const out: Stuff[] = [container];
   if (!MixinApi.isExitable(container)) return out;
   for (const exit of container.getExits().values()) {
-    // A closed door is a closed door. A verb lighting up through one
-    // would be claiming a reach the world does not have.
-    if (MixinApi.isSealable(exit) && !exit.isOpen()) continue;
+    // A closed door is a closed door, and so is a blocked exit — a verb
+    // lighting up through one would claim a reach the world does not
+    // have. The DOOR is a separate object hanging off the exit, not the
+    // exit itself; asking `isSealable(exit)` looked right and would
+    // never have fired.
+    if (exit.isBlocked()) continue;
+    const door = exit.getDoor();
+    if (door !== null && !door.isOpen()) continue;
     // ⚠ `getDestination()` THROWS when the target zone is not faulted
     // in yet. Redistributing affordances must never force world-loading
     // — a containment delta is a hot path and an unloaded room simply is
