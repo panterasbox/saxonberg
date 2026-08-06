@@ -147,6 +147,19 @@ class DisciplineCatalogue {
   target — those Disciplines are unreachable from external coursework by
   design, which is correct (you can't study your way to reflexes).
 
+> **The crosswalk maps *categorization*, not *prerequisites* (verified
+> 2026-08-06).** Study's taxonomy gives the game a subject→discipline
+> mapping and rich per-concept mastery estimates — but **no authored "X must
+> precede Y" dependency graph** exists to ingest: `Concept_Relation` is
+> statistical DBpedia co-occurrence, and `Skill_Node`'s `sequence` is
+> order-among-siblings, not cross-node prerequisites
+> ([study-com-platform-reality.md](./study-com-platform-reality.md) §3a). So
+> any in-game **progression / readiness gating** that wants Study-derived
+> ordering is **adapter work** (derive from `Skill_Node` sequence + standards
+> + mastery correlations, or author it) — it is **not** a feed. The crosswalk
+> and mastery import are ingestible; the prerequisite ordering is a build
+> item.
+
 ### 3.2 `AdvancementApi.recordClaim` — the academy faucet's producer
 
 `claim` is documented as "the academy faucet … no consumer mints claims

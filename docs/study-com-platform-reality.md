@@ -98,6 +98,48 @@ join key. DBpedia is an optional secondary anchor. (This is arguably
 better: Study's taxonomy stays theirs, and the crosswalk is exactly the
 partner-specific artifact the vertical-agnostic split wanted.)
 
+### 3a. There is no authored prerequisite / readiness graph (verified 2026-08-06)
+
+A later check — prompted by a Study product reviewer's comment on the
+StudyWorld doc (*"we have subject tags… not sure we have skill tags…
+prerequisite interdependencies… possibly for Test Prep, fairly sure not for
+CX"*) — confirms the reviewer is **right**. Study has **rich taxonomy and
+rich mastery estimates, but no authored "X must precede Y" dependency graph**
+to ingest. Four artifacts, none of which is a prerequisite DAG:
+
+| Artifact | ~rows (stage) | What it is | What it is NOT |
+|---|---|---|---|
+| `ariel2_0.Concept` | 434k | DBpedia-derived subject taxonomy (hierarchy) | learning-order / prerequisites |
+| `raptor.Concept_Relation` | 131k | **statistical** concept association (`slope_mean/sd`, `ranking`; many NULL) | authored prerequisites |
+| `ariel2_0.Skill_Node` | 1.0M | **standards-aligned** skill tree (`standard` e.g. Common Core, `standardMappingCode`, `depth`, `sequence`) | a cross-node dependency DAG; largely unlinked to `Concept` (`concept_id` mostly NULL) |
+| `raptor.Member_Concept_Mastery` | 880M | per-member Bayesian mastery **per concept** (α/β) | *what must precede what* |
+
+- **`Concept_Relation` looks like a dependency graph but isn't.** Sampled
+  rows relate **"Spanish goat" → "Counting" / "Decimal time" / "Spanish,
+  Ontario"** with weak slopes (~0.5) and many NULLs — DBpedia entities
+  clustered by statistical co-occurrence, not pedagogy. It cannot answer
+  "ready to progress?"
+- **`Skill_Node` is the only authored structured curriculum** — a real
+  standards tree (e.g. *California Common Core Math → Number & Quantity /
+  Algebra / Functions → N-RN, A-SSE, F-IF…*) with within-sibling `sequence`.
+  But `sequence` is order-among-siblings, **not** explicit cross-node
+  prerequisite edges, and it's **standards-aligned (K-12-flavored)** —
+  consistent with the reviewer's "exists for Test Prep, not CX" instinct.
+  *(Subject breadth across products: profiled separately — see §3a note.)*
+
+**Consequence for the integration:** the catalog's **categorization** maps
+cleanly (taxonomy → game subject/mastery structure) and the **mastery
+estimates are a genuine, under-sold asset** — but **progression / readiness
+gating is not an ingestible feed.** "Which concept unlocks which" must be
+**derived** (from `Skill_Node` sequence + standards + mastery correlations)
+or **authored** in the adapter/CMS. It is adapter *work*, not existing data.
+Any StudyWorld claim that "the subject taxonomy becomes the progression
+structure" must split: **categorization ✅ (ingestible), prerequisite
+ordering ❌ (build item).** Silver lining: the one place authored sequencing
+*does* exist is **standards-aligned math** — which reinforces the math/science
+beachhead ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+§5), the subjects with the best skill structure to build on.
+
 ---
 
 ## 4. Assessment / question model (source: `assessment-services`)
@@ -271,6 +313,7 @@ three are the raw material for "live it, don't solve it."
 | **Learning objectives** are the load-bearing tag | No objective entity; the tag IS a Concept/ExamTaxonomyNode (§2–3). |
 | Credit modeled as ACE/**semester-hours** | Boolean flags (`creditEligible`, `inAceReviewMode`); no codes/hours (§2). |
 | Adaptive engine consumes a per-node mastery map (assumed) | True in *shape* — `Member_Concept_Mastery` (Bayesian) / `Study_Priority` (prediction) exist; whether an **inbound** signal is accepted is still `[confirm]` (§10). |
+| Subject **taxonomy = progression/readiness** structure (StudyWorld doc) | Only half: **categorization ✅ ingestible; prerequisite ordering ❌** — no authored dependency graph; `Concept_Relation` is statistical DBpedia noise; readiness is adapter-derived work (§3a). |
 
 ---
 
