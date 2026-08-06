@@ -112,13 +112,80 @@ human-scored). The **product hooks** are **CX credit + Praxis prep**; the
 practicum-rehearsal is the differentiated experience that makes them
 stickier.
 
-## 5. What this corrects elsewhere
+## 5. Education is a *meta-vertical* — it rides on a subject
+
+The aspiring teacher is the beachhead, but education is structurally unlike
+the other verticals, and the pitch has to say why. **Teaching is a delivery
+skill with no content of its own** — you can't engage the world "as a
+teacher" the way you engage it "as a realtor." You teach *something*. So an
+education player needs a **second, subject vocation** to have anything to
+teach. Verticals split into three topologies by whether they supply their
+own world-surface:
+
+| Topology | Verticals | World-surface | Build shape |
+|---|---|---|---|
+| **Standalone industry** | real estate, nursing, finance, cosmetology, trades | self-supplied — the industry *is* a place/economy you enter | one vocation |
+| **Branching industry** | **ASVAB / military** | one industry that forks internally (the ASVAB's job is line-scores → an MOS: mechanic, medic, comms, logistics) | one vocation, pick-a-branch |
+| **Meta / delivery** | **education / teaching** | *none of its own* — must host on a subject | **two vocations** (subject + teaching layer) |
+
+Real estate is standalone; military is a **router that points *down***
+(assigns a specialty inside itself); education is a **router that points
+*up*** (reaches out and grabs a subject-vocation). Education is the only one
+that *mandates* a second vocation.
+
+**This is visible in the real data, not invented.** The §3 CX distribution
+isn't just "Education/Teaching" — aspiring teachers declare a **subject**:
+**Math Ed (223), English Ed (188), Science Ed (96)**. The two-vocation
+structure *is* the enrollment data.
+
+**The pitch turn — the requirement is the profession's real shape, and
+Study already sells it as two products.** Teacher licensure *is*
+content-area + pedagogy: a Praxis **subject** exam (Bio 5235, Chem 5245,
+Math 5161/5165…) **and** a **PLT/PPR** pedagogy exam. So the game requiring
+"subject-vocation + teaching layer" faithfully models "certified in a subject
+*and* in how to teach." Two consequences:
+
+- **Education is a funnel, not a standalone SKU.** An aspiring science
+  teacher *necessarily* engages a subject vertical's content (to have
+  something to teach) **and** the pedagogy prep — one persona pulls a second
+  vertical into play. That's an engagement/LTV story no other vertical has.
+- **Pick the subject that cross-cuts.** A siloed subject (history) is built
+  once and used once; a cross-cutting subject is a **substrate the whole
+  world reuses** — so the two-vocation cost becomes leverage. Ranking:
+  **math > science > siloed.** Science cuts across medicine, farming,
+  alchemy, smithing, brewing; **math cuts across everything** (trade,
+  building, navigation, ballistics, logistics — and sits *under* science
+  itself). This mirrors a real curriculum (math is the base layer) **and**
+  Study's own `Concept` graph, where math/science are the highest-fan-in
+  nodes reused across many courses — so "build the foundational subjects
+  first" is both pedagogy and architecture.
+- **The foundational subjects are also the most honestly gradable.** Math and
+  science bottom out in computation — computable ground truth is exactly what
+  the computed-key item machinery and the inquiry-slate adjudication need
+  (the firebolt τ/kJ item was this). History/literature can't be
+  deterministically adjudicated. So the cross-cutting subjects are *both*
+  most-reused **and** best-case for fidelity, not worst.
+
+**Honest cost — this is the highest-complexity beachhead, not the cleanest.**
+It inherits **two** fidelity debts: the subject's reasoning loop (the
+medic/science-audit debt) **plus** the teaching-assessment fidelity. The
+mitigation is to stop pitching "teachers" in the abstract and name **one
+concrete pairing** as the first build: **the aspiring *science* teacher** —
+a subject the game can already stage (reusing the science-fidelity work and
+the lived-science example) with the teaching layer on top, matching Study's
+**Praxis Bio/Chem + PLT**. **Demo science** (vivid, half-built), but **claim
+the principle with math** — the universal substrate whose logical endpoint
+proves the approach compounds, and the field where the **teacher shortage is
+sharpest** (STEM), so it also lands the mission rail. Prove the pair, then
+swap the subject to generalize.
+
+## 6. What this corrects elsewhere
 
 - [study-com-vertical-survey.md](./study-com-vertical-survey.md) — "TOEFL is
   the beachhead/standout wedge" is **wrong**: TOEFL → a caveated
   immersion-*complement* (Reading+Writing only, entry barrier, intermediate+),
   and the **aspiring teacher (CX + Praxis)** is the beachhead. Add the two
-  axes (§1) as first-class scoring.
+  axes (§1) **and the world-surface topology (§5)** as first-class scoring.
 - [study-com-teacher-vertical.md](./study-com-teacher-vertical.md) — add the
   **CX education-major** dimension (credit-toward-the-degree), and keep the
   practicum framed as experience/mission (§4 guardrail).

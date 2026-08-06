@@ -25,10 +25,20 @@ It resolves into the design's strongest loop:
   **teacher-at-the-front**, where the stakes are now *the students'*
   learning, not your own grade. The classroom-as-a-stage (the
   interchangeable-role classroom, classroom-model §2) *is* their off-campus.
-- **Their *subject* takes them off-campus.** A chemistry-ed learner does
-  chemistry in the world; a bio-ed learner does field biology — then returns
-  to *teach* it. The subject is the adventure; the classroom is where it
-  pays back.
+- **Their *subject* takes them off-campus — and this is a *requirement*, not
+  flavor.** Teaching is a **meta-vocation**: a delivery skill with no content
+  of its own, so an education player **must adopt a second, subject
+  vocation** to have anything to teach (topology + the cross-cutting-subject
+  argument:
+  [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+  §5). A chemistry-ed learner does chemistry in the world; a bio-ed learner
+  does field biology — then returns to *teach* it. Without a subject-vocation
+  there is literally nothing to teach and no off-campus. The subject is the
+  adventure; the classroom is where it pays back. (It's also faithful to real
+  licensure — Praxis *subject* exam + PLT/PPR pedagogy exam — so the
+  two-vocation build is the profession's actual shape, and it makes the
+  education learner a **funnel into a second, cross-cutting subject
+  vertical**, ideally math or science.)
 - **This is exactly how teachers are actually assessed** — **content
   knowledge + pedagogy** (Praxis Content + PLT/PPR; see
   [study-com-teacher-vertical.md](./study-com-teacher-vertical.md)). So the
