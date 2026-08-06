@@ -12,6 +12,19 @@ Everything below about study.com is from **published sources only**
 (researched 2026-07); items marked ⚑ are open questions to answer by
 interviewing the resident insider.
 
+> **⚠️ Business framing corrected (2026-08-05) — read
+> [study-com-platform-business-model.md](./study-com-platform-business-model.md).**
+> The "go-to-market alternatives / deal models" below were written as
+> **Study-partnership** shapes, implicitly treating the game as a product
+> *we own and Study partners with*. That's wrong at the root: **Saxonberg is
+> AGPL-3 open source; Study *licenses and runs its own instance*.** The deal
+> runs in reverse — any party can operate the platform, Study has no special
+> authority, and our revenue is **custom platform + integration support** and
+> **managed ops / PaaS**, not customer ownership. Model E ("platform
+> license") is the closest existing shape; the business-model doc is its
+> correct, foundational form. Read the deal models below as *shapes of an
+> operator relationship*, not as us selling a product we own.
+
 ---
 
 ## Study.com product map (public)

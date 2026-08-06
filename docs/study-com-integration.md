@@ -57,7 +57,16 @@
 > **Latest (2026-08-05):** the CX enrollment model + the corrected
 > **aspiring-teacher beachhead** (with the two missing scoring axes — medium
 > fit + product alignment — that demote TOEFL)
-> ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)).
+> ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)),
+> the corrected **platform business model** — Saxonberg is AGPL-3, Study is
+> an *operator* that licenses/runs its own instance, and revenue is support
+> + managed PaaS, not customer ownership
+> ([study-com-platform-business-model.md](./study-com-platform-business-model.md)),
+> and the **student experience** — the off-campus paradox (education is the
+> model's most complete citizen), the world's *danger is load-bearing*
+> ("safe" = register: non-graphic text + cooperative/PvE + moderation, not
+> the absence of combat), and the post-goal retention stack
+> ([study-com-student-experience.md](./study-com-student-experience.md)).
 
 ---
 

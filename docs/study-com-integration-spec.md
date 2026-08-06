@@ -399,6 +399,18 @@ The outbound adaptive feed (§4.2) stays batch throughout.
   behavior to a third party and therefore needs its own consent gate and
   a tight payload (bands + misconception tags, no free-form behavior) —
   detailed in [study-com-adaptive-feed.md](./study-com-adaptive-feed.md).
+- **Governance residue is an operator decision, not a neutral default.**
+  The vertical-agnostic core is *not* a neutral shell: an operator's
+  instance must **plug into the governance model or explicitly ignore
+  it**, and because some systems depend on **"laws" as metadata**, some
+  residue of the governance model is present even with no government
+  running. So an integrating operator (Study included) must decide up
+  front: **adopt the civics substrate, explicitly ignore it, or carry the
+  residual laws-metadata** — and the adapter (§4) has to state which. Treat
+  this as a first-class integration question alongside auth and privacy,
+  not a footnote. Rationale and the business framing:
+  [study-com-platform-business-model.md](./study-com-platform-business-model.md)
+  §4.
 
 ---
 
