@@ -109,7 +109,13 @@ The honest retention stack, **strongest → weakest**:
    **teacher / mentor / author** in the world — expertise is now a *role*,
    standing, maybe income. Being **needed** is the stickiest motivator; and
    for education specifically, the **working teacher mentoring aspiring
-   ones feeds the funnel** (§1's loop, now self-sustaining).
+   ones feeds the funnel** (§1's loop, now self-sustaining). The world's
+   honest economy makes this a **market, not a metaphor** — demand for
+   teaching is *endogenous* (new players genuinely need to learn the modeled
+   systems, and the economy prices it), so "being needed" is an economic
+   fact with a price signal, not just a feeling. Full argument + caveats:
+   [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+   §5.
 3. **New goals / lifelong learning.** Interest-driven pursuits + **professional
    development / CEUs** — a *real* Study cross-sell for working teachers
    (teacher-vertical §5 "lifecycle upside").

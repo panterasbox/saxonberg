@@ -179,6 +179,50 @@ proves the approach compounds, and the field where the **teacher shortage is
 sharpest** (STEM), so it also lands the mission rail. Prove the pair, then
 swap the subject to generalize.
 
+**The payoff: an *endogenous* teacher labor market.** Honest modeling
+doesn't just *let* a player teach — it manufactures *real demand* for
+teaching. New players must learn genuinely complex, honestly-modeled systems
+(alchemy proportions, pricing, navigation, dosage — the math/science
+substrates), so there is an authentic learning need, and the world's own
+economy prices it: teaching becomes a **paid, sought role** because it is
+genuinely valuable to other players. The demand is **endogenous** (the
+economy wants it), not scripted (a quest-giver handing out "tutor three
+villagers"). Three earlier threads collapse into this one:
+
+- **Staffing solves itself** (teacher-vertical §4.2): supply isn't
+  conscripted NPCs — the economy *wants* player-teachers and pays them.
+- **The producer flip gets a price signal**
+  ([study-com-student-experience.md](./study-com-student-experience.md) §3):
+  "being needed" stops being a warm retention feeling and becomes an economic
+  fact — the graduated expert teaches because there's a market.
+- **The teaching deed gets a validity mechanism:** in a market where students
+  can tell whether they actually learned (their modeled competence moves or
+  it doesn't — honest adjudication), a tutor who doesn't convey understanding
+  doesn't get rehired. Reputation is **earned by outcomes**, not claimed.
+
+**Why the honesty is load-bearing, not decorative:** if the systems were
+arbitrary game-mechanics trivia, teaching them would exercise nothing.
+Because they're modeled on real math/science/economics, the demand to learn
+them is demand to learn *real knowledge*, and meeting it is *real teaching* —
+the aspiring teacher (Study's #1 archetype) practices their actual craft on
+actual content.
+
+**Honest caveats (the market can misfire):**
+- **Demand lives in the gap between system depth and a newcomer's
+  understanding** — tutorialize that gap away with good onboarding UX and you
+  erase the very need that creates teacher demand. Real tension: the usual UX
+  instinct (reduce the need for human help) works *against* this.
+- **Only the knowledge substrates count as education.** Teaching "how the
+  crafting menu works" is game-literacy; teaching "how to compute the reagent
+  ratio" is chemistry. The pedagogically-real market is the *subset* sitting
+  on the honestly-modeled knowledge systems — distinguish the two.
+- **Markets reward outcomes, which can mean answer-selling** — the
+  teach-to-the-test failure mode. The assessment of learning has to reward
+  *transfer* (novel-case performance, the computed-key predict-a-novel-case
+  machinery), or the market decays into cram-tutoring.
+- **Emergent economies are hard to actually summon** — this is design intent,
+  not observed behavior; assert it as the aspiration it is.
+
 ## 6. What this corrects elsewhere
 
 - [study-com-vertical-survey.md](./study-com-vertical-survey.md) — "TOEFL is
