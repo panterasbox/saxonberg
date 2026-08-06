@@ -125,7 +125,34 @@ to ingest. Four artifacts, none of which is a prerequisite DAG:
   But `sequence` is order-among-siblings, **not** explicit cross-node
   prerequisite edges, and it's **standards-aligned (K-12-flavored)** —
   consistent with the reviewer's "exists for Test Prep, not CX" instinct.
-  *(Subject breadth across products: profiled separately — see §3a note.)*
+
+**Breadth profile (`Skill_Node` roots, verified 2026-08-06):** the authored
+skill tree is overwhelmingly **K-12 + AP + intro-college academic content,
+organized by US *state-standards* frameworks** — math-dominated because each
+course (Algebra 1, Geometry, Algebra 2…) is **replicated across all ~50
+states**. The `standard` *column* is mostly empty (1.59M of ~1.6M active
+nodes have none; `academy_subject_id` is unpopulated too) — framework
+identity lives in the **root title**. Coverage, richest → thinnest:
+
+- **Deep:** K-12 **math** (per-state trees), then **science**
+  (Biology/Chemistry/Physics), **ELA** (grades 9–12), **social studies /
+  US & world history**; **AP** (Bio, Calc AB/BC, Chem, Physics 1/2/C, Stats,
+  US/World History, English); intro **college** math/stats.
+- **Thin:** **CTE career clusters** (Healthcare, Finance, Education,
+  Manufacturing, Agriculture, Supply Chain…) and the odd teacher-cert exam
+  (e.g. *GACE History 721*) — single shallow roots, not deep trees.
+- **Absent as skill structure:** **CX** credit subjects and **professional
+  test-prep** (nursing entrance, real estate, Praxis content) — no authored
+  skill tree.
+
+Two consequences: (1) **it reinforces the math/science-teacher beachhead —
+hard**: the subject a K-12 math/science teacher will *teach* is exactly where
+Study's authored skill structure is **deepest**. (2) **It's a mismatch to the
+StudyWorld doc's target populations** — the doc pitches **CX + professional
+Test Prep**, which are precisely where authored skill structure is *absent*;
+the rich structure is **K-12**, a product the doc barely features. So
+"taxonomy = progression" is *most* buildable for K-12 and *least* for the
+populations the doc currently leads with.
 
 **Consequence for the integration:** the catalog's **categorization** maps
 cleanly (taxonomy → game subject/mastery structure) and the **mastery
