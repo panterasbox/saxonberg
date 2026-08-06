@@ -79,7 +79,10 @@ the fix is one pattern (§4), applied per vocation.
   and the honest world adjudicates whether it worked (a *better* assessment
   than an MCQ, because the body actually responds). And note: **this is
   the nursing lab quest from [classroom-model](./study-com-classroom-model.md)
-  §7 — the fidelity fix and the lab design are one build.**
+  §7 — the fidelity fix and the lab design are one build.** **Now spec'd as
+  a Saxonberg slate:
+  [slates/builds/medic-judgment-slate.md](./slates/builds/medic-judgment-slate.md)**
+  (modeled on the science reference implementation, the inquiry-slate).
 
 ## 3. Worked audit B — `banking`/`insurance` family ↔ Securities/Insurance
 
