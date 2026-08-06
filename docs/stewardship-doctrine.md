@@ -234,7 +234,7 @@ measures the doing.
 | **Food spoilage / preservation** | **2** | 🔲 **designed, not built** (the *keystone* deferral) | ⚠ **principled once, convenient now** — "one deferral, eight consequences"; if stewardship is a pillar, punting this punts the pillar |
 | **Cold storage / fridge / cellar** | 2 | ◐ **authorable today** (`AtmosphericMixin` `Vessel`), inert without spoilage | fine — it waits on spoilage by necessity |
 | **Disease / contagion** | 2 | 🔲 **designed** — inherits spoilage's growth term | principled (build spoilage first) |
-| **Room condition / cleanliness / pests / tidiness** | **2** | ❌ **absent** — deferred to "the condition model" | ⚠ **mis-framed** — it *is* archetype 2 (Part 2), not a separate prerequisite |
+| **Room condition / cleanliness / pests / tidiness** | **1** | 🔲 **designed** ([room-condition pack](./slates/builds/room-condition-design-pack.md)) | ⚠ **was mis-framed** — act-deposited (archetype-1-shaped), *not* a separate "condition model" |
 | Property condition + residence ladder | 2 | 🔲 **designed** (stewardship-slate) | principled (waits on the allowance meter for the *city* rungs; the frontier rung is unblocked) |
 | Stewardship Discipline | — | 🔲 **designed**, pure data | trivially cheap; ships with the vanilla discipline pack |
 | Ranching / pets / farming | 2 | 🔲 **designed** | principled (wait on land use — now shipped — and spoilage) |
@@ -283,8 +283,8 @@ domino**, ahead of any new producer.
    (`AtmosphericMixin` `Vessel`); nearly free once spoilage exists. Wakes
    the icehouse-keeper vocation and the agricultural year.
 4. **Disease + cleanliness/hygiene** — disease inherits the growth term;
-   cleanliness is **the condition model, built as archetype 2 over rooms and
-   bodies** (Part 2), not a new system.
+   cleanliness is **the room-condition producer — act-deposited over rooms and
+   bodies** (Part 2), not a new "condition model."
 5. **Property condition + the residence ladder** — the progression spine;
    the ladder gate is *"the condition of what you hold."* Frontier rung
    first (unblocked); city rungs wait on the allowance meter + region
