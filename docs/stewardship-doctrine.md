@@ -1,0 +1,303 @@
+# Stewardship — the pillar doctrine, the three decay archetypes, and the family status map
+
+> **Status: design synthesis, captured 2026-08-06. Not requirements.** A
+> meta-doc *over* the stewardship family, not a build slate. It does four
+> things: names a **pillar** the corpus has been circling without stating,
+> **unifies** the scattered decay mechanics into three archetypes,
+> **interrogates** the "deferred / deliberately not here" verdicts, and
+> proposes a **build order** that treats stewardship as a pillar rather than
+> a backlog.
+>
+> Provenance: a "build the typical home and stress-test the models"
+> conversation that hit a wall of deferrals, then two corpus surveys — a
+> decay/condition **substrate audit** and a care/anti-treadmill
+> **philosophy** survey.
+
+See also — the family this sits over:
+[stewardship-slate](./slates/builds/stewardship-slate.md) (land use, the
+residence ladder, property condition, the Stewardship Discipline) ·
+[preservation-slate](./slates/builds/preservation-slate.md) (spoilage — the
+keystone) · [disease-slate](./slates/builds/disease-slate.md) (contagion,
+hygiene) · [ranching](./slates/builds/ranching-slate.md) ·
+[pets-slate](./slates/builds/pets-slate.md) ·
+[farming-slate](./slates/builds/farming-slate.md).
+Shipped substrates:
+[husbandry](./subsystems/husbandry.md) · [smallholding](./subsystems/smallholding.md)
+· [crafting](./subsystems/crafting.md) (`Durable`/`Keen`) ·
+[vitals](./subsystems/vitals.md) (`Condition`) · [metabolism](./subsystems/metabolism.md)
+· [economy-slate § Law 2](./slates/builds/economy-slate.md).
+Doctrine anchors: economy-slate **Law 2**, and the ratified
+**"presence is never the meter."**
+
+---
+
+## Part 0 — The finding that reframes everything: "deliberately doesn't exist" was "designed, not built"
+
+The home stress-test kept hitting *"deferred"* and *"deliberately not
+here"* — which read as a decision that these systems **shouldn't** exist.
+That reading is wrong, and the correction is the whole point of this doc:
+
+> ⭐⭐ **A full stewardship *game* is already designed** — across
+> `preservation`, `disease`, `stewardship`, `ranching`, `pets`, `farming`
+> — and its foundations already **ship** (husbandry's growth clock,
+> smallholding's soil, land use, `Durable`/`Keen` wear, the vitals
+> `Condition` collection). The furnishing.md *"deliberately not here"* notes
+> were **scope-boundary markers pointing at those slates**, never verdicts
+> that the systems are unwanted.
+
+What is *genuinely* absent is narrower and sharper than "the stewardship
+layer":
+
+> ⭐⭐⭐ **Nothing produces decay for food or rooms.** The only shipped
+> entropy is **use-wear** on durable goods and **flux-growth/decay** on
+> living plants. Per the substrate audit: *"spoilage has no producer
+> anywhere"* — `ptomaine` (the eat-spoiled-food affliction) ships and is
+> wired, but nothing turns fresh food toxic over time; and room
+> condition / cleanliness / pests ship **nothing at all**.
+
+So the honest status is not "a missing pillar" but **"a designed pillar
+whose two producers are unbuilt, and whose pattern has never been named."**
+That is a much cheaper, much more actionable place to stand.
+
+---
+
+## Part 1 — There are only THREE decay archetypes (the unification)
+
+The substrate audit's load-bearing result: **there is no unified
+condition/entropy substrate** — the word "condition" is overloaded across
+item-wear, body-afflictions, and plant-health, each on its own mixin. But
+underneath the three *nouns* are three **archetypes**, told apart by one
+question: **what starts the clock?**
+
+| # | Archetype | Clock starts at | Time behavior | Restored by | Today |
+|---|---|---|---|---|---|
+| **1** | **Use-wear** | **an act of use** | **no clock at all** — integrates nothing | a *service* (`repair`, `sharpen`) | ✅ `DurableMixin.condition` + `KeenMixin.keenness` (tools/weapons/armor) |
+| **2** | **Flux** (growth *and* decay) | **an act that puts it in flux** (plant, catch, cook, harvest) | **runs over absence** — integrates the *full* gap, logged in or not | **slowed by care, never stopped** (water, cold, salt) | ◐ husbandry + soil **ship**; **food-spoilage + room-condition are the gap** |
+| **3** | **Body-affliction** | **an injury / intake event** | **presence-freezes** (fairness — you don't starve while away) | healing / clearance / treatment | ✅ vitals `Condition` (metabolism/harm) — *except the dying arm, which opts out* |
+
+Two verbatim anchors the audit surfaced, because they are the load-bearing
+distinction between archetypes 2 and 3:
+
+- **Archetype 2 runs over absence** (husbandry § clock rule): *"**A plant is
+  not a body.** Owned things integrate the full absence… A player away
+  three real days comes back to a plant that lived those three days."* No
+  far-past guard, no linkdead freeze.
+- **Archetype 3 freezes on absence** (metabolism): *"you get hungry from
+  playing, never from being away… the game-design fairness constraint
+  overrides the physics."* The lone exception is the **dying arm** of
+  vitals, which opts out — *"disconnecting [would be] a cure for death."*
+
+> ⭐⭐⭐ **Every stewardship loop in the game is one of these three.** A
+> keen blade is 1. A rotting fish, a wilting bouquet, a dirty room, a
+> neglected garden, a losing-condition herd are all 2. A wound, hunger,
+> food-poisoning are 3. There is no fourth kind, and there does not need to
+> be a unified substrate — there needs to be a named **pattern**.
+
+---
+
+## Part 2 — ⭐⭐⭐ "The condition model" is not a missing system. It's archetype 2, unnamed.
+
+The phrase **"the condition model"** appears in exactly one doc
+(furnishing.md), where it is named as the missing prerequisite that gates
+*"what a room's state means"* and *"the `restQuality` aggregation from
+bedding freshness and tidiness."* It reads as a big, scary, unbuilt system.
+
+It is not. Ask the archetype question of a dirty room and a spoiling fish:
+
+- A room gets dirty **because you live in it** — you cook, you track mud,
+  you let it go. That is *an act that put it in flux*, integrating over
+  world-time, reset by *an act of care* (cleaning). **Archetype 2.**
+- Food spoils **because you caught/cooked it** — *an act that put it in
+  flux*, integrating over world-time, slowed by cold/salt. **Archetype 2.**
+
+> ⭐⭐⭐ **Both are husbandry's reconcile clock pointed at a new host.** The
+> preservation slate already saw half of this — *"a ~120-line mixin copying
+> `Wet.ts`"* — but the generalization is bigger than food: **the "condition
+> model" furnishing.md keeps deferring is archetype 2 applied to rooms, and
+> it is the same clock already shipped for plants.** The substrate exists.
+> What is missing is two **producers** (a `Freshness` gauge for perishables,
+> a `Tidiness`/condition gauge for rooms), each a thin reconcile-on-read
+> mixin over a clock the codebase has already proven and debugged.
+
+That dissolves the deferral. "We can't do room condition until we build the
+condition model" becomes "the condition model is husbandry; point it at the
+room."
+
+---
+
+## Part 3 — The Law-2 tension, resolved: why a stewardship game is not a chore game
+
+The central objection: **stewardship IS upkeep, and Law 2 bans upkeep** —
+*"Never tax absence; never demand scheduled maintenance… no rent on owned
+space, no upkeep-or-it-decays,"* the lesson *"learned from the survival-MMO
+upkeep treadmill that drives players out."* If the whole pillar is tending
+things, does it not violate the doctrine that defines the game?
+
+No — and the philosophy survey shows the corpus already resolved it, four
+ways:
+
+1. ⭐⭐ **The true floor is narrower than Law 2.** The *inviolable* rule
+   (ratified: *"presence is never the meter"*) is only this: **no mechanic
+   may make a player's attendance the thing that staves off loss.** *"The
+   bill is paid in engagement + capital, never in showing up."* Everything
+   else in Law 2 is the softer, breakable outer shell. **This is the
+   permission structure** — a stewardship game may attach consequence to
+   acts, to active states, even to engagement-metered liveness; it may
+   **never** make logging in the antidote.
+2. ⭐ **The clock starts at an act, never at ownership** (preservation
+   slate). *"An unharvested crop is not spoiling. A caught fish is."* Owning
+   the fish is free; catching it started a clock you chose. That is archetype
+   2's whole definition, and it is exactly Law 2's *"you put it in flux"*
+   test.
+3. ⭐⭐ **Care is FOUGHT, never watched.** (farming slate: *"upkeep should
+   be fought — weeds you clear feel like farming — never an HP bar; a fence
+   gauge is a chore."*) Tending is an **activity with a read**, not a bar to
+   babysit — and **automation delegates the floor at a quality penalty**
+   (*"automation raises the ceiling; it never removes the floor… reliability
+   at a quality penalty"*). So doing it yourself is *better*, never
+   *mandatory* — the anti-treadmill valve.
+4. ⭐ **Asymptotic for the self-like; lethal only for opted-into economic
+   stakes; never deletion.** (*"A neglected pet leaves you. A neglected
+   plant dies."* — the pet asymptotes to *"miserable but alive,"* a **ranch**
+   animal dies because livestock is a business you chose, with a **paid**
+   mitigation.) Consequence scales with how much you opted in.
+
+> ⭐⭐⭐ **The doctrine line for the whole pillar:** *consequence attaches to
+> acts and opted-into active states, never to time-passing or mere
+> ownership; care is rewarded through capability, relationship, and the
+> thing enduring — never through avoiding a decay bill; and the one thing
+> that must never be the meter is the player's presence.*
+
+⚠ **The residual worry to hold** (motivation lens): *"chosen haftas can
+still stack into a second job… the exit doors have to stay cheap in
+aggregate."* Each loop can be individually consensual and the **sum** still
+feel like errands. The governing playtest question is theirs, verbatim:
+**"does your character's week feel like freedom or like errands?"** This is
+the real design risk of a stewardship pillar — not any single loop, but
+their aggregate load — and the exits (automation, asymptotic decay,
+paid mitigations) are what keep it on the right side.
+
+---
+
+## Part 4 — ⭐⭐ Name the pillar
+
+Stewardship appears in the corpus as **a north-star**, a **player-facing
+name** for property-holding, and a **character Discipline** — but it is
+**not** stated as a product pillar the way *learning-as-adventure* and
+*community* are, and "care" lives only as the pet loop plus the phrase
+*"care is the protective force."* The pieces are there; the whole is
+unnamed.
+
+> **Proposed: stewardship is Saxonberg's third pillar** — beside
+> *learning-as-adventure* and *the living community/economy*.
+>
+> **The pillar, in one line:** *you hold things — a home, a garden, a herd,
+> a workshop, a body, a companion — and tending them well is how you rise.
+> The ladder's gate is the **condition of what you already hold**, not
+> accumulation.*
+
+The unifying verb is **tend**, and every loop pays out the same way: the
+thing **flourishes or endures**, you gain **capability + standing** (never a
+multiplier — *"buys precision and access, never a multiplier"*), and it
+**gates the next rung** (*"money is necessary and not sufficient; the
+binding gate is the condition of what you already hold"*). Anti-hoarding
+falls out for free — *"holding more than you can steward is negative-sum."*
+This is also why it fits the educational thesis: stewardship is *applied
+hours* wearing an apron — you get good at tending by tending, and the game
+measures the doing.
+
+---
+
+## Part 5 — The honest family status map, deferrals interrogated
+
+| Loop | Archetype | State | Was the deferral principled or convenient? |
+|---|---|---|---|
+| Tool / weapon / armor wear | 1 | ✅ **shipped** (`Durable`/`Keen`) | n/a — built |
+| Plant growth & health | 2 | ✅ **shipped** (husbandry) | n/a — the archetype-2 exemplar |
+| Soil / cultivation | 2 | ✅ **shipped** (smallholding) | n/a |
+| Land use (zoning gate) | — | ✅ **shipped** (Hinkley Hills) | n/a |
+| Body afflictions / wounds / hunger | 3 | ✅ **shipped substrate**; ⚠ **content may be inert** (Part 6) | principled |
+| **Food spoilage / preservation** | **2** | 🔲 **designed, not built** (the *keystone* deferral) | ⚠ **principled once, convenient now** — "one deferral, eight consequences"; if stewardship is a pillar, punting this punts the pillar |
+| **Cold storage / fridge / cellar** | 2 | ◐ **authorable today** (`AtmosphericMixin` `Vessel`), inert without spoilage | fine — it waits on spoilage by necessity |
+| **Disease / contagion** | 2 | 🔲 **designed** — inherits spoilage's growth term | principled (build spoilage first) |
+| **Room condition / cleanliness / pests / tidiness** | **2** | ❌ **absent** — deferred to "the condition model" | ⚠ **mis-framed** — it *is* archetype 2 (Part 2), not a separate prerequisite |
+| Property condition + residence ladder | 2 | 🔲 **designed** (stewardship-slate) | principled (waits on the allowance meter for the *city* rungs; the frontier rung is unblocked) |
+| Stewardship Discipline | — | 🔲 **designed**, pure data | trivially cheap; ships with the vanilla discipline pack |
+| Ranching / pets / farming | 2 | 🔲 **designed** | principled (wait on land use — now shipped — and spoilage) |
+
+**The verdict on the deferrals** (your instinct, confirmed): each was
+locally reasonable *at the time* — every build shipped its slice and punted
+the condition-dependent part. But **collectively they have punted the same
+system repeatedly, and that system is the pillar.** The thing to rethink is
+not any single design decision (the slates are sound) — it is the
+**priority**, and the **mis-framing of "the condition model" as a big
+unbuilt prerequisite** when it is archetype 2, already shipped.
+
+---
+
+## Part 6 — ⚠ The prerequisite nobody flagged: the affliction content may be inert
+
+The substrate audit surfaced a shipped-but-dead seam that everything in
+archetype 3 — and spoilage's payoff — depends on (vitals.md, verbatim):
+
+> *"**The Ideas are not live yet.** Condition seeds are inserted as template
+> ROWS and nothing clones them into Ideas at boot, so `findByTemplatePath`
+> answers `null` for **every** condition in a running world… authored
+> `Condition` behavior is inert: signs, names, progression and
+> `toxinBehavior` are all read off an object that isn't there."*
+
+If that is current, then `ptomaine`'s bands, disease behavior, and any
+spoilage payoff are reading off a null Idea. ⚠ **Verify first** — the
+metabolism Wave-2 toxin path (alcohol/BAC) appears to work, so either this
+was fixed or the toxin path resolves differently; the discrepancy must be
+resolved before building on the affliction half. **This is the true first
+domino**, ahead of any new producer.
+
+---
+
+## Part 7 — Build order (stewardship as a pillar)
+
+1. **Make the `Condition` substrate live** — resolve the inert-Idea gap
+   (Part 6). Prerequisite for every archetype-3 payoff and for spoilage's
+   `ptomaine` hand-off.
+2. **Spoilage / preservation** — the ~120-line `Freshness` mixin (archetype
+   2), `ThermalMixin` on perishables, the freshness→`ptomaine` override
+   rung, salt as the first counterplay. **The keystone**: proves the
+   archetype-2 producer pattern, gives the fridge a job, unblocks eight
+   downstream things, and is the cheapest instance of the whole thesis.
+3. **Cold storage as content** — the fridge / cellar / icebox
+   (`AtmosphericMixin` `Vessel`); nearly free once spoilage exists. Wakes
+   the icehouse-keeper vocation and the agricultural year.
+4. **Disease + cleanliness/hygiene** — disease inherits the growth term;
+   cleanliness is **the condition model, built as archetype 2 over rooms and
+   bodies** (Part 2), not a new system.
+5. **Property condition + the residence ladder** — the progression spine;
+   the ladder gate is *"the condition of what you hold."* Frontier rung
+   first (unblocked); city rungs wait on the allowance meter + region
+   parcels.
+6. **The Stewardship Discipline + the pillar naming** — pure data + a
+   product-framing pass.
+7. **Ranching / pets / farming** — ride on top, mostly designed.
+
+---
+
+## Open questions / forks
+
+1. ⭐⭐ **Priority — promote the pillar now, or keep the current
+   sequencing?** The genuine decision. If stewardship is a pillar, steps
+   1–3 move to the front of the line rather than staying "keystone
+   deferrals."
+2. ⚠ **The aggregate-hafta risk** (Part 3). Not a single-loop problem — a
+   sum-of-loops problem. Needs a standing playtest metric: *freedom or
+   errands?*
+3. **Is the "only food spoils, idle gear never rusts" line right for a
+   stewardship *pillar*?** *Lean: yes.* Tool-care depth comes from archetype
+   1 (use-wear + the maintenance-relationship: `sharpen`/`repair` as a
+   fought loop, the armorer as a career) — never from idle-rust, which stays
+   banned. Reaching for "maintenance depth" via idle decay would break Law
+   2; the archetype split already supplies the depth honestly.
+4. **Where the `Freshness` gauge composes** — universal-and-inert on every
+   `Thing` (matches `WetMixin`, an authoring-free but per-object field cost),
+   or opt-in per class? (preservation slate's own open question.)
+5. **Verify Part 6** against the working metabolism toxin path before
+   sequencing anything on the affliction half.
