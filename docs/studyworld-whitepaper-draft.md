@@ -1,7 +1,7 @@
 # StudyWorld
 
 *A white paper on StudyWorld — a persistent, text-based world where Study.com's
-learners go to use what they've learned. StudyWorld is [Saxonberg](https://gitlab.com/panterasbox/saxonberg/),
+learners go to use what they've learned. StudyWorld is [Saxonberg](https://www.panterasbox.com),
 an LLM-native world engine, enhanced by Study.com's educational content. This
 document is about what that combination is, why it works, and what it would take
 to run it.*
@@ -419,7 +419,8 @@ That's the whole point: a place students don't want to log out of.
 
 ---
 
-*Watch: a five-minute overview of StudyWorld. — Dig deeper: the full design
-lives in the [Saxonberg](https://gitlab.com/panterasbox/saxonberg/) repository,
+*Watch: a five-minute overview of StudyWorld. — Dig deeper:
+[**Saxonberg**](https://www.panterasbox.com) is the platform StudyWorld runs on;
+its full design lives in the [repository](https://gitlab.com/panterasbox/saxonberg/),
 dozens of subsystem specifications under the platform's engineering codename.
 StudyWorld is what that platform becomes for Study.com.*
