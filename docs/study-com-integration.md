@@ -54,6 +54,10 @@
 > and the **teachability boundary** — what the game can teach and how
 > (direct enactment / allegory / reference)
 > ([study-com-teachability-boundary.md](./study-com-teachability-boundary.md)).
+> **Latest (2026-08-05):** the CX enrollment model + the corrected
+> **aspiring-teacher beachhead** (with the two missing scoring axes — medium
+> fit + product alignment — that demote TOEFL)
+> ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)).
 
 ---
 

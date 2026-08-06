@@ -18,6 +18,12 @@
 > value is the **practicum gap + the CotF pathway/twofer**, not growth in
 > exam prep itself. Prioritization context:
 > [study-com-vertical-survey.md](./study-com-vertical-survey.md).
+>
+> **Update (2026-08-05):** education is also the **#1 declared field in CX**
+> (~2,000 members, top-5 all education variants) — so the aspiring teacher
+> is *both* a CX education-major (credit toward the ed degree) *and* a
+> Praxis test-prep user, making this the **beachhead across both products**.
+> See [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md).
 
 ---
 

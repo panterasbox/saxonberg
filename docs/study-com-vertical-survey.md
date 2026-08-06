@@ -10,6 +10,19 @@
 
 ---
 
+> **⚠️ SUPERSEDED on the beachhead call (2026-08-05) — read
+> [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md).**
+> §0 and §5 below call **TOEFL "the beachhead / best fit"** — that is now
+> **wrong.** Two scoring axes were missing: **medium fit** (a text-based
+> *English* world can't serve non-English-speaking TOEFL learners, and the
+> game has no speaking/listening — 2 of the exam's 4 skills) and **product
+> alignment** (is the rung the game is best for the one Study sells B2C?).
+> Re-scored: **TOEFL → a caveated immersion-*complement* (Reading+Writing
+> only, entry barrier, intermediate+)**, and the **aspiring teacher (CX
+> education-major + Praxis prep)** — education is the #1 declared field in
+> *both* CX and test prep — is the beachhead. Read the TOEFL passages below
+> as the record of the error, not the recommendation.
+
 ## 0. The two corrections that prompted this
 
 1. **TOEFL was missed — and it's the best fit of all.** It's Study's

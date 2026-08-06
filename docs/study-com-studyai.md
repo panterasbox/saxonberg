@@ -91,8 +91,15 @@ StudyAI's own usage is the argument for Saxonberg. The figures
   single-use features embedded in the activity** (tutoring sessions, answer
   explanations, recaps) and **away from the generalized chatbot.**
 
-Read correctly, every one of those is a **container failure, not an AI
+Read correctly, most of that is a **container failure, not an AI
 failure** — and the container is a web page:
+
+> **Honesty caveat (2026-08-05):** don't over-read the pills stat. Their
+> roadmap frames pills as the *intended* primary interface, so "94%/74%
+> only use pills" is closer to *"the free-form assistant is lightly used"*
+> than *"nobody engages."* The load-bearing fact is the team's own **"it
+> isn't working as expected"** — keep the pitch claim to that, not to a
+> damning read of the pills number.
 
 | StudyAI symptom (on a page) | Why the page causes it | What a world does |
 |---|---|---|
