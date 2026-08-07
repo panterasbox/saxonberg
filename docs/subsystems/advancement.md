@@ -284,3 +284,29 @@ ships designed-for-them, ships none.
   seam), [persistence.md](./persistence.md) (`PersistApi` / `lint:pm`).
 - Cross-lane: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)
   § *Traits are competence for dispositions* (the shared act-signature).
+
+
+## The append event
+
+`TranscriptAppendedEvent` (`transcript.appended`) fires from recordSignature AND recordDeed (both route through recordSignatureImpl),
+**immediately after the row is persisted**.
+
+Every standing here derives on read, which works fine for a verb — you
+ask, it computes — and not at all for a **live figure on a client**,
+which has to learn its number changed without asking. This event is that
+seam.
+
+It is raw and uninterpreted by design: the subject plus enough of the
+append's shape to decide whether you care, never a band or a score. A
+provisional score on the bus is a score two subsystems will disagree
+about; read the ledger if you want a number.
+
+⚠ **After the write, never before.** A listener that recomputes must not
+read a ledger missing the row it was just told about — that bug reads as
+a flaky off-by-one in a derived figure rather than as an ordering
+mistake.
+
+The append also refreshes this ledger's `DerivedStandingCache`, which is the sync face the live
+standing field reads — see [mql-subscription.md](./mql-subscription.md).
+
+Declared in `lib/events/StandingAppendedEvents.ts`.

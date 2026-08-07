@@ -145,21 +145,12 @@ const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
     EventApi.fire(new StandingWarmedEvent({ subject, figure: 'competence' }))
 );
 
-/**
- * The competence currently being practised, as a SYNC read for the
- * live standing field. A miss returns undefined and schedules the
- * fold.
- */
-export function practisingCompetenceCached(
+/** Module-private impl; the singleton method below is the surface. */
+function practisingCompetenceCachedImpl(
   owner: Stuff
 ): DisciplineBand | null | undefined {
   const key = ownerKey(owner);
   return key === null ? undefined : practisingCache.get(key);
-}
-
-/** Test/HMR seam — drop the fold cache. */
-export function _clearPractisingCache(): void {
-  practisingCache.clear();
 }
 
 async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
@@ -272,6 +263,20 @@ export class AdvancementLogic extends ApiLogic {
   @CallSecurity(AdvancementApiCallers)
   public async bandsFor(owner: Stuff): Promise<DisciplineBand[]> {
     return bandsForImpl(owner);
+  }
+
+  /** See {@link AdvancementApi.practisingCompetenceCached}. */
+  @CallSecurity(AdvancementApiCallers)
+  public practisingCompetenceCached(
+    owner: Stuff
+  ): DisciplineBand | null | undefined {
+    return practisingCompetenceCachedImpl(owner);
+  }
+
+  /** See {@link AdvancementApi._clearDerivedCacheForTesting}. */
+  @CallSecurity(AdvancementApiCallers)
+  public clearDerivedCache(): void {
+    practisingCache.clear();
   }
 
   /** See {@link AdvancementApi.conferredVerbs}. */

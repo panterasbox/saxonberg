@@ -405,6 +405,87 @@ etc.) — for log-capture / archive-export paths that want a
 round-tripable markdown projection. See
 [message-rendering.md § `Mml.flatten` vs `Mml.stripTags`](./message-rendering.md#mmlflatten-vs-mmlstriptags).
 
+### ⭐ `<quantity>` — a measured value, not a rendered number
+
+Every reading this game computes used to reach the client as
+*characters*: `1240 °C` arrived as prose, so a client that wanted to
+convert units, compare against a working range, pin the value to an
+instrument panel or chart it over time had to re-parse a string it
+should never have had to parse. Real quantities are what this game has
+that no other text world has, and the markup dropped them at the last
+inch.
+
+`Quantity.buildMarkup` emits the structured form. It always carried the
+canonical numeric; it now also carries what the reading *means*:
+
+```
+<quantity channel="thermal" unit="degC" value="1240" tag="searing"
+          via="pyrometer" lo="1150" hi="1300">1240 °C</quantity>
+```
+
+| Attribute | Why it is there |
+|---|---|
+| `channel` | Stable identity for pinning and charting. From `MEASURE_CHANNELS` (`lib/perception/MeasureChannel.ts`). |
+| `unit` + `value` | The canonical numeric — conversion, comparison, sorting. |
+| `tag` | The qualitative band (`searing`), a different question from `channel`. |
+| `via` | **Provenance.** The pedagogical seam: *a reading is only honest if you can say how it was taken.* |
+| `lo` / `hi` | Optional working range, declared on the server's authority instead of hardcoded per craft in the client. |
+| children | The server's own rendering, so `flatten` and a bare telnet client are unchanged. |
+
+`channel`, `via`, `lo` and `hi` are emitted **only when supplied**, so a
+value with no instrument behind it never claims to have one. They ride
+an options bag on `toMml`/`formatMml`; `buildMarkup` is the single
+chokepoint, which is why ~25 emission sites did not each need editing.
+
+**`via` is derived, not asserted.** `CommandController.affordingSource`
+reads `ctx.commandSource` — the affordance layer already knows which
+object lit up the verb, so the thermometer that afforded `measure
+temperature` *is* the instrument that took the reading. It returns
+`undefined` when `commandSource` falls back to the giver, because naming
+it there would claim the *person* was the instrument. A new instrument
+gets provenance the moment it confers a verb.
+
+#### ⚠ It must never be inert
+
+`quantity` is in `KNOWN_TAGS` and **never** in `INERT_TAGS` or any
+passthrough policy, for the reason already written into the inert-tag
+list: it is a **factual claim about the world on the server's
+authority**, exactly like `speech`. A player who could write it
+literally could forge instrument data — worse than misattributing words,
+because the whole premise is that the numbers are real, and one forged
+reading discredits every honest one beside it. A test asserts it sits on
+the same side of the line as `speech`, so the two cannot drift.
+
+Registering it also closed a latent bug: `quantity` was previously in
+*no* vocabulary, so `isKnownTag` returned false and by the documented
+rule it was a **component candidate** whose name resolves to the module
+path `/lib/wiki/components/quantity`.
+
+`flatten` gives it no case of its own — the `default` branch already
+returns children verbatim, which is exactly the required failsafe. A
+test pins that, so a case added above it cannot silently change the
+contract.
+
+#### The channel vocabulary is not the materials `Channel`
+
+`lib/material/Channel.ts` is `edge · point · blunt · shock · heat` — the
+shape of a *force*, read by the materials-response fold.
+`MEASURE_CHANNELS` is *what kind of reading this is*. **Homonyms at
+unrelated layers**: merge them and `heat` means two different things.
+Both files say so at the top.
+
+Emitting channels: `thermal` · `mass` · `light` · `atmosphere` ·
+`chemistry` · `electrical` · `spatial` · `gravity` · `celestial`.
+Reserved (no scalar emitter yet, prose today): `weather` · `time` ·
+`response`.
+
+A source-scanning test (`MeasureChannel.totality.test.ts`) enforces the
+rule rather than a list: *every scalar-with-a-unit reading emits
+`<quantity>` with a channel*. It fails on a measurement verb that does
+not exist yet, which is the only version that keeps working — it is what
+caught `analyze electrical` shipping conductivity, resistance and
+potential through bare `.format()`.
+
 ### MarkupAugmenter — inline-affordance pipeline
 
 Authored prose (long descriptions, room narration) often wants

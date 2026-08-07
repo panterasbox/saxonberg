@@ -173,19 +173,12 @@ const dominantCache = new DerivedStandingCache<AxisEstimate | null>(
     EventApi.fire(new StandingWarmedEvent({ subject, figure: 'trait' }))
 );
 
-/**
- * The dominant trait as a SYNC read, for the live standing field. A
- * miss returns undefined and schedules the fold; the value arrives as
- * a subscription delta.
- */
-export function dominantTraitCached(owner: Stuff): AxisEstimate | null | undefined {
+/** Module-private impl; the singleton method below is the surface. */
+function dominantTraitCachedImpl(
+  owner: Stuff
+): AxisEstimate | null | undefined {
   const key = ownerKey(owner);
   return key === null ? undefined : dominantCache.get(key);
-}
-
-/** Test/HMR seam — drop the fold cache. */
-export function _clearDominantTraitCache(): void {
-  dominantCache.clear();
 }
 
 async function positionsForImpl(owner: Stuff): Promise<AxisEstimate[]> {
@@ -330,6 +323,18 @@ export class TraitLogic extends ApiLogic {
   @CallSecurity(TraitApiCallers)
   public async pronouncedFor(owner: Stuff): Promise<AxisEstimate[]> {
     return TraitPosition.pronounced(await positionsForImpl(owner), loadDials());
+  }
+
+  /** See {@link TraitApi.dominantTraitCached}. */
+  @CallSecurity(TraitApiCallers)
+  public dominantTraitCached(owner: Stuff): AxisEstimate | null | undefined {
+    return dominantTraitCachedImpl(owner);
+  }
+
+  /** See {@link TraitApi._clearDerivedCacheForTesting}. */
+  @CallSecurity(TraitApiCallers)
+  public clearDerivedCache(): void {
+    dominantCache.clear();
   }
 
   /** See {@link TraitApi.compatibility}. */

@@ -178,6 +178,79 @@ The renown reception gate (`SensorMixin.onMessage`) consults it so only
 genuine comm frames mint a being-heard signal — the first data-driven
 capability hung on a topic. See [renown.md](./renown.md).
 
+## ⭐ The five facets — attention, in data
+
+The dotted tree expresses exactly **one** hierarchy. Everything that
+cuts across it — *everything addressed to me*, *everything that
+matters*, *what should interrupt* — used to be a client-side lookup
+table keyed on ~90 topic strings, which drifted from the seeds every
+time a topic was added. The knowledge lived in the wrong repository.
+
+Five fields on every descriptor put those answers in the data:
+
+| Facet | Values | What the client does with it |
+|---|---|---|
+| `address` | `direct` · `personal` · `ambient` · `broadcast` | Badging and notification. `direct` earns a push; `ambient` never does. |
+| `actor` | `self` · `person` · `world` · `system` | Gutter colour and voice — replaces colour-by-family, which encoded the *emitter*. |
+| `weight` | `consequence` · `activity` · `chatter` · `diagnostic` | Default filter levels. "Quiet mode" is `weight ≤ activity` — **one rule**, not sixty paths. |
+| `audience` | `player` · `author` · `all` | Which surface it belongs to. |
+| `durable` | boolean | Keep in scrollback and transcripts, or let it age out. |
+
+**Both halves are needed.** Facets fix cross-cutting queries; only the
+*tree* fixes subtree mutes ("everything about the air in here"), which
+is a prefix operation. Neither replaces the other.
+
+They ride the existing `TopicDescriptor` snapshot — no new channel, no
+new endpoint. All five are **required** on the type: a facet that is
+sometimes absent puts the fallback back in the client, which is the
+defect they exist to remove.
+
+### All three resolution tiers produce them
+
+1. **Authored** — read from `data:` verbatim, following the
+   `communicative` precedent. `Topic` gains no fields; Topic templates
+   are pure data rows that are never cloned.
+2. **Family-inherited** — a leaf takes its ancestor's *attention shape*
+   along with its prose. A child of `world.chat` is chatter for the same
+   reason its parent is.
+3. **Derived default** — the **conservative floor**: `ambient` /
+   `system` / `diagnostic` / `all` / not-durable. An unknown topic must
+   be **quiet, not loud**; the failure mode being designed against is a
+   topic added without facets silently interrupting every player.
+
+### ⚠ There is no family-prefix derivation at read time
+
+The mechanical derivation (`system.*` → `system`/`all`, and so on) lives
+**only** in `scripts/derive-topic-facets.ts`, which bakes its answers
+into the seeds. `TopicCatalogue.readFacets` is authored-or-floor and
+nothing else.
+
+That is deliberate and was learned the hard way: the build first had a
+derivation in the script *and* a second one in the catalogue, and the
+two disagreed about `world.speech.say`'s `weight` within an hour of both
+existing. A second taxonomy describing what the first already knows will
+drift. **The seed file is the single source of truth.**
+
+### The exceptions are the point
+
+`derive-topic-facets.ts` derives all 89 seeds and carries **24 hand
+exceptions**. A derivation needing *no* exceptions would prove the
+facets carry nothing the path did not already have; the exceptions are
+exactly where attention and emitter disagree.
+
+The sharpest is the speech family splitting three ways on one facet —
+`say` is `broadcast`, `whisper` is `personal`, `dm` is `direct` — which
+is precisely what the tree structurally cannot say. A test pins that
+split: if it ever collapses to one value, the facet has stopped earning
+its place.
+
+### ⚠ Facets need a reseed, not a migration
+
+The seeder is **insert-only**. Editing a seeded topic's `data:` does
+nothing on a database that has already booted — drop the `/obj/Topic/`
+rows and restart. On the wiping demo instance this is simply the
+standing loop for reference data.
+
 ## Boot sequence
 
 1. `SeederManager` inserts every YAML into the `domain` collection

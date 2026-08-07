@@ -345,6 +345,64 @@ mixin's descriptor; no synthetic table, no overlay step.
 Universal cross-cutting renders → `Stuff.subscribableFields`. Mixin-
 gated cross-cutting renders → the mixin that owns the gate.
 
+## ⭐ Ledger-derived fields: the five standing figures
+
+`Avatar.subscribableFields` carries `playStanding`, `makeStanding`,
+`renown`, `dominantTrait` and `practisingCompetence` — the figures
+`score` reports, as **structured values** rather than a sentence.
+
+Declared on `Avatar` rather than on a mixin: `lib/renown/`,
+`lib/influence/` and `lib/participation/` hold no mixins at all (those
+subsystems are Api + logic singleton + collection), so a `StandingMixin`
+for five fields on one class would be per-feature minting. If a second
+host ever needs them, that is when it becomes a mixin.
+
+**Self-only.** A `standingSubject()` gate returns the durable subject
+key only when the viewer *is* the subject; anyone else gets `undefined`
+and the fields are omitted. Reading someone else's standing already has
+a surface with a redaction model — the `profile` verb — and a second
+implementation here would drift from it.
+
+### ⚠ `read` is sync, and that is load-bearing
+
+Two of the five figures read ledgers whose Api is async
+(`TraitApi.pronouncedFor`, `AdvancementApi.bandsFor`). **Do not widen
+`read` to return a promise.** `MqlSubscriptionApi.projectFields` is
+sync, and `ContainerMixin`'s own `contents` descriptor calls it from
+*inside* its `read` — so a promise would make projection async
+**recursively through nested containment**, on the inspection pane's hot
+path.
+
+The other three figures are sync for the right reason: they read a
+*materialized standing* (`RenownStanding` and friends keep an in-memory
+map warmed from mongo). `lib/standing/DerivedStandingCache` gives the
+two un-materialized ledgers the same shape without materializing a whole
+collection first:
+
+1. `get()` misses, returns `undefined`, and schedules a background fold
+   (at most one in flight per subject).
+2. `projectFields` **omits** an `undefined` field — so the client shows
+   **no value**, never a zero.
+3. The fold lands, `StandingWarmedEvent` fires, the subscription
+   re-resolves, and the real figure arrives as a delta.
+
+**A figure the server has not computed yet is absent, not zero.** A zero
+would be a claim nobody made. A test asserts the key is missing from the
+projection so this cannot quietly regress.
+
+After the first fold, each ledger's own append event
+(`lib/events/StandingAppendedEvents.ts`) keeps the cache fresh.
+
+### ⚠ `changes.by` is a wildcard here
+
+The dependency index understands `by: 'target'` (matches `stuffId`) and
+`by: 'field'`; anything else installs an unfiltered tuple. Standing keys
+on the durable `templatePath`, not a live `stuffId`, so these
+descriptors use the wildcard form and **every** standing subscription
+re-resolves on **any** append. Correct but over-eager; at a handful of
+subscribers it is fine. Narrowing it wants the dependency index to
+understand durable keys.
+
 ## Event-class pattern
 
 A small class-per-event vocabulary sits on top of the existing

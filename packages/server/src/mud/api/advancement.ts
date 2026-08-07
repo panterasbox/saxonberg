@@ -142,6 +142,22 @@ export class AdvancementApi {
   public static async conferredVerbs(owner: Stuff): Promise<string[]> {
     return logic().conferredVerbs(owner);
   }
+
+  /**
+   * ⭐ The competence currently being practised, as a **sync** read —
+   * the live standing field's surface. `undefined` means the fold has
+   * not landed yet; `null` means folded with nothing to show.
+   */
+  public static practisingCompetenceCached(
+    owner: Stuff
+  ): DisciplineBand | null | undefined {
+    return logic().practisingCompetenceCached(owner);
+  }
+
+  /** Test/HMR seam — drop the derived fold cache. */
+  public static _clearDerivedCacheForTesting(): void {
+    logic().clearDerivedCache();
+  }
 }
 
 SecurityApi.decorateApiClass(AdvancementApi);

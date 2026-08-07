@@ -73,8 +73,8 @@ import {
   DispositionAppendedEvent,
   StandingWarmedEvent,
 } from '../lib/events/StandingAppendedEvents';
-import { dominantTraitCached } from './api/TraitLogic';
-import { practisingCompetenceCached } from './api/AdvancementLogic';
+import { TraitApi } from '../api/trait';
+import { AdvancementApi } from '../api/advancement';
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -293,7 +293,7 @@ export default class Avatar extends AvatarBase {
       // projection, so the client shows no value rather than a zero.
       read: (stuff, viewer) => {
         if (!standingSubject(stuff, viewer)) return undefined;
-        const t = dominantTraitCached(stuff);
+        const t = TraitApi.dominantTraitCached(stuff);
         if (t === undefined) return undefined;
         return t === null
           ? null
@@ -308,7 +308,7 @@ export default class Avatar extends AvatarBase {
       name: 'practisingCompetence',
       read: (stuff, viewer) => {
         if (!standingSubject(stuff, viewer)) return undefined;
-        const c = practisingCompetenceCached(stuff);
+        const c = AdvancementApi.practisingCompetenceCached(stuff);
         if (c === undefined) return undefined;
         return c === null ? null : { discipline: c.discipline, band: c.band };
       },

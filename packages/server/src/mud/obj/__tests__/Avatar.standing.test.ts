@@ -27,8 +27,8 @@ import {
   makeStuff,
 } from '../../lib/security/__tests__/test-setup';
 import type { Sensor } from '../../lib/message/Sensor';
-import { _clearDominantTraitCache } from '../api/TraitLogic';
-import { _clearPractisingCache } from '../api/AdvancementLogic';
+import { TraitApi } from '../../api/trait';
+import { AdvancementApi } from '../../api/advancement';
 
 const FIGURES = [
   'playStanding',
@@ -82,8 +82,8 @@ describe('Avatar standing figures — projection', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
-    _clearDominantTraitCache();
-    _clearPractisingCache();
+    TraitApi._clearDerivedCacheForTesting();
+    AdvancementApi._clearDerivedCacheForTesting();
   });
 
   it('projects the sync figures as structured values, never strings', () => {
