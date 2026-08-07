@@ -6,6 +6,29 @@ into it — to people who think about education products. The sibling
 of [game-intro-videos.md](./game-intro-videos.md) (gamer-facing), with
 the same settled tone rules and a different audience.
 
+> **Finalization pass (2026-08-07) — the five scripts are written.**
+> All five now exist in full at
+> [education-video-scripts.md](./education-video-scripts.md), which is the
+> content source of truth from here; this doc keeps the roster, the rules,
+> and the source material. **The five open decisions below are resolved:**
+> (1) the V2+V3 **merge is ON, onto V3's spine** — three doors as Act I,
+> the mirror as Act II, the old button becomes the act break; (2) **release
+> order: Honest World leads** (→ Conferral → Classroom → A Life → Made of
+> Words); (3) the **safety beat splits** — the compliance/cooperative half
+> spoken once in the Conferral's descent, the register half staged in Made
+> of Words; (4) cohort verticals staged: **teacher → the Classroom**,
+> **the supply chain / the frost fork → A Life**; health is **excluded**
+> for accuracy (below); (5) the scripts are reworked. **Three corrections
+> the pass forced:** the **proctoring rail was inverted** (`Proctored_Exam`
+> is alive and CX credit rides it — the old "never say proctored" note was
+> false); **bronze carries no phase-change data** (only 3 of 38
+> base-library material rows do — water, copper, iron), so the Conferral's
+> latent-heat plateau shot is a **blocker**, not a shipped fact; and the
+> **medic has no judgment loop**, so no triage/clinical-reasoning beat may
+> be staged anywhere until the medic-judgment slate is built. The
+> consolidated accuracy rails and the cross-cutting build list now live at
+> the end of the scripts doc.
+>
 > **Revision pass (2026-08-06) — realigned to the session's verified findings**
 > (traceable to [platform reality](./study-com-platform-reality.md),
 > [the aspiring-teacher beachhead](./study-com-cx-and-the-aspiring-teacher.md),
@@ -166,13 +189,23 @@ these five. The faultline shifts from *one-per-exec-function* to
 *one-per-pillar*, exec reads mapped on top (all four execs still homed; the
 "everyone watches everything" rule stands). YouTube-public, C-team-directed.
 
-| # | Video | Pillar | Exec | Origin in the old roster |
-|---|-------|--------|------|--------------------------|
-| 1 | **The Conferral** | Integration — your content becomes the world's stakes | **Laura** | V1, as revised (aspiring-science-teacher learner + Wikipedia beat + the safety/minors beat) |
-| 2 | **The Honest World** | The moat (LLM-era defensibility) | **Adrian** | V4 (also absorbs the medium thread's efficiency / text-is-cheap / LLM-native arguments) |
-| 3 | **A Life** | Transformation → retention / lifetime | **Chris + Michael** | **V2 + V3, merged** — one learner over three years; the mirror-with-receipts (Chris's personalization read) is the *artifact* of the life that stays past the goal (Michael's economics read); the three-doors demo is its spine |
-| 4 | **The Classroom That's Never Short a Teacher** | **LLM-native, as an experience** (the added dimension) | ensemble (Laura / Chris lean) | **NEW** — interchangeable AI/human seats; agents that *act* via the command bus, not just talk; the teaching / protégé payoff (absorbs #7, the beachhead); the "StudyAI you already built" resonance |
-| 5 | **Made of Words** | The medium + scaling / UGC | ensemble | V5 (the player becomes a maker; anyone who can write can author; every action a legible, moderatable string) |
+**Roster ids are stable identity; the release order is separate.** The `#`
+column is the roster id used by every cross-reference in this doc. The
+scripts file is ordered by **release**, which is the third column.
+
+| # | Video | Release | Pillar | Exec | Origin in the old roster |
+|---|-------|---------|--------|------|--------------------------|
+| 1 | **The Conferral** | **2nd** | Integration — your content becomes the world's stakes | **Laura** | V1, as revised (aspiring-science-teacher learner + Wikipedia beat + the safety/minors beat) |
+| 2 | **The Honest World** | **1st** | The moat (LLM-era defensibility) | **Adrian** | V4 (also absorbs the medium thread's efficiency / text-is-cheap / LLM-native arguments); + a new beat, the teachability boundary's three modes |
+| 3 | **A Life** | **4th** | Transformation → retention / lifetime | **Chris + Michael** | **V2 + V3, merged onto V3's spine** — Act I is three doors before noon (the access), Act II is a year of them (the becoming); the old button becomes the act break |
+| 4 | **The Classroom That's Never Short a Teacher** | **3rd** | **LLM-native, as an experience** (the added dimension) | ensemble (Laura / Chris lean) | **NEW** — interchangeable AI/human seats; agents that *act* via the command bus, not just talk; the teaching / protégé payoff (absorbs #7, the beachhead) |
+| 5 | **Made of Words** | **5th** | The medium + scaling / UGC | ensemble | V5 (the player becomes a maker; anyone who can write can author; every action a legible, moderatable string); absorbs the TOEFL immersion line |
+
+**Why the Honest World leads (2026-08-07):** it is the strongest
+cold-forwardable cut, it needs no setup, and it establishes the honesty
+premise every other video leans on. The beachhead argued for the Classroom
+early — it lands third, which is early enough to carry the LLM-native card
+before the long one.
 
 **The missing dimension this adds:** item 4. LLM-native was scattered
 (defensive beat in V4, offensive thread in V3, a theory beat) — never a
@@ -433,6 +466,7 @@ gamer-adjacent cut if it earns a slot later).
    Retired foundings + their rules in the script notes; the deck
    pool holds the salvage. Theory beats #7/#8 still flagged to
    V5/deck.
+4. **The honest world** — framed for **Adrian Ridner (founder &
    CEO)**: broad strategy and ed-tech positioning. Lifting the
    curtain, elevated to the category thesis: one fountain twice
    (`look`, then `analyze`), the textbook check that holds — then
@@ -462,9 +496,19 @@ wishbook vignettes as videos; same world, pitched by wish)
 5. **The night the gallery flooded** (health — the *clinical* ceiling, **not** the HESI/TEAS entrance product; **product-fit correction 2026-08-06:** triage is clinical/NCLEX-flavored, while Study's B2C nursing vertical is the **pre-nursing entrance** exams — HESI/TEAS = academic recall — so keep the vivid "being the medic" experience but the exec-read must **not** claim it maps to their entrance product; frame it as where the platform *can* go, not what they sell today) —
    triage by real physiology; status-effects-not-hitpoints as a
    *feature* for the viewer who reads charts. *Lenses:* fantasy,
-   skill-vs-chance (judged, no dice). **Ready** (all systems
-   shipped; distinct from the gamer-track vitals video: that one is
-   about having a body, this one is about being the medic).
+   skill-vs-chance (judged, no dice). ~~**Ready**~~ **NOT READY —
+   accuracy block (2026-08-07).** The
+   [fidelity audit §2](./study-com-vertical-fidelity-audit.md) found the
+   medic has the honest *mechanism* but **no judgment loop**: `treat`
+   dresses "a body's worst bleeding wound" — the **sim auto-selects the
+   target** — so the prioritize/differential step every nursing pedagogy
+   grades is deleted, and the graded deed reads no decision the player
+   made. **"Triage by real physiology" is therefore an over-claim**, and
+   health is excluded from all five videos until the **medic-judgment
+   slate** is built. If a health beat is ever staged before then, it may
+   show the **body as honest mechanism** and must not imply clinical
+   judgment. (Distinct from the gamer-track vitals video: that one is
+   about having a body — a mechanism claim — and stays fine.)
 6. **The storm contract** (trades — **confirm before catalog (2026-08-06):** verify trades/electrician licensure is an actual Study B2C product; if not, present as what the platform *can model*, not a vertical they sell) — the flooded cell, the sky-read
    deadline, real Ohm's law under pressure. *Lenses:* fantasy,
    emergence (weather→wetness→circuit). **Sole owner of the
@@ -683,14 +727,29 @@ Four lenses read specifically for this track
 
 ## Pre-script gap audit (2026-07-28)
 
+> **SUPERSEDED 2026-08-07 for the build list — kept for its method.** The
+> per-video gaps below predate the foundry move, the electricity
+> allocation, the V3 re-founding and the V2+V3 merge, so several entries
+> describe footage no script asks for any more (V1's flooded cell, V4's
+> conductivity ladder, V3's three-years apartment). **The live,
+> consolidated build list is the "Cross-cutting: the build list these five
+> consume" section of
+> [education-video-scripts.md](./education-video-scripts.md)**, and the
+> live accuracy rails are the table beside it. Read this section for the
+> *shape* of the parity check — it is the right check to re-run — not for
+> its current answers.
+
 Parity check before scripting. Every video has: experience named,
 frame + tone set, theory beats assigned, exec read written, lenses
 anchored. What varies is **shootability** — whether the live game
 can produce the footage. Per video:
 
-- **V1 Conferral — blocked at its climax.** The wall (FloodedCell,
-  real Ohm's law) is shipped and shootable; the study montage is
-  stageable. The climax — the conferral *firing* — depends on the
+- **V1 Conferral — blocked at its climax.** *(Stale: the wall moved off
+  the substation to the Hearthworks foundry when electricity was
+  allocated to V6, and again onto calorimetry. The current blocker is
+  bronze's missing phase block — see the scripts doc.)* The wall
+  (FloodedCell, real Ohm's law) is shipped and shootable; the study
+  montage is stageable. The climax — the conferral *firing* — depends on the
   credential-issuer adapter, which is designed, not built. Also
   ungapped but unauthored: the diegetic conferral scene itself
   (where in the University does it land, who says what — the

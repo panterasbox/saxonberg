@@ -136,8 +136,14 @@
    integration than a one-way credential feed (brief §8.5). (§6.2.)
 
 5. **The claim must carry assessment provenance, and the game has no
-   home for it yet.** study.com post-2025 is **identity-verified
-   open-book** (TypingDNA + Veriff), not proctored. The credential
+   home for it yet.** study.com's final is **identity-verified and
+   proctored** (`Proctored_Exam` + TypingDNA + Veriff), and CX credit
+   rides it — *corrected 2026-08-07; this line previously read
+   "identity-verified open-book … not proctored," which
+   [platform-reality §6](./study-com-platform-reality.md) disproved. The
+   requirement below is unchanged and is the reason it matters: modes
+   differ per issuer and change over time, so provenance must be carried,
+   never assumed.* The credential
    substrate models `payment | travel | key` and has **no field for
    assessment conditions** (credential.md:34) — so "proctored /
    id-verified / self-report" is net-new and belongs as **`tags` on the

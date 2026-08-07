@@ -177,8 +177,13 @@ What it buys, in their language:
 1. **An unbounded item bank** from a small generator spec.
 2. **No item leakage.** Every student gets different numbers, so
    answer-sharing does nothing. A *higher* integrity signal at *less*
-   friction — precisely the door the strategy doc says opened when
-   proctoring was removed.
+   friction — precisely the door that opens when proctoring shifts from
+   live supervision to automated identity verification. *(Corrected
+   2026-08-07: the strategy doc's "proctoring was removed" premise was too
+   strong — `Proctored_Exam` is alive and CX credit rides it,
+   [platform-reality §6](../../study-com-platform-reality.md). The
+   generator's argument is unaffected: per-student items beat shared
+   answers regardless of how the room is invigilated.)*
 3. **One generator, two modes.** The same spec emits the
    multiple-choice item *and* the practical ("go do it, report your
    number"). That is the inquiry slate's didactic/experiential
