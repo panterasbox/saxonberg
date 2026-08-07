@@ -157,6 +157,66 @@ the standalone game into a vertical product:
   grants them. The floor stays fully playable on in-game learning;
   external mastery raises the ceiling only.
 
+## The five-video set (governing roster — 2026-08-06)
+
+**Hard cap: five videos** (user, 2026-08-06), superseding the old "no
+committed count" rule. The detailed roster below is **retained as
+drafted-script source material** but is **reorganized and superseded** by
+these five. The faultline shifts from *one-per-exec-function* to
+*one-per-pillar*, exec reads mapped on top (all four execs still homed; the
+"everyone watches everything" rule stands). YouTube-public, C-team-directed.
+
+| # | Video | Pillar | Exec | Origin in the old roster |
+|---|-------|--------|------|--------------------------|
+| 1 | **The Conferral** | Integration — your content becomes the world's stakes | **Laura** | V1, as revised (aspiring-science-teacher learner + Wikipedia beat + the safety/minors beat) |
+| 2 | **The Honest World** | The moat (LLM-era defensibility) | **Adrian** | V4 (also absorbs the medium thread's efficiency / text-is-cheap / LLM-native arguments) |
+| 3 | **A Life** | Transformation → retention / lifetime | **Chris + Michael** | **V2 + V3, merged** — one learner over three years; the mirror-with-receipts (Chris's personalization read) is the *artifact* of the life that stays past the goal (Michael's economics read); the three-doors demo is its spine |
+| 4 | **The Classroom That's Never Short a Teacher** | **LLM-native, as an experience** (the added dimension) | ensemble (Laura / Chris lean) | **NEW** — interchangeable AI/human seats; agents that *act* via the command bus, not just talk; the teaching / protégé payoff (absorbs #7, the beachhead); the "StudyAI you already built" resonance |
+| 5 | **Made of Words** | The medium + scaling / UGC | ensemble | V5 (the player becomes a maker; anyone who can write can author; every action a legible, moderatable string) |
+
+**The missing dimension this adds:** item 4. LLM-native was scattered
+(defensive beat in V4, offensive thread in V3, a theory beat) — never a
+concentrated *experience*. For an LLM-hungry ed-tech C-team it's the strongest
+under-used card, and it's the richest thing designed (classroom model, command
+bus, StudyAI reuse). Promoted to a pillar.
+
+**The merge (item 3) is the one real judgment call for the script session.**
+V2 and V3 are the same *experience* (a learner becoming real over time),
+differentiated only by exec-read and device. Collapse them onto one arc — use
+V3's three-doors / "any seat" demo as the spine (it doubles as the live sales
+demo), layer V2's mirror / aspiration-drift / matchmaking as the
+personalization read. **Fallback if the merge proves too dense:** keep the
+4-exec spine intact (V1/V2/V3/V4) and cut *Made of Words* instead — lower-risk,
+but keeps the V2/V3 redundancy and loses the concentrated text-is-asset
+experience. (Lean: do the merge.)
+
+**What leaves the standalone roster — nothing orphaned, all redistribute:**
+- **#9 TOEFL — CUT** as a standalone (demoted / caveated fit); survives as one
+  immersion beat inside *Made of Words* (the world is in English; living in it
+  *is* the practice — Reading/Writing, intermediate+).
+- **#6 trades — conditional:** confirm trades/electrician is a real Study B2C
+  product; if not, its electricity footage serves *The Honest World*, not a
+  vertical pitch.
+- **The cohort verticals become *examples staged inside* the five**, not
+  standalone videos: teacher → the Classroom (item 4); health (the *clinical
+  ceiling*, not the HESI/TEAS entrance product) / accounting / ASVAB → vignette
+  beats in *A Life* or *The Honest World* as the interest curve wants them.
+- **Held items** (Duncan Hall / CS, Third Node / research, Arrival) stay held;
+  Arrival's first-hour beats live in *A Life*'s cold open.
+
+**Open decisions for the script session (the handoff):**
+1. The V2 + V3 merge — commit to it or take the fallback.
+2. Series *order* (an interest-curve call) — the beachhead (teacher, now inside
+   item 4) argues for the Classroom landing early.
+3. Where the **safety / minors** beat lives (lead candidate: item 1, Laura).
+4. Which cohort verticals to stage in which of the five, and how many.
+5. The drafted scripts in [education-video-scripts.md](./education-video-scripts.md)
+   (V1/V2/V3/V4) need reworking to this five-set — V1's science-teacher reframe
+   and the V2 + V3 merge are the biggest lifts; V4/V5 are lighter.
+
+*Everything below (the old spine / cohort / medium sections) is kept as source
+material — read it through the lens of these five.*
+
 ## The roster
 
 Rules (settled 2026-07-28): **no committed count** — a video exists
@@ -217,6 +277,10 @@ demos (the altimeter works because pressure is a field value at a
 place, not because space is modeled).
 
 ### Spine (the four, each framed against one of the four execs)
+
+> **Reorganized by the five-video set above (2026-08-06):** V2 + V3 merge into
+> *A Life*, a new *Classroom* video (item 4) is added, and the cohort cuts
+> become staged examples. Kept below as drafted-script source.
 
 The framing device (settled 2026-07-28): each spine video is
 written *to one person's desk* — the frame governs tone, emphasis,
@@ -388,6 +452,12 @@ gamer-adjacent cut if it earns a slot later).
 
 ### Cohort cuts (one experience each, audience-targeted — the
 wishbook vignettes as videos; same world, pitched by wish)
+
+> **Demoted to staged examples by the five-video set above (2026-08-06):**
+> these verticals now appear as vignette beats *inside* the five (teacher →
+> Classroom; health/accounting/ASVAB → *A Life* / *Honest World*), not as
+> standalone videos. #9 TOEFL is cut; #6 trades is conditional. Kept below as
+> source.
 
 5. **The night the gallery flooded** (health — the *clinical* ceiling, **not** the HESI/TEAS entrance product; **product-fit correction 2026-08-06:** triage is clinical/NCLEX-flavored, while Study's B2C nursing vertical is the **pre-nursing entrance** exams — HESI/TEAS = academic recall — so keep the vivid "being the medic" experience but the exec-read must **not** claim it maps to their entrance product; frame it as where the platform *can* go, not what they sell today) —
    triage by real physiology; status-effects-not-hitpoints as a
