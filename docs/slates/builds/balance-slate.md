@@ -1165,6 +1165,236 @@ a solo delegation change is visible by subtraction anyway.
 
 ---
 
+# Part 8 — The micro layer: what an author claims, and what the machine may never touch
+
+Parts 1–7 are macro: mint rates, denominators, the docket. They leave the
+per-object question open — *is this sword right, is this encounter's
+payout right* — and they leave unanswered how a technologically advanced
+locality is supposed to coexist with a prehistoric one without either
+flattening both or auditing every item. This part is that half.
+
+## ⭐⭐⭐⭐⭐ A declaration may never be an INPUT to a meter — only a PREDICTION it is checked against
+
+The obvious micro design is *let content authors declare how risky and how
+rewarding their content is.* **Advancement already refused exactly that,
+and its reason is the general one.** From
+[advancement.md](../../subsystems/advancement.md) on `ActSignature`:
+
+> **Difficulty is a world-measurement, not a tag** — the route's length,
+> the lot's ambiguity, the live competition. You can't farm a hard attempt
+> by relabeling.
+
+Correct, because that difficulty feeds the BKT estimator directly: it is a
+**numerator input**, so a tag would be a mint with an author-controlled
+dial. Any declaration wired that way is broken the moment it exists.
+
+But this does not forbid claims — it tells you the shape a safe one has:
+
+> **A declaration may never be an INPUT to a meter. It may only be a
+> PREDICTION the meter is compared against.**
+
+Declared risk and reward are safe **precisely because they compute
+nothing**. The claim is the null hypothesis; measurement is the test. This
+also retro-explains *undeclared ground mints nothing* (Part 3): the
+declaration gates **permission**, never **magnitude** — and that was
+always why it was safe to let holders write it themselves.
+
+⭐ **The enforcement dividend: nobody has to inspect content.** The
+machine never forms an opinion about a sword or an encounter. It compares
+what a parcel claimed against what it did, and divergence is the entire
+signal. That is what keeps the micro layer from becoming a content-review
+bureaucracy the polity cannot possibly staff.
+
+### ⭐⭐⭐⭐ The mirror-image firewall — and why ops does not become a shadow regulator
+
+Part 6 puts capacity/compute under ops, whose accountability is
+**testimony, not measurement**. Pricing content by its claim therefore
+looks like it hands a balance lever to the one seat that cannot be
+audited. The rule above has a mirror that closes this:
+
+> **Provisioning responds to the DECLARATION. The regulator responds to
+> the MEASUREMENT. Neither reads the other's input.**
+
+Ops sizes capacity from what you *claimed*; the sweep throttles on what
+you *did*. Ops never sees an outcome, so it has nothing to punish with,
+and the seat keeps shrinking as instrumentation grows exactly as Part 6
+wants.
+
+⚠ This is a **structural** firewall, not a policy one — it has to be true
+of the wiring, or it is worth nothing. Compute allocation reading a
+realized mint rate is the specific thing that must be impossible.
+
+### ⭐⭐⭐⭐ Why the honest declaration is the optimum
+
+The two consumers push on **one number from opposite sides**:
+
+| | Over-declare | Under-declare |
+|---|---|---|
+| **Provisioning** (reads the claim) | pay for capacity and allowance you don't use | cheap |
+| **The sweep** (reads the outcome) | slack, never binds | measurement overruns the claim → throttled |
+
+⇒ **incentive-compatible without an enforcement act.** Same mechanism as
+*declaring is how you turn your parcel on*, one axis over: the machine
+never has to decide whether you were honest, because dishonesty in either
+direction costs you.
+
+⚠ It is only incentive-compatible **if capacity is genuinely scarce and
+genuinely priced.** If declaring big is free, the pressure is one-sided
+and every parcel declares maximum. That makes the compute quota
+load-bearing for balance — a real coupling, and the reason the firewall
+above has to be structural rather than a convention.
+
+## ⭐⭐⭐⭐ The shape of the stock decides which lever exists
+
+Money, gear and advancement are not three subsystems needing three
+policies. They are three **shapes**, and the shape determines which levers
+are even available:
+
+| Shape | Example | Regulator | Why |
+|---|---|---|---|
+| **Flow with a drain** | money | the conservation chokepoint (`bank_ledger`) | two-sided; a wrong rate self-corrects through sinks |
+| **Damped stock** | gear | a **negative-feedback faucet** — the census | a drain exists (`DurableMixin` wears on strike and on blow), so the faucet backing off is sufficient |
+| **Monotone stock** | advancement | the faucet, and nothing else | no drain is *possible* — Competence cannot be un-granted |
+
+⭐⭐ **The gear regulator is already shipped, and it is deliberately not an
+allocation.** [magic-items.md](../../subsystems/magic-items.md) § *The
+census*:
+
+> **Authored placement counts and spends nothing.** It simply shows up in
+> the census, and the random channel backs off on its own. **No
+> allocation, no budget, no new economy** — an allocation would be a new
+> resource needing an owner, a ledger and administration, and the
+> corrective already exists: **decay**.
+
+And it **binds regionally, never globally**, so one author's hoard cannot
+starve the world. Generalizing *that* is the gear-side build: a damper,
+not a quota. It needs no owner, no ledger, and — the point — **no
+politics**, which is why it should be the model wherever a stock has any
+drain at all.
+
+⚠ **The census's own precondition is the drain.** A damped stock whose
+drain doesn't actually bite is a monotone stock wearing a disguise, and
+rate regulation on it is theater. Before treating any new stock this way,
+check that its sink is real and that players cannot opt out of it.
+
+### ⭐⭐⭐ The doctrine that falls out: irreversibility sets the difficulty of the lever
+
+This is the asymmetric ratchet of Part 6 derived from mechanics rather
+than from politics, and it generalizes past self-dealing:
+
+- A **flow** may be tuned freely — errors drain.
+- A **damped stock** may be tuned only if the drain is also in scope. A
+  statute that opens a faucet without touching the sink is measured in the
+  wrong unit (Part 2's rule, applied to stocks).
+- A **monotone stock** ratchets one way, and **loosening is the hardest
+  act in the system** — because there is no mechanism, at any price, to
+  take it back.
+
+⭐ **This is also the honest answer to "can the legislature vote itself
+faster progression?"** (Part 6's inflation risk). It can — and advancement
+is precisely the stock where that vote is *irreversible*. The trend
+sensor is the early warning; the ratchet is the brake; neither is a
+prohibition, and neither should be.
+
+## ⭐⭐⭐⭐ Tech tier: immersion is a REVIEW-time concern, and the machine must not defend it
+
+A technologically advanced locality has better armor than a prehistoric
+one. That is not an imbalance to be corrected — flattening it *is* the
+immersion break. The distinction the machine has to hold:
+
+> **Effectiveness and reward are different quantities.** The plasma rifle
+> really is better than the flint spear on the shared
+> mechanism→channel→material grid. The neolithic parcel really is weaker.
+> That is the interoperability layer working as designed.
+
+⇒ **the machine regulates price and never touches power.** Tech tiers are
+therefore **free** — they cost the balance system nothing, because an
+advanced civilization's gear being hard to come by is already the fiction,
+and where it isn't, the parcel is a mint and Parts 1–4 already handle it.
+
+⚠⚠ **A mechanical tier gate is the soulbound reflex in a new costume.**
+Part 1 retracted "just make it soulbound" because it forbids the thing the
+game is for — *the laser gun in Westeros*. "Content may not exceed its
+declared tier" is the same prohibition re-derived from immersion instead
+of from balance, and it must be refused the same way and for the same
+reason.
+
+⇒ **coherence is defended at review time, by the pack layer** — a human
+saying *"your bronze-age locality mints plasma rifles"* during the trade
+that a pack already is (see
+[content-packs-slate](./content-packs-slate.md)). Editorial, revisable,
+and carrying no runtime authority. A declared tech tier is then useful
+**metadata for discovery, the wiki and the press**, and reads into no
+meter — Part 2's *banding is presentation, not security*, one more time.
+
+### ⭐⭐⭐ The real hazard tech tiers create is adjacency, and it is not a balance problem
+
+A spacefaring parcel next door to a bronze-age one kills the bronze-age
+one: nobody plays it, or its content is farmed for nothing by visitors it
+was never priced against. **That is map topology, not numbers** — travel
+cost is what has always separated difficulty tiers, and the freight
+slate's von Thünen geometry is the instrument.
+
+⇒ keep it **out of the balance machine deliberately.** Attacking it with
+rate regulation would mean regulating a parcel for what its *neighbour*
+can afford, which is the exemption-generator shape all over again.
+
+## ⭐⭐⭐ The set of meters is the real constitution
+
+Part 2 says *a matter cannot be legislated until it is metered.* Stated
+from the other end:
+
+> **The meter set bounds what the polity may even discuss, and it is
+> amended only by an engine release.** It is not legislation, not
+> executive, not judicial. It is the thing all three sit inside.
+
+This is the same guarantee as Part 1's *code-trust is revocable, content
+authorship is inalienable* — read from the constitutional side rather than
+the personal one. **Adding a meter is the most consequential act available
+to anyone**, more so than any statute written against it, because it
+creates a subject the polity did not previously have. ⚠ It also carries
+Part 5's third retroactivity case: a release that redefines a meter must
+**lapse-or-migrate** every bound written against it.
+
+## The three branches, and the one thing that is not a branch
+
+| | Reads | Writes | Failure it owns |
+|---|---|---|---|
+| **Legislature** | the meters | the **schedule** — declared class → entitled rate, and the denominators | a wrong denominator |
+| **Executive** | measurement (sweep) · declarations (provisioning), **never crossed** | throttles · capacity · the docket | a missed or over-eager throttle |
+| **Judiciary** | the divergence record | findings on **particular** cases | attribution being wrong |
+| *(not a branch)* **the engine** | — | the meter set | a matter that cannot be discussed at all |
+
+### What the judiciary actually hears
+
+Parts 1–7 leave this thinnest, and Part 8 makes it concrete: **the court
+is the residual for particularity**, which both other branches are
+structurally denied. Two dockets:
+
+1. **Attribution disputes** — *"the mint the sweep attributed to me was my
+   neighbour's exploit routed through my ground"*, or the cross-parcel
+   act of open question #8. Part 1 already accepted the cost: **detect
+   statistically, act by adjudication.** This is that adjudication.
+2. **Misprice petitions** — content the schedule genuinely prices wrong,
+   where Part 2's answer (*a bound needing exemptions is measured in the
+   wrong unit*) is right in general and cannot be waited for in
+   particular.
+
+⭐ **Neither docket is discretionary to open** — the standing ladder of
+Part 4 already says who may raise them, and the sweep already produces the
+record they argue over. **The court never inspects content either.** It
+argues about a divergence the machine found, which keeps its workload
+proportional to anomalies rather than to the size of the world — the only
+version a twelve-person polity can staff (open question #7).
+
+⚠ **The remedy vocabulary is the danger.** Part 4's *the machine
+throttles, never punishes* must survive contact with a court, or the
+judiciary becomes the punitive organ the executive was deliberately not
+given. *Leans: the court may adjust an attribution or grant a variance,
+and has no remedy the sweep does not already have.*
+
+---
+
 # What is actually net-new (the build surface)
 
 Small, which is the argument for doing it:
@@ -1182,6 +1412,10 @@ Small, which is the argument for doing it:
 | 8 | **Conform-on-`saveTemplate`** — the compliance boundary at an existing chokepoint | small |
 | 9 | **Lapse-on-amendment** for bounds whose meter was redefined | small |
 | 10 | **The cross-parcel attribution rule** (#0's stated edge case) | a rule |
+| 11 | **The prediction half of the declaration** (Part 8) — claimed risk/reward beside #4's class, feeding nothing | one field |
+| 12 | ⚠ **The provisioning↔measurement firewall** — structural, or Part 8 is worth nothing | a wiring rule |
+| 13 | **The census damper generalized past magic items** — any stock whose drain is real | medium |
+| 14 | **The two divergence dockets** — attribution and misprice; reuses #6's sweep record | small |
 
 ⚠ **Sequencing: #0 gates literally everything.** Then #1–#2 are
 meaningless without #3, and #3 is meaningless without meters that exist.
@@ -1231,3 +1465,21 @@ exists precisely so no one has to price a sword.
 11. ⚠ **Does risk-as-variance need a floor for low-traffic parcels, or do
     they simply go unmeasured?** Unmeasured is the honest answer and also
     the exploitable one — *"stay small to stay invisible"* is a strategy.
+12. ⚠⚠ **Is capacity scarce enough to price?** Part 8's incentive
+    compatibility depends on over-declaring actually costing something.
+    On one Lightsail box it plausibly is; if the answer is *no*, the
+    declaration has one-sided pressure and every parcel declares maximum,
+    and the prediction half needs a different counterweight.
+13. **What unit does a claim attach to?** *Leans the parcel × matter* —
+    the same row as #4, because that is what the sweep can already see and
+    what longest-prefix already resolves. The engagement is the tempting
+    alternative (bounded, typed, has an outcome) but too fine, and much
+    minted value never passes through one (crafting output, growth, sale).
+14. **Does the census damper need a declared par per matter, or does
+    regional stock alone suffice?** Magic items get par from
+    `ResettableMixin` holders; a general stock may have no such holder.
+15. ⚠ **Can a court's variance be granted without becoming the
+    particular-exemption abuse of Part 3?** A variance IS a named
+    benefit. *Leans: time-boxed and published, so it is a visible
+    standing invitation to legislate rather than a quiet carve-out* —
+    but this is the sharpest unresolved tension in Part 8.
