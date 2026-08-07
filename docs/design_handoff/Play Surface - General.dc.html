@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="dark"] {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --field:#002868; --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --bad:#BF0A30; --info:#5b8fd6;
+      --paper:#f2ebdc; --paper-ink:#2a2418; --paper-line:#d8cdb4;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    a { color:var(--accent); text-decoration:none; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:10px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .flagrule { height:4px; background:linear-gradient(180deg, var(--white) 0 1px, var(--red) 1px 3px, var(--white) 3px 4px); }
+    /* the terminal is the ONE surface identical in every mode — it stays neutral */
+    .dfr { display:flex; gap:11px; padding:9px 0; border-bottom:1px solid var(--line-soft); }
+    .dfr:last-child { border-bottom:none; }
+    .dfk { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; flex:0 0 62px; padding-top:4px; }
+    .wp { font-family:'Newsreader',Georgia,serif; font-size:15px; line-height:1.62; }
+    .aff { color:var(--accent); cursor:pointer; box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--accent) 50%,transparent); border-radius:2px; padding:0 1px; }
+    .aff:hover { background:color-mix(in oklab,var(--accent) 16%,transparent); }
+    /* fiction rides in the plate, never in the terminal's ground */
+    .plate { border:1px solid var(--paper-line); border-radius:2px; padding:6px 6px 0; margin:4px 0 8px; background:var(--paper); max-width:400px; }
+    .platefig { width:100%; aspect-ratio:16/7; background:repeating-linear-gradient(135deg,#e6dcc4 0 10px,#efe6d2 10px 20px);
+                display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8a8069; }
+    .platecap { font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:11px; color:#5f5647; text-align:center; padding:5px 4px 6px; }
+    .vbtn { display:inline-flex; align-items:center; min-height:34px; padding:0 12px; border:1px solid var(--line);
+            border-radius:3px; background:transparent; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--fg); white-space:nowrap; cursor:pointer; }
+    .vbtn:hover { border-color:var(--accent); color:var(--accent); }
+    .vbtn.arg::after { content:' …'; color:var(--fg-mute); }
+    .vbtn.off { opacity:.38; border-style:dashed; cursor:default; }
+    .vbtn.off:hover { border-color:var(--line); color:var(--fg); }
+    .roomtab { padding:5px 12px; border:1px solid var(--line); border-radius:3px; background:transparent;
+               font-family:'Public Sans',sans-serif; font-size:12px; color:var(--fg-dim); cursor:pointer; }
+    .roomtab.on { border-color:var(--red); background:var(--raised); color:var(--fg); box-shadow:inset 3px 0 0 var(--red); }
+    /* the prompt renders the focus CHAIN — clicking a segment truncates it, which is :e */
+    .seg { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--fg-dim); cursor:pointer;
+           padding:2px 5px; border-radius:2px; }
+    .seg:hover { background:var(--raised); color:var(--fg); }
+    .seg.tip { color:var(--accent); background:color-mix(in oklab,var(--accent) 12%,transparent); }
+    .segsep { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--fg-mute); }
+    .fallback { display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace;
+                font-size:10px; color:var(--info); border:1px solid color-mix(in oklab,var(--info) 40%,transparent);
+                border-radius:2px; padding:1px 6px; }
+    .memrow { display:flex; align-items:baseline; gap:8px; padding:6px 9px; border:1px dashed var(--line);
+              border-radius:3px; background:transparent; cursor:pointer; }
+    .memrow:hover { border-color:var(--fg-mute); }
+    .prop { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+    .prop:last-child { border-bottom:none; }
+    .mx { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent); border:1px solid color-mix(in oklab,var(--accent) 40%,transparent); border-radius:2px; padding:1px 5px; }
+  </style>
+</helmet>
+
+<div id="gen-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- ══ spine: constant ══ -->
+  <nav style="flex:0 0 62px; display:flex; flex-direction:column; align-items:center; gap:5px; padding:12px 8px; background:var(--sunken); border-right:1px solid var(--line);">
+    <span class="seal" style="width:32px; height:32px; font-size:16px; margin-bottom:8px;">S</span>
+    <sc-for list="{{ modes }}" as="m" hint-placeholder-count="5">
+      <div style="{{ m.style }}" title="{{ m.name }}">{{ m.glyph }}</div>
+    </sc-for>
+    <div style="flex:1;"></div>
+    <span style="width:28px;height:28px;border-radius:3px;background:var(--raised);color:var(--fg-dim);display:flex;align-items:center;justify-content:center;font-size:12px;">M</span>
+  </nav>
+
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <!-- ══ chrome: constant ══ -->
+    <header style="flex:none; display:flex; align-items:center; gap:14px; padding:9px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+      <div style="min-width:0;">
+        <div class="cap" style="font-size:14px;">{{ roomName }}</div>
+        <div style="display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--good);"></span><span>{{ roomWhere }}</span>
+        </div>
+      </div>
+      <div style="flex:1;"></div>
+      <span class="lbl" style="font-size:9px;">same surface, different room →</span>
+      <div style="display:flex; gap:5px;">
+        <sc-for list="{{ roomTabs }}" as="r" hint-placeholder-count="3">
+          <button class="roomtab {{ r.cls }}" data-room="{{ r.id }}">{{ r.label }}</button>
+        </sc-for>
+      </div>
+    </header>
+
+    <div style="flex:1; display:flex; min-height:0;">
+
+      <!-- ══ the terminal: constant, neutral ══ -->
+      <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+        <div style="flex:1; overflow-y:auto; padding:14px 18px;">
+          <sc-for list="{{ feed }}" as="f" hint-placeholder-count="4">
+            <div class="dfr">
+              <span class="dfk" style="color:{{ f.hue }};">{{ f.kind }}</span>
+              <div class="wp" style="flex:1; color:{{ f.color }};">{{ f.node }}</div>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); flex:0 0 32px; text-align:right; padding-top:4px;">{{ f.time }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex:none; display:flex; gap:6px; padding:8px 18px; border-top:1px solid var(--line); background:var(--surface); overflow-x:auto; overflow-y:hidden;">
+          <sc-for list="{{ verbs }}" as="v" hint-placeholder-count="5">
+            <span class="vbtn {{ v.cls }}">{{ v.name }}</span>
+          </sc-for>
+        </div>
+
+        <!-- the prompt IS the focus chain: segments truncate, which is :e -->
+        <div style="flex:none; padding:9px 18px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+          <div style="display:flex; align-items:center; gap:7px; margin-bottom:8px; flex-wrap:wrap;">
+            <span class="lbl" style="font-size:9px;">focus</span>
+            <sc-for list="{{ chain }}" as="c" hint-placeholder-count="3">
+              <span class="seg {{ c.cls }}" data-trunc="{{ c.depth }}">{{ c.label }}</span>
+              <sc-if value="{{ c.sep }}" hint-placeholder-val="{{ false }}"><span class="segsep">›</span></sc-if>
+            </sc-for>
+            <sc-if value="{{ didFallback }}" hint-placeholder-val="{{ false }}">
+              <span class="fallback">$focus missed · searched {{ fallbackTo }}</span>
+            </sc-if>
+            <span style="flex:1;"></span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">{{ chainRaw }}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--fg-mute);">›</span>
+            <div style="flex:1; display:flex; align-items:center; gap:6px; height:40px; padding:0 12px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:13.5px; color:var(--fg);">{{ pending }}</span>
+              <span style="width:8px;height:15px;background:var(--accent);border-radius:1px;"></span>
+            </div>
+            <button style="font-family:'Public Sans',sans-serif; font-size:13px; font-weight:600; color:var(--white); background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 18px; height:40px; cursor:pointer;">Send ⏎</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ focus pane: the ONE slot that varies ══ -->
+      <aside style="flex:0 0 340px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+        <div style="flex:none; display:flex; align-items:baseline; justify-content:space-between; padding:10px 14px; border-bottom:1px solid var(--line);">
+          <span class="lbl">In focus</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute);">{{ focusId }}</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:13px 14px;">
+          <div style="font-family:'Spectral',serif; font-size:17px; color:var(--fg); line-height:1.2; margin-bottom:3px;">{{ focusName }}</div>
+          <div style="font-size:11.5px; color:var(--fg-mute); margin-bottom:11px;">{{ focusKind }}</div>
+
+          <sc-if value="{{ hasPlate }}" hint-placeholder-val="{{ true }}">
+            <div class="plate" style="max-width:none;">
+              <div class="platefig">illustration · author-supplied</div>
+              <div class="platecap">{{ plateCap }}</div>
+            </div>
+          </sc-if>
+
+          <div class="lbl" style="margin:12px 0 6px;">Composed of</div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px;">
+            <sc-for list="{{ mixins }}" as="m" hint-placeholder-count="4"><span class="mx">{{ m.n }}</span></sc-for>
+          </div>
+
+          <div class="lbl" style="margin-bottom:5px;">Measured</div>
+          <div style="margin-bottom:13px;">
+            <sc-for list="{{ props }}" as="pr" hint-placeholder-count="3">
+              <div class="prop"><span style="font-size:12px; color:var(--fg-dim);">{{ pr.k }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:{{ pr.color }};">{{ pr.v }}</span></div>
+            </sc-for>
+          </div>
+
+          <div class="lbl" style="margin-bottom:6px;">{{ listLabel }}</div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <sc-for list="{{ contents }}" as="c" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 9px; background:var(--sunken); border-radius:3px;">
+                <span class="aff" style="font-family:'Newsreader',Georgia,serif; font-size:14px;">{{ c.n }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--fg-mute);">{{ c.t }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { room:'lounge', focus:null, trunc:null };
+
+  MODES = [['◆','Play',1],['▭','Chat',0],['▶','Watch',0],['⚒','Build',0],['⚖','Govern',0]];
+
+  // Each room is a set of focusable THINGS; prose segments name them, so a
+  // click in the terminal changes what the focus pane is reading.
+  ROOMS = {
+    lounge: {
+      label:'The Lounge', where:'commons · 2 here', pending:'talk waiter', start:'waiter',
+      verbs:[['look',0],['talk',1],['order',1],['sit',0],['go',1],['forge',2]],
+      things:{
+        waiter:{ chain:'peers:waiter', name:'the waiter', kind:'npc · service', id:'#3f10', plate:'The waiter, mid-round',
+          mixins:['Vocal','Mobile','Employed','PricedOffer','Organism'],
+          props:[['Bearing','unhurried'],['On shift','yes','good'],['Carrying','6 pies']],
+          listLabel:'Also here', contents:[['a pizza','anchovy'],['the terminal','idle']] },
+        pizza:{ chain:'here:table:pizza', name:'a pizza', kind:'thing · food', id:'#7c04', plate:'A pie, three-quarters gone',
+          mixins:['Tangible','Containable','Metabolic','NutritionLabel'],
+          props:[['Mass','1.9 kg'],['Temperature','44 °C','warn'],['Slices','5 of 8']],
+          listLabel:'Toppings', contents:[['anchovy','lone wolf'],['extra cheese','cozy']] },
+        board:{ chain:'here:board', fellBack:true, name:'the departures board', kind:'fixture · transit', id:'#1d55', plate:null,
+          mixins:['Marked','Fixture','FastTravel'],
+          props:[['Routes','4 posted'],['Next out','the campus gate']],
+          listLabel:'Routes', contents:[['the campus gate','first time out'],['Dave\u2019s Bar','north']] },
+      },
+      feed:[
+        ['Room','#c98a3f',null,['A wide, low room that is not anywhere. Booths ring a bar in the middle. A ',['pizza','pizza'],' sits on your table and a ',['departures board','board'],' stands by the door.'],'18:41','plate'],
+        ['Presence','#7f93a8','var(--fg-dim)',['The ',['waiter','waiter'],' is doing a slow round with a stack of pies. Nobody else is on the floor.'],'18:41'],
+        ['You','var(--accent)',null,['talk waiter'],'18:42','mono'],
+        ['Say','#4a9d8f',null,['The ',['waiter','waiter'],' tips his head. \u201cFirst one tonight. Sit anywhere.\u201d'],'18:42'],
+      ] },
+
+    bar: {
+      label:'Dave\u2019s Bar', where:'Saxonberg \u203a the house · 5 here', pending:'order martini with bombay', start:'menu',
+      verbs:[['look',0],['order',1],['buy',1],['talk',1],['sit',0],['forge',2]],
+      things:{
+        menu:{ chain:'here:menu', name:'the drinks menu', kind:'fixture · commerce', id:'#0a92', plate:'A board behind the bar, chalked and re-chalked',
+          mixins:['PricedOffer','Marked','Fixture','Resettable'],
+          props:[['Lines','14 pours'],['Cheapest','2 coin'],['Stock','holding','good']],
+          listLabel:'On the board', contents:[['a gin martini','5 coin'],['house red','3 coin'],['small beer','2 coin']] },
+        dave:{ chain:'peers:dave', name:'Dave', kind:'npc · publican', id:'#00d1', plate:'Dave, working the taps',
+          mixins:['Vocal','Mobile','Employed','PricedOffer','Organism'],
+          props:[['Bearing','unbothered'],['On shift','yes','good'],['Owes you','nothing']],
+          listLabel:'Behind the bar', contents:[['the taps','4 lines'],['a shaker','clean']] },
+        taps:{ chain:'here:bar:taps', name:'the taps', kind:'fixture · dispensing', id:'#3b70', plate:null,
+          mixins:['Fixture','Bulkable','Resettable','Tangible'],
+          props:[['Lines','4'],['Cellar temp','11 °C'],['Pressure','nominal','good']],
+          listLabel:'Pouring', contents:[['small beer','2 coin'],['stout','3 coin']] },
+      },
+      feed:[
+        ['Room','#c98a3f',null,['A long bar under low lamps, bottles ranked behind it. A chalked ',['menu','menu'],' hangs where everyone can see it, over ',['the taps','taps'],'.'],'21:14','plate'],
+        ['Presence','#7f93a8','var(--fg-dim)',[['Dave','dave'],' is working the taps. Three regulars are arguing about a bill in the corner.'],'21:14'],
+        ['You','var(--accent)',null,['order martini with bombay'],'21:15','mono'],
+        ['Say','#4a9d8f',null,[['Dave','dave'],' reaches for the Bombay without looking. \u201cStirred, since you didn\u2019t say.\u201d'],'21:15'],
+      ] },
+
+    yard: {
+      label:'The Cartwright\u2019s Yard', where:'Ashmill · guild quarter · 1 here', pending:'analyze forge', start:'forge',
+      verbs:[['look',0],['analyze',1],['heat',1],['forge',1],['quench',1],['order',2]],
+      things:{
+        forge:{ chain:'here:forge', name:'the forge', kind:'fixture · smithing', id:'#4c1a', plate:'The forge at dusk, banked and breathing',
+          mixins:['Thermal','Combustible','Furnace','Fixture','Tangible'],
+          props:[['Temperature','1240 °C','warn'],['Working window','1150\u20131300 °C','good'],['Fuel','4.1 kg charcoal']],
+          listLabel:'In reach', contents:[['a cast-iron anvil','54.4 kg'],['a smith\u2019s hammer','1.1 kg']] },
+        anvil:{ chain:'here:anvil', name:'a cast-iron anvil', kind:'thing · smithing', id:'#9e21', plate:null,
+          mixins:['Tangible','Thermal','Tool','Durable','Containable','Constructed'],
+          props:[['Mass','54.4 kg'],['Temperature','18.2 °C'],['Condition','sound · 94%','good']],
+          listLabel:'On the anvil', contents:[['a half-forged pin','hot'],['a smith\u2019s hammer','1.1 kg']] },
+        tomas:{ chain:'peers:tomas', name:'Tomas', kind:'npc · wright', id:'#1a88', plate:'Tomas, turning a rim',
+          mixins:['Vocal','Mobile','Employed','Organism','Tangible'],
+          props:[['Bearing','preoccupied'],['Trade','wheelwright'],['Hiring','not today','warn']],
+          listLabel:'Carrying', contents:[['a wheel-rim','8.2 kg'],['a draw-knife','worn']] },
+      },
+      feed:[
+        ['Room','#c98a3f',null,['Packed earth between the shed and the tavern wall. The ',['forge','forge'],' throws heat across it, and an ',['anvil','anvil'],' squats on its stump.'],'18:42','plate'],
+        ['Presence','#7f93a8','var(--fg-dim)',[['Tomas','tomas'],' is turning a wheel-rim over in his hands, not looking at you.'],'18:42'],
+        ['You','var(--accent)',null,['analyze forge'],'18:43','mono'],
+        ['Work','#e8705c',null,['Colour crawls up the billet \u2014 dull red, then straw, then a steady orange.'],'18:43'],
+      ] },
+  };
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('gen-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const rm=e.target.closest('[data-room]');
+      if(rm&&r.contains(rm)) return this.setState({room:rm.getAttribute('data-room'), focus:null, trunc:null});
+      const fo=e.target.closest('[data-focus]');
+      if(fo&&r.contains(fo)) return this.setState({focus:fo.getAttribute('data-focus'), trunc:null});
+      // truncating the chain at a segment is the :e operator, applied N times
+      const tr=e.target.closest('[data-trunc]');
+      if(tr&&r.contains(tr)) return this.setState({trunc:Number(tr.getAttribute('data-trunc'))});
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  renderVals(){
+    const R=this.ROOMS[this.state.room];
+    const key=(this.state.focus && R.things[this.state.focus]) ? this.state.focus : R.start;
+    const F=R.things[key];
+    const mono={fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'var(--fg-dim)'};
+    const allSegs=(F.chain||'here').split(':');
+    const t=this.state.trunc;
+    const cut = (t!=null && t < allSegs.length-1);
+    const segs = cut ? allSegs.slice(0,t+1) : allSegs;
+    const prefix = segs.join(':');
+    const members = cut
+      ? Object.keys(R.things).filter(k=>(R.things[k].chain||'').startsWith(prefix)).map(k=>R.things[k])
+      : [];
+
+    // prose segments: strings render plain, pairs render as focus affordances
+    const seg=(parts)=>parts.map((x,i)=> Array.isArray(x)
+      ? React.createElement('span',{key:i, className:'aff', 'data-focus':x[1]}, x[0])
+      : x);
+
+    return {
+      modes:this.MODES.map(([g,n,on])=>({glyph:g,name:n,
+        style:{width:'34px',height:'34px',borderRadius:'3px',display:'flex',alignItems:'center',justifyContent:'center',
+          fontSize:'15px',cursor:'pointer',
+          background:on?'var(--accent)':'transparent',color:on?'var(--accent-ink)':'var(--fg-mute)',
+          border:on?'none':'1px solid transparent'}})),
+      roomTabs:Object.keys(this.ROOMS).map(id=>({id,label:this.ROOMS[id].label,cls:id===this.state.room?'on':''})),
+      roomName:R.label, roomWhere:R.where, pending:R.pending,
+      feed:R.feed.map(([kind,hue,color,parts,time,flag])=>({
+        kind, hue, time, color:color||'var(--fg)',
+        node: flag==='plate'
+          ? React.createElement(React.Fragment,null,
+              React.createElement('div',{className:'plate'},
+                React.createElement('div',{className:'platefig'},'illustration · author-supplied'),
+                React.createElement('div',{className:'platecap'},R.things[R.start].plate)),
+              ...seg(parts))
+          : (flag==='mono' ? React.createElement('span',{style:mono}, ...seg(parts)) : seg(parts)),
+      })),
+      verbs:R.verbs.map(([n,k])=>({name:n, cls:k===1?'arg':(k===2?'off arg':'')})),
+      // the chain is the breadcrumb AND the stack — truncating a segment is `:e`
+      chain:segs.map((seg,i,arr)=>({
+        label:seg, depth:i, sep:i<arr.length-1, cls:i===arr.length-1?'tip':'' })),
+      chainRaw:'$focus = ' + prefix,
+      didFallback:!cut && !!F.fellBack, fallbackTo:'reachable',
+      focusName: cut ? prefix : F.name,
+      focusKind: cut ? (members.length + ' objects · a set, not a thing') : F.kind,
+      focusId: cut ? '' : F.id,
+      hasPlate: !cut && !!F.plate, plateCap:F.plate||'',
+      mixins: cut ? [] : F.mixins.map(n=>({n})),
+      props: cut ? [] : F.props.map(([k,v,tone])=>({k,v,color:tone==='good'?'var(--good)':(tone==='warn'?'var(--warn)':'var(--fg)')})),
+      listLabel: cut ? 'Matching this chain' : F.listLabel,
+      contents: cut
+        ? members.map(m=>({n:m.name, t:m.kind.split(' · ')[0]}))
+        : F.contents.map(([n,t])=>({n,t})),
+    };
+  }
+}
+</script>
+</body>
+</html>

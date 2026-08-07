@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#1b1917; --surface:#221f1c; --raised:#2a2622; --sunken:#151312;
+      --line:#38332d; --line-soft:#2a2621;
+      --fg:#ece7df; --fg-dim:#a99f90; --fg-mute:#726a5e;
+      --accent:#e6a445; --accent-ink:#211a0e;
+      --good:#8ab06a; --warn:#e0b64a; --bad:#d9765b; --info:#6fa6cf;
+      --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    a { color:var(--accent); text-decoration:none; }
+    .aff { cursor:pointer; border-radius:3px; padding:0 2px; box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--accent) 45%,transparent); color:var(--accent); }
+    .aff:hover { background:var(--accent-soft); }
+    .aff.on { background:var(--accent); color:var(--accent-ink); box-shadow:none; }
+    .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:var(--fg-mute); }
+    .cell { border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+    .vb { display:flex; align-items:center; gap:6px; padding:3px 9px; border-radius:7px; background:var(--sunken);
+          border:1px solid var(--line); font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--fg);
+          white-space:nowrap; cursor:pointer; }
+    .vb:hover { border-color:var(--accent); background:var(--accent-soft); }
+    .vb.off { opacity:.42; border-style:dashed; cursor:not-allowed; color:var(--fg-mute); }
+    .vb.off:hover { border-color:var(--line); background:var(--sunken); }
+    .vb.new { border-color:var(--good); }
+    .catlab { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.09em; text-transform:uppercase;
+              color:var(--fg-mute); margin-bottom:3px; white-space:nowrap; }
+    .slot { position:absolute; display:flex; flex-direction:column; gap:3px; }
+    @keyframes pop { from{opacity:0; transform:scale(.94)} to{opacity:1; transform:scale(1)} }
+    .radial { position:absolute; animation:pop .12s ease; z-index:20; }
+    .row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px solid var(--line-soft); }
+    .row:last-child { border-bottom:none; }
+    .k { font-size:11.5px; color:var(--fg-dim); }
+    .v { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--fg); }
+    .phase { display:flex; align-items:center; gap:7px; padding:6px 10px; border-radius:8px; font-size:11.5px; }
+  </style>
+</helmet>
+
+<div id="kd-root" style="width:1340px; height:800px; display:flex; background:var(--ground); color:var(--fg); font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- ============ stage ============ -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+    <header style="flex:none; display:flex; align-items:baseline; gap:14px; padding:14px 22px 12px; border-bottom:1px solid var(--line); background:var(--surface);">
+      <span style="font-family:'Newsreader',serif; font-size:19px; font-weight:600;">Mixin-derived affordances</span>
+      <span style="font-size:12.5px; color:var(--fg-dim);">Every verb traces to a mixin the author composed. Click any highlighted noun.</span>
+    </header>
+
+    <div id="kd-stage" style="flex:1; position:relative; overflow-y:auto; padding:22px 26px;">
+
+      <div style="max-width:640px;">
+        <div class="lbl" style="margin-bottom:8px;">a fantasy scene</div>
+        <p style="font-family:'Newsreader',serif; font-size:17px; line-height:1.72; color:var(--fg); margin:0 0 22px;">
+          The forge has gone cold. A <span class="aff" data-e="anvil">cast-iron anvil</span> squats on its stump, and beyond it a <span class="aff" data-e="rune">weathered standing stone</span> leans into the moss. <span class="aff" data-e="tomas">Tomas</span> is turning a wheel-rim over in his hands. The <span class="aff" data-e="door">shed door</span> is shut, and a <span class="aff" data-e="lamp">guttering lamp</span> hangs beside it.
+        </p>
+
+        <div class="lbl" style="margin-bottom:8px;">the same tags, a science-fiction scene</div>
+        <p style="font-family:'Newsreader',serif; font-size:17px; line-height:1.72; color:var(--fg); margin:0 0 22px;">
+          Coolant ticks somewhere behind the bulkhead. A <span class="aff" data-e="conduit">humming conduit</span> runs the length of the bay, and <span class="aff" data-e="sable">Sable</span> is bent over the diagnostic slate.
+        </p>
+
+        <div class="lbl" style="margin-bottom:8px;">and a place</div>
+        <p style="font-family:'Newsreader',serif; font-size:17px; line-height:1.72; color:var(--fg); margin:0 0 8px;">
+          The passage opens into <span class="aff" data-e="cavern">the dripping hollow</span>, where the ceiling is lost above the lamplight.
+        </p>
+      </div>
+
+      <!-- radial -->
+      <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+        <div class="radial" style="left:{{ mx }}px; top:{{ my }}px;">
+          <sc-if value="{{ tethered }}" hint-placeholder-val="{{ false }}">
+            <svg style="position:absolute; left:-260px; top:-260px; width:520px; height:520px; overflow:visible; pointer-events:none;">
+              <line x1="260" y1="260" x2="{{ tx }}" y2="{{ ty }}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5"></line>
+              <circle cx="{{ tx }}" cy="{{ ty }}" r="3.5" fill="var(--accent)"></circle>
+            </svg>
+          </sc-if>
+
+          <!-- hub -->
+          <div style="position:absolute; left:-64px; top:-24px; width:128px; display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 9px; border-radius:10px; background:var(--sunken); border:1px solid var(--accent); box-shadow:0 8px 28px rgba(0,0,0,.55);">
+            <span style="font-family:'Newsreader',serif; font-size:13px; color:var(--fg); text-align:center; line-height:1.2;">{{ selLabel }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute);">{{ selTag }} · {{ mxCount }}</span>
+          </div>
+
+          <!-- four fixed category slots -->
+          <div class="slot" style="left:-52px; top:-152px; width:104px; align-items:center;">
+            <span class="catlab">perception</span>
+            <sc-for list="{{ catN }}" as="v" hint-placeholder-count="2"><span class="vb {{ v.cls }}" title="{{ v.why }}">{{ v.name }}</span></sc-for>
+          </div>
+          <div class="slot" style="left:82px; top:-34px; align-items:flex-start;">
+            <span class="catlab">manipulation</span>
+            <sc-for list="{{ catE }}" as="v" hint-placeholder-count="2"><span class="vb {{ v.cls }}" title="{{ v.why }}">{{ v.name }}</span></sc-for>
+          </div>
+          <div class="slot" style="left:-52px; top:64px; width:104px; align-items:center;">
+            <span class="catlab">movement</span>
+            <sc-for list="{{ catS }}" as="v" hint-placeholder-count="1"><span class="vb {{ v.cls }}" title="{{ v.why }}">{{ v.name }}</span></sc-for>
+          </div>
+          <div class="slot" style="left:-190px; top:-34px; width:104px; align-items:flex-end;">
+            <span class="catlab">social</span>
+            <sc-for list="{{ catW }}" as="v" hint-placeholder-count="1"><span class="vb {{ v.cls }}" title="{{ v.why }}">{{ v.name }}</span></sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- ============ inspector ============ -->
+  <aside style="flex:0 0 396px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+    <div style="flex:none; padding:13px 16px 11px; border-bottom:1px solid var(--line);">
+      <div class="lbl">the three layers</div>
+      <div style="font-size:12px; color:var(--fg-dim); line-height:1.5; margin-top:3px;">What the composer emitted, what the author composed, and what the server resolved for you, right now.</div>
+    </div>
+
+    <sc-if value="{{ idle }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:30px; text-align:center;">
+        <span style="font-size:13px; color:var(--fg-mute); line-height:1.6;">Click a noun to open its menu.<br>Watch the category positions stay put while their contents change.</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1; overflow-y:auto; padding:14px 16px;">
+
+        <!-- 1 · MML -->
+        <div style="margin-bottom:14px;">
+          <div class="lbl" style="margin-bottom:6px;">1 · MML on the wire</div>
+          <div style="background:var(--sunken); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; line-height:1.6; color:var(--fg-dim); word-break:break-all;">{{ mml }}</div>
+        </div>
+
+        <!-- 2 · the composition -->
+        <div class="cell" style="padding:11px 13px; margin-bottom:14px;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+            <span class="lbl">2 · what the author composed</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--good);">{{ mxCount }}</span>
+          </div>
+          <sc-for list="{{ mxRows }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex; align-items:baseline; gap:8px; padding:4px 0; border-bottom:1px solid var(--line-soft);">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:{{ m.color }}; flex:0 0 106px;">{{ m.name }}</span>
+              <span style="font-size:11.5px; color:var(--fg-mute); flex:1;">{{ m.verbs }}</span>
+            </div>
+          </sc-for>
+          <div style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin-top:9px; padding-top:8px; border-top:1px solid var(--line-soft);">These names are the content-development palette. Meeting them on real objects is how a player learns to author.</div>
+        </div>
+
+        <!-- 3 · resolve -->
+        <div class="cell" style="padding:11px 13px; margin-bottom:14px;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+            <span class="lbl">3 · live resolve</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--fg-mute);">(id, viewer, now)</span>
+          </div>
+
+          <sc-if value="{{ pending }}" hint-placeholder-val="{{ false }}">
+            <div class="phase" style="background:color-mix(in oklab,var(--accent) 12%,transparent); border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); color:var(--accent);">
+              <span style="font-family:'IBM Plex Mono',monospace;">◐</span> resolving {{ selId }} — menu already open with mixin-derived affordances
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ resolved }}" hint-placeholder-val="{{ false }}">
+            <div class="phase" style="background:color-mix(in oklab,var(--good) 12%,transparent); border:1px solid color-mix(in oklab,var(--good) 35%,transparent); color:var(--good); margin-bottom:9px;">
+              <span style="font-family:'IBM Plex Mono',monospace;">●</span> resolved · reconciled into the open menu
+            </div>
+            <sc-for list="{{ resolveRows }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex; align-items:baseline; gap:8px; padding:4px 0; border-bottom:1px solid var(--line-soft);">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:{{ r.color }}; flex:0 0 84px;">{{ r.name }}</span>
+                <span style="font-size:11.5px; color:var(--fg-mute); flex:1;">{{ r.note }}</span>
+              </div>
+            </sc-for>
+          </sc-if>
+        </div>
+
+        <div style="font-size:11.5px; color:var(--fg-mute); line-height:1.6; font-style:italic;">{{ lesson }}</div>
+      </div>
+    </sc-if>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1340,&quot;height&quot;:800}}">
+class Component extends DCLogic {
+  state = { sel:null, ax:0, ay:0, sw:900, sh:700, resolved:false };
+
+  // ── static affords, declared per mixin (lib/**/*Mixin.ts) ──
+  AFFORDS = {
+    Tangible:    { weigh:'perception' },
+    Thermal:     { 'measure temp':'perception' },
+    Marked:      { read:'perception' },
+    Detailed:    { 'look closer':'perception' },
+    Energized:   { 'measure volts':'perception' },
+    Containable: { take:'manipulation', drop:'manipulation' },
+    Wieldable:   { wield:'manipulation' },
+    Tool:        { use:'manipulation' },
+    Sealable:    { open:'manipulation', close:'manipulation' },
+    Lockable:    { unlock:'manipulation', lock:'manipulation' },
+    Switchable:  { 'turn on':'manipulation', 'turn off':'manipulation' },
+    Combustible: { ignite:'manipulation' },
+    Conduit:     { disconnect:'manipulation' },
+    Climbable:   { climb:'movement' },
+    Container:   { enter:'movement', 'look in':'perception' },
+    Mobile:      { follow:'movement' },
+    Vocal:       { 'talk to':'social' },
+    PricedOffer: { buy:'social' },
+    Employed:    { hire:'social' },
+    Persona:     { profile:'social', dm:'social' },
+    Contacts:    { befriend:'social' },
+    Combatant:   { attack:'manipulation' },
+  };
+  // every affordance tag still works with no mixins at all
+  TAG_DEFAULTS = { thing:['look'], npc:['look'], player:['look'], place:['look'], exit:['go'], detail:['look'] };
+
+  ENT = {
+    anvil:   { id:'#4c1a', tag:'thing',  label:'cast-iron anvil',
+               mx:['Tangible','Thermal','Tool','Durable','Containable','Constructed'] },
+    rune:    { id:'#7b02', tag:'thing',  label:'weathered standing stone',
+               mx:['Tangible','Marked','Fixture','Concealable'] },
+    conduit: { id:'#9f30', tag:'thing',  label:'humming conduit',
+               mx:['Tangible','Energized','Conduit','Fixture'] },
+    door:    { id:'#2d51', tag:'thing',  label:'shed door', state:'locked',
+               mx:['Sealable','Lockable','Fixture','Tangible'] },
+    tomas:   { id:'#1a88', tag:'npc',    label:'Tomas',
+               mx:['Vocal','Mobile','Employed','PricedOffer','Organism','Tangible'] },
+    sable:   { id:'#0c14', tag:'player', label:'Sable',
+               mx:['Vocal','Mobile','Persona','Contacts','Combatant','Organism'] },
+    cavern:  { id:'#5e77', tag:'place',  label:'the dripping hollow',
+               mx:['Container','Climbable','AmbientLit','Atmospheric'] },
+    lamp:    { id:'#8829', tag:'thing',  label:'guttering lamp',
+               mx:['Switchable','LightSource','Combustible','Containable','Tangible'] },
+  };
+
+  // state + permission gating, resolved for (id, viewer, now)
+  LIVE = {
+    anvil:   { off:{ take:'54.4 kg — too heavy to lift' }, add:{ forge:['manipulation','Smithing 2 — you have it'] } },
+    rune:    { off:{ read:'needs Old Tongue 1' }, add:{} },
+    conduit: { off:{ disconnect:'needs Engineering 2' }, add:{} },
+    door:    { off:{ open:'locked', close:'already closed',
+                     lock:'already locked', unlock:'no key on your ring' },
+               add:{ knock:['manipulation','anyone may knock'] } },
+    tomas:   { off:{}, add:{} },
+    sable:   { off:{ attack:'consent not given' }, add:{} },
+    cavern:  { off:{}, add:{ survey:['perception','you carry a theodolite'] } },
+    lamp:    { off:{ 'turn on':'already lit', ignite:'already burning' }, add:{} },
+  };
+
+  // union of what an object's composed mixins confer
+  affordancesOf(E){
+    const out=[];
+    out.push({ name:'look', cat:'perception' });
+    (E.mx||[]).forEach(m=>{
+      const a=this.AFFORDS[m]; if(!a) return;
+      Object.keys(a).forEach(verb=>{
+        if(!out.some(o=>o.name===verb)) out.push({ name:verb, cat:a[verb], from:m });
+      });
+    });
+    if(out.length===1) (this.TAG_DEFAULTS[E.tag]||[]).forEach(v=>{
+      if(!out.some(o=>o.name===v)) out.push({ name:v, cat:'perception' });
+    });
+    return out;
+  }
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const root=document.getElementById('kd-root');
+    if(!root || root===this._root) return;
+    if(this._root && this._onClick) this._root.removeEventListener('click', this._onClick);
+    this._root=root;
+    this._onClick=(e)=>{
+      const a=e.target.closest('[data-e]');
+      const stage=document.getElementById('kd-stage');
+      if(a && root.contains(a) && stage){
+        const id=a.getAttribute('data-e');
+        if(this.state.sel===id){ this.setState({sel:null}); return; }
+        const r=a.getBoundingClientRect(), s=stage.getBoundingClientRect();
+        clearTimeout(this._t);
+        this.setState({ sel:id, resolved:false,
+          ax:(r.left-s.left+r.width/2), ay:(r.top-s.top+r.height/2+stage.scrollTop),
+          sw:s.width, sh:s.height });
+        this._t=setTimeout(()=>this.setState({resolved:true}), 850);
+        return;
+      }
+      if(!e.target.closest('.radial') && this.state.sel) this.setState({sel:null});
+    };
+    root.addEventListener('click', this._onClick);
+  }
+  componentWillUnmount(){
+    if(this._root && this._onClick) this._root.removeEventListener('click', this._onClick);
+    clearTimeout(this._t);
+  }
+
+  renderVals(){
+    const id=this.state.sel, E=id?this.ENT[id]:null;
+    if(!E) return { idle:true, open:false, mx:0, my:0, tethered:false, tx:0, ty:0,
+      catN:[], catE:[], catS:[], catW:[], resolveRows:[], mxRows:[], mxCount:'',
+      pending:false, resolved:false, selLabel:'', selTag:'', selId:'', mml:'', lesson:'' };
+
+    const base = this.affordancesOf(E);
+    const gate = this.LIVE[id] || { off:{}, add:{} };
+    const resolved = this.state.resolved;
+
+    // phase 1: the mixin union. phase 2: state + permission applied.
+    let items = base.map(b=>({
+      name:b.name, cat:b.cat, from:b.from||'tag',
+      cls: resolved && gate.off[b.name] ? 'off' : '',
+      why: resolved ? (gate.off[b.name]||'') : '',
+    }));
+    if(resolved) Object.keys(gate.add).forEach(v=>{
+      items.push({ name:v, cat:gate.add[v][0], from:'resolve', cls:'new', why:gate.add[v][1] });
+    });
+
+    const pick=(c)=>items.filter(it=>it.cat===c);
+
+    // clamp the ring inside the stage; slots keep their angles
+    const PADX=210, PADT=180, PADB=130;
+    const cx=Math.max(PADX, Math.min(this.state.ax, this.state.sw-PADX));
+    const cy=Math.max(PADT, Math.min(this.state.ay, this.state.sh-PADB));
+    const dx=this.state.ax-cx, dy=this.state.ay-cy;
+
+    const rows = resolved ? items.map(it=>({
+      name:it.name,
+      color: it.cls==='off' ? 'var(--fg-mute)' : (it.cls==='new' ? 'var(--good)' : 'var(--fg)'),
+      note: it.cls==='off' ? 'unavailable · '+it.why
+          : (it.cls==='new' ? 'added · '+it.why : 'from '+it.from),
+    })) : [];
+
+    let lesson;
+    if(E.state==='locked') lesson='State decides this menu, not composition — unlock it and open becomes available; open it and the menu offers close instead. Composition is stable and rides in the markup; state is volatile and resolves live.';
+    else if(id==='conduit') lesson='Same tag and same geometry as the anvil, a different genre entirely. Nothing genre-specific is in the markup — the prose carries that, as it always did.';
+    else if(id==='sable') lesson='Persona and Contacts are what make this a player rather than an NPC. The affordance difference is a composition difference, already authored.';
+    else lesson='Every verb here traces to a mixin the author composed. No second taxonomy, and nothing to keep in sync.';
+
+    const mxRows=(E.mx||[]).map(m=>{
+      const a=this.AFFORDS[m];
+      return { name:m, verbs: a? Object.keys(a).join(', ') : 'affords nothing — but still teaches',
+               color: a? 'var(--accent)' : 'var(--fg-mute)' };
+    });
+
+    return {
+      idle:false, open:true,
+      mx:cx.toFixed(0), my:cy.toFixed(0),
+      tethered: Math.hypot(dx,dy)>6, tx:(260+dx).toFixed(0), ty:(260+dy).toFixed(0),
+      selLabel:E.label, selId:E.id, selTag:E.tag,
+      mxCount:(E.mx||[]).length+' mixins', mxRows,
+      mml: '<'+E.tag+' id="'+E.id+'" mx="'+(E.mx||[]).join(',')+'">'+E.label+'</'+E.tag+'>',
+      pending:!resolved, resolved,
+      catN:pick('perception'), catE:pick('manipulation'), catS:pick('movement'), catW:pick('social'),
+      resolveRows:rows, lesson,
+    };
+  }
+}
+</script>
+</body>
+</html>

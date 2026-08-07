@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:#040b17; }
+    body { -webkit-font-smoothing:antialiased; font-family:'Public Sans',system-ui,sans-serif; color:var(--fg); }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .card { border:1px solid var(--line); border-radius:3px; background:var(--surface); }
+    .pick { display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:9.5px;
+            letter-spacing:.09em; text-transform:uppercase; border-radius:2px; padding:2px 8px; }
+    .cell { width:10px; height:10px; border-radius:1px; }
+    .key { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--fg-dim); }
+    .sw { width:9px; height:9px; border-radius:1px; flex:none; }
+    .crow { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-soft); }
+    .crow:last-child { border-bottom:none; }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+  </style>
+</helmet>
+
+<div style="width:1420px; padding:44px 46px 70px; background:var(--ground);">
+
+  <div style="max-width:900px; margin-bottom:34px;">
+    <div class="m" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:11px;">Engagement · three candidates</div>
+    <h1 style="font-family:'Spectral',serif; font-weight:400; font-size:31px; line-height:1.16; margin:0 0 12px;">A reason to come back that isn't a streak.</h1>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--fg-dim); margin:0 0 9px; max-width:780px;">GitHub's grid works for a reason worth copying carefully: it is a <em>record of work</em>, not an attendance sheet. Nobody is rewarded for opening GitHub — they are shown what they built. It is compelling because it is honest, and it would be worthless if it counted logins.</p>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--fg-dim); margin:0; max-width:780px;">Which suits this game unusually well, because the game <strong style="color:var(--fg);">is about work</strong> — mining, nursing, law, smithing — and its progression model already says competence comes from doing the job. So the strongest candidate is not a new mechanic. It is rendering something you already record.</p>
+  </div>
+
+  <!-- ══════════ 1 · the practice record ══════════ -->
+  <div style="margin-bottom:28px;">
+    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:11px;">
+      <span class="pick" style="color:var(--accent-ink); background:var(--accent);">Recommended</span>
+      <span class="cap" style="font-size:17px;">1 · The practice record</span>
+      <span style="font-size:12.5px; color:var(--fg-dim);">a portrait of a career, not an attendance sheet</span>
+    </div>
+
+    <div class="card" style="padding:17px 19px;">
+      <div style="display:flex; gap:26px;">
+        <div style="flex:none;">
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:9px;">
+            <span class="m" style="font-size:19px; color:var(--fg);">{{ activeDays }}</span>
+            <span style="font-size:12px; color:var(--fg-dim);">days worked in the last {{ weekCount }} weeks</span>
+          </div>
+
+          <!-- one column per week, seven rows -->
+          <div style="display:flex; gap:3px; margin-bottom:9px;">
+            <sc-for list="{{ weeks }}" as="w" hint-placeholder-count="30">
+              <div style="display:flex; flex-direction:column; gap:3px;">
+                <sc-for list="{{ w.days }}" as="d" hint-placeholder-count="7">
+                  <span class="cell" style="background:{{ d.bg }};" title="{{ d.title }}"></span>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:13px; flex-wrap:wrap;">
+            <sc-for list="{{ tradeKey }}" as="t" hint-placeholder-count="4">
+              <span class="key"><span class="sw" style="background:{{ t.hue }};"></span>{{ t.name }}<span class="m" style="font-size:10px; color:var(--fg-mute);">{{ t.n }}</span></span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1; min-width:0; border-left:1px solid var(--line-soft); padding-left:22px;">
+          <p style="font-size:13px; line-height:1.6; color:var(--fg-dim); margin:0 0 12px;"><strong style="color:var(--fg);">Colour is the trade, not the intensity.</strong> That single change turns GitHub's grid into something this game can claim: a season of smithing reads as a band of ember, a fortnight covering the infirmary as teal. You can see a career change in it.</p>
+          <p style="font-size:13px; line-height:1.6; color:var(--fg-dim); margin:0 0 12px;">It also answers a real question a player has and nothing else on this screen answers — <em>what have I actually been doing?</em> — which is why it earns its space rather than decorating the roster.</p>
+          <div style="border-left:2px solid var(--accent); padding:2px 0 2px 13px;">
+            <p style="font-size:12.5px; line-height:1.55; color:var(--fg-dim); margin:0;">The hook is recognition, not obligation. Nothing punishes a gap — {{ gapNote }} is visible up there and costs nothing. A grid that shames you for a holiday is the version that gets closed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 2 · the standing curve ══════════ -->
+  <div style="margin-bottom:28px;">
+    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:11px;">
+      <span class="pick" style="color:var(--good); border:1px solid var(--good);">Pair with 1</span>
+      <span class="cap" style="font-size:17px;">2 · The standing curve</span>
+      <span style="font-size:12.5px; color:var(--fg-dim);">you already built the return-hook — this renders it</span>
+    </div>
+
+    <div class="card" style="padding:17px 19px;">
+      <div style="display:flex; gap:26px;">
+        <div style="flex:none; width:520px;">
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:11px;">
+            <span class="m" style="font-size:19px; color:{{ nowHue }};">{{ nowValue }}</span>
+            <span style="font-size:12px; color:var(--fg-dim);">Play standing · {{ nowTrend }}</span>
+          </div>
+          <svg viewBox="0 0 520 120" style="width:520px; height:120px; display:block;">
+            <line x1="0" y1="100" x2="520" y2="100" stroke="var(--line)" stroke-width="1"></line>
+            <line x1="0" y1="60" x2="520" y2="60" stroke="var(--line-soft)" stroke-width="1"></line>
+            <line x1="0" y1="20" x2="520" y2="20" stroke="var(--line-soft)" stroke-width="1"></line>
+            <path d="{{ curveFill }}" fill="color-mix(in oklab,var(--accent) 15%,transparent)" stroke="none"></path>
+            <path d="{{ curvePath }}" fill="none" stroke="var(--accent)" stroke-width="1.8"></path>
+            <sc-for list="{{ curveMarks }}" as="k" hint-placeholder-count="2">
+              <circle cx="{{ k.x }}" cy="{{ k.y }}" r="3.5" fill="{{ k.hue }}"></circle>
+            </sc-for>
+          </svg>
+          <div style="display:flex; justify-content:space-between; margin-top:4px;">
+            <span class="m" style="font-size:9px; color:var(--fg-mute);">12 weeks ago</span>
+            <span class="m" style="font-size:9px; color:var(--ember);">the fortnight you missed</span>
+            <span class="m" style="font-size:9px; color:var(--fg-mute);">now</span>
+          </div>
+        </div>
+
+        <div style="flex:1; min-width:0; border-left:1px solid var(--line-soft); padding-left:22px;">
+          <p style="font-size:13px; line-height:1.6; color:var(--fg-dim); margin:0 0 12px;"><strong style="color:var(--fg);">Standing is already a rate that decays.</strong> That is a return-hook you shipped without drawing it. Rendering the curve is more honest than inventing a streak, because the pressure it shows is real — the dip is a fortnight that actually happened.</p>
+          <p style="font-size:13px; line-height:1.6; color:var(--fg-dim); margin:0 0 12px;">And it recovers. The line coming back up is the part worth showing: the game does not hold a grudge, it just stops counting while nobody sees you.</p>
+          <div style="border-left:2px solid var(--ember); padding:2px 0 2px 13px;">
+            <p style="font-size:12.5px; line-height:1.55; color:var(--fg-dim); margin:0;">The risk is tone. Rendered as a falling line with a red number, this becomes a guilt meter. It should read as weather, not a bill — which argues for showing it on the character panel rather than the front door.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 3 · the chronicle ══════════ -->
+  <div style="margin-bottom:30px;">
+    <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:11px;">
+      <span class="pick" style="color:var(--fg-mute); border:1px solid var(--line);">Later</span>
+      <span class="cap" style="font-size:17px;">3 · The chronicle</span>
+      <span style="font-size:12.5px; color:var(--fg-dim);">what you did that the record kept</span>
+    </div>
+
+    <div class="card" style="padding:17px 19px;">
+      <div style="display:flex; gap:26px;">
+        <div style="flex:none; width:520px;">
+          <sc-for list="{{ chronicle }}" as="c" hint-placeholder-count="4">
+            <div class="crow">
+              <span class="m" style="font-size:8.5px; color:{{ c.hue }}; letter-spacing:.1em; flex:0 0 58px; padding-top:3px;">{{ c.kind }}</span>
+              <div style="flex:1; min-width:0;">
+                <div class="wp" style="font-size:14px; line-height:1.45; color:var(--fg);">{{ c.body }}</div>
+                <div class="m" style="font-size:9px; color:var(--fg-mute); margin-top:2px;">{{ c.when }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex:1; min-width:0; border-left:1px solid var(--line-soft); padding-left:22px;">
+          <p style="font-size:13px; line-height:1.6; color:var(--fg-dim); margin:0 0 12px;"><strong style="color:var(--fg);">A game with a public record can offer something no live-service game can:</strong> proof that a thing you did is still there. Not a badge the game minted for you — an entry in the Gazette, a measure you carried, a page still cited.</p>
+          <p style="font-size:13px; line-height:1.6; color:var(--fg-dim); margin:0 0 12px;">That is the deepest hook of the three and the slowest to pay off. It needs a world with history in it, so it is worth designing now and shipping once there is a year of record to draw on.</p>
+          <div style="border-left:2px solid var(--fg-mute); padding:2px 0 2px 13px;">
+            <p style="font-size:12.5px; line-height:1.55; color:var(--fg-dim); margin:0;">On day one this reads as an empty trophy case, which is worse than not having it. The practice record fills in from the first session; the chronicle needs the world to be old.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ what to avoid ══════════ -->
+  <div class="card" style="padding:16px 19px; border-color:var(--ember); max-width:1000px;">
+    <div class="m" style="font-size:8.5px; color:var(--ember); letter-spacing:.12em; margin-bottom:9px;">WHAT NOT TO BUILD</div>
+    <div style="display:flex; gap:26px;">
+      <div style="flex:1;">
+        <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">A login streak</div>
+        <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">Rewards opening the tab rather than doing anything, and a broken streak is a reason to stop entirely. It would also directly contradict standing, which measures what you did.</p>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">A season pass</div>
+        <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">Manufactured scarcity in a game whose premise is that its economy is real and its politics are earned. The tonal mismatch would be doing more damage than the retention is worth.</p>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">Minted achievements</div>
+        <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">The game already grants recognition that other people can see and dispute. A parallel private badge set would cheapen the real one.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1420,&quot;height&quot;:1180}}">
+class Component extends DCLogic {
+  // trades a character can practise; colour is the trade, never the intensity
+  TRADES={
+    smithing:['Smithing','#e8705c'],
+    haulage:['Haulage','#5b8fd6'],
+    medicine:['Field medicine','#4a9d8f'],
+    civics:['Civics','#c9a227'],
+  };
+
+  // deterministic so every figure below is reproducible from one array
+  build(){
+    const WEEKS=30, out=[];
+    let seed=1987;
+    const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+    const keys=Object.keys(this.TRADES);
+    for(let w=0; w<WEEKS; w++){
+      const days=[];
+      for(let d=0; d<7; d++){
+        // a career arc: haulage early, smithing through the middle, civics late
+        let trade;
+        const r=rnd();
+        if(w<7)       trade = r<0.62 ? 'haulage' : 'smithing';
+        else if(w<20) trade = r<0.74 ? 'smithing' : (r<0.9 ? 'medicine' : 'haulage');
+        else          trade = r<0.5 ? 'smithing' : (r<0.86 ? 'civics' : 'medicine');
+        // the gap: a real fortnight away, weeks 21-22
+        const away = (w===21||w===22);
+        const worked = !away && rnd()<0.63;
+        days.push(worked?trade:null);
+      }
+      out.push(days);
+    }
+    return out;
+  }
+
+  renderVals(){
+    const grid=this.build();
+    const flat=grid.flat();
+    const active=flat.filter(Boolean);
+
+    // every stated figure derives from `grid`
+    const counts={};
+    active.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+
+    const weeks=grid.map((days,wi)=>({
+      days:days.map((t,di)=>({
+        bg: t ? this.TRADES[t][1] : 'var(--sunken)',
+        title: t ? this.TRADES[t][0] : 'nothing that day',
+      })),
+    }));
+
+    const tradeKey=Object.keys(this.TRADES)
+      .filter(k=>counts[k])
+      .sort((a,b)=>counts[b]-counts[a])
+      .map(k=>({ name:this.TRADES[k][0], hue:this.TRADES[k][1], n:' '+counts[k] }));
+
+    // the gap, counted rather than asserted
+    let longestGap=0, run=0;
+    flat.forEach(t=>{ if(t){ run=0; } else { run++; if(run>longestGap) longestGap=run; } });
+
+    // ── the standing curve: rises with work, decays through the gap, recovers
+    const pts=[]; let v=0.34;
+    grid.forEach((days,wi)=>{
+      const worked=days.filter(Boolean).length;
+      v = worked ? Math.min(0.92, v + worked*0.022) : Math.max(0.05, v - 0.085);
+      v = Math.max(0.05, v - 0.012);            // the rate always leaks
+      pts.push({ x:(wi/(grid.length-1))*520, y:100-(v*80) });
+    });
+    const path=pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+    const fill=path+' L520 100 L0 100 Z';
+    const last=pts[pts.length-1], prev=pts[pts.length-2];
+    const trend = last.y < prev.y ? 'recovering' : 'slipping';
+
+    return {
+      weekCount:String(grid.length),
+      activeDays:String(active.length),
+      weeks, tradeKey,
+      gapNote: 'the '+longestGap+'-day gap',
+
+      curvePath:path, curveFill:fill,
+      curveMarks:[
+        { x:pts[21].x.toFixed(1), y:pts[21].y.toFixed(1), hue:'var(--ember)' },
+        { x:last.x.toFixed(1), y:last.y.toFixed(1), hue:'var(--accent)' },
+      ],
+      nowValue:Math.round(v*100)+'', nowTrend:trend,
+      nowHue: trend==='recovering' ? 'var(--good)' : 'var(--ember)',
+
+      chronicle:[
+        ['GAZETTE','var(--info)','Named in the record for the customs-house haul — the first three-way split the Gazette printed.','Harvestmoon 14'],
+        ['MEASURE','var(--accent)','Carried Measure 9 to a vote. It passed 61–39 and the review window is four days because of it.','Harvestmoon 2'],
+        ['WIKI','var(--good)','Wrote <em>Working iron</em>. Still the page cited when anyone asks about weld temperature.','Reapmonth 28'],
+        ['GUILD','var(--ember)','Admitted to the Smiths\u2019 Guild of Ashmill on Tomas\u2019s word.','Reapmonth 11'],
+      ].map(([kind,hue,body,when])=>({kind,hue,body,when})),
+    };
+  }
+}
+</script>
+</body>
+</html>
