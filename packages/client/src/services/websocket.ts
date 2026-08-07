@@ -168,9 +168,13 @@ class WebSocketClient {
       }
       useStore.getState().setCharGenState(payload as CharGenStatePayload);
     });
-    // The `clear` verb's signal frame — empty body (so it never renders
-    // a scrollback line), handled purely by emptying the buffer.
-    this.onTopic("shell.control", () => {
+    // `shell.control` is every "the server is changing your interface"
+    // frame — clear, layout, mode, style, command-schema deltas. One
+    // subject, one topic; which control it is rides a `control:` tag.
+    // ⚠ Discriminating matters: without it, `clear` would fire on every
+    // schema delta and wipe the player's scrollback.
+    this.onTopic("shell.control", (frame) => {
+      if (!frame.tags?.includes("control:clear")) return;
       useStore.getState().clearFrames();
     });
     // The "Who's Online" roster (`self.group`). Empty body

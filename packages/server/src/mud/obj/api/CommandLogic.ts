@@ -1400,23 +1400,22 @@ export class CommandLogic extends ApiLogic {
     payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
   ): void {
     if (!MixinApi.isSensor(recipient)) return;
-    const topic =
-      kind === 'added'
-        ? 'shell.control'
-        : kind === 'removed'
-          ? 'shell.control'
-          : 'shell.control';
-
     const meta: MessageFrame['meta'] = { timestamp: Date.now() };
     const ctx = ExecutionContextApi.getCurrentCommandContext();
     if (ctx?.commandId) meta.commandId = ctx.commandId;
     const causing = ExecutionContextApi.getCurrentCausingCommandId();
     if (causing) meta.causingCommandId = causing;
 
+    // ⭐ `shell.control` carries every "server changes your interface"
+    // frame — schema deltas, `clear`, layout, mode, style. They are one
+    // subject, so they are one topic; WHICH control it is rides a tag,
+    // the way a log line's level does. This used to be three topics
+    // (`system.commands.{added,removed,reset}`), which put the
+    // discriminator in the tree and minted three keys nobody authored.
     const frame: MessageFrame = {
       id: SecurityApi.uuid(),
-      topic,
-      tags: [],
+      topic: 'shell.control',
+      tags: ['control:schema', `schema:${kind}`],
       body: '',
       meta,
       payload,

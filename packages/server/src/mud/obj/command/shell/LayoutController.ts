@@ -99,6 +99,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
       .topic('shell.control')
+      .tags(['control:layout'])
       .toSelf(body)
       .send();
   }

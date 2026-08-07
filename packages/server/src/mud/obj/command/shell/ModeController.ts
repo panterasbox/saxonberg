@@ -107,6 +107,7 @@ export default class ModeController extends CommandController<ModeModel> {
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
       .topic('shell.control')
+      .tags(['control:mode'])
       .toSelf(body)
       .send();
   }

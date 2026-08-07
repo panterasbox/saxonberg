@@ -49,6 +49,7 @@ export default class AffordancesController extends CommandController {
   private tell(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
       .topic('shell.control')
+      .tags(['control:affordances'])
       .toSelf(body)
       .send();
   }

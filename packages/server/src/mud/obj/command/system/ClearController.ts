@@ -29,6 +29,7 @@ export default class ClearController extends CommandController {
   execute(_model: CommandModel, ctx: CommandContext): void {
     MessageApi.scene(ctx.commandGiver)
       .topic('shell.control')
+      .tags(['control:clear'])
       .toSelf(Mml.compose``)
       .send();
   }
