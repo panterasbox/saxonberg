@@ -166,6 +166,10 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **scrivener** | designed | **drafting judgment** | parties to an instrument — *a badly drafted clause executes exactly as written* |
 | **insurer** | **designed** ([insurance](./slates/builds/insurance-slate.md)) | capital + portfolio construction | premiums |
 | **barber / tailor** | **GAP** | skill | customers |
+| **steward** (household / land) | **designed** ([household](./slates/builds/household-design-pack.md)) | **Stewardship Discipline** (the causal read) + capacity | householders — **trade** or **wage**; ⭐ *the product is attention while you are elsewhere* |
+| *houseworker / cleaner* | — | *wage* | ⚠ **texture, not a vocation** — anyone can, and the mess freezes while you are away |
+| **nanny / carer** | ⛔ **BLOCKED** | — | **no dependents exist**, deliberately — see below |
+| ~~homemaker~~ | ⭐ **REJECTED 2026-08-06** | — | **universal demand meets universal self-service** — the register's second honest NO (below) |
 
 ### ⭐⭐ Four payment shapes, not two
 
@@ -327,6 +331,89 @@ transmitted is the capability itself. Worth remembering when designing
 its loop: everything else in this register sells an object or a service;
 this one sells what it knows.
 
+## ⭐⭐⭐ The homemaker — the register's second honest NO
+
+**(2026-08-06, from the [household pack](./slates/builds/household-design-pack.md).)**
+The stewardship pillar makes domestic work into real, measured play, which
+invites the obvious entry: *homemaker*. It does not survive the test, and
+watching **why** is more useful than the verdict.
+
+> **Universal demand meets universal self-service.** Criterion 1 wants
+> somebody who *cannot self-serve*; everyone needs their home tended and
+> everyone can tend it. Criterion 2 then finishes the job: **if anyone can
+> do it, it is a chore, not a job.**
+
+So decompose it — the parts land in five different places:
+
+| Part | Lands as |
+|---|---|
+| cooking | ✅ **already a vocation** — cook (shipped) |
+| cleaning, laundry, tidying **for wages** | ⚠ **texture** — the bottom rung; and it *freezes in absence*, so nobody needs you to do it while they are away |
+| reading the condition **band** | 🤖 **automated** — the record already knows it, and it is visible by design |
+| ⭐ the **causal** read — which producer binds, and what act clears it | ✅ **a real gate** (below) |
+| ⭐⭐ the **continuous** processes of a holding its owner is not in | ✅ **the strongest survivor** (below) |
+| child / dependent care | ⛔ **blocked** — no dependents exist (below) |
+
+### ⭐⭐ The register's own test nearly killed the survivor, and that is the interesting part
+
+The obvious rescue is *"the professional isn't better at scrubbing, they know
+what needs doing"* — an epistemic gate, which is exactly what the register
+predicts (*"if one side knows more, build a vocation"*). But the corollary
+bites immediately:
+
+> **Automate what the record already knows; make a vocation of what it does
+> not.**
+
+Property condition is a **derived read, deliberately visible** — you and a
+prospective landlord can both *see* it. So the diagnosis looks automated, and
+the vocation looks dead.
+
+**It survives on a distinction the pillar already draws.** What is visible is
+the **band**; what competence buys is the **causal** read — the Stewardship
+Discipline's own claim is *"better reads on what a holding needs, wider
+maintenance options, the ability to steward more before it slips."* Banding is
+presentation, not the mechanism. Knowing you are at `soiled` is free; knowing
+the damp is a failed seal rather than your housemates is not.
+
+### ⭐⭐⭐ And the strongest survivor is absence, which the archetypes hand over free
+
+The decisive one falls out of the [stewardship
+doctrine](./stewardship-doctrine.md)'s decay archetypes rather than from
+anything invented for this entry:
+
+> **Room condition FREEZES in absence. Spoilage RUNS over it.**
+
+An absent holder's home does not get dirty — but their **stores rot, their
+stock needs feeding, their perishables run their clock**. Somebody has to be
+there for the continuous processes while the owner is not, and that somebody
+cannot be the owner by definition.
+
+⚠ This matters because it clears the register's hardest brake — **NEVER INVENT
+A NEED TO CREATE A MARKET.** No new player obligation is introduced: spoilage's
+clock exists for its own reasons, and the demand is *incidental* to it. That is
+the innkeeper's honest justification in a different costume (*NPC schedules
+make the inn the place that stays open*), and it is why this entry is a **yes**
+where "someone should clean your house" is a no.
+
+**So one vocation survives, not a family: the steward.** Gate: the Discipline
+(the causal read) **plus capacity**. Ladder: your own home is not a job → a
+neighbour's stores while they travel → several holdings → the absent owner's
+estate. Failure modes are real and both are the gate's own shadow — misread
+the binding constraint, or over-commit capacity and let a client's stores
+spoil. *Estate manager* is the top rung of that ladder, never a separate row.
+
+### ⛔ The blocked part, and why it stays blocked
+
+**Nanny / carer fails on supply, not on demand.** The game has no dependents to
+care for and that is a deliberate design position, not a gap: a needs-bar child
+is the upkeep treadmill pointed at a person, and every clock available to it is
+wrong (freeze-in-absence makes the child furniture; run-over-absence makes it a
+starvation timer). The pedagogically valuable half of care — teaching someone,
+being answerable for their development — is reachable **now** through
+mentorship between adults, which the University, the transcript and the
+chronicle already support. Keep the row visible and blocked rather than
+deleting it; the reason is the useful part.
+
 ## Working notes
 
 - ⭐⭐⭐ **The fiscal cycle is the highest-leverage unbuilt system in the
@@ -357,6 +444,18 @@ this one sells what it knows.
   hardest case and it holds: **the ledger is cash, accounting is
   accrual** — *when* revenue was earned and *how* an asset is spread are
   judgments the record cannot contain.)
+- ⭐⭐⭐ **And its sibling, from the homemaker: universal demand plus
+  universal self-service is a CHORE, not a market.** The test generalizes
+  past domestic work — it is why barber, cook and launderer are thin
+  entries while appraiser and steward are not:
+
+  > **A vocation appears exactly where self-service becomes unavailable
+  > (you are ABSENT), uneconomic (you lack CAPACITY), or uninformed (you
+  > lack the READ) — never merely because the task is real.**
+
+  A third lens on criterion 2, and the one that catches the failure mode
+  the epistemic test misses: a task everybody genuinely needs, that
+  everybody can also just *do*.
 - ⭐⭐⭐⭐⭐ **The assessed-pays conflict is a CLASS, not a per-industry
   quirk.** Ratings, audits, insurance surveys, building inspections and
   appraisals all share it:
