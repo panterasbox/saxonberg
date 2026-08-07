@@ -30,13 +30,20 @@ args:
   - name: item
     type: object
     required: true
-    # ⚠ WANTS to be a wider scope so a rock on the GROUND resolves and
-    # `mustBeHeld` can teach "pick it up first" — that is the intended
-    # design. It does not work yet: `scope: "peers"` resolves a grounded
-    # item for `get` but binds nothing here, and the reason is not yet
-    # understood. Until it is, the verb is still AFFORDED from the ground
-    # (TangibleMixin.peers) so you get a real refusal rather than
-    # "unknown command", but the refusal is the controller's generic one.
+    # ⚠ WANTS a wider scope so a rock on the GROUND resolves and
+    # `mustBeHeld` can teach "pick it up first" — the intended design.
+    # BLOCKED, and narrowed by live-driving (see docs/subsystems/ranged.md
+    # § The grounded-argument gap):
+    #
+    #   held    + scope reachable → `throw implant` WORKS
+    #   grounded+ scope reachable → same command, binds NOTHING
+    #
+    # So it is not the two-arg split and not the scope vocabulary —
+    # `reachable` is the union that already includes `peers`, and
+    # perception passes (`look` lists the item). `get` resolves the SAME
+    # grounded item with `scope: "peers"`. Remaining suspects are narrow:
+    # `type: object` vs get's `objects`+greedy, or commandSource-scoped
+    # resolution when the verb arrives from a peers-bucket source.
     scope: "inventory"
     validators:
       # Mass is what makes a thing throwable — and it is the ½mv² input.
