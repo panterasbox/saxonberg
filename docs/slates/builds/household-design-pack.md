@@ -310,8 +310,8 @@ household read must not become two notification streams.
 
 Room condition is designed and **unbuilt**. When it lands:
 
-> **Care acts must ATTRIBUTE to the actor, not merely mutate the room.**
-> `clean` / `repair` emit an event carrying who performed it.
+> **Deposits and clears must both ATTRIBUTE to the actor, not merely mutate a
+> band** — `(actor, target, extent)` in both directions.
 
 Everything in this pack rests on it — the individual transcript (Part 2), the
 aggregate read (Part 3), and any contract clause over who kept the premises
@@ -319,9 +319,15 @@ aggregate read (Part 3), and any contract clause over who kept the premises
 include at build time and expensive to retrofit onto a producer that only
 mutates state.
 
-**This constraint belongs in the
-[room-condition pack](./room-condition-design-pack.md) regardless of whether
-this pack is ever built.**
+⚠ **Attributing only the clears is the trap**, and it is the easy mistake: it
+yields a record that knows who cleaned but not who made the mess — half a
+commons, and the half that flatters whoever tidies last.
+
+✅ **Landed 2026-08-06** in the [room-condition
+pack](./room-condition-design-pack.md) Part 1, together with the guard that
+keeps it from becoming a blame ledger — [accountability](../../subsystems/accountability.md)'s
+shape, reused: events carry their actor, **blame derives on read and is never
+stamped.**
 
 ---
 

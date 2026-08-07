@@ -63,6 +63,46 @@ and spoilage accelerant. There is deliberately **no field** (furnishing's call)
 and no "your house is overrun while you were away" — that would be exactly the
 tax-on-absence Part 2 forbids.
 
+### ⭐⭐⭐ Every deposit and every clear carries an ACTOR
+
+**(Constraint carried in from the [household
+pack](./household-design-pack.md), 2026-08-06 — the one thing that build asks
+of this one.)**
+
+The deposit-and-clear model above is stated as *state mutation*: an act soils
+the stove, another act cleans it. **That is not sufficient.** The build must
+emit, for both directions:
+
+> **`(actor, target, extent)` on every deposit and every clear** — not just a
+> mutated band.
+
+Half of this is obvious and half is not. **Clears** must be attributed or the
+individual half of stewardship has no evidence: the Discipline's transcript,
+the *"you got better at tending by tending"* claim, and any contract clause
+over who kept the premises all read the actor off these events. **Deposits**
+must be attributed too, and that is the part easy to skip — an unattributed
+deposit gives you a record that knows who cleaned but not who made the mess,
+which is exactly half a commons.
+
+⚠ **It is nearly free now and expensive later.** A producer that only mutates a
+band cannot be retrofitted with attribution without re-deriving history it
+never kept. This costs a field on an event at build time.
+
+### ⚠ And it must NOT become a blame ledger — the accountability shape, reused
+
+Attributing mess is one short step from a per-person scoreboard, which the
+household pack rules out flat (*aggregate, never report*). The corpus already
+solved this exact problem once, and the answer transfers verbatim:
+
+> **[accountability](../../subsystems/accountability.md)'s shape: events are
+> recorded with their actor; BLAME DERIVES ON READ and is never stamped.**
+
+So: record `(actor, target, extent)`; derive whatever a consumer legitimately
+needs (competence, a clause check, the household's aggregate condition); and
+**never** materialize a ranked per-occupant split. The single-occupant case is
+unaffected — it is your own record either way — and the multi-occupant case
+stays a commons rather than a leaderboard.
+
 ---
 
 ## Part 2 — ⭐⭐ The Law-2 line, and the doctrine correction
@@ -119,6 +159,7 @@ the driver, not the domain.
 | ✳ **`restQuality` aggregation** | `PosturedMixin.getRestQuality` reads bedding `Soilable` + room condition (furnishing's flagged seam) | **update** |
 | ✳ **Pest threshold** | a derived check on (debris + exposed food) → a pest consequence; no field | **new (derived)** |
 | ✳ **Disease resistance read** | occupant disease susceptibility reads home condition (Part 6) | **wire into `Resists.factor`** |
+| ⭐ **Actor-attributed deposit/clear events** | `(actor, target, extent)` emitted both directions; blame derives on read, never stamped (Part 1) | **new — required at build time, not retrofittable** |
 
 **4. Verbs & affordances (the stewardship gameplay).** `wash` / `wipe` /
 `bathe` / `sweep` / `clean` / `tidy` / `dispose` — **acts of care, "fought not
@@ -128,12 +169,16 @@ at. `dispose` hands debris to sanitation (a bin, or dumped → public litter).
 **5. Persisted fields.** The `Soilable` band per item/body; the room's debris
 level. **No clock stamp** (it's event-accumulated, not time-integrated) — they
 persist as plain state and are correct across dormancy *because they froze.*
+⭐ Plus the **attributed deposit/clear events** (Part 1) — an append-only log
+beside the bands, never a per-occupant tally.
 
 **6. Seams & dependencies.** Consumes acts from cooking (crafting), eating
 (metabolism), entering (movement + wetness), sleeping (posture). Feeds
 `restQuality` (furnishing), disease (routes + growth term), sanitation (debris),
-stewardship condition (the ladder). The **disease payoff** waits on the disease
-build; everything else is near-term.
+stewardship condition (the ladder), and — via the attributed events —
+[advancement](../../subsystems/advancement.md) (the Stewardship transcript) plus
+the [household](./household-design-pack.md) commons read. The **disease payoff**
+waits on the disease build; everything else is near-term.
 
 **7. Fault line.** A near-term build on shipped substrate (furnishing room-
 fields + the `Durable`/`Keen` mixin precedent). Its *disease* half waits on the
@@ -251,3 +296,10 @@ spoilage's growth term. So the sequence is: **spoilage → room condition
    disease, gnaw goods) and the exact debris+food trigger. Content calibration.
 5. **Does the civic/mirror layer read room condition individually or in
    aggregate** — the Part-5-of-the-fridge-pack social-credit line, here too.
+6. ⭐ **Where the attributed deposit/clear events land** (Part 1). Candidates:
+   `transcripts` (the natural home for the *competence* half — clears are
+   advancement evidence), `participation_events`, or a producer-local log.
+   Deposits fit none of them cleanly, since they are evidence of *living there*
+   rather than of skill. *Unresolved, and it is a collection choice, not a
+   design one* — the constraint that binds the build is the event **shape**
+   (`actor, target, extent`, both directions), not its destination.
