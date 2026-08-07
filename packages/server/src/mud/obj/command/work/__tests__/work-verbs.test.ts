@@ -3,7 +3,7 @@
  * subcommand) + FulfillController (self-afforded, travels with the
  * courier), driven as the dispatcher would (actor from context) over the
  * real ContractApi/BankingApi and the shared in-memory harness. Also pins
- * the affordance split (board affords `job`; the wallet update affords
+ * the affordance split (board affords `job` to peers; the wallet update affords
  * `fulfill`) and the help text on both YAML views.
  */
 
@@ -300,9 +300,9 @@ describe("work verbs", () => {
   });
 
   it("affordance split: the board affords job; the wallet affords fulfill", () => {
-    expect(JobBoard.commandContributions.environment).toContain(
-      "work/job.yaml",
-    );
+    // A board standing in the room grants `job` SIDEWAYS to the people
+    // in it — `peers` under the directional model.
+    expect(JobBoard.commandContributions.peers).toContain("work/job.yaml");
     expect(JobBoard.commandContributions.self).not.toContain(
       "work/fulfill.yaml",
     );

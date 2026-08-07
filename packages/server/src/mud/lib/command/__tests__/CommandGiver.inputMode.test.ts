@@ -29,10 +29,9 @@ class TestGiver extends HasInteractiveMixin(
 ) {
   static _mixinName = 'TestGiver';
   static override commandContributions = {
+      peers: [],
     self: [],
     environment: [],
-    inventory: [],
-    peers: [],
   };
 
   public received: MessageFrame[] = [];

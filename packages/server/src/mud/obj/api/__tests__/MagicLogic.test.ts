@@ -18,6 +18,9 @@ import { dirname, join } from "path";
 import YAML from "yaml";
 import { MagicApi } from "../../../api/magic";
 import { AdvancementApi } from "../../../api/advancement";
+import { AppApi } from "../../../api/app";
+import { AppSettingKeys } from "../../../lib/config/AppSettings";
+import { ContainmentApi } from "../../../api/containment";
 import { AccountabilityApi } from "../../../api/accountability";
 import { StuffApi } from "../../../api/stuff";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -361,7 +364,6 @@ describe("MagicLogic — the cast pipeline", () => {
     stubBands("competent");
     const { default: Location } = await import("../../../lib/stuff/Location");
     class WardRoom extends Location {}
-    const { ContainmentApi } = await import("../../../api/containment");
     const warded = makeStuff(() => new WardRoom());
     warded.setSuppressesMagic({ nouns: ["fire"] });
     const caster = makeCaster();
@@ -378,6 +380,51 @@ describe("MagicLogic — the cast pipeline", () => {
     // the blanket ward blocks everything
     warded.setSuppressesMagic({ all: true });
     expect((await MagicApi.prepareCast(caster, "glowlight")).ok).toBe(false);
+  });
+
+  /**
+   * ⚠ The band gate shipped with the ranged build CODE-COMPLETE AND
+   * TEST-FREE — found in the pre-merge sweep. A gate nobody exercises
+   * rots into either a silent no-op or a silent refusal, and the second
+   * fact below is the one that matters: the seeded default must refuse
+   * NOTHING, or every shipped spell quietly shrinks.
+   */
+  it("a working refuses a target further out than its envelope reaches", async () => {
+    stubBands("competent");
+    const { default: Location } = await import("../../../lib/stuff/Location");
+    class WideRoom extends Location {
+      public override getLinearExtent(): number {
+        return 30; // an authored open cell — the arena affords `far`
+      }
+    }
+    const yard = makeStuff(() => new WideRoom());
+    const caster = makeCaster();
+    const victim = makeBystander(true);
+    ContainmentApi.move(caster as never, yard as never);
+    ContainmentApi.move(victim as never, yard as never);
+    installDreadSeed();
+
+    // Narrow the envelope to arm's length. The pair has no combat edge,
+    // so the band is the ARENA maximum — `far` in a 30 m yard.
+    const spy = vi
+      .spyOn(AppApi, "setting")
+      .mockImplementation((key: string) =>
+        key === AppSettingKeys.magicSpellEnvelope
+          ? "close"
+          : (undefined as never),
+      );
+    const near = await MagicApi.resolveCast(caster, "dread", victim);
+    expect(near.reports.join(" ")).toMatch(/too far off/i);
+
+    // …and the seeded default reaches anywhere in the scene, which is
+    // what keeps the gate inert for every spell that shipped before it.
+    spy.mockImplementation((key: string) =>
+      key === AppSettingKeys.magicSpellEnvelope
+        ? "far"
+        : (undefined as never),
+    );
+    const far = await MagicApi.resolveCast(caster, "dread", victim);
+    expect(far.reports.join(" ")).not.toMatch(/too far off/i);
   });
 
   it("the spells view speaks bands, never numbers", async () => {

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+      --paper:#f2ebdc; --paper-line:#d8cdb4;
+      --deskfg:#f2f5fa; --deskdim:#9fb0cc;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:#040b17; }
+    body { -webkit-font-smoothing:antialiased; font-family:'Public Sans',system-ui,sans-serif; color:var(--deskfg); }
+    ::-webkit-scrollbar { width:0; height:0; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .refbadge { display:inline-flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace;
+                font-weight:600; font-size:13px; color:var(--white); background:var(--red);
+                border:1px solid var(--white); border-radius:3px; padding:3px 10px; }
+    .screen { width:100%; height:100%; display:flex; flex-direction:column; background:var(--ground); color:var(--fg);
+              font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;
+              padding-top:62px; padding-bottom:34px; }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .iconbtn { display:flex; align-items:center; justify-content:center; width:44px; height:44px; flex:none;
+               border:1px solid var(--line); border-radius:3px; color:var(--fg-dim); font-size:15px; }
+    /* feed switcher — routing destinations you can only see one of */
+    .fchip { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 12px; flex:none;
+             border:1px solid var(--line); border-radius:3px; font-size:12.5px; color:var(--fg-dim); white-space:nowrap; }
+    .fchip.on { border-color:var(--accent); background:var(--raised); color:var(--fg); }
+    .fchip .b { font-family:'IBM Plex Mono',monospace; font-size:9px; border-radius:9px; padding:0 5px;
+                background:var(--red); border:1px solid var(--white); color:var(--white); }
+    .fchip .c { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); }
+    /* text frames */
+    .fr { padding:9px 0; border-bottom:1px solid var(--line-soft); }
+    .fk { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; }
+    .ft { font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:var(--fg-mute); margin-left:auto; }
+    .fb { font-family:'Newsreader',Georgia,serif; font-size:16px; line-height:1.58; }
+    .fb.mo { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--fg-dim); }
+    .tap { color:var(--accent); background:color-mix(in oklab,var(--accent) 14%,transparent);
+           border-bottom:1px solid color-mix(in oklab,var(--accent) 70%,transparent); border-radius:2px; padding:1px 4px; }
+    /* a pane is a frame with a structured payload — inline, not in a second column */
+    .pane { border:1px solid var(--line); border-radius:3px; background:var(--surface); margin:9px 0; overflow:hidden; }
+    .pane.live { border-color:color-mix(in oklab,var(--accent) 45%,var(--line)); }
+    .ph { display:flex; align-items:center; gap:8px; padding:8px 11px; background:var(--sunken); border-bottom:1px solid var(--line); }
+    .pt { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; }
+    .prow { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+    .prow:last-child { border-bottom:none; }
+    .pk { font-size:12px; color:var(--fg-dim); }
+    .pv { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--fg); }
+    .sig { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 40%,transparent); border-radius:2px; padding:1px 5px; }
+    /* pinned strip — collapsed, always reachable */
+    .pinchip { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 11px; flex:none;
+               border:1px solid var(--red); border-radius:3px; background:var(--raised); font-size:11.5px; color:var(--fg); white-space:nowrap; }
+    .seg { display:inline-flex; align-items:center; min-height:44px; font-family:'IBM Plex Mono',monospace;
+           font-size:12.5px; color:var(--fg-dim); padding:0 8px; border-radius:2px; }
+    .seg.tip { color:var(--accent); background:color-mix(in oklab,var(--accent) 13%,transparent); }
+    .cmdrow { display:flex; align-items:baseline; gap:8px; min-height:44px; padding:7px 11px;
+              background:var(--sunken); border:1px solid var(--line); border-radius:3px; }
+    .cmdrow.sel { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+    .cmdrow.off { opacity:.42; border-style:dashed; }
+    .cmdverb { font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:var(--accent); }
+    .cmdarg { font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--fg); }
+    .cmdnote { font-size:11px; color:var(--fg-mute); margin-left:auto; text-align:right; }
+    /* sticky footers bleed into the bottom safe area so their surface reaches the
+       device edge, while their content stays clear of the home indicator */
+    .foot { flex:none; margin-bottom:-34px; padding-bottom:42px; border-top:1px solid var(--line); }
+    .bigm { width:100%; min-height:48px; display:flex; align-items:center; justify-content:center; gap:8px;
+            font-family:'Public Sans',sans-serif; font-size:15px; font-weight:600; color:var(--white);
+            background:var(--red); border:1px solid var(--white); border-radius:3px; }
+    .qchip { display:inline-flex; align-items:center; gap:7px; min-height:44px; padding:0 12px; flex:none;
+             border:1px solid var(--line); border-radius:3px; font-size:12px; color:var(--fg-dim); white-space:nowrap; }
+    .qchip.fg { border-color:var(--accent); background:var(--raised); color:var(--fg); }
+    .rule { display:flex; align-items:center; gap:8px; padding:9px 11px; border:1px solid var(--line);
+            border-radius:3px; background:var(--surface); margin-bottom:6px; }
+    .rule.fixed { border-style:dashed; }
+    .op { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.08em; text-transform:uppercase;
+          border-radius:2px; padding:1px 5px; flex:none; }
+  </style>
+</helmet>
+
+<section style="padding:54px 58px 80px; min-width:max-content;">
+
+  <div style="max-width:900px; margin-bottom:36px;">
+    <div class="m" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:11px;">Turn 3 · mobile catches up</div>
+    <h1 style="font-family:'Spectral',serif; font-weight:400; font-size:32px; line-height:1.16; margin:0 0 12px;">One column, everything desktop learned.</h1>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0 0 9px; max-width:760px;">Desktop spends horizontal space on parallelism — two feeds, a pane rail, several routed terminals at once. A phone has none of it, so every parallel thing has to become either sequential or switchable.</p>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0; max-width:760px;">The rule that decides which: <strong style="color:var(--deskfg);">interleave what is causally related, switch what is independent.</strong> Panes are caused by what you just did, so they belong inline in the feed. Routed feeds are independent streams, so they get a switcher. Prompts are demands on you, so they keep a slot and are never hidden.</p>
+  </div>
+
+  <div style="display:flex; gap:40px; align-items:flex-start;">
+
+    <!-- ══════ 3A · the interleaved feed ══════ -->
+    <div id="3a" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">3A</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">The feed, with panes inline</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Desktop's second column becomes cards in the first.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:6px 16px 9px;">
+            <div style="flex:1; min-width:0;">
+              <div class="cap" style="font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">The Cartwright's Yard</div>
+              <div style="display:flex; align-items:center; gap:6px;" class="m">
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--good);flex:none;"></span>
+                <span style="font-size:9.5px; color:var(--fg-mute);">connected · 2 here</span>
+              </div>
+            </div>
+            <span class="iconbtn" style="position:relative;">☰<span style="position:absolute; top:-3px; right:-4px; min-width:16px; height:16px; border-radius:8px; background:var(--red); border:1px solid var(--white); color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:9px; display:flex; align-items:center; justify-content:center;">3</span></span>
+          </div>
+
+          <!-- routed destinations: you can only watch one -->
+          <div style="flex:none; display:flex; gap:6px; overflow-x:auto; padding:0 16px 9px; border-bottom:1px solid var(--line);">
+            <span class="fchip on">World<span class="c">1077</span></span>
+            <span class="fchip">Attention<span class="b">2</span></span>
+            <span class="fchip">Channels<span class="b">12</span></span>
+            <span class="fchip">Diag<span class="c">118</span></span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:0 16px;">
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:#c98a3f;">Room</span><span class="ft">18:41</span></div>
+              <div class="fb">The <span class="tap">forge</span> has gone cold. A <span class="tap">cast-iron anvil</span> squats on its stump.</div>
+            </div>
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:var(--accent);">You</span><span class="ft">18:42</span></div>
+              <div class="fb mo">analyze forge</div>
+            </div>
+
+            <!-- the pane, inline: caused by the command above it -->
+            <div class="pane live">
+              <div class="ph">
+                <span class="pt" style="color:var(--warn);">Instrument</span>
+                <span style="font-family:'Spectral',serif; font-size:12.5px; flex:1;">the forge</span>
+                <span style="font-size:13px; color:var(--fg-mute);">⚲</span>
+              </div>
+              <div style="padding:11px;">
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:9px;">
+                  <span class="sig">Furnace</span><span class="sig">Thermal</span><span class="sig">Combustible</span>
+                  <span class="m" style="font-size:9.5px; color:var(--fg-mute); border:1px dashed var(--line); border-radius:2px; padding:1px 5px;">+8</span>
+                </div>
+                <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:7px;">
+                  <span class="m" style="font-size:22px; color:var(--warn);">1240</span>
+                  <span style="font-size:11px; color:var(--fg-mute);">°C</span>
+                  <span class="m" style="margin-left:auto; font-size:10.5px; color:var(--good);">in window</span>
+                </div>
+                <div style="height:5px; background:var(--sunken); position:relative; overflow:hidden;">
+                  <div style="position:absolute; left:63%; right:16%; top:0; bottom:0; background:color-mix(in oklab,var(--good) 45%,transparent);"></div>
+                  <div style="position:absolute; left:0; width:70%; top:0; bottom:0; background:linear-gradient(90deg,transparent,var(--warn));"></div>
+                </div>
+                <div class="m" style="font-size:9px; color:var(--fg-mute); margin-top:4px;">working 1150–1300 · via pyrometer</div>
+              </div>
+            </div>
+
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:#4a9d8f;">Say</span><span class="ft">18:43</span></div>
+              <div class="fb"><span class="tap">Tomas</span>: “Get it to working heat and it'll take the weld.”</div>
+            </div>
+          </div>
+
+          <!-- pinned panes collapse to a strip rather than competing for the feed -->
+          <div style="flex:none; display:flex; align-items:center; gap:6px; padding:7px 16px; border-top:1px solid var(--line); background:var(--surface); overflow-x:auto;">
+            <span class="lbl" style="font-size:8.5px; flex:none;">pinned</span>
+            <span class="pinchip">⚲ The Yard</span>
+            <span class="pinchip">⚲ your pack</span>
+          </div>
+
+          <div class="foot" style="padding:7px 16px 0; background:var(--sunken);">
+            <div style="display:flex; align-items:center; gap:5px; margin-bottom:7px;">
+              <span class="lbl" style="font-size:8.5px;">focus</span>
+              <span class="seg">here</span><span class="m" style="font-size:10px; color:var(--fg-mute);">›</span><span class="seg tip">forge</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="m" style="font-size:12.5px; color:var(--accent); flex:none;">›</span>
+              <div style="flex:1; display:flex; align-items:center; gap:6px; height:44px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+                <span class="m" style="font-size:13px; color:var(--fg-mute);">tap a word, or type</span>
+                <span style="width:8px;height:15px;background:var(--accent);border-radius:1px; margin-left:auto;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 3B · attention escalation ══════ -->
+    <div id="3b" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">3B</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">When it lands elsewhere</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">A badge is not enough when you can see one feed.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:6px 16px 9px;">
+            <div style="flex:1; min-width:0;">
+              <div class="cap" style="font-size:13.5px;">The Cartwright's Yard</div>
+              <div class="m" style="font-size:9.5px; color:var(--fg-mute);">connected · 2 here</div>
+            </div>
+            <span class="iconbtn">☰</span>
+          </div>
+
+          <div style="flex:none; display:flex; gap:6px; overflow-x:auto; padding:0 16px 9px; border-bottom:1px solid var(--line);">
+            <span class="fchip on">World<span class="c">1077</span></span>
+            <span class="fchip" style="border-color:var(--red);">Attention<span class="b">3</span></span>
+            <span class="fchip">Channels<span class="b">12</span></span>
+            <span class="fchip">Diag<span class="c">118</span></span>
+          </div>
+
+          <!-- the peek: a direct frame routed away still gets one line here -->
+          <div style="flex:none; margin:9px 16px 0; border:1px solid var(--red); border-radius:3px; background:var(--surface); overflow:hidden;">
+            <div style="height:3px; background:var(--red);"></div>
+            <div style="padding:9px 11px;">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
+                <span class="m" style="font-size:8.5px; color:var(--red); letter-spacing:.12em;">ATTENTION</span>
+                <span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">just now</span>
+              </div>
+              <div class="fb" style="font-size:14.5px; margin-bottom:8px;"><span class="tap">Bramble</span> tells you, “Customs house — they're moving the crates tonight.”</div>
+              <div style="display:flex; gap:6px;">
+                <span class="qchip">open Attention</span>
+                <span class="qchip">reply here</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:0 16px;">
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:#e8705c;">Work</span><span class="ft">18:44</span></div>
+              <div class="fb">The weld takes. The axle rings true when struck.</div>
+            </div>
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:#4a9d8f;">Say</span><span class="ft">18:44</span></div>
+              <div class="fb"><span class="tap">Tomas</span>: “That'll hold to the ford and back.”</div>
+            </div>
+          </div>
+
+          <div class="foot" style="padding:10px 16px 0; background:var(--sunken);">
+            <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin:0 0 8px;">On desktop you watch four feeds at once. Here you watch one — so routing a <span class="m" style="font-size:11px;">direct</span> or <span class="m" style="font-size:11px;">consequence</span> frame out of view has to leave something behind.</p>
+            <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Which is why the copy-to-Attention rule stops being optional on a phone. It is the rule that makes one-feed-at-a-time survivable.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 3C · the prompt slot ══════ -->
+    <div id="3c" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">3C</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">Prompts owe you an answer</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">The queue survives the collapse; provenance matters more.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:6px 16px 9px;">
+            <div style="flex:1; min-width:0;">
+              <div class="cap" style="font-size:13.5px;">The Cartwright's Yard</div>
+              <div class="m" style="font-size:9.5px; color:var(--fg-mute);">connected · 2 here</div>
+            </div>
+            <span class="iconbtn">☰</span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:0 16px;">
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:var(--accent);">You</span><span class="ft">18:45</span></div>
+              <div class="fb mo">true rim</div>
+            </div>
+            <div class="fr" style="border-left:2px solid var(--info); margin:0 -16px; padding:9px 16px; background:color-mix(in oklab,var(--info) 9%,transparent);">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;"><span class="fk" style="color:var(--info);">Prompt</span><span class="ft">18:45</span></div>
+              <div class="fb">Three rims match. Tomas can only set the jig once.</div>
+              <div class="m" style="font-size:9px; color:var(--info); margin-top:5px;">tied to the prompt below · 7f3a</div>
+            </div>
+          </div>
+
+          <!-- the slot: one prompt holds input, the rest wait above it -->
+          <div class="foot" style="padding-bottom:42px; background:var(--sunken);">
+            <div style="display:flex; align-items:center; gap:6px; padding:8px 16px; overflow-x:auto; border-bottom:1px solid var(--line-soft); background:var(--surface);">
+              <span class="lbl" style="font-size:8.5px; flex:none;">waiting</span>
+              <span class="qchip fg">Tomas asks<span class="m" style="font-size:9px; color:var(--accent);">true rim</span></span>
+              <span class="qchip">Guild vote<span class="m" style="font-size:9px; color:var(--fg-mute);">22m</span></span>
+            </div>
+
+            <div style="padding:10px 16px 12px;">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+                <span class="m" style="font-size:8.5px; color:var(--ember); border:1px solid var(--ember); border-radius:2px; padding:1px 6px;">CHOICE</span>
+                <span style="font-family:'Newsreader',Georgia,serif; font-size:15px;">Which first?</span>
+                <span class="m" style="font-size:11px; color:var(--fg-mute); margin-left:auto;">✕</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:7px; padding:6px 9px; margin-bottom:9px; border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:2px; background:var(--surface);">
+                <span class="lbl" style="font-size:8px;">asked by</span>
+                <span class="m" style="font-size:11.5px; color:var(--accent);">true rim</span>
+                <span class="m" style="font-size:9px; color:var(--fg-mute); margin-left:auto;">4m</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+                <div class="cmdrow sel"><span class="cmdverb">reply</span><span class="cmdarg">oak</span><span class="cmdnote">sound, needs truing</span></div>
+                <div class="cmdrow"><span class="cmdverb">reply</span><span class="cmdarg">iron-shod</span><span class="cmdnote">heavier</span></div>
+                <div class="cmdrow off"><span class="cmdverb">reply</span><span class="cmdarg">cracked</span><span class="cmdnote">jig won't hold it</span></div>
+              </div>
+
+              <div class="bigm">reply oak</div>
+              <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:8px 0 0;">Cancelling abandons <span class="m" style="font-size:11px;">true rim</span> — not just this card.</p>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 3D · routing on a phone ══════ -->
+    <div id="3d" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">3D</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">Routing is a settings screen</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Same rules, fewer destinations, one non-negotiable.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:6px 16px 10px; border-bottom:1px solid var(--line);">
+            <span class="m" style="font-size:15px; color:var(--fg-dim); flex:none;">‹</span>
+            <div style="flex:1;">
+              <div class="cap" style="font-size:13.5px;">Feeds</div>
+              <div class="m" style="font-size:9.5px; color:var(--fg-mute);">first match wins · order matters</div>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:12px 16px;">
+            <div class="rule">
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">1</span>
+              <span class="op" style="color:var(--accent); border:1px solid var(--accent);">move</span>
+              <div style="flex:1; min-width:0;">
+                <div class="m" style="font-size:11.5px; color:var(--fg);">weight = diagnostic</div>
+                <div style="font-size:10.5px; color:var(--fg-mute);">→ Diag</div>
+              </div>
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">118</span>
+            </div>
+            <div class="rule">
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">2</span>
+              <span class="op" style="color:var(--accent); border:1px solid var(--accent);">move</span>
+              <div style="flex:1; min-width:0;">
+                <div class="m" style="font-size:11.5px; color:var(--fg);">topic = world.chat.*</div>
+                <div style="font-size:10.5px; color:var(--fg-mute);">→ Channels</div>
+              </div>
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">43</span>
+            </div>
+            <div class="rule" style="border-color:var(--red); box-shadow:inset 3px 0 0 var(--red);">
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">3</span>
+              <span class="op" style="color:var(--info); border:1px solid var(--info);">copy</span>
+              <div style="flex:1; min-width:0;">
+                <div class="m" style="font-size:11.5px; color:var(--fg);">address = direct</div>
+                <div style="font-size:10.5px; color:var(--fg-mute);">→ Attention</div>
+              </div>
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">2</span>
+            </div>
+            <div class="rule fixed">
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">4</span>
+              <span class="op" style="color:var(--fg-mute); border:1px solid var(--line);">move</span>
+              <div style="flex:1; min-width:0;">
+                <div class="m" style="font-size:11.5px; color:var(--fg-dim);">everything else</div>
+                <div style="font-size:10.5px; color:var(--fg-mute);">→ World · cannot be removed</div>
+              </div>
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">1077</span>
+            </div>
+
+            <div style="border:1px solid var(--line); border-left:2px solid var(--red); border-radius:2px; padding:11px 12px; margin-top:12px;">
+              <div class="m" style="font-size:8.5px; color:var(--red); letter-spacing:.12em; margin-bottom:6px;">RULE 3 IS DIFFERENT HERE</div>
+              <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin:0 0 7px;">On desktop the copy-to-Attention rule is a convenience — the frame is visible in World anyway. On a phone it is the safety net, because World may not be the feed you are looking at.</p>
+              <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">So it ships on by default, and turning it off should say what it costs.</p>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+              <span class="qchip">＋ add a rule</span>
+              <span class="qchip">from a frame…</span>
+            </div>
+            <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:9px 0 0;">“From a frame” opens the envelope picker — the same gesture as desktop, since tapping fields is easier than typing a predicate on glass.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1900,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  renderVals(){ return { isDark:true }; }
+}
+</script>
+</body>
+</html>

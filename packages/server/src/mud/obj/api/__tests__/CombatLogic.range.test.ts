@@ -778,10 +778,12 @@ describe("throw — the affordance actually reaches a player (the binder gap)", 
    */
   it("the THING WITH MASS confers `throw` on whoever holds it", async () => {
     const { TangibleMixin } = await import("../../../lib/material/Tangible");
+    // `environment` = grants OUTWARD to my container chain. A rock in
+    // your hand — or in a bag in your pack — hands you `throw`.
     const composed = TangibleMixin(Idea) as unknown as {
-      commandContributions: { inventory: string[] };
+      commandContributions: { environment: string[] };
     };
-    expect(composed.commandContributions.inventory).toContain(
+    expect(composed.commandContributions.environment).toContain(
       "inventory/throw.yaml",
     );
   });
@@ -792,12 +794,12 @@ describe("throw — the affordance actually reaches a player (the binder gap)", 
     // hold can be thrown, and it would offer the verb to rooms.
     const { ContainerMixin: CM } = await import("../../../lib/spatial/Container");
     const composed = CM(Idea) as unknown as {
-      commandContributions: { self: string[]; inventory?: string[] };
+      commandContributions: { self: string[]; environment?: string[] };
     };
     expect(composed.commandContributions.self).not.toContain(
       "inventory/throw.yaml",
     );
-    expect(composed.commandContributions.inventory ?? []).not.toContain(
+    expect(composed.commandContributions.environment ?? []).not.toContain(
       "inventory/throw.yaml",
     );
   });

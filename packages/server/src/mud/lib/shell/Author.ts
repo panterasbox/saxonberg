@@ -129,9 +129,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // stays in `GitLogic`.
         'system/git.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
   }
   return AuthorMixin;

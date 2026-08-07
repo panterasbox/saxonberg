@@ -31,10 +31,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   protected override handleMessage(_frame: unknown): void {
     // discard
@@ -44,10 +43,9 @@ class TestGiver extends TestGiverBase {
 const InvProviderBase = ContainableMixin(Idea);
 class InvProvider extends InvProviderBase {
   static commandContributions = {
+      peers: [],
     self: [],
-    environment: [],
-    inventory: ['system/ping.yaml'],
-    peers: [],
+    environment: ['system/ping.yaml'],
   };
 }
 
@@ -110,14 +108,17 @@ describe('CommandGiverMixin.getAffordances', () => {
     }
   });
 
-  it('attributes an inventory-afforded command to the granting item', () => {
+  it('attributes a held item\'s command to the granting item', () => {
     const giver = makeStuff(() => new TestGiver()) as Giver;
     giver.getAffordances(); // seed self
     const item = makeStuff(() => new InvProvider());
     moveInto(item, giver);
 
     const affs = giver.getAffordances();
-    const invAff = affs.find((a) => a.bucket === 'inventory');
+    // A held item grants OUTWARD to its holder — the `environment`
+    // bucket under the directional model, not `inventory` (which now
+    // means "to what is inside me").
+    const invAff = affs.find((a) => a.bucket === 'environment');
     expect(invAff).toBeDefined();
     expect(invAff!.source).toBe(item);
     expect(invAff!.command.hasVerb('ping')).toBe(true);

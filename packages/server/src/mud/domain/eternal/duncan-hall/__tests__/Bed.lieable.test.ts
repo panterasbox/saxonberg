@@ -98,8 +98,8 @@ describe("the dorm fixtures earn their classes", () => {
     //    afford its own verbs — a co-located sibling does (the
     //    Menu-in-the-room precedent), so the desk is the carrier.
     expect(
-      (Desk as unknown as { commandContributions: { environment: string[] } })
-        .commandContributions.environment,
+      (Desk as unknown as { commandContributions: { peers: string[] } })
+        .commandContributions.peers,
     ).toContain("domain/eternal/duncan-hall/cmd/remodel.yaml");
     // 2. DormThemes.roleOf discriminates on `instanceof` to pick which
     //    theme prose slot a fixture fills.

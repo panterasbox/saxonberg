@@ -183,7 +183,7 @@ and be evil.
 aesthetic *carries the argument we want interrogated*: consent,
 minimum force, prevention over detection, deliberately identifiable
 rather than secret. The credential-locked sidearm as an **escalation
-rather than a default** (per [ranged-slate](./ranged-slate.md)) is
+rather than a default** (per [ranged-slate](../tails/ranged-slate.md)) is
 the same design, on the street.
 
 **"Everything in between" is the Tiebout axis** — other modes become
@@ -383,7 +383,7 @@ undramatic. Here it would be an office with a name and a record.
   ([prison-slate](./prison-slate.md)).
 - **Consent is geographic** — the city is policed, the wilds are
   not; danger is authored geography
-  ([ranged-slate](./ranged-slate.md)).
+  ([ranged-slate](../tails/ranged-slate.md)).
 - **"Wanted" is belief, never a flag** — see below.
 
 ## Open questions (for requirements)
@@ -600,7 +600,7 @@ how powerful you are.
 **The whistle is the mechanic, and it is already shipped** — the
 Audible push (the University Avenue referee whistle, ~110 dB,
 carrying rooms away with directional arrival), now with the
-distance-honest falloff from the [ranged slate](./ranged-slate.md).
+distance-honest falloff from the [ranged slate](../tails/ranged-slate.md).
 Beat the guard and you have accomplished nothing except starting a
 timer in a district where every other constable knows the direction.
 Peelian-authentic (the Met's whistle predates the radio and did

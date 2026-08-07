@@ -34,6 +34,7 @@ import { BulkableApi } from "../../../api/bulk";
 import { ConditionApi } from "../../../api/condition";
 import { CombatApi } from "../../../api/combat";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import type Material from "../../../lib/material/Material";
 import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
 const TOPIC = "world.narration.action";
@@ -143,26 +144,34 @@ export default class ThrowController extends CommandController<ThrowModel> {
     const material = slot?.getMaterial() ?? null;
     const litres = slot?.getAmount().rawValue() ?? 0;
 
+    const itemMaterial = this.materialOf(item);
     const plan = CombatApi.resolveThrown(
       giver,
       target,
       {
         litres,
         massKg: this.massOf(item),
-        toughness: this.numberOf(item, "getToughness"),
-        hardness: this.numberOf(item, "getHardness"),
+        toughness: itemMaterial?.getToughness().rawValue(),
+        hardness: itemMaterial?.getHardness().rawValue(),
       },
       splash,
     );
 
-    MessageApi.scene(giver)
+    // ⚠ `toTarget` requires a Sensor — and you can throw things at
+    // OBJECTS, not just at people. A terminal has nothing to be told.
+    const scene = MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You hurl ${Mml.item(item)} at ${Mml.name(target)}.`)
-      .toTarget(target, Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at you!`)
       .toPeers(
         Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at ${Mml.name(target)}.`,
-      )
-      .send();
+      );
+    if (MixinApi.isSensor(target)) {
+      scene.toTarget(
+        target,
+        Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at you!`,
+      );
+    }
+    scene.send();
 
     if (plan.placement === "miss") {
       MessageApi.scene(giver)
@@ -264,14 +273,13 @@ export default class ThrowController extends CommandController<ThrowModel> {
     }
   }
 
-  /** Read a numeric material property off the item, best-effort. */
-  private numberOf(item: Stuff, getter: string): number | undefined {
-    const mat = MixinApi.isTangible(item) ? item.getMaterial() : null;
-    if (mat === null) return undefined;
-    const fn = (mat as unknown as Record<string, unknown>)[getter];
-    if (typeof fn !== "function") return undefined;
-    const q = (fn as () => { rawValue(): number } | null).call(mat);
-    return q ? q.rawValue() : undefined;
+  /**
+   * The **vessel's** own Material — what the flask is made of, not what
+   * it holds. `toughness`/`hardness` read off this, which is what makes
+   * a glass flask shatter and a steel one deform.
+   */
+  private materialOf(item: Stuff): Material | null {
+    return MixinApi.isTangible(item) ? item.getMaterial() : null;
   }
 
   /** Prompt a live defender on a terms conflict — asking is the

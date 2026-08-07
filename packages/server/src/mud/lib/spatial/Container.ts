@@ -275,9 +275,8 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         'inventory/put.yaml',
         'inventory/give.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

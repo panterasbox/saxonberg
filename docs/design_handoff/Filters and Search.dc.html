@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .dfr { display:flex; gap:11px; padding:7px 0; border-bottom:1px solid var(--line-soft); }
+    .dfr.hit { background:color-mix(in oklab,var(--accent) 10%,transparent); margin:0 -10px; padding:7px 10px; border-left:2px solid var(--accent); }
+    .dfk { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; flex:0 0 54px; padding-top:3px; }
+    .wp { font-family:'Newsreader',Georgia,serif; font-size:14.5px; line-height:1.55; }
+    .chip { display:inline-flex; align-items:center; gap:5px; font-family:'IBM Plex Mono',monospace; font-size:11px;
+            border-radius:2px; padding:3px 8px; cursor:pointer; white-space:nowrap; }
+    .chip.on { color:var(--accent); background:color-mix(in oklab,var(--accent) 14%,transparent);
+               border:1px solid color-mix(in oklab,var(--accent) 40%,transparent); }
+    .chip.off { color:var(--fg-mute); border:1px dashed var(--line); }
+    .chip:hover { color:var(--fg); }
+    .pre { display:inline-flex; align-items:center; min-height:30px; padding:0 11px; border:1px solid var(--line);
+           border-radius:3px; font-size:12px; color:var(--fg-dim); cursor:pointer; }
+    .pre:hover { color:var(--fg); border-color:var(--fg-mute); }
+    .pre.on { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); color:var(--fg); }
+    .tab { display:inline-flex; align-items:center; gap:7px; min-height:34px; padding:0 13px; border:1px solid var(--line);
+           background:transparent; color:var(--fg-dim); cursor:pointer; font-size:12.5px; font-family:'Public Sans',sans-serif; }
+    .tab.on { background:var(--raised); color:var(--fg); border-color:var(--accent); }
+    .tab:first-child { border-radius:3px 0 0 3px; }
+    .tab:last-child { border-radius:0 3px 3px 0; }
+    .res { display:flex; gap:10px; padding:9px 11px; border:1px solid var(--line); border-radius:3px;
+           background:var(--surface); margin-bottom:6px; cursor:pointer; }
+    .res:hover { border-color:var(--fg-mute); }
+    .src { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.12em; text-transform:uppercase;
+           border-radius:2px; padding:1px 5px; flex:none; height:16px; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent); border:1px solid color-mix(in oklab,var(--accent) 35%,transparent);
+           border-radius:2px; padding:2px 7px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    mark { background:color-mix(in oklab,var(--accent) 30%,transparent); color:var(--fg); border-radius:1px; padding:0 1px; }
+  </style>
+</helmet>
+
+<div id="fs-root" style="width:1440px; height:900px; display:flex; flex-direction:column; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- ══ the one search field, with explicit scope ══ -->
+  <header style="flex:none; padding:10px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span class="cap" style="font-size:13px; flex:none;">Saxonberg</span>
+      <div style="flex:1; display:flex; align-items:center; gap:8px; height:36px; padding:0 12px; border:1px solid var(--line); border-radius:3px; background:var(--sunken);">
+        <span class="m" style="font-size:12px; color:var(--fg-mute);">⌕</span>
+        <input value="{{ q }}" onChange="{{ onQ }}" placeholder="search…" aria-label="search"
+               style="flex:1; background:transparent; border:none; outline:none; color:var(--fg); font-family:'IBM Plex Mono',monospace; font-size:13px;">
+        <span class="m" style="font-size:9.5px; color:var(--fg-mute);">⌘K</span>
+      </div>
+      <div style="display:flex; flex:none;">
+        <sc-for list="{{ scopes }}" as="s" hint-placeholder-count="3">
+          <button class="tab {{ s.cls }}" data-scope="{{ s.id }}">{{ s.label }}<span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ s.n }}</span></button>
+        </sc-for>
+      </div>
+    </div>
+    <!-- where the data lives is part of the answer -->
+    <div style="display:flex; align-items:center; gap:8px; margin-top:7px; padding-left:2px;">
+      <span class="m" style="font-size:9px; color:{{ scopeHue }}; border:1px solid {{ scopeHue }}; border-radius:2px; padding:1px 6px;">{{ scopeWhere }}</span>
+      <span style="font-size:11.5px; color:var(--fg-dim);">{{ scopeNote }}</span>
+      <div style="flex:1;"></div>
+      <span class="m" style="font-size:9px; color:var(--fg-mute);">server support · {{ scopeStatus }}</span>
+    </div>
+  </header>
+
+  <div style="flex:1; display:flex; min-height:0;">
+
+    <!-- ══ terminal, filtered ══ -->
+    <div style="flex:1; display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line);">
+
+      <div style="flex:none; display:flex; align-items:center; gap:7px; padding:7px 18px; border-bottom:1px solid var(--line-soft); background:var(--sunken); flex-wrap:wrap;">
+        <span class="lbl">showing</span>
+        <span class="m" style="font-size:11px; color:var(--fg);">{{ shownCount }}</span>
+        <sc-if value="{{ anyHidden }}" hint-placeholder-val="{{ false }}">
+          <span class="m" style="font-size:11px; color:var(--ember);">{{ hiddenCount }} hidden</span>
+          <span class="act" data-act="peek">{{ peekLabel }}</span>
+        </sc-if>
+        <div style="flex:1;"></div>
+        <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ filterMql }}</span>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:10px 18px;">
+        <sc-for list="{{ frames }}" as="f" hint-placeholder-count="6">
+          <div class="dfr {{ f.cls }}" style="opacity:{{ f.op }};">
+            <span class="dfk" style="color:{{ f.hue }};">{{ f.kind }}</span>
+            <div style="flex:1;" class="{{ f.face }}">{{ f.node }}</div>
+            <span class="m" style="font-size:9px; color:var(--fg-mute); flex:0 0 30px; text-align:right; padding-top:3px;">{{ f.t }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="flex:none; display:flex; align-items:center; gap:9px; padding:9px 18px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+        <span class="m" style="font-size:13px; color:var(--accent);">here:forge&gt;</span>
+        <div style="flex:1; display:flex; align-items:center; gap:6px; height:36px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+          <span class="m" style="font-size:12.5px; color:var(--fg-mute);">type a command…</span>
+          <span style="width:8px;height:14px;background:var(--accent);border-radius:1px;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ right: filters, or results while searching ══ -->
+    <aside style="flex:0 0 430px; display:flex; flex-direction:column; background:var(--ground); min-height:0;">
+
+      <!-- FILTERS -->
+      <sc-if value="{{ noQuery }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:none; padding:9px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Filters</span>
+          <span style="font-size:11.5px; color:var(--fg-dim); margin-left:8px;">a standing predicate on the stream</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:12px 14px;">
+
+          <div class="lbl" style="margin-bottom:7px;">Presets</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+            <sc-for list="{{ presets }}" as="p" hint-placeholder-count="4">
+              <span class="pre {{ p.cls }}" data-preset="{{ p.id }}">{{ p.label }}</span>
+            </sc-for>
+          </div>
+
+          <sc-for list="{{ facets }}" as="fc" hint-placeholder-count="3">
+            <div style="margin-bottom:14px;">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:6px;">
+                <span class="lbl">{{ fc.name }}</span>
+                <span style="font-size:11px; color:var(--fg-mute);">{{ fc.note }}</span>
+              </div>
+              <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                <sc-for list="{{ fc.values }}" as="v" hint-placeholder-count="4">
+                  <span class="chip {{ v.cls }}" data-facet="{{ v.key }}">{{ v.label }}<span style="color:var(--fg-mute);">{{ v.n }}</span></span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="border-top:1px solid var(--line-soft); padding-top:11px; margin-top:4px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span class="act" data-act="spawn">⊞ open as its own terminal</span>
+              <span class="act" data-act="save">save this set</span>
+            </div>
+            <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Filters run on the topic facets, not on topic strings — so “quiet” is one rule rather than a list of sixty paths that drifts every time a topic is added.</p>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- RESULTS -->
+      <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none; display:flex; align-items:baseline; gap:8px; padding:9px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Results</span>
+          <span class="m" style="font-size:11px; color:var(--fg);">{{ resultCount }}</span>
+          <div style="flex:1;"></div>
+          <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ resultTiming }}</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:11px 14px;">
+
+          <sc-for list="{{ results }}" as="r" hint-placeholder-count="4">
+            <div class="res">
+              <span class="src" style="color:{{ r.hue }}; border:1px solid {{ r.hue }};">{{ r.src }}</span>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; color:var(--fg); line-height:1.35; margin-bottom:2px;">{{ r.title }}</div>
+                <div style="font-size:11.5px; color:var(--fg-dim); line-height:1.45;">{{ r.snippet }}</div>
+              </div>
+              <span class="m" style="font-size:9px; color:var(--fg-mute); flex:none;">{{ r.meta }}</span>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{ isBacklog }}" hint-placeholder-val="{{ true }}">
+            <div style="border:1px solid var(--line); border-left:2px solid var(--good); border-radius:2px; padding:10px 12px; margin-top:9px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span class="m" style="font-size:9px; color:var(--good);">LOCAL</span>
+                <span style="font-size:12px; color:var(--fg);">Your backlog is bigger than the server's copy</span>
+              </div>
+              <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin:0 0 7px;">There is no general per-player frame store on the server — chat channels and the press archive keep their own history, but ordinary world frames are not retained for you anywhere. This buffer is not a faster copy of something; it is the only copy.</p>
+              <p style="font-size:11.5px; color:var(--ember); line-height:1.55; margin:0 0 7px;">So clearing site data destroys it outright, and a second device starts empty. Whether that is acceptable is a product decision, not a UI one.</p>
+              <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Needs a CLI equivalent to stay honest to the axiom — but <span class="m" style="font-size:11px;">search</span> is already the in-world perception verb, so this wants its own word. <span class="m" style="font-size:11px; color:var(--accent);">recall</span> is free.</p>
+            </div>
+          </sc-if>
+
+          <div style="display:flex; align-items:center; gap:8px; margin-top:11px; padding-top:10px; border-top:1px solid var(--line-soft);">
+            <span class="act" data-act="pin">⚲ keep this as a filter</span>
+            <span style="font-size:11px; color:var(--fg-mute);">a search is a filter you have not committed to</span>
+          </div>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  // facet values default ON; a filter is subtractive
+  state = { q:'', scope:'backlog', preset:'all', peek:false,
+    off:{} };
+
+  // the frame buffer, each carrying the topic facets from the MML spec
+  FR=[
+    ['18:41','Room','#c98a3f','world','ambient','activity','Packed earth between the wheelwright\u2019s shed and the tavern wall. The forge throws heat across it.'],
+    ['18:41','Say','#4a9d8f','person','broadcast','chatter','Tomas: \u201cThat iron wants another turn in the coals.\u201d'],
+    ['18:42','You','#c9a227','self','personal','activity','analyze forge',1],
+    ['18:42','Work','#e8705c','world','personal','consequence','The coals sit at a steady orange \u2014 1240 \u00b0C, inside the working window.'],
+    ['18:42','Log','#8494b3','system','personal','diagnostic','command analyze forge \u2192 ok (12ms)',1],
+    ['18:43','Tell','#5b8fd6','person','direct','consequence','Bramble tells you, \u201cCustoms house when the iron\u2019s done.\u201d'],
+    ['18:43','Gossip','#c9a227','person','broadcast','chatter','Bobalu: anyone holding spare iron? paying over rate'],
+    ['18:44','Notice','#5b8fd6','system','direct','consequence','Measure 14 closes in two days. You hold a vote in Play.'],
+    ['18:44','Log','#8494b3','system','personal','diagnostic','heartbeat ok · 41ms',1],
+  ];
+
+  FACETS=[
+    ['address','who it is aimed at',['direct','personal','ambient','broadcast']],
+    ['actor','who acted',['self','person','world','system']],
+    ['weight','how much it matters',['consequence','activity','chatter','diagnostic']],
+  ];
+
+  PRESETS=[
+    ['all','Everything',{}],
+    ['quiet','Quiet',{ 'weight:chatter':1, 'weight:diagnostic':1 }],
+    ['me','Only me',{ 'address:ambient':1, 'address:broadcast':1 }],
+    ['nodiag','No diagnostics',{ 'weight:diagnostic':1 }],
+  ];
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('fs-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const f=e.target.closest('[data-facet]');
+      if(f&&r.contains(f)){ const k=f.getAttribute('data-facet');
+        return this.setState(s=>{ const off={...s.off}; off[k]?delete off[k]:off[k]=1;
+          return {off, preset:'custom'}; }); }
+      const p=e.target.closest('[data-preset]');
+      if(p&&r.contains(p)){ const id=p.getAttribute('data-preset');
+        const spec=(this.PRESETS.find(x=>x[0]===id)||[])[2]||{};
+        return this.setState({preset:id, off:{...spec}}); }
+      const sc=e.target.closest('[data-scope]');
+      if(sc&&r.contains(sc)) return this.setState({scope:sc.getAttribute('data-scope')});
+      const a=e.target.closest('[data-act]');
+      if(a&&r.contains(a)&&a.getAttribute('data-act')==='peek')
+        return this.setState(s=>({peek:!s.peek}));
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  hl(text,q){
+    if(!q) return text;
+    const i=text.toLowerCase().indexOf(q.toLowerCase());
+    if(i<0) return text;
+    return React.createElement(React.Fragment,null,
+      text.slice(0,i), React.createElement('mark',null,text.slice(i,i+q.length)), text.slice(i+q.length));
+  }
+
+  renderVals(){
+    const E=React.createElement;
+    const q=this.state.q.trim(), off=this.state.off, sc=this.state.scope;
+
+    const passes=(f)=>!off['address:'+f[4]] && !off['actor:'+f[3]] && !off['weight:'+f[5]];
+    const matches=(f)=>!q || f[6].toLowerCase().includes(q.toLowerCase());
+
+    const kept=this.FR.filter(passes);
+    const hidden=this.FR.length-kept.length;
+    const show=(this.state.peek?this.FR:kept).filter(f=>true);
+
+    const frames=show.map(f=>{
+      const dim=!passes(f);
+      const hit=q && matches(f);
+      return { kind:f[1], hue:f[2], t:f[0], op:dim?'.34':'1', cls:hit?'hit':'',
+        face:f[7]?'m':'wp',
+        node: f[7]
+          ? E('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:'12.5px',color:'var(--fg-dim)'}},this.hl(f[6],q))
+          : this.hl(f[6],q) };
+    });
+
+    const facets=this.FACETS.map(([name,note,vals])=>({
+      name, note,
+      values: vals.map(v=>{
+        const key=name+':'+v;
+        const n=this.FR.filter(f=>f[{address:4,actor:3,weight:5}[name]]===v).length;
+        return { key, label:v, n:' '+n, cls: off[key]?'off':'on' };
+      })
+    }));
+
+    // the active filter, written as the predicate it is
+    const offKeys=Object.keys(off);
+    const filterMql = offKeys.length
+      ? 'frames - ' + offKeys.map(k=>k.replace(':','=')).join(' - ')
+      : 'frames';
+
+    const backlogHits=this.FR.filter(matches);
+    const LIB=[
+      ['HELP','var(--info)','analyze','Break a channel down with provenance. Scope defaults to $focus.','HelpApi ✓'],
+      ['CMD','var(--accent)','forge','Requires Smithing 2. Consumes fuel from the hearth.','HelpApi ✓'],
+      ['API','var(--accent)','MixinApi.hasMixin','Whether a stuff composes a given mixin.','HelpApi ✓'],
+      ['WIKI','var(--fg-mute)','Working iron','Iron takes weld between 1150 and 1300 °C…','no search port'],
+      ['FORUM','var(--fg-mute)','Iron prices in Ashmill','…the guild set the rate at four coin…','no search port'],
+    ];
+    const WORLD=[
+      ['THING','var(--accent)','a cast-iron anvil','here:anvil · 54.4 kg · Tangible, Tool','#4c1a'],
+      ['THING','var(--accent)','iron billet','me:i:billet · 2.4 kg · 0.82% C','#7d20'],
+      ['OFFER','var(--good)','iron bar, 4 coin','peers:aldric:offer · PricedOffer','#1f88'],
+    ];
+
+    const results = !q ? [] : (
+      sc==='backlog' ? backlogHits.map(f=>({
+        src:f[1].toUpperCase(), hue:f[2], title:f[6].slice(0,58)+(f[6].length>58?'…':''),
+        snippet:'frame · '+f[3]+' · '+f[5], meta:f[0] }))
+      : sc==='library' ? LIB.map(([s,h,t,sn,m])=>({src:s,hue:h,title:t,snippet:sn,meta:m}))
+      : WORLD.map(([s,h,t,sn,m])=>({src:s,hue:h,title:t,snippet:sn,meta:m})));
+
+    // status is from the server source, not assumed:
+    //   HelpApi.search(q) + GET /api/help/search  → real
+    //   MQL bareword keyword matching             → real
+    //   ChatApi.historyFor / PressApi.archive     → real, per-channel
+    //   no general per-player frame store exists  → the client buffer is the ONLY copy
+    const SCOPE={
+      backlog:['on this device only','the sole copy of your world frames — no server store to fall back on','var(--good)','client-side · needs a recall verb'],
+      library:['server','help + command specs are searchable today; wiki and forum are not','var(--info)','partly built'],
+      world:['server · live','MQL bareword keyword matching, resolved from where you stand','var(--accent)','built'],
+    };
+
+    return {
+      q:this.state.q, onQ:(e)=>this.setState({q:e.target.value}),
+      hasQuery:!!q, noQuery:!q,
+      scopes:[['backlog','Backlog',backlogHits.length],['library','Library',LIB.length],['world','World',WORLD.length]]
+        .map(([id,label,n])=>({id,label,n:q?String(n):'',cls:sc===id?'on':''})),
+      scopeWhere:SCOPE[sc][0], scopeNote:SCOPE[sc][1], scopeHue:SCOPE[sc][2], scopeStatus:SCOPE[sc][3],
+      isBacklog:sc==='backlog',
+      results, resultCount:results.length+' for “'+q+'”',
+      resultTiming: sc==='backlog' ? 'local · no round trip' : 'server · 31ms',
+
+      frames, shownCount:kept.length+' of '+this.FR.length,
+      anyHidden:hidden>0, hiddenCount:hidden+'',
+      peekLabel:this.state.peek?'stop peeking':'peek at hidden',
+      filterMql,
+      facets,
+      presets:this.PRESETS.map(([id,label])=>({id,label,cls:this.state.preset===id?'on':''})),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -25,6 +25,6 @@ import type { CommandContributions } from "../../api/command";
 export default class TicketClerk extends NPC {
   /** Affords `procure card` to co-located players (the `self`-neighbor push). */
   static commandContributions: CommandContributions = {
-    environment: ["tpa/procure-card.yaml"],
+    peers: ["tpa/procure-card.yaml"],
   };
 }

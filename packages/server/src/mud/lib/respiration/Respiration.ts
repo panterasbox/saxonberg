@@ -165,9 +165,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: ['posture/inhale.yaml', 'posture/exhale.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

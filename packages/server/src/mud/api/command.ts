@@ -310,16 +310,26 @@ export interface Parser {
  * Each bucket holds YAML filenames; `CommandApi.getCommand` resolves
  * them at runtime.
  *
- *   - `self`        — commands the host can issue against itself
- *                     (e.g. `inventory`, `look`).
- *   - `inventory`   — commands the host gains when this thing is in
- *                     its inventory (e.g. a wand grants `zap`).
- *   - `environment` — commands the host gains when this thing is in
- *                     its environment (e.g. a notice board grants
- *                     `read`).
- *   - `peers`       — commands the host gains when this thing is a
- *                     peer CommandGiver in its environment (e.g. a
- *                     conversational NPC grants `tell`).
+ * **The bucket names WHO RECEIVES, from the declaring object's point of
+ * view.** They are directional, and two of them are recursive:
+ *
+ *   - `self`        — the object itself (e.g. `inventory`, `look`).
+ *   - `inventory`   — everything nested **inside** it, at any depth
+ *                     (a pack affords `rummage` to what it swallowed).
+ *   - `environment` — its container **chain**, outward, at any depth
+ *                     (a wand in your hand — or in a case in your pack
+ *                     — grants you `zap`).
+ *   - `peers`       — its siblings, and one **passable** exit away
+ *                     (a conversational NPC grants `tell`; a closed
+ *                     door stops it).
+ *
+ * ⚠ `inventory` and `environment` are recursive *on purpose*. Verb
+ * availability used to be direct-containment-scoped while MQL targeting
+ * is arbitrarily nested, so a rock inside a bag inside your pack could
+ * be NAMED by a command whose verb the rock had never lit up. It worked
+ * by accident — the bag was Tangible too and afforded the same verb —
+ * and the accident would have stopped covering the moment a verb came
+ * from a rarer mixin. Reach now matches what the parser can address.
  *
  * Discovery looks for the bucket as either a filename array or
  * `undefined` (treated as no contribution). Empty arrays are fine.

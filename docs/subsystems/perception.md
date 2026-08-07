@@ -262,6 +262,18 @@ sync at the enumeration seams by warming it into
 `PerceptionLogic.preloadForSenseGate`'s per-command snapshot. Full detail in
 [concealment.md](./concealment.md).
 
+### `resolveAmbush` — a hiding read is a perception fact
+
+`PerceptionApi.resolveAmbush(attacker, defender)` answers "does this
+opening land as an ambush?", and it lives **here**, not in combat.
+`CombatLogic` asked `MixinApi.isHiding` directly when the ranged build
+moved the ambush read into the initiation handshake, and
+`check-combat-dynamics` refused it — correctly: whether somebody is
+hidden from you is a perception question, and combat asking it does not
+make it combat physics. Combat asks; perception answers. The band an
+ambush buys (`close`, regardless of the arena's maximum) is combat's
+call and stays in `CombatLogic` — see [ranged.md](./ranged.md).
+
 ## Where the pattern is currently used
 
 - (existing) `PerceptionApi.perceives(viewer, target)` — the concealment /

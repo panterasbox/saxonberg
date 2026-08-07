@@ -318,24 +318,52 @@ Full note shapes and the auto-escalation table live in
 The static a class declares to add commands to the recency stack:
 
 ```ts
-class Throne extends Stuff /* ... */ {
+class Rock extends Stuff /* ... */ {
   static commandContributions: CommandContributions = {
     self: [],
     inventory: [],
-    environment: ['posture/sit.yaml'], // grants `sit` to anyone in the room
-    peers: [],
+    environment: ['inventory/throw.yaml'], // whoever holds me, at any depth
+    peers: ['inventory/throw.yaml'],       // whoever stands where I lie
   };
 }
 ```
 
-Buckets:
+**Every bucket names its RECEIVER, from the declaring object's point of
+view.** Read them as "who gets this verb because of where I am":
 
-| Bucket | When it lands on a giver's stack |
+| Bucket | Receiver |
 |---|---|
-| `self` | Always — at host registration. |
-| `inventory` | When this thing is in the giver's inventory. |
-| `environment` | When this thing is in the giver's environment. |
-| `peers` | When this thing is a peer `CommandGiver` in the same environment. |
+| `self` | me |
+| `inventory` | everything nested **inside** me, at any depth *(recursive)* |
+| `environment` | my container **chain**, outward, at any depth *(recursive)* |
+| `peers` | my siblings, and one **passable** exit away |
+
+⚠ `inventory` used to be named from the *receiver's* side — "commands
+the host gains when this thing is in its inventory" — while the other
+three were named from the contributor's. That is why a wand declaring
+`inventory` was not talking about the wand's inventory, and why nobody
+could state what a bucket meant without reading the dispatch. The
+buckets are now uniformly directional; a verb a held item confers on
+its holder is `environment` (it grants **outward**), and a verb a
+grounded item confers on the room is `peers`.
+
+**The reach is recursive because MQL targeting is.** A command can name
+a rock inside a bag inside your pack, so the rock's verb has to reach
+you from there; before, verb availability was direct-containment-scoped
+while targeting was arbitrarily nested. It worked only by accident —
+the bag was Tangible too and afforded the same verb itself — and the
+accident stops covering the moment a verb comes from a rarer mixin (an
+instrument in a case that affords nothing).
+
+`peers` reaches one hop through **passable** exits only: a blocked exit
+or a shut door stops it, because a verb lighting up through a closed
+door would claim a reach the world does not have.
+
+⚠ A class that builds its buckets **at runtime** rather than as a
+static literal is invisible to `grep static commandContributions` —
+`Tooled.getInstanceContributions`, `Behaved`, and `applyShadowDeltaImpl`
+are the three today. The shadow one matters most: a shadow must
+distribute exactly as its host would, never with a different reach.
 
 Mixins, concrete Stuff classes, and shadows all use the same shape.
 Each filename resolves through `CommandApi.getCommand` and is loaded
@@ -1223,6 +1251,32 @@ option or arg name.
 6. **Tests** — colocate under `__tests__/`. Vitest. Drive controllers
    directly with a synthetic `CommandContext` for unit coverage; the
    full pipeline can be exercised via `giver.executeCommand(text)`.
+
+### ⚠ A controller test does not test the verb's *shape*
+
+A controller test is handed a **pre-built model**, so it never runs
+the binder — parse → assemble → resolve → validate. Everything the
+YAML actually declares (arg order, `prepositions`, `scope`,
+`validators`) is therefore untested by construction, and a whole verb
+can be unreachable while its controller's tests are green. Two defects
+in `throw.yaml` alone reached a live client that way: a `$focus` entry
+beside a `prepositions:` arg (which never matches any shape, so
+`throw X at Y` fell through to "no known command shape"), and an
+`inventory` scope on an argument the design wanted resolved off the
+ground.
+
+**The exemplar is
+`api/__tests__/command-binder-throw.test.ts`** — it reads the shipped
+YAML off disk and walks the real chain, so editing the file wrongly
+fails a test rather than a player. Worth doing for any verb whose YAML
+carries a preposition, a non-default `scope`, or validators that are
+meant to *teach* rather than merely reject.
+
+> ⚠ `CommandDefinition.fromYaml` leaves `_resolvedValidators` empty —
+> only `CommandApi.preloadAll()` populates it. A harness that builds a
+> definition directly and skips that step **silently skips every
+> validator** and reports a clean pass on input the real dispatcher
+> refuses.
 
 ## Cache invalidation (dev)
 

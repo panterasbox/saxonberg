@@ -6,10 +6,10 @@ gambits, the delivery contract, the commit-time consent gate, and one
 carrier — the thrown flask. Waves 2–4 (cover, armor, archery, guns) are
 rostered at the end of this doc.
 
-Seeded by [ranged-slate.md](../slates/builds/ranged-slate.md); scope
-agreed in
-[ranged-requirements.md](../requirements/ranged-requirements.md) (44
-decisions, 56 acceptance criteria).
+Seeded by [ranged-slate.md](../slates/tails/ranged-slate.md). Scope was
+agreed in a requirements doc of 44 decisions and 56 acceptance criteria,
+retired at the pre-merge sweep — this doc is the live reference, and the
+decisions that still bind are stated here in their own right.
 
 ## The one abstraction
 
@@ -273,12 +273,33 @@ effect would refuse across the gap it had just crossed.
 ## `throw`
 
 `cmd/inventory/throw.yaml` + `obj/command/inventory/ThrowController.ts`,
-afforded by **`ContainerMixin`** alongside `drop`/`put`/`give`.
+afforded by **`TangibleMixin`** — the thing with **mass** confers the
+verb, outward on whoever holds it (`environment`) and sideways on
+whoever stands where it lies (`peers`).
 
-Throwing operates through **containment** — the category names the
+Not `ContainerMixin`, which was the first cut and was wrong twice over:
+"I can hold things" is the right home for `drop`/`give` and says nothing
+about whether what you are holding can be thrown — and **a room is a
+Container**. Mass is the honest predicate, and it is also the ½mv²
+input, so the mixin that affords the verb is the one that supplies its
+physics.
+
+Throwing still operates through **containment** — the category names the
 substrate, not the drama, the same reasoning that put `disarm` under
 `device` and `drink` under `bulk`. That is what makes "works outside
-combat" free: a Container can throw; being a Combatant is not required.
+combat" free: being a Combatant is not required.
+
+**You must be holding it, and that is the point.** The item argument
+resolves over `reachable`, deliberately wider than `inventory`, so a
+rock on the ground *matches* — and then `mustBeHeld` refuses with
+*"you'll have to pick up the rock first"*. Folding the pickup into the
+throw would have been fewer keystrokes and would have deleted a tell:
+bending down and taking hold of a rock is a **public act**, and in a
+world where that rock is about to become a weapon, the bystanders are
+owed the beat of warning. Narrow the scope back to `inventory` and the
+verb simply reports no such rock; the refusal, and the lesson in it,
+disappear. Pinned by
+`api/__tests__/command-binder-throw.test.ts`.
 
 - `throw <item>` — a ballistic relocation. No target, no gate, no fight.
 - `throw <item> at <someone>` — an initiation, through the same door as
@@ -320,6 +341,59 @@ extraction is pinned instead at `CombatApi.initiate`, where the logic now
 lives. The controller-coverage gap is
 [antipatterns.md](../antipatterns.md)'s, not this build's, but it is
 worth knowing it is still open.
+
+## What Wave 1 actually closes
+
+The requirements carry **56 acceptance criteria**, and Wave 1 is one of
+four waves — so most of them are open by design, not by omission. Fully
+closed: the four-band ladder and its per-pair symmetry (AC 1, 2), the
+arena cap and the per-location extent behind it (3, 4), band stepping
+and its cap refusal (5), the pure `DeliveryProfile` and the
+carrier-blindness it buys (14), the aim×answer matrix (8), splash and
+its consent gate (24, 25, 31), the ranged hazard route (26), and the
+`throw`-is-an-`attack` handshake (47).
+
+Two worth stating precisely rather than claiming loosely: **AC 31** is
+proven through `throw` only, because no shooting verb exists yet; and
+**AC 52** lands both halves in code but its archer case cannot be tested
+until W3 mints an archer.
+
+Known misses, called out because the plan did not list them: **AC 53**
+(the N=8/N=16 large-fight profile) was never recorded, and **AC 55** is
+five of eight sibling docs — `crafting.md`, `chattel.md` and
+`concealment.md` are untouched because Wave 1 opens no seam in them
+(recoverable projectiles and pattern-key registration are W3/W4 work).
+
+## What the live drive reached, and what it did not
+
+Driven in a browser against a fresh database, Wave 1's untargeted throw
+works end to end: clone a flask, drop it, `throw flask` refuses with
+*"you'll have to pick up a sealed glass flask first"*, `get` it, and
+`throw flask` hurls it. That closes the untargeted half of AC 46.
+
+**The band-ladder legs did not run.** The plan (§7.4) assumed the
+shipped `goto` would carry a driver to the long meadow, and it does
+not: `goto`'s argument scope is `["online", "/obj/**", "reachable"]`,
+with no `/domain/**` — and every room in the world lives under
+`/domain/`. So the one author verb for "take me to that path" cannot
+address content, and `goto /domain/newbie-wilds/crossroads/longmeadow`
+answers *"no match"*. The fix looks like one scope entry, but it is a
+behaviour change to a shipped author verb and is deliberately **not**
+made here. Until it lands, reach the meadow by walking or by TPA.
+
+Still undriven, therefore: the targeted throw across a real band gap,
+splash over a clinched set, the consent refusal, and the band ladder
+itself (AC 23, 24, 25, 47, and the rest of 46).
+
+⚠ A second bootstrap blocked the drive before that one, and it is worth
+recording because it is not what anyone guesses: `goto` and `clone` do
+**not** consult `isWizard`. That axis is code-trust (eval / reload /
+source writes). They call `AccessApi.can`, which resolves untitled
+content to the `core` group — and `core` is minted empty, has no env
+seed, and is owned by `'system'`, so `group add` refuses everyone. A
+fresh database has nobody who can author anything.
+`packages/server/scripts/dev-grant-core.mjs` is the stopgap; it is
+meant to die with the `core` group.
 
 ## Deliberately out of scope
 

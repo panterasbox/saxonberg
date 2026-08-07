@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    [data-theme="dark"] {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --field:#002868; --red:#BF0A30; --white:#FFFFFF;
+      --paper:#f2ebdc; --paper-ink:#2a2418; --paper-line:#d8cdb4;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --bad:#BF0A30; --info:#5b8fd6;
+      --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
+      --desk:#100f0d; --deskfg:#ece7df; --deskdim:#a99f90;
+    }
+    [data-theme="light"] {
+      --ground:#eceae4; --surface:#f7f6f2; --raised:#FFFFFF; --sunken:#dcd9d0;
+      --line:#c4c0b4; --line-soft:#e0ddd4;
+      --fg:#0b1830; --fg-dim:#42506b; --fg-mute:#5c6880;
+      --field:#002868; --red:#BF0A30; --white:#FFFFFF;
+      --paper:#f7f1e3; --paper-ink:#2a2418; --paper-line:#ddd3bc;
+      --accent:#8a6d1f; --accent-ink:#fffdf5;
+      --good:#2f6d62; --warn:#6e5510; --bad:#BF0A30; --info:#002868;
+      --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
+      --desk:#cec2ab; --deskfg:#2c2720; --deskdim:#6a6154;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; font-family:'Public Sans',system-ui,sans-serif; }
+    ::-webkit-scrollbar { width:0; height:0; }
+    a { color:var(--accent); text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px; }
+    a:hover { color:color-mix(in oklab,var(--accent) 72%,var(--fg)); }
+    /* every tappable target is >=44px */
+    .prov { display:flex; align-items:center; gap:11px; width:100%; text-align:left; font-family:'Public Sans',sans-serif;
+            font-size:15px; font-weight:600; color:var(--white); background:var(--red);
+            border:1px solid var(--white); border-radius:3px; padding:0 15px; height:52px; cursor:pointer; }
+    .prov.alt { color:var(--fg); background:transparent; border:1px solid var(--line); font-weight:500; }
+    .guest { width:100%; height:46px; font-family:'Public Sans',sans-serif; font-size:13.5px; color:var(--fg-mute);
+             background:transparent; border:1px dashed var(--line); border-radius:3px; cursor:pointer; }
+    .chipm { min-height:44px; display:flex; align-items:center; font-family:'Public Sans',sans-serif; font-size:14px;
+             color:var(--fg-dim); background:transparent; border:1px solid var(--line); border-radius:3px;
+             padding:0 14px; cursor:pointer; }
+    .chipm.on { color:var(--accent-ink); background:var(--accent); border-color:var(--accent); font-weight:500; }
+    .cardm { min-height:52px; display:flex; flex-direction:column; justify-content:center; gap:1px; border:1px solid var(--line);
+             border-radius:3px; background:var(--surface); padding:9px 12px; cursor:pointer; }
+    .cardm.on { border-color:var(--red); background:var(--raised); box-shadow:inset 3px 0 0 var(--red); }
+    .bigm { width:100%; height:52px; display:flex; align-items:center; justify-content:center; gap:9px;
+            font-family:'Public Sans',sans-serif; font-size:15px; font-weight:600; color:var(--white);
+            background:var(--red); border:1px solid var(--white); border-radius:3px; cursor:pointer; }
+    .iconbtn { width:44px; height:44px; flex:none; border-radius:3px; background:var(--surface); border:1px solid var(--line);
+               display:flex; align-items:center; justify-content:center; color:var(--fg-dim); font-size:16px; cursor:pointer; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%;
+            background:var(--white); border:2px solid var(--red); color:var(--red);
+            font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .flagrule { height:5px; background:linear-gradient(180deg,
+                var(--white) 0 1px, var(--red) 1px 4px, var(--white) 4px 5px); }
+    /* narrative register — carries its own tokens so descendants are safe by default */
+    /* touch has no hover, so an affordance must LOOK tappable at rest */
+    .tap { color:#725815; background:rgba(201,162,39,.13); border-bottom:1px solid rgba(201,162,39,.85);
+           border-radius:2px; padding:1px 4px; }
+    .tap.on { background:var(--red); color:var(--white); border-bottom-color:var(--red); }
+    .tapmini { display:inline-flex; align-items:center; min-height:44px; font-family:'IBM Plex Mono',monospace;
+               font-size:11px; color:var(--fg-dim); border:1px solid var(--line); border-radius:3px;
+               padding:0 11px; flex:none; }
+    .cmdrow { display:flex; align-items:baseline; gap:7px; min-height:44px; padding:7px 11px;
+              background:var(--sunken); border:1px solid var(--line); border-radius:3px; }
+    .cmdrow.off { opacity:.42; border-style:dashed; }
+    .cmdrow.sel { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+
+    /* ── the feed: ONE ground, edges from rules + labels ── */
+    /* the civic/narrative register is a MODE distinction, not a per-frame one —
+       alternating grounds down a feed is stripey and redundant with the hairlines */
+    .frame { padding:11px 0; border-bottom:1px solid var(--line-soft); }
+    .frame:last-child { border-bottom:none; }
+    .fmeta { display:flex; align-items:baseline; gap:8px; margin-bottom:4px; }
+    .fkind { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; }
+    .ftime { font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:var(--fg-mute); margin-left:auto; }
+    .fbody { font-family:'Newsreader',Georgia,serif; font-size:16.5px; line-height:1.6; color:var(--fg); }
+    .frame.sys { border-left:3px solid var(--accent); margin:0 -18px; padding:11px 18px; background:var(--sunken); }
+    .frame.sys .fbody { font-family:'IBM Plex Mono',monospace; font-size:13.5px; color:var(--fg-dim); }
+    /* ── the plate: where the storybook actually lives on a phone ── */
+    /* an illustration is just another frame; the paper is its MOUNT, not a theme */
+    .plate { background:var(--paper); border:1px solid var(--paper-line); border-radius:2px;
+             padding:7px 7px 0; margin:9px 0 4px; }
+    .platefig { width:100%; aspect-ratio:3/2; border-radius:1px;
+                background:repeating-linear-gradient(135deg,#e6dcc4 0 10px,#efe6d2 10px 20px);
+                display:flex; align-items:center; justify-content:center;
+                font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8a8069; }
+    .platecap { font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:11.5px;
+                color:#6f6552; text-align:center; padding:6px 4px 7px; }
+
+    /* ── the verb bar: built from command metadata, not a fixed toolbar ── */
+    .vbar { flex:none; display:flex; gap:6px; overflow-x:auto; overflow-y:hidden; padding:9px 18px;
+            border-top:1px solid var(--line); background:var(--surface); }
+    .vbtn { display:inline-flex; align-items:center; min-height:44px; padding:0 14px; flex:none;
+            border:1px solid var(--line); border-radius:3px; background:transparent;
+            font-family:'IBM Plex Mono',monospace; font-size:13.5px; color:var(--fg); white-space:nowrap; }
+    /* a verb that takes an argument says so, so the grammar is learned from the button */
+    .vbtn.arg::after { content:' …'; color:var(--fg-mute); }
+    .vbtn.off { opacity:.38; border-style:dashed; }
+    .cmdverb { font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:var(--accent); }
+    .cmdarg  { font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--fg); }
+    .cmdnote { font-size:11px; color:var(--fg-mute); margin-left:auto; text-align:right; }
+    .cell { border:1px solid var(--line); border-radius:3px; background:var(--surface); }
+    .disc { display:flex; align-items:center; gap:9px; min-height:46px; padding:0 13px; border:1px solid var(--line);
+            border-radius:3px; background:var(--surface); cursor:pointer; }
+    .aff { color:var(--accent); box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--accent) 45%,transparent); border-radius:3px; padding:0 1px; }
+    .q { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px solid var(--line-soft); }
+    .q:last-child { border-bottom:none; }
+    .note { display:flex; gap:10px; padding:11px 12px; border-bottom:1px solid var(--line-soft); }
+    .note:last-child { border-bottom:none; }
+    /* iOS safe areas: IOSDevice draws the 62px status bar and 34px home
+       indicator as absolute overlays, so the flowed column insets itself. */
+    .screen { width:100%; height:100%; display:flex; flex-direction:column; background:var(--ground); color:var(--fg);
+              font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;
+              padding-top:62px; padding-bottom:34px; }
+    /* sticky footers bleed into the bottom safe area so their surface
+       reaches the device edge, while their content stays clear of the pill */
+    .foot { flex:none; margin-bottom:-34px; padding-bottom:42px; border-top:1px solid var(--line); background:var(--surface); }
+    .scroll { flex:1; overflow-y:auto; min-height:0; }
+    .refbadge { display:inline-flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace;
+                font-weight:600; font-size:13px; color:var(--accent-ink); background:var(--accent); border-radius:7px; padding:3px 10px; }
+    .ph { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--warn); border:1px solid color-mix(in oklab,var(--warn) 45%,transparent);
+          border-radius:4px; padding:0 5px; letter-spacing:.04em; }
+    @keyframes caret { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    .caret { display:inline-block; width:8px; height:15px; background:var(--accent); border-radius:1px; animation:caret 1.1s steps(1) infinite; vertical-align:-2px; }
+  </style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="background:var(--desk); color:var(--deskfg); min-width:max-content;">
+<section style="padding:56px 60px 84px;">
+
+  <div style="max-width:880px; margin-bottom:38px;">
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:11px;">Turn 2 · mobile</div>
+    <h1 style="font-family:'Newsreader',serif; font-weight:500; font-size:34px; line-height:1.14; margin:0 0 12px;">The arrival, on a phone</h1>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0 0 10px; max-width:750px;">Readable and joinable, not fully playable — someone arriving from a video can sign in, make a character, reach the lounge and talk. Panes that need width say so instead of collapsing into mush. Reference these by badge: <a href="#2a">2a</a> front door, <a href="#2b">2b</a> intake, <a href="#2c">2c</a> lounge.</p>
+    <p style="font-size:13px; line-height:1.6; color:var(--deskdim); margin:0; max-width:750px;">The species roster and dossier structure are read from <span style="font-family:'IBM Plex Mono',monospace; font-size:12px;">docs/subsystems/race.md</span> and the <span style="font-family:'IBM Plex Mono',monospace; font-size:12px;">SpeciesDossier</span> type. Rows the server would author but I can't read are marked <span class="ph">sample</span>.</p>
+  </div>
+
+  <div style="display:flex; gap:44px; align-items:flex-start;">
+
+    <!-- ============ 2A · front door ============ -->
+    <div id="2a" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">2A</span>
+        <div>
+          <div style="font-family:'Newsreader',serif; font-size:18px; font-weight:600; color:var(--deskfg);">Front door</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Sign-in above the fold; the press room is the scroll.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div class="scroll" style="padding:10px 18px 26px;">
+            <div style="display:flex; align-items:center; gap:9px; margin-bottom:20px;">
+              <span class="seal" style="width:30px;height:30px;font-size:16px;">S</span>
+              <span class="cap" style="font-size:15px;">Saxonberg</span>
+            </div>
+            <div class="flagrule" style="margin:-12px 0 18px;"></div>
+
+            <h2 class="cap" style="font-weight:500; font-size:22px; line-height:1.24; margin:0 0 10px;">A world your community actually runs.</h2>
+            <p style="font-size:14px; line-height:1.6; color:var(--fg-dim); margin:0 0 20px;">Mass in kilograms, heat in degrees, and a body of law the players amend. Most of it isn't built yet.</p>
+
+            <div style="display:flex; flex-direction:column; gap:9px; margin-bottom:15px;">
+              <button class="prov"><span style="width:20px;height:20px;border-radius:5px;background:#fff;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#4285f4;">G</span>Continue with Google</button>
+              <button class="prov alt"><span style="width:20px;height:20px;border-radius:5px;background:#9146ff;flex:none;"></span>Continue with Twitch</button>
+              <button class="prov alt"><span style="width:20px;height:20px;border-radius:5px;background:#53fc18;flex:none;"></span>Continue with Kick</button>
+            </div>
+            <p style="font-size:12.5px; color:var(--fg-mute); line-height:1.5; margin:0 0 18px;">An account keeps your character, your record, and anything you build. One tap — no password to make.</p>
+
+            <div style="padding-top:16px; border-top:1px solid var(--line-soft); margin-bottom:26px;">
+              <button class="guest">Look around as a guest</button>
+              <p style="font-size:12px; color:var(--fg-mute); line-height:1.5; margin:9px 0 0;">Anonymous and temporary. Nothing is kept and nobody can find you again. Fine for a look; not a way to play.</p>
+            </div>
+
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:9px;">
+              <span class="lbl">the press room</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">no account needed</span>
+            </div>
+            <div class="cell">
+              <div class="note"><span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--info); flex:0 0 52px; padding-top:3px;">GAZETTE</span><div style="flex:1;"><div style="font-family:'Newsreader',serif; font-size:15px; line-height:1.32;">The Play chamber seats its first session</div><div style="font-size:12px; color:var(--fg-mute); line-height:1.4; margin-top:1px;">Standing is a rate, not a total — how the seats were filled</div></div></div>
+              <div class="note"><span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--good); flex:0 0 52px; padding-top:3px;">WIKI</span><div style="flex:1;"><div style="font-family:'Newsreader',serif; font-size:15px; line-height:1.32;">How the Compact works</div><div style="font-size:12px; color:var(--fg-mute); line-height:1.4; margin-top:1px;">Make, Fund and Play — who carries a measure</div></div></div>
+              <div class="note"><span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--good); flex:0 0 52px; padding-top:3px;">WIKI</span><div style="flex:1;"><div style="font-family:'Newsreader',serif; font-size:15px; line-height:1.32;">Reading a measurement</div><div style="font-size:12px; color:var(--fg-mute); line-height:1.4; margin-top:1px;">Why everything is in real units</div></div></div>
+              <div class="note"><span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--accent); flex:0 0 52px; padding-top:3px;">BUILD</span><div style="flex:1;"><div style="font-family:'Newsreader',serif; font-size:15px; line-height:1.32;">Crafting branches shipped</div><div style="font-size:12px; color:var(--fg-mute); line-height:1.4; margin-top:1px;">Smithing and cooking over one skeleton</div></div></div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:14px; margin-top:20px; padding-top:16px; border-top:1px solid var(--line-soft);">
+              <div><div class="lbl" style="margin-bottom:4px;">the world resets nightly</div><div style="font-size:12.5px; color:var(--fg-dim); line-height:1.5;">Nothing survives to tomorrow yet. It means you can try anything.</div></div>
+              <div><div class="lbl" style="margin-bottom:4px;">it is usually quiet</div><div style="font-size:12.5px; color:var(--fg-dim); line-height:1.5;">You may be the only person on. The lounge still works.</div></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 2B · intake ============ -->
+    <div id="2b" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">2B</span>
+        <div>
+          <div style="font-family:'Newsreader',serif; font-size:18px; font-weight:600; color:var(--deskfg);">Intake</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">One column; dossier renders the server's own sections.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:7px; padding:8px 18px 12px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--good);"></span><span style="font-size:11.5px; color:var(--fg-dim);">sign in</span>
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--accent); margin-left:8px;"></span><span style="font-size:11.5px; color:var(--fg);">intake</span>
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--line); margin-left:8px;"></span><span style="font-size:11.5px; color:var(--fg-mute);">lounge</span>
+          </div>
+
+          <div class="scroll" style="padding:0 18px 18px;">
+            <h2 class="cap" style="font-weight:500; font-size:19px; margin:0 0 3px;">Articles of Enrolment</h2>
+            <p style="font-size:12.5px; color:var(--fg-mute); line-height:1.5; margin:0 0 18px;">No classes, no levels. You pick a body and a name; skill comes from doing the work.</p>
+
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+              <span class="lbl">species</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">8 playable</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+              <div class="cardm on"><span style="font-size:14.5px; color:var(--fg);">Human</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">sapiens</span></div>
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Dwarf</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">khazadicus</span></div>
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Elf</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">eldarinus</span></div>
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Half-elf</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">semieldarinus</span></div>
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Gnome</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">gnomus</span></div>
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Halfling</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">periannath</span></div>
+              
+              
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Half-orc</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">semiorcus</span></div>
+              <div class="cardm"><span style="font-size:14.5px; color:var(--fg-dim);">Orc</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); font-style:italic;">orcus</span></div>
+            </div>
+
+            <!-- portrait: the real 3:4 illustration slot -->
+            <div style="display:flex; gap:11px; margin-bottom:12px;">
+              <div style="flex:0 0 96px; aspect-ratio:3/4; border-radius:3px; border:1px solid var(--line); background:repeating-linear-gradient(135deg, color-mix(in oklab,var(--accent) 12%,var(--sunken)) 0 9px, var(--sunken) 9px 18px); display:flex; align-items:center; justify-content:center; text-align:center; color:var(--fg-mute); font-family:'IBM Plex Mono',monospace; font-size:9px; padding:6px;">species/<br>sapiens.png</div>
+              <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-family:'Spectral',serif; font-style:italic; font-size:17px; color:var(--fg); line-height:1.25;">Homo sapiens</div>
+                <div style="font-size:12px; color:var(--fg-dim); line-height:1.5; margin-top:5px;">Human reference. The species every other body plan is measured against.</div>
+              </div>
+            </div>
+
+            <!-- dossier: the server's own generic sections -->
+            <div class="cell" style="padding:12px 13px; margin-bottom:20px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                <span class="lbl">dossier</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); font-style:italic;">every row is real data</span>
+              </div>
+
+              <div class="lbl" style="font-size:9.5px; color:var(--fg-dim); margin-bottom:5px;">Classification</div>
+              <div style="display:flex; flex-wrap:wrap; gap:3px; margin-bottom:11px;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-dim);">Animalia</span><span style="color:var(--fg-mute); font-size:9px;">›</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-dim);">Chordata</span><span style="color:var(--fg-mute); font-size:9px;">›</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-dim);">Mammalia</span><span style="color:var(--fg-mute); font-size:9px;">›</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-dim);">Primates</span><span style="color:var(--fg-mute); font-size:9px;">›</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-dim);">Hominidae</span><span style="color:var(--fg-mute); font-size:9px;">›</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-dim);">Homo</span><span style="color:var(--fg-mute); font-size:9px;">›</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg);">sapiens</span>
+              </div>
+
+              <div class="lbl" style="font-size:9.5px; color:var(--fg-dim); margin-bottom:2px;">Biology <span class="ph">sample</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Lifespan</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">~80 years</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Active</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">diurnal</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Diet</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">omnivore</span></div>
+              <div class="q" style="margin-bottom:9px;"><span style="font-size:12.5px; color:var(--fg-dim);">Vision</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">trichromatic</span></div>
+
+              <div class="lbl" style="font-size:9.5px; color:var(--fg-dim); margin-bottom:2px;">Anatomy <span class="ph">sample</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Body plan</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">Biped</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Locomotion</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">walk · run · climb</span></div>
+              <div class="q" style="margin-bottom:9px;"><span style="font-size:12.5px; color:var(--fg-dim);">Articulation</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">14 equip slots</span></div>
+
+              <div class="lbl" style="font-size:9.5px; color:var(--fg-dim); margin-bottom:2px;">Composition <span class="ph">sample</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Tissue</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">flesh</span></div>
+              <div class="q"><span style="font-size:12.5px; color:var(--fg-dim);">Density</span><span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px;">1010 kg/m³</span></div>
+            </div>
+
+            <div class="lbl" style="margin-bottom:8px;">sex</div>
+            <div style="display:flex; gap:8px; margin-bottom:18px;"><span class="chipm on">female</span><span class="chipm">male</span></div>
+
+            <div class="lbl" style="margin-bottom:8px;">pronouns</div>
+            <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;"><span class="chipm on">she / her</span><span class="chipm">he / him</span><span class="chipm">they / them</span></div>
+
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+              <span class="lbl">name</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">from the common name bank</span>
+            </div>
+            <div style="font-family:'Spectral',serif; font-size:21px; color:var(--fg); margin-bottom:9px;">Maren Vask</div>
+            <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;"><span class="chipm on">keep</span><span class="chipm">re-roll</span><span class="chipm">type my own</span></div>
+
+            <div class="lbl" style="margin-bottom:8px;">aspiration <span class="ph">sample</span></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:11px;">
+              <span class="chipm on">a wright</span><span class="chipm">a physician</span><span class="chipm">a factor</span><span class="chipm">a delver</span><span class="chipm">an advocate</span><span class="chipm">a marshal</span>
+            </div>
+            <p style="font-size:13px; color:var(--fg-dim); line-height:1.55; margin:0 0 20px;">You mean to make things that hold. Seeds a workshop apron and a maker's claim in your chronicle.</p>
+
+            <div class="disc"><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent);">›</span><span style="font-size:13px; color:var(--fg-dim); flex:1;">5 commands sent</span><span style="font-size:15px; color:var(--fg-mute);">›</span></div>
+            <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.5; margin:8px 0 0;">Every card you tap sends a real <span style="font-family:'IBM Plex Mono',monospace;">enroll</span> command — the same ones you could type in a bare text client.</p>
+          </div>
+
+          <div class="foot" style="padding-left:18px; padding-right:18px; padding-top:11px;">
+            <button class="bigm"><span style="font-family:'IBM Plex Mono',monospace; font-size:14px;">enroll confirm</span></button>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 2C · lounge ============ -->
+    <div id="2c" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">2C</span>
+        <div>
+          <div style="font-family:'Newsreader',serif; font-size:18px; font-weight:600; color:var(--deskfg);">The lounge</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Feed-first, one ground. Illustrations ride the feed as plates.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <!-- pinned: where you are -->
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:8px 18px 9px; border-bottom:1px solid var(--line); background:var(--surface);">
+            <div style="flex:1; min-width:0;">
+              <div class="cap" style="font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">The Lounge</div>
+              <div style="display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">
+                <span style="width:6px; height:6px; border-radius:50%; background:var(--good); flex:none;"></span>
+                <span>connected · 2 here</span>
+              </div>
+            </div>
+            <span class="iconbtn" aria-label="menu" style="position:relative;">☰<span style="position:absolute; top:-2px; right:-4px; min-width:16px; height:16px; border-radius:8px; background:var(--red); border:1px solid var(--white); color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:9px; display:flex; align-items:center; justify-content:center; padding:0 3px;">3</span></span>
+          </div>
+
+          <!-- THE FEED — one ground; the plate is where the storybook lives -->
+          <div class="scroll" style="padding:0 18px;">
+
+            <div class="frame">
+              <div class="fmeta"><span class="fkind" style="color:#c98a3f;">Room</span><span class="ftime">18:41</span></div>
+              <div class="plate">
+                <div class="platefig">illustration · author-supplied</div>
+                <div class="platecap">The Lounge, some hours before anyone arrives</div>
+              </div>
+              <div class="fbody">A wide, low room that is not anywhere. Booths ring a bar in the middle, each one somebody's idea of a different bar. A <span class="tap">pizza</span> sits on your table and a <span class="tap">terminal</span> stands by the <span class="tap">departures board</span>.</div>
+            </div>
+
+            <div class="frame">
+              <div class="fmeta"><span class="fkind" style="color:#7f93a8;">Presence</span><span class="ftime">18:41</span></div>
+              <div class="fbody">The <span class="tap">waiter</span> is doing a slow round with a stack of pies. Nobody else is on the floor.</div>
+            </div>
+
+            <div class="frame sys">
+              <div class="fmeta"><span class="fkind" style="color:var(--accent);">You</span><span class="ftime">18:42</span></div>
+              <div class="fbody">talk waiter</div>
+            </div>
+
+            <div class="frame">
+              <div class="fmeta"><span class="fkind" style="color:#8ab06a;">Say</span><span class="ftime">18:42</span></div>
+              <div class="fbody">The <span class="tap">waiter</span> tips his head. “First one tonight. Sit anywhere — the anchovy is nobody's favourite but it is mine.”</div>
+            </div>
+
+            <div class="frame sys" style="border-left-color:var(--info);">
+              <div class="fmeta"><span class="fkind" style="color:var(--info);">Notice</span><span class="ftime">18:42</span></div>
+              <div class="fbody" style="font-family:'Public Sans',sans-serif; font-size:13px;">Nobody else is on right now. Most people talk in <span style="color:var(--accent);">the chat rooms</span> between sessions.</div>
+            </div>
+          </div>
+
+          <!-- pinned: the verbs that would actually work here -->
+          <div class="vbar">
+            <span class="vbtn">look</span>
+            <span class="vbtn arg">talk</span>
+            <span class="vbtn arg">order</span>
+            <span class="vbtn arg">go</span>
+            <span class="vbtn">sit</span>
+            <span class="vbtn off arg">forge</span>
+            <span class="vbtn">⋯</span>
+          </div>
+
+          <!-- pinned: the command line -->
+          <div style="flex:none; padding:9px 18px 40px; border-top:1px solid var(--line); background:var(--sunken);">
+            <div style="display:flex; align-items:center; gap:9px;">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--fg-mute); flex:none;">here›</span>
+              <div style="flex:1; min-width:0; display:flex; align-items:center; gap:6px; height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--fg);">order pizza</span>
+                <span style="width:8px; height:16px; background:var(--accent); border-radius:1px;"></span>
+              </div>
+              <button class="bigm" style="width:auto; padding:0 16px; flex:none;">⏎</button>
+            </div>
+            <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:7px 0 0;">A verb with <span style="font-family:'IBM Plex Mono',monospace;">…</span> needs a target — tap it, then tap what you mean. Dimmed verbs exist but not here.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+
+    <!-- ============ 2D · the drawer ============ -->
+    <div id="2d" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">2D</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600; color:var(--deskfg);">The drawer</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Desktop's mode spine, collapsed. Identity, standing, modes.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:11px; padding:10px 18px 12px; border-bottom:1px solid var(--line); background:var(--surface);">
+            <span class="seal" style="width:38px; height:38px; font-size:18px;">M</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-family:'Spectral',serif; font-size:16px; color:var(--fg); line-height:1.15;">Maren Vask</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); margin-top:2px;">Homo sapiens · a wright</div>
+            </div>
+            <span class="iconbtn" aria-label="close">✕</span>
+          </div>
+
+          <div class="scroll" style="padding:0 18px 14px;">
+
+            <div class="lbl" style="margin:13px 0 7px;">Standing</div>
+            <div style="display:flex; gap:7px; margin-bottom:5px;">
+              <div style="flex:1;"><div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--fg-mute); margin-bottom:3px;"><span>Make</span><span>—</span></div><div style="height:4px; background:var(--sunken);"><div style="height:100%; width:4%; background:var(--good);"></div></div></div>
+              <div style="flex:1;"><div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--fg-mute); margin-bottom:3px;"><span>Fund</span><span>—</span></div><div style="height:4px; background:var(--sunken);"><div style="height:100%; width:0%; background:var(--accent);"></div></div></div>
+              <div style="flex:1;"><div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--fg-mute); margin-bottom:3px;"><span>Play</span><span>new</span></div><div style="height:4px; background:var(--sunken);"><div style="height:100%; width:9%; background:var(--info);"></div></div></div>
+            </div>
+            <div style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin-bottom:16px;">Standing is a rate, not a total — it grows with what you do and fades when you stop.</div>
+
+            <div class="lbl" style="margin-bottom:7px;">Where</div>
+            <div style="border:1px solid var(--line); border-radius:3px; margin-bottom:16px;">
+              <div style="display:flex; align-items:center; gap:9px; min-height:44px; padding:0 12px; border-bottom:1px solid var(--line-soft);"><span style="font-family:'Spectral',serif; font-size:14px; color:var(--fg); flex:1;">The Lounge</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">here</span></div>
+              <div style="display:flex; align-items:center; gap:9px; min-height:44px; padding:0 12px;"><span style="font-family:'Spectral',serif; font-size:14px; color:var(--fg-dim); flex:1;">Dave's Bar</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent);">go north</span></div>
+            </div>
+
+            <div class="lbl" style="margin-bottom:7px;">Modes</div>
+            <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:9px;">
+              <div style="display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; border:1px solid var(--red); border-radius:3px; background:var(--raised); box-shadow:inset 3px 0 0 var(--red);"><span style="font-size:14px; color:var(--fg);">Play</span><span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">current</span></div>
+              <div style="display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px;"><span style="font-size:14px; color:var(--fg);">Chat</span><span style="margin-left:auto; min-width:20px; height:18px; border-radius:9px; background:var(--red); border:1px solid var(--white); color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:10px; display:flex; align-items:center; justify-content:center; padding:0 5px;">3</span></div>
+              <div style="display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px;"><span style="font-size:14px; color:var(--fg);">Watch</span><span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">2 live</span></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin:12px 0 8px;"><span style="height:1px; flex:1; background:var(--line);"></span><span class="lbl" style="font-size:9px;">ascend</span><span style="height:1px; flex:1; background:var(--line);"></span></div>
+            <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:16px;">
+              <div style="display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px;"><span style="font-size:14px; color:var(--fg-dim);">Build</span><span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">author</span></div>
+              <div style="display:flex; align-items:center; gap:10px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px;"><span style="font-size:14px; color:var(--fg-dim);">Govern</span><span style="margin-left:auto; min-width:20px; height:18px; border-radius:9px; background:var(--red); border:1px solid var(--white); color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:10px; display:flex; align-items:center; justify-content:center; padding:0 5px;">1</span></div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:9px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px; margin-bottom:5px;"><span style="font-size:13.5px; color:var(--fg-dim); flex:1;">Theme</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent);">Ink</span></div>
+            <div style="display:flex; align-items:center; gap:9px; min-height:44px; padding:0 12px; border:1px solid var(--line); border-radius:3px;"><span style="font-size:13.5px; color:var(--fg-dim); flex:1;">Sign out</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+  </div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark' | 'light'&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+class Component extends DCLogic {
+  renderVals(){
+    const theme = this.props.theme ?? 'dark';
+    return { theme, isDark: theme === 'dark' };
+  }
+}
+</script>
+</body>
+</html>

@@ -42,8 +42,7 @@ export default class JobBoard extends JobBoardBase {
 
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ["work/job.yaml"],
-    inventory: [],
-    peers: [],
+    peers: ["work/job.yaml"],
+    environment: [],
   };
 }
