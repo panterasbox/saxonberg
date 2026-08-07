@@ -20,6 +20,7 @@ import {
   type RecencyEntry,
 } from '../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../lib/spatial/Containable';
+import { TangibleMixin } from '../../lib/material/Tangible';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainmentApi } from '../containment';
@@ -396,5 +397,68 @@ describe('affordance reach — peers one hop away', () => {
 
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     expect(() => ContainmentApi.move(giver, here as never)).not.toThrow();
+  });
+});
+
+/**
+ * THE SHIPPED MIXIN, not a synthetic provider.
+ *
+ * `TangibleMixin` is what puts `throw` in front of a player, and its
+ * two buckets are the whole reason a rock works the way the design
+ * wants: `environment` so the thing in your hand offers the verb
+ * outward, `peers` so the thing at your feet offers it sideways.
+ *
+ * Pinned against the real mixin because the earlier claim that a
+ * grounded item afforded `throw` was justified by watching a
+ * controller run — which proves DISPATCH, not a fresh affordance. A
+ * stale un-popped stack entry looks exactly the same from a client.
+ */
+describe('TangibleMixin affords throw where the design says it should', () => {
+  beforeEach(() => {
+    CommandApi.clearCache();
+  });
+
+  const RockBase = TangibleMixin(ContainableMixin(Idea));
+  class Rock extends RockBase {}
+
+  it('a rock ON THE GROUND offers `throw` to everyone in the room', () => {
+    const room = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    ContainmentApi.move(giver, room as never);
+    giver.getAvailableCommands();
+
+    const rock = makeStuff(() => new Rock());
+    ContainmentApi.move(rock, room as never);
+
+    const fromRock = stackOf(giver).filter((e) => e.source === (rock as never));
+    expect(fromRock.map((e) => e.bucket)).toContain('peers');
+  });
+
+  it('a rock IN YOUR HAND offers it outward instead', () => {
+    const room = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    ContainmentApi.move(giver, room as never);
+    giver.getAvailableCommands();
+
+    const rock = makeStuff(() => new Rock());
+    ContainmentApi.move(rock, giver as never);
+
+    const fromRock = stackOf(giver).filter((e) => e.source === (rock as never));
+    expect(fromRock.map((e) => e.bucket)).toContain('environment');
+  });
+
+  it('and takes it away when the rock is carried out of the room', () => {
+    const room = makeStuff(() => new Location());
+    const elsewhere = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    ContainmentApi.move(giver, room as never);
+    giver.getAvailableCommands();
+
+    const rock = makeStuff(() => new Rock());
+    ContainmentApi.move(rock, room as never);
+    expect(stackOf(giver).some((e) => e.source === (rock as never))).toBe(true);
+
+    ContainmentApi.move(rock, elsewhere as never);
+    expect(stackOf(giver).some((e) => e.source === (rock as never))).toBe(false);
   });
 });

@@ -1224,6 +1224,32 @@ option or arg name.
    directly with a synthetic `CommandContext` for unit coverage; the
    full pipeline can be exercised via `giver.executeCommand(text)`.
 
+### ⚠ A controller test does not test the verb's *shape*
+
+A controller test is handed a **pre-built model**, so it never runs
+the binder — parse → assemble → resolve → validate. Everything the
+YAML actually declares (arg order, `prepositions`, `scope`,
+`validators`) is therefore untested by construction, and a whole verb
+can be unreachable while its controller's tests are green. Two defects
+in `throw.yaml` alone reached a live client that way: a `$focus` entry
+beside a `prepositions:` arg (which never matches any shape, so
+`throw X at Y` fell through to "no known command shape"), and an
+`inventory` scope on an argument the design wanted resolved off the
+ground.
+
+**The exemplar is
+`api/__tests__/command-binder-throw.test.ts`** — it reads the shipped
+YAML off disk and walks the real chain, so editing the file wrongly
+fails a test rather than a player. Worth doing for any verb whose YAML
+carries a preposition, a non-default `scope`, or validators that are
+meant to *teach* rather than merely reject.
+
+> ⚠ `CommandDefinition.fromYaml` leaves `_resolvedValidators` empty —
+> only `CommandApi.preloadAll()` populates it. A harness that builds a
+> definition directly and skips that step **silently skips every
+> validator** and reports a clean pass on input the real dispatcher
+> refuses.
+
 ## Cache invalidation (dev)
 
 YAML CommandDefinitions don't auto-reload — `CommandApi.getCommand`

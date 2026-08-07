@@ -30,64 +30,12 @@ args:
   - name: item
     type: object
     required: true
-    # ⚠ WANTS a wider scope so a rock on the GROUND resolves and
-    # `mustBeHeld` can teach "pick it up first" — the intended design.
-    # BLOCKED. Narrowed by live-driving; FOUR hypotheses eliminated, and
-    # the cause is still unknown. The discriminating fact:
-    #
-    #   held     + scope reachable → `throw implant` WORKS
-    #   grounded + scope reachable → same command, binds NOTHING
-    #
-    # Ruled out:
-    #   ✗ the two-arg `at` split — single-arg fails identically
-    #   ✗ the scope vocabulary — `reachable` IS the union incl. `peers`
-    #   ✗ perception — pushDirect gates on `perceives`, and `look` lists it
-    #   ✗ keywords — `get implant` binds the SAME grounded item
-    #   ✗ commandSource — the MqlContext is built `{commandGiver, scope,
-    #     permission}`; commandSource never reaches resolution at all
-    #   ✗ resolveOne-vs-resolveMany — `onExcess: prompt` flips to
-    #     resolveMany and it STILL binds nothing
-    #   ✗ greedy — adding `greedy: true` changes nothing
-    #   ✗ the validators — stripping them entirely changes nothing
-    #   ✗ the second (`at`) arg's presence — deleting the target arg so
-    #     the def is single-arg like `get` changes nothing
-    #
-    # So it is not scope selection and not the one-of-N scoring path.
-    #   ✗ permission — that gate fires on author-only OPERATORS (it is
-    #     the `goto /domain/...` refusal); a bare keyword has none
-    #
-    # PROVEN SIDE BY SIDE, same session, same item, same floor:
-    #   `get implant`   → "You pick up an aether implant."
-    #   `throw implant` → binds nothing
-    #
-    # ONE structural difference is left untested: `type: object` vs
-    # get's `type: objects`. `onExcess: prompt` only reroutes the
-    # RESOLVE call; the `objects` branch has its own binding path
-    # (applyCardinalityPolicy → MqlManyResult). Testing it needs a
-    # controller change too, since the model shape becomes an array.
-    #
-    # THE DISCRIMINATOR, and it does not need this branch. Only TWO
-    # shipped verbs use a `type: object` FIRST arg over a room scope:
-    #   author/teleport.yaml  destination  ["online","/obj/**","reachable"]
-    #   crafting/strain.yaml  vessel       "reachable"
-    # Everything that demonstrably works is a different shape — `get` is
-    # `type: objects`; `put`/`give` are `type: object` but SECOND args
-    # behind a preposition. So this corner has two occupants and could
-    # have been broken unnoticed.
-    #
-    # On plain master, drop a strainable vessel and type `strain <vessel>`:
-    #   fails the same way → framework bug in first-arg object resolution
-    #                        over room scope; predates this build
-    #   works              → something in THIS yaml still differs; the
-    #                        answer is in the diff against strain.yaml
-    #
-    # ⚠ ALSO UNVERIFIED: that `throw` is afforded from the ground at
-    # all. The controller running proves dispatch, not a FRESH
-    # affordance — a stale un-popped stack entry from when the item was
-    # held would look identical. Check that before trusting the
-    # "afforded from the ground" claim in the commit that added
-    # TangibleMixin.peers.
-    scope: "inventory"
+    # Deliberately WIDER than `inventory` — a rock on the ground must
+    # RESOLVE so `mustBeHeld` can answer "pick it up first" instead of
+    # the parser claiming there is no rock. Narrowing this to
+    # `inventory` silently deletes the teaching refusal; pinned by
+    # `api/__tests__/command-binder-throw.test.ts`.
+    scope: "reachable"
     validators:
       # Mass is what makes a thing throwable — and it is the ½mv² input.
       - /lib/command/validators/mustBeTangible
