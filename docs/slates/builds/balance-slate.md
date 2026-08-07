@@ -467,8 +467,117 @@ context-derived author.
 > rate is not computable and this entire slate is theory.** It is the
 > first build item; everything else queues behind it.
 
-⚠ **Verify against the actual event shapes before sizing it** — this is a
-design claim, not an audited one.
+#### ✅ AUDITED 2026-08-06 — the claim was right, and wrong in two ways that matter
+
+Every ledger's event shape read directly. Result below; the headline is
+that **the blocker is smaller than stated and differently shaped.**
+
+| Ledger | Spatial field | Vocabulary | Populated on the write path? |
+|---|---|---|---|
+| `producer_events` | `zonePath` | **template path** | ✅ **yes** — every row |
+| `authoring_events` | `path` | template path | ✅ yes (but it is the *authored* path, not where the act happened) |
+| `renown_events` | `locality` | **address prefix** | ✅ yes — `RenownLogic.resolveScope` |
+| `chronicles` | `where` | template path | partial — authored, not derived |
+| `bank_ledger` | `locality` | address prefix | ❌ **never** — always `null` |
+| `accountability_events` | `locality` | address prefix | ❌ **never** — always `null` |
+| `transcripts` | — | — | ❌ no field |
+| `disposition_events` | — | — | ❌ no field |
+| `participation_events` | — | — | ❌ no field, **deliberately** |
+| `chattel_events` | — | — | ❌ no field |
+
+##### ⭐⭐⭐⭐⭐ Finding 1 — there are TWO prefix hierarchies and the ledgers mostly chose the wrong one
+
+Part 1 concluded *"federalism is already built — it is one longest-prefix
+walk used five times."* **That is not quite true, and the difference lands
+exactly here.** There are two trees:
+
+- **Title** — `ParcelRecord.extent`, *"the path this parcel claims — the
+  coverage-index key"*. A **template path**. This is what `ownerOf`
+  resolves and what a mint rate must be keyed by.
+- **Jurisdiction** — the `AddressApi` rooted address namespace
+  (`/university-avenue`), resolved by `coverageChainOf`. An **address**.
+
+Both are longest-prefix, both are derivable from an acting location, and
+**neither derives from the other.** The three ledgers carrying `locality`
+carry the *address*, documented as *"address-prefix scope where it
+happened."* ⇒ **even where populated, `locality` does not resolve to a
+parcel.** Renown is jurisdiction-attributable and *not* title-attributable
+today.
+
+⚠ Whether the two trees are congruent in practice is **not audited** and
+is now the first question, because if they are not, "which regulator" and
+"which owner" can disagree for the same act — and that is an arbitrage
+surface of exactly the kind the span-of-parcels rule below worries about.
+
+##### ⭐⭐⭐⭐ Finding 2 — the most important ledger is already done
+
+`ProducerEvent.zonePath` is *"the engaged zone's template path"*, written
+on **every** row from `CommandDispatchedPayload.locationTemplatePath`,
+which `CommandGiver` fills from `args.location?.getTemplatePath()` at
+dispatch. That is the parcel coverage key, in the right vocabulary,
+derived at the right moment.
+
+And by Part 1's own reframe, **`producer_events` is voting weight.** So
+the one ledger where jurisdiction attribution matters most is the one that
+already has it. ⇒ **blocker #0 downgrades from "nothing is computable" to
+"one is, nine are not."** A producer-only balance instrument is shippable
+today, which makes a much cheaper v1 than the slate assumed.
+
+##### ⚠⚠ Finding 3 — two `locality` fields are DEAD, and the tests say otherwise
+
+`bank_ledger` and `accountability_events` both declare `locality`, mark it
+persistent, and **never write it non-null**:
+
+- `postTransaction(kind, legs, opts)` takes `opts.locality` — and **all
+  thirteen call sites are module-private and pass no `opts`.** Every row:
+  `locality = null`.
+- `AccountabilityLogic`: `ev.locality = fields.locality ?? null`, and no
+  producer passes it.
+
+⚠⚠ **This is [[reference-ideas-inert-at-boot]] in a fourth subsystem.**
+`lib/banking/__tests__/LedgerEntry.test.ts` hand-constructs
+`e.locality = "/university-avenue"` and asserts the round-trip — proving
+the *field* persists while proving nothing about the *write path*. Green
+CI, dead column, and a query against it returns clean empty results rather
+than an error.
+
+⭐ **Worse, the banking signature is spoofable by design.** A
+caller-passed stamp is precisely the arbitrage surface this section warns
+about two paragraphs down. `AuthoringEvent` already states the correct
+contract — *"the author is derived from the execution context, **never
+passed** — the anti-spoof contract."* The stamp must be derived, and
+`opts.locality` should be **removed**, not filled in.
+
+##### Finding 4 — the advancement axis has no spatial field at all
+
+`transcripts`, `disposition_events`, `participation_events`,
+`chattel_events` carry nothing. These are exactly the ledgers Part 1's
+reframe named as the whole point (*"the boundary is any state written
+locally and consumed globally — which is the whole advancement axis"*).
+
+⚠ **`participation_events` is a deliberate refusal, not an oversight.**
+`CommandDispatchedEvent` carries the location, and the participation
+consumer is documented as ignoring it so *"its rows are byte-identical
+whether present or not."* Stamping it **reverses a stated decision** and
+needs its own argument, not a patch.
+
+##### ⭐⭐⭐⭐ Finding 5 — the seam already exists, planted for something else
+
+`ExecutionContextApi.getJurisdictionBound()` returns *"the governed-eval
+jurisdiction bound (**a parcel extent**) for the current execution tree"*
+— a frame-0 metadata slot with a documented set-once discipline, storing
+**exactly the right type**, planted today only by the governed-eval root
+and `null` on every ordinary path.
+
+⇒ the fix is not new plumbing. It is **planting that slot at the command
+root**, where `CommandGiver` already computes the location's template path
+one line away, and giving ledger writers an `actingParcelKey()` companion
+to `BankingLogic`'s existing `actingActorKey()`. **One seam, existing
+shape, existing anti-spoof contract.**
+
+⚠ Not audited: whether frame-0 set-once survives the schedule/root cases
+(`ScheduleApi.recurring` composes its own root), which is where a
+stamp would silently go null.
 
 ⚠ **And it needs a stated rule for acts that span parcels** — a blow
 struck across a boundary, a trade concluded in one place and delivered in
@@ -1401,7 +1510,10 @@ Small, which is the argument for doing it:
 
 | # | Artifact | Size |
 |---|---|---|
-| **0** | ⚠⚠ **The jurisdiction stamp on ledger writes** — without it no mint rate is computable | **the blocker** |
+| **0** | ⚠⚠ **The jurisdiction stamp on ledger writes** — ✅ **audited 2026-08-06**; `producer_events` already has it, 2 fields are dead, 4 ledgers have none. Reshaped into 0a–0c below | **the blocker** |
+| **0a** | **Plant the parcel extent at the command root** — the `getJurisdictionBound` slot exists; `CommandGiver` computes the path one line away | small |
+| **0b** | **`actingParcelKey()`** beside `actingActorKey()`, and **DELETE `postTransaction`'s `opts.locality`** (a caller-passed stamp is spoofable) | small |
+| **0c** | ⚠ **Decide whether title and jurisdiction trees are congruent** — two longest-prefix hierarchies, neither derived from the other | **a design question** |
 | 1 | **The enumeration** — both halves: the cross-jurisdiction ledgers ⊕ the closed vocabularies | a list |
 | 2 | **The validity predicate** in the codification lint (void-at-write) | a predicate |
 | 3 | **The `bound` instrument** — the missing middle law shape | the real work |
