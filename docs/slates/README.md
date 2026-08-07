@@ -510,7 +510,30 @@ on combat.
   procgen-NPC generator folded in). Consumers: BUC-at-spawn, create-monster,
   world-population. **Shared world-wide.**
 
-### 12. Engine hygiene — ✅ shipped
+### 12. The client rebuild
+*The whole front end, and the server work hiding inside it.* A Claude
+Design handoff (`docs/design_handoff/`, 23 interactive screens) specifies
+a complete client rebuild — civic dress, `one frame → modes → layouts →
+panes`, and a hard honesty rule: **never render a figure the server did
+not send.** Reading it against the code showed a large part is *server*
+work, so the cycle is server-first.
+- [client-slate](./builds/client-slate.md) — the durable design surface:
+  the six governing decisions, the four server tracks, what in
+  `packages/client` is superseded, an 8-wave cut, and 5 open questions.
+  **Wave 0 + Track C shipped as S1 "figures on the wire"** (MR !172) —
+  the extended `<quantity>` tag (a *registered*, non-inert reading with
+  channel + provenance), five topic facets so a filter is one rule
+  rather than ninety paths, and the live standing figures over a direct
+  `durableKey` witness → [../subsystems/messaging.md](../subsystems/messaging.md),
+  [topics.md](../subsystems/topics.md),
+  [mql-subscription.md](../subsystems/mql-subscription.md). Remaining:
+  **S2** affordance resolution, **S3** the topic renames (breaking),
+  **Track D** the modes/panes wire contract (design first), then the
+  client waves themselves. ⚠ Carries the ruling that the handoff's
+  pinnable **trait widget must not be built** — it would foreclose the
+  psychology vocation.
+
+### 13. Engine hygiene — ✅ shipped
 *Platform refactors with a lint at the end — no product surface.*
 - [reference-lifetime-slate](./tails/reference-lifetime-slate.md) — **NEW 2026-08-01.** Declare how long a reference holds. `ref-shapes.md` R2.1–R2.4 already say exactly that, but three of the four are **convention** — hand-written boilerplate that fails SILENTLY when forgotten (R2.3's self-heal is copy-pasted into every getter). Declare the rule per field, in the idiom the codebase already uses, and let the framework enforce it. **BUILT** — as `static fieldMeta`, one field-keyed structure rather than a seventh parallel static, with two axes (`ref: identity|instance`, and `lifetime: weak|symmetric|owned` for instance refs). **Not an internals nicety:** most cross-object refs are path strings today only because the world is still mostly singletons — a grown world is mostly clones, and every one of those is an instance (live) ref with a cleanup obligation. Rejected: a `StuffRef<T>` wrapper (competes with R2.3 instead of completing it, ceremony at every read), real `WeakRef<>` (StuffApi's registries hold strong refs while registered, and post-unregister it clears NONDETERMINISTICALLY — GC timing into a deterministic residency story), and field decorators (**102 mixins return class expressions**, where legacy decorators are invalid). Implied follow-on, and it was bundled after all: **invert the field-metadata statics** into one field-keyed structure. Two corrections from the build — there were **four** field-keyed statics, not six (`commandContributions` / `settings` / `subscribableFields` / `markupAugmenters` are keyed by audience / setting key / virtual projection / nothing, so they are a different question and stayed); and the real input set was **245 files / 283 class bodies**, not the 231 estimated here. Not bundling it was reconsidered because the alternative — a transitional read-both collector — is worse than one atomic commit backed by a per-class-body syntactic equivalence proof.
 

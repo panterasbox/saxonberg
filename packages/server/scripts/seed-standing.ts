@@ -33,6 +33,18 @@
  * `--player` takes either a bare player id (`maren`) or a full durable
  * key (`/obj/Avatar/maren`). `--clear` removes this script's own rows
  * for that subject and exits.
+ *
+ * ⚠ **Seeding the log is not the whole job for three of the five.**
+ * `transcripts` and `disposition_events` derive on read, so they are
+ * live immediately. `renown_events`, `participation_events` and
+ * `producer_events` fold into *materialized* standings collections, and
+ * the sync reads (`RenownApi.renownOf`, `InfluenceApi.bandOf`) read a
+ * map warmed at boot from those. A recompute has to fold the seeded log
+ * before those figures move — a bare restart re-warms from a collection
+ * this script never wrote, and changes nothing. The closing output says
+ * so at every run, because this is exactly the trap that made a
+ * correctly-seeded character still read `dormant` during the live
+ * drive.
  */
 
 import { MongoClient, type Db } from 'mongodb';
@@ -274,8 +286,26 @@ async function main(): Promise<void> {
     }
     console.log(`seed-standing: wrote ${total} row(s) for ${subject}`);
     console.log(
-      '\nRestart the server (or wait for the next ledger append) so the\n' +
-        'derived caches fold the new history.'
+      '\n⚠ The five ledgers do NOT all surface the same way:\n' +
+        '\n' +
+        '  transcripts / disposition_events  DERIVE ON READ. Live as soon\n' +
+        '                                    as the fold runs — nothing\n' +
+        '                                    else to do.\n' +
+        '\n' +
+        '  renown_events / participation_events / producer_events\n' +
+        '                                    fold into MATERIALIZED\n' +
+        '                                    standings (the `renown` /\n' +
+        '                                    `participation` / `producer`\n' +
+        '                                    collections), and the sync\n' +
+        '                                    reads (RenownApi.renownOf,\n' +
+        '                                    InfluenceApi.bandOf) read the\n' +
+        '                                    materialized map warmed at\n' +
+        '                                    boot.\n' +
+        '\n' +
+        '  So these rows move renown / play / make only after a RECOMPUTE\n' +
+        '  (RenownApi.recompute / ProducerApi.recompute) folds them into\n' +
+        '  those collections. A bare restart re-warms the map from a\n' +
+        '  collection this script never wrote — it changes nothing.'
     );
   } finally {
     await client.close();

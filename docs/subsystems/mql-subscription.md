@@ -345,7 +345,7 @@ mixin's descriptor; no synthetic table, no overlay step.
 Universal cross-cutting renders → `Stuff.subscribableFields`. Mixin-
 gated cross-cutting renders → the mixin that owns the gate.
 
-## ⭐ Ledger-derived fields: the five standing figures
+## ⭐ Ledger-derived fields: the live standing figures
 
 `Avatar.subscribableFields` carries `playStanding`, `makeStanding`,
 `renown` and `practisingCompetence` — as **structured values** rather
@@ -376,9 +376,9 @@ implementation here would drift from it.
 
 ### ⚠ `read` is sync, and that is load-bearing
 
-Two of the five figures read ledgers whose Api is async
-(`TraitApi.pronouncedFor`, `AdvancementApi.bandsFor`). **Do not widen
-`read` to return a promise.** `MqlSubscriptionApi.projectFields` is
+`practisingCompetence` reads a ledger whose Api is async
+(`AdvancementApi.bandsFor`). **Do not widen `read` to return a
+promise.** `MqlSubscriptionApi.projectFields` is
 sync, and `ContainerMixin`'s own `contents` descriptor calls it from
 *inside* its `read` — so a promise would make projection async
 **recursively through nested containment**, on the inspection pane's hot

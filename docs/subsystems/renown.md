@@ -236,3 +236,21 @@ match a durable `templatePath` through a `ChangeSource`. See
 
 ⚠ **After the write, never before.** A consumer that recomputes must not
 read a ledger missing the row it was just told about.
+
+## ⚠ Seeding the log does not move the figure
+
+`RenownApi.renownOf` reads `RenownStanding.cached()` — an in-memory map
+warmed at boot from the **`renown` collection**, which holds the
+*materialized* standings. It does **not** read `renown_events`.
+
+So writing rows into `renown_events` (as
+`packages/server/scripts/seed-standing.ts` does) changes nothing until a
+**recompute** folds the log into the standings collection. A bare
+restart re-warms the map from a collection the seeding never wrote, and
+is therefore a no-op.
+
+This is the trap that made a correctly-seeded character still read
+`dormant` through a whole live drive of the S1 build. The same holds for
+`participation` and `producer`. `transcripts` and `disposition_events`
+are the opposite — they derive on read straight from the log, so seeded
+rows are live as soon as the fold runs.

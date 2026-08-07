@@ -11,6 +11,13 @@ in flight has already answered better.
 > **Status: design surface for a multi-wave client cycle.** Nothing here
 > is scoped for one build. The waves in § 7 are the proposed cut; each
 > gets its own requirements + plan.
+>
+> **✅ Wave 0 + Track C shipped as S1 "figures on the wire"** (MR !172) —
+> see [messaging.md](../../subsystems/messaging.md) (the `<quantity>`
+> tag), [topics.md](../../subsystems/topics.md) (the five facets) and
+> [mql-subscription.md](../../subsystems/mql-subscription.md) (the live
+> standing figures + the `durableKey` witness). Three corrections it
+> forced are folded into §§ 4.1, 4.2 and 6 below.
 
 > **The decision that frames everything: server *subsystem* work stops
 > after the ranged/affordance build; the server work that remains is all
@@ -218,11 +225,21 @@ Verified against the tree: **90 topic seed rows**
 
 | # | Change | Wire |
 |---|---|---|
-| 1 | `<measure channel value unit via lo hi>` + its `flatten` entry; emit from the measurement verbs | **Additive** — old clients see the flattened prose unchanged |
+| 1 | ~~`<measure …>`~~ → **`<quantity>`, extended** — ✅ shipped | **Additive** — old clients see the flattened prose unchanged |
 | 2 | Five topic facets — `address` · `actor` · `weight` · `audience` · `durable` — on the seed schema and `TopicDescriptor` | **Additive** fields on an existing type |
 | 3 | Retire `world.emote`; fold `direction` into `exit` | Breaking, single-emitter each |
 | 4 | The renames — `world.perception.measurement.*` (15) → `world.measure.<channel>` (8); `system.shell.*` (13) → `author.shell` (1); `system.commands.*` → `system.registry.*`; `system.auth\|connection\|session` → one subtree. ~90 → ~60 | Breaking; alias map for one release |
 | 5 | Rewrite topic `label`/`description` in player voice | Content only |
+
+⭐ **`<measure>` was never a new tag.** `Quantity.buildMarkup` had been
+emitting `<quantity unit value tag>` since the quantity substrate
+landed, and every measurement controller already routed through it — so
+the spec's proposal was this tag missing four attributes and any
+registration. Shipping both would have been two tags for one affordance,
+the test the spec applies to everything else. It was extended in place;
+`buildMarkup` is a single chokepoint, so ~25 call sites were untouched.
+The tag was also in **no** vocabulary, which made its name resolve as a
+wiki component module path — a latent bug the registration closed.
 
 Two things worth pulling forward:
 
@@ -274,6 +291,7 @@ So Track B reduces to:
 | 7 | Emit the `mx` digest on affordance tags — the object's composed mixins | Additive attribute; ignored by old clients |
 | 8 | Collapse `item` + `object` → `thing`; retire `name` | Breaking; alias during migration |
 | 9 | **The affordance resolver** — verbs for `(id, viewer, now)` with an enabled flag and a reason | New endpoint; no frame change |
+| — | *(S1 note)* `via` provenance is already solved: `ctx.commandSource` names the object that afforded a verb, so an instrument identifies itself on every reading without per-controller wiring | shipped |
 | 10 | Sixth facet `affordance` on topics — `live` / `decays` / `permanent` | Additive field |
 
 **Why MML must not carry the verb list**, and why the split is
@@ -440,6 +458,26 @@ re-argue:
 
 ---
 
+### ⚠⚠ One widget in the handoff's catalogue must NOT be built
+
+`Global Chrome.dc.html`'s shelf catalogue lists **`traits` — "your most
+pronounced trait right now"** as a pinnable widget. **Do not build it.**
+
+The psychology vocation rests on self-other asymmetry — *you cannot read
+yourself; another person can* — which is why the profession exists at
+all. A pinned, always-on readout of your own personality is the stat
+sheet that makes the therapist unnecessary. S1 therefore ships four live
+standing figures, not five, and a guard test forbids any subscribable
+field name matching `trait|disposition|personality`.
+
+⚠ The `score` and `traits` **verbs** do self-report today, which
+contradicts the psychology slate's premise that "the engine derives
+`TraitPosition` and shows nobody, so privacy is free". That is a
+pre-existing product decision the psychology build has to make. The
+distinction S1 drew, and which the client should keep: **a verb you
+choose to type is an act; a pinned readout is ambient.** Only the second
+is a stat sheet.
+
 ## 7 · Proposed wave cut
 
 Ordered so each ships independently. The handoff's build order is a good
@@ -447,7 +485,7 @@ Ordered so each ships independently. The handoff's build order is a good
 
 | Wave | What | Depends on |
 |---|---|---|
-| **0** | Track A steps 1–2 — `<measure>` + the five facets. Both additive, both unblock client filters and the instrument pane. | ranged/affordance build merged |
+| ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
 | **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). Mechanical, touches everything. | 0 (facets, for the filter surface) |
 | **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
 | **3** | Track A steps 3–5 + Track B — renames behind an alias map, `thing` collapse, `mx` digest, the affordance resolver, the `affordance` facet. | 1 |
@@ -455,7 +493,7 @@ Ordered so each ships independently. The handoff's build order is a good
 | **5** | Track D — modes axis, layout demotion, pane subscription set. **Design before scheduling.** | 4's requirements |
 | **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |
 | **7** | **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
-| **—** | Track C read-APIs land **beside** the wave that needs them, not as a batch. Each is small; batching them hides which surface is actually blocked. | per wave |
+| ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
 
 Deferred, designed but not scheduled: output logging / clips /
 attestation (§ 4.3); engagement patterns beyond the practice record;
