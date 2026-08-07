@@ -32,6 +32,8 @@
  */
 
 import { DiagnosticApi } from '../api/diagnostics';
+import { PersistApi } from '../api/persist';
+import { Collections } from '../lib/persistence/Collections';
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Template } from '../lib/stuff/Template';
@@ -44,6 +46,7 @@ import type {
   TopicAudience,
   TopicAffordance,
 } from '@saxonberg/types';
+import { TOPIC_ROOTS } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
@@ -200,10 +203,52 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    * layer entirely — Topic instances have no behavior worth
    * cloning, only data the catalogue cares about.
    */
+  /**
+   * ⚠⚠ **Drop topic rows whose root is not a real root.**
+   *
+   * The seeder is **insert-only**: deleting a seed FILE does nothing to
+   * the row it already wrote. So the taxonomy replacement left every
+   * pre-existing database holding BOTH vocabularies — measured on the
+   * build-1 dev database at the first boot after the change: 126 topic
+   * rows, 89 of them retired. `lint:topics` cannot see this, because it
+   * reads seed files and the stale rows are only in mongo.
+   *
+   * Pruning at boot rather than shipping a migration script is
+   * deliberate: this repo already has a migration script that has never
+   * been run, and a hazard that depends on somebody remembering is a
+   * hazard. Topic rows are pure reference data fully derived from
+   * seeds, so deleting an unrecognized one costs nothing and it comes
+   * straight back if a seed still declares it.
+   *
+   * Scope is narrow on purpose — **root validity only**. It cannot
+   * catch a stale row under a *valid* root (a future rename of
+   * `sense.weather` would leave one behind), and widening it to "any
+   * key not in the shipped seed set" would need the file list, which
+   * the mudlib cannot read. Pack-added leaves always sit under a core
+   * root, so they are never at risk.
+   */
+  private async pruneRetiredRoots(templates: Template[]): Promise<void> {
+    const roots = new Set<string>(TOPIC_ROOTS);
+    const stale = templates.filter((tpl) => {
+      const key = tpl.path.slice(Topic.TEMPLATE_PATH_PREFIX.length);
+      return !roots.has(key.split('.')[0] ?? key);
+    });
+    if (stale.length === 0) return;
+    await PersistApi.deleteMany(Collections.Domain, {
+      path: { $in: stale.map((t) => t.path) },
+    });
+    console.log(
+      `TopicCatalogue: pruned ${stale.length} topic row(s) outside the ` +
+        `${TOPIC_ROOTS.length} roots (retired vocabulary)`,
+    );
+  }
+
   private async loadCacheFromTemplates(): Promise<void> {
-    const templates = await Template.findDescendants(
+    let templates = await Template.findDescendants(
       Topic.TEMPLATE_PATH_PREFIX,
     );
+    await this.pruneRetiredRoots(templates);
+    templates = await Template.findDescendants(Topic.TEMPLATE_PATH_PREFIX);
     const map = new Map<string, TopicDescriptor>();
     const communicative = new Set<string>();
     for (const tpl of templates) {

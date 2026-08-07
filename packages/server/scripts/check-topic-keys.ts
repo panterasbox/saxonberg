@@ -83,7 +83,7 @@ const TOPIC_CALL = /\.topic\(\s*([^),]+?)\s*\)/g;
  * (`topic: string = 'x'`) and object properties (`topic: 'x'`).
  * The right-hand side may be a ternary, so every literal on it counts.
  */
-const TOPIC_ASSIGN = /\b(\w+)\s*(?::\s*[^=;,)]+)?(?:=|:)\s*([^;\n]+)/g;
+const TOPIC_ASSIGN = /\b(\w+)\s*(?::\s*[^=;,)]+)?(?:=|:)\s*([^;]+)/g;
 
 /** A topic-shaped name, in any case convention (`TOPIC`, `sceneTopic`). */
 const TOPIC_NAME = /topic/i;
@@ -137,10 +137,15 @@ function walk(dir: string, out: string[], exts: string[]): void {
 }
 
 /**
- * Build `name → keys` for every topic-shaped assignment in the tree.
- * A name can carry more than one key (`sceneTopic` has four concrete
- * initializers across sibling controllers; a ternary yields two), so
- * the table is name → set.
+ * Build `name → keys` for the topic-shaped assignments in ONE file.
+ *
+ * ⚠ **Scoping is the whole point.** An earlier revision resolved names
+ * against a single tree-wide table, and `Mobile.ts`'s `.topic(topic)`
+ * silently matched an unrelated file's `topic` default — resolving to a
+ * plausible wrong key instead of reporting a miss. The gate passed
+ * while two emitters kept firing retired topics. A name-based resolver
+ * MUST prefer the local declaration, or it manufactures exactly the
+ * quiet wrongness it exists to catch.
  */
 function buildNameTable(files: string[]): Map<string, Set<string>> {
   const table = new Map<string, Set<string>>();
@@ -166,10 +171,17 @@ function buildNameTable(files: string[]): Map<string, Set<string>> {
   return table;
 }
 
-/** Resolve one `.topic(...)` argument to the keys it can carry. */
+/**
+ * Resolve one `.topic(...)` argument to the keys it can carry.
+ *
+ * Local declarations win; the tree-wide table is the fallback for
+ * imported constants and for abstract class fields whose concrete
+ * initializers live in sibling subclasses.
+ */
 function resolveArgument(
   raw: string,
-  names: Map<string, Set<string>>
+  local: Map<string, Set<string>>,
+  global: Map<string, Set<string>>
 ): Set<string> | null {
   const literal = raw.match(/^['"`]([^'"`]+)['"`]$/);
   if (literal?.[1] !== undefined) return new Set([literal[1]]);
@@ -178,7 +190,7 @@ function resolveArgument(
   // trailing member, which is the topic-shaped name.
   const identifier = raw.split(".").pop()?.trim() ?? "";
   if (!/^\w+$/.test(identifier)) return null;
-  return names.get(identifier) ?? null;
+  return local.get(identifier) ?? global.get(identifier) ?? null;
 }
 
 function seededKeys(): Set<string> {
@@ -199,17 +211,18 @@ function main(): void {
 
   const serverFiles: string[] = [];
   walk(MUD_ROOT, serverFiles, [".ts"]);
-  const names = buildNameTable(serverFiles);
+  const globalNames = buildNameTable(serverFiles);
 
   const emitted = new Map<string, string[]>(); // key -> files
   const unresolved: Finding[] = [];
 
   for (const file of serverFiles) {
     const source = stripComments(readFileSync(file, "utf8"));
+    const localNames = buildNameTable([file]);
     for (const m of source.matchAll(TOPIC_CALL)) {
       const raw = m[1];
       if (raw === undefined) continue;
-      const keys = resolveArgument(raw, names);
+      const keys = resolveArgument(raw, localNames, globalNames);
       if (keys === null || keys.size === 0) {
         unresolved.push({
           file: relative(SERVER_SRC, file),
