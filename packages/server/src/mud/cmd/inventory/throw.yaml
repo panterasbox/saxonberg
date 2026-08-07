@@ -66,6 +66,21 @@ args:
     # (applyCardinalityPolicy → MqlManyResult). Testing it needs a
     # controller change too, since the model shape becomes an array.
     #
+    # THE DISCRIMINATOR, and it does not need this branch. Only TWO
+    # shipped verbs use a `type: object` FIRST arg over a room scope:
+    #   author/teleport.yaml  destination  ["online","/obj/**","reachable"]
+    #   crafting/strain.yaml  vessel       "reachable"
+    # Everything that demonstrably works is a different shape — `get` is
+    # `type: objects`; `put`/`give` are `type: object` but SECOND args
+    # behind a preposition. So this corner has two occupants and could
+    # have been broken unnoticed.
+    #
+    # On plain master, drop a strainable vessel and type `strain <vessel>`:
+    #   fails the same way → framework bug in first-arg object resolution
+    #                        over room scope; predates this build
+    #   works              → something in THIS yaml still differs; the
+    #                        answer is in the diff against strain.yaml
+    #
     # ⚠ ALSO UNVERIFIED: that `throw` is afforded from the ground at
     # all. The controller running proves dispatch, not a FRESH
     # affordance — a stale un-popped stack entry from when the item was
