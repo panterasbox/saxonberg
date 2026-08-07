@@ -76,6 +76,25 @@ export interface SubscribableFieldDescriptor {
   dependsOnFields?: string[];
   changes?: ChangeSource[];
   static?: true;
+  /**
+   * ⭐ **Re-resolve me when this durable subject is poked.**
+   *
+   * The bus indexes on live `stuffId`s. Ledger-derived figures key on a
+   * durable `templatePath` instead (`/obj/Avatar/<playerId>`), which no
+   * `ChangeSource` can match — a descriptor that tried got silently
+   * indexed under `null` and never fired at all.
+   *
+   * So a descriptor whose value comes from a durable-keyed ledger
+   * returns that key here, and its producer calls
+   * {@link MqlSubscriptionApi.notifyDurableSubject} after the write.
+   * **No event, no bus, no broadcast** — a direct poke from the one
+   * producer to the one consumer, matched exactly on the subject that
+   * actually changed.
+   *
+   * Returns `undefined` when this host has no durable identity (a
+   * guest), in which case nothing is indexed.
+   */
+  durableKey?: (stuff: Stuff) => string | undefined;
 }
 
 /* ─────────────────────── Field-set aliases ─────────────────────── */
@@ -327,6 +346,20 @@ export class MqlSubscriptionApi {
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
     logic()._clearAll();
+  }
+
+  /**
+   * ⭐ **The durable-subject witness.** Re-resolve every subscription
+   * whose fields declared {@link SubscribableFieldDescriptor.durableKey}
+   * equal to `subject`.
+   *
+   * Called directly by a ledger after it persists a row — no event
+   * class, no `EventApi` fire. The bus is for genuinely global
+   * broadcast; this is one known producer poking one known consumer,
+   * which is a method call.
+   */
+  public static notifyDurableSubject(subject: string): void {
+    logic().notifyDurableSubject(subject);
   }
 }
 

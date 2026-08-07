@@ -77,6 +77,15 @@ const MqlSubscriptionApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.SelfOnly,
 );
 
+/**
+ * ⭐ The synthetic dependency kind for durable-subject watches.
+ *
+ * It reuses the whole index / refcount / teardown machinery, but
+ * deliberately has **no bus listener** — nothing ever fires it through
+ * `EventApi`. `notifyDurableSubject` routes into the index directly.
+ */
+const DURABLE_SUBJECT_KIND = '__durable-subject';
+
 interface SubscriptionState {
   interactive: Interactive;
   subscriptionId: string;
@@ -459,6 +468,21 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
+   * ⭐ **The durable-subject witness** — see
+   * {@link MqlSubscriptionApi.notifyDurableSubject}.
+   *
+   * Routes straight into the dependency index under the synthetic
+   * {@link DURABLE_SUBJECT_KIND}. No event is constructed and nothing
+   * touches `EventApi`: this is one known producer (a standing ledger)
+   * poking one known consumer (this registry), which the codebase's
+   * rule says is a method call, not a broadcast.
+   */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public notifyDurableSubject(subject: string): void {
+    this.routeFire(DURABLE_SUBJECT_KIND, 'subject', { subject });
+  }
+
+  /**
    * Cancel every subscription whose birth scope is `scope` — the
    * sandbox reap seam: a circle's live queries die with its session.
    * Field-born subscriptions are untouched (they continue across a
@@ -538,7 +562,9 @@ export default class MqlSubscriptionRegistry extends Idea {
       seenTuples.add(tupleKey);
       this.indexAdd(kind, by, value, sub);
       sub.dependencyHandles.push({ kind, by, value });
-      this.ensureListener(kind, by);
+      // The durable-subject kind has no bus behind it — it is poked
+      // directly by `notifyDurableSubject`.
+      if (kind !== DURABLE_SUBJECT_KIND) this.ensureListener(kind, by);
     };
 
     if (sub.focusDependent) {
@@ -562,6 +588,16 @@ export default class MqlSubscriptionRegistry extends Idea {
         const fieldDeps = d.dependsOnFields ?? [name];
         for (const dep of fieldDeps) {
           installTuple(FieldChangedEvent.KIND, 'field', dep);
+        }
+
+        // ⭐ Durable-subject watch — indexed on the ledger's own key,
+        // not on a live stuffId, so the poke matches exactly the
+        // subject that changed rather than fanning out to everyone.
+        if (d.durableKey) {
+          const key = d.durableKey(stuff);
+          if (key !== undefined) {
+            installTuple(DURABLE_SUBJECT_KIND, 'subject', key);
+          }
         }
 
         for (const cs of d.changes ?? []) {
@@ -768,7 +804,9 @@ export default class MqlSubscriptionRegistry extends Idea {
 
     for (const handle of sub.dependencyHandles) {
       this.indexRemove(handle.kind, handle.by, handle.value, sub);
-      this.releaseListener(handle.kind, handle.by);
+      if (handle.kind !== DURABLE_SUBJECT_KIND) {
+        this.releaseListener(handle.kind, handle.by);
+      }
     }
     sub.dependencyHandles = [];
     this.deriveAndInstallDependencies(sub, stuffList);

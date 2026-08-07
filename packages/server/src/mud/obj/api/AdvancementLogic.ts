@@ -26,9 +26,8 @@ import { TemplatePaths } from "../../lib/paths";
 import type DisciplineCatalogue from "../DisciplineCatalogue";
 import type { RecordOptions, DisciplineBand } from "../../api/advancement";
 import { EventApi } from '../../api/event';
-import { TranscriptAppendedEvent } from '../../lib/events/StandingAppendedEvents';
 import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
-import { StandingWarmedEvent } from '../../lib/events/StandingAppendedEvents';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 
 /**
  * A host whose conferred affordances can be refreshed. Narrowed
@@ -71,17 +70,10 @@ async function buildAndSave(
   entry.outcome = fields.outcome;
   entry.tags = fields.tags ?? [];
   await entry.save();
-  // AFTER the write — see StandingAppendedEvents. One fire point
-  // covers recordSignature AND recordDeed, since recordDeed routes
-  // through recordSignatureImpl into here.
-  EventApi.fire(
-    new TranscriptAppendedEvent({
-      subject: entry.owner,
-      discipline: entry.discipline,
-      kind: entry.kind,
-    })
-  );
-  // Keep the sync face current; it fires StandingWarmedEvent itself.
+  // AFTER the write, never before. One call site covers
+  // recordSignature AND recordDeed, since recordDeed routes through
+  // recordSignatureImpl into here. The cache refresh notifies once it
+  // has folded, so the poke here is for the sync figures only.
   void practisingCache.refresh(entry.owner);
 }
 
@@ -141,8 +133,7 @@ const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
     const bands = await bandsForImpl(owner);
     return bands[0] ?? null;
   },
-  (subject) =>
-    EventApi.fire(new StandingWarmedEvent({ subject, figure: 'competence' }))
+  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
 );
 
 /** Module-private impl; the singleton method below is the surface. */

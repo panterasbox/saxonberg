@@ -26,14 +26,17 @@
  *      renders as absent, never as a wrong number.
  *   2. The miss schedules a background fold, at most one in flight per
  *      subject.
- *   3. When it lands, `onWarm` fires — the subscription re-resolves and
- *      the real figure arrives as a delta, moments later.
+ *   3. When it lands, `onWarm` runs — a **direct** poke to
+ *      `MqlSubscriptionApi.notifyDurableSubject`, so the subscription
+ *      re-resolves and the real figure arrives as a delta moments
+ *      later. No event, no bus: one known producer, one known
+ *      consumer.
  *
  * Which is the honest version: **a figure the server has not computed
  * yet is absent, not zero.** A zero would be a claim.
  *
- * The ledger's own append event keeps it fresh from then on; see
- * `lib/events/StandingAppendedEvents.ts`.
+ * Each ledger keeps it fresh from then on by calling `refresh()` right
+ * after it persists a row.
  */
 
 export class DerivedStandingCache<T> {
@@ -46,7 +49,7 @@ export class DerivedStandingCache<T> {
   /**
    * @param fold   Async ledger read producing the cached value.
    * @param onWarm Called after a background fold lands, so the caller
-   *               can fire whatever event re-resolves subscriptions.
+   *               can poke whatever needs to re-resolve.
    */
   constructor(
     private readonly fold: (subject: string) => Promise<T>,

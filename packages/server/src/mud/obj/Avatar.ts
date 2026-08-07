@@ -65,14 +65,6 @@ import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
 import { RenownApi } from '../api/renown';
-import {
-  RenownAppendedEvent,
-  ParticipationAppendedEvent,
-  ProducerAppendedEvent,
-  TranscriptAppendedEvent,
-  DispositionAppendedEvent,
-  StandingWarmedEvent,
-} from '../lib/events/StandingAppendedEvents';
 import { TraitApi } from '../api/trait';
 import { AdvancementApi } from '../api/advancement';
 
@@ -251,12 +243,17 @@ export default class Avatar extends AvatarBase {
    * redaction model — the `profile` verb — and a second copy of those
    * rules on a subscription is how two copies drift.
    *
-   * ⚠ **`changes.by` is a wildcard here, not `'target'`.** Standing
-   * keys on the durable `templatePath`, while `'target'` matches a live
-   * `stuffId`, so any append re-resolves every standing subscription
-   * rather than only the affected one. Correct but over-eager; at
-   * current scale it is a handful of subscribers and it is honest.
-   * Narrowing it wants the dependency index to understand durable keys.
+   * ⚠ **These re-resolve through `durableKey`, not `changes`.** An
+   * earlier cut declared `changes: [{ on: SomeAppendedEvent, by:
+   * 'subject' }]` — which **never fired at all**: the index registers a
+   * non-`target`/`field` source under the value `null`, while
+   * `routeFire` looks up `payload['subject']`, so the tuple could never
+   * match. Standing keys on the durable `templatePath` and the bus
+   * indexes live `stuffId`s; the two cannot meet.
+   *
+   * `durableKey` is the seam that closes it, and it is a **direct poke
+   * from the ledger, not a broadcast** — one known producer, one known
+   * consumer. See {@link MqlSubscriptionApi.notifyDurableSubject}.
    */
   static subscribableFields: SubscribableFieldDescriptor[] = [
     {
@@ -266,7 +263,7 @@ export default class Avatar extends AvatarBase {
         if (!key) return undefined;
         return { band: InfluenceApi.bandOf(key, 'consumer') };
       },
-      changes: [{ on: ParticipationAppendedEvent, by: 'subject' }],
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
     {
       name: 'makeStanding',
@@ -275,7 +272,7 @@ export default class Avatar extends AvatarBase {
         if (!key) return undefined;
         return { band: InfluenceApi.bandOf(key, 'producer') };
       },
-      changes: [{ on: ProducerAppendedEvent, by: 'subject' }],
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
     {
       name: 'renown',
@@ -284,7 +281,7 @@ export default class Avatar extends AvatarBase {
         if (!key) return undefined;
         return { value: RenownApi.renownOf(key) };
       },
-      changes: [{ on: RenownAppendedEvent, by: 'subject' }],
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
     {
       name: 'dominantTrait',
@@ -299,10 +296,7 @@ export default class Avatar extends AvatarBase {
           ? null
           : { disposition: t.disposition, position: t.position, band: t.band };
       },
-      changes: [
-        { on: DispositionAppendedEvent, by: 'subject' },
-        { on: StandingWarmedEvent, by: 'subject' },
-      ],
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
     {
       name: 'practisingCompetence',
@@ -312,10 +306,7 @@ export default class Avatar extends AvatarBase {
         if (c === undefined) return undefined;
         return c === null ? null : { discipline: c.discipline, band: c.band };
       },
-      changes: [
-        { on: TranscriptAppendedEvent, by: 'subject' },
-        { on: StandingWarmedEvent, by: 'subject' },
-      ],
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
   ];
 

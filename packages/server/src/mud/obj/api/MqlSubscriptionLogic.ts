@@ -136,6 +136,12 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().refreshForInteractive(interactive);
   }
 
+  /** See {@link MqlSubscriptionApi.notifyDurableSubject}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public notifyDurableSubject(subject: string): void {
+    resolveRegistry().notifyDurableSubject(subject);
+  }
+
   /** See {@link MqlSubscriptionApi.cancelAllForScope}. */
   @CallSecurity(MqlSubscriptionApiCallers)
   public cancelAllForScope(scope: string): number {

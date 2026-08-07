@@ -178,27 +178,23 @@ disposition-valence authoring (only a starter set rides authored
 readable trait-position).
 
 
-## The append event
+## The standing witness
 
-`DispositionAppendedEvent` (`disposition.appended`) fires from recordSignature AND recordDeed,
-**immediately after the row is persisted**.
+After each append is persisted, the ledger calls
+**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+call on the one consumer that cares.
 
-Every standing here derives on read, which works fine for a verb — you
-ask, it computes — and not at all for a **live figure on a client**,
-which has to learn its number changed without asking. This event is that
-seam.
+Every standing here derives on read, which works fine for a verb (you
+ask, it computes) and not at all for a **live figure on a client**,
+which has to learn its number changed without asking. This is that seam.
 
-It is raw and uninterpreted by design: the subject plus enough of the
-append's shape to decide whether you care, never a band or a score. A
-provisional score on the bus is a score two subsystems will disagree
-about; read the ledger if you want a number.
+⚠ **It is deliberately NOT an `EventApi` broadcast.** The bus is for
+genuinely global signals with unknown consumers; this has exactly one
+known consumer, so it is a method call. An earlier cut of this build did
+mint a bus event per ledger — six classes — and they were not merely
+redundant, they were **wired to nothing**: the dependency index cannot
+match a durable `templatePath` through a `ChangeSource`. See
+[mql-subscription.md](./mql-subscription.md).
 
-⚠ **After the write, never before.** A listener that recomputes must not
-read a ledger missing the row it was just told about — that bug reads as
-a flaky off-by-one in a derived figure rather than as an ordering
-mistake.
-
-The append also refreshes this ledger's `DerivedStandingCache`, which is the sync face the live
-standing field reads — see [mql-subscription.md](./mql-subscription.md).
-
-Declared in `lib/events/StandingAppendedEvents.ts`.
+⚠ **After the write, never before.** A consumer that recomputes must not
+read a ledger missing the row it was just told about.

@@ -393,15 +393,45 @@ projection so this cannot quietly regress.
 After the first fold, each ledger's own append event
 (`lib/events/StandingAppendedEvents.ts`) keeps the cache fresh.
 
-### ⚠ `changes.by` is a wildcard here
+### ⭐⭐ `durableKey` — the witness for ledger-keyed figures
 
-The dependency index understands `by: 'target'` (matches `stuffId`) and
-`by: 'field'`; anything else installs an unfiltered tuple. Standing keys
-on the durable `templatePath`, not a live `stuffId`, so these
-descriptors use the wildcard form and **every** standing subscription
-re-resolves on **any** append. Correct but over-eager; at a handful of
-subscribers it is fine. Narrowing it wants the dependency index to
-understand durable keys.
+**A `ChangeSource` cannot express these, and quietly pretends it can.**
+`deriveAndInstallDependencies` handles `by: 'target'` (indexes
+`stuff.stuffId`) and `by: 'field'` (indexes the field name); **anything
+else is indexed under the value `null`**, while `routeFire` looks up
+`payload[by]`. So a source like `{ on: SomeEvent, by: 'subject' }`
+registers under `null`, is looked up under `'/obj/Avatar/dev'`, and
+**never matches**. It is not over-eager — it never fires at all. This
+build shipped that mistake in its first cut and the tests, which
+asserted only that a change source was *declared*, could not see it.
+
+The cause is a genuine impedance mismatch: the bus indexes **live
+`stuffId`s**, and every standing ledger keys on the **durable
+`templatePath`**. The two cannot meet through a `ChangeSource`.
+
+So a descriptor whose value comes from a durable-keyed ledger declares:
+
+```ts
+durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+```
+
+and its producer calls `MqlSubscriptionApi.notifyDurableSubject(key)`
+straight after persisting.
+
+**No event class, no `EventApi` fire.** The bus is for genuinely global
+broadcast with unknown consumers; this is one known producer poking one
+known consumer, which the codebase's rule makes a method call. It also
+matches the **exact** subject, so one player's renown append no longer
+wakes every other player's standing pane.
+
+Mechanically it reuses everything: the tuple is installed under a
+synthetic `DURABLE_SUBJECT_KIND` so the index, the refcount and the
+teardown path all work unchanged — the only special case is that this
+kind acquires **no bus listener**, because `notifyDurableSubject` routes
+into `routeFire` directly.
+
+`durableKey` returning `undefined` (a guest, with no durable identity)
+installs nothing, so nothing is pokeable and nothing throws.
 
 ## Event-class pattern
 

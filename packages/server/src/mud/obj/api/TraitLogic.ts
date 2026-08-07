@@ -26,10 +26,9 @@ import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { RegardApi } from "../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../api/trait";
 import { EventApi } from '../../api/event';
-import { DispositionAppendedEvent } from '../../lib/events/StandingAppendedEvents';
 import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
-import { StandingWarmedEvent } from '../../lib/events/StandingAppendedEvents';
 import { StuffApi } from '../../api/stuff';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 
 const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
 
@@ -100,16 +99,9 @@ async function buildAndSave(
   entry.valence = fields.valence;
   entry.tags = fields.tags ?? [];
   await entry.save();
-  // AFTER the write — see StandingAppendedEvents. One fire point
-  // covers recordSignature AND recordDeed.
-  EventApi.fire(
-    new DispositionAppendedEvent({
-      subject: entry.owner,
-      disposition: entry.disposition,
-      kind: entry.kind,
-    })
-  );
-  // Keep the sync face current; it fires StandingWarmedEvent itself.
+  // AFTER the write, never before. One call site covers
+  // recordSignature AND recordDeed. The refresh notifies once it has
+  // folded.
   void dominantCache.refresh(entry.owner);
 }
 
@@ -169,8 +161,7 @@ const dominantCache = new DerivedStandingCache<AxisEstimate | null>(
     );
     return pronounced[0] ?? null;
   },
-  (subject) =>
-    EventApi.fire(new StandingWarmedEvent({ subject, figure: 'trait' }))
+  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
 );
 
 /** Module-private impl; the singleton method below is the surface. */

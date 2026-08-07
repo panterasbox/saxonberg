@@ -53,22 +53,26 @@ describe('Avatar standing figures — declaration', () => {
     for (const f of FIGURES) expect(names).toContain(f);
   });
 
-  it('every figure declares at least one change source', () => {
+  it('⭐ every figure declares a durableKey, not a bus change source', () => {
+    // A `changes` source keyed on anything but 'target'/'field' is
+    // indexed under `null` and can never match — which is exactly how
+    // the first cut of these fields shipped wired to nothing. The
+    // re-resolve path is the durable-subject witness instead.
     for (const d of Avatar.subscribableFields) {
-      expect(d.changes?.length ?? 0, `${d.name} has no change source`)
-        .toBeGreaterThan(0);
+      expect(d.durableKey, `${d.name} has no durableKey`).toBeTypeOf(
+        'function'
+      );
+      expect(d.changes ?? [], `${d.name} should not ride the bus`).toEqual([]);
     }
   });
 
-  it('the two folded figures also re-resolve on a warm', () => {
-    // Without the warm source, a figure whose cache was cold at
-    // subscribe time would stay blank until something unrelated
-    // happened to trigger a re-resolve.
-    for (const name of ['dominantTrait', 'practisingCompetence']) {
-      const d = Avatar.subscribableFields.find((x) => x.name === name)!;
-      const kinds = (d.changes ?? []).map((c) => c.on.KIND);
-      expect(kinds, `${name}`).toContain('standing.warmed');
-    }
+  it('durableKey resolves to the ledger key, and is absent for a guest', () => {
+    const d = Avatar.subscribableFields[0]!;
+    expect(d.durableKey!(makeAvatar('tester') as unknown as Stuff)).toBe(
+      '/obj/Avatar/tester'
+    );
+    expect(d.durableKey!(makeStuff(() => new Avatar()) as unknown as Stuff))
+      .toBeUndefined();
   });
 
   it('no figure is marked static — a standing that never changes is a bug', () => {
