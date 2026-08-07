@@ -21,31 +21,13 @@ import type { CommandContext, CommandModel } from "../../../api/command";
 import type { MqlOneResult } from "../../../api/mql";
 import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
-import { PerceptionApi } from "../../../api/perception";
-import { ShellApi } from "../../../api/shell";
 import { PromptApi, PromptCancelledError } from "../../../api/prompt";
 import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
-import type { Engaged } from "../../../lib/activity/Engaged";
-import { CombatApi, type CombatOpenOptions } from "../../../api/combat";
-import { StuffApi } from "../../../api/stuff";
-import { PartyApi } from "../../../api/party";
-import { AdvancementApi } from "../../../api/advancement";
-import type { CompetenceBandName } from "../../../lib/advancement/CompetenceBand";
-import {
-  CombatTerms,
-  DEFAULT_TERMS,
-  type TermsProposal,
-  type Lethality,
-  type StopCondition,
-  STOP_CONDITIONS,
-} from "../../../lib/combat/CombatTerms";
+import { CombatApi } from "../../../api/combat";
+import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
 const TOPIC = "world.narration.action";
-
-/** The discipline whose competence band drives combat sharpness (fog +
- * poise recovery). Mirrors `CombatLogic`'s `MELEE_DISCIPLINE`. */
-const MELEE_COMBAT_DISCIPLINE = "melee-combat";
 
 interface AttackModel extends CommandModel {
   target?: MqlOneResult;
@@ -53,39 +35,6 @@ interface AttackModel extends CommandModel {
   to?: string;
 }
 
-/**
- * Read a combatant's standing combat terms (defaults are frictionless).
- * Posture comes from two surfaces: the player-side `combat.lethality` /
- * `combat.stopCondition` **settings** (which only resolve for `Environment`
- * hosts — i.e. players), and the **authored `CombatantMixin` fields**
- * (`standingLethality` / `standingStopCondition`) an NPC seeds (an NPC
- * isn't an Environment, so it can't carry settings). Either surface
- * declaring `lethal` makes this combatant bring lethal terms.
- */
-function standingTerms(combatant: Stuff, lethalOverride?: boolean, stopOverride?: string): TermsProposal {
-  const lethSetting = ShellApi.resolveSetting<string>(combatant, "combat.lethality");
-  const stopSetting = ShellApi.resolveSetting<string>(combatant, "combat.stopCondition");
-  const lethField = MixinApi.isCombatant(combatant)
-    ? combatant.getStandingLethality()
-    : "";
-  const stopField = MixinApi.isCombatant(combatant)
-    ? combatant.getStandingStopCondition()
-    : "";
-  const lethality: Lethality =
-    lethalOverride === true || lethSetting === "lethal" || lethField === "lethal"
-      ? "lethal"
-      : DEFAULT_TERMS.lethality;
-  const authoredStop = (val: string | undefined): StopCondition | null =>
-    val && (STOP_CONDITIONS as readonly string[]).includes(val)
-      ? (val as StopCondition)
-      : null;
-  const stopCondition: StopCondition =
-    authoredStop(stopOverride) ??
-    authoredStop(stopSetting) ??
-    authoredStop(stopField) ??
-    DEFAULT_TERMS.stopCondition;
-  return { lethality, stopCondition, stakes: "" };
-}
 
 export default class AttackController extends CommandController<AttackModel> {
   async execute(model: AttackModel, context: CommandContext): Promise<void> {
@@ -115,90 +64,20 @@ export default class AttackController extends CommandController<AttackModel> {
       return this.fail(context, "You can't fight.", "not-a-combatant");
     }
 
-    const mine = standingTerms(giver, model.lethal, model.to);
-    const theirs = standingTerms(target);
-    const reconciliation = CombatTerms.reconcile(mine, theirs);
-
-    let resolved: TermsProposal;
-    let consented: boolean;
-    if (reconciliation.status === "agreed") {
-      resolved = reconciliation.terms;
-      consented = true;
-    } else {
-      const accepted = await this.resolveConflict(target, mine);
-      if (accepted === "cancelled") {
+    // The initiation handshake lives on CombatApi so that every verb
+    // that starts a fight runs the SAME sequence — see
+    // `CombatApi.initiate`. Prompting stays here, because asking a
+    // player a question is the controller's job, not the engine's.
+    const result = await CombatApi.initiate(
+      giver as Stuff,
+      target,
+      { lethal: model.lethal, to: model.to },
+      (t, mine) => this.resolveConflict(t, mine),
+    );
+    if (!result.ok) {
+      if (result.reason === "cancelled") {
         return this.fail(context, "The challenge goes unanswered.", "cancelled");
       }
-      if (accepted) {
-        resolved = mine;
-        consented = true;
-      } else if (accepted === false) {
-        // Defender declined the escalation → fold to their terms.
-        resolved = theirs;
-        consented = true;
-      } else {
-        // No live defender to consent → the initiator's terms are imposed.
-        resolved = mine;
-        consented = false;
-      }
-    }
-
-    const terms = CombatTerms.agreed(
-      giver.getTemplatePath() ?? "",
-      resolved,
-      consented,
-    );
-
-    // Snapshot both fighters' melee competence *before* opening — the
-    // read-fog + poise-recovery need it, and `AdvancementApi.bandFor` is
-    // async so it can't be read mid-beat (a single session must stay
-    // deterministic). Absent/unresolved bands default to `untrained`.
-    const opts = await this.snapshotBands([giver, target]);
-
-    // Warm both sides' formation Ideas resident BEFORE opening — the
-    // beat's per-consult read is sync (`findByTemplatePath`), so the warm
-    // is the controller's job (the `snapshotBands` pre-open precedent).
-    await this.warmFormations([giver, target]);
-
-    // Ambush: opening from concealment the defender doesn't perceive denies
-    // their opening poise contest (consumed only by a *fresh* openSession).
-    // Read the attacker's hidden state FIRST, then reveal them — striking
-    // gives you away, ambush or not.
-    opts.ambush = await this.resolveAmbush(giver, target);
-
-    // The handshake: attacking someone already fighting *joins* their
-    // melee; attacking from mid-fight *draws the target in*; two separate
-    // fights colliding *merge*; otherwise a fresh session opens.
-    const giverSession = CombatApi.sessionFor(giver);
-    const targetSession = CombatApi.sessionFor(target);
-    let result: { ok: boolean; reason?: string };
-    if (giverSession && targetSession && giverSession !== targetSession) {
-      CombatApi.merge(giverSession, targetSession);
-      result = { ok: true };
-    } else if (targetSession) {
-      result = CombatApi.join(
-        giver as Stuff & Engaged,
-        target as Stuff & Engaged,
-        terms,
-        opts,
-      );
-    } else if (giverSession) {
-      result = CombatApi.join(
-        target as Stuff & Engaged,
-        giver as Stuff & Engaged,
-        terms,
-        opts,
-      );
-    } else {
-      const opened = CombatApi.openSession(
-        giver as Stuff & Engaged,
-        target as Stuff & Engaged,
-        terms,
-        opts,
-      );
-      result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
-    }
-    if (!result.ok) {
       return this.fail(
         context,
         "You can't start that fight.",
@@ -250,57 +129,4 @@ export default class AttackController extends CommandController<AttackModel> {
       .send();
   }
 
-  /** Resolve each combatant's melee competence band into the open-options
-   * map (keyed by durable `templatePath`), best-effort — a failed read just
-   * leaves the fighter at the `untrained` default. */
-  /**
-   * Ambush read — is the attacker striking from concealment the defender
-   * does not perceive? Reads the attacker's hidden state FIRST (warming the
-   * defender's `awareness` so `perceives` uses their real capacity), then
-   * clears the attacker's hide (striking reveals you, ambush or not).
-   * Returns whether a fresh session should deny the defender's poise
-   * contest.
-   */
-  private async resolveAmbush(
-    attacker: Stuff,
-    defender: Stuff,
-  ): Promise<boolean> {
-    if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
-    await PerceptionApi.preloadForSenseGate(defender);
-    const unseen = !PerceptionApi.perceives(defender, attacker);
-    attacker.breakHide();
-    return unseen;
-  }
-
-  /** Load each side's resolved formation Idea into residency (best-effort
-   * — an unbooted party subsystem or missing seed just leaves the beat on
-   * the built-in default policy). */
-  private async warmFormations(combatants: Stuff[]): Promise<void> {
-    for (const c of combatants) {
-      try {
-        await StuffApi.singleton(PartyApi.formationPathOf(c));
-      } catch {
-        // Falls back to CombatFormation.DEFAULT_POLICY at consult time.
-      }
-    }
-  }
-
-  private async snapshotBands(
-    combatants: Stuff[],
-  ): Promise<CombatOpenOptions> {
-    const competenceBands = new Map<string, CompetenceBandName>();
-    for (const c of combatants) {
-      const key = c.getTemplatePath();
-      if (!key) continue;
-      try {
-        competenceBands.set(
-          key,
-          await AdvancementApi.bandFor(c, MELEE_COMBAT_DISCIPLINE),
-        );
-      } catch {
-        // Unresolved → the combatant defaults to `untrained` sharpness.
-      }
-    }
-    return { competenceBands };
-  }
 }

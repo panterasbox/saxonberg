@@ -39,10 +39,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
 
   public received: MessageFrame[] = [];

@@ -47,3 +47,37 @@ describe('SphericalLocation — derived geometry', () => {
     expect(room.getCeilingHeight()).toBeNull();
   });
 });
+
+describe('SphericalLocation — linear extent', () => {
+  afterEach(() => {
+    StuffApi.clearAll();
+  });
+
+  it('is the DIAMETER — the longest line a shot must cross', () => {
+    const { room } = makeRoomInZone(5);
+    expect(room.getLinearExtent()).toBe(10);
+  });
+
+  it('needs no authored override — the radius is already per-room', () => {
+    // Cartesian cells are sized by their ZONE, which is why they needed
+    // an override. A sphere already varies freely room by room.
+    const { room: small } = makeRoomInZone(1.5);
+    const { room: big } = makeRoomInZone(12);
+    expect(small.getLinearExtent()).toBe(3);
+    expect(big.getLinearExtent()).toBe(24);
+  });
+
+  it('an unset radius is the shipped unit sphere — honestly 2 m across', () => {
+    // `radius` defaults to 1.0 (a unit sphere), not null, so a room that
+    // never authored one still reports a real size. That is the honest
+    // answer and it caps such a room at the melee bands.
+    const room = makeStuff(() => new SphericalLocation());
+    expect(room.getLinearExtent()).toBe(2);
+  });
+
+  it('a zero radius reports no extent — a degenerate room', () => {
+    const { room } = makeRoomInZone(5);
+    room.setRadius(0);
+    expect(room.getLinearExtent()).toBeNull();
+  });
+});

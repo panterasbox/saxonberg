@@ -80,9 +80,8 @@ export function StatusMixin<TBase extends MixinConstructor>(Base: TBase) {
     // (PC and NPC) that composes StatusMixin gains it.
     static commandContributions: CommandContributions = {
       self: ['social/status.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     // Only the authored default persists; the runtime value is active

@@ -198,6 +198,21 @@ export class PerceptionApi {
    * {@link preloadForSenseGate}; call it per-command so the sync gate has
    * a live band (a miss degrades to the floor band, not an error).
    */
+  /**
+   * Is `attacker` striking from concealment `defender` does not
+   * perceive? Warms the defender's awareness, reads the gate, then
+   * clears the attacker's hide — striking reveals you either way.
+   *
+   * Combat's initiation handshake asks this; the answer is a perception
+   * fact and lives here.
+   */
+  public static resolveAmbush(
+    attacker: Stuff,
+    defender: Stuff,
+  ): Promise<boolean> {
+    return logic().resolveAmbush(attacker, defender);
+  }
+
   public static perceives(
     viewer: Stuff,
     target: Stuff,

@@ -74,9 +74,8 @@ export default class Stock extends StockBase {
 
   static commandContributions: CommandContributions = {
     self: [],
+    peers: ["retail/buy.yaml"],
     environment: ["retail/buy.yaml"],
-    inventory: ["retail/buy.yaml"],
-    peers: [],
   };
 
   /** The buyable goods currently on the shelf. */

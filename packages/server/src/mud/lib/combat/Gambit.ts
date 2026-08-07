@@ -168,6 +168,38 @@ const GAMBITS: Record<string, GambitSpec> = {
     needsInstrument: false,
   },
   /**
+   * **advance** — buy one band of distance, inward. The generalization of
+   * `close` onto the four-band ladder: `far`→`near`→`reach`→`close`, one
+   * rung per beat, contested by a composed holder exactly as the close
+   * always was. `close` survives as an alias onto this, so shipped
+   * content, brains and narration keep working.
+   *
+   * This is the poker of the ranged design: the archer holds the gap, the
+   * closer buys distance under fire, and every advance is a called bluff
+   * — the shooter who spends a beat holding aim has spent their answer.
+   */
+  advance: {
+    key: "advance",
+    verb: "advance",
+    kind: "control",
+    offensive: false,
+    needsInstrument: false,
+  },
+  /**
+   * **withdraw** — buy one band of distance, outward, and the other half
+   * of the range duel. Per-EDGE by construction (you open distance on one
+   * specific threat), which is what makes leaving a crowd cost more than
+   * leaving a duel: three attackers is three withdrawals. Refused at the
+   * arena's cap — you cannot back further away than the room is big.
+   */
+  withdraw: {
+    key: "withdraw",
+    verb: "withdraw",
+    kind: "control",
+    offensive: false,
+    needsInstrument: false,
+  },
+  /**
    * The **shield-bash** — a weapon-shaped gambit *afforded by the shield*,
    * not the weapon (the "weapon edits the menu" seam, over the equipment):
    * slam the shield forward to stagger a foe prone. Needs no weapon

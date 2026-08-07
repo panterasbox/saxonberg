@@ -27,8 +27,7 @@ export default class PaymentCard extends CredentialWalletMixin(Thing) {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: [],
-    inventory: ["banking/pay.yaml", "banking/wallet.yaml"],
     peers: [],
+    environment: ["banking/pay.yaml", "banking/wallet.yaml"],
   };
 }

@@ -11,8 +11,7 @@ import type { CommandContributions } from '../../api/command';
 export default class Sundial extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['perception/measure.yaml'],
-    environment: [],
-    peers: [],
+    environment: ['perception/measure.yaml'],
+    peers: ['perception/measure.yaml'],
   };
 }

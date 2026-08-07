@@ -111,9 +111,8 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // exposed. NPCs that compose ContactsMixin in their own content
       // gain both verbs uniformly.
       self: ['social/contacts.yaml', 'social/group.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

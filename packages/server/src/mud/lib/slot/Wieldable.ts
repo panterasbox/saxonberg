@@ -46,9 +46,8 @@ export function WieldableMixin<
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: [],
-      inventory: ['inventory/wield.yaml', 'inventory/unwield.yaml'],
       peers: [],
+      environment: ['inventory/wield.yaml', 'inventory/unwield.yaml'],
     };
 
     public slotClaims: Record<string, string[]> = {};

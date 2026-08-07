@@ -435,7 +435,7 @@ in outcomes, on the record.
 the wall/camera/witness/norm mode vocabulary, posted law, the
 evidence firewall, testimony, and the intrinsic/social layer split
 — is general and lives in
-[enforcement-slate.md](./enforcement-slate.md). What is
+[enforcement-slate.md](../builds/enforcement-slate.md). What is
 gun-specific is **which layer holds which decision**:
 
 | Layer | Holds | Gun-relevant contents |

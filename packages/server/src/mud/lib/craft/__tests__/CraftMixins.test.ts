@@ -65,22 +65,22 @@ describe('ToolMixin', () => {
       const t = makeStuff(() => new ToolHost());
       t.setCapabilities(['mending']);
       const c = t.getInstanceContributions();
-      expect(c.environment).toEqual([
+      expect(c.peers).toEqual([
         'crafting/repair.yaml',
         'crafting/salvage.yaml',
       ]);
-      expect(c.inventory).toEqual([
+      expect(c.environment).toEqual([
         'crafting/repair.yaml',
         'crafting/salvage.yaml',
       ]);
     });
 
-    it('a carried-placement kind yields inventory only (the whetstone)', () => {
+    it('a carried-placement kind grants to its HOLDER only (the whetstone)', () => {
       const t = makeStuff(() => new ToolHost());
       t.setCapabilities(['whetstone']);
       const c = t.getInstanceContributions();
-      expect(c.inventory).toEqual(['crafting/sharpen.yaml']);
-      expect(c.environment ?? []).toEqual([]);
+      expect(c.environment).toEqual(['crafting/sharpen.yaml']);
+      expect(c.peers ?? []).toEqual([]);
     });
 
     it('recipe-side kinds and empty capabilities confer nothing', () => {
@@ -97,7 +97,7 @@ describe('ToolMixin', () => {
       t.setCondition(0);
       expect(t.hasCapability('anvil')).toBe(false); // capability lost
       const c = t.getInstanceContributions(); // affordance kept
-      expect(c.environment).toContain('crafting/hammer.yaml');
+      expect(c.peers).toContain('crafting/hammer.yaml');
     });
   });
 
@@ -157,17 +157,17 @@ describe('ToolMixin', () => {
         { kind: 'whetstone', placement: 'reachable', rate: 4 },
       ]);
       const c = wheel.getInstanceContributions();
-      expect(c.environment).toEqual(['crafting/sharpen.yaml']); // the grinding wheel
-      expect(c.inventory).toEqual(['crafting/sharpen.yaml']);
+      expect(c.peers).toEqual(['crafting/sharpen.yaml']); // the grinding wheel
+      expect(c.environment).toEqual(['crafting/sharpen.yaml']);
 
       const strapped = makeStuff(() => new ToolHost());
       strapped.setCapabilities([{ kind: 'mending', placement: 'carried' }]);
       const c2 = strapped.getInstanceContributions();
-      expect(c2.inventory).toEqual([
+      expect(c2.environment).toEqual([
         'crafting/repair.yaml',
         'crafting/salvage.yaml',
       ]);
-      expect(c2.environment ?? []).toEqual([]);
+      expect(c2.peers ?? []).toEqual([]);
     });
 
     it('a mixed authored array round-trips the Hydrator behavior-identically', async () => {

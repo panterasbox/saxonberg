@@ -125,9 +125,8 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

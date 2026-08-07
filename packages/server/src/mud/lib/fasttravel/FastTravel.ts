@@ -124,7 +124,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
 
     /** The `register` verb surfaces only for actors at a node. */
     static commandContributions: CommandContributions = {
-      environment: ["movement/register.yaml"],
+      peers: ["movement/register.yaml"],
     };
 
     /** Which travel direction this terminal permits. */

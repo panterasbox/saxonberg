@@ -20,6 +20,8 @@ import { PartyApi } from "../../api/party";
 import { ChronicleApi } from "../../api/chronicle";
 import { RegardApi } from "../../api/regard";
 import { AdvancementApi } from "../../api/advancement";
+import { PerceptionApi } from "../../api/perception";
+import { ShellApi } from "../../api/shell";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { AccountabilityApi } from "../../api/accountability";
 import type { AccountabilityFields } from "../../api/accountability";
@@ -61,11 +63,24 @@ import type {
   CombatInfluence,
   InfluenceResult,
 } from "../../lib/combat/CombatInfluence";
-import type { CombatTerms } from "../../lib/combat/CombatTerms";
+import {
+  CombatTerms,
+  DEFAULT_TERMS,
+  STOP_CONDITIONS,
+  type TermsProposal,
+  type Lethality,
+  type StopCondition,
+} from "../../lib/combat/CombatTerms";
 import { Poise, type PoiseConfig } from "../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../lib/combat/Tempo";
 import { CombatFlags } from "../../lib/combat/CombatFlags";
 import type { RangeState } from "../../lib/combat/CombatGraph";
+import type { CombatGraph } from "../../lib/combat/CombatGraph";
+import { RangeBand, RANGE_BANDS } from "../../lib/combat/RangeBand";
+import { DeliveryProfile } from "../../lib/combat/DeliveryProfile";
+import { AimResolution, type Placement } from "../../lib/combat/AimResolution";
+import type { RangeBandConfig } from "../../lib/combat/RangeBand";
+import Location from "../../lib/stuff/Location";
 import { Gambit, type GambitSpec } from "../../lib/combat/Gambit";
 import { Sharpness, type SharpnessConfig } from "../../lib/combat/Sharpness";
 import {
@@ -175,6 +190,67 @@ export class CombatLogic extends ApiLogic {
   @CallSecurity(CombatApiCallers)
   public sessionFor(combatant: Stuff): CombatSession | undefined {
     return sessionForImpl(combatant);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public async initiate(
+    initiator: Stuff,
+    target: Stuff,
+    overrides?: { lethal?: boolean; to?: string },
+    onConflict?: (
+      target: Stuff,
+      mine: TermsProposal,
+    ) => Promise<boolean | null | "cancelled">,
+  ): Promise<InitiateResult> {
+    return initiateImpl(initiator, target, overrides, onConflict);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public standingTermsOf(
+    combatant: Stuff,
+    lethal?: boolean,
+    to?: string,
+  ): TermsProposal {
+    return standingTermsImpl(combatant, lethal, to);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public resolveThrown(
+    thrower: Stuff,
+    target: Stuff,
+    contents: {
+      litres: number;
+      toughness?: number;
+      hardness?: number;
+      massKg?: number;
+    },
+    splash: readonly Stuff[],
+  ): ThrownDelivery {
+    return resolveThrownImpl(thrower, target, contents, splash);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public splashSetFor(target: Stuff): Stuff[] {
+    return splashSetForImpl(target);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public mayDeliverTo(
+    thrower: Stuff,
+    primary: Stuff,
+    splash: readonly Stuff[],
+  ): { ok: true } | { ok: false; refusedBy: Stuff } {
+    return mayDeliverToImpl(thrower, primary, splash);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public arenaMaxBandFor(who: Stuff): RangeState {
+    return arenaMaxBandFor(who);
+  }
+
+  @CallSecurity(CombatApiCallers)
+  public bandBetween(a: Stuff, b: Stuff): RangeState | null {
+    return bandBetweenImpl(a, b);
   }
 
   @CallSecurity(CombatApiCallers)
@@ -570,18 +646,55 @@ function reachRankOf(combatant: Stuff): number {
 }
 
 /**
- * The engagement range a fresh pair opens at: `reach` when their reaches
- * DIFFER (someone controls the approach — spear-vs-dagger), `close` when
- * they're equal (no approach phase — dagger-vs-dagger, sword-vs-sword).
+ * The engagement range a fresh pair opens at: **the arena's maximum
+ * band** — you notice someone across the room before you are on top of
+ * them, so a fight starts at whatever distance the room actually affords.
+ *
+ * ⚠ **This changed shipped melee.** The old rule read the two fighters'
+ * reach ranks (`reach` when they differed, `close` when equal), so
+ * dagger-vs-dagger began in the clinch. Now a 3 m cell opens every pair
+ * at `reach` and a 12 m yard opens them at `near`, and closing the gap
+ * is a beat somebody has to spend. That approach beat is the point: it
+ * is what gives the archer something to defend and the closer something
+ * to buy.
+ *
+ * **An ambush opens at `close`.** A concealed approach is exactly what
+ * buys the opening band — the shipped concealment substrate doing the
+ * work — which is why a knife-fighter can reach a bowman at all, and why
+ * stealth pays out in position rather than in a damage multiplier.
  */
-function openingRangeFor(a: Stuff, b: Stuff): RangeState {
-  return reachRankOf(a) !== reachRankOf(b) ? "reach" : "close";
+function openingRangeFor(a: Stuff, b: Stuff, ambush = false): RangeState {
+  if (ambush) return "close";
+  return arenaMaxBandFor(a);
 }
 
 /** Seed the opening range on the pair's edges (called right after the pair's
  * threat edges are created). */
-function seedRange(session: CombatSession, a: Stuff, b: Stuff): void {
-  session.getGraph().setRange(a, b, openingRangeFor(a, b));
+function seedRange(
+  session: CombatSession,
+  a: Stuff,
+  b: Stuff,
+  ambush = false,
+): void {
+  session.getGraph().setRange(a, b, openingRangeFor(a, b, ambush));
+}
+
+/**
+ * Does this pair already carry a range — in EITHER direction?
+ *
+ * The honest "have these two met yet" question, and it must be asked
+ * **before** `addEdge`. `rangeBetween` cannot answer it: it falls back to
+ * `close` when no edge exists, so `=== "close"` was standing in for "no
+ * range yet" and could not tell a genuinely-clinched pair from a fresh one.
+ * A pair that had fought its way to `close` was therefore re-seeded back to
+ * the opening range every time the engine re-picked the target — silently,
+ * because the wrong answer was also a legal band.
+ */
+function pairHasRange(graph: CombatGraph, a: Stuff, b: Stuff): boolean {
+  return (
+    graph.edgeBetween(a, b) !== undefined ||
+    graph.edgeBetween(b, a) !== undefined
+  );
 }
 
 /**
@@ -590,6 +703,12 @@ function seedRange(session: CombatSession, a: Stuff, b: Stuff): void {
  * (negative); at `close` it **reverses** (the dagger/unarmed owns the
  * clinch). Zero for equal reach. A deterministic function of reach ranks ×
  * the current range — no RNG.
+ *
+ * **Zero outside the melee bands.** Reach is a term about weapon *length*
+ * against a foe you can touch; at `near`/`far` it has nothing to say. That a
+ * melee strike cannot connect from there is a separate fact, carried by
+ * {@link inMeleeBand} at the strike and counter sites — not smuggled in as a
+ * large negative number here, which would make the reach term lie.
  */
 function reachAdvantage(
   session: CombatSession,
@@ -597,8 +716,49 @@ function reachAdvantage(
   target: Stuff,
 ): number {
   const range = session.getGraph().rangeBetween(actor, target);
+  if (!RangeBand.isMelee(range)) return 0;
   const diff = reachRankOf(actor) - reachRankOf(target);
   return range === "reach" ? diff : -diff;
+}
+
+/**
+ * Is this pair inside the melee bands (`close`/`reach`)? A hand weapon can
+ * only act across those two; at `near`/`far` a melee strike whiffs — not
+ * because it is out-reached, but because the fighters are not in melee at
+ * all. The gate that keeps the shipped reach dance from silently applying
+ * across a ranged gap.
+ */
+function inMeleeBand(session: CombatSession, a: Stuff, b: Stuff): boolean {
+  return RangeBand.isMelee(session.getGraph().rangeBetween(a, b));
+}
+
+/** The band-ladder thresholds, read from settings with seeded fallbacks. */
+function rangeBandConfig(): RangeBandConfig {
+  return {
+    nearMetres: dial(AppSettingKeys.combatRangeNearMetres, 6),
+    farMetres: dial(AppSettingKeys.combatRangeFarMetres, 20),
+  };
+}
+
+/**
+ * The widest band this arena affords — derived from the room's real linear
+ * extent, never authored. A 3 m cell affords only the melee tiers; an
+ * authored 20 m outdoor cell affords `far`.
+ *
+ * Reads the combatant's environment rather than taking a Location, because
+ * the callers all have a fighter in hand and a fighter is always somewhere.
+ * A combatant in no location, or in one that reports no extent, gets the
+ * conservative melee cap.
+ */
+function arenaMaxBandFor(who: Stuff): RangeState {
+  const env = MixinApi.isContainable(who) ? who.getContainer() : null;
+  // `instanceof Location` is the shipped narrowing for the sibling
+  // geometry accessors (VisionModality does exactly this for
+  // `getSizeScale`) — Location is a class, not a mixin, so there is no
+  // MixinApi predicate to reach for.
+  const extent =
+    env !== null && env instanceof Location ? env.getLinearExtent() : null;
+  return RangeBand.maxForExtent(extent, rangeBandConfig());
 }
 
 /** A small clamp helper (bands the reach scale). */
@@ -626,38 +786,75 @@ function reachOrderScore(
 }
 
 /**
- * The `close` maneuver: step inside a longer weapon (flip the pair to
- * `close`). A tempo-costed opposed beat — the closer always pays the poise
- * cost; the reach-holder KEEPS them out only while composed (steady/pressed)
- * and genuinely longer (a gap ≥ `contestStrength`). A reeling/broken holder,
- * or an equal/shorter one, can't stop the close. Deterministic — no RNG.
+ * The band-step maneuver — one rung along the ladder, in either
+ * direction. The generalization of the shipped `close`, which was this
+ * function with the destination hard-coded to `close`.
+ *
+ * A tempo-costed opposed beat: the mover always pays the poise cost; the
+ * holder KEEPS them out only while composed (steady/pressed) and
+ * genuinely longer (a gap ≥ `contestStrength`). A reeling/broken holder,
+ * or an equal/shorter one, cannot stop it. Deterministic — no RNG.
+ *
+ * Two rules the four-band ladder adds:
+ *
+ *  - **The arena caps a withdrawal.** You cannot back further away than
+ *    the room is big; a 3 m cell has nowhere to go past `reach`.
+ *  - **Only an advance is contested.** Reach is a tool for keeping
+ *    someone *out*; a spear-holder has no special power to stop you
+ *    leaving. Withdrawal's cost is the beat and the poise, not a contest.
  */
-function resolveClose(
+function resolveBandStep(
   session: CombatSession,
   actorState: CombatantState,
   targetState: CombatantState,
   beat: number,
+  direction: -1 | 1,
 ): void {
   const graph = session.getGraph();
   const actor = actorState.combatant;
   const target = targetState.combatant;
-  const spec = Gambit.get("close")!;
-  actorState.poise.spend(dial(AppSettingKeys.combatReachCloseCost, 0.18), beat);
+  const inward = direction < 0;
+  const spec = Gambit.get(inward ? "advance" : "withdraw")!;
+  actorState.poise.spend(
+    dial(
+      inward
+        ? AppSettingKeys.combatReachCloseCost
+        : AppSettingKeys.combatRangeWithdrawCost,
+      inward ? 0.18 : 0.22,
+    ),
+    beat,
+  );
 
-  if (graph.rangeBetween(actor, target) === "close") {
-    // Already inside — the cost of the wasted beat is the only effect.
+  const current = graph.rangeBetween(actor, target);
+  const wanted = RangeBand.step(current, direction);
+  if (wanted === current) {
+    // Already at the end of the ladder in this direction — the wasted
+    // beat is the only effect (the shipped already-inside behaviour).
     return;
   }
-  const gap = reachRankOf(target) - reachRankOf(actor);
-  const holderBand = targetState.poise.band();
-  const holderComposed = holderBand === "steady" || holderBand === "pressed";
-  const contest = dial(AppSettingKeys.combatReachContestStrength, 0.5);
-  if (gap >= contest && holderComposed) {
-    // Kept at bay — the reach-holder holds distance; the close fails.
+  if (!inward && RangeBand.beyond(wanted, arenaMaxBandFor(actor))) {
+    // The room runs out before you do.
     narrate(actorState, targetState, spec, "control", null, false, beat);
     return;
   }
-  graph.setRange(actor, target, "close");
+  if (inward) {
+    const gap = reachRankOf(target) - reachRankOf(actor);
+    const holderBand = targetState.poise.band();
+    const holderComposed = holderBand === "steady" || holderBand === "pressed";
+    const contest = dial(AppSettingKeys.combatReachContestStrength, 0.5);
+    // The reach contest is a MELEE fact: a long weapon keeps you at the
+    // end of it. It has nothing to say about crossing a bowshot, so it
+    // only guards the last rung inward.
+    if (
+      RangeBand.isMelee(current) &&
+      gap >= contest &&
+      holderComposed
+    ) {
+      narrate(actorState, targetState, spec, "control", null, false, beat);
+      return;
+    }
+  }
+  graph.setRange(actor, target, wanted);
   narrate(actorState, targetState, spec, "control", null, true, beat);
 }
 
@@ -790,9 +987,10 @@ function openSessionImpl(
   const graph = session.getGraph();
   graph.addEdge(initiator, defender, terms);
   graph.addEdge(defender, initiator, terms);
-  // Reach tier: the pair opens at `reach` when their reaches differ (a spear
-  // controls the approach), `close` when equal.
-  seedRange(session, initiator, defender);
+  // The pair opens at the arena's maximum band — you notice someone across
+  // the room before you are on top of them — unless this was an ambush from
+  // concealment, which is exactly what buys the clinch.
+  seedRange(session, initiator, defender, opts?.ambush === true);
 
   // Each participant occupies `body` via its own hold; the session owns
   // the beat (a real-time recurring tick, not a participant's emission).
@@ -1122,12 +1320,13 @@ function pickSustained(
   }
   for (const s of session.getStates()) {
     if (s === actorState || s.down || s.side === actorState.side) continue;
+    // A freshly-picked foe opens at the reach-derived range — but a pair
+    // that already has a range keeps it. Asked BEFORE `addEdge`, because
+    // `addEdge` mints the edge at the `close` default and would make every
+    // pair look freshly-seeded.
+    const known = pairHasRange(graph, actor, s.combatant);
     graph.addEdge(actor, s.combatant, session.getTerms());
-    // A freshly-picked foe opens at the reach-derived range (unless an edge
-    // the other direction already set it).
-    if (graph.rangeBetween(actor, s.combatant) === "close") {
-      seedRange(session, actor, s.combatant);
-    }
+    if (!known) seedRange(session, actor, s.combatant);
     return s;
   }
   return null;
@@ -1143,10 +1342,12 @@ function engageToward(
   const graph = session.getGraph();
   const actor = actorState.combatant;
   if (!graph.edgeBetween(actor, target.combatant)) {
+    // Same rule as `pickSustained`: the reverse edge may already carry a
+    // range this pair fought to, and minting the forward edge must not
+    // reset it.
+    const known = pairHasRange(graph, actor, target.combatant);
     graph.addEdge(actor, target.combatant, session.getTerms());
-    if (graph.rangeBetween(actor, target.combatant) === "close") {
-      seedRange(session, actor, target.combatant);
-    }
+    if (!known) seedRange(session, actor, target.combatant);
   }
   return target;
 }
@@ -1478,8 +1679,14 @@ function resolveExchange(
     return;
   }
 
-  if (key === "close") {
-    resolveClose(session, actorState, targetState, beat);
+  // `close` is kept as an alias onto `advance` — the shipped brain, the
+  // `fight close` verb and the Gambit narration lookups all still name it.
+  if (key === "close" || key === "advance") {
+    resolveBandStep(session, actorState, targetState, beat, -1);
+    return;
+  }
+  if (key === "withdraw") {
+    resolveBandStep(session, actorState, targetState, beat, 1);
     return;
   }
 
@@ -1507,7 +1714,12 @@ function resolveExchange(
   const reachCoef = dial(AppSettingKeys.combatReachAdvantageEnergy, 0.2);
   const reachScale = clampNum(1 + reachAdv * reachCoef, 0.3, 2);
   const effectiveDamage = poiseDamage * reachScale;
-  const outOfRange = reachAdv <= -REACH_OUT_OF_RANGE_GAP;
+  // Out of range two ways: out-reached inside melee (the shipped reach
+  // dance), or not in melee at all (`near`/`far` — a hand weapon cannot
+  // cross a ranged band).
+  const outOfRange =
+    reachAdv <= -REACH_OUT_OF_RANGE_GAP ||
+    !inMeleeBand(session, actorState.combatant, targetState.combatant);
   // The target's shield fronts this attacker only if it faces them (bypassed
   // by a flanking blow under focus-fire).
   const shieldFacing = shieldFacesAttacker(
@@ -1729,6 +1941,7 @@ function reactiveDispatch(
     // dagger-wielder held at a spear's `reach` can't riposte the spear (this
     // is what makes reach control decisive, not just a poise nudge).
     if (
+      !inMeleeBand(session, defenderState.combatant, attackerState.combatant) ||
       reachAdvantage(
         session,
         defenderState.combatant,
@@ -3343,6 +3556,399 @@ function termsFor(
   victim: Stuff,
 ): CombatTerms {
   return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
+}
+
+/** The discipline whose competence band drives combat sharpness. */
+const MELEE_COMBAT_DISCIPLINE = "melee-combat";
+
+/** What an initiation resolved to. `terms` and `consented` are present
+ * only on success — a caller that wants to narrate the opening needs to
+ * know whether it was agreed or imposed. */
+export interface InitiateResult {
+  ok: boolean;
+  reason?: string;
+  terms?: CombatTerms;
+  consented?: boolean;
+}
+
+/**
+ * Read a combatant's standing combat terms (defaults are frictionless).
+ *
+ * Posture comes from two surfaces: the player-side `combat.lethality` /
+ * `combat.stopCondition` **settings** (which only resolve for
+ * `Environment` hosts — i.e. players), and the **authored
+ * `CombatantMixin` fields** an NPC seeds (an NPC isn't an Environment, so
+ * it can't carry settings). Either surface declaring `lethal` makes this
+ * combatant bring lethal terms.
+ */
+function standingTermsImpl(
+  combatant: Stuff,
+  lethalOverride?: boolean,
+  stopOverride?: string,
+): TermsProposal {
+  const lethSetting = ShellApi.resolveSetting<string>(
+    combatant,
+    "combat.lethality",
+  );
+  const stopSetting = ShellApi.resolveSetting<string>(
+    combatant,
+    "combat.stopCondition",
+  );
+  const lethField = MixinApi.isCombatant(combatant)
+    ? combatant.getStandingLethality()
+    : "";
+  const stopField = MixinApi.isCombatant(combatant)
+    ? combatant.getStandingStopCondition()
+    : "";
+  const lethality: Lethality =
+    lethalOverride === true ||
+    lethSetting === "lethal" ||
+    lethField === "lethal"
+      ? "lethal"
+      : "non-lethal";
+  const rawStop = stopOverride ?? stopSetting ?? stopField ?? "";
+  const stopCondition = (STOP_CONDITIONS as readonly string[]).includes(rawStop)
+    ? (rawStop as StopCondition)
+    : DEFAULT_TERMS.stopCondition;
+  return { lethality, stopCondition, stakes: "" };
+}
+
+/** Warm each side's formation Idea into residency (best-effort). */
+async function warmFormationsImpl(combatants: Stuff[]): Promise<void> {
+  for (const c of combatants) {
+    try {
+      await StuffApi.singleton(PartyApi.formationPathOf(c));
+    } catch {
+      // Falls back to CombatFormation.DEFAULT_POLICY at consult time.
+    }
+  }
+}
+
+/** Snapshot melee competence BEFORE opening — the read-fog and poise
+ * recovery need it, and `bandFor` is async so it cannot be read mid-beat
+ * (a single session must stay deterministic). */
+async function snapshotBandsImpl(
+  combatants: Stuff[],
+): Promise<CombatOpenOptions> {
+  const competenceBands = new Map<string, CompetenceBandName>();
+  for (const c of combatants) {
+    const key = c.getTemplatePath();
+    if (!key) continue;
+    try {
+      competenceBands.set(
+        key,
+        await AdvancementApi.bandFor(c, MELEE_COMBAT_DISCIPLINE),
+      );
+    } catch {
+      // Unresolved → the combatant defaults to `untrained` sharpness.
+    }
+  }
+  return { competenceBands };
+}
+
+/** One victim's share of a broken vessel. */
+export interface ThrownShare {
+  readonly victim: Stuff;
+  readonly litres: number;
+  readonly primary: boolean;
+}
+
+/** What a thrown carrier did on arrival. */
+export interface ThrownDelivery {
+  readonly placement: Placement;
+  readonly profile: DeliveryProfile;
+  /** Who caught how much, primary first. Empty when nothing broke. */
+  readonly shares: readonly ThrownShare[];
+  /** Litres left over for the floor. */
+  readonly spilled: number;
+}
+
+/**
+ * Resolve a thrown carrier's arrival.
+ *
+ * Pure with respect to the world: it decides WHAT happens — where the
+ * throw landed, whether the vessel broke, and how its real volume divides
+ * — and hands the caller a plan. Applying that plan (discharging into
+ * each victim, pooling the remainder on the floor) is the controller's
+ * job, because those are world mutations with their own gates.
+ *
+ * **The split is volume-conserving**, because litres are real. The
+ * primary catches a share scaled by how well the throw landed; each
+ * clinched bystander catches a little; whatever is left pools. The DOSE
+ * curve then does all the rest of the work — a graded effect scales down
+ * honestly on a bystander, and a threshold effect may honestly not fire
+ * on one at all. That is why there is no splash-magnitude rule here to
+ * invent or to get wrong.
+ */
+function resolveThrownImpl(
+  thrower: Stuff,
+  target: Stuff,
+  contents: {
+    litres: number;
+    toughness?: number;
+    hardness?: number;
+    massKg?: number;
+  },
+  splash: readonly Stuff[],
+): ThrownDelivery {
+  const band = bandBetweenImpl(thrower, target) ?? "close";
+  const envelope = bandDial(
+    AppSettingKeys.combatRangeThrownEnvelope,
+    "near",
+  );
+  const profile = DeliveryProfile.derive({
+    energySource: "muscle",
+    // The thrown object's REAL mass. A default here would mean every
+    // thrown thing weighed the same, which is the whole ½mv² input.
+    massKg: contents.massKg ?? 0,
+    speedMs: dial(AppSettingKeys.combatRangeThrowSpeed, 12),
+    channel: "blunt",
+    band,
+    envelope,
+    toughness: contents.toughness,
+    hardness: contents.hardness,
+  });
+
+  // A thrown carrier can only ever commit `snap` — for a muscle
+  // launcher, aim IS the throw. Wave 1 has no reactive window, so the
+  // target stands.
+  const placement = AimResolution.resolve("snap", "stand", {
+    poorStability: profile.stabilityIsPoor(),
+    beyondEffective: profile.beyondEnvelope,
+  });
+
+  if (!profile.breaksOnArrival() || placement === "miss") {
+    return { placement, profile, shares: [], spilled: contents.litres };
+  }
+
+  const primaryFraction =
+    placement === "precise"
+      ? dial(AppSettingKeys.combatRangeSplashPrecise, 0.85)
+      : placement === "graze"
+        ? dial(AppSettingKeys.combatRangeSplashGraze, 0.3)
+        : dial(AppSettingKeys.combatRangeSplashPrimary, 0.6);
+  const bystanderFraction = dial(
+    AppSettingKeys.combatRangeSplashBystander,
+    0.15,
+  );
+
+  const shares: ThrownShare[] = [];
+  let remaining = contents.litres;
+  const primaryShare = Math.min(remaining, contents.litres * primaryFraction);
+  shares.push({ victim: target, litres: primaryShare, primary: true });
+  remaining -= primaryShare;
+  for (const other of splash) {
+    if (other === target || remaining <= 0) continue;
+    const share = Math.min(remaining, contents.litres * bystanderFraction);
+    if (share <= 0) continue;
+    shares.push({ victim: other, litres: share, primary: false });
+    remaining -= share;
+  }
+  return { placement, profile, shares, spilled: Math.max(0, remaining) };
+}
+
+/** A band-valued settings read with a seeded literal fallback. */
+function bandDial(key: string, fallback: RangeState): RangeState {
+  try {
+    const raw = AppApi.setting(key);
+    return (RANGE_BANDS as readonly string[]).includes(raw ?? "")
+      ? (raw as RangeState)
+      : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * **The initiation handshake** — one act of starting a fight, wherever it
+ * is started from.
+ *
+ * This was the body of `AttackController` and is extracted so that every
+ * initiating verb runs *the same* sequence rather than a copy of it.
+ * `throw <thing> at <someone>` is an initiation too, and "routes exactly
+ * as attack does" has to be a fact rather than a claim — a duplicated
+ * 150-line handshake would drift on its first edit.
+ *
+ * The order is load-bearing and unchanged from the shipped controller:
+ * reconcile terms → prompt on conflict → snapshot competence → warm
+ * formations → read ambush (before revealing) → open/join/merge.
+ *
+ * `onConflict` is supplied by the caller because prompting is a UI act:
+ * the logic tier decides *that* a conflict must be answered, the
+ * controller decides *how* to ask. A caller with nobody to ask passes
+ * nothing, and the initiator's terms are imposed unconsented — which is
+ * the attacking-the-unwilling path, not an error.
+ */
+async function initiateImpl(
+  initiator: Stuff,
+  target: Stuff,
+  overrides: { lethal?: boolean; to?: string } = {},
+  onConflict?: (
+    target: Stuff,
+    mine: TermsProposal,
+  ) => Promise<boolean | null | "cancelled">,
+): Promise<InitiateResult> {
+  if (!MixinApi.isEngaged(initiator) || !MixinApi.isEngaged(target)) {
+    return { ok: false, reason: "not-a-combatant" };
+  }
+
+  const mine = standingTermsImpl(initiator, overrides.lethal, overrides.to);
+  const theirs = standingTermsImpl(target);
+  const reconciliation = CombatTerms.reconcile(mine, theirs);
+
+  let resolved: TermsProposal;
+  let consented: boolean;
+  if (reconciliation.status === "agreed") {
+    resolved = reconciliation.terms;
+    consented = true;
+  } else {
+    const accepted = onConflict ? await onConflict(target, mine) : null;
+    if (accepted === "cancelled") return { ok: false, reason: "cancelled" };
+    if (accepted) {
+      resolved = mine;
+      consented = true;
+    } else if (accepted === false) {
+      // Defender declined the escalation → fold to their terms.
+      resolved = theirs;
+      consented = true;
+    } else {
+      // No live defender to consent → the initiator's terms are imposed.
+      resolved = mine;
+      consented = false;
+    }
+  }
+
+  const terms = CombatTerms.agreed(
+    initiator.getTemplatePath() ?? "",
+    resolved,
+    consented,
+  );
+
+  const opts = await snapshotBandsImpl([initiator, target]);
+  await warmFormationsImpl([initiator, target]);
+  opts.ambush = await PerceptionApi.resolveAmbush(initiator, target);
+
+  // Attacking someone already fighting JOINS their melee; attacking from
+  // mid-fight DRAWS the target in; two separate fights colliding MERGE;
+  // otherwise a fresh session opens.
+  const initiatorSession = sessionForImpl(initiator);
+  const targetSession = sessionForImpl(target);
+  let result: { ok: boolean; reason?: string };
+  if (
+    initiatorSession &&
+    targetSession &&
+    initiatorSession !== targetSession
+  ) {
+    mergeImpl(initiatorSession, targetSession);
+    result = { ok: true };
+  } else if (targetSession) {
+    result = joinImpl(initiator, target, terms, opts);
+  } else if (initiatorSession) {
+    result = joinImpl(target, initiator, terms, opts);
+  } else {
+    const opened = openSessionImpl(initiator, target, terms, opts);
+    result = opened.ok ? { ok: true } : { ok: false, reason: opened.reason };
+  }
+  if (!result.ok) return { ok: false, reason: result.reason ?? "failed" };
+  return { ok: true, terms, consented };
+}
+
+/**
+ * The band between two combatants — the location-aware read everything
+ * outside the graph asks.
+ *
+ * `CombatGraph.rangeBetween` is a pure value-object and falls back to
+ * `close` for an unknown pair, which is right for the graph and wrong for
+ * a caller: two people who have not engaged in a 20 m yard are not in a
+ * clinch. So a live edge wins, else the arena's own cap answers, and
+ * `null` means they are not even co-present (cross-room fire is out of
+ * scope, D26).
+ */
+function bandBetweenImpl(a: Stuff, b: Stuff): RangeState | null {
+  const session = sessionForImpl(a);
+  const graph = session?.getGraph();
+  if (
+    graph &&
+    (graph.edgeBetween(a, b) !== undefined ||
+      graph.edgeBetween(b, a) !== undefined)
+  ) {
+    return graph.rangeBetween(a, b);
+  }
+  const envA = MixinApi.isContainable(a) ? a.getContainer() : null;
+  const envB = MixinApi.isContainable(b) ? b.getContainer() : null;
+  if (envA === null || envA !== envB) return null;
+  return arenaMaxBandFor(a);
+}
+
+/**
+ * The splash set: the target, plus everyone clinched with them.
+ *
+ * Bands are RELATIONSHIPS, not positions (D2), so a placed effect cannot
+ * sit "at a band" globally — there is no position to place it at. Area
+ * arrival therefore resolves relationally: whoever is at `close` to the
+ * primary target is on top of them, and catches it.
+ *
+ * *"You're not shooting a person, you're shooting the floor they need"*
+ * becomes *"the splash catches whoever is on top of your target"* — which
+ * needs no invented radius and cannot disagree with the band model.
+ *
+ * ⚠ The edge check is load-bearing. `rangeBetween` falls back to `close`
+ * for a pair with no edge at all, so asking it alone would sweep every
+ * combatant in the session into the splash. The same trap that produced
+ * the re-seed bug at `pickSustained`.
+ */
+function splashSetForImpl(target: Stuff): Stuff[] {
+  const out: Stuff[] = [target];
+  const session = sessionForImpl(target);
+  if (!session) return out;
+  const graph = session.getGraph();
+  for (const st of session.getStates()) {
+    const other = st.combatant;
+    if (other === target) continue;
+    const engaged =
+      graph.edgeBetween(other, target) !== undefined ||
+      graph.edgeBetween(target, other) !== undefined;
+    if (!engaged) continue;
+    if (graph.rangeBetween(other, target) === "close") out.push(other);
+  }
+  return out;
+}
+
+/**
+ * The commit-time consent gate for an area delivery.
+ *
+ * The shipped model *permits* attacking the unwilling — that is what the
+ * `consented: false` crime marker is for — so this gate cannot mean
+ * "refuse all non-consented harm" without forbidding crime itself. The
+ * honest distinction is **deliberate versus collateral**:
+ *
+ *  - the **primary** target runs the ordinary terms handshake and is not
+ *    gated here; attacking them may be a crime, and the ledger says so;
+ *  - every **other** sentient caught in the splash must ALREADY stand
+ *    under terms in force with the thrower that permit this harm.
+ *    Otherwise the whole act is refused before it commits — nothing
+ *    thrown, no poise spent, no session state moved.
+ *
+ * The rule it enforces: **area delivery must not be a cheaper route to a
+ * person than aiming at them.**
+ */
+function mayDeliverToImpl(
+  thrower: Stuff,
+  primary: Stuff,
+  splash: readonly Stuff[],
+): { ok: true } | { ok: false; refusedBy: Stuff } {
+  const session = sessionForImpl(thrower);
+  const graph = session?.getGraph();
+  for (const victim of splash) {
+    if (victim === primary || victim === thrower) continue;
+    // Non-sentients never gate — a thrown flask may soak the furniture.
+    if (!safeIsSentient(victim)) continue;
+    const edge =
+      graph?.edgeBetween(thrower, victim) ?? graph?.edgeBetween(victim, thrower);
+    if (edge?.terms.consented === true) continue;
+    return { ok: false, refusedBy: victim };
+  }
+  return { ok: true };
 }
 
 /** Sentience read, tolerant of a species not yet resolved. */

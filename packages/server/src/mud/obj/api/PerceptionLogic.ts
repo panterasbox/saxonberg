@@ -240,6 +240,26 @@ export class PerceptionLogic extends ApiLogic {
 
   /** See {@link PerceptionApi.perceives}. */
   @CallSecurity(PerceptionApiCallers)
+  /**
+   * Is `attacker` striking from concealment `defender` does not perceive?
+   *
+   * Reads the attacker's hidden state FIRST — warming the defender's
+   * `awareness` so the sync gate uses their real capacity — then clears
+   * the attacker's hide, because striking reveals you, ambush or not.
+   *
+   * It lives HERE rather than in combat because it is a perception
+   * fact, not combat physics — `check-combat-dynamics` says so, and it
+   * is right. Combat asks the question; perception answers it.
+   */
+  public async resolveAmbush(attacker: Stuff, defender: Stuff): Promise<boolean> {
+    if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
+    await this.preloadForSenseGate(defender);
+    const unseen = !perceivesImpl(defender, attacker);
+    attacker.breakHide();
+    return unseen;
+  }
+
+  @CallSecurity(PerceptionApiCallers)
   public perceives(viewer: Stuff, target: Stuff, attention?: number): boolean {
     return perceivesImpl(viewer, target, attention);
   }

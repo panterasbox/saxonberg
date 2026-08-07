@@ -34,8 +34,22 @@ import type { InflictSpec } from '../../api/condition';
 import { MixinApi } from '../../api/mixin';
 import { Quantity } from '../quantity';
 
-/** The delivery **range** — v1 is `'contact'` only; `'ranged'` is reserved. */
-export type HazardRange = 'contact';
+/**
+ * The delivery **range**.
+ *
+ * `'contact'` — the trap harms whoever physically meets it. `'ranged'` —
+ * the hazard is delivered ACROSS a band gap: a thrown flask that breaks
+ * on arrival, a dart-thrower that strikes from the far wall. The
+ * distinction matters because a ranged delivery has already found its
+ * victim by the time it resolves, so walking into where it landed is not
+ * what springs it.
+ *
+ * The seam was reserved by the trap build for exactly this one.
+ */
+export const HAZARD_RANGES = ['contact', 'ranged'] as const;
+
+/** One of {@link HAZARD_RANGES}. */
+export type HazardRange = (typeof HAZARD_RANGES)[number];
 
 /** Construction options for a {@link HazardDelivery}. */
 export interface HazardDeliveryOptions {
@@ -59,7 +73,8 @@ export interface HazardDeliveryOptions {
    * {@link HazardMixin.resolveTraversal}.
    */
   toxin?: ToxinTag;
-  /** The delivery range — `'contact'` in v1 (`'ranged'` reserved). */
+  /** The delivery range — `'contact'` (met in place) or `'ranged'`
+   * (delivered across a band gap). Defaults to `'contact'`. */
   range?: HazardRange;
 }
 
@@ -82,6 +97,20 @@ export class HazardDelivery {
     this.toxin = opts.toxin;
     // Reserved seam: only 'contact' is honored in v1.
     this.range = opts.range ?? 'contact';
+  }
+
+  /**
+   * Is this delivered across a band gap rather than met in place?
+   *
+   * The one question the traversal path asks: a ranged delivery has
+   * already found its victim when it resolved, so the puddle it left is
+   * not a trap that springs on the next person through. (A LINGERING
+   * residue that does harm the next person is a real thing and a real
+   * feature — it just needs a lifetime model hazards do not have yet, and
+   * it defers to the wave that builds one.)
+   */
+  isRanged(): boolean {
+    return this.range === 'ranged';
   }
 
   /**

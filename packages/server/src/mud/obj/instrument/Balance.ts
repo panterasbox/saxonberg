@@ -12,8 +12,7 @@ import type { CommandContributions } from '../../api/command';
 export default class Balance extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['perception/weigh.yaml'],
-    environment: [],
-    peers: [],
+    environment: ['perception/weigh.yaml'],
+    peers: ['perception/weigh.yaml'],
   };
 }

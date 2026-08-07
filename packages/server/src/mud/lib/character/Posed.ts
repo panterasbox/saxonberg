@@ -64,9 +64,8 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
         'posture/stand.yaml',
         'posture/kneel.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     public posture: string = Postures.Stand;
