@@ -33,19 +33,22 @@ Seeded by [client-slate § 4.2](../slates/builds/client-slate.md)
   referent's kind explicitly at each emitter.
 - **Scrollback stops lying about liveness.** A sixth topic facet tells
   the client whether affordances in a frame of that topic stay valid.
-- **A renamed or mistyped topic key fails loudly.** Today it resolves to
-  a derived default and nobody notices.
+- **The topic taxonomy is replaced, not renamed.** 89 keys organized by
+  emitting subsystem become ~24 organized by subject matter, in player
+  voice, with every facet authored.
+- **The vocabulary is open to content packs, and its roots are closed** —
+  so a subtree mute stays total.
+- **A mistyped, renamed or undescribed topic fails loudly.** Today it
+  resolves to a derived default and nobody notices — which is why 23 live
+  topics have no descriptor.
 
 ## Non-goals
 
 - **The radial menu itself**, its geometry, and the fixed category slots
   — client work, Wave 3/4 of the slate.
-- **The topic tree renames** (Track A steps 3–5). S2 builds the gate that
-  makes those renames safe; S3 performs them. They are separated because
-  the renames break `packages/client`'s ~25 hardcoded topic strings and
-  want to be one atomic sweep.
-- **Rewriting topic `label`/`description` in player voice** (Track A
-  step 5) — content, rides S3.
+- **An alias map for old topic keys.** Cut deliberately — see *Surface
+  decisions § 7*. There is no playerbase to protect and the database is
+  scheduled for a wipe; an alias map would preserve names nobody holds.
 - **A composition digest in MML.** Cut during requirements; see
   *Surface decisions § 1*.
 - **Any change to how commands dispatch.** The resolver evaluates the
@@ -177,37 +180,109 @@ matching `flatten` entries (the pairing is already test-asserted). All
 three are **identity claims** and stay out of every passthrough policy,
 exactly as `item` and `name` are today.
 
-### 7. Sixth topic facet: `affordance`
+### 7. The topic corpus is replaced wholesale, not renamed
 
-`live` / `decays` / `permanent`, joining the five facets S1 shipped, on
-the same seed schema and the same `TopicDescriptor`. It tells the client
-whether affordances in a frame of that topic remain valid as the frame
-ages — so a long scrollback can grey its dead links without resolving
-every one of them.
+The slate scheduled the topic work as S3 — renames behind an alias map
+for one release. **Both halves of that are cut.** The corpus is deleted
+and rebuilt, in this build, with no alias map.
 
-Authored in seeds and read authored-or-floor, with **no runtime
-derivation**: S1 established that rule after two derivations of the same
-facet drifted within an hour. Floor value is `decays` — the conservative
-answer, since a wrongly-`permanent` affordance is a dead link presented
-as live.
+**Why replace rather than rename.** Measured against the tree
+(tests excluded):
 
-`derive-topic-facets.ts` gains the sixth facet and its exceptions table.
+- 89 topics seeded, **62 emitted**.
+- **23 emitted topics have no seed at all** — including
+  `world.speech.tell`, `world.social.presence`, `world.hazard.spring`,
+  `system.charactergen.*`, `system.press`, `world.prompt`. A third of
+  what reaches a player has no authored descriptor; tier 3 silently
+  invents one.
+- **~50 seeded topics are never emitted.** Some are legitimate subtree
+  parents; the rest is dead (`system.commands.added|removed|reset`,
+  `system.auth.*`, `world.identity.change`, five
+  `world.perception.ambient.*` modalities).
 
-### 8. A topic-key totality gate
+So ~39 of 89 seeds are load-bearing, and the live and authored
+vocabularies have drifted apart in *both* directions. Renaming a corpus
+in that state preserves the drift.
 
-`TopicCatalogue`'s third resolution tier derives a default for any
-unrecognized key, so a mistyped or renamed topic **fails silently** into
-a plausible-looking descriptor. Nothing today asserts that an emitted
-topic key corresponds to a seeded row.
+**Why it collapses so far.** The tree is five facets flattened into a
+string — it predates facets, so every cross-cutting axis became tree
+depth: `system.*` vs `world.*` is the `actor` facet; `say`/`whisper`/
+`shout` is `address`; the 13 `system.shell.*` leaves are `actor: system`
++ `address: direct`; `*.error` and `system.log.*` are
+`weight: diagnostic`. S1 put those five facets on the wire, so the
+tree's only remaining job is **subject matter**.
 
-S2 adds `lint:topics` (`scripts/check-topic-keys.ts`, CI-gating): every
-topic key emitted in server source resolves to a seeded `Topic` row.
-Same shape as S1's `MeasureChannel` totality test, which caught two real
-defects on its first run.
+Two collapses fall directly out of S1: the 15
+`world.perception.measurement.*` leaves become **one** topic, because
+`<quantity channel="thermal">` already carries the channel in the
+markup; and `twitch`/`youtube`/`kick` become one, because the platform
+is a transport attribute, not a subject.
 
-**This is scope added during requirements, not from the slate.** It is
-here rather than in S3 because it is the thing that makes S3's ~90-row
-rename safe to perform at all.
+**The replacement — 7 roots, ~24 keys, two levels:**
+
+| Root | Leaves | Meaning |
+|---|---|---|
+| `speech` | `.vocal` `.comms` `.channel` `.relay` | Words from a person. Split by **medium** — overhearable vs point-to-point is a privacy fact, not a presentation one. |
+| `act` | `.deed` `.move` `.emote` `.combat` | Something was done. World events ride this; `actor: world` distinguishes them. |
+| `sense` | `.ambient` `.weather` `.survey` `.reading` | The world reaching you. `.survey` answers looking; `.reading` is all instruments. |
+| `self` | `.body` `.standing` `.holding` | Your own person — vitals, measured position, property. |
+| `publication` | `.press` `.wiki` `.forum` | Authored durable content. |
+| `shell` | `.result` `.error` `.prompt` `.config` `.control` | The client↔server relationship. `.control` is the server changing client state (mode, layout, clear). |
+| `session` | `.link` `.identity` | The connection itself; auth and character select. |
+
+Labels and descriptions are authored **in player voice** (Track A step 5,
+folded in — writing them twice would be the waste this decision exists to
+avoid).
+
+### 8. The vocabulary is open; roots are closed
+
+Content packs may add topics. This is already physically supported:
+`TopicCatalogue` loads via `Template.findDescendants('/obj/Topic/')` from
+the `domain` collection, and packs install `domain` rows carrying
+`sourcePack`. No new mechanism.
+
+**But a pack may add leaves only, never a root.** If a pack can mint a
+top-level subject, a player's mute of `sense` stops catching everything
+sense-shaped, and the client's filter surface becomes unbounded at the
+top. Subtree-mute integrity is the entire reason this is a tree rather
+than flat tags.
+
+Collision is an install error, not a silent overwrite — two packs
+claiming one key must fail reconcile, with `sourcePack` naming the
+incumbent.
+
+### 9. The totality gate is two-part
+
+A build-time lint cannot see a third-party pack, so the gate has a
+runtime half.
+
+- **Build-time** — `lint:topics` (`scripts/check-topic-keys.ts`,
+  CI-gating): every topic key emitted in server source resolves to a
+  core seed or a shipped-pack row, and every key's root is one of the
+  seven. Catches typos and renames. Same shape as S1's `MeasureChannel`
+  totality test, which caught two real defects on its first run.
+- **Runtime** — **tier 3 stops being silent.** A topic that resolves by
+  *derivation* rather than authorship files a diagnostic through
+  `DiagnosticApi`. Resolution behaviour is unchanged — the frame still
+  renders, nothing throws — but the failure becomes author-visible. This
+  is what would have surfaced all 23 undescribed topics.
+- **Install-time** — pack reconcile validates root and collision (§ 8).
+
+### 10. Sixth facet: `affordance`
+
+`live` / `decays` / `permanent`, joining S1's five on the same schema and
+the same `TopicDescriptor`. It tells the client whether affordances in a
+frame of that topic stay valid as the frame ages, so a long scrollback
+can grey dead links without resolving every one.
+
+Authored, with **no runtime derivation** — S1's rule, established after
+two derivations of one facet drifted within an hour. Floor is `decays`,
+the conservative answer: a wrongly-`permanent` affordance is a dead link
+presented as live.
+
+Because the corpus is being rewritten anyway, all six facets are authored
+fresh rather than derived by script. `derive-topic-facets.ts` retires
+with the corpus it served.
 
 ## Constraints
 
@@ -250,15 +325,27 @@ rename safe to perform at all.
    `MeasureChannel.totality` pattern).
 8. `thing` / `player` / `npc` are absent from every passthrough policy —
    asserted, since these are identity claims.
-9. The `affordance` facet is present on all 89 seeds, is read
-   authored-or-floor, and floors to `decays`. `derive-topic-facets.ts
-   --check` is clean.
-10. `pnpm lint:topics` passes, and fails on a deliberately mistyped key
-    in a fixture.
-11. `docs/subsystems/command-routing.md` documents the resolver;
-    `messaging.md` documents the tag collapse; `topics.md` documents the
-    sixth facet.
-12. Full suite green, both packages type-clean, lint family green.
+9. The old topic corpus is gone — no seed under `/obj/Topic/` uses a key
+   outside the seven roots, and no emitter references a retired key
+   (source scan).
+10. Every emitted topic key resolves to an **authored** descriptor. This
+    is the criterion that fails today for 23 keys.
+11. All six facets are authored on every seed; none is derived at
+    runtime. `derive-topic-facets.ts` is deleted.
+12. Labels and descriptions are in player voice — spot-checked in review,
+    not machine-checkable.
+13. `pnpm lint:topics` passes, and fails on (a) a mistyped key, (b) a key
+    whose root is not one of the seven.
+14. A topic resolving by derivation files a diagnostic, and rendering is
+    unaffected — both asserted.
+15. A pack declaring a new root fails reconcile; a pack declaring a leaf
+    under a core root installs and resolves. Both tested.
+16. `packages/client`'s hardcoded topic strings are updated; no client
+    reference to a retired key remains.
+17. `docs/subsystems/command-routing.md` documents the resolver;
+    `messaging.md` the tag collapse; `topics.md` is **rewritten** for the
+    new taxonomy, the open-vocabulary rule, and the two-part gate.
+18. Full suite green, both packages type-clean, lint family green.
 
 ## Cross-references
 
@@ -266,7 +353,10 @@ rename safe to perform at all.
 - Prior build: S1 — merged, `0ed75f72`. Established the
   authored-not-derived facet rule, the totality-gate pattern, and the
   `<quantity>` chokepoint precedent this build's tag collapse follows.
-- Successor: S3 (Track A 3–5) — the topic renames, gated by criterion 10.
+- **S3 is dissolved.** Track A steps 3–5 were scheduled as a separate
+  build; they are absorbed here, because deriving a sixth facet into 89
+  seeds that are about to be deleted is waste, and the player-voice
+  rewrite would otherwise be done twice.
 - [command-routing](../subsystems/command-routing.md) ·
   [perception](../subsystems/perception.md) ·
   [concealment](../subsystems/concealment.md) ·
