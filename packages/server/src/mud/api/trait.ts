@@ -175,22 +175,6 @@ export class TraitApi {
     return logic().seedClaims(owner, seeds);
   }
 
-  /**
-   * ⭐ The dominant trait as a **sync** read — the live standing
-   * field's surface. `undefined` means the fold has not landed yet
-   * (and one has been scheduled); `null` means folded, with nothing
-   * pronounced. The distinction matters: absent is not zero.
-   */
-  public static dominantTraitCached(
-    owner: Stuff
-  ): AxisEstimate | null | undefined {
-    return logic().dominantTraitCached(owner);
-  }
-
-  /** Test/HMR seam — drop the derived fold cache. */
-  public static _clearDerivedCacheForTesting(): void {
-    logic().clearDerivedCache();
-  }
 }
 
 SecurityApi.decorateApiClass(TraitApi);

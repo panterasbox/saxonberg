@@ -65,7 +65,6 @@ import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
 import { RenownApi } from '../api/renown';
-import { TraitApi } from '../api/trait';
 import { AdvancementApi } from '../api/advancement';
 
 /**
@@ -222,8 +221,21 @@ export default class Avatar extends AvatarBase {
   };
 
   /**
-   * ⭐ **The five live standing figures**, as subscribable data rather
-   * than prose.
+   * ⭐ **The live standing figures**, as subscribable data rather than
+   * prose.
+   *
+   * ⚠ **Your trait position is deliberately NOT here.** The engine
+   * derives it, and a pinnable "your most pronounced trait right now"
+   * widget would be a stat sheet of your own personality — which the
+   * psychology slate calls the *unrealistic* feature, and which would
+   * foreclose the vocation it is designed around: **you cannot read
+   * yourself; another person can.** Keeping traits off the live
+   * dashboard is what keeps that buildable without retrofitting a
+   * permission model later.
+   *
+   * (The `traits` and `score` verbs DO self-report today. That is a
+   * pre-existing product decision and its own conversation — this
+   * build simply declines to make it worse.)
    *
    * Every one of these is already reachable — `score` reports the lot,
    * and `StandingController` calls the same Apis. What did not exist
@@ -280,21 +292,6 @@ export default class Avatar extends AvatarBase {
         const key = standingSubject(stuff, viewer);
         if (!key) return undefined;
         return { value: RenownApi.renownOf(key) };
-      },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
-    },
-    {
-      name: 'dominantTrait',
-      // Async ledger behind a sync contract — see DerivedStandingCache.
-      // `undefined` on a cold cache means the field is OMITTED from the
-      // projection, so the client shows no value rather than a zero.
-      read: (stuff, viewer) => {
-        if (!standingSubject(stuff, viewer)) return undefined;
-        const t = TraitApi.dominantTraitCached(stuff);
-        if (t === undefined) return undefined;
-        return t === null
-          ? null
-          : { disposition: t.disposition, position: t.position, band: t.band };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },

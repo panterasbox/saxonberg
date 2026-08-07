@@ -26,9 +26,7 @@ import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { RegardApi } from "../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../api/trait";
 import { EventApi } from '../../api/event';
-import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
 import { StuffApi } from '../../api/stuff';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
 
 const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
 
@@ -99,10 +97,8 @@ async function buildAndSave(
   entry.valence = fields.valence;
   entry.tags = fields.tags ?? [];
   await entry.save();
-  // AFTER the write, never before. One call site covers
-  // recordSignature AND recordDeed. The refresh notifies once it has
-  // folded.
-  void dominantCache.refresh(entry.owner);
+  // No live consumer to notify: trait position is deliberately absent
+  // from the standing dashboard (see Avatar.subscribableFields).
 }
 
 /**
@@ -146,32 +142,6 @@ function toEvidence(rows: readonly DispositionEntry[]): DispositionEvidence[] {
 }
 
 /** Derive every evidenced axis for an owner (sorted by axis key). */
-/**
- * ⭐ The sync face of the async disposition ledger — see
- * {@link DerivedStandingCache}. Keyed by the durable owner key the
- * ledger already stores against.
- */
-const dominantCache = new DerivedStandingCache<AxisEstimate | null>(
-  async (subject) => {
-    const owner = StuffApi.findByTemplatePath(subject);
-    if (!owner) return null;
-    const pronounced = TraitPosition.pronounced(
-      await positionsForImpl(owner),
-      loadDials()
-    );
-    return pronounced[0] ?? null;
-  },
-  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
-);
-
-/** Module-private impl; the singleton method below is the surface. */
-function dominantTraitCachedImpl(
-  owner: Stuff
-): AxisEstimate | null | undefined {
-  const key = ownerKey(owner);
-  return key === null ? undefined : dominantCache.get(key);
-}
-
 async function positionsForImpl(owner: Stuff): Promise<AxisEstimate[]> {
   if (!active()) return [];
   const ownerId = ownerKey(owner);
@@ -316,17 +286,7 @@ export class TraitLogic extends ApiLogic {
     return TraitPosition.pronounced(await positionsForImpl(owner), loadDials());
   }
 
-  /** See {@link TraitApi.dominantTraitCached}. */
-  @CallSecurity(TraitApiCallers)
-  public dominantTraitCached(owner: Stuff): AxisEstimate | null | undefined {
-    return dominantTraitCachedImpl(owner);
-  }
 
-  /** See {@link TraitApi._clearDerivedCacheForTesting}. */
-  @CallSecurity(TraitApiCallers)
-  public clearDerivedCache(): void {
-    dominantCache.clear();
-  }
 
   /** See {@link TraitApi.compatibility}. */
   @CallSecurity(TraitApiCallers)

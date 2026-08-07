@@ -67,7 +67,7 @@ async function subscribedInteractive(
     query: 'me',
     cardinality: 'one',
     // The standing figures — the fields that carry a durableKey.
-    fields: ['renown', 'playStanding', 'dominantTrait'],
+    fields: ['renown', 'playStanding', 'practisingCompetence'],
   });
   return interactive;
 }

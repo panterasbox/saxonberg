@@ -348,8 +348,19 @@ gated cross-cutting renders → the mixin that owns the gate.
 ## ⭐ Ledger-derived fields: the five standing figures
 
 `Avatar.subscribableFields` carries `playStanding`, `makeStanding`,
-`renown`, `dominantTrait` and `practisingCompetence` — the figures
-`score` reports, as **structured values** rather than a sentence.
+`renown` and `practisingCompetence` — as **structured values** rather
+than a sentence.
+
+⚠ **A trait position is deliberately NOT among them.** The engine
+derives one, and the data is trivially reachable, but a pinnable "your
+most pronounced trait right now" widget is a stat sheet of your own
+personality — the thing the psychology slate calls the *unrealistic*
+feature, and the thing that would foreclose the vocation built on **you
+cannot read yourself; another person can.** Keeping it off the live
+dashboard is what keeps that buildable without retrofitting a
+permission model. A test asserts no field name matches
+`trait|disposition|personality`, so it cannot drift back in because
+someone noticed the data was available.
 
 Declared on `Avatar` rather than on a mixin: `lib/renown/`,
 `lib/influence/` and `lib/participation/` hold no mixins at all (those

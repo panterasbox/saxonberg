@@ -27,14 +27,19 @@ import {
   makeStuff,
 } from '../../lib/security/__tests__/test-setup';
 import type { Sensor } from '../../lib/message/Sensor';
-import { TraitApi } from '../../api/trait';
 import { AdvancementApi } from '../../api/advancement';
 
+/**
+ * ⚠ `dominantTrait` is deliberately NOT a figure. Your trait position
+ * stays off the live dashboard so the psychology vocation stays
+ * buildable — you cannot read yourself; another person can. A pinnable
+ * "your most pronounced trait" widget is the stat sheet that forecloses
+ * it. See Avatar.subscribableFields.
+ */
 const FIGURES = [
   'playStanding',
   'makeStanding',
   'renown',
-  'dominantTrait',
   'practisingCompetence',
 ];
 
@@ -75,6 +80,22 @@ describe('Avatar standing figures — declaration', () => {
       .toBeUndefined();
   });
 
+  it('⭐⭐ never exposes a trait position — the psychology vocation depends on it', () => {
+    // "You cannot read yourself; another person can." A live widget
+    // showing your own dominant trait is the stat sheet that makes the
+    // therapist unnecessary, and it would foreclose the vocation before
+    // it is built. If a trait figure ever appears here, that is a
+    // product decision that must be made deliberately — not by someone
+    // adding a field because the data was reachable.
+    const names = Avatar.subscribableFields.map((d) => d.name);
+    for (const n of names) {
+      expect(
+        /trait|disposition|personality/i.test(n),
+        `${n} exposes a trait position on the live dashboard`
+      ).toBe(false);
+    }
+  });
+
   it('no figure is marked static — a standing that never changes is a bug', () => {
     for (const d of Avatar.subscribableFields) {
       expect(d.static).not.toBe(true);
@@ -86,7 +107,6 @@ describe('Avatar standing figures — projection', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
-    TraitApi._clearDerivedCacheForTesting();
     AdvancementApi._clearDerivedCacheForTesting();
   });
 
@@ -110,13 +130,12 @@ describe('Avatar standing figures — projection', () => {
     const avatar = makeAvatar('tester');
     const out = MqlSubscriptionApi.projectFields(
       avatar as unknown as Stuff,
-      ['dominantTrait', 'practisingCompetence'],
+      ['practisingCompetence'],
       avatar as unknown as Stuff & Sensor
     );
     // `read` returned undefined -> projectFields skipped the key
     // entirely. The client renders nothing. If this ever becomes `0`
     // or `null`-by-default, the honesty convention has been broken.
-    expect('dominantTrait' in out).toBe(false);
     expect('practisingCompetence' in out).toBe(false);
   });
 
