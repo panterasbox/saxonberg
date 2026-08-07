@@ -28,6 +28,8 @@ export default class MeasureTemperatureController extends CommandController<Meas
     model: MeasureTemperatureModel,
     ctx: CommandContext,
   ): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
       ? (giver as Stuff & Container).getContents()
@@ -64,7 +66,7 @@ export default class MeasureTemperatureController extends CommandController<Meas
       scope as Stuff & Container,
       model.detail,
     );
-    const body = Mml.compose`Temperature: ${t.formatMml(undefined, 'thermal')} (${t.tag('thermal')})\n`;
+    const body = Mml.compose`Temperature: ${t.formatMml(undefined, 'thermal', { channel: 'thermal', via })} (${t.tag('thermal')})\n`;
     MessageApi.scene(giver)
       .topic('world.perception.measurement.measure-temperature')
       .toSelf(body)

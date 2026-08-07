@@ -30,6 +30,8 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
     model: AnalyzeChemistryModel,
     context: CommandContext
   ): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -75,7 +77,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
       Mml.compose`Chemistry of ${Mml.name(target.stuff as Stuff)}:`
     );
     lines.push(Mml.compose`  material: ${material.getName()}`);
-    lines.push(Mml.compose`  density: ${material.getDensity().formatMml()}`);
+    lines.push(Mml.compose`  density: ${material.getDensity().formatMml(undefined, undefined, { channel: 'chemistry', via })}`);
     const chem = material.getChemistry();
     if (chem) {
       if (chem.symbol) {
@@ -89,7 +91,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
       }
       if (chem.molarMass) {
         lines.push(
-          Mml.compose`  molar mass: ${chem.molarMass.formatMml()}`
+          Mml.compose`  molar mass: ${chem.molarMass.formatMml(undefined, undefined, { channel: 'chemistry', via })}`
         );
       }
     }

@@ -174,6 +174,7 @@ export class TraitApi {
   ): Promise<void> {
     return logic().seedClaims(owner, seeds);
   }
+
 }
 
 SecurityApi.decorateApiClass(TraitApi);

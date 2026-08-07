@@ -5,3 +5,8 @@ data:
   family: system.command
   label: Error
   description: Human-readable prose explaining why a command failed at the framework level — bad parse, MQL miss, validator rejection.
+  address: personal
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false

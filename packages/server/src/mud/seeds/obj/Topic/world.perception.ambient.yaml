@@ -5,3 +5,8 @@ data:
   family: world.perception
   label: Ambient
   description: Parent topic for unbidden perceptual input — the world fed the actor sensory content without the actor asking. Children per channel (vision / hearing / smell / touch / taste) because ambient events have no verb to name them.
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false

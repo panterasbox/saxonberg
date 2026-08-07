@@ -5,3 +5,8 @@ data:
   family: ""
   label: System
   description: Engine-level messages — connection lifecycle, authentication, shell tooling, dispatcher diagnostics. Not in-fiction.
+  address: personal
+  actor: system
+  weight: diagnostic
+  audience: all
+  durable: false

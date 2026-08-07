@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Help
   description: Output of the help verb — the in-shell knowledge base.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

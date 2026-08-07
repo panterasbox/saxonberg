@@ -5,3 +5,8 @@ data:
   family: system.auth
   label: Success
   description: Authentication completed successfully.
+  address: personal
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false

@@ -5,3 +5,8 @@ data:
   family: system
   label: Log
   description: Engine-level shell log output — input echoes, dispatcher diagnostics, anything narrating the shell layer back to the player.
+  address: personal
+  actor: system
+  weight: diagnostic
+  audience: all
+  durable: false

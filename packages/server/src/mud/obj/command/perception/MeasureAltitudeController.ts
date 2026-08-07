@@ -34,13 +34,15 @@ export default class MeasureAltitudeController extends CommandController<Measure
     ctx: CommandContext,
   ): Promise<void> {
     const giver = ctx.commandGiver;
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
 
     // Angular branch: `measure altitude sun|moon` reads the body's
     // elevation/azimuth with a sextant. Any other arg (or none) falls
     // through to the barometric altitude estimate below.
     const bodyArg = model.body?.toLowerCase();
     if (bodyArg === 'sun' || bodyArg === 'moon') {
-      await MeasureAltitudeController.#measureBody(bodyArg, ctx);
+      await MeasureAltitudeController.#measureBody(bodyArg, ctx, via);
       return;
     }
     const inv = MixinApi.isContainer(giver)
@@ -119,7 +121,7 @@ export default class MeasureAltitudeController extends CommandController<Measure
       (density.rawValue() * gravity.rawValue());
     const altitude = Quantity.of(altitudeMeters, 'm');
 
-    const body = Mml.compose`Altitude: ${altitude.formatMml()}\n`;
+    const body = Mml.compose`Altitude: ${altitude.formatMml(undefined, undefined, { channel: 'spatial', via })}\n`;
     MessageApi.scene(giver)
       .topic('world.perception.measurement.measure-altitude')
       .toSelf(body)
@@ -134,6 +136,9 @@ export default class MeasureAltitudeController extends CommandController<Measure
   static async #measureBody(
     body: 'sun' | 'moon',
     ctx: CommandContext,
+    /** Provenance, resolved by the instance caller — statics have no
+     *  access to the protected instance helper. */
+    via: string | undefined,
   ): Promise<void> {
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
@@ -177,7 +182,7 @@ export default class MeasureAltitudeController extends CommandController<Measure
         ? await CelestialApi.sunAzimuth(loc)
         : await CelestialApi.moonAzimuth(loc);
 
-    const out = Mml.compose`${body} altitude: ${altitude.formatMml()} · azimuth: ${azimuth.formatMml()}\n`;
+    const out = Mml.compose`${body} altitude: ${altitude.formatMml(undefined, undefined, { channel: 'celestial', via })} · azimuth: ${azimuth.formatMml(undefined, undefined, { channel: 'celestial', via })}\n`;
     MessageApi.scene(giver)
       .topic('world.perception.measurement.measure-altitude')
       .toSelf(out)

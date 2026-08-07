@@ -29,6 +29,8 @@ interface AnalyzeLightModel extends CommandModel {
 
 export default class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
   execute(model: AnalyzeLightModel, context: CommandContext): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
@@ -59,10 +61,10 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
 
     const lines: Mml[] = [];
     lines.push(Mml.compose`Light analysis at ${Mml.location(loc)}:`);
-    lines.push(Mml.compose`  total: ${light.intensity.formatMml()}`);
+    lines.push(Mml.compose`  total: ${light.intensity.formatMml(undefined, undefined, { channel: 'light', via })}`);
     if (light.colorTemperature) {
       lines.push(
-        Mml.compose`  color temperature: ${light.colorTemperature.formatMml()}`
+        Mml.compose`  color temperature: ${light.colorTemperature.formatMml(undefined, undefined, { channel: 'light', via })}`
       );
     }
     if (light.sources.length === 0) {
@@ -78,11 +80,11 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
         if (s.colorTemperature !== null) {
           const colorTempQ = Quantity.of(s.colorTemperature, 'K');
           lines.push(
-            Mml.compose`    - ${sourceName}: ${flux.formatMml()} @ ${colorTempQ.formatMml()}`
+            Mml.compose`    - ${sourceName}: ${flux.formatMml(undefined, undefined, { channel: 'light', via })} @ ${colorTempQ.formatMml(undefined, undefined, { channel: 'light', via })}`
           );
         } else {
           lines.push(
-            Mml.compose`    - ${sourceName}: ${flux.formatMml()}`
+            Mml.compose`    - ${sourceName}: ${flux.formatMml(undefined, undefined, { channel: 'light', via })}`
           );
         }
       }

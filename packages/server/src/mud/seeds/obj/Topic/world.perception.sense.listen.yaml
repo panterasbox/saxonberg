@@ -5,3 +5,8 @@ data:
   family: world.perception.sense
   label: Listen
   description: Output of the listen verb — deliberate auditory attention.
+  address: personal
+  actor: self
+  weight: activity
+  audience: player
+  durable: false

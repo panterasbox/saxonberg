@@ -129,6 +129,13 @@ function flattenNode(n: MmlNode): string {
     // Identity / role / inline tags: children verbatim. The
     // tagging layer is for rendering; flatten just emits the
     // already-escaped text.
+    //
+    // `quantity` rides this branch deliberately rather than taking a
+    // case of its own: its children ARE the server's own rendering of
+    // the reading ("1240 °C"), so children-verbatim is exactly the
+    // required failsafe — a bare telnet client reads the same prose it
+    // always did. Pinned by a test so a case added above cannot
+    // silently change it.
     default:
       return inner;
   }

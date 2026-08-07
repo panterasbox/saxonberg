@@ -5,3 +5,8 @@ data:
   family: world.perception.sense
   label: Look
   description: Output of the look verb — deliberate visual attention on a location, character, or item.
+  address: personal
+  actor: self
+  weight: activity
+  audience: player
+  durable: false

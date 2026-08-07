@@ -51,7 +51,9 @@ The substrate is in place. Major shipped surfaces:
   kinds shipped with the perception substrate).
 - **Quantities substrate** — `Quantity<U>` value object,
   per-unit math op table, tag-table registry, YAML-authored
-  scales, `<quantity>` Mml emission, marshaller integration.
+  scales, `<quantity>` Mml emission (registered, non-inert, and
+  carrying `channel` / `via` / `lo` / `hi` so a reading survives the
+  wire as a number with provenance), marshaller integration.
   Consumed by Light (lux/lumen/Kelvin), Material (kg/m³, g/mol),
   Tangible (kg); future channels (sound, heat) plug in via the
   same shape. See [docs/subsystems/quantities.md](./subsystems/quantities.md).

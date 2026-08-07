@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Weigh
   description: Output of the weigh verb — mass reading for a held or examined Stuff.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

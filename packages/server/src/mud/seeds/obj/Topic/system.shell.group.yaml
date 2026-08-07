@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Group
   description: Feedback from group management — creating, disbanding, adding / removing / re-roleing members.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

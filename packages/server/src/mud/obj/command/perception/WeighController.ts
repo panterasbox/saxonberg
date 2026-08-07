@@ -23,6 +23,8 @@ interface WeighModel extends CommandModel {
 
 export default class WeighController extends CommandController<WeighModel> {
   execute(model: WeighModel, context: CommandContext): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -49,7 +51,7 @@ export default class WeighController extends CommandController<WeighModel> {
     }
     const mass = (target.stuff as Stuff & { getMass(): import('../../../lib/quantity').Quantity<'kg'> }).getMass();
 
-    const body = Mml.compose`${Mml.name(target.stuff)} weighs ${mass.formatMml()}.\n`;
+    const body = Mml.compose`${Mml.name(target.stuff)} weighs ${mass.formatMml(undefined, undefined, { channel: 'mass', via })}.\n`;
 
     MessageApi.scene(context.commandGiver)
       .topic('world.perception.measurement.weigh')

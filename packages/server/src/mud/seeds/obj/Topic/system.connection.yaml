@@ -5,3 +5,8 @@ data:
   family: system
   label: Connection
   description: Your client's connection to the server — establishing, dropping, reconnecting.
+  address: personal
+  actor: system
+  weight: diagnostic
+  audience: all
+  durable: false

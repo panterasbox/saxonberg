@@ -5,3 +5,8 @@ data:
   family: system.commands
   label: Reset
   description: The full command schema has been re-sent — typically after a scope change.
+  address: personal
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false

@@ -191,3 +191,43 @@ explicit `release` action); the **second-order engagement** quality
 enrichment (register D2); the per-Player → User franchise rollup; a
 conviction verb. Producer feeds **no vote** this build — measured standing
 only.
+
+
+## The standing witness
+
+After each append is persisted, the ledger calls
+**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+call on the one consumer that cares.
+
+Every standing here derives on read, which works fine for a verb (you
+ask, it computes) and not at all for a **live figure on a client**,
+which has to learn its number changed without asking. This is that seam.
+
+⚠ **It is deliberately NOT an `EventApi` broadcast.** The bus is for
+genuinely global signals with unknown consumers; this has exactly one
+known consumer, so it is a method call. An earlier cut of this build did
+mint a bus event per ledger — six classes — and they were not merely
+redundant, they were **wired to nothing**: the dependency index cannot
+match a durable `templatePath` through a `ChangeSource`. See
+[mql-subscription.md](./mql-subscription.md).
+
+⚠ **After the write, never before.** A consumer that recomputes must not
+read a ledger missing the row it was just told about.
+
+## ⚠ Seeding the log does not move the figure
+
+`RenownApi.renownOf` reads `RenownStanding.cached()` — an in-memory map
+warmed at boot from the **`renown` collection**, which holds the
+*materialized* standings. It does **not** read `renown_events`.
+
+So writing rows into `renown_events` (as
+`packages/server/scripts/seed-standing.ts` does) changes nothing until a
+**recompute** folds the log into the standings collection. A bare
+restart re-warms the map from a collection the seeding never wrote, and
+is therefore a no-op.
+
+This is the trap that made a correctly-seeded character still read
+`dormant` through a whole live drive of the S1 build. The same holds for
+`participation` and `producer`. `transcripts` and `disposition_events`
+are the opposite — they derive on read straight from the log, so seeded
+rows are live as soon as the fold runs.

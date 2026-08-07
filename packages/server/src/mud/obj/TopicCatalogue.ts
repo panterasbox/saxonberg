@@ -35,11 +35,44 @@ import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Template } from '../lib/stuff/Template';
 import Topic from './Topic';
-import type { TopicDescriptor } from '@saxonberg/types';
+import type {
+  TopicDescriptor,
+  TopicAddress,
+  TopicActor,
+  TopicWeight,
+  TopicAudience,
+} from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const TopicCatalogueBase = PostRegistrationMixin(Idea);
+
+/** The five facets, as a unit — the slice every tier must produce. */
+type TopicFacets = Pick<
+  TopicDescriptor,
+  'address' | 'actor' | 'weight' | 'audience' | 'durable'
+>;
+
+/**
+ * Validation arrays for the four enumerated facets. Authored values
+ * outside these fall back to the derivation rather than reaching the
+ * wire — a typo in a seed becomes a conservative default, never an
+ * unknown string the client has to defend against.
+ */
+const ADDRESSES: readonly TopicAddress[] = [
+  'direct',
+  'personal',
+  'ambient',
+  'broadcast',
+];
+const ACTORS: readonly TopicActor[] = ['self', 'person', 'world', 'system'];
+const WEIGHTS: readonly TopicWeight[] = [
+  'consequence',
+  'activity',
+  'chatter',
+  'diagnostic',
+];
+const AUDIENCES: readonly TopicAudience[] = ['player', 'author', 'all'];
 
 export default class TopicCatalogue extends TopicCatalogueBase {
 
@@ -174,19 +207,30 @@ export default class TopicCatalogue extends TopicCatalogueBase {
             label?: unknown;
             description?: unknown;
             communicative?: unknown;
+            address?: unknown;
+            actor?: unknown;
+            weight?: unknown;
+            audience?: unknown;
+            durable?: unknown;
           }
         | undefined;
       if (!data || typeof data.topic !== 'string') continue;
       if (data.communicative === true) communicative.add(data.topic);
+      const family = typeof data.family === 'string' ? data.family : '';
       map.set(data.topic, {
         topic: data.topic,
-        family: typeof data.family === 'string' ? data.family : '',
+        family,
         label:
           typeof data.label === 'string' && data.label.length > 0
             ? data.label
             : data.topic,
         description:
           typeof data.description === 'string' ? data.description : '',
+        // Facets are authored in `data:` alongside `communicative`,
+        // and fall back to the family-prefix derivation when a seed
+        // has not been given one — so the contract "every descriptor
+        // carries all five" holds even mid-migration.
+        ...TopicCatalogue.readFacets(data),
       });
     }
     this.cache = map;
@@ -212,10 +256,63 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           family: ancestorPath,
           label: `${ancestor.label} (${titleCase(leaf)})`,
           description: ancestor.description,
+          // A leaf inherits its ancestor's attention shape along with
+          // its prose — a child of `world.chat` is chatter for the
+          // same reason its parent is.
+          address: ancestor.address,
+          actor: ancestor.actor,
+          weight: ancestor.weight,
+          audience: ancestor.audience,
+          durable: ancestor.durable,
         };
       }
     }
     return null;
+  }
+
+  /**
+   * Resolve the five facets for one topic: **authored values win, and
+   * {@link FACET_FLOOR} backstops the rest.**
+   *
+   * ⚠ There is deliberately NO family-prefix derivation here. That
+   * derivation lives in `scripts/derive-topic-facets.ts` and is baked
+   * into the seeds, so the seed file is the single source of truth. A
+   * second derivation at read time would be a second taxonomy
+   * describing what the first already knows — and the two drifted
+   * within an hour of both existing, which is how this comment came to
+   * be written.
+   *
+   * Static because all three resolution tiers need it and only one of
+   * them has an authored `data` block to read from.
+   */
+  private static readFacets(
+    data:
+      | {
+          address?: unknown;
+          actor?: unknown;
+          weight?: unknown;
+          audience?: unknown;
+          durable?: unknown;
+        }
+      | undefined,
+  ): TopicFacets {
+    const pick = <T extends string>(
+      authored: unknown,
+      allowed: readonly T[],
+      fallback: T,
+    ): T =>
+      typeof authored === 'string' && (allowed as readonly string[]).includes(authored)
+        ? (authored as T)
+        : fallback;
+
+    return {
+      address: pick(data?.address, ADDRESSES, FACET_FLOOR.address),
+      actor: pick(data?.actor, ACTORS, FACET_FLOOR.actor),
+      weight: pick(data?.weight, WEIGHTS, FACET_FLOOR.weight),
+      audience: pick(data?.audience, AUDIENCES, FACET_FLOOR.audience),
+      durable:
+        typeof data?.durable === 'boolean' ? data.durable : FACET_FLOOR.durable,
+    };
   }
 
   /**
@@ -232,6 +329,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       family,
       label: titleCase(leaf),
       description: '(no description)',
+      ...TopicCatalogue.readFacets(undefined),
     };
   }
 }
@@ -240,3 +338,20 @@ function titleCase(segment: string): string {
   if (!segment) return segment;
   return segment.charAt(0).toUpperCase() + segment.slice(1);
 }
+
+/**
+ * The **conservative floor** — what a topic nobody has authored gets.
+ *
+ * An unknown frame should be quiet, not loud: `ambient` earns no push,
+ * `diagnostic` sits below every default filter level, and `durable:
+ * false` keeps it out of transcripts. The failure mode this avoids is
+ * a topic added without facets silently interrupting every player.
+ */
+const FACET_FLOOR = {
+  address: 'ambient',
+  actor: 'system',
+  weight: 'diagnostic',
+  audience: 'all',
+  durable: false,
+} as const;
+

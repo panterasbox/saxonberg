@@ -25,6 +25,8 @@ import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { RegardApi } from "../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../api/trait";
+import { EventApi } from '../../api/event';
+import { StuffApi } from '../../api/stuff';
 
 const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
 
@@ -95,6 +97,8 @@ async function buildAndSave(
   entry.valence = fields.valence;
   entry.tags = fields.tags ?? [];
   await entry.save();
+  // No live consumer to notify: trait position is deliberately absent
+  // from the standing dashboard (see Avatar.subscribableFields).
 }
 
 /**
@@ -281,6 +285,8 @@ export class TraitLogic extends ApiLogic {
   public async pronouncedFor(owner: Stuff): Promise<AxisEstimate[]> {
     return TraitPosition.pronounced(await positionsForImpl(owner), loadDials());
   }
+
+
 
   /** See {@link TraitApi.compatibility}. */
   @CallSecurity(TraitApiCallers)

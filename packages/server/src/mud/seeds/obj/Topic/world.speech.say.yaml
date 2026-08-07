@@ -6,3 +6,8 @@ data:
   family: world.speech
   label: Say
   description: A character speaks aloud to everyone in the room. The voice carries to anyone present.
+  address: broadcast
+  actor: person
+  weight: activity
+  audience: player
+  durable: false

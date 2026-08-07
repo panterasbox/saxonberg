@@ -5,3 +5,8 @@ data:
   family: world.youtube
   label: YouTube Chat
   description: A message relayed from a bound YouTube live chat (read-only). A meta/OOC surface — subscription-gated, not implant-gated. Channel attribution rides `meta.channelId` (the liveChatId); provenance and the external speaker ride the payload.
+  address: broadcast
+  actor: person
+  weight: chatter
+  audience: player
+  durable: false

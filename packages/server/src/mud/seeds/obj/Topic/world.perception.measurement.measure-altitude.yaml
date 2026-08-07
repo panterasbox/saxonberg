@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Measure Altitude
   description: Output of the measure altitude subcommand — meters above reference.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

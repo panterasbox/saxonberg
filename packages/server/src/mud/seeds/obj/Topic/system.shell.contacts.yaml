@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Contacts
   description: Feedback from contacts management — adding, removing, listing, relabeling personal contact lists.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

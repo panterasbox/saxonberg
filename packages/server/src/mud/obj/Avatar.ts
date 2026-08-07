@@ -62,6 +62,10 @@ import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
 import { EstateMixin } from "../lib/chattel/Estate";
 import type { FieldMeta } from "../lib/mixin";
+import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
+import { InfluenceApi } from '../api/influence';
+import { RenownApi } from '../api/renown';
+import { AdvancementApi } from '../api/advancement';
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -89,6 +93,28 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
     return body.getInteractives();
   }
   return live.getInteractives();
+}
+
+/**
+ * ⭐ **The self-only gate for the live standing figures.**
+ *
+ * Returns the durable subject key the ledgers are keyed on — but only
+ * when the viewer IS the subject. Anyone else gets `undefined`, which
+ * `projectFields` omits, so another player's subscription simply has
+ * no standing fields on it.
+ *
+ * Reading someone *else's* standing is a real feature and it already
+ * has a surface: the `profile` verb, with its own redaction model. A
+ * second implementation here would be a second copy of those rules,
+ * and the two would drift the first time one was changed. So this
+ * surface answers for you and nobody else.
+ *
+ * A module-private function rather than a method: it is a policy the
+ * descriptors share, not behaviour the Avatar offers.
+ */
+function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
+  if (viewer?.stuffId !== stuff.stuffId) return undefined;
+  return stuff.getTemplatePath() ?? undefined;
 }
 
 /**
@@ -193,6 +219,93 @@ export default class Avatar extends AvatarBase {
     mortalArc: { persistent: true },
     startLocation: { instruction: true },
   };
+
+  /**
+   * ⭐ **The live standing figures**, as subscribable data rather than
+   * prose.
+   *
+   * ⚠ **Your trait position is deliberately NOT here.** The engine
+   * derives it, and a pinnable "your most pronounced trait right now"
+   * widget would be a stat sheet of your own personality — which the
+   * psychology slate calls the *unrealistic* feature, and which would
+   * foreclose the vocation it is designed around: **you cannot read
+   * yourself; another person can.** Keeping traits off the live
+   * dashboard is what keeps that buildable without retrofitting a
+   * permission model later.
+   *
+   * (The `traits` and `score` verbs DO self-report today. That is a
+   * pre-existing product decision and its own conversation — this
+   * build simply declines to make it worse.)
+   *
+   * Every one of these is already reachable — `score` reports the lot,
+   * and `StandingController` calls the same Apis. What did not exist
+   * was a way to get them to a client as *numbers*: they shipped as MML
+   * inside a scene frame, so a shelf widget would have had to re-parse
+   * a sentence. These descriptors are the structured path.
+   *
+   * **Declared here rather than on a mixin.** `lib/renown/`,
+   * `lib/influence/` and `lib/participation/` hold no mixins at all —
+   * those subsystems are Api + logic singleton + collection. Minting a
+   * `StandingMixin` for five fields on one class would be the
+   * per-feature minting the conventions warn against; if a second host
+   * ever needs them, that is when it becomes a mixin.
+   *
+   * **Self-only.** These resolve for the subscriber's own identity.
+   * Reading someone *else's* standing already has a surface with a
+   * redaction model — the `profile` verb — and a second copy of those
+   * rules on a subscription is how two copies drift.
+   *
+   * ⚠ **These re-resolve through `durableKey`, not `changes`.** An
+   * earlier cut declared `changes: [{ on: SomeAppendedEvent, by:
+   * 'subject' }]` — which **never fired at all**: the index registers a
+   * non-`target`/`field` source under the value `null`, while
+   * `routeFire` looks up `payload['subject']`, so the tuple could never
+   * match. Standing keys on the durable `templatePath` and the bus
+   * indexes live `stuffId`s; the two cannot meet.
+   *
+   * `durableKey` is the seam that closes it, and it is a **direct poke
+   * from the ledger, not a broadcast** — one known producer, one known
+   * consumer. See {@link MqlSubscriptionApi.notifyDurableSubject}.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'playStanding',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { band: InfluenceApi.bandOf(key, 'consumer') };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+    {
+      name: 'makeStanding',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { band: InfluenceApi.bandOf(key, 'producer') };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+    {
+      name: 'renown',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { value: RenownApi.renownOf(key) };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+    {
+      name: 'practisingCompetence',
+      read: (stuff, viewer) => {
+        if (!standingSubject(stuff, viewer)) return undefined;
+        const c = AdvancementApi.practisingCompetenceCached(stuff);
+        if (c === undefined) return undefined;
+        return c === null ? null : { discipline: c.discipline, band: c.band };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+  ];
 
   /**
    * The identity's death-arc position, or `null` while embodied and alive.

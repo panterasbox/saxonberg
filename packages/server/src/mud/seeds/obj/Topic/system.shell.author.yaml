@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Author
   description: Output of author-tier verbs — clone, reload, destruct, eval, teleport. Actor-side feedback; peers see in-fiction narration separately.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

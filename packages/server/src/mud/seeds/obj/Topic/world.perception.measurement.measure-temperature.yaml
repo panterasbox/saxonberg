@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Measure Temperature
   description: Output of the measure temperature subcommand — Kelvin reading with thermal tag.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

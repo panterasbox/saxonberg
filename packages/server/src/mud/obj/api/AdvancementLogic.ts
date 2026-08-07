@@ -25,6 +25,9 @@ import { Mixins } from "../../lib/mixin";
 import { TemplatePaths } from "../../lib/paths";
 import type DisciplineCatalogue from "../DisciplineCatalogue";
 import type { RecordOptions, DisciplineBand } from "../../api/advancement";
+import { EventApi } from '../../api/event';
+import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 
 /**
  * A host whose conferred affordances can be refreshed. Narrowed
@@ -67,6 +70,11 @@ async function buildAndSave(
   entry.outcome = fields.outcome;
   entry.tags = fields.tags ?? [];
   await entry.save();
+  // AFTER the write, never before. One call site covers
+  // recordSignature AND recordDeed, since recordDeed routes through
+  // recordSignatureImpl into here. The cache refresh notifies once it
+  // has folded, so the poke here is for the sync figures only.
+  void practisingCache.refresh(entry.owner);
 }
 
 /**
@@ -114,6 +122,28 @@ function catalogue(): DisciplineCatalogue | null {
 }
 
 /** Group an owner's evidence by Discipline and derive each band. */
+/**
+ * ⭐ The sync face of the async transcript ledger — see
+ * {@link DerivedStandingCache}.
+ */
+const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
+  async (subject) => {
+    const owner = StuffApi.findByTemplatePath(subject);
+    if (!owner) return null;
+    const bands = await bandsForImpl(owner);
+    return bands[0] ?? null;
+  },
+  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
+);
+
+/** Module-private impl; the singleton method below is the surface. */
+function practisingCompetenceCachedImpl(
+  owner: Stuff
+): DisciplineBand | null | undefined {
+  const key = ownerKey(owner);
+  return key === null ? undefined : practisingCache.get(key);
+}
+
 async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
   if (!active()) return [];
   const ownerId = ownerKey(owner);
@@ -224,6 +254,20 @@ export class AdvancementLogic extends ApiLogic {
   @CallSecurity(AdvancementApiCallers)
   public async bandsFor(owner: Stuff): Promise<DisciplineBand[]> {
     return bandsForImpl(owner);
+  }
+
+  /** See {@link AdvancementApi.practisingCompetenceCached}. */
+  @CallSecurity(AdvancementApiCallers)
+  public practisingCompetenceCached(
+    owner: Stuff
+  ): DisciplineBand | null | undefined {
+    return practisingCompetenceCachedImpl(owner);
+  }
+
+  /** See {@link AdvancementApi._clearDerivedCacheForTesting}. */
+  @CallSecurity(AdvancementApiCallers)
+  public clearDerivedCache(): void {
+    practisingCache.clear();
   }
 
   /** See {@link AdvancementApi.conferredVerbs}. */

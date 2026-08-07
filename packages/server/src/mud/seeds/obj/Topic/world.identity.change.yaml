@@ -5,3 +5,8 @@ data:
   family: world.identity
   label: Change
   description: A character's name, pronouns, or honorific being updated.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

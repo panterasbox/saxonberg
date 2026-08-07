@@ -345,6 +345,105 @@ mixin's descriptor; no synthetic table, no overlay step.
 Universal cross-cutting renders → `Stuff.subscribableFields`. Mixin-
 gated cross-cutting renders → the mixin that owns the gate.
 
+## ⭐ Ledger-derived fields: the live standing figures
+
+`Avatar.subscribableFields` carries `playStanding`, `makeStanding`,
+`renown` and `practisingCompetence` — as **structured values** rather
+than a sentence.
+
+⚠ **A trait position is deliberately NOT among them.** The engine
+derives one, and the data is trivially reachable, but a pinnable "your
+most pronounced trait right now" widget is a stat sheet of your own
+personality — the thing the psychology slate calls the *unrealistic*
+feature, and the thing that would foreclose the vocation built on **you
+cannot read yourself; another person can.** Keeping it off the live
+dashboard is what keeps that buildable without retrofitting a
+permission model. A test asserts no field name matches
+`trait|disposition|personality`, so it cannot drift back in because
+someone noticed the data was available.
+
+Declared on `Avatar` rather than on a mixin: `lib/renown/`,
+`lib/influence/` and `lib/participation/` hold no mixins at all (those
+subsystems are Api + logic singleton + collection), so a `StandingMixin`
+for five fields on one class would be per-feature minting. If a second
+host ever needs them, that is when it becomes a mixin.
+
+**Self-only.** A `standingSubject()` gate returns the durable subject
+key only when the viewer *is* the subject; anyone else gets `undefined`
+and the fields are omitted. Reading someone else's standing already has
+a surface with a redaction model — the `profile` verb — and a second
+implementation here would drift from it.
+
+### ⚠ `read` is sync, and that is load-bearing
+
+`practisingCompetence` reads a ledger whose Api is async
+(`AdvancementApi.bandsFor`). **Do not widen `read` to return a
+promise.** `MqlSubscriptionApi.projectFields` is
+sync, and `ContainerMixin`'s own `contents` descriptor calls it from
+*inside* its `read` — so a promise would make projection async
+**recursively through nested containment**, on the inspection pane's hot
+path.
+
+The other three figures are sync for the right reason: they read a
+*materialized standing* (`RenownStanding` and friends keep an in-memory
+map warmed from mongo). `lib/standing/DerivedStandingCache` gives the
+two un-materialized ledgers the same shape without materializing a whole
+collection first:
+
+1. `get()` misses, returns `undefined`, and schedules a background fold
+   (at most one in flight per subject).
+2. `projectFields` **omits** an `undefined` field — so the client shows
+   **no value**, never a zero.
+3. The fold lands, `StandingWarmedEvent` fires, the subscription
+   re-resolves, and the real figure arrives as a delta.
+
+**A figure the server has not computed yet is absent, not zero.** A zero
+would be a claim nobody made. A test asserts the key is missing from the
+projection so this cannot quietly regress.
+
+After the first fold, each ledger's own append event
+(`lib/events/StandingAppendedEvents.ts`) keeps the cache fresh.
+
+### ⭐⭐ `durableKey` — the witness for ledger-keyed figures
+
+**A `ChangeSource` cannot express these, and quietly pretends it can.**
+`deriveAndInstallDependencies` handles `by: 'target'` (indexes
+`stuff.stuffId`) and `by: 'field'` (indexes the field name); **anything
+else is indexed under the value `null`**, while `routeFire` looks up
+`payload[by]`. So a source like `{ on: SomeEvent, by: 'subject' }`
+registers under `null`, is looked up under `'/obj/Avatar/dev'`, and
+**never matches**. It is not over-eager — it never fires at all. This
+build shipped that mistake in its first cut and the tests, which
+asserted only that a change source was *declared*, could not see it.
+
+The cause is a genuine impedance mismatch: the bus indexes **live
+`stuffId`s**, and every standing ledger keys on the **durable
+`templatePath`**. The two cannot meet through a `ChangeSource`.
+
+So a descriptor whose value comes from a durable-keyed ledger declares:
+
+```ts
+durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+```
+
+and its producer calls `MqlSubscriptionApi.notifyDurableSubject(key)`
+straight after persisting.
+
+**No event class, no `EventApi` fire.** The bus is for genuinely global
+broadcast with unknown consumers; this is one known producer poking one
+known consumer, which the codebase's rule makes a method call. It also
+matches the **exact** subject, so one player's renown append no longer
+wakes every other player's standing pane.
+
+Mechanically it reuses everything: the tuple is installed under a
+synthetic `DURABLE_SUBJECT_KIND` so the index, the refcount and the
+teardown path all work unchanged — the only special case is that this
+kind acquires **no bus listener**, because `notifyDurableSubject` routes
+into `routeFire` directly.
+
+`durableKey` returning `undefined` (a guest, with no durable identity)
+installs nothing, so nothing is pokeable and nothing throws.
+
 ## Event-class pattern
 
 A small class-per-event vocabulary sits on top of the existing

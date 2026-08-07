@@ -284,3 +284,25 @@ ships designed-for-them, ships none.
   seam), [persistence.md](./persistence.md) (`PersistApi` / `lint:pm`).
 - Cross-lane: [npc-behavior-slate.md](../slates/builds/npc-behavior-slate.md)
   § *Traits are competence for dispositions* (the shared act-signature).
+
+
+## The standing witness
+
+After each append is persisted, the ledger calls
+**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+call on the one consumer that cares.
+
+Every standing here derives on read, which works fine for a verb (you
+ask, it computes) and not at all for a **live figure on a client**,
+which has to learn its number changed without asking. This is that seam.
+
+⚠ **It is deliberately NOT an `EventApi` broadcast.** The bus is for
+genuinely global signals with unknown consumers; this has exactly one
+known consumer, so it is a method call. An earlier cut of this build did
+mint a bus event per ledger — six classes — and they were not merely
+redundant, they were **wired to nothing**: the dependency index cannot
+match a durable `templatePath` through a `ChangeSource`. See
+[mql-subscription.md](./mql-subscription.md).
+
+⚠ **After the write, never before.** A consumer that recomputes must not
+read a ledger missing the row it was just told about.

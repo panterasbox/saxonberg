@@ -5,3 +5,8 @@ data:
   family: world.perception.ambient
   label: Ambient Vision
   description: Unbidden visual signal — a flicker caught in periphery, a figure crossing the edge of sight.
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false

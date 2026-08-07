@@ -5,3 +5,8 @@ data:
   family: world.perception.sense
   label: Taste
   description: Output of the taste verb — deliberate gustatory attention.
+  address: personal
+  actor: self
+  weight: activity
+  audience: player
+  durable: false

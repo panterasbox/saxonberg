@@ -1672,7 +1672,60 @@ export interface TopicDescriptor {
   label: string;
   /** Authored prose description. */
   description: string;
+  /** Who the frame is aimed at — drives badging and notification. */
+  address: TopicAddress;
+  /** Whose voice it is — drives gutter colour. */
+  actor: TopicActor;
+  /** How much it matters — drives default filter levels. */
+  weight: TopicWeight;
+  /** Which surface it belongs to. */
+  audience: TopicAudience;
+  /** Keep in scrollback and transcripts, or let it age out. */
+  durable: boolean;
 }
+
+/**
+ * ⭐ **The facets — five cross-cutting answers the client used to have
+ * to guess.**
+ *
+ * The dotted topic tree expresses exactly one hierarchy, so anything
+ * that cuts across it — *everything addressed to me*, *everything that
+ * matters* — had to become a client-side lookup table keyed on ~90
+ * topic strings, drifting silently from the seeds every time a topic
+ * was added. These five fields put those answers in the data, where
+ * they are authored once and shipped on the existing
+ * `topicCatalogue` snapshot.
+ *
+ * The tree still does the job facets cannot: muting a *subtree*
+ * ("everything about the air in here") is a prefix operation. Both
+ * halves are needed; neither replaces the other.
+ */
+
+/**
+ * Who a frame is aimed at. `direct` earns a push notification;
+ * `ambient` never does.
+ */
+export type TopicAddress = 'direct' | 'personal' | 'ambient' | 'broadcast';
+
+/**
+ * Whose voice a frame speaks in. Replaces colour-by-family, which
+ * encoded which subsystem emitted the frame rather than who is
+ * talking.
+ */
+export type TopicActor = 'self' | 'person' | 'world' | 'system';
+
+/**
+ * How much a frame matters. Turns "quiet mode" into one rule —
+ * `weight ≤ activity` — instead of a list of sixty topic paths.
+ */
+export type TopicWeight =
+  | 'consequence'
+  | 'activity'
+  | 'chatter'
+  | 'diagnostic';
+
+/** Which surface a frame belongs to. */
+export type TopicAudience = 'player' | 'author' | 'all';
 
 /**
  * Shape of a single console tab in the cockpit's tabbed terminal.

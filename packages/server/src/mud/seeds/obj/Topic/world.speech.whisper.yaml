@@ -6,3 +6,8 @@ data:
   family: world.speech
   label: Whisper
   description: A quiet, short-reach utterance. The voice carries only to those very close; overhearers see a redacted form ("X whispers something to Y").
+  address: personal
+  actor: person
+  weight: activity
+  audience: player
+  durable: false

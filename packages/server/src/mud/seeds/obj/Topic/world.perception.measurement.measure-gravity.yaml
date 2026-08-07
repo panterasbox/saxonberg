@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Measure Gravity
   description: Output of the measure gravity subcommand — acceleration reading.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

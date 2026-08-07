@@ -5,3 +5,8 @@ data:
   family: world
   label: Expression
   description: Non-verbal expressive acts riding the ESP modality — emotes and other affective conveyance.
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false

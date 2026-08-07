@@ -5,3 +5,8 @@ data:
   family: system.connection
   label: Lost
   description: A client connection has dropped — either disconnect or timeout.
+  address: personal
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false

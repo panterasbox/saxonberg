@@ -5,3 +5,8 @@ data:
   family: world.narration
   label: Teleport
   description: A character vanishing or appearing without traversing an exit — magical or admin-driven displacement.
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false

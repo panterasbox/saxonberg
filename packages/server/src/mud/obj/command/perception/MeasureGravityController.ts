@@ -24,6 +24,8 @@ export default class MeasureGravityController extends CommandController<MeasureG
     model: MeasureGravityModel,
     ctx: CommandContext,
   ): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
       ? (giver as Stuff & Container).getContents()
@@ -60,7 +62,7 @@ export default class MeasureGravityController extends CommandController<MeasureG
       scope as Stuff & Container,
       model.detail,
     );
-    const body = Mml.compose`Gravity: ${g.formatMml()} (${g.tag()})\n`;
+    const body = Mml.compose`Gravity: ${g.formatMml(undefined, undefined, { channel: 'gravity', via })} (${g.tag()})\n`;
     MessageApi.scene(giver)
       .topic('world.perception.measurement.measure-gravity')
       .toSelf(body)
