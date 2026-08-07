@@ -25,6 +25,8 @@ import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../../lib/config/AppSettings";
 import { RegardApi } from "../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../api/trait";
+import { EventApi } from '../../api/event';
+import { DispositionAppendedEvent } from '../../lib/events/StandingAppendedEvents';
 
 const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
 
@@ -95,6 +97,15 @@ async function buildAndSave(
   entry.valence = fields.valence;
   entry.tags = fields.tags ?? [];
   await entry.save();
+  // AFTER the write — see StandingAppendedEvents. One fire point
+  // covers recordSignature AND recordDeed.
+  EventApi.fire(
+    new DispositionAppendedEvent({
+      subject: entry.owner,
+      disposition: entry.disposition,
+      kind: entry.kind,
+    })
+  );
 }
 
 /**

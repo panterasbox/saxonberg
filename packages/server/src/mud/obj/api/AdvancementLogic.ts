@@ -25,6 +25,8 @@ import { Mixins } from "../../lib/mixin";
 import { TemplatePaths } from "../../lib/paths";
 import type DisciplineCatalogue from "../DisciplineCatalogue";
 import type { RecordOptions, DisciplineBand } from "../../api/advancement";
+import { EventApi } from '../../api/event';
+import { TranscriptAppendedEvent } from '../../lib/events/StandingAppendedEvents';
 
 /**
  * A host whose conferred affordances can be refreshed. Narrowed
@@ -67,6 +69,16 @@ async function buildAndSave(
   entry.outcome = fields.outcome;
   entry.tags = fields.tags ?? [];
   await entry.save();
+  // AFTER the write — see StandingAppendedEvents. One fire point
+  // covers recordSignature AND recordDeed, since recordDeed routes
+  // through recordSignatureImpl into here.
+  EventApi.fire(
+    new TranscriptAppendedEvent({
+      subject: entry.owner,
+      discipline: entry.discipline,
+      kind: entry.kind,
+    })
+  );
 }
 
 /**

@@ -28,6 +28,7 @@ import { CreditRouting } from '../../lib/standing/CreditRouting';
 // runtime-only / safe.
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ConsumerLogic } from './ConsumerLogic';
+import { ProducerAppendedEvent } from '../../lib/events/StandingAppendedEvents';
 
 const ProducerApiCallers = SecurityPolicies.FromModule('/api/producer#ProducerApi'
 );
@@ -114,6 +115,16 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
+  // AFTER the write — see StandingAppendedEvents.
+  EventApi.fire(
+    new ProducerAppendedEvent({
+      subject: ev.author,
+      actor: ev.actor,
+      zonePath: ev.zonePath,
+      kind: ev.kind,
+      bucket: ev.bucket,
+    })
+  );
 }
 
 /**

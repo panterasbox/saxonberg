@@ -31,6 +31,7 @@ import type { CommandDispatchedPayload } from '../../lib/events/CommandDispatche
 // so the ConsumerLogic ↔ ProducerLogic import cycle is runtime-only / safe.
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ProducerLogic } from './ProducerLogic';
+import { ParticipationAppendedEvent } from '../../lib/events/StandingAppendedEvents';
 
 const ConsumerApiCallers = SecurityPolicies.FromModule('/api/consumer#ConsumerApi'
 );
@@ -126,6 +127,14 @@ async function appendImpl(fields: ParticipationEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
+  // AFTER the write — see StandingAppendedEvents.
+  EventApi.fire(
+    new ParticipationAppendedEvent({
+      subject: ev.subject,
+      kind: ev.kind,
+      bucket: ev.bucket,
+    })
+  );
 }
 
 /** Map a captured dispatch into a participation signal and append it. */
