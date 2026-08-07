@@ -11,6 +11,6 @@ export default class GravityMeter extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['perception/measure.yaml'],
-    peers: [],
+    peers: ['perception/measure.yaml'],
   };
 }

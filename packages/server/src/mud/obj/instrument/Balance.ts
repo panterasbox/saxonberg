@@ -13,6 +13,6 @@ export default class Balance extends Thing {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['perception/weigh.yaml'],
-    peers: [],
+    peers: ['perception/weigh.yaml'],
   };
 }
