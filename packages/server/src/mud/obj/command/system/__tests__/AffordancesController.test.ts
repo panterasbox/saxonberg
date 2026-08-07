@@ -63,6 +63,7 @@ describe('AffordancesController', () => {
     selfBody = undefined;
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};
+      b.tags = () => b;
       b.topic = (t: string) => {
         topic = t;
         return b;
