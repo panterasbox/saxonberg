@@ -7,9 +7,13 @@ gates**. A *parcel* is an ownable, titled extent (a Zone + a title record);
 parcels form a sparse hierarchy over the template tree; ownership is
 un-fused from authorship; and titles are minted and transferred at runtime.
 
-This is property build **phase 0a** — title only. Chattel/possession, the
-lease *mechanics*, payment-coupled `sell`, and the compute-allowance economy
-are later phases (see [property-slate.md](../slates/builds/property-slate.md)).
+This began as property build **phase 0a** — title only — and has since grown
+the **use-grant (lease)** half, which is live (see
+[§ `grants[]`](#grants--the-use-grant-lease-and-it-is-live)). Still later
+phases: payment-coupled `sell` and rent economics, and the compute-allowance
+economy (see [property-slate.md](../slates/builds/property-slate.md)).
+Chattel/possession shipped separately —
+[chattel.md](./chattel.md).
 
 ## The governing security invariant
 
@@ -35,7 +39,7 @@ class ParcelRecord extends Document {
   zonePath: string;             // the backing Zone's templatePath (== extent in 0a)
   owner: ParcelOwner | null;    // the typed title holder
   parentParcel: string | null;  // parent parcel's extent (the sparse-hierarchy edge)
-  grants: unknown[];            // INERT 0a seam (0b lease/grant mechanics)
+  grants: UseGrant[];           // LIVE — the use-grant (lease) relationship
   allowance: unknown | null;    // INERT 0a seam (Phase 1 compute economy)
   landUse: LandUse | null;      // what may be done here; null = inherit
   area: number;                 // declared ground area, m²; 0 = undeclared
@@ -59,8 +63,59 @@ type ParcelOwner =
 - **`player`** — keyed on the durable `templatePath` (a self-home owner
   `/home/<key>`, or a title transferred directly to an Avatar).
 
-`grants[]` and `allowance` are **present-but-inert** in 0a — the shape is
-the seam so 0b/Phase 1 land additively, no migration.
+## `grants[]` — the use-grant (lease), and it is LIVE
+
+⚠ **Corrected 2026-08-06.** This section previously described `grants[]` as
+a *"present-but-inert 0a seam."* That is no longer true and has not been for
+some time — the typed use-grant landed with the dorm tenancy, and
+[§ What's NOT in 0a](#whats-not-in-0a) already recorded it while the schema
+block above still called it inert. **`allowance` remains genuinely inert**;
+only `grants[]` changed.
+
+A **use-grant** is a tenant's time-bounded right to occupy and use an extent,
+**distinct from its title** — the lease half of the property model:
+
+```ts
+interface UseGrant {
+  kind: 'lease';
+  holder: string;          // the tenant's durable player templatePath
+  grantedAt: number;
+  expiresAt: number | null; // epoch-ms; null = indefinite
+}
+```
+
+The surface is built, gated (`ParcelApiCallers`), sandbox-guarded and
+persisted — `ParcelApi` → `ParcelLogic` → `ParcelRegistry`:
+
+| Call | Behavior |
+|---|---|
+| `grantUse(extent, holder, expiresAt)` | grants a lease, **replacing** any prior grant for that holder (holder-keyed, at most one grant each); mutates the live trie handle in place so `hasUseGrant` reads the same object |
+| `revokeUse(extent, holder)` | removes the grant; `false` when none existed |
+| `hasUseGrant(extent, holder)` | **expiry-honoring** — delegates to `ParcelRecord.hasActiveGrant(record, holder, now)` |
+| `heldUnitOf(holder)` | the reverse index — the unit a holder currently leases (⚠ a linear scan, and it assumes **at most one** lease per holder; see below) |
+
+`ParcelRecord.activeGrantFor` / `hasActiveGrant` are the static readers every
+expiry check goes through, so an expired grant is inert without needing a
+sweep to remove it.
+
+⭐ **`revokeUse` has a real consequence path**: a holder revoked while inside
+the extent's sandbox circle is **reaped** — their wire body exits and
+re-attaches at their parked avatar, the non-event eviction the wire-body model
+makes free (see [sandbox.md](./sandbox.md)). Eviction is not merely a row
+edit.
+
+⚠ **The one-lease-per-holder assumption is load-bearing and undocumented
+elsewhere.** `heldUnitOf` returns the *first* matching row, which is correct
+only while a player holds at most one lease (true for the v1 dorm). Multi-
+residence — a player holding a dorm *and* a share of a house — breaks it, and
+[civics.md](./civics.md) separately defers **primary-home designation**. The
+two are the same gap seen from different ends, and together they are a
+prerequisite for any multi-holding residence work.
+
+**Consumers today:** the Duncan Hall `provision` / `unprovision` pair (the
+dorm tenancy — see [residence.md](./residence.md)). Payment-coupled rent
+economics remain deferred; a grant-event log (the chain-of-title equivalent
+for leases, beside `parcel_events`) is still a seam.
 
 ## Land use and area (living-world phase 2)
 
@@ -250,7 +305,11 @@ title lives in `parcels`. The folder/leaf invariant (structural,
 `prototype instanceof Zone`) and the `lookupField` / `lookupAncestorField`
 inheritance walk (celestial/biome defaults) are untouched. `accessGroups`
 (the flat-union multi-group ACL) is a **conscious deletion to be re-provided**
-by 0b's `grants[]` seam — no seed used it, so removal is byte-identical today.
+by the `grants[]` seam — no seed used it, so removal is byte-identical today.
+⚠ **Still outstanding.** `grants[]` has since shipped, but as a *lease*
+(`kind: 'lease'`, a single player `holder`) — **not** as a multi-group ACL, so
+this promise is not yet redeemed. Re-providing `accessGroups` needs either a
+second `UseGrant.kind` or a group-shaped holder.
 
 ## Self-home generalization
 
@@ -312,13 +371,15 @@ their indexes are declared in `PersistenceManager` (declaring
 
 ## What's NOT in 0a
 
-- **Chattel / possession** + `PersistableHolder` → 0b.
-- **Lease mechanics** (`useRightOf`, the lease verb, revert-on-leave) — the
-  `grants[]` field ships inert in 0a; the **use-grant lease is now typed +
-  live** (`UseGrant`, `grantUse`/`revokeUse`/`hasUseGrant`/`heldUnitOf`,
-  plus `childParcelsOf`/`retire` for unit provisioning), consumed by the
-  leased dorm — see [residence.md](./residence.md). Payment-coupled rent
-  economics stay → 0b/Phase 3.
+- ✅ **Chattel / possession — SHIPPED** as property Phase 0b, the parcel's
+  twin for movables: [chattel.md](./chattel.md).
+- ✅ **Lease mechanics — SHIPPED, no longer deferred.** The typed use-grant
+  (`UseGrant`, `grantUse`/`revokeUse`/`hasUseGrant`/`heldUnitOf`, plus
+  `childParcelsOf`/`retire` for unit provisioning) is live and consumed by the
+  leased dorm — see [§ `grants[]`](#grants--the-use-grant-lease-and-it-is-live)
+  above and [residence.md](./residence.md). Still deferred: **payment-coupled
+  rent economics** (→ 0b/Phase 3), a **grant-event log**, and **multi-residence**
+  (`heldUnitOf` assumes one lease per holder).
 - **`sell` / payment-coupled transfer + Contract atomicity** → 0b/later.
 - **Compute allowance metering + degradation** → Phase 1 (`allowance` inert).
 - **Coordinate-region ("region") sub-zone spatial ownership** → deferred,
