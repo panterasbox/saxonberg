@@ -206,7 +206,7 @@ describe('MessageApi', () => {
       source.teleport(location, { silent: true });
 
       const message1 = makeFrame('sense.survey', 'Test');
-      const message2 = makeFrame('system.log.info', 'note');
+      const message2 = makeFrame('shell.diagnostic', 'note');
       const message3 = makeFrame('speech.vocal', 'hi');
 
       MessageApi.messageContainer(source, message1);

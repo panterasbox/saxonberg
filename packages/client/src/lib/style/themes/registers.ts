@@ -23,24 +23,25 @@ import { FACE_STACKS } from '../../../styles/faces';
  * frame voice and is intentionally NOT mapped to any transcript topic;
  * it lives in the role table for completeness and future use.
  *
- * `system` maps to `command` explicitly even though `command` is also
- * the default-on-miss: the requirements call for an explicit
- * topic-keyed table, and command echo lands as `system.log.command.*`,
- * so the `system` prefix keeps the echoed prompt + command mono.
+ * ⭐ Keyed on **roots**, which is the whole payoff of a tree that
+ * carries subject matter. The voice a frame speaks in is a property of
+ * what it is about — the world, or the machine — so one entry per root
+ * replaces the per-leaf table this used to need.
+ *
+ * `shell` / `session` map to `command` explicitly even though `command`
+ * is the default-on-miss: an explicit table is the requirement, and it
+ * keeps the echoed prompt and its answer mono.
  */
 export const BASE_REGISTERS: Record<string, FontRole> = {
   // command / mono — you + the machine
-  system: 'command',
+  shell: 'command',
+  session: 'command',
   // narrative / serif — the world speaks
-  'world.speech': 'narrative',
-  'world.expression': 'narrative',
-  'world.narration': 'narrative',
-  'world.perception': 'narrative',
-  // Chat is social world prose; map it narrative for voice coherence
-  // with the other `world.*` social registers. (Inference beyond the
-  // requirements' table — reversible: drop this one line to send chat
-  // back to the mono default.)
-  'world.chat': 'narrative',
+  speech: 'narrative',
+  act: 'narrative',
+  sense: 'narrative',
+  self: 'narrative',
+  publication: 'narrative',
 };
 
 /**

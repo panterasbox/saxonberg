@@ -22,7 +22,7 @@
  * if a subclass overrides without `super` is a missed initial reset,
  * which is recoverable when the next move triggers a delta.
  *
- * Schema-delivery emits to the client (system.commands.{added,
+ * Schema-delivery emits to the client (shell.control ({added,
  * removed, reset}) gate on `_commandSchemaSubscribed`, which flips
  * once `onConnectionAttached` fires — pushes that happen during
  * hydration don't generate spurious frames to a not-yet-listening
@@ -844,7 +844,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * Emit the input-echo MudlogApi frame at start-of-dispatch.
      * Fires exactly once per `executeCommand` regardless of the
      * branch taken (parsed / bound / parse-error). Topic
-     * `system.log.command.{info|warn}`; payload `kind: 'issued'`.
+     * `shell.diagnostic`; payload `kind: 'issued'`.
      * Multi-device echo, audit trail, replay capture all consume
      * this; clients filter their own echo by comparing
      * `originInteractiveId` against their stashed

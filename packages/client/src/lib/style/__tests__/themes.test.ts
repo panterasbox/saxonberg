@@ -97,9 +97,15 @@ describe('Both themes expose font registers + role tokens', () => {
         expect(theme.fontRoles.narrative).not.toBe(theme.fontRoles.command);
       });
 
-      it('the register table maps world prose to narrative, system to command', () => {
-        expect(theme.registers['world.speech']).toBe('narrative');
-        expect(theme.registers['system']).toBe('command');
+      it('the register table maps world prose to narrative, machine to command', () => {
+        // Keyed on ROOTS now — the payoff of a tree that carries
+        // subject matter, since the voice a frame speaks in follows
+        // from what it is about.
+        expect(theme.registers['speech']).toBe('narrative');
+        expect(theme.registers['act']).toBe('narrative');
+        expect(theme.registers['sense']).toBe('narrative');
+        expect(theme.registers['shell']).toBe('command');
+        expect(theme.registers['session']).toBe('command');
       });
     });
   }

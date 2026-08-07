@@ -35,8 +35,6 @@ export const HIGH_CONTRAST_THEME: Theme = {
     // dimmer fg for the public/private distinction; nothing claims
     // italic or bold at the frame level.
     'speech.comms': { fg: '#cccccc', prefix: '» ' },
-    // Back-compat: persisted frames pre-rename still carry the old topic.
-    'world.speech.tell': { fg: '#cccccc', prefix: '» ' },
   },
   element: {
     // The renderer's hardcoded styled-components carry per-tag

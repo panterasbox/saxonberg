@@ -482,7 +482,7 @@ describe('AliasMixin — pipeline integration', () => {
     // produces no controller failure — the implicit assertion is
     // that the call completed without throwing.
     const cmdFrame = giver.received.find((f) =>
-      String(f.topic ?? '').startsWith('system.log.command'),
+      String(f.topic ?? '').startsWith('shell.diagnostic'),
     );
     expect(cmdFrame).toBeDefined();
   });
@@ -491,7 +491,7 @@ describe('AliasMixin — pipeline integration', () => {
     giver.setAlias('l', 'ping', { actor: giver });
     await giver.executeCommand('l');
     const cmdFrame = giver.received.find((f) =>
-      String(f.topic ?? '').startsWith('system.log.command'),
+      String(f.topic ?? '').startsWith('shell.diagnostic'),
     );
     expect(cmdFrame).toBeDefined();
     const payload = (cmdFrame as {
@@ -505,7 +505,7 @@ describe('AliasMixin — pipeline integration', () => {
   it('input-echo payload.expandedText is absent when no alias fires', async () => {
     await giver.executeCommand('ping');
     const cmdFrame = giver.received.find((f) =>
-      String(f.topic ?? '').startsWith('system.log.command'),
+      String(f.topic ?? '').startsWith('shell.diagnostic'),
     );
     const payload = (cmdFrame as {
       payload?: { kind?: string; rawText?: string; expandedText?: string };
@@ -536,7 +536,7 @@ describe('AliasMixin — pipeline integration', () => {
     // No alias on the NPC, dispatch flows through directly. The
     // input-echo frame proves the call ran.
     const cmdFrame = npc.received.find((f) =>
-      String(f.topic ?? '').startsWith('system.log.command'),
+      String(f.topic ?? '').startsWith('shell.diagnostic'),
     );
     expect(cmdFrame).toBeDefined();
   });

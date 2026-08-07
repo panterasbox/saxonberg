@@ -185,7 +185,7 @@ describe('GoController', () => {
       const movementFrames = avatar.received.filter(
         (f) =>
           typeof (f as { topic?: unknown })?.topic === 'string' &&
-          (f as { topic: string }).topic.startsWith('world.narration.')
+          (f as { topic: string }).topic.startsWith('act.')
       );
       const peerLikeFrames = movementFrames.filter((f) =>
         ((f as { body: string }).body ?? '').includes('Alice')

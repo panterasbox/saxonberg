@@ -79,7 +79,7 @@ describe('TopicCatalogue', () => {
     const cat = await warmCatalogue([
       {
         topic: 'speech.vocal',
-        family: 'world.speech',
+        family: 'speech',
         label: 'Say',
         description: 'Speaking aloud.',
       },
@@ -87,7 +87,7 @@ describe('TopicCatalogue', () => {
     const d = cat.getDescriptor('speech.vocal');
     expect(d).toEqual({
       topic: 'speech.vocal',
-      family: 'world.speech',
+      family: 'speech',
       label: 'Say',
       description: 'Speaking aloud.',
       // No facets authored on this seed. The runtime does NOT
@@ -102,14 +102,14 @@ describe('TopicCatalogue', () => {
     const cat = await warmCatalogue([
       {
         topic: 'speech.vocal',
-        family: 'world.speech',
+        family: 'speech',
         label: 'Say',
         description: '',
         communicative: true,
       },
       {
         topic: 'speech.comms',
-        family: 'world.speech',
+        family: 'speech',
         label: 'DM',
         description: '',
       },
@@ -122,16 +122,16 @@ describe('TopicCatalogue', () => {
   it('inherits from the nearest authored family ancestor when the leaf is unseeded', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'system.log.command',
-        family: 'system.log',
+        topic: 'shell.diagnostic',
+        family: 'shell.diagnostic',
         label: 'Command',
         description: 'Per-command log emissions.',
       },
     ]);
-    const d = cat.getDescriptor('system.log.command.info');
+    const d = cat.getDescriptor('shell.diagnostic');
     expect(d).toEqual({
-      topic: 'system.log.command.info',
-      family: 'system.log.command',
+      topic: 'shell.diagnostic',
+      family: 'shell.diagnostic',
       label: 'Command (Info)',
       description: 'Per-command log emissions.',
       // The leaf inherits the ancestor's attention shape along with
@@ -171,7 +171,7 @@ describe('TopicCatalogue', () => {
     const cat = await warmCatalogue([
       { topic: 'world', family: '', label: 'World', description: 'In-world events.' },
       {
-        topic: 'world.speech',
+        topic: 'speech',
         family: 'world',
         label: 'Speech',
         description: 'Speech-family events.',
@@ -181,7 +181,7 @@ describe('TopicCatalogue', () => {
     expect(snap).toHaveLength(2);
     const byTopic = new Map(snap.map((d) => [d.topic, d]));
     expect(byTopic.get('world')?.label).toBe('World');
-    expect(byTopic.get('world.speech')?.label).toBe('Speech');
+    expect(byTopic.get('speech')?.label).toBe('Speech');
   });
 
   it('invalidateCache + re-warm picks up new templates', async () => {
@@ -194,7 +194,7 @@ describe('TopicCatalogue', () => {
     stubTopicTemplates([
       { topic: 'world', family: '', label: 'World', description: 'World events.' },
       {
-        topic: 'world.speech',
+        topic: 'speech',
         family: 'world',
         label: 'Speech',
         description: 'Speech-family.',
@@ -203,7 +203,7 @@ describe('TopicCatalogue', () => {
     cat.invalidateCache();
     await cat.postRegister();
 
-    expect(cat.getDescriptor('world.speech').label).toBe('Speech');
+    expect(cat.getDescriptor('speech').label).toBe('Speech');
   });
 
   it('canDestruct refuses (singleton)', async () => {

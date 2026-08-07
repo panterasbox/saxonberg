@@ -264,7 +264,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           label: `${ancestor.label} (${titleCase(leaf)})`,
           description: ancestor.description,
           // A leaf inherits its ancestor's attention shape along with
-          // its prose — a child of `world.chat` is chatter for the
+          // its prose — a child of `speech.channel` is chatter for the
           // same reason its parent is.
           address: ancestor.address,
           actor: ancestor.actor,

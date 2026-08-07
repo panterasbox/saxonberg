@@ -19,7 +19,7 @@ describe("topic catalogue slice", () => {
     const seeds: TopicDescriptor[] = [
       {
         topic: "speech.vocal",
-        family: "world.speech",
+        family: "speech",
         label: "Say",
         description: "Speak aloud.",
         address: "ambient" as const,
@@ -30,8 +30,8 @@ describe("topic catalogue slice", () => {
         affordance: "decays" as const,
       },
       {
-        topic: "world.speech",
-        family: "world",
+        topic: "speech",
+        family: "",
         label: "Speech",
         description: "Speech-family.",
         address: "ambient" as const,
@@ -52,7 +52,7 @@ describe("topic catalogue slice", () => {
     useStore.getState().setTopicCatalogue([
       {
         topic: "speech.vocal",
-        family: "world.speech",
+        family: "speech",
         label: "Say",
         description: "Speak aloud.",
         address: "ambient" as const,
@@ -66,7 +66,7 @@ describe("topic catalogue slice", () => {
     const d = useStore.getState().getTopicDescriptor("speech.vocal");
     expect(d).toEqual({
       topic: "speech.vocal",
-      family: "world.speech",
+      family: "speech",
       label: "Say",
       description: "Speak aloud.",
       address: "ambient" as const,
@@ -81,9 +81,9 @@ describe("topic catalogue slice", () => {
   it("getTopicDescriptor inherits from a family ancestor when the leaf is unseeded", () => {
     useStore.getState().setTopicCatalogue([
       {
-        topic: "system.log.command",
-        family: "system.log",
-        label: "Command",
+        topic: "shell",
+        family: "",
+        label: "Your terminal",
         description: "Per-command log emissions.",
         address: "ambient" as const,
         actor: "system" as const,
@@ -93,13 +93,14 @@ describe("topic catalogue slice", () => {
         affordance: "decays" as const,
       },
     ]);
-    const d = useStore
-      .getState()
-      .getTopicDescriptor("system.log.command.info");
+    // A leaf nobody seeded, under a seeded root — the inheritance
+    // tier, which is what keeps a pack-added leaf readable before its
+    // descriptor reaches this client.
+    const d = useStore.getState().getTopicDescriptor("shell.unseeded");
     expect(d).toEqual({
-      topic: "system.log.command.info",
-      family: "system.log.command",
-      label: "Command (Info)",
+      topic: "shell.unseeded",
+      family: "shell",
+      label: "Your terminal (Unseeded)",
       description: "Per-command log emissions.",
       address: "ambient" as const,
       actor: "system" as const,

@@ -76,7 +76,7 @@ describe("frames slice", () => {
     });
 
     it("increments unread count for inactive tabs whose filter allows the frame", () => {
-      useStore.getState().appendFrame(makeFrame({ topic: "world.speech.tell" }));
+      useStore.getState().appendFrame(makeFrame({ topic: "speech.comms" }));
       // 'All' is active — only 'Quiet' is inactive, and its mute list
       // does NOT include this topic.
       expect(useStore.getState().unreadCounts).toEqual({ Quiet: 1 });
@@ -99,7 +99,7 @@ describe("frames slice", () => {
           "console.activeTab": "Quiet",
         },
       });
-      useStore.getState().appendFrame(makeFrame({ topic: "world.speech.tell" }));
+      useStore.getState().appendFrame(makeFrame({ topic: "speech.comms" }));
       // 'All' is inactive and unmuted → bump it; 'Quiet' is active → skip.
       expect(useStore.getState().unreadCounts).toEqual({ All: 1 });
     });

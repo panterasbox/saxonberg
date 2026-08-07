@@ -1,5 +1,5 @@
 /**
- * chatTemplate — `world.chat.*` frames. Two-column layout:
+ * chatTemplate — `speech.channel` frames. Two-column layout:
  *
  *   ┌────────────┬────────────────────────────────────┐
  *   │ [Gossip]   │ Bobalu: some very long message     │

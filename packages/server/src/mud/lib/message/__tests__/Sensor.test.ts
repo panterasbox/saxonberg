@@ -6,7 +6,7 @@
  *     → handleMessage(frame)        (subclass override)
  *
  * And the filterMessage shadow interception pattern (a "mute speech"
- * shadow that drops world.speech.* frames).
+ * shadow that drops `speech.*` frames).
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -66,7 +66,7 @@ describe('SensorMixin.filterMessage shadow interception', () => {
     class MuteShadow extends Shadow {
       @Shadowing('filterMessage')
       mute(f: MessageFrame): MessageFrame | null {
-        if (f.topic.startsWith('world.speech.')) return null;
+        if (f.topic.startsWith('speech.')) return null;
         return this.callDown<MessageFrame>(f);
       }
     }

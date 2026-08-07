@@ -15,7 +15,7 @@ function seedCatalogue(): void {
         "speech.vocal",
         {
           topic: "speech.vocal",
-          family: "world.speech",
+          family: "speech",
           label: "Say",
           description: "Speak aloud.",
           address: "ambient" as const,
@@ -30,7 +30,7 @@ function seedCatalogue(): void {
         "speech.comms",
         {
           topic: "speech.comms",
-          family: "world.speech",
+          family: "speech",
           label: "Tell",
           description: "Direct message.",
           address: "ambient" as const,
@@ -77,7 +77,7 @@ describe("FilterDrawer", () => {
   it("family checkbox toggles every leaf under that family", () => {
     render(<FilterDrawer onClose={() => {}} />);
     fireEvent.click(
-      screen.getByTestId("family-checkbox-world.speech"),
+      screen.getByTestId("family-checkbox-speech"),
     );
     const tabs = useStore.getState().clientState["console.tabs"] as {
       name: string;
@@ -120,7 +120,7 @@ describe("FilterDrawer", () => {
       },
     });
     render(<FilterDrawer onClose={() => {}} />);
-    const badge = screen.getByTestId("family-badge-world.speech");
+    const badge = screen.getByTestId("family-badge-speech");
     expect(badge.textContent).toBe("5");
   });
 

@@ -63,7 +63,7 @@ describe('topic taxonomy — the corpus', () => {
   it('is at most two levels deep', () => {
     // The tree carries subject matter only; anything that wanted a third
     // level is describing a facet. Depth is the symptom the 89-key
-    // corpus showed (`world.perception.measurement.analyze-electrical`).
+    // corpus showed: `world.perception.measurement.analyze-electrical`.
     const deep = [...corpus.keys()].filter((k) => k.split('.').length > 2);
     expect(deep).toEqual([]);
   });

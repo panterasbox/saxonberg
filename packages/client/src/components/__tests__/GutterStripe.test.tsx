@@ -16,7 +16,7 @@ function resetState(): void {
         "speech.vocal",
         {
           topic: "speech.vocal",
-          family: "world.speech",
+          family: "speech",
           label: "Say",
           description: "Speak aloud.",
           address: "ambient" as const,
@@ -42,14 +42,14 @@ describe("GutterStripe", () => {
   });
 
   it("colorForTopic is stable for the same family", () => {
-    expect(colorForTopic("world.speech")).toBe(
-      colorForTopic("world.speech"),
+    expect(colorForTopic("speech")).toBe(
+      colorForTopic("speech"),
     );
   });
 
   it("different families produce different hues", () => {
-    expect(colorForTopic("world.speech")).not.toBe(
-      colorForTopic("system.log"),
+    expect(colorForTopic("speech")).not.toBe(
+      colorForTopic("shell.diagnostic"),
     );
   });
 

@@ -36,17 +36,17 @@ describe('Stylesheet — topic cascade', () => {
     // typographic decoration. Tests assert the new floor.
     const sheet = makeSheet();
     expect(sheet.topicTreatment('speech.vocal')).toEqual({});
-    expect(sheet.topicTreatment('world.speech.tell')).toEqual({});
+    expect(sheet.topicTreatment('speech.comms')).toEqual({});
     expect(sheet.topicTreatment('world.emote.wave')).toEqual({});
-    expect(sheet.topicTreatment('system.command.info')).toEqual({});
-    expect(sheet.topicTreatment('system.log.command')).toEqual({});
+    expect(sheet.topicTreatment('shell.result')).toEqual({});
+    expect(sheet.topicTreatment('shell.diagnostic')).toEqual({});
   });
 
   it('overlay topic rule applies even when theme has none', () => {
     const sheet = makeSheet({
-      'topic.system': { fg: '#ff00ff', italic: true },
+      'topic.shell': { fg: '#ff00ff', italic: true },
     });
-    const t = sheet.topicTreatment('system.command.info');
+    const t = sheet.topicTreatment('shell.result');
     expect(t.fg).toBe('#ff00ff');
     expect(t.italic).toBe(true);
   });
@@ -58,7 +58,7 @@ describe('Stylesheet — topic cascade', () => {
     // future design question (Wave 2 / chat slate).
     const sheet = makeSheet();
     expect(sheet.topicTreatment('speech.vocal')).toEqual({});
-    expect(sheet.topicTreatment('world.speech.tell')).toEqual({});
+    expect(sheet.topicTreatment('speech.comms')).toEqual({});
   });
 });
 
@@ -82,7 +82,7 @@ describe('Stylesheet — channel color (#20)', () => {
 describe('Stylesheet — plain mode (#23, #24)', () => {
   it('global plain collapses all treatments to empty', () => {
     const sheet = makeSheet({ plain: true });
-    expect(sheet.topicTreatment('system.command.info')).toEqual({});
+    expect(sheet.topicTreatment('shell.result')).toEqual({});
     expect(sheet.elementTreatment('strong')).toEqual({});
     expect(sheet.channelColor('gossip')).toBeNull();
     expect(sheet.mentionTreatment('whoever')).toEqual({});

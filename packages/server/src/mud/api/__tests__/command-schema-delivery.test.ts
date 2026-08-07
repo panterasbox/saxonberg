@@ -1,5 +1,5 @@
 /**
- * Schema-delivery tests — `system.commands.{added,removed,reset}`.
+ * Schema-delivery tests — `shell.control`.
  *
  * The hooks fire from CommandGiverMixin's sealed surface; here we
  * invoke them through ContainmentApi.move and onConnectionAttached
@@ -59,7 +59,7 @@ class EnvProvider extends EnvProviderBase {
 }
 
 function commandsFrames(giver: TestGiver): MessageFrame[] {
-  return giver.received.filter((f) => f.topic.startsWith('system.commands.'));
+  return giver.received.filter((f) => f.topic.startsWith('shell.control.'));
 }
 
 describe('CommandGiverMixin schema-delivery', () => {

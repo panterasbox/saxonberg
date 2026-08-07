@@ -171,7 +171,7 @@ export const WITNESS_TOPIC: Record<WitnessKind, string> = {
   arrival: 'act.move',
   departure: 'act.move',
   emote: 'act.emote',
-  speech: 'world.speech.',
+  speech: 'speech.',
 } as const;
 
 // Trigger parsing lives on `BehavedMixin` (`_parseTrigger`) — the owner

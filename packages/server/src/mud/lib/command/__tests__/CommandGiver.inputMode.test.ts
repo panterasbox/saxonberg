@@ -43,7 +43,7 @@ class TestGiver extends HasInteractiveMixin(
 /** The dispatched text on the input-echo frame (parse-fail → warn). */
 function echoedText(giver: TestGiver): string | undefined {
   const echo = giver.received.find((f) =>
-    f.topic.startsWith('system.log.command'),
+    f.topic.startsWith('shell.diagnostic'),
   );
   return echo?.body;
 }

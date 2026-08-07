@@ -440,7 +440,7 @@ describe('Avatar', () => {
       avatar.addInteractive(interactive1);
 
       const outputMsg = makeFrame('sense.survey', 'Text');
-      const errorMsg = makeFrame('system.log.command.warn', 'Error');
+      const errorMsg = makeFrame('shell.diagnostic', 'Error');
 
       avatar.onMessage(outputMsg);
       avatar.onMessage(errorMsg);

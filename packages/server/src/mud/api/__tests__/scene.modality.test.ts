@@ -82,7 +82,7 @@ describe('Scene.modality + SensorMixin.filterMessage', () => {
   it('frames without modality have undefined meta.modality', () => {
     const speaker = makeActor(['hearing']) as ReceivingActor;
     MessageApi.scene(speaker)
-      .topic('system.log.info')
+      .topic('shell.diagnostic')
       .toSelf('hi')
       .send();
     const frame = speaker.received.at(-1);

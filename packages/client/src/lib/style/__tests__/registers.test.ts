@@ -41,17 +41,17 @@ describe('register classification — explicit topic→register table', () => {
     expect(ss.fontFamilyForTopic('shell.result')).toContain(MONO);
   });
 
-  it('world.perception.look → narrative serif [AC: look is proportional]', () => {
-    expect(ss.fontFamilyForTopic('world.perception.look')).toContain(SERIF);
+  it('sense.survey → narrative serif [AC: look is proportional]', () => {
+    expect(ss.fontFamilyForTopic('sense.survey')).toContain(SERIF);
   });
 
-  it('world.expression.* and world.narration.* → narrative serif', () => {
+  it('speech.*, act.* and sense.* → narrative serif', () => {
     expect(ss.fontFamilyForTopic('act.emote')).toContain(SERIF);
-    expect(ss.fontFamilyForTopic('world.narration.ambient')).toContain(SERIF);
+    expect(ss.fontFamilyForTopic('act.ambient')).toContain(SERIF);
   });
 
-  it('command echo (system.log.command.*) → command mono', () => {
-    expect(ss.fontFamilyForTopic('system.log.command.echo')).toContain(MONO);
+  it('command echo (shell.diagnostic) → command mono', () => {
+    expect(ss.fontFamilyForTopic('shell.diagnostic.echo')).toContain(MONO);
   });
 
   it('unmapped topic → command (mono) default-on-miss', () => {

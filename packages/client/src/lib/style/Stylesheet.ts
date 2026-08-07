@@ -14,8 +14,8 @@
  *   overlay rules. The renderer collapses to the failsafe layout.
  *
  * Five selector kinds:
- *   - `topic` (longest-prefix cascade) — `world.speech.tell` →
- *     merge `world.speech` then override with `world.speech.tell`.
+ *   - `topic` (longest-prefix cascade) — `speech.comms` →
+ *     merge `speech` then override with `speech.comms`.
  *   - `channel` — `<chan id>` chip color; theme default + overlay
  *     `channel.<id>.color` scalar override.
  *   - `element` — tag name; `<strong>` bold, `<em>` italic, etc.

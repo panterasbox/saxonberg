@@ -2,7 +2,7 @@
  * PingController — diagnostic. Emits nothing of its own; the
  * round-trip is visible through:
  *   - the input-echo MessageFrame the dispatcher fires at
- *     `system.log.command.info` (carrying `kind: 'issued'`,
+ *     `shell.diagnostic` (carrying `kind: 'issued'`,
  *     `rawText: 'ping'`)
  *   - the dispatch-response envelope's `outcome.status: 'ok'`
  *

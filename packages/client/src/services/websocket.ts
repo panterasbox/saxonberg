@@ -143,18 +143,30 @@ class WebSocketClient {
    * Char-gen frames carry structured payloads through the Login's
    * Sensor (no new envelope type). The roster drives the character-
    * select screen; the per-step state drives the char-gen stage. Both
-   * flip the connection phase via the store. `system.charactergen.
-   * welcome` carries no payload and reaches the catch-all so its prose
-   * lands in the terminal.
+   * flip the connection phase via the store. The welcome frame carries
+   * no payload and reaches the catch-all so its prose lands in the
+   * terminal.
+   *
+   * ⭐ All three arrive on **one** topic, `session.identity`, and are
+   * told apart by their payload — because roster / step-state /
+   * welcome are not different *subjects*, they are three moments of
+   * signing in. The topic tree carries subject matter; which moment it
+   * is belongs on the frame. (They used to be three topics, which is
+   * how the vocabulary grew to 89.)
    */
   private registerBuiltinHandlers(): void {
     this.onTopic("session.identity", (frame) => {
-      useStore
-        .getState()
-        .setCharGenRoster((frame.payload as CharGenRosterPayload).characters);
-    });
-    this.onTopic("session.identity", (frame) => {
-      useStore.getState().setCharGenState(frame.payload as CharGenStatePayload);
+      const payload = frame.payload as
+        | (Partial<CharGenRosterPayload> & Partial<CharGenStatePayload>)
+        | undefined;
+      if (!payload) return; // the welcome frame — prose only
+      if (Array.isArray(payload.characters)) {
+        useStore
+          .getState()
+          .setCharGenRoster((payload as CharGenRosterPayload).characters);
+        return;
+      }
+      useStore.getState().setCharGenState(payload as CharGenStatePayload);
     });
     // The `clear` verb's signal frame — empty body (so it never renders
     // a scrollback line), handled purely by emptying the buffer.

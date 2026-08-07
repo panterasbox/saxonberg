@@ -38,7 +38,7 @@ export default class Topic extends Idea {
 
   /**
    * Family prefix — the dotted path with the last segment dropped
-   * (e.g. `'world.speech'` for `'speech.vocal'`). Empty string
+   * (e.g. `'speech'` for `'speech.vocal'`). Empty string
    * for top-level topics (`'world'`, `'system'`); a top-level entry
    * is its own root.
    */

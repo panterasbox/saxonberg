@@ -85,7 +85,7 @@ describe('Scene compositional checks', () => {
     const target = makeStuff(() => new Plain());
     expect(() =>
       MessageApi.scene(actor)
-        .topic('world.speech.tell')
+        .topic('speech.comms')
         .toTarget(target, Mml.compose`hi`)
     ).toThrow(/Sensor/);
   });
@@ -174,7 +174,7 @@ describe('Scene multi-audience dispatch', () => {
 
   it('toPeers excludes both actor and explicit target', () => {
     MessageApi.scene(alice)
-      .topic('world.speech.tell')
+      .topic('speech.comms')
       .toSelf(Mml.compose`actor`)
       .toTarget(bob, Mml.compose`target`)
       .toPeers(Mml.compose`witness`)

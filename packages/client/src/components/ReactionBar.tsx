@@ -30,7 +30,7 @@ import { expandReactors } from "../store/reactionActions";
 
 /** Topics whose frames are reactable acts (mirrors REACTABLE_TOPICS). */
 const REACTABLE_PREFIXES = [
-  "world.speech.",
+  "speech.",
   "act.emote",
   "speech.channel",
 ];

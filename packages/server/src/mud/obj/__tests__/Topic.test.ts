@@ -20,12 +20,12 @@ describe('Topic', () => {
   it('round-trips the four persistent string fields', () => {
     const t = makeStuff(() => new Topic());
     t.setTopic('speech.vocal');
-    t.setFamily('world.speech');
+    t.setFamily('speech');
     t.setLabel('Say');
     t.setDescription('Speaking aloud.');
 
     expect(t.getTopic()).toBe('speech.vocal');
-    expect(t.getFamily()).toBe('world.speech');
+    expect(t.getFamily()).toBe('speech');
     expect(t.getLabel()).toBe('Say');
     expect(t.getDescription()).toBe('Speaking aloud.');
   });

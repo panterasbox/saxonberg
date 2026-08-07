@@ -27,7 +27,7 @@ describe('MudlogApi recipient resolution', () => {
     const s = makeStuff(() => new CapSensor());
     MudlogApi.info(Mml.compose`hello`, { to: s });
     expect(s.received).toHaveLength(1);
-    expect(s.received[0]!.topic).toBe('system.log.info');
+    expect(s.received[0]!.topic).toBe('shell.diagnostic');
   });
 
   it('opts.to as an array delivers to all listed sensors', () => {
@@ -36,7 +36,7 @@ describe('MudlogApi recipient resolution', () => {
     MudlogApi.warn('admin', Mml.compose`heads up`, { to: [a, b] });
     expect(a.received).toHaveLength(1);
     expect(b.received).toHaveLength(1);
-    expect(a.received[0]!.topic).toBe('system.log.admin.warn');
+    expect(a.received[0]!.topic).toBe('shell.diagnosticadmin.warn');
   });
 
   it('falls back to the command giver when opts.to is absent', () => {
@@ -65,7 +65,7 @@ describe('MudlogApi recipient resolution', () => {
       );
     });
     expect(giver.received).toHaveLength(1);
-    expect(giver.received[0]!.topic).toBe('system.log.info');
+    expect(giver.received[0]!.topic).toBe('shell.diagnostic');
   });
 
   it('throws when no recipient is obtainable', () => {
@@ -114,13 +114,13 @@ describe('MudlogApi topic + frame shape', () => {
 
     const topics = s.received.map((f) => f.topic);
     expect(topics).toEqual([
-      'system.log.trace',
-      'system.log.debug',
-      'system.log.info',
-      'system.log.warn',
-      'system.log.error',
-      'system.log.fatal',
-      'system.log.cat.info',
+      'shell.diagnostictrace',
+      'shell.diagnosticdebug',
+      'shell.diagnostic',
+      'shell.diagnostic',
+      'shell.diagnostic',
+      'shell.diagnosticfatal',
+      'shell.diagnosticcat.info',
     ]);
   });
 

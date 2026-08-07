@@ -147,7 +147,7 @@ export const BASE_SLOT = "base" as const;
  * One pending echo-pairing snapshot. The CommandBar pushes one of
  * these onto the FIFO queue every time a command goes out; the
  * websocket service shifts one off on every inbound input-echo
- * MessageFrame (`system.log.command.{info|warn}`) and uses it to
+ * MessageFrame (`shell.diagnostic`) and uses it to
  * annotate the rendered terminal line. Slot is the active slot at
  * send time (`BASE_SLOT` or a promptId); sigil is the base-prompt
  * string at send time, so the scrollback stays internally
@@ -180,7 +180,7 @@ export interface StuffMetadata {
  * string the wire carries; `body` is the rendered MML body the
  * Terminal pipes through `MmlRenderer`; `sigil` is the optional
  * echo-paired prompt sigil for command-echo frames (only set on
- * `system.log.command.{info|warn}` deliveries).
+ * `shell.diagnostic` deliveries).
  *
  * Sigils are held alongside the body, NOT concatenated in — the
  * Terminal renderer is responsible for prefix-concatenation at
@@ -220,7 +220,7 @@ export interface Frame {
    */
   channelName?: string;
   /**
-   * Relay-chat provenance (`world.twitch.message` / `world.youtube.message`
+   * Relay-chat provenance (`speech.relay`
    * frames), extracted from `payload` at ingest. Structured so the relay
    * template renders the distinct per-platform treatment and reveals the
    * linked MUD persona on hover without re-parsing the body string.
@@ -779,7 +779,7 @@ interface StoreState extends CmsSlice, StudioSlice {
   basePrompt: string;
   /**
    * FIFO queue of pending echo-pairing snapshots. One per
-   * outbound command; shifted by the inbound `system.log.command.*`
+   * outbound command; shifted by the inbound `shell.diagnostic`
    * handler so the rendered echo line carries the prompt context
    * that was active when the command was sent (per the slate's
    * snapshot-on-send pattern).

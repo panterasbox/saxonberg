@@ -110,7 +110,7 @@ describe('topic seeds — the facets carry information the path does not', () =>
       by.get('sense.reading')?.durable
     ).toBe(true);
     // What the room smelled like is not worth a transcript line.
-    expect(by.get('world.perception.ambient.smell')?.durable).toBe(false);
+    expect(by.get('sense.ambient.smell')?.durable).toBe(false);
   });
 
   it('quiet mode is one rule, not a list of paths', () => {

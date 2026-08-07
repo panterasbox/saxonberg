@@ -95,7 +95,7 @@ describe('Terminal — per-frame font by register', () => {
   it('<pre> stays monospace inside an otherwise-serif narrative frame', () => {
     const { container } = renderTerminal([
       frame({
-        topic: 'world.perception.look',
+        topic: 'sense.survey',
         body: 'You see a sign:\n<pre>  ASCII  </pre>',
       }),
     ]);
