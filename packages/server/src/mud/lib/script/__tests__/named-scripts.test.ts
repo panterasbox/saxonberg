@@ -35,10 +35,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ["system/ping.yaml", "crafting/make.yaml"],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
   protected override handleMessage(): void {}

@@ -52,9 +52,8 @@ export function ForumsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
      */
     static commandContributions: CommandContributions = {
       self: ['social/forum.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     getOperator(): (Stuff & AetherHost) | null {

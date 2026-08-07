@@ -57,6 +57,11 @@ import { ContainmentApi } from '../../api/containment';
 import { AdvancementApi } from '../../api/advancement';
 import { AccountabilityApi } from '../../api/accountability';
 import { CombatApi } from '../../api/combat';
+import {
+  RangeBand,
+  RANGE_BANDS,
+  type RangeState,
+} from '../../lib/combat/RangeBand';
 import { SpeciesApi } from '../../api/species';
 import { AccessApi } from '../../api/access';
 import { CommandApi } from '../../api/command';
@@ -139,6 +144,18 @@ export interface DischargeOptions {
    * its reader.
    */
   readonly source?: Stuff;
+  /**
+   * **Where the working issues from, when it is not the item.**
+   *
+   * The sibling of `source`, and separate for the same reason
+   * `EffectContext` keeps origin and actor apart: a thrown flask's
+   * contact payload acts at the point of impact. Since reachability is
+   * measured from the origin and a `Material` singleton has no place of
+   * its own, leaving this unset would make a thrown payload issue from
+   * the THROWER — and a `close`-envelope effect would then refuse itself
+   * across the gap it just crossed.
+   */
+  readonly origin?: Stuff;
   /**
    * **Fire as if this band, whatever the item actually is.**
    *
@@ -621,7 +638,11 @@ async function dischargeImpl(
     item.getDeliveryEfficiency() *
       (Number.isFinite(scale) ? scale : 1) *
       classScale,
-    { specifiedBy: item.getMakerId(), source: payer },
+    {
+      specifiedBy: item.getMakerId(),
+      source: payer,
+      origin: opts?.origin,
+    },
   );
 
   const reports: string[] = [];
@@ -925,6 +946,7 @@ async function deliverAt(
   ctx: EffectContext,
   target: Stuff,
   deliver: () => { report: string; harmed: boolean },
+  envelope?: RangeState,
 ): Promise<string> {
   // Reachability is measured from the ORIGIN, not the actor — that is
   // what makes a wand set down and pointed at a door a trap. For a cast
@@ -935,11 +957,48 @@ async function deliverAt(
   if (deliveryScene(target) !== from && target !== from) {
     return 'Your reach ends at the scene before you.';
   }
+  // The BAND gate. Same-scene is kept above (cross-room fire is out of
+  // scope, D26 — which is what makes an exit genuinely an escape); this
+  // asks the second question the ranged build added: is the target
+  // further out than this working can reach?
+  //
+  // `envelope` defaults to the `magic.spellEnvelope` dial, seeded `far`,
+  // so every shipped spell behaves EXACTLY as it did before. A thrown
+  // contact payload passes `close`; a future bow passes `far`; a sidearm
+  // passes `near`.
+  const reach = envelope ?? spellEnvelope();
+  if (target !== ctx.origin) {
+    const band = CombatApi.bandBetween(ctx.origin, target);
+    if (band !== null && RangeBand.beyond(band, reach)) {
+      return 'They are too far off for that.';
+    }
+  }
   const { report, harmed } = deliver();
   if (harmed && MixinApi.isOrganism(target)) {
     appendHarmRow(ctx.actor, target);
   }
   return report;
+}
+
+/**
+ * The band a working reaches by default. Seeded `far` — i.e. anywhere in
+ * the scene — so the band gate is inert for every shipped spell and only
+ * bites for a carrier that declares a tighter envelope.
+ */
+function spellEnvelope(): RangeState {
+  // Seeded literal fallback, the `dial()` precedent: a settings read
+  // throws outright when the cache is not warmed, and this path runs in
+  // unit tests that never boot AppBootstrap. Falling back to `far` also
+  // means a settings failure cannot silently SHRINK what a spell can
+  // reach — the safe direction for a gate.
+  try {
+    const raw = AppApi.setting(AppSettingKeys.magicSpellEnvelope);
+    return (RANGE_BANDS as readonly string[]).includes(raw ?? '')
+      ? (raw as RangeState)
+      : 'far';
+  } catch {
+    return 'far';
+  }
 }
 
 /**

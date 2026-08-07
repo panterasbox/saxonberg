@@ -142,9 +142,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'device/disarm.yaml',
         'device/arm.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

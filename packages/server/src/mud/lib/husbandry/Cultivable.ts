@@ -180,14 +180,13 @@ export function CultivableMixin<
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: [
+      peers: [
         "inventory/plant.yaml",
         "inventory/repot.yaml",
         "inventory/harvest.yaml",
         "bulk/feed.yaml",
       ],
-      inventory: [],
-      peers: [],
+      environment: [],
     };
 
     /** The soil's own checkpoint travels with the ground it belongs to. */

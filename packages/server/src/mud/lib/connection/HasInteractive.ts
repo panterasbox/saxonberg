@@ -319,9 +319,8 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      */
     static commandContributions: CommandContributions = {
       self: ['shell/style.yaml', 'shell/layout.yaml', 'shell/mode.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

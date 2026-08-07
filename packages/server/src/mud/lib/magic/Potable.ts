@@ -76,7 +76,11 @@ export interface Potable {
    * dose did nothing (a sub-threshold sip) or the substance carries no
    * working at all (ordinary water goes through this path too).
    */
-  dischargeInto(drinker: Stuff, litres: number): Promise<string[]>;
+  dischargeInto(
+    drinker: Stuff,
+    litres: number,
+    opts?: { readonly origin?: Stuff },
+  ): Promise<string[]>;
 
   // ---------- storage (public for the Hydrator) ----------
   route: string;
@@ -129,6 +133,7 @@ export function PotableMixin<TBase extends MixinConstructor<Stuff>>(
     public async dischargeInto(
       drinker: Stuff,
       litres: number,
+      opts?: { readonly origin?: Stuff },
     ): Promise<string[]> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isArcane(self)) return []; // a mundane liquid
@@ -149,9 +154,14 @@ export function PotableMixin<TBase extends MixinConstructor<Stuff>>(
       //
       // The drinker is the target: it is inside them. The origin (a
       // Material singleton) has no place of its own, so the effect
-      // context falls back to issuing from wherever the actor is.
+      // context falls back to issuing from wherever the actor is —
+      // which is right for DRINKING and wrong for a thrown flask, whose
+      // contact payload acts at the point of impact. A caller that
+      // delivered this across a gap passes the victim as the origin;
+      // absent that, behaviour is byte-identical to before.
       const out = await MagicApi.discharge(self, drinker, {
         potencyScale: scale,
+        origin: opts?.origin,
       });
       const reports = out.ok
         ? out.reports

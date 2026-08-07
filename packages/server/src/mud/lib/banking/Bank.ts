@@ -117,9 +117,8 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: ["banking/bank.yaml"],
-      inventory: [],
-      peers: [],
+      peers: ["banking/bank.yaml"],
+      environment: [],
     };
 
     /**

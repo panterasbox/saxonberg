@@ -112,9 +112,8 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         "social/broadcast.yaml",
         "social/chat.yaml",
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

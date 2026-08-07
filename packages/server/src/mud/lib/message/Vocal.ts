@@ -72,9 +72,8 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // the Aether network, not the vocal apparatus. Vocal stays
       // the acoustic transport (say + whisper + shout).
       self: ['social/say.yaml', 'social/whisper.yaml', 'social/shout.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     say(text: string, target?: Stuff): void {

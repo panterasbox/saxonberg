@@ -612,11 +612,17 @@ weapon engine):
   hydrate) and the exchange's erosion / inflict energy.
 - **reach** ← `length` (a real magnitude, symmetric with `mass`). A banded
   class (`short`/`medium`/`long`) drives a **geometry-free engagement-range
-  tier** on `CombatGraph`: each pair carries a `reach | close` state
+  tier** on `CombatGraph`: each pair carries a band from the
+  `close · reach · near · far` ladder
   (`ThreatEdge.range`, `setRange`/`rangeBetween` keeping both directed edges
   in sync). A longer weapon **controls until closed** — a genuinely out-ranged
   attacker (a 2-rank gap) is simply **out of range** and *whiffs* (offence AND
   riposte); reach-advantaged actors resolve first (a stable reach-order sort).
+  ⚠ The ranged build widened that tier to four bands and moved the
+  OPENING band off reach rank onto the room's real size — see
+  [ranged.md](./ranged.md). Reach still decides who controls the gap;
+  it no longer decides where the fight starts, and `close` is now an
+  alias for `advance`.
   **Closing** is a tempo-costed opposed beat (the `close` gambit), *contested*
   by a composed, longer reach-holder; a reach-holder's `defend` re-opens
   distance. Inside (`close`) the term **reverses** — the dagger/unarmed owns

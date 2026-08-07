@@ -88,6 +88,25 @@ export default class Location extends LocationBase {
   }
 
   /**
+   * The room's **linear extent in metres** — the one honest number the
+   * physical systems derive from. Light already divides by an area
+   * derived from it and the atmosphere already fills a volume derived
+   * from it; combat's engagement bands read it too, so a 3 m cell
+   * affords only the melee tiers while an authored 20 m outdoor cell
+   * affords `far` (see {@link RangeBand.maxForExtent}).
+   *
+   * Topology-agnostic base: `null` — "this room does not report a
+   * size." Concrete subclasses override per their geometry
+   * (`CartesianLocation` from its cell, `SphericalLocation` from its
+   * diameter). Consumers must treat `null` conservatively rather than
+   * assuming a default, because an unmeasured room cannot promise the
+   * distance a ranged weapon needs.
+   */
+  public getLinearExtent(): number | null {
+    return null;
+  }
+
+  /**
    * Detach from the owning Zone on destruct. Clears `locations`
    * membership and any coordinate-keyed indexes the zone maintains
    * (CartesianZone grid, SphericalZone focus index).

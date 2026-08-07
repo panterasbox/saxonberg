@@ -102,6 +102,28 @@ The setters round-trip through tuple-replacement (`setX(x)` returns a
 new triple) so any reactive system watching `coordinates` sees a
 single coherent change rather than three partial states.
 
+### How big a room is — `getLinearExtent()`
+
+**One number, and everything that cares about room size derives from
+it.** `Location.getLinearExtent(): number | null` returns the room's
+edge length in metres — `CartesianLocation` reads its own persistent
+`extent` field and falls back to the zone's cell size, so an authored
+room can be larger or smaller than its zone's default;
+`SphericalLocation` returns `2 × radius`; the base returns null (size
+unknown).
+
+`getSizeScale` (light falloff), `getVolume` (atmosphere) and
+`getCeilingHeight` all derive **through** it. That is deliberate: a
+combat-only size field would let one room be small for weapon range and
+large for illumination. A bigger room is instead dimmer, airier **and**
+longer-ranged, because that is what a bigger room is.
+
+Its load-bearing consumer is the range-band ladder — the reachable
+bands in a fight are capped by the room's real extent, so a 3 m cell
+affords only melee and an authored 20 m one reaches `far`. Nobody
+authors a band; the geometry decides. See
+[ranged.md](./ranged.md).
+
 ## Zones
 
 The base `Zone` hierarchy (`Zone` / `SpatialZone` / `FolderZone`) and

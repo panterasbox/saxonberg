@@ -111,7 +111,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
      * verb families over this instance's **authored** capabilities —
      * the tool that does the work carries its working verbs, so a tool
      * variant is pure seed data. Placement per the kind's table entry
-     * (`reachable` → environment + inventory, `carried` → inventory
+     * (`reachable` → environment + peers, `carried` → environment
      * only). Deliberately NOT broken-gated: a broken anvil keeps
      * *affording* `hammer` and the controller's `hasCapability` check
      * declines diegetically (a vanishing verb would also go stale —
@@ -126,24 +126,30 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
             getInstanceContributions?: () => CommandContributions;
           }
         ).getInstanceContributions?.call(this) ?? {};
+      // Directional buckets: `environment` grants OUTWARD to whoever
+      // holds the tool, `peers` grants sideways to everyone sharing the
+      // room with it. (Both were named one bucket to the left before the
+      // affordance-scope rename.)
       const environment: string[] = [...(inner.environment ?? [])];
-      const inventory: string[] = [...(inner.inventory ?? [])];
+      const peers: string[] = [...(inner.peers ?? [])];
       for (const entry of this.capabilities) {
         const spec: CapabilitySpec =
           typeof entry === 'string' ? { kind: entry } : entry;
         const def = ToolCapabilities.definitionOf(spec.kind);
         if (!def || def.verbs.length === 0) continue;
         const placement = spec.placement ?? def.placement;
-        inventory.push(...def.verbs);
-        if (placement === 'reachable') environment.push(...def.verbs);
+        // Carried: the tool hands its verbs to its holder.
+        environment.push(...def.verbs);
+        // Reachable: and to anyone else in the room with it.
+        if (placement === 'reachable') peers.push(...def.verbs);
       }
       if (
         environment.length === (inner.environment?.length ?? 0) &&
-        inventory.length === (inner.inventory?.length ?? 0)
+        peers.length === (inner.peers?.length ?? 0)
       ) {
         return inner;
       }
-      return { ...inner, environment, inventory };
+      return { ...inner, environment, peers };
     }
   };
 }

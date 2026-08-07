@@ -23,7 +23,7 @@ turnpike, the depot-as-town-generator),
 [legal-code-slate](./legal-code-slate.md),
 [instrumentation-slate](./instrumentation-slate.md),
 [prison-slate](./prison-slate.md),
-[ranged-slate](./ranged-slate.md) (the shared extent dependency),
+[ranged-slate](../tails/ranged-slate.md) (the shared extent dependency),
 `docs/staging/terminus-city.md` (the map this sites against).
 
 ## ⭐⭐ What makes industrial categorically different
@@ -96,7 +96,7 @@ difficulty:
 
 | Consumer | Why it needs it |
 |---|---|
-| [ranged](./ranged-slate.md) | distance bands from real room dimensions |
+| [ranged](../tails/ranged-slate.md) | distance bands from real room dimensions |
 | [freight](./freight-slate.md) | an 8 m wagon does not fit a 3 m cell |
 | **this slate** | outdoor parcel acreage |
 
@@ -323,7 +323,7 @@ viewer, on demand. Nuisance is **the same query on other channels** —
 
 #### ⭐ Which surfaces the second shared dependency
 
-The acoustics fix [ranged](./ranged-slate.md) already wants —
+The acoustics fix [ranged](../tails/ranged-slate.md) already wants —
 **per-meter attenuation instead of flat per-hop, and killing
 `MAX_HOPS = 2`** — is exactly what nuisance measurement needs. *A
 factory whose noise stops after two rooms is useless.* And per-meter

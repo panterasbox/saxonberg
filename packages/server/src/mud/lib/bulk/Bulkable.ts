@@ -311,21 +311,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: [
-        'bulk/fill.yaml',
-        'bulk/pour.yaml',
-        'bulk/spill.yaml',
-        'bulk/drink.yaml',
-        'bulk/sip.yaml',
-      ],
-      inventory: [
-        'bulk/fill.yaml',
-        'bulk/pour.yaml',
-        'bulk/spill.yaml',
-        'bulk/drink.yaml',
-        'bulk/sip.yaml',
-      ],
       peers: [
+        'bulk/fill.yaml',
+        'bulk/pour.yaml',
+        'bulk/spill.yaml',
+        'bulk/drink.yaml',
+        'bulk/sip.yaml',
+      ],
+      environment: [
         'bulk/fill.yaml',
         'bulk/pour.yaml',
         'bulk/spill.yaml',

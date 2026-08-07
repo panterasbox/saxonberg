@@ -50,8 +50,7 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
       "banking/draw.yaml",
       "work/fulfill.yaml",
     ],
-    environment: [],
-    inventory: [],
     peers: [],
+    environment: [],
   };
 }

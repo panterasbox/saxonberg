@@ -293,6 +293,10 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public resolveTraversal(mover: Stuff, mode: string): void {
       if (!this.isArmed() || this.trigger !== 'traversal') return;
+      // A RANGED delivery already found its victim when it resolved.
+      // Walking through where it landed is not what springs it, so the
+      // traversal trigger stays a contact-hazard affair.
+      if (this.delivery.isRanged()) return;
       if (this.moverAvoids(mover, mode)) return;
       // Spend it FIRST — the drop-reentrancy guard.
       this.spring();

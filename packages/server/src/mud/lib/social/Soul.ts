@@ -164,9 +164,8 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       // modality the audience perceives, not only speech. `react` rides
       // Soul too: a reaction dispatches an emote, so it requires Soul.
       self: ['social/emote.yaml', 'social/introduce.yaml', 'social/react.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     renderEmote(emote: Emote, opts?: EmoteOptions): EmoteBodies {

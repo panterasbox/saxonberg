@@ -45,9 +45,8 @@ export function IncorporealMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static commandContributions: CommandContributions = {
       self: ['charactergen/passage.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     public revocationReason = 'Your hand passes through it.';

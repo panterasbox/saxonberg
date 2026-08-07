@@ -283,9 +283,8 @@ export function WorkspaceMixin<
         'shell/cp.yaml',
         'shell/mv.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**
