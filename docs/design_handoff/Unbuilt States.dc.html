@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .card { border:1px solid var(--line); border-radius:3px; background:var(--surface); }
+
+    /* ── the one convention: a hatched ground means "the server cannot answer this" ── */
+    .unbuilt { position:relative; border:1px dashed var(--line); border-radius:3px;
+               background-image:repeating-linear-gradient(135deg,
+                 color-mix(in oklab,var(--info) 7%,transparent) 0 6px, transparent 6px 12px); }
+    .stamp { display:inline-flex; align-items:center; gap:5px; font-family:'IBM Plex Mono',monospace;
+             font-size:8px; letter-spacing:.11em; text-transform:uppercase; color:var(--info);
+             border:1px solid color-mix(in oklab,var(--info) 45%,transparent); border-radius:2px; padding:1px 5px; }
+    .stamp.empty { color:var(--fg-mute); border-color:var(--line); }
+    .stamp.live { color:var(--good); border-color:color-mix(in oklab,var(--good) 45%,transparent); }
+    .stamp.bad { color:var(--ember); border-color:var(--ember); }
+    .band { height:4px; background:var(--sunken); overflow:hidden; }
+    .band > i { display:block; height:100%; }
+    .hatch { height:4px; background-image:repeating-linear-gradient(135deg,
+             color-mix(in oklab,var(--info) 26%,transparent) 0 4px, var(--sunken) 4px 8px); }
+    .row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+    .row:last-child { border-bottom:none; }
+    .col { flex:1; min-width:0; }
+    .verdict { display:flex; gap:10px; padding:10px 12px; border-radius:3px; margin-bottom:6px; }
+  </style>
+</helmet>
+
+<div style="width:1440px; padding:40px 44px 64px; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px;">
+
+  <div style="max-width:880px; margin-bottom:32px;">
+    <div class="m" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:11px;">Convention · unbuilt states</div>
+    <h1 style="font-family:'Spectral',serif; font-weight:400; font-size:30px; line-height:1.17; margin:0 0 12px;">What to render when the server can't answer yet.</h1>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--fg-dim); margin:0 0 9px; max-width:780px;">A demo that wipes nightly buys a lot of latitude — nobody expects their character to persist. It buys <em>none</em> for showing a number the server did not produce, because a plausible fake is indistinguishable from a bug, and the one claim this game makes above all others is that its figures are real.</p>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--fg-dim); margin:0; max-width:780px;">So the rule is narrow and absolute: <strong style="color:var(--fg);">never render a figure the server did not send.</strong> Everything below is how to say so without the interface looking broken.</p>
+  </div>
+
+  <!-- ══ the three states ══ -->
+  <div class="lbl" style="margin-bottom:9px;">Three states that look nothing alike</div>
+  <div style="display:flex; gap:14px; margin-bottom:30px;">
+
+    <div class="card col" style="padding:15px 16px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:11px;">
+        <span class="stamp live">live</span>
+        <span style="font-size:12.5px; color:var(--fg);">the server answered</span>
+      </div>
+      <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;">
+          <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">PLAY</span>
+          <span class="m" style="font-size:14px; color:var(--good);">74</span>
+        </div>
+        <div class="band"><i style="width:74%; background:var(--good);"></i></div>
+      </div>
+      <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Normal rendering. No stamp, no hatch, nothing to explain. This is the only state that gets to show a number.</p>
+    </div>
+
+    <div class="card col" style="padding:15px 16px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:11px;">
+        <span class="stamp empty">empty</span>
+        <span style="font-size:12.5px; color:var(--fg);">answered, with nothing</span>
+      </div>
+      <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;">
+          <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">PLAY</span>
+          <span class="m" style="font-size:14px; color:var(--fg-mute);">—</span>
+        </div>
+        <div class="band"></div>
+      </div>
+      <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">A real zero. Korrin has never been taken out, so <span class="m" style="font-size:11px;">—</span> is the truth and deserves a reason, not a stamp.</p>
+    </div>
+
+    <div class="card col" style="padding:15px 16px; border-color:color-mix(in oklab,var(--info) 40%,var(--line));">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:11px;">
+        <span class="stamp">not wired</span>
+        <span style="font-size:12.5px; color:var(--fg);">no endpoint yet</span>
+      </div>
+      <div class="unbuilt" style="padding:11px 12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;">
+          <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">RENOWN</span>
+          <span class="m" style="font-size:14px; color:var(--info);">╌╌</span>
+        </div>
+        <div class="hatch"></div>
+      </div>
+      <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Hatched ground, dashed border, <span class="m" style="font-size:11px;">╌╌</span> in place of the value. The layout is real so it can be judged; the figure is visibly absent.</p>
+    </div>
+
+  </div>
+
+  <!-- categorically different: not a state to render, a state to refuse -->
+  <div class="lbl" style="margin-bottom:9px;">And the fourth, which is never shipped</div>
+  <div class="card" style="padding:15px 16px; border-color:var(--ember); margin-bottom:30px; display:flex; gap:20px; align-items:flex-start;">
+    <div style="flex:0 0 236px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:11px;">
+        <span class="stamp bad">never this</span>
+        <span style="font-size:12.5px; color:var(--fg);">a plausible fake</span>
+      </div>
+      <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; opacity:.75;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;">
+          <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">RENOWN</span>
+          <span class="m" style="font-size:14px; color:var(--ember);">31</span>
+        </div>
+        <div class="band"><i style="width:31%; background:var(--ember);"></i></div>
+      </div>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 9px;">It is not a fourth way of showing missing data — it is the absence of one. Nothing on it says the server was never asked, so it is indistinguishable from working: someone will screenshot it, quote the figure back to you, or file a bug when it never moves.</p>
+      <p style="font-size:12.5px; color:var(--fg-mute); line-height:1.6; margin:0;">Which is why it sits apart from the three above rather than beside them. The others are choices about how to be honest; this one is the thing they exist to prevent.</p>
+    </div>
+  </div>
+
+  <!-- ══ the decision ══ -->
+  <div style="display:flex; gap:26px; margin-bottom:28px;">
+    <div style="flex:0 0 620px;">
+      <div class="lbl" style="margin-bottom:9px;">What the agent should do, in order</div>
+
+      <div class="verdict" style="border:1px solid var(--good); background:color-mix(in oklab,var(--good) 8%,transparent);">
+        <span class="m" style="font-size:15px; color:var(--good); flex:none;">1</span>
+        <div>
+          <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">Ship the surface, hatch the value</div>
+          <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">Default. The layout, the copy and the affordances are all judgeable without the number, and wiring it later is a one-line change rather than a redesign.</p>
+        </div>
+      </div>
+
+      <div class="verdict" style="border:1px solid var(--line);">
+        <span class="m" style="font-size:15px; color:var(--fg-dim); flex:none;">2</span>
+        <div>
+          <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">Cut the widget entirely</div>
+          <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">When the surface tells you nothing without its data — a chart, a leaderboard, a sparkline. An empty chart is worse than no chart, and the shelf already lets a player add it later.</p>
+        </div>
+      </div>
+
+      <div class="verdict" style="border:1px solid var(--line);">
+        <span class="m" style="font-size:15px; color:var(--fg-dim); flex:none;">3</span>
+        <div>
+          <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">Seed the world instead of the widget</div>
+          <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">If a figure must be live for the demo to make sense, put real content in the world so the real endpoint returns something. Slower, and the only version that survives contact with a screenshot.</p>
+        </div>
+      </div>
+
+      <div class="verdict" style="border:1px solid var(--ember); background:color-mix(in oklab,var(--ember) 8%,transparent);">
+        <span class="m" style="font-size:15px; color:var(--ember); flex:none;">✕</span>
+        <div>
+          <div style="font-size:13px; color:var(--fg); margin-bottom:3px;">Hardcode a number that looks real</div>
+          <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0;">Including "just for now". It outlives the sprint, it gets demoed, and the first person to notice it never moves concludes the whole readout is theatre.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1; min-width:0;">
+      <div class="lbl" style="margin-bottom:9px;">Where this already bites</div>
+      <div class="card" style="padding:5px 14px; margin-bottom:12px;">
+        <sc-for list="{{ audit }}" as="a" hint-placeholder-count="6">
+          <div class="row">
+            <span style="font-size:12px; color:var(--fg-dim); flex:1; min-width:0;">{{ a.what }}</span>
+            <span class="stamp {{ a.cls }}" style="flex:none;">{{ a.state }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Everything designed this session, against what the server can answer today. The hatched ones are not blockers — they are the list of one-line changes that turn the demo into the product.</p>
+    </div>
+  </div>
+
+  <!-- ══ in prose ══ -->
+  <div class="card" style="padding:16px 18px; max-width:1010px;">
+    <div class="lbl" style="margin-bottom:9px;">And in the world itself</div>
+    <div style="display:flex; gap:24px;">
+      <div style="flex:1;">
+        <div style="font-size:12.5px; color:var(--fg); margin-bottom:5px;">Prose never hedges</div>
+        <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0 0 8px;">A room description does not get a "not wired" stamp — that breaks the fiction to report an engineering fact, which is the wrong trade in the one place the game is supposed to be a world.</p>
+        <p style="font-size:12px; color:var(--fg-mute); line-height:1.55; margin:0;">If a thing cannot be described yet, it is not in the room yet.</p>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:12.5px; color:var(--fg); margin-bottom:5px;">Commands refuse honestly</div>
+        <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0 0 8px;">A verb the server does not implement should say so in the machine voice, not fail silently or pretend to work:</p>
+        <div class="unbuilt" style="padding:8px 10px;">
+          <div class="m" style="font-size:11.5px; color:var(--fg-dim);"><span style="color:var(--fg-mute);">here›</span> renown</div>
+          <div class="m" style="font-size:11.5px; color:var(--info); margin-top:3px;">not built yet — renown is designed but has no endpoint. <span style="color:var(--fg-mute);">try</span> score</div>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:12.5px; color:var(--fg); margin-bottom:5px;">The demo says it is a demo</div>
+        <p style="font-size:12px; color:var(--fg-dim); line-height:1.55; margin:0 0 8px;">The front door already tells people the world resets nightly, framed as freedom rather than apology. One line there covers every placeholder in the build:</p>
+        <p style="font-size:12px; color:var(--fg); line-height:1.55; margin:0; font-style:italic;">“Parts of this are drawn but not wired. Those are hatched, so you can tell what the game does from what it will do.”</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1080}}">
+class Component extends DCLogic {
+  // everything designed this session, against what the server can answer today
+  AUDIT=[
+    ['Command grammar, verb specs, arity','live'],
+    ['MML tags, topics, gutter numbers','live'],
+    ['Reactions, emotes, the pile','live'],
+    ['Chat history, press archive, help search','live'],
+    ['Forums: subjects, surfaces, argument lens','live'],
+    ['Git panel: status, diff, publish, revert','live'],
+    ['Streaming: watch, tune, standby','live'],
+    ['Prompts: stack, validation, compose','live'],
+    ['Standing — play / make / fund','unwired'],
+    ['Renown','unwired'],
+    ['Traits, competence digest','unwired'],
+    ['The practice record','unwired'],
+    ['Notification policy + ping variants','partial'],
+    ['Wiki search, forum search','unwired'],
+    ['Durable clips + attestation','unwired'],
+    ['Per-player frame store','unwired'],
+  ];
+
+  renderVals(){
+    const MAP={ live:['live','live'], unwired:['not wired',''], partial:['partial',''] };
+    return {
+      audit:this.AUDIT.map(([what,k])=>({
+        what, state:MAP[k][0],
+        cls: k==='live' ? 'live' : (k==='partial' ? 'empty' : ''),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

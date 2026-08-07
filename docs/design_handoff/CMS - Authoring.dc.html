@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+      --key:#5b8fd6; --str:#4a9d8f; --num:#c9a227; --com:#5a6b8a;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .tr { display:flex; align-items:center; gap:6px; padding:3px 8px; border-radius:2px; cursor:pointer;
+          font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--fg-dim); white-space:nowrap; }
+    .tr:hover { background:var(--raised); color:var(--fg); }
+    .tr.on { background:var(--raised); color:var(--fg); box-shadow:inset 2px 0 0 var(--accent); }
+    .tr.dirty::after { content:'●'; color:var(--accent); font-size:8px; margin-left:auto; }
+    .tab { display:inline-flex; align-items:center; gap:7px; height:30px; padding:0 11px; border:1px solid var(--line);
+           border-bottom:none; border-radius:3px 3px 0 0; background:var(--sunken); color:var(--fg-dim);
+           cursor:pointer; font-family:'IBM Plex Mono',monospace; font-size:11.5px; position:relative; top:1px; }
+    .tab.on { background:var(--ground); color:var(--fg); }
+    .ln { font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.65; }
+    .gut { color:var(--fg-mute); text-align:right; padding-right:11px; user-select:none; }
+    .k { color:var(--key); } .s { color:var(--str); } .n { color:var(--num); } .c { color:var(--com); }
+    .ptab { display:inline-flex; align-items:center; padding:4px 11px; font-size:11.5px; color:var(--fg-dim);
+            border:1px solid var(--line); cursor:pointer; }
+    .ptab:first-child { border-radius:3px 0 0 3px; }
+    .ptab:last-child { border-radius:0 3px 3px 0; border-left:none; }
+    .ptab.on { background:var(--raised); color:var(--fg); border-color:var(--accent); }
+    .grow { display:flex; align-items:center; gap:8px; padding:5px 7px; border-radius:2px; }
+    .grow:hover { background:var(--raised); }
+    .grow.skip { opacity:.55; }
+    .gst { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; flex:none; width:11px; }
+    .pub { display:inline-flex; align-items:center; font-family:'Public Sans',sans-serif; font-size:12px; font-weight:600;
+           color:var(--white); background:var(--red); border:1px solid var(--white); border-radius:3px;
+           padding:6px 13px; cursor:pointer; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:3px 8px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    .act.warn { color:var(--ember); border-color:color-mix(in oklab,var(--ember) 45%,transparent); }
+    .send { font-family:'Public Sans',sans-serif; font-size:12.5px; font-weight:600; color:var(--white);
+            background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 14px; height:30px; cursor:pointer; }
+    .hrow { display:flex; gap:9px; padding:7px 0; border-bottom:1px solid var(--line-soft); }
+    .hk { font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--accent); flex:none; }
+    .sig { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--info);
+           border:1px solid color-mix(in oklab,var(--info) 40%,transparent); border-radius:2px; padding:1px 5px; }
+  </style>
+</helmet>
+
+<div id="cms-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- ══ the two trees ══ -->
+  <nav style="flex:0 0 240px; display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--line); min-height:0;">
+    <div style="flex:none; display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--line);">
+      <span class="cap" style="font-size:12px;">Workspace</span>
+      <div style="flex:1;"></div>
+      <span class="m" style="font-size:9px; color:var(--fg-mute);">mirror</span>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:8px;">
+      <!-- content vs source is the axis `write -c` / `-s` names -->
+      <div style="display:flex; align-items:center; gap:6px; padding:4px 8px 6px;">
+        <span class="lbl" style="font-size:8.5px;">content</span>
+        <span class="m" style="font-size:8.5px; color:var(--fg-mute);">-c</span>
+      </div>
+      <sc-for list="{{ contentTree }}" as="f" hint-placeholder-count="4">
+        <div class="tr {{ f.cls }}" data-file="{{ f.id }}" style="padding-left:{{ f.pad }};">{{ f.label }}</div>
+      </sc-for>
+
+      <div style="display:flex; align-items:center; gap:6px; padding:12px 8px 6px;">
+        <span class="lbl" style="font-size:8.5px;">source</span>
+        <span class="m" style="font-size:8.5px; color:var(--fg-mute);">-s</span>
+      </div>
+      <sc-for list="{{ sourceTree }}" as="f" hint-placeholder-count="3">
+        <div class="tr {{ f.cls }}" data-file="{{ f.id }}" style="padding-left:{{ f.pad }};">{{ f.label }}</div>
+      </sc-for>
+    </div>
+
+    <div style="flex:none; padding:8px 12px 10px; border-top:1px solid var(--line);">
+      <div class="m" style="font-size:10px; color:var(--fg-mute); margin-bottom:6px;">{{ pwd }}</div>
+      <div style="display:flex; gap:5px; flex-wrap:wrap;">
+        <span class="act">find</span><span class="act">grep</span><span class="act">mkdir</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ the editor ══ -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <div style="flex:none; display:flex; align-items:flex-end; gap:3px; padding:8px 14px 0; background:var(--surface); border-bottom:1px solid var(--line);">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+        <span class="tab {{ t.cls }}" data-file="{{ t.id }}">{{ t.label }}<sc-if value="{{ t.dirty }}" hint-placeholder-val="{{ false }}"><span style="color:var(--accent); font-size:8px;">●</span></sc-if></span>
+      </sc-for>
+    </div>
+
+    <div style="flex:none; display:flex; align-items:center; gap:9px; padding:7px 14px; background:var(--sunken); border-bottom:1px solid var(--line-soft);">
+      <span class="m" style="font-size:9px; color:{{ treeHue }}; border:1px solid {{ treeHue }}; border-radius:2px; padding:1px 6px;">{{ treeTag }}</span>
+      <span class="m" style="font-size:11px; color:var(--fg-dim);">{{ openPath }}</span>
+      <div style="flex:1;"></div>
+      <sc-if value="{{ isDirty }}" hint-placeholder-val="{{ true }}">
+        <span class="m" style="font-size:9.5px; color:var(--accent);">unsaved</span>
+      </sc-if>
+      <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ saveCmd }}</span>
+      <button class="send">Save ⌘S</button>
+    </div>
+
+    <div style="flex:1; overflow:auto; padding:11px 0; background:var(--ground); min-height:0;">
+      <div style="display:grid; grid-template-columns:46px 1fr;">
+        <sc-for list="{{ lines }}" as="l" hint-placeholder-count="16">
+          <div class="ln gut">{{ l.n }}</div>
+          <div class="ln" style="padding-right:16px; white-space:pre;">{{ l.code }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- the shell is the same command bus; the editor is a payload channel onto it -->
+    <div style="flex:none; padding:8px 14px 10px; border-top:1px solid var(--line); background:var(--sunken);">
+      <div style="display:flex; align-items:center; gap:9px;">
+        <span class="m" style="font-size:12.5px; color:var(--accent); flex:none;">{{ shellPrompt }}</span>
+        <div style="flex:1; display:flex; align-items:center; height:32px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+          <span class="m" style="font-size:12px; color:var(--fg-mute);">a shell, not a second product — ls, cd, cp, mv, rm, script</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+        <span style="font-size:11px; color:var(--fg-mute);">this bar is in</span>
+        <span class="m" style="font-size:10.5px; color:var(--accent);">mode shell</span>
+        <span style="font-size:11px; color:var(--fg-mute);">— a bare line dispatches as a shell command; <span class="m" style="font-size:10.5px;">/look</span> escapes for one command</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ help, plugged in ══ -->
+  <aside style="flex:0 0 316px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+    <div style="flex:none; display:flex; align-items:center; gap:8px; padding:9px 13px; border-bottom:1px solid var(--line);">
+      <div style="display:flex;">
+        <span class="ptab {{ helpCls }}" data-panel="help">Help</span>
+        <span class="ptab {{ gitCls }}" data-panel="git">Git<sc-if value="{{ anyDirty }}" hint-placeholder-val="{{ true }}"><span style="color:var(--accent); font-size:8px; margin-left:5px;">●</span></sc-if></span>
+      </div>
+      <div style="flex:1;"></div>
+      <span class="m" style="font-size:9px; color:var(--fg-mute);">{{ panelApi }}</span>
+    </div>
+
+    <!-- ══ HELP ══ -->
+    <sc-if value="{{ isHelp }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none; padding:9px 13px; border-bottom:1px solid var(--line-soft);">
+      <div style="display:flex; align-items:center; gap:7px; height:30px; padding:0 10px; border:1px solid var(--line); border-radius:3px; background:var(--sunken);">
+        <span class="m" style="font-size:11px; color:var(--fg-mute);">⌕</span>
+        <span class="m" style="font-size:11.5px; color:var(--fg-dim);">{{ helpQuery }}</span>
+      </div>
+      <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:7px 0 0;">Follows the caret — the symbol under your cursor is the query, so the panel is context, not a manual you go and open.</p>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:11px 13px;">
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:9px;">
+        <span class="m" style="font-size:14px; color:var(--accent);">{{ helpTitle }}</span>
+        <span class="m" style="font-size:9px; color:var(--fg-mute); border:1px solid var(--line); border-radius:2px; padding:1px 5px;">{{ helpKind }}</span>
+      </div>
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 12px;">{{ helpBody }}</p>
+
+      <sc-if value="{{ hasFields }}" hint-placeholder-val="{{ true }}">
+        <div class="lbl" style="margin-bottom:6px;">{{ fieldsLabel }}</div>
+        <sc-for list="{{ helpFields }}" as="h" hint-placeholder-count="4">
+          <div class="hrow">
+            <span class="hk">{{ h.k }}</span>
+            <span style="font-size:11.5px; color:var(--fg-dim); line-height:1.5; flex:1;">{{ h.v }}</span>
+          </div>
+        </sc-for>
+      </sc-if>
+
+      <sc-if value="{{ hasMixins }}" hint-placeholder-val="{{ false }}">
+        <div class="lbl" style="margin:13px 0 6px;">Composes</div>
+        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:9px;">
+          <sc-for list="{{ helpMixins }}" as="mx" hint-placeholder-count="3">
+            <span class="sig">{{ mx.n }}</span>
+          </sc-for>
+        </div>
+        <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">The same palette the game names on every object — an author meets these in play before they ever open the editor.</p>
+      </sc-if>
+
+      <div style="margin-top:13px; padding-top:11px; border-top:1px solid var(--line-soft);">
+        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+          <span class="act">insert example</span>
+          <span class="act">open in wiki</span>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ══ GIT ══ -->
+    <sc-if value="{{ isGit }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none; padding:9px 13px; border-bottom:1px solid var(--line-soft);">
+        <div style="display:flex; align-items:center; gap:7px; margin-bottom:5px;">
+          <span class="m" style="font-size:12px; color:var(--accent);">{{ branch }}</span>
+          <span class="m" style="font-size:9px; color:{{ divHue }}; border:1px solid {{ divHue }}; border-radius:2px; padding:1px 5px;">{{ divergence }}</span>
+        </div>
+        <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:0;">A long-lived authoring branch. Your edits sit as working-tree changes until you publish them.</p>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:11px 13px;">
+        <div class="lbl" style="margin-bottom:7px;">Dirty · {{ dirtyCount }}</div>
+        <sc-for list="{{ dirty }}" as="d" hint-placeholder-count="4">
+          <div class="grow {{ d.cls }}">
+            <span class="gst" style="color:{{ d.hue }};">{{ d.st }}</span>
+            <span class="m" style="font-size:11px; color:{{ d.pathHue }}; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; direction:rtl; text-align:left;">{{ d.path }}</span>
+            <sc-if value="{{ d.locked }}" hint-placeholder-val="{{ false }}">
+              <span class="m" style="font-size:8.5px; color:var(--fg-mute); flex:none;" title="{{ d.why }}">⃠</span>
+            </sc-if>
+          </div>
+        </sc-for>
+
+        <!-- publish stages only what you may write; the rest is not an error -->
+        <sc-if value="{{ anySkipped }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid var(--line); border-left:2px solid var(--fg-mute); border-radius:2px; padding:9px 10px; margin-top:9px;">
+            <div class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em; margin-bottom:5px;">{{ skipCount }} LEFT FOR THEIR OWNER</div>
+            <p style="font-size:11px; color:var(--fg-dim); line-height:1.5; margin:0;">Publish stages only the dirty files in zones you may write. The rest stay dirty — not an error, and not a permission bypass.</p>
+          </div>
+        </sc-if>
+
+        <div style="margin-top:13px; padding-top:11px; border-top:1px solid var(--line-soft);">
+          <div class="lbl" style="margin-bottom:6px;">Message</div>
+          <div style="display:flex; align-items:center; height:32px; padding:0 10px; border:1px solid var(--line); border-radius:3px; background:var(--sunken); margin-bottom:8px;">
+            <span class="m" style="font-size:11.5px; color:var(--fg);">fix the lounge bar brain</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:7px;">
+            <span class="pub">Publish {{ writableCount }}</span>
+            <span class="act">diff</span>
+            <span class="act">log</span>
+          </div>
+          <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:8px 0 0;">Commits authored to you and pushes. A rejected push keeps the commit locally — re-pushable, never lost.</p>
+        </div>
+
+        <div style="margin-top:13px; padding-top:11px; border-top:1px solid var(--line-soft);">
+          <div class="lbl" style="margin-bottom:7px;">Recent</div>
+          <sc-for list="{{ log }}" as="c" hint-placeholder-count="3">
+            <div style="display:flex; gap:8px; padding:5px 0; border-bottom:1px solid var(--line-soft);">
+              <span class="m" style="font-size:10px; color:var(--accent); flex:none;">{{ c.sha }}</span>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:11.5px; color:var(--fg); line-height:1.4;">{{ c.msg }}</div>
+                <div class="m" style="font-size:9px; color:var(--fg-mute);">{{ c.who }} · {{ c.when }}</div>
+              </div>
+              <span class="act" style="font-size:9px; padding:2px 6px; flex:none;">revert</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="border:1px solid var(--line); border-left:2px solid var(--info); border-radius:2px; padding:9px 10px; margin-top:12px;">
+          <div class="m" style="font-size:8.5px; color:var(--info); letter-spacing:.1em; margin-bottom:5px;">COMMITTEE OF RECORD</div>
+          <p style="font-size:11px; color:var(--fg-dim); line-height:1.5; margin:0 0 6px;">This subdivision is administered by <span class="m" style="font-size:11px; color:var(--fg);">guild:wrights</span> — title is administration, and the same group gates what you may write here.</p>
+          <span class="act" style="font-size:9px;">committee channel</span>
+        </div>
+      </div>
+    </sc-if>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { file:'anvil', panel:'help' };
+
+  // status is per-file: publish stages only zones you may write
+  DIRTY=[
+    { path:'packages/server/src/mud/domain/lounge/BarLogic.ts', st:'M', writable:true },
+    { path:'packages/server/src/mud/seeds/domain/lounge/anvil.yaml', st:'M', writable:true },
+    { path:'packages/server/src/mud/seeds/domain/lounge/mixing-glass.yaml', st:'A', writable:true },
+    { path:'packages/server/src/mud/lib/combat/StrikeResolver.ts', st:'M', writable:false,
+      why:'outside your write zone — left dirty for its owner' },
+    { path:'docs/slates/builds/lounge-slate.md', st:'M', writable:false,
+      why:'outside packages/ — git is never a permission bypass' },
+  ];
+
+  LOG=[
+    { sha:'1a2b3c4', msg:'lounge: the waiter now notices anchovy dissent', who:'you', when:'2h' },
+    { sha:'9f0e1d2', msg:'anvil: correct the Brinell figure', who:'you', when:'yesterday' },
+    { sha:'7c3b8a5', msg:'combat: shield ring on a caught blow', who:'Wren', when:'2d' },
+  ];
+
+  FILES={
+    anvil:{ label:'anvil.yaml', tree:'content', path:'/content/ashmill/guild-quarter/anvil', dirty:true,
+      help:'Idea', helpKind:'class', helpQuery:'class: /lib/stuff/Idea',
+      helpBody:'The default backing class for a content write. Holds the template’s data map and hydrates into a Stuff at load. Override with --class when the object needs behaviour of its own.',
+      fieldsLabel:'dataSchema', fields:[
+        ['name','Display name. Required.'],
+        ['mass','Kilograms. Validated numeric — the physics reads this.'],
+        ['material','Keys the material table for thermal and hardness.'],
+        ['describe','World prose. MML permitted.'],
+      ],
+      mixins:['Tangible','Thermal','Tool','Fixture'],
+      code:[
+        ['c','# /content/ashmill/guild-quarter/anvil'],
+        ['k','name','plain',': ','s','"a cast-iron anvil"'],
+        ['k','mass','plain',': ','n','54.4','c','   # kg'],
+        ['k','material','plain',': ','s','"cast-iron"'],
+        ['plain',''],
+        ['k','describe','plain',': |'],
+        ['plain','  A cast-iron anvil, its horn worn smooth from'],
+        ['plain','  decades of use. Cold to the touch — the'],
+        ['plain','  <thing kind="forge">forge</thing> beside it has'],
+        ['plain','  not been lit today.'],
+        ['plain',''],
+        ['k','mixins','plain',':'],
+        ['plain','  - Tangible'],
+        ['plain','  - Thermal'],
+        ['plain','  - Tool'],
+        ['plain','  - Fixture'],
+      ] },
+    forge:{ label:'forge.yaml', tree:'content', path:'/content/ashmill/guild-quarter/forge', dirty:false,
+      help:'Thermal', helpKind:'mixin', helpQuery:'mixin: Thermal',
+      helpBody:'Gives an object a temperature the physics reads and instruments can measure. Affords `measure temp` under perception. Composes with Furnace for anything that produces heat rather than merely holding it.',
+      fieldsLabel:'fields', fields:[
+        ['tempC','Current temperature in Celsius.'],
+        ['capacity','Specific heat — how hard it is to move.'],
+        ['ambient','What it decays toward when unattended.'],
+      ],
+      mixins:['Furnace','Thermal','Combustible','Fixture'],
+      code:[
+        ['c','# /content/ashmill/guild-quarter/forge'],
+        ['k','name','plain',': ','s','"the forge"'],
+        ['k','tempC','plain',': ','n','1240'],
+        ['k','capacity','plain',': ','n','0.46'],
+        ['k','ambient','plain',': ','n','18'],
+        ['plain',''],
+        ['k','mixins','plain',':'],
+        ['plain','  - Furnace'],
+        ['plain','  - Thermal'],
+        ['plain','  - Combustible'],
+      ] },
+    truing:{ label:'truing.ts', tree:'source', path:'/source/lib/craft/truing.ts', dirty:false,
+      help:'write', helpKind:'command', helpQuery:'command: write',
+      helpBody:'Create or replace authored material at a path. A content write lands a template with a data map; a source write lands file bytes. Under mirror mode it cannot guess the tree — pass -c or -s.',
+      fieldsLabel:'options', fields:[
+        ['-c --content','Write to the content tree.'],
+        ['-s --source','Write to the source tree.'],
+        ['--class','Backing class for content writes.'],
+        ['--mql','Target wherever a query resolves.'],
+      ],
+      mixins:[],
+      code:[
+        ['c','// truing a rim: the jig holds one at a time'],
+        ['k','export function ','plain','trueRim(rim: Rim, jig: Jig) {'],
+        ['plain','  if (!jig.isSet()) '],
+        ['k','    throw ','plain','new JigNotSet();'],
+        ['plain',''],
+        ['plain','  const run = rim.deflection();'],
+        ['plain','  while (run > TOLERANCE) {'],
+        ['plain','    jig.press(rim, run * GAIN);'],
+        ['plain','  }'],
+        ['k','  return ','plain','rim;'],
+        ['plain','}'],
+      ] },
+  };
+
+  TREE={
+    content:[['ashmill/',0],['guild-quarter/',1],['anvil.yaml',2,'anvil'],['forge.yaml',2,'forge'],['tavern.yaml',2]],
+    source:[['lib/',0],['craft/',1],['truing.ts',2,'truing']],
+  };
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('cms-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const pn=e.target.closest('[data-panel]');
+      if(pn&&r.contains(pn)) return this.setState({panel:pn.getAttribute('data-panel')});
+      const f=e.target.closest('[data-file]');
+      if(f&&r.contains(f)) return this.setState({file:f.getAttribute('data-file')});
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  renderVals(){
+    const E=React.createElement;
+    const panel=this.state.panel;
+    const writable=this.DIRTY.filter(d=>d.writable);
+    const skipped=this.DIRTY.filter(d=>!d.writable);
+    const id=this.state.file, F=this.FILES[id];
+    const isContent=F.tree==='content';
+
+    const tree=(kind)=>this.TREE[kind].map(([label,depth,file])=>({
+      label, pad:(6+depth*13)+'px', id:file||'',
+      cls:(file===id?'on':'')+(file&&this.FILES[file]&&this.FILES[file].dirty?' dirty':''),
+    }));
+
+    // a token row renders as spans; \`plain\` is unstyled
+    const lines=F.code.map((row,i)=>{
+      const parts=[];
+      for(let j=0;j<row.length;j+=2){
+        const cls=row[j], txt=row[j+1]!==undefined?row[j+1]:'';
+        parts.push(cls==='plain' ? txt : E('span',{key:j,className:cls},txt));
+      }
+      return { n:String(i+1), code:parts };
+    });
+
+    return {
+      contentTree:tree('content'), sourceTree:tree('source'),
+      pwd:'workspace.tree = mirror',
+      isHelp:panel==='help', isGit:panel==='git',
+      helpCls:panel==='help'?'on':'', gitCls:panel==='git'?'on':'',
+      panelApi: panel==='help' ? 'HelpApi.search' : 'GitApi.status',
+      anyDirty:this.DIRTY.length>0,
+      branch:'author/maren', divergence:'2 ahead', divHue:'var(--accent)',
+      dirtyCount:this.DIRTY.length+' files',
+      dirty:this.DIRTY.map(d=>({
+        path:d.path.replace(/^packages\/server\/src\/mud\//,'…/'),
+        st:d.st, hue: d.st==='A' ? 'var(--good)' : 'var(--warn)',
+        cls: d.writable ? '' : 'skip',
+        pathHue: d.writable ? 'var(--fg)' : 'var(--fg-mute)',
+        locked:!d.writable, why:d.why||'' })),
+      anySkipped:skipped.length>0, skipCount:String(skipped.length),
+      writableCount:writable.length+' files',
+      log:this.LOG,
+      tabs:Object.keys(this.FILES).map(k=>({ id:k, label:this.FILES[k].label,
+        cls:k===id?'on':'', dirty:this.FILES[k].dirty })),
+      openPath:F.path, isDirty:F.dirty,
+      treeTag:isContent?'CONTENT':'SOURCE',
+      treeHue:isContent?'var(--accent)':'var(--info)',
+      saveCmd:'write '+(isContent?'-c':'-s')+' '+F.path.replace(/^\/(content|source)/,''),
+      lines,
+      shellPrompt:'/content/ashmill/guild-quarter›',
+
+      helpQuery:F.helpQuery, helpTitle:F.help, helpKind:F.helpKind, helpBody:F.helpBody,
+      fieldsLabel:F.fieldsLabel,
+      helpFields:F.fields.map(([k,v])=>({k,v})), hasFields:F.fields.length>0,
+      helpMixins:F.mixins.map(n=>({n})), hasMixins:F.mixins.length>0,
+    };
+  }
+}
+</script>
+</body>
+</html>

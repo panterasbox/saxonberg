@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .tab { display:inline-flex; align-items:center; min-height:30px; padding:0 12px; border:1px solid var(--line);
+           background:transparent; color:var(--fg-dim); cursor:pointer; font-size:12px; font-family:'Public Sans',sans-serif; }
+    .tab.on { background:var(--raised); color:var(--fg); border-color:var(--accent); }
+    .tab:first-child { border-radius:3px 0 0 3px; }
+    .tab:last-child { border-radius:0 3px 3px 0; }
+    /* a frame, and the chips that accrete under it */
+    .fr { padding:8px 0; border-bottom:1px solid var(--line-soft); }
+    .fk { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; }
+    .gut { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); cursor:pointer;
+           border:1px solid transparent; border-radius:2px; padding:0 3px; }
+    .gut:hover { color:var(--accent); border-color:var(--accent); }
+    /* vertical space is the constraint: the chip row rides the frame body,
+       and a frame with no reactions spends nothing on an empty row */
+    .chiprow { display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap;
+               vertical-align:baseline; margin-left:8px; }
+    /* the bare ＋ is invisible until the frame is hovered, so quiet frames stay quiet */
+    .fr .addchip.solo { opacity:0; transition:opacity .1s; }
+    .fr:hover .addchip.solo { opacity:1; }
+    .chip { display:inline-flex; align-items:center; gap:5px; padding:1px 8px; border:1px solid var(--line);
+            border-radius:10px; background:var(--sunken); cursor:pointer; font-size:11.5px; color:var(--fg-dim); }
+    .chip:hover { border-color:var(--fg-mute); color:var(--fg); }
+    .chip.mine { border-color:var(--accent); background:color-mix(in oklab,var(--accent) 15%,transparent); color:var(--fg); }
+    .chip .n { font-family:'IBM Plex Mono',monospace; font-size:11px; }
+    .addchip { display:inline-flex; align-items:center; padding:1px 8px; border:1px dashed var(--line);
+               border-radius:10px; color:var(--fg-mute); cursor:pointer; font-size:11.5px; }
+    /* a me-too pile: the same emote repeated in a scope, grouped and joinable */
+    .pile { display:inline-flex; align-items:center; gap:5px; padding:1px 8px; border:1px solid var(--info);
+            border-radius:10px; background:color-mix(in oklab,var(--info) 13%,transparent);
+            cursor:pointer; font-size:11.5px; color:var(--fg); }
+    .pile.mine { border-color:var(--accent); background:color-mix(in oklab,var(--accent) 15%,transparent); }
+    .addchip:hover { color:var(--accent); border-color:var(--accent); }
+    /* the picker */
+    .pick { border:1px solid var(--accent); border-radius:3px; background:var(--surface); margin-top:7px; overflow:hidden; }
+    .pgrid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; padding:9px; }
+    .pcell { display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 2px; border:1px solid transparent;
+             border-radius:3px; cursor:pointer; }
+    .pcell:hover { border-color:var(--accent); background:var(--raised); }
+    .pcell.on { border-color:var(--accent); background:var(--raised); }
+    .pemoji { font-size:16px; line-height:1; }
+    .pverb { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); }
+    .pcell:hover .pverb { color:var(--accent); }
+    .slotrow { display:flex; align-items:center; gap:7px; padding:7px 9px; border-top:1px solid var(--line-soft); }
+    .slot { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border:1px solid var(--line);
+            border-radius:2px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--fg-dim); cursor:pointer; }
+    .slot:hover { border-color:var(--accent); color:var(--fg); }
+    .slot.free { border-style:dashed; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:3px 8px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    .mode { display:flex; align-items:flex-start; gap:9px; padding:9px 11px; border:1px solid var(--line);
+            border-radius:3px; background:var(--surface); margin-bottom:6px; cursor:pointer; }
+    .mode:hover { border-color:var(--fg-mute); }
+    .mode.on { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); }
+    .rad { width:11px; height:11px; border-radius:50%; border:1px solid var(--fg-mute); flex:none; margin-top:3px; }
+    .mode.on .rad { border-color:var(--red); background:var(--red); }
+  </style>
+</helmet>
+
+<div id="rx-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <header style="flex:none; display:flex; align-items:center; gap:12px; padding:9px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+      <span class="cap" style="font-size:13px;">Reactions</span>
+      <span style="font-size:12px; color:var(--fg-dim);">an emote carrying <span class="m" style="font-size:11.5px;">inReactionTo</span> — nothing more</span>
+      <div style="flex:1;"></div>
+      <span class="lbl">channel mode</span>
+      <div style="display:flex;">
+        <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+          <button class="tab {{ m.cls }}" data-mode="{{ m.id }}">{{ m.label }}</button>
+        </sc-for>
+      </div>
+    </header>
+
+    <div style="flex:none; display:flex; align-items:center; gap:9px; padding:7px 18px; background:var(--sunken); border-bottom:1px solid var(--line-soft);">
+      <span class="m" style="font-size:9px; color:{{ modeHue }}; border:1px solid {{ modeHue }}; border-radius:2px; padding:1px 6px;">{{ modeTag }}</span>
+      <span style="font-size:11.5px; color:var(--fg-dim);">{{ modeNote }}</span>
+      <div style="flex:1;"></div>
+      <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ audienceNote }}</span>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:11px 18px;">
+      <sc-for list="{{ feed }}" as="f" hint-placeholder-count="6">
+        <div class="fr" style="opacity:{{ f.op }};">
+          <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;">
+            <span class="gut">{{ f.gut }}</span>
+            <span class="fk" style="color:{{ f.hue }};">{{ f.kind }}</span>
+            <span class="m" style="font-size:8px; color:var(--fg-mute); letter-spacing:.06em;">{{ f.topic }}</span>
+            <span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">{{ f.t }}</span>
+          </div>
+
+          <!-- register: prose is narrated, functional is addressed -->
+          <sc-if value="{{ f.isProse }}" hint-placeholder-val="{{ true }}">
+            <div class="wp" style="font-size:15px; line-height:1.55; color:{{ f.fg }};">{{ f.body }}<sc-if value="{{ f.reactable }}" hint-placeholder-val="{{ true }}"><span class="chiprow"><sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2"><span class="chip {{ c.cls }}" data-chip="{{ c.key }}" title="{{ c.who }}"><span>{{ c.emoji }}</span><span class="n">{{ c.n }}</span></span></sc-for><sc-if value="{{ f.hasPile }}" hint-placeholder-val="{{ false }}"><span class="pile {{ f.pileCls }}" data-pile="{{ f.gut }}" title="{{ f.pileWho }}">＋{{ f.pileN }} same</span></sc-if><span class="addchip {{ f.soloCls }}" data-pick="{{ f.gut }}">＋</span></span></sc-if><sc-if value="{{ f.unreactable }}" hint-placeholder-val="{{ false }}"><span class="chiprow"><span class="m" style="font-size:9px; color:var(--ember); border:1px solid var(--ember); border-radius:2px; padding:1px 6px;" title="{{ f.whyNot }}">not reactable</span></span></sc-if></div>
+          </sc-if>
+          <sc-if value="{{ f.isFunc }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:baseline; gap:7px;">
+              <span class="m" style="font-size:10px; color:{{ f.chanHue }}; flex:none;">{{ f.chan }}</span>
+              <span style="font-size:13px; font-weight:600; color:{{ f.whoHue }}; flex:none;">{{ f.who }}</span>
+              <span class="wp" style="font-size:14.5px; line-height:1.5; flex:1; min-width:0;">{{ f.body }}<span class="chiprow"><sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2"><span class="chip {{ c.cls }}" data-chip="{{ c.key }}" title="{{ c.who }}"><span>{{ c.emoji }}</span><span class="n">{{ c.n }}</span></span></sc-for><sc-if value="{{ f.hasPile }}" hint-placeholder-val="{{ false }}"><span class="pile {{ f.pileCls }}" data-pile="{{ f.gut }}" title="{{ f.pileWho }}">＋{{ f.pileN }} same</span></sc-if><span class="addchip {{ f.soloCls }}" data-pick="{{ f.gut }}">＋</span></span></sc-if></span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ f.pickerHere }}" hint-placeholder-val="{{ false }}">
+            <div class="pick">
+              <div style="display:flex; align-items:center; gap:8px; padding:7px 9px; background:var(--sunken); border-bottom:1px solid var(--line);">
+                <span class="lbl">emotes</span>
+                <span style="font-size:11px; color:var(--fg-mute);">emoji are aliases over canonical verbs</span>
+                <div style="flex:1;"></div>
+                <span class="m" style="font-size:9px; color:var(--fg-mute);">reacting to {{ f.gut }}</span>
+              </div>
+              <div class="pgrid">
+                <sc-for list="{{ palette }}" as="e" hint-placeholder-count="12">
+                  <span class="pcell {{ e.cls }}" data-emote="{{ e.verb }}">
+                    <span class="pemoji">{{ e.emoji }}</span>
+                    <span class="pverb">{{ e.verb }}</span>
+                  </span>
+                </sc-for>
+              </div>
+              <div class="slotrow">
+                <span class="lbl" style="flex:none;">slots</span>
+                <sc-for list="{{ slots }}" as="sl" hint-placeholder-count="2">
+                  <span class="slot {{ sl.cls }}">{{ sl.label }}</span>
+                </sc-for>
+                <sc-if value="{{ noSlots }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px; color:var(--fg-mute);">this emote takes no arguments</span>
+                </sc-if>
+                <div style="flex:1;"></div>
+                <span class="m" style="font-size:11.5px; color:var(--accent);">{{ f.pickCmd }}</span>
+                <span class="act">send ⏎</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- the fan-out inherits the register of the act it answers -->
+          <sc-for list="{{ f.prose }}" as="pr" hint-placeholder-count="1">
+            <div style="margin-top:6px; padding-left:11px; border-left:1px solid var(--line);">
+              <sc-if value="{{ pr.isProse }}" hint-placeholder-val="{{ true }}">
+                <div class="wp" style="font-size:14px; line-height:1.5; color:var(--fg-dim);">{{ pr.body }}</div>
+              </sc-if>
+              <sc-if value="{{ pr.isFunc }}" hint-placeholder-val="{{ false }}">
+                <div class="m" style="font-size:12.5px; color:var(--fg-dim);">{{ pr.body }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+
+      <sc-if value="{{ showDelta }}" hint-placeholder-val="{{ false }}">
+        <div class="fr" style="border-left:2px solid var(--accent); border-bottom:none; margin:0 -18px; padding:8px 18px; background:color-mix(in oklab,var(--accent) 7%,transparent);">
+          <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:3px;">
+            <span class="fk" style="color:var(--accent);">Reactions</span>
+            <span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:46</span>
+          </div>
+          <div style="font-size:13px; color:var(--fg-dim);">{{ deltaBody }}</div>
+          <div class="m" style="font-size:9.5px; color:var(--fg-mute); margin-top:4px;">only for acts of your own</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="flex:none; display:flex; align-items:center; gap:9px; padding:9px 18px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+      <span class="m" style="font-size:12.5px; color:var(--accent); flex:none;">here›</span>
+      <div style="flex:1; display:flex; align-items:center; gap:6px; height:36px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+        <span class="m" style="font-size:12.5px; color:{{ barHue }};">{{ barText }}</span>
+        <span style="width:8px;height:14px;background:var(--accent);border-radius:1px; margin-left:auto;"></span>
+      </div>
+      <button style="font-family:'Public Sans',sans-serif; font-size:12.5px; font-weight:600; color:var(--white); background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 15px; height:36px; cursor:pointer;">Send ⏎</button>
+    </div>
+  </div>
+
+  <aside style="flex:0 0 372px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+    <div style="flex:none; padding:10px 14px; border-bottom:1px solid var(--line-soft);"><span class="lbl">Why it renders this way</span></div>
+    <div style="flex:1; overflow-y:auto; padding:13px 14px;">
+
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 11px;">A reaction is an ordinary emote carrying one extra scope, <span class="m" style="font-size:11.5px;">inReactionTo</span>. There is no parallel dispatch and no second data model — so there is no reaction UI, only an emote UI that sometimes points at an earlier act.</p>
+
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+
+      <div class="lbl" style="margin-bottom:7px;">The tally is not the threshold</div>
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 8px;">The count always accrues. <span class="m" style="font-size:11.5px;">suppressFanOut</span> governs only the <em>prose line</em>. So the chip exists from the first reaction and never disappears — what the threshold decides is whether the act also earns a sentence.</p>
+      <p style="font-size:12.5px; color:var(--fg-mute); line-height:1.6; margin:0 0 11px;">Which is right: “Maren nods slowly” is worth a line when three people are present. The forty-seventh thumb is not.</p>
+
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+
+      <div class="lbl" style="margin-bottom:7px;">Channel modes</div>
+      <sc-for list="{{ modeRows }}" as="m" hint-placeholder-count="3">
+        <div class="mode {{ m.cls }}" data-mode="{{ m.id }}">
+          <span class="rad"></span>
+          <div style="flex:1;">
+            <div style="font-size:12.5px; color:var(--fg); margin-bottom:2px;">{{ m.label }}</div>
+            <div style="font-size:11.5px; color:var(--fg-mute); line-height:1.5;">{{ m.why }}</div>
+          </div>
+        </div>
+      </sc-for>
+      <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:8px 0 0;">Defaulted from audience size rather than hand-set. A three-person forge and a two-hundred-person stream are the same mechanism with opposite right answers.</p>
+
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+
+      <div class="lbl" style="margin-bottom:7px;">Retroactive mutation</div>
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 8px;">A chip attaching to a frame forty lines up is invisible in a scrolling log. Re-surfacing the frame would fix that and destroy the log, so instead the chip updates in place and a coalesced delta line appears <strong style="color:var(--fg);">only for your own acts</strong>.</p>
+      <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0 0 11px;">You care that people reacted to you. You do not need a line for every reaction to everyone.</p>
+
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+
+      <div class="lbl" style="margin-bottom:7px;">Familiar-biased sampling</div>
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 11px;">The sink carries a per-viewer sample weighted toward people you know, so a chip reads <span style="color:var(--fg);">“Tomas, Bramble and 45 others”</span> rather than a bare count. Better than the platforms manage, and already on the wire.</p>
+
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+
+      <div class="lbl" style="margin-bottom:7px;">The picker is an emote picker</div>
+      <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.6; margin:0 0 8px;">Emoji are an alias surface over canonical verbs, so every cell shows the verb it sends and the bar fills with the real command. This is the most-used interaction in the product; it is the last place the command line should go quiet.</p>
+      <p style="font-size:12.5px; color:var(--fg-mute); line-height:1.6; margin:0;">Emotes with grammar — <span class="m" style="font-size:11.5px;">;wave bob happily</span> — cannot fit a grid, so the picker reads the emote's declared slots and offers them. Typed <span class="m" style="font-size:11.5px;">stuff</span> slots resolve by MQL; <span class="m" style="font-size:11.5px;">free</span> slots are dashed.</p>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { mode:'threshold', picker:null, emote:'nod', mine:{} };
+
+  // canonical emotes; emoji is an alias, and slots come from the grammar
+  PALETTE=[
+    ['nod','👍',[]],
+    ['smile','🙂',[]],
+    ['laugh','😄',[['at','stuff']]],
+    ['frown','🙁',[]],
+    ['wave','👋',[['at','stuff'],['manner','free']]],
+    ['clap','👏',[['manner','free']]],
+    ['bow','🙇',[['to','stuff']]],
+    ['salute','🫡',[['to','stuff']]],
+    ['wince','😬',[]],
+    ['shrug','🤷',[]],
+    ['cheer','🎉',[['manner','free']]],
+    ['glare','😠',[['at','stuff']]],
+  ];
+
+  MODES={
+    prose:   ['Prose always','var(--good)','PROSE',
+              'Every reaction fans out as a line. Correct for a room where a nod is a scene beat.',
+              'audience 3 · a small room'],
+    threshold:['Threshold','var(--accent)','THRESHOLD',
+              'Below the threshold a reaction is prose and a chip. At or above it, the chip alone moves.',
+              'audience 14 · threshold 4'],
+    counter: ['Counter only','var(--info)','COUNTER',
+              'Never a line. Correct for a stream chat where prose would bury the broadcast.',
+              'audience 212 · a stream'],
+  };
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('rx-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const m=e.target.closest('[data-mode]');
+      if(m&&r.contains(m)) return this.setState({mode:m.getAttribute('data-mode')});
+      const pk=e.target.closest('[data-pick]');
+      if(pk&&r.contains(pk)){ const g=pk.getAttribute('data-pick');
+        return this.setState(s=>({picker:s.picker===g?null:g})); }
+      const em=e.target.closest('[data-emote]');
+      if(em&&r.contains(em)) return this.setState({emote:em.getAttribute('data-emote')});
+      const pl=e.target.closest('[data-pile]');
+      if(pl&&r.contains(pl)){ const k='pile:'+pl.getAttribute('data-pile');
+        return this.setState(st=>{ const m={...st.mine}; m[k]?delete m[k]:m[k]=1; return {mine:m}; }); }
+      const c=e.target.closest('[data-chip]');
+      if(c&&r.contains(c)){ const id=c.getAttribute('data-chip');
+        return this.setState(s=>{ const mine={...s.mine}; mine[id]?delete mine[id]:mine[id]=1; return {mine}; }); }
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  // ── every reactable act, in its own register. REACTABLE_TOPICS is the
+  //    closed v1 set from api/reaction.ts — tell/dm is deliberately absent.
+  FRAMES=[
+    { gut:'112', kind:'Say', hue:'#4a9d8f', topic:'world.speech.say', reg:'prose', t:'18:41',
+      body:'Tomas says, \u201cThat axle won\u2019t hold another season. I\u2019d not trust it past the river ford.\u201d',
+      react:{ nod:['Bramble','Wren','Perrin','Hallow','Bruni','Dagra'], wince:['Sable','Thessa'] },
+      verb:{ nod:'nods.', wince:'winces.' } },
+
+    { gut:'113', kind:'Emote', hue:'#a487c9', topic:'world.expression.emote', reg:'prose', t:'18:42',
+      body:'Bramble turns the rim over, frowning at the weld.',
+      react:{ laugh:['Bobalu','Aldric'] },
+      verb:{ laugh:'laughs.' } },
+
+    { gut:'114', kind:'Tell', hue:'#5b8fd6', topic:'world.expression.tell', reg:'prose', t:'18:42',
+      body:'Bramble tells you, \u201cCustoms house when the iron\u2019s done.\u201d',
+      unreactable:true, whyNot:'private acts are outside the v1 set — a tally implies an audience' },
+
+    { gut:'115', kind:'Chat', hue:'#c9a227', topic:'world.chat.message', reg:'func', t:'18:43',
+      chan:'[Gossip]', chanHue:'#c9a227', who:'Hallow', whoHue:'#c9a24a',
+      body:'buying river-iron, any grade — paying over the guild rate',
+      react:{ nod:['Perrin','Wren','Bruni'] },
+      verb:{ nod:'nods' } },
+
+    { gut:'115b', kind:'Say', hue:'#4a9d8f', topic:'world.speech.say', reg:'prose', t:'18:43',
+      body:'Tomas says, \u201cThe jig is set. Bring me the rim when the coals are white.\u201d',
+      react:{} },
+
+    { gut:'116', kind:'Shout', hue:'#e8705c', topic:'world.speech.shout', reg:'prose', t:'18:44',
+      body:'Bobalu shouts, \u201cCart loose on the high street!\u201d',
+      react:{ wince:['Sable'] },
+      verb:{ wince:'winces.' } },
+
+
+    { gut:'116b', kind:'Chat', hue:'#c9a227', topic:'world.chat.message', reg:'func', t:'18:44',
+      chan:'[Gossip]', chanHue:'#c9a227', who:'Perrin', whoHue:'var(--good)',
+      body:'anyone seen the cart? it was loose an hour ago',
+      react:{} },
+
+    // a me-too pile: thirty bare `;agree` emotes, grouped rather than printed
+    { gut:'117', kind:'Combat', hue:'#BF0A30', topic:'world.combat.exchange', reg:'prose', t:'18:45',
+      body:'Wren\u2019s hammer catches Dagra across the shoulder; the shield rings and holds.',
+      react:{ cheer:['Tomas','Bramble','Perrin','Hallow','Bruni'] },
+      verb:{ cheer:'cheers.' } },
+    // your own act — the only frame the delta line may be derived from
+    { gut:'118', kind:'Say', hue:'#4a9d8f', topic:'world.speech.say', reg:'prose', t:'18:45', yours:true,
+      body:'You say, \u201cI can have it trued before the ford run, but not both rims.\u201d',
+      react:{ nod:['Tomas','Bramble','Perrin','Wren','Hallow'], wince:['Bruni','Dagra'] },
+      verb:{ nod:'nods.', wince:'winces.' } },
+
+    // the first bare emote keeps its line; identical ones in-window join its pile
+    { gut:'119', kind:'Emote', hue:'#a487c9', topic:'world.expression.emote', reg:'func', t:'18:46',
+      chan:'[Gossip]', chanHue:'#c9a227', who:'*', whoHue:'var(--fg-mute)',
+      body:'Bobalu agrees.', react:{},
+      pile:{ verb:'agree', who:['Wren','Perrin','Bruni','Dagra','Sable','Thessa','Aldric','Hallow'] } },
+  ];
+
+  phrase(names){
+    if(names.length===0) return '';
+    if(names.length===1) return names[0];
+    if(names.length===2) return names[0]+' and '+names[1];
+    const rest=names.length-2;
+    return names[0]+', '+names[1]+' and '+rest+(rest===1?' other':' others');
+  }
+
+  renderVals(){
+    const mode=this.state.mode, M=this.MODES[mode], mine=this.state.mine;
+    const P=this.PALETTE.find(p=>p[0]===this.state.emote)||this.PALETTE[0];
+    const slots=P[2];
+    const threshold = mode==='prose' ? Infinity : (mode==='threshold' ? 4 : 0);
+    const cmd='re ;'+P[0]+slots.map(([n])=>' <'+n+'>').join('');
+    const emojiOf=(v)=>(this.PALETTE.find(x=>x[0]===v)||[,'?'])[1];
+
+    let deltaTotal=0, deltaTally=[];
+
+    const feed=this.FRAMES.map(F=>{
+      const isFunc=F.reg==='func';
+      if(F.unreactable){
+        return { gut:F.gut, kind:F.kind, hue:F.hue, topic:F.topic, t:F.t, op:'1', fg:'var(--fg)',
+          isProse:!isFunc, isFunc, body:F.body, chan:'', chanHue:'', who:'', whoHue:'',
+          reactable:false, unreactable:true, whyNot:F.whyNot,
+          chips:[], sample:'', hasSample:false, prose:[], pickerHere:false, pickCmd:cmd };
+      }
+      // your own reaction joins the list, so every figure moves with it
+      const listFor=(v)=> (mine[F.gut+':'+v] ? ['you'] : []).concat(F.react[v]||[]);
+      const chips=Object.keys(F.react).map(v=>{
+        const who=listFor(v);
+        return { key:F.gut+':'+v, emoji:emojiOf(v), n:String(who.length),
+          cls:mine[F.gut+':'+v]?'mine':'', who:this.phrase(who) };
+      });
+      const all=[]; Object.keys(F.react).forEach(v=>listFor(v).forEach(n=>{ if(!all.includes(n)) all.push(n); }));
+
+      // a me-too pile groups by (scope, emote, window) instead of inReactionTo —
+      // same threshold, same chip, but it claims nothing about intent
+      const joined=!!mine['pile:'+F.gut];
+      const pileWho=F.pile ? (joined?['you']:[]).concat(F.pile.who) : [];
+
+      // fan-out only while a tally sits below the threshold, in the act's register
+      const prose=[];
+      Object.keys(F.react).forEach(v=>{
+        const who=listFor(v);
+        if(who.length>=threshold) return;
+        who.forEach(n=>{
+          if(n==='you') return;
+          prose.push({ isProse:!isFunc, isFunc,
+            body: isFunc ? ('* '+n+' '+F.verb[v]) : (n+' '+F.verb[v]) });
+        });
+      });
+
+      // the delta reports reactions to acts of your own, so it reads the frame
+      // flagged `yours` rather than a hardcoded gutter number
+      if(F.yours){ Object.keys(F.react).forEach(v=>{ const c=listFor(v).length;
+        deltaTotal+=c; deltaTally.push(emojiOf(v)+' '+c); }); }
+
+      return { gut:F.gut, kind:F.kind, hue:F.hue, topic:F.topic, t:F.t,
+        op:F.dim?'.82':'1', fg:F.dim?'var(--fg-dim)':'var(--fg)',
+        isProse:!isFunc, isFunc, body:F.body,
+        chan:F.chan||'', chanHue:F.chanHue||'', who:F.who||'', whoHue:F.whoHue||'',
+        reactable:true, unreactable:false, whyNot:'',
+        chips, sample:this.phrase(all), hasSample:false,
+        hasPile:!!F.pile, pileN:String(pileWho.length), pileCls:joined?'mine':'',
+        pileWho: F.pile ? (this.phrase(pileWho)+' also typed ;'+F.pile.verb) : '',
+        soloCls: (Object.keys(F.react).length===0 && !F.pile) ? 'solo' : '',
+        prose, pickerHere:this.state.picker===F.gut, pickCmd:cmd };
+    });
+
+    return {
+      modes:Object.keys(this.MODES).map(id=>({id,label:this.MODES[id][0],cls:mode===id?'on':''})),
+      modeRows:Object.keys(this.MODES).map(id=>({id,label:this.MODES[id][0],why:this.MODES[id][3],cls:mode===id?'on':''})),
+      modeHue:M[1], modeTag:M[2], modeNote:M[3], audienceNote:M[4],
+      feed,
+      palette:this.PALETTE.map(([verb,emoji])=>({verb,emoji,cls:this.state.emote===verb?'on':''})),
+      slots:slots.map(([n,k])=>({ label:'<'+n+'>', cls:k==='free'?'free':'' })),
+      noSlots:slots.length===0,
+      showDelta: mode!=='prose',
+      deltaBody:deltaTotal+' people reacted to what you said — '+deltaTally.join(', ')+'.',
+      barText: this.state.picker ? cmd : 'type a command…',
+      barHue: this.state.picker ? 'var(--fg)' : 'var(--fg-mute)',
+    };
+  }
+}
+</script>
+</body>
+</html>

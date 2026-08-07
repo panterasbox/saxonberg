@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .dfr { display:flex; gap:11px; padding:8px 0; border-bottom:1px solid var(--line-soft); }
+    .dfr.tied { background:color-mix(in oklab,var(--info) 9%,transparent); margin:0 -10px; padding:8px 10px; border-left:2px solid var(--info); }
+    .dfk { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; flex:0 0 56px; padding-top:4px; }
+    .wp { font-family:'Newsreader',Georgia,serif; font-size:15px; line-height:1.6; }
+    .st { display:flex; align-items:center; gap:7px; min-height:32px; padding:0 11px; border:1px solid var(--line);
+          border-radius:3px; background:transparent; color:var(--fg-dim); cursor:pointer; font-size:12px; }
+    .st:hover { color:var(--fg); border-color:var(--fg-mute); }
+    .st.on { border-color:var(--red); background:var(--raised); color:var(--fg); box-shadow:inset 3px 0 0 var(--red); }
+    .opt { display:flex; align-items:center; gap:9px; min-height:38px; padding:0 12px; border:1px solid var(--line);
+           border-radius:3px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--fg); cursor:pointer; }
+    .opt:hover { border-color:var(--accent); }
+    .opt.sel { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+    .send { font-family:'Public Sans',sans-serif; font-size:13px; font-weight:600; color:var(--white);
+            background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 16px; height:38px; cursor:pointer; }
+    .ghost { font-family:'Public Sans',sans-serif; font-size:12.5px; color:var(--fg-dim); background:transparent;
+             border:1px solid var(--line); border-radius:3px; padding:0 12px; height:38px; cursor:pointer; }
+    .ghost:hover { color:var(--fg); border-color:var(--fg-mute); }
+    .qrow { display:flex; align-items:center; gap:9px; padding:8px 11px; border:1px solid var(--line);
+            border-radius:3px; background:var(--surface); cursor:pointer; margin-bottom:6px; }
+    .qrow:hover { border-color:var(--fg-mute); }
+    .qrow.fg { border-color:var(--accent); box-shadow:inset 3px 0 0 var(--accent); }
+    .tok { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--accent);
+           background:color-mix(in oklab,var(--accent) 13%,transparent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:1px 5px; }
+    .tokoff { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--fg-mute);
+              border:1px dashed var(--line); border-radius:2px; padding:1px 5px; cursor:pointer; }
+  </style>
+</helmet>
+
+<div id="pr-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- ══ left: terminal + the prompt area ══ -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <header style="flex:none; display:flex; align-items:center; gap:12px; padding:9px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+      <span class="cap" style="font-size:13.5px;">The Cartwright's Yard</span>
+      <div style="flex:1;"></div>
+      <span class="lbl">demo state</span>
+      <div style="display:flex; gap:5px;">
+        <sc-for list="{{ states }}" as="s" hint-placeholder-count="5">
+          <button class="st {{ s.cls }}" data-state="{{ s.id }}">{{ s.label }}</button>
+        </sc-for>
+      </div>
+    </header>
+
+    <div style="flex:1; overflow-y:auto; padding:12px 18px;">
+      <div class="dfr"><span class="dfk" style="color:#c98a3f;">Room</span><div class="wp" style="flex:1;">Packed earth between the shed and the tavern wall.</div><span class="m" style="font-size:9px; color:var(--fg-mute); flex:0 0 30px; text-align:right; padding-top:4px;">18:41</span></div>
+      <div class="dfr"><span class="dfk" style="color:var(--accent);">You</span><div style="flex:1;" class="m"><span style="font-size:13px; color:var(--fg-dim);">true rim</span></div><span class="m" style="font-size:9px; color:var(--fg-mute); flex:0 0 30px; text-align:right; padding-top:4px;">18:42</span></div>
+
+      <!-- opts.body ships a world.prompt frame carrying { promptId } — this is the correlation -->
+      <div class="dfr tied">
+        <span class="dfk" style="color:var(--info);">Prompt</span>
+        <div class="wp" style="flex:1;">Three rims match: the <span style="color:var(--accent);">oak rim</span>, the <span style="color:var(--accent);">iron-shod rim</span>, or the <span style="color:var(--accent);">cracked rim</span>. Tomas can only set the jig once.</div>
+        <span class="m" style="font-size:9px; color:var(--info); flex:0 0 30px; text-align:right; padding-top:4px;">↓</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px; padding:5px 0 0 67px;">
+        <span class="m" style="font-size:9.5px; color:var(--info);">tied to the prompt below · promptId 7f3a</span>
+      </div>
+    </div>
+
+    <!-- ══ THE PROMPT AREA ══ -->
+    <div style="flex:none; border-top:1px solid var(--line); background:var(--sunken);">
+
+      <!-- the queue strip: background prompts join without seizing input -->
+      <sc-if value="{{ hasQueue }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; align-items:center; gap:9px; padding:7px 18px; border-bottom:1px solid var(--line-soft); background:var(--surface);">
+          <span class="lbl">waiting</span>
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="2">
+            <span class="qrow {{ q.cls }}" style="margin:0; padding:5px 10px;" data-pick="{{ q.id }}">
+              <span class="m" style="font-size:9px; color:{{ q.hue }};">{{ q.kind }}</span>
+              <span style="font-size:12px;">{{ q.label }}</span>
+              <span class="m" style="font-size:10px; color:var(--accent);">{{ q.cmd }}</span>
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">{{ q.waited }} · {{ q.note }}</span>
+            </span>
+          </sc-for>
+          <div style="flex:1;"></div>
+          <span class="m" style="font-size:10px; color:var(--fg-mute);">one seizes input · the rest queue</span>
+          <button class="ghost" style="height:28px; font-size:11.5px;">prompt cancel</button>
+        </div>
+      </sc-if>
+
+      <div style="padding:11px 18px 13px;">
+
+        <!-- ROOT: the configurable prompt -->
+        <sc-if value="{{ isRoot }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:9px; flex-wrap:wrap;">
+            <span class="lbl">prompt.format</span>
+            <span class="m" style="font-size:11px; color:var(--fg-dim); background:var(--surface); border:1px solid var(--line); border-radius:2px; padding:2px 7px;">{{ formatSrc }}</span>
+            <span class="m" style="font-size:10px; color:var(--fg-mute);">→ rendered per command, MUD-style</span>
+            <div style="flex:1;"></div>
+            <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="4">
+              <span class="{{ t.cls }}" data-token="{{ t.id }}">{{ t.name }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex; align-items:center; gap:9px;">
+            <span class="m" style="font-size:13.5px; color:var(--accent); white-space:nowrap;">{{ rendered }}</span>
+            <div style="flex:1; display:flex; align-items:center; gap:6px; height:38px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+              <span class="m" style="font-size:13px; color:var(--fg-mute);">type a command…</span>
+              <span style="width:8px;height:14px;background:var(--accent);border-radius:1px;"></span>
+            </div>
+            <button class="send">Send ⏎</button>
+          </div>
+        </sc-if>
+
+        <!-- FOREGROUND PROMPT: seizes the input area -->
+        <sc-if value="{{ isPrompt }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; gap:9px; margin-bottom:9px;">
+            <span class="m" style="font-size:9px; color:var(--ember); border:1px solid var(--ember); border-radius:2px; padding:1px 6px;">{{ kindLabel }}</span>
+            <span style="font-family:'Newsreader',Georgia,serif; font-size:15.5px; color:var(--fg);">{{ promptLabel }}</span>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ boundNote }}</span>
+            <span class="m" style="font-size:12px; color:var(--fg-mute); cursor:pointer;" title="prompt-cancel">✕</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:9px; padding:6px 10px; margin-bottom:10px; border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:2px; background:var(--surface);">
+            <span class="lbl" style="font-size:8.5px;">asked by</span>
+            <span class="m" style="font-size:12px; color:var(--accent);">{{ fromCmd }}</span>
+            <span style="font-size:11.5px; color:var(--fg-dim);">{{ fromDesc }}</span>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:9.5px; color:var(--fg-mute);">waiting {{ waited }}</span>
+          </div>
+
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+            <sc-for list="{{ options }}" as="o" hint-placeholder-count="3">
+              <span class="opt {{ o.cls }}" data-opt="{{ o.id }}">{{ o.label }}</span>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:9px; padding:8px 11px; margin-bottom:10px; border:1px solid var(--ember); border-radius:3px; background:color-mix(in oklab,var(--ember) 10%,transparent);">
+              <span class="m" style="font-size:9px; color:var(--ember);">VALIDATION FAILED</span>
+              <span style="font-size:12.5px; color:var(--fg);">{{ errorMsg }}</span>
+              <div style="flex:1;"></div>
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">prompt stays alive · answer again</span>
+            </div>
+          </sc-if>
+
+          <div style="display:flex; align-items:center; gap:9px;">
+            <button class="send">{{ submitLabel }}</button>
+            <button class="ghost">✕ cancel — abandons {{ fromCmd }}</button>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:10px; color:var(--fg-mute);">{{ wireNote }}</span>
+          </div>
+        </sc-if>
+
+        <!-- LARGE RESULT SET: refine the query, do not scroll the list -->
+        <sc-if value="{{ isLarge }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; gap:9px; margin-bottom:9px;">
+            <span class="m" style="font-size:9px; color:var(--info); border:1px solid var(--info); border-radius:2px; padding:1px 6px;">MQL-MANY</span>
+            <span style="font-family:'Newsreader',Georgia,serif; font-size:15.5px;">Which swords go in the crate?</span>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:9.5px; color:var(--warn);">{{ matchCount }}</span>
+            <span class="m" style="font-size:12px; color:var(--fg-mute); cursor:pointer;">✕</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:9px; padding:6px 10px; margin-bottom:10px; border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:2px; background:var(--surface);">
+            <span class="lbl" style="font-size:8.5px;">asked by</span>
+            <span class="m" style="font-size:12px; color:var(--accent);">{{ fromCmd }}</span>
+            <span style="font-size:11.5px; color:var(--fg-dim);">{{ fromDesc }}</span>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:9.5px; color:var(--fg-mute);">waiting {{ waited }}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:9px;">
+            <span class="lbl">narrow</span>
+            <sc-for list="{{ refineChips }}" as="c" hint-placeholder-count="4">
+              <span class="{{ c.cls }}" data-refine="{{ c.id }}">{{ c.mql }} <span style="opacity:.7;">{{ c.n }}</span></span>
+            </sc-for>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:10.5px; color:var(--fg-dim);">{{ queryNarrowed }}</span>
+          </div>
+
+          <div style="max-height:132px; overflow-y:auto; border:1px solid var(--line); border-radius:3px; margin-bottom:9px;">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+              <div class="opt {{ r.cls }}" data-row="{{ r.id }}" style="border:none; border-bottom:1px solid var(--line-soft); border-radius:0; min-height:40px;">
+                <span class="m" style="font-size:10px; color:var(--fg-mute); width:16px;">{{ r.ord }}</span>
+                <span style="font-family:'Newsreader',Georgia,serif; font-size:14.5px; color:var(--fg); flex:1;">{{ r.name }}</span>
+                <span class="m" style="font-size:10.5px; color:var(--fg-mute);">{{ r.note }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:9px;">
+            <button class="send">reply {{ pickedCount }}</button>
+            <button class="ghost">✕ cancel — abandons {{ fromCmd }}</button>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:10px; color:var(--fg-mute);">ordinals are MQL too — <span style="color:var(--fg-dim);">swords:[1..3]</span> answers without picking</span>
+          </div>
+        </sc-if>
+
+        <!-- COMPOSE: long-form, opens on what is there -->
+        <sc-if value="{{ isCompose }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:baseline; gap:9px; margin-bottom:8px;">
+            <span class="m" style="font-size:9px; color:var(--ember); border:1px solid var(--ember); border-radius:2px; padding:1px 6px;">COMPOSE</span>
+            <span style="font-family:'Newsreader',Georgia,serif; font-size:15.5px;">Edit the yard's description</span>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:9.5px; color:var(--good);">seeded with the current body</span>
+            <span class="m" style="font-size:12px; color:var(--fg-mute); cursor:pointer;">✕</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:9px; padding:6px 10px; margin-bottom:10px; border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:2px; background:var(--surface);">
+            <span class="lbl" style="font-size:8.5px;">asked by</span>
+            <span class="m" style="font-size:12px; color:var(--accent);">{{ fromCmd }}</span>
+            <span style="font-size:11.5px; color:var(--fg-dim);">{{ fromDesc }}</span>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:9.5px; color:var(--fg-mute);">waiting {{ waited }}</span>
+          </div>
+          <div style="border:1px solid var(--line); border-radius:3px; background:var(--surface); overflow:hidden; margin-bottom:9px;">
+            <div style="display:flex; align-items:center; gap:9px; padding:5px 10px; background:var(--sunken); border-bottom:1px solid var(--line);">
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">MML · monaco</span>
+              <div style="flex:1;"></div>
+              <span class="m" style="font-size:9px; color:var(--fg-mute);">⌘⏎ submit · ⎋ cancel</span>
+            </div>
+            <div style="display:flex; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.7;">
+              <div style="flex:0 0 34px; padding:9px 0; text-align:right; color:var(--fg-mute); background:var(--sunken); border-right:1px solid var(--line-soft);">
+                <div style="padding-right:8px;">1</div><div style="padding-right:8px;">2</div><div style="padding-right:8px;">3</div><div style="padding-right:8px;">4</div>
+              </div>
+              <div style="flex:1; padding:9px 11px; color:var(--fg-dim);">
+                <div>Packed earth between the wheelwright's shed</div>
+                <div>and the tavern wall. The <span style="color:var(--info);">&lt;thing kind="forge"&gt;</span>forge<span style="color:var(--info);">&lt;/thing&gt;</span></div>
+                <div>throws heat across it.<span style="display:inline-block; width:8px; height:14px; background:var(--accent); vertical-align:-2px; margin-left:2px;"></span></div>
+                <div></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:9px;">
+            <button class="send">Submit ⌘⏎</button>
+            <button class="ghost">✕ cancel — abandons {{ fromCmd }}</button>
+            <div style="flex:1;"></div>
+            <span class="m" style="font-size:10px; color:var(--fg-mute);">without initial, “edit” silently means “retype”</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ right: what the prompt area is ══ -->
+  <aside style="flex:0 0 330px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+    <div style="flex:none; padding:10px 14px; border-bottom:1px solid var(--line);">
+      <span class="lbl">The prompt is a lot of things</span>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:13px 14px; font-size:12.5px; line-height:1.6; color:var(--fg-dim);">
+      <p style="margin:0 0 11px;"><strong style="color:var(--fg);">One slot, three occupants.</strong> At rest it renders <span class="m" style="font-size:11.5px; color:var(--fg);">prompt.format</span> — a Liquid template the player owns. A foreground prompt takes the slot. Everything else waits above it.</p>
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+      <p style="margin:0 0 8px;"><strong style="color:var(--fg);">Only one seizes input.</strong> <span class="m" style="font-size:11.5px;">foreground: false</span> joins the stack without taking the slot — so a guild vote can arrive mid-forge and wait its turn rather than interrupting.</p>
+      <p style="margin:0 0 11px;">The queue strip shows what is owed. Picking one swaps it into the slot; the rest keep waiting.</p>
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+      <p style="margin:0 0 8px;"><strong style="color:var(--fg);">Prose stays in the terminal.</strong> <span class="m" style="font-size:11.5px;">opts.body</span> ships a <span class="m" style="font-size:11.5px;">world.prompt</span> frame carrying the promptId, so long-form context scrolls with everything else and the two are visibly tied.</p>
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+      <p style="margin:0 0 8px;"><strong style="color:var(--fg);">Failure is not dismissal.</strong> A validator returning a string emits <span class="m" style="font-size:11.5px;">prompt-validation-failed</span> and the prompt stays alive. The UI must never clear the answer.</p>
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+      <p style="margin:0 0 8px;"><strong style="color:var(--fg);">A prompt remembers who asked.</strong> Every prompt is pushed from inside a running command, so the verb, its description and how long it has waited are all knowable at push time — they just need to ride the envelope.</p>
+      <p style="margin:0 0 11px;">That is what makes an abandoned prompt judgeable: cancelling is not dismissing a dialog, it rejects the awaiting command with <span class="m" style="font-size:11.5px;">PromptCancelledError</span>. The button should say which command dies.</p>
+      <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+      <p style="margin:0;"><strong style="color:var(--fg);">Two cancels.</strong> The ✕ on a prompt is <span class="m" style="font-size:11.5px;">prompt-cancel</span>, one prompt. <span class="m" style="font-size:11.5px;">prompt cancel</span> on the strip is the verb — all of them.</p>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { view:'root', sel:'oak', tokens:{focus:true, posture:false, time:false, hp:false}, refine:[], picked:['#a1','#c7'] };
+
+  STATES=[['root','Root'],['choice','Choice'],['many','mqlMany'],['large','41 matches'],['invalid','Rejected'],['compose','Compose']];
+
+  // narrowings the client can offer because they DISTINGUISH the result set —
+  // each is real MQL appended to the query, not a client-side sort
+  REFINE=[
+    ['rusty','rusty',12,'chain'],
+    ['long','long',9,'chain'],
+    ['nobroken','- broken',35,'diff','broken'],
+    ['mine','me:i',4,'seed','me:i'],
+  ];
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('pr-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const s=e.target.closest('[data-state]');
+      if(s&&r.contains(s)) return this.setState({view:s.getAttribute('data-state')});
+      const o=e.target.closest('[data-opt]');
+      if(o&&r.contains(o)) return this.setState({sel:o.getAttribute('data-opt')});
+      const t=e.target.closest('[data-token]');
+      if(t&&r.contains(t)){ const k=t.getAttribute('data-token');
+        return this.setState(st=>({tokens:{...st.tokens,[k]:!st.tokens[k]}})); }
+      const q=e.target.closest('[data-pick]');
+      if(q&&r.contains(q)) return this.setState({view:q.getAttribute('data-pick')});
+      const rf=e.target.closest('[data-refine]');
+      if(rf&&r.contains(rf)){ const k=rf.getAttribute('data-refine');
+        return this.setState(st=>({refine: st.refine.includes(k) ? st.refine.filter(x=>x!==k) : [...st.refine,k]})); }
+      const pk=e.target.closest('[data-row]');
+      if(pk&&r.contains(pk)){ const id=pk.getAttribute('data-row');
+        return this.setState(st=>({picked: st.picked.includes(id) ? st.picked.filter(x=>x!==id) : (st.picked.length>=3?st.picked:[...st.picked,id])})); }
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  renderVals(){
+    const v=this.state.view, T=this.state.tokens;
+
+    // prompt.format is a Liquid template — v1 ships {{ focus }}, more land additively
+    const parts=[];
+    if(T.hp) parts.push('{{ hp }}');
+    if(T.posture) parts.push('{{ posture }}');
+    if(T.focus) parts.push('{{ focus }}');
+    if(T.time) parts.push('{{ time }}');
+    const formatSrc='"'+(parts.join(' ')||'')+'>"';
+    const rend=[];
+    if(T.hp) rend.push('47/52');
+    if(T.posture) rend.push('standing');
+    if(T.focus) rend.push('here:forge');
+    if(T.time) rend.push('18:42');
+    const rendered=(rend.join(' ')||'')+'>';
+
+    const isPrompt = v==='choice'||v==='many'||v==='invalid';
+    const many = v==='many'||v==='invalid';
+    const active = v==='invalid' ? 'many' : v;   // a rejection keeps the SAME prompt in the slot
+    const PROV={
+      choice:['true rim','Bring a wheel-rim true at the jig','4m'],
+      many:['guild vote 14','Cast your standing on an open measure','22m'],
+      large:['crate swords','Load goods into a container for carriage','11m'],
+      compose:['wiki edit yard','Revise a page body in the editor','31m'],
+      root:['','',''],
+    };
+
+    const opts = many
+      ? [['oak','oak rim'],['iron','iron-shod rim'],['cracked','cracked rim']]
+      : [['axle','reply axle'],['rim','reply rim'],['both','reply both']];
+
+    // ── large result sets: refine the query rather than scroll the list ──
+    const R=this.state.refine;
+    const chips=this.REFINE.map(([id,mql,n])=>({id,mql,n,cls:R.includes(id)?'tok':'tokoff'}));
+    const on=this.REFINE.filter(([id])=>R.includes(id));
+    // chain steps join with ':' and NO spaces — whitespace is AND-narrow on
+    // barewords, so 'sword : rusty' would not chain at all. Difference keeps
+    // its spaces (' - '), and a seed chip REPLACES the head rather than suffixing.
+    const seed = (on.find(c=>c[3]==='seed')||[])[4] || 'reachable';
+    const steps = on.filter(c=>c[3]==='chain').map(c=>c[1]);
+    const diffs = on.filter(c=>c[3]==='diff').map(c=>c[4]);
+    let narrowed = [seed,'sword',...steps].join(':');
+    if(diffs.length) narrowed += ' - ' + diffs.join(' - ');
+    const remaining=R.length ? this.REFINE.filter(([id])=>R.includes(id)).reduce((m,[,,n])=>Math.min(m,n),41) : 41;
+    const rows=[
+      ['#a1','a rusty long sword','2.1 kg · rusty'],
+      ['#c7','an iron short sword','1.4 kg'],
+      ['#d2','a broken hanger','0.9 kg · broken'],
+      ['#e9','a long sword','2.0 kg'],
+    ].map(([id,name,note],i)=>({id,name,note,ord:i+1,cls:this.state.picked.includes(id)?'sel':''}));
+
+    return {
+      isLarge: v==='large',
+      queryBase:'reachable:sword', queryNarrowed:narrowed,
+      matchCount: remaining+' of 41 match', overflow: remaining>8,
+      refineChips:chips, rows,
+      pickedCount:this.state.picked.length+' of max 3 chosen',
+      atMax:this.state.picked.length>=3,
+      states:this.STATES.map(([id,label])=>({id,label,cls:v===id?'on':''})),
+      isRoot:v==='root', isPrompt, isCompose:v==='compose',
+      formatSrc, rendered,
+      tokens:[['focus','focus'],['posture','posture'],['time','time'],['hp','hp']]
+        .map(([id,name])=>({id,name:'{{ '+name+' }}',cls:T[id]?'tok':'tokoff'})),
+
+      fromCmd:PROV[active][0], fromDesc:PROV[active][1], waited:PROV[active][2],
+      kindLabel: many ? 'MQL-MANY' : 'CHOICE',
+      promptLabel: many ? 'Which rims will Tomas true?' : 'Which do you want trued first?',
+      boundNote: many ? 'min 1 · max 2' : 'one answer',
+      options: opts.map(([id,label])=>({id,label,cls:this.state.sel===id?'sel':''})),
+      submitLabel: many ? 'reply 1 selected' : 'reply '+this.state.sel,
+      wireNote: 'prompt-response · bypasses the command bus',
+      hasError: v==='invalid',
+      errorMsg: 'The jig takes one rim at a time — pick at most 2, and not the cracked one.',
+
+      hasQueue:true,
+      // which row is foreground is DERIVED from what holds the slot.
+      // 'invalid' maps to 'many': a validation failure keeps the same prompt
+      // alive and in the slot, so it never releases input.
+      queue:[
+        { id:'choice', kind:'CHOICE', hue:'var(--ember)', label:'Tomas asks', cmd:'true rim', waited:'4m' },
+        { id:'many', kind:'MQL-MANY', hue:'var(--info)', label:'Guild dues vote', cmd:'guild vote 14', waited:'22m' },
+        { id:'large', kind:'MQL-MANY', hue:'var(--info)', label:'Crate the swords', cmd:'crate swords', waited:'11m' },
+        { id:'compose', kind:'COMPOSE', hue:'var(--good)', label:'Edit the yard', cmd:'wiki edit yard', waited:'31m' },
+      ].map(q=>({ ...q,
+        cls: q.id===active ? 'fg' : '',
+        note: q.id===active ? 'foreground · holds input' : 'background · waiting' })),
+    };
+  }
+}
+</script>
+</body>
+</html>

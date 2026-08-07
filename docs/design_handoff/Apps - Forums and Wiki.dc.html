@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    a { color:var(--accent); text-decoration:none; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .navi { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:3px;
+            color:var(--fg-mute); font-size:14px; cursor:pointer; }
+    .navi.on { background:var(--accent); color:var(--accent-ink); }
+    .tab { display:inline-flex; align-items:center; min-height:30px; padding:0 12px; border:1px solid var(--line);
+           background:transparent; color:var(--fg-dim); cursor:pointer; font-size:12px; font-family:'Public Sans',sans-serif; }
+    .tab.on { background:var(--raised); color:var(--fg); border-color:var(--accent); }
+    .tab:first-child { border-radius:3px 0 0 3px; }
+    .tab:last-child { border-radius:0 3px 3px 0; }
+    .brow { display:flex; align-items:center; gap:9px; padding:8px 11px; border-radius:3px; cursor:pointer; color:var(--fg-dim); }
+    .brow:hover { background:var(--raised); color:var(--fg); }
+    .brow.on { background:var(--raised); color:var(--fg); box-shadow:inset 3px 0 0 var(--accent); }
+    /* the argument lens: typed edges, and the one fact it derives */
+    .claim { border:1px solid var(--line); border-radius:3px; background:var(--surface); margin-bottom:8px; }
+    .claim.sup { border-left:3px solid var(--good); }
+    .claim.obj { border-left:3px solid var(--ember); }
+    .claim.res { border-left:3px solid var(--info); }
+    .claim.open { border-color:var(--ember); background:color-mix(in oklab,var(--ember) 8%,var(--surface)); }
+    .ch { display:flex; align-items:center; gap:8px; padding:7px 11px; border-bottom:1px solid var(--line-soft); }
+    .rel { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.11em; text-transform:uppercase;
+           border-radius:2px; padding:1px 6px; flex:none; }
+    .openflag { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase;
+                background:var(--ember); color:var(--sunken); border-radius:2px; padding:1px 6px; font-weight:600; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:3px 8px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    .act.obj { color:var(--ember); border-color:color-mix(in oklab,var(--ember) 45%,transparent); }
+    .act.sup { color:var(--good); border-color:color-mix(in oklab,var(--good) 45%,transparent); }
+    /* popularity boards score; argument boards never do */
+    /* ── threading: the depth rule is the hit area for collapsing ── */
+    .cmt { display:flex; gap:0; }
+    .rail { flex:none; width:15px; display:flex; justify-content:center; cursor:pointer; }
+    .rail span { width:1px; background:var(--line); height:100%; }
+    .rail:hover span { background:var(--accent); width:2px; }
+    .cbody { flex:1; min-width:0; padding:6px 0 6px 8px; }
+    .chead { display:flex; align-items:baseline; gap:7px; margin-bottom:3px; }
+    .cauth { font-size:12px; font-weight:600; color:var(--fg); }
+    .cmeta { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); }
+    .op { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:.1em; color:var(--accent-ink);
+          background:var(--accent); border-radius:2px; padding:0 4px; }
+    .ctext { font-family:'Newsreader',Georgia,serif; font-size:14px; line-height:1.5; color:var(--fg); margin-bottom:5px; }
+    .cacts { display:flex; align-items:center; gap:5px; }
+    .cact { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--fg-mute); cursor:pointer; padding:2px 5px; border-radius:2px; }
+    .cact:hover { color:var(--fg); background:var(--raised); }
+    .toggle { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--fg-mute); cursor:pointer;
+              border:1px solid var(--line); border-radius:2px; padding:0 5px; }
+    .toggle:hover { color:var(--accent); border-color:var(--accent); }
+    .more { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent); cursor:pointer; padding:5px 0 5px 8px; }
+    .more:hover { text-decoration:underline; }
+    .vote { display:inline-flex; align-items:center; gap:7px; padding:2px 8px; border:1px solid var(--line); border-radius:2px; }
+    .varrow { font-size:9px; color:var(--fg-mute); cursor:pointer; }
+    .varrow:hover { color:var(--accent); }
+    .surf { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; font-size:12px; color:var(--fg-dim);
+            border:1px solid var(--line); border-bottom:none; border-radius:3px 3px 0 0; cursor:pointer;
+            position:relative; top:1px; background:var(--sunken); }
+    .surf.on { color:var(--fg); background:var(--ground); border-color:var(--line); }
+    .surf.dark { border-style:dashed; border-bottom:none; color:var(--fg-mute); background:transparent; }
+    .toc { display:block; padding:4px 0 4px 10px; font-size:12.5px; color:var(--fg-dim); cursor:pointer; border-left:1px solid var(--line); }
+    .toc:hover { color:var(--fg); border-color:var(--fg-mute); }
+    .toc.on { color:var(--accent); border-color:var(--accent); }
+    .sig { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 40%,transparent); border-radius:2px; padding:1px 5px; }
+    .prow { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+    .prow:last-child { border-bottom:none; }
+  </style>
+</helmet>
+
+<div id="ap-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- the frame persists — these are apps inside it, not separate products -->
+  <nav style="flex:0 0 56px; display:flex; flex-direction:column; align-items:center; gap:5px; padding:11px 8px; background:var(--sunken); border-right:1px solid var(--line);">
+    <span class="seal" style="width:30px; height:30px; font-size:15px; margin-bottom:8px;">S</span>
+    <div class="navi">◆</div>
+    <div class="navi">▭</div>
+    <div class="navi">▶</div>
+    <div style="width:26px; height:1px; background:var(--line); margin:6px 0;"></div>
+    <div class="navi {{ fCls }}" data-app="forums">▤</div>
+    <div class="navi {{ wCls }}" data-app="wiki">◫</div>
+  </nav>
+
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <header style="flex:none; display:flex; align-items:center; gap:12px; padding:9px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+      <span class="cap" style="font-size:13px;">{{ appName }}</span>
+      <span style="font-size:12px; color:var(--fg-dim);">{{ appNote }}</span>
+      <div style="flex:1;"></div>
+      <div style="display:flex;">
+        <sc-for list="{{ apps }}" as="a" hint-placeholder-count="2">
+          <button class="tab {{ a.cls }}" data-app="{{ a.id }}">{{ a.label }}</button>
+        </sc-for>
+      </div>
+    </header>
+
+    <!-- ══════════ FORUMS ══════════ -->
+    <sc-if value="{{ isForums }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1; display:flex; min-height:0;">
+
+        <div style="flex:0 0 232px; display:flex; flex-direction:column; border-right:1px solid var(--line); background:var(--surface); min-height:0;">
+          <div style="flex:none; padding:10px 12px 7px;"><span class="lbl">Subjects</span></div>
+          <div style="flex:1; overflow-y:auto; padding:0 8px 10px;">
+            <sc-for list="{{ subjects }}" as="b" hint-placeholder-count="4">
+              <div class="brow {{ b.cls }}" data-subject="{{ b.id }}" style="align-items:flex-start; padding-left:{{ b.pad }};">
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:baseline; gap:6px;">
+                    <sc-if value="{{ b.isTopic }}" hint-placeholder-val="{{ false }}">
+                      <span class="m" style="font-size:9px; color:var(--fg-mute); flex:none;">↳</span>
+                    </sc-if>
+                    <span style="font-size:12.5px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ b.title }}</span>
+                    <sc-if value="{{ b.hasOpen }}" hint-placeholder-val="{{ false }}">
+                      <span class="m" style="font-size:9px; color:var(--ember); flex:none;">{{ b.open }}</span>
+                    </sc-if>
+                  </div>
+                  <div style="display:flex; gap:3px; margin-top:3px;">
+                    <sc-for list="{{ b.chips }}" as="c" hint-placeholder-count="2">
+                      <span class="m" style="font-size:8px; color:{{ c.hue }}; border:1px solid {{ c.hue }}; border-radius:2px; padding:0 4px;">{{ c.t }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+            <div style="margin-top:10px; padding-top:9px; border-top:1px solid var(--line-soft); font-size:11px; color:var(--fg-mute); line-height:1.5;">
+              A <span class="m" style="font-size:11px;">Subject</span> is one record: a title, an audience, and the surfaces it lights up. Indented entries are thread-grain topics promoted out of a parent.
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+          <div style="flex:none; padding:12px 18px 0; border-bottom:1px solid var(--line);">
+            <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:4px;">
+              <span class="wp" style="font-size:19px; color:var(--fg);">{{ subjTitle }}</span>
+              <span class="m" style="font-size:9px; color:var(--fg-mute); border:1px solid var(--line); border-radius:2px; padding:1px 6px;">{{ grainLabel }}</span>
+              <span class="m" style="font-size:9px; color:{{ bindHue }}; border:1px solid {{ bindHue }}; border-radius:2px; padding:1px 6px;">{{ bindLabel }}</span>
+              <div style="flex:1;"></div>
+              <span class="m" style="font-size:9.5px; color:var(--good);">● live</span>
+            </div>
+            <div class="m" style="font-size:10px; color:var(--fg-mute); margin-bottom:7px;">{{ handle }}</div>
+            <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.5; margin:0 0 10px; max-width:640px;">{{ subjDesc }}</p>
+
+            <!-- the lit surfaces: one subject, one audience, up to four faces -->
+            <div style="display:flex; align-items:center; gap:5px;">
+              <sc-for list="{{ surfaces }}" as="f" hint-placeholder-count="3">
+                <span class="surf {{ f.cls }}" data-surface="{{ f.id }}">
+                  <span style="color:{{ f.hue }};">{{ f.glyph }}</span>{{ f.label }}
+                  <sc-if value="{{ f.reserved }}" hint-placeholder-val="{{ false }}">
+                    <span class="m" style="font-size:8px; color:var(--fg-mute);">reserved</span>
+                  </sc-if>
+                </span>
+              </sc-for>
+              <sc-for list="{{ unlit }}" as="u" hint-placeholder-count="1">
+                <span class="surf dark">＋ {{ u.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- argument boards are ordered by structure, not by score -->
+          <sc-if value="{{ isArg }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none; display:flex; align-items:center; gap:10px; padding:8px 18px; background:var(--sunken); border-bottom:1px solid var(--line-soft);">
+              <span class="openflag">{{ openCount }} open</span>
+              <span style="font-size:11.5px; color:var(--fg-dim);">objections with nothing answering them</span>
+              <div style="flex:1;"></div>
+              <span class="m" style="font-size:9.5px; color:var(--fg-mute);">neutral lens · reads relations, never votes</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isPop }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:none; display:flex; align-items:center; gap:7px; padding:8px 18px; background:var(--sunken); border-bottom:1px solid var(--line-soft);">
+              <span class="lbl">sort</span>
+              <sc-for list="{{ sorts }}" as="s" hint-placeholder-count="4">
+                <span class="act {{ s.cls }}" data-sort="{{ s.id }}">{{ s.id }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+              <!-- tuned-in state decides whether there is any backlog to show -->
+              <div style="flex:none; display:flex; align-items:center; gap:9px; padding:7px 18px; background:var(--sunken); border-bottom:1px solid var(--line-soft);">
+                <span class="m" style="font-size:9px; color:var(--good); border:1px solid var(--good); border-radius:2px; padding:1px 6px;">TUNED IN</span>
+                <span style="font-size:11.5px; color:var(--fg-dim);">held since you connected · 41 frames</span>
+                <div style="flex:1;"></div>
+                <span class="m" style="font-size:9.5px; color:var(--fg-mute);">ChatApi.historyFor</span>
+              </div>
+
+              <div style="flex:1; overflow-y:auto; padding:11px 18px;">
+                <sc-for list="{{ chatLog }}" as="c" hint-placeholder-count="5">
+                  <div style="display:flex; gap:10px; padding:5px 0;">
+                    <span class="m" style="font-size:9px; color:var(--fg-mute); flex:0 0 32px; text-align:right; padding-top:4px;">{{ c.t }}</span>
+                    <span style="font-size:13px; font-weight:600; color:{{ c.hue }}; flex:none;">{{ c.who }}</span>
+                    <span class="wp" style="font-size:14.5px; line-height:1.5; flex:1; min-width:0;">{{ c.body }}</span>
+                  </div>
+                </sc-for>
+                <div style="display:flex; align-items:center; gap:9px; margin-top:11px; padding-top:10px; border-top:1px solid var(--line-soft);">
+                  <span class="m" style="font-size:9.5px; color:var(--fg-mute);">earlier than this lives on the server, not here</span>
+                  <span class="act">load more</span>
+                </div>
+              </div>
+
+              <!-- a chat surface without a way to speak is a transcript, not a room -->
+              <div style="flex:none; padding:9px 18px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <span class="m" style="font-size:12.5px; color:var(--accent); flex:none;">{{ chatSlot }}</span>
+                  <div style="flex:1; display:flex; align-items:center; gap:6px; height:36px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+                    <span class="m" style="font-size:12.5px; color:var(--fg-mute);">say something…</span>
+                    <span style="width:8px;height:14px;background:var(--accent);border-radius:1px; margin-left:auto;"></span>
+                  </div>
+                  <button style="font-family:'Public Sans',sans-serif; font-size:12.5px; font-weight:600; color:var(--white); background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 15px; height:36px; cursor:pointer;">Send ⏎</button>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:7px;">
+                  <span style="font-size:11px; color:var(--fg-mute);">sends as</span>
+                  <span class="m" style="font-size:11px; color:var(--fg-dim);">{{ chatCmd }}</span>
+                  <div style="flex:1;"></div>
+                  <span class="m" style="font-size:10px; color:var(--fg-mute);">the same channel the Chat app is showing</span>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+          <!-- listing: posts. detail: one post and its comment tree -->
+          <div style="flex:1; overflow-y:auto; padding:13px 18px; display:{{ listDisplay }};">
+            <sc-for list="{{ entries }}" as="e" hint-placeholder-count="5">
+              <div class="claim {{ e.cls }}" style="margin-left:{{ e.indent }};">
+                <div class="ch">
+                  <sc-if value="{{ e.hasRel }}" hint-placeholder-val="{{ true }}">
+                    <span class="rel" style="color:{{ e.relhue }}; border:1px solid {{ e.relhue }};">{{ e.rel }}</span>
+                  </sc-if>
+                  <span style="font-size:12.5px; color:var(--fg); flex:1; min-width:0;">{{ e.author }}</span>
+                  <sc-if value="{{ e.open }}" hint-placeholder-val="{{ false }}">
+                    <span class="openflag">unanswered</span>
+                  </sc-if>
+                  <span class="m" style="font-size:9px; color:var(--fg-mute);">{{ e.when }}</span>
+                </div>
+                <div style="padding:10px 12px;">
+                  <div class="wp" style="font-size:14.5px; line-height:1.55; color:var(--fg); margin-bottom:9px;">{{ e.body }}</div>
+                  <sc-if value="{{ e.isArg }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                      <span class="act sup">＋ supports</span>
+                      <span class="act obj">＋ objects-to</span>
+                      <span class="act">＋ responds-to</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ e.isPop }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:center; gap:9px;">
+                      <span class="vote"><span class="varrow">▲</span><span class="m" style="font-size:11.5px; color:{{ e.scoreHue }};">{{ e.score }}</span><span class="varrow">▼</span></span>
+                      <span class="act" data-post="{{ e.id }}">{{ e.replies }}</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- ── the comment tree ── -->
+          <div style="flex:1; overflow-y:auto; padding:13px 18px; display:{{ detailDisplay }};">
+            <span class="act" data-post="" style="margin-bottom:11px; display:inline-block;">‹ back to {{ subjTitle }}</span>
+
+            <div class="claim" style="margin-bottom:12px;">
+              <div class="ch">
+                <span style="font-size:12.5px; color:var(--fg); flex:1;">{{ postAuthor }}</span>
+                <span class="m" style="font-size:9px; color:var(--fg-mute);">{{ postWhen }}</span>
+              </div>
+              <div style="padding:10px 12px;">
+                <div class="wp" style="font-size:15px; line-height:1.55; margin-bottom:9px;">{{ postBody }}</div>
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <span class="vote"><span class="varrow">▲</span><span class="m" style="font-size:11.5px;">{{ postScore }}</span><span class="varrow">▼</span></span>
+                  <span class="cact">reply</span><span class="cact">share</span><span class="cact">save</span><span class="cact">report</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:7px; padding-bottom:9px; border-bottom:1px solid var(--line-soft); margin-bottom:6px;">
+              <span class="lbl">sort replies</span>
+              <sc-for list="{{ csorts }}" as="c" hint-placeholder-count="4">
+                <span class="act {{ c.cls }}" data-csort="{{ c.id }}">{{ c.id }}</span>
+              </sc-for>
+              <div style="flex:1;"></div>
+              <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ commentCount }}</span>
+            </div>
+
+            <sc-if value="{{ noComments }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px dashed var(--line); border-radius:3px; padding:14px; text-align:center;">
+                <div style="font-size:12.5px; color:var(--fg-dim); margin-bottom:9px;">No replies yet.</div>
+                <div style="display:flex; align-items:center; gap:8px; max-width:420px; margin:0 auto;">
+                  <div style="flex:1; display:flex; align-items:center; height:34px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+                    <span class="m" style="font-size:12px; color:var(--fg-mute);">say something…</span>
+                  </div>
+                  <button style="font-family:'Public Sans',sans-serif; font-size:12px; font-weight:600; color:var(--white); background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 14px; height:34px; cursor:pointer;">Reply</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-for list="{{ comments }}" as="c" hint-placeholder-count="6">
+              <div style="margin-left:{{ c.indent }};">
+                <sc-if value="{{ c.isMore }}" hint-placeholder-val="{{ false }}">
+                  <div class="more" data-deep="{{ c.id }}">continue this thread → {{ c.label }}</div>
+                </sc-if>
+                <sc-if value="{{ c.isComment }}" hint-placeholder-val="{{ true }}">
+                  <div class="cmt">
+                    <div class="rail" data-collapse="{{ c.id }}"><span></span></div>
+                    <div class="cbody">
+                      <div class="chead">
+                        <span class="toggle" data-collapse="{{ c.id }}">{{ c.glyph }}</span>
+                        <span class="cauth">{{ c.author }}</span>
+                        <sc-if value="{{ c.isOP }}" hint-placeholder-val="{{ false }}"><span class="op">OP</span></sc-if>
+                        <span class="cmeta">{{ c.score }} · {{ c.when }}</span>
+                        <sc-if value="{{ c.collapsed }}" hint-placeholder-val="{{ false }}">
+                          <span class="cmeta" style="color:var(--accent);">{{ c.hidden }}</span>
+                        </sc-if>
+                      </div>
+                      <sc-if value="{{ c.open }}" hint-placeholder-val="{{ true }}">
+                        <div class="ctext">{{ c.body }}</div>
+                        <div class="cacts">
+                          <span class="varrow">▲</span><span class="varrow">▼</span>
+                          <span class="cact">reply</span><span class="cact">share</span><span class="cact">report</span>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ isArg }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none; display:flex; align-items:center; gap:11px; padding:10px 18px; border-top:1px solid var(--line); background:var(--surface);">
+              <button style="font-family:'Public Sans',sans-serif; font-size:13px; font-weight:600; color:var(--white); background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 16px; height:36px; cursor:pointer; opacity:{{ matureOp }};">Declare matured</button>
+              <span style="font-size:11.5px; color:var(--fg-dim); line-height:1.45;">{{ matureNote }}</span>
+              <div style="flex:1;"></div>
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">forum mature</span>
+            </div>
+          </sc-if>
+        </div>
+
+        <aside style="flex:0 0 300px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+          <div style="flex:none; padding:10px 14px; border-bottom:1px solid var(--line-soft);"><span class="lbl">The subject is the spine</span></div>
+          <div style="flex:1; overflow-y:auto; padding:13px 14px; font-size:12.5px; line-height:1.6; color:var(--fg-dim);">
+            <p style="margin:0 0 11px;">A <span class="m" style="font-size:11.5px;">Subject</span> is one persisted record carrying identity and audience. It is not a board — a board is one of the <strong style="color:var(--fg);">four surfaces</strong> a subject can light up, à la carte, at most one of each.</p>
+            <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+            <p style="margin:0 0 8px;"><strong style="color:var(--fg);">So the tabs are not navigation.</strong> Measure 14 has an argument board, a popularity board and a live chat channel. Switching between them changes the rendering, not the room — one audience, one membership, one invite list.</p>
+            <p style="margin:0 0 11px;">That is what makes chat and forum stop being separate products. They were always two faces of the same thing; the subject is where that became true in the data.</p>
+            <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+            <p style="margin:0 0 8px;"><strong style="color:var(--fg);">Grain is the other axis.</strong> A <span class="m" style="font-size:11.5px;">venue</span> is board-grain with a flat-global handle. A <span class="m" style="font-size:11.5px;">topic</span> is a promoted thread — board-scoped as <span class="m" style="font-size:11.5px;">parent/name</span>, inheriting the parent's audience, and free to light up only the one surface it needed.</p>
+            <p style="margin:0 0 11px;">Which is why the rail nests them rather than listing them flat.</p>
+            <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+            <p style="margin:0 0 8px;"><strong style="color:var(--fg);">Audience binds once, at the subject.</strong> Open, bound to an existing <span class="m" style="font-size:11.5px;">guild:</span>/<span class="m" style="font-size:11.5px;">mql:</span>/<span class="m" style="font-size:11.5px;">contacts:</span> ref, or curated with a managed group minted alongside. Shown next to the title because it governs every surface at once.</p>
+            <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+            <p style="margin:0;"><strong style="color:var(--fg);">Argument boards are ordered by structure.</strong> Posts attach by typed edge — <span class="m" style="font-size:11.5px; color:var(--good);">supports</span>, <span class="m" style="font-size:11.5px; color:var(--ember);">objects-to</span>, <span class="m" style="font-size:11.5px; color:var(--info);">responds-to</span> — and the lens derives one fact: whether an objection has anything answering it. It never reads votes. So the unanswered claim rises, not the popular one.</p>
+          </div>
+        </aside>
+      </div>
+    </sc-if>
+
+    <!-- ══════════ WIKI ══════════ -->
+    <sc-if value="{{ isWiki }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1; display:flex; min-height:0;">
+
+        <div style="flex:0 0 232px; display:flex; flex-direction:column; border-right:1px solid var(--line); background:var(--surface); min-height:0;">
+          <div style="flex:none; padding:10px 12px;">
+            <div style="display:flex; align-items:center; gap:7px; height:32px; padding:0 10px; border:1px solid var(--line); border-radius:3px; background:var(--sunken);">
+              <span class="m" style="font-size:11px; color:var(--fg-mute);">⌕</span>
+              <span style="font-size:11.5px; color:var(--fg-mute);">no search port yet</span>
+            </div>
+          </div>
+          <div style="flex:1; overflow-y:auto; padding:0 12px 10px;">
+            <div class="lbl" style="margin-bottom:6px;">The palette</div>
+            <span class="toc on">Switchable</span>
+            <span class="toc">Sealable</span>
+            <span class="toc">Lockable</span>
+            <span class="toc">Thermal</span>
+            <span class="toc">Containable</span>
+            <div class="lbl" style="margin:13px 0 6px;">Playing</div>
+            <span class="toc">The command line</span>
+            <span class="toc">Reading a measurement</span>
+            <span class="toc">Focus and scope</span>
+            <div class="lbl" style="margin:13px 0 6px;">The Compact</div>
+            <span class="toc">Make · Fund · Play</span>
+            <span class="toc">Standing</span>
+          </div>
+        </div>
+
+        <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:11px 20px; border-bottom:1px solid var(--line);">
+            <span class="m" style="font-size:11px; color:var(--fg-mute);">palette › Switchable</span>
+            <div style="flex:1;"></div>
+            <span class="act">wiki edit switchable</span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:20px 26px;">
+            <div style="max-width:600px;">
+              <h1 class="cap" style="font-weight:500; font-size:23px; margin:0 0 4px; color:var(--fg);">Switchable</h1>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <span class="m" style="font-size:10px; color:var(--good); border:1px solid var(--good); border-radius:2px; padding:1px 6px;">OFFICIAL</span>
+                <span style="font-size:11.5px; color:var(--fg-mute);">a mixin · last revised by Aldric, 3 days ago</span>
+              </div>
+
+              <p class="wp" style="font-size:16px; line-height:1.65; color:var(--fg); margin:0 0 14px;">A mixin for anything with two stable states you can put it into by hand. A lamp, a valve, a lever, a breaker. It says nothing about what the states <em>mean</em> — a switched-on lamp is lit because <span class="sig">LightSource</span> is also composed, not because <span class="sig">Switchable</span> knows about light.</p>
+
+              <div style="border:1px solid var(--line); border-radius:3px; margin-bottom:16px;">
+                <div style="padding:7px 12px; background:var(--sunken); border-bottom:1px solid var(--line);">
+                  <span class="lbl">What it affords</span>
+                </div>
+                <div style="padding:6px 12px;">
+                  <div class="prow"><span style="font-size:12.5px; color:var(--fg-dim);">turn on</span><span class="m" style="font-size:11.5px; color:var(--fg);">manipulation · when off</span></div>
+                  <div class="prow"><span style="font-size:12.5px; color:var(--fg-dim);">turn off</span><span class="m" style="font-size:11.5px; color:var(--fg);">manipulation · when on</span></div>
+                </div>
+              </div>
+
+              <p class="wp" style="font-size:16px; line-height:1.65; color:var(--fg); margin:0 0 12px;">Composes cleanly with <span class="sig">LightSource</span>, <span class="sig">Powered</span> and <span class="sig">Fixture</span>. Do not use it for things that toggle as a <em>consequence</em> rather than by hand — a fire is not switchable, it is <span class="sig">Combustible</span>.</p>
+
+              <div style="border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:2px; padding:12px 14px; margin-bottom:16px;">
+                <div class="lbl" style="margin-bottom:6px;">Seen in play</div>
+                <p style="font-size:12.5px; color:var(--fg-dim); line-height:1.55; margin:0;">You met this on the <span style="color:var(--accent);">guttering lamp</span> in the Lounge. Every mixin page lists where you have actually encountered it — the palette is learned by recognising things you have already touched.</p>
+              </div>
+
+              <div class="lbl" style="margin-bottom:7px;">Composed by</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <span class="sig" style="color:var(--fg-dim); border-color:var(--line);">lamp</span>
+                <span class="sig" style="color:var(--fg-dim); border-color:var(--line);">lantern</span>
+                <span class="sig" style="color:var(--fg-dim); border-color:var(--line);">sluice gate</span>
+                <span class="sig" style="color:var(--fg-dim); border-color:var(--line);">breaker panel</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside style="flex:0 0 268px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+          <div style="flex:none; padding:10px 14px; border-bottom:1px solid var(--line-soft);"><span class="lbl">Authority</span></div>
+          <div style="flex:1; overflow-y:auto; padding:13px 14px; font-size:12.5px; line-height:1.6; color:var(--fg-dim);">
+            <p style="margin:0 0 11px;">In a game the players author and govern, the wiki has a question an ordinary wiki does not: <strong style="color:var(--fg);">is this page canon?</strong></p>
+            <p style="margin:0 0 11px;">So every page carries its standing — <span class="m" style="font-size:11px; color:var(--good);">OFFICIAL</span> for pages the Make chamber has adopted, and a plainer mark for player-contributed notes. Both are useful; conflating them is not.</p>
+            <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+            <p style="margin:0 0 8px;"><strong style="color:var(--fg);">Editing is a prompt, not a page.</strong> <span class="m" style="font-size:11px;">wiki edit switchable</span> opens the compose prompt in the Monaco editor, seeded with the current body — the same slot any long-form answer uses.</p>
+            <div style="height:1px; background:var(--line-soft); margin:12px 0;"></div>
+            <p style="margin:0;"><strong style="color:var(--fg);">Search is honestly missing.</strong> The docs name a search port; nothing implements it. Until it exists the sidebar is the only way in, so the tree has to be good — and the field says so rather than pretending.</p>
+          </div>
+        </aside>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { app:'forums', subject:'measure14', surface:null, sort:'new',
+            post:null, csort:'best', collapsed:{} };
+
+  // A Subject is ONE record: identity + audience + the surfaces it lights up.
+  // grain 'venue' = board-grain, flat-global title · 'topic' = promoted thread,
+  // addressed as parentSubject/boardScopedName and inheriting the parent audience.
+  SUBJECTS={
+    measure14:{ title:'Measure 14', grain:'venue', handle:'measure-14',
+      bind:'open', bindLabel:'open', bindHue:'var(--good)',
+      lit:['argument-forum','popularity-forum','free-chat'], arg:'measure14', pop:'measure14', chat:'measure14',
+      heading:'Measure 14 — shorten the author-review window',
+      desc:'One subject, three lit surfaces. The argument board carries the deliberation, the popularity board carries the chatter, and the chat channel is the live room — all sharing one audience binding.' },
+    charter:{ title:'Guild charter', grain:'venue', handle:'guild-charter',
+      bind:'bound', bindLabel:'guild:smiths', bindHue:'var(--info)',
+      lit:['argument-forum','free-chat','rules-chat'], arg:'charter', chat:'charter',
+      heading:'Should the Smiths\u2019 Guild cap apprentice intake?',
+      desc:'Bound to an existing guild group — the subject mints nothing, it consumes that membership. Every lit surface inherits it.' },
+    intake:{ title:'apprentice-intake', grain:'topic', parent:'charter', handle:'guild-charter/apprentice-intake',
+      bind:'bound', bindLabel:'inherited', bindHue:'var(--info)',
+      lit:['argument-forum'], arg:'intake',
+      heading:'Do reviewers actually batch on rest days?',
+      desc:'Promoted out of a thread on the charter board. Thread-grain, so it is board-scoped rather than flat-global, and it lights up only the surface it needed.' },
+    trade:{ title:'Trade', grain:'venue', handle:'trade',
+      bind:'curated', bindLabel:'managed group', bindHue:'var(--accent)',
+      lit:['popularity-forum','free-chat'], pop:'trade', chat:'trade',
+      heading:'Trade',
+      desc:'A curated subject: a managed group was minted alongside it, carrying owner/admin/member roles. No argument surface — nobody is litigating the price of pork.' },
+  };
+
+  // Cycle 1 ships popularity-forum + free-chat; the other two are reserved taxonomy.
+  SURF={
+    'argument-forum':  ['Argument','var(--ember)','▤',true],
+    'popularity-forum':['Popularity','var(--good)','▦',false],
+    'free-chat':       ['Chat','var(--info)','◇',false],
+    'rules-chat':      ['Rules chat','var(--fg-mute)','◈',true],
+  };
+
+  // an argument board is a tree of typed edges; the lens marks unanswered
+  // objections — an `objects-to` with no answering child. One tree per subject,
+  // so the badge, the flags and the gate copy all read the same array.
+  ARG={
+    measure14:[
+    [0,null,'Aldric','2d', 'Four days is enough. Most drafts sit untouched for six of the seven, and the backlog is the reason new authors stall.', false],
+    [1,'supports','Maren','2d', 'True in my own case — my first two rooms waited the full week and neither drew a comment until day six.', false],
+    [1,'objects-to','Sable','1d', 'The six quiet days are not idle. Reviewers batch their reading on the weekend, and a four-day window lands entirely inside the working week.', true],
+    [1,'objects-to','Perrin','22h', 'This measures the wrong thing. The complaint is time-to-first-comment, and shortening the window does not add reviewers.', true],
+    [2,'responds-to','Aldric','20h', 'Fair on the weekend point. Would a four-day window that excludes rest days answer it?', false],
+    [1,'objects-to','Hallow','9h', 'Nobody has costed this. What happens to a draft that misses the shorter window — does it expire, or queue?', true],
+    ],
+    charter:[
+      [0,null,'Foreman Aldric','5d', 'The guild should cap apprentice intake at four a season. We cannot place more than that with masters willing to teach.', false],
+      [1,'supports','Bruni','4d', 'Agreed. I took three last spring and gave two of them nothing but sweeping.', false],
+      [1,'objects-to','Maren','3d', 'A cap is how a guild becomes a cartel. The bottleneck is masters willing to teach, so pay them for teaching instead of turning apprentices away.', true],
+      [2,'responds-to','Foreman Aldric','2d', 'The dues would have to rise to fund that, and dues are set by the chamber, not by us.', false],
+    ],
+    intake:[
+      [0,null,'Sable','2d', 'The claim was that reviewers batch on rest days. Nobody has checked whether that is true.', false],
+      [1,'objects-to','Perrin','1d', 'It is not true for me — I review on weeknights because that is when the boards are quiet.', true],
+      [1,'objects-to','Wren','20h', 'Even if it holds, a sample of the people who post about reviewing is not a sample of reviewers.', true],
+      [1,'supports','Bobalu','14h', 'The press archive would settle this. Revision timestamps are public.', false],
+    ],
+  };
+
+  // one per subject, same as ARG — a shared array would make the surfaces read
+  // as unrelated boards sharing a tab bar, which is the misconception the
+  // subject model exists to correct.
+  POP={
+    measure14:[
+      [0,null,'Wren','2h','Has anyone actually read the draft, or are we all arguing about the summary?', false, '+11', 'm-1'],
+      [0,null,'Bobalu','6h','Four days, seven days — the problem is nobody reviews anything until someone complains.', false, '+8', 'm-2'],
+      [0,null,'Hallow','1d','Reminder that the argument board is where this gets decided. This is just the pub.', false, '−1', 'm-3'],
+    ],
+    trade:[
+      [0,null,'Hallow','3h','WTB river-iron, any grade — paying over the guild rate for anything above 0.7% carbon.', false, '+14', 't-1'],
+      [0,null,'Perrin','5h','Salt pork, 12 kg, cellar-cold. Three coin a kilo, will not split.', false, '+6', 't-2'],
+      [0,null,'Bobalu','1d','Anyone hauling to the customs house this week? Splitting the fee.', false, '−2', 't-3'],
+    ],
+  };
+
+  // per-subject, like ARG and POP — the slot handle is per-subject, so a shared
+  // log would put #trade above a conversation about review windows.
+  CHAT={
+    measure14:[
+      { t:'18:02', who:'Aldric', hue:'var(--info)', body:'Four days is the whole of it. Anyone who wants the long version, it is on the argument board.' },
+      { t:'18:09', who:'Sable', hue:'#c98ad6', body:'read it. the weekend point still stands and nobody has answered it' },
+      { t:'18:11', who:'Maren', hue:'var(--accent)', body:'objected there rather than here, seemed like the right place for it' },
+      { t:'18:26', who:'Perrin', hue:'var(--good)', body:'is the vote actually scheduled or are we still arguing' },
+      { t:'18:31', who:'Aldric', hue:'var(--info)', body:'still arguing. three objections open, so it cannot mature yet.' },
+    ],
+    charter:[
+      { t:'17:40', who:'Bruni', hue:'var(--good)', body:'four a season is plenty. i had three last spring and two of them just swept.' },
+      { t:'17:52', who:'Maren', hue:'var(--accent)', body:'that is an argument for paying masters to teach, not for turning apprentices away' },
+      { t:'18:04', who:'Aldric', hue:'var(--info)', body:'Take it to the board, both of you. The chamber sets dues, not us.' },
+      { t:'18:22', who:'Thessa', hue:'#c98ad6', body:'is the cap for the whole guild or per master? the draft is not clear' },
+    ],
+    trade:[
+      { t:'18:12', who:'Hallow', hue:'#c9a24a', body:'still after river-iron if anyone has a stock they are sitting on' },
+      { t:'18:19', who:'Perrin', hue:'var(--good)', body:'pork is spoken for. will have more after the ford run.' },
+      { t:'18:33', who:'Bobalu', hue:'#e0a24a', body:'two of us hauling to customs tomorrow, room for a third if you split the fee' },
+    ],
+  };
+
+  // Reddit-shape comment trees. Depth carries the nesting; collapse hides a
+  // whole subtree; past MAXDEPTH the tail becomes a continue-thread link.
+  MAXDEPTH=4;
+  POSTS={
+    'm-1':{ author:'Wren', when:'2h', score:'+11',
+      body:'Has anyone actually read the draft, or are we all arguing about the summary?',
+      tree:[
+        ['c1',0,'Aldric','2h','I wrote it. The four-day window only applies to drafts with no prior revision — which is most of the backlog, but not the contested ones.','+18',false],
+        ['c2',1,'Wren','1h','That is not what the summary says at all. The summary reads like a blanket change.','+9',true],
+        ['c3',2,'Aldric','1h','Then the summary is wrong and I will fix it. The draft has said prior-revision since the second pass.','+14',false],
+        ['c4',3,'Sable','52m','This is the third measure this season where the summary and the draft disagreed.','+22',false],
+        ['c5',4,'Perrin','44m','Worth its own measure honestly. Summaries should be generated from the draft, not written separately.','+31',false],
+        ['c6',5,'Bruni','40m','Or just require the author to diff them before it can mature.','+7',false],
+        ['c7',5,'Hallow','38m','Generated summaries would lose the plain-language part, which is the only reason anyone reads them.','+4',false],
+        ['c8',1,'Bobalu','1h','Read it twice. It is fine. The people objecting have not.','−6',false],
+        ['c9',2,'Maren','58m','I objected on the board and quoted the clause. Do not do this.','+19',false],
+      ] },
+    // a post with no replies still opens — being first to comment is the point
+    'm-3':{ author:'Hallow', when:'1d', score:'−1',
+      body:'Reminder that the argument board is where this gets decided. This is just the pub.',
+      tree:[] },
+    't-1':{ author:'Hallow', when:'3h', score:'+14',
+      body:'WTB river-iron, any grade — paying over the guild rate for anything above 0.7% carbon.',
+      tree:[
+        ['t1a',0,'Bruni','2h','I have about forty kilos of bar stock at 0.8%. Not cheap.','+5',false],
+        ['t1b',1,'Hallow','2h','Name it. I would rather overpay than wait on the ford run.','+3',true],
+      ] },
+    't-2':{ author:'Perrin', when:'5h', score:'+6',
+      body:'Salt pork, 12 kg, cellar-cold. Three coin a kilo, will not split.',
+      tree:[] },
+    't-3':{ author:'Bobalu', when:'1d', score:'−2',
+      body:'Anyone hauling to the customs house this week? Splitting the fee.',
+      tree:[
+        ['t3a',0,'Wren','20h','Going Thursday. Room for one if you help load.','+4',false],
+      ] },
+    'm-2':{ author:'Bobalu', when:'6h', score:'+8',
+      body:'Four days, seven days — the problem is nobody reviews anything until someone complains.',
+      tree:[
+        ['d1',0,'Perrin','5h','This is the actual issue and no measure addresses it.','+12',false],
+        ['d2',1,'Aldric','4h','Because the fix is paying reviewers, and dues are the chamber\u2019s business.','+6',false],
+      ] },
+  };
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('ap-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const a=e.target.closest('[data-app]');
+      if(a&&r.contains(a)) return this.setState({app:a.getAttribute('data-app')});
+      const b=e.target.closest('[data-subject]');
+      if(b&&r.contains(b)) return this.setState({subject:b.getAttribute('data-subject'), surface:null});
+      const f=e.target.closest('[data-surface]');
+      if(f&&r.contains(f)) return this.setState({surface:f.getAttribute('data-surface'), post:null});
+      const po=e.target.closest('[data-post]');
+      if(po&&r.contains(po)) return this.setState({post:po.getAttribute('data-post')||null, collapsed:{}});
+      const co=e.target.closest('[data-collapse]');
+      if(co&&r.contains(co)){ const id=co.getAttribute('data-collapse');
+        return this.setState(st=>{ const c={...st.collapsed}; c[id]?delete c[id]:c[id]=1; return {collapsed:c}; }); }
+      const cs=e.target.closest('[data-csort]');
+      if(cs&&r.contains(cs)) return this.setState({csort:cs.getAttribute('data-csort')});
+      const dp=e.target.closest('[data-deep]');
+      if(dp&&r.contains(dp)) return this.setState({post:this.state.post, collapsed:{}});
+      const s=e.target.closest('[data-sort]');
+      if(s&&r.contains(s)) return this.setState({sort:s.getAttribute('data-sort')});
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  renderVals(){
+    const app=this.state.app, S=this.SUBJECTS[this.state.subject];
+    // a subject lights up 1..4 surfaces; pick the requested one if lit, else the first
+    const lit=S.lit;
+    const surface=(this.state.surface && lit.includes(this.state.surface)) ? this.state.surface : lit[0];
+    const isArg=surface==='argument-forum';
+    const isPop=surface==='popularity-forum';
+    const isChat=surface.endsWith('chat');
+    const rows = isArg ? (this.ARG[S.arg] || []) : (this.POP[S.pop] || []);
+    const RH={ 'supports':'var(--good)', 'objects-to':'var(--ember)', 'responds-to':'var(--info)' };
+    const RC={ 'supports':'sup', 'objects-to':'obj', 'responds-to':'res' };
+
+    const entries=rows.map(([depth,rel,author,when,body,open,score,id])=>({
+      indent:(depth*26)+'px',
+      cls:(rel?RC[rel]:'')+(open?' open':''),
+      hasRel:!!rel, rel:rel||'', relhue:rel?RH[rel]:'var(--line)',
+      author, when, body, open:!!open,
+      isArg, isPop, score:score||'', id:id||'',
+      replies:(()=>{ const n=(this.POSTS[id]||{tree:[]}).tree.length;
+        return n===0 ? 'be the first to reply' : (n===1 ? '1 reply' : n+' replies'); })(),
+      scoreHue: (score||'').startsWith('−') ? 'var(--ember)' : 'var(--fg)',
+    }));
+
+    // the one fact the lens derives, counted off the rendered rows
+    const openCount=rows.filter(r=>r[5]).length;
+
+    const surfaces=lit.map(id=>{
+      const [label,hue,glyph,reserved]=this.SURF[id];
+      return { id, label, hue, glyph, reserved, cls: id===surface?'on':'' };
+    });
+    const unlit=Object.keys(this.SURF).filter(k=>!lit.includes(k))
+      .map(k=>({ id:k, label:this.SURF[k][0] }));
+
+    const parentTitle = S.parent ? this.SUBJECTS[S.parent].title : '';
+
+    // ── flatten the comment tree: collapse hides descendants, and anything past
+    //    MAXDEPTH becomes a continue-thread link rather than indenting off-screen
+    const P = this.state.post ? this.POSTS[this.state.post] : null;
+    const comments=[];
+    if(P){
+      const col=this.state.collapsed;
+      let skipBelow=null, deepFrom=null;
+      P.tree.forEach(([id,depth,author,when,body,score,isOP])=>{
+        if(skipBelow!==null){ if(depth>skipBelow) return; skipBelow=null; }
+        if(deepFrom!==null){ if(depth>=deepFrom) return; deepFrom=null; }
+        if(depth>this.MAXDEPTH){
+          // count every row at or below this depth until the tree pops back up
+          let deep=0, seen=false;
+          for(const r of P.tree){
+            if(r[0]===id){ seen=true; deep=1; continue; }
+            if(!seen) continue;
+            if(r[1]<depth) break;
+            deep++;
+          }
+          comments.push({ id, isMore:true, isComment:false, indent:(this.MAXDEPTH*15)+'px',
+            label: deep===1 ? '1 more reply' : deep+' more replies' });
+          deepFrom=depth; return;
+        }
+        const isCol=!!col[id];
+        const kids=(()=>{ let n=0; let seen=false;
+          for(const r of P.tree){ if(r[0]===id){seen=true;continue;} if(!seen) continue;
+            if(r[1]<=depth) break; n++; } return n; })();
+        comments.push({ id, isComment:true, isMore:false, indent:(depth*15)+'px',
+          author, when, body, score, isOP:!!isOP,
+          glyph:isCol?'+':'−', open:!isCol, collapsed:isCol,
+          hidden:kids?('('+kids+' hidden)'):'' });
+        if(isCol) skipBelow=depth;
+      });
+    }
+
+    // one derivation, used by both the header badge and every rail row
+    const openOf = (id)=>{
+      const x=this.SUBJECTS[id];
+      if(!x.lit.includes('argument-forum')) return 0;
+      return (this.ARG[x.arg]||[]).filter(r=>r[5]).length;
+    };
+
+    return {
+      apps:[['forums','Forums'],['wiki','Wiki']].map(([id,label])=>({id,label,cls:app===id?'on':''})),
+      isForums:app==='forums', isWiki:app==='wiki',
+      fCls:app==='forums'?'on':'', wCls:app==='wiki'?'on':'',
+      appName:app==='forums'?'Forums':'Wiki',
+      appNote:app==='forums'?'one subject · one audience · up to four surfaces':'the reference, and the authoring palette',
+
+      subjects:Object.keys(this.SUBJECTS).map(id=>{
+        // same derivation as the header, so the rail can never disagree
+        const x=this.SUBJECTS[id];
+        return { id, title:x.title, cls:this.state.subject===id?'on':'',
+          isTopic:x.grain==='topic', pad:x.grain==='topic'?'20px':'11px',
+          chips:x.lit.map(k=>({ t:this.SURF[k][0].slice(0,4).toUpperCase(), hue:this.SURF[k][1] })),
+          hasOpen:openOf(id)>0, open:String(openOf(id)) };
+      }),
+
+      listDisplay:(isPop&&P)?'none':'block',
+      detailDisplay:(isPop&&P)?'block':'none',
+      postAuthor:P?P.author:'', postWhen:P?P.when:'', postBody:P?P.body:'', postScore:P?P.score:'',
+      commentCount:P?(P.tree.length===0?'no replies yet':(P.tree.length===1?'1 reply':P.tree.length+' replies')):'',
+      noComments:!!(P&&P.tree.length===0),
+      csorts:['best','top','new','controversial'].map(id=>({id,cls:this.state.csort===id?'':''})),
+      comments,
+      subjTitle:S.heading, subjDesc:S.desc,
+      grainLabel:S.grain==='topic'?'topic · thread-grain':'venue · board-grain',
+      bindLabel:S.bindLabel, bindHue:S.bindHue,
+      handle: S.grain==='topic' ? ('handle  '+S.handle+'   · scoped to '+parentTitle) : ('handle  '+S.handle+'   · flat-global'),
+      surfaces, unlit,
+
+      isArg, isPop, isChat, boardDisplay:isChat?'none':'block',
+      chatSlot:'#'+S.handle.split('/').pop()+'\u203a',
+      chatCmd:'chan '+S.handle.split('/').pop()+' <msg>',
+      chatLog:this.CHAT[S.chat]||[],
+      openCount:String(openCount),
+      sorts:['new','top','hot','controversial'].map(id=>({id,cls:''})),
+      entries,
+      matureOp: openCount?'.4':'1',
+      matureNote: openCount
+        ? (openCount===1
+            ? 'One objection still has nothing answering it. Maturing now sends this to a vote with that counter-argument unaddressed.'
+            : openCount+' objections still have nothing answering them. Maturing now sends this to a vote with its strongest counter-arguments unaddressed.')
+        : 'Every objection has been answered. This deliberation is ready for the deferred vote layer.',
+    };
+  }
+}
+</script>
+</body>
+</html>

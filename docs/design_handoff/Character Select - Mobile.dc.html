@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+      --paper-line:#d8cdb4;
+      --deskfg:#f2f5fa; --deskdim:#9fb0cc;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:#040b17; }
+    body { -webkit-font-smoothing:antialiased; font-family:'Public Sans',system-ui,sans-serif; color:var(--deskfg); }
+    ::-webkit-scrollbar { width:0; height:0; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .refbadge { display:inline-flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace;
+                font-weight:600; font-size:13px; color:var(--white); background:var(--red);
+                border:1px solid var(--white); border-radius:3px; padding:3px 10px; }
+    .screen { width:100%; height:100%; display:flex; flex-direction:column; background:var(--ground); color:var(--fg);
+              font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;
+              padding-top:62px; padding-bottom:34px; }
+    .foot { flex:none; margin-bottom:-34px; padding-bottom:42px; border-top:1px solid var(--line); }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .flagrule { height:5px; background:linear-gradient(180deg, var(--white) 0 1px, var(--red) 1px 4px, var(--white) 4px 5px); }
+    /* a character is a full-width row — the roster is a list, not a grid of slots */
+    .char { display:flex; gap:12px; width:100%; min-height:88px; padding:12px 14px; border:1px solid var(--line);
+            border-radius:3px; background:var(--surface); margin-bottom:8px; text-align:left; }
+    .char.on { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+    .char.dim { opacity:.62; }
+    .port { width:46px; height:62px; flex:none; border:1px solid var(--paper-line); border-radius:2px;
+            background:repeating-linear-gradient(135deg,#e6dcc4 0 9px,#efe6d2 9px 18px);
+            display:flex; align-items:center; justify-content:center;
+            font-family:'IBM Plex Mono',monospace; font-size:7.5px; color:#8a8069; }
+    .band { flex:1; height:4px; background:var(--sunken); overflow:hidden; }
+    .band > i { display:block; height:100%; }
+    .flag { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:.09em; text-transform:uppercase;
+            border-radius:2px; padding:1px 5px; flex:none; }
+    /* the practice grid: fewer weeks, bigger cells — legible beats complete */
+    .cell { width:11px; height:11px; border-radius:1px; }
+    .key { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--fg-dim); }
+    .sw { width:9px; height:9px; border-radius:1px; flex:none; }
+    .act { display:inline-flex; align-items:center; min-height:44px; padding:0 12px; font-family:'IBM Plex Mono',monospace;
+           font-size:11px; color:var(--accent); border:1px solid color-mix(in oklab,var(--accent) 35%,transparent);
+           border-radius:3px; }
+    .act.danger { color:var(--ember); border-color:color-mix(in oklab,var(--ember) 45%,transparent); }
+    .act.mute { color:var(--fg-mute); border-color:var(--line); }
+    .enter { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:50px;
+             font-family:'Public Sans',sans-serif; font-size:15px; font-weight:600; color:var(--white);
+             background:var(--red); border:1px solid var(--white); border-radius:3px; }
+    .enter.off { background:transparent; color:var(--fg-mute); border-color:var(--line); }
+    .enter.alt { background:transparent; color:var(--accent); border-color:var(--accent); }
+    .awayrow { display:flex; gap:9px; padding:9px 0; border-bottom:1px solid var(--line-soft); }
+    .awayrow:last-child { border-bottom:none; }
+  </style>
+</helmet>
+
+<section style="padding:52px 56px 78px; min-width:max-content;">
+
+  <div style="max-width:860px; margin-bottom:34px;">
+    <div class="m" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:11px;">Turn 5 · character select on a phone</div>
+    <h1 style="font-family:'Spectral',serif; font-weight:400; font-size:31px; line-height:1.16; margin:0 0 12px;">Two panes become two screens.</h1>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0 0 9px; max-width:760px;">Desktop shows the roster and the selected character side by side, so switching is free and comparison is the point. A phone cannot do both, and the honest split is by <em>question</em>: the list answers <strong style="color:var(--deskfg);">who</strong>, the detail answers <strong style="color:var(--deskfg);">what happened while I was gone</strong>.</p>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0; max-width:760px;">Most people have one character, so the list is a way-station rather than a destination — it should be skippable, and it is: a single-character account opens straight on the detail.</p>
+  </div>
+
+  <div style="display:flex; gap:40px; align-items:flex-start;">
+
+    <!-- ══════ 5A · the roster ══════ -->
+    <div id="5a" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">5A</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">The roster</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Account standing on top, characters below.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; position:relative; padding:12px 16px 11px; background:var(--surface); border-bottom:1px solid var(--line);">
+            <div class="flagrule" style="position:absolute; left:0; right:0; top:0;"></div>
+            <div style="display:flex; align-items:center; gap:11px; margin-bottom:11px;">
+              <span class="seal" style="width:34px; height:34px; font-size:16px;">S</span>
+              <div style="flex:1; min-width:0;">
+                <div class="cap" style="font-size:13.5px; line-height:1.15;">Who are you tonight?</div>
+                <div style="font-size:10.5px; color:var(--fg-mute); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">maren.vask@gmail.com</div>
+              </div>
+              <span style="width:34px; height:34px; flex:none; border:1px solid var(--line); border-radius:3px; display:flex; align-items:center; justify-content:center; color:var(--fg-dim); font-size:14px;">⋯</span>
+            </div>
+            <!-- Make and Fund belong to the person, so they stay with the account -->
+            <div style="display:flex; gap:14px;">
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;">
+                  <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">MAKE</span>
+                  <span class="m" style="font-size:9.5px; color:var(--good);">62</span>
+                </div>
+                <div class="band"><i style="width:62%; background:var(--good);"></i></div>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;">
+                  <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">FUND</span>
+                  <span class="m" style="font-size:9.5px; color:var(--ember);">8</span>
+                </div>
+                <div class="band"><i style="width:8%; background:var(--ember);"></i></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:12px 16px;">
+            <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+              <span class="lbl">Your characters</span>
+              <span class="m" style="font-size:9.5px; color:var(--fg-mute);">2 active · 1 retired</span>
+            </div>
+
+            <div class="char on">
+              <span class="port">portrait</span>
+              <div style="flex:1; min-width:0;">
+                <div class="wp" style="font-size:16px; color:var(--fg);">Maren Vask</div>
+                <div style="font-size:11px; color:var(--fg-dim); margin-bottom:7px;">a wright · Smiths' Guild</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                  <span class="m" style="font-size:8px; color:var(--fg-mute); letter-spacing:.1em; flex:none;">PLAY</span>
+                  <div class="band"><i style="width:74%; background:var(--good);"></i></div>
+                  <span class="m" style="font-size:9.5px; color:var(--good); flex:none;">74</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="width:5px;height:5px;border-radius:50%;background:var(--red);flex:none;"></span>
+                  <span style="font-size:10.5px; color:var(--fg-dim);">3 waiting · out 2h ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="char">
+              <span class="port">portrait</span>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:baseline; gap:7px;">
+                  <span class="wp" style="font-size:16px; color:var(--fg);">Korrin Orebright</span>
+                  <span class="flag" style="color:var(--good); border:1px solid var(--good);">NEW</span>
+                </div>
+                <div style="font-size:11px; color:var(--fg-dim); margin-bottom:7px;">a delver · unaffiliated</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                  <span class="m" style="font-size:8px; color:var(--fg-mute); letter-spacing:.1em; flex:none;">PLAY</span>
+                  <div class="band"><i style="width:0%; background:var(--info);"></i></div>
+                  <span class="m" style="font-size:9.5px; color:var(--info); flex:none;">—</span>
+                </div>
+                <div style="font-size:10.5px; color:var(--fg-mute);">never taken out</div>
+              </div>
+            </div>
+
+            <div class="char dim">
+              <span class="port">portrait</span>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:baseline; gap:7px;">
+                  <span class="wp" style="font-size:16px; color:var(--fg);">Sable Nimreth</span>
+                  <span class="flag" style="color:var(--fg-mute); border:1px solid var(--line);">RETIRED</span>
+                </div>
+                <div style="font-size:11px; color:var(--fg-dim); margin-bottom:7px;">an advocate</div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="m" style="font-size:8px; color:var(--fg-mute); letter-spacing:.1em; flex:none;">PLAY</span>
+                  <div class="band"><i style="width:52%; background:var(--ember);"></i></div>
+                  <span class="m" style="font-size:9.5px; color:var(--ember); flex:none;">52</span>
+                </div>
+              </div>
+            </div>
+
+            <button class="char" style="border-style:dashed; align-items:center; min-height:64px;">
+              <span style="width:46px; height:46px; flex:none; border:1px dashed var(--line); border-radius:2px;
+                           display:flex; align-items:center; justify-content:center; color:var(--fg-mute); font-size:19px;">＋</span>
+              <div style="flex:1;">
+                <div class="wp" style="font-size:15px; color:var(--fg);">Make someone new</div>
+                <div style="font-size:10.5px; color:var(--fg-mute);">no slots — a character is yours permanently</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 5B · the character ══════ -->
+    <div id="5b" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">5B</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">The character</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">What waited, then the practice record.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:8px 16px 10px; border-bottom:1px solid var(--line);">
+            <span class="m" style="font-size:16px; color:var(--fg-dim); flex:none;">‹</span>
+            <div style="flex:1; min-width:0;">
+              <div class="wp" style="font-size:17px; color:var(--fg); line-height:1.15;">Maren Vask</div>
+              <div class="m" style="font-size:9.5px; color:var(--fg-mute); font-style:italic;">Homo sapiens · a wright</div>
+            </div>
+            <span style="width:38px; height:38px; flex:none; border:1px solid var(--line); border-radius:3px; display:flex; align-items:center; justify-content:center; color:var(--fg-dim); font-size:14px;">⋯</span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:12px 16px;">
+            <!-- the returning player's real question, answered first -->
+            <div class="lbl" style="margin-bottom:7px;">Since you left</div>
+            <div style="border:1px solid var(--line); border-radius:3px; padding:0 12px; margin-bottom:15px;">
+              <div class="awayrow">
+                <span class="m" style="font-size:8px; color:var(--info); letter-spacing:.1em; flex:0 0 42px; padding-top:3px;">TELL</span>
+                <div style="flex:1; min-width:0;">
+                  <div class="wp" style="font-size:14px; line-height:1.45;">Bramble tells you, “Customs house when the iron's done.”</div>
+                  <div class="m" style="font-size:9px; color:var(--fg-mute); margin-top:2px;">1h ago</div>
+                </div>
+              </div>
+              <div class="awayrow">
+                <span class="m" style="font-size:8px; color:var(--accent); letter-spacing:.1em; flex:0 0 42px; padding-top:3px;">CIVIC</span>
+                <div style="flex:1; min-width:0;">
+                  <div class="wp" style="font-size:14px; line-height:1.45;">Measure 14 closes in two days. You hold a vote in Play.</div>
+                  <div class="m" style="font-size:9px; color:var(--fg-mute); margin-top:2px;">5h ago</div>
+                </div>
+              </div>
+              <div class="awayrow">
+                <span class="m" style="font-size:8px; color:var(--good); letter-spacing:.1em; flex:0 0 42px; padding-top:3px;">GUILD</span>
+                <div style="flex:1; min-width:0;">
+                  <div class="wp" style="font-size:14px; line-height:1.45;">Aldric posted the quarter dues — 30 rims at four coin.</div>
+                  <div class="m" style="font-size:9px; color:var(--fg-mute); margin-top:2px;">3h ago</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- the practice record: 18 weeks at 11px, not 26 at 6px -->
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:7px;">
+              <span class="lbl">Practice</span>
+              <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ practiceNote }}</span>
+            </div>
+            <div style="border:1px solid var(--line); border-radius:3px; padding:12px; margin-bottom:15px;">
+              <div style="display:flex; gap:3px; margin-bottom:10px;">
+                <sc-for list="{{ weeks }}" as="w" hint-placeholder-count="18">
+                  <div style="display:flex; flex-direction:column; gap:3px;">
+                    <sc-for list="{{ w.days }}" as="d" hint-placeholder-count="7">
+                      <span class="cell" style="background:{{ d.bg }};"></span>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <sc-for list="{{ tradeKey }}" as="t" hint-placeholder-count="3">
+                  <span class="key"><span class="sw" style="background:{{ t.hue }};"></span>{{ t.name }}<span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ t.n }}</span></span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div class="lbl" style="margin-bottom:7px;">Play standing</div>
+            <div style="border:1px solid var(--line); border-radius:3px; padding:12px; margin-bottom:15px;">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+                <span class="m" style="font-size:21px; color:var(--good);">74</span>
+                <span style="font-size:12px; color:var(--fg-dim);">rising</span>
+              </div>
+              <div class="band" style="margin-bottom:8px;"><i style="width:74%; background:var(--good);"></i></div>
+              <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">Out most nights, mid-contract. Standing is a rate — it holds while you keep turning up.</p>
+            </div>
+
+            <div class="lbl" style="margin-bottom:7px;">Where you left them</div>
+            <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:15px;">
+              <div class="wp" style="font-size:14.5px; color:var(--fg); margin-bottom:3px;">The Cartwright's Yard</div>
+              <div style="font-size:11.5px; color:var(--fg-mute); line-height:1.5;">Mid-contract. The jig is still set and Tomas is expecting the rim.</div>
+            </div>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span class="act">rename</span>
+              <span class="act">appearance</span>
+              <span class="act danger">retire</span>
+            </div>
+          </div>
+
+          <div class="foot" style="padding:11px 16px 0; background:var(--sunken);">
+            <div class="enter">Enter as Maren Vask ⏎</div>
+            <div style="display:flex; align-items:center; gap:7px; margin-top:7px;">
+              <span style="font-size:10.5px; color:var(--fg-mute);">sends as</span>
+              <span class="m" style="font-size:10.5px; color:var(--fg-dim);">play maren</span>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 5C · retired ══════ -->
+    <div id="5c" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">5C</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">Retired, and never played</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">The two states the controls must branch on.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:8px 16px 10px; border-bottom:1px solid var(--line);">
+            <span class="m" style="font-size:16px; color:var(--fg-dim); flex:none;">‹</span>
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:baseline; gap:7px;">
+                <span class="wp" style="font-size:17px; color:var(--fg); line-height:1.15;">Sable Nimreth</span>
+                <span class="flag" style="color:var(--fg-mute); border:1px solid var(--line);">RETIRED</span>
+              </div>
+              <div class="m" style="font-size:9.5px; color:var(--fg-mute); font-style:italic;">Homo eldarinus · an advocate</div>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:12px 16px;">
+            <div class="lbl" style="margin-bottom:7px;">Since you left</div>
+            <div style="border:1px dashed var(--line); border-radius:3px; padding:12px; margin-bottom:15px;">
+              <p style="font-size:12px; color:var(--fg-mute); line-height:1.55; margin:0;">Nothing waited for Sable Nimreth. Standing is a rate, and a character nobody sees only loses it.</p>
+            </div>
+
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:7px;">
+              <span class="lbl">Practice</span>
+              <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ sablePracticeNote }}</span>
+            </div>
+            <div style="border:1px solid var(--line); border-radius:3px; padding:12px; margin-bottom:15px; opacity:.72;">
+              <div style="display:flex; gap:3px; margin-bottom:10px;">
+                <sc-for list="{{ sableWeeks }}" as="w" hint-placeholder-count="18">
+                  <div style="display:flex; flex-direction:column; gap:3px;">
+                    <sc-for list="{{ w.days }}" as="d" hint-placeholder-count="7">
+                      <span class="cell" style="background:{{ d.bg }};"></span>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <sc-for list="{{ sableKey }}" as="t" hint-placeholder-count="3">
+                  <span class="key"><span class="sw" style="background:{{ t.hue }};"></span>{{ t.name }}<span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ t.n }}</span></span>
+                </sc-for>
+              </div>
+              <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:9px 0 0;">The record stops where they did. It is a career, so it stays legible after it ends.</p>
+            </div>
+
+            <div class="lbl" style="margin-bottom:7px;">Where you left them</div>
+            <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:15px;">
+              <div class="wp" style="font-size:14.5px; color:var(--fg); margin-bottom:3px;">the Chamber steps</div>
+              <div style="font-size:11.5px; color:var(--fg-mute); line-height:1.5;">Retired. Their record stands and the name stays taken, but they cannot be taken out.</div>
+            </div>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span class="act">restore</span>
+              <span class="act">rename</span>
+            </div>
+          </div>
+
+          <!-- the CTA must not offer what the panel above calls impossible -->
+          <div class="foot" style="padding:11px 16px 0; background:var(--sunken);">
+            <div class="enter off">Retired — cannot be taken out</div>
+            <div class="enter alt" style="margin-top:7px;">Restore Sable Nimreth</div>
+            <div style="display:flex; align-items:center; gap:7px; margin-top:7px;">
+              <span style="font-size:10.5px; color:var(--fg-mute);">sends as</span>
+              <span class="m" style="font-size:10.5px; color:var(--fg-dim);">restore sable</span>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  TRADES={
+    smithing:['Smithing','#e8705c'], haulage:['Haulage','#5b8fd6'],
+    medicine:['Field medicine','#4a9d8f'], civics:['Civics','#c9a227'],
+    survey:['Surveying','#a487c9'],
+  };
+
+  // 18 weeks at 11px rather than 26 at 6px — legible beats complete on glass
+  practice(seed0, weeks, mix, gapAt){
+    let seed=seed0;
+    const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+    const out=[];
+    for(let w=0; w<weeks; w++){
+      const days=[];
+      for(let d=0; d<7; d++){
+        const away = gapAt && w>=gapAt[0] && w<=gapAt[1];
+        const r=rnd();
+        let trade=mix[mix.length-1][1];
+        for(const [p,t] of mix){ if(r<p){ trade=t; break; } }
+        days.push((!away && rnd()<0.6) ? trade : null);
+      }
+      out.push(days);
+    }
+    return out;
+  }
+
+  view(grid){
+    const flat=grid.flat().filter(Boolean);
+    const counts={}; flat.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+    return {
+      weeks: grid.map(days=>({ days:days.map(t=>({
+        bg: t ? this.TRADES[t][1] : 'var(--sunken)' })) })),
+      key: Object.keys(counts).sort((a,b)=>counts[b]-counts[a])
+        .map(k=>({ name:this.TRADES[k][0], hue:this.TRADES[k][1], n:' '+counts[k] })),
+      note: flat.length+' days over '+grid.length+' weeks',
+    };
+  }
+
+  renderVals(){
+    const maren=this.view(this.practice(1987,18,[[0.58,'smithing'],[0.82,'haulage'],[1,'medicine']],[12,13]));
+    const sable=this.view(this.practice(4211,18,[[0.64,'civics'],[0.88,'survey'],[1,'haulage']],[15,17]));
+    return {
+      isDark:true,
+      weeks:maren.weeks, tradeKey:maren.key, practiceNote:maren.note,
+      sableWeeks:sable.weeks, sableKey:sable.key, sablePracticeNote:sable.note,
+    };
+  }
+}
+</script>
+</body>
+</html>

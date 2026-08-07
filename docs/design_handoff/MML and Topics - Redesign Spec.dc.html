@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="./doc-page.js"></script>
+  <style>
+    doc-page:not(:defined) { visibility:hidden; }
+    body { -webkit-font-smoothing:antialiased; }
+    h1,h2,h3,p,ul,ol,li,table { margin:0; }
+    .kt { break-inside:avoid; }
+    th, td { text-align:left; vertical-align:top; }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .s { font-family:'IBM Plex Sans',sans-serif; }
+  </style>
+</helmet>
+
+<doc-page margin="0.7in">
+
+  <!-- ═══════════ title ═══════════ -->
+  <div style="border-bottom:2px solid #24201a; padding-bottom:14px; margin-bottom:24px;">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:9px;">
+      <span class="m" style="font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:#a8681a; font-weight:600;">Design proposal &amp; implementation spec</span>
+      <span class="m" style="font-size:11px; color:#8a8073;">panterasbox/saxonberg @ master</span>
+    </div>
+    <h1 style="font-family:'Newsreader',serif; font-weight:500; font-size:33px; line-height:1.12; color:#24201a; margin-bottom:10px;">MML and topics, redesigned around the client</h1>
+    <p style="font-family:'Newsreader',serif; font-size:17px; line-height:1.55; color:#5c5449; max-width:5.6in;">Both vocabularies grew from server-side need, one emitter at a time. This proposes what they should be if the question were <em>what does a person using the web client need</em> — and specifies the server changes that get us there.</p>
+  </div>
+
+  <!-- ═══════════ §1 ═══════════ -->
+  <h2 style="font-family:'Newsreader',serif; font-weight:600; font-size:22px; color:#24201a; margin-bottom:4px;">1 · What went wrong, precisely</h2>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:14px;">Nothing here was a mistake at the time. Client support was built to test server behaviour, so both vocabularies record <strong>what the server emits</strong> rather than <strong>what a person attends to</strong>. Three consequences, each visible in the current tree.</p>
+
+  <div class="kt" style="border:1px solid #ddd4c4; border-radius:8px; padding:15px 18px; margin-bottom:11px; background:#f9f5ec;">
+    <div class="s" style="font-size:13px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#a8681a; margin-bottom:6px;">Pathology 1 — one topic per emitting code path</div>
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:9px;">There are 13 <span class="m" style="font-size:14px;">system.shell.*</span> topics — <span class="m" style="font-size:14px;">fs</span>, <span class="m" style="font-size:14px;">var</span>, <span class="m" style="font-size:14px;">alias</span>, <span class="m" style="font-size:14px;">group</span>, <span class="m" style="font-size:14px;">contacts</span>, <span class="m" style="font-size:14px;">settings</span>… Those are the shell's command categories, not classes of attention. Nobody mutes <span class="m" style="font-size:14px;">shell.fs</span> but not <span class="m" style="font-size:14px;">shell.var</span>.</p>
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a;">Likewise <span class="m" style="font-size:14px;">world.perception.measurement.*</span> is 15 topics — one per verb × channel (<span class="m" style="font-size:14px;">measure-temperature</span>, <span class="m" style="font-size:14px;">analyze-chemistry</span>, <span class="m" style="font-size:14px;">weigh</span>…). The dotted path is doing the job of a function name.</p>
+  </div>
+
+  <div class="kt" style="border:1px solid #ddd4c4; border-radius:8px; padding:15px 18px; margin-bottom:11px; background:#f9f5ec;">
+    <div class="s" style="font-size:13px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#a8681a; margin-bottom:6px;">Pathology 2 — the client must hardcode topic strings to decide anything</div>
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a;">The wire carries <span class="m" style="font-size:14px;">{topic, family, label, description}</span>. None of those say whether a frame is addressed to me, whether it matters, or whether it should interrupt. So every filter tab, mute rule, badge and notification threshold becomes a client-side lookup table keyed on 89 topic strings, drifting silently from the seeds. The knowledge lives in the wrong repository.</p>
+  </div>
+
+  <div class="kt" style="border:1px solid #a8681a; border-radius:8px; padding:15px 18px; margin-bottom:22px; background:#fbf3e4;">
+    <div class="s" style="font-size:13px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#a8402f; margin-bottom:6px;">Pathology 3 — the differentiator is untagged</div>
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:9px;">The taxonomy devotes 15 topics to measurement. The MML vocabulary — all 32 tags in <span class="m" style="font-size:14px;">KNOWN_TAGS</span> — has <strong>no tag for a measured value</strong>. A temperature is routed as a measurement and then rendered as prose: <span class="m" style="font-size:14px;">1240 °C</span> arrives as characters.</p>
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a;">The client therefore cannot convert units, compare against a working range, pin a value to an instrument panel, chart it over time, or feed the analyze view — without re-parsing strings it should never have had to parse. <strong>Real quantities are what this game has that no other text world has, and the markup drops them at the last inch.</strong></p>
+  </div>
+
+  <!-- ═══════════ §2 ═══════════ -->
+  <h2 style="font-family:'Newsreader',serif; font-weight:600; font-size:22px; color:#24201a; margin-bottom:4px;">2 · Two vocabularies, two questions</h2>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:14px;">The pair has been treated as one metadata system. They answer different questions at different scopes, and designing each against its own question is most of the fix.</p>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:22px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:7px 10px 7px 0; font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:17%;"></th>
+      <th class="s" style="padding:7px 10px; font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Topics</th>
+      <th class="s" style="padding:7px 0 7px 10px; font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">MML</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="s" style="padding:9px 10px 9px 0; font-size:14.5px; font-weight:600; color:#24201a;">Question</td><td class="s" style="padding:9px 10px; font-size:14.5px; color:#24201a;">Do I want to see this, where, and how loudly?</td><td class="s" style="padding:9px 0 9px 10px; font-size:14.5px; color:#24201a;">What can I do with this word?</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="s" style="padding:9px 10px 9px 0; font-size:14.5px; font-weight:600; color:#24201a;">Scope</td><td class="s" style="padding:9px 10px; font-size:14.5px; color:#24201a;">The whole frame</td><td class="s" style="padding:9px 0 9px 10px; font-size:14.5px; color:#24201a;">A span inside the body</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="s" style="padding:9px 10px 9px 0; font-size:14.5px; font-weight:600; color:#24201a;">Drives</td><td class="s" style="padding:9px 10px; font-size:14.5px; color:#24201a;">Routing, filtering, badges, notification, gutter colour</td><td class="s" style="padding:9px 0 9px 10px; font-size:14.5px; color:#24201a;">Click targets, verb menus, hover, inline widgets</td></tr>
+      <tr><td class="s" style="padding:9px 10px 9px 0; font-size:14.5px; font-weight:600; color:#24201a;">Design rule</td><td class="s" style="padding:9px 10px; font-size:14.5px; color:#24201a;">Name and shape by <em>attention</em>, never by emitter</td><td class="s" style="padding:9px 0 9px 10px; font-size:14.5px; color:#24201a;">A tag earns its place only if the client <em>affords</em> it differently</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════ §3 ═══════════ -->
+  <h2 style="font-family:'Newsreader',serif; font-weight:600; font-size:22px; color:#24201a; margin-bottom:4px;">3 · Topics: reshape the tree, then add facets</h2>
+
+  <div class="kt" style="border-left:3px solid #a8681a; padding:2px 0 2px 15px; margin-bottom:14px;">
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a;"><strong>Why renaming is the work, not a nice-to-have.</strong> The dotted path is not an internal identifier. <span class="m" style="font-size:14px;">family</span> drives grouping and gutter colour, and prefix subtrees are the only way to mute a class of thing as a unit. <strong>Tree shape is UI shape.</strong> Facets (below) fix cross-cutting queries — <em>everything addressed to me</em> — but only the tree fixes subtree mutes — <em>everything about the air in here</em>. Both halves are needed, and the rename cost is at its lifetime minimum today.</p>
+  </div>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">3.1 The renames</h3>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:9px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 8px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:31%;">Current</th>
+      <th class="s" style="padding:6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:26%;">Proposed</th>
+      <th class="s" style="padding:6px 0 6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">The filter it unlocks</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:9px 8px 9px 0; font-size:12.5px; color:#24201a;">world.perception.measurement.<br>{measure,analyze}-&lt;channel&gt;<br><span class="s" style="font-size:12px; color:#a8402f;">15 leaves</span></td>
+        <td class="m" style="padding:9px 8px; font-size:12.5px; color:#24201a;">world.measure.<br>&lt;channel&gt;<br><span class="s" style="font-size:12px; color:#4f7a3a;">8 leaves</span></td>
+        <td class="s" style="padding:9px 0 9px 8px; font-size:13.5px; color:#24201a; line-height:1.5;">“Show me temperature readings.” Today <span class="m" style="font-size:12.5px;">atmosphere</span> and <span class="m" style="font-size:12.5px;">light</span> each exist twice, split by which verb produced them — so no channel is filterable as one thing. Verb and depth become frame data; the channel becomes identity.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:9px 8px 9px 0; font-size:12.5px; color:#24201a;">system.shell.*<br><span class="s" style="font-size:12px; color:#a8402f;">13 leaves</span></td>
+        <td class="m" style="padding:9px 8px; font-size:12.5px; color:#24201a;">author.shell<br><span class="s" style="font-size:12px; color:#4f7a3a;">1 leaf</span></td>
+        <td class="s" style="padding:9px 0 9px 8px; font-size:13.5px; color:#24201a; line-height:1.5;">“Keep the authoring shell out of my game feed.” The command category rides as data; it was never an attention class.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:9px 8px 9px 0; font-size:12.5px; color:#24201a;">system.commands.*<br><span class="s" style="font-size:12px; color:#8a8073;">added / removed / reset</span></td>
+        <td class="m" style="padding:9px 8px; font-size:12.5px; color:#24201a;">system.registry.*</td>
+        <td class="s" style="padding:9px 0 9px 8px; font-size:13.5px; color:#24201a; line-height:1.5;">Disambiguation. <span class="m" style="font-size:12.5px;">system.command</span> and <span class="m" style="font-size:12.5px;">system.commands</span> differ by one letter and mean unrelated things — command <em>feedback</em> versus the verb <em>registry</em> changing. The client cares about the latter: it invalidates verb menus.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:9px 8px 9px 0; font-size:12.5px; color:#24201a;">world.emote</td>
+        <td class="m" style="padding:9px 8px; font-size:12.5px; color:#a8402f;">retire</td>
+        <td class="s" style="padding:9px 0 9px 8px; font-size:13.5px; color:#24201a; line-height:1.5;">A vestigial root from an abandoned design. It sits at <span class="m" style="font-size:12.5px;">family: world</span> and promises “per-emote leaves (e.g. <span class="m" style="font-size:12.5px;">world.emote.wave</span>) inherit from this root” — leaves that were never seeded. The live design is the opposite and says so: <span class="m" style="font-size:12.5px;">world.expression.emote</span> holds that “catalog and free-form emotes share this leaf; the payload distinguishes.” Only that one carries <span class="m" style="font-size:12.5px;">communicative: true</span>, so any emitter still routing to the old root mints no renown.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:9px 8px 9px 0; font-size:12.5px; color:#24201a;">system.auth.*<br>system.connection.*</td>
+        <td class="m" style="padding:9px 8px; font-size:12.5px; color:#24201a;">system.session.*</td>
+        <td class="s" style="padding:9px 0 9px 8px; font-size:13.5px; color:#24201a; line-height:1.5;">One subtree for “am I connected and who am I,” which is one concern to a user and one status indicator in the client.</td>
+      </tr>
+      <tr>
+        <td class="m" style="padding:9px 8px 9px 0; font-size:12.5px; color:#4f7a3a;">world.perception.ambient.*</td>
+        <td class="m" style="padding:9px 8px; font-size:12.5px; color:#4f7a3a;">keep as-is</td>
+        <td class="s" style="padding:9px 0 9px 8px; font-size:13.5px; color:#24201a; line-height:1.5;">Already right: split by sense modality — <span class="m" style="font-size:12.5px;">vision</span>, <span class="m" style="font-size:12.5px;">sound</span>, <span class="m" style="font-size:12.5px;">smell</span>, <span class="m" style="font-size:12.5px;">touch</span>, <span class="m" style="font-size:12.5px;">taste</span>. Someone genuinely wants to mute smells and keep sounds. Use this family as the shape model for the rest.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="s" style="font-size:14px; line-height:1.6; color:#5c5449; font-style:italic; margin-bottom:20px;">Net: 89 → roughly 60 topics, and every survivor is something a person would plausibly toggle. Channel names in <span class="m" style="font-size:13px; font-style:normal;">world.measure.&lt;channel&gt;</span> share a vocabulary with the <span class="m" style="font-size:13px; font-style:normal;">&lt;measure&gt;</span> tag's <span class="m" style="font-size:13px; font-style:normal;">channel</span> attribute in §4 — one list, used by both systems.</p>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">3.2 The facets</h3>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:13px;">A reshaped tree still expresses only one hierarchy. These five fields carry the cross-cutting questions the client asks on every frame, so the answers live in the seeds instead of a client lookup table.</p>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:13px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:15%;">Facet</th>
+      <th class="s" style="padding:6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:29%;">Values</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">What the client does with it</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:9px 10px 9px 0; font-size:13.5px; font-weight:600; color:#a8681a;">address</td><td class="m" style="padding:9px 10px; font-size:13px; color:#5c5449;">direct · personal · ambient · broadcast</td><td class="s" style="padding:9px 0 9px 10px; font-size:14px; color:#24201a;">Badging and notification. <span class="m" style="font-size:13px;">direct</span> earns a push; <span class="m" style="font-size:13px;">ambient</span> never does.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:9px 10px 9px 0; font-size:13.5px; font-weight:600; color:#a8681a;">actor</td><td class="m" style="padding:9px 10px; font-size:13px; color:#5c5449;">self · person · world · system</td><td class="s" style="padding:9px 0 9px 10px; font-size:14px; color:#24201a;">Gutter colour and voice. Replaces colour-by-family, which currently encodes the emitter.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:9px 10px 9px 0; font-size:13.5px; font-weight:600; color:#a8681a;">weight</td><td class="m" style="padding:9px 10px; font-size:13px; color:#5c5449;">consequence · activity · chatter · diagnostic</td><td class="s" style="padding:9px 0 9px 10px; font-size:14px; color:#24201a;">Default filter levels. “Quiet mode” becomes <span class="m" style="font-size:13px;">weight ≤ activity</span> — one rule, not 60.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:9px 10px 9px 0; font-size:13.5px; font-weight:600; color:#a8681a;">audience</td><td class="m" style="padding:9px 10px; font-size:13px; color:#5c5449;">player · author · all</td><td class="s" style="padding:9px 0 9px 10px; font-size:14px; color:#24201a;">Which surface it belongs to. Belt-and-braces with the <span class="m" style="font-size:13px;">author.*</span> prefix for topics that serve both.</td></tr>
+      <tr><td class="m" style="padding:9px 10px 9px 0; font-size:13.5px; font-weight:600; color:#a8681a;">durable</td><td class="m" style="padding:9px 10px; font-size:13px; color:#5c5449;">boolean</td><td class="s" style="padding:9px 0 9px 10px; font-size:14px; color:#24201a;">Keep in scrollback and transcripts, or let it age out.</td></tr>
+    </tbody>
+  </table>
+  <p class="s" style="font-size:14px; line-height:1.6; color:#5c5449; font-style:italic; margin-bottom:16px;">Five facets across ~60 topics is not 300 hand decisions: <span class="m" style="font-size:13px; font-style:normal;">audience</span> and <span class="m" style="font-size:13px; font-style:normal;">actor</span> derive mechanically from the family prefix. A script sets defaults; review touches only exceptions.</p>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">3.3 Worked on real topics</h3>
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 8px 6px 0; font-size:11.5px; color:#5c5449; letter-spacing:.05em; text-transform:uppercase;">Topic (post-rename)</th>
+      <th class="s" style="padding:6px 6px; font-size:11.5px; color:#5c5449; letter-spacing:.05em; text-transform:uppercase;">address</th>
+      <th class="s" style="padding:6px 6px; font-size:11.5px; color:#5c5449; letter-spacing:.05em; text-transform:uppercase;">actor</th>
+      <th class="s" style="padding:6px 6px; font-size:11.5px; color:#5c5449; letter-spacing:.05em; text-transform:uppercase;">weight</th>
+      <th class="s" style="padding:6px 6px; font-size:11.5px; color:#5c5449; letter-spacing:.05em; text-transform:uppercase;">audience</th>
+      <th class="s" style="padding:6px 0 6px 6px; font-size:11.5px; color:#5c5449; letter-spacing:.05em; text-transform:uppercase;">durable</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#24201a;">world.chat.message</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">broadcast</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">person</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">chatter</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">player</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">true</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#24201a;">world.expression.emote</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">ambient</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">person</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">activity</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">player</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">false</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#24201a;">world.narration.action</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">ambient</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">world</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">activity</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">player</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">false</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#a8681a; font-weight:600;">world.measure.thermal</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">personal</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">self</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">consequence</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">player</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">true</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#24201a;">system.command.error</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">personal</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">system</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">consequence</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">all</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">false</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#24201a;">system.log.command</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">personal</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">self</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">diagnostic</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">all</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">false</td></tr>
+      <tr><td class="m" style="padding:7px 8px 7px 0; font-size:12.5px; color:#a8681a; font-weight:600;">author.shell</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">personal</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">system</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449;">activity</td><td class="m" style="padding:7px 6px; font-size:12.5px; color:#5c5449; font-weight:600;">author</td><td class="m" style="padding:7px 0 7px 6px; font-size:12.5px; color:#5c5449;">false</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════ §4 ═══════════ -->
+  <h2 style="font-family:'Newsreader',serif; font-weight:600; font-size:22px; color:#24201a; margin-bottom:4px;">4 · MML: a tag earns its place by affordance</h2>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:13px;">The test: <strong>does the client render or offer something different because of this tag?</strong> If two tags produce the same clickable noun, that is one affordance wearing two names — the composer pays at every call site and the user gets nothing. The 16 identity/affordance tags against that test:</p>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:16%;">Tag</th>
+      <th class="s" style="padding:6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:47%;">Distinct affordance?</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Verdict</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">player</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Profile, DM, befriend, look</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">npc</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Talk, trade, look — a different verb menu from a player</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">name</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Kind unstated, so the client cannot pick a verb menu — degrades to “look”</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#a8402f; font-weight:600;">retire or define</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">item</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Get, drop, wield — <em>if</em> item means portable</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#9a6a1c; font-weight:600;">keep, document</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">object</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Look, use — <em>if</em> object means fixed scenery. Today it reads as a synonym for item.</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#9a6a1c; font-weight:600;">confirm or collapse</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">location</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Travel to, show on map</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">exit</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Traverse</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">direction</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Same affordance as exit — a compass word in prose <em>is</em> a way out</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#a8402f; font-weight:600;">fold into exit</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">chan</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Switch to, mute, bind a slot</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">mention</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Highlight-me plus reply — distinct from a bare player ref</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">link</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">The generic command carrier (<span class="m" style="font-size:12.5px;">mudcmd:</span> / <span class="m" style="font-size:12.5px;">mudref:</span> / <span class="m" style="font-size:12.5px;">mudq:</span>)</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">speech</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Quoted-voice styling; an attribution claim the composer alone may make</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">msg</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Purpose overlaps <span class="m" style="font-size:12.5px;">speech</span> and <span class="m" style="font-size:12.5px;">chan</span> depending on call site</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#9a6a1c; font-weight:600;">clarify</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">detail</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">An examinable sub-feature — <span class="m" style="font-size:12.5px;">look &lt;detail&gt;</span></td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">sense</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Marks modality; pairs with <span class="m" style="font-size:12.5px;">world.perception.ambient.*</span></td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep</td></tr>
+      <tr><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#24201a;">color</td><td class="s" style="padding:7px 10px; font-size:13.5px; color:#24201a;">Presentation only, and an impersonation vector if ever made inert</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#4f7a3a; font-weight:600;">keep, stay non-inert</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">4.1 The addition that matters: <span class="m" style="font-size:14px; text-transform:none; letter-spacing:0;">&lt;measure&gt;</span></h3>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:12px;">One tag closes Pathology 3. The server already knows every one of these fields at compose time — it computed them.</p>
+
+  <div class="kt" style="background:#24201a; border-radius:8px; padding:15px 18px; margin-bottom:13px;">
+    <div class="m" style="font-size:12.5px; line-height:1.75; color:#ece7df;">&lt;measure channel="thermal" value="1240" unit="degC"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;via="pyrometer" lo="1150" hi="1300"&gt;1240 °C&lt;/measure&gt;</div>
+  </div>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:13px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:17%;">Attribute</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Why the client needs it</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#a8681a;">channel</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#24201a;">Stable identity for pinning to an instrument panel and charting a series. Same vocabulary as <span class="m" style="font-size:12.5px;">world.measure.&lt;channel&gt;</span>.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#a8681a;">value + unit</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#24201a;">Canonical numeric and unit code. Enables conversion (°C ↔ °F), comparison, sorting, and tabular figures in the type.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#a8681a;">via</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#24201a;">Provenance — which instrument produced it. This is the pedagogical seam: a reading is only honest if you can say how it was taken.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#a8681a;">lo / hi</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#24201a;">Optional working range, so “in window” styling is declared by the server rather than hardcoded per craft in the client.</td></tr>
+      <tr><td class="m" style="padding:7px 10px 7px 0; font-size:13px; color:#a8681a;">children</td><td class="s" style="padding:7px 0 7px 10px; font-size:13.5px; color:#24201a;">The server's own rendering, so <span class="m" style="font-size:12.5px;">flatten</span> yields correct prose and a bare telnet client still reads “1240 °C”.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="kt" style="border:1px solid #a8402f; border-radius:8px; padding:14px 17px; margin-bottom:20px; background:#fdf1ee;">
+    <div class="s" style="font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#a8402f; margin-bottom:6px;">Security: <span class="m" style="text-transform:none; letter-spacing:0;">&lt;measure&gt;</span> must never be inert</div>
+    <p class="s" style="font-size:14.5px; line-height:1.6; color:#24201a;">By the reasoning already written into <span class="m" style="font-size:13.5px;">INERT_TAGS</span>: it is a <em>factual claim about the world on the server's authority</em>, exactly like <span class="m" style="font-size:13.5px;">speech</span>. A player who could type it into chat could forge instrument data — worse than misattributing words, because the whole premise is that the numbers are real. It belongs in <span class="m" style="font-size:13.5px;">KNOWN_TAGS</span> only, with a <span class="m" style="font-size:13.5px;">flatten</span> entry, and stays out of every passthrough policy.</p>
+  </div>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">4.2 Lower-priority additions</h3>
+  <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:20px;"><span class="m" style="font-size:13.5px;">&lt;skill&gt;</span> — skill references are central to advancement and currently render as bare words; a tag would afford “show my rank, show practice history.” <span class="m" style="font-size:13.5px;">&lt;coin&gt;</span> or <span class="m" style="font-size:13.5px;">&lt;measure unit="coin"&gt;</span> for money, once the currency work settles. Both are worth doing after <span class="m" style="font-size:13.5px;">&lt;measure&gt;</span> proves the pattern; neither is urgent.</p>
+
+  <!-- ═══════════ §5 ═══════════ -->
+  <h2 style="font-family:'Newsreader',serif; font-weight:600; font-size:22px; color:#24201a; margin-bottom:4px;">5 · The changes, in implementation order</h2>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:14px;">Ordered so each step ships independently and nothing is blocked on client work.</p>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 8px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:5%;">#</th>
+      <th class="s" style="padding:6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:33%;">Change</th>
+      <th class="s" style="padding:6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:34%;">Where</th>
+      <th class="s" style="padding:6px 0 6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Wire</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">1</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Add <span class="m" style="font-size:12.5px;">measure</span> to the tag vocabulary + its <span class="m" style="font-size:12.5px;">flatten</span> entry; emit it from the measurement verbs.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">api/mml/tags.ts<br>api/mml/flatten<br>cmd/perception/{measure,analyze}.yaml</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">Additive. Old clients see the flattened prose unchanged.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">2</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Add the five facets to the Topic seed schema and to <span class="m" style="font-size:12.5px;">TopicDescriptor</span>; script the defaults from family prefixes.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">seeds/obj/Topic/*.yaml<br>types/src/index.ts<br>TopicCatalogue</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">Additive fields on an existing type.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">3</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Retire <span class="m" style="font-size:12.5px;">world.emote</span> — confirm first that no emitter still routes to it; fold <span class="m" style="font-size:12.5px;">direction</span> into <span class="m" style="font-size:12.5px;">exit</span>.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">seeds/obj/Topic/<br>api/mml/tags.ts</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#9a6a1c;">Breaking, but single-emitter each.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">4</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">The renames (§3.1), behind an alias map so both paths resolve for one release.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">seeds/obj/Topic/<br>TopicCatalogue alias table<br>every emit site</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#9a6a1c;">Breaking; the alias period makes it staged.</td>
+      </tr>
+      <tr>
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">5</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Rewrite <span class="m" style="font-size:12.5px;">label</span> / <span class="m" style="font-size:12.5px;">description</span> in player voice.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">seeds/obj/Topic/*.yaml</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">Content only.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="kt" style="border-left:3px solid #a8681a; padding:2px 0 2px 15px; margin-bottom:16px;">
+    <p class="s" style="font-size:14.5px; line-height:1.6; color:#24201a;"><strong>On step 5.</strong> The seed descriptions are written for server developers — “Dynamic per-level leaves (info, warn) inherit from this family,” “Output of workspace filesystem verbs — pwd, cd, ls, cat…”. They are also the <em>only</em> human-readable strings on the wire, so any filter UI the client builds inherits that voice. Whatever a player reads in a mute list should be written for a player.</p>
+  </div>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">Open questions for the server side</h3>
+  <ol style="margin-left:17px;">
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;">Is the <span class="m" style="font-size:13.5px;">item</span> / <span class="m" style="font-size:13.5px;">object</span> split portable-versus-fixed, or historical? The answer decides keep-or-collapse.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;">What is <span class="m" style="font-size:13.5px;">msg</span> for, distinct from <span class="m" style="font-size:13.5px;">speech</span> and <span class="m" style="font-size:13.5px;">chan</span>?</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;">Should <span class="m" style="font-size:13.5px;">communicative</span> join the facets and go on the wire? It is currently server-only, so the client cannot show why an utterance earned renown.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a;">Does the measurement channel list (thermal, light, atmosphere, chemistry, electrical, mass, position, weather) match the engine's own channel enum? They should be the same list in one place.</li>
+  </ol>
+
+  <!-- ═══════════ §6 ═══════════ -->
+  <h2 style="font-family:'Newsreader',serif; font-weight:600; font-size:22px; color:#24201a; margin-bottom:4px; break-before:page;">6 · The authoring vocabulary</h2>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:13px;">§4 judged each tag against one question — does the client afford it differently. That is the right question for the client and the wrong one for the person writing the world. This section supplies the missing axis, and in doing so resolves the three verdicts §4 left open.</p>
+
+  <div class="kt" style="border-left:3px solid #a8402f; padding:2px 0 2px 15px; margin-bottom:15px;">
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a;"><strong>The tension.</strong> The client rule <em>minimises</em> the vocabulary: collapse anything that affords the same. The authoring requirement <em>maximises</em> it: someone writing a limestone cavern and someone writing an orbital habitat need to say different things. Applied alone, the first yields a vocabulary too thin to write in; the second yields hundreds of tags the client cannot act on. <strong>Today's 32 tags attempt both on one axis, which is why <span class="m" style="font-size:14px;">item</span> versus <span class="m" style="font-size:14px;">object</span> is unresolvable</strong> — it is an <em>authorial</em> distinction wearing the costume of an affordance.</p>
+  </div>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">6.1 Closed tags × open attributes</h3>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:12px;">They are two axes, and separating them dissolves the conflict rather than trading it off.</p>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:13px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:22%;"></th>
+      <th class="s" style="padding:6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:39%;">Tag</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Attribute</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="s" style="padding:8px 10px 8px 0; font-size:14.5px; font-weight:600; color:#24201a;">Answers</td><td class="s" style="padding:8px 10px; font-size:14px; color:#24201a;">What can be done with it</td><td class="s" style="padding:8px 0 8px 10px; font-size:14px; color:#24201a;">What it means</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="s" style="padding:8px 10px 8px 0; font-size:14.5px; font-weight:600; color:#24201a;">Shape</td><td class="s" style="padding:8px 10px; font-size:14px; color:#24201a;">Closed set, ~12, changes with a release</td><td class="s" style="padding:8px 0 8px 10px; font-size:14px; color:#24201a;">Open vocabulary, grows with content</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="s" style="padding:8px 10px 8px 0; font-size:14.5px; font-weight:600; color:#24201a;">Owned by</td><td class="s" style="padding:8px 10px; font-size:14px; color:#24201a;">The client team</td><td class="s" style="padding:8px 0 8px 10px; font-size:14px; color:#24201a;">Content authors and packs</td></tr>
+      <tr><td class="s" style="padding:8px 10px 8px 0; font-size:14.5px; font-weight:600; color:#24201a;">Example</td><td class="m" style="padding:8px 10px; font-size:13px; color:#24201a;">&lt;thing&gt;</td><td class="m" style="padding:8px 0 8px 10px; font-size:13px; color:#24201a;">kind="rune-stone"<br>kind="plasma-conduit"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="kt" style="background:#24201a; border-radius:8px; padding:15px 18px; margin-bottom:12px;">
+    <div class="m" style="font-size:12.5px; line-height:1.85; color:#ece7df;">&lt;thing id="#7b02" mx="Tangible,Marked,Fixture"&gt;standing stone&lt;/thing&gt;<br>&lt;thing id="#9f30" mx="Tangible,Energized,Conduit"&gt;humming conduit&lt;/thing&gt;<br>&lt;place id="#5e77" mx="Container,AmbientLit,Climbable"&gt;the dripping hollow&lt;/place&gt;</div>
+  </div>
+  <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:18px;">This is how HTML solved the identical problem: a closed element set with an open <span class="m" style="font-size:14px;">class</span> vocabulary. The author's range is unbounded; the client's stays fixed. <strong>The net is fewer tags and more expressive power</strong> — 28 rather than 32, because expressiveness moved off the tag and onto an attribute that can grow without a release. §6.3 identifies what that attribute should be, and the answer is that it already exists.</p>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">6.2 The closed set</h3>
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:23%;">Class</th>
+      <th class="s" style="padding:6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:33%;">Tags</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Behaviour</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="s" style="padding:9px 10px 9px 0; font-size:14px; font-weight:600; color:#24201a;">Affordance-bearing</td>
+        <td class="m" style="padding:9px 10px; font-size:13px; color:#24201a;">player · npc · thing · place · exit · detail</td>
+        <td class="s" style="padding:9px 0 9px 10px; font-size:13.5px; color:#24201a;">Carry a stuff-id. Clickable, and open a context menu.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="s" style="padding:9px 10px 9px 0; font-size:14px; font-weight:600; color:#24201a;">Informational</td>
+        <td class="m" style="padding:9px 10px; font-size:13px; color:#24201a;">measure · sense · speech</td>
+        <td class="s" style="padding:9px 0 9px 10px; font-size:13.5px; color:#24201a;">Styling and inline widgets — a unit toggle on a measure — but issue no command.</td>
+      </tr>
+      <tr>
+        <td class="s" style="padding:9px 10px 9px 0; font-size:14px; font-weight:600; color:#24201a;">Reference</td>
+        <td class="m" style="padding:9px 10px; font-size:13px; color:#24201a;">link · chan · mention</td>
+        <td class="s" style="padding:9px 0 9px 10px; font-size:13.5px; color:#24201a;">Already command carriers with their own semantics.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:8px;"><strong>Resolving §4's three open verdicts:</strong></p>
+  <ul style="margin-left:17px; margin-bottom:20px;">
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;"><span class="m" style="font-size:13.5px;">item</span> + <span class="m" style="font-size:13.5px;">object</span> → <strong>collapse to <span class="m" style="font-size:13.5px;">thing</span></strong>. The distinction people reach for is portability, and portability is not a kind — it is <em>state</em>. A sword on a table can be taken; the same sword bolted to a wall cannot. Same tag, same kind, different answer at different moments, so it can only come from the live resolve in §6.4.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;"><span class="m" style="font-size:13.5px;">name</span> → <strong>retire</strong>. With <span class="m" style="font-size:13.5px;">player</span> and <span class="m" style="font-size:13.5px;">npc</span> both kept, it has no remaining role.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a;"><span class="m" style="font-size:13.5px;">player</span> / <span class="m" style="font-size:13.5px;">npc</span> → <strong>stay two tags.</strong> An account behind the character is a different menu, not a different flavour.</li>
+  </ul>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">6.3 The vocabulary already exists: mixins</h3>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:12px;">An earlier draft of this section proposed a <span class="m" style="font-size:15px;">kind</span> registry. That was a mistake: it would have been a <strong>second taxonomy describing what a first taxonomy already knows</strong>, and the two would have drifted the first time an author composed a mixin without updating a kind. The ~180 entries in <span class="m" style="font-size:15px;">lib/mixin.ts</span> are already authored, already introspectable at runtime through <span class="m" style="font-size:15px;">MixinApi.hasMixin</span>, and — decisively — <strong>already affordance-shaped.</strong></p>
+
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:26%;">Mixin</th>
+      <th class="s" style="padding:6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:30%;">Confers</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Category</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Containable</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">take · drop</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">manipulation</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Wieldable</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">wield · unwield</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">manipulation</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Sealable · Lockable</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">open · close · lock · unlock</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">manipulation</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Marked</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">read</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">perception</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Thermal · Tangible</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">measure temp · weigh</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">perception</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Climbable · Mountable</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">climb · mount</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">movement</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Vocal · PricedOffer</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">talk to · buy</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">social</td></tr>
+      <tr><td class="m" style="padding:6px 10px 6px 0; font-size:13px; color:#24201a;">Switchable · Combustible</td><td class="m" style="padding:6px 10px; font-size:12.5px; color:#5c5449;">turn on/off · ignite</td><td class="s" style="padding:6px 0 6px 10px; font-size:13px; color:#24201a;">manipulation</td></tr>
+    </tbody>
+  </table>
+  <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:15px;">A menu is the <strong>union of what an object's composed mixins confer.</strong> Composition also answers the inheritance question a kind registry would have raised: an anvil is <span class="m" style="font-size:14px;">Tangible + Tool + Durable + Fixture</span>, and that <em>is</em> its affordance set — no parent chain to maintain, because the object already declares its parts.</p>
+
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:10px;">The one thing to add is where each mixin says what it confers. A static beside <span class="m" style="font-size:15px;">fieldMeta</span>, collected up the prototype chain exactly as <span class="m" style="font-size:15px;">getAllFieldMeta</span> already does:</p>
+  <div class="kt" style="background:#24201a; border-radius:8px; padding:15px 18px; margin-bottom:15px;">
+    <div class="m" style="font-size:12.5px; line-height:1.75; color:#ece7df;"><span style="color:#8a8073;">// SealableMixin</span><br>static affords: Affords = {<br>&nbsp;&nbsp;open:&nbsp;&nbsp;{ category: 'manipulation', when: 'closed' },<br>&nbsp;&nbsp;close: { category: 'manipulation', when: 'open' },<br>};</div>
+  </div>
+
+  <div class="kt" style="border:1px solid #a8681a; border-radius:8px; padding:14px 17px; margin-bottom:15px; background:#fbf3e4;">
+    <div class="s" style="font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#a8681a; margin-bottom:6px;">The pedagogical dividend</div>
+    <p class="s" style="font-size:14.5px; line-height:1.6; color:#24201a; margin-bottom:8px;">If the client <em>names</em> the mixins, playing the game teaches the authoring palette. It is the same thesis as clicks-teach-the-command-line, one layer up: point at a lamppost, see <span class="m" style="font-size:13.5px;">Switchable · LightSource · Fixture</span>, and follow any of the three to its wiki page. By the time someone opens the Studio the vocabulary is already familiar — and because they met it on real objects, they know what each part <em>does</em>, not just what it is called.</p>
+    <p class="s" style="font-size:14.5px; line-height:1.6; color:#24201a;">A <span class="m" style="font-size:13.5px;">kind</span> registry would have taught players a vocabulary that exists nowhere else in the system. Mixins are the real one.</p>
+  </div>
+
+  <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:20px;"><strong>What is left for genre flavour.</strong> Mixins cannot distinguish a rune-stone from a plasma conduit — both may compose <span class="m" style="font-size:14px;">Tangible + Marked + Fixture</span>. That difference is presentational only, so it belongs on the template that already identifies the object, as an optional icon; it does not justify a parallel taxonomy. Prose carries the genre. It always did.</p>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">6.4 Affordance resolution: why MML must not carry the verb list</h3>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:11px;">The obvious design is to let the composer emit each noun's verbs. It fails on three counts, and the third is decisive.</p>
+  <ol style="margin-left:17px; margin-bottom:13px;">
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:5px;"><strong>Bloat.</strong> A room description with twenty tagged nouns × a dozen verbs is a frame many times the size of its own prose.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:5px;"><strong>Staleness.</strong> A frame sits in scrollback forever. A door tagged <span class="m" style="font-size:13.5px;">unlock</span> ten minutes ago is now a lie.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a;"><strong>Viewer-dependence.</strong> Verbs are gated by skill, permission and state, so the true menu is a function of <em>(id, viewer, now)</em>. MML is a snapshot of <em>then</em> — it structurally cannot hold the answer.</li>
+  </ol>
+
+  <div class="kt" style="border-left:3px solid #a8681a; padding:2px 0 2px 15px; margin-bottom:13px;">
+    <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a;"><strong>The seam is composition versus state.</strong> A mixin set is <em>stable</em> — an object is Sealable and Lockable for its whole life. Its state is <em>volatile</em> — whether it is locked right now changes by the minute. So the split is principled rather than a compromise: <strong>put the stable half in the markup and resolve the volatile half live.</strong> A frame sitting in scrollback is still telling the truth when it says the door is Lockable; the only thing it cannot know is the position of the bolt.</p>
+  </div>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:11px;">So the tag and its mixin digest give an instant, offline-correct first guess, and the real menu resolves on demand:</p>
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a; font-weight:600; width:8%;">1</td><td class="s" style="padding:8px 0 8px 0; font-size:14px; color:#24201a;">Compose: <span class="m" style="font-size:12.5px;">&lt;thing id="#2d51" mx="Sealable,Lockable,Fixture"&gt;shed door&lt;/thing&gt;</span></td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">2</td><td class="s" style="padding:8px 0 8px 0; font-size:14px; color:#24201a;">Render: styled by tag; the mixin digest is already the affordance skeleton.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">3</td><td class="s" style="padding:8px 0 8px 0; font-size:14px; color:#24201a;">Open: the radial appears <strong>immediately</strong> with the union of what those mixins afford — no round-trip, no spinner.</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">4</td><td class="s" style="padding:8px 0 8px 0; font-size:14px; color:#24201a;">In parallel: resolve live verbs for <span class="m" style="font-size:12.5px;">#4c1a</span> against <em>(viewer, now)</em>. One call, cached per id.</td></tr>
+      <tr><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">5</td><td class="s" style="padding:8px 0 8px 0; font-size:14px; color:#24201a;">Reconcile: unavailable verbs dim with their reason (“locked”, “needs Smithing 2”); newly available ones fill in.</td></tr>
+    </tbody>
+  </table>
+  <p class="s" style="font-size:15.5px; line-height:1.6; color:#24201a; margin-bottom:12px;">This is the file-manager pattern — a right-click menu opens at once, and the slow entries populate into it. <span class="m" style="font-size:14px;">mudref:</span> is already the plumbing for step 4; what is missing server-side is the resolver itself, returning each verb with an enabled flag and a reason.</p>
+
+  <div class="kt" style="border-left:3px solid #a8681a; padding:2px 0 2px 15px; margin-bottom:20px;">
+    <p class="s" style="font-size:14.5px; line-height:1.6; color:#24201a;"><strong>Why the radial's slots are fixed.</strong> Categories hold position — perception north, manipulation east, social west, movement south — while their contents vary by kind and state. That is what lets muscle memory survive a menu whose verbs you have never seen before, and it is why the geometry must not reflow to fit the available verbs.</p>
+  </div>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">6.5 What topics contribute: affordance lifetime</h3>
+  <p class="s" style="font-size:16px; line-height:1.62; color:#24201a; margin-bottom:12px;">Menus are span-scope, so most of this is MML's business. One property is genuinely frame-scope, and belongs on the topic as a sixth facet: <strong>how long the affordances inside stay trustworthy.</strong></p>
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:13px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 10px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:19%;"><span class="m" style="font-size:13px; text-transform:none; letter-spacing:0;">affordance</span></th>
+      <th class="s" style="padding:6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:36%;">Meaning</th>
+      <th class="s" style="padding:6px 0 6px 10px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Example topics</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a;">live</td><td class="s" style="padding:8px 10px; font-size:13.5px; color:#24201a;">Current scene; resolve on open.</td><td class="m" style="padding:8px 0 8px 10px; font-size:12.5px; color:#5c5449;">world.narration.*</td></tr>
+      <tr style="border-bottom:1px solid #ece5d8;"><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a;">decays</td><td class="s" style="padding:8px 10px; font-size:13.5px; color:#24201a;">Soften links once the frame leaves the current scene rather than firing commands that will fail.</td><td class="m" style="padding:8px 0 8px 10px; font-size:12.5px; color:#5c5449;">world.expression.*<br>world.perception.ambient.*</td></tr>
+      <tr><td class="m" style="padding:8px 10px 8px 0; font-size:13px; color:#a8681a;">permanent</td><td class="s" style="padding:8px 10px; font-size:13.5px; color:#24201a;">Never stale — a historical fact, true with its timestamp forever.</td><td class="m" style="padding:8px 0 8px 10px; font-size:12.5px; color:#5c5449;">world.measure.*<br>world.wiki.page</td></tr>
+    </tbody>
+  </table>
+  <p class="s" style="font-size:15px; line-height:1.6; color:#5c5449; font-style:italic; margin-bottom:20px;">This is also the rule that stops a long scrollback from being a minefield of dead links — today every affordance in history looks equally live.</p>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">6.6 Added to the implementation order</h3>
+  <table class="kt" style="width:100%; border-collapse:collapse; margin-bottom:13px;">
+    <thead><tr style="border-bottom:1.5px solid #24201a;">
+      <th class="s" style="padding:6px 8px 6px 0; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:5%;">#</th>
+      <th class="s" style="padding:6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:33%;">Change</th>
+      <th class="s" style="padding:6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449; width:34%;">Where</th>
+      <th class="s" style="padding:6px 0 6px 8px; font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:#5c5449;">Wire</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">6</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Add <span class="m" style="font-size:12.5px;">static affords</span> to the mixins that confer verbs; collect it up the chain.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">lib/mixin.ts (type)<br>lib/**/*Mixin.ts<br>api/mixin.ts (collector)</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">Server-internal; no wire change.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">7</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Emit the <span class="m" style="font-size:12.5px;">mx</span> digest on affordance tags — the object's composed mixins, filtered to those that afford.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">api/mml/tags.ts<br>composer (reads MixinApi)</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">Additive attribute; ignored by old clients.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">8</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Collapse <span class="m" style="font-size:12.5px;">item</span>+<span class="m" style="font-size:12.5px;">object</span> → <span class="m" style="font-size:12.5px;">thing</span>; retire <span class="m" style="font-size:12.5px;">name</span>.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">api/mml/tags.ts + flatten</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#9a6a1c;">Breaking; alias during migration.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ece5d8;">
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">9</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Affordance resolver: verbs for <em>(id, viewer, now)</em> with enabled flag + reason.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">new API, alongside MessageApi<br>cmd/**/*.yaml gating</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">New endpoint; no frame change.</td>
+      </tr>
+      <tr>
+        <td class="m" style="padding:8px 8px 8px 0; font-size:13px; color:#a8681a; font-weight:600;">10</td>
+        <td class="s" style="padding:8px 8px; font-size:13.5px; color:#24201a;">Sixth facet <span class="m" style="font-size:12.5px;">affordance</span> on topics.</td>
+        <td class="m" style="padding:8px 8px; font-size:12px; color:#5c5449;">seeds/obj/Topic/*.yaml<br>TopicDescriptor</td>
+        <td class="s" style="padding:8px 0 8px 8px; font-size:13px; color:#4f7a3a;">Additive field.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 class="s" style="font-size:13px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#5c5449; margin-bottom:9px;">Further questions this opens</h3>
+  <ol style="margin-left:17px;">
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;">How wide is the <span class="m" style="font-size:13.5px;">mx</span> digest? Emitting every composed mixin is honest but wordy on a dense room; emitting only those with an <span class="m" style="font-size:13.5px;">affords</span> entry is compact and covers the menu. The pedagogical goal argues for the fuller list, since <span class="m" style="font-size:13.5px;">Chattel</span> and <span class="m" style="font-size:13.5px;">Constructed</span> teach something even though they afford nothing.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a; margin-bottom:6px;">Should <span class="m" style="font-size:13.5px;">fieldMeta.spoiler</span> gate the mixin digest too? A creature's <span class="m" style="font-size:13.5px;">Combustible</span> is a weakness, and the reveal model already runs on values — the composition may need the same treatment.</li>
+    <li class="s" style="font-size:15px; line-height:1.6; color:#24201a;">Should the resolver return verbs the viewer <em>cannot yet</em> use, greyed with their requirement? Showing “needs Smithing 2” teaches the progression; hiding it keeps menus short.</li>
+  </ol>
+
+</doc-page>
+</x-dc>
+</body>
+</html>

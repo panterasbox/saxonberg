@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+      --deskfg:#f2f5fa; --deskdim:#9fb0cc;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:#040b17; }
+    body { -webkit-font-smoothing:antialiased; font-family:'Public Sans',system-ui,sans-serif; color:var(--deskfg); }
+    ::-webkit-scrollbar { width:0; height:0; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .refbadge { display:inline-flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace;
+                font-weight:600; font-size:13px; color:var(--white); background:var(--red);
+                border:1px solid var(--white); border-radius:3px; padding:3px 10px; }
+    .screen { width:100%; height:100%; display:flex; flex-direction:column; background:var(--ground); color:var(--fg);
+              font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;
+              padding-top:62px; padding-bottom:34px; }
+    .foot { flex:none; margin-bottom:-34px; padding-bottom:42px; border-top:1px solid var(--line); }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    /* the bar cannot wrap on a phone, so it carries only what must be true */
+    .conn { display:flex; align-items:center; gap:6px; flex:none; }
+    .dot { width:7px; height:7px; border-radius:50%; flex:none; }
+    .iconbtn { display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; flex:none;
+               border:1px solid var(--line); border-radius:3px; color:var(--fg-dim); font-size:15px; position:relative; }
+    /* every bare-text affordance gets a legal hit area while reading compact */
+    .hit { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 11px; flex:none; }
+    /* the shelf becomes a pull-down, not a squeezed row */
+    .wg { display:flex; flex-direction:column; gap:4px; padding:9px 11px; border:1px solid var(--line);
+          border-radius:3px; background:var(--sunken); min-height:56px; justify-content:center; }
+    .wgk { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:.11em; text-transform:uppercase; color:var(--fg-mute); }
+    .wgv { font-family:'IBM Plex Mono',monospace; font-size:15px; }
+    .band { height:4px; background:var(--raised); overflow:hidden; }
+    .band > i { display:block; height:100%; }
+    .strip { display:flex; align-items:center; gap:7px; padding:0 11px; min-height:44px; border:1px solid var(--line);
+             border-radius:3px; background:var(--sunken); flex:none; }
+    .catrow { display:flex; align-items:center; gap:9px; min-height:48px; padding:0 11px; border:1px solid var(--line);
+              border-radius:3px; background:var(--surface); margin-bottom:6px; }
+    .catrow.on { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); }
+    .fr { padding:9px 0; border-bottom:1px solid var(--line-soft); }
+    .tap { color:var(--accent); background:color-mix(in oklab,var(--accent) 14%,transparent);
+           border-bottom:1px solid color-mix(in oklab,var(--accent) 70%,transparent); border-radius:2px; padding:1px 4px; }
+    .nrow { display:flex; gap:10px; padding:11px 12px; border:1px solid var(--line); border-radius:3px; margin-bottom:6px; }
+  </style>
+</helmet>
+
+<section style="padding:52px 56px 78px; min-width:max-content;">
+
+  <div style="max-width:880px; margin-bottom:34px;">
+    <div class="m" style="font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:11px;">Turn 6 · chrome on a phone</div>
+    <h1 style="font-family:'Spectral',serif; font-weight:400; font-size:31px; line-height:1.16; margin:0 0 12px;">A bar that wraps has nowhere to wrap to.</h1>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0 0 9px; max-width:780px;">Desktop's shelf grows a second row when you pin too much. On a phone every row it takes is a row the feed loses, and the feed is the app — so the shelf cannot live in the bar at all.</p>
+    <p style="font-size:14.5px; line-height:1.62; color:var(--deskdim); margin:0; max-width:780px;">It becomes a <strong style="color:var(--deskfg);">pull-down</strong>: the bar keeps the two fixed facts and one glance-line of the player's choosing, and the rest arrives when you drag. Same catalogue, same order, different disclosure — which is also how every phone OS already solved this.</p>
+  </div>
+
+  <div style="display:flex; gap:40px; align-items:flex-start;">
+
+    <!-- ══════ 6A ══════ -->
+    <div id="6a" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">6A</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">The bar at rest</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">Two fixed facts, one glance-line.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; padding:6px 14px 8px; background:var(--surface); border-bottom:1px solid var(--line);">
+            <!-- row one: connection, identity, notifications — never removable -->
+            <div style="display:flex; align-items:center; gap:9px; margin-bottom:7px;">
+              <span class="seal" style="width:26px; height:26px; font-size:13px;">S</span>
+              <span class="conn">
+                <span class="dot" style="background:var(--good);"></span>
+                <span style="font-size:11.5px; color:var(--good);">connected</span>
+              </span>
+              <div style="flex:1;"></div>
+              <span style="display:flex; align-items:center; gap:7px; min-height:44px; padding:0 9px; border:1px solid var(--line); border-radius:3px; flex:none;">
+                <span style="width:18px;height:18px;border-radius:2px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;">M</span>
+                <span style="font-size:11.5px;">Maren</span>
+                <span style="font-size:8px; color:var(--fg-mute);">▾</span>
+              </span>
+              <span class="iconbtn">◔
+                <span style="position:absolute; top:-4px; right:-4px; min-width:15px; height:15px; border-radius:8px; background:var(--red); border:1px solid var(--white); color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:8.5px; display:flex; align-items:center; justify-content:center;">3</span>
+              </span>
+            </div>
+
+            <!-- row two: ONE line of the player's own figures, plus the grab -->
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="strip" style="flex:1; min-width:0; overflow:hidden;">
+                <sc-for list="{{ glance }}" as="g" hint-placeholder-count="3">
+                  <span style="display:flex; align-items:baseline; gap:5px; flex:none;">
+                    <span class="m" style="font-size:8px; color:var(--fg-mute); letter-spacing:.1em;">{{ g.k }}</span>
+                    <span class="m" style="font-size:12px; color:{{ g.hue }};">{{ g.v }}</span>
+                  </span>
+                  <sc-if value="{{ g.sep }}" hint-placeholder-val="{{ true }}">
+                    <span style="width:1px; height:13px; background:var(--line); flex:none;"></span>
+                  </sc-if>
+                </sc-for>
+              </span>
+              <span class="iconbtn">⌄</span>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:0 16px;">
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:7px; margin-bottom:3px;">
+                <span class="m" style="font-size:8.5px; color:#c98a3f; letter-spacing:.13em;">ROOM</span>
+                <span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:41</span>
+              </div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55;">The forge has gone cold. A <span class="tap">cast-iron anvil</span> squats on its stump.</div>
+            </div>
+            <div class="fr">
+              <div style="display:flex; align-items:baseline; gap:7px; margin-bottom:3px;">
+                <span class="m" style="font-size:8.5px; color:#4a9d8f; letter-spacing:.13em;">SAY</span>
+                <span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:43</span>
+              </div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55;"><span class="tap">Tomas</span>: “Leave it till morning. Nothing trues at this heat.”</div>
+            </div>
+            <div class="fr" style="border-bottom:none;">
+              <div style="display:flex; align-items:baseline; gap:7px; margin-bottom:3px;">
+                <span class="m" style="font-size:8.5px; color:#5b8fd6; letter-spacing:.13em;">TELL</span>
+                <span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:44</span>
+              </div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55;"><span class="tap">Bramble</span> tells you, “Customs house when the iron's done.”</div>
+            </div>
+          </div>
+
+          <div class="foot" style="padding:9px 16px 0; background:var(--sunken);">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="m" style="font-size:12.5px; color:var(--accent); flex:none;">here›</span>
+              <div style="flex:1; display:flex; align-items:center; height:44px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+                <span class="m" style="font-size:13px; color:var(--fg-mute);">tap a word, or type</span>
+              </div>
+            </div>
+            <p style="font-size:10.5px; color:var(--fg-mute); line-height:1.5; margin:7px 0 0;">No status bar — there is no hover to preview, so the command sheet does that job instead.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 6B ══════ -->
+    <div id="6b" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">6B</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">Pulled down</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">The shelf, at a size you can read.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; padding:6px 14px 10px; background:var(--surface); border-bottom:1px solid var(--red);">
+            <div style="display:flex; align-items:center; gap:9px; margin-bottom:11px;">
+              <span class="seal" style="width:26px; height:26px; font-size:13px;">S</span>
+              <span class="conn">
+                <span class="dot" style="background:var(--good);"></span>
+                <span style="font-size:11.5px; color:var(--good);">connected</span>
+                <span class="m" style="font-size:9.5px; color:var(--fg-mute);">41 ms</span>
+              </span>
+              <div style="flex:1;"></div>
+              <span class="hit m" style="font-size:10px; color:var(--fg-dim); border:1px solid var(--line); border-radius:3px;">edit</span>
+            </div>
+
+            <!-- two-up, because a phone can afford height here and not width -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:9px;">
+              <sc-for list="{{ pinned }}" as="w" hint-placeholder-count="6">
+                <div class="wg">
+                  <span class="wgk">{{ w.k }}</span>
+                  <div style="display:flex; align-items:baseline; gap:7px;">
+                    <span class="wgv" style="color:{{ w.hue }};">{{ w.v }}</span>
+                  </div>
+                  <sc-if value="{{ w.isBand }}" hint-placeholder-val="{{ false }}">
+                    <span class="band"><i style="width:{{ w.w }}; background:{{ w.hue }};"></i></span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex; justify-content:center;"><span style="width:34px; height:3px; border-radius:2px; background:var(--line);"></span></div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:0 16px; opacity:.42;">
+            <div class="fr">
+              <div class="m" style="font-size:8.5px; color:#c98a3f; letter-spacing:.13em; margin-bottom:3px;">ROOM</div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55;">The forge has gone cold. A cast-iron anvil squats on its stump.</div>
+            </div>
+            <div class="fr" style="border-bottom:none;">
+              <div class="m" style="font-size:8.5px; color:#4a9d8f; letter-spacing:.13em; margin-bottom:3px;">SAY</div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55;">Tomas: “Leave it till morning.”</div>
+            </div>
+          </div>
+
+          <div class="foot" style="padding:10px 16px 0; background:var(--sunken);">
+            <p style="font-size:11px; color:var(--fg-dim); line-height:1.55; margin:0;">Same catalogue as desktop, same order. A phone can afford height here but never width, so the widgets go two-up and get big enough to read at a glance instead of squeezing into a strip.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 6C ══════ -->
+    <div id="6c" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">6C</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">Choosing the shelf</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">And the glance-line, which is the scarce slot.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <div style="flex:none; display:flex; align-items:center; gap:10px; padding:8px 16px 10px; border-bottom:1px solid var(--line);">
+            <span class="hit m" style="font-size:16px; color:var(--fg-dim); padding:0 9px; margin-left:-9px;">‹</span>
+            <div style="flex:1;">
+              <div class="cap" style="font-size:13.5px;">Your shelf</div>
+              <div class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ shelfNote }}</div>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:12px 16px;">
+            <div style="border:1px solid var(--line); border-left:2px solid var(--accent); border-radius:3px; padding:10px 11px; margin-bottom:14px;">
+              <div class="m" style="font-size:8px; color:var(--accent); letter-spacing:.11em; margin-bottom:5px;">THE GLANCE-LINE</div>
+              <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.5; margin:0 0 8px;">Three fit on the bar without pulling down. Everything else is one drag away — so this is the only real choice on the screen.</p>
+              <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                <sc-for list="{{ glance }}" as="g" hint-placeholder-count="3">
+                  <span class="m" style="font-size:10px; color:var(--accent); border:1px solid var(--accent); border-radius:2px; padding:3px 8px;">{{ g.k }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div class="lbl" style="margin-bottom:7px;">Everything the game reports</div>
+            <sc-for list="{{ catalog }}" as="c" hint-placeholder-count="10">
+              <div class="catrow {{ c.cls }}">
+                <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em; flex:0 0 48px;">{{ c.k }}</span>
+                <span style="font-size:11.5px; color:var(--fg-dim); flex:1; min-width:0;">{{ c.desc }}</span>
+                <span class="m" style="font-size:9.5px; color:{{ c.mark }}; flex:none;">{{ c.state }}</span>
+              </div>
+            </sc-for>
+
+            <p style="font-size:11px; color:var(--fg-mute); line-height:1.55; margin:11px 0 0;">Connection and identity are absent by design — they hold the bar's first row whatever you do here.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ══════ 6D ══════ -->
+    <div id="6d" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="refbadge">6D</span>
+        <div>
+          <div style="font-family:'Spectral',serif; font-size:18px; font-weight:600;">Dropped, and waiting</div>
+          <div style="font-size:12.5px; color:var(--deskdim);">The one state a phone must not understate.</div>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isDark }}" hint-size="402px,874px">
+        <div class="screen">
+          <!-- a dropped socket takes the whole bar: on mobile you are not watching it -->
+          <div style="flex:none; padding:7px 14px 9px; background:color-mix(in oklab,var(--red) 22%,var(--surface)); border-bottom:1px solid var(--red);">
+            <div style="display:flex; align-items:center; gap:9px;">
+              <span class="dot" style="background:var(--red);"></span>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:12.5px; color:var(--fg);">Reconnecting…</div>
+                <div class="m" style="font-size:9.5px; color:var(--fg-dim);">2 commands held · retry in 4 s</div>
+              </div>
+              <span class="hit m" style="font-size:11px; color:var(--fg); border:1px solid var(--white); border-radius:3px; padding:0 13px;">retry now</span>
+            </div>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; padding:0 16px; opacity:.5;">
+            <div class="fr">
+              <div class="m" style="font-size:8.5px; color:#5b8fd6; letter-spacing:.13em; margin-bottom:3px;">TELL</div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55;">Bramble tells you, “Customs house when the iron's done.”</div>
+            </div>
+            <div class="fr" style="border-bottom:none;">
+              <div class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.13em; margin-bottom:3px;">LAST</div>
+              <div class="wp" style="font-size:15.5px; line-height:1.55; color:var(--fg-mute);">Nothing since 18:44 — 48 seconds ago.</div>
+            </div>
+          </div>
+
+          <div class="foot" style="padding:10px 16px 0; background:var(--sunken);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span class="m" style="font-size:12.5px; color:var(--fg-mute); flex:none;">held›</span>
+              <div style="flex:1; display:flex; align-items:center; height:44px; padding:0 11px; border:1px dashed var(--ember); border-radius:3px;">
+                <span class="m" style="font-size:12.5px; color:var(--ember);">true rim · quench axle</span>
+              </div>
+            </div>
+            <p style="font-size:11px; color:var(--fg-dim); line-height:1.55; margin:0;">A phone drops connection constantly and you are usually not looking. So the bar surrenders its whole first row, names what is held rather than silently discarding it, and the feed dims to say it is stale.</p>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  // same catalogue as desktop, from what `score` and `status` actually report
+  CATALOG={
+    play:      ['PLAY',   'influence · earned by living in the world', '74','var(--good)',true,'74%'],
+    make:      ['MAKE',   'influence · earned by building',            '62','var(--good)',true,'62%'],
+    renown:    ['RENOWN', 'how widely you are known',                  '31','var(--accent)',true,'31%'],
+    traits:    ['TRAIT',  'your most pronounced trait',                'exacting','var(--info)',false],
+    competence:['SKILL',  'the competence you are practising',         'metalwork 3','var(--fg)',false],
+    status:    ['STATUS', 'the note others see beside your name',      'at the forge','var(--fg-dim)',false],
+    coin:      ['COIN',   'what you are carrying',                     '213','var(--accent)',false],
+    clock:     ['TIME',   'in-world clock and phase',                  '18:42','var(--fg)',false],
+    online:    ['ONLINE', 'how many people are on',                    '14','var(--info)',false],
+    docket:    ['DOCKET', 'open measures you may vote on',             '1','var(--ember)',false],
+  };
+
+  // pinned to the pull-down, in order; the first three are the glance-line
+  SHELF=['play','renown','online','status','clock','docket'];
+  GLANCE=3;
+
+  renderVals(){
+    const pin=this.SHELF.filter(id=>this.CATALOG[id]);
+    const val=(id)=>{ const [k,desc,v,hue,isBand,w]=this.CATALOG[id];
+      return { id, k, desc, v, hue, isBand:!!isBand, w:w||'0%' }; };
+
+    const glance=pin.slice(0,this.GLANCE).map((id,i,arr)=>({
+      ...val(id), sep: i<arr.length-1 }));
+
+    return {
+      isDark:true,
+      glance,
+      pinned:pin.map(val),
+      shelfNote:pin.length+' of '+Object.keys(this.CATALOG).length+' pinned · first '+this.GLANCE+' show on the bar',
+      catalog:Object.keys(this.CATALOG).map(id=>{
+        const on=pin.includes(id);
+        const gl=pin.indexOf(id)>-1 && pin.indexOf(id)<this.GLANCE;
+        return { k:this.CATALOG[id][0], desc:this.CATALOG[id][1], cls:on?'on':'',
+          state: gl ? 'on the bar' : (on ? 'pinned' : 'add'),
+          mark: gl ? 'var(--accent)' : (on ? 'var(--red)' : 'var(--fg-mute)') };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
