@@ -1303,7 +1303,11 @@ title/end cards. Nothing else.
   shifts, wages, on-shift conferral), char-gen, Dave's Bar, weather (frost
   as a real field state). Design-level / content todo — **the three-doors
   demo build** (three venues with joinable seats, mixed rosters,
-  stand-down-on-claim; the counting-house clerk venue is net-new;
+  stand-down-on-claim — **the counting house already exists** and is
+  *not* net-new: `seeds/domain/terminus/counting-houses/` ships the
+  banking hall, the counter, the business and both NPCs (teller,
+  officer); what's missing is an **open, joinable clerk seat**. The
+  vineyard is the genuinely net-new venue;
   foundry/vineyard ride the standing transform-chain builds), the
   frost-night juncture (an authored story beat), contract renegotiation,
   the study-log surface for the drift shot (verify; an edit-room graphic is
@@ -1594,7 +1598,8 @@ content, but it does schedule shoots.
    one. Worth building once, on purpose; it is also every future demo's
    asset.
 3. **The three-doors demo build** (*A Life*) — three venues with joinable
-   seats, mixed rosters, stand-down-on-claim; counting-house is net-new.
+   seats, mixed rosters, stand-down-on-claim. **The counting house
+   already ships**; the vineyard is the net-new venue.
    Doubles as the **reusable live sales demo**.
 4. **The deferred Avatar capability-composition seam** (*the Classroom*) —
    unblocks a *player* at the front of the room. NPC-taught classrooms film
@@ -1634,6 +1639,78 @@ content, but it does schedule shoots.
 15. **The resonance feel-test** — still pending; it is the one-sentence
     `[THEME]` slot in all five. Read the candidates aloud over beat footage
     once it exists.
+
+## Cross-cutting: the content bill of materials (the build track)
+
+**The governing fact: no beat in this set is an illustration instead of
+content.** All five generated assets are *inserts that sit beside live
+capture* — the periodic-table tile next to the game readout, the seam card
+between two product captures, the six-doors card behind a spoken line.
+None replaces a shot. So the drawable budget is five cards plus the chrome
+kit, and **everything else in all five videos needs world content to
+exist.**
+
+This section is the manifest for the content track, ordered by weight
+rather than by video. Inventoried against the tree 2026-08-07.
+
+### Already ships — nothing to author
+
+The **Hearthworks foundry + smithy** (`domain/hearthworks/` — SmithyMenu,
+KitchenMenu, SealedCellar) · **the counting house** in full
+(`seeds/domain/terminus/counting-houses/` — banking hall, bank counter,
+the business, teller and officer NPCs, avenue block, circle parlor) ·
+**Duncan Hall** (the dorm) and **University Avenue** (the crossing) ·
+**Dave's Bar** and the lounge cast · the **38-row material shelf**,
+species, spells, and the CMS · the **Terminus registry office + clerk**
+(`seeds/domain/terminus/registry/` — office, business, clerk), which is
+the pattern to copy for the University registrar.
+
+### The manifest
+
+| # | Item | Consumed by | Pattern to copy | Camera-done means |
+|---|---|---|---|---|
+| 1 | **The demo world** — not a scene, a *condition*: an aged world-state with chronicle depth, chain-of-title history, named regulars, and a plausible stranger | Conferral, Classroom, **A Life** (Act II), Made of Words | — (this is net-new as a *process*, not a place) | Any room you point a camera at has history in it; `chronicle` on a regular returns a past; the CMS tree looks inhabited |
+| 2 | **The classroom and its cast** ⚠ | **Classroom** (all 8 beats), Conferral b7 | Duncan Hall for rooms; lounge NPCs for a cast | A room; the instructor **Position** on the University Business; **6–10 NPC students with modeled competence**; the authored lecture; the **misconception bank**; the Q&A dialogue tree; the apparatus (sealed tank, open cup, calorimeter, thermometer, meltable metal) |
+| 3 | **The frost night** | A Life b9 | newbie-wilds' authored beats | One weather event with **three simultaneous** authored situations — smudge pots in the rows, a contract renegotiated tonight, a cellar mid-ferment — each a legitimate night of play on its own merits |
+| 4 | **The vineyard** | A Life b4, b8, b9 | counting-houses for venue shape | Rows, canopy work, cellar and racking, a **joinable seat** |
+| 5 | **Two demo characters with authored histories** | Conferral (all), A Life Act II | — | The science teacher: chemistry band two rungs short, a foundry shift, a wage. The degree-finisher: a year of drift, hospitality thinning as chemistry and plant biology thicken |
+| 6 | **The foundry job** | Conferral b1/b6, A Life b2 | counting-houses' business + positions | The venue ships; the *work* doesn't — a position, a roster, a commissioned casting, the melt task |
+| 7 | **Joinable seats + the stand-down** | A Life b2–b5 | employment's positions/rosters | An **open chair** at all three doors, mixed player/NPC rosters, and the stand-down-on-claim behavior brain |
+| 8 | **The registrar and the ceremony** | Conferral b5 (reusable by A Life) | `seeds/domain/terminus/registry/` | A room, an NPC, and the words — once, skippable, diegetic |
+| 9 | **The in-world course surface** | Conferral b3 | — (rides the issuer adapter) | The catalog visibly appears somewhere a character stands |
+| 10 | **Props and materials** | Honest World b1, b8, b9, b10 | the existing material shelf | The fountain (granite basin + bronze spout + water); `silver.yaml`; a silver ingot; a silver dagger; the wand. Genuinely an afternoon |
+| 11 | **Bronze's phase block** | Conferral b6 | `element/copper.yaml` | `meltingPoint` + `latentHeatOfFusion` on `alloy/bronze.yaml`, against a real handbook source. Smallest item here and currently a **blocker** |
+
+⚠ **Item 2 is the finding worth stopping on.** The Eternal University has
+**no teaching space at all** today — it is a dorm and a street with a
+crossing guard. The Classroom is set in a room that does not exist, at an
+institution that currently cannot hold a class. The NPC cast is the
+expensive part (NPCs are expensive carves; six to ten of them with modeled
+competence is the real cost), and it is what beats 1, 3 and 6 are made of.
+
+### The one free piece
+
+**Made of Words' room is authored on camera** — she writes it during the
+shoot, so making it *is* the footage. It's the only content in the set
+that costs nothing to prep. Its dependency is texture rather than
+authoring: the CMS tree has to look populated and the stranger has to be a
+real second player. Both come from item 1.
+
+### Three shots where the data exists but the display doesn't
+
+Called out separately because they are neither content nor illustration —
+they are a **display decision**, and each is a three-way choice: build a
+small surface, produce an edit-room graphic, or cut the shot.
+
+| Shot | The record that exists | The surface that doesn't |
+|---|---|---|
+| Classroom b5 — the **process trace** | Transcript deed evidence; the command envelope | An ordered command list with the omission highlighted |
+| A Life b8 — the **study-log drift** | The Transcript's claim rows over time | A subject-mix-over-months view |
+| Made of Words b7 — the **attribution log** | `authoring_events` (provenance.md) | An evening replayed as attributed lines |
+
+A Life's script already names the edit-room graphic as the sanctioned
+fallback; the other two now inherit the same default. If any becomes a
+real surface, it stops being a video asset and becomes a product one.
 
 ## Relationship to the gamer series
 

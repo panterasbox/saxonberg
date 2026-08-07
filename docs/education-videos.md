@@ -459,7 +459,8 @@ gamer-adjacent cut if it earns a slot later).
    hours** + the unnamed mission nod. Button: "Three doors before
    noon. And it was Tuesday." **The three-doors demo build**
    (joinable seats, mixed rosters, stand-down-on-claim; counting
-   house net-new) is named content — and doubles as the reusable
+   house already ships; the vineyard is the net-new venue) is named
+   content — and doubles as the reusable
    LIVE sales demo (walk any exec through their own three doors).
    **LLM-thread allocation:** V4/Ridner = defensive (the moat);
    V3/Shmeir = offensive (the product); no shared sentences.
