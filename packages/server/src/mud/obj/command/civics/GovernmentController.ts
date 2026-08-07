@@ -28,7 +28,7 @@ import {
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 
-const TOPIC = 'system.civics';
+const TOPIC = 'shell.result';
 
 export default class GovernmentController extends CommandController<CommandModel> {
   async execute(model: CommandModel, context: CommandContext): Promise<void> {

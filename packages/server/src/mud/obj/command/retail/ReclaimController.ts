@@ -16,7 +16,7 @@ import { Mml } from "../../../api/mml";
 import { ChattelApi } from "../../../api/chattel";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface ReclaimModel extends CommandModel {
   thing: string;

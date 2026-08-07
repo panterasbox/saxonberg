@@ -16,7 +16,7 @@ import { Mml } from '../../../api/mml';
 import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import Menu from '../../../lib/commerce/Menu';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface MenuModel extends CommandModel {
   target?: MqlOneResult;

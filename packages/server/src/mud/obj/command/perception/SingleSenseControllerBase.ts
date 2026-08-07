@@ -8,7 +8,7 @@
  *     channel name is `'hearing'`, not `'listen'` — the verb is the
  *     user-facing action, the channel is the sense vocabulary.
  *   - `sceneTopic` — the dotted topic the Scene fires on
- *     (`'world.perception.sense.smell'`, etc.). Mirrors the existing
+ *     (`'sense.survey'`, etc.). Mirrors the existing
  *     `world.perception.<verb>` shape from `look` / `scry` / `locate`.
  *
  * Routes through three branches dispatched on the bound `target`:

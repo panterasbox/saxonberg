@@ -79,7 +79,7 @@ export default class ReplyController extends CommandController<ReplyModel> {
     reason: string,
   ): void {
     MessageApi.scene(context.commandGiver)
-      .topic('world.speech.dm')
+      .topic('speech.comms')
       .toSelf(Mml.fromMarkup(`\n${detail}\n`))
       .send();
     context.note({ kind: 'controller-rejected', reason, detail });

@@ -1,8 +1,8 @@
 /**
  * NewsTickerPane — the release news-ticker right-column cockpit pane
  * (release build, client half). A pure render of the server-projected
- * release feed: the `world.press.feed` frames land in the store
- * (`feed` / `feedOrder`, see `store/index.ts` + the `world.press.feed`
+ * release feed: the `publication.press` frames land in the store
+ * (`feed` / `feedOrder`, see `store/index.ts` + the `publication.press`
  * handler in `services/websocket.ts`), seeded on connect from the welcome
  * payload's `releaseWindow`. This pane reads them reactively.
  *

@@ -29,7 +29,7 @@ import type {
   RawConsoleLine,
 } from '@saxonberg/types';
 
-const TOPIC = 'system.log.compile';
+const TOPIC = 'shell.diagnostic';
 
 interface ErrorsModel extends CommandModel {
   subcommand?: string;

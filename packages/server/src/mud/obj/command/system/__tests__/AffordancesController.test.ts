@@ -106,10 +106,10 @@ describe('AffordancesController', () => {
     ctrl.execute({} as CommandModel, ctx);
   }
 
-  it('emits on system.affordances', () => {
+  it('emits on shell.control', () => {
     const { giver } = setup();
     run(giver, giver);
-    expect(topic).toBe('system.affordances');
+    expect(topic).toBe('shell.control');
   });
 
   it('annotates innate vs item-afforded commands by source identity', () => {

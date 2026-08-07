@@ -1402,10 +1402,10 @@ export class CommandLogic extends ApiLogic {
     if (!MixinApi.isSensor(recipient)) return;
     const topic =
       kind === 'added'
-        ? 'system.commands.added'
+        ? 'shell.control'
         : kind === 'removed'
-          ? 'system.commands.removed'
-          : 'system.commands.reset';
+          ? 'shell.control'
+          : 'shell.control';
 
     const meta: MessageFrame['meta'] = { timestamp: Date.now() };
     const ctx = ExecutionContextApi.getCurrentCommandContext();

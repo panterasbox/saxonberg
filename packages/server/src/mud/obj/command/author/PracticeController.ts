@@ -23,7 +23,7 @@ import {
   type Outcome,
 } from "../../../lib/advancement/ActSignature";
 
-const TOPIC = "world.identity";
+const TOPIC = "act.deed";
 
 interface PracticeModel extends CommandModel {
   discipline?: string;

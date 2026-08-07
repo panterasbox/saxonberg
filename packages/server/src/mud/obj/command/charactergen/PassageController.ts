@@ -33,7 +33,7 @@ import { Mml } from '../../../api/mml';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 /**
  * How much of each biological reserve the floor route costs you (`%`).

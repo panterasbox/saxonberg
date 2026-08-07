@@ -31,6 +31,7 @@
  * cache is rebuilt on demand by reading Template docs.
  */
 
+import { DiagnosticApi } from '../api/diagnostics';
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Template } from '../lib/stuff/Template';
@@ -325,11 +326,49 @@ export default class TopicCatalogue extends TopicCatalogueBase {
   }
 
   /**
+   * ⚠ **Reaching the derived tier is a defect, and it now says so.**
+   *
+   * Deriving a descriptor means a topic is being emitted that nobody
+   * authored. The derivation reads like a real descriptor, which is
+   * exactly why this went unnoticed for so long: when the totality gate
+   * was first run, **45 of the 105 emitted topics had no authored
+   * descriptor at all**.
+   *
+   * Reporting rather than throwing is deliberate — an unauthored topic
+   * is an authoring omission, not a runtime fault, and failing the frame
+   * would punish the player for the author's miss. The frame renders
+   * exactly as before; the omission just stops being invisible.
+   *
+   * Fires **once per key**. A chatty topic would otherwise write a
+   * diagnostic row per frame and bury the store under one mistake.
+   */
+  private reportUnauthored(topic: string): void {
+    if (this.derivedReported.has(topic)) return;
+    this.derivedReported.add(topic);
+    void DiagnosticApi.record({
+      path: null,
+      channel: 'topic.unauthored',
+      severity: 'warning',
+      message:
+        `Topic '${topic}' is emitted but has no authored descriptor, ` +
+        `so it resolved to a derived default. Add a seed under ` +
+        `/obj/Topic/, or route the emitter to an existing topic.`,
+    });
+  }
+
+  /**
+   * Keys already reported by {@link reportUnauthored} — the once-per-key
+   * guard. Transient like the cache itself.
+   */
+  private readonly derivedReported = new Set<string>();
+
+  /**
    * Last-resort derived descriptor. Pure structural derivation: the
    * last segment titlecased becomes the label, no description, the
    * path prefix becomes the family.
    */
   private deriveFallback(topic: string): TopicDescriptor {
+    this.reportUnauthored(topic);
     const segments = topic.split('.');
     const leaf = segments[segments.length - 1] ?? topic;
     const family = segments.length > 1 ? segments.slice(0, -1).join('.') : '';

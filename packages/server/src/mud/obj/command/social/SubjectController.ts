@@ -92,7 +92,7 @@ export default class SubjectController extends CommandController<SubjectModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.subject')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

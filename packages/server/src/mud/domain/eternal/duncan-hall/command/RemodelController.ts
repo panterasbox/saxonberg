@@ -28,7 +28,7 @@ import DormThemes, {
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 
-const TOPIC = 'residence.remodel';
+const TOPIC = 'act.deed';
 
 export default class RemodelController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {

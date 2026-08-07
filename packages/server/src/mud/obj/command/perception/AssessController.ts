@@ -26,7 +26,7 @@ import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../api/stuff';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface AssessModel extends CommandModel {
   target?: MqlOneResult;

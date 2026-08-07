@@ -15,7 +15,7 @@ import { BulkableApi, type TransferAmount } from '../../../api/bulk';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface FillModel extends CommandModel {
   target: MqlOneResult;

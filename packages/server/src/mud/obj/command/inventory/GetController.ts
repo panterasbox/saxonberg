@@ -96,7 +96,7 @@ export default class GetController extends CommandController<GetModel> {
   ): void {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'targets', query: raw });
@@ -116,7 +116,7 @@ export default class GetController extends CommandController<GetModel> {
     }
     if (pickedNames.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`Nothing picked up.`)
         .send();
       context.note({
@@ -142,13 +142,13 @@ export default class GetController extends CommandController<GetModel> {
       switch (note.kind) {
         case 'empty-result':
           MessageApi.scene(context.commandGiver)
-            .topic('world.perception.inventory')
+            .topic('sense.survey')
             .toSelf(Mml.compose`You don't see any '${raw}' here.`)
             .send();
           return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
-            .topic('world.perception.inventory')
+            .topic('sense.survey')
             .toSelf(Mml.compose`Only ${String(note.available)} of those here.`)
             .send();
           return;
@@ -163,7 +163,7 @@ export default class GetController extends CommandController<GetModel> {
 
     if (!result.ok || result.payloads.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`Nothing picked up.`)
         .send();
       context.note({
@@ -215,7 +215,7 @@ export default class GetController extends CommandController<GetModel> {
         detail: `${operand.getPresentation()} isn't yours to take`,
       });
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(
           Mml.compose`You'd rather not lay a hand on ${Mml.item(operand)} — it isn't yours, and it's live.`,
         )
@@ -233,7 +233,7 @@ export default class GetController extends CommandController<GetModel> {
         detail: 'cannot pick up while hauling a cart',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(
           Mml.compose`Your hands are full — you're pulling ${Mml.item(giver.getHauledCart()!)}.`,
         )
@@ -254,7 +254,7 @@ export default class GetController extends CommandController<GetModel> {
         detail: `${operand.getPresentation()} won't budge`,
       });
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You strain, but ${Mml.item(operand)} doesn't budge.`)
         .send();
       return false;
@@ -266,7 +266,7 @@ export default class GetController extends CommandController<GetModel> {
     // recoverable — so this records, it does not refuse. (D8)
     void ChattelApi.followCustody(operand);
     MessageApi.scene(giver)
-      .topic('world.perception.inventory')
+      .topic('sense.survey')
       .toSelf(Mml.compose`You pick up ${Mml.item(operand)}.`)
       .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(operand)}.`)
       .send();
@@ -296,7 +296,7 @@ export default class GetController extends CommandController<GetModel> {
       energy,
     });
     MessageApi.scene(giver)
-      .topic('world.perception.inventory')
+      .topic('sense.survey')
       .toSelf(Mml.compose`It scalds your hand!`)
       .send();
   }

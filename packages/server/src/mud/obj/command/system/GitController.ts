@@ -28,7 +28,7 @@ import type {
   GitRevertResult,
 } from '@saxonberg/types';
 
-const TOPIC = 'system.git';
+const TOPIC = 'shell.diagnostic';
 
 interface GitModel extends CommandModel {
   subcommand?: string;

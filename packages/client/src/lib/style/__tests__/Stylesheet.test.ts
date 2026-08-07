@@ -35,7 +35,7 @@ describe('Stylesheet — topic cascade', () => {
     // Speech is marked by its quote characters + framing, not by
     // typographic decoration. Tests assert the new floor.
     const sheet = makeSheet();
-    expect(sheet.topicTreatment('world.speech.say')).toEqual({});
+    expect(sheet.topicTreatment('speech.vocal')).toEqual({});
     expect(sheet.topicTreatment('world.speech.tell')).toEqual({});
     expect(sheet.topicTreatment('world.emote.wave')).toEqual({});
     expect(sheet.topicTreatment('system.command.info')).toEqual({});
@@ -57,7 +57,7 @@ describe('Stylesheet — topic cascade', () => {
     // Visual differentiation between public and private comms is a
     // future design question (Wave 2 / chat slate).
     const sheet = makeSheet();
-    expect(sheet.topicTreatment('world.speech.say')).toEqual({});
+    expect(sheet.topicTreatment('speech.vocal')).toEqual({});
     expect(sheet.topicTreatment('world.speech.tell')).toEqual({});
   });
 });
@@ -96,7 +96,7 @@ describe('Stylesheet — plain mode (#23, #24)', () => {
     // Non-channel-scoped queries are not affected by per-channel
     // plain — the topic-cascade still resolves; v1 just returns
     // empty treatment for content topics.
-    expect(sheet.topicTreatment('world.speech.say')).toEqual({});
+    expect(sheet.topicTreatment('speech.vocal')).toEqual({});
   });
 });
 

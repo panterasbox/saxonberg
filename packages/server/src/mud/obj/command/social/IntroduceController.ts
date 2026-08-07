@@ -38,7 +38,7 @@ import type { MqlOneResult } from '../../../api/mql';
 import { Mml } from '../../../api/mml';
 
 /** Diegetic world-action topic — modality-neutral, not a speech channel. */
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /**
  * Demo regard mutator: being introduced to someone warms each recipient

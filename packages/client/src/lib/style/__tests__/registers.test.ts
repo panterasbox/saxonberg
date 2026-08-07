@@ -33,12 +33,12 @@ const MONO = 'Source Code Pro';
 describe('register classification — explicit topic→register table', () => {
   const ss = sheet(DEFAULT_THEME);
 
-  it('world.speech.say → narrative serif [AC: say renders serif]', () => {
-    expect(ss.fontFamilyForTopic('world.speech.say')).toContain(SERIF);
+  it('speech.vocal → narrative serif [AC: say renders serif]', () => {
+    expect(ss.fontFamilyForTopic('speech.vocal')).toContain(SERIF);
   });
 
-  it('system.shell.help → command mono [AC: help renders mono]', () => {
-    expect(ss.fontFamilyForTopic('system.shell.help')).toContain(MONO);
+  it('shell.result → command mono [AC: help renders mono]', () => {
+    expect(ss.fontFamilyForTopic('shell.result')).toContain(MONO);
   });
 
   it('world.perception.look → narrative serif [AC: look is proportional]', () => {
@@ -46,7 +46,7 @@ describe('register classification — explicit topic→register table', () => {
   });
 
   it('world.expression.* and world.narration.* → narrative serif', () => {
-    expect(ss.fontFamilyForTopic('world.expression.emote')).toContain(SERIF);
+    expect(ss.fontFamilyForTopic('act.emote')).toContain(SERIF);
     expect(ss.fontFamilyForTopic('world.narration.ambient')).toContain(SERIF);
   });
 
@@ -60,8 +60,8 @@ describe('register classification — explicit topic→register table', () => {
 
   it('the high-contrast theme uses the identical register mapping', () => {
     const hc = sheet(HIGH_CONTRAST_THEME);
-    expect(hc.fontFamilyForTopic('world.speech.say')).toContain(SERIF);
-    expect(hc.fontFamilyForTopic('system.shell.help')).toContain(MONO);
+    expect(hc.fontFamilyForTopic('speech.vocal')).toContain(SERIF);
+    expect(hc.fontFamilyForTopic('shell.result')).toContain(MONO);
   });
 });
 
@@ -84,10 +84,10 @@ describe('register is not stripped by plain mode [reader sovereignty]', () => {
   it('plain mode leaves the font register unchanged', () => {
     const normal = sheet(DEFAULT_THEME);
     const plain = sheet(DEFAULT_THEME, { plain: true });
-    expect(plain.fontFamilyForTopic('world.speech.say')).toBe(
-      normal.fontFamilyForTopic('world.speech.say'),
+    expect(plain.fontFamilyForTopic('speech.vocal')).toBe(
+      normal.fontFamilyForTopic('speech.vocal'),
     );
-    expect(plain.fontFamilyForTopic('world.speech.say')).toContain(SERIF);
+    expect(plain.fontFamilyForTopic('speech.vocal')).toContain(SERIF);
   });
 });
 
@@ -101,9 +101,9 @@ describe('faces are swappable — one role→family change [8b]', () => {
     const ss = sheet(reskinned);
 
     // Narrative resolves to the swapped face...
-    expect(ss.fontFamilyForTopic('world.speech.say')).toBe(SENTINEL);
+    expect(ss.fontFamilyForTopic('speech.vocal')).toBe(SENTINEL);
     // ...command is untouched...
-    expect(ss.fontFamilyForTopic('system.shell.help')).toContain(MONO);
+    expect(ss.fontFamilyForTopic('shell.result')).toContain(MONO);
     // ...and the register (topic→role) table is byte-identical: the
     // faces are not load-bearing, only the role tokens changed.
     expect(reskinned.registers).toEqual(DEFAULT_THEME.registers);

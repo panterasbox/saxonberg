@@ -534,7 +534,7 @@ function App() {
       console.info("__injectMessage:", text);
       useStore.getState().appendFrame({
         id: `inject-${nanoid()}`,
-        topic: "world.narration.action",
+        topic: "act.deed",
         body: text,
         timestamp: Date.now(),
       });

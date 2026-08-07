@@ -47,11 +47,11 @@ import { createStudioSlice, type StudioSlice } from "./studioSlice";
  *   - `connecting` — authenticated, WebSocket connecting; a neutral
  *     splash while we wait for the first server frame to choose the
  *     real destination. Never shows the roster/character-select screen.
- *   - `character-select` — a `system.charactergen.roster` frame
+ *   - `character-select` — a `session.identity` frame
  *     arrived; the player picks an existing character or creates one.
- *   - `char-gen` — a `system.charactergen.state` frame arrived; the
+ *   - `char-gen` — a `session.identity` frame arrived; the
  *     dedicated character-creation stage owns the screen.
- *   - `in-world` — a `system.connection.established` frame for an
+ *   - `in-world` — a `session.link` frame for an
  *     Avatar arrived; the cockpit takes over.
  *
  * App.tsx switches the whole render on this single field. The phases
@@ -281,8 +281,8 @@ interface StoreState extends CmsSlice, StudioSlice {
    * (`unauthenticated` until a Google session is confirmed). The
    * char-gen frames and `setConnected` drive the transitions:
    *
-   *   - a `system.charactergen.roster` frame → `character-select`
-   *   - a `system.charactergen.state` frame  → `char-gen`
+   *   - a `session.identity` frame → `character-select`
+   *   - a `session.identity` frame  → `char-gen`
    *   - `setConnected` (avatar entered world)  → `in-world`
    *   - disconnect drops back as appropriate.
    */
@@ -336,7 +336,7 @@ interface StoreState extends CmsSlice, StudioSlice {
   setRightPane: (pane: "inspect" | "who" | "news" | "wiki") => void;
 
   /**
-   * The article the wiki pane is showing (`world.wiki.page`), or
+   * The article the wiki pane is showing (`publication.wiki`), or
    * `null` before anything has been read this session.
    *
    * The body arrives **already rendered and already gated** — the pane
@@ -345,16 +345,16 @@ interface StoreState extends CmsSlice, StudioSlice {
    * Ephemeral, never persisted: the page is one `wiki <name>` away.
    */
   wikiPage: WikiPageFrame | null;
-  /** Show a pushed article (a `world.wiki.page` frame). */
+  /** Show a pushed article (a `publication.wiki` frame). */
   setWikiPage: (page: WikiPageFrame) => void;
 
   /**
-   * The "Who's Online" roster (`world.social.roster` topic). `roster` maps
+   * The "Who's Online" roster (`self.group` topic). `roster` maps
    * the stable per-target `handle` → the viewer-lensed {@link RosterRow};
    * `rosterOrder` is the display order (recognized first, then by header).
    * The server pushes a full `snapshot` on connect/reconnect and `add` /
    * `remove` deltas as players come and go — the client only renders. See
-   * `services/websocket.ts` (the `world.social.roster` handler).
+   * `services/websocket.ts` (the `self.group` handler).
    */
   roster: Record<string, RosterRow>;
   rosterOrder: string[];
@@ -366,7 +366,7 @@ interface StoreState extends CmsSlice, StudioSlice {
   applyRosterRemove: (handle: string) => void;
 
   /**
-   * The release news-ticker feed (`world.press.feed` topic). `feed`
+   * The release news-ticker feed (`publication.press` topic). `feed`
    * maps each release's stable `releaseId` → the {@link ReleaseRow}
    * projection; `feedOrder` is the display order (pins first, then by
    * `publishedAt` desc — a STABLE tiebreaker over the already-server-
@@ -374,7 +374,7 @@ interface StoreState extends CmsSlice, StudioSlice {
    * re-sort only keeps the keyed map deterministic). The initial
    * `snapshot` rides the welcome payload (`releaseWindow` in
    * `setConnected`); live `upsert` / `remove` frames flow through
-   * `services/websocket.ts` (the `world.press.feed` handler).
+   * `services/websocket.ts` (the `publication.press` handler).
    */
   feed: Record<string, ReleaseRow>;
   feedOrder: string[];
@@ -431,7 +431,7 @@ interface StoreState extends CmsSlice, StudioSlice {
   // Char-gen slices — the pre-world character-creation surfaces.
   /**
    * The character-select roster, populated from the most recent
-   * `system.charactergen.roster` frame. Empty until the frame
+   * `session.identity` frame. Empty until the frame
    * arrives. Setting it flips the phase to `character-select`.
    */
   charGenRoster: CharGenRosterEntry[];
@@ -439,7 +439,7 @@ interface StoreState extends CmsSlice, StudioSlice {
   setCharGenRoster: (roster: CharGenRosterEntry[]) => void;
   /**
    * The current char-gen step state, from the most recent
-   * `system.charactergen.state` frame. `null` until char-gen begins.
+   * `session.identity` frame. `null` until char-gen begins.
    * Setting a non-`done` state flips the phase to `char-gen`.
    */
   charGenState: CharGenStatePayload | null;
@@ -878,6 +878,16 @@ function resolveTopicDescriptor(
         family: ancestorPath,
         label: `${ancestor.label} (${titleCase(leaf)})`,
         description: ancestor.description,
+        // A leaf inherits its ancestor's attention shape along with its
+        // prose, exactly as the server's TopicCatalogue does. The two
+        // resolvers must agree or the client renders a frame the server
+        // classified differently.
+        address: ancestor.address,
+        actor: ancestor.actor,
+        weight: ancestor.weight,
+        audience: ancestor.audience,
+        durable: ancestor.durable,
+        affordance: ancestor.affordance,
       };
     }
   }
@@ -888,6 +898,14 @@ function resolveTopicDescriptor(
     family,
     label: titleCase(leaf),
     description: "(no description)",
+    // The conservative floor, mirroring the server's FACET_FLOOR: an
+    // unauthored topic should be quiet, not loud.
+    address: "ambient",
+    actor: "system",
+    weight: "diagnostic",
+    audience: "all",
+    durable: false,
+    affordance: "decays",
   };
 }
 
@@ -1055,7 +1073,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // rather than a thing you use.
   setWikiPage: (page) => set(() => ({ wikiPage: page, rightPane: "wiki" })),
 
-  // "Who's Online" roster (world.social.roster). Keyed by stable handle;
+  // "Who's Online" roster (self.group). Keyed by stable handle;
   // ordering recomputed on every mutation (recognized first, then header).
   roster: {},
   rosterOrder: [],
@@ -1077,7 +1095,7 @@ export const useStore = create<StoreState>((set, get) => ({
       return { roster, rosterOrder: orderRoster(roster) };
     }),
 
-  // Release news-ticker feed (world.press.feed). Keyed by stable
+  // Release news-ticker feed (publication.press). Keyed by stable
   // releaseId; ordering recomputed on every mutation (pins first, then
   // publishedAt desc) as a stable tiebreaker over the server's order.
   feed: {},
@@ -1173,7 +1191,7 @@ export const useStore = create<StoreState>((set, get) => ({
     set(() => ({
       charGenState,
       // A char-gen state frame means we're mid-creation. The in-world
-      // flip rides the `system.connection.established` that `enroll
+      // flip rides the `session.link` that `enroll
       // confirm` fires after commit (setConnected), not a state frame.
       connectionPhase: "char-gen" as const,
     })),

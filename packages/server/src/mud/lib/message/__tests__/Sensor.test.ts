@@ -44,7 +44,7 @@ describe('SensorMixin', () => {
 
   it('default filterMessage passes the frame through to handleMessage', () => {
     const sensor = makeStuff(() => new CapturingSensor());
-    const f = frame('world.speech.say', 'hi');
+    const f = frame('speech.vocal', 'hi');
     sensor.onMessage(f);
     expect(sensor.received).toEqual([f]);
   });
@@ -75,11 +75,11 @@ describe('SensorMixin.filterMessage shadow interception', () => {
     const shadow = makeStuff(() => new MuteShadow());
     ShadowApi.attach(sensor, shadow);
 
-    sensor.onMessage(frame('world.speech.say', 'hi'));
-    sensor.onMessage(frame('world.perception.sense.look', 'see'));
+    sensor.onMessage(frame('speech.vocal', 'hi'));
+    sensor.onMessage(frame('sense.survey', 'see'));
 
     expect(sensor.received).toHaveLength(1);
-    expect(sensor.received[0]!.topic).toBe('world.perception.sense.look');
+    expect(sensor.received[0]!.topic).toBe('sense.survey');
   });
 
   it('a shadow that mutates the frame returns a new object (immutable convention)', () => {

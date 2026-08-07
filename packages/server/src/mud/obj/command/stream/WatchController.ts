@@ -227,7 +227,7 @@ export default class WatchController extends CommandController<WatchModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.chat')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

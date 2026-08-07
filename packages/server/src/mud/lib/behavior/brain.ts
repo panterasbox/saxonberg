@@ -168,9 +168,9 @@ export type ParsedTrigger =
  * room-occupant delta the framework computes.
  */
 export const WITNESS_TOPIC: Record<WitnessKind, string> = {
-  arrival: 'world.narration.movement',
-  departure: 'world.narration.movement',
-  emote: 'world.expression.emote',
+  arrival: 'act.move',
+  departure: 'act.move',
+  emote: 'act.emote',
   speech: 'world.speech.',
 } as const;
 

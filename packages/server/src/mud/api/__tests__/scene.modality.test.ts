@@ -130,7 +130,7 @@ describe('Scene.modality + SensorMixin.filterMessage', () => {
   it('no-meta-modality frame delivers to a recipient with empty sensorium', () => {
     const sessile = makeActor([]) as ReceivingActor;
     MessageApi.scene(sessile)
-      .topic('system.connection.established')
+      .topic('session.link')
       .toTarget(sessile, 'hello')
       .send();
     const f = sessile.received.find((f) => f.tags?.includes('audience:target'));

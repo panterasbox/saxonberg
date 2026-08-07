@@ -28,7 +28,7 @@ import type { ConditionData } from "../../../lib/employment/Condition";
 import type { ContractRecord } from "../../../lib/employment/ContractRecord";
 import JobBoard from "../../JobBoard";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 /** The browse's short id — enough to be unique on one board. */
 const SHORT_ID_LEN = 8;

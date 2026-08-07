@@ -23,7 +23,7 @@ import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Any crafting-family decline (craft / repair / salvage) — one renderer. */
 type CraftingFailure = CraftFailure | RepairFailure | SalvageFailure;

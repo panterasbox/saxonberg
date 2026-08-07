@@ -98,16 +98,16 @@ describe('topic seeds — the facets carry information the path does not', () =>
     // different answers to "who is this aimed at". If these ever
     // collapse to one value, the facet has stopped earning its place.
     const by = new Map(seeds().map((s) => [s.topic, s.data]));
-    expect(by.get('world.speech.say')?.address).toBe('broadcast');
-    expect(by.get('world.speech.whisper')?.address).toBe('personal');
-    expect(by.get('world.speech.dm')?.address).toBe('direct');
+    expect(by.get('speech.vocal')?.address).toBe('broadcast');
+    expect(by.get('speech.vocal')?.address).toBe('personal');
+    expect(by.get('speech.comms')?.address).toBe('direct');
   });
 
   it('a measurement is durable; ambient texture is not', () => {
     const by = new Map(seeds().map((s) => [s.topic, s.data]));
     // A reading is a fact with a timestamp — true forever.
     expect(
-      by.get('world.perception.measurement.measure-temperature')?.durable
+      by.get('sense.reading')?.durable
     ).toBe(true);
     // What the room smelled like is not worth a transcript line.
     expect(by.get('world.perception.ambient.smell')?.durable).toBe(false);
@@ -130,7 +130,7 @@ describe('topic seeds — the facets carry information the path does not', () =>
   it('the authoring shell is the only author-audience family', () => {
     for (const s of seeds()) {
       if (s.data.audience === 'author') {
-        expect(s.topic.startsWith('system.shell')).toBe(true);
+        expect(s.topic.startsWith('shell.result')).toBe(true);
       }
     }
   });

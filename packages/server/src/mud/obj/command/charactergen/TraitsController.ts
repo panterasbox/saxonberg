@@ -18,7 +18,7 @@ import { TraitApi } from "../../../api/trait";
 import { Disposition } from "../../../lib/trait/Disposition";
 
 /** Identity-family self readout — reuse, don't invent a topic. */
-const TOPIC = "world.identity";
+const TOPIC = "act.deed";
 
 export default class TraitsController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {

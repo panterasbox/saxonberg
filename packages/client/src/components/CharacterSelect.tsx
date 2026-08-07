@@ -10,7 +10,7 @@
  *   - "Create new character" → `enroll`
  *
  * The roster is empty during the brief connecting window (authenticated
- * but no `system.charactergen.roster` frame yet); we show a quiet
+ * but no `session.identity` frame yet); we show a quiet
  * waiting line rather than bouncing the player anywhere.
  *
  * Styling follows the cockpit's token-driven aesthetic. Weight and

@@ -191,7 +191,7 @@ export default class AliasController extends CommandController<AliasModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.alias')
+      .topic('shell.config')
       .toSelf(body)
       .send();
   }

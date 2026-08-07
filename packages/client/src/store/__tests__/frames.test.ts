@@ -8,7 +8,7 @@ function resetFrames(): void {
 function makeFrame(overrides: Partial<Frame> = {}): Frame {
   return {
     id: "f1",
-    topic: "world.speech.say",
+    topic: "speech.vocal",
     body: "hi",
     timestamp: 100,
     ...overrides,
@@ -43,7 +43,7 @@ describe("frames slice", () => {
   it("appendFrame preserves frame shape (id, topic, body, sigil, timestamp)", () => {
     const frame = makeFrame({
       id: "f-shape",
-      topic: "system.shell.fs",
+      topic: "shell.result",
       body: "ls output",
       sigil: "> ",
       timestamp: 12345,
@@ -66,7 +66,7 @@ describe("frames slice", () => {
         clientState: {
           "console.tabs": [
             { name: "All", muted: [] },
-            { name: "Quiet", muted: ["world.speech.say"] },
+            { name: "Quiet", muted: ["speech.vocal"] },
           ],
           "console.activeTab": "All",
         },
@@ -83,7 +83,7 @@ describe("frames slice", () => {
     });
 
     it("does NOT bump unread for inactive tabs whose filter mutes the frame", () => {
-      useStore.getState().appendFrame(makeFrame({ topic: "world.speech.say" }));
+      useStore.getState().appendFrame(makeFrame({ topic: "speech.vocal" }));
       // 'Quiet' mutes this topic, so its unread stays at 0.
       expect(useStore.getState().unreadCounts).toEqual({});
     });
@@ -94,7 +94,7 @@ describe("frames slice", () => {
         clientState: {
           "console.tabs": [
             { name: "All", muted: [] },
-            { name: "Quiet", muted: ["world.speech.say"] },
+            { name: "Quiet", muted: ["speech.vocal"] },
           ],
           "console.activeTab": "Quiet",
         },
@@ -113,20 +113,20 @@ describe("frames slice", () => {
     });
 
     it("tracks mutedSinceSessionStart for frames the ACTIVE tab suppresses", () => {
-      // Switch active to Quiet so it suppresses world.speech.say.
+      // Switch active to Quiet so it suppresses speech.vocal.
       useStore.setState({
         clientState: {
           "console.tabs": [
             { name: "All", muted: [] },
-            { name: "Quiet", muted: ["world.speech.say"] },
+            { name: "Quiet", muted: ["speech.vocal"] },
           ],
           "console.activeTab": "Quiet",
         },
       });
-      useStore.getState().appendFrame(makeFrame({ topic: "world.speech.say" }));
-      useStore.getState().appendFrame(makeFrame({ topic: "world.speech.say" }));
+      useStore.getState().appendFrame(makeFrame({ topic: "speech.vocal" }));
+      useStore.getState().appendFrame(makeFrame({ topic: "speech.vocal" }));
       expect(useStore.getState().mutedSinceSessionStart).toEqual({
-        "world.speech.say": 2,
+        "speech.vocal": 2,
       });
     });
 

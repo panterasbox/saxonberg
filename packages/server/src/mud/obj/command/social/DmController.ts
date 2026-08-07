@@ -80,7 +80,7 @@ export default class DmController extends CommandController<DmModel> {
     const comms = resolveComms(context);
     if (!comms) {
       MessageApi.scene(speaker)
-        .topic('world.speech.dm')
+        .topic('speech.comms')
         .toSelf(Mml.compose`You have no way to send a thought.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'CommsMixin' });
@@ -95,7 +95,7 @@ export default class DmController extends CommandController<DmModel> {
 
     if (targets.length > DM_MAX_RECIPIENTS) {
       MessageApi.scene(speaker)
-        .topic('world.speech.dm')
+        .topic('speech.comms')
         .toSelf(
           Mml.fromMarkup(
             `\nToo many recipients (${targets.length}; max ${DM_MAX_RECIPIENTS}). ` +

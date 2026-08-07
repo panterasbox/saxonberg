@@ -14,7 +14,7 @@ import type { MqlOneResult } from "../../../api/mql";
 import { Mml } from "../../../api/mml";
 import { MessageApi } from "../../../api/message";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 const GARNISH_MS = 1500;
 
 interface GarnishModel extends CommandModel {

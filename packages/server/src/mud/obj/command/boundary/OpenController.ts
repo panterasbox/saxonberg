@@ -42,7 +42,7 @@ export default class OpenController extends CommandController<OpenModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Open what?`)
         .send();
       context.note({
@@ -54,7 +54,7 @@ export default class OpenController extends CommandController<OpenModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -77,7 +77,7 @@ export default class OpenController extends CommandController<OpenModel> {
     );
     if (!sealable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't open that.`)
         .send();
       context.note({
@@ -90,7 +90,7 @@ export default class OpenController extends CommandController<OpenModel> {
 
     if (sealable.isOpen()) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`It is already open.`)
         .send();
       context.note({
@@ -112,7 +112,7 @@ export default class OpenController extends CommandController<OpenModel> {
     }
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You open ${Mml.object(sealable as unknown as Stuff)}.`)
       .toPeers(
         Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(sealable as unknown as Stuff)}.`,

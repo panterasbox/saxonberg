@@ -28,7 +28,7 @@ interface AnalyzeElectricalModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-electrical';
+const TOPIC = 'sense.reading';
 
 export default class AnalyzeElectricalController extends CommandController<AnalyzeElectricalModel> {
   execute(model: AnalyzeElectricalModel, context: CommandContext): void {

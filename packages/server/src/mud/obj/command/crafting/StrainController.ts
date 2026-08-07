@@ -24,7 +24,7 @@ import { CraftingApi } from "../../../api/crafting";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { ScriptApi } from "../../../api/script";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 const STRAIN_MS = 2500;
 
 interface StrainModel extends CommandModel {

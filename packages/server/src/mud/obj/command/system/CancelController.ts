@@ -46,7 +46,7 @@ export default class CancelController extends CommandController<CancelModel> {
     if (!MixinApi.isEngaged(giver)) {
       ctx.note({ kind: 'mixin-missing', mixin: 'EngagedMixin' });
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't cancel anything.`)
         .send();
       return;
@@ -60,7 +60,7 @@ export default class CancelController extends CommandController<CancelModel> {
       // aborts; partial matter stands, no rollback).
       ScriptApi.cancelAll('barge-in');
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You cancel what you were doing.`)
         .send();
       return;
@@ -77,14 +77,14 @@ export default class CancelController extends CommandController<CancelModel> {
         query: targetType,
       });
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You aren't ${targetType}.`)
         .send();
       return;
     }
 
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You stop ${targetType}.`)
       .send();
   }

@@ -2,7 +2,7 @@
  * WebSocket Client Service
  *
  * Inbound messages from the server are `MessageFrame<T>` objects with
- * a `topic` (e.g. `world.speech.say`, `system.connection.established`)
+ * a `topic` (e.g. `speech.vocal`, `session.link`)
  * and a rendered MML `body`. We dispatch by topic prefix to the
  * built-in handlers and to caller-registered listeners. MML parsing
  * happens at render time inside `MmlRenderer` / `parseMml`; the
@@ -136,7 +136,7 @@ class WebSocketClient {
   /**
    * Wire the engine's own topic handlers through the same `onTopic`
    * registry external callers use — char-gen frames are not special-
-   * cased in the dispatch switch. `system.connection.established`
+   * cased in the dispatch switch. `session.link`
    * stays in the switch: it's a one-off connection-lifecycle frame,
    * not part of this growing per-feature list.
    *
@@ -148,24 +148,24 @@ class WebSocketClient {
    * lands in the terminal.
    */
   private registerBuiltinHandlers(): void {
-    this.onTopic("system.charactergen.roster", (frame) => {
+    this.onTopic("session.identity", (frame) => {
       useStore
         .getState()
         .setCharGenRoster((frame.payload as CharGenRosterPayload).characters);
     });
-    this.onTopic("system.charactergen.state", (frame) => {
+    this.onTopic("session.identity", (frame) => {
       useStore.getState().setCharGenState(frame.payload as CharGenStatePayload);
     });
     // The `clear` verb's signal frame — empty body (so it never renders
     // a scrollback line), handled purely by emptying the buffer.
-    this.onTopic("system.terminal.clear", () => {
+    this.onTopic("shell.control", () => {
       useStore.getState().clearFrames();
     });
-    // The "Who's Online" roster (`world.social.roster`). Empty body
+    // The "Who's Online" roster (`self.group`). Empty body
     // (payload-bearing), so it never renders a scrollback line. The server
     // pushes a full `snapshot` on connect/reconnect and `add` / `remove`
     // deltas as players come and go — route by `action` to the store.
-    this.onTopic("world.social.roster", (frame) => {
+    this.onTopic("self.group", (frame) => {
       const payload = frame.payload as RosterFrame | undefined;
       if (!payload || payload.kind !== "roster") return;
       const store = useStore.getState();
@@ -181,12 +181,12 @@ class WebSocketClient {
           break;
       }
     });
-    // The release news-ticker (`world.press.feed`). Empty body
+    // The release news-ticker (`publication.press`). Empty body
     // (payload-bearing), so it never renders a scrollback line. The
     // initial snapshot rides the welcome payload (`releaseWindow`);
     // these frames carry live `upsert` / `remove` deltas — route by
     // `action` to the store.
-    this.onTopic("world.press.feed", (frame) => {
+    this.onTopic("publication.press", (frame) => {
       const payload = frame.payload as ReleaseFeedFrame | undefined;
       if (!payload || payload.kind !== "release") return;
       const store = useStore.getState();
@@ -203,12 +203,12 @@ class WebSocketClient {
       }
     });
 
-    // The wiki pane's side-channel (`world.wiki.page`). Empty body —
+    // The wiki pane's side-channel (`publication.wiki`). Empty body —
     // the article's prose already went to the scroll on
-    // `system.shell.wiki`; this is the structured twin, carrying the
+    // `shell.result`; this is the structured twin, carrying the
     // SAME rendered body so the pane inherits the server's gate rather
     // than re-deriving it.
-    this.onTopic("world.wiki.page", (frame) => {
+    this.onTopic("publication.wiki", (frame) => {
       const payload = frame.payload as WikiPageFrame | undefined;
       if (!payload || payload.kind !== "wiki-page") return;
       useStore.getState().setWikiPage(payload);
@@ -519,13 +519,13 @@ class WebSocketClient {
       // Built-in connection-lifecycle frame. Feature frames (char-gen,
       // etc.) register through `onTopic` in `registerBuiltinHandlers`
       // and are dispatched by the per-topic loop below.
-      if (messageFrame.topic === "system.connection.established") {
+      if (messageFrame.topic === "session.link") {
         this.handleConnectionEstablished(
           messageFrame.payload as ConnectionEstablishedPayload,
         );
       }
 
-      // Social-graph presence frames (`world.social.presence`) ride the
+      // Social-graph presence frames (`session.presence`) ride the
       // ordinary frame channel and render inline in the buffer like any
       // other scene frame — no separate notification surface. They fall
       // through to the normal per-topic / catch-all append below.

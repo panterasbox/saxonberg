@@ -205,9 +205,9 @@ describe('MessageApi', () => {
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
 
-      const message1 = makeFrame('world.perception.sense.look', 'Test');
+      const message1 = makeFrame('sense.survey', 'Test');
       const message2 = makeFrame('system.log.info', 'note');
-      const message3 = makeFrame('world.speech.say', 'hi');
+      const message3 = makeFrame('speech.vocal', 'hi');
 
       MessageApi.messageContainer(source, message1);
       expect(sensor1.lastMessage).toEqual(message1);
@@ -252,7 +252,7 @@ describe('MessageApi', () => {
       speaker.teleport(location, { silent: true });
 
       const sayMessage = makeFrame(
-        'world.speech.say',
+        'speech.vocal',
         '<name>Alice</name> says, <speech>"Hello everyone"</speech>'
       );
 

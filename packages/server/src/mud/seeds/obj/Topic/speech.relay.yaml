@@ -1,0 +1,14 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: speech.relay
+  family: "speech"
+  label: "From a stream"
+  communicative: true
+  description: "Chat forwarded in from an outside platform. Someone is watching rather than standing here."
+  address: broadcast
+  actor: person
+  weight: chatter
+  audience: player
+  durable: false
+  affordance: decays

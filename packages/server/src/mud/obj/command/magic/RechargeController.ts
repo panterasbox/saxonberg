@@ -56,7 +56,7 @@ import { MagicApi } from '../../../api/magic';
 import { SpellKnowledge } from '../../../lib/magic/SpellKnowledge';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 /** The working that specifies the transfer. */
 const TRANSFER_SPELL_PATH = '/obj/magic/Spell/transfer';

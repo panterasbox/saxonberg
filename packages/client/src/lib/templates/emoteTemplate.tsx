@@ -1,5 +1,5 @@
 /**
- * emoteTemplate — `world.expression.emote` frames (catalog + free-form).
+ * emoteTemplate — `act.emote` frames (catalog + free-form).
  * Italic action-shaped render (`Bobalu waves at you.`); the italic
  * comes from the `world.expression` topic-cascade rule. Same structural
  * render as `default` for v1; per-type customization (a leading "*",

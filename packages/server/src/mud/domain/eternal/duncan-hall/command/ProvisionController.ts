@@ -46,7 +46,7 @@ import { Character } from '../../../../lib/character/Character';
 import DormThemes from '../DormThemes';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 
-const TOPIC = 'residence.provision';
+const TOPIC = 'act.deed';
 
 interface ProvisionModel extends CommandModel {
   player?: MqlOneResult;

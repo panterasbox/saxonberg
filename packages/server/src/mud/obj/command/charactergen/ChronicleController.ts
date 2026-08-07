@@ -29,7 +29,7 @@ import { Mml } from '../../../api/mml';
 import { ChronicleApi } from '../../../api/chronicle';
 
 /** Identity-family self readout — reuse, don't invent a topic. */
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 export default class ChronicleController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {

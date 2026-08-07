@@ -1,0 +1,13 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: publication.press
+  family: "publication"
+  label: "The press"
+  description: "Releases and the news ticker."
+  address: broadcast
+  actor: person
+  weight: activity
+  audience: player
+  durable: true
+  affordance: permanent

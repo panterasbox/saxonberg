@@ -79,7 +79,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     giver.onConnectionAttached({} as Interactive);
     const frames = commandsFrames(giver);
     const resets = frames.filter(
-      (f) => f.topic === 'system.commands.reset'
+      (f) => f.topic === 'shell.control'
     );
     expect(resets).toHaveLength(1);
     const payload = resets[0]!.payload as Array<{ verbs: string[] }>;
@@ -95,7 +95,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(item, giver);
 
     const adds = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.added'
+      (f) => f.topic === 'shell.control'
     );
     expect(adds.length).toBeGreaterThan(0);
   });
@@ -110,7 +110,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(item, null);
 
     const removes = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.removed'
+      (f) => f.topic === 'shell.control'
     );
     expect(removes.length).toBeGreaterThan(0);
     const payload = removes[0]!.payload as { verb?: string };
@@ -128,7 +128,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(envThing, loc);
 
     const adds = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.added'
+      (f) => f.topic === 'shell.control'
     );
     expect(adds.length).toBeGreaterThan(0);
   });
@@ -145,7 +145,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(envThing, null);
 
     const removes = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.removed'
+      (f) => f.topic === 'shell.control'
     );
     expect(removes.length).toBeGreaterThan(0);
   });
@@ -162,7 +162,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.onConnectionAttached({} as Interactive);
     const reset = commandsFrames(giver).find(
-      (f) => f.topic === 'system.commands.reset'
+      (f) => f.topic === 'shell.control'
     )!;
     const payload = reset.payload as Array<{
       verbs: string[];

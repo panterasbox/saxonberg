@@ -42,7 +42,7 @@ import {
 } from '../../../lib/husbandry/Cultivable';
 import type { Reserved } from '../../../lib/reserve';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Material tag a bulk slot must carry to count as feedable. */
 const COMPOST_TAG = 'compost';

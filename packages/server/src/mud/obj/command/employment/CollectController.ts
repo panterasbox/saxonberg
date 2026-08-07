@@ -21,7 +21,7 @@ import TipJar from '../../../domain/lounge/TipJar';
 import Coin from '../../Coin';
 import { Currency } from "../../../lib/banking/Currency";
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 type CollectModel = CommandModel;
 

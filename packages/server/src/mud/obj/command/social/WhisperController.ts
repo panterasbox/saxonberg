@@ -2,7 +2,7 @@
  * WhisperController — quiet, short-reach acoustic speech.
  *
  * Delegates to `VocalMixin.whisper(text, target?)` which fires a Scene
- * at `world.speech.whisper` with a low `meta.acousticDb` (30) so the
+ * at `speech.vocal` with a low `meta.acousticDb` (30) so the
  * sound walk drops the frame after a short reach. Whisper is implicitly
  * directed — `target` is required by `whisper.yaml`.
  */
@@ -28,7 +28,7 @@ export default class WhisperController extends CommandController<WhisperModel> {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
       MessageApi.scene(speaker)
-        .topic('world.speech.whisper')
+        .topic('speech.vocal')
         .toSelf(Mml.compose`You cannot speak.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });

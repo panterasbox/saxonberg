@@ -24,7 +24,7 @@ interface AnalyzeAddressModel extends CommandModel {
   location?: MqlOneResult;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-address';
+const TOPIC = 'sense.reading';
 
 function describeSource(source: AddressSource): string {
   switch (source) {

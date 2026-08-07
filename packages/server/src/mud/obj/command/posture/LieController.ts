@@ -25,7 +25,7 @@ export default class LieController extends CommandController<LieModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
         .send();
       context.note({
@@ -54,7 +54,7 @@ export default class LieController extends CommandController<LieModel> {
     );
     if (!result.ok) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`${result.summary}`)
         .send();
       context.note({
@@ -66,7 +66,7 @@ export default class LieController extends CommandController<LieModel> {
     }
 
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You lie down.`)
       .toPeers(Mml.compose`${Mml.name(giver)} lies down.`)
       .send();

@@ -92,7 +92,7 @@ describe('greets brain', () => {
     const subject = { stuffId: 'player-1' } as unknown as Stuff;
     const ctx = fakeCtx(
       { lines: ['welcome in'] },
-      { frame: { topic: 'world.narration.movement' } as never, subject }
+      { frame: { topic: 'act.move' } as never, subject }
     );
     greets.act(ctx);
     expect(ctx.say).toHaveBeenCalledWith('welcome in', subject);
@@ -105,7 +105,7 @@ describe('reacts brain', () => {
     const subject = { stuffId: 'player-1' } as unknown as Stuff;
     const ctx = fakeCtx(
       { reactions: [{ emote: 'nod' }] },
-      { frame: { topic: 'world.expression.emote' } as never, subject }
+      { frame: { topic: 'act.emote' } as never, subject }
     );
     void reacts.act(ctx);
     expect(ctx.emote).toHaveBeenCalledWith('nod', subject);

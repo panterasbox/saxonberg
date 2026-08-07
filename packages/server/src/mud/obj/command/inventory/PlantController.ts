@@ -30,7 +30,7 @@ import Seed from '../../Seed';
 import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface PlantModel extends CommandModel {
   seed: MqlOneResult;

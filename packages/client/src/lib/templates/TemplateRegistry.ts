@@ -39,8 +39,8 @@ interface Registration {
 
 const REGISTRATIONS: Registration[] = [
   { prefix: 'world.chat', template: chatTemplate },
-  { prefix: 'world.speech.say', template: sayTemplate },
-  { prefix: 'world.speech.dm', template: tellTemplate },
+  { prefix: 'speech.vocal', template: sayTemplate },
+  { prefix: 'speech.comms', template: tellTemplate },
   // Back-compat for any persisted frame still carrying the old
   // `world.speech.tell` topic. Both topics render through the same
   // tellTemplate so the experience is identical pre / post rename.
@@ -54,7 +54,7 @@ const REGISTRATIONS: Registration[] = [
 /**
  * Pick the template for a given topic. Longest-prefix-match wins so
  * `world.speech.tell` resolves to `tellTemplate` rather than the
- * shorter `world.speech.say` prefix. Falls back to defaultTemplate
+ * shorter `speech.vocal` prefix. Falls back to defaultTemplate
  * for any topic with no match.
  *
  * Bare `'world.speech'` matches the `say` template; the system

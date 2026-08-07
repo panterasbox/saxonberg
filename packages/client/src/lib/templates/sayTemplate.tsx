@@ -1,5 +1,5 @@
 /**
- * sayTemplate — `world.speech.say` frames. Inline render with
+ * sayTemplate — `speech.vocal` frames. Inline render with
  * italic speech (the `<speech>` element's treatment + the
  * `world.speech` topic-cascade rule both contribute italic).
  *

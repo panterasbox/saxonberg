@@ -40,7 +40,7 @@ import { PerceptionApi } from '../../../api/perception';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.perception.vision';
+const TOPIC = 'sense.survey';
 
 interface ReadModel extends CommandModel {
   target: MqlOneResult;

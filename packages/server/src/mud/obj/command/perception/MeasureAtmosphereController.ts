@@ -38,7 +38,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
         detail: 'no gas analyzer in hand',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.measure-atmosphere')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You need a gas analyzer in hand.`)
         .send();
       return;
@@ -53,7 +53,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.measure-atmosphere')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -75,7 +75,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
       ? Mml.compose`Atmosphere: ${a}\n${densityLine}`
       : Mml.compose`Atmosphere: ${a}\n`;
     MessageApi.scene(giver)
-      .topic('world.perception.measurement.measure-atmosphere')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
   }

@@ -21,16 +21,16 @@ describe('TemplateRegistry — pickTemplate', () => {
     expect(pickTemplate('world.chat.trade')).toBe(chatTemplate);
   });
 
-  it('world.speech.say picks sayTemplate', () => {
-    expect(pickTemplate('world.speech.say')).toBe(sayTemplate);
+  it('speech.vocal picks sayTemplate', () => {
+    expect(pickTemplate('speech.vocal')).toBe(sayTemplate);
   });
 
   it('world.speech.tell picks tellTemplate (longer prefix beats say)', () => {
     expect(pickTemplate('world.speech.tell')).toBe(tellTemplate);
   });
 
-  it('world.expression.emote picks emoteTemplate', () => {
-    expect(pickTemplate('world.expression.emote')).toBe(emoteTemplate);
+  it('act.emote picks emoteTemplate', () => {
+    expect(pickTemplate('act.emote')).toBe(emoteTemplate);
   });
 
   it('relay topics (twitch/youtube/kick) pick relayTemplate', () => {
@@ -41,7 +41,7 @@ describe('TemplateRegistry — pickTemplate', () => {
 
   it('system.* falls through to defaultTemplate (acceptance #5, #6)', () => {
     expect(pickTemplate('system.command.info')).toBe(defaultTemplate);
-    expect(pickTemplate('system.connection.established')).toBe(defaultTemplate);
+    expect(pickTemplate('session.link')).toBe(defaultTemplate);
   });
 
   it('world.perception.look falls through to defaultTemplate', () => {

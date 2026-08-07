@@ -34,7 +34,7 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
       const t = targetRes.stuff;
       if (!t) {
         MessageApi.scene(giver)
-          .topic('world.narration.action')
+          .topic('act.deed')
           .toSelf(Mml.compose`You don't see any '${targetRes.raw}' here.`)
           .send();
         context.note({
@@ -53,7 +53,7 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
 
     if (!hauler || !hauler.isHitched()) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`There's nothing to unhitch.`)
         .send();
       context.note({
@@ -68,13 +68,13 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
     hauler.unhitch();
     if (hauler.stuffId === giver.stuffId) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You let go of ${Mml.item(cart)}.`)
         .toPeers(Mml.compose`${Mml.name(giver)} lets go of ${Mml.item(cart)}.`)
         .send();
     } else {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(
           Mml.compose`You unhitch ${Mml.item(cart)} from ${Mml.item(hauler)}.`,
         )

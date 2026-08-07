@@ -53,13 +53,13 @@ function sceneRoom(): {
 }
 
 describe('VocalMixin.whisper', () => {
-  it('emits on world.speech.whisper with low acousticDb + hearing modality', () => {
+  it('emits on speech.vocal with low acousticDb + hearing modality', () => {
     const { alice, bob } = sceneRoom();
     alice.whisper('quiet');
     expect(alice.received).toHaveLength(1);
     expect(bob.received).toHaveLength(1);
     for (const f of [alice.received[0]!, bob.received[0]!]) {
-      expect(f.topic).toBe('world.speech.whisper');
+      expect(f.topic).toBe('speech.vocal');
       expect(f.meta.modality).toBe('hearing');
       expect(f.meta.acousticDb).toBe(30);
     }
@@ -75,11 +75,11 @@ describe('VocalMixin.whisper', () => {
 });
 
 describe('VocalMixin.shout', () => {
-  it('emits on world.speech.shout with high acousticDb + hearing modality', () => {
+  it('emits on speech.vocal with high acousticDb + hearing modality', () => {
     const { alice, bob } = sceneRoom();
     alice.shout('HELP');
     for (const f of [alice.received[0]!, bob.received[0]!]) {
-      expect(f.topic).toBe('world.speech.shout');
+      expect(f.topic).toBe('speech.vocal');
       expect(f.meta.modality).toBe('hearing');
       expect(f.meta.acousticDb).toBe(90);
     }

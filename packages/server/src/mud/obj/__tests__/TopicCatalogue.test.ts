@@ -78,15 +78,15 @@ describe('TopicCatalogue', () => {
   it('returns an authored descriptor verbatim when one exists', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'world.speech.say',
+        topic: 'speech.vocal',
         family: 'world.speech',
         label: 'Say',
         description: 'Speaking aloud.',
       },
     ]);
-    const d = cat.getDescriptor('world.speech.say');
+    const d = cat.getDescriptor('speech.vocal');
     expect(d).toEqual({
-      topic: 'world.speech.say',
+      topic: 'speech.vocal',
       family: 'world.speech',
       label: 'Say',
       description: 'Speaking aloud.',
@@ -101,21 +101,21 @@ describe('TopicCatalogue', () => {
   it('isCommunicative reflects the data flag (and excludes the rest)', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'world.speech.say',
+        topic: 'speech.vocal',
         family: 'world.speech',
         label: 'Say',
         description: '',
         communicative: true,
       },
       {
-        topic: 'world.speech.dm',
+        topic: 'speech.comms',
         family: 'world.speech',
         label: 'DM',
         description: '',
       },
     ]);
-    expect(cat.isCommunicative('world.speech.say')).toBe(true);
-    expect(cat.isCommunicative('world.speech.dm')).toBe(false); // private
+    expect(cat.isCommunicative('speech.vocal')).toBe(true);
+    expect(cat.isCommunicative('speech.comms')).toBe(false); // private
     expect(cat.isCommunicative('unseeded.topic')).toBe(false);
   });
 

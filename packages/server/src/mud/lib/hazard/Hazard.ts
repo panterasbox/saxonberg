@@ -324,7 +324,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
     private narrateSpring(victim: Stuff): void {
       const authored = this.springMessage.trim();
       MessageApi.scene(victim)
-        .topic('world.hazard.spring')
+        .topic('act.deed')
         .toSelf(
           authored
             ? Mml.fromMarkup(authored)
@@ -348,7 +348,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.disarm();
       const self = this as unknown as Stuff;
       MessageApi.scene(actor)
-        .topic('world.hazard.disarm')
+        .topic('act.deed')
         .toSelf(Mml.compose`You defuse ${Mml.object(self)}.`)
         .toPeers(Mml.compose`${Mml.name(actor)} defuses ${Mml.object(self)}.`)
         .send();

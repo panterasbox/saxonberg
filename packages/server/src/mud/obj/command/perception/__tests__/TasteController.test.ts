@@ -1,6 +1,6 @@
 /**
  * TasteController smoke — channel = `taste`, topic =
- * `world.perception.sense.taste`. Wider coverage lives in
+ * `sense.survey`. Wider coverage lives in
  * SmellController.test.ts.
  */
 
@@ -133,7 +133,7 @@ describe('TasteController', () => {
     const c = makeStuff(() => new TasteController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.taste');
+    expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('tart');
   });
 });

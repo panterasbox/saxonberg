@@ -31,7 +31,7 @@ export default class SwitchController extends CommandController<SwitchModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Switch what?`)
         .send();
       context.note({
@@ -43,7 +43,7 @@ export default class SwitchController extends CommandController<SwitchModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -60,7 +60,7 @@ export default class SwitchController extends CommandController<SwitchModel> {
     );
     if (!switchable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't switch that.`)
         .send();
       context.note({
@@ -82,7 +82,7 @@ export default class SwitchController extends CommandController<SwitchModel> {
       next = !switchable.isOn();
     } else {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Switch it on or off?`)
         .send();
       context.note({
@@ -95,7 +95,7 @@ export default class SwitchController extends CommandController<SwitchModel> {
 
     if (switchable.isOn() === next) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(
           Mml.compose`It is already ${next ? 'on' : 'off'}.`,
         )
@@ -112,7 +112,7 @@ export default class SwitchController extends CommandController<SwitchModel> {
     const word = next ? 'on' : 'off';
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(
         Mml.compose`You switch ${Mml.object(switchable as unknown as Stuff)} ${word}.`,
       )

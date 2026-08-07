@@ -37,7 +37,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-chemistry')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: raw });
@@ -46,7 +46,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
     if (!MixinApi.isTangible(target.stuff as Stuff)) {
       const detail = `there's nothing to analyze on ${target.stuff.getPresentation()}`;
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-chemistry')
+        .topic('sense.reading')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -61,7 +61,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
     if (!material) {
       const detail = `there's no material data for ${target.stuff.getPresentation()}`;
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-chemistry')
+        .topic('sense.reading')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -115,7 +115,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
     }
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.measurement.analyze-chemistry')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
 

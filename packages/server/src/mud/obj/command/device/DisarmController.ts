@@ -32,7 +32,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { Mml } from '../../../api/mml';
 import { HazardActivity, HAZARD_DISARM_TYPE } from '../../../lib/hazard/HazardActivity';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** `hazard.disarmSeconds` fallback (game-seconds). */
 const DEFAULT_DISARM_SECONDS = 5;

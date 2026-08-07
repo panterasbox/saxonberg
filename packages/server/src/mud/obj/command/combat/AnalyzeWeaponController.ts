@@ -30,7 +30,7 @@ interface AnalyzeWeaponModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-const TOPIC = "world.perception.measurement.analyze-weapon";
+const TOPIC = "sense.reading";
 
 /** A 4-cell filled/empty pip bar over a 0..maxRank scale. */
 function pipBar(rank: number, maxRank: number): string {

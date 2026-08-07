@@ -18,39 +18,63 @@ describe("topic catalogue slice", () => {
   it("setTopicCatalogue replaces the map wholesale", () => {
     const seeds: TopicDescriptor[] = [
       {
-        topic: "world.speech.say",
+        topic: "speech.vocal",
         family: "world.speech",
         label: "Say",
         description: "Speak aloud.",
+        address: "ambient" as const,
+        actor: "system" as const,
+        weight: "diagnostic" as const,
+        audience: "all" as const,
+        durable: false,
+        affordance: "decays" as const,
       },
       {
         topic: "world.speech",
         family: "world",
         label: "Speech",
         description: "Speech-family.",
+        address: "ambient" as const,
+        actor: "system" as const,
+        weight: "diagnostic" as const,
+        audience: "all" as const,
+        durable: false,
+        affordance: "decays" as const,
       },
     ];
     useStore.getState().setTopicCatalogue(seeds);
     const cat = useStore.getState().topicCatalogue;
     expect(cat.size).toBe(2);
-    expect(cat.get("world.speech.say")?.label).toBe("Say");
+    expect(cat.get("speech.vocal")?.label).toBe("Say");
   });
 
   it("getTopicDescriptor returns the authored descriptor when present", () => {
     useStore.getState().setTopicCatalogue([
       {
-        topic: "world.speech.say",
+        topic: "speech.vocal",
         family: "world.speech",
         label: "Say",
         description: "Speak aloud.",
+        address: "ambient" as const,
+        actor: "system" as const,
+        weight: "diagnostic" as const,
+        audience: "all" as const,
+        durable: false,
+        affordance: "decays" as const,
       },
     ]);
-    const d = useStore.getState().getTopicDescriptor("world.speech.say");
+    const d = useStore.getState().getTopicDescriptor("speech.vocal");
     expect(d).toEqual({
-      topic: "world.speech.say",
+      topic: "speech.vocal",
       family: "world.speech",
       label: "Say",
       description: "Speak aloud.",
+      address: "ambient" as const,
+      actor: "system" as const,
+      weight: "diagnostic" as const,
+      audience: "all" as const,
+      durable: false,
+      affordance: "decays" as const,
     });
   });
 
@@ -61,6 +85,12 @@ describe("topic catalogue slice", () => {
         family: "system.log",
         label: "Command",
         description: "Per-command log emissions.",
+        address: "ambient" as const,
+        actor: "system" as const,
+        weight: "diagnostic" as const,
+        audience: "all" as const,
+        durable: false,
+        affordance: "decays" as const,
       },
     ]);
     const d = useStore
@@ -71,6 +101,12 @@ describe("topic catalogue slice", () => {
       family: "system.log.command",
       label: "Command (Info)",
       description: "Per-command log emissions.",
+      address: "ambient" as const,
+      actor: "system" as const,
+      weight: "diagnostic" as const,
+      audience: "all" as const,
+      durable: false,
+      affordance: "decays" as const,
     });
   });
 
@@ -81,6 +117,12 @@ describe("topic catalogue slice", () => {
       family: "foo.bar",
       label: "Baz",
       description: "(no description)",
+      address: "ambient" as const,
+      actor: "system" as const,
+      weight: "diagnostic" as const,
+      audience: "all" as const,
+      durable: false,
+      affordance: "decays" as const,
     });
   });
 
@@ -91,6 +133,12 @@ describe("topic catalogue slice", () => {
       family: "",
       label: "Chatter",
       description: "(no description)",
+      address: "ambient" as const,
+      actor: "system" as const,
+      weight: "diagnostic" as const,
+      audience: "all" as const,
+      durable: false,
+      affordance: "decays" as const,
     });
   });
 });

@@ -161,7 +161,7 @@ export default class CatController extends CommandController<CatModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.fs')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

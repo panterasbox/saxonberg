@@ -26,7 +26,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Ignite what?`)
         .send();
       context.note({
@@ -38,7 +38,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: target.raw });
@@ -51,7 +51,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
     );
     if (!ignitable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`That won't burn.`)
         .send();
       context.note({
@@ -71,7 +71,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
             ? "It's too wet to catch."
             : "That won't burn.";
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`${detail}`)
         .send();
       context.note({
@@ -83,7 +83,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
     }
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You set ${Mml.object(ignitable)} alight.`)
       .toPeers(
         Mml.compose`${Mml.name(commandGiver)} sets ${Mml.object(ignitable)} alight.`,

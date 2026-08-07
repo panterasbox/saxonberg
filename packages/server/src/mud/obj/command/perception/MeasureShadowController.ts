@@ -18,7 +18,7 @@ interface MeasureShadowModel extends CommandModel {
   detail?: string;
 }
 
-const TOPIC = 'world.perception.measurement.measure-shadow';
+const TOPIC = 'sense.reading';
 
 export default class MeasureShadowController extends CommandController<MeasureShadowModel> {
   async execute(_model: MeasureShadowModel, ctx: CommandContext): Promise<void> {

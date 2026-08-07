@@ -27,7 +27,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't have any '${model.target.raw}'.`)
         .send();
       context.note({
@@ -50,7 +50,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
     const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You have no body plan.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
@@ -69,7 +69,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
     const release = giver.tryReleaseFromSlots(target);
     if (!release.released) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(
           release.dumpedKJ > 0
             ? Mml.compose`${Mml.item(target)} will not come away — and it is running hot against your skin.`
@@ -85,7 +85,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
     }
     if (release.vacated === 0) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You aren't wearing ${Mml.item(target)}.`)
         .send();
       context.note({
@@ -96,7 +96,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
       return;
     }
     MessageApi.scene(giver)
-      .topic('world.perception.inventory')
+      .topic('sense.survey')
       .toSelf(Mml.compose`You take off ${Mml.item(target)}.`)
       .toPeers(
         Mml.compose`${Mml.name(giver)} takes off ${Mml.item(target)}.`

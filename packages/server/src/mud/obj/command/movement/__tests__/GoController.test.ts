@@ -208,7 +208,7 @@ describe('GoController', () => {
       // it off the actor's Scene frames + the ctx note.
       const shellFrames = avatar.received.filter((f) =>
         ((f as { topic?: string })?.topic ?? '').startsWith(
-          'system.shell.movement',
+          'shell.result',
         ),
       );
       expect(
@@ -232,7 +232,7 @@ describe('GoController', () => {
       await goCmd(controller, avatar, locA, 'south');
       const shellFrames = avatar.received.filter((f) =>
         ((f as { topic?: string })?.topic ?? '').startsWith(
-          'system.shell.movement',
+          'shell.result',
         ),
       );
       expect(
@@ -251,7 +251,7 @@ describe('GoController', () => {
       await goCmd(controller, avatar, locA, 'east');
       const shellFrames = avatar.received.filter((f) =>
         ((f as { topic?: string })?.topic ?? '').startsWith(
-          'system.shell.movement',
+          'shell.result',
         ),
       );
       expect(

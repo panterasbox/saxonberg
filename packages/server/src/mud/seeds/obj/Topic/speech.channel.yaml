@@ -1,0 +1,14 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: speech.channel
+  family: "speech"
+  label: "On a channel"
+  communicative: true
+  description: "Talk on a channel you subscribe to. It reaches everyone listening, wherever they happen to be."
+  address: broadcast
+  actor: person
+  weight: chatter
+  audience: player
+  durable: false
+  affordance: decays

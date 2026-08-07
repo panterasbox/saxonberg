@@ -26,7 +26,7 @@ interface AnalyzeResponseModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-response';
+const TOPIC = 'sense.reading';
 
 export default class AnalyzeResponseController extends CommandController<AnalyzeResponseModel> {
   execute(model: AnalyzeResponseModel, context: CommandContext): void {

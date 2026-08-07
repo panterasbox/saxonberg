@@ -26,7 +26,7 @@ import { AdvancementApi } from '../../../api/advancement';
 import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface RepotModel extends CommandModel {
   plant: MqlOneResult;

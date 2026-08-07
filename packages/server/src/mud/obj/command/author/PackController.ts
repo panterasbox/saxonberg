@@ -60,7 +60,7 @@ export default class PackController extends CommandController<PackModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.author')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

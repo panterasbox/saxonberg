@@ -325,7 +325,7 @@ export default class Login extends LoginBase {
       ...(accountName ? { accountName } : {}),
     };
     MessageApi.scene(this)
-      .topic("system.charactergen.welcome")
+      .topic("session.identity")
       .toSelf(
         Mml.compose`Welcome to enrollment. Let's get you a body and a name.`,
       )
@@ -385,7 +385,7 @@ export default class Login extends LoginBase {
     }));
     const payload: CharGenRosterPayload = { characters };
     MessageApi.scene(this)
-      .topic("system.charactergen.roster")
+      .topic("session.identity")
       .toSelf(Mml.compose`Choose a character, or create a new one.`)
       .payload(payload)
       .send();

@@ -35,7 +35,7 @@ import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Containable } from "../../../lib/spatial/Containable";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface BuyModel extends CommandModel {
   thing: string;

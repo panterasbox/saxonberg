@@ -36,7 +36,7 @@ export default class ProcureCardController extends CommandController<CommandMode
 
     const who = clerk ? Mml.name(clerk) : Mml.fromMarkup("the clerk");
     MessageApi.scene(giver)
-      .topic("world.narration.action")
+      .topic("act.deed")
       .toSelf(
         Mml.compose`${who} slides a fresh Teleport Authority travel card across the counter. "On the house. Mind you don't lose this one."`,
       )
@@ -52,7 +52,7 @@ export default class ProcureCardController extends CommandController<CommandMode
     reason: string = "unspecified",
   ): void {
     MessageApi.scene(context.commandGiver)
-      .topic("world.narration.action")
+      .topic("act.deed")
       .toSelf(Mml.fromMarkup(`\n${detail}\n`))
       .send();
     context.note({ kind: "controller-rejected", reason, detail });

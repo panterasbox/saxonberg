@@ -375,7 +375,7 @@ describe('Avatar', () => {
       avatar.addInteractive(interactive1);
       avatar.addInteractive(interactive2);
 
-      const message = makeFrame('world.perception.sense.look', 'Test message');
+      const message = makeFrame('sense.survey', 'Test message');
 
       avatar.onMessage(message);
 
@@ -421,7 +421,7 @@ describe('Avatar', () => {
       avatar.addInteractive(laptop);
       avatar.addInteractive(phone);
 
-      const message = makeFrame('world.perception.sense.look', 'Hello');
+      const message = makeFrame('sense.survey', 'Hello');
 
       avatar.onMessage(message);
 
@@ -439,7 +439,7 @@ describe('Avatar', () => {
     it('should work with different message types', () => {
       avatar.addInteractive(interactive1);
 
-      const outputMsg = makeFrame('world.perception.sense.look', 'Text');
+      const outputMsg = makeFrame('sense.survey', 'Text');
       const errorMsg = makeFrame('system.log.command.warn', 'Error');
 
       avatar.onMessage(outputMsg);

@@ -137,7 +137,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // ride the info channel.
     //
     // Two frames now: the input-echo warn AND the framework
-    // auto-prose scene on `system.command.error` that surfaces the
+    // auto-prose scene on `shell.error` that surfaces the
     // `command-rejected: parse-failed` note as player-readable text.
     await giver.executeCommand('');
 
@@ -149,7 +149,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     const payload = echo!.payload as Record<string, unknown>;
     expect(payload.parseError).toBeTruthy();
     const errorScene = giver.received.find(
-      (f) => f.topic === 'system.command.error',
+      (f) => f.topic === 'shell.error',
     );
     expect(errorScene).toBeDefined();
   });

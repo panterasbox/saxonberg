@@ -24,7 +24,7 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const REPAIR_MS = 6000;
 
 interface RepairModel extends CommandModel {

@@ -1,7 +1,7 @@
 /**
  * VocalMixin — speech for sentient beings.
  *
- * `say(text, target?)` composes a Scene at `world.speech.say`. Default
+ * `say(text, target?)` composes a Scene at `speech.vocal`. Default
  * shape (no target): self frame "You say, ...", peers frame "<name>X</name>
  * says, ...". With `--to <target>`: self "You say to <name>Y</name>,
  * ...", peers "<name>X</name> says to <name>Y</name>, ...", and a
@@ -9,11 +9,11 @@
  *
  * `whisper(text, target?)` rides the same Scene scaffolding but stamps
  * a lower `meta.acousticDb` for short-reach acoustic propagation. The
- * topic is `world.speech.whisper`. Always-directed: a bare `whisper hi`
+ * topic is `speech.vocal`. Always-directed: a bare `whisper hi`
  * with no target falls back to the room (rare; the verb's target arg is
  * optional but expected).
  *
- * `shout(text, target?)` is the loud cousin — `world.speech.shout` topic,
+ * `shout(text, target?)` is the loud cousin — `speech.vocal` topic,
  * high `meta.acousticDb` so the sound walk can propagate across rooms.
  *
  * All three stamp `meta.modality = 'hearing'` for sensorium gating.
@@ -78,7 +78,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     say(text: string, target?: Stuff): void {
       vocalEmit(this as unknown as Stuff, text, {
-        topic: 'world.speech.say',
+        topic: 'speech.vocal',
         verb: 'say',
         acousticDb: DB.say,
         target,
@@ -87,7 +87,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     whisper(text: string, target?: Stuff): void {
       vocalEmit(this as unknown as Stuff, text, {
-        topic: 'world.speech.whisper',
+        topic: 'speech.vocal',
         verb: 'whisper',
         acousticDb: DB.whisper,
         target,
@@ -96,7 +96,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     shout(text: string, target?: Stuff): void {
       vocalEmit(this as unknown as Stuff, text, {
-        topic: 'world.speech.shout',
+        topic: 'speech.vocal',
         verb: 'shout',
         acousticDb: DB.shout,
         target,

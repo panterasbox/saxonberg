@@ -1,7 +1,7 @@
 /**
  * CommsMixin — comms-as-update. A CommsUpdate hosted on an attuned
  * actor transmits on behalf of its operator (the host): the
- * `world.speech.dm` scene is built from the host with the `verbal-esp`
+ * `speech.comms` scene is built from the host with the `verbal-esp`
  * modality, and cohort state lands on the update.
  */
 
@@ -95,13 +95,13 @@ describe('CommsMixin (comms-as-update)', () => {
 
     // Alice (the operator) hears her own self frame, tagged dm.
     const selfFrame = (alice as unknown as AttunedActor).received.find(
-      (f) => f.topic === 'world.speech.dm',
+      (f) => f.topic === 'speech.comms',
     );
     expect(selfFrame).toBeDefined();
 
     // Bob receives the target frame.
     const bobFrame = (bob as unknown as AttunedActor).received.find(
-      (f) => f.topic === 'world.speech.dm',
+      (f) => f.topic === 'speech.comms',
     );
     expect(bobFrame).toBeDefined();
 

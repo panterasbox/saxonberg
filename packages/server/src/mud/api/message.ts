@@ -69,7 +69,7 @@ export interface MessageBroadcastOptions {
 
 /**
  * Topic strings are emitted as **dotted-path string literals** at
- * call sites (e.g., `.topic('world.speech.say')`). The authored
+ * call sites (e.g., `.topic('speech.vocal')`). The authored
  * source of truth for the topic vocabulary lives on per-topic YAML
  * leaf Ideas under `seeds/obj/Topic/` (loaded into the
  * `TopicCatalogue` singleton at boot — see

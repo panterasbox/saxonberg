@@ -366,7 +366,7 @@ export default class TuneController extends CommandController<TuneModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.chat')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

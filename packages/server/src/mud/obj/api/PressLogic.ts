@@ -43,7 +43,7 @@ const PressApiCallers = SecurityPolicies.FromModule('/api/press#PressApi'
 );
 
 /** The news-ticker fan-out topic — a presence-PUBLIC OOC channel. */
-const FEED_TOPIC = 'world.press.feed';
+const FEED_TOPIC = 'publication.press';
 
 /** Default press-room page size. A press room is not an archive. */
 const PRESS_ROOM_DEFAULT_LIMIT = 20;
@@ -84,7 +84,7 @@ function resolveAuthorImpl(): string | null {
  * presence-PUBLIC: OOC-public, identical for every viewer (NO per-viewer
  * lensing), so the caller composes the payload exactly once. Per-viewer
  * isolation: a bad recipient never aborts the scan. The `sendRosterImpl`
- * precedent, on the `world.press.feed` topic. Unlike the roster (which
+ * precedent, on the `publication.press` topic. Unlike the roster (which
  * taps externally-emitted presence events in `SocialApi.boot()`), the
  * release trigger originates inside the mutators below, so this fan is
  * called inline (no event tap).

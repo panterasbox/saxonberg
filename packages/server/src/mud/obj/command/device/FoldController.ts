@@ -29,7 +29,7 @@ export default class FoldController extends CommandController<FoldModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Fold what?`)
         .send();
       context.note({
@@ -41,7 +41,7 @@ export default class FoldController extends CommandController<FoldModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -58,7 +58,7 @@ export default class FoldController extends CommandController<FoldModel> {
     );
     if (!foldable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't fold that.`)
         .send();
       context.note({
@@ -71,7 +71,7 @@ export default class FoldController extends CommandController<FoldModel> {
 
     if (foldable.isFolded()) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`It is already folded.`)
         .send();
       context.note({
@@ -88,7 +88,7 @@ export default class FoldController extends CommandController<FoldModel> {
       for (const slot of host.getSlotNames()) {
         if (host.getOccupantCount(slot) > 0) {
           MessageApi.scene(commandGiver)
-            .topic('world.narration.action')
+            .topic('act.deed')
             .toSelf(
               Mml.compose`You can't fold ${Mml.object(host)} while it's in use.`,
             )
@@ -106,7 +106,7 @@ export default class FoldController extends CommandController<FoldModel> {
     foldable.fold();
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You fold ${Mml.object(foldable as unknown as Stuff)}.`)
       .toPeers(
         Mml.compose`${Mml.name(commandGiver)} folds ${Mml.object(foldable as unknown as Stuff)}.`,

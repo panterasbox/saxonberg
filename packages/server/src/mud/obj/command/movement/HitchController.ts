@@ -61,7 +61,7 @@ export default class HitchController extends CommandController<HitchModel> {
       }
       if (mount.isHitched()) {
         MessageApi.scene(giver)
-          .topic('world.narration.action')
+          .topic('act.deed')
           .toSelf(Mml.compose`${Mml.item(mount)} is already pulling something.`)
           .send();
         context.note({
@@ -73,7 +73,7 @@ export default class HitchController extends CommandController<HitchModel> {
       }
       mount.hitch(cart);
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You hitch ${Mml.item(cart)} to ${Mml.item(mount)}.`)
         .toPeers(
           Mml.compose`${Mml.name(giver)} hitches ${Mml.item(cart)} to ${Mml.item(mount)}.`,
@@ -85,7 +85,7 @@ export default class HitchController extends CommandController<HitchModel> {
     // --- Self path: the giver grips the handle by hand. ---
     if (!MixinApi.isHauling(giver)) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't pull a cart.`)
         .send();
       context.note({
@@ -97,7 +97,7 @@ export default class HitchController extends CommandController<HitchModel> {
     }
     if (giver.isHitched()) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You're already pulling something.`)
         .send();
       context.note({
@@ -109,7 +109,7 @@ export default class HitchController extends CommandController<HitchModel> {
     }
     if (this.handsOccupied(giver)) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Your hands are full.`)
         .send();
       context.note({
@@ -121,7 +121,7 @@ export default class HitchController extends CommandController<HitchModel> {
     }
     giver.hitch(cart);
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You take hold of ${Mml.item(cart)}.`)
       .toPeers(Mml.compose`${Mml.name(giver)} takes hold of ${Mml.item(cart)}.`)
       .send();
@@ -141,7 +141,7 @@ export default class HitchController extends CommandController<HitchModel> {
 
   private notFound(context: CommandContext, raw: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You don't see any '${raw}' here.`)
       .send();
     context.note({ kind: 'empty-result', field: 'target', query: raw });
