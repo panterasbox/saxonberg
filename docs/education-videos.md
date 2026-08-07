@@ -6,6 +6,28 @@ into it — to people who think about education products. The sibling
 of [game-intro-videos.md](./game-intro-videos.md) (gamer-facing), with
 the same settled tone rules and a different audience.
 
+> **Revision pass (2026-08-06) — realigned to the session's verified findings**
+> (traceable to [platform reality](./study-com-platform-reality.md),
+> [the aspiring-teacher beachhead](./study-com-cx-and-the-aspiring-teacher.md),
+> and [engagement & positioning](./study-com-engagement-and-positioning.md)).
+> **Strategic re-weighting:** the **aspiring teacher is the beachhead** (top
+> declared field in *both* CX and test-prep, sitting on Study's deepest
+> authored data — K-12 math/science), so **V1's learner is reframed as an
+> aspiring science teacher** and **#7 is promoted** from cohort cut to the
+> beachhead's payoff; the **Wikipedia contrast** ("knows education, not just
+> information") joins V1 as Laura's beat (V4's world-moat stays clean); the
+> **endogenous teacher economy** (paid in-world to teach = proof the knowledge
+> is real) sharpens #7. **Accuracy fixes:** #5's medic triage is the *clinical
+> ceiling*, **not** the HESI/TEAS *entrance* product Study sells B2C; Study's
+> final is identity-verified **proctored** (`Proctored_Exam` is alive —
+> TypingDNA + Veriff), not "not proctored"; the hierarchy is **Program →
+> Course → Topic → Lesson** ("chapter" is derived); the taxonomy gives
+> *categorization*, not *progression* (readiness ordering is derived/authored
+> work). TOEFL (#9) held to its honest R+W/intermediate+ scope; trades (#6)
+> flagged confirm-before-catalog. **Follow-up:** the drafted V1/V3 scripts in
+> [education-video-scripts.md](./education-video-scripts.md) need a pass to
+> match — V1's science-teacher reframe especially.
+
 ## The organizing principle: each video is an experience
 
 **The game is fun. If a video doesn't come off as fun, nothing else
@@ -83,8 +105,7 @@ Corollary rules:
   naming it plainly beats coy circumlocution. What stays out is deal
   shape, not the name.
 - **Do speak specifically to the strengths of their products in the
-  ed-tech market** — deep subject taxonomy (subject → course →
-  chapter → lesson), self-paced completion, credit-recommended
+  ed-tech market** — deep subject taxonomy (**Program → Course → Topic → Lesson**; "chapter" is a derived display index, not a stored level), self-paced completion, credit-recommended
   (ACE/NCCRS) assessment with identity verification. These are the
   properties the seam consumes; naming them precisely is describing
   our own design.
@@ -237,9 +258,23 @@ gamer-adjacent cut if it earns a slot later).
    so the video and the top backlog build are the same work.
    Shoot-prep todos: mock issuer adapter (the standing #1
    cross-cutting build), in-world course surface staging, the
-   ceremony beat, the melt task. Accuracy rail: their final is
-   **identity-verified, not proctored** — never say proctored of
-   their product.
+   ceremony beat, the melt task.
+   **Beachhead reframe (2026-08-06):** the learner is an aspiring **science
+   teacher** — she studies the foundry chemistry *because she's going to teach
+   it*, so the best-built showpiece (calorimetry, Q = mc∆T + mL) also opens the
+   **protégé loop that pays off in #7**. Same footage, beachhead persona,
+   beachhead subject.
+   **Wikipedia-contrast beat (Laura's frame):** one quiet line — the world
+   could run on free encyclopedic *information*, but the conferral only *means*
+   something because her platform supplies **education** (content sequenced,
+   assessed, and credentialed by teaching professionals). It's why *her*
+   content makes the seam matter, not just any facts. (V4's world-moat stays
+   clean; education-vs-information is Laura's beat.)
+   **Accuracy rail (corrected 2026-08-06):** their final is an
+   **identity-verified proctored final** — `Proctored_Exam` is alive (TypingDNA
+   typing-cadence + Veriff ID/selfie). The old "not proctored" note followed
+   the stale "proctoring was removed" belief; it *is* proctored, just not
+   necessarily live-human-supervised. Say "identity-verified proctored final."
 2. **Playing the part** — framed for **Chris Mancini (chief growth
    officer)**: personalization and marketing applications. Act 1
    absorbs Arrival's thesis — from the first hour, every choice is
@@ -354,13 +389,13 @@ gamer-adjacent cut if it earns a slot later).
 ### Cohort cuts (one experience each, audience-targeted — the
 wishbook vignettes as videos; same world, pitched by wish)
 
-5. **The night the gallery flooded** (health track / HESI-TEAS) —
+5. **The night the gallery flooded** (health — the *clinical* ceiling, **not** the HESI/TEAS entrance product; **product-fit correction 2026-08-06:** triage is clinical/NCLEX-flavored, while Study's B2C nursing vertical is the **pre-nursing entrance** exams — HESI/TEAS = academic recall — so keep the vivid "being the medic" experience but the exec-read must **not** claim it maps to their entrance product; frame it as where the platform *can* go, not what they sell today) —
    triage by real physiology; status-effects-not-hitpoints as a
    *feature* for the viewer who reads charts. *Lenses:* fantasy,
    skill-vs-chance (judged, no dice). **Ready** (all systems
    shipped; distinct from the gamer-track vitals video: that one is
    about having a body, this one is about being the medic).
-6. **The storm contract** (trades) — the flooded cell, the sky-read
+6. **The storm contract** (trades — **confirm before catalog (2026-08-06):** verify trades/electrician licensure is an actual Study B2C product; if not, present as what the platform *can model*, not a vertical they sell) — the flooded cell, the sky-read
    deadline, real Ohm's law under pressure. *Lenses:* fantasy,
    emergence (weather→wetness→circuit). **Sole owner of the
    electricity showcase** (allocation rule, 2026-07-29): the
@@ -368,17 +403,22 @@ wishbook vignettes as videos; same world, pitched by wish)
    live here and nowhere else. **Ready** once contracts
    merge (MR !149); shootable today with a posted gig faked as a
    notice.
-7. **The Tuesday seminar** (teacher cert) — teaching pays,
+7. **The Tuesday seminar** (teacher cert) — **PROMOTED (2026-08-06): the beachhead's payoff, not a minor cut** — the aspiring science teacher from V1 now *teaches* the chemistry she learned (the protégé loop closed), and the **endogenous-economy beat** lands here: new players genuinely need to learn the world's modeled systems, so teaching has *real in-world value* — an expert can be **paid to teach**, and that a learner *could sustain themselves teaching* is the sharpest proof the knowledge is real (anti-pointsification with a face; see [engagement & positioning](./study-com-engagement-and-positioning.md) + [beachhead](./study-com-cx-and-the-aspiring-teacher.md) §5). Teaching pays,
    formally: command credit, producer standing, students' deeds on
    their own transcripts. *Lenses:* fantasy, story-machine (her
-   chronicle is a portfolio with receipts). **Ready.**
+   chronicle is a portfolio with receipts), endogenous-value. **Ready** — candidate to move up the interest curve given beachhead status.
 8. **The audit** (business/accounting) — the books are ledgers;
    twelve weeks of a mis-keyed split found in an evening;
    suspicion answerable. *Lenses:* economy, cheatability.
    **Ready.**
 9. **The regulars' table** (TOEFL) — the world is in English and
    that's the product; fluency as the moment language stops being
-   the task. *Lenses:* fantasy, motivation (the shift is a chosen
+   the task. **Fit caveat (2026-08-06):** TOEFL is a *demoted, caveated* fit —
+   a text-only English world can't serve its speaking/listening (2 of 4 skills)
+   or its low-proficiency entrants, so keep this cut **modest**: an immersion
+   *complement* for **Reading/Writing, intermediate+**, never a strong-fit
+   headline (see [beachhead](./study-com-cx-and-the-aspiring-teacher.md) §1 +
+   the [vertical survey](./study-com-vertical-survey.md) superseded banner). *Lenses:* fantasy, motivation (the shift is a chosen
    loop with wages). **Ready.**
 10. **Holding the ford** (ASVAB) — rations math, formation adopted,
     the line that holds; leadership measured, not claimed.
