@@ -257,8 +257,14 @@ out — metal conducts (betrays), rubber insulates. See
 
 - **Combat playstyle + loop** — reach/guard/gambits, shield-as-armor,
   unarmed/grapple ([combat-slate.md](../slates/deferred-rpg/combat-slate.md)).
-- **Ranged / thrown** —
-  [combat-tactics-slate.md](../slates/deferred-rpg/combat-tactics-slate.md).
+- **Ranged / thrown** — the **thrown** half **shipped** (ranged Wave 1 →
+  [ranged.md](./ranged.md)): a `DeliveryProfile` derives `channel` +
+  `energyJ` from mass × speed and hands the grid an ordinary
+  `InflictSpec`, so an arrow and a bullet with the same profile cut the
+  same wound and nothing here needed a projectile concept. Still
+  deferred: **armor's** point→blunt conversion for stopped strikes,
+  `penetration` as a profile term, and the launcher families
+  ([ranged-slate.md](../slates/tails/ranged-slate.md) W2/W3/W4).
 - **The economic lifecycle tail** — repair (reverse-craft), scrap/reforge,
   the `Recipe` craft-stamp that carries `{material, construction, grade}`
   onto made things (the armorer economy). Armor/implements carry their axes

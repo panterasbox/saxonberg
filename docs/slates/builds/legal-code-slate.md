@@ -131,7 +131,7 @@ clauses:
 - **The prose is the statement; the clauses are the operative part
   the runtime reads.**
 - **The clause vocabulary must draw from real model fields** — the
-  same rule the [ranged slate](./ranged-slate.md) landed on for
+  same rule the [ranged slate](../tails/ranged-slate.md) landed on for
   firearms: *statutes are written against fields the world can
   actually check.* One vocabulary, two consumers.
 - ⚠ **Open and genuine: which governs when prose and clause
