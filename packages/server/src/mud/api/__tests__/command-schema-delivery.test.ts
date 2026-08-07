@@ -59,7 +59,7 @@ class EnvProvider extends EnvProviderBase {
 }
 
 function commandsFrames(giver: TestGiver): MessageFrame[] {
-  return giver.received.filter((f) => f.topic.startsWith('shell.control.'));
+  return giver.received.filter((f) => f.topic === 'shell.control');
 }
 
 describe('CommandGiverMixin schema-delivery', () => {

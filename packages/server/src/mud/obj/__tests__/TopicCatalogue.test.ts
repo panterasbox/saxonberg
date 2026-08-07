@@ -22,6 +22,7 @@ interface TopicSeedData {
   weight?: string;
   audience?: string;
   durable?: boolean;
+  affordance?: string;
 }
 
 /**
@@ -35,6 +36,9 @@ const FLOOR = {
   weight: 'diagnostic',
   audience: 'all',
   durable: false,
+  // `decays` rather than `permanent`: a wrongly-permanent affordance is
+  // a dead link the UI presents as live.
+  affordance: 'decays',
 } as const;
 
 
@@ -122,17 +126,20 @@ describe('TopicCatalogue', () => {
   it('inherits from the nearest authored family ancestor when the leaf is unseeded', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'shell.diagnostic',
-        family: 'shell.diagnostic',
-        label: 'Command',
+        topic: 'shell',
+        family: '',
+        label: 'Your terminal',
         description: 'Per-command log emissions.',
       },
     ]);
-    const d = cat.getDescriptor('shell.diagnostic');
+    // A leaf nobody seeded, under a seeded root. This tier is what
+    // keeps a pack-added leaf readable before its descriptor is known,
+    // and what the `topic.unauthored` diagnostic reports on.
+    const d = cat.getDescriptor('shell.unseeded');
     expect(d).toEqual({
-      topic: 'shell.diagnostic',
-      family: 'shell.diagnostic',
-      label: 'Command (Info)',
+      topic: 'shell.unseeded',
+      family: 'shell',
+      label: 'Your terminal (Unseeded)',
       description: 'Per-command log emissions.',
       // The leaf inherits the ancestor's attention shape along with
       // its prose. The ancestor was seeded facet-less, so it holds the
