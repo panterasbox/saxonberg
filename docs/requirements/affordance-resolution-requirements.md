@@ -302,6 +302,15 @@ with the corpus it served.
   ignored by a client that does not send them. The tag collapse is *not*
   additive and is coordinated with the client in the same cycle.
 - **Topic facets are authored, never derived at runtime** (S1 rule).
+- **The taxonomy's shape is closed; the per-key mapping is not.** All 62
+  emitted keys must land somewhere in the seven roots, and producing that
+  mapping table is the plan's first deliverable. Four cases need a
+  judgment call rather than a lookup and should be decided there, in the
+  open: `world.social.presence` (not fiction, not quite session),
+  `world.party.formation` (group state), `system.access` (permission
+  refused — likely `shell.error`), and the content-local topics
+  (`world.lounge.*`, `world.hazard.*`), whose placement decides how
+  pack-minted leaves are expected to be named.
 
 ## Acceptance criteria
 
