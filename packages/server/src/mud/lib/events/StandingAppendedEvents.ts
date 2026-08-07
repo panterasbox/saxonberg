@@ -112,3 +112,25 @@ export class DispositionAppendedEvent {
   readonly kind = DispositionAppendedEvent.KIND;
   constructor(public readonly payload: DispositionAppendedPayload) {}
 }
+
+/**
+ * ⭐ **A derived standing finished folding.** Fired by
+ * {@link DerivedStandingCache} when a background fold lands, so a live
+ * subscription re-resolves and picks up a figure that was absent a
+ * moment ago.
+ *
+ * This is the other half of *a figure the server has not computed yet
+ * is absent, not zero*: the absence is honest, and this is what ends
+ * it. Without this event the first read of an un-warmed standing would
+ * stay blank until something else happened to trigger a re-resolve.
+ */
+export interface StandingWarmedPayload extends StandingAppendedPayload {
+  /** Which derived figure warmed — `'trait'` | `'competence'`. */
+  figure: string;
+}
+
+export class StandingWarmedEvent {
+  static readonly KIND = 'standing.warmed';
+  readonly kind = StandingWarmedEvent.KIND;
+  constructor(public readonly payload: StandingWarmedPayload) {}
+}

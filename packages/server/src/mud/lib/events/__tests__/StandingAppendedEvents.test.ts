@@ -124,7 +124,9 @@ describe('standing append events — firing', () => {
   it('a subscriber sees the payload shape the ledger promised', async () => {
     await bootRegistry();
     const seen: unknown[] = [];
-    EventApi.on(TranscriptAppendedEvent.KIND, (p) => seen.push(p));
+    EventApi.on(TranscriptAppendedEvent.KIND, (p) => {
+      seen.push(p);
+    });
 
     EventApi.fire(
       new TranscriptAppendedEvent({

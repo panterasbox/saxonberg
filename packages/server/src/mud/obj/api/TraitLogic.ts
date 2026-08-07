@@ -27,6 +27,9 @@ import { RegardApi } from "../../api/regard";
 import type { RecordOptions, ClaimSeed } from "../../api/trait";
 import { EventApi } from '../../api/event';
 import { DispositionAppendedEvent } from '../../lib/events/StandingAppendedEvents';
+import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
+import { StandingWarmedEvent } from '../../lib/events/StandingAppendedEvents';
+import { StuffApi } from '../../api/stuff';
 
 const TraitApiCallers = SecurityPolicies.FromModule("/api/trait#TraitApi");
 
@@ -106,6 +109,8 @@ async function buildAndSave(
       kind: entry.kind,
     })
   );
+  // Keep the sync face current; it fires StandingWarmedEvent itself.
+  void dominantCache.refresh(entry.owner);
 }
 
 /**
@@ -149,6 +154,40 @@ function toEvidence(rows: readonly DispositionEntry[]): DispositionEvidence[] {
 }
 
 /** Derive every evidenced axis for an owner (sorted by axis key). */
+/**
+ * ⭐ The sync face of the async disposition ledger — see
+ * {@link DerivedStandingCache}. Keyed by the durable owner key the
+ * ledger already stores against.
+ */
+const dominantCache = new DerivedStandingCache<AxisEstimate | null>(
+  async (subject) => {
+    const owner = StuffApi.findByTemplatePath(subject);
+    if (!owner) return null;
+    const pronounced = TraitPosition.pronounced(
+      await positionsForImpl(owner),
+      loadDials()
+    );
+    return pronounced[0] ?? null;
+  },
+  (subject) =>
+    EventApi.fire(new StandingWarmedEvent({ subject, figure: 'trait' }))
+);
+
+/**
+ * The dominant trait as a SYNC read, for the live standing field. A
+ * miss returns undefined and schedules the fold; the value arrives as
+ * a subscription delta.
+ */
+export function dominantTraitCached(owner: Stuff): AxisEstimate | null | undefined {
+  const key = ownerKey(owner);
+  return key === null ? undefined : dominantCache.get(key);
+}
+
+/** Test/HMR seam — drop the fold cache. */
+export function _clearDominantTraitCache(): void {
+  dominantCache.clear();
+}
+
 async function positionsForImpl(owner: Stuff): Promise<AxisEstimate[]> {
   if (!active()) return [];
   const ownerId = ownerKey(owner);

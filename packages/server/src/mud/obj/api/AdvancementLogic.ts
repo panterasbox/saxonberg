@@ -27,6 +27,8 @@ import type DisciplineCatalogue from "../DisciplineCatalogue";
 import type { RecordOptions, DisciplineBand } from "../../api/advancement";
 import { EventApi } from '../../api/event';
 import { TranscriptAppendedEvent } from '../../lib/events/StandingAppendedEvents';
+import { DerivedStandingCache } from '../../lib/standing/DerivedStandingCache';
+import { StandingWarmedEvent } from '../../lib/events/StandingAppendedEvents';
 
 /**
  * A host whose conferred affordances can be refreshed. Narrowed
@@ -79,6 +81,8 @@ async function buildAndSave(
       kind: entry.kind,
     })
   );
+  // Keep the sync face current; it fires StandingWarmedEvent itself.
+  void practisingCache.refresh(entry.owner);
 }
 
 /**
@@ -126,6 +130,38 @@ function catalogue(): DisciplineCatalogue | null {
 }
 
 /** Group an owner's evidence by Discipline and derive each band. */
+/**
+ * ⭐ The sync face of the async transcript ledger — see
+ * {@link DerivedStandingCache}.
+ */
+const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
+  async (subject) => {
+    const owner = StuffApi.findByTemplatePath(subject);
+    if (!owner) return null;
+    const bands = await bandsForImpl(owner);
+    return bands[0] ?? null;
+  },
+  (subject) =>
+    EventApi.fire(new StandingWarmedEvent({ subject, figure: 'competence' }))
+);
+
+/**
+ * The competence currently being practised, as a SYNC read for the
+ * live standing field. A miss returns undefined and schedules the
+ * fold.
+ */
+export function practisingCompetenceCached(
+  owner: Stuff
+): DisciplineBand | null | undefined {
+  const key = ownerKey(owner);
+  return key === null ? undefined : practisingCache.get(key);
+}
+
+/** Test/HMR seam — drop the fold cache. */
+export function _clearPractisingCache(): void {
+  practisingCache.clear();
+}
+
 async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
   if (!active()) return [];
   const ownerId = ownerKey(owner);

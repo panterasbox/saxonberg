@@ -62,6 +62,19 @@ import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
 import { EstateMixin } from "../lib/chattel/Estate";
 import type { FieldMeta } from "../lib/mixin";
+import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
+import { InfluenceApi } from '../api/influence';
+import { RenownApi } from '../api/renown';
+import {
+  RenownAppendedEvent,
+  ParticipationAppendedEvent,
+  ProducerAppendedEvent,
+  TranscriptAppendedEvent,
+  DispositionAppendedEvent,
+  StandingWarmedEvent,
+} from '../lib/events/StandingAppendedEvents';
+import { dominantTraitCached } from './api/TraitLogic';
+import { practisingCompetenceCached } from './api/AdvancementLogic';
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -89,6 +102,28 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
     return body.getInteractives();
   }
   return live.getInteractives();
+}
+
+/**
+ * ⭐ **The self-only gate for the live standing figures.**
+ *
+ * Returns the durable subject key the ledgers are keyed on — but only
+ * when the viewer IS the subject. Anyone else gets `undefined`, which
+ * `projectFields` omits, so another player's subscription simply has
+ * no standing fields on it.
+ *
+ * Reading someone *else's* standing is a real feature and it already
+ * has a surface: the `profile` verb, with its own redaction model. A
+ * second implementation here would be a second copy of those rules,
+ * and the two would drift the first time one was changed. So this
+ * surface answers for you and nobody else.
+ *
+ * A module-private function rather than a method: it is a policy the
+ * descriptors share, not behaviour the Avatar offers.
+ */
+function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
+  if (viewer?.stuffId !== stuff.stuffId) return undefined;
+  return stuff.getTemplatePath() ?? undefined;
 }
 
 /**
@@ -193,6 +228,96 @@ export default class Avatar extends AvatarBase {
     mortalArc: { persistent: true },
     startLocation: { instruction: true },
   };
+
+  /**
+   * ⭐ **The five live standing figures**, as subscribable data rather
+   * than prose.
+   *
+   * Every one of these is already reachable — `score` reports the lot,
+   * and `StandingController` calls the same Apis. What did not exist
+   * was a way to get them to a client as *numbers*: they shipped as MML
+   * inside a scene frame, so a shelf widget would have had to re-parse
+   * a sentence. These descriptors are the structured path.
+   *
+   * **Declared here rather than on a mixin.** `lib/renown/`,
+   * `lib/influence/` and `lib/participation/` hold no mixins at all —
+   * those subsystems are Api + logic singleton + collection. Minting a
+   * `StandingMixin` for five fields on one class would be the
+   * per-feature minting the conventions warn against; if a second host
+   * ever needs them, that is when it becomes a mixin.
+   *
+   * **Self-only.** These resolve for the subscriber's own identity.
+   * Reading someone *else's* standing already has a surface with a
+   * redaction model — the `profile` verb — and a second copy of those
+   * rules on a subscription is how two copies drift.
+   *
+   * ⚠ **`changes.by` is a wildcard here, not `'target'`.** Standing
+   * keys on the durable `templatePath`, while `'target'` matches a live
+   * `stuffId`, so any append re-resolves every standing subscription
+   * rather than only the affected one. Correct but over-eager; at
+   * current scale it is a handful of subscribers and it is honest.
+   * Narrowing it wants the dependency index to understand durable keys.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'playStanding',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { band: InfluenceApi.bandOf(key, 'consumer') };
+      },
+      changes: [{ on: ParticipationAppendedEvent, by: 'subject' }],
+    },
+    {
+      name: 'makeStanding',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { band: InfluenceApi.bandOf(key, 'producer') };
+      },
+      changes: [{ on: ProducerAppendedEvent, by: 'subject' }],
+    },
+    {
+      name: 'renown',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { value: RenownApi.renownOf(key) };
+      },
+      changes: [{ on: RenownAppendedEvent, by: 'subject' }],
+    },
+    {
+      name: 'dominantTrait',
+      // Async ledger behind a sync contract — see DerivedStandingCache.
+      // `undefined` on a cold cache means the field is OMITTED from the
+      // projection, so the client shows no value rather than a zero.
+      read: (stuff, viewer) => {
+        if (!standingSubject(stuff, viewer)) return undefined;
+        const t = dominantTraitCached(stuff);
+        if (t === undefined) return undefined;
+        return t === null
+          ? null
+          : { disposition: t.disposition, position: t.position, band: t.band };
+      },
+      changes: [
+        { on: DispositionAppendedEvent, by: 'subject' },
+        { on: StandingWarmedEvent, by: 'subject' },
+      ],
+    },
+    {
+      name: 'practisingCompetence',
+      read: (stuff, viewer) => {
+        if (!standingSubject(stuff, viewer)) return undefined;
+        const c = practisingCompetenceCached(stuff);
+        if (c === undefined) return undefined;
+        return c === null ? null : { discipline: c.discipline, band: c.band };
+      },
+      changes: [
+        { on: TranscriptAppendedEvent, by: 'subject' },
+        { on: StandingWarmedEvent, by: 'subject' },
+      ],
+    },
+  ];
 
   /**
    * The identity's death-arc position, or `null` while embodied and alive.
