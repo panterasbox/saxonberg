@@ -9,8 +9,8 @@ a value to a shelf, convert its units, compare it against a working
 range, or chart it over time has to re-parse strings it should never
 have had to parse.
 
-This build closes that gap on both halves — the **span** half
-(`<measure>` in MML) and the **frame** half (topic facets), plus the
+This build closes that gap on both halves — the **span** half (the
+`<quantity>` MML tag) and the **frame** half (topic facets), plus the
 **subscription** half that carries a live figure to a widget without a
 frame at all. It is Track A steps 1–2 and Track C of
 [client-slate](../slates/builds/client-slate.md), which argues why they
@@ -36,11 +36,14 @@ Spec.dc.html`. Load-bearing subsystem docs:
 ## Goals
 
 - **A measured value survives the wire as a number.** Every shipped
-  reading that is a scalar with a unit is expressible as `<measure>`
-  carrying its channel, canonical value, unit, provenance and (where
-  the emitter knows one) its working range — with the server's own
-  rendering as children, so flatten and a bare telnet client are
-  unchanged.
+  reading that is a scalar with a unit carries its channel, canonical
+  value, unit, provenance and (where the emitter knows one) its working
+  range — with the server's own rendering as children, so flatten and a
+  bare telnet client are unchanged.
+- **The tag that already does half of this becomes a registered,
+  first-class one.** `<quantity>` is emitted today but appears in no tag
+  vocabulary; this build registers it, extends it, and pins its
+  security posture.
 - **A frame declares what kind of attention it wants**, in data, so no
   client ever again keys a filter, badge, mute or notification decision
   on a hardcoded topic string. Five facets, authored in the topic seeds,
@@ -88,10 +91,10 @@ Spec.dc.html`. Load-bearing subsystem docs:
   its rules on a subscription is how the two drift.
 - **Non-scalar readings.** Grid, composition and qualitative outputs
   (the materials resist/deliver grid from `analyze response` is the
-  clear case) keep their prose rendering. `<measure>` is for a scalar
+  clear case) keep their prose rendering. `<quantity>` is for a scalar
   with a unit; a tag that also had to carry a matrix would be two tags.
 - **`<skill>` and `<coin>`.** The spec's own lower-priority additions,
-  correctly deferred until `<measure>` proves the pattern.
+  correctly deferred until the extended `<quantity>` proves the pattern.
 - **The aged demo world.** Chronicle depth, chain-of-title history,
   named regulars with belief state and the rest of
   [demo-slate](../slates/builds/demo-slate.md) item 2 remain that
@@ -100,33 +103,65 @@ Spec.dc.html`. Load-bearing subsystem docs:
 
 ## Surface decisions
 
-### `<measure>` carries six attributes and is never inert
+### ⭐ The spec's `<measure>` is NOT a new tag — it is `<quantity>`, extended
+
+**Superseded decision, corrected during grounding.** The handoff spec
+proposes adding a `<measure>` tag, and an earlier draft of this document
+agreed. Both were written without knowing that
+`Quantity.buildMarkup` already emits:
 
 ```
-<measure channel="thermal" value="1240" unit="degC"
-         via="pyrometer" lo="1150" hi="1300">1240 °C</measure>
+<quantity unit="degC" value="1240" tag="searing">1240 °C</quantity>
 ```
 
-`channel` gives stable identity for pinning and charting a series.
-`value` + `unit` give the canonical numeric so the client can convert,
-compare and sort. `via` names the instrument, which is the pedagogical
-seam — *a reading is only honest if you can say how it was taken*.
+…and that **every measurement controller already routes through it**,
+via `Quantity.formatMml`. The canonical numeric and unit are already on
+the wire. What is missing is four attributes and any kind of
+registration.
+
+So this build **extends the existing tag** rather than adding a second
+one:
+
+```
+<quantity channel="thermal" unit="degC" value="1240" tag="searing"
+          via="pyrometer" lo="1150" hi="1300">1240 °C</quantity>
+```
+
+Shipping `<measure>` beside `<quantity>` was rejected because it would
+be **two tags producing one affordance** — precisely the test the spec's
+own §4 applies to every other tag ("that is one affordance wearing two
+names; the composer pays at every call site and the user gets nothing").
+Renaming `<quantity>` → `<measure>` was also rejected: better name, but
+breaking, and this build is additive-only. The rename belongs with S3's
+other breaking changes if it is ever judged worth it.
+
+The four added attributes: `channel` gives stable identity for pinning
+and charting a series. `via` names the instrument — the pedagogical
+seam, *a reading is only honest if you can say how it was taken*.
 `lo`/`hi` are optional and declare the working range on the server's
-authority instead of hardcoding it per craft in the client. Children are
-the server's own rendering.
+authority instead of hardcoding it per craft in the client. The existing
+`tag` attribute (a qualitative band, e.g. `searing`) stays; it answers a
+different question from `channel` and both are wanted.
 
-**It goes in `KNOWN_TAGS` only, never `INERT_TAGS`, and stays out of
-every passthrough policy** — by the reasoning already written into the
-inert-tag list. `<measure>` is a factual claim about the world on the
-server's authority, exactly like `speech`. A player who could type it
-literally into chat could forge instrument data, which is worse than
-misattributing words because the entire premise of the product is that
-the numbers are real.
+**⚠ `<quantity>` is in no tag vocabulary today**, which is a latent bug
+this build must fix regardless: `Mml.isKnownTag('quantity')` returns
+false, so by the documented rule it is a *component candidate* whose
+name becomes the module path `/lib/wiki/components/quantity`. It goes
+into `KNOWN_TAGS`, and **never into `INERT_TAGS` or any passthrough
+policy** — by the reasoning already written into the inert-tag list, a
+quantity is a factual claim about the world on the server's authority,
+exactly like `speech`. A player who could type it literally into chat
+could forge instrument data, which is worse than misattributing words
+because the entire premise of the product is that the numbers are real.
 
 **No `flatten` case is added.** `flattenNode`'s `default` branch already
 returns children verbatim, which is precisely the required behaviour. A
 test pins it, because relying on a default is fragile the moment someone
 adds a case above it.
+
+**`Quantity.buildMarkup` is the single chokepoint**, which is what makes
+this cheap: the attributes are threaded through `formatMml`/`toMml`
+rather than written at ~18 controller call sites.
 
 ### The measurement channel vocabulary is new, closed, and NOT the materials `Channel`
 
@@ -158,12 +193,14 @@ exactly one member:
 The same list is what S3's `world.measure.<channel>` renames onto, so it
 is authored once and read by both.
 
-### Which readings get the tag: a rule, not a list
+### Which readings get the attributes: a rule, not a list
 
-**Every shipped reading that is a scalar with a unit emits `<measure>`.**
+**Every shipped reading that is a scalar with a unit carries `channel`
+and `via`**, plus `lo`/`hi` wherever the emitter knows a working range.
 Not a hand-enumerated controller list, which drifts the first time a
 reading is added. The acceptance criterion is stated against the rule:
-no shipped numeric-with-unit reading is left as bare prose.
+no shipped numeric-with-unit reading is left as bare prose or as a
+channel-less `<quantity>`.
 
 Partial adoption is explicitly rejected. Half the readings tagged means
 the client still needs a string parser, which is the whole defect.
@@ -262,7 +299,7 @@ option 3, *seed the world so the real endpoint answers*, and calls it
   command. The principal must come from the execution context, never be
   passed as a parameter — see the `gated-api-actor-from-context` rule.
   Self-only scope (above) keeps this narrow.
-- **`<measure>` must not become inert by later drift.** A test asserts
+- **`<quantity>` must not become inert by later drift.** A test asserts
   it is absent from `INERT_TAGS` and rejected by every passthrough
   policy, so a future tag sweep cannot silently admit it.
 - **Additive only.** Old clients must render every changed frame
@@ -272,7 +309,7 @@ option 3, *seed the world so the real endpoint answers*, and calls it
   produces data for a consumer that does not exist yet, which is the
   precise condition under which a green suite means nothing. Each of the
   three surfaces must be observed working end-to-end against the
-  **current** client — a `<measure>` rendering in today's `MmlRenderer`,
+  **current** client — a `<quantity>` reading in today's `MmlRenderer`,
   a facet-driven filter in today's `TabStrip`, a live figure in a
   throwaway widget. That wiring is disposable and is expected to be
   thrown away by the rebuild; the server contract it proves is
@@ -294,15 +331,15 @@ option 3, *seed the world so the real endpoint answers*, and calls it
 
 ## Acceptance criteria
 
-1. `<measure>` is in `KNOWN_TAGS`, absent from `INERT_TAGS`, and
+1. `quantity` is in `KNOWN_TAGS`, absent from `INERT_TAGS`, and
    rejected by every passthrough policy — each asserted by test.
-2. `flatten` of a `<measure>` node yields its children verbatim, pinned
+2. `flatten` of a `<quantity>` node yields its children verbatim, pinned
    by a test that does not depend on the `default` branch's position.
-3. Every shipped reading that is a scalar with a unit emits `<measure>`
+3. Every shipped reading that is a scalar with a unit emits `<quantity>`
    with `channel`, `value`, `unit` and `via` populated, and `lo`/`hi`
    wherever the emitter knows a working range. A test enumerates the
    measurement controllers and asserts none renders a bare numeric
-   reading.
+   reading or a channel-less `<quantity>`.
 4. The measurement channel vocabulary is a closed, exported list; every
    emitting controller maps to a member; a test asserts the mapping is
    total. It is a distinct module from `lib/material/Channel.ts`.
