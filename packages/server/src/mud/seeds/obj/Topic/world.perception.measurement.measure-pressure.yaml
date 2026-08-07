@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Measure Pressure
   description: Output of the measure pressure subcommand — Pascals reading.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

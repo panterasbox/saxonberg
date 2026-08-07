@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Var
   description: Output of the var verb — environment variable listings and edit confirmations.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

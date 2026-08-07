@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Alias
   description: Output of the alias verb — alias listings and edit confirmations.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Chat
   description: Feedback from chat management — listing, joining, leaving, muting, creating, disbanding channels.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

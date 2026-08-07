@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Measure Humidity
   description: Output of the measure humidity subcommand — relative humidity percent.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

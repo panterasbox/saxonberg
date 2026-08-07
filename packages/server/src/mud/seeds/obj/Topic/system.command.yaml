@@ -5,3 +5,8 @@ data:
   family: system
   label: Command
   description: Dispatcher-emitted prose for framework-level command failures — parse errors, MQL failures, validator rejections, controller throws.
+  address: personal
+  actor: system
+  weight: diagnostic
+  audience: all
+  durable: false

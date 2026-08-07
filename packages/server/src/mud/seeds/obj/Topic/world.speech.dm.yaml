@@ -5,3 +5,8 @@ data:
   family: world.speech
   label: DM
   description: A direct message over the implant network, delivered to a specific addressee. The verb `dm` (alias `tell`) emits this topic.
+  address: direct
+  actor: person
+  weight: activity
+  audience: player
+  durable: true

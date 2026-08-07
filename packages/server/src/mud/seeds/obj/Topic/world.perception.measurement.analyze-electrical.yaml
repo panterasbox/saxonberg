@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Analyze Electrical
   description: Output of the analyze electrical subcommand — a thing's electrical character (conductivity / resistance / path-to-ground bands + raw V/A/Ω), the multimeter read.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

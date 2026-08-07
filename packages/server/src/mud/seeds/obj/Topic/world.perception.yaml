@@ -5,3 +5,8 @@ data:
   family: world
   label: Perception
   description: What characters see, find, or sense — including looking around, checking inventory, scrying, and locating.
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false

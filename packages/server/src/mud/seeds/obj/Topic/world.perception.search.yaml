@@ -5,3 +5,8 @@ data:
   family: world.perception
   label: Search
   description: Parent topic for search / lookup results — find / locate verbs. The body carries a result-set (matches, locations) rather than perceptual content of a thing.
+  address: personal
+  actor: self
+  weight: activity
+  audience: player
+  durable: false

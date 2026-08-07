@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Focus
   description: Output of the focus verb — focus inspection and set confirmations.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

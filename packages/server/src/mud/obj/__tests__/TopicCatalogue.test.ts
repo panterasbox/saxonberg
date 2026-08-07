@@ -17,7 +17,26 @@ interface TopicSeedData {
   label: string;
   description: string;
   communicative?: boolean;
+  address?: string;
+  actor?: string;
+  weight?: string;
+  audience?: string;
+  durable?: boolean;
 }
+
+/**
+ * The facets a topic gets when the seed authored none and the family
+ * prefix matches no derivation rule — the conservative floor. An
+ * unknown frame should be quiet, not loud.
+ */
+const FLOOR = {
+  address: 'ambient',
+  actor: 'system',
+  weight: 'diagnostic',
+  audience: 'all',
+  durable: false,
+} as const;
+
 
 /**
  * Stub `Template.findDescendants` to return a synthetic list of
@@ -71,6 +90,11 @@ describe('TopicCatalogue', () => {
       family: 'world.speech',
       label: 'Say',
       description: 'Speaking aloud.',
+      // No facets authored on this seed. The runtime does NOT
+      // re-derive from the family prefix — that derivation is baked
+      // into the seeds by scripts/derive-topic-facets.ts — so an
+      // un-authored seed lands on the conservative floor.
+      ...FLOOR,
     });
   });
 
@@ -110,6 +134,10 @@ describe('TopicCatalogue', () => {
       family: 'system.log.command',
       label: 'Command (Info)',
       description: 'Per-command log emissions.',
+      // The leaf inherits the ancestor's attention shape along with
+      // its prose. The ancestor was seeded facet-less, so it holds the
+      // floor and passes that down.
+      ...FLOOR,
     });
   });
 
@@ -121,6 +149,9 @@ describe('TopicCatalogue', () => {
       family: 'something.weird',
       label: 'Unknown',
       description: '(no description)',
+      // Matches no family rule -> the conservative floor. An unknown
+      // topic must never earn a push or survive in a transcript.
+      ...FLOOR,
     });
   });
 
@@ -132,6 +163,7 @@ describe('TopicCatalogue', () => {
       family: '',
       label: 'Chatter',
       description: '(no description)',
+      ...FLOOR,
     });
   });
 

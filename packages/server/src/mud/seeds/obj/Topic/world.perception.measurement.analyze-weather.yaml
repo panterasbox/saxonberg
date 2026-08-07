@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Analyze Weather
   description: Output of the analyze weather subcommand — current weather type, per-field deviations, the covering Locality, and a short forecast.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

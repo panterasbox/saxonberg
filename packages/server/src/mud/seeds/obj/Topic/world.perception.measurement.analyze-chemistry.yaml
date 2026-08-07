@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Analyze Chemistry
   description: Output of the analyze chemistry subcommand — material composition breakdown.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

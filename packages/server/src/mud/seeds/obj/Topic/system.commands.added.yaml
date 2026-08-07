@@ -5,3 +5,8 @@ data:
   family: system.commands
   label: Added
   description: New verbs have been wired into this client's command schema.
+  address: personal
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false

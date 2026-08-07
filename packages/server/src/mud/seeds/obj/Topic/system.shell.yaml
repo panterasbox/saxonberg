@@ -5,3 +5,8 @@ data:
   family: system
   label: Shell
   description: Shell-tier output — the engine speaking back to the player about what just happened, distinct from in-fiction narration.
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false

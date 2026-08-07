@@ -5,3 +5,8 @@ data:
   family: world.perception.measurement
   label: Analyze Address
   description: Output of the analyze address subcommand — resolved address, provenance, and the covering Locality chain.
+  address: personal
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true

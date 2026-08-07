@@ -5,3 +5,8 @@ data:
   family: system
   label: Commands
   description: Command-vocabulary lifecycle — verbs being added, removed, or reset for this client.
+  address: personal
+  actor: system
+  weight: diagnostic
+  audience: all
+  durable: false

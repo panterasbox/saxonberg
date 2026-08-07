@@ -5,3 +5,8 @@ data:
   family: system.shell
   label: Player
   description: Output of the player verb — player character settings listings and edit confirmations (name, pronouns, profile).
+  address: personal
+  actor: system
+  weight: activity
+  audience: author
+  durable: false
