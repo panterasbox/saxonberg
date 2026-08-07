@@ -537,12 +537,11 @@ wall didn't move. She did — and the knowledge came with her.
 **[7 — the second reason]** *(the University; a small classroom; she's at
 the front now; ten seconds of footage, no more)*
 
-One more thing, and it's short, because it's the next video. Two weeks
-later she's in a room with the same material in front of her — and she's
-the one standing at the front of it. That isn't a bonus scene. It's the
-other half of the credential she's actually chasing. Know the subject;
-teach the subject. The foundry taught her the first one. A classroom is
-where she gets graded on the second.
+One more thing, and it's short. Two weeks later she's in a room with the
+same material in front of her — and she's the one standing at the front of
+it. That's the other half of the credential she's actually chasing. Know
+the subject; teach the subject. The foundry taught her the first one. A
+classroom is where she gets graded on the second.
 
 **[8 — descent: the read, one product question, out]** *(face returns; the
 cockpit wide; lower-third for the read)*
@@ -729,146 +728,146 @@ critique framing; verify the ghost-command preview reads on camera at 4K.
 > two-vocation shape is the profession's real shape (a subject exam **and**
 > a pedagogy exam), so the game requiring both is fidelity, not friction.
 >
-> **Theory beats spoken:** #12 (LLM-ready on both ends) — but stated as an
-> *experience*, never as an architecture claim; and #3 (education is
-> inherently social — the half a content library cannot supply from
-> inside itself). Everything else staged.
+> **Register (user, 2026-08-07): this describes a venue.** Not a narrative
+> with a reveal in it — the job is to say plainly what a classroom in this
+> world *is*, as objectively as the material allows, and let the facts of
+> the venue persuade. No withheld identity, no callback device, no
+> cross-reference to the Conferral in the narration. See the notes; it is
+> the one rail this script has already been corrected on.
+>
+> **Theory beats spoken:** #12 (LLM-ready on both ends) — one clause inside
+> the description of the chair, never an aside to camera. **#3** (education
+> is inherently social) is **staged, not spoken** — it's a room full of
+> people; saying so would be explaining the shot.
 > **Lenses:** fantasy (be who you're becoming), endogenous-value (the
 > anti-badge rail), the-avatar, transformation — the gate is live here: the
 > video models *teaching* as a graded act, so it must not imply the
 > rehearsal is the licensure.
 >
-> **Interest curve:** the wrong answer, cold (< 15 s) → drill 1: it's a
-> real decision, and it's the one the exam asks about → drill 2: the seats
-> (nobody can tell who's a person, including at the front) → drill 3: you
-> don't lecture, you act (the command bus, live) → drill 4: the grade is
-> the doing (the process trace) → peak: back to the wrong answer, and she
-> finds it herself → the economy (paid to teach — the anti-scoreboard
-> proof) → descent: the read, the rail, theme, out.
-> Runtime as drafted ≈ **5:20–5:40** (655 narration words + render room;
-> the peak wants silence in it).
+> **Interest curve:** the wrong answer, cold (< 15 s) → what the decision
+> actually costs, both ways → how the room is put together (the seats, the
+> chair, the one constraint) → what teaching in here consists of (the
+> command bus, live) → what a student's work looks like (the process trace)
+> → back to the wrong answer, and she finds it herself → what it pays (the
+> anti-scoreboard proof) → what it is and isn't (the read, the rail, theme,
+> out).
+> Runtime as drafted ≈ **5:00–5:20** (about 600 narration words + render
+> room; beat 6 wants the dead air left in).
 
 ### Narration
 
-**[1 — cold open: the wrong answer]** *(client full-bleed: a classroom at
-the University; the roster in the side panel; a student's line renders and
-sits there)*
+**[1 — the room]** *(client full-bleed: a classroom at the University; the
+roster in the side panel; a student's line renders and sits there)*
 
-This is a chemistry class in a text-based role-playing game. I'm not the
-student. I'm the teacher.
+This is a classroom at the university in a text-based role-playing game.
+I've taken the seat at the front, because that's the part worth showing
+you.
 
-A student just told the room that the metal stopped getting hotter because
-the burner ran out of heat. She said it with complete confidence. Two other
+A student has just told the room that the metal stopped getting hotter
+because the burner ran out of heat. She said it with confidence. Two other
 people wrote it down.
 
-So — what do you do?
+That's the job. Not the lecture — this.
 
-**[2 — drill 1: it is a real decision, and it is the graded one]** *(hold
-the room; no cuts; the line still on screen)*
+**[2 — what the decision actually is]** *(hold the room; no cuts; the line
+still on screen)*
 
-Correct her outright and you've got the right answer in the room in four
-seconds — and you've also just taught everyone that answers come from the
-front. Turn it back to the room instead and you might lose ten minutes and
-never get there, while the two who wrote it down get more confident.
+There are two moves and they cost different things. Correct her, and the
+room has the right answer in four seconds — and also learns that answers
+come from the front. Turn it back to the room, and you might lose ten
+minutes and not get there, while the two who wrote it down get more sure.
 
-There is no button for this. It's a judgment call, made live, on incomplete
-information, in front of people who are watching you make it. That is what
-teaching *is*. Every teacher-certification exam in the country asks about
-this moment — in prose, as a paragraph, with four options underneath it.
-This is the first place I know of where you get to actually be in it.
+Every teacher-certification exam in the country puts that decision in a
+paragraph with four options underneath it. In here it's just a thing that
+happened, and somebody has to do something about it.
 
-**[3 — drill 2: the seats]** *(the roster held in frame; mixed names, no
-distinction; then the panel showing the instructor position + shift)*
+**[3 — how the room is put together]** *(the roster held in frame; mixed
+names, no distinction; then the panel showing the instructor position +
+shift)*
 
-Now look at the room. Some of these students are people. Some of them are
-simulated. Nothing on the roster tells you which, and the lesson doesn't
-change either way.
+So, the room. The roster is on the wall. Some of these students are people
+and some are simulated, and nothing distinguishes them — not to me, and not
+to each other.
 
-The same is true of my chair. The instructor here isn't a character someone
-wrote — it's a **job**: a position, with a shift, a roster and a wage. A
-person can hold it. The world can hold it. Which means two things at once:
-the room is never short a teacher, and the seat at the front is never
-closed to *you*.
+The chair I'm in is the same kind of thing. The instructor isn't a
+character somebody wrote; it's a **position** — with a shift, a roster and
+a wage — and either a person or the world can hold it. Which is why a class
+runs whether or not a teacher turns up, and why the seat is available if
+one does.
 
-And one rule holds the whole thing up. Nothing anybody in this room says
-can change what the thermometer reads. The simulation is the truth in here.
-Everyone else — the students, me — we're just talking about it.
+One constraint holds all of it together: nothing anybody in this room says
+changes what the thermometer reads. The simulation is what's true in here.
+The rest of us are talking about it.
 
-**[4 — drill 3: you don't lecture, you act]** *(the demonstration: the
-sealed tank; `heat tank`; the pressure reading moves in the panel; a
-student's question renders; `cool cup`)*
+**[4 — what teaching in here consists of]** *(the demonstration: the sealed
+tank; `heat tank`; the pressure reading moves in the panel; a student's
+question renders; `cool cup`)*
 
-So I'm not standing here narrating chemistry at them. Watch.
+Which means the teaching isn't narration.
 
-`heat tank` — a sealed tank of gas. The pressure the whole room is reading
-is the pressure the simulation just computed, not a number I typed into a
-slide. Somebody asks what happens if you cool the other one instead. I
-don't explain. I run it.
+`heat tank` — a sealed tank of gas. The pressure everyone in the room is
+reading is the pressure the simulation computed, not a number I put on a
+slide. Somebody asks what happens if you cool the other one instead. I run
+that, rather than answering it.
 
-Every verb I use to teach is a verb they use to learn. This is the part I'd
-want an engineer to notice: the world's whole interface is *read some text,
-send a sentence, get a result*. That's what a person does at a keyboard.
-It is also, exactly, what a language model does. So the seat at the front
-of this room can be filled by a person, or by the world, or by a model, and
-the room genuinely cannot tell — because there was never a second interface
-to build.
+The verbs I use to teach are the verbs they use to learn. There is one
+interface in this world and everything drives it — which is also why the
+chair at the front can be held by a person, or by the world, or by a model,
+without anything else about the room changing.
 
-**[5 — drill 4: the grade is the doing]** *(a student sets up the
+**[5 — what a student's work looks like]** *(a student sets up the
 calorimeter; the command trace lands in the record panel — order, the
 skipped step, the recovery)*
 
-Which is also how they get graded. I don't ask her to explain latent heat.
-I say: *show me* — set up the measurement.
+The same goes for how they're assessed. I don't ask her to explain latent
+heat; I ask her to set up the measurement.
 
-And what lands in her record isn't a score. It's what she actually did: the
-order she did it in, the step she skipped, the fact that she caught it. You
-can memorize an answer to a question. You cannot memorize a procedure
-you've never run.
+What ends up in her record is the procedure — the order she worked in, the
+step she left out, the fact that she caught it. You can memorize an answer.
+You can't memorize a procedure you've never run.
 
-**[6 — the peak: back to the wrong answer]** *(the classroom; slow; let
-the silence sit)*
+**[6 — back to the wrong answer]** *(the classroom; slow; the readings
+render on their own cadence; let the silence sit)*
 
-So. Back to my student and her burner.
+So — the burner.
 
-I take the long way. I hand the thermometer to the person sitting next to
-her, and I ask them to read the temperature out loud, every thirty seconds,
-while the metal melts.
+I hand the thermometer to the student sitting next to her and ask her to
+read it out every thirty seconds while the metal melts. The flame doesn't
+change. For a while, the number doesn't either.
 
-Nobody says anything for a while.
+Then: *"…wait. It's going again."*
 
-Then she says: *"...it's not going up."*
+The burner never stopped. The heat was going somewhere else, and now it
+isn't. That's latent heat, and she found it — and because the world watches
+what people do rather than what they say, whether her understanding
+actually moved is something it can see. Which is what the work at the front
+of this room is measured on.
 
-That's latent heat. And she found it. Here's the part that matters: whether
-her understanding actually moved is something this world can see — because
-it's been watching what she does, not what she says. My teaching is graded
-on whether she learned it. Not on whether I sounded right.
+**[7 — what it pays]** *(the ledger entry; a payment landing; her standing)*
 
-**[7 — the economy: the part I'd be skeptical about]** *(the ledger entry;
-a payment landing; her standing)*
+And it does pay, which is worth being concrete about.
 
-One more thing, and it's the one I'd have pushed back on hardest.
+New players have to learn these systems for real — the reagent ratio, the
+heat budget, the interest on the loan — because the world runs on them and
+it doesn't round in your favour. That's a genuine need, and the economy
+prices it: somebody who knows this material can be paid by other players to
+teach it, out of the same ledger everything else here settles through.
 
-New players genuinely have to learn these systems — the real ones. The
-reagent ratio, the heat budget, the interest on the loan — because the
-world runs on them and it will not round in your favor. That is an
-authentic need, and the world's economy prices it. Which means somebody who
-knows this material can be **paid to teach it**, by other players, out of
-an honest ledger.
+That's a test worth applying to any of this. A scoreboard can't support a
+livelihood. If a person can make a living in here teaching chemistry, the
+chemistry is real.
 
-A scoreboard can't support a livelihood. A badge can't feed anybody. If a
-person can make a living in here teaching chemistry, then the chemistry is
-real and so is the reason they're learning it. That's the test I'd apply,
-and it's the one we set out to pass.
+**[8 — what it is, and what it isn't]** *(face returns; lower-third; the
+roster held one last time behind it)*
 
-**[8 — the read, out]** *(face returns; lower-third; the roster held one
-last time behind it)*
+So that's the venue: a room, a roster, a job at the front, a simulation
+that decides what's true, and a record of what everybody actually did.
 
-So the read for anyone building learning products.
-
-Explanations are free now. Machines write them beautifully. The layer that
-was never free — and never scaled — is this one: standing in front of the
-room and having to decide. It rationed because it needs a room and it needs
-people, and rooms and people are expensive.
+And the read for anyone building learning products. Explanations are free
+now — machines write them beautifully. The layer that was never free, and
+never scaled, is this one: standing in front of the room and having to
+decide. It rationed because it needs a room and it needs people, and rooms
+and people are expensive.
 
 To be exact about what this is: it's a **rehearsal space**, not a
 licensure. The official performance assessments are submission-based and
@@ -909,7 +908,7 @@ rule.
 | 3 | **The roster held** (mixed names, no distinction — let the viewer look for the tell and not find it), then the instructor position/shift panel. The truth-rule line plays over the thermometer readout sitting inert in frame. |
 | 4 | The live demonstration: `heat tank` → the pressure value moves in the panel → the student's question renders → `cool cup` → the second value moves. **One continuous capture, no cuts inside it** — the whole beat's credibility is that it wasn't edited. |
 | 5 | The student's calorimeter setup, then cut to **the process trace** in the record panel: the ordered command list, the omission, the recovery. Highlight the omission — it's the shot that distinguishes this from a score. |
-| 6 | The peak. Slow. The thermometer readings render one at a time on their cadence; **leave the dead air in** — the silence before her line is the moment. Then her line, alone, no reaction shot, no card. |
+| 6 | **The melt has to run all the way through** — up to the plateau, across it, and out the far side where the temperature climbs again. That last part is the whole beat; without it the demonstration only confirms what she already said. Keep the flame visibly unchanged throughout. Readings render one at a time on their own cadence; **leave the dead air in** — the silence across the plateau is what makes the resumption land. Then her line, alone, no reaction shot, no card. |
 | 7 | The ledger entry and the payment landing; her standing moving. Plain. **No coin animation, no fanfare** — it's a bank record, and the flatness is the argument. |
 | 8 | Face returns; lower-third for the read; the rehearsal-not-licensure sentence gets its own beat of stillness; roster behind; theme as text alone on black. |
 
@@ -949,11 +948,49 @@ the room is real, so nothing may be illustrated.
     mechanically; what waits is the player sitting in the instructor's
     chair. Plan the shoot around: authored lecture content + one
     misconception-bank entry + the deferred Avatar seam.
+- **⚠ REGISTER — this video describes a venue (user, 2026-08-07).** It is
+  not a narrative with a reveal in it. An earlier revision proposed
+  withholding whose chair the viewer is in and paying it off mid-video as a
+  callback to the Conferral; that was rejected as **too clever**. The job
+  is to describe *what a classroom in this world is*, as objectively as the
+  material allows, and let the facts of the venue do the persuading. Two
+  consequences that bind future rewrites: **no reveal device**, and **no
+  cross-reference to the Conferral in the narration** (the two videos share
+  a character in the shooting notes, and that is where it stays). The
+  confident wrong answer stays, because it isn't a device — it is what the
+  job actually consists of.
+- **⚠ THE PEAK MUST REFUTE, NOT RE-STATE (fixed 2026-08-07).** The first
+  draft had her observe *"it's not going up"* across the plateau — which is
+  the observation she had *already made* and was explaining. It confirmed
+  her data and refuted nothing. The refutation lives on the **far side** of
+  the plateau: the flame never changes, the temperature holds, and then it
+  **climbs again** once the metal is fully liquid. So the burner didn't run
+  out of anything. Her line is now *"…wait. It's going again."* — the
+  discovery rather than the premise. **Never revert beat 6 to stopping at
+  the plateau**; it costs the shoot a longer melt and buys the video its
+  entire point.
 - **Content todo — the classroom itself.** Rooms, the instructor Position,
   the dialogue tree, the misconception bank and the calorimeter lab are
   authorable as pure **data** today (studio.md/cms.md: authoring is free,
   only *publish* is gated). This is a content build, not an engine build,
   with one engine dependency (above).
+- **Cast size is a script decision, and it is much smaller than it looks.**
+  The roster needs enough names that a viewer can't spot the tell — call it
+  **eight to twelve**. But only **two or three need to be real Characters**
+  with modeled competence and dialogue: the student who is wrong, the
+  student who reads the thermometer, and optionally one who asks a seeded
+  question. **The rest are names on a roster.** This cuts the expensive
+  part of the classroom build by roughly two-thirds
+  (NPCs are expensive carves; rosters are not), and nothing in the script
+  requires more. If a future rewrite wants a fourth speaking student, that
+  is a real cost and should be argued for.
+- **The apparatus, specified by the script:** a sealed rigid tank of gas
+  and an open cup (beat 4's `heat tank` / `cool cup` pair — this is Study's
+  own real `MULTI_SELECT` thermo item, so the demonstration and their
+  question bank are the same content); a calorimeter (beat 5); a
+  thermometer and enough meltable metal to run a **full** melt on camera
+  (beat 6). The metal must have a phase block — copper and iron do; see the
+  Conferral's bronze note.
 - **⚠ THE RAIL THAT CANNOT BE DROPPED — rehearsal, never the assessment.**
   The performance-based teaching assessments (PPAT, CalTPA, the edTPA
   family) are official, submission-based and **human-scored**. This video
