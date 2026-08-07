@@ -1,3 +1,11 @@
+<!--
+Committed copy of the live StudyWorld Notion doc ("StudyWorld AI"):
+https://app.notion.com/p/3790f5d4360b800b9eccf19a10c41328
+Published / synced 2026-08-06. This Markdown is the git source of truth; the
+Notion page additionally embeds the ~5-minute overview video (a Notion
+attachment, not reproducible in Markdown). Keep the two in sync if either changes.
+-->
+
 # StudyWorld
 
 *A white paper on StudyWorld — a persistent, text-based world where Study.com's
