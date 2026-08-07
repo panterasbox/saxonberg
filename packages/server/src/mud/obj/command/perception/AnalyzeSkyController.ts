@@ -35,6 +35,8 @@ function phaseName(phase: number): string {
 
 export default class AnalyzeSkyController extends CommandController<AnalyzeSkyModel> {
   async execute(model: AnalyzeSkyModel, ctx: CommandContext): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
@@ -66,7 +68,7 @@ export default class AnalyzeSkyController extends CommandController<AnalyzeSkyMo
     const body = Mml.compose`${sky} over ${Mml.location(
       loc
     )}; the season is ${season}. The moon is ${phaseName(phase)}.
-sun altitude: ${altitude.formatMml()} · azimuth: ${azimuth.formatMml()}
+sun altitude: ${altitude.formatMml(undefined, undefined, { channel: 'celestial', via })} · azimuth: ${azimuth.formatMml(undefined, undefined, { channel: 'celestial', via })}
 next full moon: ${nextFullDate}
 `;
 

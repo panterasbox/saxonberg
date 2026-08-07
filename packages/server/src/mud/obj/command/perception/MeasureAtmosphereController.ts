@@ -25,6 +25,8 @@ export default class MeasureAtmosphereController extends CommandController<Measu
     model: MeasureAtmosphereModel,
     ctx: CommandContext,
   ): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
       ? (giver as Stuff & Container).getContents()
@@ -64,7 +66,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
     let densityLine: Mml | null = null;
     try {
       const d = BiomeApi.densityOf(a);
-      densityLine = Mml.compose`  density: ${d.formatMml()}\n`;
+      densityLine = Mml.compose`  density: ${d.formatMml(undefined, undefined, { channel: 'atmosphere', via })}\n`;
     } catch {
       // Unknown atmosphere tag — surface the tag without a density.
       densityLine = null;

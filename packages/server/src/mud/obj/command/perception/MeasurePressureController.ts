@@ -24,6 +24,8 @@ export default class MeasurePressureController extends CommandController<Measure
     model: MeasurePressureModel,
     ctx: CommandContext,
   ): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
       ? (giver as Stuff & Container).getContents()
@@ -60,7 +62,7 @@ export default class MeasurePressureController extends CommandController<Measure
       scope as Stuff & Container,
       model.detail,
     );
-    const body = Mml.compose`Pressure: ${p.formatMml()} (${p.tag()})\n`;
+    const body = Mml.compose`Pressure: ${p.formatMml(undefined, undefined, { channel: 'atmosphere', via })} (${p.tag()})\n`;
     MessageApi.scene(giver)
       .topic('world.perception.measurement.measure-pressure')
       .toSelf(body)

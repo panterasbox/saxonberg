@@ -28,6 +28,8 @@ interface MeasureLightModel extends CommandModel {
 
 export default class MeasureLightController extends CommandController<MeasureLightModel> {
   execute(model: MeasureLightModel, context: CommandContext): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
@@ -57,7 +59,7 @@ export default class MeasureLightController extends CommandController<MeasureLig
     const light = (vision.signalAt(loc) as Light | null) ?? Light.ZERO;
     const intensity = light.intensity;
 
-    const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml()}\n`;
+    const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml(undefined, undefined, { channel: 'light', via })}\n`;
 
     MessageApi.scene(context.commandGiver)
       .topic('world.perception.measurement.measure-light')

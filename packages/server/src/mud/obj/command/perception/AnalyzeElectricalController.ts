@@ -32,6 +32,8 @@ const TOPIC = 'world.perception.measurement.analyze-electrical';
 
 export default class AnalyzeElectricalController extends CommandController<AnalyzeElectricalModel> {
   execute(model: AnalyzeElectricalModel, context: CommandContext): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.target;
     if (!target || target.stuff === null) {
@@ -56,18 +58,18 @@ export default class AnalyzeElectricalController extends CommandController<Analy
     if (material) {
       const sigma = material.getElectricalConductivity();
       lines.push(
-        Mml.compose`  conductivity: ${sigma.tag()} (${sigma.format()})`,
+        Mml.compose`  conductivity: ${sigma.tag()} (${sigma.formatMml(undefined, undefined, { channel: 'electrical', via })})`,
       );
       // Its contact resistance (band + raw Ω).
       const r = MaterialApi.contactResistance(material);
-      lines.push(Mml.compose`  contact resistance: ${r.tag()} (${r.format()})`);
+      lines.push(Mml.compose`  contact resistance: ${r.tag()} (${r.formatMml(undefined, undefined, { channel: 'electrical', via })})`);
       anything = true;
     }
 
     // A live source — its potential.
     if (MixinApi.isEnergized(stuff)) {
       const v = (stuff as Stuff & Energized).getVoltage();
-      lines.push(Mml.compose`  potential: ${v.format()}`);
+      lines.push(Mml.compose`  potential: ${v.formatMml(undefined, undefined, { channel: 'electrical', via })}`);
       anything = true;
     }
 
