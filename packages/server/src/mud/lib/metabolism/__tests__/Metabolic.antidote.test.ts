@@ -46,6 +46,17 @@ const ACHE: ToxinBehavior = {
 };
 const PATH = "/obj/Condition/metabolism/ache";
 
+/**
+ * ⚠ **This fabricates what production's `ConditionApi.boot` stands up.**
+ * A hand-built fixture at a hard-coded path passes whether or not boot
+ * works — which is exactly how the inert-Condition bug survived: every
+ * toxin suite was green while `findByTemplatePath` answered `null` in a
+ * running world and no toxin ever cleared.
+ *
+ * The path is pinned against the real seed roster by
+ * `obj/api/__tests__/ConditionLogic.boot.test.ts`, so a seed rename
+ * breaks there rather than silently un-testing this file.
+ */
 function ensureAche(): void {
   if (StuffApi.findByTemplatePath(PATH)) return;
   makeStuffAtPath(() => {
