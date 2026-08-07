@@ -41,16 +41,17 @@ import type {
   TopicActor,
   TopicWeight,
   TopicAudience,
+  TopicAffordance,
 } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const TopicCatalogueBase = PostRegistrationMixin(Idea);
 
-/** The five facets, as a unit — the slice every tier must produce. */
+/** The six facets, as a unit — the slice every tier must produce. */
 type TopicFacets = Pick<
   TopicDescriptor,
-  'address' | 'actor' | 'weight' | 'audience' | 'durable'
+  'address' | 'actor' | 'weight' | 'audience' | 'durable' | 'affordance'
 >;
 
 /**
@@ -73,6 +74,11 @@ const WEIGHTS: readonly TopicWeight[] = [
   'diagnostic',
 ];
 const AUDIENCES: readonly TopicAudience[] = ['player', 'author', 'all'];
+const AFFORDANCES: readonly TopicAffordance[] = [
+  'live',
+  'decays',
+  'permanent',
+];
 
 export default class TopicCatalogue extends TopicCatalogueBase {
 
@@ -264,6 +270,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           weight: ancestor.weight,
           audience: ancestor.audience,
           durable: ancestor.durable,
+          affordance: ancestor.affordance,
         };
       }
     }
@@ -293,6 +300,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           weight?: unknown;
           audience?: unknown;
           durable?: unknown;
+          affordance?: unknown;
         }
       | undefined,
   ): TopicFacets {
@@ -312,6 +320,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       audience: pick(data?.audience, AUDIENCES, FACET_FLOOR.audience),
       durable:
         typeof data?.durable === 'boolean' ? data.durable : FACET_FLOOR.durable,
+      affordance: pick(data?.affordance, AFFORDANCES, FACET_FLOOR.affordance),
     };
   }
 
@@ -353,5 +362,9 @@ const FACET_FLOOR = {
   weight: 'diagnostic',
   audience: 'all',
   durable: false,
+  // `decays` rather than `permanent`: a wrongly-permanent affordance is
+  // a dead link the UI presents as live, while a wrongly-decaying one
+  // costs only a re-resolve.
+  affordance: 'decays',
 } as const;
 

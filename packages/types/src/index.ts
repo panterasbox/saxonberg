@@ -1682,6 +1682,8 @@ export interface TopicDescriptor {
   audience: TopicAudience;
   /** Keep in scrollback and transcripts, or let it age out. */
   durable: boolean;
+  /** Whether affordances in this frame survive the frame aging. */
+  affordance: TopicAffordance;
 }
 
 /**
@@ -1726,6 +1728,71 @@ export type TopicWeight =
 
 /** Which surface a frame belongs to. */
 export type TopicAudience = 'player' | 'author' | 'all';
+
+/**
+ * Whether the affordances inside a frame stay usable as the frame ages
+ * in scrollback.
+ *
+ * Without this the client cannot tell a live link from a dead one, so
+ * every affordance in history looks equally clickable — a door tagged
+ * `unlock` ten minutes ago is a lie the UI tells confidently. `decays`
+ * is the floor because a wrongly-`permanent` affordance is exactly that
+ * lie, while a wrongly-`decays` one only costs a re-resolve.
+ */
+export type TopicAffordance =
+  /** Still valid; re-resolve on use and expect it to work. */
+  | 'live'
+  /** Was valid when emitted; grey it once the frame is not current. */
+  | 'decays'
+  /** Never goes stale — a wiki link, a press archive entry. */
+  | 'permanent';
+
+/**
+ * ⭐ **The seven topic roots — a closed set.**
+ *
+ * The tree carries *subject matter* and nothing else; every
+ * cross-cutting axis (who it is aimed at, whose voice, how much it
+ * matters, which surface) lives in the facets above. That is why seven
+ * roots suffice where the pre-facet vocabulary needed eighty-nine
+ * paths: it was five facets flattened into a string.
+ *
+ * ⚠ **Content packs may add leaves, never roots.** A pack-minted root
+ * would mean a player's mute of `sense` no longer catches everything
+ * sense-shaped, and subtree-mute integrity is the entire reason this is
+ * a tree instead of flat tags. Enforced at install time by pack
+ * reconcile and at build time by `pnpm lint:topics`.
+ *
+ * Exported from `@saxonberg/types` for the same reason as
+ * {@link LAYOUT_NAMES}: the server's gate and the client's filter
+ * surface must never drift.
+ */
+export type TopicRoot =
+  /** Words from a person. */
+  | 'speech'
+  /** Something was done — by a person or by the world. */
+  | 'act'
+  /** The world reaching your senses, solicited or not. */
+  | 'sense'
+  /** Your own person — body, standing, holdings, affiliations. */
+  | 'self'
+  /** Authored durable content. */
+  | 'publication'
+  /** The client↔server relationship. */
+  | 'shell'
+  /** The connection itself. */
+  | 'session';
+
+/** Every {@link TopicRoot}. `lint:topics` and pack reconcile both
+ *  validate against this; nothing may emit outside it. */
+export const TOPIC_ROOTS: readonly TopicRoot[] = [
+  'speech',
+  'act',
+  'sense',
+  'self',
+  'publication',
+  'shell',
+  'session',
+];
 
 /**
  * Shape of a single console tab in the cockpit's tabbed terminal.
