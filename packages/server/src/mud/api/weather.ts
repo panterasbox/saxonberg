@@ -210,9 +210,14 @@ export class WeatherApi {
    * The segment-boundary callback, fired by the WorldClock system
    * schedule. Runs the presence-gated thermal restamp fan-out + Wave-2
    * puddle accrual/evaporation; weather arms nothing itself.
+   *
+   * ⚠ Returns the fan-out's promise for the same reason
+   * {@link WeatherApi.onStormTick} does — see the note there. The
+   * scheduler still fires and forgets (`void`); what changed is that a
+   * caller who needs to know when the pass finished can now ask.
    */
-  public static onBoundary(): void {
-    logic().onBoundary();
+  public static onBoundary(): Promise<void> {
+    return logic().onBoundary();
   }
 
   /**
@@ -221,9 +226,21 @@ export class WeatherApi {
    * occupied SkyExposed `storm` scopes roll `storm.strikeRate` and, on a
    * hit, take an ambient strike routed through `ElectricityApi.conduct`.
    * No weather state stored — the schedule owns the handle.
+   *
+   * ⚠ **Returns the fan-out's promise, and the scheduler deliberately
+   * ignores it** (`void WeatherApi.onStormTick()`). Fire-and-forget is
+   * right for a tick — nothing waits on weather. But swallowing the
+   * promise *inside* the method made the work unobservable, and a
+   * caller that needs to know when the fan-out finished had no way to
+   * ask. The strike tests spent months flaky for exactly this: they
+   * pumped 30 macrotask turns and hoped, so under load the assertion
+   * ran before the fan-out (`conduct` never called) — or, worse, a
+   * PREVIOUS test's fan-out landed inside the next test's spy window
+   * and it saw a call it never made. One cause, two contradictory
+   * symptoms.
    */
-  public static onStormTick(): void {
-    logic().onStormTick();
+  public static onStormTick(): Promise<void> {
+    return logic().onStormTick();
   }
 
   /**

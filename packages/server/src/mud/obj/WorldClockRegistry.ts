@@ -472,7 +472,7 @@ export default class WorldClockRegistry extends Idea {
     const nextBoundary = WeatherApi.nextBoundaryAfter(this.getNow());
     this.every(
       Quantity.of(WEATHER_DEFAULTS.SEGMENT_LENGTH_S, 's'),
-      () => WeatherApi.onBoundary(),
+      () => void WeatherApi.onBoundary(),
       { startAt: nextBoundary, tag: 'weather:boundary' },
     );
 
@@ -485,7 +485,10 @@ export default class WorldClockRegistry extends Idea {
     const strikeInterval = WeatherApi.strikeIntervalSeconds();
     this.every(
       Quantity.of(strikeInterval, 's'),
-      () => WeatherApi.onStormTick(),
+      // `void` at the CALL site: a tick fires and forgets, but the
+      // method still hands back its promise so a caller that needs to
+      // await the fan-out can.
+      () => void WeatherApi.onStormTick(),
       {
         startAt: Quantity.of(this.getNow().rawValue() + strikeInterval, 's'),
         tag: 'weather:strike',
