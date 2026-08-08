@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:escape": "vitest run src/mud/lib/sandbox/__tests__/escape",
+    "bench": "tsx scripts/bench-suite.ts",
     "docs": "typedoc",
     "docs:project": "tsx scripts/project-author-surface.ts",
     "docs:clean": "rm -rf docs/api",
@@ -27,7 +28,8 @@
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
-    "lint:topics": "tsx scripts/check-topic-keys.ts --lint"
+    "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
+    "lint:test-bootstrap": "tsx scripts/check-test-bootstrap.ts --lint"
   },
   "dependencies": {
     "@saxonberg/content-arcane-descriptors": "workspace:*",
