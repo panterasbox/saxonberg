@@ -170,6 +170,185 @@ the exact thing [mind-slate](./slates/builds/mind-slate.md) bans (*"ADHD
 casters are good at Fire" is astrology*). Periodic terms attach to
 places, seasons, and populations. Never to a character sheet.
 
+## ⭐⭐ Why a god may not be the RNG
+
+The tempting move is to let divine favour *be* the random term — the
+gaps in causality are where gods have always lived. It is a trap, and
+the reason is worth stating because it is not the obvious one.
+
+**The god-of-the-gaps position is understood to be the weakest available
+one, and the people who say so loudest are theologians** — a god who
+lives in gaps dies as they close.[^gaps] That is a direct warning to a
+world like ours, which is unusually good at closing gaps. If divine
+favour is a term in an equation:
+
+1. **Someone will test it.** We ship a wiki, forums, an observation
+   ladder and players who keep logs. *"Does patronizing Eir improve
+   mending outcomes"* is answerable in-world, by playing, in week three.
+2. **Both answers are bad.** Yes → a vending machine, and *"you can't
+   farm a god"* is dead. No → we have publicly established that the gods
+   do nothing, and worship is cosmetic.
+3. **The mystery is consumed either way.**
+
+> ⭐⭐⭐ **A testable god is a temporary god.**
+
+## Where the numinous lives instead
+
+Three homes, none of which need a die:
+
+1. ⭐⭐⭐ **The gap is in the EXPLANATION, not the causality.** The moon
+   really does correlate with what you find. Whether that is Pan's
+   favour or nocturnal ecology is **a question the world does not
+   answer**, because the mechanism is exposed nowhere. Two players
+   observe the same true regularity and disagree about its cause,
+   permanently, without either being lied to. **The world publishes data
+   and withholds explanation** — which is the actual epistemic situation
+   of both science and faith.
+2. **Irreducible complexity, not irreducible randomness.** Enough
+   deterministic interacting parts and the world is *practically*
+   unpredictable while remaining *in principle* knowable. Weather is the
+   historical case — chaos theory came out of a weather model. Surprise
+   is the raw material of awe, and determinism supplies it.
+3. **The gods are other people.** What players experience as fate is
+   usually the stranger who showed up. This is the honest reading of
+   resonance (Part 6, finding 1): it changes **who helps you**, not what
+   you roll.
+
+> **Determinism all the way down, and the mystery survives — because
+> knowing *that* is not knowing *why*.**
+
+---
+
+# Part 3b — ⭐⭐⭐⭐ Religion as framework: the mechanics
+
+Part 3 is philosophy until it cashes out in something a player does.
+This section is the cash-out, and it is deliberately honest about the
+parts that are load-bearing and unbuilt.
+
+## A framework is a corpus of claims
+
+> **Your patron is not a buff. It is an inherited research programme.**
+
+A framework — a patron's doctrine, or the naturalist's account — is a
+**starting corpus of claims about the world**, authored, in a domain:
+Eir's corpus speaks about healing and harm, Goibniu's about making,
+Pan's about the wild and its cycles. Some entries are **true**, some are
+**false**, and nothing marks which.
+
+**What a framework changes is what you look for. Never what you get.**
+Two players read the same almanac, see the same true correlation, and
+disagree about what it means; they investigate different things next,
+and are right at different rates in different domains. That is
+distinctness with **zero mechanical differentiation** — no buff table,
+no perception bonus, no roll.
+
+⚠ **The bright line.** A framework may never alter perception, capability
+or outcome. A patron that lets you *see* more is the vending machine
+wearing a hat, and it is category 4 by the back door. A framework may
+organize and surface what you have **already** observed (presentation,
+the [banding rule](./subsystems/advancement.md)'s shape) — nothing more.
+
+## ⭐⭐ Atheism is a position, not an absence
+
+In most games the atheist is the player who declined the buff. Here the
+naturalist is a **methodological stance with its own corpus** — the
+world's regularities are ecology, geology and traffic, and claims
+without a mechanism are suspect.
+
+⚠⚠ **The naturalist corpus must contain false entries too**, or the game
+is an atheism tract and fails its own propaganda test. The honest form
+of naturalist error is the **false negative**: a real correlation
+dismissed for lack of a mechanism. That is not manufactured balance —
+it is the actual history of science (handwashing, continental drift,
+stones falling from the sky).[^falseneg] A naturalist who is
+*sometimes* the last to accept a true thing is historically accurate
+**and** dramatically better than one who is simply right.
+
+## What substrate it rides — no new subsystem
+
+| Need | Rides |
+|---|---|
+| the corpus | authored content — a document kind, per framework |
+| publishing a claim | [forums](./subsystems/forums.md) + [wiki](./subsystems/wiki.md) |
+| testing a claim | the observation ladder — go and look, keep records |
+| adjudication | **none — the world never rules.** Outcomes accumulate; players argue |
+| declaring a patron | the Chapel, already designed ([story-bible.md](./story-bible.md)) |
+| your framework as a fact about you | [chronicle](./subsystems/chronicle.md) |
+
+**No new verbs** (the [subcommand preference](./subsystems/command-spec.md)
+holds), no new Api, no engine change. ⚠ It does depend on a **claim /
+inquiry substrate that is not built**, and on the wiki's dispute
+surface. That is the real dependency, and it should be stated in any
+slate that proposes this.
+
+## The superstition ladder
+
+Superstition is the **input** to this system, not its enemy:
+
+| Rung | Where it lives |
+|---|---|
+| **the rumour** | an NPC says it; players repeat it |
+| **the record** | a player keeps a log |
+| **the claim** | published to the wiki |
+| **the contest** | someone replicates — and confirms or refutes |
+
+That is the scientific method as a **social** process. Which flips an
+instinct: **a false rumour in the world is content, not a content bug.**
+
+⚠ **The pairing guard.** For every true correlation authored, author a
+false one that feels identical — no marker, no tell. Otherwise players
+learn *"in-game folklore is reliable,"* which is precisely the
+anti-lesson. This is the pharma/astrology pairing
+([discovery-slate](./slates/builds/discovery-slate.md)) applied to
+doctrine: **same method, opposite answers.**
+
+The payoff is a story no scripted quest supplies: **the player who runs
+a controlled experiment and disproves a beloved ritual has done
+something socially costly.** That shape is Galileo's, and it is only
+available in a world where the ritual might have been true.
+
+## ⚠⚠ Where this dies
+
+Three failure modes, in descending order of how likely they are to kill
+it:
+
+1. ⚠⚠⚠ **Datamining flattens an authored corpus.** If true-vs-false is a
+   static authored fact, it is public in month two and every framework
+   becomes a solved lookup table. **This is the real killer.** The
+   mitigation is not secrecy — it is *provenance*:
+
+   > ⭐⭐⭐⭐ **A framework's claims should be about things the world
+   > COMPUTES, not things an author STIPULATED.** An authored
+   > correlation gets datamined once and dies. A measured one moves,
+   > goes stale, and must be re-established — the same property that
+   > makes [the almanac a recurring product](./slates/builds/discovery-slate.md).
+
+   Authored entries should therefore be the minority, used for cold
+   start and flavour, with the load carried by claims about **stock,
+   timing, and traffic** — which no dump can settle because they change.
+
+2. ⚠⚠ **Corpus authoring cost.** Each framework needs a genuinely useful
+   body of claims, with false entries as plausible as the true ones.
+   That is expensive, skilled content work, and it is the part most
+   likely to go unmade — leaving frameworks that players correctly
+   identify as cosmetic and ignore.
+
+3. ⚠ **"It's cosmetic" as a live verdict.** With no mechanical
+   differentiation the value must come entirely from the corpus being
+   *worth having*. If a patron's twenty claims aren't worth twenty
+   hours of independent legwork, the pick is empty and players will say
+   so.
+
+## ⚠ No spokesperson
+
+A world may carry a thesis about determinism and meaning. It may not
+**state** one. The delivery rule, borrowed from the
+[Compact course's propaganda test](./compact-political-science.md):
+**the design should be the argument, never make it.** No NPC explains
+that free will is compatible with a deterministic world; the players
+have that argument themselves, from opposite corpora, and the world
+declines to referee.
+
 ---
 
 # Part 4 — ⭐⭐⭐⭐ The abstraction law
@@ -294,10 +473,26 @@ contain `Math.random` outside tests; **none is on a resolution path.**
 | **discovery / foraging / mining** | already correct — label the astrological timing term **category 2** so nobody later "improves" it into a draw |
 | **mana economy** (celestial node) | already correct — category 2, periodic, predictable |
 | **fishing** | spec against this codex rather than inheriting genre defaults |
-| **alignment / religion** | absorb Part 3; fix the `fortune` line |
+| **alignment / religion** | absorb Parts 3 + 3b; fix the `fortune` line; **religion-as-framework depends on an unbuilt claim/inquiry substrate** — say so in the slate |
+| **wiki / forums / inquiry** | ⭐ they are the adjudication surface for Part 3b — a disputed-claim shape is now load-bearing for religion, not just for lore |
 | **combat · banking · advancement · renown · hazard** | no change; banking stays category-0 forever |
 
 ---
+
+[^gaps]: The "god of the gaps" critique is most forcefully made from
+    *inside* theology — Charles Coulson is generally credited with the
+    phrase (1950s), Dietrich Bonhoeffer argued the position in *Letters
+    and Papers from Prison*, and Henry Drummond made an earlier version
+    in the 1890s. ⚠ **Attributions worth re-checking before this doc is
+    cited anywhere public** — per the arcane-science audit rule, the
+    confident-sounding passages are where the errors hide.
+
+[^falseneg]: Semmelweis on puerperal fever, Wegener on continental
+    drift (rejected largely for want of a mechanism, which mantle
+    convection later supplied), and the 18th-century academies on
+    meteorites. ⚠ Same audit caveat as above — the shape of the claim
+    is sound, the specifics deserve a source check before they carry
+    weight.
 
 [^lens]: The four questions, the judgment-vs-fate framing, the deal/play
     alternation method and Perry's triad come from Jesse Schell, *The Art
