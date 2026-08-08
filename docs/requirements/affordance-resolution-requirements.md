@@ -1,5 +1,16 @@
 # Affordance resolution (S2) — requirements
 
+> **STATUS — half shipped.** MR A (the topic taxonomy replacement + the
+> four-part totality gate) merged; MR B (the affordance resolver, the
+> `item`/`object` → `thing` collapse, the `Mml.name` retirement) is NOT
+> built. Acceptance criteria **1–8** describe MR B and are open;
+> **9–18** are satisfied.
+>
+> ⚠ This doc is **kept** rather than retired at the MR A sweep, against
+> the usual rule that a requirements doc always retires. Retiring it
+> would delete the agreed scope of work that has not happened yet.
+> Retire it when MR B lands.
+
 The second server build of the client rebuild. S1 put *figures* on the
 wire; S2 puts *verbs* on the wire — the live answer to "what can I do
 with this, right now?" for a given object and a given viewer.

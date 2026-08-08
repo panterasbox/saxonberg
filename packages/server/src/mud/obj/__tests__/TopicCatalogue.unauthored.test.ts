@@ -14,6 +14,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import TopicCatalogue from '../TopicCatalogue';
 import { DiagnosticApi } from '../../api/diagnostics';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { PersistApi } from '../../api/persist';
+import { Template } from '../../lib/stuff/Template';
 
 function makeCatalogue(): TopicCatalogue {
   // The derived tier needs no clone pipeline: ensureCache() starts an
@@ -75,5 +77,48 @@ describe('unauthored topics are reported, not hidden', () => {
     cat.getDescriptor('speech.two');
 
     expect(record).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('boot-time prune of retired topic rows', () => {
+  it('deletes rows outside TOPIC_ROOTS, and only those', async () => {
+    // ⚠ This is a DESTRUCTIVE boot action, and it exists because the
+    // seeder is insert-only: deleting a seed file leaves its row
+    // resolving forever. Measured live on the build-1 dev database at
+    // the first boot after the taxonomy replacement — 126 rows, 89 of
+    // them retired.
+    const rows = [
+      { path: '/obj/Topic/speech.vocal' },
+      { path: '/obj/Topic/world.speech.say' },
+      { path: '/obj/Topic/system.shell.help' },
+      { path: '/obj/Topic/sense.reading' },
+    ];
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue(
+      rows.map((r) => ({ ...r, data: {} })) as never
+    );
+    vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
+    const del = vi
+      .spyOn(PersistApi, 'deleteMany')
+      .mockResolvedValue(0 as never);
+
+    await makeCatalogue().postRegister();
+
+    expect(del).toHaveBeenCalledTimes(1);
+    const filter = del.mock.calls[0]?.[1] as { path: { $in: string[] } };
+    expect(filter.path.$in.sort()).toEqual([
+      '/obj/Topic/system.shell.help',
+      '/obj/Topic/world.speech.say',
+    ]);
+  });
+
+  it('is a no-op without a database — never throws on a warm', async () => {
+    vi.spyOn(Template, 'findDescendants').mockResolvedValue([
+      { path: '/obj/Topic/world.speech.say', data: {} },
+    ] as never);
+    vi.spyOn(PersistApi, 'isConnected').mockReturnValue(false);
+    const del = vi.spyOn(PersistApi, 'deleteMany');
+
+    await expect(makeCatalogue().postRegister()).resolves.not.toThrow();
+    expect(del).not.toHaveBeenCalled();
   });
 });

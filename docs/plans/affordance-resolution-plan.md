@@ -1,5 +1,23 @@
 # Affordance resolution (S2) — plan
 
+> **STATUS — waves 1–4 shipped (MR A).** Waves **5–7** (the tag
+> collapse, the resolver, the remaining subsystem docs) are unbuilt, so
+> this plan is **kept** under the deferred-wave rule.
+>
+> What the build changed about waves 1–4, recorded because the plan was
+> wrong in useful ways:
+> - The emitted set was **105**, not the 62 a literal scan found, and
+>   **45** keys had no authored descriptor. Two of the extra emitters
+>   were runtime-*composed* (`system.log.${category}.${level}`,
+>   `world.${service}.message`) and are invisible to any build-time
+>   lint — which is why the gate grew a **fourth** part beyond the three
+>   planned: boot-time pruning, because the seeder is insert-only and
+>   deleting a seed file leaves its row resolving forever.
+> - `speech.quiet` had to be split back out: `address` is a facet *of
+>   the topic*, so collapsing whisper into `speech.vocal` cost it its
+>   `personal` address.
+> - The corpus is **37 rows**, not the 35 estimated.
+
 Implements
 [affordance-resolution-requirements.md](../requirements/affordance-resolution-requirements.md).
 

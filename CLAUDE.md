@@ -76,7 +76,7 @@ behavior. Read the relevant doc before editing in its area.
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
   - [media.md](./docs/subsystems/media.md) — `Visible.illustration` → `mediaUrl()`; MediaAsset provenance; image-generation pipeline
-  - [topics.md](./docs/subsystems/topics.md) — Topic docs, TopicCatalogue, three-tier resolution, session-establish push
+  - [topics.md](./docs/subsystems/topics.md) — the 7 closed roots (subject matter only; facets carry the rest), TopicCatalogue, three-tier resolution, the build/runtime/install/boot totality gate
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin, Emote Document + EmoteGrammar, SoulCatalogue, three dispatch paths
   - [reactions.md](./docs/subsystems/reactions.md) — act-scoped emote aggregation, fixed-cadence flush, the `react` verb
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls, GroupRef typed strings
@@ -394,6 +394,20 @@ discoverability.
   direction rule). CI-gating. It deliberately does NOT judge whether an
   exemption is *justified* — that is a review call, and the reason
   these stay short readable lists instead of being derived.
+- `pnpm lint:topics` (`scripts/check-topic-keys.ts`) — **the topic
+  vocabulary**: every topic key emitted in server source resolves to an
+  **authored** descriptor, and every key's root is one of the seven in
+  `TOPIC_ROOTS`. `TopicCatalogue`'s third tier *derives* a plausible
+  descriptor for an unknown key, so without this a typo or a rename
+  fails silently — when the gate was first run, **45 of 105 emitted
+  topics had no authored descriptor at all**. No exemption list: all
+  five ways `.topic(…)` is written resolve statically, so an
+  unresolvable argument is an error, not a skip. ⚠ Resolution is
+  **file-scoped first** — an earlier revision used one tree-wide table
+  and silently resolved a name against an unrelated file. CI-gating.
+  The build-time third of a four-part gate (runtime diagnostic, pack
+  reconcile, boot prune) — see
+  [topics.md](./docs/subsystems/topics.md).
 - `pnpm lint:imports` (`scripts/check-mud-imports.ts`) — **the import
   boundary**: nothing under `src/mud/` imports outside the tree (Node
   built-ins included) except the Api tier (`api/**` + `obj/api/**`),

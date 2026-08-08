@@ -164,7 +164,7 @@ to branch.
 
 ### Body MessageFrame correlation
 
-Push with `opts.body` set emits a `world.prompt` MessageFrame
+Push with `opts.body` set emits a `shell.prompt` MessageFrame
 BEFORE the `PromptEnvelope`. The frame's `payload` carries
 `{ promptId }` so the client can correlate the long-form prose
 with the prompt envelope (visual highlight, click-to-focus, etc.).

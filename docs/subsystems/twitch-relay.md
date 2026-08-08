@@ -5,7 +5,7 @@
 > `twitch` verb is **retired** (platform rides in the target/opt), the
 > `TwitchRelay`/`TwitchLogic`/`TwitchApi` classes are renamed
 > `StreamRelay`/`StreamLogic`/`StreamApi`, and the channel table is keyed by
-> a composite `channelKey(service, key)`. The `world.twitch.message` topic
+> a composite `channelKey(service, key)`. The `speech.relay` topic
 > and the `TwitchClient`/`TwitchRelayReader` **transport** are unchanged.
 > Read [streaming.md](./streaming.md) first; this doc is retained for the
 > Twitch-specific transport detail (EventSub session, Helix, the
@@ -15,7 +15,7 @@ The two-way bridge between in-game players and a streamer's **Twitch
 chat**. A player tunes into a Twitch channel by handle, reads its chat in
 the cockpit, and posts to it under their own linked Twitch identity. It is
 a **dedicated, separate surface** — its own `twitch` verb and its own
-`world.twitch.message` topic — **not** a chat [`Channel`](./chat.md):
+`speech.relay` topic — **not** a chat [`Channel`](./chat.md):
 Twitch chat is an OOC/meta spectator layer, not an in-world frequency, and
 folding it into `Channel` would scatter a strategic integration across an
 unrelated subsystem and force the in-world chat path to carry external
@@ -97,7 +97,7 @@ demand through a re-consent flow this build adds:
 
 ## The frame: identity bridge + provenance
 
-Relay frames ride the relay's own topic `world.twitch.message` (a distinct
+Relay frames ride the relay's own topic `speech.relay` (a distinct
 genre, so the cockpit panes them separately) and are **subscription-gated,
 not implant-gated** — they carry no `modality`, so they reach every tuned-in
 Avatar regardless of in-world implant. Delivery hand-builds the frame and
@@ -123,7 +123,7 @@ global **token-bucket throttle** (bursts are shaped, not errored).
 
 ## Client
 
-`twitchTemplate` routes `world.twitch.message` to a distinct treatment (a
+`twitchTemplate` routes `speech.relay` to a distinct treatment (a
 Twitch-purple provenance chip + handle-default + persona-on-hover + egress
 marker); the chip previews `twitch tune <login>` in the command bar on
 hover and submits on click (the global clickable-previews-its-command

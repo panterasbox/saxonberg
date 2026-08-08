@@ -235,7 +235,7 @@ persona-on-hover via the reverse `TwitchProfile`/`KickProfile → User`
 walk); YouTube lines are `external`-only (no channel stored → no reverse
 link this cycle). The client `relayTemplate` (parameterized by service —
 Twitch-purple / YouTube-red / Kick-green glyph) renders
-`world.twitch.message` / `world.youtube.message` / `world.kick.message`;
+`speech.relay` (one topic; the platform rides `payload.service`);
 message text is escaped plain text, never MML (untrusted external
 input).
 

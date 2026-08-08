@@ -70,6 +70,10 @@ const MUD_ROOT = join(SERVER_SRC, "mud");
 const TOPIC_SEEDS = join(MUD_ROOT, "seeds", "obj", "Topic");
 const CLIENT_SRC = join(here, "..", "..", "client", "src");
 
+/** Exported for the unit tests — the same white-box seam
+ *  `check-combat-dynamics` uses. Scripts sit outside the `api/` +
+ *  `lib/` export-discipline scopes, so no disable is needed. */
+
 /** A dotted key: lowercase segments, at least one dot. */
 const KEY_SHAPE = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
 
@@ -88,6 +92,17 @@ const TOPIC_ASSIGN = /\b(\w+)\s*(?::\s*[^=;,)]+)?(?:=|:)\s*([^;]+)/g;
 /** A topic-shaped name, in any case convention (`TOPIC`, `sceneTopic`). */
 const TOPIC_NAME = /topic/i;
 
+/**
+ * Object-property form, scanned separately.
+ *
+ * {@link TOPIC_ASSIGN}'s right-hand side runs to the `;`, so a nested
+ * property in a single-line literal (`const opts = { topic: 'x' };`)
+ * gets swallowed by the enclosing assignment and never matches on its
+ * own. That is the supply side of every forwarded `opts.topic`, so
+ * missing it would mean missing a real emitter.
+ */
+const TOPIC_PROP = /\b(\w+)\s*:\s*['"`]([^'"`]+)['"`]/g;
+
 const STRING_LITERAL = /['"`]([^'"`]+)['"`]/g;
 
 interface Finding {
@@ -105,7 +120,7 @@ interface Finding {
  * does emit — and a *missed* emitter is the failure this whole script
  * exists to prevent, while a spurious one merely gets reported.
  */
-function stripComments(source: string): string {
+export function stripComments(source: string): string {
   return source
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
@@ -147,7 +162,7 @@ function walk(dir: string, out: string[], exts: string[]): void {
  * MUST prefer the local declaration, or it manufactures exactly the
  * quiet wrongness it exists to catch.
  */
-function buildNameTable(files: string[]): Map<string, Set<string>> {
+export function buildNameTable(files: string[]): Map<string, Set<string>> {
   const table = new Map<string, Set<string>>();
   for (const file of files) {
     const source = stripComments(readFileSync(file, "utf8"));
@@ -159,16 +174,31 @@ function buildNameTable(files: string[]): Map<string, Set<string>> {
       for (const lit of rhs.matchAll(STRING_LITERAL)) {
         const value = lit[1];
         if (value === undefined || !KEY_SHAPE.test(value)) continue;
-        let set = table.get(name);
-        if (set === undefined) {
-          set = new Set();
-          table.set(name, set);
-        }
-        set.add(value);
+        add(table, name, value);
       }
+    }
+    for (const m of source.matchAll(TOPIC_PROP)) {
+      const name = m[1];
+      const value = m[2];
+      if (name === undefined || value === undefined) continue;
+      if (!TOPIC_NAME.test(name) || !KEY_SHAPE.test(value)) continue;
+      add(table, name, value);
     }
   }
   return table;
+}
+
+function add(
+  table: Map<string, Set<string>>,
+  name: string,
+  value: string
+): void {
+  let set = table.get(name);
+  if (set === undefined) {
+    set = new Set();
+    table.set(name, set);
+  }
+  set.add(value);
 }
 
 /**
@@ -178,7 +208,7 @@ function buildNameTable(files: string[]): Map<string, Set<string>> {
  * imported constants and for abstract class fields whose concrete
  * initializers live in sibling subclasses.
  */
-function resolveArgument(
+export function resolveArgument(
   raw: string,
   local: Map<string, Set<string>>,
   global: Map<string, Set<string>>
@@ -320,4 +350,6 @@ function main(): void {
   );
 }
 
-main();
+if (process.argv[1]?.includes("check-topic-keys")) {
+  main();
+}

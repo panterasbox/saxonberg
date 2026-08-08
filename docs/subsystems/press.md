@@ -11,7 +11,7 @@ Deliberately **not** the forums ([forums.md](./forums.md), a two-way
 *deliberation* substrate): a release is one-directional, low-interaction,
 chronological — closer in spirit to the OOC Twitch relay
 ([streaming.md](./streaming.md)) and the presence relay's
-`world.social.roster` frame ([social-graph.md](./social-graph.md)).
+`self.group` frame ([social-graph.md](./social-graph.md)).
 
 Source of truth for this subsystem.
 
@@ -245,7 +245,7 @@ The affordance was never the barrier — `AuthorMixin` rides
 
 ## Reading it — three surfaces
 
-1. **The live window — the `world.press.feed` frame.** On
+1. **The live window — the `publication.press` frame.** On
    publish/edit/retract, `fanFeedImpl` fans a `ReleaseFeedFrame`
    (`upsert` / `remove`) to every online interactive over
    `PlayerApi.getAllAvatars()` (skip destroyed/linkdead, per-viewer
@@ -418,7 +418,7 @@ publishes without being a news outlet at all.
 | `cmd/system/bulletin.yaml` + `BulletinController` | `cmd/system/press.yaml` + `PressController` |
 | `BulletinRow` / `BulletinFeedFrame` | `ReleaseRow` / `ReleaseFeedFrame` |
 | `ConnectionEstablishedPayload.bulletinWindow` | `.releaseWindow` |
-| Topic `world.bulletin.feed` | `world.press.feed` |
+| Topic `publication.press` | `publication.press` |
 | AppSettings `bulletin.*` | `press.*` |
 | the `bulletins` collection | **retired** — the tree |
 

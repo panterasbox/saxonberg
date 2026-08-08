@@ -77,7 +77,7 @@ drop-reentrancy guard).
 a trap, takes the wound, and sees nothing. The victim gets the authored
 `springMessage` if set, else a generic line ("Something gives way beneath
 you — a hidden trap springs!"); witnesses always get a generic
-"…springs a hidden trap." on the `world.hazard.spring` topic.
+"…springs a hidden trap." on the `act.deed` topic.
 
 **`deliverHarm`** runs `ConditionApi.inflict(mover,
 delivery.toInflictSpec(mover))` (the covering stack mitigates armor for

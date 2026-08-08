@@ -234,6 +234,10 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       return !roots.has(key.split('.')[0] ?? key);
     });
     if (stale.length === 0) return;
+    // No database, nothing to prune — and `deleteMany` would throw.
+    // Unit tests warm the catalogue from stubbed templates with no
+    // connection behind them, which is exactly this case.
+    if (!PersistApi.isConnected()) return;
     await PersistApi.deleteMany(Collections.Domain, {
       path: { $in: stale.map((t) => t.path) },
     });
