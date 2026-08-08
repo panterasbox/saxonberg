@@ -2,7 +2,7 @@
 
 > **Status: design proposed, nothing built.** The one substrate that
 > answers *"what happened to the things I care about while I was away."*
-> Surfaced by the [wiki](./wiki-slate.md), which needs watchlists and
+> Surfaced by the [wiki](../tails/wiki-slate.md), which needs watchlists and
 > must not grow an inbox of its own — but the wiki is far from the only
 > claimant, and building it per-subsystem would give us five inboxes.
 
@@ -238,11 +238,12 @@ delivery surface is queried. Where that lands is the reorg's business.
 
 ## Cross-references
 
-- [wiki-slate.md](./wiki-slate.md) + `docs/requirements/wiki-requirements.md`
+- [wiki-slate.md](../tails/wiki-slate.md) + `docs/requirements/wiki-requirements.md`
   — the first claimant; emits, consumes nothing
 - [social-graph.md](../../subsystems/social-graph.md) — `NotifyPolicy`,
   the *who* axis
-- [bulletin.md](../../subsystems/bulletin.md) — broadcast
+- [press.md](../../subsystems/press.md) — broadcast *(`bulletin.md` was
+  rewritten as `press.md`, not renamed)*
 - [mql-subscription.md](../../subsystems/mql-subscription.md) — the
   session-live reactive machinery a push path might reuse
 - [forums.md](../../subsystems/forums.md) — `forum_events` and a

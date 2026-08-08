@@ -13,7 +13,7 @@
 > an everyone's-a-suspect story); she's an obstacle that can become an ally.
 > **Species cast:** **Troll**, carrying the **overlooked-caretaker-caste**
 > allegory (see *The allegory* below; governing stance:
-> [species-expansion-slate.md](../../../slates/builds/species-expansion-slate.md)).
+> [species-expansion-slate.md](../../../slates/tails/species-expansion-slate.md)).
 > **Name:** "Katie" / *she* are the user's working handles; naming pass may
 > revisit.
 > **Retire when:** cemented as a `Character` seed in YAML.
@@ -225,7 +225,7 @@ contempt. The contrast is the axis: **warm/intimate vs. cold/industrial**;
   (she gives the official line + gates the floor), [the-morgue.md](../experiences/the-morgue.md)
   (the access-literacy she introduces, escalated there).
 - Species/allegory:
-  [species-expansion-slate.md](../../../slates/builds/species-expansion-slate.md).
+  [species-expansion-slate.md](../../../slates/tails/species-expansion-slate.md).
 - Carves: [medical-examiner.md](./medical-examiner.md) (Vance — ghoul, the cold
   end of the same service-caste rhyme), [victim.md](./victim.md) (Dunny — her
   knife).

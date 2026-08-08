@@ -13,8 +13,9 @@ consumer** — there is no ballot yet. It exists now because participation is
 history lost. So the priority is a *sound raw log* running from day one,
 with the scoring as a rebuildable projection that can be re-legislated
 without discarding data. See the
-[engagement-meter requirements](../requirements/engagement-meter-requirements.md)
-and the [polity decision register](../polity-decision-register.md) (D2/D4/D5/D6).
+[polity decision register](../polity-decision-register.md) (D2/D4/D5/D6);
+the engagement-meter requirements doc was retired at the pre-merge sweep
+and its decisions live in the register.
 
 ## The pipeline (mirrors renown, shares no code)
 

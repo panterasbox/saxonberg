@@ -18,7 +18,7 @@ RPG" stance applied to social standing.
 
 Built on [recognition](../tails/recognition-slate.md) + the
 [belief store](../../subsystems/belief.md); scopes through
-[social-graph](./social-graph-slate.md) circles; measured via the
+[social-graph](../tails/social-graph-slate.md) circles; measured via the
 [reactions](../tails/reactions-slate.md) substrate; consumed by
 [npc-behavior](./npc-behavior-slate.md), economy, and comms.
 
@@ -346,7 +346,7 @@ being a reinterpretation of the other.
   the `watch-for` wanted-profile realm),
   [recognition-slate](../tails/recognition-slate.md) (recognition-by-description,
   the anonymity/disguise system notoriety inverts),
-  [social-graph-slate](./social-graph-slate.md) (circles)
+  [social-graph-slate](../tails/social-graph-slate.md) (circles)
 - **Measurement:** [reactions-slate](../tails/reactions-slate.md)
 - **Consumers:** [npc-behavior-slate](./npc-behavior-slate.md), economy
   (brand/maker trust), [comms-slate](../tails/comms-slate.md)

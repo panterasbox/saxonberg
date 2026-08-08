@@ -17,7 +17,7 @@ Rides the behavior substrate ([behavior.md](./behavior.md)) — the
 responder is a **brain** — and consumes comms ([comms.md](./comms.md)),
 prompt ([prompt.md](./prompt.md)), and activity
 ([activity.md](./activity.md)). Phase 2 of the
-[Dave's Bar track](../tracks/daves-bar-track.md) ("they talk").
+[Dave's Bar slate](../slates/builds/daves-bar-slate.md) ("they talk").
 
 ## The responder seam
 

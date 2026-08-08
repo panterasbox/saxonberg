@@ -330,14 +330,14 @@ as **campus buildings**, not city-fantastical ones.
 
 ### Duncan Hall — the dorm (a roster-persistent Warren)
 
-The freshman dorm is itself a [MultiLocation](../builds/multilocation-slate.md)
+The freshman dorm is itself a [MultiLocation](../tails/multilocation-slate.md)
 `Warren` — but a **different mode** than the lounge. Where the lounge
 breathes with live presence (ephemeral members), Duncan Hall grows with
 **enrollment** (a persistent roster) and is **~monotonic**: it doesn't
 shrink when residents log off, because the building is there regardless of
 who's awake. It's the substrate's **roster-persistent / procedural-spatial**
 profile (the dorm is its first real consumer — see
-[multilocation-slate.md](../builds/multilocation-slate.md)).
+[multilocation-slate.md](../tails/multilocation-slate.md)).
 
 **What persists vs. regenerates.**
 

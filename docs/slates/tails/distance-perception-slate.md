@@ -82,7 +82,7 @@ This is recorded as a constraint in
   look/scry/locate, ScryableMixin
 - [subsystems/concealment.md](../../subsystems/concealment.md) —
   bands, the honest-fog seams the peek must respect
-- [subsystems/ref-shapes.md](../../subsystems/ref-shapes.md) —
+- [subsystems/ref-shapes.md](../../ref-shapes.md) —
   resolve-on-read identity ref (the vista-reference shape)
 - [subsystems/boundary.md](../../subsystems/boundary.md) —
   Door/Window, the conduit seams

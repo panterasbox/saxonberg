@@ -9,7 +9,7 @@
 > *before* sequencing (build-phasing is deliberately deferred — see *Open*).
 
 Contributing slates (Dave's Bar is where they meet):
-[crafting](./crafting-slate.md) (the venue, recipes, tools, craft-resolve) ·
+[crafting](../tails/crafting-slate.md) (the venue, recipes, tools, craft-resolve) ·
 [advancement](./advancement-slate.md) (skills as a leveled profession via
 the skill seam) · [economy](./economy-slate.md) (the currency slice, the
 reserve, employment, the NPC floor) · [activity](../../subsystems/activity.md)
@@ -267,7 +267,7 @@ bounded by the pool, not the drink-count.
   **remembered** (regard hit / 86'd) — self-defeating, so no mechanical lock.
 - **Breakage / walk-off = a small leak the bar restocks** — glassware is a
   **durable-good recurring sink** (the same shape as *tools*:
-  [crafting-slate](./crafting-slate.md) § *Tools*); a shattered glass is a real
+  [crafting-slate](../tails/crafting-slate.md) § *Tools*); a shattered glass is a real
   matter sink (conservation). The restock *cost* lands in the ledger; the live
   *count* is **transient** (persistence track 4 above).
 
@@ -337,7 +337,7 @@ The crafting inputs, modeled as honest matter:
   underneath; the player reads the label + the description. **No Diablo-style
   rarity tiers** — for a consumable it's a non-concept (drunk and gone); only
   quality + who-made-it matter. (Full model:
-  [crafting-slate](./crafting-slate.md) § *Quality — the verdict, rendered*.)
+  [crafting-slate](../tails/crafting-slate.md) § *Quality — the verdict, rendered*.)
 - **Low quality → worse hangover (honest chemistry).** Cheaper spirits carry
   more **congeners** (fusel oils / distillation byproducts), which really cause
   worse hangovers. Congeners are an honest measure (like ABV) driving the
@@ -376,7 +376,7 @@ The mechanic: **make a drink once for real → the command sequence banks as the
 recipe → shorthand replays it after.** Reading a recipe is a `claim`; *making*
 it is the `deed` that banks it (knowing→doing). The banked recipe **is a
 script** — a linear sequence of gated verbs + one brand parameter — the
-**gentlest rung of the slated [scripting language](./scripting-slate.md)**
+**gentlest rung of the slated [scripting language](../tails/scripting-slate.md)**
 (needs none of its hard forks: blocks/coroutines/conditions/director). Replay is
 **pre-bound** (skip re-parse; still resolve+validate+execute on the bus — real
 commands without the tedium). **Decision: build the v1 shorthand *script-shaped*

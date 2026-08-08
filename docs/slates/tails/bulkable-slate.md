@@ -719,7 +719,7 @@ Three properties make that true:
    don't.
 
 **Deliberately agnostic.** v1 `ingest` knows nothing about who consumes
-its signal — it doesn't target the [vitals](../builds/vitals-slate.md)
+its signal — it doesn't target the [vitals](./vitals-slate.md)
 Reserve substrate or anything else. That keeps bulk and vitals from
 coupling before both are built; the actor's future `Metabolic`
 capability is what bridges them. The first *real* consequence

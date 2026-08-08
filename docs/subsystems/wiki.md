@@ -5,9 +5,10 @@ component/snippet contract, the permission anchoring, and the markup
 additions. Read this before editing under `lib/wiki/`, `obj/Wiki*`, or
 `cmd/system/wiki.yaml`.
 
-Design lineage: [wiki-requirements.md](../requirements/wiki-requirements.md)
-(the complete design) and [wiki-plan.md](../plans/wiki-plan.md) (the
-build carve). This doc supersedes both for *what shipped*.
+Design lineage: the wiki requirements + plan docs (the complete design
+and the build carve) were **retired at the pre-merge sweep** — this doc
+superseded both. The open design surface that outlived them is
+[wiki-slate.md](../slates/tails/wiki-slate.md).
 
 ---
 
