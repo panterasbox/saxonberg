@@ -38,7 +38,7 @@ import {
 import type { Reserved } from '../../../lib/reserve';
 import Plant from '../../Plant';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Material tag a bulk slot must carry to count as waterable. */
 const WATER_TAG = 'liquid';

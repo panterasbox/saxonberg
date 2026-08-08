@@ -44,7 +44,7 @@ import type { Containable } from '../../../lib/spatial/Containable';
 import type { Container } from '../../../lib/spatial/Container';
 import Plant from '../../Plant';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
 function dial(key: string, fallback: number): number {

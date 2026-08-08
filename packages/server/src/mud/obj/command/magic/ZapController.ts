@@ -23,7 +23,7 @@ import { MessageApi } from '../../../api/message';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 interface ZapModel extends CommandModel {
   item: MqlOneResult;

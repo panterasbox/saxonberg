@@ -6,7 +6,7 @@
  * each gates one of the four contact-family single-sense verbs on
  * the giver's `PerceptionApi.sensorium`. Failure returns a polite
  * refusal string; the dispatcher routes that through the standard
- * validator-failed prose path (`system.command.error`).
+ * validator-failed prose path (`shell.error`).
  */
 
 import type { CommandValidator } from '../../../api/command';

@@ -53,7 +53,7 @@ function pushAudible(
   descriptor: string,
 ): void {
   MessageApi.scene(emitter)
-    .topic('world.perception.ambient.sound')
+    .topic('sense.surroundings')
     .modality('hearing')
     .meta({ acousticDb: db })
     .toAudible(body, { descriptor })

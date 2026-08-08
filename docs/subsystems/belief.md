@@ -136,7 +136,7 @@ sighting). All triggers funnel through it.
   sign, or gesture, so it's modality-neutral and routes by perception, not
   earshot. `introduce` (self) or `introduce <subject>` (third-party —
   requires the actor already recognize the subject). The controller emits
-  a public scene line on `world.narration.action` and, over the same
+  a public scene line on `act.deed` and, over the same
   recipient set (`MessageApi.getSensors(env)`), writes each recipient's
   record. **No content hook in the messaging substrate** — the controller
   owns the write.

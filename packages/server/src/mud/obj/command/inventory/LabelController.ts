@@ -19,7 +19,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.perception.inventory';
+const TOPIC = 'sense.survey';
 
 interface LabelModel extends CommandModel {
   target: MqlOneResult;

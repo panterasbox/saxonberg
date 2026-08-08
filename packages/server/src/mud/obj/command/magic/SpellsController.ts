@@ -15,7 +15,7 @@ import { MessageApi } from '../../../api/message';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.magic.spells';
+const TOPIC = 'shell.result';
 
 const MANA_PROSE: Record<string, string> = {
   brimming: 'your reserves are brimming',

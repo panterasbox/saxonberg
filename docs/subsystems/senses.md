@@ -249,13 +249,13 @@ to that channel; targeted form resolves via MQL and reads
 
 | Verb     | Channel   | Topic                              | Validator         |
 | -------- | --------- | ---------------------------------- | ----------------- |
-| `smell`  | `smell`   | `world.perception.sense.smell`     | `requiresSmell`   |
-| `listen` | `hearing` | `world.perception.sense.listen`    | `requiresHearing` |
-| `feel`   | `touch`   | `world.perception.sense.feel`      | `requiresTouch`   |
-| `taste`  | `taste`   | `world.perception.sense.taste`     | `requiresTaste`   |
+| `smell`  | `smell`   | `sense.survey.smell`     | `requiresSmell`   |
+| `listen` | `hearing` | `sense.survey.listen`    | `requiresHearing` |
+| `feel`   | `touch`   | `sense.survey.feel`      | `requiresTouch`   |
+| `taste`  | `taste`   | `sense.survey.taste`     | `requiresTaste`   |
 
 Topics are **verb-named, organized hierarchically under
-`world.perception.sense.*`**. Topic = the kind of event the frame
+`sense.survey.*`**. Topic = the kind of event the frame
 represents; channel attribution lives separately in body MML. See
 the *Perception topic vocabulary* section below for the full
 organizing principle.
@@ -291,7 +291,7 @@ occupant list) that `LookController` had — the vision-bound
 affordances stay because `sense` IS the room-presentation verb
 now.
 
-**Topic is fixed: `world.perception.sense.sense`.** Topic =
+**Topic is fixed: `sense.survey.sense`.** Topic =
 kind-of-event (the gestalt act). Channel attribution rides body
 MML — the viewer-visible body contains `<sense channel="X">`
 regions for whichever channels survived the filter intersection.
@@ -316,7 +316,7 @@ attribution is orthogonal — it lives in body MML, not topics.
 The perception family looks like this:
 
 ```
-world.perception.
+sense.
 ├── sense.       ← verbs (deliberate query)
 │   ├── look      LookController
 │   ├── sense     SenseController
@@ -363,16 +363,16 @@ Each sub-family has its own axis:
 - **search** is verb-leafed. find / locate are different scopes of
   search (local vs world-scope).
 
-Wildcards aggregate: `world.perception.sense.*` matches all
-deliberate first-person perception; `world.perception.ambient.*`
-matches all unbidden perceptual input; `world.perception.measurement.*`
+Wildcards aggregate: `sense.survey.*` matches all
+deliberate first-person perception; `sense.ambient.*`
+matches all unbidden perceptual input; `sense.reading.*`
 matches all instrument output.
 
 Shell-query verbs land outside the perception family — they're
 state queries about the player's own setup, not perceptual events:
 
 ```
-system.shell.
+shell.result.
 ├── alias       AliasController
 ├── var         VarController
 ├── settings    SettingsController
@@ -380,14 +380,14 @@ system.shell.
 └── player      PlayerController
 ```
 
-(Plus the pre-existing `system.shell.{author, fs, help, movement}`
+(Plus the pre-existing `shell.result.{author, fs, help, movement}`
 leaves.)
 
-**Other agents:** an NPC speaking rides `world.speech.say` exactly
+**Other agents:** an NPC speaking rides `speech.vocal` exactly
 like a player speaking — different *generators*, same kind of
 event. The agent's identity rides payload/actor fields, not the
-topic. Same principle for NPC emotes (`world.emote`), NPC actions
-narrated to witnesses (`world.narration.action`), and NPC
+topic. Same principle for NPC emotes (`act.emote`), NPC actions
+narrated to witnesses (`act.deed`), and NPC
 perception (the NPC's own controller fires perception frames to
 the NPC's own Sensor at the same perception topics).
 
@@ -735,7 +735,7 @@ three MR-iteration rounds before the final shape; key shifts:
   moved off the lib module onto an API class; the access/perception
   build settled it on `PerceptionApi`.
 - **Topic vocabulary evolution.** Three rounds:
-  - Round 1: per-verb topics (`world.perception.{look, smell,
+  - Round 1: per-verb topics (`sense.{look, smell,
     listen, feel, taste, sense}`).
   - Round 2: channel-named topics (`.vision`, `.hearing`, etc.),
     with `SenseController` deriving topic from filtered body
@@ -743,9 +743,9 @@ three MR-iteration rounds before the final shape; key shifts:
     Reverted: collapsed too much (80% of frames at 6 topics) and
     conflated kind-of-frame with sensory-channel axes.
   - Round 3 (final): hierarchical verb-leafed topics under
-    `world.perception.{sense, ambient, measurement, search}`
+    `sense.{sense, ambient, measurement, search}`
     parents. Channel attribution stays orthogonal — lives in
     body MML. Shell-query verbs (alias, var, settings, focus,
-    player) moved to `system.shell.*` family. 22 controllers
+    player) moved to `shell.result.*` family. 22 controllers
     updated; ambient subtree uses channel-named leaves because
     ambient has no verb to name them.

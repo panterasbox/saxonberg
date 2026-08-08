@@ -1010,7 +1010,7 @@ export class OpenController extends CommandController<OpenModel> {
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic(MessageApi.Topics.sense.look)
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({
@@ -1064,7 +1064,7 @@ signal for bots / scripting / replay. See
   bound Stuff isn't Containable is a programming bug; "you don't
   see it here" is player input. The `_executeOne` boundary catches
   throws and emits a `controller-error { controller, detail }`
-  note that auto-proses on `system.command.error`.
+  note that auto-proses on `shell.error`.
 
 ### Subcommanded controllers
 
@@ -1079,7 +1079,7 @@ execute(model: PlayerModel, context: CommandContext): void {
     case 'show':     return this.executeShow(model, context);
     default:
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.system.shell.help)
+        .topic(MessageApi.Topics.shell.result)
         .toSelf(Mml.compose`try \`player show\` to see usage`)
         .send();
       context.note({
@@ -1118,7 +1118,7 @@ a failure note speak for itself.
 #### 2. Player-facing failure
 
 Fire a Scene that explains *why* (using the same topic the success
-path would have used — `world.perception.look`, `world.speech.say`,
+path would have used — `sense.look`, `speech.vocal`,
 etc.) AND emit a `controller-rejected { reason, detail? }` note.
 The `reason` is an open-enum domain code (`target-not-found`,
 `target-not-visible`, `already-open`, `cant-afford`,
@@ -1127,7 +1127,7 @@ bot/script consumers that don't want to map enum codes to text.
 
 Example — `LookController`'s non-Visible target path fires
 `Mml.compose\`You can't see ${name}.\`` on
-`world.perception.look` AND `ctx.note({ kind:
+`sense.look` AND `ctx.note({ kind:
 'controller-rejected', reason: 'target-not-visible', detail: name })`.
 
 #### 3. Silent success
@@ -1148,7 +1148,7 @@ in command-routing.md.
 
 A throw inside `execute` bubbles to `_executeOne`'s boundary,
 which catches it and emits a `controller-error { controller,
-detail }` note (which auto-proses on `system.command.error` via
+detail }` note (which auto-proses on `shell.error` via
 the dispatcher's framework-failure sweep). Use this for cases
 that shouldn't happen: a `Mobile` mover that isn't `Containable`,
 a `target.stuff` that fails an `instanceof` narrow that the
@@ -1306,7 +1306,7 @@ reloaded definition. For most dev workflows, "edit YAML →
 container" is the round-trip.
 
 Wiring full HMR for command YAMLs (file-watcher → invalidate →
-broadcast `system.commands.reset`) is a future task.
+broadcast `shell.control` (`schema:reset`)) is a future task.
 
 ## Testing
 

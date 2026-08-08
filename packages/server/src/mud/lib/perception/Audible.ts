@@ -49,7 +49,7 @@ export interface Audible {
 }
 
 /** Topic for unbidden discrete auditory events pushed cross-room. */
-const AUDIBLE_TOPIC = 'world.perception.ambient.sound';
+const AUDIBLE_TOPIC = 'sense.surroundings';
 
 function capitalizeFirst(s: string): string {
   return s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1);

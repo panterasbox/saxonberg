@@ -119,8 +119,7 @@ surface; this section is just the embed's cockpit half.
   `window.location.hostname` (correct-by-construction, never hard-coded);
   the YouTube iframe is `youtube.com/embed/<videoId>` (videoId arm) or
   `youtube.com/embed/live_stream?channel=<channelId>` (channelId arm). The
-  chat terminal allowlists the relay topics (`world.twitch.message`,
-  `world.youtube.message`); the game terminal is the complement —
+  chat terminal allowlists the relay topics (`speech.relay`); the game terminal is the complement —
   client-side filters over the one shared frame buffer, no ingest-time
   routing.
 

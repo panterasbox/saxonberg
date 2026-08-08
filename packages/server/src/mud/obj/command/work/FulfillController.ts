@@ -19,7 +19,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { ContractApi } from "../../../api/contract";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface FulfillModel extends CommandModel {
   /** A gig id (or unique prefix); bare = the single active claim. */

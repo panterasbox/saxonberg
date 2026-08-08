@@ -184,7 +184,7 @@ export class SocialApi {
 
   /**
    * Push a full viewer-lensed roster snapshot to one viewer (pane open /
-   * session establish) as a `world.social.roster` frame. Fire-and-forget.
+   * session establish) as a `self.group` frame. Fire-and-forget.
    */
   public static snapshotFor(viewer: Avatar): void {
     void presenceLogic().snapshotFor(viewer);

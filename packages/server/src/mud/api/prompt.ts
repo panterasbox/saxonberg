@@ -104,7 +104,7 @@ export type PromptValidator<T> = (
  *     a string keeps the prompt alive and emits a
  *     `prompt-validation-failed` envelope.
  *   - `body`: optional long-form prose for the terminal scroll. The
- *     substrate emits a `MessageFrame` on `world.prompt` with
+ *     substrate emits a `MessageFrame` on `shell.prompt` with
  *     `payload: { promptId }` so the client can correlate the
  *     body frame with the prompt envelope (click-to-focus, visual
  *     association in deep stacks).

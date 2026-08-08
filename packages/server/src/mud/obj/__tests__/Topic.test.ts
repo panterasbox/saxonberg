@@ -19,13 +19,13 @@ describe('Topic', () => {
 
   it('round-trips the four persistent string fields', () => {
     const t = makeStuff(() => new Topic());
-    t.setTopic('world.speech.say');
-    t.setFamily('world.speech');
+    t.setTopic('speech.vocal');
+    t.setFamily('speech');
     t.setLabel('Say');
     t.setDescription('Speaking aloud.');
 
-    expect(t.getTopic()).toBe('world.speech.say');
-    expect(t.getFamily()).toBe('world.speech');
+    expect(t.getTopic()).toBe('speech.vocal');
+    expect(t.getFamily()).toBe('speech');
     expect(t.getLabel()).toBe('Say');
     expect(t.getDescription()).toBe('Speaking aloud.');
   });
@@ -54,10 +54,10 @@ describe('Topic', () => {
   it('participates in findByTemplatePath via path stamping', () => {
     const t = makeStuffAtPath(
       () => new Topic(),
-      '/obj/Topic/world.speech.say',
+      '/obj/Topic/speech.vocal',
     );
     expect(
-      StuffApi.findByTemplatePath('/obj/Topic/world.speech.say'),
+      StuffApi.findByTemplatePath('/obj/Topic/speech.vocal'),
     ).toBe(t);
   });
 

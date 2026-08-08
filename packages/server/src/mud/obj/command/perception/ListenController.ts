@@ -21,7 +21,7 @@ import { StuffApi } from '../../../api/stuff';
 
 export default class ListenController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'hearing';
-  protected readonly sceneTopic = 'world.perception.sense.listen';
+  protected readonly sceneTopic = 'sense.survey';
 
   protected override senseLocation(context: CommandContext): void {
     const actor = context.commandGiver;

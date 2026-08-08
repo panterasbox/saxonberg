@@ -36,7 +36,7 @@ import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import { Mml } from '../../../api/mml';
 import TrapKit from '../../TrapKit';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** The Discipline that grades a placed trap's concealment (as for `hide`). */
 const STEALTH_DISCIPLINE = 'stealth';

@@ -24,7 +24,7 @@ import type { BrainStatics } from "../../../lib/behavior/brain";
 import { BRAIN_EXPORT } from "../../../lib/behavior/brain";
 
 /** Diegetic world-action topic for the private decline lines. */
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface TalkModel extends CommandModel {
   /** Positional: who to talk to. */

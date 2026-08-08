@@ -74,7 +74,7 @@ describe('Scene compositional checks', () => {
     const actor = makeStuff(() => new NonSensor());
     expect(() =>
       MessageApi.scene(actor)
-        .topic('world.speech.say')
+        .topic('speech.vocal')
         .toSelf(Mml.compose`hi`)
     ).toThrow(/Sensor/);
   });
@@ -85,7 +85,7 @@ describe('Scene compositional checks', () => {
     const target = makeStuff(() => new Plain());
     expect(() =>
       MessageApi.scene(actor)
-        .topic('world.speech.tell')
+        .topic('speech.comms')
         .toTarget(target, Mml.compose`hi`)
     ).toThrow(/Sensor/);
   });
@@ -95,7 +95,7 @@ describe('Scene compositional checks', () => {
     const actor = makeStuff(() => new HauntedNoContain());
     expect(() =>
       MessageApi.scene(actor)
-        .topic('world.speech.say')
+        .topic('speech.vocal')
         .toPeers(Mml.compose`hi`)
     ).toThrow(/Containable/);
   });
@@ -104,7 +104,7 @@ describe('Scene compositional checks', () => {
     const actor = makeStuff(() => new CapSensor());
     expect(() =>
       MessageApi.scene(actor)
-        .topic('world.speech.say')
+        .topic('speech.vocal')
         .toContents(Mml.compose`hi`)
     ).toThrow(/Container/);
   });
@@ -148,7 +148,7 @@ describe('Scene multi-audience dispatch', () => {
 
   it('toSelf delivers a single frame to the actor', () => {
     MessageApi.scene(alice)
-      .topic('world.speech.say')
+      .topic('speech.vocal')
       .toSelf(Mml.compose`You say, ${Mml.speech('hi')}`)
       .send();
 
@@ -162,7 +162,7 @@ describe('Scene multi-audience dispatch', () => {
 
   it('toPeers excludes the actor', () => {
     MessageApi.scene(alice)
-      .topic('world.speech.say')
+      .topic('speech.vocal')
       .toPeers(Mml.compose`peers`)
       .send();
 
@@ -174,7 +174,7 @@ describe('Scene multi-audience dispatch', () => {
 
   it('toPeers excludes both actor and explicit target', () => {
     MessageApi.scene(alice)
-      .topic('world.speech.tell')
+      .topic('speech.comms')
       .toSelf(Mml.compose`actor`)
       .toTarget(bob, Mml.compose`target`)
       .toPeers(Mml.compose`witness`)
@@ -200,7 +200,7 @@ describe('Scene multi-audience dispatch', () => {
     ContainmentApi.move(bob, haunted);
 
     MessageApi.scene(haunted)
-      .topic('world.speech.say')
+      .topic('speech.vocal')
       .toContents(Mml.compose`a whisper`)
       .send();
 
@@ -211,7 +211,7 @@ describe('Scene multi-audience dispatch', () => {
 
   it('shared payload is applied to audiences without overrides', () => {
     MessageApi.scene(alice)
-      .topic('world.speech.say')
+      .topic('speech.vocal')
       .toSelf(Mml.compose`a`)
       .toPeers(Mml.compose`b`)
       .payload({ shared: true })
@@ -290,7 +290,7 @@ describe('Scene attribution stamping', () => {
         },
         () => {
           MessageApi.scene(alice)
-            .topic('world.perception.sense.look')
+            .topic('sense.survey')
             .toSelf(Mml.compose`look body`)
             .send();
         }

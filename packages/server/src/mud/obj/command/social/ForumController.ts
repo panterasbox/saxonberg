@@ -83,7 +83,7 @@ export default class ForumController extends CommandController<ForumModel> {
     const forums = resolveForums(context);
     if (!forums) {
       MessageApi.scene(context.commandGiver)
-        .topic('system.shell.forum')
+        .topic('shell.result')
         .toSelf(Mml.compose`You have no way to reach the forums.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'ForumsMixin' });
@@ -493,7 +493,7 @@ export default class ForumController extends CommandController<ForumModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.forum')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

@@ -23,7 +23,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { Currency } from "../../../lib/banking/Currency";
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface OrderModel extends CommandModel {
   cocktail: string;

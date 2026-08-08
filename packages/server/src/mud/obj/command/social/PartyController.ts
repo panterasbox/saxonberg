@@ -21,7 +21,7 @@ import { ReactionApi } from "../../../api/reaction";
 import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
-const TOPIC = "system.shell.party";
+const TOPIC = "shell.result";
 
 interface PartyModel extends CommandModel {
   subcommand?: string;
@@ -210,7 +210,7 @@ export default class PartyController extends CommandController<PartyModel> {
     // everyone present sees the line reform).
     const commandId = context.commandId;
     MessageApi.scene(giver)
-      .topic("world.party.formation")
+      .topic("self.group")
       .meta(commandId ? { commandId } : {})
       .toSelf(
         Mml.compose`Your party adopts the ${Mml.escape(name)} formation.`,

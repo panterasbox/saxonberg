@@ -262,7 +262,7 @@ export default class WriteController extends CommandController<WriteModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.fs')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

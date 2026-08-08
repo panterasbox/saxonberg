@@ -29,10 +29,10 @@ cross-viewer aggregation falls out **for free** from keying on
 
 `ReactionApi.REACTABLE_TOPICS` / `ReactionApi.isReactableTopic`:
 
-- `world.speech.say`, `world.speech.whisper`, `world.speech.shout`
-- `world.expression.emote`
-- `world.chat.message`
-- `world.combat.exchange` — a **dramatic** combat beat (a hit / break /
+- `speech.vocal`, `speech.quiet`
+- `act.emote`
+- `speech.channel`
+- `act.combat` — a **dramatic** combat beat (a hit / break /
   down / kill; tick/pressed stay silent). The producer is `CombatNarration`,
   which mints its own `commandId` and calls `noteReactableAct` at the
   narration site (the beat runs in a detached scheduler root). See
@@ -261,7 +261,7 @@ lives**, split between the server (delta-shaping) and the client
 | `social.react.collapseThreshold` | **server** | the per-bucket `reactors` name list rides the delta only while a bucket's count ≤ this (else the chip shows just the count). |
 | `social.react.intensity` | **client** | scales the chip/counter pulse animation (`off`→none … `vivid`→big). |
 | `social.react.alwaysAggregate` | **client** | `App` drops reaction prose frames (those carrying `meta.inReactionTo`) from the transcript — the chip carries the aggregate. |
-| `social.react.muteChannels` | **client** | `ReactionBar` renders nothing on `world.chat.message` lines. |
+| `social.react.muteChannels` | **client** | `ReactionBar` renders nothing on `speech.channel` lines. |
 
 The three client-honored prefs are resolved server-side at connect
 (`ShellApi.resolveSetting`) and shipped in

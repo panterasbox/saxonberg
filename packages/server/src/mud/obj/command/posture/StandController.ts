@@ -56,7 +56,7 @@ export default class StandController extends CommandController<StandModel> {
       );
       if (!result.ok) {
         MessageApi.scene(giver)
-          .topic('world.narration.action')
+          .topic('act.deed')
           .toSelf(Mml.compose`${result.summary}`)
           .send();
         context.note({
@@ -67,7 +67,7 @@ export default class StandController extends CommandController<StandModel> {
         return;
       }
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You stand on ${Mml.item(target)}.`)
         .toPeers(
           Mml.compose`${Mml.name(giver)} stands on ${Mml.item(target)}.`
@@ -80,7 +80,7 @@ export default class StandController extends CommandController<StandModel> {
     PostureApi.vacatePostureBearingSlots(giver);
     giver.setPosture(Postures.Stand);
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You stand up.`)
       .toPeers(Mml.compose`${Mml.name(giver)} stands up.`)
       .send();

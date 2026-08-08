@@ -176,7 +176,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         : Mml.compose`${Mml.name(operator)} → ${Mml.name(targets[0]!)}: ${parsed}`;
 
       MessageApi.scene(operator)
-        .topic("world.speech.dm")
+        .topic("speech.comms")
         .modality("verbal-esp")
         .meta(channelMeta)
         .toSelf(selfBody)
@@ -213,7 +213,7 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           targetBody = Mml.compose`${Mml.name(operator)} → you: ${parsed}`;
         }
         MessageApi.scene(operator)
-          .topic("world.speech.dm")
+          .topic("speech.comms")
           .modality("verbal-esp")
           .meta(channelMeta)
           .toTarget(t, targetBody)

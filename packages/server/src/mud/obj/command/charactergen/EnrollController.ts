@@ -5,7 +5,7 @@
  * Char-gen is a DRAFT STATE MACHINE, not a step flow. Each
  * `enroll <field> <value>` (species / sex / name / pronouns / aspiration)
  * validates + sets that field on the Login's `EnrollmentDraft` and
- * re-emits the FULL state (`system.charactergen.state`) — every field's
+ * re-emits the FULL state (`session.identity`) — every field's
  * options + the current picks + what's missing. There is no server-side
  * "current step"; layout/flow is entirely the client's (so single-page
  * vs multi-step is a pure client change). `enroll confirm` gates on
@@ -482,7 +482,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     // No prose — the structured payload drives the UI, and the command
     // echo (`> enroll species dwarf`) already gives terminal feedback.
     MessageApi.scene(login)
-      .topic("system.charactergen.state")
+      .topic("session.identity")
       .toSelf(Mml.compose``)
       .payload(payload)
       .send();

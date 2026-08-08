@@ -111,7 +111,7 @@ export default class VarController extends CommandController<VarModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.var')
+      .topic('shell.config')
       .toSelf(body)
       .send();
   }

@@ -69,7 +69,7 @@ interface SenseModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-const SCENE_TOPIC = 'world.perception.sense.sense';
+const SCENE_TOPIC = 'sense.survey';
 
 export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {

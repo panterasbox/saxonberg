@@ -71,7 +71,7 @@ describe('AudibleMixin.emit', () => {
 
     expect(ear.received).toHaveLength(1);
     const frame = ear.received[0]!;
-    expect(frame.topic).toBe('world.perception.ambient.sound');
+    expect(frame.topic).toBe('sense.surroundings');
     expect(frame.meta?.modality).toBe('hearing');
     expect(frame.meta?.acousticDb).toBe(110);
     // same-room full body from description + timbre.

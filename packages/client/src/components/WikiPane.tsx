@@ -3,8 +3,8 @@
  * (wiki build, client half).
  *
  * A pure render of what the server pushed: `wiki <page>` sends the
- * article's prose to the scroll on `system.shell.wiki` and its
- * structured twin on `world.wiki.page`, which lands in the store
+ * article's prose to the scroll on `shell.result` and its
+ * structured twin on `publication.wiki`, which lands in the store
  * (`wikiPage`, see `store/index.ts` + the handler in
  * `services/websocket.ts`). This pane reads it reactively.
  *

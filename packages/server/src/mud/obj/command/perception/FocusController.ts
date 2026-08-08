@@ -52,7 +52,7 @@ export default class FocusController extends CommandController<FocusModel> {
     if (!wrapper || wrapper.raw.trim().length === 0) {
       const current = giver.getFocus();
       MessageApi.scene(context.commandGiver)
-        .topic('system.shell.focus')
+        .topic('shell.result')
         .toSelf(Mml.fromMarkup(`focus: ${current}\n`))
         .send();
       return;
@@ -63,7 +63,7 @@ export default class FocusController extends CommandController<FocusModel> {
     const matches = wrapper.stuff.length;
     const noun = matches === 1 ? 'object' : 'objects';
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.focus')
+      .topic('shell.result')
       .toSelf(
         Mml.fromMarkup(
           `focus set to '${fragmentText}' (${matches} ${noun})\n`,

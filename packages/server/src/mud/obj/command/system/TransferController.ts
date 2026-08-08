@@ -28,7 +28,7 @@ import { StuffApi } from "../../../api/stuff";
 import { Zone } from "../../../lib/zone/Zone";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
-const TOPIC = "system.parcel";
+const TOPIC = "shell.result";
 
 interface TransferModel extends CommandModel {
   parcel?: string;

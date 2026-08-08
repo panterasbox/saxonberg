@@ -30,7 +30,7 @@ import { CombatApi, type GambitEligibility } from "../../../api/combat";
 import type { CombatantState } from "../../../lib/combat/CombatSession";
 import type { MqlOneResult } from "../../../api/mql";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 const GAMBITS = new Set([
   "strike",
   "feint",

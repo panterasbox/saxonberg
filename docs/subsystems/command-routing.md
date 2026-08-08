@@ -73,7 +73,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │     when an alias fires) — see shell-alias.md. Skipped on the bound
    │     branch (LLM parsers chose the verb directly).
    │
-   ├─ emit input echo MessageFrame at system.log.command.{info|warn}
+   ├─ emit input echo MessageFrame at shell.diagnostic.{info|warn}
    │     (payload kind: 'issued'; see messaging.md)
    │
    ├─ if ParseResult.parsed: _runChain
@@ -95,7 +95,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │
    │   after _runChain: dispatcher walks accumulator notes,
    │   per framework-emitted failure note fires a scene on
-   │   system.command.error so a bad command surfaces WHY
+   │   shell.error so a bad command surfaces WHY
    │   without client-side envelope rendering (see § Envelope
    │   vs scene split below).
    │
@@ -542,10 +542,10 @@ on the first `onConnectionAttached`. Pre-subscription pushes
 (hydration, boot-time) don't fire spurious frames. After the gate
 opens:
 
-- Every push emits a `system.commands.added` frame per
+- Every push emits a `shell.control` (`schema:added`) frame per
   `CommandSchemaPayload`.
-- Every pop emits a `system.commands.removed` with `{ verb }`.
-- The gate-open itself emits one `system.commands.reset` carrying
+- Every pop emits a `shell.control` (`schema:removed`) with `{ verb }`.
+- The gate-open itself emits one `shell.control` (`schema:reset`) carrying
   the full deduped payload (the client uses this as its baseline
   schema view).
 
@@ -1296,7 +1296,7 @@ Live recency-stack entries that already hold a reference to the old
 reloaded definition. For most dev workflows, "edit YAML →
 invalidate → move yourself in/out of the affected container" is a
 two-line console sequence. Wiring full HMR for command YAMLs (file-
-watcher → invalidate → broadcast `system.commands.reset`) is a
+watcher → invalidate → broadcast `shell.control` (`schema:reset`)) is a
 future task.
 
 ## Frame attribution

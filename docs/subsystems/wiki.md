@@ -42,7 +42,7 @@ time and cannot go stale.
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
 | Verb | `cmd/system/wiki.yaml` + `obj/command/system/WikiController.ts` |
 | Starter articles | `config/wiki-pages.yaml` + `backend/WikiSeeder.ts` |
-| Client pane | `client/components/WikiPane.tsx`, fed by `world.wiki.page` |
+| Client pane | `client/components/WikiPane.tsx`, fed by `publication.wiki` |
 
 **No `*Api` was added**, by constraint. `obj/<Name>Registry.ts` is the
 shipped shape for a gated, state-owning singleton with no Api face
@@ -543,7 +543,7 @@ Two properties worth keeping:
   Refusing somebody who has just written an article is technically
   identical and humanly very different.
 
-`mayEdit` rides the `world.wiki.page` frame, so the pane simply does
+`mayEdit` rides the `publication.wiki` frame, so the pane simply does
 not draw an Edit button for a guest.
 
 **A review queue is deliberately absent.** Open editing plus fast
@@ -686,7 +686,7 @@ or a `# comment` in a shell sample acquires an anchor.
 ## The client — one pane, everything a command
 
 `wiki <page>` sends the article's prose to the scroll on
-`system.shell.wiki` **and** a structured twin on `world.wiki.page`.
+`shell.result.wiki` **and** a structured twin on `publication.wiki`.
 `WikiPane` reads the twin: title, handle/rev/author, the outline, the
 body, the subject binding, tags and see-alsos.
 

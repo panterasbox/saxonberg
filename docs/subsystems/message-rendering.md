@@ -175,7 +175,7 @@ are emitted as dotted-path literals at call sites:
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic('world.speech.say')   // literal, not MessageApi.Topics.X
+  .topic('speech.vocal')       // literal, not MessageApi.Topics.X
   …
 ```
 
@@ -218,7 +218,7 @@ Avatars compose `AetherMixin` because players have implants (per the
 char-gen / augmentation slates' diegetic story). NPCs opt in
 per-class when content requires it.
 
-`AetherMixin.tell(target, text)` fires a scene at `world.speech.dm`
+`AetherMixin.tell(target, text)` fires a scene at `speech.comms`
 with **chat-form** bodies:
 
 ```
@@ -317,10 +317,10 @@ templates. `pickTemplate(topic)` does longest-prefix dispatch:
 
 | Topic family | Template | Layout |
 |---|---|---|
-| `world.chat.*` | `chatTemplate` | gutter `<chan>` chip; content column with `<player>`/`<name>` + `:` + `<msg>` and hanging indent |
-| `world.speech.say` | `sayTemplate` | inline: `<name> says, "<speech>"` |
-| `world.speech.dm` | `tellTemplate` | inline directional treatment (sender → recipient); quieter than `say`. The client also keeps a legacy `world.speech.tell` registration bound to the same template, but no server frame emits it. |
-| `world.expression.*` | `emoteTemplate` | inline italic, action-shaped |
+| `speech.channel` | `chatTemplate` | gutter `<chan>` chip; content column with `<player>`/`<name>` + `:` + `<msg>` and hanging indent |
+| `speech.vocal` | `sayTemplate` | inline: `<name> says, "<speech>"` |
+| `speech.comms` | `tellTemplate` | inline directional treatment (sender → recipient); quieter than `say`. |
+| `act.emote.*` | `emoteTemplate` | inline italic, action-shaped |
 | anything else (including `system.*`) | `defaultTemplate` | body MML inline, theme-default treatment |
 
 The `Terminal` component picks the template per frame and renders
@@ -394,7 +394,7 @@ MUD-throwback default, so an unclassified future topic stays mono.
 
 The **three-voice model**: *serif = the world speaks · sans = the app
 chrome · mono = you + the machine.* `world.*` prose maps to `narrative`
-(serif); `system.*` and command echo (`system.log.command.*`) map to
+(serif); `system.*` and command echo (`shell.diagnostic.*`) map to
 `command` (mono). The `chrome` (sans) role is the client-shell frame
 voice — declared and self-hosted, but intentionally **not mapped to any
 transcript topic**. Both shipped themes share the identical mapping

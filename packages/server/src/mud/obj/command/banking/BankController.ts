@@ -20,7 +20,7 @@ import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Bank } from "../../../lib/banking/Bank";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 /** Default / max rows a `bank statement` lists (most recent first). */
 const DEFAULT_STATEMENT_ROWS = 20;

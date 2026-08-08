@@ -152,7 +152,7 @@ describe('StreamRelay (pure-mutator, in-memory)', () => {
 
     expect(sent).toHaveLength(1); // offline player skipped
     expect(sent[0]!.recipient).toBe(onlineAvatar);
-    expect(sent[0]!.frame.topic).toBe('world.twitch.message');
+    expect(sent[0]!.frame.topic).toBe('speech.relay');
     expect(
       (sent[0]!.frame.payload as { speaker: RelaySpeaker }).speaker,
     ).toEqual(speaker);
@@ -168,7 +168,7 @@ describe('StreamRelay (pure-mutator, in-memory)', () => {
     });
   });
 
-  it('a youtube deliver rides the world.youtube.message topic', () => {
+  it('a youtube deliver rides the speech.relay topic', () => {
     relay.addTuned('p1', 'youtube', 'lc1', 'mkbhd');
     const av = avatar();
     vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(av);
@@ -188,6 +188,6 @@ describe('StreamRelay (pure-mutator, in-memory)', () => {
       'nice',
       false,
     );
-    expect(frames[0]!.topic).toBe('world.youtube.message');
+    expect(frames[0]!.topic).toBe('speech.relay');
   });
 });

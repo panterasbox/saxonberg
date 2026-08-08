@@ -124,7 +124,7 @@ export default class GotoController extends CommandController<GotoModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.movement')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

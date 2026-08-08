@@ -1,5 +1,5 @@
 /**
- * The `world.wiki.page` side-channel — the structured twin of what
+ * The `publication.wiki` side-channel — the structured twin of what
  * `wiki <page>` sends to the scroll, and the wiki pane's only source.
  *
  * ⭐ **The frame carries the body that was already rendered.** That is
@@ -51,10 +51,10 @@ let zone: WikiNamespaceZone;
 let giver: Stuff;
 let frames: SentFrame[];
 
-/** The `world.wiki.page` frames sent so far, newest last. */
+/** The `publication.wiki` frames sent so far, newest last. */
 function pageFrames(): WikiPageFrame[] {
   return frames
-    .filter((f) => f.topic === 'world.wiki.page')
+    .filter((f) => f.topic === 'publication.wiki')
     .map((f) => f.payload as WikiPageFrame);
 }
 
@@ -144,13 +144,13 @@ async function seedArticle(): Promise<void> {
 }
 
 describe('a read pushes the pane its article', () => {
-  it('sends one `world.wiki.page` frame alongside the prose', async () => {
+  it('sends one `publication.wiki` frame alongside the prose', async () => {
     await seedArticle();
     frames = [];
     await run({ subcommand: 'read', page: 'oak' });
 
     expect(pageFrames()).toHaveLength(1);
-    expect(frames.some((f) => f.topic === 'system.shell.wiki')).toBe(true);
+    expect(frames.some((f) => f.topic === 'shell.result')).toBe(true);
     const page = lastPage();
     expect(page.kind).toBe('wiki-page');
     expect(page.handle).toBe('main:oak');

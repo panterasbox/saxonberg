@@ -1,8 +1,8 @@
 /**
  * MudlogApi — in-game messaging facility for log-style content.
  *
- * Every call delivers to a Sensor. Topic is `system.log.<level>` (no
- * category) or `system.log.<category>.<level>`. Recipient resolution:
+ * Every call delivers to a Sensor. Topic is `shell.diagnostic` for every level; the level and
+ * category ride the frame's own tags. Recipient resolution:
  *
  *   1. `opts.to` (Sensor or Sensor[]) → deliver to those.
  *   2. Else `ExecutionContextApi.getCurrentCommandContext()?.commandGiver`

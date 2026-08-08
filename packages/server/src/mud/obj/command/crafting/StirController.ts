@@ -16,7 +16,7 @@ import { MixinApi } from "../../../api/mixin";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 const STIR_MS = 4000;
 
 interface StirModel extends CommandModel {

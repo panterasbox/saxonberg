@@ -15,7 +15,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** A single sip, in litres (~two tablespoons). */
 const SIP_LITRES = 0.03;

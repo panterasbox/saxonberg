@@ -36,7 +36,7 @@ export default class ScriptController extends CommandController<ScriptModel> {
     const source = (model.body ?? '').trim();
     if (!source) {
       MessageApi.scene(context.commandGiver)
-        .topic('system.shell')
+        .topic('shell.result')
         .toSelf(Mml.fromMarkup('\nUsage: script <statements>\n'))
         .send();
       context.note({

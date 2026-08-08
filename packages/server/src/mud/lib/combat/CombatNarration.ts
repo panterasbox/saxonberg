@@ -38,7 +38,7 @@ import type { CombatResolution } from "./CombatSession";
 import type { PoiseBand } from "./Poise";
 import type { Trauma } from "../../obj/Condition";
 
-export const COMBAT_EXCHANGE_TOPIC = "world.combat.exchange";
+export const COMBAT_EXCHANGE_TOPIC = "act.combat";
 
 /** The end-of-fight narration input. */
 export interface ResolutionReport {

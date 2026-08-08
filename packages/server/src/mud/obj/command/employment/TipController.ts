@@ -21,7 +21,7 @@ import { Mml } from '../../../api/mml';
 import TipJar from '../../../domain/lounge/TipJar';
 import { Currency } from "../../../lib/banking/Currency";
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface TipModel extends CommandModel {
   amount: string;

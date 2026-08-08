@@ -34,9 +34,7 @@ export const HIGH_CONTRAST_THEME: Theme = {
     // a prefix glyph (non-color cue) for high-contrast and a slightly
     // dimmer fg for the public/private distinction; nothing claims
     // italic or bold at the frame level.
-    'world.speech.dm': { fg: '#cccccc', prefix: '» ' },
-    // Back-compat: persisted frames pre-rename still carry the old topic.
-    'world.speech.tell': { fg: '#cccccc', prefix: '» ' },
+    'speech.comms': { fg: '#cccccc', prefix: '» ' },
   },
   element: {
     // The renderer's hardcoded styled-components carry per-tag

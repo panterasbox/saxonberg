@@ -1,6 +1,6 @@
 /**
  * ListenController smoke — same SingleSenseControllerBase pipeline
- * with `hearing` channel + `world.perception.sense.listen` topic.
+ * with `hearing` channel + `sense.survey` topic.
  * Wider coverage lives in SmellController.test.ts.
  */
 
@@ -138,7 +138,7 @@ describe('ListenController', () => {
     const c = makeStuff(() => new ListenController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.listen');
+    expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('soft drip');
     expect(f?.body).not.toContain('silent');
   });

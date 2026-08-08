@@ -26,7 +26,8 @@
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
-    "lint:descriptors": "tsx scripts/check-descriptor-banks.ts"
+    "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
+    "lint:topics": "tsx scripts/check-topic-keys.ts --lint"
   },
   "dependencies": {
     "@saxonberg/content-arcane-descriptors": "workspace:*",

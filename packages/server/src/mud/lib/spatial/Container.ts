@@ -6,7 +6,7 @@
  * collection itself: read accessor `getContents()`, host-internal
  * field `contents`. The MUD-classic "inventory" word is reserved for
  * the player-facing command verb (the `inventory` command and its
- * `world.perception.inventory` topic) — see
+ * `sense.survey` topic) — see
  * [docs/subsystems/collections.md § Capability-derived items](../../../../../../docs/subsystems/collections.md).
  *
  * Lockdown contract (Phase 5):

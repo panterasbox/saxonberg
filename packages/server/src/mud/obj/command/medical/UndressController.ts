@@ -22,7 +22,7 @@ import type { Vitals } from '../../../lib/vitals/Vitals';
 import { TRAUMA_BEHAVIOR } from '../../Condition';
 import type { Trauma } from '../../Condition';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface UndressModel extends CommandModel {
   target?: MqlOneResult;

@@ -263,7 +263,7 @@ class WearController extends CommandController<WearModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic(MessageApi.Topics.world.perception.inventory)
+        .topic(MessageApi.Topics.sense.survey)
         .toSelf(Mml.compose`You don't have any '${model.target.raw}'.`)
         .send();
       context.note({
@@ -277,7 +277,7 @@ class WearController extends CommandController<WearModel> {
     // success: just do the work; no return value.
     SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
-      .topic(MessageApi.Topics.world.perception.inventory)
+      .topic(MessageApi.Topics.sense.survey)
       .toSelf(Mml.compose`You put on ${Mml.item(target)}.`)
       .toPeers(Mml.compose`${Mml.name(giver)} puts on ${Mml.item(target)}.`)
       .send();
@@ -432,7 +432,7 @@ testing. The Scene composer is the **human channel**: prose,
 Mml, topic-routed prose-render frames for player clients.
 Framework-emitted failures (parse / MQL / validator /
 controller-throw) put the structured note on the envelope AND
-fire a prose scene on the topic `system.command.error` so a
+fire a prose scene on the topic `shell.error` so a
 player typing a bad command sees WHY without the client needing
 to render envelopes.
 
@@ -458,15 +458,15 @@ retired in favor of `Stuff.getPresentation()` (self-presentation
 lives on the host), and the client takes over more of the rendering
 over time.)
 
-The `system.command.error` topic is defined under
-`TOPICS.system.command.error`. Add it to the client's `renderTopics`
+The `shell.error` topic is defined under
+`TOPICS.shell.error`. Add it to the client's `renderTopics`
 list to surface framework prose in the terminal.
 
-## Input echo — `system.log.command.{info|warn}`
+## Input echo — `shell.diagnostic.{info|warn}`
 
 The dispatcher emits an **input echo** MessageFrame at start of
 dispatch, regardless of parse outcome. Topic
-`system.log.command.info` (parseable) or `system.log.command.warn`
+`shell.diagnostic.info` (parseable) or `shell.diagnostic.warn`
 (parse failed). Payload:
 
 ```typescript
@@ -487,7 +487,7 @@ Use cases:
 - **Multi-device echo**: an Avatar's other connected Interactives see
   what their sibling typed. The client filters out its own echo by
   comparing `payload.originInteractiveId` against its stashed
-  `selfInteractiveId` (carried on `system.connection.established`'s
+  `selfInteractiveId` (carried on `session.link`'s
   payload as `interactiveStuffId`).
 - **Audit trail**: server-side audit Sensors observing log frames see
   player input independent of any dispatch outcome.
@@ -497,7 +497,7 @@ Use cases:
   vs. after the response envelope lands.
 
 The echo fires **once per `executeCommand`** call. The topic
-namespace `system.log.command.*` is repurposed from the retired
+namespace `shell.diagnostic.*` is repurposed from the retired
 auto-emit (see "Retired things" below).
 
 ## What got retired
@@ -518,7 +518,7 @@ via dynamic contributions on the recency stack — see
 ### Auto-emit MudlogApi command-outcome frame
 
 `CommandGiverMixin.executeCommand` used to fire one MessageFrame per
-command at `system.log.command.{info|warn}` with body `<verb>: <tail>`
+command at `shell.diagnostic.{info|warn}` with body `<verb>: <tail>`
 and payload `{verb, success, commandText, executionId}`. Gone.
 Replaced by:
 
@@ -526,7 +526,7 @@ Replaced by:
 - **Input echo** — `kind: 'issued'` payload at the same topic, fired
   at start of dispatch instead of end.
 
-The topic namespace `system.log.command.*` survives; the producer and
+The topic namespace `shell.diagnostic.*` survives; the producer and
 shape changed.
 
 ### `DispatchApi`

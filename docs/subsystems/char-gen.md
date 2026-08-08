@@ -46,7 +46,7 @@ branches on the user's character count (`Login.enter`,
   `EnrollmentDraft` until `enroll confirm` commits a fresh `Avatar`.
   `Login` then destructs.
 - **≥1 character** → the character-select roster. `Login` emits a
-  `system.charactergen.roster` frame and stays alive, awaiting a
+  `session.identity.roster` frame and stays alive, awaiting a
   `play <playerId>` (handled by `PlayController` → `Login.playCharacter`)
   or an `enroll` to mint an additional character. Multichar is on:
   signup creates **zero** avatars, so char-gen is the only path to a
@@ -145,7 +145,7 @@ Without it, two concurrent `enroll` commands would each clone the one
 
 ## The wire payload
 
-Every `execute` ends by emitting a `system.charactergen.state` frame
+Every `execute` ends by emitting a `session.identity.state` frame
 carrying a `CharGenStatePayload` (`types/src/index.ts:1004`) — the whole
 picture, every time:
 
@@ -273,9 +273,9 @@ shipped as `chronicle`.
 
 The client `connectionPhase` (`store/index.ts:47`) is a four-state
 machine: `'unauthenticated' | 'character-select' | 'char-gen' |
-'in-world'`. The `system.charactergen.roster` frame routes to the
-character-select roster; `system.charactergen.state` flips to the
-char-gen stage and drives it; `system.connection.established` (always
+'in-world'`. The `session.identity.roster` frame routes to the
+character-select roster; `session.identity.state` flips to the
+char-gen stage and drives it; `session.link` (always
 carrying an avatar) is the unconditional in-world flip.
 
 `CharGenStage.tsx` owns the layout. A `SCREENS` config

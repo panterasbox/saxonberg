@@ -21,7 +21,7 @@ import { Mml } from '../../../api/mml';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const SHARPEN_MS_FALLBACK = 12000;
 const RASP_DB = 55;
 

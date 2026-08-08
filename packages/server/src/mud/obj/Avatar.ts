@@ -737,7 +737,7 @@ export default class Avatar extends AvatarBase {
       tags: ["arrival"],
     });
 
-    // Welcome scene: actor frame at system.connection.established
+    // Welcome scene: actor frame at session.link
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
@@ -766,7 +766,7 @@ export default class Avatar extends AvatarBase {
       // The live news-ticker window (pins-first, recency-ordered, already
       // retract/expiry-filtered + length-capped by the PressBoard). The
       // client seeds its feed pane from this as a `snapshot`, exactly as it
-      // caches `topicCatalogue`; live deltas ride `world.press.feed`.
+      // caches `topicCatalogue`; live deltas ride `publication.press`.
       releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
       clientState: this.snapshotClientState(),
       reactionPrefs: {
@@ -791,7 +791,7 @@ export default class Avatar extends AvatarBase {
       ? Mml.compose`Welcome, ${this.getFullName()}.`
       : Mml.compose`Welcome back, ${this.getFullName()}!`;
     MessageApi.scene(this)
-      .topic("system.connection.established")
+      .topic("session.link")
       .toSelf(greeting)
       .payload(payload)
       .send();

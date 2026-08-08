@@ -1136,7 +1136,7 @@ export interface CommandView {
 }
 
 /**
- * Schema-delivery payload for system.commands.{added,reset}. Mirrors
+ * Schema-delivery payload for shell.control. Mirrors
  * the YAML view minus runtime-only bits.
  */
 export interface CommandSchemaPayload {
@@ -1698,7 +1698,7 @@ export class CommandApi {
   }
 
   /**
-   * Emit a `system.commands.{added,removed,reset}` frame to a
+   * Emit a `shell.control` frame to a
    * recipient. Stamps `commandId` / `causingCommandId` from the
    * ambient ExecutionContext when present (so a recency-stack
    * mutation triggered inside a command is auto-attributed). Skips
@@ -1741,7 +1741,7 @@ export class CommandApi {
 
   /**
    * Project a `CommandDefinition` to a wire-safe schema payload for
-   * client-side widget rendering. Used by `system.commands.{added,
+   * client-side widget rendering. Used by `shell.control ({added,
    * reset}`.
    */
   static getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {

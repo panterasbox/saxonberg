@@ -36,7 +36,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-light')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'location', query: raw });
@@ -45,7 +45,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
     if (!MixinApi.isContainer(target.stuff)) {
       const detail = `${target.stuff.getPresentation()} isn't a place`;
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-light')
+        .topic('sense.reading')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -96,7 +96,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
     }
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.measurement.analyze-light')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
 

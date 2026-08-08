@@ -1,7 +1,7 @@
 /**
  * PressLogic Phase 3 — the inline news-ticker frame fan-out.
  *
- * Covers the presence-PUBLIC `world.press.feed` fan that fires inline at
+ * Covers the presence-PUBLIC `publication.press` fan that fires inline at
  * the tail of the mutators (NO event tap — the trigger originates inside the
  * logic):
  *   - `publish` fans an `upsert` frame (carrying the projected row) to every
@@ -41,7 +41,7 @@ class TestAuthor extends Idea {
 
 /**
  * An Avatar-shaped viewer: a Sensor (so `scene(viewer).toSelf` delivers)
- * capturing the `world.press.feed` frames it receives. `connected`
+ * capturing the `publication.press` frames it receives. `connected`
  * stands in for `HasInteractiveMixin.isConnected()` — the fan scans online
  * viewers only, so a linkdead viewer (`connected = false`) is skipped.
  */
@@ -59,7 +59,7 @@ class Viewer extends SensorMixin(Idea) {
   }
   protected override handleMessage(frame: unknown): void {
     const f = frame as MessageFrame;
-    if (f.topic === 'world.press.feed') {
+    if (f.topic === 'publication.press') {
       this.received.push(f.payload as ReleaseFeedFrame);
     }
   }

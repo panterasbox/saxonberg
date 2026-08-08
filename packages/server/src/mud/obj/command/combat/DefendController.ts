@@ -23,7 +23,7 @@ import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../api/combat";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface DefendModel extends CommandModel {
   target?: MqlOneResult;

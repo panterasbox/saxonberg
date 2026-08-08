@@ -161,10 +161,10 @@ describe('OpenController / CloseController / doors integration', () => {
     const go = makeStuff(() => new GoController());
     await goCmd(go, avatar, locA, 'north');
     // Locomotion rejection prose now arrives via Scene.send at
-    // `system.shell.movement` instead of result.summary.
+    // `shell.result` instead of result.summary.
     const shellFrames = avatar.received.filter((f) =>
       ((f as { topic?: string })?.topic ?? '').startsWith(
-        'system.shell.movement',
+        'shell.result',
       ),
     );
     const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');
@@ -240,7 +240,7 @@ describe('OpenController / CloseController / doors integration', () => {
     );
     const shellFrames = avatar.received.filter((f) =>
       ((f as { topic?: string })?.topic ?? '').startsWith(
-        'system.shell.movement',
+        'shell.result',
       ),
     );
     const bodies = shellFrames.map((f) => (f as { body?: string }).body ?? '');

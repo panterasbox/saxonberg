@@ -257,7 +257,7 @@ itself, so the taxonomy is free to be precise.
    the `RenownLogic.receptionSeen` precedent; cadence is mechanism, so a
    code constant rather than an AppSettings dial). A flapping connection
    is dropped within the window.
-5. Sends a `world.social.presence` frame:
+5. Sends a `session.presence` frame:
    `MessageApi.scene(viewer).topic(...).toSelf(body, payload).send()` —
    the line viewer-aware (`Mml.name`), tinted **inline** by the rule
    `color` (a `<highlight>` wrap, mirroring `styleMessageForImpl`).
@@ -368,7 +368,7 @@ verbosity dial stays the settings verb
 ### Presence frames render inline (no separate surface)
 
 A presence frame rides the ordinary `MessageFrame` channel (no new wire
-type) on `topic === 'world.social.presence'` and renders **inline in the
+type) on `topic === 'session.presence'` and renders **inline in the
 message buffer like any other scene frame** — there is no toast / queue /
 overlay. (An early iteration routed a `banner` surface into a dismissable
 `NotificationQueue.tsx` toast stack; that was deliberately removed —

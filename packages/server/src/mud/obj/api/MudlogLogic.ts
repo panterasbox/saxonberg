@@ -20,13 +20,22 @@ const MudlogApiCallers = SecurityPolicies.FromModule('/api/mudlog#MudlogApi'
 );
 
 /**
- * Build the topic string for a (category?, level) pair.
- *   no category → `system.log.<level>`
- *   with category → `system.log.<category>.<level>`
+ * ⭐ **Log lines are one topic, not a composed family.**
+ *
+ * This used to build `system.log.<category>.<level>` at runtime, which
+ * is the pathology the taxonomy exists to remove: **`level` IS the
+ * `weight` facet** (`info`/`warn`/`error` are `activity`/`chatter`/
+ * `consequence` by another name), and `category` is the emitting
+ * subsystem — the thing the tree stopped encoding when facets landed.
+ * A composed family also cannot be enumerated by `lint:topics`, so
+ * every key it minted resolved through the derived-default tier
+ * unseen.
+ *
+ * Level and category are still carried — on the frame's own payload,
+ * where a reader can filter on them — rather than smuggled into the
+ * topic path.
  */
-function topicFor(category: string | undefined, level: LogLevel): string {
-  return category ? `system.log.${category}.${level}` : `system.log.${level}`;
-}
+const LOG_TOPIC = 'shell.diagnostic';
 
 function resolveRecipients(opts: MudlogOptions | undefined): SensorStuff[] {
   if (opts?.to) {
@@ -61,7 +70,7 @@ function emit(
   for (const recipient of recipients) {
     const frame: MessageFrame = {
       id: SecurityApi.uuid(),
-      topic: topicFor(category, level),
+      topic: LOG_TOPIC,
       tags: [`level:${level}`, ...(category ? [`category:${category}`] : [])],
       body: body.toString(),
       meta: { ...meta },

@@ -131,7 +131,7 @@ Provider OAuth ──▶ /auth/{provider}/callback
                   ├─ PlayerApi.loadAvatarsForUser(user)
                   ├─ ConnectionApi.transfer(interactive, avatar)
                   ├─ avatar.teleport(startingRoom, { silent: true })
-                  ├─ MessageApi.scene(avatar)…system.connection.established
+                  ├─ MessageApi.scene(avatar)…session.link
                   ├─ EventApi.emit(Events.PlayerLoggedIn | …Reconnected, …)
                   └─ StuffApi.destruct(this)
 ```
@@ -409,7 +409,7 @@ a session" means; Avatar doesn't need to know how Login picked it.
 2. **`avatar.startAutoSave()`** installs the periodic persist-back
    timer (see [§ Auto-save lifecycle](#auto-save-lifecycle)).
 
-3. **Welcome scene** at topic `system.connection.established`,
+3. **Welcome scene** at topic `session.link`,
    audience `toSelf`, body `"Welcome back, <fullName>!"`, with a
    **payload** the client needs for bootstrap:
 
@@ -978,9 +978,9 @@ taxonomy and how `FrameKind`/`runRoot` plant frames.
   and `Backend` are single-process singletons. There is no shared
   state for cross-instance routing.
 - **Disconnect / system frames to the client.** No
-  `system.connection.lost` or "you have been disconnected" frame is
+  `session.link` or "you have been disconnected" frame is
   sent on close — the client only sees the WebSocket close event.
-  No `system.session.expired` either; an upgrade attempt on a
+  No `session.link` variant either; an upgrade attempt on a
   destroyed session just gets 401.
 - **Inbound arbitration for multiplexed sessions.** Two devices typing
   simultaneously each enqueue a command. No single-active-input

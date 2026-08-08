@@ -18,7 +18,7 @@ import { Mml } from '../../../api/mml';
 import { SocialApi, type ProfileCard } from '../../../api/social';
 import type { MqlOneResult } from '../../../api/mql';
 
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 interface ProfileModel extends CommandModel {
   /** Positional: who to inspect. Omit ⇒ self (the `score`/`me` path). */

@@ -32,7 +32,7 @@ import { Mml } from '../../../api/mml';
 import { SearchActivity } from '../../../lib/concealment/SearchActivity';
 import Exit from '../../../lib/boundary/Exit';
 
-const TOPIC = 'world.perception.search';
+const TOPIC = 'sense.survey';
 
 /** `concealment.searchSeconds` fallback (game-seconds). */
 const DEFAULT_SEARCH_SECONDS = 4;

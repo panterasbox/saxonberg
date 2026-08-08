@@ -27,7 +27,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../api/combat";
 import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface AttackModel extends CommandModel {
   target?: MqlOneResult;

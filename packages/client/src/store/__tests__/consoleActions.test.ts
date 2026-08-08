@@ -117,27 +117,27 @@ describe("consoleActions", () => {
   });
 
   it("addMuteForActiveTab pushes onto the active tab's muted list", () => {
-    addMuteForActiveTab("world.speech.say");
+    addMuteForActiveTab("speech.vocal");
     const tabs = getTabs();
-    expect(tabs[0]?.muted).toEqual(["world.speech.say"]);
+    expect(tabs[0]?.muted).toEqual(["speech.vocal"]);
     expect(sendSpy).toHaveBeenCalled();
   });
 
   it("addMuteForActiveTab is idempotent on duplicate adds", () => {
-    addMuteForActiveTab("world.speech.say");
+    addMuteForActiveTab("speech.vocal");
     sendSpy.mockClear();
-    addMuteForActiveTab("world.speech.say");
-    expect(getTabs()[0]?.muted).toEqual(["world.speech.say"]);
+    addMuteForActiveTab("speech.vocal");
+    expect(getTabs()[0]?.muted).toEqual(["speech.vocal"]);
     expect(sendSpy).not.toHaveBeenCalled();
   });
 
   it("removeMuteForActiveTab removes one and is idempotent on misses", () => {
-    addMuteForActiveTab("world.speech.say");
+    addMuteForActiveTab("speech.vocal");
     sendSpy.mockClear();
-    removeMuteForActiveTab("world.speech.say");
+    removeMuteForActiveTab("speech.vocal");
     expect(getTabs()[0]?.muted).toEqual([]);
     sendSpy.mockClear();
-    removeMuteForActiveTab("world.speech.say");
+    removeMuteForActiveTab("speech.vocal");
     expect(sendSpy).not.toHaveBeenCalled();
   });
 });

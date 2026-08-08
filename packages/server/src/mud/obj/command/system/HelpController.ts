@@ -11,7 +11,7 @@
  * Every form reads through the index. Topic bodies arrive as valid MML
  * (the catalogue escapes them at assembly) and pass through verbatim; this
  * controller's own chrome (landings, search lists, errors) is plain text,
- * escaped via `Mml.compose`. Emitted on the `system.shell.help` topic.
+ * escaped via `Mml.compose`. Emitted on the `shell.result` topic.
  */
 
 import { CommandController } from "../../../lib/command/CommandController";
@@ -175,7 +175,7 @@ export default class HelpController extends CommandController<HelpModel> {
 
   private tell(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic("system.shell.help")
+      .topic("shell.result")
       .toSelf(body)
       .send();
   }

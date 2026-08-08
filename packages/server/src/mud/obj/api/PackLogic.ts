@@ -13,6 +13,8 @@ import { Appearance } from '../../lib/identification/Appearance';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Collections } from '../../lib/persistence/Collections';
+import { TOPIC_ROOTS } from '@saxonberg/types';
+import Topic from '../Topic';
 import { PersistApi } from '../../api/persist';
 import { StuffApi } from '../../api/stuff';
 import { QuantityApi } from '../../api/quantity';
@@ -390,10 +392,66 @@ interface DomainRow extends Record<string, unknown> {
  * Returns the change lists. Writes flow through the {@link PersistApi}
  * chokepoint (`lint:pm`); `save` is `$set`-by-`_id` (update/adopt) or insert.
  */
+/**
+ * ⚠ **Gate pack-declared topics before anything is written.**
+ *
+ * The topic vocabulary is deliberately **open** — a pack adds a topic
+ * by shipping a `/obj/Topic/<key>` row like any other content, and no
+ * mechanism was needed to allow it. Two things are *not* open:
+ *
+ *  - **Roots are closed.** A pack-minted root would mean a player's
+ *    mute of `sense` stops catching everything sense-shaped, and
+ *    subtree-mute integrity is the whole reason topics form a tree
+ *    rather than a flat tag set. Content maps onto an existing leaf and
+ *    distinguishes itself with facets; it adds a leaf only when the
+ *    *subject* genuinely differs.
+ * Key *ownership* needs nothing here: {@link reconcileDomain} already
+ * refuses to let one pack clobber a path another pack owns, for every
+ * path. Re-checking it for topics would be a second implementation of
+ * a rule the first already enforces.
+ *
+ * Throws rather than warns: a reconcile that half-applied a pack with
+ * an illegal topic would leave the vocabulary in a state the build-time
+ * gate cannot see and the runtime diagnostic can only report after the
+ * fact.
+ */
+async function validatePackTopics(
+  packId: string,
+  files: DomainFile[],
+): Promise<void> {
+  const topicFiles = files.filter((f) =>
+    f.path.startsWith(Topic.TEMPLATE_PATH_PREFIX),
+  );
+  if (topicFiles.length === 0) return;
+
+  const roots = new Set<string>(TOPIC_ROOTS);
+  for (const f of topicFiles) {
+    const key = f.path.slice(Topic.TEMPLATE_PATH_PREFIX.length);
+    const root = key.split('.')[0] ?? key;
+    if (!roots.has(root)) {
+      throw new Error(
+        `pack '${packId}' declares topic '${key}', whose root '${root}' ` +
+          `is not one of the ${TOPIC_ROOTS.length} core roots ` +
+          `(${TOPIC_ROOTS.join(', ')}). Content packs may add topic ` +
+          `LEAVES under a core root, never a new root — a pack-minted ` +
+          `root breaks subtree muting for every player.`,
+      );
+    }
+    if (!key.includes('.')) {
+      throw new Error(
+        `pack '${packId}' declares topic '${key}', which is a root. ` +
+          `Packs may add leaves only.`,
+      );
+    }
+  }
+}
+
 async function reconcileDomain(
   packId: string,
   files: DomainFile[],
 ): Promise<Pick<PackReconcileResult, 'inserted' | 'updated' | 'adopted' | 'deleted'>> {
+  await validatePackTopics(packId, files);
+
   const inserted: string[] = [];
   const updated: string[] = [];
   const adopted: string[] = [];

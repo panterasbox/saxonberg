@@ -17,7 +17,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface PourModel extends CommandModel {
   source: MqlOneResult;

@@ -119,6 +119,15 @@ lint:
     # directions, so a new MATERIAL colliding with a shipped descriptor
     # is caught too. That is the direction nobody thinks to check.
     - pnpm -C packages/server lint:descriptors
+    # Topic vocabulary totality. Every emitted topic key must resolve to
+    # an AUTHORED descriptor, and every root must be one of the seven.
+    # TopicCatalogue's third tier derives a plausible descriptor for any
+    # unknown key, so a typo or a rename fails silently and looks fine —
+    # when this gate was first run, 45 of 105 emitted topics had no
+    # authored descriptor at all. It also enforces roots-are-closed:
+    # content packs may add leaves, never a root, because a pack-minted
+    # root breaks subtree muting for every player.
+    - pnpm -C packages/server lint:topics
 
 test:
   extends: [.node, .mr-only]

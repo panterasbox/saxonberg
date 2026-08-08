@@ -21,7 +21,7 @@ import { StuffApi } from "../../../api/stuff";
 import { Mml } from "../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../lib/metabolism/Metabolic";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface EatModel extends CommandModel {
   target: MqlOneResult;

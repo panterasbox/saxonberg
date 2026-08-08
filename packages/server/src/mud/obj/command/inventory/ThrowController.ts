@@ -37,7 +37,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type Material from "../../../lib/material/Material";
 import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 /**
  * Where a thrown thing lands on a body, first match wins.

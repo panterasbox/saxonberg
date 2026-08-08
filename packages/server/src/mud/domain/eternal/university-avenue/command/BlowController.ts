@@ -39,7 +39,7 @@ export default class BlowController extends CommandController<BlowModel> {
         detail: 'no whistle to blow',
       });
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You have no whistle to blow.`)
         .send();
       return;
@@ -48,7 +48,7 @@ export default class BlowController extends CommandController<BlowModel> {
     // Actor-facing acknowledgement; the heard event fans out to the room
     // (and adjacent rooms) via Audible.emit's own Scene.
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(
         Mml.compose`You raise ${Mml.object(whistle as unknown as Stuff)} and blow a sharp blast.`,
       )

@@ -4,7 +4,7 @@
  * Covers:
  *   - renderEmote returns per-audience bodies with correct actor/target
  *     pronouns and verb agreement.
- *   - emote() composes a Scene at world.expression.emote with the
+ *   - emote() composes a Scene at act.emote with the
  *     emotive-esp modality stamp.
  *   - emoteFree() free-form prose.
  *   - Containable-wins routing (peers when containable, contents when
@@ -80,7 +80,7 @@ describe('SoulMixin.renderEmote', () => {
 });
 
 describe('SoulMixin.emote', () => {
-  it('composes a Scene at world.expression.emote with emotive-esp modality', () => {
+  it('composes a Scene at act.emote with emotive-esp modality', () => {
     const room = makeStuff(() => new Location());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
@@ -93,7 +93,7 @@ describe('SoulMixin.emote', () => {
     expect(alice.received).toHaveLength(1);
     expect(bob.received).toHaveLength(1);
     for (const f of [alice.received[0]!, bob.received[0]!]) {
-      expect(f.topic).toBe('world.expression.emote');
+      expect(f.topic).toBe('act.emote');
       expect(f.meta.modality).toBe('emotive-esp');
     }
     expect(alice.received[0]!.payload).toMatchObject({

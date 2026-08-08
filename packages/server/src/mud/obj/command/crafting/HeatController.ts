@@ -19,7 +19,7 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ThermalApi } from '../../../api/thermal';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
 
 interface HeatModel extends CommandModel {

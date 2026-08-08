@@ -36,7 +36,7 @@ import { MagicGrid } from '../../../lib/magic/Grid';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import type Spellbook from '../../magic/Spellbook';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 /** Game-ms a full study from nothing takes, at ordinary book quality. */
 const FULL_STUDY_MS = 20 * 60 * 1000;

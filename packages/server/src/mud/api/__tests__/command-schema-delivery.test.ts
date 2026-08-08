@@ -1,5 +1,5 @@
 /**
- * Schema-delivery tests — `system.commands.{added,removed,reset}`.
+ * Schema-delivery tests — `shell.control`.
  *
  * The hooks fire from CommandGiverMixin's sealed surface; here we
  * invoke them through ContainmentApi.move and onConnectionAttached
@@ -59,7 +59,11 @@ class EnvProvider extends EnvProviderBase {
 }
 
 function commandsFrames(giver: TestGiver): MessageFrame[] {
-  return giver.received.filter((f) => f.topic.startsWith('system.commands.'));
+  // `shell.control` carries every interface-control frame; the
+  // `control:schema` tag is what makes this one a schema delta.
+  return giver.received.filter(
+    (f) => f.topic === 'shell.control' && f.tags?.includes('control:schema')
+  );
 }
 
 describe('CommandGiverMixin schema-delivery', () => {
@@ -79,7 +83,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     giver.onConnectionAttached({} as Interactive);
     const frames = commandsFrames(giver);
     const resets = frames.filter(
-      (f) => f.topic === 'system.commands.reset'
+      (f) => f.tags?.includes('schema:reset')
     );
     expect(resets).toHaveLength(1);
     const payload = resets[0]!.payload as Array<{ verbs: string[] }>;
@@ -95,7 +99,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(item, giver);
 
     const adds = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.added'
+      (f) => f.tags?.includes('schema:added')
     );
     expect(adds.length).toBeGreaterThan(0);
   });
@@ -110,7 +114,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(item, null);
 
     const removes = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.removed'
+      (f) => f.tags?.includes('schema:removed')
     );
     expect(removes.length).toBeGreaterThan(0);
     const payload = removes[0]!.payload as { verb?: string };
@@ -128,7 +132,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(envThing, loc);
 
     const adds = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.added'
+      (f) => f.tags?.includes('schema:added')
     );
     expect(adds.length).toBeGreaterThan(0);
   });
@@ -145,7 +149,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     ContainmentApi.move(envThing, null);
 
     const removes = commandsFrames(giver).filter(
-      (f) => f.topic === 'system.commands.removed'
+      (f) => f.tags?.includes('schema:removed')
     );
     expect(removes.length).toBeGreaterThan(0);
   });
@@ -161,8 +165,8 @@ describe('CommandGiverMixin schema-delivery', () => {
   it('schema delta payload mirrors the YAML view', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.onConnectionAttached({} as Interactive);
-    const reset = commandsFrames(giver).find(
-      (f) => f.topic === 'system.commands.reset'
+    const reset = commandsFrames(giver).find((f) =>
+      f.tags?.includes('schema:reset')
     )!;
     const payload = reset.payload as Array<{
       verbs: string[];

@@ -213,7 +213,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       // perception ("a tall stranger introduces themselves as Mara"),
       // upgraded by the learnIdentity below for next time.
       MessageApi.scene(actor)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You introduce yourself as ${name}.`)
         .toPeers(
           Mml.compose`${Mml.name(actor)} introduces themselves as ${name}.`,
@@ -233,7 +233,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       const actor = this as unknown as Stuff;
       const bodies = this.renderEmote(emote, opts);
       const scene = MessageApi.scene(actor)
-        .topic('world.expression.emote')
+        .topic('act.emote')
         .modality('emotive-esp')
         .toSelf(bodies.self)
         .payload({
@@ -281,7 +281,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       const actor = this as unknown as Stuff;
       const bodies = this.renderFreeForm(text, target);
       const scene = MessageApi.scene(actor)
-        .topic('world.expression.emote')
+        .topic('act.emote')
         .modality('emotive-esp')
         .toSelf(bodies.self)
         .payload({ freeForm: true, text });

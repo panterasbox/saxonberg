@@ -26,7 +26,7 @@ import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
 
 /** Identity-family self readout — reuse, don't invent a topic. */
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 export default class StandingController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {

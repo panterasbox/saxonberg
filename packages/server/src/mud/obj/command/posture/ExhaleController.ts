@@ -18,7 +18,7 @@ export default class ExhaleController extends CommandController<CommandModel> {
     const giver = context.commandGiver;
     if (!MixinApi.isRespiration(giver)) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You exhale.`)
         .send();
       return;
@@ -27,13 +27,13 @@ export default class ExhaleController extends CommandController<CommandModel> {
     giver.exhale();
     if (!wasHolding) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You let out a slow breath.`)
         .send();
       return;
     }
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You let your held breath out.`)
       .toPeers(Mml.compose`${Mml.name(giver)} lets out a held breath.`)
       .send();

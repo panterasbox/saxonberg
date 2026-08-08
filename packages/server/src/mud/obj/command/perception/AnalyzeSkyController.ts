@@ -19,7 +19,7 @@ interface AnalyzeSkyModel extends CommandModel {
   location?: MqlOneResult;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-sky';
+const TOPIC = 'sense.reading';
 
 /** Coarse moon-phase label from the [0,1) phase fraction. */
 function phaseName(phase: number): string {

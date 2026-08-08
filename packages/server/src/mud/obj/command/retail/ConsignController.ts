@@ -29,7 +29,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface ConsignModel extends CommandModel {
   thing: string;

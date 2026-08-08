@@ -321,7 +321,8 @@ export default class StyleController extends CommandController<StyleModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.style')
+      .topic('shell.control')
+      .tags(['control:style'])
       .toSelf(body)
       .send();
   }

@@ -26,7 +26,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { StuffApi } from "../../../api/stuff";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 /** A standard manual pour (≥ every demo recipe's per-slot measure). */
 const STANDARD_POUR_L = 0.06;
 const POUR_MS = 3000;

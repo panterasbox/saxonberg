@@ -231,18 +231,18 @@ describe("onAnyTopic catch-all", () => {
     const order: string[] = [];
     const perTopic = () => order.push("per-topic");
     const anyTopic = () => order.push("any-topic");
-    websocketClient.onTopic("world.speech.say", perTopic);
+    websocketClient.onTopic("speech.vocal", perTopic);
     websocketClient.onAnyTopic(anyTopic);
 
     deliver({
       id: "f2",
-      topic: "world.speech.say",
+      topic: "speech.vocal",
       body: "hi",
       meta: { timestamp: 0 },
     });
 
     expect(order).toEqual(["per-topic", "any-topic"]);
-    websocketClient.offTopic("world.speech.say", perTopic);
+    websocketClient.offTopic("speech.vocal", perTopic);
     websocketClient.offAnyTopic(anyTopic);
   });
 
@@ -282,7 +282,7 @@ describe("char-gen frame routing", () => {
     attachMockWs();
     deliver({
       id: "f-roster",
-      topic: "system.charactergen.roster",
+      topic: "session.identity",
       body: "",
       meta: { timestamp: 0 },
       payload: {
@@ -312,7 +312,7 @@ describe("char-gen frame routing", () => {
     attachMockWs();
     deliver({
       id: "f-state",
-      topic: "system.charactergen.state",
+      topic: "session.identity",
       body: "",
       meta: { timestamp: 0 },
       payload: {
@@ -678,7 +678,7 @@ describe("websocket social presence frames", () => {
   ): unknown {
     return {
       id,
-      topic: "world.social.presence",
+      topic: "session.presence",
       tags: ["audience:actor"],
       body: "<name>Alice</name> has entered the game.",
       payload: {

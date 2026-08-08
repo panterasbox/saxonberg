@@ -18,7 +18,7 @@ import { Mml } from "../../../api/mml";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import { EmploymentApi } from "../../../api/employment";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface DrawModel extends CommandModel {
   amount: number;

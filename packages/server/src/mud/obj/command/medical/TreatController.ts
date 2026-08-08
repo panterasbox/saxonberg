@@ -32,7 +32,7 @@ import { TRAUMA_BEHAVIOR } from '../../Condition';
 import type { Trauma } from '../../Condition';
 import type { Difficulty, Outcome } from '../../../lib/advancement/ActSignature';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface TreatModel extends CommandModel {
   target?: MqlOneResult;

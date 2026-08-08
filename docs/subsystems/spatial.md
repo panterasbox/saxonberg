@@ -490,7 +490,7 @@ avatar shouldn't be announced as "vanishing from nowhere" or
 ### Movement-message resolution
 
 `announceDeparture` / `announceArrival` compose a Scene at
-`world.narration.movement` (with Exit) or `world.narration.teleport`
+`act.move` (with Exit) or `act.move`
 (without). The body resolution is a precedence chain:
 
 `resolveDepartureMessage`, `resolveArrivalMessage`:

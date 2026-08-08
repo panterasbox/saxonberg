@@ -6,7 +6,7 @@
  *   - The Command frame metadata carries commandContext +
  *     causingCommandId so Scene/MudlogApi calls auto-attribute.
  *   - Every dispatch fires exactly one `_emitInputEcho` frame at
- *     `system.log.command.{info|warn}` with payload `kind:'issued'`.
+ *     `shell.diagnostic` with payload `kind:'issued'`.
  *   - Every dispatch fires exactly one dispatch-response envelope
  *     through the Sensor pipeline (captured here via the
  *     `handleEnvelope` override).
@@ -121,35 +121,35 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     expect(frame.meta.causingCommandId).toBe(frame.meta.commandId);
   });
 
-  it('emits an input echo at system.log.command.info for parseable input', async () => {
+  it('emits an input echo at shell.diagnostic for parseable input', async () => {
     await giver.executeCommand('ping');
 
     expect(giver.envelopes).toHaveLength(1);
     expect((giver.envelopes[0] as DispatchResponseEnvelope).outcome.status).toBe('ok');
     expect(giver.received).toHaveLength(1);
-    expect(giver.received[0]!.topic).toBe('system.log.command.info');
+    expect(giver.received[0]!.topic).toBe('shell.diagnostic');
     expect(giver.received[0]!.body).toContain('ping');
   });
 
-  it('emits an input echo at system.log.command.warn on parse failure', async () => {
+  it('emits an input echo at shell.diagnostic on parse failure', async () => {
     // Empty input fails msh parse ("No command entered"). Unknown
     // verbs parse fine and only fail at the matcher stage, so they
     // ride the info channel.
     //
     // Two frames now: the input-echo warn AND the framework
-    // auto-prose scene on `system.command.error` that surfaces the
+    // auto-prose scene on `shell.error` that surfaces the
     // `command-rejected: parse-failed` note as player-readable text.
     await giver.executeCommand('');
 
     expect(giver.received).toHaveLength(2);
     const echo = giver.received.find(
-      (f) => f.topic === 'system.log.command.warn',
+      (f) => f.topic === 'shell.diagnostic',
     );
     expect(echo).toBeDefined();
     const payload = echo!.payload as Record<string, unknown>;
     expect(payload.parseError).toBeTruthy();
     const errorScene = giver.received.find(
-      (f) => f.topic === 'system.command.error',
+      (f) => f.topic === 'shell.error',
     );
     expect(errorScene).toBeDefined();
   });

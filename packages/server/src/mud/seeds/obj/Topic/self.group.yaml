@@ -1,0 +1,13 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: self.group
+  family: "self"
+  label: "Your people"
+  description: "Parties, crews, and the other groups you belong to."
+  address: direct
+  actor: self
+  weight: activity
+  audience: player
+  durable: true
+  affordance: live

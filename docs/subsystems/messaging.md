@@ -49,7 +49,7 @@ precisely.
   body, optional structured payload, and metadata. See "Wire envelope".
 - **Topic** — *intrinsic* hierarchical classification of a message's
   nature/content. Mandatory. Framework-defined and stable. Dot-separated
-  path. Example: `world.speech.say`. Answers "what kind of message is
+  path. Example: `speech.vocal`. Answers "what kind of message is
   this?"
 - **Tag** — orthogonal flat property attached to a frame.
   Namespace-prefixed string (`audience:witness`). Open set.
@@ -193,16 +193,16 @@ Conventions:
 
 - All paths lowercase, dot-separated.
 - Leaves should be specific enough that a single MML template applies
-  (`world.speech.say` is a leaf; `world.speech` is not).
+  (`speech.vocal` is a leaf; `speech` is not).
 - Adding a new topic requires no framework changes — producers just emit
   the new topic string.
 - Controller-side failures aren't a special topic. A `look` that
-  found nothing still composes prose at `world.perception.look`;
+  found nothing still composes prose at `sense.look`;
   failure is captured in the dispatch-response envelope's
   `outcome.status` + `notes`, AND in the prose the controller
   fires at the same domain topic it would have used on success.
 - **Framework-side** failures (parse, MQL, validator,
-  controller-throw) DO have a special topic — `system.command.error`
+  controller-throw) DO have a special topic — `shell.error`
   — populated by the dispatcher's end-of-execute prose sweep. The
   player sees WHY a bad command was rejected without the client
   needing to render envelopes. See
@@ -213,7 +213,7 @@ sites:
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic('world.speech.say')
+  .topic('speech.vocal')
   ...
 ```
 
@@ -227,9 +227,9 @@ player-facing descriptor (friendly label, description, family for the
 cockpit's filter drawer, gutter tooltips, etc.). See
 [topics.md](./topics.md).
 
-`'system.log'` is the prefix used for "all log frames" matching;
-`system.log.command` is the framework-emitted **input-echo** topic
-(see "Input echo at `system.log.command.*`" below).
+`'shell.diagnostic'` is the prefix used for "all log frames" matching;
+`shell.diagnostic` is the framework-emitted **input-echo** topic
+(see "Input echo at `shell.diagnostic.*`" below).
 
 ## Tags
 
@@ -552,7 +552,7 @@ dispatches them all.
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic('world.speech.say')
+  .topic('speech.vocal')
   .toSelf(Mml.compose`You say, ${Mml.speech(text)}`)
   .toPeers(Mml.compose`${Mml.name(speaker)} says, ${Mml.speech(text)}`)
   .payload({ speaker: MessageApi.refOf(speaker), text })
@@ -666,7 +666,7 @@ resonance field, hybrid mesh — diegetically per zone). A character
 can compose Vocal without Aether (mute) or Aether without Vocal
 (post-vocal-loss with an implant); both are independent.
 
-`AetherMixin.tell(target, text)` fires `world.speech.dm` with
+`AetherMixin.tell(target, text)` fires `speech.comms` with
 chat-form bodies (`<speaker> → <target>: <body>` self,
 `<speaker> → you: <body>` target). Self is a valid target. Markdown
 parsing runs through `Mml.markdownToMml` with the speaker's perceiver
@@ -694,8 +694,8 @@ respectively) for the sound-propagation walk's reach computation.
 With `--to <target>` (a flag on `say.yaml` / `shout.yaml`), the
 room still hears, but the target gets a marked target-frame
 ("Bobalu says to you, …"); whisper is implicitly directed so its
-`target` is a required positional. Topics: `world.speech.say`,
-`world.speech.whisper`, `world.speech.shout`.
+`target` is a required positional. Topics: `speech.vocal`,
+`speech.quiet`, `speech.vocal`.
 
 ### SoulMixin — expressive (emote) on every Character
 
@@ -709,7 +709,7 @@ separately for remote delivery. The mixin owns rendering
 AND in-room send (`emote` / `emoteFree` compose Scene + send,
 Containable-wins). Channel-routed / DM-handle-routed emotes call
 the render methods directly and compose their own Scene. Topic:
-`world.expression.emote`. Modality stamp: `'emotive-esp'`. See
+`act.emote`. Modality stamp: `'emotive-esp'`. See
 [emotes.md](./emotes.md) for the full substrate (Emote Documents,
 EmoteGrammar, SoulCatalogue, dispatch paths).
 
@@ -811,11 +811,11 @@ skip `handleMessage` and break delivery. Game content uses
 
 `MudlogApi` (`mud/api/mudlog.ts`) is the in-game messaging facility for
 log-style content. Every call delivers to a Sensor. Topic is
-`system.log.<level>` (no category) or `system.log.<category>.<level>`.
+`shell.diagnostic.<level>` (no category) or `shell.diagnostic.<category>.<level>`.
 
 ```typescript
 class MudlogApi {
-  // Body-only — topic system.log.<level>
+  // Body-only — topic shell.diagnostic.<level>
   static trace(body: Mml, opts?: MudlogOptions): void;
   static debug(body: Mml, opts?: MudlogOptions): void;
   static info (body: Mml, opts?: MudlogOptions): void;
@@ -823,7 +823,7 @@ class MudlogApi {
   static error(body: Mml, opts?: MudlogOptions): void;
   static fatal(body: Mml, opts?: MudlogOptions): void;
 
-  // Categorized — topic system.log.<category>.<level>
+  // Categorized — topic shell.diagnostic.<category>.<level>
   static trace(category: string, body: Mml, opts?: MudlogOptions): void;
   // …debug/info/warn/error/fatal same shape
 
@@ -880,13 +880,13 @@ MudlogApi.info('admin',
 The standard level constants are exported as `MUDLOG_LEVELS` for
 diagnostic UIs that want to render every level.
 
-### Input echo at `system.log.command.*`
+### Input echo at `shell.diagnostic.*`
 
 `CommandGiverMixin.executeCommand` fires an **input-echo** MessageFrame
 at the *start* of every dispatch — before parsing, matching, or
 controller execution. The frame carries topic
-`system.log.command.info` when the parser succeeded or
-`system.log.command.warn` when it failed; payload is:
+`shell.diagnostic.info` when the parser succeeded or
+`shell.diagnostic.warn` when it failed; payload is:
 
 ```typescript
 {
@@ -906,7 +906,7 @@ Interactive on the actor. Use cases:
 - **Multi-device echo** — an Avatar's other Interactives see what
   their sibling typed; the client filters its own echo by comparing
   `payload.originInteractiveId` against the `interactiveStuffId` it
-  stashed from `system.connection.established`.
+  stashed from `session.link`.
 - **Audit trail** — server-side audit Sensors observe player input
   independently of any dispatch outcome.
 - **Replay capture** — structured `kind: 'issued'` records replay
@@ -977,7 +977,7 @@ and carries `commandId: string` for attribution.
 3. Pushes the CommandContext onto `ExecutionContextApi.commandContext`
    AND sets `causingCommandId` to the same id.
 4. Emits the input-echo MessageFrame (see "Input echo at
-   `system.log.command.*`" above) and the dispatch-response envelope
+   `shell.diagnostic.*`" above) and the dispatch-response envelope
    carries the outcome.
 5. Invokes the controller.
 6. Pops on return (including error paths). `causingCommandId` clears
@@ -1058,12 +1058,12 @@ the producer composes both at the same call site (one Scene, multiple
 ### Topic vs tags vs scope
 
 Multi-axis classification doesn't fit a single hierarchy. Topic encodes
-the producing subsystem (speech machinery → `world.speech.*`); tags
+the producing subsystem (speech machinery → `speech.*`); tags
 capture orthogonal properties (`audience:witness`); scope is a
 producer-side concern that disappears once the frame lands.
 
 Two roots — `world.*` and `system.*` — and that's it. Logs are
-`system.log.*`. Widgets are NOT a topic root; widgets are renderers
+`shell.diagnostic.*`. Widgets are NOT a topic root; widgets are renderers
 that consume topic streams and are registered on the client side.
 
 ### Sensors are the only recipient type

@@ -51,7 +51,7 @@ function guardedFires(): number {
 function movementFrame(): MessageFrame {
   return {
     id: 'mf1',
-    topic: 'world.narration.movement',
+    topic: 'act.move',
     body: 'someone arrives.',
     meta: { timestamp: 0 },
   };

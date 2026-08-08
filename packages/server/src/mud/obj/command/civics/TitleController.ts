@@ -69,7 +69,7 @@ import PlatBook from '../../PlatBook';
 import type LotHolder from '../../LotHolder';
 import { Currency } from "../../../lib/banking/Currency";
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Where land business is transacted — the city's records counter. */
 const REGISTRY_ROOM = '/domain/terminus/registry/office';

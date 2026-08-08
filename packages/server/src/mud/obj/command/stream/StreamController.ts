@@ -128,7 +128,7 @@ export default class StreamController extends CommandController<StreamModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.stream')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

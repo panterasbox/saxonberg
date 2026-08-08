@@ -323,7 +323,12 @@ export default class StreamRelay extends StreamRelayBase {
         : speaker.externalName;
     const marker = egress ? `${service}->` : service;
     const body = Mml.compose`[${marker} #${handle}] ${name}: ${text}`.toString();
-    const topic = `world.${service}.message`;
+    // One topic for every platform. The platform is a transport
+    // attribute — it rides `payload.service` and the body's marker —
+    // not a subject, so `speech.relay` / `.youtube.` / `.kick.`
+    // were three topics describing one thing, and a fourth platform
+    // would have silently minted a fourth unauthored key.
+    const topic = 'speech.relay';
     const payload: RelayMessagePayload = {
       service,
       channelKey: key,

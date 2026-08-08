@@ -37,15 +37,15 @@ import { TemplatePaths } from '../lib/paths';
 
 /** The closed v1 set of topics whose frames denote a reactable act. */
 const REACTABLE_TOPICS: ReadonlySet<string> = new Set([
-  'world.speech.say',
-  'world.speech.whisper',
-  'world.speech.shout',
-  'world.expression.emote',
-  'world.chat.message',
+  'speech.vocal',
+  'speech.vocal',
+  'speech.vocal',
+  'act.emote',
+  'speech.channel',
   // Combat — dramatic exchange beats are reactable (the crowd cheers a
   // hit). Only dramatic beats call noteReactableAct; tick/pressed stay
   // silent. See docs/subsystems/combat.md.
-  'world.combat.exchange',
+  'act.combat',
 ]);
 
 /**

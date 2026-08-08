@@ -730,7 +730,7 @@ async function relayPresenceImpl(
     // lands in their circle session (delivery follows identity).
     try {
       MessageApi.scene(deliveryBody)
-        .topic("world.social.presence")
+        .topic("session.presence")
         .toSelf(body, payload)
         .send();
     } catch {

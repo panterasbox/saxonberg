@@ -16,36 +16,36 @@ import { emoteTemplate } from '../emoteTemplate';
 import { relayTemplate } from '../relayTemplate';
 
 describe('TemplateRegistry — pickTemplate', () => {
-  it('world.chat.* picks chatTemplate', () => {
-    expect(pickTemplate('world.chat.gossip')).toBe(chatTemplate);
-    expect(pickTemplate('world.chat.trade')).toBe(chatTemplate);
+  it('speech.channel picks chatTemplate', () => {
+    expect(pickTemplate('speech.channel')).toBe(chatTemplate);
+    expect(pickTemplate('speech.channel')).toBe(chatTemplate);
   });
 
-  it('world.speech.say picks sayTemplate', () => {
-    expect(pickTemplate('world.speech.say')).toBe(sayTemplate);
+  it('speech.vocal picks sayTemplate', () => {
+    expect(pickTemplate('speech.vocal')).toBe(sayTemplate);
   });
 
-  it('world.speech.tell picks tellTemplate (longer prefix beats say)', () => {
-    expect(pickTemplate('world.speech.tell')).toBe(tellTemplate);
+  it('speech.comms picks tellTemplate (longer prefix beats say)', () => {
+    expect(pickTemplate('speech.comms')).toBe(tellTemplate);
   });
 
-  it('world.expression.emote picks emoteTemplate', () => {
-    expect(pickTemplate('world.expression.emote')).toBe(emoteTemplate);
+  it('act.emote picks emoteTemplate', () => {
+    expect(pickTemplate('act.emote')).toBe(emoteTemplate);
   });
 
   it('relay topics (twitch/youtube/kick) pick relayTemplate', () => {
-    expect(pickTemplate('world.twitch.message')).toBe(relayTemplate);
-    expect(pickTemplate('world.youtube.message')).toBe(relayTemplate);
-    expect(pickTemplate('world.kick.message')).toBe(relayTemplate);
+    expect(pickTemplate('speech.relay')).toBe(relayTemplate);
+    expect(pickTemplate('speech.relay')).toBe(relayTemplate);
+    expect(pickTemplate('speech.relay')).toBe(relayTemplate);
   });
 
   it('system.* falls through to defaultTemplate (acceptance #5, #6)', () => {
-    expect(pickTemplate('system.command.info')).toBe(defaultTemplate);
-    expect(pickTemplate('system.connection.established')).toBe(defaultTemplate);
+    expect(pickTemplate('shell.result')).toBe(defaultTemplate);
+    expect(pickTemplate('session.link')).toBe(defaultTemplate);
   });
 
-  it('world.perception.look falls through to defaultTemplate', () => {
-    expect(pickTemplate('world.perception.look')).toBe(defaultTemplate);
+  it('sense.survey falls through to defaultTemplate', () => {
+    expect(pickTemplate('sense.survey')).toBe(defaultTemplate);
   });
 
   it('completely unknown topic falls through to defaultTemplate', () => {
@@ -54,13 +54,14 @@ describe('TemplateRegistry — pickTemplate', () => {
 
   it('longest-prefix wins when an ad-hoc registration overlaps', () => {
     const fakeTemplate = (() => null) as never;
+    // A longer prefix must beat the registered `speech.channel`.
     const cleanup = _registerTemplateForTest(
-      'world.chat.gossip',
+      'speech.channel.gossip',
       fakeTemplate,
     );
     try {
-      expect(pickTemplate('world.chat.gossip')).toBe(fakeTemplate);
-      expect(pickTemplate('world.chat.trade')).toBe(chatTemplate);
+      expect(pickTemplate('speech.channel.gossip')).toBe(fakeTemplate);
+      expect(pickTemplate('speech.channel')).toBe(chatTemplate);
     } finally {
       cleanup();
     }
