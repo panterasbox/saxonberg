@@ -302,6 +302,13 @@ pnpm format           # Prettier
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
 
+[docs/testing.md](./docs/testing.md) — what the suite costs and why:
+`pnpm bench` + the measurement history, the noise floor (±6%, so
+nothing under 10% is a real win), why `isolate: false` stays declined,
+which slow files are left and the evidence for leaving them, and the
+one rule for a new test — a test that touches the wired runtime
+imports `test-bootstrap` (`pnpm lint:test-bootstrap` enforces it).
+
 ### Documentation
 
 API reference is generated from TSDoc comments by TypeDoc. Scope is
