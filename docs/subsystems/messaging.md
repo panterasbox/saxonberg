@@ -593,6 +593,16 @@ reaches a parser, a policy, a stylesheet or a client, and a test pins
 its absence. Nothing downstream grows a branch for a tag meaning "ask
 again."
 
+> ⚠ **Any list of "what is here" must use `Mml.actor`.** Room contents
+> include people. `look` splits organisms out to the occupant formatter
+> and so was already right; the **sense** verbs do not, and rendered a
+> person `<thing>` — Dave read `<thing>` under `sense` and `<npc>` under
+> `look`, in the same room, seconds apart. The divergence long predated
+> this build and was invisible while both tags meant nothing. Same for
+> surface-resting lists (someone sits on a stool) and search results
+> (what a search turns up is very often a hiding person). Only a
+> definitionally-object list — inventory — stays `Mml.thing`.
+
 **Use `player` / `npc` / `thing` directly only where the emitter knows
 something the world does not** — the puppeteer behind a possessed
 corpse, an illusion that should read as a person, a corpse being named

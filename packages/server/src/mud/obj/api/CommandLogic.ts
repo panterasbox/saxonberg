@@ -1570,10 +1570,18 @@ async function resolveAffordancesImpl(
     !MixinApi.isIdentifiable(target) ||
     RecognitionApi.knowsTrueType(viewer, target);
 
+  // ⚠ Deduped: a mixin composed at two points in the chain is returned
+  // twice by `getActiveMixins`, and the live drive showed
+  // `TangibleMixin` twice on an aether implant. A menu grouping by
+  // composition would have painted the group twice.
   const composition = identified
-    ? MixinApi.getActiveMixins(target)
-        .map((m) => m._mixinName ?? m.name)
-        .filter((n): n is string => !!n)
+    ? [
+        ...new Set(
+          MixinApi.getActiveMixins(target)
+            .map((m) => m._mixinName ?? m.name)
+            .filter((n): n is string => !!n),
+        ),
+      ]
     : [];
 
   const seen = new Set<string>();

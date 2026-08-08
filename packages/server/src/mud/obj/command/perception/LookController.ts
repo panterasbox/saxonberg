@@ -345,7 +345,8 @@ export default class LookController extends CommandController<LookModel> {
     if (MixinApi.isSurfaced(target)) {
       const resting = target.getResting();
       if (resting.length > 0) {
-        const list = Mml.list(resting.map((r) => Mml.thing(r)));
+        // A person sitting on a stool rests on a surface too.
+        const list = Mml.list(resting.map((r) => Mml.actor(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
@@ -363,7 +364,8 @@ export default class LookController extends CommandController<LookModel> {
         await PerceptionApi.preloadForSenseGate(actor);
         const found = PerceptionApi.resolveSearch(actor, contents, 'glance');
         if (found.length > 0) {
-          const noticed = Mml.list(found.map((f) => Mml.thing(f)));
+          // What a search turns up is very often a HIDING PERSON.
+          const noticed = Mml.list(found.map((f) => Mml.actor(f)));
           body = Mml.compose`${body}\nLooking closely, you notice ${noticed}.`;
         }
         for (const cand of PerceptionApi.hintsFor(actor, contents)) {

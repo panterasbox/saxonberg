@@ -199,7 +199,14 @@ export default class SenseController extends CommandController<SenseModel> {
     // rule with `look` + the inspection pane.
     const topLevel = ContainmentApi.looseContents(visibleContents);
     if (topLevel.length > 0) {
-      const list = Mml.list(topLevel.map((item) => Mml.thing(item)));
+      // ⚠ `Mml.actor`, not `Mml.thing`: room contents include PEOPLE.
+      // `look` splits organisms out to the occupant formatter; the
+      // sense verbs do not, so this list is the one place a person can
+      // land in a contents run. Before the tag collapse both paths
+      // emitted meaningless tags and the divergence was invisible —
+      // the live drive rendered Dave `<thing>` here and `<npc>` under
+      // `look`, in the same room, seconds apart.
+      const list = Mml.list(topLevel.map((item) => Mml.actor(item)));
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
@@ -233,7 +240,9 @@ export default class SenseController extends CommandController<SenseModel> {
     if (MixinApi.isSurfaced(target)) {
       const resting = target.getResting();
       if (resting.length > 0) {
-        const list = Mml.list(resting.map((r) => Mml.thing(r)));
+        // Someone sitting on a stool rests on a surface like anything
+        // else — so this list can hold a person too.
+        const list = Mml.list(resting.map((r) => Mml.actor(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
