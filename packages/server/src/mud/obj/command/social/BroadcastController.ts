@@ -83,7 +83,7 @@ export default class BroadcastController extends CommandController<BroadcastMode
     // players, not props.
     const filtered = audience.filter((a) => MixinApi.isSensor(a));
     const parsed = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));
-    const speakerName = Mml.name(speaker);
+    const speakerName = Mml.actor(speaker);
     const selfBody = Mml.fromMarkup(
       `<chan id="broadcast" label="Broadcast">${speakerName.toString()}: ${parsed.toString()}</chan>`,
     );

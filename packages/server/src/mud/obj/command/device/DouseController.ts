@@ -65,9 +65,9 @@ export default class DouseController extends CommandController<DouseModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You douse ${Mml.object(target2 as Stuff)}; it hisses out.`)
+      .toSelf(Mml.compose`You douse ${Mml.thing(target2 as Stuff)}; it hisses out.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} douses ${Mml.object(target2 as Stuff)}; it hisses out.`,
+        Mml.compose`${Mml.actor(commandGiver)} douses ${Mml.thing(target2 as Stuff)}; it hisses out.`,
       )
       .send();
   }

@@ -117,7 +117,7 @@ export default class FightController extends CommandController<FightModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.fromMarkup("You give the word."))
-      .toPeers(Mml.compose`${Mml.name(giver)} gives the word.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} gives the word.`)
       .send();
   }
 
@@ -148,7 +148,7 @@ export default class FightController extends CommandController<FightModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.fromMarkup("You start to change weapons — your guard drops."))
-      .toPeers(Mml.compose`${Mml.name(giver)} moves to change weapons.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} moves to change weapons.`)
       .send();
   }
 
@@ -169,7 +169,7 @@ export default class FightController extends CommandController<FightModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.fromMarkup("You snatch for a sidearm."))
-      .toPeers(Mml.compose`${Mml.name(giver)} draws a sidearm.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} draws a sidearm.`)
       .send();
   }
 
@@ -214,7 +214,7 @@ export default class FightController extends CommandController<FightModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.fromMarkup("You yield."))
-      .toPeers(Mml.compose`${Mml.name(giver)} yields.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} yields.`)
       .send();
     CombatApi.yieldFight(giver);
   }

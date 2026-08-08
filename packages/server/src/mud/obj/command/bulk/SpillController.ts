@@ -39,7 +39,7 @@ export default class SpillController extends CommandController<SpillModel> {
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(target)} is empty.`)
+        .toSelf(Mml.compose`${Mml.thing(target)} is empty.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -58,7 +58,7 @@ export default class SpillController extends CommandController<SpillModel> {
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`Nothing spills out of ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`Nothing spills out of ${Mml.thing(target)}.`)
         .send();
       return;
     }
@@ -68,11 +68,11 @@ export default class SpillController extends CommandController<SpillModel> {
       .topic(TOPIC)
       .toSelf(
         pooled
-          ? Mml.compose`You spill ${Mml.item(target)} out; a puddle pools on the floor.`
-          : Mml.compose`You spill ${Mml.item(target)} out; the liquid splashes away.`,
+          ? Mml.compose`You spill ${Mml.thing(target)} out; a puddle pools on the floor.`
+          : Mml.compose`You spill ${Mml.thing(target)} out; the liquid splashes away.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} spills ${Mml.item(target)} out onto the floor.`,
+        Mml.compose`${Mml.actor(giver)} spills ${Mml.thing(target)} out onto the floor.`,
       )
       .send();
   }

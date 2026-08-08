@@ -127,7 +127,7 @@ export class Stylesheet {
   }
 
   /**
-   * Bucket-based treatment for a `<player>` / `<name>` carrying a
+   * Bucket-based treatment for a `<player>` / `<npc>` carrying a
    * stuff-id. v1 always lands on `neutral` (empty treatment) because
    * the resolver stub returns neutral for everything; the call is
    * still made so swapping the real resolver in later is automatic.

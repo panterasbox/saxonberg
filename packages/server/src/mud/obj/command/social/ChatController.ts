@@ -103,7 +103,7 @@ export default class ChatController extends CommandController<ChatModel> {
             .topic('speech.channel')
             .modality('verbal-esp')
             .meta({ channelId: ad.handle })
-            .toTarget(m, Mml.compose`[${ad.handle}] ${Mml.name(speaker)}: ${body}`)
+            .toTarget(m, Mml.compose`[${ad.handle}] ${Mml.actor(speaker)}: ${body}`)
             .payload({
               channelId: ad.handle,
               channelName: ad.handle,

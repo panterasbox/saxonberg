@@ -51,7 +51,7 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
       owner?.kind !== "player" ||
       owner.templatePath !== giver.getTemplatePath()
     ) {
-      this.reject(giver, context, Mml.compose`${Mml.item(item)} isn't yours to take.`, {
+      this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to take.`, {
         kind: "controller-rejected",
         reason: "not-owner",
         detail: model.thing,
@@ -67,8 +67,8 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
 
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You take ${Mml.item(item)} back off the shelf.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} takes ${Mml.item(item)} back off the consignment shelf.`)
+      .toSelf(Mml.compose`You take ${Mml.thing(item)} back off the shelf.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} takes ${Mml.thing(item)} back off the consignment shelf.`)
       .send();
   }
 

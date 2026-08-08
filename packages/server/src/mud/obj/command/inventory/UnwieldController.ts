@@ -66,8 +66,8 @@ export default class UnwieldController extends CommandController<UnwieldModel> {
         .topic('sense.survey')
         .toSelf(
           release.dumpedKJ > 0
-            ? Mml.compose`Your hand will not open around ${Mml.item(target)} — and it is running hot against your palm.`
-            : Mml.compose`Your hand will not open around ${Mml.item(target)}. It has no intention of letting go.`,
+            ? Mml.compose`Your hand will not open around ${Mml.thing(target)} — and it is running hot against your palm.`
+            : Mml.compose`Your hand will not open around ${Mml.thing(target)}. It has no intention of letting go.`,
         )
         .send();
       context.note({
@@ -80,7 +80,7 @@ export default class UnwieldController extends CommandController<UnwieldModel> {
     if (release.vacated === 0) {
       MessageApi.scene(giver)
         .topic('sense.survey')
-        .toSelf(Mml.compose`You aren't wielding ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You aren't wielding ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -91,9 +91,9 @@ export default class UnwieldController extends CommandController<UnwieldModel> {
     }
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You stop wielding ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You stop wielding ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} stops wielding ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} stops wielding ${Mml.thing(target)}.`
       )
       .send();
     return;

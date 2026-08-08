@@ -18,7 +18,12 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type Interactive from '../obj/Interactive';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath } from 'url';
-import type { Note, Status } from '@saxonberg/types';
+import type {
+  Note,
+  Status,
+  AffordanceEntry,
+  AffordanceState,
+} from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ShadowApi } from './shadow';
@@ -417,6 +422,22 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * `CommandDefinition` live on `CommandContext`; the model carries
  * field data only.
  */
+/**
+ * What {@link CommandApi.resolveAffordances} answers with — the verb
+ * menu for one (target, viewer) pair plus the target's active mixin
+ * composition.
+ *
+ * Re-exported wire shapes: `AffordanceEntry` / `AffordanceState` are
+ * the client's own types, spoken here unchanged so the two surfaces
+ * cannot drift.
+ */
+export interface AffordanceResolution {
+  verbs: AffordanceEntry[];
+  composition: string[];
+}
+
+export type { AffordanceEntry, AffordanceState };
+
 export type CommandModel = ModelData & {
   /**
    * Stamped by the matcher when the active YAML declares
@@ -1782,6 +1803,35 @@ export class CommandApi {
     value: unknown,
   ): string | null {
     return logic().validateAgainstJsonSchema(schema, value);
+  }
+
+  /**
+   * **What can this viewer do with this object, right now?** — the
+   * server-side answer behind the client's radial menu.
+   *
+   * Returns the verbs the target affords `viewer` at this instant,
+   * each carrying a state and (when refused) the refusing validator's
+   * own words, plus the target's **active** mixin composition so a
+   * menu can label and group without a second round trip.
+   *
+   * Returns `null` when the viewer cannot perceive the target at all.
+   *
+   * ⚠ **This is not a gate and must never become one.** It evaluates
+   * the existing validator chain without dispatching; a verb that
+   * resolves `enabled` still faces the full chain when it is actually
+   * run. Anything that trusted this answer instead of re-checking
+   * would be trusting a snapshot of a world that has moved.
+   *
+   * ⚠ Validators are expected to be side-effect free, and this is the
+   * caller that makes that a real requirement rather than an
+   * assumption — an open radial resolves repeatedly, so a validator
+   * that wrote anything would turn hovering into an action.
+   */
+  static resolveAffordances(
+    target: Stuff,
+    viewer: Stuff & CommandGiver,
+  ): Promise<AffordanceResolution | null> {
+    return logic().resolveAffordances(target, viewer);
   }
 }
 

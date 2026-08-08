@@ -217,7 +217,7 @@ export default class GetController extends CommandController<GetModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          Mml.compose`You'd rather not lay a hand on ${Mml.item(operand)} — it isn't yours, and it's live.`,
+          Mml.compose`You'd rather not lay a hand on ${Mml.thing(operand)} — it isn't yours, and it's live.`,
         )
         .send();
       return false;
@@ -235,7 +235,7 @@ export default class GetController extends CommandController<GetModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          Mml.compose`Your hands are full — you're pulling ${Mml.item(giver.getHauledCart()!)}.`,
+          Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`,
         )
         .send();
       return false;
@@ -255,7 +255,7 @@ export default class GetController extends CommandController<GetModel> {
       });
       MessageApi.scene(giver)
         .topic('sense.survey')
-        .toSelf(Mml.compose`You strain, but ${Mml.item(operand)} doesn't budge.`)
+        .toSelf(Mml.compose`You strain, but ${Mml.thing(operand)} doesn't budge.`)
         .send();
       return false;
     }
@@ -267,8 +267,8 @@ export default class GetController extends CommandController<GetModel> {
     void ChattelApi.followCustody(operand);
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You pick up ${Mml.item(operand)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} picks up ${Mml.item(operand)}.`)
+      .toSelf(Mml.compose`You pick up ${Mml.thing(operand)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} picks up ${Mml.thing(operand)}.`)
       .send();
     this.burnOnGrab(operand, giver);
     return true;

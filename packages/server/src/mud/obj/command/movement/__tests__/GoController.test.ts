@@ -179,7 +179,7 @@ describe('GoController', () => {
       await goCmd(controller, avatar, locA, 'north');
       // The mover sees its own toSelf frames ("You leave...", "You
       // arrive..."), but never the peer-broadcast frames that name
-      // the mover ("<name>Alice</name> leaves..."). Auto-emit
+      // the mover ("<player>Alice</player> leaves..."). Auto-emit
       // command-outcome frames also land on the mover; filter to
       // movement frames only.
       const movementFrames = avatar.received.filter(

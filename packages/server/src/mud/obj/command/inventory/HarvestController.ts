@@ -83,7 +83,7 @@ export default class HarvestController extends CommandController<HarvestModel> {
     if (!(named instanceof Plant)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(named)} isn't a plant.`)
+        .toSelf(Mml.compose`${Mml.thing(named)} isn't a plant.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -98,7 +98,7 @@ export default class HarvestController extends CommandController<HarvestModel> {
     if (!cropPath) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(plant)} isn't something you harvest.`)
+        .toSelf(Mml.compose`${Mml.thing(plant)} isn't something you harvest.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -117,8 +117,8 @@ export default class HarvestController extends CommandController<HarvestModel> {
         .topic(TOPIC)
         .toSelf(
           dead
-            ? Mml.compose`${Mml.item(plant)} is dead. There is nothing to take.`
-            : Mml.compose`${Mml.item(plant)} isn't ready — it is still ${stage}.`,
+            ? Mml.compose`${Mml.thing(plant)} is dead. There is nothing to take.`
+            : Mml.compose`${Mml.thing(plant)} isn't ready — it is still ${stage}.`,
         )
         .send();
       context.note({
@@ -199,9 +199,9 @@ export default class HarvestController extends CommandController<HarvestModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You take ${Mml.item(crop)} off ${presentation}, and what is left of the plant comes away with it.`,
+        Mml.compose`You take ${Mml.thing(crop)} off ${presentation}, and what is left of the plant comes away with it.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} harvests ${Mml.item(crop)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} harvests ${Mml.thing(crop)}.`)
       .send();
   }
 

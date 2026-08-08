@@ -71,13 +71,13 @@ export default class DefendController extends CommandController<DefendModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You step between ${Mml.name(target)} and their attacker.`)
+      .toSelf(Mml.compose`You step between ${Mml.actor(target)} and their attacker.`)
       .toTarget(
         target,
-        Mml.compose`${Mml.name(giver)} steps in to shield you!`,
+        Mml.compose`${Mml.actor(giver)} steps in to shield you!`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} interposes to shield ${Mml.name(target)}.`,
+        Mml.compose`${Mml.actor(giver)} interposes to shield ${Mml.actor(target)}.`,
       )
       .send();
   }

@@ -107,7 +107,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pay ${Mml.name(worker!)} a wage of ${Money.of(minor, Currency.compact()).render()}.`)
+      .toSelf(Mml.compose`You pay ${Mml.actor(worker!)} a wage of ${Money.of(minor, Currency.compact()).render()}.`)
       .send();
   }
 }

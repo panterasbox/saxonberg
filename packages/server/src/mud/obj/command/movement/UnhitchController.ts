@@ -69,17 +69,17 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
     if (hauler.stuffId === giver.stuffId) {
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.compose`You let go of ${Mml.item(cart)}.`)
-        .toPeers(Mml.compose`${Mml.name(giver)} lets go of ${Mml.item(cart)}.`)
+        .toSelf(Mml.compose`You let go of ${Mml.thing(cart)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} lets go of ${Mml.thing(cart)}.`)
         .send();
     } else {
       MessageApi.scene(giver)
         .topic('act.deed')
         .toSelf(
-          Mml.compose`You unhitch ${Mml.item(cart)} from ${Mml.item(hauler)}.`,
+          Mml.compose`You unhitch ${Mml.thing(cart)} from ${Mml.thing(hauler)}.`,
         )
         .toPeers(
-          Mml.compose`${Mml.name(giver)} unhitches ${Mml.item(cart)} from ${Mml.item(hauler)}.`,
+          Mml.compose`${Mml.actor(giver)} unhitches ${Mml.thing(cart)} from ${Mml.thing(hauler)}.`,
         )
         .send();
     }

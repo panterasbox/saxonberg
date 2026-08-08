@@ -139,10 +139,10 @@ describe('FindController', () => {
     );
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('apple');
-    // `Mml.item` emits a `<item stuff-id="...">` tag wrapping the
+    // `Mml.thing` emits a `<thing stuff-id="...">` tag wrapping the
     // display name. Just checking the name + tag shape — the prose
     // surface, not the structure.
-    expect(body).toContain('<item');
+    expect(body).toContain('<thing');
   });
 
   it('renders one row per match for a multi-match result', () => {
@@ -157,8 +157,8 @@ describe('FindController', () => {
     expect(body).toContain('apple');
     expect(body).toContain('apricot');
     expect(body).toContain('avocado');
-    // Three `<item>` tags, one per row.
-    const itemCount = (body.match(/<item /g) ?? []).length;
+    // Three `<thing>` tags, one per row.
+    const itemCount = (body.match(/<thing /g) ?? []).length;
     expect(itemCount).toBe(3);
   });
 

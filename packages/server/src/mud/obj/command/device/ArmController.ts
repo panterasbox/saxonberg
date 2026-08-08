@@ -116,7 +116,7 @@ export default class ArmController extends CommandController<ArmModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You set ${Mml.item(trap)} and work it into the surroundings.`,
+        Mml.compose`You set ${Mml.thing(trap)} and work it into the surroundings.`,
       )
       .send();
   }

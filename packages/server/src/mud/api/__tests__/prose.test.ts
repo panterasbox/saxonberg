@@ -31,9 +31,9 @@ describe('ProseApi.format — substitution', () => {
   it('treats Mml fragments as already-escaped and emits verbatim', () => {
     expect(
       ProseApi.format('hi {{ who }}', {
-        who: Mml.fromMarkup('<name>Alice</name>'),
+        who: Mml.fromMarkup('<player>Alice</player>'),
       }).toString(),
-    ).toBe('hi <name>Alice</name>');
+    ).toBe('hi <player>Alice</player>');
   });
 
   it('coerces numbers and booleans then escapes', () => {
@@ -92,7 +92,7 @@ describe('ProseApi.format — conditionals and filters', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('Alice');
     const out = ProseApi.format('hi {{ who | name }}!', { who: obj }).toString();
-    expect(out).toBe(`hi <name stuff-id="${obj.stuffId}">Alice</name>!`);
+    expect(out).toBe(`hi <player stuff-id="${obj.stuffId}">Alice</player>!`);
   });
 
   it('uses the direction filter to wrap a raw string', () => {
@@ -134,7 +134,7 @@ describe('ProseApi.format — conditionals and filters', () => {
     const out = ProseApi.format('[{{ x | item }}]', { x: obj }).toString();
     // getPresentation() bakes in 'something' for hosts with
     // no Named/Visible state; Mml.item flows that through.
-    expect(out).toBe(`[<item stuff-id="${obj.stuffId}">something</item>]`);
+    expect(out).toBe(`[<thing stuff-id="${obj.stuffId}">something</thing>]`);
   });
 
   it('article filter falls back to "a" for plain stuff', () => {

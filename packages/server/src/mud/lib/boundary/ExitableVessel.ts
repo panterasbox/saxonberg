@@ -191,7 +191,7 @@ export default class ExitableVessel extends ExitableVesselBase {
       source: env,
       destination: this as unknown as Stuff & Container,
       door,
-      messageOut: `{{ mover }} enters the <name>${vesselName}</name>.`,
+      messageOut: `{{ mover }} enters the <thing>${vesselName}</thing>.`,
       messageIn: `{{ mover }} enters from outside.`,
     }));
     if (door) door.attachExit(exit);
@@ -215,8 +215,8 @@ export default class ExitableVessel extends ExitableVesselBase {
       source: this as unknown as Stuff & Container,
       destination: env,
       door,
-      messageOut: `{{ mover }} leaves the <name>${vesselName}</name>.`,
-      messageIn: `{{ mover }} emerges from the <name>${vesselName}</name>.`,
+      messageOut: `{{ mover }} leaves the <thing>${vesselName}</thing>.`,
+      messageIn: `{{ mover }} emerges from the <thing>${vesselName}</thing>.`,
     }));
     if (door) door.attachExit(exit);
     this.outCache = exit;

@@ -50,7 +50,7 @@ export default class BlowController extends CommandController<BlowModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(
-        Mml.compose`You raise ${Mml.object(whistle as unknown as Stuff)} and blow a sharp blast.`,
+        Mml.compose`You raise ${Mml.thing(whistle as unknown as Stuff)} and blow a sharp blast.`,
       )
       .send();
 

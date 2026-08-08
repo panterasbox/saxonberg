@@ -84,9 +84,9 @@ export default class UnlockController extends CommandController<UnlockModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You unlock ${Mml.object(lockable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You unlock ${Mml.thing(lockable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} unlocks ${Mml.object(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} unlocks ${Mml.thing(lockable as unknown as Stuff)}.`,
       )
       .send();
 

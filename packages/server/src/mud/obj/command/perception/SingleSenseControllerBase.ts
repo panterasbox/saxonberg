@@ -214,7 +214,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
       });
       return;
     }
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filtered)}\n`;
+    const body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(filtered)}\n`;
     MessageApi.scene(actor)
       .topic(this.sceneTopic)
       .toSelf(body)

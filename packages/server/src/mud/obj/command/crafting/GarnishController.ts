@@ -42,12 +42,12 @@ export default class GarnishController extends ManualBuildController<GarnishMode
 
     this.engageStep(context, {
       durationMs: GARNISH_MS,
-      beginSelf: Mml.compose`You reach for ${Mml.item(garnish)} to finish ${Mml.item(glass)}.`,
+      beginSelf: Mml.compose`You reach for ${Mml.thing(garnish)} to finish ${Mml.thing(glass)}.`,
       onComplete: () => {
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You garnish ${Mml.item(glass)} with ${Mml.item(garnish)}.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} garnishes ${Mml.item(glass)} with ${Mml.item(garnish)}.`)
+          .toSelf(Mml.compose`You garnish ${Mml.thing(glass)} with ${Mml.thing(garnish)}.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} garnishes ${Mml.thing(glass)} with ${Mml.thing(garnish)}.`)
           .send();
       },
     });

@@ -68,7 +68,7 @@ export default class LieController extends CommandController<LieModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(Mml.compose`You lie down.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} lies down.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} lies down.`)
       .send();
     return;
   }

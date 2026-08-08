@@ -115,8 +115,8 @@ export default class OrderController extends CraftController<OrderModel> {
     const tail = paid ? ` ${paid}` : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`${Mml.item(drink)} is set down in front of you.${tail}`)
-      .toPeers(Mml.compose`${Mml.name(giver)} is served ${Mml.item(drink)}.`)
+      .toSelf(Mml.compose`${Mml.thing(drink)} is set down in front of you.${tail}`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} is served ${Mml.thing(drink)}.`)
       .send();
   }
 

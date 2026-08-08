@@ -248,7 +248,7 @@ export default class JobController extends CommandController<JobModel> {
         Mml.compose`The board verifies the work and pays out — ${result.paidMinor} credits, released from escrow to your account.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} turns a job in at the board and gets paid.`,
+        Mml.compose`${Mml.actor(giver)} turns a job in at the board and gets paid.`,
       )
       .send();
   }

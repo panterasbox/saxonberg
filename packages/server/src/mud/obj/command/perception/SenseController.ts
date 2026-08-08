@@ -199,7 +199,7 @@ export default class SenseController extends CommandController<SenseModel> {
     // rule with `look` + the inspection pane.
     const topLevel = ContainmentApi.looseContents(visibleContents);
     if (topLevel.length > 0) {
-      const list = Mml.list(topLevel.map((item) => Mml.item(item)));
+      const list = Mml.list(topLevel.map((item) => Mml.thing(item)));
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
@@ -226,14 +226,14 @@ export default class SenseController extends CommandController<SenseModel> {
       return;
     }
     const filteredText = target.getMarkupLong(actor, { filter: sensorium });
-    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
+    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
     // Drill-in: sensing a surface reveals what rests on it — mirrors
     // `LookController.lookAtTarget`, the discovery path that keeps resting
     // items out of the room view.
     if (MixinApi.isSurfaced(target)) {
       const resting = target.getResting();
       if (resting.length > 0) {
-        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        const list = Mml.list(resting.map((r) => Mml.thing(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
@@ -250,7 +250,7 @@ export default class SenseController extends CommandController<SenseModel> {
       const door = exit.getDoor();
       if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorLink = Mml.item(door);
+      const doorLink = Mml.thing(door);
       return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);

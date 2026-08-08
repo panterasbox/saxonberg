@@ -63,8 +63,8 @@ export default class RepairController extends ManualBuildController<RepairModel>
 
     this.engageStep(context, {
       durationMs: this.paceMs(REPAIR_MS, pacer, ['mending', 'anvil']),
-      beginSelf: Mml.compose`You settle in over ${Mml.item(item)} and set to the repair.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} sets to repairing ${Mml.item(item)}.`,
+      beginSelf: Mml.compose`You settle in over ${Mml.thing(item)} and set to the repair.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} sets to repairing ${Mml.thing(item)}.`,
       // No `this` in the closure — the controller clone is destructed
       // when execute returns (antipatterns.md § Activity-completion
       // closures); the body is a module-private free function.
@@ -84,9 +84,9 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You work ${Mml.item(item)} back into true — sound as the day it was made.`,
+        Mml.compose`You work ${Mml.thing(item)} back into true — sound as the day it was made.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} repairs ${Mml.item(item)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} repairs ${Mml.thing(item)}.`)
       .send();
   })().catch((err: unknown) => {
     console.error('RepairController: repair failed', err);

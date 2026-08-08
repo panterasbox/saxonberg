@@ -680,7 +680,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const messageOut = exit?.getMessageOut();
       if (messageOut) {
         const fragment = ProseApi.format(messageOut, {
-          mover: Mml.name(self),
+          mover: Mml.actor(self),
         });
         return { self: fragment, peers: fragment };
       }
@@ -728,7 +728,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const messageIn = exit?.getMessageIn();
       if (messageIn) {
         const fragment = ProseApi.format(messageIn, {
-          mover: Mml.name(self),
+          mover: Mml.actor(self),
         });
         return { self: fragment, peers: fragment };
       }
@@ -804,7 +804,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'messages.movement.departPeers',
       ) ?? '';
       return ProseApi.format(tpl, {
-        mover: Mml.name(this as unknown as Stuff),
+        mover: Mml.actor(this as unknown as Stuff),
         direction: Mml.direction(exit.getDirection()),
       });
     }
@@ -825,7 +825,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       ) ?? '';
       const dir = arriveDirection(exit);
       const ctx: Record<string, Mml> = {
-        mover: Mml.name(this as unknown as Stuff),
+        mover: Mml.actor(this as unknown as Stuff),
       };
       if (dir) ctx.direction = Mml.direction(dir);
       return ProseApi.format(tpl, ctx);
@@ -844,7 +844,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportOutPeers',
       ) ?? '';
-      return ProseApi.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
+      return ProseApi.format(tpl, { mover: Mml.actor(this as unknown as Stuff) });
     }
 
     protected defaultTeleportInSelf(): Mml {
@@ -860,7 +860,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportInPeers',
       ) ?? '';
-      return ProseApi.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
+      return ProseApi.format(tpl, { mover: Mml.actor(this as unknown as Stuff) });
     }
   };
 }

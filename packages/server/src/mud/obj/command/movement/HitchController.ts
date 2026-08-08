@@ -62,7 +62,7 @@ export default class HitchController extends CommandController<HitchModel> {
       if (mount.isHitched()) {
         MessageApi.scene(giver)
           .topic('act.deed')
-          .toSelf(Mml.compose`${Mml.item(mount)} is already pulling something.`)
+          .toSelf(Mml.compose`${Mml.thing(mount)} is already pulling something.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -74,9 +74,9 @@ export default class HitchController extends CommandController<HitchModel> {
       mount.hitch(cart);
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.compose`You hitch ${Mml.item(cart)} to ${Mml.item(mount)}.`)
+        .toSelf(Mml.compose`You hitch ${Mml.thing(cart)} to ${Mml.thing(mount)}.`)
         .toPeers(
-          Mml.compose`${Mml.name(giver)} hitches ${Mml.item(cart)} to ${Mml.item(mount)}.`,
+          Mml.compose`${Mml.actor(giver)} hitches ${Mml.thing(cart)} to ${Mml.thing(mount)}.`,
         )
         .send();
       return;
@@ -122,8 +122,8 @@ export default class HitchController extends CommandController<HitchModel> {
     giver.hitch(cart);
     MessageApi.scene(giver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You take hold of ${Mml.item(cart)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} takes hold of ${Mml.item(cart)}.`)
+      .toSelf(Mml.compose`You take hold of ${Mml.thing(cart)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} takes hold of ${Mml.thing(cart)}.`)
       .send();
   }
 

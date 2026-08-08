@@ -78,8 +78,8 @@ export default class WaterController extends CommandController<WaterModel> {
         .topic(TOPIC)
         .toSelf(
           isEmptyPot
-            ? Mml.compose`There's nothing planted in ${Mml.item(named)}.`
-            : Mml.compose`${Mml.item(named)} isn't a plant.`,
+            ? Mml.compose`There's nothing planted in ${Mml.thing(named)}.`
+            : Mml.compose`${Mml.thing(named)} isn't a plant.`,
         )
         .send();
       context.note({
@@ -114,7 +114,7 @@ export default class WaterController extends CommandController<WaterModel> {
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(source)} is empty.`)
+        .toSelf(Mml.compose`${Mml.thing(source)} is empty.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -131,7 +131,7 @@ export default class WaterController extends CommandController<WaterModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`The soil around ${Mml.item(plant)} is already wet through.`,
+          Mml.compose`The soil around ${Mml.thing(plant)} is already wet through.`,
         )
         .send();
       context.note({
@@ -156,7 +156,7 @@ export default class WaterController extends CommandController<WaterModel> {
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`Nothing comes out of ${Mml.item(source)}.`)
+        .toSelf(Mml.compose`Nothing comes out of ${Mml.thing(source)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -207,10 +207,10 @@ export default class WaterController extends CommandController<WaterModel> {
       .topic(TOPIC)
       .toSelf(
         absorbed > 0
-          ? Mml.compose`You tip the ${appearance} into the soil around ${Mml.item(plant)}. It drinks it in.`
-          : Mml.compose`You tip the ${appearance} into the soil around ${Mml.item(plant)}.`,
+          ? Mml.compose`You tip the ${appearance} into the soil around ${Mml.thing(plant)}. It drinks it in.`
+          : Mml.compose`You tip the ${appearance} into the soil around ${Mml.thing(plant)}.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} waters ${Mml.item(plant)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} waters ${Mml.thing(plant)}.`)
       .send();
   }
 

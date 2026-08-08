@@ -65,7 +65,7 @@ export default class MountController extends CommandController<MountModel> {
     if (target.isSlotFull(mountSlot)) {
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.compose`${Mml.item(target)} is already mounted.`)
+        .toSelf(Mml.compose`${Mml.thing(target)} is already mounted.`)
         .send();
       context.note({
         kind: 'slot-occupied',
@@ -100,9 +100,9 @@ export default class MountController extends CommandController<MountModel> {
     giver.setPosture(Postures.Mounted);
     MessageApi.scene(giver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You mount ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You mount ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} mounts ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} mounts ${Mml.thing(target)}.`
       )
       .send();
     return;

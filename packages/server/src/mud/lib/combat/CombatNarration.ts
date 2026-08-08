@@ -215,8 +215,8 @@ export class CombatNarration {
    */
   static narrateCoupTelegraph(executioner: Stuff, victim: Stuff): string {
     const commandId = SecurityApi.uuid();
-    const E = Mml.name(executioner);
-    const V = Mml.name(victim);
+    const E = Mml.actor(executioner);
+    const V = Mml.actor(victim);
     for (const viewer of CombatNarration.witnesses(executioner)) {
       const isE = (viewer as Stuff) === (executioner as Stuff);
       const isV = (viewer as Stuff) === (victim as Stuff);
@@ -255,9 +255,9 @@ export class CombatNarration {
     attacker: Stuff,
   ): string {
     const commandId = SecurityApi.uuid();
-    const I = Mml.name(interposer);
-    const P = Mml.name(protectee);
-    const A = Mml.name(attacker);
+    const I = Mml.actor(interposer);
+    const P = Mml.actor(protectee);
+    const A = Mml.actor(attacker);
     for (const viewer of CombatNarration.witnesses(interposer)) {
       const isI = (viewer as Stuff) === (interposer as Stuff);
       const isP = (viewer as Stuff) === (protectee as Stuff);
@@ -299,8 +299,8 @@ export class CombatNarration {
    */
   static narrateCoupHeld(executioner: Stuff, victim: Stuff): string {
     const commandId = SecurityApi.uuid();
-    const E = Mml.name(executioner);
-    const V = Mml.name(victim);
+    const E = Mml.actor(executioner);
+    const V = Mml.actor(victim);
     for (const viewer of CombatNarration.witnesses(executioner)) {
       const isE = (viewer as Stuff) === (executioner as Stuff);
       const isV = (viewer as Stuff) === (victim as Stuff);
@@ -334,8 +334,8 @@ export class CombatNarration {
    */
   static narrateCoupStayed(executioner: Stuff, victim: Stuff): string {
     const commandId = SecurityApi.uuid();
-    const E = Mml.name(executioner);
-    const V = Mml.name(victim);
+    const E = Mml.actor(executioner);
+    const V = Mml.actor(victim);
     for (const viewer of CombatNarration.witnesses(executioner)) {
       const isE = (viewer as Stuff) === (executioner as Stuff);
       const isV = (viewer as Stuff) === (victim as Stuff);
@@ -392,8 +392,8 @@ export class CombatNarration {
     const { killer, victim, outcome } = report;
     const isVictim = victim && (viewer as Stuff) === (victim as Stuff);
     const isKiller = killer && (viewer as Stuff) === (killer as Stuff);
-    const K = killer ? Mml.name(killer) : Mml.text("someone");
-    const V = victim ? Mml.name(victim) : Mml.text("someone");
+    const K = killer ? Mml.actor(killer) : Mml.text("someone");
+    const V = victim ? Mml.actor(victim) : Mml.text("someone");
     const c = cause ? ` — ${cause}` : "";
     let tpl: string;
     switch (outcome) {
@@ -482,8 +482,8 @@ export class CombatNarration {
   ): Mml {
     const template = composeExchangeLine(report, tier, fragment);
     const vars = {
-      attacker: Mml.name(report.attacker),
-      defender: Mml.name(report.defender),
+      attacker: Mml.actor(report.attacker),
+      defender: Mml.actor(report.defender),
     };
     try {
       return ProseApi.format(template, vars);

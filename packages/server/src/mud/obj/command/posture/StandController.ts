@@ -68,9 +68,9 @@ export default class StandController extends CommandController<StandModel> {
       }
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.compose`You stand on ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You stand on ${Mml.thing(target)}.`)
         .toPeers(
-          Mml.compose`${Mml.name(giver)} stands on ${Mml.item(target)}.`
+          Mml.compose`${Mml.actor(giver)} stands on ${Mml.thing(target)}.`
         )
         .send();
       return;
@@ -82,7 +82,7 @@ export default class StandController extends CommandController<StandModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(Mml.compose`You stand up.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} stands up.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} stands up.`)
       .send();
     return;
   }

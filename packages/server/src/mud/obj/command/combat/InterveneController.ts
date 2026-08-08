@@ -43,7 +43,7 @@ export default class InterveneController extends CommandController<InterveneMode
     if (!stopped) {
       return this.fail(
         context,
-        `There is no killing stroke to stay over ${Mml.item(target).toString()}.`,
+        `There is no killing stroke to stay over ${Mml.thing(target).toString()}.`,
         "no-coup",
       );
     }

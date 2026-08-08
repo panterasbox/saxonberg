@@ -101,7 +101,7 @@ const FLATTEN_CORPUS: ReadonlyArray<readonly [string, string]> = [
   ['<li>stray</li>', '- stray'],
   ['<chan id="gossip">[Gossip]</chan>', '[Gossip]'],
   ['<msg>hello</msg>', 'hello'],
-  ['<name stuff-id="x">Alice</name>', 'Alice'],
+  ['<player stuff-id="x">Alice</player>', 'Alice'],
   ['<speech>"hi"</speech>', '"hi"'],
   ['plain text', 'plain text'],
   ['&lt;&gt;&amp;&quot;&apos;', `<>&"'`],

@@ -313,7 +313,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
     const reactionScope =
       'channel:' + (subject?.getGroupRef() || channelId);
-    const speakerName = Mml.name(speaker);
+    const speakerName = Mml.actor(speaker);
     const safeBody = Mml.markdownToMml(
       body,
       Mml.perceiverMentionResolver(speaker),

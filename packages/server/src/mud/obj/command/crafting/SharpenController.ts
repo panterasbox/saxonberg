@@ -63,7 +63,7 @@ export default class SharpenController extends ManualBuildController<SharpenMode
     ) {
       this.declineStep(
         context,
-        Mml.compose`${Mml.item(blade)} has no edge to hold a hone.`,
+        Mml.compose`${Mml.thing(blade)} has no edge to hold a hone.`,
         'no-edge',
       );
       return;
@@ -84,15 +84,15 @@ export default class SharpenController extends ManualBuildController<SharpenMode
     this.engageStep(context, {
       // The stone paces its own ritual (a grinding wheel is faster).
       durationMs: this.paceMs(sharpenDurationMs(), stone, ['whetstone']),
-      beginSelf: Mml.compose`You set to work on ${Mml.item(blade)} with ${Mml.item(stone)}, long slow strokes.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} sets to sharpening ${Mml.item(blade)}.`,
+      beginSelf: Mml.compose`You set to work on ${Mml.thing(blade)} with ${Mml.thing(stone)}, long slow strokes.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} sets to sharpening ${Mml.thing(blade)}.`,
       onComplete: () => {
         keenBlade.hone();
         if (MixinApi.isDurable(stone)) stone.wear();
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You thumb the edge of ${Mml.item(blade)} — keen again.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} finishes sharpening ${Mml.item(blade)}.`)
+          .toSelf(Mml.compose`You thumb the edge of ${Mml.thing(blade)} — keen again.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} finishes sharpening ${Mml.thing(blade)}.`)
           .send();
       },
     });

@@ -98,7 +98,7 @@ export function findFirstTag(
 /**
  * Find any of a list of tags, returning the first hit. Used by
  * templates that accept multiple identity-tag variants (`<player>`
- * or `<name>` for the sender slot in chat).
+ * or `<npc>` for the sender slot in chat).
  */
 export function findFirstTagAny(
   tree: MmlNode[],

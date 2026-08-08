@@ -13,7 +13,7 @@
  * Rendering:
  *   - Empty result → friendly "no matches" line.
  *   - Non-empty → one row per match, each row carrying the canonical
- *     display name via `Mml.item(stuff)`. The MML identity tag
+ *     display name via `Mml.thing(stuff)`. The MML identity tag
  *     makes each row clickable in the inspection-pane / terminal
  *     client (the click resolves to `look <primaryKeyword>` via the
  *     client stuff registry — see the inspection-pane wave plan).
@@ -90,7 +90,7 @@ export default class FindController extends CommandController<FindModel> {
     // bootstrap Stuff with no clone-pipeline stamp) renders as
     // bare display name even for admins.
     const rows: Mml[] = matches.map((stuff) => {
-      const item = Mml.item(stuff);
+      const item = Mml.thing(stuff);
       if (!showTemplatePath) return item;
       const path = stuff.getTemplatePath();
       if (!path) return item;

@@ -103,11 +103,11 @@ describe('VocalMixin.say --to', () => {
 
     // charlie = peer
     expect(charlie.received).toHaveLength(1);
-    expect(charlie.received[0]!.body).toMatch(/says to <name/);
+    expect(charlie.received[0]!.body).toMatch(/says to <thing/);
 
     // alice = self
     expect(alice.received).toHaveLength(1);
-    expect(alice.received[0]!.body).toMatch(/^You say to <name/);
+    expect(alice.received[0]!.body).toMatch(/^You say to <thing/);
   });
 
   it('stamps acousticDb = 60 on say (with or without target)', () => {

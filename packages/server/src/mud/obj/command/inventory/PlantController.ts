@@ -72,7 +72,7 @@ export default class PlantController extends CommandController<PlantModel> {
       const detail = `${seed.getPresentation()} is not a seed`;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(seed)} isn't a seed.`)
+        .toSelf(Mml.compose`${Mml.thing(seed)} isn't a seed.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -85,7 +85,7 @@ export default class PlantController extends CommandController<PlantModel> {
       const detail = `${target.getPresentation()} is not a pot`;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't plant anything in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You can't plant anything in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -156,7 +156,7 @@ export default class PlantController extends CommandController<PlantModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} has no soil in it. Pour some in first.`,
+          Mml.compose`${Mml.thing(target)} has no soil in it. Pour some in first.`,
         )
         .send();
       context.note({
@@ -170,7 +170,7 @@ export default class PlantController extends CommandController<PlantModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} already has something growing in it.`,
+          Mml.compose`${Mml.thing(target)} already has something growing in it.`,
         )
         .send();
       context.note({
@@ -185,7 +185,7 @@ export default class PlantController extends CommandController<PlantModel> {
     if (!growsInto) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(seed)} doesn't seem to be viable.`)
+        .toSelf(Mml.compose`${Mml.thing(seed)} doesn't seem to be viable.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -204,7 +204,7 @@ export default class PlantController extends CommandController<PlantModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} is too small for that to grow in.`,
+          Mml.compose`${Mml.thing(target)} is too small for that to grow in.`,
         )
         .send();
       context.note({
@@ -247,10 +247,10 @@ export default class PlantController extends CommandController<PlantModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You press the seed into the soil. ${Mml.item(plant)} will grow here.`,
+        Mml.compose`You press the seed into the soil. ${Mml.thing(plant)} will grow here.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} plants a seed in ${Mml.item(target)}.`,
+        Mml.compose`${Mml.actor(giver)} plants a seed in ${Mml.thing(target)}.`,
       )
       .send();
   }

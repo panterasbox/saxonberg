@@ -28,7 +28,7 @@ export default class InventoryController extends CommandController {
     if (contents.length === 0) {
       body = Mml.compose`\nYou are not carrying anything.\n`;
     } else {
-      const items = contents.map((item) => Mml.item(item));
+      const items = contents.map((item) => Mml.thing(item));
       const list = Mml.list(items);
       body = Mml.compose`\nYou are carrying: ${list}.\n`;
     }

@@ -50,7 +50,7 @@ export default class PumpController extends CommandController<PumpModel> {
     if (!MixinApi.isFurnace(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(target)} has no bellows to work.`)
+        .toSelf(Mml.compose`${Mml.thing(target)} has no bellows to work.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -63,7 +63,7 @@ export default class PumpController extends CommandController<PumpModel> {
     if (furnace.getBellowsMultiplier() <= 1) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(target)} has no bellows to work.`)
+        .toSelf(Mml.compose`${Mml.thing(target)} has no bellows to work.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -76,7 +76,7 @@ export default class PumpController extends CommandController<PumpModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`You work the bellows, but ${Mml.item(target)} is cold — air without fire moves nothing.`,
+          Mml.compose`You work the bellows, but ${Mml.thing(target)} is cold — air without fire moves nothing.`,
         )
         .send();
       context.note({
@@ -93,20 +93,20 @@ export default class PumpController extends CommandController<PumpModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`You lean into the bellows, and ${Mml.item(target)} roars up white-hot.`,
+          Mml.compose`You lean into the bellows, and ${Mml.thing(target)} roars up white-hot.`,
         )
         .toPeers(
-          Mml.compose`${Mml.name(giver)} works the bellows; ${Mml.item(target)} roars up white-hot.`,
+          Mml.compose`${Mml.actor(giver)} works the bellows; ${Mml.thing(target)} roars up white-hot.`,
         )
         .send();
     } else {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`You ease off the bellows, and ${Mml.item(target)} settles back to its banked glow.`,
+          Mml.compose`You ease off the bellows, and ${Mml.thing(target)} settles back to its banked glow.`,
         )
         .toPeers(
-          Mml.compose`${Mml.name(giver)} eases off the bellows of ${Mml.item(target)}.`,
+          Mml.compose`${Mml.actor(giver)} eases off the bellows of ${Mml.thing(target)}.`,
         )
         .send();
     }

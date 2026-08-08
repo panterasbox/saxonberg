@@ -164,7 +164,7 @@ describe('viewer-aware naming through a scene (real path)', () => {
     // recipient materializes it against itself as the viewer.
     MessageApi.scene(room)
       .topic('sense.survey')
-      .toContents(Mml.compose`${Mml.name(bob)} is here.`)
+      .toContents(Mml.compose`${Mml.actor(bob)} is here.`)
       .send();
 
     const friendBody = friend.received.at(-1)?.body ?? '';

@@ -84,9 +84,9 @@ export default class UnfoldController extends CommandController<UnfoldModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You unfold ${Mml.object(foldable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You unfold ${Mml.thing(foldable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} unfolds ${Mml.object(foldable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} unfolds ${Mml.thing(foldable as unknown as Stuff)}.`,
       )
       .send();
 

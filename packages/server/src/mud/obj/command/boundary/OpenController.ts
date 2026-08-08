@@ -113,9 +113,9 @@ export default class OpenController extends CommandController<OpenModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You open ${Mml.object(sealable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You open ${Mml.thing(sealable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} opens ${Mml.object(sealable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} opens ${Mml.thing(sealable as unknown as Stuff)}.`,
       )
       .send();
 

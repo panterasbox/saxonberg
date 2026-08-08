@@ -48,8 +48,8 @@ export default class ForgeController extends CraftController<ForgeModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You forge ${Mml.item(output)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} forges ${Mml.item(output)}.`)
+      .toSelf(Mml.compose`You forge ${Mml.thing(output)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} forges ${Mml.thing(output)}.`)
       .send();
   }
 }

@@ -134,7 +134,7 @@ function engine(): Liquid {
   // fallback string in a `<name>` tag (which would lie about identity).
   built.registerFilter('name', (v) => {
     const s = asStuff(v);
-    return s && MixinApi.isNamed(s) ? Mml.name(s) : '';
+    return s && MixinApi.isNamed(s) ? Mml.actor(s) : '';
   });
 
   // `| item`, `| location`, `| object` accept any Stuff. The underlying
@@ -145,7 +145,7 @@ function engine(): Liquid {
   // surface rather than swallowing the call.
   built.registerFilter('item', (v) => {
     const s = asStuff(v);
-    return s ? Mml.item(s) : '';
+    return s ? Mml.thing(s) : '';
   });
   built.registerFilter('location', (v) => {
     const s = asStuff(v);
@@ -153,7 +153,7 @@ function engine(): Liquid {
   });
   built.registerFilter('object', (v) => {
     const s = asStuff(v);
-    return s ? Mml.object(s) : '';
+    return s ? Mml.thing(s) : '';
   });
   built.registerFilter('direction', (v) =>
     v == null || v === '' ? '' : Mml.direction(String(v)),

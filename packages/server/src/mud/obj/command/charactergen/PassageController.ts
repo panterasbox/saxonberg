@@ -103,7 +103,7 @@ export default class PassageController extends CommandController<CommandModel> {
       .toSelf(
         Mml.compose`You take a breath, and it is your own. The between lets go — and leaves you with nothing to spare.`,
       )
-      .toPeers(Mml.compose`${Mml.name(body)} draws a first breath.`)
+      .toPeers(Mml.compose`${Mml.actor(body)} draws a first breath.`)
       .send();
   }
 }

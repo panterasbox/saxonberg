@@ -51,7 +51,7 @@ export default class WeighController extends CommandController<WeighModel> {
     }
     const mass = (target.stuff as Stuff & { getMass(): import('../../../lib/quantity').Quantity<'kg'> }).getMass();
 
-    const body = Mml.compose`${Mml.name(target.stuff)} weighs ${mass.formatMml(undefined, undefined, { channel: 'mass', via })}.\n`;
+    const body = Mml.compose`${Mml.thing(target.stuff)} weighs ${mass.formatMml(undefined, undefined, { channel: 'mass', via })}.\n`;
 
     MessageApi.scene(context.commandGiver)
       .topic('sense.reading')

@@ -114,10 +114,10 @@ export default class SwitchController extends CommandController<SwitchModel> {
     MessageApi.scene(commandGiver)
       .topic('act.deed')
       .toSelf(
-        Mml.compose`You switch ${Mml.object(switchable as unknown as Stuff)} ${word}.`,
+        Mml.compose`You switch ${Mml.thing(switchable as unknown as Stuff)} ${word}.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} switches ${Mml.object(switchable as unknown as Stuff)} ${word}.`,
+        Mml.compose`${Mml.actor(commandGiver)} switches ${Mml.thing(switchable as unknown as Stuff)} ${word}.`,
       )
       .send();
 

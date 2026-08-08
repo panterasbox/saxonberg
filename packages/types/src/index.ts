@@ -856,6 +856,53 @@ export interface ReactionExpandMessage {
 }
 
 /**
+ * Ask the server what a viewer can do with one object, right now —
+ * the request behind the radial menu. Correlated by `requestId`; the
+ * subject is named by `stuffId`, the same token every identity tag
+ * already carries on the wire.
+ *
+ * One-shot request/response, deliberately not a subscription: a menu
+ * is open for a second or two. Keeping an open radial live as the
+ * world changes is possible on the subscription substrate and is
+ * deferred until something needs it.
+ */
+export interface AffordanceResolveMessage {
+  type: 'affordance-resolve';
+  requestId: string;
+  stuffId: string;
+}
+
+/**
+ * Whether a verb can be run on the subject right now.
+ *
+ * `pending-operand` is the state that keeps a radial honest: `put`
+ * passes every check a menu can evaluate, but still needs a container
+ * the menu cannot know. Reporting it plainly `enabled` would promise
+ * a click that then stalls on a prompt.
+ */
+export type AffordanceState = 'enabled' | 'disabled' | 'pending-operand';
+
+/** One verb in an {@link AffordanceResultEnvelope}. */
+export interface AffordanceEntry {
+  verb: string;
+  /** Authored one-line description — the menu's label text. */
+  description: string;
+  state: AffordanceState;
+  /**
+   * Why it is unavailable — **the validator's own words**, verbatim.
+   * Present only on `disabled`. The strings are already written in
+   * player-facing prose, because a validator's return value is what
+   * the player would have been shown had they typed the verb.
+   */
+  reason?: string;
+  /**
+   * The field still needing a value, on `pending-operand` — so the
+   * client can open the right prompt rather than guessing.
+   */
+  operand?: string;
+}
+
+/**
  * Inbound response to a server-pushed prompt. The substrate looks
  * up the resolver by `promptId`, decodes `response` per the prompt
  * kind (string for `choice` / `text`; `'yes'` / `'no'` for
@@ -1289,6 +1336,46 @@ export interface ReactionExpandResultEnvelope {
 }
 
 /**
+ * Result of an {@link AffordanceResolveMessage}: what this viewer can
+ * do with this object, at this instant.
+ *
+ * ⚠ **Both lists are filtered, and filtering means DELETION.** A verb
+ * the viewer is not entitled to know about is absent — never present
+ * and flagged — because a response that admits a hidden verb exists
+ * leaks the fact that it exists. Same for a concealed mixin. The
+ * honest-fog rule; see docs/subsystems/concealment.md.
+ */
+export interface AffordanceResultEnvelope {
+  type: 'affordance-result';
+  frameId: number;
+  requestId: string;
+  stuffId: string;
+  verbs: AffordanceEntry[];
+  /**
+   * The subject's active mixin composition, so the menu can label and
+   * group without a second round trip. **Active**, not declared:
+   * augments, implants, species innates and on-shift conferral all
+   * change it at runtime.
+   */
+  composition: string[];
+}
+
+/**
+ * The subject could not be resolved for this viewer.
+ *
+ * ⚠ One reason code, and that is deliberate: distinguishing "no such
+ * object" from "you may not see that object" would answer the
+ * question the gate exists to refuse.
+ */
+export interface AffordanceErrorEnvelope {
+  type: 'affordance-error';
+  frameId: number;
+  requestId: string;
+  stuffId: string;
+  reason: 'unresolvable';
+}
+
+/**
  * Live broadcast state — the public, read-only overlay projection
  * served to `service:broadcast` connections (OBS browser sources).
  * Deliberately tiny in Phase 1; later gains active scene, lower-third
@@ -1344,6 +1431,8 @@ export type Envelope =
   | ForumSubscriptionErrorEnvelope
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
+  | AffordanceResultEnvelope
+  | AffordanceErrorEnvelope
   | StreamStateEnvelope
   | RelayChatEnvelope;
 
@@ -1365,6 +1454,8 @@ export type EnvelopeTemplate =
   | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
+  | Omit<AffordanceResultEnvelope, 'frameId'>
+  | Omit<AffordanceErrorEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
   | Omit<RelayChatEnvelope, 'frameId'>;
 

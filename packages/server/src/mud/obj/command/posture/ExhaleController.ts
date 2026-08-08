@@ -35,7 +35,7 @@ export default class ExhaleController extends CommandController<CommandModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(Mml.compose`You let your held breath out.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} lets out a held breath.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} lets out a held breath.`)
       .send();
   }
 }

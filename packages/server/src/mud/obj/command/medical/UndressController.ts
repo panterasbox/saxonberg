@@ -58,7 +58,7 @@ export default class UndressController extends CommandController<UndressModel> {
     if (!MixinApi.isVitals(target)) {
       return this.fail(
         context,
-        `You can't undress a wound on ${Mml.item(target).toString()}.`,
+        `You can't undress a wound on ${Mml.thing(target).toString()}.`,
         'not-a-body'
       );
     }

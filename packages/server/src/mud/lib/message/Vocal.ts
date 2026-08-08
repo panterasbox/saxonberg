@@ -2,10 +2,10 @@
  * VocalMixin — speech for sentient beings.
  *
  * `say(text, target?)` composes a Scene at `speech.vocal`. Default
- * shape (no target): self frame "You say, ...", peers frame "<name>X</name>
- * says, ...". With `--to <target>`: self "You say to <name>Y</name>,
- * ...", peers "<name>X</name> says to <name>Y</name>, ...", and a
- * target frame "<name>X</name> says to you, ...".
+ * shape (no target): self frame "You say, ...", peers frame "<player>X</player>
+ * says, ...". With `--to <target>`: self "You say to <player>Y</player>,
+ * ...", peers "<player>X</player> says to <player>Y</player>, ...", and a
+ * target frame "<player>X</player> says to you, ...".
  *
  * `whisper(text, target?)` rides the same Scene scaffolding but stamps
  * a lower `meta.acousticDb` for short-reach acoustic propagation. The
@@ -135,13 +135,13 @@ function vocalEmit(
   let peersBody: Mml;
   let targetBody: Mml | undefined;
   if (target) {
-    const targetName = Mml.name(target);
+    const targetName = Mml.actor(target);
     selfBody = Mml.compose`You ${verbSelf} to ${targetName}, ${speechFragment}`;
-    peersBody = Mml.compose`${Mml.name(speaker)} ${verbThird} to ${targetName}, ${speechFragment}`;
-    targetBody = Mml.compose`${Mml.name(speaker)} ${verbThird} to you, ${speechFragment}`;
+    peersBody = Mml.compose`${Mml.actor(speaker)} ${verbThird} to ${targetName}, ${speechFragment}`;
+    targetBody = Mml.compose`${Mml.actor(speaker)} ${verbThird} to you, ${speechFragment}`;
   } else {
     selfBody = Mml.compose`You ${verbSelf}, ${speechFragment}`;
-    peersBody = Mml.compose`${Mml.name(speaker)} ${verbThird}, ${speechFragment}`;
+    peersBody = Mml.compose`${Mml.actor(speaker)} ${verbThird}, ${speechFragment}`;
   }
 
   const scene = MessageApi.scene(speaker)

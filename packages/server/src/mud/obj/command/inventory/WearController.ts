@@ -67,7 +67,7 @@ export default class WearController extends CommandController<WearModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          Mml.compose`${Mml.item(target)} doesn't fit your body.`,
+          Mml.compose`${Mml.thing(target)} doesn't fit your body.`,
         )
         .send();
       context.note({
@@ -97,9 +97,9 @@ export default class WearController extends CommandController<WearModel> {
     SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You put on ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You put on ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} puts on ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} puts on ${Mml.thing(target)}.`
       )
       .send();
     return;

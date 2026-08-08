@@ -42,7 +42,7 @@ export default class StirController extends ManualBuildController<StirModel> {
     if (vessel.isBuildEmpty()) {
       this.declineStep(
         context,
-        Mml.compose`${Mml.item(vessel)} is empty — there's nothing to ${verb} yet.`,
+        Mml.compose`${Mml.thing(vessel)} is empty — there's nothing to ${verb} yet.`,
         "empty-build",
       );
       return;
@@ -52,14 +52,14 @@ export default class StirController extends ManualBuildController<StirModel> {
     const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(STIR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
-      beginSelf: Mml.compose`You begin to ${verb} ${Mml.item(vessel)}.`,
+      beginSelf: Mml.compose`You begin to ${verb} ${Mml.thing(vessel)}.`,
       onComplete: () => {
         built.setBuildMethod(method);
         built.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You ${verb} ${Mml.item(built)} well.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} ${verb}s ${Mml.item(built)}.`)
+          .toSelf(Mml.compose`You ${verb} ${Mml.thing(built)} well.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(built)}.`)
           .send();
       },
     });

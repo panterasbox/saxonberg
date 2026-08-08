@@ -70,7 +70,7 @@ export default class FulfillController extends CommandController<FulfillModel> {
         Mml.compose`Your implant sweeps the drop, verifies the delivery, and seals the record. Redeem it at the board with \`job complete\`.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} checks a delivery off against an implant record.`,
+        Mml.compose`${Mml.actor(giver)} checks a delivery off against an implant record.`,
       )
       .send();
   }
