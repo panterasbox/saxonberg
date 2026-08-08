@@ -87,7 +87,7 @@ export default class AssessController extends CommandController<AssessModel> {
     if (!MixinApi.isVitals(target)) {
       return this.fail(
         context,
-        `You can't assess ${Mml.item(target).toString()}.`,
+        `You can't assess ${Mml.thing(target).toString()}.`,
         'not-a-body'
       );
     }

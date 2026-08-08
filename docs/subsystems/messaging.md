@@ -263,15 +263,14 @@ class Mml {
   static fromMarkup(raw: string): Mml          // explicit trust assertion
 
   // Identity vocabulary
-  static name(stuff: Stuff): Mml               // <name stuff-id="…">…</name>
+  static actor(stuff: Stuff): Mml              // → <player> | <npc> | <thing>
+  static thing(stuff: Stuff): Mml              // <thing stuff-id="…">…</thing>
+  static player(stuff: Stuff): Mml             // <player stuff-id="…">…</player>
+  static npc(stuff: Stuff): Mml                // <npc stuff-id="…">…</npc>
   static speech(text: string | Mml): Mml       // <speech>"…"</speech>
   static location(stuff: Stuff): Mml           // <location stuff-id="…">…</location>
   static direction(d: string): Mml             // <direction>…</direction>
   static exit(exit: Exit): Mml                 // <exit dir="…" stuff-id="…">…</exit>
-  static object(stuff: Stuff): Mml             // <object stuff-id="…">…</object>
-  static item(stuff: Stuff): Mml               // <item stuff-id="…">…</item>
-  static player(stuff: Stuff): Mml             // <player stuff-id="…">…</player>
-  static npc(stuff: Stuff): Mml                // <npc stuff-id="…">…</npc>
 
   // Chat / messaging vocabulary
   static chan(id: string, label: string): Mml  // <chan id="…">[Label]</chan>
@@ -544,6 +543,77 @@ Future contributors (exit-direction auto-link on
 spoiler hide) plug in via the same `static markupAugmenters`
 slot with no changes to `Visible` or its consumers.
 
+### ⭐ The identity tags — `actor` / `thing` / `player` / `npc`
+
+Three wire tags, one authoring face. The vocabulary used to have five
+(`name`, `item`, `object`, `player`, `npc`); the collapse is the point
+of the change, and each half of it was wrong in a different way.
+
+**`item` vs `object` split on portability — which is state, not kind.**
+A chair is furniture until somebody picks it up. Nothing downstream
+ever branched on the difference, so the split cost two vocabulary
+entries and bought nothing. Both are now **`thing`**.
+
+**`name` asserted nothing**, which is exactly why 195 of the tree's
+~230 identity emitters reached for it. An emitter holds a `giver` and
+cannot know whether a human is on the other end — so it reached for the
+tag that let it not say. The wire learned nothing from any of them.
+
+**`Mml.actor` is the face that replaces it**, and it resolves late:
+
+```typescript
+Mml.actor(giver)   // the emitter says "a person acting" and stops
+// → <player …> | <npc …> | <thing …>, decided at toString(viewer)
+```
+
+The decision is `RecognitionApi.kindOf(viewer, target)`, which lives
+beside `describe` because it is the same question — *what does THIS
+recipient perceive* — asked about the kind instead of the name. It
+answers in four steps:
+
+| Gate | Answer | Why |
+|---|---|---|
+| not an `Organism` | `thing` | Honest failure. Handing an actor face a chair must not promote it to a character. |
+| no `HasInteractive` | `npc` | Alive, nobody driving. |
+| no viewer | `player` | Logs, snapshots, `refOf`. Nobody is being fooled, and a log that lied would be useless. |
+| can't see it, or it's masked | `npc` | ⚠ See below. |
+| otherwise | `player` | |
+
+> ⚠⚠ **`<player>` is the sharpest identity claim in the vocabulary.**
+> It asserts a real person is behind a figure — precisely the fact a
+> disguise exists to hide. So a viewer who cannot see the target, or
+> who is looking at a mask, is told `npc`. That is a **false statement
+> told to a fooled viewer**, and it is consistent: `getPresentation()`
+> already tells that viewer the covering's name. The alternative — a
+> third "unknown" tag — would announce *that* something is being
+> withheld, which leaks the same fact one level up.
+
+**`actor` is never a wire tag.** It is not in `KNOWN_TAGS`, it never
+reaches a parser, a policy, a stylesheet or a client, and a test pins
+its absence. Nothing downstream grows a branch for a tag meaning "ask
+again."
+
+> ⚠ **Any list of "what is here" must use `Mml.actor`.** Room contents
+> include people. `look` splits organisms out to the occupant formatter
+> and so was already right; the **sense** verbs do not, and rendered a
+> person `<thing>` — Dave read `<thing>` under `sense` and `<npc>` under
+> `look`, in the same room, seconds apart. The divergence long predated
+> this build and was invisible while both tags meant nothing. Same for
+> surface-resting lists (someone sits on a stool) and search results
+> (what a search turns up is very often a hiding person). Only a
+> definitionally-object list — inventory — stays `Mml.thing`.
+
+**Use `player` / `npc` / `thing` directly only where the emitter knows
+something the world does not** — the puppeteer behind a possessed
+corpse, an illusion that should read as a person, a corpse being named
+as an object. Those are the cases the framework must not guess at, and
+they stay explicit. Everything else says `actor`.
+
+All three wire tags are **identity claims**, so no passthrough policy
+below `all` admits them — a player who could write `<player>` could out
+somebody, and one who could write `<thing>` could plant a clickable
+pointing at an object that is not there.
+
 ## Scene — multi-audience composer
 
 `MessageApi.scene(actor)` returns a `Scene` builder. Layer 3 of the
@@ -554,7 +624,7 @@ dispatches them all.
 MessageApi.scene(speaker)
   .topic('speech.vocal')
   .toSelf(Mml.compose`You say, ${Mml.speech(text)}`)
-  .toPeers(Mml.compose`${Mml.name(speaker)} says, ${Mml.speech(text)}`)
+  .toPeers(Mml.compose`${Mml.actor(speaker)} says, ${Mml.speech(text)}`)
   .payload({ speaker: MessageApi.refOf(speaker), text })
   .send();
 ```
@@ -869,11 +939,11 @@ MudlogApi.info(Mml.compose`Boot complete`);   // body-only
 
 if (MudlogApi.isEnabled('combat', 'debug')) {
   MudlogApi.debug('combat',
-    Mml.compose`${Mml.name(attacker)} swing detail: ${expensive.computation()}`);
+    Mml.compose`${Mml.actor(attacker)} swing detail: ${expensive.computation()}`);
 }
 
 MudlogApi.info('admin',
-  Mml.compose`${Mml.name(player)} just hit level 50`,
+  Mml.compose`${Mml.actor(player)} just hit level 50`,
   { to: [admin1, admin2] });
 ```
 
@@ -942,7 +1012,7 @@ The override hierarchy `MobileMixin` consults (highest priority first):
 3. **`messages.movement.*` settings** — schema-defaulted, player-overridable.
 
 Each schema entry's default is rendered through `ProseApi.format`,
-which interpolates `Mml.name(mover)` and `Mml.direction(...)` and
+which interpolates `Mml.actor(mover)` and `Mml.direction(...)` and
 handles the directional/bland arrive split via `{% if direction %}`
 inside a single template — see [prose.md](./prose.md) for the
 templating language.

@@ -190,7 +190,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
         text.trim(),
         Mml.perceiverMentionResolver(actor),
       );
-      const actorName = Mml.name(actor);
+      const actorName = Mml.actor(actor);
       // Single peer body covers BOTH peers and the explicit target —
       // the target's cockpit substitutes "you" for its own `<name>` /
       // `<mention>` match (per-viewer rendering rule). The actor's
@@ -216,7 +216,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
         .topic('act.deed')
         .toSelf(Mml.compose`You introduce yourself as ${name}.`)
         .toPeers(
-          Mml.compose`${Mml.name(actor)} introduces themselves as ${name}.`,
+          Mml.compose`${Mml.actor(actor)} introduces themselves as ${name}.`,
         )
         .send();
       const env = MixinApi.isContainable(actor) ? actor.getContainer() : null;

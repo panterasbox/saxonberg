@@ -56,7 +56,7 @@ export default class PourController extends CommandController<PourModel> {
     if (fromSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to pour out of ${Mml.item(source)}.`)
+        .toSelf(Mml.compose`There's nothing to pour out of ${Mml.thing(source)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -68,7 +68,7 @@ export default class PourController extends CommandController<PourModel> {
     if (toSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't pour anything into ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You can't pour anything into ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -91,10 +91,10 @@ export default class PourController extends CommandController<PourModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`The liquid runs straight through ${Mml.item(target)} and pools on the floor.`,
+          Mml.compose`The liquid runs straight through ${Mml.thing(target)} and pools on the floor.`,
         )
         .toPeers(
-          Mml.compose`${Mml.name(giver)} pours liquid through ${Mml.item(target)}; it pools on the floor.`,
+          Mml.compose`${Mml.actor(giver)} pours liquid through ${Mml.thing(target)}; it pools on the floor.`,
         )
         .send();
       return;
@@ -109,9 +109,9 @@ export default class PourController extends CommandController<PourModel> {
         (n) => n.kind === 'quantity-clamped-rejected',
       );
       const line = mismatch
-        ? Mml.compose`That won't mix with what's already in ${Mml.item(target)}.`
+        ? Mml.compose`That won't mix with what's already in ${Mml.thing(target)}.`
         : rejected
-          ? Mml.compose`That's more than will fit in ${Mml.item(target)}.`
+          ? Mml.compose`That's more than will fit in ${Mml.thing(target)}.`
           : Mml.compose`There's nothing to pour.`;
       MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
       return;
@@ -121,9 +121,9 @@ export default class PourController extends CommandController<PourModel> {
     // forwarded; the prose stays the same).
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pour from ${Mml.item(source)} into ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You pour from ${Mml.thing(source)} into ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} pours from ${Mml.item(source)} into ${Mml.item(target)}.`,
+        Mml.compose`${Mml.actor(giver)} pours from ${Mml.thing(source)} into ${Mml.thing(target)}.`,
       )
       .send();
   }

@@ -91,9 +91,9 @@ export default class LockController extends CommandController<LockModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You lock ${Mml.object(lockable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You lock ${Mml.thing(lockable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} locks ${Mml.object(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} locks ${Mml.thing(lockable as unknown as Stuff)}.`,
       )
       .send();
 

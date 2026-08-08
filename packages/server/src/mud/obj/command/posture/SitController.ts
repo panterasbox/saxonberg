@@ -74,7 +74,7 @@ export default class SitController extends CommandController<SitModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(Mml.compose`You sit down.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} sits down.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} sits down.`)
       .send();
     return;
   }

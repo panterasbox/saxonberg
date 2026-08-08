@@ -257,9 +257,9 @@ describe('Scene multi-audience dispatch', () => {
   it('plain string body is treated as raw markup-already', () => {
     MessageApi.scene(alice)
       .topic('x')
-      .toSelf('<name>Alice</name> hi')
+      .toSelf('<player>Alice</player> hi')
       .send();
-    expect(alice.received[0]!.body).toBe('<name>Alice</name> hi');
+    expect(alice.received[0]!.body).toBe('<player>Alice</player> hi');
   });
 });
 

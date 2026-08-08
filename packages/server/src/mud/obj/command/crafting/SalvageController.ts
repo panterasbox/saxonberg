@@ -69,7 +69,7 @@ export default class SalvageController extends CraftController<SalvageModel> {
       .toSelf(
         Mml.compose`You break ${itemName} down for its matter — what the work put in, the wrecking mostly loses.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} breaks ${itemName} down for salvage.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} breaks ${itemName} down for salvage.`)
       .send();
   }
 }

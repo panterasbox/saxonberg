@@ -261,7 +261,7 @@ export default class LookController extends CommandController<LookModel> {
           );
         }
         if (items.length > 0) {
-          segments.push(Mml.list(items.map((item) => Mml.item(item))));
+          segments.push(Mml.list(items.map((item) => Mml.thing(item))));
         }
         const seen = Mml.list(segments);
         body = Mml.compose`${body}\n── You also see: ${seen}.`;
@@ -337,7 +337,7 @@ export default class LookController extends CommandController<LookModel> {
     // bare `look` ship the same affordance-annotated text. (A
     // consumable's nutrition label rides this augmenter seam via
     // `NutritionLabelMixin`, not a special-case here.)
-    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
 
     // Drill-in: examining a surface reveals what rests on it (the back-bar's
     // bottles + tools) — the discovery path that keeps them out of the room
@@ -345,7 +345,8 @@ export default class LookController extends CommandController<LookModel> {
     if (MixinApi.isSurfaced(target)) {
       const resting = target.getResting();
       if (resting.length > 0) {
-        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        // A person sitting on a stool rests on a surface too.
+        const list = Mml.list(resting.map((r) => Mml.actor(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
@@ -363,7 +364,8 @@ export default class LookController extends CommandController<LookModel> {
         await PerceptionApi.preloadForSenseGate(actor);
         const found = PerceptionApi.resolveSearch(actor, contents, 'glance');
         if (found.length > 0) {
-          const noticed = Mml.list(found.map((f) => Mml.item(f)));
+          // What a search turns up is very often a HIDING PERSON.
+          const noticed = Mml.list(found.map((f) => Mml.actor(f)));
           body = Mml.compose`${body}\nLooking closely, you notice ${noticed}.`;
         }
         for (const cand of PerceptionApi.hintsFor(actor, contents)) {
@@ -400,7 +402,7 @@ export default class LookController extends CommandController<LookModel> {
       const door = exit.getDoor();
       if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorLink = Mml.item(door);
+      const doorLink = Mml.thing(door);
       return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);

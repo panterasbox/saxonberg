@@ -171,7 +171,7 @@ with the prompt envelope (visual highlight, click-to-focus, etc.).
 
 ```ts
 PromptApi.mqlObject(iact, 'Which sword?', matches, {
-  body: Mml.compose`Multiple swords match: ${Mml.item(rusty)} or ${Mml.item(iron)}.`,
+  body: Mml.compose`Multiple swords match: ${Mml.thing(rusty)} or ${Mml.thing(iron)}.`,
 });
 ```
 

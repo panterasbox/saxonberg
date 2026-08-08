@@ -50,7 +50,7 @@ export default class WieldController extends CommandController<WieldModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          Mml.compose`Your hands are full — you're pulling ${Mml.item(giver.getHauledCart()!)}.`,
+          Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`,
         )
         .send();
       context.note({
@@ -79,7 +79,7 @@ export default class WieldController extends CommandController<WieldModel> {
       MessageApi.scene(giver)
         .topic('sense.survey')
         .toSelf(
-          Mml.compose`${Mml.item(target)} doesn't fit your hands.`,
+          Mml.compose`${Mml.thing(target)} doesn't fit your hands.`,
         )
         .send();
       context.note({
@@ -108,9 +108,9 @@ export default class WieldController extends CommandController<WieldModel> {
     SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You wield ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You wield ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} wields ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} wields ${Mml.thing(target)}.`
       )
       .send();
     return;

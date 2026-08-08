@@ -75,10 +75,10 @@ export default class WindController extends CommandController<WindModel> {
     MessageApi.scene(commandGiver)
       .topic('act.deed')
       .toSelf(
-        Mml.compose`You wind ${Mml.object(movement as unknown as Stuff)}; the mainspring tightens with a soft ratchet.`,
+        Mml.compose`You wind ${Mml.thing(movement as unknown as Stuff)}; the mainspring tightens with a soft ratchet.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} winds ${Mml.object(movement as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} winds ${Mml.thing(movement as unknown as Stuff)}.`,
       )
       .send();
   }

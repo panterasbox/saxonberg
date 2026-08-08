@@ -262,6 +262,21 @@ channel enum — it should be one list in one place.
 
 ### 4.2 ⭐⭐⭐ Track B — affordance resolution, **and the correction**
 
+> **STATUS — ✅ SHIPPED as S2 MR B.** Items 8 and 9 are built; 6 was
+> already answered by `commandContributions`, 7 was cut, 10 shipped in
+> MR A. See [messaging.md § The identity tags](../../subsystems/messaging.md)
+> and [command-routing.md § Affordance resolution](../../subsystems/command-routing.md).
+>
+> Two things the build corrected in this section:
+> - **Item 8's "alias during migration" did not happen, and should not
+>   have.** There is no playerbase to protect and the retired tags had
+>   no consumers; an alias would have kept a dead vocabulary alive for
+>   nobody. The retirement is total, asserted by a source scan.
+> - **Retiring `name` was not a rename.** 195 emitters used it because
+>   it let them *not* say what the referent was — a fact none of them
+>   could know. The answer is `Mml.actor`, resolved per viewer at render
+>   time, not a hand-classification of 195 sites.
+
 The spec's § 6.3 proposes adding `static affords` beside `fieldMeta` on
 every verb-conferring mixin, collected up the prototype chain.
 
@@ -517,7 +532,7 @@ Ordered so each ships independently. The handoff's build order is a good
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
 | **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). Mechanical, touches everything. | 0 (facets, for the filter surface) |
 | **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
-| ~~**3**~~ | **Track A 3–5 shipped as S2** (corpus replacement + the two-part totality gate + the `affordance` facet). Track B's resolver + `thing` collapse remain. | 1 |
+| ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
 | **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and Track D designed |
 | **5** | Track D — modes axis, layout demotion, pane subscription set. **Design before scheduling.** | 4's requirements |
 | **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |

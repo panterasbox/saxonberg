@@ -496,7 +496,7 @@ avatar shouldn't be announced as "vanishing from nowhere" or
 `resolveDepartureMessage`, `resolveArrivalMessage`:
 
 1. **`Exit.messageOut` / `messageIn`** — Liquid template, simplest
-   override. `{{ mover }}` is bound to the mover's `Mml.name`. Used
+   override. `{{ mover }}` is bound to the mover's `Mml.actor`. Used
    by the vessel's synthesized exits for "Alice enters the wardrobe."
 2. **Per-room hook:** `from.getDepartureMessage?(mover, exit)` /
    `to.getArrivalMessage?(mover, exit)` — returns

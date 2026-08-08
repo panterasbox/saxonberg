@@ -48,7 +48,7 @@ export default class AnalyzeElectricalController extends CommandController<Analy
 
     const stuff = target.stuff as Stuff;
     const lines: Mml[] = [];
-    lines.push(Mml.compose`Electrical read of ${Mml.name(stuff)}:`);
+    lines.push(Mml.compose`Electrical read of ${Mml.thing(stuff)}:`);
     let anything = false;
 
     // Material conductivity — band + raw S/m (the multimeter's headline).

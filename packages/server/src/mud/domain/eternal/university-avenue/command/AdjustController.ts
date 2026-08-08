@@ -99,10 +99,10 @@ export default class AdjustController extends CommandController<AdjustModel> {
     MessageApi.scene(commandGiver)
       .topic('act.deed')
       .toSelf(
-        Mml.compose`You thumb the crown and set ${Mml.object(movement as unknown as Stuff)} to ${time.format()}.`,
+        Mml.compose`You thumb the crown and set ${Mml.thing(movement as unknown as Stuff)} to ${time.format()}.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} sets ${Mml.object(movement as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} sets ${Mml.thing(movement as unknown as Stuff)}.`,
       )
       .send();
   }

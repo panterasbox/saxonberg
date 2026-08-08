@@ -28,7 +28,12 @@ import { readFileSync, readdirSync } from 'fs';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { SourceTreeApi } from '../../api/source-tree';
-import type { MessageFrame, Note, Status } from '@saxonberg/types';
+import type {
+  MessageFrame,
+  Note,
+  Status,
+  AffordanceEntry,
+} from '@saxonberg/types';
 import {
   MqlApi,
   type MqlMany,
@@ -38,6 +43,8 @@ import {
   type MqlOne,
 } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
+import { RecognitionApi } from '../../api/recognition';
 import { MessageApi } from '../../api/message';
 import { AccessApi } from '../../api/access';
 import { GroupApi } from '../../api/group';
@@ -66,6 +73,7 @@ import {
   type FieldValue,
   type ModelData,
   type CommandModel,
+  type AffordanceResolution,
   type FieldValidator,
   type CommandValidator,
   type ValidatorPreloads,
@@ -1487,6 +1495,217 @@ export class CommandLogic extends ApiLogic {
     const path = first.instancePath || '<root>';
     return `${path}: ${first.message ?? 'invalid'}`;
   }
+
+  /** See {@link CommandApi.resolveAffordances}. */
+  @CallSecurity(CommandApiCallers)
+  public resolveAffordances(
+    target: Stuff,
+    viewer: Stuff & CommandGiver,
+  ): Promise<AffordanceResolution | null> {
+    return resolveAffordancesImpl(target, viewer);
+  }
+}
+
+/* ─────────────────── Affordance resolution ─────────────────── */
+
+/**
+ * Execution/command id stamped on a resolution probe's context.
+ *
+ * ⚠ A fixed, recognisable sentinel rather than a fresh id per probe:
+ * a menu opening is not a command, and anything downstream that
+ * correlates by command id (attribution, the accountability ledger,
+ * `causingCommandId`) must never mistake a probe for one.
+ */
+const AFFORDANCE_PROBE_ID = 'affordance-probe';
+
+/**
+ * The object-shaped field types. A verb can take our target as an
+ * argument only if it declares one of these somewhere.
+ */
+const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
+
+/**
+ * Every object-shaped **positional** a definition declares, in slot
+ * order.
+ *
+ * ⚠ Options are deliberately excluded, and the live drive is what
+ * proved it: `cd` declares `--mql` as an object option, so counting
+ * options put `cd` — and every other shell verb with an MQL escape
+ * hatch — in the menu of every object in the world. A radial's subject
+ * binds to what the verb is ABOUT, and that is a positional. An option
+ * is a modifier the player types on purpose.
+ */
+function objectFields(cmd: CommandDefinition): string[] {
+  const names: string[] = [];
+  for (const arg of cmd.args) {
+    if (arg.type && OBJECT_FIELD_TYPES.has(arg.type)) names.push(arg.name);
+  }
+  return names;
+}
+
+/**
+ * See {@link CommandApi.resolveAffordances}.
+ *
+ * ⚠ **Every gate here DELETES.** Nothing is returned present-and-
+ * flagged, because a response admitting that a hidden verb exists
+ * leaks the fact that it exists — the honest-fog rule. That is why the
+ * error case carries one reason code and why an unidentified thing
+ * reports an empty composition rather than a redacted one.
+ */
+async function resolveAffordancesImpl(
+  target: Stuff,
+  viewer: Stuff & CommandGiver,
+): Promise<AffordanceResolution | null> {
+  // Gate 1 — perception. You cannot have a menu for something you
+  // cannot perceive, and "no such object" and "not for you" must be
+  // the same answer.
+  if (!PerceptionApi.perceives(viewer, target)) return null;
+
+  // Gate 2 — identification. ⭐ An unidentified thing tells you
+  // nothing about ITSELF: no composition, and none of the verbs it
+  // contributes, because a contributed verb IS a statement about what
+  // the thing is (an unidentified wand must not offer `recharge`).
+  // Your own verbs still apply — `get` and `look` are facts about you.
+  const identified =
+    !MixinApi.isIdentifiable(target) ||
+    RecognitionApi.knowsTrueType(viewer, target);
+
+  // ⚠ Deduped: a mixin composed at two points in the chain is returned
+  // twice by `getActiveMixins`, and the live drive showed
+  // `TangibleMixin` twice on an aether implant. A menu grouping by
+  // composition would have painted the group twice.
+  const composition = identified
+    ? [
+        ...new Set(
+          MixinApi.getActiveMixins(target)
+            .map((m) => m._mixinName ?? m.name)
+            .filter((n): n is string => !!n),
+        ),
+      ]
+    : [];
+
+  const seen = new Set<string>();
+  const entries: AffordanceEntry[] = [];
+
+  for (const affordance of viewer.getAffordances()) {
+    const cmd = affordance.command;
+    const verb = cmd.verbs[0];
+    if (!verb || seen.has(verb)) continue;
+
+    const fromTarget = affordance.source === target;
+    const fields = objectFields(cmd);
+
+    if (fromTarget) {
+      if (!identified) continue;
+    } else if (fields.length === 0) {
+      // One of the viewer's own verbs that takes no object at all —
+      // `look` with no argument, `score`. Not an affordance OF this
+      // target, so it does not belong in this target's menu.
+      continue;
+    }
+
+    seen.add(verb);
+    entries.push(await evaluateAffordance(cmd, verb, target, viewer, fields));
+  }
+
+  entries.sort((a, b) => a.verb.localeCompare(b.verb));
+  return { verbs: entries, composition };
+}
+
+/**
+ * Run one verb's declared validators against a context with `target`
+ * bound, without dispatching.
+ *
+ * ⚠ The reason string is the validator's **own return value**,
+ * verbatim. Validators already speak player-facing prose — a
+ * validator's return is exactly what the player would have been shown
+ * had they typed the verb — so re-wording here would be inventing a
+ * second, driftable copy of every refusal in the game.
+ */
+async function evaluateAffordance(
+  cmd: CommandDefinition,
+  verb: string,
+  target: Stuff,
+  viewer: Stuff & CommandGiver,
+  fields: string[],
+): Promise<AffordanceEntry> {
+  const bound = fields[0];
+  const context = CommandApi.createCommandContext({
+    commandGiver: viewer,
+    location: MixinApi.isContainable(viewer) ? viewer.getContainer() : null,
+    commandText: verb,
+    executionId: AFFORDANCE_PROBE_ID,
+    commandId: AFFORDANCE_PROBE_ID,
+    verb,
+    command: cmd,
+    commandSource: target,
+  });
+
+  // ⚠ Bound as an `MqlOneResult`, not a bare Stuff: field validators
+  // reach for `MqlApi.effectiveTarget(value, …)`, whose door-behind-an-
+  // exit rule needs the wrapper's shape. A bare Stuff survives
+  // `extractStuffs` and then silently fails the richer readers.
+  //
+  // `raw` is the probe's own marker rather than player text — nobody
+  // typed this binding.
+  const binding: MqlOneResult = { stuff: target, raw: AFFORDANCE_PROBE_ID };
+  const model: CommandModel = bound ? { [bound]: binding } : {};
+
+  // ⚠⚠ The dispatcher runs an ASYNC preload phase between MQL
+  // resolution and the sync validator bodies, and it is not optional:
+  // `requiresAnimate` reports a live avatar inanimate until its species
+  // singletons are warm. Skipping this made every verb resolve
+  // `disabled` with one nonsense reason — and the tests still passed,
+  // because "everything is disabled" is a perfectly well-formed menu.
+  const preloads = await CommandApi.preloadValidatorDeps(cmd, context, model);
+  const outcome = CommandApi.runValidators(model, context, preloads);
+
+  if ('result' in outcome) {
+    // The note the failing validator filed carries its own words.
+    const note = context
+      .getNotes()
+      .find((n) => n.kind === 'validator-failed') as
+      | { detail?: string; field?: string }
+      | undefined;
+
+    // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
+    // `put`'s `target` field carries `mustBeVisible` / `mustBePutTarget`,
+    // and with no container picked yet those run against `undefined` and
+    // fail — which would report `put` flatly unavailable on every object
+    // in the game. The only honest reading is "you have not chosen the
+    // other half yet."
+    if (note?.field && note.field !== bound && fields.includes(note.field)) {
+      return {
+        verb,
+        description: cmd.description,
+        state: 'pending-operand',
+        operand: note.field,
+      };
+    }
+
+    return {
+      verb,
+      description: cmd.description,
+      state: 'disabled',
+      reason: note?.detail ?? 'You cannot do that here.',
+    };
+  }
+
+  // ⭐ Passed every check a menu CAN evaluate — but a second object
+  // field is an operand no radial can know (`put <thing> in <what?>`).
+  // Reporting that plainly `enabled` would promise a click that then
+  // stalls on a prompt.
+  const operand = fields[1];
+  if (operand) {
+    return {
+      verb,
+      description: cmd.description,
+      state: 'pending-operand',
+      operand,
+    };
+  }
+
+  return { verb, description: cmd.description, state: 'enabled' };
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */

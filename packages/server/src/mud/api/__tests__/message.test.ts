@@ -253,7 +253,7 @@ describe('MessageApi', () => {
 
       const sayMessage = makeFrame(
         'speech.vocal',
-        '<name>Alice</name> says, <speech>"Hello everyone"</speech>'
+        '<player>Alice</player> says, <speech>"Hello everyone"</speech>'
       );
 
       MessageApi.messageContainer(speaker, sayMessage);

@@ -118,7 +118,7 @@ export default class TreatController extends CommandController<TreatModel> {
     if (!MixinApi.isVitals(target)) {
       return this.fail(
         context,
-        `You can't treat ${Mml.item(target).toString()}.`,
+        `You can't treat ${Mml.thing(target).toString()}.`,
         'not-a-body'
       );
     }
@@ -183,12 +183,12 @@ export default class TreatController extends CommandController<TreatModel> {
         .toSelf(
           isSelf
             ? Mml.compose`You drag yourself back from the edge.`
-            : Mml.compose`You drag ${Mml.name(target)} back from the edge.`
+            : Mml.compose`You drag ${Mml.actor(target)} back from the edge.`
         )
         .toPeers(
           isSelf
-            ? Mml.compose`${Mml.name(giver)} drags themselves back from the edge.`
-            : Mml.compose`${Mml.name(giver)} drags ${Mml.name(target)} back from the edge.`
+            ? Mml.compose`${Mml.actor(giver)} drags themselves back from the edge.`
+            : Mml.compose`${Mml.actor(giver)} drags ${Mml.actor(target)} back from the edge.`
         )
         .send();
       return;
@@ -201,7 +201,7 @@ export default class TreatController extends CommandController<TreatModel> {
         .toSelf(
           isSelf
             ? Mml.compose`You can't stop it.`
-            : Mml.compose`You can't hold ${Mml.name(target)}.`
+            : Mml.compose`You can't hold ${Mml.actor(target)}.`
         )
         .send();
       return;
@@ -209,14 +209,14 @@ export default class TreatController extends CommandController<TreatModel> {
 
     const selfLine = isSelf
       ? Mml.compose`You dress the ${wound.type} on your ${siteWord(wound)}.`
-      : Mml.compose`You dress the ${wound.type} on ${Mml.name(target)}.`;
+      : Mml.compose`You dress the ${wound.type} on ${Mml.actor(target)}.`;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(selfLine)
       .toPeers(
         isSelf
-          ? Mml.compose`${Mml.name(giver)} dresses a wound.`
-          : Mml.compose`${Mml.name(giver)} dresses a wound on ${Mml.name(target)}.`
+          ? Mml.compose`${Mml.actor(giver)} dresses a wound.`
+          : Mml.compose`${Mml.actor(giver)} dresses a wound on ${Mml.actor(target)}.`
       )
       .send();
   }

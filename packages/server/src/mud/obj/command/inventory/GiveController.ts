@@ -84,8 +84,8 @@ export default class GiveController extends CommandController<GiveModel> {
           .topic('sense.survey')
           .toSelf(
             release.dumpedKJ > 0
-              ? Mml.compose`You cannot let go of ${Mml.item(item)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.item(item)}. It has no intention of leaving your hand.`,
+              ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`,
           )
           .send();
         context.note({
@@ -104,16 +104,16 @@ export default class GiveController extends CommandController<GiveModel> {
 
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You give ${Mml.item(item)} to ${Mml.name(recipient)}.`)
+      .toSelf(Mml.compose`You give ${Mml.thing(item)} to ${Mml.actor(recipient)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} gives ${Mml.item(item)} to ${Mml.name(recipient)}.`,
+        Mml.compose`${Mml.actor(giver)} gives ${Mml.thing(item)} to ${Mml.actor(recipient)}.`,
       )
       .send();
     // Recipient's own scene-message for receipt. Separate Scene so
     // the recipient gets their own envelope frame.
     MessageApi.scene(recipient)
       .topic('sense.survey')
-      .toSelf(Mml.compose`${Mml.name(giver)} gives you ${Mml.item(item)}.`)
+      .toSelf(Mml.compose`${Mml.actor(giver)} gives you ${Mml.thing(item)}.`)
       .send();
   }
 }

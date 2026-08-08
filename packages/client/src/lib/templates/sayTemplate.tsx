@@ -4,7 +4,7 @@
  * `speech` topic-cascade rule both contribute italic).
  *
  * For v1, the say template's structure is the same as `default` —
- * `<name> says, "<speech>foo</speech>"` already renders correctly
+ * `<player> says, "<speech>foo</speech>"` already renders correctly
  * through the inline MmlRenderer + stylesheet pass. The template
  * exists so per-type customization later is one file change rather
  * than a refactor.

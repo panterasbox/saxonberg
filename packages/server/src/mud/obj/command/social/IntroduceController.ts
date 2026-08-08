@@ -84,7 +84,7 @@ export default class IntroduceController extends CommandController<IntroduceMode
         MessageApi.scene(actor)
           .topic(TOPIC)
           .toSelf(
-            Mml.compose`You don't know ${Mml.name(introducee)} well enough to introduce them.`,
+            Mml.compose`You don't know ${Mml.actor(introducee)} well enough to introduce them.`,
           )
           .send();
         context.note({
@@ -116,10 +116,10 @@ export default class IntroduceController extends CommandController<IntroduceMode
     // themselves as Mara") — the learning below upgrades that next time.
     const selfBody = selfIntro
       ? Mml.compose`You introduce yourself as ${name}.`
-      : Mml.compose`You introduce ${Mml.name(introducee)} as ${name}.`;
+      : Mml.compose`You introduce ${Mml.actor(introducee)} as ${name}.`;
     const peerBody = selfIntro
-      ? Mml.compose`${Mml.name(actor)} introduces themselves as ${name}.`
-      : Mml.compose`${Mml.name(actor)} introduces ${Mml.name(introducee)} as ${name}.`;
+      ? Mml.compose`${Mml.actor(actor)} introduces themselves as ${name}.`
+      : Mml.compose`${Mml.actor(actor)} introduces ${Mml.actor(introducee)} as ${name}.`;
 
     MessageApi.scene(actor)
       .topic(TOPIC)

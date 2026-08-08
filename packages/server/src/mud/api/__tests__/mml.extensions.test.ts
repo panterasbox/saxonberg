@@ -80,7 +80,7 @@ describe('Mml — new semantic tag helpers', () => {
   });
 
   it('li is the markdown list-item tag, NOT the identity item tag', () => {
-    // Round-trip-friendly: <li> is distinct from <item> (the existing
+    // Round-trip-friendly: <li> is distinct from <list> (the existing
     // identity tag), avoiding the renderer's per-tag treatment
     // overload that drove the rename in the requirements doc.
     expect(Mml.li('apple').toString()).toBe('<li>apple</li>');

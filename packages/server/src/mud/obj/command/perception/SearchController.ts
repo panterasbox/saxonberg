@@ -145,13 +145,13 @@ export default class SearchController extends CommandController<SearchModel> {
       return {
         scope: [...target.getContents()],
         depth: 'narrow',
-        subject: Mml.item(target),
+        subject: Mml.thing(target),
       };
     }
     // A named non-container: rummage its surface / immediate parts if any,
     // else there's simply nothing to open — still a valid (empty) search.
     if (target) {
-      return { scope: [], depth: 'narrow', subject: Mml.item(target) };
+      return { scope: [], depth: 'narrow', subject: Mml.thing(target) };
     }
     const location = MixinApi.isContainable(actor)
       ? actor.getContainer()
@@ -203,7 +203,7 @@ export default class SearchController extends CommandController<SearchModel> {
   /** Render one discovered thing — an exit by its direction, else by name. */
   private render(found: Stuff): Mml {
     if (found instanceof Exit) return Mml.exit(found);
-    return Mml.item(found);
+    return Mml.thing(found);
   }
 
   private beginLine(subject: Mml): Mml {
@@ -211,7 +211,7 @@ export default class SearchController extends CommandController<SearchModel> {
   }
 
   private beginPeers(actor: Stuff): Mml {
-    return Mml.compose`${Mml.name(actor)} begins searching around.`;
+    return Mml.compose`${Mml.actor(actor)} begins searching around.`;
   }
 
   private searchSeconds(): number {

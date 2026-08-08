@@ -102,9 +102,9 @@ export default class CloseController extends CommandController<CloseModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You close ${Mml.object(sealable as unknown as Stuff)}.`)
+      .toSelf(Mml.compose`You close ${Mml.thing(sealable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(sealable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} closes ${Mml.thing(sealable as unknown as Stuff)}.`,
       )
       .send();
 

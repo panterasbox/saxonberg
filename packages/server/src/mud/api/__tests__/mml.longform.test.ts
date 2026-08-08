@@ -217,7 +217,7 @@ describe('every long-form tag defines flatten (criterion 23)', () => {
 
 describe('Mml.isKnownTag / componentCandidate — the D-8 split', () => {
   it('grammar tags are known', () => {
-    for (const t of ['strong', 'h2', 'table', 'spoiler', 'name', 'link']) {
+    for (const t of ['strong', 'h2', 'table', 'spoiler', 'thing', 'link']) {
       expect(Mml.isKnownTag(t)).toBe(true);
       expect(Mml.componentCandidate(t)).toBe(false);
     }
@@ -451,7 +451,7 @@ describe('article dialect — what driving it found', () => {
  *
  * ⚠ These assertions are a security boundary, not a preference. The
  * tags kept out ACT (`<link>`/`<mention>` become clickables that issue
- * commands) or CLAIM (`<speech>`/`<name>` are identity the composer
+ * commands) or CLAIM (`<speech>`/`<player>` are identity the composer
  * emits on the server's authority).
  */
 describe('tag policy per surface', () => {
@@ -483,7 +483,7 @@ describe('tag policy per surface', () => {
     // ⚠ Still excluded, and this is the whole point of `inert`.
     expect(parse('<link to="x">y</link>', o)).toContain('&lt;link');
     expect(parse('<mention stuff-id="1">@a</mention>', o)).toContain('&lt;mention');
-    expect(parse('<name>Somebody</name>', o)).toContain('&lt;name&gt;');
+    expect(parse('<player>Somebody</player>', o)).toContain('&lt;player&gt;');
     expect(parse('<color name="red">x</color>', o)).toContain('&lt;color');
     // No component resolution either — that namespace is the wiki's.
     expect(parse('<composition of="/obj/x"/>', o)).toContain('&lt;composition');

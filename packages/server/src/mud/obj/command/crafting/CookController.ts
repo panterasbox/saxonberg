@@ -45,8 +45,8 @@ export default class CookController extends CraftController<CookModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You cook ${Mml.item(output)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} cooks ${Mml.item(output)}.`)
+      .toSelf(Mml.compose`You cook ${Mml.thing(output)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} cooks ${Mml.thing(output)}.`)
       .send();
   }
 }

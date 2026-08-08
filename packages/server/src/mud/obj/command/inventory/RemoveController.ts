@@ -72,8 +72,8 @@ export default class RemoveController extends CommandController<RemoveModel> {
         .topic('sense.survey')
         .toSelf(
           release.dumpedKJ > 0
-            ? Mml.compose`${Mml.item(target)} will not come away — and it is running hot against your skin.`
-            : Mml.compose`${Mml.item(target)} will not come away. It has no intention of letting go.`,
+            ? Mml.compose`${Mml.thing(target)} will not come away — and it is running hot against your skin.`
+            : Mml.compose`${Mml.thing(target)} will not come away. It has no intention of letting go.`,
         )
         .send();
       context.note({
@@ -86,7 +86,7 @@ export default class RemoveController extends CommandController<RemoveModel> {
     if (release.vacated === 0) {
       MessageApi.scene(giver)
         .topic('sense.survey')
-        .toSelf(Mml.compose`You aren't wearing ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You aren't wearing ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -97,9 +97,9 @@ export default class RemoveController extends CommandController<RemoveModel> {
     }
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You take off ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You take off ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} takes off ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} takes off ${Mml.thing(target)}.`
       )
       .send();
     return;

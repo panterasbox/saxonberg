@@ -69,7 +69,7 @@ export default class StudyController extends CommandController<StudyModel> {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`There is no working set out in ${Mml.item(book)} to take on board.`,
+          Mml.compose`There is no working set out in ${Mml.thing(book)} to take on board.`,
         )
         .send();
       context.note({
@@ -198,8 +198,8 @@ export default class StudyController extends CommandController<StudyModel> {
 
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You open ${Mml.item(book)} and begin to read.`)
-      .toPeers(Mml.compose`${Mml.name(actor)} settles down with a book.`)
+      .toSelf(Mml.compose`You open ${Mml.thing(book)} and begin to read.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} settles down with a book.`)
       .send();
   }
 }

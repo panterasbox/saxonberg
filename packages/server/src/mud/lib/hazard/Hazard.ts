@@ -330,7 +330,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
             ? Mml.fromMarkup(authored)
             : Mml.compose`Something gives way beneath you — a hidden trap springs!`
         )
-        .toPeers(Mml.compose`${Mml.name(victim)} springs a hidden trap.`)
+        .toPeers(Mml.compose`${Mml.actor(victim)} springs a hidden trap.`)
         .send();
     }
 
@@ -349,8 +349,8 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       MessageApi.scene(actor)
         .topic('act.deed')
-        .toSelf(Mml.compose`You defuse ${Mml.object(self)}.`)
-        .toPeers(Mml.compose`${Mml.name(actor)} defuses ${Mml.object(self)}.`)
+        .toSelf(Mml.compose`You defuse ${Mml.thing(self)}.`)
+        .toPeers(Mml.compose`${Mml.actor(actor)} defuses ${Mml.thing(self)}.`)
         .send();
     }
 

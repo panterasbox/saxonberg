@@ -84,7 +84,7 @@ export default class FeedController extends CommandController<FeedModel> {
     if (!ground) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(named)} isn't ground you can feed.`)
+        .toSelf(Mml.compose`${Mml.thing(named)} isn't ground you can feed.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -100,7 +100,7 @@ export default class FeedController extends CommandController<FeedModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(ground)} holds too little soil to need feeding.`,
+          Mml.compose`${Mml.thing(ground)} holds too little soil to need feeding.`,
         )
         .send();
       context.note({
@@ -132,7 +132,7 @@ export default class FeedController extends CommandController<FeedModel> {
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(source)} is empty.`)
+        .toSelf(Mml.compose`${Mml.thing(source)} is empty.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -147,7 +147,7 @@ export default class FeedController extends CommandController<FeedModel> {
     if (headroomPoints <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`The soil in ${Mml.item(ground)} is already rich.`)
+        .toSelf(Mml.compose`The soil in ${Mml.thing(ground)} is already rich.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -170,7 +170,7 @@ export default class FeedController extends CommandController<FeedModel> {
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`Nothing comes out of ${Mml.item(source)}.`)
+        .toSelf(Mml.compose`Nothing comes out of ${Mml.thing(source)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -205,9 +205,9 @@ export default class FeedController extends CommandController<FeedModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You work the ${appearance} into the soil of ${Mml.item(ground)}.`,
+        Mml.compose`You work the ${appearance} into the soil of ${Mml.thing(ground)}.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} feeds ${Mml.item(ground)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} feeds ${Mml.thing(ground)}.`)
       .send();
   }
 

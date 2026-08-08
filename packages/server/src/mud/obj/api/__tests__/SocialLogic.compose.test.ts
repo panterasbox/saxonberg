@@ -142,7 +142,7 @@ describe("composeOccupants — density tiers", () => {
     const v = makeViewer();
     const dwarves = [makeDwarf(1), makeDwarf(2), makeDwarf(3)];
     const out = (await SocialApi.composeOccupants(v, dwarves, 5)).toString();
-    // Each stranger gets its own <name> line, no mudq grouped handle.
+    // Each stranger gets its own name line, no mudq grouped handle.
     expect(out).toContain("dwarf 1");
     expect(out).toContain("dwarf 2");
     expect(out).not.toContain("mudq:");

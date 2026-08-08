@@ -67,7 +67,7 @@ export default class RepotController extends CommandController<RepotModel> {
     if (!(subject instanceof Plant)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(subject)} isn't a plant.`)
+        .toSelf(Mml.compose`${Mml.thing(subject)} isn't a plant.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -79,7 +79,7 @@ export default class RepotController extends CommandController<RepotModel> {
     if (!MixinApi.isCultivable(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't plant anything in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You can't plant anything in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -93,7 +93,7 @@ export default class RepotController extends CommandController<RepotModel> {
     if (origin === target) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(subject)} is already in that pot.`)
+        .toSelf(Mml.compose`${Mml.thing(subject)} is already in that pot.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -106,7 +106,7 @@ export default class RepotController extends CommandController<RepotModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} has no soil in it. Pour some in first.`,
+          Mml.compose`${Mml.thing(target)} has no soil in it. Pour some in first.`,
         )
         .send();
       context.note({
@@ -120,7 +120,7 @@ export default class RepotController extends CommandController<RepotModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} already has something growing in it.`,
+          Mml.compose`${Mml.thing(target)} already has something growing in it.`,
         )
         .send();
       context.note({
@@ -135,7 +135,7 @@ export default class RepotController extends CommandController<RepotModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} is too small for ${Mml.item(subject)} — its roots need more room than that.`,
+          Mml.compose`${Mml.thing(target)} is too small for ${Mml.thing(subject)} — its roots need more room than that.`,
         )
         .send();
       context.note({
@@ -186,10 +186,10 @@ export default class RepotController extends CommandController<RepotModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You lift ${Mml.item(subject)} clear, roots and all, and settle it into ${Mml.item(target)}.`,
+        Mml.compose`You lift ${Mml.thing(subject)} clear, roots and all, and settle it into ${Mml.thing(target)}.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} repots ${Mml.item(subject)} into ${Mml.item(target)}.`,
+        Mml.compose`${Mml.actor(giver)} repots ${Mml.thing(subject)} into ${Mml.thing(target)}.`,
       )
       .send();
   }

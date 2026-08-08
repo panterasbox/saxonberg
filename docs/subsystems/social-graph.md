@@ -259,7 +259,7 @@ itself, so the taxonomy is free to be precise.
    is dropped within the window.
 5. Sends a `session.presence` frame:
    `MessageApi.scene(viewer).topic(...).toSelf(body, payload).send()` —
-   the line viewer-aware (`Mml.name`), tinted **inline** by the rule
+   the line viewer-aware (`Mml.actor`), tinted **inline** by the rule
    `color` (a `<highlight>` wrap, mirroring `styleMessageForImpl`).
    Arrivals append "from `<country>`" when the origin resolved (below).
 

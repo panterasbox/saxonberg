@@ -77,7 +77,7 @@ export default class CollectController extends CommandController<CollectModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You scoop ${Money.of(took, Currency.compact()).render()} out of the tip jar.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} empties the tip jar.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} empties the tip jar.`)
       .send();
   }
 }

@@ -74,7 +74,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
       for (const s of light.sources) {
         const src = StuffApi.findById(s.stuffId);
         const sourceName = src
-          ? Mml.name(src as Stuff)
+          ? Mml.thing(src as Stuff)
           : Mml.fromMarkup(`<unknown>${s.stuffId}</unknown>`);
         const flux = Quantity.of(s.flux, 'lumen');
         if (s.colorTemperature !== null) {

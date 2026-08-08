@@ -680,7 +680,7 @@ describe("websocket social presence frames", () => {
       id,
       topic: "session.presence",
       tags: ["audience:actor"],
-      body: "<name>Alice</name> has entered the game.",
+      body: "<player>Alice</player> has entered the game.",
       payload: {
         kind: "presence",
         event,

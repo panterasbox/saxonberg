@@ -46,7 +46,7 @@ const Sender = styled.span`
 
 export const chatTemplate: Template = (ctx) => {
   const chan = findFirstTag(ctx.tree, 'chan');
-  const sender = findFirstTagAny(ctx.tree, ['player', 'name', 'npc']);
+  const sender = findFirstTagAny(ctx.tree, ['player', 'npc', 'thing']);
   const msg = findFirstTag(ctx.tree, 'msg');
 
   // Channel chip color: overlay channel color trumps theme default;

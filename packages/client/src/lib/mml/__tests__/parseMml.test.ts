@@ -25,24 +25,24 @@ describe('parseMml — basic shapes', () => {
   });
 
   it('flat tag wraps text content', () => {
-    expect(parseMml('<name>Alice</name>')).toEqual([
-      tag('name', [text('Alice')]),
+    expect(parseMml('<player>Alice</player>')).toEqual([
+      tag('player', [text('Alice')]),
     ]);
   });
 
   it('tag with attributes parses attrs', () => {
-    expect(parseMml('<name stuff-id="s_42">Alice</name>')).toEqual([
-      tag('name', [text('Alice')], { 'stuff-id': 's_42' }),
+    expect(parseMml('<player stuff-id="s_42">Alice</player>')).toEqual([
+      tag('player', [text('Alice')], { 'stuff-id': 's_42' }),
     ]);
   });
 
   it('hyphenated attribute names parse correctly', () => {
     // Regression guard: the old regex `\w+` split `stuff-id="X"` into
     // a bare `id` attribute and dropped the prefix.
-    const parsed = parseMml('<item stuff-id="s_1" data-rare="true">x</item>');
+    const parsed = parseMml('<thing stuff-id="s_1" data-rare="true">x</thing>');
     expect(parsed[0]).toMatchObject({
       kind: 'tag',
-      tag: 'item',
+      tag: 'thing',
       attrs: { 'stuff-id': 's_1', 'data-rare': 'true' },
     });
   });
@@ -51,12 +51,12 @@ describe('parseMml — basic shapes', () => {
 describe('parseMml — nested (acceptance #7)', () => {
   it('handles nested tag inside identity tag', () => {
     // The regression case from MmlRenderer.tsx's TODO comment:
-    // `Mml.compose\`<item>${Mml.quantity(5)} apples</item>\``
-    // would expand to roughly `<item><quantity>5</quantity> apples</item>`.
-    const parsed = parseMml('<item stuff-id="X"><quantity>5</quantity> apples</item>');
+    // `Mml.compose\`<thing>${Mml.quantity(5)} apples</thing>\``
+    // would expand to roughly `<thing><quantity>5</quantity> apples</thing>`.
+    const parsed = parseMml('<thing stuff-id="X"><quantity>5</quantity> apples</thing>');
     expect(parsed).toEqual([
       tag(
-        'item',
+        'thing',
         [
           tag('quantity', [text('5')]),
           text(' apples'),
@@ -127,10 +127,10 @@ describe('parseMml — tolerance', () => {
   });
 
   it('tag and attribute names lowercase', () => {
-    const parsed = parseMml('<NAME Stuff-Id="x">A</NAME>');
+    const parsed = parseMml('<PLAYER Stuff-Id="x">A</PLAYER>');
     expect(parsed[0]).toMatchObject({
       kind: 'tag',
-      tag: 'name',
+      tag: 'player',
       // attribute names retain raw case (no transformation)
       attrs: { 'Stuff-Id': 'x' },
     });

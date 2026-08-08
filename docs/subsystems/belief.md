@@ -111,10 +111,15 @@ before `Idea` is ready (recognition is reachable from the root
 
 ## The prose path — one central `Mml` hook
 
-`Mml.name/item/object/player/npc/location(stuff)` produce a **viewer-aware
+`Mml.actor/thing/player/npc/location(stuff)` produce a **viewer-aware
 lazy fragment** (`{ kind: 'ref' }`) whose display text is bound *late* at
 `toString(viewer)` time, calling `RecognitionApi.describe(viewer, stuff)`
 — falling back to `getPresentation()` when no viewer (logs, `refOf`).
+
+⭐ **`Mml.actor` binds its TAG late at the same seam**, through
+`RecognitionApi.kindOf`, so a disguise hides not just a name but the
+fact that a person is behind the figure. See
+[messaging.md § The identity tags](./messaging.md).
 Because `Scene.send` already materializes each frame body against its
 recipient (`body.toString(recipient)`), **every scene line and look output
 becomes per-recipient viewer-aware for free** — a broadcast names the same

@@ -312,7 +312,7 @@ class ReadController extends CommandController<ReadModel> {
     MessageApi.scene(actor)
       .topic(MessageApi.Topics.world.narration.action)
       .toSelf(target.getReadText(), { language: target.getLanguage() })
-      .toPeers(Mml.compose`${Mml.name(actor)} reads ${Mml.name(target)}.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} reads ${Mml.actor(target)}.`)
       .send();
   }
 }

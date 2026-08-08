@@ -1409,6 +1409,107 @@ Two requirements drove this:
 Destructing in `finally` keeps `StuffApi`'s template/instance indexes
 from accumulating ephemeral entries.
 
+## Affordance resolution — the read side of dispatch
+
+`CommandApi.resolveAffordances(target, viewer)` answers **"what can
+this viewer do with this object, right now?"** — the server-side half
+of the client's radial menu. Inbound op `affordance-resolve`, outbound
+`affordance-result` / `affordance-error`, one-shot request/response
+(`backend/inbound/affordance.ts`).
+
+It reuses the pipeline rather than paralleling it. Candidates come from
+`viewer.getAffordances()` — already attributed and already scoped to
+what the viewer can reach — filtered two ways: an affordance whose
+`source` **is** the target belongs in its menu, and one of the viewer's
+own verbs belongs only if it declares an object-shaped field the target
+could fill. Each survivor gets a `CommandContext`, an async
+`preloadValidatorDeps` pass, and `runValidators` — **no dispatch**.
+
+### The three states
+
+| State | When |
+|---|---|
+| `enabled` | Every evaluable validator passed |
+| `disabled` | One failed — carries its reason **verbatim** |
+| `pending-operand` | Passed, but a second object field is unbound |
+
+Reasons are the validator's own return value, unmodified. A validator's
+return is already what the player would have been shown had they typed
+the verb, so rewording here would create a second, driftable copy of
+every refusal in the game.
+
+> ⭐ **`pending-operand` is what keeps a radial honest.** `put <item> in
+> <target>` binds the item from the menu's subject but the container is
+> an operand no menu can know. Reporting it `enabled` promises a click
+> that then stalls on a prompt.
+>
+> ⚠⚠ It is also a **correctness** state, not a cosmetic one. The
+> unbound field carries its own validators (`mustBeVisible`,
+> `mustBePutTarget`), which run against `undefined` and fail — so
+> without this, `put` reports flatly unavailable on every object in the
+> game. A refusal aimed at a field nobody has chosen yet is not a
+> refusal.
+
+### Two gates, and both DELETE
+
+Nothing is returned present-and-flagged. A response that admits a
+hidden verb exists leaks the fact that it exists (the honest-fog rule —
+see [concealment.md](./concealment.md)).
+
+1. **Perception.** `PerceptionApi.perceives` fails → `affordance-error`
+   with the single reason code `unresolvable`. ⚠ One code deliberately:
+   distinguishing "no such object" from "not for you" would answer the
+   question the gate exists to refuse, turning a probe for unknown ids
+   into a map of what is hidden nearby.
+2. **Identification.** An `Identifiable` target the viewer has not
+   identified reports an **empty** composition — not a redacted one —
+   and none of the verbs *it* contributes, because a contributed verb
+   is a statement about what the thing is. An unidentified wand must
+   not advertise `recharge`. The viewer's own verbs survive: `look` is
+   a fact about the viewer.
+
+### ⚠ Known limitation — the menu is only as good as the field validators
+
+The candidate set is **syntactic**: any verb declaring an object-shaped
+positional is offered for any target, and the validator chain is what
+decides. Where a verb's semantic check lives in its **controller**
+rather than in a field validator, the resolver cannot see it and reports
+the verb `enabled`.
+
+Driven live against the lounge, this is `attack`, `cast`, `assess`,
+`drink` and `destruct` — all of which carry only `mustBeVisible` on
+their target field, so "attack the lounge" resolves available. The
+refusal is real and immediate on dispatch; it just is not visible to a
+menu.
+
+The fix is per-verb and belongs with the verbs: a field validator
+(`mustBeAgent`, `mustBeEdible`, …) where today there is a controller
+`if`. That is a content sweep, and this resolver is what makes the gap
+findable — before it, nothing ever asked a verb "would you accept this?"
+without also running it.
+
+⚠ Do **not** fix this by teaching the resolver a table of which verbs
+suit which targets. That is a second taxonomy describing what the first
+one already knows, and it would drift the moment a verb changed.
+
+### What it is not
+
+⚠ **Not a gate, and it must never become one.** A verb reported
+`enabled` still faces the full chain when it is actually run; anything
+that trusted this answer instead of re-checking would be trusting a
+snapshot of a world that has moved.
+
+⚠ **Validators must be side-effect free**, and this caller is what
+makes that a requirement rather than an assumption — an open radial
+resolves repeatedly, so a validator that wrote anything would turn
+hovering into an action. A test resolves 25 times and asserts the
+answer is byte-identical.
+
+The `commandId` stamped on a probe context is the fixed sentinel
+`affordance-probe`, so nothing correlating by command id (attribution,
+the accountability ledger, `causingCommandId`) can mistake a menu
+opening for a command.
+
 ## Cross-references
 
 - [command-parsing.md](./command-parsing.md) — tokenization, parser

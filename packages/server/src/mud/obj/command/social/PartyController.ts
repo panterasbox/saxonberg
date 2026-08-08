@@ -105,7 +105,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
-      Mml.compose`You invite ${Mml.name(target)} to your party.`,
+      Mml.compose`You invite ${Mml.actor(target)} to your party.`,
     );
   }
 
@@ -120,7 +120,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
-      Mml.compose`You take ${Mml.name(target)} into your party.`,
+      Mml.compose`You take ${Mml.actor(target)} into your party.`,
     );
   }
 
@@ -156,7 +156,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
-      Mml.compose`You remove ${Mml.name(target)} from the party.`,
+      Mml.compose`You remove ${Mml.actor(target)} from the party.`,
     );
   }
 
@@ -180,7 +180,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
-      Mml.compose`You hand the party to ${Mml.name(target)}.`,
+      Mml.compose`You hand the party to ${Mml.actor(target)}.`,
     );
   }
 
@@ -216,7 +216,7 @@ export default class PartyController extends CommandController<PartyModel> {
         Mml.compose`Your party adopts the ${Mml.escape(name)} formation.`,
       )
       .toPeers(
-        Mml.compose`The line reforms around ${Mml.name(giver)} — their party adopts the ${Mml.escape(name)} formation.`,
+        Mml.compose`The line reforms around ${Mml.actor(giver)} — their party adopts the ${Mml.escape(name)} formation.`,
       )
       .send();
     if (commandId) {
@@ -240,7 +240,7 @@ export default class PartyController extends CommandController<PartyModel> {
     if (!res.ok) return this.fail(context, this.reasonText(res.reason), res.reason);
     this.send(
       context,
-      Mml.compose`${Mml.name(target)} takes the ${Mml.escape(role)} role.`,
+      Mml.compose`${Mml.actor(target)} takes the ${Mml.escape(role)} role.`,
     );
   }
 

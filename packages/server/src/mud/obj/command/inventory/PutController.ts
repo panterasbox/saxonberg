@@ -79,7 +79,7 @@ export default class PutController extends CommandController<PutModel> {
       // Surfaced — ambiguous. Reject; ask the player to specify.
       MessageApi.scene(giver)
         .topic('sense.survey')
-        .toSelf(Mml.compose`Put it in or on ${Mml.item(target)}?`)
+        .toSelf(Mml.compose`Put it in or on ${Mml.thing(target)}?`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -93,7 +93,7 @@ export default class PutController extends CommandController<PutModel> {
       if (!MixinApi.isContainer(target)) {
         MessageApi.scene(giver)
           .topic('sense.survey')
-          .toSelf(Mml.compose`You can't put things in ${Mml.item(target)}.`)
+          .toSelf(Mml.compose`You can't put things in ${Mml.thing(target)}.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -107,7 +107,7 @@ export default class PutController extends CommandController<PutModel> {
       if (!MixinApi.isSurfaced(target)) {
         MessageApi.scene(giver)
           .topic('sense.survey')
-          .toSelf(Mml.compose`You can't put things on ${Mml.item(target)}.`)
+          .toSelf(Mml.compose`You can't put things on ${Mml.thing(target)}.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -119,7 +119,7 @@ export default class PutController extends CommandController<PutModel> {
       if (!(target as Stuff & Surfaced).canRest(item as Stuff & Containable)) {
         MessageApi.scene(giver)
           .topic('sense.survey')
-          .toSelf(Mml.compose`${Mml.item(item)} won't rest on ${Mml.item(target)}.`)
+          .toSelf(Mml.compose`${Mml.thing(item)} won't rest on ${Mml.thing(target)}.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -141,8 +141,8 @@ export default class PutController extends CommandController<PutModel> {
           .topic('sense.survey')
           .toSelf(
             release.dumpedKJ > 0
-              ? Mml.compose`You cannot let go of ${Mml.item(item)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.item(item)}. It has no intention of leaving your hand.`,
+              ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`,
           )
           .send();
         context.note({
@@ -177,9 +177,9 @@ export default class PutController extends CommandController<PutModel> {
     // preposition verbatim.
     MessageApi.scene(giver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You put ${Mml.item(item)} ${mode} ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You put ${Mml.thing(item)} ${mode} ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} puts ${Mml.item(item)} ${mode} ${Mml.item(target)}.`,
+        Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} ${mode} ${Mml.thing(target)}.`,
       )
       .send();
   }

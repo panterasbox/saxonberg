@@ -68,7 +68,7 @@ export default class KneelController extends CommandController<KneelModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(Mml.compose`You kneel down.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} kneels down.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} kneels down.`)
       .send();
     return;
   }

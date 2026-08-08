@@ -26,7 +26,8 @@
  *  - **inline emphasis** — the Discord-dialect chat subset
  *    (`strong`/`em`/`code`/`pre`/`blockquote`/`strike`).
  *  - **identity / affordance** — the viewer-aware reference tags the
- *    composer emits (`name`, `item`, `exit`, `link`, `mention`, …).
+ *    composer emits (`player`, `npc`, `thing`, `exit`, `link`,
+ *    `mention`, …).
  *  - **long-form** — the article tags this build adds (`h1`–`h3`,
  *    `table`/`tr`/`th`/`td`, `spoiler`).
  *
@@ -44,11 +45,14 @@ export const KNOWN_TAGS: ReadonlySet<string> = new Set([
   'list',
   'li',
   // Identity / affordance / vocabulary.
-  'name',
+  //
+  // ⚠ `actor` is deliberately absent, and its absence is the point: it
+  // is an *authoring* face (`Mml.actor`), not a wire tag. It resolves to
+  // `player` or `npc` at render time, so nothing downstream ever has to
+  // know it existed. See `Mml.actor`.
   'player',
   'npc',
-  'item',
-  'object',
+  'thing',
   'location',
   'exit',
   'direction',
@@ -87,10 +91,12 @@ export const KNOWN_TAGS: ReadonlySet<string> = new Set([
  *
  * ⚠ Everything outside this set is excluded for a reason worth stating
  * once: `link` and `mention` are **affordances that act** (the client
- * renders a clickable that issues a command), and `name` / `player` /
- * `npc` / `item` / `speech` / `msg` / `chan` are **identity claims**
- * the composer emits on the server's authority — a player who could
- * write `<speech>` could attribute words to somebody else. `color` is
+ * renders a clickable that issues a command), and `player` / `npc` /
+ * `thing` / `speech` / `msg` / `chan` are **identity claims** the
+ * composer emits on the server's authority — a player who could
+ * write `<speech>` could attribute words to somebody else. `player` is
+ * the sharpest of those: it asserts a human is behind a figure, which
+ * is precisely what a disguise is for hiding. `color` is
  * merely presentation and still excluded: staff and system styling are
  * recognisable by it, and forging that is impersonation by another
  * route.

@@ -111,7 +111,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     if (account) await BankingApi.issueCard(account, cap);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You report ${Mml.item(card)} lost. It's frozen; a fresh card is issued.`)
+      .toSelf(Mml.compose`You report ${Mml.thing(card)} lost. It's frozen; a fresh card is issued.`)
       .send();
   }
 }

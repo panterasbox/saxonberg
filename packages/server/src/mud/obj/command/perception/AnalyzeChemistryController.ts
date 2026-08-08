@@ -74,7 +74,7 @@ export default class AnalyzeChemistryController extends CommandController<Analyz
 
     const lines: Mml[] = [];
     lines.push(
-      Mml.compose`Chemistry of ${Mml.name(target.stuff as Stuff)}:`
+      Mml.compose`Chemistry of ${Mml.thing(target.stuff as Stuff)}:`
     );
     lines.push(Mml.compose`  material: ${material.getName()}`);
     lines.push(Mml.compose`  density: ${material.getDensity().formatMml(undefined, undefined, { channel: 'chemistry', via })}`);

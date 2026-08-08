@@ -31,9 +31,9 @@ describe('ProseApi.format — substitution', () => {
   it('treats Mml fragments as already-escaped and emits verbatim', () => {
     expect(
       ProseApi.format('hi {{ who }}', {
-        who: Mml.fromMarkup('<name>Alice</name>'),
+        who: Mml.fromMarkup('<player>Alice</player>'),
       }).toString(),
-    ).toBe('hi <name>Alice</name>');
+    ).toBe('hi <player>Alice</player>');
   });
 
   it('coerces numbers and booleans then escapes', () => {
@@ -92,7 +92,11 @@ describe('ProseApi.format — conditionals and filters', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('Alice');
     const out = ProseApi.format('hi {{ who | name }}!', { who: obj }).toString();
-    expect(out).toBe(`hi <name stuff-id="${obj.stuffId}">Alice</name>!`);
+    // `<thing>`, not `<player>`: the `name` filter routes through
+    // `Mml.actor`, and this fixture composes no `Organism`. Authored
+    // prose keeps saying `| name` — the filter is a prose-author verb,
+    // not a tag — while what it EMITS is now resolved per viewer.
+    expect(out).toBe(`hi <thing stuff-id="${obj.stuffId}">Alice</thing>!`);
   });
 
   it('uses the direction filter to wrap a raw string', () => {
@@ -134,7 +138,7 @@ describe('ProseApi.format — conditionals and filters', () => {
     const out = ProseApi.format('[{{ x | item }}]', { x: obj }).toString();
     // getPresentation() bakes in 'something' for hosts with
     // no Named/Visible state; Mml.item flows that through.
-    expect(out).toBe(`[<item stuff-id="${obj.stuffId}">something</item>]`);
+    expect(out).toBe(`[<thing stuff-id="${obj.stuffId}">something</thing>]`);
   });
 
   it('article filter falls back to "a" for plain stuff', () => {

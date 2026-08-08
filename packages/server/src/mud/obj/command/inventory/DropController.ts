@@ -200,8 +200,8 @@ export default class DropController extends CommandController<DropModel> {
           .topic('sense.survey')
           .toSelf(
             release.dumpedKJ > 0
-              ? Mml.compose`You cannot let go of ${Mml.item(operand)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.item(operand)}. It has no intention of being put down.`,
+              ? Mml.compose`You cannot let go of ${Mml.thing(operand)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.thing(operand)}. It has no intention of being put down.`,
           )
           .send();
         context.note({
@@ -220,9 +220,9 @@ export default class DropController extends CommandController<DropModel> {
     void ChattelApi.followCustody(operand);
     MessageApi.scene(context.commandGiver)
       .topic('sense.survey')
-      .toSelf(Mml.compose`You drop ${Mml.item(operand)}.`)
+      .toSelf(Mml.compose`You drop ${Mml.thing(operand)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(context.commandGiver)} drops ${Mml.item(operand)}.`
+        Mml.compose`${Mml.actor(context.commandGiver)} drops ${Mml.thing(operand)}.`
       )
       .send();
     return true;

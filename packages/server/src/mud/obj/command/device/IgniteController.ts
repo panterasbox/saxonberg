@@ -84,9 +84,9 @@ export default class IgniteController extends CommandController<IgniteModel> {
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You set ${Mml.object(ignitable)} alight.`)
+      .toSelf(Mml.compose`You set ${Mml.thing(ignitable)} alight.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} sets ${Mml.object(ignitable)} alight.`,
+        Mml.compose`${Mml.actor(commandGiver)} sets ${Mml.thing(ignitable)} alight.`,
       )
       .send();
   }
