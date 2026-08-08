@@ -225,22 +225,47 @@ Part 3 is philosophy until it cashes out in something a player does.
 This section is the cash-out, and it is deliberately honest about the
 parts that are load-bearing and unbuilt.
 
-## A framework is a corpus of claims
+> **The full mechanical design is
+> [doctrine-slate.md](./slates/builds/doctrine-slate.md)** — objects,
+> verbs, the worked scene, and the failure analysis. This section holds
+> only the rules that constrain it.
+
+## ⚠ Correction — a corpus of false claims cannot exist here
+
+This section's first pass proposed that a framework is a corpus of
+claims *some true, some false, with nothing marking which*, and that
+authoring convincing false ones was the central content job. **The
+[inquiry](./slates/builds/inquiry-slate.md) design refutes that**: its
+predict gate checks a player's number for a novel case against the real
+evaluator, so *you cannot publish a falsehood that survives
+verification*. An authored false claim about the world dies on the first
+prediction anyone runs — permanently, for everybody.
+
+The correction is a **split**, not a retreat.
+
+## Law vs Tenet
+
+| | **Law** — positive | **Tenet** — normative |
+|---|---|---|
+| says | *what the world does* | *what matters; what is worth doing* |
+| adjudicated by | **the sim**, via the predict gate | **nothing, ever** |
+| can be false | yes — and it dies on verification | category error |
+
+A doctrine making **positive** claims is picking a fight with the
+evaluator and loses — the god-of-the-gaps failure with a build date. A
+doctrine making **normative** claims makes no prediction, so nothing can
+refute it. ⭐⭐ This is the **positive/normative split the Compact course
+already grades on**, pointed at religion instead of politics.
 
 > **Your patron is not a buff. It is an inherited research programme.**
 
-A framework — a patron's doctrine, or the naturalist's account — is a
-**starting corpus of claims about the world**, authored, in a domain:
-Eir's corpus speaks about healing and harm, Goibniu's about making,
-Pan's about the wild and its cycles. Some entries are **true**, some are
-**false**, and nothing marks which.
+A framework is therefore *(a)* a set of normative tenets and *(b)* an
+**attention order over the shared `Law` catalog** — which questions this
+account thinks are worth asking first. Everyone's laws are the same and
+true; what differs is **who gets to them first**, and order is worth
+money because the first discoverer publishes.
 
-**What a framework changes is what you look for. Never what you get.**
-Two players read the same almanac, see the same true correlation, and
-disagree about what it means; they investigate different things next,
-and are right at different rates in different domains. That is
-distinctness with **zero mechanical differentiation** — no buff table,
-no perception bonus, no roll.
+> **Distinctness is not what you receive. It is what you get to first.**
 
 ⚠ **The bright line.** A framework may never alter perception, capability
 or outcome. A patron that lets you *see* more is the vending machine
@@ -264,22 +289,23 @@ stones falling from the sky).[^falseneg] A naturalist who is
 *sometimes* the last to accept a true thing is historically accurate
 **and** dramatically better than one who is simply right.
 
-## What substrate it rides — no new subsystem
+## What adjudicates what
 
-| Need | Rides |
+| Question | Settled by |
 |---|---|
-| the corpus | authored content — a document kind, per framework |
-| publishing a claim | [forums](./subsystems/forums.md) + [wiki](./subsystems/wiki.md) |
-| testing a claim | the observation ladder — go and look, keep records |
-| adjudication | **none — the world never rules.** Outcomes accumulate; players argue |
-| declaring a patron | the Chapel, already designed ([story-bible.md](./story-bible.md)) |
-| your framework as a fact about you | [chronicle](./subsystems/chronicle.md) |
+| *is this relationship real?* | **the sim**, via inquiry's predict gate — never a vote |
+| *why does it hold?* | ⭐ **nothing.** The mechanism is exposed nowhere; the argument is permanent and honest |
+| *what should I do about it?* | the player, from their tenets |
 
-**No new verbs** (the [subcommand preference](./subsystems/command-spec.md)
-holds), no new Api, no engine change. ⚠ It does depend on a **claim /
-inquiry substrate that is not built**, and on the wiki's dispute
-surface. That is the real dependency, and it should be stated in any
-slate that proposes this.
+Forums and the wiki **host** the first two arguments; they adjudicate
+neither ([deduction-slate](./slates/builds/deduction-slate.md)'s hard
+line — *truth is shown, not argued or voted*).
+
+⚠ **The real dependency:** all of this rides an **inquiry substrate that
+is designed and not built.** Objects, verbs and the failure analysis are
+in [doctrine-slate.md](./slates/builds/doctrine-slate.md), which adds no
+new collection and no new Api — but is worth nothing without inquiry
+underneath it.
 
 ## The superstition ladder
 
@@ -295,12 +321,21 @@ Superstition is the **input** to this system, not its enemy:
 That is the scientific method as a **social** process. Which flips an
 instinct: **a false rumour in the world is content, not a content bug.**
 
-⚠ **The pairing guard.** For every true correlation authored, author a
-false one that feels identical — no marker, no tell. Otherwise players
-learn *"in-game folklore is reliable,"* which is precisely the
-anti-lesson. This is the pharma/astrology pairing
-([discovery-slate](./slates/builds/discovery-slate.md)) applied to
-doctrine: **same method, opposite answers.**
+⚠ **The pairing guard — in its corrected form.** The rule is *not* "author
+false claims." It is that the catalog of investigable relationships must
+include **null candidates**: relationships that look worth testing and
+turn out flat. Nothing in the data marks them; **the evaluator is the
+only oracle**, so there is no truth table to datamine and the only way to
+learn is to measure — which is the activity. This preserves the
+pharma/astrology pairing (*same method, opposite answers*) without
+requiring a lie anywhere in the content.
+
+That also supplies the symmetric error model: the naturalist's
+characteristic failure is the **false negative** (dismissing a real law
+for want of a mechanism — the actual history of science), the devout's is
+the **false positive** (investigating a null one — the actual history of
+divination). Both are productive; a refutation is publishable. **Neither
+stance is the right one**, which is what the propaganda test requires.
 
 The payoff is a story no scripted quest supplies: **the player who runs
 a controlled experiment and disproves a beloved ritual has done
@@ -309,35 +344,21 @@ available in a world where the ritual might have been true.
 
 ## ⚠⚠ Where this dies
 
-Three failure modes, in descending order of how likely they are to kill
-it:
+Full analysis in [doctrine-slate.md](./slates/builds/doctrine-slate.md).
+The one that belongs in the codex because it constrains *every* system
+here, not just religion:
 
-1. ⚠⚠⚠ **Datamining flattens an authored corpus.** If true-vs-false is a
-   static authored fact, it is public in month two and every framework
-   becomes a solved lookup table. **This is the real killer.** The
-   mitigation is not secrecy — it is *provenance*:
+> ⭐⭐⭐⭐ **Claims should be about what the world COMPUTES, not what an
+> author STIPULATED.** A stipulated fact gets datamined once and dies. A
+> computed one moves, goes stale, and must be re-established — the
+> property that makes [the almanac a recurring
+> product](./slates/builds/discovery-slate.md) and the null-law model
+> undatamineable.
 
-   > ⭐⭐⭐⭐ **A framework's claims should be about things the world
-   > COMPUTES, not things an author STIPULATED.** An authored
-   > correlation gets datamined once and dies. A measured one moves,
-   > goes stale, and must be re-established — the same property that
-   > makes [the almanac a recurring product](./slates/builds/discovery-slate.md).
-
-   Authored entries should therefore be the minority, used for cold
-   start and flavour, with the load carried by claims about **stock,
-   timing, and traffic** — which no dump can settle because they change.
-
-2. ⚠⚠ **Corpus authoring cost.** Each framework needs a genuinely useful
-   body of claims, with false entries as plausible as the true ones.
-   That is expensive, skilled content work, and it is the part most
-   likely to go unmade — leaving frameworks that players correctly
-   identify as cosmetic and ignore.
-
-3. ⚠ **"It's cosmetic" as a live verdict.** With no mechanical
-   differentiation the value must come entirely from the corpus being
-   *worth having*. If a patron's twenty claims aren't worth twenty
-   hours of independent legwork, the pick is empty and players will say
-   so.
+The load-bearing risk specific to doctrine is that **attention order is
+worth exactly what being first is worth** — which depends on credibility,
+the teachable-good price gap, and almanac staleness, none of which are
+built. If being first is worth little, doctrine is cosmetic.
 
 ## ⚠ No spokesperson
 
@@ -474,7 +495,8 @@ contain `Math.random` outside tests; **none is on a resolution path.**
 | **mana economy** (celestial node) | already correct — category 2, periodic, predictable |
 | **fishing** | spec against this codex rather than inheriting genre defaults |
 | **alignment / religion** | absorb Parts 3 + 3b; fix the `fortune` line; **religion-as-framework depends on an unbuilt claim/inquiry substrate** — say so in the slate |
-| **wiki / forums / inquiry** | ⭐ they are the adjudication surface for Part 3b — a disputed-claim shape is now load-bearing for religion, not just for lore |
+| **inquiry** | ⭐⭐ **the load-bearing dependency for Part 3b.** Its `Law` catalog + predict gate is what makes a doctrine mechanical rather than cosmetic; add **null candidates** to the catalog scope |
+| **wiki / forums** | they **host** the why-argument, never settle it — the deduction hard line applies to doctrine as much as to murder |
 | **combat · banking · advancement · renown · hazard** | no change; banking stays category-0 forever |
 
 ---
