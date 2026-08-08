@@ -153,7 +153,7 @@ describe('The Weeping Moor — the spine invariant', () => {
     WeatherApi._forceTypeForTesting('rain');
 
     // One boundary pass over both occupied scopes.
-    WeatherApi.onBoundary();
+    await WeatherApi.onBoundary();
     await flush();
 
     // The bodies are equally wet — source-indifferent.

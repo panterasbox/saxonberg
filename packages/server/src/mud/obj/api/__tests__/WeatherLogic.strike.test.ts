@@ -39,6 +39,20 @@ class TestOccupant extends HasInteractiveMixin(Thing) {
 
 // The strike path is a long fire-and-forget async chain (dynamic imports +
 // StuffApi.create/move + conduct + destruct); flush generously.
+/**
+ * Drain whatever the fan-out *scheduled* — the strike itself is awaited
+ * directly now (`await WeatherApi.onStormTick()`), so this only has to
+ * settle the downstream effects it queued.
+ *
+ * ⚠⚠ It used to be the ONLY synchronisation, and that is what made this
+ * file flaky for months. `onStormTick` swallowed its own promise, so the
+ * test pumped 30 macrotask turns and hoped: under load the assertion ran
+ * before the fan-out finished (`conduct` never called), and — the
+ * nastier direction — a PREVIOUS test's fan-out could land inside the
+ * NEXT test's spy window, so it saw a call it never made. One cause, two
+ * contradictory symptoms, which is why the failing pair changed run to
+ * run. Never synchronise on a turn count when the work can be awaited.
+ */
 async function flush(): Promise<void> {
   for (let i = 0; i < 30; i++) await new Promise((r) => setTimeout(r, 0));
 }
@@ -118,7 +132,7 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceStrikeRollForTesting(0); // always strike
 
     const spy = vi.spyOn(ElectricityApi, 'conduct');
-    WeatherApi.onStormTick();
+    await WeatherApi.onStormTick();
     await flush();
 
     expect(spy).toHaveBeenCalled();
@@ -131,7 +145,7 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceStrikeRollForTesting(0.99); // above the rate → miss
 
     const spy = vi.spyOn(ElectricityApi, 'conduct');
-    WeatherApi.onStormTick();
+    await WeatherApi.onStormTick();
     await flush();
 
     expect(spy).not.toHaveBeenCalled();
@@ -144,7 +158,7 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceStrikeRollForTesting(0);
 
     const spy = vi.spyOn(ElectricityApi, 'conduct');
-    WeatherApi.onStormTick();
+    await WeatherApi.onStormTick();
     await flush();
 
     expect(spy).not.toHaveBeenCalled();
@@ -159,7 +173,7 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceStrikeRollForTesting(0);
 
     const spy = vi.spyOn(ElectricityApi, 'shockContact');
-    WeatherApi.onStormTick();
+    await WeatherApi.onStormTick();
     await flush();
 
     expect(spy).toHaveBeenCalled();
@@ -174,7 +188,7 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceStrikeRollForTesting(0);
 
     const spy = vi.spyOn(ElectricityApi, 'conduct');
-    WeatherApi.onStormTick();
+    await WeatherApi.onStormTick();
     await flush();
 
     expect(spy).toHaveBeenCalled();
@@ -190,7 +204,7 @@ describe('Storm lightning strikes (Phase E)', () => {
     WeatherApi._forceStrikeRollForTesting(0);
 
     const before = (await WeatherApi.resolveWeatherFor(room)).sample.type;
-    WeatherApi.onStormTick();
+    await WeatherApi.onStormTick();
     await flush();
     const after = (await WeatherApi.resolveWeatherFor(room)).sample.type;
     expect(after).toBe(before); // pure — the strike changed no weather state
