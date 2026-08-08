@@ -68,7 +68,7 @@ describe('VocalMixin.say()', () => {
 
       expect(bob.received).toHaveLength(1);
       expect(bob.received[0]!.body).toBe(
-        `<player stuff-id="${alice.stuffId}">Alice</player> says, <speech>"hello"</speech>`
+        `<thing stuff-id="${alice.stuffId}">Alice</thing> says, <speech>"hello"</speech>`
       );
       // Speaker hears its own self frame: "You say, ..."
       expect(alice.received).toHaveLength(1);
@@ -93,7 +93,7 @@ describe('VocalMixin.say()', () => {
       // Casual register — surname not included; use `obj.getFullName()`
       // to get "Haunted House".
       expect(occupant.received[0]!.body).toBe(
-        `<player stuff-id="${house.stuffId}">Haunted</player> says, <speech>"get out"</speech>`
+        `<thing stuff-id="${house.stuffId}">Haunted</thing> says, <speech>"get out"</speech>`
       );
     });
   });

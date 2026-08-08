@@ -131,7 +131,11 @@ function engine(): Liquid {
 
   // `| name` is strict — Named only. A non-Named stuff has no proper
   // name to render, so the filter renders empty rather than wrapping a
-  // fallback string in a `<name>` tag (which would lie about identity).
+  // fallback string in a tag (which would lie about identity).
+  //
+  // The FILTER keeps its authored name — `{{ mover | name }}` is a
+  // prose-author verb and renaming it would be a content migration —
+  // but what it emits is now `Mml.actor`, resolved per viewer.
   built.registerFilter('name', (v) => {
     const s = asStuff(v);
     return s && MixinApi.isNamed(s) ? Mml.actor(s) : '';

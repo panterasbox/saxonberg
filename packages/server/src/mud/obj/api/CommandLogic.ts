@@ -1524,14 +1524,21 @@ const AFFORDANCE_PROBE_ID = 'affordance-probe';
  */
 const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
 
-/** Every object-shaped field a definition declares, in slot order. */
+/**
+ * Every object-shaped **positional** a definition declares, in slot
+ * order.
+ *
+ * ⚠ Options are deliberately excluded, and the live drive is what
+ * proved it: `cd` declares `--mql` as an object option, so counting
+ * options put `cd` — and every other shell verb with an MQL escape
+ * hatch — in the menu of every object in the world. A radial's subject
+ * binds to what the verb is ABOUT, and that is a positional. An option
+ * is a modifier the player types on purpose.
+ */
 function objectFields(cmd: CommandDefinition): string[] {
   const names: string[] = [];
   for (const arg of cmd.args) {
     if (arg.type && OBJECT_FIELD_TYPES.has(arg.type)) names.push(arg.name);
-  }
-  for (const [name, opt] of Object.entries(cmd.verbOptions)) {
-    if (OBJECT_FIELD_TYPES.has(opt.type)) names.push(opt.field ?? name);
   }
   return names;
 }

@@ -92,7 +92,11 @@ describe('ProseApi.format — conditionals and filters', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('Alice');
     const out = ProseApi.format('hi {{ who | name }}!', { who: obj }).toString();
-    expect(out).toBe(`hi <player stuff-id="${obj.stuffId}">Alice</player>!`);
+    // `<thing>`, not `<player>`: the `name` filter routes through
+    // `Mml.actor`, and this fixture composes no `Organism`. Authored
+    // prose keeps saying `| name` — the filter is a prose-author verb,
+    // not a tag — while what it EMITS is now resolved per viewer.
+    expect(out).toBe(`hi <thing stuff-id="${obj.stuffId}">Alice</thing>!`);
   });
 
   it('uses the direction filter to wrap a raw string', () => {

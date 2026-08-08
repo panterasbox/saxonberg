@@ -1468,6 +1468,30 @@ see [concealment.md](./concealment.md)).
    not advertise `recharge`. The viewer's own verbs survive: `look` is
    a fact about the viewer.
 
+### ⚠ Known limitation — the menu is only as good as the field validators
+
+The candidate set is **syntactic**: any verb declaring an object-shaped
+positional is offered for any target, and the validator chain is what
+decides. Where a verb's semantic check lives in its **controller**
+rather than in a field validator, the resolver cannot see it and reports
+the verb `enabled`.
+
+Driven live against the lounge, this is `attack`, `cast`, `assess`,
+`drink` and `destruct` — all of which carry only `mustBeVisible` on
+their target field, so "attack the lounge" resolves available. The
+refusal is real and immediate on dispatch; it just is not visible to a
+menu.
+
+The fix is per-verb and belongs with the verbs: a field validator
+(`mustBeAgent`, `mustBeEdible`, …) where today there is a controller
+`if`. That is a content sweep, and this resolver is what makes the gap
+findable — before it, nothing ever asked a verb "would you accept this?"
+without also running it.
+
+⚠ Do **not** fix this by teaching the resolver a table of which verbs
+suit which targets. That is a second taxonomy describing what the first
+one already knows, and it would drift the moment a verb changed.
+
 ### What it is not
 
 ⚠ **Not a gate, and it must never become one.** A verb reported

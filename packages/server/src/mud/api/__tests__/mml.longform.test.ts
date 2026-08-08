@@ -217,7 +217,7 @@ describe('every long-form tag defines flatten (criterion 23)', () => {
 
 describe('Mml.isKnownTag / componentCandidate — the D-8 split', () => {
   it('grammar tags are known', () => {
-    for (const t of ['strong', 'h2', 'table', 'spoiler', 'name', 'link']) {
+    for (const t of ['strong', 'h2', 'table', 'spoiler', 'thing', 'link']) {
       expect(Mml.isKnownTag(t)).toBe(true);
       expect(Mml.componentCandidate(t)).toBe(false);
     }
