@@ -32,6 +32,11 @@
  * but never appended: a partial run is not a suite measurement, and a
  * history whose rows measure different things is worse than no history.
  *
+ * ⚠ **Do not touch the tree while this is running.** Editing a test
+ * file mid-baseline changes what the later runs measure — caught the
+ * hard way here: run 1 saw 965 files, runs 2-3 saw 966 because a test
+ * was added between them, and the rows were no longer comparable.
+ *
  * Coverage is checked for free: every row carries `tests`, so a lever
  * that made the suite faster by running less is visible in the same
  * table that shows the win.
@@ -62,6 +67,16 @@ interface BenchRow {
   node: string;
   cores: number;
   memGb: number;
+  /**
+   * Free RAM and swap-in-use (GB) at the moment the run started.
+   *
+   * Not decoration. Eight forks at ~700 MB each is 5.6 GB on a 15 GB
+   * box, so a second consecutive run starts with swap already dirty and
+   * pays for it: measured 1238s fresh, 1804s immediately after — a 46%
+   * spread with no code change between them. Without this column that
+   * looks like wild variance instead of the memory pressure it is.
+   */
+  memory: { freeGb: number; swapUsedGb: number };
   /** Vitest config facts that change the meaning of the number. */
   config: { pool: string; isolate: boolean; setupFiles: boolean };
   files: number;
@@ -72,6 +87,15 @@ interface BenchRow {
   phases: Record<string, number>;
   /** Ten slowest files by test time, seconds. */
   slowest: Array<{ file: string; seconds: number; tests: number }>;
+  /**
+   * Every failing test, by name. "green: false" alone sends the next
+   * reader back to re-run a 20-minute suite to learn what broke; the
+   * suite whose flake history is 5 → 4 → 7 on identical commits needs
+   * the names recorded, not the count.
+   */
+  failures: Array<{ file: string; test: string }>;
+  /** The raw vitest JSON, kept for post-hoc digging. */
+  report: string;
 }
 
 // ── the busy-machine guard ───────────────────────────────────────────
@@ -203,6 +227,25 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/** Free RAM + swap in use, GB, from procfs. Zeroes if unreadable. */
+function memoryNow(): { freeGb: number; swapUsedGb: number } {
+  const kb = (key: string): number => {
+    const m = new RegExp(`^${key}:\\s+(\\d+) kB`, "m").exec(meminfo);
+    return m ? Number(m[1]) : 0;
+  };
+  let meminfo = "";
+  try {
+    meminfo = readFileSync("/proc/meminfo", "utf8");
+  } catch {
+    return { freeGb: 0, swapUsedGb: 0 };
+  }
+  const gb = (n: number) => Math.round((n / 1024 / 1024) * 10) / 10;
+  return {
+    freeGb: gb(kb("MemAvailable")),
+    swapUsedGb: gb(kb("SwapTotal") - kb("SwapFree")),
+  };
+}
+
 /** Vitest's own view of its config, so a row explains itself. */
 function readConfig(): BenchRow["config"] {
   const src = readFileSync(join(SERVER_DIR, "vitest.config.ts"), "utf8");
@@ -216,6 +259,7 @@ function readConfig(): BenchRow["config"] {
 
 function runOnce(label: string, quiet: boolean, only?: string): BenchRow {
   const jsonPath = join(mkdtempSync(join(tmpdir(), "bench-")), "run.json");
+  const memory = memoryNow();
 
   const started = Date.now();
   const proc = spawnSync(
@@ -240,12 +284,19 @@ function runOnce(label: string, quiet: boolean, only?: string): BenchRow {
   let tests = 0;
   let failed = 0;
   let slowest: BenchRow["slowest"] = [];
+  let failures: BenchRow["failures"] = [];
 
   if (existsSync(jsonPath)) {
     const report = JSON.parse(readFileSync(jsonPath, "utf8"));
     files = report.testResults?.length ?? 0;
     tests = report.numTotalTests ?? 0;
     failed = report.numFailedTests ?? 0;
+    failures = (report.testResults ?? []).flatMap(
+      (f: { name: string; assertionResults?: Array<{ status: string; fullName: string }> }) =>
+        (f.assertionResults ?? [])
+          .filter((a) => a.status === "failed")
+          .map((a) => ({ file: relative(SERVER_DIR, f.name), test: a.fullName }))
+    );
     slowest = (report.testResults ?? [])
       .map((f: { name: string; startTime: number; endTime: number; assertionResults?: unknown[] }) => ({
         file: relative(SERVER_DIR, f.name),
@@ -265,6 +316,7 @@ function runOnce(label: string, quiet: boolean, only?: string): BenchRow {
     node: process.version,
     cores: cpus().length,
     memGb: Math.round(totalmem() / 1024 ** 3),
+    memory,
     config: readConfig(),
     files,
     tests,
@@ -272,6 +324,8 @@ function runOnce(label: string, quiet: boolean, only?: string): BenchRow {
     wall: wall || wallFallback,
     phases,
     slowest,
+    failures,
+    report: jsonPath,
   };
 }
 
@@ -289,10 +343,24 @@ function printRow(row: BenchRow): void {
   console.log(`  tests     ${row.tests}${row.failed ? `  (${row.failed} FAILED)` : ""}`);
   console.log(`  green     ${row.green ? "yes" : "NO — timing is not meaningful"}`);
   console.log(`  config    pool=${row.config.pool} isolate=${row.config.isolate} setupFiles=${row.config.setupFiles}`);
+  console.log(
+    `  memory    ${row.memory.freeGb}GB free, ${row.memory.swapUsedGb}GB swap in use at start` +
+      (row.memory.swapUsedGb > 0.5 ? "  ⚠ already swapping" : "")
+  );
   console.log("");
   console.log("  slowest files (test time):");
   for (const s of row.slowest) {
     console.log(`    ${String(s.seconds).padStart(8)}s  ${String(s.tests).padStart(4)} tests  ${s.file}`);
+  }
+  if (row.failures.length > 0) {
+    console.log("");
+    console.log("  FAILURES — re-run these in isolation before believing");
+    console.log("  they are yours. Contention flakes look exactly like bugs.");
+    for (const f of row.failures) {
+      console.log(`    ${f.file}`);
+      console.log(`      ${f.test}`);
+    }
+    console.log(`\n  full report: ${row.report}`);
   }
 }
 
@@ -306,14 +374,17 @@ function printSummary(): void {
     .filter(Boolean)
     .map((l) => JSON.parse(l));
 
-  console.log("| date | label | wall | setup | tests phase | files | tests | green |");
-  console.log("|---|---|---|---|---|---|---|---|");
+  console.log(
+    "| date | label | wall | setup | tests phase | files | tests | swap@start | green |"
+  );
+  console.log("|---|---|---|---|---|---|---|---|---|");
   for (const r of rows) {
     const flag = r.quiet ? "" : " ⚠busy";
+    const swap = r.memory ? `${r.memory.swapUsedGb}GB` : "—";
     console.log(
       `| ${r.at.slice(0, 16).replace("T", " ")} | ${r.label}${flag} | ${r.wall}s | ` +
         `${r.phases.setup ?? "—"}s | ${r.phases.tests ?? "—"}s | ${r.files} | ${r.tests} | ` +
-        `${r.green ? "✔" : "✘"} |`
+        `${swap} | ${r.green ? "✔" : `✘ ${r.failed}`} |`
     );
   }
 
@@ -353,6 +424,7 @@ const label = opt("--label", "-l") ?? "adhoc";
 const runs = Number(opt("--runs", "-n") ?? 1);
 const force = flag("--force");
 const only = opt("--only");
+const settleSec = Number(opt("--settle") ?? 90);
 
 const busy = contenders();
 let quiet = true;
@@ -376,6 +448,15 @@ console.log(
 );
 
 for (let i = 1; i <= runs; i++) {
+  if (i > 1 && settleSec > 0) {
+    // Eight forks at ~700 MB do not disappear the instant vitest exits,
+    // and a run that starts on a dirty page cache pays for the last
+    // one. Measured: back-to-back runs came in 1238s then 1804s, same
+    // code. Cooling off between runs is what makes run N comparable to
+    // run 1 rather than to "run 1 plus whatever it left behind".
+    console.log(`\n(settling ${settleSec}s before the next run)`);
+    execFileSync("sleep", [String(settleSec)], { stdio: "ignore" });
+  }
   const runLabel = runs > 1 ? `${label}-${i}` : label;
   console.log(`\n── run ${i}/${runs} (${runLabel}) ──`);
   const row = runOnce(runLabel, quiet, only);
