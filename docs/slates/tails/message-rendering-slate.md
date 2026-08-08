@@ -10,6 +10,25 @@
 > extensibility) remain open design surface — the build order at the
 > bottom of this slate is still the working plan for those.
 >
+> **⚠ AUDIT 2026-08-08 — Waves 2/3 are ~two-thirds delivered; one tag
+> left.** Checked against the tree when GitLab #19 was closed here. The
+> "Wave 2/3 remain open" line above is stale:
+>
+> - ✅ **`<list>`** — `api/mml/tags.ts`, with flatten support
+>   (`api/mml/flatten.ts`)
+> - ✅ **`<table>`** — `api/mml/tags.ts`
+> - ✅ **Channel stylesheets** — server side in `api/mml.ts` and
+>   `lib/connection/HasInteractive.ts`; client side in
+>   `packages/client/src/lib/style/useStylesheet.ts`
+> - ❌ **`<box>`** — the only piece missing. Zero occurrences.
+>
+> So the remaining work is **one tag, not a library** — and it may not be
+> wanted. Decide that before building: the theme/overlay cascade in
+> [message-rendering.md](../../subsystems/message-rendering.md) and the
+> layout work in [cockpit-layouts.md](../../subsystems/cockpit-layouts.md)
+> plausibly cover what `<box>` was for. This is a decision for whoever
+> next touches MML, not a queued build.
+>
 > The original framing: how a message goes from MML to what the
 > player sees — while the message *string always stays complete*.
 > Covers the MML structure (three tag categories + the flatten

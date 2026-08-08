@@ -8,6 +8,53 @@
 > **(access-policy, value-validator) pair per field, default-deny** — not
 > a boolean flag.
 
+> **⚠ AUDIT 2026-08-08 — most of this slate's goal shipped, by a route it
+> did not predict.** Checked against the tree when GitLab #22 was closed
+> here. Read the body below through this.
+>
+> **The authorization half (a) is delivered.** The plan was "reuse the
+> access system; authoring is access applied to `write`; no new policy
+> DSL" — that is `AccessApi.can` with parcel-title ownership
+> ([access.md](../../subsystems/access.md),
+> [parcel.md](../../subsystems/parcel.md)). The per-field gate exists too,
+> for the code-trust axis: `obj/api/CmsLogic.ts` gates `class` /
+> `hydratorClass` / `behaviors[].brain` on `isWizard`, with a round-trip
+> check so an existing template's values pass through unchanged. The
+> `write`/`cat` primitive shipped as
+> [shell-workspace.md](../../subsystems/shell-workspace.md); `make` shipped.
+>
+> **"Every player authors their own space" shipped as *furnishing*, not
+> field-writing.** [furnishing.md](../../subsystems/furnishing.md) —
+> owner-based persistence, `place`, the estate slice, `FurnishableRoom`,
+> the room overlay — over [residence.md](../../subsystems/residence.md)
+> (the dorm) and [chattel.md](../../subsystems/chattel.md) (title). A
+> player arranging their dorm today **is** doing scoped personal
+> authoring: ownership scoping, persistence and safety-by-construction all
+> present. This slate imagined the on-ramp as a room *editor*; it arrived
+> as an *economy of owned things*.
+>
+> **Not the sandbox — a common conflation worth killing.**
+> [sandbox.md](../../subsystems/sandbox.md) contains *what happens when
+> untrusted code runs* (circle-scope taint, the Layer-4 boundary,
+> jurisdiction-targeted eval) — a wizard-tier concern about consequences.
+> This slate runs the opposite direction: make abuse **unexpressible** so
+> there is nothing to contain. They do not overlap.
+>
+> **What actually remains — all of it the value-validator half (b):**
+> 1. **The prose rung.** There is **no `describe` verb**. This slate
+>    assumed "`describe`/`put` already exist for trivial cases" — `put`
+>    does, `describe` does not, and `write` is the wizard-tier workspace
+>    file-write. **A player can arrange their dorm but cannot write a
+>    sentence about it.** That is the real missing rung, and it is small.
+> 2. **The vetted catalog** behind `make` — a membership validator.
+> 3. **Authoring quotas** — common-pool, so quota rather than lease.
+> 4. **The GUI**, which this slate already scopes out to the client.
+>
+> **Blocked dependency:** item 1 needs a **moderation validator**, and no
+> moderation substrate exists (the `communication-policy-slate` was retired
+> — see [roadmap.md](../../roadmap.md):514; its live kernel moved to
+> comms-slate § Moderation). The prose rung waits on that.
+
 Working slate for **scoped personal authoring** — the content-authoring
 on-ramp surfaced by onboarding (you learn to customize your dorm). It's
 strategically the platform's path to *player-generated content*, so the

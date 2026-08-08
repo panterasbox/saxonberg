@@ -6,6 +6,42 @@
 > surfaces but is not yet queued. Several richer extensions explicitly
 > marked future/deferred in-body.
 
+> **⚠ AUDIT 2026-08-08 — the written half shipped, and the seam for the
+> rest is already carved.** Checked against the tree when GitLab #7 was
+> closed here.
+>
+> - **The `Readable` mixin + `read` verb shipped — as `MarkedMixin`**
+>   (`lib/description/Marked.ts`, registered `Marked`) plus
+>   `cmd/perception/read.yaml`. The name is why this was missed for two
+>   months; search the *concept*, not the slate's proposed vocabulary.
+> - **`Readable.language` shipped as `markScript`** — a real field over a
+>   `MARK_SCRIPTS` vocabulary with a `COMMON_SCRIPT` default. `form` (how
+>   a thing is made — inked vs embossed) and `script` (what system it is
+>   in) are already **independent axes**, which is the decomposition this
+>   substrate needs and would otherwise have had to introduce.
+> - **`read` already decomposes into perceive + decode.** Inked text needs
+>   light; embossed text reads in the dark by touch, so the modality falls
+>   out of the form. `Marked.ts` reserves this slate's insertion point in
+>   so many words: *"v1 has exactly one script and no literacy… a literacy
+>   gate would slot into `decode` without disturbing `perceive`."*
+>
+> **What remains:** the `Language` Idea + catalogue (today `MARK_SCRIPTS`
+> is a bare vocabulary); `Character` proficiency and the **decode gate**
+> that consumes it; the **speech** half — the garble render-gate and NPC
+> `speechLanguage`, riding [comms.md](../../subsystems/comms.md) /
+> [messaging.md](../../subsystems/messaging.md), which is the genuinely
+> unbuilt side; and the spellbook **comprehension floor**, which
+> `Marked.ts` notes is "already a decoding gate in all but name" — fold it
+> in rather than building it twice.
+>
+> **One stale justification:** this slate and its issue sold the substrate
+> partly on pedagogical real-language readables (a TOEFL register). TOEFL
+> was cut as a vertical on 2026-08-07 — a text-only English world cannot
+> serve speaking/listening or low-proficiency entrants
+> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com-cx-and-the-aspiring-teacher.md)
+> §1). The substrate stands on its own diegetic merits; that argument does
+> not.
+
 Working slate for the language substrate — how the game models
 distinct languages, how NPCs speak them, how written content is
 gated by them, and how player proficiency mediates comprehension.
