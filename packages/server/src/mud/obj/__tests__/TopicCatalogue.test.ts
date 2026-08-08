@@ -3,6 +3,7 @@
  * mongo, and singleton destruct refusal.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TopicCatalogue from '../TopicCatalogue';
 import Topic from '../Topic';

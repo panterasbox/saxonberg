@@ -15,6 +15,7 @@
  * this file was always really testing.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { RecognitionApi } from '../../../../api/recognition';
 import { IDENTIFICATION, RECOGNITION } from '../../../../lib/belief/BeliefStore';

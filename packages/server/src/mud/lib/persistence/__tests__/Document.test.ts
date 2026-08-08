@@ -8,6 +8,7 @@
  * objects — constructed with `new`, never registered with StuffApi.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Document } from '../Document';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';

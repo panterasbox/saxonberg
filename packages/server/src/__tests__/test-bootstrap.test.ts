@@ -11,6 +11,7 @@
  * system happens to give us.
  */
 
+import "../test-bootstrap";
 import { describe, expect, it, vi } from "vitest";
 
 import { BootstrapManager } from "../backend/BootstrapManager";

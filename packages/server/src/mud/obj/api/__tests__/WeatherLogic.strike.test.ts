@@ -7,6 +7,7 @@
  * harmless-but-heard flash; no weather state is stored.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';

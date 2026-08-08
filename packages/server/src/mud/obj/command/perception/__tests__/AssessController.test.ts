@@ -9,6 +9,7 @@
  * Mongo is faked so `bandFor` runs; the emitted scene body is captured.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AssessController from '../AssessController';
 import { Creature } from '../../../../lib/creature/Creature';

@@ -11,6 +11,7 @@
  * conversation simply parks on its first wheel.
  */
 
+import "../../../../../test-bootstrap";
 import {
   describe,
   it,

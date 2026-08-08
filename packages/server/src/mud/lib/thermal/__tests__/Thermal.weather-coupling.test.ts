@@ -15,6 +15,7 @@
  *     `registerSystemSchedules`) drives `onBoundary` across a boundary.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';

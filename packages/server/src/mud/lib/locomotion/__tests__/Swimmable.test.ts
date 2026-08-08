@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SwimmableMixin, SWIMMING_CAPABILITY_PROP } from '../Swimmable';
 import { Idea } from '../../stuff/Idea';

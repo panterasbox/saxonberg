@@ -4,6 +4,7 @@
  * multiplexing, death-inside re-mint, reconnect-in-grace.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { TemplatePaths } from '../../lib/paths';

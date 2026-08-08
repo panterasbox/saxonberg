@@ -4,6 +4,7 @@
  * touched objects are skipped, and vetoing objects survive.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Thing from '../../../lib/stuff/Thing';
 import Location from '../../../lib/stuff/Location';

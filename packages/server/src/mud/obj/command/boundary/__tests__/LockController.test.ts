@@ -3,6 +3,7 @@
  * scope; reject a non-lockable target.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import LockController from '../LockController';
 import UnlockController from '../UnlockController';

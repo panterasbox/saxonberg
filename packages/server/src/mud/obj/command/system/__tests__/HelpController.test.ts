@@ -8,6 +8,7 @@
  * unknown-command rejection note.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { HelpTopic } from "@saxonberg/types";
 import HelpController from "../HelpController";

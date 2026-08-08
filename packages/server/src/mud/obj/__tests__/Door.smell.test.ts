@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Door from '../Door';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';

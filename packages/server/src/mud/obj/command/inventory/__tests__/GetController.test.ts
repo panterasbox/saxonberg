@@ -5,6 +5,7 @@
  * checks the source/destination flip plus a few unique-to-get cases.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GetController from '../GetController';
 import { ContainerMixin } from '../../../../lib/spatial/Container';

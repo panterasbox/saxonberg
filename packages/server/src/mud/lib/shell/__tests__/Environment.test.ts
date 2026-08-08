@@ -8,6 +8,7 @@
  * helper. See `docs/subsystems/shell-environment.md` for the design.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import {

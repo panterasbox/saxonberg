@@ -7,6 +7,7 @@
  * BodyPlan.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AudibleMixin } from '../Audible';
 import { MixinApi } from '../../../api/mixin';

@@ -8,6 +8,7 @@
  * refusals, and conservation green in every state.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import { ContractApi } from "../../../api/contract";

@@ -5,6 +5,7 @@
  * WHEN, never WHO (there is no identity parameter to store).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import CrossingLog from '../CrossingLog';
 import { Time } from '../../../../lib/time/Time';

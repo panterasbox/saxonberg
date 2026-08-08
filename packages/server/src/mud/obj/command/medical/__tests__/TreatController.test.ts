@@ -11,6 +11,7 @@
  * MessageApi.scene is stubbed.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TreatController from '../TreatController';
 import UndressController from '../UndressController';

@@ -10,6 +10,7 @@
  * lightweight spies so the test runs without a real backend.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import StyleController from '../StyleController';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';

@@ -10,6 +10,7 @@
  * compose without ambient state interfering" gate.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import PutController from '../obj/command/inventory/PutController';
 import GiveController from '../obj/command/inventory/GiveController';

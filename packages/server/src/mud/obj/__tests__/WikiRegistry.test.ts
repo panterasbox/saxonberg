@@ -19,6 +19,7 @@
  * around silently everywhere.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiRegistry, { WikiDenied, WikiConflict } from '../WikiRegistry';
 import WikiNamespaceZone from '../WikiNamespaceZone';

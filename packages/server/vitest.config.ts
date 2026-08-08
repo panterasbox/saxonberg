@@ -10,12 +10,38 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    // Pre-load the four singleton-Stuff registries so their module-load
-    // side effects register their classes with the corresponding Api
-    // facades. Production gets these via BootstrapManager; tests
-    // would otherwise hit "Registry class not registered" on first
-    // touch. See `test-setup-registries.ts` for the rationale.
-    setupFiles: ["./src/test-setup-registries.ts"],
+    // NO `setupFiles`. The framework wiring used to live here, which
+    // meant all 964 test files paid for `installFrameworkWiring()` and
+    // its ~30-deep import graph — re-evaluated per file, because vitest
+    // isolates. Measured at 5.79s of the 6.38s it took to run a file
+    // that needed none of it. It is now an explicit import:
+    //
+    //     import "../../../test-bootstrap";
+    //
+    // A test that needs a wired world says so; 156 files that need
+    // none of it stop paying. `pnpm lint:test-bootstrap` keeps the two
+    // in sync so a new test file can't silently regress.
+    //
+    // ⚠⚠ `isolate: false` — DO NOT. It is the single biggest lever
+    // left (it would let a worker share the module graph across files,
+    // reclaiming most of what remains), and it is declined on
+    // evidence, not taste.
+    //
+    // This codebase has global mutable registries — StuffApi's indexes,
+    // the catalogues — and its tests depend on `StuffApi.clearAll()` in
+    // teardown for a clean world. Without isolation every one of those
+    // becomes a cross-file leak. The precedent is specific and recent:
+    // the weather flake fixed in MR !175 was exactly this failure mode
+    // (one test's pending work landing inside another's assertion
+    // window), and it survived months because that class of bug is so
+    // hard to attribute. This suite already flakes 4-13 tests per run
+    // under load; the fix for that is not to remove the last barrier
+    // between test files.
+    //
+    // A slow suite you trust beats a fast suite you don't, at any
+    // speed. If you are here because the suite is still slow, the
+    // honest targets are in docs/testing.md § What is left.
+    //
     // `pool: 'threads'` — MEASURED AND REJECTED, 2026-08-08. Left here
     // as a comment because it is the obvious next thing to try, and
     // re-running a 20-minute suite to rediscover this is the waste.

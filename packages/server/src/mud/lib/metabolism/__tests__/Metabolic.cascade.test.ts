@@ -8,6 +8,7 @@
  * (collapsed → can't intake → keeps starving) emerges from the gate.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import { METABOLIC_DEFAULTS } from "../Metabolic";

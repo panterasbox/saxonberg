@@ -10,6 +10,7 @@
  *   - rejection paths surfaced by the Api wrapper itself.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { BoundaryApi } from '../boundary';
 import { BoundaryLogic } from '../../obj/api/BoundaryLogic';

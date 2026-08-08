@@ -9,6 +9,7 @@
  *   - a dramatic beat registers a reactable act (tick beats stay silent).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { Idea } from "../../stuff/Idea";

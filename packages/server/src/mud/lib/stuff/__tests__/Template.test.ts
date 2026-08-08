@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Template } from '../Template';
 import { ZoneTemplate } from '../ZoneTemplate';

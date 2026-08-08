@@ -11,6 +11,7 @@
  *   - canRest() veto → controller-rejected (cannot-rest)
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import PutController from '../PutController';
 import { ContainerMixin } from '../../../../lib/spatial/Container';

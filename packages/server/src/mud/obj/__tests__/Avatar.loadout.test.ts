@@ -8,6 +8,7 @@
  * re-entry; the implant no longer composes TravelCredentialMixin.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Avatar from "../Avatar";
 import Species from "../species/Species";

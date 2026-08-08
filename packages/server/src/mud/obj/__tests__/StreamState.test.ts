@@ -9,6 +9,7 @@
  * so `EventApi.emit/on` resolve without the full boot manifest.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import StreamState from '../StreamState';
 import EventRegistry from '../EventRegistry';

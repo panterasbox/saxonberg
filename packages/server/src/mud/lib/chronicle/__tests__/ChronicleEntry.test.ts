@@ -8,6 +8,7 @@
  * Mongo is faked with an in-memory collection (the belief-store harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ChronicleEntry from '../ChronicleEntry';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';

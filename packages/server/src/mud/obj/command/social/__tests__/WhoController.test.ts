@@ -5,6 +5,7 @@
  * `MessageApi.scene` (the `StandingController` test precedent).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WhoController from '../WhoController';
 import { SocialApi, type RosterRow } from '../../../../api/social';

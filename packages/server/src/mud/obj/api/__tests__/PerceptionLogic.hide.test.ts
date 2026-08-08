@@ -16,6 +16,7 @@
  * effective perception is exactly the attention passed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { PerceptionApi } from '../../../api/perception';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';

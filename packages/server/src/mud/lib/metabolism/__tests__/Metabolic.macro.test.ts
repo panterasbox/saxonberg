@@ -6,6 +6,7 @@
  * drives nothing until vitals healing is wired).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import Material from "../../material/Material";

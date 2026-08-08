@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RadioactiveMaterial } from '../../../obj/material/RadioactiveMaterial';
 import Material from '../Material';

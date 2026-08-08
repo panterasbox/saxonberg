@@ -4,6 +4,7 @@
  * `_advanceForTesting`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import { DefaultCalendar } from '../DefaultCalendar';

@@ -9,6 +9,7 @@
  * round-trip.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as crypto from 'crypto';
 import { EncryptedStringMarshaller } from '../EncryptedStringMarshaller';

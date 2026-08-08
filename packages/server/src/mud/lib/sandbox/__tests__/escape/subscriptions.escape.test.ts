@@ -6,6 +6,7 @@
  * MqlSubscriptionRegistry.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlSubscriptionApi } from '../../../../api/mql-subscription';
 import { StuffApi } from '../../../../api/stuff';

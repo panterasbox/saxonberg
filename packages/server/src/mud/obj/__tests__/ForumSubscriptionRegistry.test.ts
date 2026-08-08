@@ -13,6 +13,7 @@
  * (its no-regression constraint is trivially met).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../../api/forums';
 import ForumSubscriptionRegistry from '../ForumSubscriptionRegistry';

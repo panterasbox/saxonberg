@@ -5,6 +5,7 @@
  * recipient's general inventory.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import GiveController from '../GiveController';
 import { ContainerMixin } from '../../../../lib/spatial/Container';

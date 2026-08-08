@@ -18,6 +18,7 @@
  * shadow reshapes).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from "vitest";
 import {
   makeStuff,

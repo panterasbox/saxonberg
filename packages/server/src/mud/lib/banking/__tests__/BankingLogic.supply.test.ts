@@ -7,6 +7,7 @@
  *     accounts (no coin bridges yet), supply == Σ account balances.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";

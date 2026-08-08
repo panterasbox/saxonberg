@@ -6,6 +6,7 @@
  * emergent, not scripted. No combat / world clock needed — fixtures only.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ElectricityApi } from '../../../api/electricity';
 import { EnergizedMixin } from '../../../lib/electricity/Energized';

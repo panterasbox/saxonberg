@@ -8,6 +8,7 @@
  * surface in isolation.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EngagedMixin } from '../Engaged';
 import type { Engaged } from '../Engaged';

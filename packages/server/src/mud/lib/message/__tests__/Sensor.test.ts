@@ -9,6 +9,7 @@
  * shadow that drops `speech.*` frames).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SensorMixin } from '../Sensor';
 import { Shadow } from '../../stuff/Shadow';

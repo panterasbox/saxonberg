@@ -7,6 +7,7 @@
  * stays hot.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Campfire from "../Campfire";
 import Material from "../../lib/material/Material";

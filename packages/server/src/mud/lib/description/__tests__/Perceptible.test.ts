@@ -2,6 +2,7 @@
  * Tests for PerceptibleMixin
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PerceptibleMixin } from '../Perceptible';
 import { NamedMixin } from '../Named';

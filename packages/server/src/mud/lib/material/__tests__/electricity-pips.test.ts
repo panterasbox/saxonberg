@@ -5,6 +5,7 @@
  * `responsePipsAugmenter` directly.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Armor from '../../../obj/equipment/Armor';
 import Material from '../Material';

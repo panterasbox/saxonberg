@@ -17,6 +17,7 @@
  *     so the reference can never resolve to protowizard-authored code.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TemplateApi, TemplateError } from "../../../api/template";
 import { AccessApi } from "../../../api/access";

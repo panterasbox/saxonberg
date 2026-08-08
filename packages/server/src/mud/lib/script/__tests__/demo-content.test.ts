@@ -19,6 +19,7 @@
  * stands in for the build verbs so the engine proofs need no animate body.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";

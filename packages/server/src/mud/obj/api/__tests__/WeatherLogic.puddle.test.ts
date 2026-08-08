@@ -7,6 +7,7 @@
  * weather→bulk→electricity loop) with no new glue.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';

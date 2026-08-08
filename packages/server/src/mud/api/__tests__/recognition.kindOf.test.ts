@@ -15,6 +15,7 @@
  * withheld, which leaks the same fact one level up.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { RecognitionApi } from '../recognition';
 import { Mml } from '../mml';

@@ -8,6 +8,7 @@
  * manual world clock + reading the body (no push tick).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ElectricityApi } from '../../../api/electricity';
 import { EnergizedMixin } from '../../../lib/electricity/Energized';

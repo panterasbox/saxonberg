@@ -6,6 +6,7 @@
  * the `EARTH_LIKE` fallback; no zone authoring needed for v1.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CelestialApi } from '../../../api/celestial';
 import { WorldClockApi } from '../../../api/worldclock';

@@ -13,6 +13,7 @@
  * Mongo + GroupApi are faked in-memory.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SubjectCatalogue from '../SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';

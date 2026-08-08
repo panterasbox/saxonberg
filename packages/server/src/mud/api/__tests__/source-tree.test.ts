@@ -18,6 +18,7 @@
  * `beforeEach` and torn down in the `afterEach`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';

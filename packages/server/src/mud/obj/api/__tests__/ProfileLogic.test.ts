@@ -13,6 +13,7 @@
  * so this is a pure logic test — no DB, no perception, no real mixins.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SocialApi } from '../../../api/social';
 import { MixinApi } from '../../../api/mixin';

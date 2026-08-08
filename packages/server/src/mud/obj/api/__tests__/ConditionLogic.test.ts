@@ -7,6 +7,7 @@
  * raw call to `ConditionLogic.inflict` from outside `ConditionApi` is denied.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { ConditionLogic } from '../ConditionLogic';

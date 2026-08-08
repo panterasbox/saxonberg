@@ -11,6 +11,7 @@
  * via the real `SchedulerApi`, so the both-sides-free assertions are real.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

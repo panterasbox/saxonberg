@@ -9,6 +9,7 @@
  * Rows are seeded DIRECTLY (the reader is ungated); Mongo is faked.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProvenanceApi } from '../../../api/provenance';
 import AuthoringEvent from '../../../lib/standing/AuthoringEvent';

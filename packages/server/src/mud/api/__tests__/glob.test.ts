@@ -9,6 +9,7 @@
  * test is the split orchestrator, not clone itself.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GlobbableApi } from '../glob';
 import { GlobbableLogic } from '../../obj/api/GlobbableLogic';

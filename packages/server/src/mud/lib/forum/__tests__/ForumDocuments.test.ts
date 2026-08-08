@@ -6,6 +6,7 @@
  * Mongo is faked in-memory.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Board from '../Board';
 import Entry from '../Entry';

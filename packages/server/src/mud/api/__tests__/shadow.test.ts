@@ -11,6 +11,7 @@
  *   - shadow-as-Stuff sanity (stuffId, registry lookup)
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ShadowApi } from '../shadow';
 import { Shadow } from '../../lib/stuff/Shadow';

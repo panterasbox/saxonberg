@@ -4,6 +4,7 @@
  * that veto while remaining an Idea.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Stuff, EvictionContext } from '../Stuff';
 import { Idea } from '../Idea';

@@ -10,6 +10,7 @@
  * emergent-tempo mechanics are asserted deterministically.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

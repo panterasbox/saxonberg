@@ -5,6 +5,7 @@
  * verb invocation.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { readdirSync } from 'fs';
 import { join, dirname, sep } from 'path';

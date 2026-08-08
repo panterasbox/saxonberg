@@ -8,6 +8,7 @@
  * grew a consumer would still pass the first half.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

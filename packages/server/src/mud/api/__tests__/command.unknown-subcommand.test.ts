@@ -16,6 +16,7 @@
  *      cloned.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import requiresHasInteractive from '../../lib/command/validators/requiresHasInteractive';
 import requiresEnvironment from '../../lib/command/validators/requiresEnvironment';

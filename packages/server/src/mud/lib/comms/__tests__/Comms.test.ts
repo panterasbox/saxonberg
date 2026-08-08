@@ -5,6 +5,7 @@
  * modality, and cohort state lands on the update.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import Species from '../../../obj/species/Species';

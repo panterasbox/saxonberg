@@ -2,6 +2,7 @@
  * TangibleMixin setMaterial / setMass fire FieldChangedEvent.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Material from '../Material';
 import Thing from '../../stuff/Thing';

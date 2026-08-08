@@ -4,6 +4,7 @@
  * Plus the `BodyPlan.baseMass` setter invariant (Phase 1).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../Creature';
 import Species from '../../../obj/species/Species';

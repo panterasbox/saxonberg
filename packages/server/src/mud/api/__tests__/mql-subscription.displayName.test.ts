@@ -7,6 +7,7 @@
  * map and its overlay step are gone.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { collectSubscribableFields } from '../mql-subscription';
 import { NamedMixin } from '../../lib/description/Named';

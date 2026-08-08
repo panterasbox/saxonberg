@@ -10,6 +10,7 @@
  * would deny) or without the Layer-4 backstop (the smuggle would pass).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import {

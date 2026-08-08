@@ -11,6 +11,7 @@
  * lands in P10.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Location from "../../stuff/Location";
 import { Idea } from "../../stuff/Idea";

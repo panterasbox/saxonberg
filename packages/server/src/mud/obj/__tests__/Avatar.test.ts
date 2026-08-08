@@ -9,6 +9,7 @@
  * - Character inheritance
  */
 
+import "../../../test-bootstrap";
 import {
   describe,
   it,

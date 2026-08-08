@@ -14,6 +14,7 @@
  * levels subtle 2 / hidden 4 / deep 7 / buried 11; capacityPerBand 3).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SearchController from '../SearchController';
 import { PerceptionApi } from '../../../../api/perception';

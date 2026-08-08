@@ -10,6 +10,7 @@
  * `lib/persistence/__tests__/persistence-spine.test.ts`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TemplateApi } from '../template';
 import { Idea } from '../../lib/stuff/Idea';

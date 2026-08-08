@@ -128,6 +128,12 @@ lint:
     # content packs may add leaves, never a root, because a pack-minted
     # root breaks subtree muting for every player.
     - pnpm -C packages/server lint:topics
+    # The framework wiring is an explicit import, not a global setup
+    # file. A test that touches the wired runtime must say so; this
+    # keeps the two in sync. It fails only in the cheap direction (a
+    # file that needs wiring and lacks the import) — a redundant import
+    # is free, because the bootstrap is once-guarded.
+    - pnpm -C packages/server lint:test-bootstrap
 
 test:
   extends: [.node, .mr-only]

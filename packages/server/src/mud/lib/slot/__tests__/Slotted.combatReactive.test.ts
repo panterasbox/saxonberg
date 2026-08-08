@@ -7,6 +7,7 @@
  * A non-CombatReactive occupant fires nothing.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SlottedMixin } from '../Slotted';
 import type { Slotted } from '../Slotted';

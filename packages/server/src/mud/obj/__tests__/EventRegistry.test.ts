@@ -11,6 +11,7 @@
  *     `Events` table.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BootstrapManager } from '../../../backend/BootstrapManager';
 import EventRegistry from '../EventRegistry';

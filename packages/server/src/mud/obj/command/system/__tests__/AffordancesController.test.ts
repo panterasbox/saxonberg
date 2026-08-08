@@ -9,6 +9,7 @@
  * and one item-afforded verb (`help`).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AffordancesController from '../AffordancesController';
 import { Idea } from '../../../../lib/stuff/Idea';

@@ -12,6 +12,7 @@
  * curriculum could compute honestly against.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import CartesianZone from '../../obj/location/CartesianZone';

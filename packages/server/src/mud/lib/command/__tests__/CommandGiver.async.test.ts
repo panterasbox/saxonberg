@@ -13,6 +13,7 @@
  * detached body's clone/execute microtasks up to the gate.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../stuff/Location';
 import { CommandGiverMixin } from '../CommandGiver';

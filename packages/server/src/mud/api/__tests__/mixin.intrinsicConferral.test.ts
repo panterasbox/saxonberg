@@ -8,6 +8,7 @@
  * with no implant; an ordinary species stays inert.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { MixinApi } from '../mixin';
 import { AetherMixin } from '../../lib/message/Aether';

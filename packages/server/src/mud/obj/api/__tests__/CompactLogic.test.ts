@@ -6,6 +6,7 @@
  * channel seam, actor-from-context on the mint).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CompactApi } from "../../../api/compact";
 import { ParcelApi } from "../../../api/parcel";

@@ -7,6 +7,7 @@
  * (`BulkableApi.transfer`) restores the budget and the body taps again.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

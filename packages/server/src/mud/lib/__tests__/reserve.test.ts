@@ -5,6 +5,7 @@
  * definable on the same axis).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../creature/Creature';
 import { Quantity } from '../quantity';

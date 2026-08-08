@@ -3,6 +3,7 @@
  * the persistent-field set, and the defaults.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import DispositionEntry from "../DispositionEntry";
 import { Collections } from "../../../../backend/PersistenceManager";

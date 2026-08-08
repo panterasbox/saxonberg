@@ -4,6 +4,7 @@
  * leaving the host + Dave's untouched.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
 import Lounge from '../Lounge';

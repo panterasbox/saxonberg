@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SoundModality } from '../SoundModality';
 import { MAX_HOPS } from '../../../lib/perception/Modality';

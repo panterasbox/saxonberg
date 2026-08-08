@@ -5,6 +5,7 @@
  * (no `instanceof Watch`).
  */
 
+import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AdjustController from '../AdjustController';
 import Watch from '../../Watch';

@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeResponseController from '../AnalyzeResponseController';
 import Armor from '../../../equipment/Armor';
