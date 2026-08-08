@@ -1632,7 +1632,7 @@ async function evaluateAffordance(
   const bound = fields[0];
   const context = CommandApi.createCommandContext({
     commandGiver: viewer,
-    location: (viewer as unknown as Containable).getContainer?.() ?? null,
+    location: MixinApi.isContainable(viewer) ? viewer.getContainer() : null,
     commandText: verb,
     executionId: AFFORDANCE_PROBE_ID,
     commandId: AFFORDANCE_PROBE_ID,
@@ -1643,11 +1643,13 @@ async function evaluateAffordance(
 
   // ⚠ Bound as an `MqlOneResult`, not a bare Stuff: field validators
   // reach for `MqlApi.effectiveTarget(value, …)`, whose door-behind-an-
-  // exit rule needs the `via` slot to exist. A bare Stuff survives
+  // exit rule needs the wrapper's shape. A bare Stuff survives
   // `extractStuffs` and then silently fails the richer readers.
-  const model: CommandModel = bound
-    ? { [bound]: { stuff: target, via: null } as unknown as FieldValue }
-    : {};
+  //
+  // `raw` is the probe's own marker rather than player text — nobody
+  // typed this binding.
+  const binding: MqlOneResult = { stuff: target, raw: AFFORDANCE_PROBE_ID };
+  const model: CommandModel = bound ? { [bound]: binding } : {};
 
   // ⚠⚠ The dispatcher runs an ASYNC preload phase between MQL
   // resolution and the sync validator bodies, and it is not optional:

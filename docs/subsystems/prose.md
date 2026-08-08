@@ -39,7 +39,7 @@ mirrors `Mml.compose`'s interpolation rules:
 - `null` / `undefined` (including missing variables) → empty string.
 - Objects with `toMml()` are unwrapped; non-`Mml` returns are escaped.
 
-So you can pass a pre-rendered `Mml.name(actor)` as a variable and it
+So you can pass a pre-rendered `Mml.actor(actor)` as a variable and it
 threads through the template without double-escaping. The render
 output is wrapped via `Mml.fromMarkup` so callers receive a real
 `Mml` value.
@@ -111,7 +111,7 @@ the underlying API supplies a last-stitch fallback):
 `name` is strict because there's no honest fallback for "this thing's
 proper name" — wrapping an `'a sword'`-style fallback in `<name>`
 tags would lie about identity. The other Mml-vocabulary filters
-delegate to `Stuff.getPresentation()` via `Mml.item` / `.location`
+delegate to `Stuff.getPresentation()` via `Mml.thing` / `.location`
 / `.object`, which already drop to sensible defaults (`'an item'`,
 `'somewhere'`, `'something'`) when the Stuff has neither `Named` nor
 `Visible`; the filter lets that fallback surface rather than
@@ -124,7 +124,7 @@ otherwise.
 
 `{{ stuff | item }}`, `{{ stuff | location }}`, `{{ stuff | object }}`
 — wrap any Stuff's display name in the corresponding markup tag with
-`stuff-id` attribution. Equivalent to calling `Mml.item(stuff)` etc.
+`stuff-id` attribution. Equivalent to calling `Mml.thing(stuff)` etc.
 directly; uses the Mml factory's last-stitch fallback when no display
 surface is composed.
 

@@ -244,7 +244,7 @@ not conversation time.
 ## Auto-introduce — knowing who you're talking to
 
 Speech renders the speaker viewer-relatively
-(`RecognitionApi.describe` via `Mml.name`), so an un-introduced NPC shows
+(`RecognitionApi.describe` via `Mml.actor`), so an un-introduced NPC shows
 by description ("a watchful dwarf"), not name. The fix is **real
 recognition via auto-introduce**, not a name bypass:
 

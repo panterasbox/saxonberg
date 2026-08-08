@@ -2831,3 +2831,63 @@ arrives after an article has been typed is the same decision delivered
 at the worst possible moment. Compute the permission and its *reason*
 in one call (`refusalToEdit` / `refusalToCreate`) so the message a verb
 prints and the message a mutator throws cannot drift.
+
+## Naming a referent's KIND at an emitter that cannot know it
+
+`<player>` asserts a real human is behind a figure; `<npc>` asserts
+none is; `<thing>` asserts it is not a person at all. All three are
+identity claims the composer makes **on the server's authority** — and
+an ordinary emitter holds a `giver` or a `target` and has no way to
+answer.
+
+Worse, the answer is **not constant per object**. A disguised player is
+a player to one viewer and a hooded stranger to another, and
+player-ness is the single fact a disguise exists to hide.
+
+`Mml.actor` is the face for this: the emitter says *a person acting*
+and stops; `RecognitionApi.kindOf(viewer, target)` resolves
+`player | npc | thing` at `toString(viewer)`, beside the naming step,
+because it is the same question asked about kind instead of name.
+
+⚠ **Any list of "what is here" is included**, and this is the half that
+gets missed: room contents hold people. `look` splits organisms out to
+the occupant formatter and so is already right; the **sense** verbs do
+not. Surface-resting lists (someone sits on a stool) and search results
+(what a search turns up is very often a hiding person) are the same.
+Only a definitionally-object list — inventory — stays `Mml.thing`.
+
+### BAD
+
+```ts
+// The emitter guessing. Wrong for every NPC that runs a command,
+// and it OUTS a disguised player to the room.
+MessageApi.scene(giver).toPeers(
+  Mml.compose`${Mml.player(giver)} takes ${Mml.thing(item)}.`
+).send();
+
+// A contents run that renders Dave `<thing>`.
+const list = Mml.list(topLevel.map((item) => Mml.thing(item)));
+```
+
+### GOOD
+
+```ts
+MessageApi.scene(giver).toPeers(
+  Mml.compose`${Mml.actor(giver)} takes ${Mml.thing(item)}.`
+).send();
+
+// Resolves per item: people get player/npc, objects still get thing.
+const list = Mml.list(topLevel.map((item) => Mml.actor(item)));
+```
+
+Reach for `Mml.player` / `npc` / `thing` **only where the emitter knows
+something the world does not** — the puppeteer behind a possessed
+corpse, an illusion that should read as a person. Those are the cases
+the framework must not guess at, and they stay explicit.
+
+⚠ The same shape had been wrong for years and was invisible: it was
+`<item>` vs `<name>`, two tags that asserted nothing, so two emitters
+could disagree about the same object in the same room and nobody could
+tell. **Giving a tag meaning is what makes its misuse findable** — the
+divergence surfaced within minutes of a live drive once the tags said
+something.

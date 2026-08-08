@@ -278,8 +278,8 @@ class WearController extends CommandController<WearModel> {
     SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
       .topic(MessageApi.Topics.sense.survey)
-      .toSelf(Mml.compose`You put on ${Mml.item(target)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} puts on ${Mml.item(target)}.`)
+      .toSelf(Mml.compose`You put on ${Mml.thing(target)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} puts on ${Mml.thing(target)}.`)
       .send();
   }
 }

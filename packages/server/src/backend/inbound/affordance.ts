@@ -18,7 +18,6 @@ import { MixinApi } from '../../mud/api/mixin';
 import { StuffApi } from '../../mud/api/stuff';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { Sensor } from '../../mud/lib/message/Sensor';
-import type { CommandGiver } from '../../mud/lib/command/CommandGiver';
 import type {
   AffordanceResolveMessage,
   AffordanceResultEnvelope,
@@ -43,10 +42,7 @@ export const handleAffordanceResolve: InboundHandler = async (ctx, message) => {
 
   const target = StuffApi.findById(payload.stuffId);
   const resolution = target
-    ? await CommandApi.resolveAffordances(
-        target,
-        viewer as unknown as Stuff & CommandGiver,
-      )
+    ? await CommandApi.resolveAffordances(target, viewer)
     : null;
 
   // ⚠ **One reason code, deliberately.** "No such object" and "you may

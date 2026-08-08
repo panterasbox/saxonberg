@@ -624,7 +624,7 @@ dispatches them all.
 MessageApi.scene(speaker)
   .topic('speech.vocal')
   .toSelf(Mml.compose`You say, ${Mml.speech(text)}`)
-  .toPeers(Mml.compose`${Mml.name(speaker)} says, ${Mml.speech(text)}`)
+  .toPeers(Mml.compose`${Mml.actor(speaker)} says, ${Mml.speech(text)}`)
   .payload({ speaker: MessageApi.refOf(speaker), text })
   .send();
 ```
@@ -939,11 +939,11 @@ MudlogApi.info(Mml.compose`Boot complete`);   // body-only
 
 if (MudlogApi.isEnabled('combat', 'debug')) {
   MudlogApi.debug('combat',
-    Mml.compose`${Mml.name(attacker)} swing detail: ${expensive.computation()}`);
+    Mml.compose`${Mml.actor(attacker)} swing detail: ${expensive.computation()}`);
 }
 
 MudlogApi.info('admin',
-  Mml.compose`${Mml.name(player)} just hit level 50`,
+  Mml.compose`${Mml.actor(player)} just hit level 50`,
   { to: [admin1, admin2] });
 ```
 
@@ -1012,7 +1012,7 @@ The override hierarchy `MobileMixin` consults (highest priority first):
 3. **`messages.movement.*` settings** — schema-defaulted, player-overridable.
 
 Each schema entry's default is rendered through `ProseApi.format`,
-which interpolates `Mml.name(mover)` and `Mml.direction(...)` and
+which interpolates `Mml.actor(mover)` and `Mml.direction(...)` and
 handles the directional/bland arrive split via `{% if direction %}`
 inside a single template — see [prose.md](./prose.md) for the
 templating language.
