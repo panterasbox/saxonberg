@@ -398,6 +398,45 @@ describe('pane hold conditions', () => {
     });
   });
 
+  /* ──────────────── the wake path, found by DRIVING ─────────────── */
+
+  /*
+   * ⚠⚠ **Every other test in this file calls `refreshForInteractive`
+   * by hand, and that masked a real bug.**
+   *
+   * A hold is only evaluated when its subscription re-resolves, and a
+   * subscription only re-resolves when something marks it dirty. A
+   * `here` pane is not `locationDependent` by default, so walking out
+   * of the room woke nothing, the hold was never evaluated, and the
+   * pane was **immortal**. The suite was green throughout: the manual
+   * refresh stood in for the wake that production would never do.
+   *
+   * Driving it live is what found it. This test is the guard, and it
+   * deliberately does NOT refresh — the move alone must be enough.
+   */
+  it('releases on the MOVE ALONE, with no manual refresh', async () => {
+    const h = await setup();
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'pane-wake',
+      query: 'here',
+      cardinality: 'one',
+      fields: 'ref',
+      hold: 'here',
+    });
+    expect(isOpen(h.interactive, 'pane-wake')).toBe(true);
+
+    // The ONLY thing that happens is the walk. No refresh.
+    ContainmentApi.move(h.avatar, h.elsewhere);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+
+    expect(isOpen(h.interactive, 'pane-wake')).toBe(false);
+    expect(releaseOf(h.envelopes, 'pane-wake')).toMatchObject({
+      hold: 'here',
+      reason: 'left',
+    });
+  });
+
   /* ───────────────────── one registry, N panes ─────────────────── */
 
   /*
