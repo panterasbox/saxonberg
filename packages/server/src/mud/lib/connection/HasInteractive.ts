@@ -38,6 +38,9 @@ import {
   COCKPIT_ARRANGEMENTS,
   DEFAULT_COCKPIT_MODE,
   LEGACY_LAYOUT_MIGRATION,
+  LEGACY_LAYOUT_FOR,
+  MAX_ARRANGEMENT_NAME_LENGTH,
+  type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
 } from '@saxonberg/types';
@@ -180,6 +183,24 @@ export interface HasInteractive {
    */
   getCockpitArrangement(mode?: CockpitMode): string;
 
+  /** Shipped defaults then saved names — what `cockpit layout` resolves against. */
+  getArrangementNames(mode?: CockpitMode): string[];
+
+  /** Is `name` one of `mode`'s shipped defaults? */
+  isShippedArrangement(mode: CockpitMode, name: string): boolean;
+
+  /** Which mode owns `name`, skipping `except`. Null when nobody does. */
+  findArrangementMode(name: string, except?: CockpitMode): CockpitMode | null;
+
+  /** This player's saved arrangements for one mode. */
+  savedArrangementsFor(mode: CockpitMode): Record<string, ArrangementSpec>;
+
+  /** Error string for a player-supplied arrangement name, or null if fine. */
+  validateArrangementName(mode: CockpitMode, raw: string): string | null;
+
+  /** Compat: the legacy LayoutName that best paints (mode, arrangement). */
+  legacyLayoutFor(mode: CockpitMode, arrangement: string): LayoutName;
+
   /**
    * Resolve the display portrait URL for this connected identity.
    * Chain: the `identity.portrait` setting (empty on a Login, value-
@@ -309,6 +330,54 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             }
             if (typeof name !== 'string') {
               return 'every arrangement name must be a string';
+            }
+          }
+          return true;
+        },
+      },
+      {
+        key: 'cockpit.savedArrangements',
+        // `{ [mode]: { [name]: ArrangementSpec } }`. Scoped by mode
+        // because an arrangement only means anything inside one — the
+        // same reason `cockpit layout` refuses a name from elsewhere
+        // instead of quietly switching modes for you.
+        defaultValue: {},
+        description:
+          'Player-composed pane arrangements, per mode — a ' +
+          '{ mode → { name → { panes } } } map. Written by ' +
+          '`cockpit layout save` / `forget`. These sit BESIDE the ' +
+          'shipped per-mode defaults; a saved name may never shadow a ' +
+          'shipped one, so the union is unambiguous.',
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { mode: { name: spec } } object';
+          }
+          for (const [mode, byName] of Object.entries(
+            v as Record<string, unknown>,
+          )) {
+            if (!(COCKPIT_MODES as readonly string[]).includes(mode)) {
+              return `unknown cockpit mode '${mode}'`;
+            }
+            if (
+              typeof byName !== 'object' ||
+              byName === null ||
+              Array.isArray(byName)
+            ) {
+              return `arrangements for '${mode}' must be an object`;
+            }
+            for (const [name, spec] of Object.entries(
+              byName as Record<string, unknown>,
+            )) {
+              if (name.length === 0 || name.length > MAX_ARRANGEMENT_NAME_LENGTH) {
+                return `arrangement name '${name}' must be 1..${MAX_ARRANGEMENT_NAME_LENGTH} characters`;
+              }
+              if (
+                typeof spec !== 'object' ||
+                spec === null ||
+                !Array.isArray((spec as { panes?: unknown }).panes)
+              ) {
+                return `arrangement '${name}' must carry a panes array`;
+              }
             }
           }
           return true;
@@ -581,6 +650,98 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       if (legacy && legacy.mode === active) return legacy.arrangement;
 
       return COCKPIT_ARRANGEMENTS[active][0] ?? 'default';
+    }
+
+    /**
+     * Every arrangement name available in `mode` — the shipped
+     * defaults first, then this player's saved ones. This union is what
+     * `cockpit layout <name>` resolves against; there is deliberately
+     * no frozen list, because the slate's arrangements are *savable*.
+     */
+    public getArrangementNames(mode?: CockpitMode): string[] {
+      const active = mode ?? this.getCockpitMode();
+      const shipped = [...COCKPIT_ARRANGEMENTS[active]];
+      const saved = Object.keys(this.savedArrangementsFor(active));
+      return [...shipped, ...saved.filter((n) => !shipped.includes(n))];
+    }
+
+    /** Is `name` a shipped default of `mode`? */
+    public isShippedArrangement(mode: CockpitMode, name: string): boolean {
+      return (COCKPIT_ARRANGEMENTS[mode] as readonly string[]).includes(name);
+    }
+
+    /**
+     * The mode that owns `name`, or null. Used to refuse a cross-mode
+     * recall *with a reason naming the mode* — "unknown arrangement" is
+     * a bad answer when the player has one by that name one door over.
+     * Skips `except` so a caller can ask "who else has this?".
+     */
+    public findArrangementMode(
+      name: string,
+      except?: CockpitMode,
+    ): CockpitMode | null {
+      for (const mode of COCKPIT_MODES) {
+        if (mode === except) continue;
+        if (this.getArrangementNames(mode).includes(name)) return mode;
+      }
+      return null;
+    }
+
+    /** This player's saved arrangements for one mode (never null). */
+    public savedArrangementsFor(
+      mode: CockpitMode,
+    ): Record<string, ArrangementSpec> {
+      const all = this.getClientState<
+        Record<string, Record<string, ArrangementSpec>>
+      >('cockpit.savedArrangements');
+      return all?.[mode] ?? {};
+    }
+
+    /**
+     * Validate a player-supplied arrangement name. Returns an error
+     * string, or null when acceptable.
+     *
+     * ⚠ A saved name may never shadow a shipped default. Allowing it
+     * would make `cockpit layout viewer` ambiguous with no way for the
+     * player to say which they meant — so the collision is refused at
+     * save time, where it can still be explained, rather than resolved
+     * silently at recall time in favour of whichever we happened to
+     * check first.
+     */
+    public validateArrangementName(
+      mode: CockpitMode,
+      raw: string,
+    ): string | null {
+      const name = raw.trim();
+      if (name.length === 0) return 'an arrangement needs a name';
+      if (name.length > MAX_ARRANGEMENT_NAME_LENGTH) {
+        return `name is too long (max ${MAX_ARRANGEMENT_NAME_LENGTH} characters)`;
+      }
+      if (/\s/.test(name)) return 'an arrangement name cannot contain spaces';
+      if (this.isShippedArrangement(mode, name)) {
+        return `'${name}' is a shipped ${mode} arrangement and cannot be overwritten`;
+      }
+      return null;
+    }
+
+    /**
+     * The legacy {@link LayoutName} that best paints (mode,
+     * arrangement).
+     *
+     * ⚠ Compatibility only. The shipped client still swaps its frame
+     * off `cockpit.layout`, and repainting it is a separate cycle, so
+     * the server keeps that key populated while mode + arrangement
+     * carry the truth. A saved arrangement and the `govern` mode have
+     * no legacy name by construction — both fall back to the mode's
+     * first mapping, which is the honest answer: the old client cannot
+     * render them, so it renders the nearest thing it has.
+     */
+    public legacyLayoutFor(mode: CockpitMode, arrangement: string): LayoutName {
+      const forMode = LEGACY_LAYOUT_FOR[mode];
+      const exact = forMode[arrangement];
+      if (exact) return exact;
+      const fallback = Object.values(forMode)[0];
+      return fallback ?? 'world';
     }
 
     /**

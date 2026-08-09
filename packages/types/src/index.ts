@@ -2017,6 +2017,53 @@ export const LEGACY_LAYOUT_MIGRATION: Readonly<
 };
 
 /**
+ * The inverse of {@link LEGACY_LAYOUT_MIGRATION}: (mode, arrangement)
+ * → the legacy {@link LayoutName} that best represents it.
+ *
+ * ⚠ **This is a compatibility projection, and it is meant to die.** The
+ * cockpit's real axes are now mode + arrangement, but the shipped
+ * client still swaps its whole frame off `cockpit.layout` keyed by
+ * `LayoutName`, and repainting the client is a separate cycle. So the
+ * server keeps `cockpit.layout` populated with the closest legacy name
+ * while the two real axes carry the truth. When the client reads mode +
+ * arrangement directly, this table and the `cockpit.layout` key go
+ * together.
+ *
+ * Not total, and cannot be: `govern` has no legacy layout at all, and a
+ * player-saved arrangement has no legacy name by construction. Both
+ * fall back to the mode's first entry here — see
+ * `legacyLayoutFor` on the server.
+ */
+export const LEGACY_LAYOUT_FOR: Readonly<
+  Record<CockpitMode, Readonly<Record<string, LayoutName>>>
+> = {
+  chat: { default: "forum" },
+  play: { default: "world" },
+  watch: { viewer: "livestream-viewer", streamer: "streamer" },
+  // No legacy layout ever meant "govern" — the builder frame is the
+  // closest thing the current client can paint for it.
+  build: { default: "builder" },
+  govern: { default: "builder" },
+};
+
+/**
+ * A saved pane arrangement. `panes` is the ordered list of pane kinds
+ * the arrangement opens with; it is empty until the pane set exists to
+ * capture, which is deliberate — naming an arrangement and populating
+ * it are separate acts.
+ */
+export interface ArrangementSpec {
+  panes: string[];
+}
+
+/**
+ * Cap on a player-supplied arrangement name. These are player INPUT
+ * that become keys in a persisted map and get rendered back, so they
+ * are bounded at the boundary rather than trusted.
+ */
+export const MAX_ARRANGEMENT_NAME_LENGTH = 32;
+
+/**
 /**
  * The per-viewer focal-embed target held as server-authoritative
  * `cockpit.watch` clientState (set by the `watch` verb, pushed to the

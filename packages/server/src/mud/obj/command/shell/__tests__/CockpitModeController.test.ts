@@ -58,6 +58,7 @@ function makeContext(actor: TestActor, location: Location): CommandContext {
 
 interface ModeModel extends ModelData {
   name?: string;
+  arrangement?: string;
 }
 
 function makeModel(args: Partial<ModeModel> = {}): ModeModel {
@@ -80,11 +81,14 @@ describe('CockpitModeController', () => {
       .mockImplementation(() => {});
   });
 
-  async function run(name?: string): Promise<CommandContext> {
+  async function run(
+    name?: string,
+    arrangement?: string,
+  ): Promise<CommandContext> {
     const controller = makeStuff(() => new CockpitModeController());
     const ctx = makeContext(actor, location);
     await controller.execute(
-      makeModel(name === undefined ? {} : { name }),
+      makeModel(name === undefined ? {} : { name, arrangement }),
       ctx as never,
     );
     return ctx;
@@ -138,6 +142,50 @@ describe('CockpitModeController', () => {
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
     ).toBe(false);
     expect(ctx.getStatus()).toBe('ok');
+  });
+
+  /*
+   * The two-axis form the Views menu sends. One command, one preview —
+   * a menu item means a point on both axes, and sending two commands
+   * per click would break "every clickable previews what it sends".
+   */
+  describe('with an explicit arrangement', () => {
+    it('enters the mode in that arrangement', async () => {
+      await run('watch', 'streamer');
+      expect(actor.getCockpitMode()).toBe('watch');
+      expect(actor.getCockpitArrangement()).toBe('streamer');
+      // The compatibility projection follows both axes.
+      expect(actor.getClientState('cockpit.layout')).toBe('streamer');
+    });
+
+    it('overrides the remembered arrangement', async () => {
+      await run('watch', 'streamer');
+      await run('play');
+      await run('watch', 'viewer');
+      expect(actor.getCockpitArrangement()).toBe('viewer');
+    });
+
+    /*
+     * Judged against the mode being ENTERED, not the one being left —
+     * otherwise `cockpit mode watch streamer` from play would be
+     * checked against play's vocabulary and always refuse.
+     */
+    it('validates against the target mode, not the current one', async () => {
+      expect(actor.getCockpitMode()).toBe('play');
+      const ok = await run('watch', 'streamer');
+      expect(
+        ok.getNotes().some((n) => n.kind === 'controller-rejected'),
+      ).toBe(false);
+
+      const bad = await run('play', 'streamer');
+      expect(
+        bad.getNotes().some(
+          (n) =>
+            n.kind === 'controller-rejected' &&
+            n.reason === 'unknown-arrangement',
+        ),
+      ).toBe(true);
+    });
   });
 
   /*

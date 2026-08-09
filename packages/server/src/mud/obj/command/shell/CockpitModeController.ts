@@ -41,6 +41,13 @@ type ModeHost = Stuff & HasInteractive;
 
 interface CockpitModeModel extends CommandModel {
   name?: string;
+  /**
+   * Optional arrangement to land in. Lets one command express "this
+   * front door, in this arrangement" — which is what a Views-menu item
+   * means, and why the menu can stay one click = one previewable
+   * command instead of a hidden two-command sequence.
+   */
+  arrangement?: string;
 }
 
 export default class CockpitModeController extends CommandController<CockpitModeModel> {
@@ -79,7 +86,21 @@ export default class CockpitModeController extends CommandController<CockpitMode
     }
 
     const mode = name as CockpitMode;
-    const arrangement = this.commit(host, mode);
+
+    // An explicit arrangement is checked against the mode being
+    // ENTERED, not the one being left — otherwise `cockpit mode watch
+    // streamer` from play would be judged against play's vocabulary.
+    const wanted = model.arrangement?.trim();
+    if (wanted && !host.getArrangementNames(mode).includes(wanted)) {
+      return this.fail(
+        context,
+        `unknown ${mode} arrangement '${wanted}' ` +
+          `(known: ${host.getArrangementNames(mode).join(', ')})`,
+        'unknown-arrangement',
+      );
+    }
+
+    const arrangement = this.commit(host, mode, wanted);
     this.send(
       context,
       Mml.fromMarkup(
@@ -98,18 +119,29 @@ export default class CockpitModeController extends CommandController<CockpitMode
    * must not break the player's immediate UI feedback. The push still
    * fires so the client swaps; persistence catches up next save.
    */
-  private commit(host: ModeHost, mode: CockpitMode): string {
+  private commit(
+    host: ModeHost,
+    mode: CockpitMode,
+    wanted?: string,
+  ): string {
     host.setClientState(MODE_KEY, mode);
 
     // Resolve AFTER the mode write so the lookup is against the mode
     // we are entering, then pin it so the wire carries a concrete
-    // answer even on a first entry.
-    const arrangement = host.getCockpitArrangement(mode);
+    // answer even on a first entry. An explicit arrangement overrides
+    // the remembered one — asking for it IS choosing it.
+    const arrangement = wanted ?? host.getCockpitArrangement(mode);
     const arrangements = {
       ...host.getClientState<Record<string, string>>(ARRANGEMENTS_KEY),
       [mode]: arrangement,
     };
     host.setClientState(ARRANGEMENTS_KEY, arrangements);
+    // Keep the compatibility projection in step — the shipped client
+    // still paints from `cockpit.layout`.
+    host.setClientState(
+      'cockpit.layout',
+      host.legacyLayoutFor(mode, arrangement),
+    );
 
     if (host instanceof Avatar) {
       host.save().catch((err: unknown) => {
@@ -121,6 +153,10 @@ export default class CockpitModeController extends CommandController<CockpitMode
     }
     host.pushClientStateUpdate(MODE_KEY, mode);
     host.pushClientStateUpdate(ARRANGEMENTS_KEY, arrangements);
+    host.pushClientStateUpdate(
+      'cockpit.layout',
+      host.getClientState('cockpit.layout'),
+    );
     return arrangement;
   }
 

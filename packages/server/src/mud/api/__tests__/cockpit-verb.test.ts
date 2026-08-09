@@ -141,6 +141,21 @@ describe('the cockpit verb', () => {
       expect(m.subcommand).toBe('mode');
       expect(m.name).toBe('watch');
       expect(bind('cockpit mode').name).toBeUndefined();
+
+      // The two-axis form the Views menu sends.
+      const both = bind('cockpit mode watch streamer');
+      expect(both.name).toBe('watch');
+      expect(both.arrangement).toBe('streamer');
+    });
+
+    it('binds the cockpit layout action words', () => {
+      const save = bind('cockpit layout save wide');
+      expect(save.subcommand).toBe('layout');
+      expect(save.name).toBe('save');
+      expect(save.target).toBe('wide');
+
+      expect(bind('cockpit layout forget wide').target).toBe('wide');
+      expect(bind('cockpit layout list').name).toBe('list');
     });
 
     it('binds cockpit layout <name>', () => {

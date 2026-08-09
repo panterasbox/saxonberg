@@ -124,13 +124,13 @@ export const AccountMenu: React.FC = () => {
     window.location.href = `${SERVER_URL}/auth/google`;
   };
 
-  // Enter the builder layout (the CMS, re-homed in-session). Command-bus
-  // primacy: an explicit `cockpit layout builder` click, not a takeover
-  // tab — the WebSocket session stays live. Visible only to developers (a
+  // Enter build mode (the CMS, re-homed in-session). Command-bus
+  // primacy: an explicit `cockpit mode build` click, not a takeover tab
+  // — the WebSocket session stays live. Visible only to developers (a
   // non-authoritative UX gate; the REST CMS routes remain the authority).
   const openCms = () => {
     setOpen(false);
-    websocketClient.sendCommand("cockpit layout builder");
+    websocketClient.sendCommand("cockpit mode build");
   };
 
   // Open the "Social / Notifications" settings pane — the thin front over
