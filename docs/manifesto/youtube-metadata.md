@@ -218,8 +218,15 @@ Seven at `exports/thumbnails/ch{1-7}-thumb.png` — 1280×720, ~90–105 KB, wel
 inside YouTube's 2 MB limit. Regenerate with `python3 thumbnail-generator.py`.
 
 The set is deliberately identical apart from number and title, so it reads as a
-series in a playlist sidebar. Two decisions worth keeping if they're ever
-redone:
+series in a playlist sidebar. Layout: rings top-left, `CHAPTER N` beside them,
+**`SAXONBERG MUD` right-aligned on the same baseline**, title bottom-left.
+
+The wordmark sits top-right rather than bottom-right because the bottom-right
+belongs to the title — Ch 7's punch line runs nearly the full column and would
+collide there. Set in caps to match the rest of the type system, and in white
+against the eyebrow's soft blue so it reads as a mark rather than another label.
+
+Three decisions worth keeping if these are ever redone:
 
 - **The ground is Old Glory Blue `#002868`** — the same value the rings mark
   hard-codes as its casing, which is what `docs/brand/README.md` requires ("the

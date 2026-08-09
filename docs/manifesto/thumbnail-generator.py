@@ -53,12 +53,15 @@ CHAPTERS = [
 
 MARGIN = 78
 COL = W - 2 * MARGIN          # text column width
+TEXT_RIGHT = W - MARGIN
 RINGS_PX = 250
 RINGS_XY = (MARGIN, 62)
 EYEBROW_PT = 38
+WORDMARK = "SAXONBERG MUD"
+WORDMARK_PT = 36
 KICKER_MAX = 56
 PUNCH_MAX = 96
-Y_EYEBROW = 150               # baseline
+Y_EYEBROW = 150               # baseline — shared by the eyebrow and the wordmark
 Y_KICKER = 505
 Y_PUNCH = 612
 
@@ -120,6 +123,13 @@ def emit(num, kicker, punch, rings):
             "-annotate", f"+{ex}+{Y_EYEBROW}", f"CHAPTER {num}",
             "-fill", SOFT,
             "-draw", f"rectangle {ex},{Y_EYEBROW+22} {ex+104},{Y_EYEBROW+26}"]
+
+    # Wordmark, right-aligned on the eyebrow's baseline. Top-right because the
+    # bottom-right belongs to the title — Ch 7's punch line runs nearly the
+    # full column and would collide there.
+    wx = TEXT_RIGHT - width_of(WORDMARK, WORDMARK_PT)
+    cmd += ["-fill", WHITE, "-pointsize", str(WORDMARK_PT),
+            "-annotate", f"+{wx}+{Y_EYEBROW}", WORDMARK]
 
     # Title block. Punch shares a baseline across the whole set.
     if kicker:
