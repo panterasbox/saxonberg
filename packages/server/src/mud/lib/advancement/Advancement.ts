@@ -25,6 +25,7 @@ import type { MixinConstructor } from "../mixin";
 import type { CommandGiver } from "../command/CommandGiver";
 import type { CommandDefinition } from "../command/CommandDefinition";
 import type { CommandContributions } from "../../api/command";
+import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import { CommandApi } from "../../api/command";
 import { AdvancementApi } from "../../api/advancement";
 import { StuffApi } from "../../api/stuff";
@@ -33,6 +34,37 @@ import { TemplatePaths } from "../paths";
 /** Public shape provided by AdvancementMixin. */
 export interface Advancing {
   refreshConferrals(): Promise<void>;
+}
+
+/**
+ * Who may read a host's competence, and the subject key to read it
+ * under. Returns `undefined` to withhold the field entirely.
+ *
+ * ⭐ **The player/NPC asymmetry is the whole point of this function.**
+ *
+ * A **player's** competence is theirs: self-only, exactly as it was when
+ * these descriptors lived on `Avatar`. Widening that would be a privacy
+ * change, and this refactor is not the place to make one.
+ *
+ * An **NPC's** competence is a fact about the world — Dave being good
+ * behind a bar is a thing you can learn about Dave — so any viewer may
+ * read it. Without this arm the descriptors would be *defined* on every
+ * `AdvancementMixin` host and *answerable* on none of them, because an
+ * NPC never subscribes on its own behalf. That would make the move to
+ * the mixin cosmetic.
+ *
+ * ⚠ `getPlayerId()` is the existing, documented player-vs-NPC
+ * distinction (`null` for any body no account controls). It is not a
+ * new axis invented here.
+ */
+function competenceSubject(stuff: Stuff, viewer: Stuff): string | undefined {
+  const subject = stuff.getIdentityPath() ?? undefined;
+  if (!subject) return undefined;
+  if (stuff.getPlayerId() !== null) {
+    // Player-controlled: self-only.
+    return viewer?.stuffId === stuff.stuffId ? subject : undefined;
+  }
+  return subject;
 }
 
 export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
@@ -51,6 +83,65 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       peers: [],
       environment: [],
     };
+
+    /**
+     * The competence read surfaces — **on the mixin that owns the
+     * subsystem, not on `Avatar`.**
+     *
+     * They lived on `Avatar` and were moved here: a descriptor gated on
+     * a mixin belongs to that mixin (the same rule that relocated
+     * `primaryKeyword` onto `PerceptibleMixin`). Keeping them on
+     * `Avatar` quietly encoded *competence is a player dashboard
+     * figure*, which is exactly the assumption the advancement
+     * substrate does not make — `ownerKey` is `getIdentityPath()`, so
+     * an NPC has always been able to own a Transcript.
+     *
+     * `Character` composes this mixin, so every NPC gets these for free
+     * and player and NPC competence are expressed the same way.
+     *
+     * ⚠ Uniform **expression**, not uniform authoring. Nothing writes an
+     * NPC's Transcript except combat, so most NPCs still read as the
+     * floor. Making Dave good at bartending needs an authoring path that
+     * does not exist yet; this only ensures that when it lands, the read
+     * side already works.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: "practisingCompetence",
+        read: (stuff, viewer) => {
+          if (!competenceSubject(stuff, viewer)) return undefined;
+          const c = AdvancementApi.practisingCompetenceCached(stuff);
+          if (c === undefined) return undefined;
+          return c === null ? null : { discipline: c.discipline, band: c.band };
+        },
+        durableKey: (stuff) => stuff.getIdentityPath() ?? undefined,
+      },
+      {
+        /**
+         * The whole projection — every Discipline with evidence and its
+         * band. `practisingCompetence` answers *what am I working on*;
+         * this answers *what do I know*.
+         *
+         * ⚠ Derive-on-read; no stored total. The band is already a
+         * derivation over an append-only ledger, so caching a total
+         * would be a second source of truth for a number the ledger
+         * owns.
+         */
+        name: "competenceDigest",
+        read: (stuff, viewer) => {
+          if (!competenceSubject(stuff, viewer)) return undefined;
+          const bands = AdvancementApi.competenceDigestCached(stuff);
+          if (bands === undefined) return undefined;
+          return {
+            disciplines: bands.map((b) => ({
+              discipline: b.discipline,
+              band: b.band,
+            })),
+          };
+        },
+        durableKey: (stuff) => stuff.getIdentityPath() ?? undefined,
+      },
+    ];
 
     /**
      * Re-evaluate this character's competence-conferred verbs and reconcile

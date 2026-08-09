@@ -29,15 +29,24 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
-import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
+import { collectSubscribableFields } from '../../api/mql-subscription';
+import NPC from '../NPC';
+import { AdvancementApi } from '../../api/advancement';
 
-/** Read one of Avatar's declared subscribable fields as the owner. */
-function readField(name: string, avatar: Avatar): unknown {
-  const d = (
-    Avatar as unknown as { subscribableFields: SubscribableFieldDescriptor[] }
-  ).subscribableFields.find((f) => f.name === name);
-  expect(d, `no subscribable field '${name}'`).toBeDefined();
-  return d!.read?.(avatar as unknown as Stuff, avatar as unknown as never);
+/**
+ * Read a subscribable field as some viewer.
+ *
+ * ⚠ Resolves through `collectSubscribableFields` — the **prototype-chain
+ * collector production uses** — not through `Avatar.subscribableFields`.
+ * An earlier version of this helper read Avatar's own static, which
+ * quietly asserted *where the descriptor is declared* instead of *that
+ * the host has it*. That is the assertion that lets a descriptor sit on
+ * a concrete class forever.
+ */
+function readField(name: string, host: Stuff, viewer: Stuff = host): unknown {
+  const d = collectSubscribableFields(host).get(name);
+  expect(d, `no subscribable field '${name}' on ${host.constructor.name}`).toBeDefined();
+  return d!.read?.(host, viewer as never);
 }
 
 describe('standing splits by level', () => {
@@ -67,8 +76,8 @@ describe('standing splits by level', () => {
    * Half one: MAKE is the person's, so both bodies answer the same.
    */
   it('reports the SAME make standing for two characters on one account', () => {
-    const a = readField('makeStanding', alice) as { band: { name: string } };
-    const b = readField('makeStanding', bob) as { band: { name: string } };
+    const a = readField('makeStanding', alice as unknown as Stuff) as { band: { name: string } };
+    const b = readField('makeStanding', bob as unknown as Stuff) as { band: { name: string } };
     expect(a).toBeDefined();
     expect(b).toBeDefined();
     expect(a.band.name).toBe(b.band.name);
@@ -86,13 +95,13 @@ describe('standing splits by level', () => {
     // derivable figures, which is exactly what make standing gave up.
     expect(alice.getTemplatePath()).not.toBe(bob.getTemplatePath());
 
-    const aPlay = readField('playStanding', alice);
-    const bPlay = readField('playStanding', bob);
+    const aPlay = readField('playStanding', alice as unknown as Stuff);
+    const bPlay = readField('playStanding', bob as unknown as Stuff);
     expect(aPlay).toBeDefined();
     expect(bPlay).toBeDefined();
 
     // Renown stays per-character too — the other half of the split.
-    expect(readField('renown', alice)).toBeDefined();
+    expect(readField('renown', alice as unknown as Stuff)).toBeDefined();
   });
 
   /*
@@ -104,8 +113,8 @@ describe('standing splits by level', () => {
     const loner = makeStuff(() => new Avatar()) as Avatar;
     stampTemplatePathForTest(loner, Avatar.getTemplatePath('loner'));
     loner.setPlayerId('loner');
-    expect(() => readField('makeStanding', loner)).not.toThrow();
-    expect(readField('makeStanding', loner)).toBeDefined();
+    expect(() => readField('makeStanding', loner as unknown as Stuff)).not.toThrow();
+    expect(readField('makeStanding', loner as unknown as Stuff)).toBeDefined();
   });
 
   /*
@@ -114,13 +123,91 @@ describe('standing splits by level', () => {
    * yet", which is a legitimate answer — what matters is that the
    * field is DECLARED, so the client can subscribe to it.
    */
-  it('declares the competence digest as a subscribable field', () => {
-    const names = (
-      Avatar as unknown as { subscribableFields: SubscribableFieldDescriptor[] }
-    ).subscribableFields.map((f) => f.name);
+  it('exposes the competence digest and the notify policy', () => {
+    const names = [...collectSubscribableFields(alice as unknown as Stuff).keys()];
     expect(names).toContain('competenceDigest');
     expect(names).toContain('practisingCompetence');
     // Criterion 15 — the notification policy read.
     expect(names).toContain('notifyPolicy');
+  });
+
+  /*
+   * ⚠⚠ The competence descriptors live on `AdvancementMixin`, not on
+   * `Avatar` — a descriptor gated on a mixin belongs to that mixin.
+   * Declaring them on the concrete class quietly encoded "competence is
+   * a player dashboard figure", which the advancement substrate has
+   * never assumed: `ownerKey` is `getIdentityPath()`, so an NPC has
+   * always been able to own a Transcript.
+   */
+  describe('competence is expressed uniformly for NPCs', () => {
+    it('is NOT declared on Avatar itself', () => {
+      const own = (
+        Avatar as unknown as {
+          subscribableFields: { name: string }[];
+        }
+      ).subscribableFields.map((f) => f.name);
+      expect(own).not.toContain('competenceDigest');
+      expect(own).not.toContain('practisingCompetence');
+      expect(own).not.toContain('notifyPolicy');
+    });
+
+    it('an NPC has the same competence fields a player does', () => {
+      const dave = makeStuff(() => new NPC()) as unknown as Stuff;
+      stampTemplatePathForTest(dave, '/obj/npc/dave-test');
+      const names = [...collectSubscribableFields(dave).keys()];
+      expect(names).toContain('competenceDigest');
+      expect(names).toContain('practisingCompetence');
+    });
+
+    /*
+     * The player/NPC asymmetry, both directions. A player's competence
+     * is self-only; an NPC's is a fact about the world, because an NPC
+     * never subscribes on its own behalf and a self-only gate would
+     * make the field defined-but-unanswerable — a cosmetic move.
+     */
+    /*
+     * ⚠ `undefined` from these descriptors is ambiguous by design — it
+     * means BOTH "the gate withheld this" and "the derive-on-read fold
+     * has not landed yet". A subscription treats them the same (omit
+     * the field), but it means the gate cannot be observed through the
+     * value until the fold has completed. So prime it first.
+     */
+    async function primeDigest(host: Stuff): Promise<void> {
+      AdvancementApi.competenceDigestCached(host); // kick the async fold
+      for (let i = 0; i < 20; i++) {
+        if (AdvancementApi.competenceDigestCached(host) !== undefined) return;
+        await new Promise((r) => setTimeout(r, 10));
+      }
+      throw new Error('digest fold never landed');
+    }
+
+    it('reads an NPC for any viewer, but a player only for themselves', async () => {
+      const dave = makeStuff(() => new NPC()) as unknown as Stuff;
+      stampTemplatePathForTest(dave, '/obj/npc/dave-test-2');
+      expect(dave.getPlayerId()).toBeNull();
+
+      await primeDigest(dave);
+      await primeDigest(bob as unknown as Stuff);
+
+      // Alice may read Dave's competence — an NPC's skill is a fact
+      // about the world.
+      expect(
+        readField('competenceDigest', dave, alice as unknown as Stuff),
+      ).toEqual({ disciplines: [] });
+
+      // …but not Bob's. A player's competence is their own.
+      expect(
+        readField(
+          'competenceDigest',
+          bob as unknown as Stuff,
+          alice as unknown as Stuff,
+        ),
+      ).toBeUndefined();
+
+      // Bob reads his own.
+      expect(
+        readField('competenceDigest', bob as unknown as Stuff),
+      ).toEqual({ disciplines: [] });
+    });
   });
 });

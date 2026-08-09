@@ -64,10 +64,8 @@ import { EstateMixin } from "../lib/chattel/Estate";
 import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
-import { SocialApi } from '../api/social';
 import { Band } from '../lib/standing/Band';
 import { RenownApi } from '../api/renown';
-import { AdvancementApi } from '../api/advancement';
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -388,77 +386,6 @@ export default class Avatar extends AvatarBase {
         const key = standingSubject(stuff, viewer);
         if (!key) return undefined;
         return { value: RenownApi.renownOf(key) };
-      },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
-    },
-    {
-      name: 'practisingCompetence',
-      read: (stuff, viewer) => {
-        if (!standingSubject(stuff, viewer)) return undefined;
-        const c = AdvancementApi.practisingCompetenceCached(stuff);
-        if (c === undefined) return undefined;
-        return c === null ? null : { discipline: c.discipline, band: c.band };
-      },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
-    },
-    {
-      /**
-       * ⭐ The **competence digest** — every discipline with evidence,
-       * not just the one being practised. `practisingCompetence` above
-       * answers "what am I working on"; this answers "what do I know".
-       *
-       * ⚠ Derived on read from `transcripts`; there is no stored total.
-       * The band is already a derivation, so a cached total would be a
-       * second source of truth for a number the ledger owns.
-       */
-      /**
-       * ⭐ The **notification policy** the tray must paint.
-       *
-       * ⚠ The surface is the POLICY, not a feed. The tray shows what
-       * the receiver *said they wanted*, not everything that happened —
-       * so this ships the ordered rules plus the ping variants they
-       * produce, and the client renders from the receiver's own
-       * declared intent. A feed would put the filtering decision on the
-       * client, which is the one thing it may not own.
-       */
-      name: 'notifyPolicy',
-      read: (stuff, viewer) => {
-        if (!standingSubject(stuff, viewer)) return undefined;
-        if (!MixinApi.isNotifyPolicy(stuff)) return undefined;
-        const rules = SocialApi.listRules(stuff);
-        return {
-          rules: rules.map((r) => ({
-            groupRef: r.groupRef,
-            nameRendering: r.nameRendering,
-            boostInDense: r.boostInDense,
-            onConnect: r.onConnect,
-            onDisconnect: r.onDisconnect,
-            onMessage: r.onMessage,
-            color: r.color,
-          })),
-          // The distinct ping variants this policy can actually
-          // produce — the tray's vocabulary, derived rather than
-          // enumerated separately so it cannot drift from the rules.
-          pings: {
-            connect: [...new Set(rules.map((r) => r.onConnect))].sort(),
-            disconnect: [...new Set(rules.map((r) => r.onDisconnect))].sort(),
-            message: [...new Set(rules.map((r) => r.onMessage))].sort(),
-          },
-        };
-      },
-    },
-    {
-      name: 'competenceDigest',
-      read: (stuff, viewer) => {
-        if (!standingSubject(stuff, viewer)) return undefined;
-        const bands = AdvancementApi.competenceDigestCached(stuff);
-        if (bands === undefined) return undefined;
-        return {
-          disciplines: bands.map((b) => ({
-            discipline: b.discipline,
-            band: b.band,
-          })),
-        };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
