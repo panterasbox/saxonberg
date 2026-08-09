@@ -8,6 +8,7 @@
  * that the title mutation is (or isn't) reached.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import SubdivideController from "../SubdivideController";
 import TransferController from "../TransferController";

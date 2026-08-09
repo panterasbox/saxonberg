@@ -10,6 +10,7 @@
  * payout rides `primaryAccountIdOf`, a pure DB read.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../BuyController";
 import ConsignController from "../ConsignController";

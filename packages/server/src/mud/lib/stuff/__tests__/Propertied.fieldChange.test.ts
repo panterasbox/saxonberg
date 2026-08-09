@@ -4,6 +4,7 @@
  * isolation versus FieldChangedEvent.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PropertiedMixin, Property } from '../Propertied';
 import { Idea } from '../Idea';

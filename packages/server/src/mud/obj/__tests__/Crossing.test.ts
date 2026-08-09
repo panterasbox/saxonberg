@@ -5,6 +5,7 @@
  * static base when no world clock is running.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Crossing from '../Crossing';
 import { StuffApi } from '../../api/stuff';

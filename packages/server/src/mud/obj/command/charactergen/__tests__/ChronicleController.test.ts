@@ -8,6 +8,7 @@
  * scene body is captured by stubbing `MessageApi.scene`.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ChronicleController from '../ChronicleController';
 import { ChronicleApi } from '../../../../api/chronicle';

@@ -9,6 +9,7 @@
  * round-trip is covered separately in `TwitchProfile.test.ts`.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { PersistenceManager } from '../PersistenceManager';

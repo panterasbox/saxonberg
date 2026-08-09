@@ -9,6 +9,7 @@
  * Acceptance criteria gated: #10, #11, #12, #13, #15, #16, #17, #18.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Mml, type MentionResolver } from '../mml';
 import { Idea } from '../../lib/stuff/Idea';

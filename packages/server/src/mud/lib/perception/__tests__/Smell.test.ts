@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Smell, SMELL_SOURCE_CAP } from '../Smell';
 import { Quantity } from '../../quantity';

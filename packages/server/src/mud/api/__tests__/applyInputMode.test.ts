@@ -4,6 +4,7 @@
  * unit-tested here because it sits on every command a player types.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandApi } from '../command';
 

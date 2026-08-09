@@ -9,6 +9,7 @@
  * here so bare test sensors need no BodyPlan.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../../../api/message';
 import { PerceptionApi } from '../../../api/perception';

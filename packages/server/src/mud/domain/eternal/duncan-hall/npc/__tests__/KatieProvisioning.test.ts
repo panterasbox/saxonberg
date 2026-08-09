@@ -10,6 +10,7 @@
  * a random principal is not a member and is refused.
  */
 
+import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupRegistry from '../../../../../obj/GroupRegistry';
 import ParcelRegistry from '../../../../../obj/ParcelRegistry';

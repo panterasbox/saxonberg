@@ -14,6 +14,7 @@
  *     re-exported.
  */
 
+import "../../src/test-bootstrap";
 import { describe, it, expect } from "vitest";
 import {
   projectAuthorSurface,

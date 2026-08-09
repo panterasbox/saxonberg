@@ -15,6 +15,7 @@
  * group machinery.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
 import SubjectCatalogue from '../../obj/SubjectCatalogue';

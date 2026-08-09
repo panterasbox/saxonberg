@@ -4,6 +4,7 @@
  * getCached / the unwarmed guard. PersistenceManager is stubbed (no Mongo).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AppSettings, AppSettingKeys } from "../AppSettings";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";

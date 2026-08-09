@@ -11,6 +11,7 @@
  * `TOOL_CAPABILITIES` row and no instrument to carry.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FeedController from '../FeedController';
 import Receptacle from '../../../Receptacle';

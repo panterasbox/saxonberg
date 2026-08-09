@@ -3,6 +3,7 @@
  * class carries the capabilities its verbs and seeds rely on.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Whistle from '../../domain/eternal/university-avenue/Whistle';
 import Paddle from '../Paddle';

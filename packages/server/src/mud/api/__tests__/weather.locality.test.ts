@@ -6,6 +6,7 @@
  * `AddressApi.resolveLocalityFor` (Acceptance: Per-locality).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { WeatherApi } from '../weather';
 import { AddressApi } from '../address';

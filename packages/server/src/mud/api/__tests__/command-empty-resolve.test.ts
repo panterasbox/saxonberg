@@ -14,6 +14,7 @@
  * original input.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   CommandApi,

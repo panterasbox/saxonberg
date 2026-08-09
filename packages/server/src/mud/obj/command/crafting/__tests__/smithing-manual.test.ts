@@ -9,6 +9,7 @@
  * mid-step leaves the buffer partial.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HeatController from '../HeatController';
 import HammerController from '../HammerController';

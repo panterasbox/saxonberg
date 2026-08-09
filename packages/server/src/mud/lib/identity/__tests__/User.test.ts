@@ -7,6 +7,7 @@
  * - User instances are plain objects (no stuffId / no StuffApi registration)
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { User } from '../User';
 import { MixinApi } from '../../../api/mixin';

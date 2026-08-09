@@ -8,6 +8,7 @@
  * + CO-poisoning of an occupant is the respiration integration below.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';

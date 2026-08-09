@@ -5,6 +5,7 @@
  * cart and carries the rider; the rider bears nothing; the host is gated).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../../lib/creature/Creature';
 import Species from '../../species/Species';

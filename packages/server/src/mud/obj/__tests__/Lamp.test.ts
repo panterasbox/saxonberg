@@ -5,6 +5,7 @@
  * cadence.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Lamp from '../Lamp';
 import { MixinApi } from '../../api/mixin';

@@ -6,6 +6,7 @@
  * Cleanup behavior (R2.4) is exercised in `Spawner.cleanup.test.ts`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

@@ -7,6 +7,7 @@
  * intruder stays detected, and re-arms when they leave and return.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { brain as wary } from '../wary';
 import { MqlApi } from '../../../api/mql';

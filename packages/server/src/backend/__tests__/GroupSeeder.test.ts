@@ -9,6 +9,7 @@
  * `isDormsAgent` membership check has an owner-granted ledger to read.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GroupSeeder } from '../GroupSeeder';
 import { PersistenceManager } from '../PersistenceManager';

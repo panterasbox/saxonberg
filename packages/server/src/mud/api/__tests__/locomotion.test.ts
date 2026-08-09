@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
 import { LocomotionMode } from '../../obj/LocomotionMode';

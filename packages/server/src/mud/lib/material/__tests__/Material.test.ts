@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Material from '../Material';
 import { MixinApi } from '../../../api/mixin';

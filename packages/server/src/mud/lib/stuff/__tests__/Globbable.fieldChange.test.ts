@@ -2,6 +2,7 @@
  * GlobbableMixin.setQuantity fires FieldChangedEvent.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GlobbableMixin } from '../Globbable';
 import { Idea } from '../Idea';

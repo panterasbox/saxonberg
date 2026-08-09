@@ -17,6 +17,7 @@
  * over a mocked `PersistenceManager`.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

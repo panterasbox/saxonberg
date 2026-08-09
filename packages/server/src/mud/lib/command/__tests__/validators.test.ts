@@ -5,6 +5,7 @@
  * and details. Doors are added inline where needed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import canReach from '../validators/canReach';
 import mustBeContainable from '../validators/mustBeContainable';

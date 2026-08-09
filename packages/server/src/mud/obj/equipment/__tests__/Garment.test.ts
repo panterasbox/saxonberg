@@ -4,6 +4,7 @@
  * surface, with Thing's description/containable base intact.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Garment from '../Garment';
 import Thing from '../../../lib/stuff/Thing';

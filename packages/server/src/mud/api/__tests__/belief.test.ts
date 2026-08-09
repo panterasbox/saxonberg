@@ -8,6 +8,7 @@
  * call from any other module is denied.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BeliefStoreLogic } from '../../obj/api/BeliefStoreLogic';
 import { SecurityError } from '../../lib/security/errors';

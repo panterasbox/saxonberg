@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { QuantityMarshaller } from '../QuantityMarshaller';
 import { Quantity } from '../../../lib/quantity';

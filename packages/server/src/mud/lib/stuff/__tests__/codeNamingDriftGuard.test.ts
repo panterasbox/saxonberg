@@ -31,6 +31,7 @@
  *    resolvers above; the gated set is enforced at its callers.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, statSync } from "fs";
 import { fileURLToPath } from "url";

@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Sound, SOUND_SOURCE_CAP } from '../Sound';
 import { Quantity } from '../../quantity';

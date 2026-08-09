@@ -10,6 +10,7 @@
  *     carried card (the Thing/Idea symmetry the consumers share).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { ContainmentApi } from "../../../api/containment";
 import { MixinApi } from "../../../api/mixin";

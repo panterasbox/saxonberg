@@ -3,6 +3,7 @@
  * empty-result branch when nothing matches.
  */
 
+import "../../../../../test-bootstrap";
 import {
   describe,
   it,

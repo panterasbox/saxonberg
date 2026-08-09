@@ -8,6 +8,7 @@
  * comm implant.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { StuffApi } from '../stuff';

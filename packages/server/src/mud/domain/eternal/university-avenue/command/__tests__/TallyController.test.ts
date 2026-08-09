@@ -4,6 +4,7 @@
  * timepiece → untimed tick. Stores when, never who.
  */
 
+import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TallyController from '../TallyController';
 import CrossingLog from '../../CrossingLog';

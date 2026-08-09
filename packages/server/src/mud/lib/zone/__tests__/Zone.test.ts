@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Zone } from '../Zone';
 import { SpatialZone } from '../SpatialZone';

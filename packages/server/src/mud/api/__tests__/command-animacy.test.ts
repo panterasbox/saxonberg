@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import requiresAnimate from '../../lib/command/validators/requiresAnimate';
 import { CommandApi, type CommandContext } from '../command';

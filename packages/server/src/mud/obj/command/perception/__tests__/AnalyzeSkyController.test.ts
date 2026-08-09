@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import AnalyzeSkyController from '../AnalyzeSkyController';
 import Location from '../../../../lib/stuff/Location';

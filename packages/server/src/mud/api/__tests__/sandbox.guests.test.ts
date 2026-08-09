@@ -6,6 +6,7 @@
  * verbs (`mud/cmd/` gains no sandbox-named file).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';

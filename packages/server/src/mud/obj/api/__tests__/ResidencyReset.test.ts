@@ -9,6 +9,7 @@
  * (warmed AppSettings cache + spied presence).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Stock from "../../Stock";
 import Thing from "../../../lib/stuff/Thing";

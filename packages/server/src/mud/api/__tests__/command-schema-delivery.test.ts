@@ -8,6 +8,7 @@
  * sensor).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import Location from '../../lib/stuff/Location';

@@ -10,6 +10,7 @@
  * `SchedulerApi.hostDestruction.test.ts` does.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';

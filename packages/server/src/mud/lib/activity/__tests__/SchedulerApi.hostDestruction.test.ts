@@ -6,6 +6,7 @@
  * Mirrors event.test.ts's `makeRegistry` setup.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

@@ -11,6 +11,7 @@
  * renown-plan §6 decision 1.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RenownApi } from '../../../api/renown';
 import { EventApi } from '../../../api/event';

@@ -8,6 +8,7 @@
  * target near it."
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import TeleportController from '../TeleportController';
 import {

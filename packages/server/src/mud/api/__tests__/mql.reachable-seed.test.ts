@@ -8,6 +8,7 @@
  * returns the on-person match, not the floor's.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlApi } from '../mql';
 import { ContainmentApi } from '../containment';

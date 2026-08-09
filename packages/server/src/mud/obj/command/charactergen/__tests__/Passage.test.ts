@@ -15,6 +15,7 @@
  * way the material-slice test proves its own absence.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';

@@ -3,6 +3,7 @@
  * mixin's read contract + registry wiring.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { Time } from '../Time';
 import { TimekeepingMixin } from '../Timekeeping';

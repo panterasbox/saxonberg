@@ -6,6 +6,7 @@
  * Interactive itself going up or down) is tested in Interactive.test.ts.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConnectionApi } from '../connection';
 import { ConnectionLogic } from '../../obj/api/ConnectionLogic';

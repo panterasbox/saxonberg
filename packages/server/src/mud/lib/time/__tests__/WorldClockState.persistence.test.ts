@@ -7,6 +7,7 @@
  * `Document.test.ts` pattern); no MongoDB.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockState } from '../WorldClockState';
 import { WorldClockApi } from '../../../api/worldclock';

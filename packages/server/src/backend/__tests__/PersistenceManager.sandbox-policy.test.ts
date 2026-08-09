@@ -5,6 +5,7 @@
  * seam `BootstrapManager.installFrameworkWiring` installs.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   PersistenceManager,

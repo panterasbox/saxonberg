@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import SphericalZone from '../SphericalZone';
 import SphericalLocation from '../SphericalLocation';

@@ -10,6 +10,7 @@
  * `SecurityApi._*ForTest` seams to inspect what each decorator stamped.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CallSecurity, Unshadowable, Final } from '../decorators';
 import { SecurityPolicies } from '../SecurityPolicies';

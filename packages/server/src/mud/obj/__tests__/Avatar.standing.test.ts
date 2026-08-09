@@ -16,6 +16,7 @@
  *     and its redaction rules must not get a second copy here.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Avatar from '../Avatar';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';

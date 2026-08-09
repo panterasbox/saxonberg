@@ -8,6 +8,7 @@
  *     `LoadBearing` gauge (the cap on cash is the honest physics).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Coin from "../Coin";
 import { GlobbableApi } from "../../api/glob";

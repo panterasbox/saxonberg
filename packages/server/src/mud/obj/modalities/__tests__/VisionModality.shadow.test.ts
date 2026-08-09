@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, expectTypeOf, beforeEach, afterEach } from 'vitest';
 import { Shadow } from '../../../lib/stuff/Shadow';
 import { installV1QuantityTagTables } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';

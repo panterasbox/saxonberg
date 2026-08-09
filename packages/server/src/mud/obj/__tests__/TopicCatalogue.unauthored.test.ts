@@ -10,6 +10,7 @@
  * asserted the diagnostic would let someone "fix" this by throwing.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import TopicCatalogue from '../TopicCatalogue';
 import { DiagnosticApi } from '../../api/diagnostics';

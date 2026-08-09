@@ -12,6 +12,7 @@
  * AddressLogic survives `StuffApi.clearAll`, so each test resets it.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
 import Locality from '../../obj/Locality';

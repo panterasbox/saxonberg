@@ -13,6 +13,7 @@
  * the window has a known row independent of a live board.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Avatar from '../Avatar';
 import Interactive from '../Interactive';

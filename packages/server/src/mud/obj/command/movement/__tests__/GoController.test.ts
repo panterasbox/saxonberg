@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import GoController from '../GoController';
 import CartesianZone from '../../../location/CartesianZone';

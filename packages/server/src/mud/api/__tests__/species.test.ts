@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SpeciesApi } from '../species';
 import { SpeciesLogic } from '../../obj/api/SpeciesLogic';

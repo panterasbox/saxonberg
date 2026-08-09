@@ -5,6 +5,7 @@
  * `Mobile.traverse`, `ConnectionApi.transfer` / `detach`).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainmentApi, ContainmentError } from '../containment';
 import { ConnectionApi } from '../connection';

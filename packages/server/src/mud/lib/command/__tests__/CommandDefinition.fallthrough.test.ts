@@ -10,6 +10,7 @@
  * bad first token.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandApi } from '../../../api/command';
 import { CommandLineApi } from '../../../api/command-line';

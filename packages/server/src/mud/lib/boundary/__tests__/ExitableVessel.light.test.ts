@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import Door from '../../../obj/Door';

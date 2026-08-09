@@ -4,6 +4,7 @@
  * off-shift teleports offstage, and the brain never reads the game clock.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as shifts } from '../shifts';
 import { Idea } from '../../stuff/Idea';

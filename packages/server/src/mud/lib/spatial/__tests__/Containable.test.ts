@@ -5,6 +5,7 @@
  * tests for the chokepoint live above this file in `containment.test.ts`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ContainableMixin } from '../Containable';
 import { ContainerMixin } from '../Container';

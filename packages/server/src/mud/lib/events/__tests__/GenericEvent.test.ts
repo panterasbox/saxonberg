@@ -2,6 +2,7 @@
  * GenericEvent unit tests — escape-hatch class-shaped event.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';

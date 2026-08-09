@@ -8,6 +8,14 @@
  * covered in Behaved.test.ts with a real host.
  */
 
+// Import-ORDER, not wiring: this file composes a mixin at module
+// scope, and the mixin's own module sits in an import cycle that only
+// resolves once the graph is loaded in bootstrap order. The global
+// `setupFiles` used to do that incidentally for all 964 files; with it
+// gone, the four files relying on it say so. Removing this line fails
+// the file at COLLECTION ("MixinName is not a function"), which is why
+// it survived unnoticed — see docs/testing.md § The four cycle files.
+import "../../../../test-bootstrap";
 import { describe, it, expect, vi } from 'vitest';
 import type { BrainContext, BrainStatics } from '../brain';
 import { brain as idles } from '../idles';

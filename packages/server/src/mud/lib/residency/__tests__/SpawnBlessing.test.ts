@@ -12,6 +12,7 @@
  * the zone lookup.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ResidencyApi } from '../../../api/residency';
 import { StuffApi } from '../../../api/stuff';

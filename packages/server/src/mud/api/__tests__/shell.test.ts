@@ -16,6 +16,7 @@
  * `$me` / `$here` / etc.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import { ShellLogic } from '../../obj/api/ShellLogic';

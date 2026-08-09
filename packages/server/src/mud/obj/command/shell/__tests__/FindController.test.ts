@@ -17,6 +17,7 @@
  *   - no subscription state is registered (snapshot semantics)
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import FindController from '../FindController';
 import { Idea } from '../../../../lib/stuff/Idea';

@@ -11,6 +11,7 @@
  * methods `ChronicleEntry` uses.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ChronicleApi } from '../chronicle';
 import { Idea } from '../../lib/stuff/Idea';

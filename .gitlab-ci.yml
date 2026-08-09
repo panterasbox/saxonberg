@@ -128,12 +128,40 @@ lint:
     # content packs may add leaves, never a root, because a pack-minted
     # root breaks subtree muting for every player.
     - pnpm -C packages/server lint:topics
+    # The framework wiring is an explicit import, not a global setup
+    # file. A test that touches the wired runtime must say so; this
+    # keeps the two in sync. It fails only in the cheap direction (a
+    # file that needs wiring and lacks the import) — a redundant import
+    # is free, because the bootstrap is once-guarded.
+    - pnpm -C packages/server lint:test-bootstrap
+    # ...and that the gate can SEE every file vitest runs. Scanning only
+    # `*.test.ts` silently missed two `.test.js` files, and the check
+    # meant to catch that was itself filtered through `grep test.ts` —
+    # so it confirmed the undercount instead of exposing it. This asks
+    # vitest directly, across both configs, with no filtering.
+    - pnpm -C packages/server lint:test-bootstrap:verify
 
 test:
   extends: [.node, .mr-only]
   stage: validate
   script:
     - pnpm test
+
+# The gym benches — balance regression guards that simulate whole
+# fights (combat-gym, waster-spar). They were 25% of the suite's test
+# CPU in two files, so they are out of the default `pnpm test` and run
+# here instead.
+#
+# A SEPARATE job, not an extra line in `test`: taking them off the
+# local loop is a speed decision, and letting them stop running is a
+# different decision that nobody made. Running in parallel with `test`
+# means the validate stage finishes in max(test, test-gym) rather than
+# the sum — CI wall clock goes down while coverage stays identical.
+test-gym:
+  extends: [.node, .mr-only]
+  stage: validate
+  script:
+    - pnpm test:gym
 
 build:
   extends: [.node, .mr-only]

@@ -6,6 +6,7 @@
  * byte-identical to pre-Wave-2. See docs/subsystems/weather.md.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Location from "../../stuff/Location";
 import Biome from "../../biome/Biome";

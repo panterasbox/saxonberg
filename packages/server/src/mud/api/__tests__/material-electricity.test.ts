@@ -7,6 +7,7 @@
  * real-world-grounded magnitudes.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MaterialApi } from '../material';
 import { StuffApi } from '../stuff';

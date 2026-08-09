@@ -13,6 +13,7 @@
  * materialization, not a direct `describe` call.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { RecognitionApi } from '../recognition';
 import { MessageApi } from '../message';

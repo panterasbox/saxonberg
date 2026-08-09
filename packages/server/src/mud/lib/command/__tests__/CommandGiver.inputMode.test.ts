@@ -10,6 +10,7 @@
  * bar and must never be rewritten.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../stuff/Location';
 import { CommandGiverMixin } from '../CommandGiver';

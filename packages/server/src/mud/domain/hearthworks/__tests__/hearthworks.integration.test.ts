@@ -11,6 +11,7 @@
  *    self-smothers (kills by CO, not flame).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';

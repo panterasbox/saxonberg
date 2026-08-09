@@ -15,6 +15,7 @@
  *    into an action.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeAll } from 'vitest';
 import { CommandApi } from '../command';
 import { Idea } from '../../lib/stuff/Idea';

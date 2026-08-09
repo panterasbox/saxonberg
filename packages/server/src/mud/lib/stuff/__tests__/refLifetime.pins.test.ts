@@ -40,6 +40,7 @@
  * enumerated place that says which six.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

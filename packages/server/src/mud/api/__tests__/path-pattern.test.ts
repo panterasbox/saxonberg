@@ -2,6 +2,7 @@
  * PathPatternApi tests — verifies the glob subset.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { PathPatternApi } from '../path-pattern';
 

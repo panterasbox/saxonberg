@@ -2,6 +2,7 @@
  * DetailedMixin tests
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DetailedMixin, type Detail, type DetailMap } from '../Detailed';
 import { MixinApi } from '../../../api/mixin';
