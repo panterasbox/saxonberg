@@ -8,6 +8,7 @@
  * stubbed — those land in later phases.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { fileURLToPath } from "url";

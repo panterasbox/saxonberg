@@ -3,6 +3,7 @@
  * fire-on-change semantics, return-value contract.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { EventApi } from '../event';

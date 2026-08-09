@@ -14,6 +14,7 @@
  * PerceptionApi.sensorium live in their own test files.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import {

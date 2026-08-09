@@ -294,13 +294,22 @@ and the launch aborts rather than starting into `EADDRINUSE`.
 
 ```bash
 pnpm build            # pnpm -r build
-pnpm test             # all tests (Vitest)
+pnpm test             # all tests (Vitest) — ONE full run per build
+pnpm test:near        # only the tests beside what you changed (fast loop)
+pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
 ```
 
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
+
+[docs/testing.md](./docs/testing.md) — the suite's cost model: `pnpm
+bench` + the measurement history, the ±6% noise floor (nothing under
+10% is a real win), how often to run the full suite, why `isolate:
+false` stays declined, and the one rule for a new test — anything
+touching the wired runtime imports `test-bootstrap`
+(`pnpm lint:test-bootstrap` enforces it).
 
 ### Documentation
 

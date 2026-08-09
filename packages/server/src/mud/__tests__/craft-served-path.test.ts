@@ -7,6 +7,7 @@
  * shipped" — this asserts the crafted drink plugs into it.)
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../api/crafting';
 import { StuffApi } from '../api/stuff';

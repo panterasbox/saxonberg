@@ -6,6 +6,7 @@
  * the watch resumes.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Watch from '../Watch';
 import { Reserve, type Reserved } from '../../../../lib/reserve';

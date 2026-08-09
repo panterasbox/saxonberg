@@ -6,6 +6,7 @@
  * Phase 7 reap/reconstitution scenarios not covered by DormWarren.test.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../DormWarren';
 import DormRoom from '../DormRoom';

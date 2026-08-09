@@ -9,6 +9,7 @@
  * Deterministic — no RNG.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { HazardDelivery } from '../HazardDelivery';
 import { Creature } from '../../creature/Creature';

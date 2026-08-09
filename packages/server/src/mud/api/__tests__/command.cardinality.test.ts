@@ -8,6 +8,7 @@
  * error) work end-to-end.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { CommandApi } from '../command';

@@ -13,6 +13,7 @@
  * occupancy is read through the ungated `CompactApi` surface.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeRegistry from '../OfficeRegistry';
 import Avatar from '../Avatar';

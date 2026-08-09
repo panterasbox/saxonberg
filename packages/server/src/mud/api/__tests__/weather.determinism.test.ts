@@ -6,6 +6,7 @@
  * `timeS` explicitly.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { WeatherApi } from '../weather';
 import { StuffApi } from '../stuff';

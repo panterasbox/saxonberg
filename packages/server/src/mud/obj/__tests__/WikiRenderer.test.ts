@@ -16,6 +16,7 @@
  * leak (the plan's R-9).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import WikiRenderer from '../WikiRenderer';
 import { Idea } from '../../lib/stuff/Idea';

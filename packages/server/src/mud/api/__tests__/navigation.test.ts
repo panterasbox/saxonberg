@@ -7,6 +7,7 @@
  * 'office' / 'out'), and trivia like trim/case-normalization.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { NavigationApi } from '../navigation';
 import { NavigationLogic } from '../../obj/api/NavigationLogic';

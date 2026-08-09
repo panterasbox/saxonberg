@@ -19,6 +19,7 @@
  * hot reload of an on-disk fixture.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFileSync, mkdtempSync, rmSync } from 'fs';
 import { join, dirname } from 'path';

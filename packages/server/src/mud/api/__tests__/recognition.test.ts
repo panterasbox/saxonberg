@@ -8,6 +8,7 @@
  * logic-method call from any other module is denied.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RecognitionLogic } from '../../obj/api/RecognitionLogic';
 import { SecurityError } from '../../lib/security/errors';

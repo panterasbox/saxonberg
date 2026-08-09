@@ -10,6 +10,7 @@
  *   - a heavy `Thing` (anvil) — over the strain ceiling, can't be lifted.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

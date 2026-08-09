@@ -7,6 +7,7 @@
  * re-materialized after a reap.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DeferredDestinationExit from '../DeferredDestinationExit';
 import CartesianLocation from '../../location/CartesianLocation';

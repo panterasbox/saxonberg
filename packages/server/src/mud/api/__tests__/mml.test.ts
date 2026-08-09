@@ -2,6 +2,7 @@
  * Tests for Mml composer.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Mml } from '../mml';
 import { isKnownTag } from '../mml/tags';

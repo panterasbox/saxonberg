@@ -15,6 +15,7 @@
  * fine.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import FocusController from '../FocusController';
 import { Idea } from '../../../../lib/stuff/Idea';

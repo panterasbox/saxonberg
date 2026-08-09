@@ -11,6 +11,7 @@
  * BeliefStore viewer.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TraitApi } from "../trait";
 import { RegardApi } from "../regard";

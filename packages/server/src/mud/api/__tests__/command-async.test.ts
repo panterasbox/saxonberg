@@ -7,6 +7,7 @@
  * `mud/lib/command/__tests__/CommandGiver.async.test.ts`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';

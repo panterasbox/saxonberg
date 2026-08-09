@@ -14,6 +14,7 @@
  *   - **determinism** — a single matchup is bit-for-bit reproducible.
  */
 
+import "../../src/test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import {
   makeStuff,

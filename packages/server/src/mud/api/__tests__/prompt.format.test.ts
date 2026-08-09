@@ -9,6 +9,7 @@
  *   `{ focus: giver.getFocus?.() ?? '' }`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PromptApi, buildPromptContext } from '../prompt';
 import { StuffApi } from '../stuff';

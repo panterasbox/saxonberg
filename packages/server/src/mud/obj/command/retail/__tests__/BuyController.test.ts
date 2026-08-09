@@ -8,6 +8,7 @@
  * direct controller invocation (the `PutController` precedent).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../BuyController";
 import Stock from "../../../Stock";

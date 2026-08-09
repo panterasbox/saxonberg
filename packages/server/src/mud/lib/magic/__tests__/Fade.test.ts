@@ -15,6 +15,7 @@
  *         rises.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../obj/WorldClockRegistry';

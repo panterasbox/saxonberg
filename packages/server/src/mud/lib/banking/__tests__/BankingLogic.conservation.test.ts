@@ -6,6 +6,7 @@
  *   - a mixed mint/drain sequence leaves supply = Σ mints − Σ drains.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";

@@ -8,6 +8,7 @@
  * - Edge cases (missing playerId, duplicate registration)
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PlayerApi } from '../player';
 import { PlayerLogic } from '../../obj/api/PlayerLogic';

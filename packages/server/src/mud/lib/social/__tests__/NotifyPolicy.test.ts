@@ -4,6 +4,7 @@
  * primitive. Pure storage; resolution lives in SocialLogic.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { NotifyPolicyMixin } from "../NotifyPolicy";
 import type { NotifyRule } from "../NotifyRule";

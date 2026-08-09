@@ -19,6 +19,7 @@
  * which is the only thing that can tell the two apart.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';

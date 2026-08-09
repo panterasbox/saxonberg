@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MessageApi } from '../message';
 import { StuffApi } from '../stuff';

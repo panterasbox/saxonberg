@@ -12,6 +12,7 @@
  * and idempotency.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';

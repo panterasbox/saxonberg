@@ -20,6 +20,7 @@
  *     there's no subscription state to wake.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { EventApi } from '../event';

@@ -6,6 +6,7 @@
  * an insolvent business is exactly the wedge the kind exists to expose.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";

@@ -7,6 +7,7 @@
  * The emitted scene body is captured by stubbing `MessageApi.scene`.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import PracticeController from "../PracticeController";
 import { AdvancementApi } from "../../../../api/advancement";

@@ -12,6 +12,7 @@
  * caller — and the string is verified by `pnpm lint:gates`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RenownApi } from '../renown';
 import { WorldClockApi } from '../worldclock';

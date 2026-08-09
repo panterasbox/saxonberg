@@ -15,6 +15,7 @@
  * fail, naming the reason.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { HARM_DEFAULTS } from '../../../obj/Condition';

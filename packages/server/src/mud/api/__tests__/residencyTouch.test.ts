@@ -14,6 +14,7 @@
  * itself never counts as a touch.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';

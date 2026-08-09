@@ -6,6 +6,7 @@
  * harness: the push wire is spied so the test runs without a backend.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import LayoutController from '../LayoutController';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';

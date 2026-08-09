@@ -4,6 +4,7 @@
  * is exercised separately in command-assembly.test.ts.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandLineApi, type RawToken } from '../command-line';
 

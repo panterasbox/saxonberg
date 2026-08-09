@@ -6,6 +6,7 @@
  * (Σ mints − Σ drains).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";

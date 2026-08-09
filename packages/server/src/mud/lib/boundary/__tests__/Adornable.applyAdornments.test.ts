@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import CartesianLocation from "../../location/CartesianLocation";
 import Thing from "../../stuff/Thing";

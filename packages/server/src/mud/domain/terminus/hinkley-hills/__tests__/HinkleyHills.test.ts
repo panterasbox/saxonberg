@@ -16,6 +16,7 @@
  * acceptance walk; this file covers the rule.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PlantController from '../../../../obj/command/inventory/PlantController';
 import WaterController from '../../../../obj/command/bulk/WaterController';

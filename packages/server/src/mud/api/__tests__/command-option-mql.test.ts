@@ -9,6 +9,7 @@
  * command-empty-resolve / command-pronoun.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   CommandApi,

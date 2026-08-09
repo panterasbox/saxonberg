@@ -13,6 +13,7 @@
  * `Avatar` / `FolderZone` instances.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ParcelRegistry from "../ParcelRegistry";
 import GroupRegistry from "../GroupRegistry";

@@ -12,6 +12,7 @@
  * so the refusal is loud rather than a silently truncated chain.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { OrganizationMixin } from '../Organization';
 import { Idea } from '../../stuff/Idea';

@@ -7,6 +7,7 @@
  * roots + the jurisdiction-bound branch in the dispatch check.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../../../../api/sandbox';
 import { StuffApi } from '../../../../api/stuff';

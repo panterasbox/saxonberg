@@ -6,6 +6,7 @@
  * (MQL resolution is covered in `api/__tests__/bulk-mql.test.ts`).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FillController from '../FillController';
 import PourController from '../PourController';

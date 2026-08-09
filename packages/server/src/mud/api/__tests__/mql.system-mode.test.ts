@@ -15,6 +15,7 @@
  * always stamps a real giver.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { resolve } from '../mql/resolver';
 import { MqlApi } from '../mql';

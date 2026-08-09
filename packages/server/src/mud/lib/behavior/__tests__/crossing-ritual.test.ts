@@ -20,6 +20,7 @@
  * `Behaved.test.ts` + `Audible.test.ts` harnesses fused.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

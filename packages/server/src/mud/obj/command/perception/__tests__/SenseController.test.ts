@@ -7,6 +7,7 @@
  * hook forces the `sense` verb, not `look`).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import SenseController from '../SenseController';
 import type { MqlOneResult } from '../../../../api/mql';

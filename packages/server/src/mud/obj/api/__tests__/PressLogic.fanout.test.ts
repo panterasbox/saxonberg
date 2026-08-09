@@ -16,6 +16,7 @@
  * roster is stubbed to the in-test avatar list.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PressApi } from '../../../api/press';
 import { Release } from '../../../lib/press/Release';

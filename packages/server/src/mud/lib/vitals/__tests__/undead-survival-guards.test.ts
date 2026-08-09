@@ -13,6 +13,7 @@
  * new there, and this file is what keeps it.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { WorldClockApi } from '../../../api/worldclock';

@@ -5,6 +5,7 @@
  * header for the seam notes).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as crypto from 'crypto';
 import { KickProfile } from '../KickProfile';

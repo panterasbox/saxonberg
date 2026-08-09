@@ -6,6 +6,7 @@
  * room each resolve their own operator.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { EmploymentApi } from "../../../api/employment";
 import { StuffApi } from "../../../api/stuff";

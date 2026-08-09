@@ -5,6 +5,7 @@
  * `lib/bulk/__tests__/Bulkable.test.ts`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { makeWorld, type MqlWorld } from './fixtures/mql-world';
 import { MqlApi } from '../mql';

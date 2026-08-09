@@ -16,6 +16,7 @@
  * are pure valence sums.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RenownApi } from '../../../api/renown';
 import { SoulApi } from '../../../api/soul';

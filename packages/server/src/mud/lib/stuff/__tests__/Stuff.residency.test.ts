@@ -6,6 +6,7 @@
  * (ResidencyLogic) and the gate rewire land in later phases.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Thing from '../Thing';
 import type { EvictionContext } from '../Stuff';

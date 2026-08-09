@@ -3,6 +3,7 @@
  * commandId/causingCommandId stamping.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MessageApi } from '../message';
 import { Mml } from '../mml';

@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { VisionModality } from '../VisionModality';
 import { MAX_HOPS, EXIT_TAU } from '../../../lib/perception/Modality';

@@ -4,6 +4,7 @@
  * dep-ordering and clone orchestration.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BootstrapManager, type BootstrapEntry } from '../BootstrapManager';
 import { StuffApi } from '../../mud/api/stuff';

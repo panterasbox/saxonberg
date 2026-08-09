@@ -12,6 +12,7 @@
  *     follow the normalized value.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { CommandGiverMixin } from '../CommandGiver';

@@ -3,6 +3,7 @@
  * dynamic-import wiring, and end-to-end boot preload.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as resolvePath } from 'path';

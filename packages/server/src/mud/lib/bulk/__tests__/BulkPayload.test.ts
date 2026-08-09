@@ -5,6 +5,7 @@
  * that blend; a full drain clears the source's payload with it).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';

@@ -8,6 +8,7 @@
  * record — a plant is its own host.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PlantController from '../PlantController';
 import RepotController from '../RepotController';

@@ -13,6 +13,7 @@
  * registered at its templatePath so `ChannelCatalogue` resolves it.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ChannelCatalogue from '../ChannelCatalogue';
 import SubjectCatalogue from '../SubjectCatalogue';

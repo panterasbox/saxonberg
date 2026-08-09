@@ -6,6 +6,7 @@
  * gather walk's two new rungs (maker inventory + open-container descent).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../../../api/crafting';
 import type { CraftRequest } from '../../../api/crafting';

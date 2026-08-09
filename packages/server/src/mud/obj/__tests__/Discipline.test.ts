@@ -3,6 +3,7 @@
  * defensive-copy read surface.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import Discipline, { DISCIPLINE_CHANNELS } from "../Discipline";
 import { StuffApi } from "../../api/stuff";

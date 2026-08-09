@@ -8,6 +8,7 @@
  * safety net) — affordances are read without ever calling postRegister.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandGiverMixin } from '../CommandGiver';
 import { AetherMixin } from '../../message/Aether';

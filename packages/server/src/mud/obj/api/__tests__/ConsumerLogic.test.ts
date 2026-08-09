@@ -8,6 +8,7 @@
  * width is seeded to 600 real-seconds, so `bucket = floor(realAt / 600000)`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { AppSettings } from '../../../lib/config/AppSettings';

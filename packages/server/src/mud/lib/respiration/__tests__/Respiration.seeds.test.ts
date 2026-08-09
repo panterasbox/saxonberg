@@ -5,6 +5,7 @@
  * are validated at boot; this guards the new shapes against drift.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';

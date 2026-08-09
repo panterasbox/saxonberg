@@ -7,6 +7,7 @@
  * validator is where that stops being a sentence in a design doc.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import validator from '../requiresEmbodied';
 import { Creature } from '../../../creature/Creature';

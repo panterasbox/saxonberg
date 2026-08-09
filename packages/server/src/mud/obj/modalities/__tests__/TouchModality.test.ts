@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TouchModality } from '../TouchModality';
 import { Touch } from '../../../lib/perception/Touch';

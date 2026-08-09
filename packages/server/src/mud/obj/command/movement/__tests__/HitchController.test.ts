@@ -4,6 +4,7 @@
  * and the wield-while-hauling block.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import HitchController from '../HitchController';
 import UnhitchController from '../UnhitchController';

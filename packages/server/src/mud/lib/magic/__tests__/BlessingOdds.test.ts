@@ -12,6 +12,7 @@
  * never gets a surprise curse.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Blessing, type BlessingOdds } from '../Blessing';
 import { MagicEffects } from '../Effect';

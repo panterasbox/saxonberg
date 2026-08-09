@@ -5,6 +5,7 @@
  * on Idea).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { AetherHostedMixin } from '../AetherHosted';
 import { AetherMixin, type AetherHost } from '../../message/Aether';

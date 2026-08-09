@@ -4,6 +4,7 @@
  * operator-changed keys survive. PersistenceManager is stubbed (no Mongo).
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AppSettingsSeeder } from "../AppSettingsSeeder";
 import { AppSettingKeys } from "../../mud/lib/config/AppSettings";

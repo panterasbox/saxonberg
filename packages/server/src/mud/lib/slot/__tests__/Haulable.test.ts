@@ -4,6 +4,7 @@
  * and the R2.3 self-heal back-ref.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

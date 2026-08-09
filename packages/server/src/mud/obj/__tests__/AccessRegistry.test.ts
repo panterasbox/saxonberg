@@ -9,6 +9,7 @@
  * `instanceof Avatar` + a non-empty playerId).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import AccessRegistry from "../AccessRegistry";
 import GroupRegistry from "../GroupRegistry";

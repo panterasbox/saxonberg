@@ -7,6 +7,7 @@
  * the next process, so it is never culled.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { MaterialApi } from "../../../api/material";
 import { StuffApi } from "../../../api/stuff";

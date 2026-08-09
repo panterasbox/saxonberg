@@ -9,6 +9,7 @@
  * options.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';

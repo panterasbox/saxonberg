@@ -12,6 +12,7 @@
  * collide across tests without a clear.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Thing from "../../stuff/Thing";
 import Material from "../../material/Material";

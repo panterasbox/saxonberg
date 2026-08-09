@@ -13,6 +13,7 @@
  * contract, and a script trying to escape it gets a ReferenceError.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import EvalScript from '../EvalScript';
 import { StuffApi } from '../../api/stuff';

@@ -6,6 +6,7 @@
  * See `docs/subsystems/shell-alias.md` for the design.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import Location from '../../stuff/Location';

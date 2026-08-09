@@ -5,6 +5,7 @@
  * actually emits, with the documented payload shape."
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { writeFileSync, mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';

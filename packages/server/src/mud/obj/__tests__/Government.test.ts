@@ -3,6 +3,7 @@
  * defensive-copy departments/seats read surface.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import Government from "../Government";
 import { StuffApi } from "../../api/stuff";

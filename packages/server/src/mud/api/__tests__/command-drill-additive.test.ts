@@ -11,6 +11,7 @@
  * this file focuses on the focus chain itself.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   CommandApi,

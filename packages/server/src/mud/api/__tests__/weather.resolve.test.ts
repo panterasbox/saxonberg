@@ -9,6 +9,7 @@
  * distribution without a pin; author always wins.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
 import Locality from '../../obj/Locality';

@@ -4,6 +4,7 @@
  * declaring sample settings.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import SettingsController from '../SettingsController';
 import { Idea } from '../../../../lib/stuff/Idea';

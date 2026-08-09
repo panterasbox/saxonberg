@@ -7,6 +7,7 @@
  * reconcile-test harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
 import Species from "../../../obj/species/Species";

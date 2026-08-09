@@ -4,6 +4,7 @@
  * SmellController.test.ts.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import TasteController from '../TasteController';
 import type { MqlOneResult } from '../../../../api/mql';

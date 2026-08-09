@@ -7,6 +7,7 @@
  * - Object registration and lookup
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';

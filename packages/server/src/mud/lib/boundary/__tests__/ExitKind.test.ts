@@ -9,6 +9,7 @@
  * `stuff.test.ts` clone-harness idiom — no Mongo in unit tests).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianZone from '../../../obj/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';

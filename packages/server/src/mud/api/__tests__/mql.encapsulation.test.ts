@@ -7,6 +7,7 @@
  * logic-method call from any other module is denied.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MqlLogic } from '../../obj/api/MqlLogic';
 import { SecurityError } from '../../lib/security/errors';

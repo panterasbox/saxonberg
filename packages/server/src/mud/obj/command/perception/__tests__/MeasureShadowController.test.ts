@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import MeasureShadowController from '../MeasureShadowController';
 import Sundial from '../../../instrument/Sundial';

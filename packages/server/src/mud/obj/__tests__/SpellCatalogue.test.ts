@@ -6,6 +6,7 @@
  * address resolves to a Phase-1 Discipline seed, ids unique).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";

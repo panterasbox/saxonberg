@@ -7,6 +7,7 @@
  * tested in StreamRelay.test.ts / StreamLogic.test.ts.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TuneController from '../TuneController';
 import Avatar from '../../../Avatar';

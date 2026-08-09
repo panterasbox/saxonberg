@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Clade from '../Clade';
 import { Zone } from '../../../lib/zone/Zone';

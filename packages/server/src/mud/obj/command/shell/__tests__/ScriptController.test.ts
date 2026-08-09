@@ -5,6 +5,7 @@
  * it). Empty body → a usage refusal, no run.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ScriptController from '../ScriptController';
 import { ScriptApi } from '../../../../api/script';

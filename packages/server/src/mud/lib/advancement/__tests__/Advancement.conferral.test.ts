@@ -8,6 +8,7 @@
  * "advancement = the door opens" end-to-end on this branch.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Idea } from "../../stuff/Idea";
 import { CommandGiverMixin } from "../../command/CommandGiver";

@@ -8,6 +8,7 @@
  * isolated.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WatchController from '../WatchController';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';

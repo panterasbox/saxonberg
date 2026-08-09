@@ -8,6 +8,7 @@
  * (programmatic) dispatch.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import IntroduceController from '../IntroduceController';
 import { RecognitionApi } from '../../../../api/recognition';

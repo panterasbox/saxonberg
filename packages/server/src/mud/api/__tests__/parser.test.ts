@@ -9,6 +9,7 @@
  *     result kinds
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as resolvePath } from 'path';

@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import BodyPlan from '../BodyPlan';
 import { Idea } from '../../../lib/stuff/Idea';

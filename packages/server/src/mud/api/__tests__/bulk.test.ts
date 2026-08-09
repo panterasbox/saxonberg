@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BulkableApi } from '../bulk';
 import { BulkableLogic } from '../../obj/api/BulkableLogic';

@@ -13,6 +13,7 @@
  * env handle).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeController from '../OfficeController';
 import OfficeRegistry from '../../../OfficeRegistry';
