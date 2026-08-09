@@ -2346,6 +2346,32 @@ export interface CharGenRosterEntry {
   name: string;
   species: string;
   description: string;
+  /**
+   * ⭐ **At Login you are not embodied**, and that is the structural
+   * fact this block exists for. Every figure below is readable in
+   * session through a subscription — but the character-select screen
+   * has no character, so no subscription is available to it. The roster
+   * is therefore the one payload that must CARRY what is elsewhere
+   * subscribed to.
+   */
+  /** Epoch ms of this character's last logout. Absent = never played. */
+  lastSeen?: number;
+  /** Play standing band — per-character, unlike make standing. */
+  playStanding?: string;
+  /** Where you left them, as a display name. */
+  lastLocation?: string;
+  /** The practice record: every discipline with evidence, and its band. */
+  practice?: { discipline: string; band: string }[];
+  /**
+   * "Since you left" — what happened to this character while away,
+   * derived across the ledgers since `lastSeen`.
+   *
+   * ⚠ Derived on read. There is deliberately **no away-log
+   * collection**: a stored digest would be a second source of truth for
+   * events the ledgers already own, and it would need a retention
+   * policy nobody has decided.
+   */
+  sinceYouLeft?: string[];
 }
 
 /** `system.charactergen.roster` payload — the character-select list. */

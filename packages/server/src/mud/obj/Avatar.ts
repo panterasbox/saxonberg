@@ -64,6 +64,8 @@ import { EstateMixin } from "../lib/chattel/Estate";
 import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
+import { SocialApi } from '../api/social';
+import { Band } from '../lib/standing/Band';
 import { RenownApi } from '../api/renown';
 import { AdvancementApi } from '../api/advancement';
 
@@ -115,6 +117,47 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
 function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
   if (viewer?.stuffId !== stuff.stuffId) return undefined;
   return stuff.getTemplatePath() ?? undefined;
+}
+
+/**
+ * ⭐ **The producer band for the whole ACCOUNT**, not this character.
+ *
+ * *Make* (you build) is something the person does; only *Play* accrues
+ * by living in the world as one particular body. So `makeStanding`
+ * answers for every character on the account, and the strongest band
+ * any of them earned is the account's.
+ *
+ * ⚠ **The ledger is not re-keyed to make this work.** `producer_events`
+ * rows were written against a character subject, and rewriting them has
+ * a wrong answer available — silently dropping the history of anyone
+ * whose account has more than one character. Aggregating on READ leaves
+ * every row where it is and stays correct for accounts that gain a
+ * character later.
+ *
+ * ⚠ The account's SCALARS are summed and the total banded — not the
+ * per-character bands compared. Someone who authored a little as each
+ * of three characters has done all of that work as one person, and
+ * max-of-bands would throw two thirds of it away. Banding the sum is
+ * the only aggregation that matches what the figure claims to measure.
+ *
+ * Falls back to this character alone when the account is unknown (a
+ * guest, or a body constructed directly in a test) — the pre-existing
+ * behaviour, so nothing regresses.
+ */
+function accountMakeBand(stuff: Stuff): Band {
+  const own = stuff.getTemplatePath() ?? undefined;
+  const user = (stuff as Avatar).getUser?.();
+  const slots = user?.playerIds ?? [];
+
+  const subjects = slots.map((id) => Avatar.getTemplatePath(id));
+  if (own && !subjects.includes(own)) subjects.push(own);
+  if (subjects.length === 0) return Band.of('dormant');
+
+  const total = subjects.reduce(
+    (sum, s) => sum + InfluenceApi.standingOf(s, 'producer').scalar,
+    0,
+  );
+  return Band.fromScalar(total);
 }
 
 /**
@@ -183,6 +226,12 @@ export default class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "system/wiki.yaml",
+      // `recall` rides beside `help` and `wiki` for the same reason
+      // they ride together: it is a reference surface you carry, not
+      // one you reach for. Reading is open by design, so it is not
+      // gated behind a hosted aether update the way `forum` / `chat`
+      // are — and it filters by DELETION, so an open verb cannot leak.
+      "system/recall.yaml",
       "system/clear.yaml",
       "system/affordances.yaml",
       "author/player.yaml",
@@ -217,8 +266,40 @@ export default class Avatar extends AvatarBase {
    */
   static fieldMeta: FieldMeta = {
     mortalArc: { persistent: true },
+    lastSeen: { persistent: true },
     startLocation: { instruction: true },
   };
+
+  /**
+   * Epoch ms of this character's last logout, or 0 for never-played.
+   *
+   * ⭐ The cheap field the character-select screen was starved for, and
+   * the prerequisite for the "since you left" digest — which is derived
+   * across the ledgers *since this instant*, so without it there is no
+   * window to derive over.
+   *
+   * Stamped on logout rather than continuously: "when did I last put
+   * this character down" is the question the roster asks, and a
+   * heartbeat-updated field would answer a different one while costing
+   * a write per tick.
+   *
+   * Public because the `Hydrator` reflects into persistent fields by
+   * name; other Stuff use `getLastSeen` / `markSeen`.
+   */
+  public lastSeen: number = 0;
+
+  /** Epoch ms of the last logout, or `undefined` if never played. */
+  public getLastSeen(): number | undefined {
+    return this.lastSeen > 0 ? this.lastSeen : undefined;
+  }
+
+  /**
+   * Stamp the logout instant. Called by the connection teardown, which
+   * is the one moment that means "this character was put down".
+   */
+  public markSeen(at: number): void {
+    this.lastSeen = at;
+  }
 
   /**
    * ⭐ **The live standing figures**, as subscribable data rather than
@@ -278,11 +359,26 @@ export default class Avatar extends AvatarBase {
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
     {
+      /**
+       * ⚠ **Account-level, unlike its neighbours.** *Make* is something
+       * the PERSON does, not the character — there is no reason to
+       * author as one character rather than another, so a per-character
+       * make standing is a number that means nothing. `playStanding`
+       * and `renown` stay per-character, which is the whole point of
+       * the split: they are the ones that can legitimately diverge
+       * across an account's characters.
+       *
+       * ⚠ **`producer_events` is NOT re-keyed.** Those rows were
+       * written against a character key, and rewriting them has a wrong
+       * answer available — silently dropping the history of anyone with
+       * more than one character. So the READ aggregates instead, which
+       * derive-on-read makes possible and which leaves the ledger's
+       * history intact and re-derivable.
+       */
       name: 'makeStanding',
       read: (stuff, viewer) => {
-        const key = standingSubject(stuff, viewer);
-        if (!key) return undefined;
-        return { band: InfluenceApi.bandOf(key, 'producer') };
+        if (!standingSubject(stuff, viewer)) return undefined;
+        return { band: accountMakeBand(stuff) };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -302,6 +398,67 @@ export default class Avatar extends AvatarBase {
         const c = AdvancementApi.practisingCompetenceCached(stuff);
         if (c === undefined) return undefined;
         return c === null ? null : { discipline: c.discipline, band: c.band };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+    {
+      /**
+       * ⭐ The **competence digest** — every discipline with evidence,
+       * not just the one being practised. `practisingCompetence` above
+       * answers "what am I working on"; this answers "what do I know".
+       *
+       * ⚠ Derived on read from `transcripts`; there is no stored total.
+       * The band is already a derivation, so a cached total would be a
+       * second source of truth for a number the ledger owns.
+       */
+      /**
+       * ⭐ The **notification policy** the tray must paint.
+       *
+       * ⚠ The surface is the POLICY, not a feed. The tray shows what
+       * the receiver *said they wanted*, not everything that happened —
+       * so this ships the ordered rules plus the ping variants they
+       * produce, and the client renders from the receiver's own
+       * declared intent. A feed would put the filtering decision on the
+       * client, which is the one thing it may not own.
+       */
+      name: 'notifyPolicy',
+      read: (stuff, viewer) => {
+        if (!standingSubject(stuff, viewer)) return undefined;
+        if (!MixinApi.isNotifyPolicy(stuff)) return undefined;
+        const rules = SocialApi.listRules(stuff);
+        return {
+          rules: rules.map((r) => ({
+            groupRef: r.groupRef,
+            nameRendering: r.nameRendering,
+            boostInDense: r.boostInDense,
+            onConnect: r.onConnect,
+            onDisconnect: r.onDisconnect,
+            onMessage: r.onMessage,
+            color: r.color,
+          })),
+          // The distinct ping variants this policy can actually
+          // produce — the tray's vocabulary, derived rather than
+          // enumerated separately so it cannot drift from the rules.
+          pings: {
+            connect: [...new Set(rules.map((r) => r.onConnect))].sort(),
+            disconnect: [...new Set(rules.map((r) => r.onDisconnect))].sort(),
+            message: [...new Set(rules.map((r) => r.onMessage))].sort(),
+          },
+        };
+      },
+    },
+    {
+      name: 'competenceDigest',
+      read: (stuff, viewer) => {
+        if (!standingSubject(stuff, viewer)) return undefined;
+        const bands = AdvancementApi.competenceDigestCached(stuff);
+        if (bands === undefined) return undefined;
+        return {
+          disciplines: bands.map((b) => ({
+            discipline: b.discipline,
+            band: b.band,
+          })),
+        };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -1133,6 +1290,16 @@ export default class Avatar extends AvatarBase {
     // `PlayerLoggedOut` (the character left the game; a return is a fresh
     // login). A bare drop is a `PlayerDisconnected` (linkdead): the body
     // lingers and the next `enter()` will be a reconnect.
+    // ⭐ Stamp `lastSeen` on EITHER path. A network drop is still the
+    // last moment this character was in the world, and the roster's
+    // question ("when did I last play them") does not care whether the
+    // player meant to leave. Stamping only the deliberate path would
+    // leave every crashed session reading as never-played.
+    // Wall clock, not game time: "when did I last play them" is a
+    // real-world question the character-select screen asks before the
+    // world clock is even relevant to the reader.
+    this.markSeen(Date.now());
+
     if (this.leaveIntent) {
       this.leaveIntent = false;
       this.sessionActive = false;
@@ -1140,6 +1307,8 @@ export default class Avatar extends AvatarBase {
     } else {
       EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     }
+    // Persist the stamp; a save failure must not break teardown.
+    this.save().catch(() => undefined);
   }
 
   /* ── sandbox parking (Decision P) ──
