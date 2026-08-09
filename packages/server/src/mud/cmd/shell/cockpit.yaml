@@ -1,0 +1,141 @@
+verbs: [cockpit]
+controller: /obj/command/shell/CockpitController
+description: "Steer your cockpit: layout, per-bar input scoping, appearance."
+help: |
+  The cockpit is your screen — everything about how it is arranged and
+  how it reads. Every control lives under this one verb, so there is
+  exactly one place to look.
+
+    cockpit                       report everything in effect
+    cockpit layout <name>         the screen's shape
+    cockpit scope <prefix…>       scope a command bar's bare input
+    cockpit style <sub> …         appearance: theme, colors, plain mode
+
+  Cockpit control is interface, not fiction — so `cockpit` and every
+  subcommand under it always reach the interpreter un-prefixed, even
+  from a bar you have scoped to a channel. A bar scoped to gossip can
+  still steer its own cockpit without the `/` escape.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: cockpit
+    note: Report layout, scope and style in one view
+  - cmd: cockpit layout forum
+    note: Open the forum board view
+  - cmd: cockpit scope chat gossip
+    note: Scope this bar to the gossip channel
+  - cmd: cockpit style theme high-contrast
+    note: Switch to the high-contrast theme
+subcommands:
+  layout:
+    controller: /obj/command/shell/LayoutController
+    description: "Switch the cockpit layout (world | forum | livestream-viewer | streamer | builder)."
+    help: |
+      Choose how your cockpit is arranged. A layout is the whole
+      screen's shape — `world` is the classic terminal, `forum` opens
+      the board view, `livestream-viewer` puts a stream embed beside a
+      chat terminal, `streamer` is the broadcaster's view, and
+      `builder` opens the content editor.
+
+      Your layout is remembered: it follows you across reconnects and
+      every connection you have open. A terminal showing live play is
+      always present in every layout, so you can always type `cockpit
+      layout world` to come back.
+
+      The "Views" menu in the cockpit sends this command for you —
+      typing `cockpit layout <name>` and clicking a menu item are the
+      same thing.
+    examples:
+      - cmd: cockpit layout forum
+        note: Open the forum board view
+      - cmd: cockpit layout world
+        note: Return to the classic terminal cockpit
+    args:
+      - name: name
+        type: string
+        required: true
+
+  scope:
+    controller: /obj/command/shell/ModeController
+    description: "Scope a command bar: type bare lines as `<prefix> …` until you turn it off."
+    help: |
+      Put a command bar into a scope so everything you type there is
+      prefixed for you. `cockpit scope chat gossip` scopes this bar to
+      the gossip channel — then a bare `hello` is dispatched as `chat
+      hello`. Run a one-off raw command without leaving the scope by
+      starting it with a slash: `/look`. Turn it off with `cockpit
+      scope off` (or bare `cockpit scope`).
+
+      Scopes are per-bar: a layout with several terminals can have one
+      bar scoped to chat while another stays plain. The bar shows its
+      prefix inline as you type, so what you see is exactly what
+      dispatches.
+
+      By default this targets the bar you typed it in. A UI control can
+      target a different bar with `--bar <id>` (e.g. a button that
+      scopes the stream-chat bar sends `cockpit scope chat --bar
+      stream-chat`) — this is how an affordance, which dispatches
+      un-scoped, names the bar it means.
+    examples:
+      - cmd: cockpit scope chat gossip
+        note: Scope this bar to the gossip channel
+      - cmd: cockpit scope off
+        note: Clear this bar's scope
+      - cmd: cockpit scope chat --bar stream-chat
+        note: Scope a named bar (used by scope-setting buttons)
+    options:
+      bar:
+        short: b
+        type: string
+        description: "Target a named command bar (default: the bar you typed in)."
+    args:
+      - name: prefix
+        type: string
+        required: false
+        greedy: true
+
+  style:
+    controller: /obj/command/shell/StyleController
+    description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
+    help: |
+      Tune how the cockpit looks and reads. `cockpit style` collects
+      every visual preference — your overall theme, the color a given
+      chat channel shows in, whether your own name gets highlighted,
+      and whether output drops to plain unstyled text.
+
+      Each preference has its own form:
+
+        cockpit style show                       print the current overlay
+        cockpit style theme <default|high-contrast>
+        cockpit style channel <key> color <value>
+        cockpit style channel <key> clear
+        cockpit style mention self <on|off>
+        cockpit style plain <on|off>
+        cockpit style plain channel <key> <on|off>
+        cockpit style reset                      wipe the overlay
+
+      Bare `cockpit style` is the same as `cockpit style show`. Use
+      `cockpit style reset` to wipe your overlay back to defaults if
+      you've tangled things up.
+    examples:
+      - cmd: cockpit style show
+        note: Print every style choice currently in effect
+      - cmd: cockpit style theme high-contrast
+        note: Switch to the high-contrast theme
+      - cmd: cockpit style channel gossip color blue
+        note: Tint the gossip channel blue
+      - cmd: cockpit style plain channel gossip on
+        note: Drop just the gossip channel to plain text
+    args:
+      - name: styleSub
+        type: string
+        required: false
+      - name: a
+        type: string
+        required: false
+      - name: b
+        type: string
+        required: false
+      - name: c
+        type: string
+        required: false

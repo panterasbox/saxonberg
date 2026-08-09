@@ -35,7 +35,7 @@ class TestActor extends HasInteractiveMixin(
 
 function stubCommand(): CommandDefinition {
   return CommandDefinition.fromYaml(
-    `verbs: [mode]\ncontroller: ModeController\ndescription: stub\n`,
+    `verbs: [cockpit]\ncontroller: ModeController\ndescription: stub\n`,
     '<test>',
   );
 }
@@ -48,10 +48,10 @@ function makeContext(
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
-    commandText: 'mode',
+    commandText: 'cockpit scope',
     executionId: 'test',
     commandId: 'test',
-    verb: 'mode',
+    verb: 'cockpit',
     command: stubCommand(),
     barId,
   });
@@ -154,10 +154,10 @@ describe('ModeController', () => {
     const ctx = CommandApi.createCommandContext({
       commandGiver: actor as never,
       location: location as never,
-      commandText: 'mode',
+      commandText: 'cockpit scope',
       executionId: 'test',
       commandId: 'test',
-      verb: 'mode',
+      verb: 'cockpit',
       command: stubCommand(),
     });
     await controller.execute(makeModel({ prefix: 'chat' }), ctx as never);

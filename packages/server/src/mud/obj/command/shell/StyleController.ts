@@ -2,7 +2,8 @@
  * StyleController — the player's surface for editing the cockpit
  * style overlay (`HasInteractiveMixin.clientState['style.overlay']`).
  *
- * Subcommands (per `cmd/style.yaml`):
+ * Reached as `cockpit style …` (the `style` subcommand of `cockpit`
+ * declares this controller). Settings, per `cmd/shell/cockpit.yaml`:
  *   - `show`         — print current overlay as readable JSON
  *   - `theme <name>` — `default` | `high-contrast`
  *   - `channel <key> color <value>` — set per-channel chip color
@@ -11,6 +12,12 @@
  *   - `plain on|off`                — global plain-mode toggle
  *   - `plain channel <key> on|off`  — per-channel plain
  *   - `reset`                       — clear overlay to {}
+ *
+ * ⚠ These are NOT command subcommands — `cockpit style` is already the
+ * subcommand, and subcommands are one level deep framework-wide. They
+ * ride positional slots (`styleSub` / `a` / `b` / `c`) and dispatch in
+ * `execute`, which is why an unknown setting must be refused HERE: the
+ * matcher's `unknown-subcommand` path never sees it.
  *
  * Every mutation writes via `setClientState`, persists via `save()`,
  * and pushes to connected Interactives via `pushClientStateUpdate`
@@ -41,20 +48,23 @@ const KNOWN_THEMES = new Set(['default', 'high-contrast']);
 
 type StyleHost = Stuff & HasInteractive;
 
+/**
+ * Positional slots under `cockpit style`. The style tree is two levels
+ * deep (`cockpit style channel <key> color <value>`) and command
+ * subcommands are one level framework-wide, so the second level rides
+ * generic positionals and this controller dispatches on `styleSub` —
+ * the same shape `style channel <key> color|clear` already used for its
+ * own third level. `a` / `b` / `c` are slot-addressed because their
+ * meaning depends on `styleSub`.
+ */
 interface StyleModel extends CommandModel {
-  // Generic positional args; meaning depends on subcommand. Kept
-  // loose because the YAML uses different name sets per subcommand
-  // (theme.name, channel.action, plain.a/b/c). Controller narrows.
-  name?: string;
-  channelKey?: string;
-  action?: string;
-  value?: string;
-  target?: string;
-  state?: string;
+  styleSub?: string;
   a?: string;
   b?: string;
   c?: string;
 }
+
+const STYLE_SUBS = ['show', 'theme', 'channel', 'mention', 'plain', 'reset'];
 
 export default class StyleController extends CommandController<StyleModel> {
   execute(model: StyleModel, context: CommandContext): void {
@@ -66,37 +76,30 @@ export default class StyleController extends CommandController<StyleModel> {
     }
     const host = giver as StyleHost;
 
-    const sub = model.subcommand ?? 'show';
+    const sub = model.styleSub ?? 'show';
     switch (sub) {
       case 'show':
         return this.executeShow(host, context);
       case 'theme':
-        return this.executeTheme(host, model.name, context);
+        return this.executeTheme(host, model.a, context);
       case 'channel':
-        return this.executeChannel(
-          host,
-          model.channelKey,
-          model.action,
-          model.value,
-          context,
-        );
+        return this.executeChannel(host, model.a, model.b, model.c, context);
       case 'mention':
-        return this.executeMention(
-          host,
-          model.target,
-          model.state,
-          context,
-        );
+        return this.executeMention(host, model.a, model.b, context);
       case 'plain':
-        return this.executePlain(
-          host,
-          model.a,
-          model.b,
-          model.c,
-          context,
-        );
+        return this.executePlain(host, model.a, model.b, model.c, context);
       case 'reset':
         return this.executeReset(host, context);
+      default:
+        // The style tree rides positionals, so an unknown second-level
+        // word reaches the controller instead of being refused by the
+        // matcher's `unknown-subcommand` path. Refuse it here — silently
+        // doing nothing is the failure mode this default exists to stop.
+        return this.fail(
+          context,
+          `unknown style setting '${sub}' (known: ${STYLE_SUBS.join(', ')})`,
+          'unknown-style-setting',
+        );
     }
   }
 
@@ -114,7 +117,7 @@ export default class StyleController extends CommandController<StyleModel> {
     context: CommandContext,
   ): void {
     if (!name) {
-      return this.fail(context, 'usage: style theme <default|high-contrast>', 'missing-arg');
+      return this.fail(context, 'usage: cockpit style theme <default|high-contrast>', 'missing-arg');
     }
     if (!KNOWN_THEMES.has(name)) {
       return this.fail(
@@ -139,7 +142,7 @@ export default class StyleController extends CommandController<StyleModel> {
     if (!channelKey || !action) {
       return this.fail(
         context,
-        'usage: style channel <key> color <value> | clear',
+        'usage: cockpit style channel <key> color <value> | clear',
         'missing-arg',
       );
     }
@@ -151,7 +154,7 @@ export default class StyleController extends CommandController<StyleModel> {
       if (!value) {
         return this.fail(
           context,
-          `usage: style channel ${channelKey} color <value>`,
+          `usage: cockpit style channel ${channelKey} color <value>`,
           'missing-arg',
         );
       }
@@ -191,13 +194,13 @@ export default class StyleController extends CommandController<StyleModel> {
     if (target !== 'self') {
       return this.fail(
         context,
-        "usage: style mention self <on|off>",
+        "usage: cockpit style mention self <on|off>",
         'unknown-target',
       );
     }
     const flag = parseOnOff(state);
     if (flag === null) {
-      return this.fail(context, 'usage: style mention self <on|off>', 'missing-arg');
+      return this.fail(context, 'usage: cockpit style mention self <on|off>', 'missing-arg');
     }
     const next = this.cloneOverlay(host);
     next['mention.self'] = flag;
@@ -218,7 +221,7 @@ export default class StyleController extends CommandController<StyleModel> {
     if (!a) {
       return this.fail(
         context,
-        'usage: style plain on|off | style plain channel <k> on|off',
+        'usage: cockpit style plain on|off | cockpit style plain channel <k> on|off',
         'missing-arg',
       );
     }
@@ -226,11 +229,11 @@ export default class StyleController extends CommandController<StyleModel> {
     // `style plain channel <key> on|off`
     if (a === 'channel') {
       if (!b) {
-        return this.fail(context, 'usage: style plain channel <k> on|off', 'missing-arg');
+        return this.fail(context, 'usage: cockpit style plain channel <k> on|off', 'missing-arg');
       }
       const flag = parseOnOff(c);
       if (flag === null) {
-        return this.fail(context, 'usage: style plain channel <k> on|off', 'missing-arg');
+        return this.fail(context, 'usage: cockpit style plain channel <k> on|off', 'missing-arg');
       }
       const next = this.cloneOverlay(host);
       const key = `plain.channel.${b}`;
@@ -251,7 +254,7 @@ export default class StyleController extends CommandController<StyleModel> {
     if (flag === null) {
       return this.fail(
         context,
-        'usage: style plain on|off | style plain channel <k> on|off',
+        'usage: cockpit style plain on|off | cockpit style plain channel <k> on|off',
         'unknown-arg',
       );
     }

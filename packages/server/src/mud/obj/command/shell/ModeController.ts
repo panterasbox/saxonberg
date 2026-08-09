@@ -2,6 +2,14 @@
  * ModeController — the player's surface for scoping a command bar's
  * input mode (`HasInteractiveMixin.clientState['cockpit.inputModes']`).
  *
+ * Reached as `cockpit scope …` (the `scope` subcommand of `cockpit`
+ * declares this controller). It was the standalone `mode` verb until
+ * the cockpit consolidation: it always wrote the `cockpit.*` keyspace,
+ * so it was a cockpit concern wearing a top-level verb. The class keeps
+ * its name because it still edits `cockpit.inputModes` — the *input
+ * mode* map — while the player-facing word is now `scope`, which frees
+ * `cockpit mode` for the activity axis (chat / play / watch / …).
+ *
  * Input mode is server-authoritative and **per-bar**: a `{ barId →
  * prefix }` map. The command interpreter
  * ({@link CommandApi.applyInputMode}, hooked in
@@ -9,16 +17,16 @@
  * submitted from that bar. This controller only edits the map; the
  * prepend is the load-bearing half.
  *
- *   - `mode <prefix…>` — set the target bar's prefix.
- *   - `mode off` / bare `mode` — clear the target bar's mode.
+ *   - `cockpit scope <prefix…>` — set the target bar's prefix.
+ *   - `cockpit scope off` / bare `cockpit scope` — clear it.
  *
  * The target bar is resolved `model.bar ?? context.barId ?? 'main'`:
  *   - `context.barId` is the bar the line was typed in (carried from the
  *     inbound `command` message) — the default for a typed `mode`.
  *   - `--bar <id>` (`model.bar`) names a bar explicitly. A UI affordance
  *     dispatches **un-moded** (no `barId` on the wire, so preview == send),
- *     so a mode-setting button can't rely on `context.barId`; it names its
- *     target in the command instead (`mode chat --bar stream-chat`). The
+ *     so a scope-setting button can't rely on `context.barId`; it names its
+ *     target in the command instead (`cockpit scope chat --bar stream-chat`). The
  *     target stays visible in the ghost-line preview — no hidden state.
  *
  * Every mutation writes the whole map via `setClientState` and pushes to
@@ -63,27 +71,27 @@ export default class ModeController extends CommandController<ModeModel> {
     const next = this.cloneModes(host);
 
     if (!prefix || prefix.toLowerCase() === 'off') {
-      // `mode` / `mode off` — clear this bar's mode.
+      // `cockpit scope` / `cockpit scope off` — clear this bar's scope.
       if (next[barId] === undefined) {
         this.commit(host, next);
         return this.send(
           context,
-          Mml.fromMarkup('\nthis bar has no mode set\n'),
+          Mml.fromMarkup('\nthis bar has no scope set\n'),
         );
       }
       delete next[barId];
       this.commit(host, next);
-      return this.send(context, Mml.fromMarkup('\nmode cleared\n'));
+      return this.send(context, Mml.fromMarkup('\nscope cleared\n'));
     }
 
-    // `mode <prefix…>` — scope this bar to the prefix.
+    // `cockpit scope <prefix…>` — scope this bar to the prefix.
     next[barId] = prefix;
     this.commit(host, next);
     this.send(
       context,
       Mml.fromMarkup(
-        `\nmode set — bare input dispatches as \`${Mml.escape(prefix)} …\` ` +
-          `(/ for a raw command, \`mode off\` to clear)\n`,
+        `\nscope set — bare input dispatches as \`${Mml.escape(prefix)} …\` ` +
+          `(/ for a raw command, \`cockpit scope off\` to clear)\n`,
       ),
     );
   }
@@ -107,7 +115,7 @@ export default class ModeController extends CommandController<ModeModel> {
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
       .topic('shell.control')
-      .tags(['control:mode'])
+      .tags(['control:scope'])
       .toSelf(body)
       .send();
   }

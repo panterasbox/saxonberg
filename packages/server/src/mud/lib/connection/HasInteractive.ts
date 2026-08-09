@@ -232,7 +232,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         description:
           'The cockpit layout this player is in — the server-' +
           'authoritative view axis (world | forum | livestream-' +
-          'viewer | streamer | builder). Set by the `layout` verb; ' +
+          'viewer | streamer | builder). Set by `cockpit layout`; ' +
           'the client holds a layout→component registry and swaps the ' +
           'whole cockpit on change.',
         validator: (v) =>
@@ -252,9 +252,10 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         description:
           'Per-bar input modes — a { barId → prefix } map. The ' +
           'command interpreter prepends a bar’s prefix to bare ' +
-          'input submitted from that bar (escape with `/`; the `mode` ' +
-          'verb itself is exempt). Set/cleared by the `mode` verb from ' +
-          'a given bar; the client renders the prefix as an inline ' +
+          'input submitted from that bar (escape with `/`; the ' +
+          '`cockpit` verb and its whole subtree are exempt — interface ' +
+          'control is not world input). Set/cleared by `cockpit scope` ' +
+          'from a given bar; the client renders the prefix as an inline ' +
           'uneditable span. Transient — never persisted; clears on ' +
           'a fresh session.',
         // Shape: a flat object whose values are all strings. The
@@ -313,12 +314,17 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     /**
      * Verbs that travel with every HasInteractive-bearing host
      * (Avatar today, future cockpit-bearing classes tomorrow). The
-     * `style` verb belongs here because the overlay it edits IS the
-     * client state on this mixin; co-locating verb + schema keeps
-     * the wiring local.
+     * `cockpit` verb belongs here because the state it edits IS the
+     * client state on this mixin; co-locating verb + schema keeps the
+     * wiring local.
+     *
+     * One entry, not three: `layout`, `style` and `mode` were absorbed
+     * as `cockpit layout` / `cockpit style` / `cockpit scope`. They
+     * each wrote this same `cockpit.*` keyspace, so three top-level
+     * verbs was scatter, not separation.
      */
     static commandContributions: CommandContributions = {
-      self: ['shell/style.yaml', 'shell/layout.yaml', 'shell/mode.yaml'],
+      self: ['shell/cockpit.yaml'],
       peers: [],
       environment: [],
     };

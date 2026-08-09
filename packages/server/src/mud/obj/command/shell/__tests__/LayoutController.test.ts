@@ -35,7 +35,7 @@ class TestActor extends HasInteractiveMixin(
 
 function stubCommand(): CommandDefinition {
   return CommandDefinition.fromYaml(
-    `verbs: [layout]\ncontroller: LayoutController\ndescription: stub\n`,
+    `verbs: [cockpit]\ncontroller: LayoutController\ndescription: stub\n`,
     '<test>',
   );
 }
@@ -44,10 +44,10 @@ function makeContext(actor: TestActor, location: Location): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
-    commandText: 'layout',
+    commandText: 'cockpit layout',
     executionId: 'test',
     commandId: 'test',
-    verb: 'layout',
+    verb: 'cockpit',
     command: stubCommand(),
   });
 }

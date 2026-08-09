@@ -125,12 +125,12 @@ export const AccountMenu: React.FC = () => {
   };
 
   // Enter the builder layout (the CMS, re-homed in-session). Command-bus
-  // primacy: an explicit `layout builder` click, not a takeover tab — the
-  // WebSocket session stays live. Visible only to developers (a non-
-  // authoritative UX gate; the REST CMS routes remain the authority).
+  // primacy: an explicit `cockpit layout builder` click, not a takeover
+  // tab — the WebSocket session stays live. Visible only to developers (a
+  // non-authoritative UX gate; the REST CMS routes remain the authority).
   const openCms = () => {
     setOpen(false);
-    websocketClient.sendCommand("layout builder");
+    websocketClient.sendCommand("cockpit layout builder");
   };
 
   // Open the "Social / Notifications" settings pane — the thin front over

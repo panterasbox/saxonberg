@@ -129,7 +129,7 @@ export function ViewsMenu({
       {open ? (
         <Menu data-testid="views-menu">
           {LAYOUT_NAMES.map((name) => {
-            const cmd = `layout ${name}`;
+            const cmd = `cockpit layout ${name}`;
             return (
               <Item
                 key={name}

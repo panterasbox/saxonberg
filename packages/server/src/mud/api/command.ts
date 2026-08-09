@@ -1401,11 +1401,21 @@ export class CommandApi {
    *   1. **No prefix** (the bar is unset) → verbatim no-op.
    *   2. **`/`-escape** → strip the leading slash and run the rest raw
    *      (a one-off un-moded command; `/look` lexes as `look`).
-   *   3. **`mode`-management** → the `mode` verb itself is exempt, so
-   *      `mode off` / `mode chat x` always reach the interpreter
-   *      un-prefixed regardless of the active mode.
+   *   3. **Cockpit control** → the `cockpit` verb is exempt, so
+   *      `cockpit scope off` / `cockpit mode watch` / `cockpit style …`
+   *      always reach the interpreter un-prefixed regardless of the
+   *      active scope.
    *
-   * Otherwise the prefix is prepended: `chat`-mode + `hello` →
+   * Rule 3 states one thing: **interface control is not world input.**
+   * A bar scoped to a chat channel still steers its own cockpit. The
+   * exemption covers the whole `cockpit` subtree rather than a single
+   * verb, and that is correct by construction — every subcommand under
+   * `cockpit` is interface control, so there is nothing under it that
+   * *should* be prefixed. A narrower exemption would strand a player
+   * who scoped a bar to gossip: they could not un-scope it without
+   * knowing the `/` escape.
+   *
+   * Otherwise the prefix is prepended: `chat`-scope + `hello` →
    * `chat hello`. Kept here (not in `msh`) so the tokenizer stays
    * Stuff-unaware; the per-bar lookup happens at the call site.
    */
@@ -1413,7 +1423,7 @@ export class CommandApi {
     if (!modePrefix) return rawText; // (1) unset bar — verbatim no-op
     const t = rawText.trimStart();
     if (t.startsWith('/')) return t.slice(1); // (2) escape → run raw
-    if (t.split(/\s+/)[0]?.toLowerCase() === 'mode') return rawText; // (3) exempt
+    if (t.split(/\s+/)[0]?.toLowerCase() === 'cockpit') return rawText; // (3) exempt
     return `${modePrefix} ${rawText}`;
   }
 

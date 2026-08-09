@@ -2,7 +2,10 @@
  * LayoutController — the player's surface for switching the cockpit
  * layout (`HasInteractiveMixin.clientState['cockpit.layout']`).
  *
- * `layout <name>` writes the named layout, persists it, and pushes the
+ * Reached as `cockpit layout <name>` (the `layout` subcommand of
+ * `cockpit` declares this controller).
+ *
+ * `cockpit layout <name>` writes the named layout, persists it, and pushes the
  * `client-state-update` to every connected Interactive so the client
  * swaps the whole cockpit without waiting on a reconnect. The client
  * holds a `layout → component` registry keyed by these names; the
@@ -15,7 +18,7 @@
  *
  * There is no auto-switch: the only way to change layout is this verb
  * (typed, or sent by the "Views" menu). The `forum` verb stays pure
- * forum CRUD — you reach the board view via `layout forum`.
+ * forum CRUD — you reach the board view via `cockpit layout forum`.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -49,7 +52,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
     if (!name) {
       return this.fail(
         context,
-        `usage: layout <${LAYOUT_NAMES.join(' | ')}>`,
+        `usage: cockpit layout <${LAYOUT_NAMES.join(' | ')}>`,
         'missing-arg',
       );
     }
