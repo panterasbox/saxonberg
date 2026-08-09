@@ -273,7 +273,30 @@ export default class MqlSubscriptionRegistry extends Idea {
     const fields = resolveFieldSet(req.fields);
     const detailKey = req.detailKey;
     const focusDependent = req.focusDependent === true;
-    const locationDependent = req.locationDependent === true;
+    /**
+     * ⚠⚠ **A hold must install the dependency that lets it fire.**
+     *
+     * Every pane hold is a question about *where things are relative to
+     * the viewer* — `here` compares the viewer's room to its anchor, and
+     * `present` / `inReach` / `carried` compare the subject's container
+     * to the viewer. All four are therefore only answerable when the
+     * subscription re-resolves, and a subscription only re-resolves when
+     * something marks it dirty.
+     *
+     * Without this, a `here` pane is **immortal**: the viewer walks out,
+     * nothing wakes the subscription, the hold is never evaluated, and
+     * the pane sits there forever. Found by driving it live — the unit
+     * tests all called `refreshForInteractive` by hand and so never
+     * exercised the wake path at all.
+     *
+     * `unanswered` is excluded deliberately: its subject is a pending
+     * prompt, not a position, and the prompt's own resolution is what
+     * should wake it.
+     */
+    const holdNeedsLocation =
+      req.hold !== undefined && req.hold !== 'unanswered';
+    const locationDependent =
+      req.locationDependent === true || holdNeedsLocation;
 
     if (detailKey !== undefined && cardinality !== 'one') {
       this.emitError(
