@@ -154,6 +154,25 @@ export class AdvancementApi {
     return logic().practisingCompetenceCached(owner);
   }
 
+  /**
+   * ⭐ **The competence digest** — every Discipline the owner has
+   * evidence in, with its band, as a **sync** read. `practisingCompetenceCached`
+   * ships the one discipline being practised; this is the whole
+   * projection, and it is what the self-view renders.
+   *
+   * `undefined` means the fold has not landed yet; an empty array means
+   * folded with no evidence.
+   *
+   * ⚠ Derive-on-read. There is no stored total — the band is already a
+   * derivation over `transcripts`, and caching one here would be a
+   * second source of truth for a number the ledger owns.
+   */
+  public static competenceDigestCached(
+    owner: Stuff
+  ): DisciplineBand[] | undefined {
+    return logic().competenceDigestCached(owner);
+  }
+
   /** Test/HMR seam — drop the derived fold cache. */
   public static _clearDerivedCacheForTesting(): void {
     logic().clearDerivedCache();

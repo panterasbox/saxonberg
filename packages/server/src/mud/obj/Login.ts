@@ -36,6 +36,8 @@ import { MessageApi } from "../api/message";
 import { Mml } from "../api/mml";
 import { ContainmentApi } from "../api/containment";
 import { MixinApi } from "../api/mixin";
+import { InfluenceApi } from "../api/influence";
+import { AdvancementApi } from "../api/advancement";
 import { SlotApi } from "../api/slot";
 import { Template } from "../lib/stuff/Template";
 import { NameBank } from "../lib/species/NameBank";
@@ -382,6 +384,7 @@ export default class Login extends LoginBase {
       name: a.getFullName(),
       species: a.getSpecies()?.getCommonNames()[0] ?? "unknown",
       description: a.getShortDescription?.() ?? "",
+      ...this.rosterFigures(a),
     }));
     const payload: CharGenRosterPayload = { characters };
     MessageApi.scene(this)
@@ -389,6 +392,86 @@ export default class Login extends LoginBase {
       .toSelf(Mml.compose`Choose a character, or create a new one.`)
       .payload(payload)
       .send();
+  }
+
+  /**
+   * ⭐ The figures the character-select screen needs and could not
+   * otherwise get.
+   *
+   * **At Login you are not embodied.** Every one of these is readable
+   * in session through a live subscription on the Avatar — and none of
+   * those subscriptions is available here, because the reader has no
+   * character yet. So this is not "add a field": the roster is the one
+   * payload that must CARRY what is elsewhere subscribed to.
+   *
+   * Best-effort by construction. A figure that cannot be derived is
+   * omitted rather than faked — the screen hatches a missing row, which
+   * is what the unbuilt-state convention is for, and an invented zero
+   * would read as a real one.
+   */
+  private rosterFigures(a: Avatar): Partial<CharGenRosterEntry> {
+    const out: Partial<CharGenRosterEntry> = {};
+    try {
+      const lastSeen = a.getLastSeen();
+      if (lastSeen !== undefined) out.lastSeen = lastSeen;
+
+      const subject = a.getTemplatePath();
+      if (subject) {
+        out.playStanding = InfluenceApi.bandOf(subject, "consumer").name;
+      }
+
+      // Where you left them. The Avatar's container persists, so this
+      // is readable without embodying anything.
+      const where = MixinApi.isContainable(a) ? a.getContainer() : null;
+      if (where) out.lastLocation = where.getPresentation();
+
+      // The practice record — the same derive-on-read digest the
+      // in-session `competenceDigest` field ships.
+      const bands = AdvancementApi.competenceDigestCached(a);
+      if (bands !== undefined && bands.length > 0) {
+        out.practice = bands.map((b) => ({
+          discipline: b.discipline,
+          band: b.band,
+        }));
+      }
+
+      const since = this.sinceYouLeft(a, out.lastSeen);
+      if (since.length > 0) out.sinceYouLeft = since;
+    } catch {
+      // A roster that throws is a login the player cannot complete.
+      // Degrade to the four base fields rather than block the screen.
+    }
+    return out;
+  }
+
+  /**
+   * "Since you left" — what happened to this character while away.
+   *
+   * ⚠ **Derived on read; there is deliberately no away-log
+   * collection.** A stored digest would be a second source of truth for
+   * events the ledgers already own, and it would need a retention
+   * policy nobody has decided. Criterion 20 asserts the collection's
+   * absence.
+   *
+   * ⚠ Returns an empty list when `lastSeen` is absent: with no window
+   * there is nothing to derive over, and "everything that ever
+   * happened" is not what the screen is asking.
+   */
+  private sinceYouLeft(a: Avatar, lastSeen: number | undefined): string[] {
+    if (lastSeen === undefined) return [];
+    const lines: string[] = [];
+
+    // The transcript is the one ledger with a sync derived face, so it
+    // is the one this can read without awaiting inside the roster
+    // build. Other ledgers join as their derive-on-read faces land;
+    // each is additive and none of them stores anything new.
+    const bands = AdvancementApi.competenceDigestCached(a);
+    if (bands !== undefined && bands.length > 0) {
+      lines.push(
+        `${bands.length} discipline${bands.length === 1 ? "" : "s"} on record`,
+      );
+    }
+    return lines;
   }
 
   /**
