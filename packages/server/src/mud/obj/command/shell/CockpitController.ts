@@ -5,7 +5,8 @@
  * (`layout`, `style`, `mode`) that each wrote the same `cockpit.*`
  * clientState keyspace. They are now subcommands of one verb:
  *
- *   - `cockpit layout <name>`   — the screen's shape (LayoutController)
+ *   - `cockpit mode <name>`     — the activity axis (CockpitModeController)
+ *   - `cockpit layout <name>`   — the arrangement (LayoutController)
  *   - `cockpit scope <prefix…>` — per-bar input scoping (ModeController)
  *   - `cockpit style <sub> …`   — appearance (StyleController)
  *
@@ -32,7 +33,6 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import type { StyleOverlay } from '@saxonberg/types';
 
-const LAYOUT_KEY = 'cockpit.layout';
 const MODES_KEY = 'cockpit.inputModes';
 const STYLE_KEY = 'style.overlay';
 
@@ -47,10 +47,16 @@ export default class CockpitController extends CommandController<CommandModel> {
     // `isHasInteractive` above narrows `giver` to `Stuff & HasInteractive`.
     const host: CockpitHost = giver;
 
+    // Mode and arrangement come from the resolving readers, not raw
+    // client state: a player who last played before the mode axis
+    // existed has no stored mode, and the bare report is exactly where
+    // showing them `null` would be worst.
+    const mode = host.getCockpitMode();
     const lines = [
       '',
       'cockpit',
-      `  layout   ${host.getClientState<string>(LAYOUT_KEY) ?? 'world'}`,
+      `  mode     ${mode}`,
+      `  layout   ${host.getCockpitArrangement(mode)}`,
       `  scope    ${this.describeScopes(host)}`,
       `  style    ${this.describeStyle(host)}`,
       '',

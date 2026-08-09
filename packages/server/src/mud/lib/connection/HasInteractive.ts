@@ -32,7 +32,15 @@ import type Interactive from '../../obj/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
 import { GoogleProfile } from '../identity/GoogleProfile';
-import { LAYOUT_NAMES } from '@saxonberg/types';
+import {
+  LAYOUT_NAMES,
+  COCKPIT_MODES,
+  COCKPIT_ARRANGEMENTS,
+  DEFAULT_COCKPIT_MODE,
+  LEGACY_LAYOUT_MIGRATION,
+  type CockpitMode,
+  type LayoutName,
+} from '@saxonberg/types';
 
 /**
  * Strategy-injected `client-state-update` push function. The
@@ -158,6 +166,21 @@ export interface HasInteractive {
   pushClientStateUpdate(key: string, value: unknown): void;
 
   /**
+   * The active cockpit mode, legacy-migration aware. Prefer this over
+   * `getClientState('cockpit.mode')`: a player who last played before
+   * the mode axis existed has no `cockpit.mode` at all, only a legacy
+   * `cockpit.layout`, and only this resolves it.
+   */
+  getCockpitMode(): CockpitMode;
+
+  /**
+   * The arrangement active in a mode (the mode's remembered choice, its
+   * shipped default, or the legacy migration's answer — in that order).
+   * Defaults to the active mode.
+   */
+  getCockpitArrangement(mode?: CockpitMode): string;
+
+  /**
    * Resolve the display portrait URL for this connected identity.
    * Chain: the `identity.portrait` setting (empty on a Login, value-
    * or-unset on an Avatar) → the connected account's Google photo →
@@ -240,6 +263,56 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           (LAYOUT_NAMES as readonly string[]).includes(v)
             ? true
             : `unknown layout (known: ${LAYOUT_NAMES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.mode',
+        // ⚠ `null`, not 'play', so "never set" stays distinguishable
+        // from "deliberately set to the default". A legacy player has
+        // no `cockpit.mode` but DOES have a `cockpit.layout` that
+        // already names their mode — `getCockpitMode()` reads this null
+        // as its cue to migrate. A 'play' default here would silently
+        // answer for them and the migration would never run.
+        defaultValue: null,
+        description:
+          'The cockpit activity mode — the front-door axis (chat | ' +
+          'play | watch | build | govern), answering "what am I here ' +
+          'to do". Set by `cockpit mode`. Null means never set: read ' +
+          'through `getCockpitMode()`, which migrates a legacy ' +
+          '`cockpit.layout` rather than assuming the default.',
+        validator: (v) =>
+          v === null ||
+          (typeof v === 'string' &&
+            (COCKPIT_MODES as readonly string[]).includes(v))
+            ? true
+            : `unknown cockpit mode (known: ${COCKPIT_MODES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.arrangements',
+        // Per-mode arrangement memory: `{ [mode]: arrangementName }`.
+        // Switching modes and back returns you where you were.
+        defaultValue: {},
+        description:
+          'Per-mode arrangement memory — a { mode → arrangement name } ' +
+          'map. Switching modes and back restores the arrangement last ' +
+          'used in that mode. Written by `cockpit layout`; read through ' +
+          '`getCockpitArrangement()`, which falls back to the mode’s ' +
+          'shipped default.',
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'must be a { mode: arrangement } object';
+          }
+          for (const [mode, name] of Object.entries(
+            v as Record<string, unknown>,
+          )) {
+            if (!(COCKPIT_MODES as readonly string[]).includes(mode)) {
+              return `unknown cockpit mode '${mode}'`;
+            }
+            if (typeof name !== 'string') {
+              return 'every arrangement name must be a string';
+            }
+          }
+          return true;
+        },
       },
       {
         key: 'cockpit.inputModes',
@@ -461,6 +534,76 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     }
 
     /**
+     * The active cockpit mode, resolving the legacy `cockpit.layout`
+     * when no mode was ever set.
+     *
+     * ⚠ **The migration is a MAPPING, not a rename.** Before the mode
+     * axis existed, `cockpit.layout` held one of five values that were
+     * really *a mode plus that mode's arrangement* flattened into one
+     * string. Every player who ever ran `layout builder` has that
+     * string persisted. Resolution order:
+     *
+     *   1. an explicitly set `cockpit.mode` — the post-migration world;
+     *   2. the legacy `cockpit.layout`, mapped through
+     *      {@link LEGACY_LAYOUT_MIGRATION};
+     *   3. {@link DEFAULT_COCKPIT_MODE}, for a genuinely fresh player.
+     *
+     * Derive-on-read rather than a one-shot rewrite: nothing has to run
+     * against every stored Avatar, and a player who never logs in again
+     * costs nothing.
+     */
+    public getCockpitMode(): CockpitMode {
+      const explicit = this.getClientState<CockpitMode | null>('cockpit.mode');
+      if (explicit !== null && explicit !== undefined) return explicit;
+      return this.migratedLegacyLayout()?.mode ?? DEFAULT_COCKPIT_MODE;
+    }
+
+    /**
+     * The arrangement active in `mode` (default: the active mode).
+     * Resolution order mirrors {@link getCockpitMode}: the remembered
+     * per-mode choice, then the legacy layout's arrangement when that
+     * legacy value maps to *this* mode, then the mode's shipped default.
+     *
+     * The legacy step is scoped to the matching mode on purpose. The
+     * two livestream layouts collapse into one `watch` mode with
+     * different arrangements, so `livestream-viewer` may answer for
+     * `watch` — but it must not answer for `play`.
+     */
+    public getCockpitArrangement(mode?: CockpitMode): string {
+      const active = mode ?? this.getCockpitMode();
+      const remembered = this.getClientState<Record<string, string>>(
+        'cockpit.arrangements',
+      );
+      const stored = remembered?.[active];
+      if (typeof stored === 'string' && stored.length > 0) return stored;
+
+      const legacy = this.migratedLegacyLayout();
+      if (legacy && legacy.mode === active) return legacy.arrangement;
+
+      return COCKPIT_ARRANGEMENTS[active][0] ?? 'default';
+    }
+
+    /**
+     * The legacy `cockpit.layout` as a (mode, arrangement) pair, or
+     * null when this host never stored one.
+     *
+     * Host-internal: reads `_clientState` directly to tell "stored" from
+     * "schema default", which `getClientState` deliberately collapses.
+     * The distinction is the whole migration — a host still sitting on
+     * the `world` default must NOT be treated as having chosen `play`,
+     * because it has chosen nothing.
+     */
+    private migratedLegacyLayout(): { mode: CockpitMode; arrangement: string } | null {
+      const store = this._clientState;
+      if (!store || !Object.prototype.hasOwnProperty.call(store, 'cockpit.layout')) {
+        return null;
+      }
+      const legacy = store['cockpit.layout'];
+      if (typeof legacy !== 'string') return null;
+      return LEGACY_LAYOUT_MIGRATION[legacy as LayoutName] ?? null;
+    }
+
+    /**
      * Push an authoritative client-state value out to every
      * connected Interactive on this host. Parallel to the existing
      * `client-state-write` inbound flow but flips the direction —
@@ -529,6 +672,19 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           out[entry.key] = entry.defaultValue;
         }
       }
+
+      // The cockpit axes go out RESOLVED, never raw. A legacy host
+      // stores `cockpit.mode: null` and a `cockpit.layout` that has to
+      // be mapped — and the client owns zero semantics, so it must not
+      // be the thing doing that mapping. Resolving here keeps the
+      // migration in exactly one place and means the client can read
+      // the snapshot literally.
+      const mode = this.getCockpitMode();
+      out['cockpit.mode'] = mode;
+      out['cockpit.arrangements'] = {
+        ...(out['cockpit.arrangements'] as Record<string, string>),
+        [mode]: this.getCockpitArrangement(mode),
+      };
       return out;
     }
   };

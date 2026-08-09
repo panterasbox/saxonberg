@@ -77,9 +77,13 @@ describe('the cockpit verb', () => {
   it('declares the absorbed controls as subcommands, each with a controller', () => {
     expect(cockpit!.getSubcommandNames().sort()).toEqual([
       'layout',
+      'mode',
       'scope',
       'style',
     ]);
+    expect(cockpit!.controllerForSubcommand('mode')).toBe(
+      '/obj/command/shell/CockpitModeController'
+    );
     expect(cockpit!.controllerForSubcommand('layout')).toBe(
       '/obj/command/shell/LayoutController'
     );
@@ -130,6 +134,13 @@ describe('the cockpit verb', () => {
 
     it('binds bare cockpit with no subcommand', () => {
       expect(bind('cockpit').subcommand).toBeUndefined();
+    });
+
+    it('binds cockpit mode <name>, and the bare report form', () => {
+      const m = bind('cockpit mode watch');
+      expect(m.subcommand).toBe('mode');
+      expect(m.name).toBe('watch');
+      expect(bind('cockpit mode').name).toBeUndefined();
     });
 
     it('binds cockpit layout <name>', () => {

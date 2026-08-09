@@ -1927,6 +1927,96 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
 ];
 
 /**
+ * The cockpit's **activity axis** — the front doors, answering *what am
+ * I here to do*. Held server-authoritative on the `cockpit.mode`
+ * clientState key and set by `cockpit mode <name>`.
+ *
+ * This is the axis that used to be conflated with {@link LayoutName}:
+ * the five old layout values were really a mode plus that mode's
+ * arrangement, flattened into one string (see
+ * {@link LEGACY_LAYOUT_MIGRATION}).
+ *
+ * ⚠ **A mode is a view, never a gate.** Everything runnable in `play`
+ * is runnable in `build`. A mode that forbade a verb would be a
+ * permission system wearing a UI costume, with its checks in the wrong
+ * layer entirely. A mode owns which arrangements ship, which one you
+ * land in, and which pane kinds may be summoned — nothing else.
+ *
+ * ⚠ `govern` ships as a peer of `build` rather than a tier inside it.
+ * The seeding slate writes the pair as "the Build / Govern ascent",
+ * which reads as one progression; they are two values here because a
+ * front door is a front door. If `govern` turns out to belong *within*
+ * `build`, that is a one-line edit to this list, not a redesign —
+ * flagged deliberately rather than silently resolved.
+ */
+export type CockpitMode =
+  /** Talking to people — channels, boards, the social surface. */
+  | "chat"
+  /** Living in the world. The default. */
+  | "play"
+  /** Watching a stream, as viewer or broadcaster. */
+  | "watch"
+  /** Making things — the content editor. */
+  | "build"
+  /** The offices and the polity. */
+  | "govern";
+
+/** Every {@link CockpitMode}, in menu order. The `cockpit mode`
+ *  validator and the client's mode registry both read this one list. */
+export const COCKPIT_MODES: readonly CockpitMode[] = [
+  "chat",
+  "play",
+  "watch",
+  "build",
+  "govern",
+];
+
+/** The mode a player lands in with nothing stored. */
+export const DEFAULT_COCKPIT_MODE: CockpitMode = "play";
+
+/**
+ * The **arrangement axis** — savable pane arrangements *inside* a mode.
+ * These are the shipped defaults; a player composes and names their own
+ * with `cockpit layout save <name>`, so this is a floor, not a closed
+ * vocabulary. The first entry of each list is that mode's default
+ * arrangement, the one you land in on entry.
+ *
+ * `watch` ships two because the two legacy livestream layouts are
+ * genuinely different arrangements of one activity — which is exactly
+ * why {@link LEGACY_LAYOUT_MIGRATION} is a mapping and not a rename.
+ */
+export const COCKPIT_ARRANGEMENTS: Readonly<
+  Record<CockpitMode, readonly string[]>
+> = {
+  chat: ["default"],
+  play: ["default"],
+  watch: ["viewer", "streamer"],
+  build: ["default"],
+  govern: ["default"],
+};
+
+/**
+ * Legacy `cockpit.layout` → the (mode, arrangement) pair it always
+ * really meant.
+ *
+ * ⚠ **A mapping, not a rename.** Every player who ever ran `layout
+ * builder` has that string persisted, and the read path resolves it
+ * through this table. `livestream-viewer` and `streamer` are the row
+ * that matters: two legacy values collapse into ONE mode carrying
+ * *different* arrangements, so the collapse is lossy in the mode column
+ * and only the arrangement column keeps them apart.
+ */
+export const LEGACY_LAYOUT_MIGRATION: Readonly<
+  Record<LayoutName, { mode: CockpitMode; arrangement: string }>
+> = {
+  world: { mode: "play", arrangement: "default" },
+  forum: { mode: "chat", arrangement: "default" },
+  "livestream-viewer": { mode: "watch", arrangement: "viewer" },
+  streamer: { mode: "watch", arrangement: "streamer" },
+  builder: { mode: "build", arrangement: "default" },
+};
+
+/**
 /**
  * The per-viewer focal-embed target held as server-authoritative
  * `cockpit.watch` clientState (set by the `watch` verb, pushed to the
