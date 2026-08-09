@@ -32,7 +32,7 @@
  *
  * ## Why not `vitest --changed`
  *
- * Measured, and it does not work here: it returns all 962 files in
+ * Measured, and it does not work here: it returns every file in the suite in
  * every case, including with no changes at all. The likely cause is
  * the worktree layout (`.git` is a file pointing into `../.bare`, not
  * a directory), and vitest's detection appears to fail open. Failing

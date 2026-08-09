@@ -4,7 +4,7 @@ There are two server suites:
 
 | | command | size | when |
 |---|---|---|---|
-| **default** | `pnpm test` | 962 files / 8906 tests, ~15 min | before opening an MR |
+| **default** | `pnpm test` | 964 files / 8906 tests, ~15 min | before opening an MR |
 | **gym** | `pnpm test:gym` | 2 files / 31 tests, ~6 min | before touching combat / materials |
 
 Both run in CI, as **parallel jobs**. This doc exists so the next
@@ -24,11 +24,17 @@ suite:
 | mid-build | "did my change work?" | `pnpm test:near`, or a path: `pnpm -C packages/server test src/mud/lib/combat` |
 | before opening the MR | "is everything green?" | **`pnpm test`** — the one full run |
 | after review fixes | "did the fixes break anything?" | `pnpm test:near`, then let CI's gate job do the rest |
-| pre-merge sweep | "still green?" | nothing — the MR pipeline's `gate` already ran it |
+| pre-merge sweep | "still green?" | **only if the sweep touched code** — a docs-only sweep rides CI |
 
-The sweep run is the easiest to drop: `.gitlab-ci.yml` holds validate
-behind a manual `gate` job precisely so the full lint/test/build runs
-once before merge. Re-running it locally is doing CI's job by hand.
+The post-review and sweep runs are where the duplication is.
+`.gitlab-ci.yml` holds validate behind a manual `gate` job precisely so
+the full lint/test/build runs once before merge; re-running it locally
+for a docs-only change is doing CI's job by hand.
+
+⚠ A sweep that edits code is not docs-only, and *does* want the full
+run — the sweep is the last place a mechanical cleanup can quietly
+break something. Judge by what the sweep commit actually changed, not
+by the phase's name.
 
 **This is not "checking less."** Every commit still faces a full suite
 plus CI before merge. What goes away is running the *same* full suite
@@ -49,15 +55,15 @@ use `pnpm test` before the MR. The name is `near`, not `affected`,
 because it cannot promise the second thing.
 
 ⚠ **`vitest --changed` does not work in this repo — measured, not
-assumed.** It returns all 962 files in every case, including with *no
+assumed.** It returns every file in the suite in every case, including with *no
 changes at all*:
 
 | change | files selected |
 |---|---|
-| one leaf source file | 962 / 962 |
-| one leaf test file | 962 / 962 |
-| a docs file nothing imports | 962 / 962 |
-| **nothing** | 962 / 962 |
+| one leaf source file | all of them |
+| one leaf test file | all of them |
+| a docs file nothing imports | all of them |
+| **nothing** | all of them |
 
 The likely cause is the worktree layout — `.git` here is a *file*
 pointing into `../.bare`, not a directory, and vitest's changed-file
@@ -139,7 +145,7 @@ inherits the base `exclude` (which names the gym files) and selects
 nothing.
 
 ⚠ The measurement history has a **discontinuity at this split**: rows
-before it measure 964 files, rows after measure 962. The `files` and
+before it measure 966 files, rows after measure 964. The `files` and
 `tests` columns are how you tell.
 
 ## The noise floor
@@ -174,7 +180,7 @@ unless it survives an isolation run.
 ### Adopted — the wiring is an import, not a setup file
 
 `BootstrapManager.installFrameworkWiring()` was a global `setupFiles`
-entry, so all 964 test files paid for its ~30-deep import graph,
+entry, so all 966 test files paid for its ~30-deep import graph,
 re-evaluated per file because vitest isolates. Measured at 5.79s of the
 6.38s it took to run a file that needed none of it.
 
@@ -185,7 +191,7 @@ that touch the wired runtime:
 import "../../../test-bootstrap";
 ```
 
-152 files that need none of it stop paying. Setup CPU went from ~3172s
+154 files that need none of it stop paying. Setup CPU went from ~3172s
 to zero; wall clock fell 25%, and the two after-runs agree within 0.7%
 where the baseline pair differed by 6% — less memory pressure means
 less variance too.
@@ -196,7 +202,8 @@ wiring and lacks the import — because a redundant import costs one line
 and the bootstrap is once-guarded. The reverse finding stays
 **advisory**: the heuristic can prove a file needs wiring, never that
 it doesn't. Only the suite can. Its file discovery is checked against
-`vitest list` (964 = 964), so no test file is invisible to it.
+`vitest list` across BOTH configs by `--verify` (966 = 966), so no test
+file is invisible to it.
 
 ### Rejected — `pool: 'threads'`, ~7%
 
@@ -309,7 +316,7 @@ which is the thing a totality test exists to prevent.
 The single largest file in the suite (782s / 28 tests, ahead of
 `CombatLogic`) plus its sibling bench (69s / 3 tests). Neither appeared
 in this build's requirements because `find src` misses them: `src/`
-holds 955 test files, the suite ran 964.
+holds 956 test files, the suite runs 966.
 
 Now `pnpm test:gym` — see *The gym suite* above, including the
 measurement showing the local wall-clock saving was ~0.6%, not the 13

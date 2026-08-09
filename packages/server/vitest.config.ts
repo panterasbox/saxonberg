@@ -54,14 +54,14 @@ export default defineConfig({
     // not the same decision.
     exclude: [...configDefaults.exclude, ...GYM_TESTS],
     // NO `setupFiles`. The framework wiring used to live here, which
-    // meant all 964 test files paid for `installFrameworkWiring()` and
+    // meant all 966 test files paid for `installFrameworkWiring()` and
     // its ~30-deep import graph — re-evaluated per file, because vitest
     // isolates. Measured at 5.79s of the 6.38s it took to run a file
     // that needed none of it. It is now an explicit import:
     //
     //     import "../../../test-bootstrap";
     //
-    // A test that needs a wired world says so; 156 files that need
+    // A test that needs a wired world says so; 154 files that need
     // none of it stop paying. `pnpm lint:test-bootstrap` keeps the two
     // in sync so a new test file can't silently regress.
     //

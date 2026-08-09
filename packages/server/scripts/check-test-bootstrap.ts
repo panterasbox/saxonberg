@@ -5,7 +5,7 @@
  * ## What this replaces
  *
  * The wiring used to be a global `setupFiles` entry: every one of the
- * ~955 test files paid `BootstrapManager.installFrameworkWiring()` and
+ * 966 test files paid `BootstrapManager.installFrameworkWiring()` and
  * its ~30-module import graph, re-evaluated per file because vitest
  * isolates. Measured at ~5.8s of the 6.4s it took to run a file that
  * needed none of it.
@@ -42,8 +42,10 @@
  *   pnpm lint:test-bootstrap      # CI gate — missing imports fail
  *   tsx scripts/check-test-bootstrap.ts            # full report
  *   tsx scripts/check-test-bootstrap.ts --fix      # insert the imports
+ *   tsx scripts/check-test-bootstrap.ts --verify   # walk == what vitest runs
  */
 
+import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { join, dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
@@ -54,7 +56,9 @@ const SRC_DIR = join(SERVER_DIR, "src");
  * `scripts/__tests__` is in the suite too — `combat-gym.test.ts` lives
  * there and is the single slowest file in it. Scanning only `src/`
  * would leave those files without the import and discover it as a red
- * suite. (It did: `find src` counts 955 test files; vitest runs 965.)
+ * suite. (It did: `find src -name '*.test.ts'` counts 956; vitest runs
+ * 966 — 956 `.ts` + 2 `.test.js` under `src/`, plus 8 in
+ * `scripts/__tests__`, two of which are the gym benches.)
  */
 const TEST_ROOTS = [SRC_DIR, join(SERVER_DIR, "scripts", "__tests__")];
 
@@ -87,6 +91,20 @@ const NEEDS_RE = new RegExp(`\\b(${NEEDS_WIRING.join("|")})\\b`);
  */
 const IMPORT_RE = /^import\s+["']\.[^"']*\/test-bootstrap["'];?\s*$/m;
 
+/**
+ * What vitest considers a test file — its default `include` is
+ * `**\/*.{test,spec}.?(c|m)[jt]s?(x)`, so **`.js` counts**.
+ *
+ * ⚠ This is not pedantry. Scanning only `*.test.ts` missed the two
+ * `.test.js` files under `src/services/loader/__tests__/`, and the
+ * check that was supposed to catch that — comparing this walk against
+ * `vitest list` — was itself filtered through `grep test.ts`, so it
+ * confirmed the undercount instead of exposing it. A verification that
+ * shares its blind spot with the thing it verifies is not a
+ * verification. `--verify` below re-runs it honestly.
+ */
+const TEST_FILE_RE = /\.(test|spec)\.(c|m)?[jt]sx?$/;
+
 // ── file discovery ───────────────────────────────────────────────────
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -94,7 +112,7 @@ function walk(dir: string, out: string[] = []): string[] {
     if (entry === "node_modules" || entry === "dist") continue;
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) walk(full, out);
-    else if (full.endsWith(".ts")) out.push(full);
+    else if (full.endsWith(".ts") || TEST_FILE_RE.test(full)) out.push(full);
   }
   return out;
 }
@@ -106,10 +124,10 @@ const allTs = TEST_ROOTS.flatMap((root) => {
     return []; // root doesn't exist — nothing to scan
   }
 });
-const testFiles = allTs.filter((f) => f.endsWith(".test.ts"));
+const testFiles = allTs.filter((f) => TEST_FILE_RE.test(f));
 /** Non-test `.ts` under a `__tests__/` dir: fixtures, harnesses, helpers. */
 const helperFiles = new Set(
-  allTs.filter((f) => f.includes("__tests__") && !f.endsWith(".test.ts"))
+  allTs.filter((f) => f.includes("__tests__") && !TEST_FILE_RE.test(f))
 );
 
 const textOf = new Map<string, string>();
@@ -193,6 +211,53 @@ const ok = verdicts.filter((v) => v.needs && v.has);
 
 const argv = process.argv.slice(2);
 const rel = (f: string) => relative(SERVER_DIR, f);
+
+if (argv.includes("--verify")) {
+  // Ask vitest what it actually runs, across BOTH configs, and compare
+  // with what this script walked. No filtering on the way in — the
+  // point is to catch files this script's own patterns cannot see.
+  const listed = (config?: string): string[] => {
+    const args = ["exec", "vitest", "list", "--filesOnly"];
+    if (config) args.push("--config", config);
+    try {
+      return execFileSync("pnpm", args, {
+        cwd: SERVER_DIR,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        maxBuffer: 32 * 1024 * 1024,
+      })
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((s) => relative(SERVER_DIR, s.startsWith("/") ? s : join(SERVER_DIR, s)));
+    } catch {
+      return [];
+    }
+  };
+
+  const actual = new Set([...listed(), ...listed("vitest.gym.config.ts")]);
+  const walked = new Set(testFiles.map(rel));
+
+  const unseen = [...actual].filter((f) => !walked.has(f));
+  const phantom = [...walked].filter((f) => !actual.has(f));
+
+  console.log(`vitest runs ${actual.size}; this script walked ${walked.size}.`);
+  for (const f of unseen) console.error(`  ⚠ vitest runs, gate cannot see: ${f}`);
+  for (const f of phantom) console.error(`  ⚠ gate sees, vitest never runs: ${f}`);
+
+  if (unseen.length > 0) {
+    console.error("");
+    console.error("A file the gate cannot see is a file it cannot protect.");
+    console.error("Widen TEST_FILE_RE / TEST_ROOTS — do not narrow this check.");
+    process.exit(1);
+  }
+  if (phantom.length > 0) {
+    console.error("\nHarmless but stale — the gate is judging dead files.");
+    process.exit(1);
+  }
+  console.log("ok — the gate sees exactly what vitest runs.");
+  process.exit(0);
+}
 
 if (argv.includes("--fix")) {
   let fixed = 0;

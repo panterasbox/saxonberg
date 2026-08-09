@@ -294,27 +294,22 @@ and the launch aborts rather than starting into `EADDRINUSE`.
 
 ```bash
 pnpm build            # pnpm -r build
-pnpm test             # all tests (Vitest)
-pnpm test:gym         # the gym benches — balance guards, NOT in `test`
+pnpm test             # all tests (Vitest) — ONE full run per build
+pnpm test:near        # only the tests beside what you changed (fast loop)
+pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
 ```
 
-`pnpm test:gym` runs `combat-gym` + `waster-spar`: balance regression
-guards that simulate whole fights. They were 25% of the suite's test
-CPU in two files, so they are out of the default run and have their own
-(parallel) CI job. Run them before touching `lib/combat`,
-`lib/material`, or the materials-response grids.
-
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
 
-[docs/testing.md](./docs/testing.md) — what the suite costs and why:
-`pnpm bench` + the measurement history, the noise floor (±6%, so
-nothing under 10% is a real win), why `isolate: false` stays declined,
-which slow files are left and the evidence for leaving them, and the
-one rule for a new test — a test that touches the wired runtime
-imports `test-bootstrap` (`pnpm lint:test-bootstrap` enforces it).
+[docs/testing.md](./docs/testing.md) — the suite's cost model: `pnpm
+bench` + the measurement history, the ±6% noise floor (nothing under
+10% is a real win), how often to run the full suite, why `isolate:
+false` stays declined, and the one rule for a new test — anything
+touching the wired runtime imports `test-bootstrap`
+(`pnpm lint:test-bootstrap` enforces it).
 
 ### Documentation
 

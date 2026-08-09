@@ -134,6 +134,12 @@ lint:
     # file that needs wiring and lacks the import) — a redundant import
     # is free, because the bootstrap is once-guarded.
     - pnpm -C packages/server lint:test-bootstrap
+    # ...and that the gate can SEE every file vitest runs. Scanning only
+    # `*.test.ts` silently missed two `.test.js` files, and the check
+    # meant to catch that was itself filtered through `grep test.ts` —
+    # so it confirmed the undercount instead of exposing it. This asks
+    # vitest directly, across both configs, with no filtering.
+    - pnpm -C packages/server lint:test-bootstrap:verify
 
 test:
   extends: [.node, .mr-only]

@@ -43,7 +43,13 @@
  */
 
 import { execFileSync, spawnSync } from "child_process";
-import { readFileSync, appendFileSync, existsSync, mkdtempSync } from "fs";
+import {
+  readFileSync,
+  readlinkSync,
+  appendFileSync,
+  existsSync,
+  mkdtempSync,
+} from "fs";
 import { tmpdir, cpus, totalmem } from "os";
 import { join, dirname, relative } from "path";
 import { fileURLToPath } from "url";
@@ -94,8 +100,6 @@ interface BenchRow {
    * the names recorded, not the count.
    */
   failures: Array<{ file: string; test: string }>;
-  /** The raw vitest JSON, kept for post-hoc digging. */
-  report: string;
 }
 
 // ── the busy-machine guard ───────────────────────────────────────────
@@ -121,15 +125,12 @@ function cmdlineOf(pid: number): string {
   }
 }
 
+/** A process's cwd. `/proc/<pid>/cwd` is a symlink — read the link. */
 function cwdOf(pid: number): string {
   try {
-    return readFileSync(`/proc/${pid}/cwd`, "utf8");
+    return readlinkSync(`/proc/${pid}/cwd`);
   } catch {
-    try {
-      return sh("readlink", [`/proc/${pid}/cwd`]).trim();
-    } catch {
-      return "";
-    }
+    return ""; // gone, or not ours to look at
   }
 }
 
@@ -229,16 +230,16 @@ function round(n: number): number {
 
 /** Free RAM + swap in use, GB, from procfs. Zeroes if unreadable. */
 function memoryNow(): { freeGb: number; swapUsedGb: number } {
-  const kb = (key: string): number => {
-    const m = new RegExp(`^${key}:\\s+(\\d+) kB`, "m").exec(meminfo);
-    return m ? Number(m[1]) : 0;
-  };
-  let meminfo = "";
+  let meminfo: string;
   try {
     meminfo = readFileSync("/proc/meminfo", "utf8");
   } catch {
     return { freeGb: 0, swapUsedGb: 0 };
   }
+  const kb = (key: string): number => {
+    const m = new RegExp(`^${key}:\\s+(\\d+) kB`, "m").exec(meminfo);
+    return m ? Number(m[1]) : 0;
+  };
   const gb = (n: number) => Math.round((n / 1024 / 1024) * 10) / 10;
   return {
     freeGb: gb(kb("MemAvailable")),
@@ -257,7 +258,11 @@ function readConfig(): BenchRow["config"] {
 
 // ── the run ──────────────────────────────────────────────────────────
 
-function runOnce(label: string, quiet: boolean, only?: string): BenchRow {
+function runOnce(
+  label: string,
+  quiet: boolean,
+  only?: string
+): { row: BenchRow; reportPath: string } {
   const jsonPath = join(mkdtempSync(join(tmpdir(), "bench-")), "run.json");
   const memory = memoryNow();
 
@@ -325,13 +330,12 @@ function runOnce(label: string, quiet: boolean, only?: string): BenchRow {
     phases,
     slowest,
     failures,
-    report: jsonPath,
   };
 }
 
 // ── reporting ────────────────────────────────────────────────────────
 
-function printRow(row: BenchRow): void {
+function printRow(row: BenchRow, reportPath: string): void {
   const phases = Object.entries(row.phases)
     .map(([k, v]) => `${k} ${v}s`)
     .join(", ");
@@ -360,7 +364,7 @@ function printRow(row: BenchRow): void {
       console.log(`    ${f.file}`);
       console.log(`      ${f.test}`);
     }
-    console.log(`\n  full report: ${row.report}`);
+    console.log(`\n  full report: ${reportPath}`);
   }
 }
 
@@ -388,17 +392,45 @@ function printSummary(): void {
     );
   }
 
-  // Coverage check, criterion 3: any row whose test count differs from
-  // the first recorded baseline is called out here rather than left for
-  // someone to notice.
-  const baseline = rows.find((r) => r.label.startsWith("baseline"));
-  if (baseline) {
-    const drift = rows.filter((r) => r.tests !== baseline.tests && r.tests > 0);
-    if (drift.length > 0) {
-      console.log("");
-      console.log(`⚠ test count differs from baseline (${baseline.tests}):`);
-      for (const r of drift) {
-        console.log(`   ${r.at.slice(0, 16)} ${r.label}: ${r.tests} (${r.tests - baseline.tests})`);
+  // The coverage check — criterion 3, and the thing that caught 49
+  // silently-vanished tests during this build.
+  //
+  // Rows are grouped by FILE COUNT, and drift is reported only WITHIN a
+  // group. That is the whole design: a changed file count means the
+  // suite composition changed (a file added, removed, or split out to
+  // `test:gym`), which is expected and explainable. The same file count
+  // with a different test count is not — it means tests appeared or
+  // disappeared inside files nobody touched.
+  //
+  // Anchoring on "the first baseline row" instead, as this did at
+  // first, flags every legitimate composition change forever. A warning
+  // that always fires is one nobody reads, and this warning is the only
+  // thing standing between a real win and a win that just runs less.
+  const byFileCount = new Map<number, typeof rows>();
+  for (const r of rows) {
+    if (r.tests <= 0) continue;
+    const group = byFileCount.get(r.files) ?? [];
+    group.push(r);
+    byFileCount.set(r.files, group);
+  }
+
+  const drifted = [...byFileCount.entries()].filter(
+    ([, group]) => new Set(group.map((r) => r.tests)).size > 1
+  );
+
+  if (drifted.length > 0) {
+    console.log("");
+    console.log("⚠ SAME file count, DIFFERENT test count — tests appeared or");
+    console.log("  vanished without the suite composition changing:");
+    for (const [files, group] of drifted) {
+      const expected = Math.max(...group.map((r) => r.tests));
+      console.log(`\n  ${files} files:`);
+      for (const r of group) {
+        const delta = r.tests - expected;
+        console.log(
+          `    ${r.at.slice(0, 16).replace("T", " ")} ${r.label.padEnd(22)} ` +
+            `${r.tests}${delta ? `  ⚠ ${delta}` : ""}`
+        );
       }
     }
   }
@@ -459,9 +491,9 @@ for (let i = 1; i <= runs; i++) {
   }
   const runLabel = runs > 1 ? `${label}-${i}` : label;
   console.log(`\n── run ${i}/${runs} (${runLabel}) ──`);
-  const row = runOnce(runLabel, quiet, only);
+  const { row, reportPath } = runOnce(runLabel, quiet, only);
   if (!only) appendFileSync(HISTORY, `${JSON.stringify(row)}\n`);
-  printRow(row);
+  printRow(row, reportPath);
 }
 
 console.log(
