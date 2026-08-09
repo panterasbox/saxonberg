@@ -1,11 +1,69 @@
 # Testing — what the suite costs, and why
 
-The server suite is 964 files / 8937 tests and takes ~15 minutes on a
-quiet 8-core machine. This doc exists so the next regression gets
-**noticed** rather than absorbed, and so nobody re-runs a 20-minute
-suite to rediscover a decision that was already made and measured.
+There are two server suites:
+
+| | command | size | when |
+|---|---|---|---|
+| **default** | `pnpm test` | 962 files / 8906 tests, ~15 min | before opening an MR |
+| **gym** | `pnpm test:gym` | 2 files / 31 tests, ~6 min | before touching combat / materials |
+
+Both run in CI, as **parallel jobs**. This doc exists so the next
+regression gets **noticed** rather than absorbed, and so nobody re-runs
+a 15-minute suite to rediscover a decision already made and measured.
 
 Process lives in [workflow.md](./workflow.md); this is the cost model.
+
+## How often to run it
+
+A build cycle was running the full suite three or four times — about an
+hour of waiting per build. Only one of those runs needs to be the full
+suite:
+
+| moment | question | what to run |
+|---|---|---|
+| mid-build | "did my change work?" | `pnpm test:near`, or a path: `pnpm -C packages/server test src/mud/lib/combat` |
+| before opening the MR | "is everything green?" | **`pnpm test`** — the one full run |
+| after review fixes | "did the fixes break anything?" | `pnpm test:near`, then let CI's gate job do the rest |
+| pre-merge sweep | "still green?" | nothing — the MR pipeline's `gate` already ran it |
+
+The sweep run is the easiest to drop: `.gitlab-ci.yml` holds validate
+behind a manual `gate` job precisely so the full lint/test/build runs
+once before merge. Re-running it locally is doing CI's job by hand.
+
+**This is not "checking less."** Every commit still faces a full suite
+plus CI before merge. What goes away is running the *same* full suite
+four times to answer questions that three of them did not need.
+
+### `pnpm test:near` — proximity, not a dependency graph
+
+`scripts/test-near.ts` asks git what changed since a ref (default
+`origin/master`, and always including uncommitted work), then runs the
+`__tests__` directories that sit **next to** those files, plus any
+changed test files themselves.
+
+⚠ **It is a heuristic and it is not a gate.** It will miss a test that
+covers your change from another subsystem, and — this codebase being
+data-driven — it will miss tests broken by a change to a seed YAML or a
+content pack, because nothing imports those. Use it for the fast loop;
+use `pnpm test` before the MR. The name is `near`, not `affected`,
+because it cannot promise the second thing.
+
+⚠ **`vitest --changed` does not work in this repo — measured, not
+assumed.** It returns all 962 files in every case, including with *no
+changes at all*:
+
+| change | files selected |
+|---|---|
+| one leaf source file | 962 / 962 |
+| one leaf test file | 962 / 962 |
+| a docs file nothing imports | 962 / 962 |
+| **nothing** | 962 / 962 |
+
+The likely cause is the worktree layout — `.git` here is a *file*
+pointing into `../.bare`, not a directory, and vitest's changed-file
+detection appears to fail open and select everything. Failing *open* is
+the right direction for a test runner to fail, but it means the flag
+buys nothing. Don't reach for it without re-running the control above.
 
 ## Re-measuring
 
@@ -35,6 +93,54 @@ Two things it does on purpose:
 
 ⚠ **Do not touch the tree while a multi-run measurement is going.**
 Editing a test file mid-baseline changes what the later runs measure.
+
+## The gym suite
+
+`combat-gym` and `waster-spar` are balance regression guards: they
+drive complete fights through the real engine to assert the fight stays
+fair (the parry seam stays dead, the feint stays non-degenerate,
+NPC ≈ PC, matchups stay deterministic) and that the blunted delivery
+form resolves correctly through the tissue fold. They are benchmarks
+shaped like tests, and they were **25% of the whole suite's test CPU
+(~880s) in two files and 31 tests**.
+
+⚠ **Splitting them out bought almost no local wall clock — 885s → 880s,
+inside the noise floor.** That is worth understanding, because the
+naive arithmetic ("880s of CPU removed") is wrong by two orders of
+magnitude. With 8 workers, `combat-gym` was **hiding inside the
+parallelism**: it occupied one core for 810s of an 882s run, alongside
+961 other files sharing the rest. It cost a *core*, not *time*.
+
+So the split is worth having for three reasons, none of them "the local
+suite got faster":
+
+1. **CI wall clock genuinely drops** — `test` and `test-gym` are
+   separate jobs on separate runners, so validate finishes in
+   `max(a, b)` instead of `a + b`.
+2. **It becomes the critical path as everything else improves.** At
+   today's 880s it is free; if the rest of the suite ever reaches 400s,
+   an 810s file is the whole wall clock.
+3. A benchmark is not a unit test, and the default loop should not wait
+   on one.
+
+They are **not skipped**: CI runs them every MR. Taking a balance guard
+off the local loop is a speed decision; letting it stop running is a
+different decision, and nobody made it. Run `pnpm test:gym` before
+touching `lib/combat`, `lib/material`, or the materials-response grids.
+
+The file list is `GYM_TESTS` in `vitest.config.ts`, used as that
+config's `exclude` and as `vitest.gym.config.ts`'s `include`, so the
+two suites are complementary **by construction**: no file can land in
+both, and none can land in neither and silently stop running.
+
+⚠ Compose the gym config by spreading `sharedTest`, never via vitest's
+`mergeConfig` — merge *concatenates* arrays, so a merged config
+inherits the base `exclude` (which names the gym files) and selects
+nothing.
+
+⚠ The measurement history has a **discontinuity at this split**: rows
+before it measure 964 files, rows after measure 962. The `files` and
+`tests` columns are how you tell.
 
 ## The noise floor
 
@@ -198,19 +304,16 @@ The median test is **851ms**; hooks are 10% of the file. A single test —
 fight per formation preset. Cutting it means testing fewer presets,
 which is the thing a totality test exists to prevent.
 
-### `scripts/__tests__/combat-gym` — 782s / 28 tests. The biggest, and unlisted.
+### `combat-gym` / `waster-spar` — moved to the gym suite.
 
-The single largest file in the suite, ahead of `CombatLogic`. It never
-appeared in this build's requirements because `find src` misses it:
-`src/` holds 955 test files, the suite runs 964. It is a **balance
-regression guard** — it drives real `CombatApi` sessions to assert the
-fight stays fair.
+The single largest file in the suite (782s / 28 tests, ahead of
+`CombatLogic`) plus its sibling bench (69s / 3 tests). Neither appeared
+in this build's requirements because `find src` misses them: `src/`
+holds 955 test files, the suite ran 964.
 
-That makes it a benchmark shaped like a test, and it is the obvious
-candidate for a separate `pnpm test:balance` outside the default run.
-**That is a scope decision, not a performance one** — moving it would
-cut ~13 minutes of CPU off the default suite by not running it, which
-is the trade this build refused to make on its own authority.
+Now `pnpm test:gym` — see *The gym suite* above, including the
+measurement showing the local wall-clock saving was ~0.6%, not the 13
+minutes the CPU figure suggests.
 
 ### The rest
 

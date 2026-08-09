@@ -295,9 +295,16 @@ and the launch aborts rather than starting into `EADDRINUSE`.
 ```bash
 pnpm build            # pnpm -r build
 pnpm test             # all tests (Vitest)
+pnpm test:gym         # the gym benches — balance guards, NOT in `test`
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
 ```
+
+`pnpm test:gym` runs `combat-gym` + `waster-spar`: balance regression
+guards that simulate whole fights. They were 25% of the suite's test
+CPU in two files, so they are out of the default run and have their own
+(parallel) CI job. Run them before touching `lib/combat`,
+`lib/material`, or the materials-response grids.
 
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).

@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "tsx src/preload.js",
     "test": "vitest run",
+    "test:gym": "vitest run --config vitest.gym.config.ts",
+    "test:near": "tsx scripts/test-near.ts",
     "test:watch": "vitest",
     "test:escape": "vitest run src/mud/lib/sandbox/__tests__/escape",
     "bench": "tsx scripts/bench-suite.ts",

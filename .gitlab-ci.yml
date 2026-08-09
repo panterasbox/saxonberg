@@ -141,6 +141,22 @@ test:
   script:
     - pnpm test
 
+# The gym benches — balance regression guards that simulate whole
+# fights (combat-gym, waster-spar). They were 25% of the suite's test
+# CPU in two files, so they are out of the default `pnpm test` and run
+# here instead.
+#
+# A SEPARATE job, not an extra line in `test`: taking them off the
+# local loop is a speed decision, and letting them stop running is a
+# different decision that nobody made. Running in parallel with `test`
+# means the validate stage finishes in max(test, test-gym) rather than
+# the sum — CI wall clock goes down while coverage stays identical.
+test-gym:
+  extends: [.node, .mr-only]
+  stage: validate
+  script:
+    - pnpm test:gym
+
 build:
   extends: [.node, .mr-only]
   stage: validate

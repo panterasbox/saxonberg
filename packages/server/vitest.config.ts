@@ -1,5 +1,43 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
 import { callSecPlugin } from "./src/services/loader/vite-plugin";
+
+/**
+ * The gym benches — balance regression guards that drive complete
+ * fights through the real engine, not unit tests.
+ *
+ * They are excluded from the default `pnpm test` and run by
+ * `pnpm test:gym` (and by their own CI job, in parallel with the main
+ * suite). Together they are ~880s of the suite's ~3475s of test CPU —
+ * 25% of it, in two files and 31 tests.
+ *
+ * ⚠ This list is the SINGLE source of truth for the split.
+ * `vitest.gym.config.ts` imports it as its `include` while this config
+ * uses it as an `exclude`, so the two suites are complementary by
+ * construction: a file cannot end up in both, and — the direction that
+ * would actually hurt — cannot end up in neither and silently stop
+ * running.
+ *
+ * The bar for adding one: it asserts a BALANCE or end-to-end
+ * engine-behaviour property by simulating whole bouts, and its cost is
+ * measured in minutes. Ordinary tests, including the other six files in
+ * `scripts/__tests__`, stay in the default run.
+ */
+export const GYM_TESTS = [
+  "scripts/__tests__/combat-gym.test.ts",
+  "scripts/__tests__/waster-spar.test.ts",
+];
+
+/**
+ * Settings both suites share. Imported by `vitest.gym.config.ts` and
+ * spread, rather than reached through vitest's `mergeConfig` — merge
+ * CONCATENATES arrays, so a gym config built that way inherits this
+ * one's `exclude` (which lists the gym files) and selects nothing. It
+ * fails loudly, but only once you run it.
+ */
+export const sharedTest = {
+  globals: true,
+  environment: "node",
+} as const;
 
 export default defineConfig({
   // Plugin runs `enforce: 'post'` so it sees source after Vite's TS
@@ -8,8 +46,13 @@ export default defineConfig({
   // used by `FromModule(...)` and `ApiOnly` policies.
   plugins: [callSecPlugin()],
   test: {
-    globals: true,
-    environment: "node",
+    ...sharedTest,
+    // The gym benches are not part of the default loop — see
+    // GYM_TESTS above and `pnpm test:gym`. They still run in CI, as
+    // their own parallel job: taking a balance guard out of the
+    // default run is a speed decision, and letting it stop running is
+    // not the same decision.
+    exclude: [...configDefaults.exclude, ...GYM_TESTS],
     // NO `setupFiles`. The framework wiring used to live here, which
     // meant all 964 test files paid for `installFrameworkWiring()` and
     // its ~30-deep import graph — re-evaluated per file, because vitest
