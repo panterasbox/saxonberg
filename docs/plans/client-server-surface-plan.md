@@ -57,42 +57,64 @@ it before Wave 2.
 
 ## Wave 2 — the mode axis
 
-1. `@saxonberg/types`: `CockpitMode` + `COCKPIT_MODES`, **eight
-   values** — `world` · `forum` · `livestream-viewer` · `streamer` ·
-   `builder` · `study` · `classroom` · `tutor`. This **replaces**
-   `LAYOUT_NAMES`, whose five values become the first five modes.
+1. `@saxonberg/types`: `CockpitMode` + `COCKPIT_MODES` — `chat` ·
+   `play` · `watch` · `build` · `govern`, the slate's front doors.
 2. `cockpit.mode` as a `clientState` key on `HasInteractiveMixin`,
-   defaulting to `world`.
-3. ⚠ **Legacy migration.** Every player who ever ran `layout builder`
-   has `cockpit.layout: 'builder'` persisted, and that value is now a
-   *mode*. Map it on read. Criterion 5 requires the test to use a real
-   stored legacy value — a fresh-default test passes either way and
-   proves nothing.
+   defaulting to `play`.
+3. ⚠ **Legacy migration, and it is a MAPPING, not a rename.** Every
+   player who ever ran `layout builder` has `cockpit.layout: 'builder'`
+   persisted, and the five old values now name a *mode plus that mode's
+   default arrangement*:
+
+   | legacy `cockpit.layout` | → mode | → arrangement |
+   |---|---|---|
+   | `world` | `play` | default |
+   | `forum` | `chat` | default |
+   | `livestream-viewer` | `watch` | viewer |
+   | `streamer` | `watch` | streamer |
+   | `builder` | `build` | default |
+
+   Criterion 5 requires the test to use a real stored legacy value — a
+   fresh-default test passes either way and proves nothing. `watch` is
+   the row that matters most: two legacy values collapse into one mode
+   with *different* arrangements, so a test that only covers `builder`
+   would miss the only interesting case.
+
 4. `cockpit mode <name>`, validated against `COCKPIT_MODES`, following
-   the **write → save → push triple** `layout` already uses. **Read the
-   absorbed layout path first and mirror it** — do not invent a second
-   commit path.
+   the **write → save → push triple** the absorbed layout path already
+   uses. Mirror it; do not invent a second commit path.
 
 ---
 
-## Wave 3 — arrangements within a mode
+## Wave 3 — layouts become savable arrangements
 
-The level that did not exist before. `cockpit layout` now means *how
-the panes are arranged inside the active mode*, not *which activity*.
+⚠⚠ **The biggest shape change in MR A, and the one an earlier draft of
+this plan got wrong.** The slate says layouts are *savable* pane
+arrangements — a player composes and names one. So `cockpit layout`
+**cannot validate against a frozen list** the way `layout` does today.
 
-1. A per-mode arrangement vocabulary. Each mode ships at least one.
-2. `cockpit layout`'s validator resolves against the **active mode's**
-   set; an arrangement valid elsewhere is refused *with a reason naming
-   the mode*.
-3. **Per-mode arrangement memory** — `cockpit mode study` →
-   `cockpit mode world` returns you where you were.
+1. Per-mode **shipped defaults** — each mode ships at least one
+   arrangement, and `watch` ships two (`viewer`, `streamer`) because the
+   migration table needs them.
+2. `cockpit layout <name>` resolves against **the mode's defaults plus
+   this player's saved arrangements**. A name that exists in another
+   mode is refused *with a reason naming the mode*.
+3. `cockpit layout save <name>` names the current arrangement;
+   `cockpit layout list` / `cockpit layout forget <name>`.
+4. **Per-mode arrangement memory** — `cockpit mode chat` →
+   `cockpit mode play` returns you where you were.
 
-⚠ Memory is per-Interactive `clientState`, not a new store. Shape:
-`cockpit.arrangements: { [mode]: arrangement }`. One key, riding the
+⚠ Saved arrangements and the memory are per-Interactive `clientState`,
+not a new store. `cockpit.arrangements: { [mode]: name }` for the
+memory; the saved set rides the same key space. One store, riding the
 persistence `clientState` already has.
 
+⚠ A player-supplied name is player-supplied **input** — length-capped,
+and it can never collide with a shipped default in a way that shadows
+it silently. Say which one won.
+
 ⚠ **A mode gates nothing.** Criterion 9's test asserts a verb runnable
-in `world` runs in every mode. Write it now, while the temptation to
+in `play` runs in every mode. Write it now, while the temptation to
 "helpfully" scope verbs to modes is live.
 
 ---
@@ -105,9 +127,16 @@ The wave with real design risk. **Read
 anything.**
 
 1. `InspectionPane`'s single slot → an N-pane set.
-2. Hold conditions: `while-present` · `while-reachable` · `pinned`,
-   evaluated **server-side**.
+2. **Five hold conditions**, evaluated **server-side**: `unanswered` ·
+   `here` · `present` · `inReach` · `carried`. A manual pin **overrides
+   either way** — it is not a sixth condition.
 3. Release carries a **reason** on the wire.
+
+⭐ `unanswered` first. It is the one the slate leans on (*"nothing that
+is still actionable ever leaves"*), the one an earlier draft omitted,
+and the only one whose subject is a pending **command**, not a Stuff —
+so it is the one that will not fit the shape you build for the other
+four if you build them first.
 
 ⚠ **Reuse the S1 substrate.** An N-pane set is N subscriptions plus a
 lifetime rule. A second registry is the failure mode; criterion 11
@@ -142,7 +171,7 @@ a fix.**
 **Land the table.** Wave 6 acts on it.
 
 ⚠ Do not skip step 2. The whole risk in this MR is a validator that
-states a refusal the controller does not make — criterion 19 calls
+states a refusal the controller does not make — criterion 20 calls
 under-reporting a build failure, and the only defence is having read
 the controller.
 
@@ -152,13 +181,13 @@ the controller.
 
 1. Add the clustered validators to `lib/command/validators/`. Each is
    **extracted from a controller**, and the controller then uses the
-   same predicate — one source of truth (requirements § 8).
+   same predicate — one source of truth (requirements § 9).
 2. Apply them across the 88 args; `targetKind: any` where declared.
 3. **A test per validator asserting the controller refuses exactly what
-   the validator excludes** (criterion 18) — the shared-predicate
+   the validator excludes** (criterion 19) — the shared-predicate
    constraint made checkable.
 4. `check-arg-kinds.ts --lint` becomes CI-gating.
-5. **The before/after candidate-set comparison** (criterion 19):
+5. **The before/after candidate-set comparison** (criterion 20):
    resolve the affordance set over a representative world before and
    after, and diff. Every move must be `enabled → disabled` for a
    target the controller would refuse. **A verb that lost availability
@@ -179,11 +208,23 @@ Three independent pieces, cheapest first.
 beside `practisingCompetence`, derived on read from `transcripts`.
 ⚠ **No stored total.**
 
-**b. Notification policy read** — the receiver's `NotifyRule`s plus the
+**b. `makeStanding` becomes account-level** (requirements § 8). *Make*
+is something the person does; only *Play* is per-character.
+⚠ Do **not** re-key `producer_events` — aggregate across the account's
+characters on read. Rewriting the ledger has a wrong answer available
+(silently dropping the history of anyone with more than one character),
+and derive-on-read makes the rewrite unnecessary.
+
+**c. Notification policy read** — the receiver's `NotifyRule`s plus the
 ping variants they produce. The surface is the policy, not a feed.
 
-**c. `SearchApi.query({ scope, terms, limit })`** — the new subsystem
-face. Scopes: `wiki` · `forum` · `chat` · `press` · `help` · `all`.
+**d. `recall` + `SearchApi.query({ scope, terms, limit })`** — the new
+subsystem face **and its verb**. Scopes: `wiki` · `forum` · `chat` ·
+`press` · `help` · `all`.
+
+⚠ The verb is `recall`, **not** `search` — `search` is the in-world
+perception verb (finding a concealed thing). An Api with no verb would
+break the axiom on the one surface that advertises it.
 
 - Reads **existing** storage. No new collection, no index build.
 - ⚠ Viewer-filtering **deletes**: an unreadable source is absent, not
@@ -217,13 +258,13 @@ face. Scopes: `wiki` · `forum` · `chat` · `press` · `help` · `all`.
 
 | Risk | Handling |
 |---|---|
-| **A validator states a refusal the controller doesn't make.** A verb silently disappears from menus and nobody can discover it. The worst outcome in this build. | Wave 5 step 2 reads every controller before proposing a predicate. Criterion 18 tests the pairing; criterion 19's before/after diff catches it at the set level. |
+| **A validator states a refusal the controller doesn't make.** A verb silently disappears from menus and nobody can discover it. The worst outcome in this build. | Wave 5 step 2 reads every controller before proposing a predicate. Criterion 19 tests the pairing; criterion 20's before/after diff catches it at the set level. |
 | **The absorption breaks a client dispatch site.** `mode chat --bar <id>` and `layout <name>` are sent by UI controls today. | Wave 1 greps `packages/client` explicitly. A missed site fails at runtime, not at build — so the grep *is* the test. |
 | **The legacy `cockpit.layout` migration is written but never exercised.** | Criterion 5 requires a stored legacy value in the test, not a fresh default. |
 | **The pane set grows a second subscription mechanism.** | Criterion 11 asserts the absence of a second registry. Read the S1 doc first. |
 | **A mode quietly becomes a permission.** "Study mode shouldn't allow combat" is a seductive one-liner. | Criterion 9, written in Wave 3 before the temptation. |
 | **The sweep grows a validator per arg** instead of a shared vocabulary. | Wave 5 step 3 clusters *before* Wave 6 writes anything; a validator that duplicates an existing one is a defect by the constraints. |
-| **A catalogue row nothing warms at boot.** Recurred three times; CombatFormation is still broken. | Criterion 16 — the test asserts a cold read fails LOUDLY. |
+| **A catalogue row nothing warms at boot.** Recurred three times; CombatFormation is still broken. | Criterion 17 — the test asserts a cold read fails LOUDLY. |
 | **Scope.** Three MRs. | A and B are the blocking ones; C degrades gracefully. |
 
 ## Out of scope

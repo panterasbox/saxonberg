@@ -6,8 +6,10 @@ own shape** on the wire, closes the last read-surface gaps, and makes
 the verb menu **honest** — so the client overhaul begins against a
 server that can already answer everything it will ask, correctly.
 
-Seeded by [client-slate § 4.2–4.4](../slates/builds/client-slate.md)
-(Tracks B–D). Reads on
+Seeded by [client-slate](../slates/builds/client-slate.md) — Tracks
+B–D (§ 4.2–4.4) for the work, and **§ 3.3, § 3.4 and § 6 for the
+vocabulary**, which two earlier drafts of this document invented
+instead of reading. Reads on
 [cockpit-layouts](../subsystems/cockpit-layouts.md),
 [inspection-pane](../subsystems/inspection-pane.md),
 [mql-subscription](../subsystems/mql-subscription.md),
@@ -42,7 +44,11 @@ Seeded by [client-slate § 4.2–4.4](../slates/builds/client-slate.md)
   cannot act on is the server sending a figure that is not true.
 - **The competence digest is readable** — the whole transcript
   projection, not just the one discipline being practised.
-- **Wiki and forum content are searchable** through one surface.
+- **Wiki and forum content are searchable** through one surface, with
+  a CLI verb — an Api with no verb would break the axiom on the one
+  panel that advertises it.
+- **Standing splits by level**: what the *person* does is account-level,
+  what the *character* does is per-character.
 - **A viewer can read their own notification policy** and the ping
   variants it produces.
 
@@ -59,9 +65,9 @@ Seeded by [client-slate § 4.2–4.4](../slates/builds/client-slate.md)
   read yourself.
 - **The `capital` / "fund" stock.** Reserved in `InfluenceApi`, unbuilt.
 - **Any change to how commands dispatch.** The mode axis rides the
-  existing write → save → push triple, and § 8 adds validators to
+  existing write → save → push triple, and § 9 adds validators to
   specs — neither touches the dispatch chain.
-- **Rewriting controllers.** § 8 *extracts* a controller's existing
+- **Rewriting controllers.** § 9 *extracts* a controller's existing
   refusal into a validator; it does not invent new refusals or change
   what any verb does when it runs.
 
@@ -89,8 +95,9 @@ not the fiction.
 **Decision: `cockpit` is the single host verb.**
 
 ```
-cockpit mode study            # the activity axis
-cockpit layout split          # arrangement within the active mode
+cockpit mode watch            # the front door: what am I here to do
+cockpit layout wide           # recall a saved arrangement in this mode
+cockpit layout save wide      # name the current arrangement
 cockpit scope chat gossip     # per-bar input scoping (was `mode`)
 cockpit scope off
 cockpit style theme high-contrast
@@ -134,50 +141,60 @@ cap, and a privacy surface that deserve their own build.
 `SearchApi` takes a scope, and adding a `'mine'` scope later must not
 reshape the call.
 
-### 3. ⭐⭐ The five existing layouts ARE modes
+### 3. Modes are front doors; layouts demote beneath them
 
-The earlier framing — "the five current layouts are `world`'s
-arrangements, and the three new modes ship one arrangement each" — does
-not survive reading the values:
+From [client-slate § 3.3](../slates/builds/client-slate.md), which is
+the authority here — two earlier framings of this section were invented
+rather than read, and both were wrong.
 
-`world` · `forum` · `livestream-viewer` · `streamer` · `builder`
+> **Modes** are the front doors — Chat, Play, Watch, and the Build /
+> Govern ascent. They answer *what am I here to do*. **Layouts** demote
+> to savable pane arrangements inside a mode. **Panes** are the shared
+> bricks.
 
-Those are **activities**, not screen arrangements. `builder` is *"I am
-authoring content"*; `streamer` is *"I am broadcasting"*. Filing
-`builder` as a way of arranging the world view while `study` gets to be
-its own mode is an incoherence that would have been baked into the
-grammar.
+**Modes ship as `CockpitMode` / `COCKPIT_MODES` in `@saxonberg/types`**:
+`chat` · `play` · `watch` · `build` · `govern`.
 
-**So `layout` was already the mode axis in all but name**, and the level
-that genuinely does not exist yet is the finer one: how panes are
-arranged *within* an activity.
+⚠ The slate writes the last two as *"the Build / Govern ascent"*, which
+reads as one progression rather than two peers. They ship as two mode
+values because a front door is a front door; if `govern` turns out to be
+a tier *within* `build` rather than beside it, that is a vocabulary
+edit, not a redesign. Flagged rather than silently resolved.
 
-**Eight modes ship:** `world` · `forum` · `livestream-viewer` ·
-`streamer` · `builder` · `study` · `classroom` · `tutor`. Exported from
-`@saxonberg/types` as `CockpitMode` / `COCKPIT_MODES`, replacing
-`LAYOUT_NAMES` — for the reason that precedent existed: validator and
-client registry read one list.
+**Existing layout components map onto modes rather than being deleted**
+— the slate is explicit that this is a mapping, not a rename:
 
-**`cockpit layout` names the new level** — arrangements within the
-active mode.
+| Existing layout | Becomes |
+|---|---|
+| `world` | `play`'s default layout |
+| `livestream-viewer` · `streamer` | `watch`'s layouts |
+| `builder` | `build`'s default layout |
+| `forum` | `chat`'s default layout |
+
+⚠⚠ **A layout is not a closed vocabulary.** The slate says *savable*
+pane arrangements: a player composes and names one. So `cockpit layout`
+cannot validate against a `LAYOUT_NAMES`-style frozen list the way the
+current verb does — it resolves against **the mode's shipped defaults
+plus that player's saved arrangements**. This is the single biggest
+shape change in MR A, and the reason `LAYOUT_NAMES` is *replaced* by
+per-mode defaults rather than promoted.
 
 | A mode owns | A mode does not own |
 |---|---|
-| Which arrangements are offered | What a pane renders |
+| Which arrangements ship as defaults | What a pane renders |
 | The default arrangement on entry | Any command's semantics |
 | Which pane kinds may be summoned | Permission to run anything |
 
-⚠ **A mode is a view, never a gate.** Everything runnable in `world` is
-runnable in `study`. A mode that forbade a verb would be a permission
+⚠ **A mode is a view, never a gate.** Everything runnable in `play` is
+runnable in `build`. A mode that forbade a verb would be a permission
 system wearing a UI costume, with the checks in the wrong layer.
 
 ⚠ **Persisted state migrates.** `cockpit.layout` holds one of the five
-old values for every player who has ever set it; those values are now
-*modes*. The read path maps a legacy `cockpit.layout` to `cockpit.mode`
-on load — and because a `clientState` key has a declared default, a
-player who never set one simply lands on `world`. A test covers the
-legacy value, not just the fresh default: the fresh path is the one
-that would pass either way.
+old values for every player who ever set one, and those values now name
+a *mode* (via the table above) plus that mode's default arrangement.
+The read path maps them on load. A test covers a real stored legacy
+value, not just the fresh default — the fresh path passes either way and
+proves nothing.
 
 Switching modes must **not** discard an arrangement choice: a mode
 remembers the arrangement last used in it.
@@ -190,15 +207,50 @@ it still in reach* — evaluated **server-side**, because they are facts
 about the world. A client guessing at them is the same category error
 as a client guessing at affordances.
 
-Three conditions ship: `while-present`, `while-reachable`, `pinned`.
+**Five conditions ship**, from
+[client-slate § 3.4](../slates/builds/client-slate.md):
+
+| Hold | Held while | Released when |
+|---|---|---|
+| `unanswered` | it owes a reply | answered |
+| `here` | you are here | you left |
+| `present` | they are still in the room | they left |
+| `inReach` | in reach | out of reach |
+| `carried` | on you | not carried |
+
+⭐ **`unanswered` is the one that matters most and the one an earlier
+draft of this document omitted.** The slate's claim is *"nothing that
+is still actionable ever leaves"* — a prompt or a question that owes a
+reply outranks presence entirely, and without it the pane feed is just
+a longer version of the race the single slot loses today.
+
+A **manual pin overrides the decision either way** — pin to keep a pane
+whose condition has lapsed, dismiss one whose condition still holds.
+Pinning is not a sixth condition; it is an override on the other five.
+
 A pane whose condition fails is **released, and the client is told why**
 — a pane that vanishes without a reason reads as a bug.
 
 ⚠ Reuse the S1 subscription substrate. An N-pane set is N subscriptions
 with a lifetime rule, not a new mechanism.
 
-### 5. One search surface, scoped
+### 5. One search surface, scoped — and its verb is `recall`
 
+⚠ **The earlier draft specified an Api and no verb**, which would have
+broken the axiom on the surface that advertises it: every click sends a
+command, so a search UI with no command behind it is the one panel that
+cannot show you what it just ran.
+
+**`search` is unavailable** — it is the in-world perception verb
+(finding a concealed thing in a room). The slate resolves this: *"this
+wants its own word. `recall` is free."*
+
+```
+recall wiki compact           # one scope
+recall "iron price"           # all scopes
+```
+
+`RecallController` dispatches to
 `SearchApi.query({ scope, terms, limit })` over the durable sources:
 `wiki` · `forum` · `chat` · `press` · `help`, plus `all`.
 
@@ -226,7 +278,37 @@ wanted**, not everything that happened — so the read surface is the
 *policy* (`NotifyPolicy` / `NotifyRule`) plus the ping variants it
 produces, not a feed.
 
-### 8. ⭐⭐ Affordance honesty — the verb menu stops lying
+### 8. ⚠ `makeStanding` is per-character and should not be
+
+[client-slate § 6](../slates/builds/client-slate.md) lists this as a
+rule worth keeping, and it is not currently true:
+
+> **Standing splits by level, and it is load-bearing.** *Make* (you
+> build) and *Fund* (you pay) are things the **person** does →
+> account-level. *Play* accrues by living in the world → per-character,
+> and the only standing that can diverge across characters of one
+> account.
+
+Verified in code: `Avatar.ts` keys **all four** standing figures on
+`standingSubject(stuff, viewer)` — the Avatar's `templatePath`. So
+`makeStanding` diverges per character today, which the design says is
+meaningless: there is no reason to author as one character.
+
+**This build makes `makeStanding` account-level.** `playStanding` and
+`renown` stay per-character, which is the whole point of the split.
+
+⚠ **The subject key changes, so the ledger's history is at stake.**
+`producer_events` rows were written against a character key. Re-keying
+them is a migration with a wrong answer available (silently dropping
+the history of anyone whose account has more than one character), so
+the read path aggregates across the account's characters rather than
+rewriting the ledger. Derive-on-read is what makes that possible — the
+same property § 6 relies on.
+
+⚠ "Fund" is the reserved-but-unbuilt `capital` stock and stays out of
+scope; only `make` moves here.
+
+### 9. ⭐⭐ Affordance honesty — the verb menu stops lying
 
 S2's resolver is **syntactic by design**: a verb is `enabled` when its
 operand binds and its field validators pass. A verb whose real refusal
@@ -306,56 +388,73 @@ A gate can then tell *declared universal* from *forgotten*.
    un-prefixed, *and* that an ordinary verb typed in that bar is still
    prefixed. Both directions — the second is what makes it an exemption
    rather than a hole.
-4. `COCKPIT_MODES` / `CockpitMode` exported from `@saxonberg/types`,
-   replacing `LAYOUT_NAMES`, with all **eight** values; a test asserts
-   validator and client registry read the same list.
-5. ⚠ **A legacy `cockpit.layout` value migrates to `cockpit.mode`** —
-   tested with an actual stored legacy value (`builder`), not only with
-   a fresh default, because the fresh path passes either way.
-6. `cockpit layout` validates against the **active mode's**
-   arrangements; an arrangement valid in one mode and not another is
-   refused with a reason naming the mode.
+4. `COCKPIT_MODES` / `CockpitMode` exported from `@saxonberg/types`
+   with the slate's front doors — `chat` · `play` · `watch` · `build` ·
+   `govern`; a test asserts validator and client registry read the same
+   list.
+5. ⚠ **A legacy `cockpit.layout` value maps to a mode AND an
+   arrangement** — tested with real stored values, not a fresh default
+   (which passes either way). ⭐ `livestream-viewer` and `streamer` are
+   the case that matters: two legacy values collapsing into `watch`
+   with *different* arrangements. A test covering only `builder` misses
+   it.
+6. `cockpit layout <name>` resolves against **the active mode's
+   shipped defaults plus this player's saved arrangements** — not a
+   frozen list. `cockpit layout save` names the current arrangement; an
+   arrangement valid in another mode is refused with a reason naming
+   that mode. A player-supplied name never silently shadows a shipped
+   default.
 7. Switching modes and back restores the arrangement last used in that
    mode. Tested.
 8. A mode change round-trips as a command and is attributable. **No
    client-side mode state exists** — asserted by a source scan.
-9. ⚠ A mode gates nothing: a test asserts a verb runnable in `world` is
+9. ⚠ A mode gates nothing: a test asserts a verb runnable in `play` is
    runnable in every mode.
 10. The pane set holds N panes, each with a hold condition; a failing
-   condition **releases the pane with a reason on the wire**. All three
-   conditions tested, including the release path.
+   condition **releases the pane with a reason on the wire**. **All
+   five** tested — `unanswered` · `here` · `present` · `inReach` ·
+   `carried` — including the release path, plus a manual pin overriding
+   in **both** directions (keeping a lapsed pane, dismissing a held
+   one).
 11. Pane subscriptions reuse the S1 substrate — asserted by the absence
    of a second registry.
-12. `SearchApi.query` returns results across all five scopes and `all`.
+12. The **`recall` verb** dispatches to `SearchApi.query` and returns
+   results across all five scopes and `all`. A test asserts `search`
+   still resolves to the in-world perception verb, unshadowed.
 13. A source the viewer may not read is **absent** from results, both
     directions tested.
 14. The competence digest is a subscribable field, derives on read, and
     updates when a conferral lands. No stored total.
 15. The notification-policy read returns the receiver's rules and their
     ping variants.
-16. Anything catalogue-shaped is warmed at boot, and a cold read fails
+16. ⚠ **`makeStanding` is account-level**, `playStanding` and `renown`
+   stay per-character — a test asserts two characters on one account
+   report the SAME make standing and DIFFERENT play standing. That
+   second half is what proves the split is real rather than a global.
+   `producer_events` is **not** re-keyed; the read aggregates.
+17. Anything catalogue-shaped is warmed at boot, and a cold read fails
     loudly — the test asserts the failure, not a silent default.
-17. **Every object-typed arg either carries a semantic validator or
+18. **Every object-typed arg either carries a semantic validator or
     declares `targetKind: any`.** A repeatable script reports the set
     and gates in CI, the way `lint:test-bootstrap` does.
-18. **No validator invents a refusal.** For each new validator, a test
+19. **No validator invents a refusal.** For each new validator, a test
     asserts the *controller* refuses exactly the cases the validator
-    excludes — the shared-predicate constraint of § 8, tested rather
+    excludes — the shared-predicate constraint of § 9, tested rather
     than asserted in a comment.
-19. ⚠ **No verb loses availability it had.** A before/after comparison
+20. ⚠ **No verb loses availability it had.** A before/after comparison
     of the resolved candidate set over a representative world shows
     verbs only ever moving `enabled → disabled-with-reason` for targets
     the controller would have refused anyway. Under-reporting is a
     build failure.
-20. `attack` / `drink` / `talk` / `cast` are no longer offered on a
+21. `attack` / `drink` / `talk` / `cast` are no longer offered on a
     room — the four cases S2 recorded as open, closed by name.
-21. Docs: `cockpit-layouts.md` rewritten for the two axes;
+22. Docs: `cockpit-layouts.md` rewritten for the two axes;
     `inspection-pane.md` for the pane set; a new `search.md`;
     `advancement.md` for the digest; `command-routing.md` +
     `command-spec.md` for the validator rule and `targetKind: any`.
     `CLAUDE.md` gains **one line** for `search.md`.
-22. Full suite green, both packages type-clean, the lint family green.
-23. **Driven live**, not just tested: a mode switch, arrangement recall,
+23. Full suite green, both packages type-clean, the lint family green.
+24. **Driven live**, not just tested: a mode switch, arrangement recall,
     a pane released by its condition, a permission-filtered search, and
     a verb menu on a room that no longer offers `attack`.
 
@@ -383,7 +482,7 @@ rather than left for the client cycle to trip over:
 - Prior builds: **S1** (`0ed75f72`) — the facet + subscription substrate
   the panes and digest ride. **S2 MR A** (`403c2aa0`) — the topic
   corpus + facets. **S2 MR B** (`c4ba12ba`) — the affordance resolver,
-  whose syntactic candidate set § 8 completes and whose honest-fog rule
+  whose syntactic candidate set § 9 completes and whose honest-fog rule
   § 5 follows.
 - [command-routing](../subsystems/command-routing.md) ·
   [command-spec](../subsystems/command-spec.md) ·
