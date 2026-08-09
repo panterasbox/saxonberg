@@ -67,29 +67,58 @@ Seeded by [client-slate § 4.2–4.4](../slates/builds/client-slate.md)
 
 ## Surface decisions
 
-### 1. ⚠⚠ The verb cannot be called `mode`
+### 1. ⭐⭐ One `cockpit` verb, four subcommands
 
-**`mode` is already taken**, and not incidentally: it is the per-bar
-input-scoping verb (`mode chat gossip`, `mode off`, `--bar <id>`), and
-it is **hardcoded as an exemption inside `CommandApi.applyInputMode`**
-so that mode management always reaches the interpreter un-prefixed.
-Overloading it would put the one verb that escapes input-moding in
-charge of a second, unrelated axis.
+The cockpit's controls had already scattered across **three** top-level
+verbs that each grew independently:
 
-Adjacent names are also taken: `layout` is the arrangement verb,
-`focus` is the focus chain, `workspace` is the shell cwd, and the
-client's own **"Views" menu already means layouts**.
+- `layout <name>` — the screen's shape
+- `style <sub> …` — appearance (and it already has a subcommand tree:
+  `style show`, `style theme`, `style channel`)
+- `mode <prefix>` — per-bar input scoping, writing `cockpit.inputModes`
 
-**Decision: the verb is `cockpit <name>`, and the state key is
-`cockpit.mode`.** It matches the keyspace it writes (`cockpit.layout`,
-`cockpit.inputModes`, `cockpit.watch`), and it is honestly **meta** —
-the cockpit *is* the interface, not the fiction. `cockpit` bare reports
-the current mode + arrangement.
+Every one of them writes the `cockpit.*` keyspace. Adding a *fourth*
+top-level verb for the new axis — the earlier proposal — would have
+compounded the scatter rather than noticed it.
 
-⚠ **Runner-up, recorded because it may age better:** rename the
-per-bar verb to `bar` and free `mode`. Rejected **for this build only**
-— a rename of a shipped player-facing verb plus its `applyInputMode`
-exemption is a migration, not a decision.
+**The standing project rule applies and was missed: prefer
+subcommands; a standalone verb is for a diegetic act.** A cockpit
+control is the least diegetic thing in the game — it is the interface,
+not the fiction.
+
+**Decision: `cockpit` is the single host verb.**
+
+```
+cockpit mode study            # the activity axis
+cockpit layout split          # arrangement within the active mode
+cockpit scope chat gossip     # per-bar input scoping (was `mode`)
+cockpit scope off
+cockpit style theme high-contrast
+cockpit                       # report everything
+```
+
+- **`layout` and `style` are removed as standalone verbs.** One name
+  per thing. They are not kept as default aliases: the client dispatch
+  sites that use them are being rewritten this cycle anyway, so this is
+  the cheapest this change will ever be, and two names for one thing is
+  a cost that never stops being paid.
+- **`mode` is absorbed as `cockpit scope`.** It always wrote
+  `cockpit.inputModes`; it was a cockpit concern wearing a top-level
+  verb.
+
+⭐ **The exemption becomes a rule instead of a special case.**
+`CommandApi.applyInputMode` currently hardcodes the string literal
+`'mode'` so that mode management always reaches the interpreter
+un-prefixed. That literal becomes **`cockpit`**, and the rule it
+expresses is finally sayable:
+
+> **Interface control is not world input.** A bar scoped to a chat
+> channel still steers its own cockpit.
+
+This widens the exemption from one verb to one verb's subtree, and that
+is correct — every subcommand under `cockpit` is interface control by
+construction. A narrower exemption would mean a player who scoped a bar
+to gossip could not un-scope it without the slash escape.
 
 ### 2. No per-player frame store
 
@@ -105,12 +134,32 @@ cap, and a privacy surface that deserve their own build.
 `SearchApi` takes a scope, and adding a `'mine'` scope later must not
 reshape the call.
 
-### 3. Modes, and what a mode actually owns
+### 3. ⭐⭐ The five existing layouts ARE modes
 
-Four modes ship: `world` · `study` · `classroom` · `tutor`.
-Exported from `@saxonberg/types` as `CockpitMode` / `COCKPIT_MODES`,
-following the `LAYOUT_NAMES` precedent **for the reason that precedent
-exists**: the verb's validator and the client registry read one list.
+The earlier framing — "the five current layouts are `world`'s
+arrangements, and the three new modes ship one arrangement each" — does
+not survive reading the values:
+
+`world` · `forum` · `livestream-viewer` · `streamer` · `builder`
+
+Those are **activities**, not screen arrangements. `builder` is *"I am
+authoring content"*; `streamer` is *"I am broadcasting"*. Filing
+`builder` as a way of arranging the world view while `study` gets to be
+its own mode is an incoherence that would have been baked into the
+grammar.
+
+**So `layout` was already the mode axis in all but name**, and the level
+that genuinely does not exist yet is the finer one: how panes are
+arranged *within* an activity.
+
+**Eight modes ship:** `world` · `forum` · `livestream-viewer` ·
+`streamer` · `builder` · `study` · `classroom` · `tutor`. Exported from
+`@saxonberg/types` as `CockpitMode` / `COCKPIT_MODES`, replacing
+`LAYOUT_NAMES` — for the reason that precedent existed: validator and
+client registry read one list.
+
+**`cockpit layout` names the new level** — arrangements within the
+active mode.
 
 | A mode owns | A mode does not own |
 |---|---|
@@ -122,10 +171,15 @@ exists**: the verb's validator and the client registry read one list.
 runnable in `study`. A mode that forbade a verb would be a permission
 system wearing a UI costume, with the checks in the wrong layer.
 
-**`LAYOUT_NAMES` becomes per-mode arrangements.** The five current
-layouts are `world`'s; the other three modes ship one each. `layout`
-stays the arrangement verb and validates against the *active mode's*
-set. Switching modes must **not** discard an arrangement choice: a mode
+⚠ **Persisted state migrates.** `cockpit.layout` holds one of the five
+old values for every player who has ever set it; those values are now
+*modes*. The read path maps a legacy `cockpit.layout` to `cockpit.mode`
+on load — and because a `clientState` key has a declared default, a
+player who never set one simply lands on `world`. A test covers the
+legacy value, not just the fresh default: the fresh path is the one
+that would pass either way.
+
+Switching modes must **not** discard an arrangement choice: a mode
 remembers the arrangement last used in it.
 
 ### 4. Panes held by a condition
@@ -239,57 +293,69 @@ A gate can then tell *declared universal* from *forgotten*.
 
 ## Acceptance criteria
 
-1. `cockpit <name>` sets `cockpit.mode`; bare `cockpit` reports mode +
-   arrangement. An invalid name is refused by a validator reading
-   `COCKPIT_MODES`.
-2. `mode` (per-bar input scoping) is untouched — asserted by a test that
-   both verbs coexist and that `applyInputMode`'s exemption still names
-   the input-mode verb only.
-3. `COCKPIT_MODES` / `CockpitMode` exported from `@saxonberg/types`; a
-   test asserts validator and client registry read the same list.
-4. `layout` validates against the **active mode's** arrangements; a
-   layout valid in one mode and not another is refused with a reason.
-5. Switching modes and back restores the arrangement last used in that
+1. `cockpit mode <name>` sets `cockpit.mode`; bare `cockpit` reports
+   mode + arrangement + scope + style. An invalid name is refused by a
+   validator reading `COCKPIT_MODES`.
+2. **`layout` and `style` no longer resolve as standalone verbs**, and
+   `mode` no longer resolves at all — asserted by a test, not by
+   absence of a file. Their behaviour is reachable as
+   `cockpit layout` / `cockpit style` / `cockpit scope`, with the full
+   `style` subcommand tree intact.
+3. ⭐ **`applyInputMode` exempts `cockpit`, not `mode`.** A test asserts
+   a bar scoped to a channel can still run every `cockpit` subcommand
+   un-prefixed, *and* that an ordinary verb typed in that bar is still
+   prefixed. Both directions — the second is what makes it an exemption
+   rather than a hole.
+4. `COCKPIT_MODES` / `CockpitMode` exported from `@saxonberg/types`,
+   replacing `LAYOUT_NAMES`, with all **eight** values; a test asserts
+   validator and client registry read the same list.
+5. ⚠ **A legacy `cockpit.layout` value migrates to `cockpit.mode`** —
+   tested with an actual stored legacy value (`builder`), not only with
+   a fresh default, because the fresh path passes either way.
+6. `cockpit layout` validates against the **active mode's**
+   arrangements; an arrangement valid in one mode and not another is
+   refused with a reason naming the mode.
+7. Switching modes and back restores the arrangement last used in that
    mode. Tested.
-6. A mode change round-trips as a command and is attributable. **No
+8. A mode change round-trips as a command and is attributable. **No
    client-side mode state exists** — asserted by a source scan.
-7. ⚠ A mode gates nothing: a test asserts a verb runnable in `world` is
+9. ⚠ A mode gates nothing: a test asserts a verb runnable in `world` is
    runnable in every mode.
-8. The pane set holds N panes, each with a hold condition; a failing
+10. The pane set holds N panes, each with a hold condition; a failing
    condition **releases the pane with a reason on the wire**. All three
    conditions tested, including the release path.
-9. Pane subscriptions reuse the S1 substrate — asserted by the absence
+11. Pane subscriptions reuse the S1 substrate — asserted by the absence
    of a second registry.
-10. `SearchApi.query` returns results across all five scopes and `all`.
-11. A source the viewer may not read is **absent** from results, both
+12. `SearchApi.query` returns results across all five scopes and `all`.
+13. A source the viewer may not read is **absent** from results, both
     directions tested.
-12. The competence digest is a subscribable field, derives on read, and
+14. The competence digest is a subscribable field, derives on read, and
     updates when a conferral lands. No stored total.
-13. The notification-policy read returns the receiver's rules and their
+15. The notification-policy read returns the receiver's rules and their
     ping variants.
-14. Anything catalogue-shaped is warmed at boot, and a cold read fails
+16. Anything catalogue-shaped is warmed at boot, and a cold read fails
     loudly — the test asserts the failure, not a silent default.
-15. **Every object-typed arg either carries a semantic validator or
+17. **Every object-typed arg either carries a semantic validator or
     declares `targetKind: any`.** A repeatable script reports the set
     and gates in CI, the way `lint:test-bootstrap` does.
-16. **No validator invents a refusal.** For each new validator, a test
+18. **No validator invents a refusal.** For each new validator, a test
     asserts the *controller* refuses exactly the cases the validator
     excludes — the shared-predicate constraint of § 8, tested rather
     than asserted in a comment.
-17. ⚠ **No verb loses availability it had.** A before/after comparison
+19. ⚠ **No verb loses availability it had.** A before/after comparison
     of the resolved candidate set over a representative world shows
     verbs only ever moving `enabled → disabled-with-reason` for targets
     the controller would have refused anyway. Under-reporting is a
     build failure.
-18. `attack` / `drink` / `talk` / `cast` are no longer offered on a
+20. `attack` / `drink` / `talk` / `cast` are no longer offered on a
     room — the four cases S2 recorded as open, closed by name.
-19. Docs: `cockpit-layouts.md` rewritten for the two axes;
+21. Docs: `cockpit-layouts.md` rewritten for the two axes;
     `inspection-pane.md` for the pane set; a new `search.md`;
     `advancement.md` for the digest; `command-routing.md` +
     `command-spec.md` for the validator rule and `targetKind: any`.
     `CLAUDE.md` gains **one line** for `search.md`.
-20. Full suite green, both packages type-clean, the lint family green.
-21. **Driven live**, not just tested: a mode switch, arrangement recall,
+22. Full suite green, both packages type-clean, the lint family green.
+23. **Driven live**, not just tested: a mode switch, arrangement recall,
     a pane released by its condition, a permission-filtered search, and
     a verb menu on a room that no longer offers `attack`.
 
