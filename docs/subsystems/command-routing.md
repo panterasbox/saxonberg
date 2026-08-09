@@ -683,7 +683,7 @@ or option named `subcommand` — caught at load time.
 ### Phase 3a — opt-in subcommand → flat-args fallthrough
 
 Most subcommanded verbs (`measure`, `alias`, `prompt`, `analyze`,
-`settings`, `style`, `var`) want unknown first tokens to surface
+`settings`, `cockpit`, `var`) want unknown first tokens to surface
 as `unknown-subcommand`. A small minority — `chat` is the
 canonical example — want unknown first tokens to fall through
 into a bare-form positional bind: `chat <channel> <msg>` is a
@@ -1468,29 +1468,76 @@ see [concealment.md](./concealment.md)).
    not advertise `recharge`. The viewer's own verbs survive: `look` is
    a fact about the viewer.
 
-### ⚠ Known limitation — the menu is only as good as the field validators
+### The candidate set is no longer purely syntactic — the arg-kind rule
 
-The candidate set is **syntactic**: any verb declaring an object-shaped
-positional is offered for any target, and the validator chain is what
-decides. Where a verb's semantic check lives in its **controller**
-rather than in a field validator, the resolver cannot see it and reports
-the verb `enabled`.
+⚠ **This section previously recorded the gap as open. It is closed.**
 
-Driven live against the lounge, this is `attack`, `cast`, `assess`,
-`drink` and `destruct` — all of which carry only `mustBeVisible` on
-their target field, so "attack the lounge" resolves available. The
-refusal is real and immediate on dispatch; it just is not visible to a
-menu.
+The resolver's mechanism is still syntactic: it offers any verb
+declaring an object-shaped positional and lets the validator chain
+decide. What changed is the **specs** — every object-typed arg now
+either carries a *kind validator* or declares itself deliberately
+unconstrained, so the chain has something semantic to say.
 
-The fix is per-verb and belongs with the verbs: a field validator
-(`mustBeAgent`, `mustBeEdible`, …) where today there is a controller
-`if`. That is a content sweep, and this resolver is what makes the gap
-findable — before it, nothing ever asked a verb "would you accept this?"
-without also running it.
+> **Every `type: object` / `type: objects` field carries a kind
+> validator or declares `targetKind: any`.** Enforced by
+> `pnpm lint:arg-kinds --lint` in CI.
 
-⚠ Do **not** fix this by teaching the resolver a table of which verbs
-suit which targets. That is a second taxonomy describing what the first
-one already knows, and it would drift the moment a verb changed.
+`attack`, `drink` and `talk` on a room are closed. (`cast` is not, and
+deliberately — see below.)
+
+#### ⚠⚠ The governing constraint: one predicate, not two
+
+A validator and its controller must share **one** predicate. A validator
+that re-states a controller's guard in different words is a second
+source of truth, and drift here is *invisible*: the menu says yes and
+the verb says no. So each validator is **extracted from the
+controller's actual refusal**, and the controller uses that same
+predicate.
+
+Two places where guessing from the verb name would have produced a bug:
+
+- **The boundary/device verbs are door-aware.** MQL lands on a door two
+  ways — by keyword (`open oak`) or by direction (`open north`), where
+  the door rides the match's `via.exit` and is *not* the matched Stuff.
+  All ten of those controllers narrow through `MqlApi.effectiveTarget`,
+  and so do their validators. Checking `MixinApi.isSealable` on the
+  matched Stuff would pass `open oak` and **refuse `open north`**.
+- **The bulk family does not refuse on `isBulkable`.** It refuses on
+  `BulkableApi.slotFor(x) === null`, because a thing can compose the
+  mixin and still expose no slot. `mustHaveBulkSlot` calls the same Api.
+
+#### ⚠ A wrong validator is worse than a missing one
+
+Over-reporting offers a verb that then declines with a reason.
+**Under-reporting hides a verb that would have worked**, and the player
+has no way to discover it. So the sweep is conservative in one
+direction: where a controller's refusal cannot be expressed as a
+property of the target *alone*, the arg stays unvalidated and **says
+so**.
+
+`cast` is the standing example. `CastController` refuses on the
+**spell's** own target rule, which is not a property of the arg — so
+`cast`'s target declares `targetKind: any` and the spell keeps its
+refusal. Inventing a kind constraint to make the count look complete is
+precisely the failure this rule names.
+
+#### `targetKind: any` is declared at the site
+
+A genuinely unconstrained arg — a wizard's `destruct <anything>`, an MQL
+selector, a perception verb that refuses nothing by kind — declares it
+**on the field**, the way `@hook` does, rather than sitting in a central
+exemption list. The marker *is* the record: it is what lets the gate
+tell *deliberately universal* from *forgotten*, which a list somewhere
+else could not.
+
+⚠ Never put it on a field whose controller **does** refuse by kind. That
+is not an exemption; it is a lie in the one place a reviewer would go
+looking for the truth.
+
+⚠ Do **not** close this gap by teaching the resolver a table of which
+verbs suit which targets. That is a second taxonomy describing what the
+specs already know, and it would drift the moment a verb changed. This
+project has refused that shape twice.
 
 ### What it is not
 

@@ -535,6 +535,61 @@ Bare names and package specifiers are rejected. The path tells you
 exactly where the validator lives — there's no registry, no implicit
 search paths.
 
+#### ⭐ The arg-kind rule — every object field is accounted for
+
+> **Every `type: object` / `type: objects` field either carries a
+> *kind* validator or declares `targetKind: any`.** CI-gated by
+> `pnpm lint:arg-kinds --lint`.
+
+A **kind** validator constrains *what the target is* (`mustBeSealable`,
+`mustHaveVitals`, `mustHaveBulkSlot`). It is distinct from the
+*relational* validators — `mustBeVisible`, `canReach`,
+`mustBeInLocation`, `mustBeInInventory`, `mustBeHeld` — which constrain
+the viewer's **relationship** to the target. Those are near-universal on
+object args, so they do not satisfy the rule: counting them would mark
+the whole tree accounted-for while changing nothing.
+
+This exists because the affordance resolver offers a verb whenever its
+operand binds and its field validators pass. A verb whose real refusal
+lives in its **controller** therefore advertises itself against targets
+it cannot act on — and the client cannot filter that out, because it is
+forbidden from re-deriving semantics. A wrong figure on the wire is a
+wrong figure on screen.
+
+##### ⚠⚠ A validator may only state a refusal the controller makes
+
+The validator and the controller must share **one predicate** — the
+validator is *extracted* from the controller's guard, and the controller
+then uses it. A restatement in different words is a second source of
+truth whose drift is invisible: the menu says yes, the verb says no.
+
+⚠ **A wrong validator is worse than a missing one.** Over-reporting
+offers a verb that then declines with a reason; **under-reporting hides
+a verb that would have worked**, and the player cannot discover it.
+Where a refusal is not a property of the target alone, leave the arg
+unvalidated and say so.
+
+##### `targetKind: any` — declared, not omitted
+
+```yaml
+args:
+  - name: target
+    type: object
+    targetKind: any     # wizard verb: acts on anything by design
+```
+
+Genuinely unconstrained args declare it **at the site**, the way `@hook`
+does, rather than sitting in a central exemption list. The marker is the
+record: it lets the gate tell *deliberately universal* from *forgotten*.
+
+Legitimate uses: wizard verbs (`destruct`, `goto`, `eval --on`), MQL
+selectors (`--mql` on the shell verbs), perception verbs that branch on
+mixins to enrich output but refuse nothing by kind, and args whose
+refusal belongs to something else entirely (`cast`'s target is decided
+by the **spell**).
+
+⚠ Never put it on a field whose controller **does** refuse by kind.
+
 #### Why validators are mandatory on object-acting verbs
 
 **`scope:` is a search hint, not a security gate.** The MQL grammar

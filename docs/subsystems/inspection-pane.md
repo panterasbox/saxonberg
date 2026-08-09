@@ -144,6 +144,81 @@ the generic `applyChanges` helper (which keys by stuffId and
 would append a duplicate). The flat-cardinality `me.focus`
 projection uses `applyChanges` normally.
 
+## ⭐ The pane set — N panes, each held by a condition
+
+The single focus slot became an **N-pane set**. Each pane's lifetime is
+governed by a **hold condition**, evaluated **server-side**, because
+these are facts about the world — a client guessing at them is the same
+category error as a client guessing at affordances.
+
+### ⚠ A pane is a subscription plus a lifetime rule
+
+That is the whole shape, and it is what keeps criterion 11 honest. An
+N-pane set *is* N subscriptions, so `hold` is a field on the ordinary
+`SubscribeRequest`, the pane set **is** the existing subscription
+registry, and there is no second registry to drift out of step.
+
+Holds are evaluated on the **drain that was already running**
+(`MqlSubscriptionRegistry.reresolveAndEmit`), not on a timer of their
+own. A pane set with its own tick would be a second clock, and two
+clocks disagree.
+
+### The five conditions
+
+| Hold | Held while | Released with |
+|---|---|---|
+| `unanswered` | it owes a reply | `answered` |
+| `here` | you are where it opened | `left` |
+| `present` | the subject shares your room | `departed` |
+| `inReach` | the subject is in reach or in hand | `out-of-reach` |
+| `carried` | the subject is on you | `dropped` |
+
+⭐ **`unanswered` was built first, and it earned it.** It is the one the
+design leans on — *nothing that is still actionable ever leaves* — and
+the only one whose subject is a pending **command** rather than a Stuff.
+A shape derived from the four spatial holds would not have fitted it.
+It reads `PromptApi.isPending`: absence from the interactive's bucket
+**is** "answered", so there is no second flag to go stale.
+
+`here` captures its anchor (the viewer's container) at subscribe time —
+"here" is only meaningful relative to a *where*, and the pane's own
+subject is not it.
+
+### ⚠ The spatial holds are containment predicates, not MQL scopes
+
+Answering them by re-resolving the viewer's own MQL seeds (`peers` /
+`reachable` / `inventory`) was tried first and is **wrong**: those
+scopes include the room and the viewer themselves, so the scope is never
+empty and a hold keyed on "is anything still in scope" can never lapse.
+
+A pane that can never close is worse than no pane lifetime at all,
+because the feature reads as working. The tests caught it. They are
+direct containment predicates now, and the viewer never counts as its
+own subject — a pane about *you* would otherwise satisfy `carried` and
+`present` forever.
+
+### Release carries a reason
+
+`mql-subscription-released { subscriptionId, hold, reason }` — a
+distinct envelope from the error one, precisely because nothing went
+wrong: the pane reached the end of its stated lifetime. **A pane that
+vanishes without a reason reads as a bug**, and the player cannot tell a
+rule from a defect.
+
+### ⚠ The pin overrides in BOTH directions
+
+`cockpit pane pin|dismiss|auto|list`.
+
+Pinning is **not a sixth hold condition** — it is an override on the
+other five. A sixth condition could only ever *keep* a pane; it could
+never dismiss one whose condition still holds, which is half of what a
+player needs.
+
+`dismiss` does not tear the pane down inline. It marks the override and
+lets the next drain apply it, so a dismissal is released down the same
+reasoned path as every other release. A second teardown path is how a
+pane ends up vanishing without its reason.
+
 ## Focus-change signaling
 
 `FocusedMixin.setFocus(fragment)` and `clearFocus()` both fire

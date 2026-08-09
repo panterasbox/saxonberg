@@ -187,6 +187,29 @@ The gated `Api` ↔ HMR logic-singleton split (the `ChronicleApi` /
 | `bandFor(owner, discipline)` | the derived band for one Discipline (bands only) |
 | `bandsFor(owner)` | a band per Discipline with evidence (the self-view read) |
 | `conferredVerbs(owner)` | the verb yaml-paths the current bands confer |
+| `practisingCompetenceCached(owner)` | **sync** — the one Discipline being practised |
+| `competenceDigestCached(owner)` | **sync** — the whole projection (the digest) |
+
+### ⭐ The competence digest
+
+`practisingCompetence` answers *what am I working on*;
+**`competenceDigest`** answers *what do I know* — every Discipline with
+evidence and its band. Both ship as subscribable fields on `Avatar`, so
+the client's self-view reads them live.
+
+They are the **sync** faces of an async ledger: `bandsFor` awaits
+`transcripts`, and a `subscribableFields.read` cannot. Each rides a
+`DerivedStandingCache` whose loader does the async fold and whose
+invalidation is the ledger's own `notifyDurableSubject` poke —
+`undefined` means "the fold has not landed yet", which is a legitimate
+answer the descriptor passes straight through.
+
+⚠ **Derive-on-read; there is no stored total.** The band is already a
+derivation over an append-only ledger, so a cached *total* would be a
+second source of truth for a number the ledger owns, and the two would
+diverge the first time a conferral landed without going through it. The
+cache above is a **fold cache**, not a stored figure: dropping it costs
+a recomputation and loses nothing.
 
 ## The proof harness
 
