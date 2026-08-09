@@ -43,3 +43,4 @@ args:
     scope: "reachable"
     validators:
       - /lib/command/validators/mustBeVisible
+    targetKind: any

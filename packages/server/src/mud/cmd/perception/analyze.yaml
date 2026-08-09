@@ -31,6 +31,8 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeDurable
   weapon:
     description: "Preview a weapon's derived playstyle — reach, guard, balance, handedness, delivery (bands/pips)"
     help: |
@@ -52,6 +54,8 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeDurable
   electrical:
     description: "Read a thing's electrical character — conductivity / resistance / path-to-ground bands, and the raw V/A/Ω on measurement (the multimeter)"
     help: |
@@ -71,6 +75,8 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
+        validators:
+          - /lib/command/validators/mustBeTangible
   light:
     description: "Analyze light at a location with source breakdown"
     help: |

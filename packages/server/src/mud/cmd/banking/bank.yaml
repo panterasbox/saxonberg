@@ -29,6 +29,8 @@ subcommands:
         type: object
         required: true
         scope: "inventory"
+        validators:
+          - /lib/command/validators/mustBeGlobbable
   withdraw:
     description: "Withdraw cash from your account (till-bounded)"
     args:
@@ -46,3 +48,4 @@ subcommands:
         required: true
         prepositions: [to]
         scope: ["reachable", "online"]
+        targetKind: any

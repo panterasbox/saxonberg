@@ -14,6 +14,7 @@ args:
     type: object
     required: true
     scope: "reachable"
+    targetKind: any
   - name: time
     type: string
     required: true

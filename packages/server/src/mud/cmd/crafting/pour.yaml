@@ -16,8 +16,11 @@ args:
     type: object
     required: true
     scope: "reachable"
+    targetKind: any
   - name: vessel
     type: object
     required: false
     scope: "reachable"
     prepositions: [into, in, to]
+    validators:
+      - /lib/command/validators/mustBeBuildVessel

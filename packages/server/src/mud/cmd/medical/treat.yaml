@@ -34,3 +34,4 @@ args:
     prepositions: [on]
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustHaveVitals

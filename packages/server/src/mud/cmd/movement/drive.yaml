@@ -18,3 +18,4 @@ args:
     required: true
     validators:
       - /lib/command/validators/canReach
+      - /lib/command/validators/mustBeDrivable

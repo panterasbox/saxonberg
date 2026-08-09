@@ -15,8 +15,11 @@ args:
     type: object
     required: false
     scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeBuildVessel
   - name: dish
     type: object
     required: false
     scope: "reachable"
     prepositions: [into, in, onto, on]
+    targetKind: any

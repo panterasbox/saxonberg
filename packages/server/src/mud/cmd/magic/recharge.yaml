@@ -35,6 +35,7 @@ args:
     scope: "reachable"
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeCharged
   - name: amount
     type: number
     required: false

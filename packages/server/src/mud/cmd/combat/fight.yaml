@@ -73,6 +73,8 @@ subcommands:
         type: object
         required: true
         scope: ["inventory", "reachable"]
+        validators:
+          - /lib/command/validators/mustHaveVitals
   draw:
     description: "Draw a sidearm fast — the answer to being disarmed"
     help: |

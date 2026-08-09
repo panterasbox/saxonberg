@@ -32,3 +32,4 @@ args:
     updates_focus: extend
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeMarked

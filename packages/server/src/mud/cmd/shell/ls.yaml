@@ -19,6 +19,7 @@ options:
     type: object
     scope: [reachable]
     description: "MQL expression alternate to <path>"
+    targetKind: any
   content:
     short: c
     type: boolean

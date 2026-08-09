@@ -30,3 +30,4 @@ args:
     updates_focus: extend
     validators:
       - /lib/command/validators/canReach
+      - /lib/command/validators/mustBeHazard

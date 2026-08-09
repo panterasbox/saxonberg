@@ -18,8 +18,12 @@ args:
     type: object
     required: false
     scope: "reachable"
+    validators:
+      - /lib/command/validators/mustBeBuildVessel
   - name: glass
     type: object
     required: false
     scope: "reachable"
     prepositions: [into, in]
+    validators:
+      - /lib/command/validators/mustBeBuildVessel
