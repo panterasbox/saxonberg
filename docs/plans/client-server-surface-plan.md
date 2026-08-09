@@ -10,7 +10,7 @@ common and reviewing them together would mean reviewing none carefully.
 |---|---|---|
 | **A — the cockpit** | 1–4 | The `cockpit` verb, the mode axis, arrangements, the pane set |
 | **B — affordance honesty** | 5–6 | Enumerate the gap, then close it |
-| **C — read surfaces** | 7–8 | Search, competence digest, notify read, docs |
+| **C — read surfaces** | 7–8 | Search, digest, notify read, the character-select roster, docs |
 
 They are independent. **If time runs short, A and B are what the client
 overhaul is actually blocked on** — C's gaps degrade to "that panel is
@@ -171,7 +171,7 @@ a fix.**
 **Land the table.** Wave 6 acts on it.
 
 ⚠ Do not skip step 2. The whole risk in this MR is a validator that
-states a refusal the controller does not make — criterion 20 calls
+states a refusal the controller does not make — criterion 22 calls
 under-reporting a build failure, and the only defence is having read
 the controller.
 
@@ -184,10 +184,10 @@ the controller.
    same predicate — one source of truth (requirements § 9).
 2. Apply them across the 88 args; `targetKind: any` where declared.
 3. **A test per validator asserting the controller refuses exactly what
-   the validator excludes** (criterion 19) — the shared-predicate
+   the validator excludes** (criterion 21) — the shared-predicate
    constraint made checkable.
 4. `check-arg-kinds.ts --lint` becomes CI-gating.
-5. **The before/after candidate-set comparison** (criterion 20):
+5. **The before/after candidate-set comparison** (criterion 22):
    resolve the affordance set over a representative world before and
    after, and diff. Every move must be `enabled → disabled` for a
    target the controller would refuse. **A verb that lost availability
@@ -218,7 +218,21 @@ and derive-on-read makes the rewrite unnecessary.
 **c. Notification policy read** — the receiver's `NotifyRule`s plus the
 ping variants they produce. The surface is the policy, not a feed.
 
-**d. `recall` + `SearchApi.query({ scope, terms, limit })`** — the new
+**d. The character-select roster** (requirements § 10) — `lastSeen`
+stamped on logout, then the roster carries play standing, last location
+and the practice record. Then the **"Since you left" digest**, derived
+across the ledgers since that character's `lastSeen`.
+
+⚠ Test against `CharGenRosterEntry`, **not** an in-session read. The
+whole point is that at Login the reader has no character, so the
+subscription route every other figure here uses is unavailable.
+
+⚠ **No away-log collection.** Derive on read; criterion 20 asserts the
+collection's absence. Character **retirement is deferred** — it is a
+lifecycle question for mortality.md, not a projection, and the client
+hatches it.
+
+**e. `recall` + `SearchApi.query({ scope, terms, limit })`** — the new
 subsystem face **and its verb**. Scopes: `wiki` · `forum` · `chat` ·
 `press` · `help` · `all`.
 
@@ -258,13 +272,13 @@ break the axiom on the one surface that advertises it.
 
 | Risk | Handling |
 |---|---|
-| **A validator states a refusal the controller doesn't make.** A verb silently disappears from menus and nobody can discover it. The worst outcome in this build. | Wave 5 step 2 reads every controller before proposing a predicate. Criterion 19 tests the pairing; criterion 20's before/after diff catches it at the set level. |
+| **A validator states a refusal the controller doesn't make.** A verb silently disappears from menus and nobody can discover it. The worst outcome in this build. | Wave 5 step 2 reads every controller before proposing a predicate. Criterion 21 tests the pairing; criterion 22's before/after diff catches it at the set level. |
 | **The absorption breaks a client dispatch site.** `mode chat --bar <id>` and `layout <name>` are sent by UI controls today. | Wave 1 greps `packages/client` explicitly. A missed site fails at runtime, not at build — so the grep *is* the test. |
 | **The legacy `cockpit.layout` migration is written but never exercised.** | Criterion 5 requires a stored legacy value in the test, not a fresh default. |
 | **The pane set grows a second subscription mechanism.** | Criterion 11 asserts the absence of a second registry. Read the S1 doc first. |
 | **A mode quietly becomes a permission.** "Study mode shouldn't allow combat" is a seductive one-liner. | Criterion 9, written in Wave 3 before the temptation. |
 | **The sweep grows a validator per arg** instead of a shared vocabulary. | Wave 5 step 3 clusters *before* Wave 6 writes anything; a validator that duplicates an existing one is a defect by the constraints. |
-| **A catalogue row nothing warms at boot.** Recurred three times; CombatFormation is still broken. | Criterion 17 — the test asserts a cold read fails LOUDLY. |
+| **A catalogue row nothing warms at boot.** Recurred three times; CombatFormation is still broken. | Criterion 19 — the test asserts a cold read fails LOUDLY. |
 | **Scope.** Three MRs. | A and B are the blocking ones; C degrades gracefully. |
 
 ## Out of scope

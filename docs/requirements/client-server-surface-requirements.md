@@ -355,6 +355,52 @@ it at the site (`targetKind: any` in the spec) rather than sitting in a
 central exemption list — the marker is the record, the way `@hook` is.
 A gate can then tell *declared universal* from *forgotten*.
 
+### 10. ⚠⚠ The character-select roster is starved
+
+Found by walking the handoff's 23 screens rather than trusting its own
+16-row audit — which lists only *"the practice record"* here, and
+understates the gap by five rows.
+
+`Character Select.dc.html` is client **wave 2**, the launch path and the
+first substantive thing a stranger sees. `Login.presentRoster` emits
+`CharGenRosterEntry` = `playerId` · `name` · `species` · `description`.
+The screen needs:
+
+| The screen shows | Server today |
+|---|---|
+| play standing per character | shipped in S1 — but on `Avatar`, and **at Login you are not embodied** |
+| `lastSeen` | **nothing.** Zero hits for `lastSeen` / `lastPlayed` / `lastLogin` |
+| where you left them | Avatar location persists; readable |
+| "Since you left" digest | **nothing**, and it depends on `lastSeen` existing first |
+| the practice record | data exists (`bandsFor` / `entriesFor`), not on the roster |
+| Retired / Restore | **no character retirement exists** — deferred, see below |
+
+⭐ **The structural point: at Login you are not embodied.** Every one of
+these is readable *in session* through a surface that already exists,
+and none of them is reachable from the character-select screen, because
+the reader has no character yet. So this is not "add a field" — it is
+the recognition that the roster is the **one payload that must carry
+what is elsewhere a subscription**.
+
+**This build ships:**
+
+1. **`lastSeen`** — a timestamp stamped on logout. It is the cheap one
+   and the prerequisite for the digest.
+2. **An enriched roster** — play standing, where you left them, and the
+   practice record, on `CharGenRosterEntry`.
+3. **The "Since you left" digest** — derived across the ledgers, scoped
+   to one character, since its `lastSeen`. ⚠ Derive-on-read like every
+   other projection here; **no away-log collection**. A stored digest
+   would be a second source of truth for events the ledgers already own,
+   and it would need a retention policy nobody has decided.
+
+⚠ **Character retirement is deferred and is NOT a projection.** Retire /
+restore is a lifecycle question — what *is* a retired character: still
+in the world, a shade, gone? — and that belongs with
+[mortality.md](../subsystems/mortality.md), not in a read-surface
+build. The client hatches it, which is precisely what the
+unbuilt-state convention exists for.
+
 ## Constraints
 
 - **The write → save → push triple** is how `cockpit.layout` already
@@ -432,29 +478,36 @@ A gate can then tell *declared universal* from *forgotten*.
    report the SAME make standing and DIFFERENT play standing. That
    second half is what proves the split is real rather than a global.
    `producer_events` is **not** re-keyed; the read aggregates.
-17. Anything catalogue-shaped is warmed at boot, and a cold read fails
+17. **`lastSeen` is stamped on logout**, and the character-select
+   roster carries play standing, last location and the practice record
+   — asserted against `CharGenRosterEntry`, not against an in-session
+   read, because at Login the reader has no character.
+18. **The "Since you left" digest** returns events scoped to one
+   character since its `lastSeen`, derived on read. ⚠ A test asserts
+   **no away-log collection exists** — the ledgers are the source.
+19. Anything catalogue-shaped is warmed at boot, and a cold read fails
     loudly — the test asserts the failure, not a silent default.
-18. **Every object-typed arg either carries a semantic validator or
+20. **Every object-typed arg either carries a semantic validator or
     declares `targetKind: any`.** A repeatable script reports the set
     and gates in CI, the way `lint:test-bootstrap` does.
-19. **No validator invents a refusal.** For each new validator, a test
+21. **No validator invents a refusal.** For each new validator, a test
     asserts the *controller* refuses exactly the cases the validator
     excludes — the shared-predicate constraint of § 9, tested rather
     than asserted in a comment.
-20. ⚠ **No verb loses availability it had.** A before/after comparison
+22. ⚠ **No verb loses availability it had.** A before/after comparison
     of the resolved candidate set over a representative world shows
     verbs only ever moving `enabled → disabled-with-reason` for targets
     the controller would have refused anyway. Under-reporting is a
     build failure.
-21. `attack` / `drink` / `talk` / `cast` are no longer offered on a
+23. `attack` / `drink` / `talk` / `cast` are no longer offered on a
     room — the four cases S2 recorded as open, closed by name.
-22. Docs: `cockpit-layouts.md` rewritten for the two axes;
+24. Docs: `cockpit-layouts.md` rewritten for the two axes;
     `inspection-pane.md` for the pane set; a new `search.md`;
     `advancement.md` for the digest; `command-routing.md` +
     `command-spec.md` for the validator rule and `targetKind: any`.
     `CLAUDE.md` gains **one line** for `search.md`.
-23. Full suite green, both packages type-clean, the lint family green.
-24. **Driven live**, not just tested: a mode switch, arrangement recall,
+25. Full suite green, both packages type-clean, the lint family green.
+26. **Driven live**, not just tested: a mode switch, arrangement recall,
     a pane released by its condition, a permission-filtered search, and
     a verb menu on a room that no longer offers `attack`.
 
