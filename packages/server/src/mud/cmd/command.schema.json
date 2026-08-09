@@ -177,6 +177,7 @@
       ],
       "additionalProperties": false,
       "properties": {
+        "targetKind": {"enum":["any"],"description":"Declares this object-typed field DELIBERATELY unconstrained by kind — a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind. The marker is the record, the way `@hook` is: it lets `lint:arg-kinds` tell *declared universal* from *forgotten*, which a central exemption list could not. Never put this on a field whose controller DOES refuse by kind — extract a validator instead."},
         "name": {
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
@@ -297,6 +298,7 @@
       ],
       "additionalProperties": false,
       "properties": {
+        "targetKind": {"enum":["any"],"description":"Declares this object-typed field DELIBERATELY unconstrained by kind — a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind. The marker is the record, the way `@hook` is: it lets `lint:arg-kinds` tell *declared universal* from *forgotten*, which a central exemption list could not. Never put this on a field whose controller DOES refuse by kind — extract a validator instead."},
         "short": {
           "type": "string",
           "minLength": 1,

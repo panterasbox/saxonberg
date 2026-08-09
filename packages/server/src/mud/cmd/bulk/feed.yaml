@@ -32,6 +32,7 @@ args:
     scope: "reachable"
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeCultivable
   - name: source
     type: object
     required: false
@@ -39,3 +40,4 @@ args:
     prepositions: [with, from]
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustHaveBulkSlot

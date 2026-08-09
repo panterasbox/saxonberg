@@ -26,3 +26,4 @@ args:
     scope: ["$focus", "reachable"]
     updates_focus: extend
     prepositions: [in, inside, through]
+    targetKind: any

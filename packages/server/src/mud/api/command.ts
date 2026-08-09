@@ -783,6 +783,11 @@ export function collectPhaseEffects(
 
 export interface FieldDefinition {
   /**
+   * Marks an object-typed field as deliberately kind-unconstrained.
+   * See {@link TargetKindDeclaration} — the marker is the record.
+   */
+  targetKind?: 'any';
+  /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
    * - `object` — singular MQL field; the dispatcher resolves the
    *   bound text via `MqlApi.resolveOne` (when `onExcess: 'top'`) or
@@ -944,6 +949,27 @@ export interface PositionalDefinition extends FieldDefinition {
 }
 
 /**
+ * Declares an object-typed field **deliberately unconstrained by kind**.
+ *
+ * The affordance resolver's candidate set is no longer purely
+ * syntactic: an object-typed arg is expected to carry a kind validator
+ * so the verb menu stops offering verbs against targets their
+ * controller would refuse. Some args genuinely have no such
+ * constraint — a wizard's `destruct <anything>`, an MQL selector, a
+ * perception verb that refuses nothing by kind.
+ *
+ * ⚠ Those **declare it at the site** rather than sitting in a central
+ * exemption list, the way `@hook` does. The marker is the record: it is
+ * what lets `lint:arg-kinds` tell *deliberately universal* from
+ * *forgotten*, which a list somewhere else could not.
+ *
+ * ⚠ Never put this on a field whose controller DOES refuse by kind.
+ * That is not an exemption, it is a lie in the one place a reviewer
+ * would go looking for the truth — extract the validator instead.
+ */
+export type TargetKindDeclaration = 'any';
+
+/**
  * YAML option definition.
  *
  * Verb-scoped or subcommand-scoped — the scope is structural (which
@@ -953,6 +979,11 @@ export interface PositionalDefinition extends FieldDefinition {
  */
 export interface OptionDefinition {
   short?: string;
+  /**
+   * Marks an object-typed option as deliberately kind-unconstrained.
+   * See {@link TargetKindDeclaration}.
+   */
+  targetKind?: 'any';
   /**
    * Same type taxonomy as positional fields. `struct` is
    * structured-input-only — text-input rejects it with a clear

@@ -142,12 +142,22 @@ function recordField(
   });
 }
 
+/**
+ * Specs that would not parse. ⚠ Collected and REPORTED, never silently
+ * skipped: a spec this script cannot read is a spec whose args it
+ * cannot count, so swallowing the error makes the totals drop and the
+ * gate look *better*. A hole in a gate has to be visible as a hole.
+ */
+const unparsed: string[] = [];
+
 function collectFrom(file: string): FieldRecord[] {
   const out: FieldRecord[] = [];
+  const rel0 = relative(MUD_ROOT, file).split("\\").join("/");
   let view: Record<string, unknown>;
   try {
     view = parseYaml(readFileSync(file, "utf8")) as Record<string, unknown>;
-  } catch {
+  } catch (err) {
+    unparsed.push(`${rel0}: ${err instanceof Error ? err.message : String(err)}`);
     return out;
   }
   if (!view || typeof view !== "object") return out;
@@ -212,6 +222,16 @@ function main(): void {
       `${validated.length} validated, ${declared.length} declared ` +
       `targetKind:any, ${unaccounted.length} unaccounted`,
   );
+
+  if (unparsed.length > 0) {
+    console.error(`\n⚠ ${unparsed.length} spec(s) DID NOT PARSE:`);
+    for (const u of unparsed) console.error(`  ${u}`);
+    console.error(
+      `\ncheck-arg-kinds: FAILED — unreadable specs make every total ` +
+        `above an undercount.`,
+    );
+    process.exit(1);
+  }
 
   if (unaccounted.length > 0) {
     if (byFile) {

@@ -29,3 +29,4 @@ args:
     updates_focus: extend
     validators:
       - /lib/command/validators/mustBeVisible
+    targetKind: any

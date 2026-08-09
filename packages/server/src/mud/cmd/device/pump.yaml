@@ -17,3 +17,4 @@ args:
     scope: "reachable"
     validators:
       - /lib/command/validators/canReach
+      - /lib/command/validators/mustBeFurnace

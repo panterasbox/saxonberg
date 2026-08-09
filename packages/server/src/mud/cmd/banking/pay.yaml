@@ -15,6 +15,7 @@ args:
     type: object
     required: true
     scope: ["reachable", "online"]
+    targetKind: any
   - name: amount
     type: string
     required: true

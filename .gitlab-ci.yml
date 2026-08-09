@@ -128,6 +128,15 @@ lint:
     # content packs may add leaves, never a root, because a pack-minted
     # root breaks subtree muting for every player.
     - pnpm -C packages/server lint:topics
+    # Affordance honesty. Every object-typed arg either carries a kind
+    # validator or declares `targetKind: any`. The resolver's candidate
+    # set is syntactic, so an unvalidated arg makes the verb menu assert
+    # things the controller will refuse — `attack` on a chair. The
+    # client cannot filter those out; it is forbidden from re-deriving
+    # semantics, so a wrong figure on the wire is a wrong figure on
+    # screen. Also fails on any spec it cannot PARSE: an unreadable spec
+    # silently shrinks every total and makes the gate look better.
+    - pnpm -C packages/server lint:arg-kinds --lint
     # The framework wiring is an explicit import, not a global setup
     # file. A test that touches the wired runtime must say so; this
     # keeps the two in sync. It fails only in the cheap direction (a

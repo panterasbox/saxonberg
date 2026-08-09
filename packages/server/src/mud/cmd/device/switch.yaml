@@ -21,6 +21,7 @@ args:
     updates_focus: extend
     validators:
       - /lib/command/validators/canReach
+      - /lib/command/validators/mustBeSwitchable
   - name: state
     type: string
     required: false

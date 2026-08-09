@@ -20,3 +20,4 @@ args:
     required: true
     validators:
       - /lib/command/validators/canReach
+    targetKind: any

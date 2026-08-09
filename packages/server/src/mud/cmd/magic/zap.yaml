@@ -26,8 +26,10 @@ args:
     scope: "reachable"
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeCharged
   - name: target
     type: object
     required: false
     scope: "reachable"
     prepositions: [at, on]
+    targetKind: any

@@ -21,3 +21,4 @@ args:
     scope: ["$focus", "reachable"]
     validators:
       - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeHaulable

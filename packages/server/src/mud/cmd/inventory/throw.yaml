@@ -54,3 +54,4 @@ args:
     prepositions: [at]
     validators:
       - /lib/command/validators/mustBeVisible
+    targetKind: any
