@@ -29,6 +29,7 @@
 import type {
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
+  PaneHold,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -185,6 +186,19 @@ export interface SubscribeRequest {
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
+  /**
+   * Optional lifetime rule — a subscription carrying one is a **pane**.
+   *
+   * ⚠ Deliberately a field on the ordinary subscribe request rather
+   * than a parallel "pane" concept: an N-pane set IS N subscriptions
+   * plus a lifetime rule, so the pane set is the existing registry, and
+   * there is no second registry to keep in step. Evaluated on the
+   * existing re-resolve batch — a pane set with its own tick would be a
+   * second clock.
+   */
+  hold?: PaneHold;
+  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  holdSubject?: string;
 }
 
 export interface QueryRequest {
@@ -324,6 +338,32 @@ export class MqlSubscriptionApi {
    */
   public static cancelAllForScope(scope: string): number {
     return logic().cancelAllForScope(scope);
+  }
+
+  /**
+   * Pin or dismiss a pane — the manual override on its hold condition,
+   * in **both** directions. `true` keeps a pane whose condition has
+   * lapsed; `false` drops one whose condition still holds; `null`
+   * returns it to the condition's judgement.
+   *
+   * Returns false when the subscription is unknown or is not a pane
+   * (carries no hold). Takes effect on the next drain, so a dismiss
+   * emits its release reason down the same path every other release
+   * uses.
+   */
+  public static setPanePinned(
+    interactive: Interactive,
+    subscriptionId: string,
+    pinned: boolean | null,
+  ): boolean {
+    return logic().setPanePinned(interactive, subscriptionId, pinned);
+  }
+
+  /** The open panes for one interactive (subscriptions carrying a hold). */
+  public static listPanes(
+    interactive: Interactive,
+  ): { subscriptionId: string; hold: PaneHold; pinned: boolean | null }[] {
+    return logic().listPanes(interactive);
   }
 
   /* ─── test seams ─── */

@@ -13,6 +13,7 @@
  */
 
 import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
+import { PANE_HOLDS } from '@saxonberg/types';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
@@ -38,6 +39,19 @@ export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
     detailKey: payload.detailKey,
     focusDependent: payload.focusDependent,
     locationDependent: payload.locationDependent,
+    // A hold makes this subscription a pane. Validated here rather than
+    // trusted: `hold` drives a server-side lifetime decision, and an
+    // unrecognized value would otherwise fall through the evaluator's
+    // default and silently produce an immortal pane.
+    hold:
+      payload.hold !== undefined &&
+      (PANE_HOLDS as readonly string[]).includes(payload.hold)
+        ? payload.hold
+        : undefined,
+    holdSubject:
+      typeof payload.holdSubject === 'string'
+        ? payload.holdSubject
+        : undefined,
   });
 };
 

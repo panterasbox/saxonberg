@@ -810,6 +810,80 @@ export interface MqlSubscribeMessage {
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
+  /**
+   * Optional lifetime rule. A subscription carrying a hold is a
+   * **pane**: it lives until its condition lapses, then is released
+   * with a reason. Absent = lives until unsubscribed, the classic
+   * shape.
+   */
+  hold?: PaneHold;
+  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  holdSubject?: string;
+}
+
+/**
+ * What keeps a pane open. Evaluated **server-side**, because these are
+ * facts about the world — a client guessing at them is the same
+ * category error as a client guessing at affordances.
+ *
+ * ⭐ `unanswered` is the one the design leans on: *nothing that is
+ * still actionable ever leaves*. It is also the odd one out — its
+ * subject is a pending **command**, not a Stuff — which is exactly why
+ * it must be built first. A shape derived from the four spatial holds
+ * would not fit it.
+ *
+ * | Hold | Held while | Released when |
+ * |---|---|---|
+ * | `unanswered` | it owes a reply | answered |
+ * | `here` | you are where you were | you left |
+ * | `present` | they are still in the room | they left |
+ * | `inReach` | in reach | out of reach |
+ * | `carried` | on you | not carried |
+ */
+export type PaneHold =
+  | "unanswered"
+  | "here"
+  | "present"
+  | "inReach"
+  | "carried";
+
+/** Every {@link PaneHold}. Server validator and client both read this. */
+export const PANE_HOLDS: readonly PaneHold[] = [
+  "unanswered",
+  "here",
+  "present",
+  "inReach",
+  "carried",
+];
+
+/**
+ * Why a pane went away. A pane that vanishes without a reason reads as
+ * a bug, so the reason is on the wire rather than inferred.
+ *
+ * `dismissed` and `kept` are the manual-pin outcomes: pinning is not a
+ * sixth hold, it is an override on the other five in **both**
+ * directions — keep a pane whose condition lapsed, drop one whose
+ * condition still holds.
+ */
+export type PaneReleaseReason =
+  | "answered"
+  | "left"
+  | "departed"
+  | "out-of-reach"
+  | "dropped"
+  | "dismissed";
+
+/**
+ * A pane's hold lapsed and the pane is gone. Distinct from
+ * {@link MqlSubscriptionErrorEnvelope}: nothing went wrong, the
+ * subscription simply reached the end of its stated lifetime.
+ */
+export interface MqlSubscriptionReleasedEnvelope {
+  type: 'mql-subscription-released';
+  frameId: number;
+  subscriptionId: string;
+  hold: PaneHold;
+  reason: PaneReleaseReason;
 }
 
 export interface MqlUnsubscribeMessage {
@@ -1424,6 +1498,7 @@ export type Envelope =
   | MqlSubscriptionResultEnvelope
   | MqlSubscriptionDeltaEnvelope
   | MqlSubscriptionErrorEnvelope
+  | MqlSubscriptionReleasedEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
   | ForumSubscriptionResultEnvelope
@@ -1447,6 +1522,7 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionReleasedEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
   | Omit<ForumSubscriptionResultEnvelope, 'frameId'>

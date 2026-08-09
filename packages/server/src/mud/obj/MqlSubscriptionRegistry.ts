@@ -34,7 +34,11 @@ import type {
   MqlSubscriptionErrorEnvelope,
   MqlQueryResultEnvelope,
   MqlQueryErrorEnvelope,
+  MqlSubscriptionReleasedEnvelope,
+  PaneHold,
+  PaneReleaseReason,
 } from '@saxonberg/types';
+import { PromptApi } from '../api/prompt';
 import { Idea } from '../lib/stuff/Idea';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
@@ -105,12 +109,45 @@ interface SubscriptionState {
    * dirty. `null` for field/omni registrants.
    */
   birthScope: string | null;
+  /**
+   * Lifetime rule. A subscription carrying one is a **pane**: it lives
+   * until its condition lapses, then is released with a reason on the
+   * wire. `undefined` = the classic shape, lives until unsubscribed.
+   */
+  hold?: PaneHold;
+  /** The pending prompt id an `unanswered` pane waits on. */
+  holdSubject?: string;
+  /**
+   * For `hold: 'here'` — the container the viewer occupied when the
+   * pane opened. "Here" is only meaningful relative to a where, and
+   * the pane's own subject is not it.
+   */
+  holdAnchor?: string;
+  /**
+   * Manual override on the hold, in BOTH directions. `true` keeps a
+   * pane whose condition has lapsed; `false` drops one whose condition
+   * still holds; `null` means the condition decides.
+   *
+   * ⚠ Not a sixth hold condition — an override on the other five. A
+   * pin that were merely another condition could not dismiss.
+   */
+  pinned: boolean | null;
 }
 
 type RecordValue =
   | (StuffRefRecord & Record<string, unknown>)
   | (StuffDetailRecord & Record<string, unknown>)
   | (StuffDetailFocusRecord & Record<string, unknown>);
+
+/**
+ * The stuffId of whatever contains `stuff`, or null. A Sensor is not
+ * necessarily Containable (a disembodied Login is not anywhere), so the
+ * narrowing is real, not ceremony.
+ */
+function containerIdOf(stuff: Stuff): string | null {
+  if (!MixinApi.isContainable(stuff)) return null;
+  return stuff.getContainer()?.stuffId ?? null;
+}
 
 interface DependencyHandle {
   kind: string;
@@ -312,6 +349,13 @@ export default class MqlSubscriptionRegistry extends Idea {
       lastResult,
       dependencyHandles: [],
       birthScope: registrantScope === OMNI_SCOPE ? null : registrantScope,
+      hold: req.hold,
+      holdSubject: req.holdSubject,
+      // `here` means "where I was when this opened", so the anchor is
+      // captured now — the pane's own subject cannot supply it.
+      holdAnchor:
+        req.hold === 'here' ? (containerIdOf(viewer) ?? undefined) : undefined,
+      pinned: null,
     };
 
     this.deriveAndInstallDependencies(sub, stuffList);
@@ -799,6 +843,20 @@ export default class MqlSubscriptionRegistry extends Idea {
       newResult.set(stuff.stuffId, rec);
     }
 
+    // ⚠ Pane lifetime is evaluated HERE — on the batch that was already
+    // running — not on a timer of its own. A pane set with its own tick
+    // would be a second clock, and two clocks disagree.
+    if (sub.hold) {
+      const release = this.evaluateHold(sub, stuffList, viewer);
+      if (release) {
+        this.emitReleased(sub, release);
+        this.teardownSubscription(sub);
+        bucket.delete(sub.subscriptionId);
+        if (bucket.size === 0) this.registry.delete(sub.interactive);
+        return;
+      }
+    }
+
     const changes = this.diff(sub.lastResult, newResult, sub.cardinality);
     sub.lastResult = newResult;
 
@@ -819,6 +877,157 @@ export default class MqlSubscriptionRegistry extends Idea {
       changes,
     };
     MessageApi.sendEnvelope(viewer, template);
+  }
+
+  /**
+   * Evaluate a pane's hold. Returns the release reason, or null to keep
+   * the pane open.
+   *
+   * ⚠ A manual pin is consulted FIRST and overrides in both directions:
+   * `true` keeps a pane whose condition has lapsed, `false` drops one
+   * whose condition still holds. Pinning is an override on the five
+   * conditions, not a sixth condition — a sixth condition could only
+   * ever keep, never dismiss.
+   *
+   * The four spatial holds are direct containment predicates against
+   * the viewer.
+   *
+   * ⚠ Answering them by re-resolving the viewer's MQL seeds (`peers` /
+   * `reachable` / `inventory`) was tried first and is wrong: those
+   * scopes include the room and the viewer themselves, so the scope is
+   * never empty and a hold keyed on "is anything still in scope" can
+   * never lapse. A pane that can never close is worse than no pane
+   * lifetime at all, because the feature reads as working.
+   */
+  private evaluateHold(
+    sub: SubscriptionState,
+    stuffList: Stuff[],
+    viewer: Stuff & Sensor,
+  ): PaneReleaseReason | null {
+    if (sub.pinned === true) return null;
+    if (sub.pinned === false) return 'dismissed';
+
+    switch (sub.hold) {
+      case 'unanswered': {
+        // The odd one out: the subject is a pending COMMAND, not a
+        // Stuff. Absence from the interactive's bucket IS "answered" —
+        // there is no separate flag to go stale.
+        if (!sub.holdSubject) return 'answered';
+        return PromptApi.isPending(sub.interactive, sub.holdSubject)
+          ? null
+          : 'answered';
+      }
+      case 'here': {
+        const now = containerIdOf(viewer);
+        return now !== null && now === sub.holdAnchor ? null : 'left';
+      }
+      case 'present':
+        return this.anySubject(stuffList, viewer, (s) => {
+          const room = containerIdOf(viewer);
+          return room !== null && containerIdOf(s) === room;
+        })
+          ? null
+          : 'departed';
+      case 'inReach':
+        // Same room or in hand. Carried counts as reachable — you can
+        // always act on what you are holding.
+        return this.anySubject(stuffList, viewer, (s) => {
+          const holder = containerIdOf(s);
+          if (holder === null) return false;
+          return holder === viewer.stuffId || holder === containerIdOf(viewer);
+        })
+          ? null
+          : 'out-of-reach';
+      case 'carried':
+        return this.anySubject(
+          stuffList,
+          viewer,
+          (s) => containerIdOf(s) === viewer.stuffId,
+        )
+          ? null
+          : 'dropped';
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Does any of the pane's subjects satisfy `pred`?
+   *
+   * An empty subject list releases: a pane about nothing has nothing to
+   * hold it open. The viewer never counts as its own subject — a pane
+   * about you would otherwise satisfy `carried` and `present` forever.
+   */
+  private anySubject(
+    stuffList: Stuff[],
+    viewer: Stuff & Sensor,
+    pred: (s: Stuff) => boolean,
+  ): boolean {
+    const subjects = stuffList.filter((s) => s.stuffId !== viewer.stuffId);
+    if (subjects.length === 0) return false;
+    return subjects.some(pred);
+  }
+
+  /**
+   * Tell the client the pane went away, and why. A pane that vanishes
+   * without a reason reads as a bug — this is a distinct envelope from
+   * the error one precisely because nothing went wrong.
+   */
+  private emitReleased(
+    sub: SubscriptionState,
+    reason: PaneReleaseReason,
+  ): void {
+    const holder = sub.interactive.getHolder();
+    if (!holder || !MixinApi.isSensor(holder)) return;
+    const template: Omit<MqlSubscriptionReleasedEnvelope, 'frameId'> = {
+      type: 'mql-subscription-released',
+      subscriptionId: sub.subscriptionId,
+      hold: sub.hold!,
+      reason,
+    };
+    MessageApi.sendEnvelope(holder as Stuff & Sensor, template);
+  }
+
+  /**
+   * Manual pin / dismiss. Marks the pane dirty so the override is
+   * applied by the same drain that evaluates every other hold —
+   * a dismiss must not tear down inline, or a pane could be released
+   * on a path that never emitted its reason.
+   */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public setPanePinned(
+    interactive: Interactive,
+    subscriptionId: string,
+    pinned: boolean | null,
+  ): boolean {
+    const sub = this.registry.get(interactive)?.get(subscriptionId);
+    if (!sub || !sub.hold) return false;
+    sub.pinned = pinned;
+    this.markDirty(sub);
+    return true;
+  }
+
+  /** Open panes for one interactive, for the `cockpit pane` report. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public listPanes(
+    interactive: Interactive,
+  ): { subscriptionId: string; hold: PaneHold; pinned: boolean | null }[] {
+    const bucket = this.registry.get(interactive);
+    if (!bucket) return [];
+    const out: {
+      subscriptionId: string;
+      hold: PaneHold;
+      pinned: boolean | null;
+    }[] = [];
+    for (const sub of bucket.values()) {
+      if (!sub.hold) continue;
+      out.push({
+        subscriptionId: sub.subscriptionId,
+        hold: sub.hold,
+        pinned: sub.pinned,
+      });
+    }
+    return out;
   }
 
   private diff(

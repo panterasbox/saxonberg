@@ -78,9 +78,13 @@ describe('the cockpit verb', () => {
     expect(cockpit!.getSubcommandNames().sort()).toEqual([
       'layout',
       'mode',
+      'pane',
       'scope',
       'style',
     ]);
+    expect(cockpit!.controllerForSubcommand('pane')).toBe(
+      '/obj/command/shell/CockpitPaneController'
+    );
     expect(cockpit!.controllerForSubcommand('mode')).toBe(
       '/obj/command/shell/CockpitModeController'
     );
@@ -156,6 +160,16 @@ describe('the cockpit verb', () => {
 
       expect(bind('cockpit layout forget wide').target).toBe('wide');
       expect(bind('cockpit layout list').name).toBe('list');
+    });
+
+    it('binds the cockpit pane override', () => {
+      const pin = bind('cockpit pane pin focus');
+      expect(pin.subcommand).toBe('pane');
+      expect(pin.action).toBe('pin');
+      expect(pin.paneId).toBe('focus');
+
+      expect(bind('cockpit pane dismiss focus').action).toBe('dismiss');
+      expect(bind('cockpit pane').action).toBeUndefined();
     });
 
     it('binds cockpit layout <name>', () => {

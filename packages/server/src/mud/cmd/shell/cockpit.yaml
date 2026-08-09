@@ -147,6 +147,39 @@ subcommands:
         required: false
         greedy: true
 
+  pane:
+    controller: /obj/command/shell/CockpitPaneController
+    description: "Keep or drop an inspection pane, overriding what holds it open."
+    help: |
+      Panes stay open while something about the world keeps them
+      relevant — a question you have not answered, a person still in
+      the room, a thing still in reach. When that lapses the pane is
+      released and tells you why.
+
+      This is the override, and it works both ways:
+
+        cockpit pane list           what is open, and what holds it
+        cockpit pane pin <pane>     keep it after its hold lapses
+        cockpit pane dismiss <pane> drop it while its hold still holds
+        cockpit pane auto <pane>    hand the decision back
+
+      Pinning is not another kind of hold — it is you overruling the
+      one that is there.
+    examples:
+      - cmd: cockpit pane list
+        note: List open panes and what is keeping each one
+      - cmd: cockpit pane pin focus
+        note: Keep a pane after whatever held it lapses
+      - cmd: cockpit pane dismiss focus
+        note: Drop a pane that is still being held open
+    args:
+      - name: action
+        type: string
+        required: false
+      - name: paneId
+        type: string
+        required: false
+
   style:
     controller: /obj/command/shell/StyleController
     description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
