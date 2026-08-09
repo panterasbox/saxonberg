@@ -25,7 +25,7 @@ in flight has already answered better.
 > literal — § 4 is four server tracks, and two of them are blocking.
 
 Related: [client-shell.md](../../subsystems/client-shell.md),
-[cockpit-layouts.md](../../subsystems/cockpit-layouts.md),
+[cockpit.md](../../subsystems/cockpit.md),
 [message-rendering.md](../../subsystems/message-rendering.md),
 [inspection-pane.md](../../subsystems/inspection-pane.md),
 [messaging.md](../../subsystems/messaging.md),
@@ -164,7 +164,7 @@ instead. `GhostCommandLine` moves out of the command bar into the global
 status bar, and the command bar then shows only what you are composing.
 
 This is a restatement of the shipped axiom — *the client owns zero
-command semantics* ([cockpit-layouts.md](../../subsystems/cockpit-layouts.md))
+command semantics* ([cockpit.md](../../subsystems/cockpit.md))
 — at the interaction layer. It binds hardest on **reactions**, the most
 used interaction in the product and the last place it should lapse.
 

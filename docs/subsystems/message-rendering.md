@@ -498,24 +498,35 @@ categories are:
 shape is **bounded** — the engine recognizes a fixed set of keys; no
 `position`, no `z-index`, no global escape hatches.
 
-### The `style` verb
+### `cockpit style`
 
 `StyleController` (`mud/obj/command/shell/StyleController.ts`) is the
-player's surface for editing the overlay. Subcommands:
+player's surface for editing the overlay. Settings:
 
 | Usage | Effect |
 |---|---|
-| `style show` | Print current overlay as readable JSON |
-| `style theme <name>` | `default` \| `high-contrast` |
-| `style channel <key> color <value>` | Per-channel chip color |
-| `style channel <key> clear` | Drop all overlay rules for the channel |
-| `style mention self on\|off` | Own-name highlight toggle |
-| `style plain on\|off` | Global plain-mode toggle |
-| `style plain channel <key> on\|off` | Per-channel plain-mode |
-| `style reset` | Clear overlay to `{}` |
+| `cockpit style show` | Print current overlay as readable JSON |
+| `cockpit style theme <name>` | `default` \| `high-contrast` |
+| `cockpit style channel <key> color <value>` | Per-channel chip color |
+| `cockpit style channel <key> clear` | Drop all overlay rules for the channel |
+| `cockpit style mention self on\|off` | Own-name highlight toggle |
+| `cockpit style plain on\|off` | Global plain-mode toggle |
+| `cockpit style plain channel <key> on\|off` | Per-channel plain-mode |
+| `cockpit style reset` | Clear overlay to `{}` |
 
-`style` is a **single-token verb** per [[no-two-word-verbs]];
-subcommands ride argument shape. The controller travels with
+⚠ **`style` was a standalone verb and is not any more.** It was absorbed
+into the one `cockpit` verb along with `layout` and `mode`, because all
+three wrote the same `cockpit.*` clientState keyspace — see
+[cockpit.md](./cockpit.md). It is not kept as an alias: one name per
+thing.
+
+⚠ The settings above are **not** command subcommands. `cockpit style` is
+already the subcommand and subcommands are one level deep framework-wide,
+so they ride positional slots and `StyleController` dispatches on them —
+which is why it carries an explicit `default:` that refuses an unknown
+setting. Without it, `cockpit style bogus` would silently succeed.
+
+The controller travels with
 `HasInteractiveMixin.commandContributions.self`, so wherever the mixin
 composes the verb appears.
 

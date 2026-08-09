@@ -1,40 +1,221 @@
-# Cockpit layouts + server-authoritative input mode
+# The cockpit
 
-The client front-of-house arrangement layer. Two server-authoritative
-axes ride the existing `clientState` channel — **`cockpit.layout`** (what
-the cockpit looks like) and **`cockpit.inputModes`** (how typing is
-scoped, per bar) — and the client is a pure view over them. The governing
-principle: **the client owns zero command semantics.** Every layout
-switch and every mode change is a real command on the wire.
+The client front-of-house layer: **one verb, two axes, a pane set, and a
+client that is a pure view over all of it.** The governing principle:
+**the client owns zero command semantics.** Every mode switch, every
+arrangement recall and every scope change is a real command on the wire
+— replayable, scriptable, attributable, visible to a stream overlay.
 
 Built against the binding [composition grammar](../cockpit-composition.md)
 (never-blind, fixed-chrome/fluid-content, hierarchy-encoding splits, the
 no-modal rule).
 
-## The layout axis
+## ⭐ One verb: `cockpit`
+
+The cockpit's controls had scattered across **three** top-level verbs
+that each grew independently — `layout`, `style`, and `mode` — and every
+one of them wrote the same `cockpit.*` clientState keyspace. Adding a
+fourth for the new axis would have compounded the scatter rather than
+noticing it.
+
+```
+cockpit                       report everything in effect
+cockpit mode <name>           what you are here to do
+cockpit layout <name>         the pane arrangement inside that mode
+cockpit scope <prefix…>       scope a command bar's bare input
+cockpit style <sub> …         appearance
+cockpit pane pin|dismiss …    override what holds a pane open
+```
+
+`layout` and `style` are **removed** as standalone verbs, not kept as
+aliases: one name per thing, and two names for one thing is a cost that
+never stops being paid. `mode` is absorbed as **`cockpit scope`** — it
+always wrote `cockpit.inputModes`, so it was a cockpit concern wearing a
+top-level verb, and its old word was needed for the activity axis.
+
+The three controllers survive as **per-subcommand controllers**
+(`controller:` on each subcommand), so the consolidation was wiring, not
+a rewrite.
+
+### ⚠ The style tree rides positionals, not nested subcommands
+
+`cockpit style theme high-contrast` looks like a subcommand of a
+subcommand. It is not, and cannot be: `SubcommandDefinition` has no
+`subcommands` field — **subcommands are one level deep framework-wide**,
+and nesting them would be a change to the dispatch chain.
+
+So the style settings ride generic positional slots (`styleSub` / `a` /
+`b` / `c`) and `StyleController` dispatches on them — the same shape
+`style channel <key> color|clear` already used for its own third level.
+The player-facing syntax is unchanged.
+
+⚠ **The cost, and the reason `StyleController` has an explicit
+`default:`** — an unknown setting no longer reaches the matcher's
+`unknown-subcommand` refusal, because `cockpit style` *is* the
+subcommand. Without that default, `cockpit style bogus` would fall out
+of the switch and the command would silently succeed while doing
+nothing, which is a worse failure than an error.
+
+### ⭐ The input-mode exemption is now a rule
+
+`CommandApi.applyInputMode` hardcoded the literal `'mode'` so that mode
+management always reached the interpreter un-prefixed. That literal is
+now **`cockpit`**, and the rule it expresses is finally sayable:
+
+> **Interface control is not world input.** A bar scoped to a chat
+> channel still steers its own cockpit.
+
+This widens the exemption from one verb to one verb's whole subtree, and
+that is correct by construction — everything under `cockpit` is
+interface control, so there is nothing beneath it that *should* be
+prefixed. A narrower exemption would strand a player who scoped a bar to
+gossip: they could not un-scope it without knowing the `/` escape.
+
+⚠ Tested in **both** directions. That cockpit subcommands run
+un-prefixed is half of it; that ordinary verbs typed in that bar are
+*still* prefixed is what makes it an exemption rather than a hole.
+
+## The two axes
+
+They answer different questions, and conflating them is what the old
+`cockpit.layout` did.
+
+| Axis | Question | Key |
+|---|---|---|
+| **mode** | what am I here to do | `cockpit.mode` |
+| **arrangement** | how do the panes sit inside that | `cockpit.arrangements` |
+
+### The mode axis — the front doors
+
+`CockpitMode` / `COCKPIT_MODES` in `@saxonberg/types`: `chat` · `play` ·
+`watch` · `build` · `govern`.
+
+⚠ **A mode is a view, never a gate.** Everything runnable in `play` is
+runnable in `build`. A mode that forbade a verb would be a permission
+system wearing a UI costume, with its checks in the wrong layer, no
+audit trail and no way for a player to discover why a verb vanished.
+"Study mode shouldn't allow combat" is a seductive one-liner and it is
+the wrong layer for that idea.
+
+This is enforced, not merely asserted: a test resolves a verb in all
+five modes, and a source scan asserts **nothing outside the cockpit's
+own four files so much as reads `cockpit.mode`**. A gate has to read the
+mode to enforce it, so "who reads it" is the complete list of places one
+could hide.
+
+A mode owns which arrangements ship, which one you land in, and which
+pane kinds may be summoned. Nothing else.
+
+⚠ `govern` ships as a peer of `build` rather than a tier inside it. The
+seeding slate writes the pair as "the Build / Govern ascent", which
+reads as one progression; they are two values because a front door is a
+front door. If `govern` turns out to belong *within* `build`, that is a
+one-line edit to `COCKPIT_MODES`, not a redesign — flagged deliberately
+rather than silently resolved.
+
+### The arrangement axis — savable, not a frozen list
+
+⚠⚠ **An arrangement is not a closed vocabulary.** `cockpit layout` used
+to validate against `LAYOUT_NAMES`; it cannot any more, because
+arrangements are *savable* — a player composes and names one. It
+resolves against **the active mode's shipped defaults plus that player's
+saved arrangements**, which is why `LAYOUT_NAMES` was *replaced* by
+per-mode defaults rather than promoted.
+
+```
+cockpit layout <name>          recall
+cockpit layout list            what is available here
+cockpit layout save <name>     name the current arrangement
+cockpit layout forget <name>   drop one you saved
+```
+
+`COCKPIT_ARRANGEMENTS` holds the shipped floor; the first entry of each
+list is that mode's default. `watch` ships two (`viewer`, `streamer`).
+
+- **Scoped to a mode.** A name living in a *different* mode is refused
+  **with that mode named**. "Unknown arrangement" would be a lie to a
+  player who has one by that name one door over, and silently switching
+  their mode to find it would be worse — a recall is not a mode change.
+- **No silent shadowing.** A saved name may never shadow a shipped
+  default, and the collision is refused at **save** time, where it can
+  still be explained, rather than resolved at recall time in favour of
+  whichever list happened to be checked first.
+- **Bounded.** Names are player input that become persisted map keys and
+  get rendered back: 32 characters, no spaces.
+- **Remembered per mode.** `cockpit mode chat` → `cockpit mode play`
+  returns you where you were.
+
+`cockpit mode <name> [arrangement]` sets both at once — which is what a
+Views-menu item means, and why the menu stays one click = one
+previewable command.
+
+### ⚠ The legacy migration is a MAPPING, not a rename
+
+The five old `cockpit.layout` values were really *a mode plus that
+mode's arrangement* flattened into one string, and every player who ever
+ran `layout builder` has one persisted.
+
+| legacy | → mode | → arrangement |
+|---|---|---|
+| `world` | `play` | default |
+| `forum` | `chat` | default |
+| `livestream-viewer` | `watch` | **viewer** |
+| `streamer` | `watch` | **streamer** |
+| `builder` | `build` | default |
+
+The livestream row is the one that matters: **two legacy values collapse
+into one mode with different arrangements**, so the mode column alone is
+lossy and only the arrangement column keeps them apart.
+
+Resolved **on read** (`getCockpitMode` / `getCockpitArrangement`), so
+nothing has to sweep stored Avatars and a player who never returns costs
+nothing. Two details that are easy to get wrong:
+
+- `cockpit.mode` defaults to **`null`, not `'play'`**. A `'play'`
+  default would answer for a legacy player before the migration could,
+  and the migration would silently never run.
+- The legacy arrangement is **scoped to the mode it migrated to**.
+  `livestream-viewer` may answer for `watch`; it must not answer for
+  `play`, or one mode's vocabulary leaks into another.
+
+`snapshotClientState` emits both axes **resolved**. A raw snapshot would
+hand a legacy client `cockpit.mode: null` and make the *client* decide
+what that means — the one thing the client may not own.
+
+### ⚠ `cockpit.layout` survives as a compatibility projection
+
+The shipped client still swaps its whole frame off `cockpit.layout`,
+keyed by `LayoutName`, and repainting it is a separate cycle. So the
+server keeps that key painted from (mode, arrangement) via
+`LEGACY_LAYOUT_FOR` / `legacyLayoutFor`.
+
+**It is marked to die with the client overhaul.** The two real axes are
+mode and arrangement; without the projection the cockpit would go blank
+the moment arrangements stopped being layout names, which is the only
+reason it exists.
+
+Not total, and cannot be: `govern` has no legacy layout at all, and a
+player-saved arrangement has none by construction. Both fall back to the
+mode's first mapping — the honest answer, since the old client cannot
+render them and renders the nearest thing it has.
+
+## Panes held by a condition
+
+See [inspection-pane.md](./inspection-pane.md) for the pane set itself.
+The cockpit's half is the override verb: `cockpit pane pin|dismiss|auto|list`.
+
+## The old layout axis (still the client's shape)
 
 Layout is per-player UI state, identical in kind to `console.tabs` — so
-it is a `clientState` key, not a client-local field.
+it is a `clientState` key, not a client-local field. The client registry
+below is keyed by the legacy `LayoutName` and is what the compatibility
+projection feeds.
 
-- **Vocabulary** — `LayoutName` / `LAYOUT_NAMES` in `@saxonberg/types`,
-  imported by both ends so the verb's validator and the client registry
-  can never drift: `world` | `forum` | `livestream-viewer` | `streamer`
-  | `builder`.
-- **Schema** — `cockpit.layout` is a `clientStateSchema` entry on
-  `HasInteractiveMixin` (`mud/lib/connection/HasInteractive.ts`), default
-  `'world'`, validator = `LAYOUT_NAMES.includes(v)`.
-- **Verb** — `layout <name>` (`cmd/shell/layout.yaml` +
-  `obj/command/shell/LayoutController.ts`), mirroring `StyleController`'s
-  **write → save → push** commit triple (`setClientState` →
-  `Avatar.save()` → `pushClientStateUpdate`). Unknown names reject via a
-  `controller-rejected` note; the write never lands. Co-located with
-  `style` in the cockpit-config verb family (`style` = appearance,
-  `layout` = arrangement, `mode` = input scope).
-- **No auto-switch.** `layout` is the *only* way to change layout — typed
-  or sent by the "Views" menu. The `forum` verb stays pure CRUD (you reach
-  the board view via `layout forum`); the standalone `?surface=cms`
-  takeover is retired (builder is entered the same way). No domain verb,
-  URL, NPC, or item flips layout this cycle (deferred).
+- **No auto-switch.** `cockpit layout` / `cockpit mode` are the *only*
+  ways to change what is on screen — typed, or sent by the "Views" menu.
+  The `forum` verb stays pure CRUD (you reach the board view via
+  `cockpit mode chat`); the standalone `?surface=cms` takeover is
+  retired. No domain verb, URL, NPC, or item flips it.
 
 ### Client registry
 
@@ -50,13 +231,13 @@ are **deleted** — all view-switching lives in the one server axis.
   command bar owns its own local input draft and submits its `barId`;
   preview/flash live in the ghost line, not in a bar.
 - The **"Views" menu** (`components/ViewsMenu.tsx`) previews/sends
-  `layout <name>` per the click model and marks the current layout. It +
+  `cockpit mode <mode> <arrangement>` per the click model and marks the current layout. It +
   the Settings affordance live in the **single top `Frame` bar**
   (`components/frame/Frame.tsx`) alongside bus-health + identity — one
   fixed chrome row, not two (the separate `ChromeBar` row was folded into
   `Frame` so the content area reclaims the vertical space).
 - An **always-on minimum** (the Frame bar, a command bar) renders in
-  every layout, so the player can always type `layout world` to leave.
+  every layout, so the player can always type `cockpit mode play` to leave.
 
 ### The five layouts
 
@@ -132,7 +313,7 @@ rail. The WebSocket session is **live** the whole time — the standalone
 always connects. The `CmsApi`/`CmsLogic` REST surface +
 `CmsSession.runAsSessionPlayer` attribution bridge are reused **unchanged**
 (a client re-mount, not a CMS rewrite). The dev account-menu launcher
-sends `layout builder` over the bus instead of opening a tab.
+sends `cockpit mode build` over the bus instead of opening a tab.
 
 ## Server-authoritative input mode (per bar)
 
@@ -164,13 +345,13 @@ primacy made absolute.
   per-bar lookup is at the call site. The echo reflects the **dispatched**
   text.
 - **`mode` verb** (`cmd/shell/mode.yaml` + `ModeController`) edits one
-  bar's entry — `mode <prefix…>` sets, `mode off` / bare `mode` clears.
+  bar's entry — `cockpit scope <prefix…>` sets, `cockpit scope off` / bare `cockpit scope` clears.
   The target resolves `model.bar ?? context.barId ?? 'main'`: a typed
   `mode` defaults to the bar it was submitted from (`context.barId`), and
   the explicit **`--bar <id>`** option names a bar for an affordance —
   which dispatches *un-moded* (no wire `barId`, so preview == send) and so
   can't rely on `context.barId`. The target rides in the command text
-  (`mode chat --bar stream-chat`), keeping the ghost-line preview honest.
+  (`cockpit scope chat --bar stream-chat`), keeping the ghost-line preview honest.
   Because modes are transient the commit is just **write→push** (no
   `save()`).
 
@@ -186,8 +367,8 @@ The client no longer wraps input. The `inputMode` store slice is gone.
   (read from `cockpit.inputModes[barId]`); it **hides when the input is
   exempt** (`/` or `mode`), so the bar always shows what dispatches.
   Closing the mode is a small `✕` at the bar's edge (+ Esc), both sending
-  `mode off` from that bar. The chat sidecar's "talk here" sends
-  `mode chat <handle>` from the forum bar.
+  `cockpit scope off` from that bar. The chat sidecar's "talk here" sends
+  `cockpit scope chat <handle>` from the forum bar.
 
 ### The ghost command line + click model
 
@@ -245,7 +426,7 @@ from the retired requirements/plan in four deliberate ways:
   `transient` clientState key (in-memory `_transientClientState`, never
   persisted, resets on fresh login); `ModeController` dropped its
   `save()`. `cockpit.layout` stays persisted.
-- **`mode --bar <id>`** (`4e82e740`) — explicit target so an un-moded
+- **`cockpit scope --bar <id>`** (`4e82e740`) — explicit target so an un-moded
   affordance can scope a named bar.
 
 The `world` layout's right rail gained the **Inspect | Who's Online**
