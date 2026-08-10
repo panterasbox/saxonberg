@@ -213,6 +213,32 @@ direct containment predicates now, and the viewer never counts as its
 own subject — a pane about *you* would otherwise satisfy `carried` and
 `present` forever.
 
+### ⚠⚠ A hold must install the dependency that lets it fire
+
+A hold is only evaluated when its subscription **re-resolves**, and a
+subscription only re-resolves when something marks it dirty. So every
+hold except `unanswered` implies `locationDependent` — they are all
+questions about where things are relative to the viewer, and without the
+holder-level container dependency nothing wakes them.
+
+**Found by driving it live, with eleven passing tests.** A `here` pane
+was immortal: the viewer walked out, nothing woke the subscription, the
+hold was never evaluated, and the pane never closed. The suite was green
+throughout because **every test called `refreshForInteractive` by hand**
+— the manual refresh stood in for the wake production would never
+perform, so the tests asserted the *condition* was right while never
+exercising whether anything would ask it.
+
+The lesson generalizes past panes: **a derive-on-read answer is dead
+unless something invalidates it**, and a test that pokes the deriver
+directly cannot see the difference. Any test for this shape should
+perform only the world change and assert the consequence — no manual
+refresh. A `refresh*` / `drain*` helper appearing in every case of a
+file is the smell.
+
+`unanswered` is excluded deliberately: its subject is a pending prompt,
+not a position, and the prompt's own resolution is what should wake it.
+
 ### Release carries a reason
 
 `mql-subscription-released { subscriptionId, hold, reason }` — a

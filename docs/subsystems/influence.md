@@ -56,6 +56,63 @@ The symmetry lives at the standing/band layer; the **asymmetry stays at the
 source** — capital is `concave($)`, not `engagement × quality`, so no shared
 formula fits. Raw logs stay per-faucet.
 
+## ⭐ Standing levels — what a stock measures *of*
+
+> **Make** (you build) and **Fund** (you pay) are things the **person**
+> does → account-level. **Play** accrues by living in the world as one
+> particular body → per-character, and is the only standing that can
+> legitimately diverge across an account's characters.
+
+`STOCK_LEVEL` states that as data:
+
+| stock | level |
+|---|---|
+| `consumer` (play) | `character` |
+| `producer` (make) | `account` |
+| `capital` (fund) | `account` |
+
+⚠ **Vocabulary, not arithmetic.** Declaring producer account-level says
+nothing about *how* an account's figure derives from its characters'.
+
+### ⚠⚠ `standingForHost` — the seam, and its stub
+
+`InfluenceApi.standingForHost(host, stock)` is the read every
+player-facing surface goes through: the `standing` verb, the `profile`
+digest, and the `makeStanding` live field. That is the whole point —
+three surfaces reading one figure through one function **cannot
+disagree**.
+
+**The account-level aggregation inside it is a stub. It does not
+aggregate.** For an account-level stock it returns the host's own
+subject standing, exactly as a character-level read would. So make
+standing is still per-character today, and that is *visible rather than
+pretended*.
+
+This is deliberate. How an account's make standing derives from its
+characters' — sum, best, decayed differently, something else — is an
+open design question and its own piece of work. Committing to a formula
+would ship a number players can see derived from a placeholder, and
+every surface reading it would encode the placeholder by reference.
+
+An earlier attempt did commit to one (banding the sum of the account's
+scalars, computed inside `Avatar`) and produced three defects worth
+naming, because they are the failure modes any retry should avoid:
+
+1. **Split-brain** — only the dashboard was changed, so `standing` and
+   `profile` still answered per-character and one player could see two
+   different make bands.
+2. **Wrong cutoffs** — `Band.fromScalar(total)` with no argument
+   silently uses `DEFAULT_BAND_THRESHOLDS` while every real producer
+   band uses the configured ones from AppSettings.
+3. **Silent downgrade** — it read `getUser()`, which is runtime-only and
+   unpersisted; unset, it quietly fell back to per-character with
+   nothing saying so.
+
+⚠ `producer_events` is **not** re-keyed by any of this. Re-keying has a
+wrong answer available — silently dropping the history of anyone with
+more than one character — so whatever formula lands should aggregate on
+**read**, which derive-on-read makes possible.
+
 ## The producer stock (the make faucet)
 
 An author earns producer standing from **engagement their released content
