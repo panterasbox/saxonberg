@@ -194,8 +194,46 @@ The gated `Api` ↔ HMR logic-singleton split (the `ChronicleApi` /
 
 `practisingCompetence` answers *what am I working on*;
 **`competenceDigest`** answers *what do I know* — every Discipline with
-evidence and its band. Both ship as subscribable fields on `Avatar`, so
-the client's self-view reads them live.
+evidence and its band. Both ship as subscribable fields on
+**`AdvancementMixin`** — the mixin that owns the subsystem, not on
+`Avatar` — so the client's self-view reads them live.
+
+### ⭐ Competence is expressed uniformly for players and NPCs
+
+`ownerKey` is `getIdentityPath()`, so an NPC has always been able to own
+a Transcript, and `Character` composes `AdvancementMixin`. Putting the
+descriptors on the mixin is what makes that reachable: Dave the Barkeep
+has the same competence fields a player does.
+
+The read gate is deliberately **asymmetric**:
+
+| Host | Who may read |
+|---|---|
+| player-controlled (`getPlayerId() !== null`) | **self only** |
+| anyone else (an NPC, a fixture) | **any viewer** |
+
+A player's competence is their own. An NPC's is a fact about the world —
+Dave being good behind a bar is a thing you can learn about Dave. A
+self-only gate on both would make the field *defined* on every host and
+*answerable* on none, because an NPC never subscribes on its own behalf.
+
+⚠⚠ **This is uniform EXPRESSION, not uniform authoring.** Nothing writes
+an NPC's Transcript except combat (`CombatLogic` records against
+`actor` / `state.combatant`), and the only authoring path is `practice`
+— a wizard, self-only dev harness with no target argument. So most NPCs
+read as the floor in every Discipline, and **there is currently no way
+to state that Dave is good at bartending.** That needs an authoring
+path, and the fork is whether an authored competence is *declared* on
+the NPC/species (a floor `bandOf` maxes against) or *seeded* as
+synthetic Transcript rows — which differ on whether `bandOf` stays a
+pure derivation over real evidence, a property this whole subsystem
+leans on. Unresolved; the read side is already correct for when it
+lands.
+
+⚠ `undefined` from these descriptors is **ambiguous by design**: it
+means both *the gate withheld this* and *the fold has not landed yet*.
+A subscription treats them alike (omit the field), but a caller that
+needs to observe the gate must prime the fold first.
 
 They are the **sync** faces of an async ledger: `bandsFor` awaits
 `transcripts`, and a `subscribableFields.read` cannot. Each rides a
