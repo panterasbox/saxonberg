@@ -64,6 +64,7 @@ AuthoringEvent.author = 0
 AuthoringEvent.kind = 0
 AuthoringEvent.path = 0
 AuthoringEvent.realAt = 0
+Avatar.lastSeen = 0
 Avatar.mortalArc = 0
 Avatar.startLocation = 0
 BankCounter.corpoKey = 0

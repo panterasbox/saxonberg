@@ -419,6 +419,24 @@ unbuilt-state convention exists for.
   which is *still* broken). Anything catalogue-shaped must be warmed at
   boot, with a test asserting a cold read fails **loudly**.
 
+## ⚠ Withdrawn during MR review
+
+Five criteria were **deliberately not met**. Each encoded a model that
+review found unsettled or mistaken; the reasons live in the commits and,
+where a test exists, in the test itself rather than being silently
+dropped. Recorded here so a reviewer reading the list below is not
+hunting for work that was decided against.
+
+| # | Status | Why |
+|---|---|---|
+| 12, 13 | **withdrawn** | `recall` / `SearchApi` cut. The doc claimed viewer-filtering DELETES; two of three implemented scopes did no filtering, and `recall press` returned `members`-only releases to anyone. Search needs a shared "may this viewer read this" contract across five subsystems that do not have one — its own build. |
+| 15 | **withdrawn** | The notification-policy read was bound to `NotifyPolicyMixin`, which governs *inline message frames* and whose own doc says "no separate notification surface". The client's tray is for what you will NOT see in the terminal — a different concept with different producers. |
+| 16 | **not met, deliberately** | It asserts two characters on one account report the SAME make standing — a claim about the **formula**, which is deferred design work. `STOCK_LEVEL` + `InfluenceApi.standingForHost` land the *shape*; the aggregation is an explicit stub. Asserting the equality would pin placeholder arithmetic into the suite. |
+| 18 | **withdrawn** | The "since you left" digest. What happened publicly while you were away is the press subsystem's job; the private slice (home, mail, party/committee) is bounded and undecided. `lastSeen` stays — it is a cheap fact, not a digest. |
+
+⭐ Criterion **20** (no away-log collection) is *more* satisfied than
+planned: there is now no away digest at all.
+
 ## Acceptance criteria
 
 1. `cockpit mode <name>` sets `cockpit.mode`; bare `cockpit` reports

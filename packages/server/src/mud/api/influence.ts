@@ -95,12 +95,15 @@ export class InfluenceApi {
     // fallback so the key always agrees.
     const subject = host.getTemplatePath() ?? host.stuffId;
 
-    // STUB — see the ⚠⚠ above. The account branch is deliberately
-    // identical to the character branch until the formula is designed.
-    // `STOCK_LEVEL[stock]` is read here so the seam is wired and the
-    // eventual change is one line, not a search.
-    void STOCK_LEVEL[stock];
-
+    // ⚠⚠ STUB. `STOCK_LEVEL[stock]` says whether this figure measures
+    // the account or the character — and this is the function that will
+    // act on it. It does not yet: an account-level stock resolves to
+    // the host's own subject, identical to a character-level one.
+    //
+    // Two things are missing and both are deliberate: the account →
+    // characters resolution, and the formula that combines them. When
+    // they land they land HERE, and every caller is already routed
+    // through this function.
     return InfluenceApi.standingOf(subject, stock);
   }
 
