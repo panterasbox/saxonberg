@@ -21,9 +21,33 @@ import { ProducerApi } from './producer';
 import { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import type { Stock } from '../lib/standing/InfluenceStanding';
 import type { Band } from '../lib/standing/Band';
+import type { Stuff } from '../lib/stuff/Stuff';
 import { SecurityApi } from './security';
 
 export type { Stock };
+
+/**
+ * Which *level* a stock measures at.
+ *
+ * From the seeding slate: **Make** (you build) and **Fund** (you pay)
+ * are things the **person** does → account-level. **Play** accrues by
+ * living in the world as one particular body → per-character, and is
+ * the only standing that can legitimately diverge across an account's
+ * characters.
+ *
+ * ⚠ This is **vocabulary, not arithmetic.** Declaring that producer is
+ * account-level says nothing about how an account's figure is derived
+ * from its characters' — that is an open design question (see
+ * {@link InfluenceApi.standingForHost}).
+ */
+export type StandingLevel = 'account' | 'character';
+
+/** The level each stock measures at. See {@link StandingLevel}. */
+export const STOCK_LEVEL: Readonly<Record<Stock, StandingLevel>> = {
+  consumer: 'character',
+  producer: 'account',
+  capital: 'account',
+};
 
 export class InfluenceApi {
   /**
@@ -36,6 +60,48 @@ export class InfluenceApi {
     if (stock === 'consumer') return ConsumerApi.standingOf(subjectId);
     if (stock === 'producer') return ProducerApi.standingOf(subjectId);
     return InfluenceStanding.zero(subjectId, stock);
+  }
+
+  /**
+   * A **host's** standing in `stock` — the seam every player-facing
+   * surface reads through, so `standing`, `profile` and the live
+   * dashboard field cannot disagree.
+   *
+   * ⚠⚠ **THE ACCOUNT-LEVEL AGGREGATION IS A STUB. It does not
+   * aggregate.** For an account-level stock this currently returns the
+   * host's *own* subject standing — exactly what a character-level read
+   * returns.
+   *
+   * That is deliberate. *How* an account's make standing derives from
+   * its characters' — sum, best, decayed differently, something else
+   * entirely — is an open design question and its own piece of work.
+   * Committing to a formula here would ship a number players can see
+   * that is derived from a placeholder, and every surface that read it
+   * would encode the placeholder by reference.
+   *
+   * So the **shape** lands and the **arithmetic** does not:
+   *
+   *   - `STOCK_LEVEL` records which stocks are account-level;
+   *   - this is the one function that will consult it;
+   *   - all three read surfaces already call through here.
+   *
+   * When the standing design lands, exactly one function changes and
+   * nothing downstream moves. Until then a producer standing is still
+   * per-character, and **that is visible rather than pretended**.
+   */
+  public static standingForHost(host: Stuff, stock: Stock): InfluenceStanding {
+    // The durable subject the faucets re-key storage to; the live
+    // stuffId is re-minted on re-clone. Matches the faucet's own
+    // fallback so the key always agrees.
+    const subject = host.getTemplatePath() ?? host.stuffId;
+
+    // STUB — see the ⚠⚠ above. The account branch is deliberately
+    // identical to the character branch until the formula is designed.
+    // `STOCK_LEVEL[stock]` is read here so the seam is wired and the
+    // eventual change is one line, not a search.
+    void STOCK_LEVEL[stock];
+
+    return InfluenceApi.standingOf(subject, stock);
   }
 
   /** The band a subject sits in for `stock` (the player-facing surface). */

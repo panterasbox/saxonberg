@@ -64,7 +64,6 @@ import { EstateMixin } from "../lib/chattel/Estate";
 import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
-import { Band } from '../lib/standing/Band';
 import { RenownApi } from '../api/renown';
 
 /**
@@ -115,47 +114,6 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
 function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
   if (viewer?.stuffId !== stuff.stuffId) return undefined;
   return stuff.getTemplatePath() ?? undefined;
-}
-
-/**
- * ⭐ **The producer band for the whole ACCOUNT**, not this character.
- *
- * *Make* (you build) is something the person does; only *Play* accrues
- * by living in the world as one particular body. So `makeStanding`
- * answers for every character on the account, and the strongest band
- * any of them earned is the account's.
- *
- * ⚠ **The ledger is not re-keyed to make this work.** `producer_events`
- * rows were written against a character subject, and rewriting them has
- * a wrong answer available — silently dropping the history of anyone
- * whose account has more than one character. Aggregating on READ leaves
- * every row where it is and stays correct for accounts that gain a
- * character later.
- *
- * ⚠ The account's SCALARS are summed and the total banded — not the
- * per-character bands compared. Someone who authored a little as each
- * of three characters has done all of that work as one person, and
- * max-of-bands would throw two thirds of it away. Banding the sum is
- * the only aggregation that matches what the figure claims to measure.
- *
- * Falls back to this character alone when the account is unknown (a
- * guest, or a body constructed directly in a test) — the pre-existing
- * behaviour, so nothing regresses.
- */
-function accountMakeBand(stuff: Stuff): Band {
-  const own = stuff.getTemplatePath() ?? undefined;
-  const user = (stuff as Avatar).getUser?.();
-  const slots = user?.playerIds ?? [];
-
-  const subjects = slots.map((id) => Avatar.getTemplatePath(id));
-  if (own && !subjects.includes(own)) subjects.push(own);
-  if (subjects.length === 0) return Band.of('dormant');
-
-  const total = subjects.reduce(
-    (sum, s) => sum + InfluenceApi.standingOf(s, 'producer').scalar,
-    0,
-  );
-  return Band.fromScalar(total);
 }
 
 /**
@@ -358,25 +316,20 @@ export default class Avatar extends AvatarBase {
     },
     {
       /**
-       * ⚠ **Account-level, unlike its neighbours.** *Make* is something
-       * the PERSON does, not the character — there is no reason to
-       * author as one character rather than another, so a per-character
-       * make standing is a number that means nothing. `playStanding`
-       * and `renown` stay per-character, which is the whole point of
-       * the split: they are the ones that can legitimately diverge
-       * across an account's characters.
+       * *Make* is an **account-level** stock (`STOCK_LEVEL`): it is
+       * something the person does, not the character.
        *
-       * ⚠ **`producer_events` is NOT re-keyed.** Those rows were
-       * written against a character key, and rewriting them has a wrong
-       * answer available — silently dropping the history of anyone with
-       * more than one character. So the READ aggregates instead, which
-       * derive-on-read makes possible and which leaves the ledger's
-       * history intact and re-derivable.
+       * ⚠ Read through `standingForHost`, the shared seam — NOT through
+       * a local aggregation. The account arithmetic is deliberately
+       * unbuilt (see that method), so this is still a per-character
+       * figure today. Deriving one here would put a formula in a
+       * concrete class, which is where the previous attempt went wrong:
+       * it made the dashboard disagree with `standing` and `profile`.
        */
       name: 'makeStanding',
       read: (stuff, viewer) => {
         if (!standingSubject(stuff, viewer)) return undefined;
-        return { band: accountMakeBand(stuff) };
+        return { band: InfluenceApi.standingForHost(stuff, 'producer').band };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
