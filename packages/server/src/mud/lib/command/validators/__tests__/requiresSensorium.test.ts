@@ -5,6 +5,7 @@
  * the giver's `PerceptionApi.sensorium` walk.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import requiresHearing from '../requiresHearing';
 import requiresSmell from '../requiresSmell';

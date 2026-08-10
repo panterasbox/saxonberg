@@ -6,6 +6,7 @@
  * resident and the two must byte-agree).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";

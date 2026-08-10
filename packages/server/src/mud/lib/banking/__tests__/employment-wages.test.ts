@@ -6,6 +6,7 @@
  * a zero-length (paused-clock) shift pays nothing.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BankingApi, Money } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';

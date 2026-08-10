@@ -18,6 +18,7 @@
  * read is covered in `mql.test.ts`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Pronouns } from '@saxonberg/types';
 import {

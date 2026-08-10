@@ -9,6 +9,7 @@
  * stub PM's find / save surface — the same wrappers `TranscriptEntry` uses.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AdvancementApi } from "../advancement";
 import type { ActSignature } from "../../lib/advancement/ActSignature";

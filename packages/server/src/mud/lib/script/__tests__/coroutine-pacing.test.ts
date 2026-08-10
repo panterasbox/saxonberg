@@ -10,6 +10,7 @@
  * its effect never lands (partial matter standing).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Coroutine } from "../Coroutine";
 import { Interpreter } from "../Interpreter";

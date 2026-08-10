@@ -6,6 +6,7 @@
  * on-shift bartender; an off-shift or never-employed maker is inert.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { MakerMixin } from '../../craft/Maker';

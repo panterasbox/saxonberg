@@ -14,6 +14,7 @@
  * payoff of the pipeline keying on a body rather than a page id.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiController from '../WikiController';
 import WikiRegistry from '../../../WikiRegistry';

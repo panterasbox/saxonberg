@@ -11,6 +11,7 @@
  * `installFrameworkWiring` installs), driven by test-planted roots.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   PersistenceManager,

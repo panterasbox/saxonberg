@@ -3,6 +3,7 @@
  * draft term folded into getBorneBurden, and the symmetric R2.2 cleanup.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

@@ -16,6 +16,7 @@
  * advancing the clock — there is no recurring tick.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { Creature } from '../../../lib/creature/Creature';

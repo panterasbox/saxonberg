@@ -7,6 +7,7 @@
  * through the real ConnectionManager occupancy harness.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../../location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';

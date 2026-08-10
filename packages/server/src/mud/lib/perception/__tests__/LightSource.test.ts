@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LightSourceMixin } from '../LightSource';
 import Thing from '../../stuff/Thing';

@@ -7,6 +7,7 @@
  * (reception gate unchanged).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DmController from '../DmController';
 import { StuffApi } from '../../../../api/stuff';

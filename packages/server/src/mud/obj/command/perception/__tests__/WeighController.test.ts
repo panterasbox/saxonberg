@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import WeighController from '../WeighController';
 import { TangibleMixin } from '../../../../lib/material/Tangible';

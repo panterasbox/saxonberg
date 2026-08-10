@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Window from '../Window';
 import { Light } from '../../lib/perception/Light';

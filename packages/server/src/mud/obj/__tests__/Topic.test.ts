@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Topic from '../Topic';
 import { Idea } from '../../lib/stuff/Idea';

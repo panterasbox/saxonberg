@@ -6,6 +6,7 @@
  * client concern.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ClearController from '../ClearController';
 import { MessageApi } from '../../../../api/message';

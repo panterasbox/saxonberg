@@ -7,6 +7,7 @@
  * persistence round-trip.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { HasInteractiveMixin } from '../HasInteractive';
 import type { ClientStateSchemaEntry } from '../HasInteractive';

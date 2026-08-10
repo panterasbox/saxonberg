@@ -4,6 +4,7 @@
  * un-offered or unknown drinks.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Menu from '../Menu';
 import RecipeCatalogue from '../../../obj/RecipeCatalogue';

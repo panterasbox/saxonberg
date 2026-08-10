@@ -5,6 +5,7 @@
  * command-pronoun and command-empty-resolve.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import LookController from '../LookController';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';

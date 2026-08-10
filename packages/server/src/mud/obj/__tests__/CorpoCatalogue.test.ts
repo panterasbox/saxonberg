@@ -5,6 +5,7 @@
  * and singleton destruct refusal.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import CorpoCatalogue from "../CorpoCatalogue";
 import Corpo from "../corpo/Corpo";

@@ -6,6 +6,7 @@
  * StyleController harness; the push wire is spied.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import ModeController from '../ModeController';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';

@@ -15,6 +15,7 @@
  * `mayEdit`, which is a display hint the verb re-checks on arrival.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiController from '../WikiController';
 import WikiRegistry from '../../../WikiRegistry';

@@ -5,6 +5,7 @@
  * if stamping ever breaks, this file is the canary.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 import { ModuleApi } from '../../../api/module';

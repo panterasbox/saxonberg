@@ -4,6 +4,7 @@
  * Interactive whose holder composes Avatar (CommandGiver + Sensor).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { MqlSubscriptionLogic } from '../../obj/api/MqlSubscriptionLogic';

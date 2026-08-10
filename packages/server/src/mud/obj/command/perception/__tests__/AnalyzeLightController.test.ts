@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeLightController from '../AnalyzeLightController';
 import CartesianZone from '../../../location/CartesianZone';

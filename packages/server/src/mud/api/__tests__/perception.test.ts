@@ -10,6 +10,7 @@
  *     bodyplan, sessile).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { PerceptionLogic } from '../../obj/api/PerceptionLogic';

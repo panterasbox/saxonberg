@@ -4,6 +4,7 @@
  * Wider coverage lives in SmellController.test.ts.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import ListenController from '../ListenController';
 import type { MqlOneResult } from '../../../../api/mql';

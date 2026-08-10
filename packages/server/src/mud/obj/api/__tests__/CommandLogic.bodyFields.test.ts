@@ -9,6 +9,7 @@
  * the wrong shape.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CommandApi } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';

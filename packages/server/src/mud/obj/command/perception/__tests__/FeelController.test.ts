@@ -5,6 +5,7 @@
  * pipeline is exercised once there).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import FeelController from '../FeelController';
 import type { MqlOneResult } from '../../../../api/mql';

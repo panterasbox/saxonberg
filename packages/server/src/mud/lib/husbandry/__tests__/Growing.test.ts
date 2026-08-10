@@ -6,6 +6,7 @@
  * cap. See docs/subsystems/husbandry.md.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
 import { GrowingMixin, type GrowthProfileData } from '../Growing';

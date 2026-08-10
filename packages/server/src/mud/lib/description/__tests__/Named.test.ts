@@ -2,6 +2,7 @@
  * NamedMixin tests — names, full-name composition, alternate names.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { NamedMixin, type AlternateName } from '../Named';
 import { Idea } from '../../stuff/Idea';

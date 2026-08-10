@@ -12,6 +12,7 @@
  *   - targets outside MQL scope aren't addressable.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import SmellController from '../SmellController';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';

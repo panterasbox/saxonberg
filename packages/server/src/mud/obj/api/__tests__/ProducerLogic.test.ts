@@ -10,6 +10,7 @@
  * `bucket = floor(realAt / 600000)`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducerApi } from '../../../api/producer';
 import { AppSettings } from '../../../lib/config/AppSettings';

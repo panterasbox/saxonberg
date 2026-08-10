@@ -11,6 +11,7 @@
  *     pure-container).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';

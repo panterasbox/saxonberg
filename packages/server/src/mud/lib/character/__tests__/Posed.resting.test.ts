@@ -15,6 +15,7 @@
  * must never fail because their furniture moved.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import { StuffApi } from "../../../api/stuff";
 import { SlotApi } from "../../../api/slot";

@@ -6,6 +6,7 @@
  * both paths (live Employment, authored roster) with exit suppression.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GovernmentApi } from "../../../api/government";
 import { AddressApi } from "../../../api/address";

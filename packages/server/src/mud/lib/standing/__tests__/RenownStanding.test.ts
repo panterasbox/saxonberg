@@ -7,6 +7,7 @@
  * Mongo is faked with an in-memory collection (the renown harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RenownStanding, { COMPACT_WIDE } from '../RenownStanding';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';

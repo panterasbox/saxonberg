@@ -3,6 +3,7 @@
  * rivals read surface.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import Corpo from "../Corpo";
 import { StuffApi } from "../../../api/stuff";

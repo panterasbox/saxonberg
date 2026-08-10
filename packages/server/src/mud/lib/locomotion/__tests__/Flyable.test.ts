@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FlyableMixin, FLIGHT_CAPABILITY_PROP } from '../Flyable';
 import { Idea } from '../../stuff/Idea';

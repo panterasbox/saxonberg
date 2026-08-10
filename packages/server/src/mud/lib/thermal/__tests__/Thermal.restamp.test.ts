@@ -8,6 +8,7 @@
  *      — re-stamps the room's Thermal contents toward the new ambient.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Thing from "../../stuff/Thing";
 import Location from "../../stuff/Location";

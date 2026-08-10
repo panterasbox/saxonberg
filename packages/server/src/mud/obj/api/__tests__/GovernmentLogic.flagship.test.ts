@@ -10,6 +10,7 @@
  * key/address mismatch between the seed files fails here.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";

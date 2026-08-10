@@ -16,6 +16,7 @@
  * zone + authorship reads are stubbed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { ProducerApi } from '../../../api/producer';

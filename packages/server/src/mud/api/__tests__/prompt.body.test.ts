@@ -8,6 +8,7 @@
  * Push without body emits only the envelope; no MessageFrame.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PromptApi } from '../prompt';
 import { EventApi } from '../event';

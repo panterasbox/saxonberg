@@ -14,6 +14,7 @@
  * parcel-title stubs from the CompactLogic suite.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Authority, type PrincipalRef } from '../Authority';
 import { OrganizationMixin } from '../Organization';

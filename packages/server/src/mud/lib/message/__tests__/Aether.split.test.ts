@@ -4,6 +4,7 @@
  * the ESP modalities and the `isAether` composition predicate stay.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { AetherMixin } from '../Aether';
 import { Idea } from '../../stuff/Idea';

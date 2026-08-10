@@ -8,6 +8,7 @@
  * the viewer "Bob". Ordinal disambiguation carries no identity.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { MqlApi } from '../../mql';
 import { RECOGNITION } from '../../../lib/belief/BeliefStore';

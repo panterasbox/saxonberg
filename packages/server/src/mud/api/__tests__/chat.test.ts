@@ -7,6 +7,7 @@
  * from outside the ChatApi facade module.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ChatApi } from '../chat';
 import { ChatLogic } from '../../obj/api/ChatLogic';

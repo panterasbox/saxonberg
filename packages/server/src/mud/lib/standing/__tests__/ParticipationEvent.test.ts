@@ -4,6 +4,7 @@
  * faked PM (the renown harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ParticipationEvent from '../ParticipationEvent';
 import { Collections, PersistenceManager } from '../../../../backend/PersistenceManager';

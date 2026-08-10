@@ -7,6 +7,7 @@
  * band — no verb, so it works on an incapacitated body.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import VomitController from "../VomitController";
 import { Creature } from "../../../../lib/creature/Creature";

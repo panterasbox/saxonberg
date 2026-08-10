@@ -12,6 +12,7 @@
  * Pure in-memory (write-through no-ops with Mongo disconnected).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RegardApi } from '../regard';
 import { RegardLogic } from '../../obj/api/RegardLogic';

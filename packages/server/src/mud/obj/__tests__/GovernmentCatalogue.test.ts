@@ -4,6 +4,7 @@
  * state, defensive copies, and singleton destruct refusal.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import GovernmentCatalogue from "../GovernmentCatalogue";
 import Government from "../Government";

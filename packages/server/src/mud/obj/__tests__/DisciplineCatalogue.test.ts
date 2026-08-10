@@ -4,6 +4,7 @@
  * singleton destruct refusal.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import DisciplineCatalogue from "../DisciplineCatalogue";
 import Discipline from "../Discipline";

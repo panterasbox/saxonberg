@@ -11,6 +11,7 @@
  * lands with the wardrobe wave, when circle paths exist to name.)
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SandboxApi } from '../../../../api/sandbox';
 import { StuffApi } from '../../../../api/stuff';

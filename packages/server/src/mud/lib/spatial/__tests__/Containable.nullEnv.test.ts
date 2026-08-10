@@ -12,6 +12,7 @@
  * are the regression net.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Thing from '../../stuff/Thing';
 import { Character } from '../../character/Character';

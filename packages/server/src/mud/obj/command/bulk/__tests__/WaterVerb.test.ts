@@ -8,6 +8,7 @@
  * nothing.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WaterController from '../WaterController';
 import WateringCan from '../../../WateringCan';

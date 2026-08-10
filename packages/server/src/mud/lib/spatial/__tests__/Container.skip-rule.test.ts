@@ -13,6 +13,7 @@
  * good sitting between two worn items must not shift the worn indices.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../obj/ChattelRegistry";
 import Thing from "../../stuff/Thing";

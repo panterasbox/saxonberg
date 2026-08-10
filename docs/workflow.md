@@ -89,6 +89,11 @@ MR creation are not gated on the user; only the merge is.
 **No skill.** A good plan is self-bootstrapping; the user opens a
 fresh session, points at the plan path, and the build proceeds.
 
+⚠ **Run the full suite once per build, not three or four times.** Use
+`pnpm test:near` for the mid-build loop and `pnpm test` before opening
+the MR. See [testing.md § How often to run it](./testing.md) for the
+table, and for why this is not "checking less".
+
 ### 4. MR review iteration
 
 **Inputs.** The GitLab merge request (`panterasbox/saxonberg!<n>`)

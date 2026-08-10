@@ -7,6 +7,7 @@
  * A minimal Behaved host on the in-memory PM stub (no full Character).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { Idea } from "../../stuff/Idea";

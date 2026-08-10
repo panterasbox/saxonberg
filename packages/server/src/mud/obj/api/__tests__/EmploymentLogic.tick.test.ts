@@ -6,6 +6,7 @@
  * recurring real-time schedule.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';

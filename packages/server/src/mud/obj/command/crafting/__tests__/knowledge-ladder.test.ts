@@ -11,6 +11,7 @@
  * nothing.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ForgeController from '../ForgeController';
 import CookController from '../CookController';

@@ -9,6 +9,7 @@
  * the tally's standing input is deterministic. Build period seeded to 1000s.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConvictionApi } from '../../../api/conviction';
 import { InfluenceApi } from '../../../api/influence';

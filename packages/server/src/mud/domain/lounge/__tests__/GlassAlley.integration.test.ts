@@ -16,6 +16,7 @@
  * controllers (Mongo faked, scene stubbed).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GlassAlley from '../GlassAlley';
 import Bandage from '../../../obj/Bandage';

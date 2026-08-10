@@ -18,6 +18,7 @@
  *     melee); the cannot-connect fact rides its own predicate.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import {
   makeStuff,

@@ -10,6 +10,7 @@
  * lettering is touch-and-vision in the ordinary one.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   MarkedMixin,

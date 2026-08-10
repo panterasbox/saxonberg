@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Window from '../Window';
 import { Boundary } from '../../lib/boundary/Boundary';

@@ -16,6 +16,7 @@
  *     failure mode the lift was most likely to introduce.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { OrganizationMixin } from '../Organization';

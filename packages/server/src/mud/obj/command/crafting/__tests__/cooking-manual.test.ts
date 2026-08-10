@@ -8,6 +8,7 @@
  * mints the generic pot-luck.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PourController from '../PourController';
 import StirController from '../StirController';

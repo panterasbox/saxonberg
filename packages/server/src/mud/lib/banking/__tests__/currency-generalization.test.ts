@@ -18,6 +18,7 @@
  * cannot accidentally satisfy.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { BankingApi, Money } from "../../../api/banking";
 import { Currency } from "../Currency";

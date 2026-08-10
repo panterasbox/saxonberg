@@ -17,6 +17,7 @@
  * discovery + perception + medium; no RNG. Mongo faked, scene stubbed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Trap from '../../../obj/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';

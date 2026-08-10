@@ -9,6 +9,7 @@
  * environment/peers → host's CG siblings).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ShadowApi } from '../../../api/shadow';
 import { Shadow } from '../../stuff/Shadow';

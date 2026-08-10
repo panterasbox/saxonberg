@@ -10,6 +10,7 @@
  * `GoController`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SearchController from '../../../obj/command/perception/SearchController';
 import GoController from '../../../obj/command/movement/GoController';

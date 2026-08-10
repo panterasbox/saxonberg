@@ -7,6 +7,7 @@
  * mechanical response functions are never touched on the shock path.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { MaterialApi } from '../../../api/material';

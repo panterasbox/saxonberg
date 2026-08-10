@@ -5,6 +5,7 @@
  * DB clone); the consumer's `createMember` mints a bare test room.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Warren, type Attachment } from '../Warren';
 import { WarrenMemberMixin } from '../WarrenMember';

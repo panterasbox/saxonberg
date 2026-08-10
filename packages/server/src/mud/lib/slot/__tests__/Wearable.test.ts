@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { WearableMixin } from '../Wearable';
 import { SlottableMixin } from '../Slottable';

@@ -5,6 +5,7 @@
  * deterministically with no wall-clock wait.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import { WorldClockLogic } from '../../../obj/api/WorldClockLogic';

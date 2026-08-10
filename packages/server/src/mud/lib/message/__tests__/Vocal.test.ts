@@ -10,6 +10,7 @@
  *     it fails earlier than VocalMixin's intended throw.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';

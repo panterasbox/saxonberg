@@ -18,6 +18,7 @@
  * symmetric `#BOUNDARY_EXEMPT_METHODS` set.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import {

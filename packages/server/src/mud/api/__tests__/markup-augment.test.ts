@@ -5,6 +5,7 @@
  * the wrapped text) lives in the LookController + Detailed tests.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Mml, type MarkupAugmenter } from '../mml';
 import { Idea } from '../../lib/stuff/Idea';

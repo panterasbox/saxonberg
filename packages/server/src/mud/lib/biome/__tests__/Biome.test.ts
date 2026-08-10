@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Biome from '../Biome';
 import { Idea } from '../../stuff/Idea';

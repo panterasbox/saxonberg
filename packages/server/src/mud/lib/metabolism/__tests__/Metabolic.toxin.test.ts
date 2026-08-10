@@ -7,6 +7,7 @@
  * `Condition` seed (here, in-memory fixtures at the toxin path).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import Condition from "../../../obj/Condition";

@@ -7,6 +7,7 @@
  * pre-gate, the traversal hook) is much easier to read at this level.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';

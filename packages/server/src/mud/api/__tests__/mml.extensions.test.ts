@@ -10,6 +10,7 @@
  * the expected markup shape and that the retired helper is gone.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Mml } from '../mml';
 import { Idea } from '../../lib/stuff/Idea';
