@@ -167,8 +167,6 @@ describe('standing splits by level', () => {
     const names = [...collectSubscribableFields(alice as unknown as Stuff).keys()];
     expect(names).toContain('competenceDigest');
     expect(names).toContain('practisingCompetence');
-    // Criterion 15 — the notification policy read.
-    expect(names).toContain('notifyPolicy');
   });
 
   /*
@@ -188,7 +186,6 @@ describe('standing splits by level', () => {
       ).subscribableFields.map((f) => f.name);
       expect(own).not.toContain('competenceDigest');
       expect(own).not.toContain('practisingCompetence');
-      expect(own).not.toContain('notifyPolicy');
     });
 
     it('an NPC has the same competence fields a player does', () => {

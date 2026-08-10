@@ -21,9 +21,6 @@ import {
   SettingTypes,
   type SettingsSchemaEntry,
 } from "../shell/Environment";
-import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
-import { MixinApi } from "../../api/mixin";
-import { SocialApi } from "../../api/social";
 import type { GroupRef } from "./GroupProvider";
 import { PRESENCE_FORMAT_DEFAULT, type NotifyRule } from "./NotifyRule";
 
@@ -75,52 +72,6 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
       _notifyRules: { persistent: true, runtimeState: true },
     };
 
-    /**
-     * ⭐ The **notification policy** the client's tray paints — on the
-     * mixin that owns the policy, not on `Avatar`.
-     *
-     * ⚠ The surface is the POLICY, not a feed. The tray shows what the
-     * receiver *said they wanted*, not everything that happened, so
-     * this ships the ordered rules plus the ping variants they produce.
-     * A feed would put the filtering decision on the client, which is
-     * the one thing the client may not own.
-     *
-     * ⚠ **Self-only.** Your notification policy is a statement about
-     * what you want to be bothered by; nobody else has business reading
-     * it. Unlike competence, there is no NPC arm here — an NPC has no
-     * tray, so a policy read would answer a question nothing asks.
-     *
-     * The ping variants are DERIVED from the rules rather than
-     * enumerated beside them, so the two cannot drift.
-     */
-    static subscribableFields: SubscribableFieldDescriptor[] = [
-      {
-        name: "notifyPolicy",
-        read: (stuff, viewer) => {
-          if (viewer?.stuffId !== stuff.stuffId) return undefined;
-          if (!MixinApi.isNotifyPolicy(stuff)) return undefined;
-          const rules = SocialApi.listRules(stuff);
-          return {
-            rules: rules.map((r) => ({
-              groupRef: r.groupRef,
-              nameRendering: r.nameRendering,
-              boostInDense: r.boostInDense,
-              onConnect: r.onConnect,
-              onDisconnect: r.onDisconnect,
-              onMessage: r.onMessage,
-              color: r.color,
-            })),
-            pings: {
-              connect: [...new Set(rules.map((r) => r.onConnect))].sort(),
-              disconnect: [
-                ...new Set(rules.map((r) => r.onDisconnect)),
-              ].sort(),
-              message: [...new Set(rules.map((r) => r.onMessage))].sort(),
-            },
-          };
-        },
-      },
-    ];
 
     /**
      * The global verbosity dial — schema-on-mixin (declared here, not on
