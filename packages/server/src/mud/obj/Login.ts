@@ -435,43 +435,11 @@ export default class Login extends LoginBase {
         }));
       }
 
-      const since = this.sinceYouLeft(a, out.lastSeen);
-      if (since.length > 0) out.sinceYouLeft = since;
     } catch {
       // A roster that throws is a login the player cannot complete.
       // Degrade to the four base fields rather than block the screen.
     }
     return out;
-  }
-
-  /**
-   * "Since you left" — what happened to this character while away.
-   *
-   * ⚠ **Derived on read; there is deliberately no away-log
-   * collection.** A stored digest would be a second source of truth for
-   * events the ledgers already own, and it would need a retention
-   * policy nobody has decided. Criterion 20 asserts the collection's
-   * absence.
-   *
-   * ⚠ Returns an empty list when `lastSeen` is absent: with no window
-   * there is nothing to derive over, and "everything that ever
-   * happened" is not what the screen is asking.
-   */
-  private sinceYouLeft(a: Avatar, lastSeen: number | undefined): string[] {
-    if (lastSeen === undefined) return [];
-    const lines: string[] = [];
-
-    // The transcript is the one ledger with a sync derived face, so it
-    // is the one this can read without awaiting inside the roster
-    // build. Other ledgers join as their derive-on-read faces land;
-    // each is additive and none of them stores anything new.
-    const bands = AdvancementApi.competenceDigestCached(a);
-    if (bands !== undefined && bands.length > 0) {
-      lines.push(
-        `${bands.length} discipline${bands.length === 1 ? "" : "s"} on record`,
-      );
-    }
-    return lines;
   }
 
   /**
