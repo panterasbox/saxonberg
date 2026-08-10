@@ -190,7 +190,6 @@ behavior. Read the relevant doc before editing in its area.
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
   - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
-  - [search.md](./docs/subsystems/search.md) — one search surface over the durable sources; the `recall` verb (NOT `search`, the perception verb); viewer-filtering DELETES; reads existing storage
 
 ## ⚠ Worktrees — read before committing
 

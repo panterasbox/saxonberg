@@ -182,12 +182,6 @@ export default class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "system/wiki.yaml",
-      // `recall` rides beside `help` and `wiki` for the same reason
-      // they ride together: it is a reference surface you carry, not
-      // one you reach for. Reading is open by design, so it is not
-      // gated behind a hosted aether update the way `forum` / `chat`
-      // are — and it filters by DELETION, so an open verb cannot leak.
-      "system/recall.yaml",
       "system/clear.yaml",
       "system/affordances.yaml",
       "author/player.yaml",
