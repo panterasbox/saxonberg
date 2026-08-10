@@ -1,21 +1,26 @@
 /**
- * ⚠⚠ Acceptance criterion 16: **standing splits by level.**
+ * Standing levels, and the read seam every surface goes through.
  *
- * *Make* (you build) is something the PERSON does → account-level.
- * *Play* accrues by living in the world as one particular body →
- * per-character, and the only standing that can legitimately diverge
- * across an account's characters.
+ * ⚠⚠ **Acceptance criterion 16 is NOT met, deliberately.** It asks that
+ * two characters on one account report the SAME make standing — which
+ * is a claim about the account **formula**, and the formula is an open
+ * design question that was explicitly deferred. Asserting equality here
+ * would pin a placeholder arithmetic into the test suite, and every
+ * future change to the real formula would then read as a regression.
  *
- * The test asserts BOTH halves against two characters on one account:
- * the same make standing, and *different* play standing. The second
- * half is what proves the split is real rather than a global — a
- * makeStanding that merely returned a constant would pass the first
- * half alone.
+ * What DID land is the abstraction:
  *
- * ⚠ `producer_events` is deliberately NOT re-keyed. Re-keying has a
- * wrong answer available (silently dropping the history of anyone with
- * more than one character), so the READ aggregates. That is only
- * possible because the figure derives on read.
+ *   - `STOCK_LEVEL` records that producer/capital are account-level and
+ *     consumer is per-character — vocabulary, not arithmetic;
+ *   - `InfluenceApi.standingForHost` is the one seam that will consult
+ *     it, and all three player-facing surfaces already call through it,
+ *     so they cannot disagree;
+ *   - the aggregation inside it is a **stub** that does not aggregate.
+ *
+ * So these tests assert the SEAM and the LEVEL DECLARATION, and
+ * explicitly pin that make standing is still per-character today — so
+ * the day it stops being, this file says so out loud instead of
+ * silently agreeing.
  */
 
 import "../../../test-bootstrap";
@@ -32,6 +37,7 @@ import {
 import { collectSubscribableFields } from '../../api/mql-subscription';
 import NPC from '../NPC';
 import { AdvancementApi } from '../../api/advancement';
+import { InfluenceApi, STOCK_LEVEL } from '../../api/influence';
 
 /**
  * Read a subscribable field as some viewer.
@@ -73,14 +79,48 @@ describe('standing splits by level', () => {
   });
 
   /*
-   * Half one: MAKE is the person's, so both bodies answer the same.
+   * The level declaration — vocabulary only. This is the part of
+   * criterion 16 that can be asserted without inventing arithmetic.
    */
-  it('reports the SAME make standing for two characters on one account', () => {
-    const a = readField('makeStanding', alice as unknown as Stuff) as { band: { name: string } };
-    const b = readField('makeStanding', bob as unknown as Stuff) as { band: { name: string } };
-    expect(a).toBeDefined();
-    expect(b).toBeDefined();
-    expect(a.band.name).toBe(b.band.name);
+  it('declares make and fund as account-level, play as per-character', () => {
+    expect(STOCK_LEVEL.producer).toBe('account');
+    expect(STOCK_LEVEL.capital).toBe('account');
+    expect(STOCK_LEVEL.consumer).toBe('character');
+  });
+
+  /*
+   * ⚠ The stub, pinned deliberately. Make standing does NOT yet
+   * aggregate across an account, and this asserts that out loud so the
+   * change is a visible, intentional edit rather than something that
+   * quietly starts happening.
+   */
+  it('does NOT aggregate across the account yet — the formula is unbuilt', () => {
+    const own = InfluenceApi.standingOf(
+      alice.getTemplatePath()!,
+      'producer',
+    );
+    const viaSeam = InfluenceApi.standingForHost(
+      alice as unknown as Stuff,
+      'producer',
+    );
+    expect(viaSeam.scalar).toBe(own.scalar);
+    expect(viaSeam.band.name).toBe(own.band.name);
+  });
+
+  /*
+   * The seam is what stops the three surfaces disagreeing — the defect
+   * the first attempt shipped, where the dashboard was account-level
+   * and `standing` / `profile` were not.
+   */
+  it('routes the dashboard field through the same seam the verbs use', () => {
+    const viaField = readField('makeStanding', alice as unknown as Stuff) as {
+      band: { name: string };
+    };
+    const viaSeam = InfluenceApi.standingForHost(
+      alice as unknown as Stuff,
+      'producer',
+    );
+    expect(viaField.band.name).toBe(viaSeam.band.name);
   });
 
   /*
@@ -109,7 +149,7 @@ describe('standing splits by level', () => {
    * body) must still answer rather than throwing — the pre-existing
    * behaviour, so nothing regresses for guests.
    */
-  it('falls back to this character alone when the account is unknown', () => {
+  it('answers for a body with no account rather than throwing', () => {
     const loner = makeStuff(() => new Avatar()) as Avatar;
     stampTemplatePathForTest(loner, Avatar.getTemplatePath('loner'));
     loner.setPlayerId('loner');
