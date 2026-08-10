@@ -513,6 +513,44 @@ plan and requirements (now retired) described the earlier shape:
   multi-recipient speech path hits the same async-`ruleFor`/sync-render
   wall and wants a sync contacts-fast-path — deferred.
 
+## ⭐ Idleness — the project standard
+
+> **You are idle when you have not sent a command.** Not when the socket
+> is quiet, not when a heartbeat lapses, not when a widget says so.
+
+`Interactive.lastInputAt` is stamped by `touchInput()` at the
+**`CommandGiver` dispatch tail** — so it advances on every dispatched
+command and on nothing else. Because every clickable in the cockpit
+sends a command, **clicks count automatically**; there is no separate
+click signal to keep in step, and there must never be one.
+
+`PresenceLogic` derives the status by comparing that stamp against the
+configurable `social.idleAfter`. There is **no stored idle flag and no
+per-player timer** — idleness is derive-on-read like every other
+standing in this codebase.
+
+⚠ **Do not introduce a second clock.** Anything that needs "is this
+player paying attention" — presence rows, the notification widget,
+idle-eviction, away summaries — reads this one. A subsystem that starts
+tracking its own activity signal will disagree with `who` the first
+time the two are computed a second apart, and the disagreement will be
+invisible.
+
+### ⚠ Attention is idleness; a cockpit mode is only *where* you are looking
+
+The cockpit's mode axis (`chat · play · watch · build · govern`) is a
+declared intent, not a measurement: a player can sit in `play` while
+away from the keyboard, or work in `build` while glancing at the
+terminal rail constantly. So the division of labour is fixed:
+
+| Question | Answered by |
+|---|---|
+| Is this player paying attention at all? | `lastInputAt` — **the truth** |
+| *Which surface* counts as the one they are watching? | the cockpit mode |
+
+A consumer that used mode as a proxy for attention would mute a player
+who is actively working and alert one who has walked away.
+
 ## Roster rows across the sandbox boundary
 
 `SocialApi.statusOf` and `SocialApi.composeRow` route through
