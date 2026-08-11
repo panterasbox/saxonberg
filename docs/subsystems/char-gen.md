@@ -295,37 +295,54 @@ lookup gets attention, is to let the same `buildDossier` output render
 into a wiki template page — one caller becomes two and the promise is
 kept.
 
-### ⚠⚠ And the leak runs the other way
+### ⚠ The dossier drops the reveal level on the wire
 
-The more actionable finding. `buildDossier`'s **Composition** section
-prints, unconditionally and for **every species in the roster**:
+`buildDossier`'s **Composition** section prints `Density` and `Edible`,
+both of which carry `spoiler: 1`.
 
-```
-Tissue    <material name>     ← open
-Density   <kg/m³>             ← ⚠ level 1
-Edible    yes/no              ← ⚠ level 1
-```
+⚠ **This is not a leak, and it matters to say why.** The contract is
+declared on `fieldMeta` in `lib/mixin.ts`, not by the wiki, and level 1
+means **collapsed by default, not forbidden**:
 
-[wiki.md](./wiki.md)'s reveal table puts **density** and **edibility**
-squarely in `Material`'s *level 1* column, alongside hardness, the
-conductivities and toxicity — the measured properties the design
-deliberately withholds so that material science is *discovered* rather
-than looked up.
+> *"level 1 is collapsed by default rather than forbidden, so tagging a
+> measurement costs a reader one click instead of locking them out."*
 
-So char-gen is not merely showing depth the world cannot confirm; **it is
-printing what the world deliberately withholds**, to a player who has not
-yet entered it, for every playable species at once. `buildDossier` reads
-`material.getDensity()` / `getEdibility()` directly and passes through no
-reveal gate.
+The doc is explicit that reclassifying density and hardness to level 1
+was only coherent **because** that reader rung exists. So any player can
+open these; the dossier is not showing secret data.
 
-**This wants a decision, not a patch:** either the dossier drops those
-two rows (the Composition section still has the tissue name, which is
-open), or the classification is wrong and should be revised at its
-declaration site. Do not silently keep both.
+**The real gap is structural.** `spoiler` is declared on the field
+precisely so it travels *"wherever it surfaces — a wiki panel, the
+Studio, help, a future codex."* But `DossierSection.rows` is
+`{ label, value }` — **no level.** The reveal level is dropped at the
+char-gen boundary, so a client *cannot* collapse a level-1 row even if it
+wanted to, and char-gen renders expanded what every other surface renders
+collapsed.
 
-The Biology, Classification and Anatomy sections are clean — every row
-is in the *left open* column or is identity/taxonomy. Only Composition
-is at issue.
+⭐ **The fix is a wire-type change, not a content decision:** carry the
+level on the row (`{ label, value, spoiler? }`) and let the renderer
+collapse. That is cheap, it is the same generalization the rest of this
+section argues for, and it puts char-gen back inside the model rather
+than beside it.
+
+The Biology, Classification and Anatomy sections are all level 0.
+
+### ⚠ What is genuinely unfinished: reveal answers appetite, not epistemics
+
+Worth recording so it is not rediscovered as a bug. The reveal model
+answers *"does this reader want to be spoiled"* — an **appetite** axis,
+resolved by a click. It does not answer *"does this character know
+this"*, which is an **epistemic** question and has no substrate.
+
+The deferred [identification-slate](../slates/tails/identification-slate.md)
+(`analyze X with Y`, real Material chemistry, partial identification,
+misidentification) is the other half — knowledge as something *earned*,
+per-viewer, rather than revealed by preference. The two can coexist, but
+only if it stays clear which is which: a collapse toggle is not a lock,
+and a lock is not a collapse toggle.
+
+Until that lands, char-gen showing material properties is a *presentation*
+inconsistency and nothing more.
 
 ## Commit + spawn
 
