@@ -26,7 +26,6 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
-import Seed from '../../Seed';
 import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
 import Plant from '../../Plant';
 
@@ -68,7 +67,10 @@ export default class PlantController extends CommandController<PlantModel> {
       return;
     }
 
-    if (!(seed instanceof Seed)) {
+    // ⭐ The CAPABILITY, not the `Seed` class. `mustBePlantable` on the
+    // spec checks this exact predicate — one source of truth, so the
+    // menu and the verb cannot disagree about what can be planted.
+    if (!MixinApi.isPlantable(seed)) {
       const detail = `${seed.getPresentation()} is not a seed`;
       MessageApi.scene(giver)
         .topic(TOPIC)

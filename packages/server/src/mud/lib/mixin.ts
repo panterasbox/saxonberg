@@ -332,6 +332,9 @@ export const Mixins = {
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;
   // a garden bed is the same surface with a bigger N.
   Cultivable: 'CultivableMixin',
+  // A thing that can be put in the ground and grows into something —
+  // a seed, and equally a cutting / tuber / bulb once those exist.
+  Plantable: 'PlantableMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).

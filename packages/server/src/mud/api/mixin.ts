@@ -86,6 +86,7 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Growing } from '../lib/husbandry/Growing';
+import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
@@ -974,6 +975,15 @@ export class MixinApi {
 
   public static isGrowing(obj: Stuff): obj is Stuff & Growing {
     return this.hasMixin(obj, Mixins.Growing);
+  }
+
+  /**
+   * Can this be put in the ground? The `plant` verb's kind gate —
+   * the capability, not the `Seed` class, so a future cutting / tuber /
+   * bulb is plantable without extending `Seed`.
+   */
+  public static isPlantable(obj: Stuff): obj is Stuff & Plantable {
+    return this.hasMixin(obj, Mixins.Plantable);
   }
 
   /**
