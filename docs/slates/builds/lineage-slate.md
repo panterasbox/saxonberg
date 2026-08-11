@@ -283,6 +283,13 @@ disposition claim reads as *things that happened in that household*.
 > **Genotype is inherited. Disposition is learned from.** Same card, two
 > mechanisms.
 
+⭐ Under [trait-slate](./trait-slate.md)'s two-value model this acquires a
+precise meaning: **seeded claims set your `equilibrium`; your own acts
+drive `expressed`.** So the family choice is a permanent baseline rather
+than a permanent verdict — sustained contrary behavior moves equilibrium
+eventually, and **you can grow out of your upbringing, slowly.** That is
+the property an inescapable species field could never have.
+
 ### The migration
 
 `semieldarinus` and `semiorcus` are **shipped, playable roster entries in
@@ -369,6 +376,9 @@ expensive half; let the cheap half measure the appetite first.
   and the quality criterion the body budget has to satisfy
 - [species-expansion-slate](../tails/species-expansion-slate.md) — the
   roster, and the hybrid-retirement note
+- [trait-slate](./trait-slate.md) — equilibrium vs expressed (what a
+  seeded claim actually sets), and the shared *deviation, not absolutes*
+  narration rule the gallery card follows
 - [trait.md](../../subsystems/trait.md) — `dispositions` claim-seeding,
   the upbringing mechanism
 - [antecedents-slate](./antecedents-slate.md) — the background prior, and
