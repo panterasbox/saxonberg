@@ -58,6 +58,45 @@ expert}` and have `bandFor` short-circuit — should be **rejected**:
   [advancement](../../subsystems/advancement.md) and
   [renown](../../subsystems/renown.md) exist to prevent.
 
+## ⭐ The house already answered this twice
+
+Competence is the **odd one out**, not the trailblazer. Two shipped
+subsystems solve the identical problem by **seeding `claim`-kind
+evidence**:
+
+- **[trait.md](../../subsystems/trait.md)** — `BehavedMixin` carries a
+  declarative `dispositions: ClaimSeed[]`; `postRegister` seeds them via
+  `TraitApi.seedClaims`, idempotently across re-clone and CMS go-live. In
+  the doc's own words, *"personality that came from a seeded history, not
+  a slider."*
+- **[chronicle.md](../../subsystems/chronicle.md)** — `seedClaims` mints
+  the authored prologue at char-gen from the chosen aspiration.
+
+So the **principle** is settled and this slate should not re-argue it.
+What is open is only the *representation*, and there is a real reason
+competence cannot simply copy the trait recipe — see the next section.
+
+## ⚠ Why competence can't just seed claim rows
+
+Trait's estimator is a **decayed signed sum**: a handful of large-valence
+claim rows moves it decisively, which is exactly why `dispositions:`
+works as a flat list.
+
+Competence's estimator is a **BKT with difficulty-modulated observation**,
+*deliberately built to resist that*. Unsurprising evidence barely moves
+the posterior, and the ZPD learning rate is ~0 at the trivial end. Seeded
+claims hit the same wall real grinding does — which is the property the
+firewall exists to have.
+
+To make Dave an expert out of claim rows you would need either **hundreds
+of them** (the fabricated biography this slate exists to avoid) or a
+per-row weight large enough that the weight *is* a fiat band wearing a
+costume.
+
+⭐ **The prior is the honest place to put it**, because a prior is what a
+Bayesian estimator already has. Authoring it changes an input the model
+declares; inflating a row's weight corrupts evidence the model trusts.
+
 ## The mechanism — author the prior, not the evidence
 
 `Competence.derive` is a two-state BKT fold. A Bayesian estimator has a
@@ -145,11 +184,23 @@ competence they start with.
 
 ## Open questions (Phase A)
 
-1. **Where does the prior live** — a field on `Competence.derive(evidence,
-   prior?)`, or synthesized `kind: 'claim'` Transcript rows at clone time?
-   Rows are more uniform (one code path, replayable, inspectable via
-   `entriesFor`); a prior parameter is cheaper for the crowd. Possibly
-   both: crowd derives a prior, cast materializes rows on first append.
+1. **Where does the prior live** — a parameter on
+   `Competence.derive(evidence, prior?)`, or synthesized `kind: 'claim'`
+   Transcript rows at clone time?
+
+   The trait/chronicle precedent argues for **rows** (one code path,
+   replayable, inspectable via `entriesFor`, and the authoring surface an
+   author already recognizes). The BKT argues for a **parameter**, per
+   *"Why competence can't just seed claim rows"* above — and the parameter
+   is also what buys the zero-write crowd.
+
+   ⭐ **The likely answer is both, split by role:** the **background
+   declaration** is authored in the `BehavedMixin.dispositions` shape (so
+   authors meet one idiom across personality and capability), and it
+   *compiles* to a prior rather than to rows. Uniform surface, honest
+   mechanism. Worth resolving early — it decides whether
+   `Competence.derive`'s signature changes, which is the one invasive edit
+   in Phase A.
 2. **Does background decay?** A bartender who has not poured a drink in
    ten game-years is arguably rusty. The estimator has no forgetting term
    today, and adding one affects players equally.
@@ -163,6 +214,87 @@ competence they start with.
 5. **Is `background` readable in-world?** A CV is a diegetic object. If
    the wiki or a `profile` verb can show it, it becomes content rather
    than config — which is probably right, and has spoiler consequences.
+
+---
+
+## The sibling ledgers — what else an NPC arrives without
+
+Competence is one of several ledgers a freshly-cloned NPC arrives at
+zero on. The question *"which of them need an authoring surface"* has a
+rule, and it is **the same line Phase B draws**:
+
+> **Attributes of the NPC are authorable. Facts about a society are
+> not.**
+
+| ledger | NPC authoring | status |
+|---|---|---|
+| `disposition_events` | `BehavedMixin.dispositions` → seeded claims | ✅ **shipped** |
+| `chronicles` | `seedClaims` (char-gen prologue) | ✅ **shipped** |
+| `transcripts` | the prior | ← **this slate** |
+| `beliefs` (who knows whom) | no surface exists | ⚠ **gap** |
+| `renown_events` | no surface, plus a trap (below) | ⚠ **gap** |
+| `participation_events` | **excluded by design** — "an **interactive** origin (a real player, never NPC / programmatic)" | ✅ answered |
+| `producer_events`, `positions`, `office_holders` | excluded — an NPC holds no office and stakes no conviction | ✅ answered |
+| `accountability_events` | derive-on-read from producers; nothing to seed | ✅ n/a |
+| `bank_ledger`, `parcels`, `chattel` | registry rows, seedable today | ✅ mostly |
+
+⭐ The influence family is **already settled**, which is the good news:
+only two holes remain on the social side, not seven.
+
+### ⚠ Gap 1 — authored acquaintance
+
+[belief.md](../../subsystems/belief.md) is explicit that the store is
+kind-agnostic — "the same path serves player↔player, player↔NPC,
+NPC↔player, **NPC↔NPC**." But nothing *authors* those edges. NPCs learn
+identities at runtime via the `introduces` brain, so **a cast that has
+worked together for years introduces itself every morning.**
+
+The naive fix is a `knows:` list, and it is an **N² authoring problem** —
+nobody writes 30 edges for a six-person cast. The shape that likely works
+is a **cohort declaration** that expands to its closure ("the regulars,"
+"the staff"), which is also how you would say *"everyone in the dockside
+knows Dave"* without touching Dave.
+
+### ⚠⚠ Gap 2 — renown, and the materialized-standing trap
+
+Renown is the one social ledger that genuinely wants NPC authoring: a
+neighborhood fixture whom nobody has heard of is the immersion break the
+whole slate is about.
+
+But it **cannot be seeded the way competence and traits can.** Competence
+and traits derive on read, so appending evidence is sufficient. Renown,
+participation, and producer are **materialized** — and all three
+subsystem docs carry the same warning, in the same words:
+
+> ⚠ *Seeding the log does not move the figure.*
+
+This is a shipped, already-paid-for bug: a correctly-seeded character
+still read as a nobody, because a restart re-warms the standings map from
+a collection the seeding never wrote. So an authored NPC renown must
+write the **standing**, or force a recompute — not merely append.
+
+⚠ The trap is nastier here than usual precisely *because* the sibling
+ledgers teach the opposite habit. An author who has successfully seeded
+traits and competence will reasonably expect renown to work the same way,
+and it silently will not.
+
+### Scope
+
+Both gaps are **adjacent, probably not this build.** They belong to
+whoever picks up NPC authoring as a cycle; they are recorded here because
+this is the doc that asks *"what does a character arrive with"*, and
+answering it only for competence would leave the more visible half
+undone.
+
+⚠ **Neither is the immersion bottleneck, and this slate should not
+pretend otherwise.** The ledgers are the *"who is this person"* layer.
+The dynamic half — closing up at 2am, noticing you have been gone a week,
+reacting to the fight in the bar, not retelling the same story — is
+behavior, schedules, and dialogue, and the derive-the-crowd /
+simulate-the-cast split is still unbuilt. A fully-seeded NPC with a thin
+brain very likely reads *worse* than a thinly-seeded one with a rich
+brain, because players read behavior and infer the rest. See
+[npc-behavior-slate](./npc-behavior-slate.md).
 
 ---
 
@@ -384,6 +516,10 @@ it is the artifact a prospective player (or a partner institution) reads.
   [npc-behavior-slate](./npc-behavior-slate.md) — the cast/crowd split
 - [advancement-slate](./advancement-slate.md) — the deferred NPC-floor
   mediocrity knob this gives a mechanism to
+- [participation.md](../../subsystems/participation.md) +
+  [influence.md](../../subsystems/influence.md) — the ledgers that
+  exclude NPCs by design, and the shared *"seeding the log does not move
+  the figure"* warning
 - [college-slate](./college-slate.md),
   [eternal-university-slate](./eternal-university-slate.md) — the issuing
   institution
