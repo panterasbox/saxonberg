@@ -268,18 +268,64 @@ gallery card wants exactly that shape one level up — **structured rows
 the client renders without knowing what a household is.** Build the grid
 renderer generically and it will survive the schema settling later.
 
-### ⚠ One consistency check worth doing while you are in here
+### ⚠ The dossier's in-world read path — checked 2026-08-11
 
 The lineage slate adopts a rule that applies retroactively:
 
 > **Char-gen must not be able to say anything the world cannot later
 > confirm.**
 
-`SpeciesDossier` is char-gen-only today. If there is no in-world way to
-read the same taxonomy/biology (an `examine`, a wiki subject, a `help`
-topic), that is the rule already being broken in miniature — a player is
-shown depth at creation that becomes unreachable the moment they enter
-the world. Worth confirming a read path exists, or noting the gap.
+**Designed: yes.** The wiki is the intended home.
+`SubjectKind = 'template' | 'mixin' | 'command'` and a species *is* a
+template, [wiki.md](./wiki.md) names species among the encyclopedia's
+nouns, and its reveal table carries an explicit `Species` row whose
+*left open* column — *"the natural history a field guide prints — diet,
+lifespan, circadian band, vision, scent, reproduction, sentience"* —
+is almost exactly the dossier's **Biology** section.
+
+**Built: no.** `SpeciesApi.buildDossier` has exactly **one caller**,
+`EnrollController`. No verb reads it, nothing bridges it to the wiki, and
+the seeded wiki content is lore / snippet / guide / main — **no species
+pages**. The wiki is community-maintained, so today the in-world path
+exists as a schema and is empty of content.
+
+⚠ So the rule is not *violated* (the data has a designed home) but it is
+not *satisfied* either. The cheap fix, whenever the wiki or a `species`
+lookup gets attention, is to let the same `buildDossier` output render
+into a wiki template page — one caller becomes two and the promise is
+kept.
+
+### ⚠⚠ And the leak runs the other way
+
+The more actionable finding. `buildDossier`'s **Composition** section
+prints, unconditionally and for **every species in the roster**:
+
+```
+Tissue    <material name>     ← open
+Density   <kg/m³>             ← ⚠ level 1
+Edible    yes/no              ← ⚠ level 1
+```
+
+[wiki.md](./wiki.md)'s reveal table puts **density** and **edibility**
+squarely in `Material`'s *level 1* column, alongside hardness, the
+conductivities and toxicity — the measured properties the design
+deliberately withholds so that material science is *discovered* rather
+than looked up.
+
+So char-gen is not merely showing depth the world cannot confirm; **it is
+printing what the world deliberately withholds**, to a player who has not
+yet entered it, for every playable species at once. `buildDossier` reads
+`material.getDensity()` / `getEdibility()` directly and passes through no
+reveal gate.
+
+**This wants a decision, not a patch:** either the dossier drops those
+two rows (the Composition section still has the tissue name, which is
+open), or the classification is wrong and should be revised at its
+declaration site. Do not silently keep both.
+
+The Biology, Classification and Anatomy sections are clean — every row
+is in the *left open* column or is identity/taxonomy. Only Composition
+is at issue.
 
 ## Commit + spawn
 
