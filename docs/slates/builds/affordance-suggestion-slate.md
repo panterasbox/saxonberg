@@ -76,31 +76,54 @@ satisfy it**. So:
   encode — a second taxonomy, which this project has now refused three
   times.
 
-### The metadata contract
+### ✅ Half of this is now BUILT — `requires:` on the slot
 
-```ts
-interface ValidatorMeta {
-  /** Which axis this constrains. See below — the axes are the point. */
-  axis: 'kind' | 'relation' | 'state';
+⚠ **This section originally proposed a `ValidatorMeta` interface** —
+bolt an `axis` and a `requires` token onto each of the ~72 validator
+files so the gate could read them. That was working around a missing
+declaration instead of adding one. What shipped instead:
 
-  /** For `kind`: the token it requires. A mixin, a class, a capability. */
-  requires?: string;          // 'VitalsMixin' | 'class:Seed' | 'bulk:slot'
-
-  /** The GENERATIVE direction: filter a candidate set, don't judge one. */
-  narrow?(candidates: Stuff[], ctx: CommandContext): Stuff[];
-}
+```yaml
+- name: target
+  type: object
+  requires: SealableMixin                     # must compose it
+  requires: [VisibleMixin, ContainableMixin]  # a list is AND
+  requires: CombustibleMixin|FurnaceMixin     # `|` is OR
+  requires: class:Agent                       # the one class escape
+  requires: any                               # deliberately unconstrained
 ```
+
+The kind axis moved **onto the command def**, and the ~34 validator
+files that were one `MixinApi.isX` and one sentence are gone — the
+framework synthesises the check at spec-load and prepends it to the
+slot's chain. The refusal sentence lives on the mixin (`MixinRefusals`
+in `lib/mixin.ts`).
+
+What that closed, from this section's original list:
+
+- ✅ **The hardcoded six-name list is gone** from
+  `scripts/check-arg-kinds.ts`. The script reads one field.
+- ✅ **The declaration is checkable.** A mixin name resolves against the
+  `Mixins` registry or the spec does not load. `targetKind: any` was an
+  unfalsifiable promise and **three of its 51 uses were wrong** (`scry
+  --with`, `plant seed`, `wallet freeze card` — each with a real kind
+  refusal in its controller); `plant` was fixed by extracting
+  `PlantableMixin`, and the other two were bookkeeping-only.
+- ✅ **The two-tier report** (§ 4) ships.
+- ✅ **The `state` axis is named** in
+  [command-spec.md](../../subsystems/command-spec.md), not left as a
+  comment on one validator.
 
 ### The three axes, and why the third one matters
 
-| Axis | Constrains | Menu behaviour |
-|---|---|---|
-| **kind** | what the target **is** — `mustHaveVitals`, `mustBeSealable` | stable, cacheable; the only axis a menu can safely precompute |
-| **relation** | the **viewer's relationship** to it — `canReach`, `mustBeVisible`, `mustBeInInventory` | volatile; recomputed every resolve |
-| **state** | its **current condition** — already open, not lit, no charge | ⚠ deliberately **excluded** from validators |
+| Axis | Constrains | Where it lives | Menu behaviour |
+|---|---|---|---|
+| **kind** | what the target **is** | ✅ `requires:` on the slot | stable, cacheable; the only axis a menu can safely precompute |
+| **relation** | the **viewer's relationship** to it — `canReach`, `mustBeInInventory` | a validator | volatile; recomputed every resolve |
+| **state** | its **current condition** — already open, not lit, no charge | the **controller**, permanently | ⚠ deliberately excluded |
 
-⚠⚠ **The `state` axis is a finding from the affordance build that was
-only half-recorded.** `mustBeIgnitable` deliberately asks "does fire
+⚠⚠ **The `state` axis was a finding from the affordance build that was
+only half-recorded.** The ignition gate deliberately asks "does fire
 apply to this" and never "is it currently lit" — because a thing unlit
 now is ignitable a second later, and a menu must not freeze that into a
 disabled row. That call was written as a one-off comment on one
@@ -108,18 +131,21 @@ validator. Naming it as an axis is what explains, generally, **why some
 refusals belong in controllers permanently** and are not a gap in the
 sweep.
 
-### What this fixes immediately
+### ❌ What `requires:` did NOT close
 
-- The **kind vs relation** split currently lives as a hardcoded list of
-  six validator names inside `scripts/check-arg-kinds.ts` — a lint
-  script holding a private opinion about six files, maintained by hand.
-  Declared on the validators, the gate *derives* it.
-- `targetKind: any` becomes **checkable** instead of asserted. Review of
-  the affordance build found **three of its 51 `any` declarations were
-  wrong** (`scry --with`, `plant seed`, `wallet freeze card` — each has
-  a real kind refusal in its controller). Nothing caught them because
-  nothing could.
-- A disabled row can carry a **structured** reason, not only a sentence.
+- **The generative direction.** `requires:` is *declarative*, so a
+  candidate set could now be filtered by it rather than judged one at a
+  time — but nothing does that yet. The `narrow()` half of the original
+  proposal has no consumer, and building it before one exists is a cost
+  with no reader.
+- **The relational axis is still rejective.** `canReach` and its six
+  siblings can still only say no, and they are the ones a suggester
+  most needs to ask "what would satisfy you" of, because they are the
+  ones that depend on the viewer.
+- **A disabled row still carries only a sentence**, not a structured
+  reason. The synthesised check knows exactly which mixin was missing;
+  it discards that and returns prose. Cheap to add when a client wants
+  it.
 
 ## 4. ⚠ Scope: the menu sees less than you think
 
@@ -196,19 +222,17 @@ better; accountability already has `accountability_events`, provenance
 has `authoring_events`, and merging the three would give one store three
 retention policies and three privacy models.
 
-## 6. ⭐ The one cheap piece, buildable now
+## 6. ✅ The one cheap piece — BUILT
 
-**Declare `ValidatorMeta` on the validators and make
-`check-arg-kinds` read it.**
+This section proposed `ValidatorMeta` on the validators. **What shipped
+was better and is described in § 3**: the kind axis went onto the
+command def as `requires:`, which deleted ~34 validator files instead of
+annotating them, and made the declaration checkable rather than merely
+readable.
 
-It is a genuine subtraction — a hardcoded six-name list disappears from
-the script — it closes the `targetKind: any` verification hole that let
-three wrong declarations through, it records the `state` axis where it
-belongs, and **it requires none of the pipeline to exist**. Everything
-else in this slate depends on it; nothing depends on the rest.
-
-Suggested cut: metadata contract + declarations on the ~25 existing
-validators + the gate reading it + the two-tier report from § 4.
+The remaining cheap piece, if a consumer appears: **let the synthesised
+check return a structured reason** alongside its sentence. It already
+knows which mixin was missing.
 
 ## 7. Cross-cutting constraints
 
@@ -233,11 +257,14 @@ validators + the gate reading it + the two-tier report from § 4.
 
 ## 8. Open questions
 
-1. Does the two-tier gate (§ 4) become two scripts, one script with two
-   reports, or one number plus a documented caveat?
-2. Is `narrow` (the generative direction) worth requiring on every kind
-   validator, or only where a suggester needs it? Requiring it on all
-   ~25 is a real cost for an unbuilt consumer.
+1. ~~Does the two-tier gate (§ 4) become two scripts, one script with
+   two reports, or one number plus a documented caveat?~~ **Answered:**
+   one script, two reports, both gating.
+2. Is the generative direction (filter a candidate set by `requires:`
+   rather than judging one) worth building before a suggester exists?
+   The declaration now makes it *possible*; nothing asks for it yet.
+   The relational validators — the ones a suggester most needs to
+   generate from — are still rejective and are the harder half.
 3. What is a "context" concretely — a bag the caller fills, or a resolved
    object the server composes from the Interactive? The second is safer
    (the client cannot claim a focus it does not have) and less flexible.
