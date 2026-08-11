@@ -218,6 +218,296 @@ gated, state-owning singleton with no `Api` face.
 
 ---
 
+---
+
+# Worked examples — the actual classes and the actual values
+
+Everything below is written against the **shipped** `obj/Discipline.ts` /
+`obj/DisciplineCatalogue.ts` pattern, read 2026-08-11. Where a value
+depends on something unbuilt it is marked ⏳.
+
+## `obj/Doctrine.ts`
+
+```ts
+import { Idea } from "../lib/stuff/Idea";
+import { TemplatePathPrefixes } from "../lib/paths";
+import type { FieldMeta } from "../lib/mixin";
+
+/**
+ * The runtime descriptor the catalogue caches — a plain projection of a
+ * Doctrine template's `data`, the shape consumers read (never the Stuff
+ * instance). Mirrors `DisciplineDescriptor`.
+ */
+export interface DoctrineDescriptor {
+  key: string;
+  label: string;
+  /** Patron key, or `''` for an account with no patron (the naturalist). */
+  patron: string;
+  description: string;
+  tenets: string[];
+  attends: string[];
+  dismisses: string[];
+}
+
+export default class Doctrine extends Idea {
+  /** Per-instance template path prefix: `/obj/Doctrine/<key>`. */
+  static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.doctrine;
+
+  /** Durable join key (e.g. `'pan'`). Non-empty. */
+  public key: string = "";
+  /** Friendly display label (e.g. `'The Wild Calendar'`). Non-empty. */
+  public label: string = "";
+  /** Patron key; `''` when the account names no patron. */
+  public patron: string = "";
+  /** Authored prose — what this account says the world is like. */
+  public description: string = "";
+  /**
+   * Normative lines. **Never adjudicated** — these make no prediction, so
+   * nothing can refute them. The positive/normative split is the whole
+   * design; a tenet that asserts a fact about the world belongs in the
+   * `Law` catalog instead, where the sim will settle it.
+   */
+  public tenets: string[] = [];
+  /** `Law` keys this account says are worth investigating. */
+  public attends: string[] = [];
+  /** `Law` keys this account says are not worth the effort. */
+  public dismisses: string[] = [];
+
+  static fieldMeta: FieldMeta = {
+    key: { persistent: true },
+    label: { persistent: true },
+    patron: { persistent: true },
+    description: { persistent: true },
+    tenets: { persistent: true },
+    attends: { persistent: true },
+    dismisses: { persistent: true },
+  };
+
+  public getKey(): string {
+    return this.key;
+  }
+  public setKey(value: string): void {
+    if (typeof value !== "string" || value.length === 0) {
+      throw new TypeError("Doctrine.key must be a non-empty string");
+    }
+    this.key = value;
+  }
+
+  public getPatron(): string {
+    return this.patron;
+  }
+  /** `''` is legal — it is what makes the naturalist account a Doctrine. */
+  public setPatron(value: string): void {
+    if (typeof value !== "string") {
+      throw new TypeError("Doctrine.patron must be a string");
+    }
+    this.patron = value;
+  }
+
+  public getTenets(): string[] {
+    return [...this.tenets];
+  }
+  public getAttends(): string[] {
+    return [...this.attends];
+  }
+  public getDismisses(): string[] {
+    return [...this.dismisses];
+  }
+
+  // …label / description accessors follow Discipline.ts verbatim.
+}
+```
+
+**One line in `lib/paths.ts`:**
+
+```ts
+  doctrine: "/obj/Doctrine/",
+```
+
+`obj/DoctrineCatalogue.ts` is `DisciplineCatalogue` with the nouns
+swapped: `private cache: Map<string, DoctrineDescriptor> | null = null`,
+warmed in `postRegister` by scanning `/obj/Doctrine/*` templates,
+`getDoctrine(key)`, `has(key)`, `allDoctrines()`, `invalidateCache()`,
+plus the `canDestruct` / `canEvict` singleton refusals.
+
+## The three `Law` rows the example turns on
+
+⚠ **`Law` is [inquiry](./inquiry-slate.md)'s object, not this slate's** —
+shown only so the Doctrine values resolve. Note there is **no `isNull`
+field**: the evaluator is the only oracle.
+
+```yaml
+# seeds/obj/Law/growth-vs-moon.yaml   ← NULL, and shipped-checkable today
+class: /obj/Law
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: growth-vs-moon
+  label: Lunar planting
+  question: Does a plant grow faster when sown at a particular moon phase?
+  independent: moon-phase        # CelestialApi — real, shipped
+  dependent: growth-rate         # GrowingMixin reconcile — real, shipped
+  tolerance: 0.05
+  evidentialRange: [0, 1]        # full synodic cycle
+  realWorldAnalog: null
+```
+
+> ⭐ **This one is genuinely flat in our sim, and not by fiat.**
+> `lib/husbandry/Growing.ts` computes growth by Liebig's law of the
+> minimum over `LimitingFactor = water | light | root | nutrient`. Moon
+> phase is not an input, so the relationship really is null — and it is
+> null for a *reason a player can eventually articulate*, which is the
+> difference between a lesson and a trick.
+
+```yaml
+# seeds/obj/Law/deposition-vs-moon.yaml   ← REAL ⏳ (needs discovery-slate's stock model)
+data:
+  key: deposition-vs-moon
+  label: The full-moon leavings
+  question: Is more left behind in wild places at the full moon?
+  independent: moon-phase
+  dependent: deposition-rate     # ⏳ discovery-slate stock inflow
+  tolerance: 0.10
+  evidentialRange: [0, 1]
+  realWorldAnalog: null
+```
+
+```yaml
+# seeds/obj/Law/cooling-vs-tau.yaml   ← REAL, shipped today
+data:
+  key: cooling-vs-tau
+  label: Newton's cooling
+  question: How does a hot thing's temperature fall toward its surroundings?
+  independent: elapsed-time
+  dependent: temperature
+  tolerance: 0.02
+  evidentialRange: [0, 3600]     # seconds; supported to one hour
+  realWorldAnalog: "PHYS.THERMO.NEWTON_COOLING"
+```
+
+> `lib/thermal/Thermal.ts` really computes
+> `T = T_ambient + (T₀ − T_ambient)·e^(−t/τ)`. A player who fits an
+> exponential to five thermometer readings and predicts minute six has
+> discovered a real law by real method.
+
+## Two Doctrines, with real values
+
+```yaml
+# seeds/obj/Doctrine/pan.yaml
+class: /obj/Doctrine
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  key: pan
+  label: The Wild Calendar
+  patron: pan
+  description: >-
+    The wild is not disorder; it is an order kept by a clock older than
+    any of ours. Watch the sky and you will know the ground.
+  tenets:
+    - What is wild is owed the same courtesy as what is tame.
+    - Take at the season's pace, never at your own.
+    - A place you have not visited in every season, you have not seen.
+  attends:
+    - deposition-vs-moon      # true  ⏳ — Pan gets here first
+    - growth-vs-moon          # NULL  — Pan spends a week and publishes a refutation
+  dismisses:
+    - cooling-vs-tau          # "the hearth is a craftsman's question, not ours"
+```
+
+```yaml
+# seeds/obj/Doctrine/naturalist.yaml
+data:
+  key: naturalist
+  label: The Naturalist Account
+  patron: ""                  # ← the one nullable field that makes atheism a position
+  description: >-
+    The world keeps no secrets, only unopened ones. What repeats can be
+    measured; what cannot be measured has not yet been approached
+    correctly.
+  tenets:
+    - Prefer the evidence to the authority, including this one.
+    - A correlation without a mechanism is a coincidence until shown otherwise.
+    - Publish the failures; they cost the same to find.
+  attends:
+    - cooling-vs-tau          # true, shipped — the naturalist gets here first
+  dismisses:
+    - growth-vs-moon          # ✅ RIGHT — it really is null
+    - deposition-vs-moon      # ❌ WRONG — it is real; arrives second and pays for the paper
+```
+
+> ⭐⭐⭐ **The whole design is in those last two lines.** The naturalist's
+> heuristic — *no mechanism, no law* — is **correct about
+> `growth-vs-moon` and wrong about `deposition-vs-moon`**, and from
+> outside the two are indistinguishable: same independent quantity, same
+> shape of claim, same smell of superstition. One is Liebig's law
+> refusing to care about the sky; the other is ecology wearing an omen's
+> clothes. **Nobody is punished. One of them is simply later.**
+
+## The notebook, mid-experiment
+
+`StoredDocument`, no new collection:
+
+```json
+{
+  "path": "/home/kestrel/notebook/growth-vs-moon",
+  "owner": "/obj/Avatar/kestrel",
+  "kind": "notebook",
+  "data": {
+    "law": "growth-vs-moon",
+    "readings": [
+      { "independent": 0.00, "dependent": 1.02,
+        "when": 774400, "where": "/domain/hinkley-hills/bed-3" },
+      { "independent": 0.25, "dependent": 0.98,
+        "when": 861600, "where": "/domain/hinkley-hills/bed-3" },
+      { "independent": 0.50, "dependent": 1.01,
+        "when": 948800, "where": "/domain/hinkley-hills/bed-3" },
+      { "independent": 0.75, "dependent": 0.99,
+        "when": 1036000, "where": "/domain/hinkley-hills/bed-3" }
+    ],
+    "predictions": [
+      { "independent": 1.00, "submitted": 1.40,
+        "actual": 1.00, "tolerance": 0.05, "outcome": "refuted" }
+    ]
+  }
+}
+```
+
+Kestrel expected the full moon to lift growth 40%. It didn't move. **That
+row is the entire lesson**, and it is a publishable result.
+
+## What lands in the Transcript
+
+```
+{ owner: "/obj/Avatar/kestrel", kind: "deed", when: 1036000,
+  discipline: "natural-philosophy", difficulty: "moderate",
+  outcome: "success", tags: ["inquiry", "refutation", "growth-vs-moon"] }
+```
+
+⭐ **`outcome: "success"`** — the prediction was wrong and the *inquiry*
+succeeded. Refuting a null law is competent practice, and grading it as
+success is what stops the system teaching players to only test things
+they expect to win.
+
+## ⚠ The one genuinely open structural question
+
+**How does a `Law` row point at its evaluator?** A data Idea holds
+scalars; the evaluator is code. Two candidates, and per the
+`CLAUDE.md` rule against inventing module categories **this needs
+sign-off before either is built**:
+
+1. **A path-resolved module**, the `lib/behavior/<verb>.ts` brain
+   precedent — `lib/inquiry/laws/<key>.ts`, sole export `law`, statics
+   `independentOf` / `dependentOf`. Real existing pattern, but it is a
+   *second* instance of a category the taxonomy currently grants once.
+2. **An Api-method reference string**, the `FromModule` shape —
+   `evaluator: "/api/husbandry#HusbandryApi.growthRateFor"`. Invents no
+   module category, but does invent an addressing scheme and a dispatch.
+
+Lean: (1), because a law evaluator genuinely is a stateless
+strategy module and the brain precedent already solved HMR for exactly
+that shape. **Ask first.**
+
+---
+
 ## Atheism as a first-class Doctrine
 
 The naturalist account is **a `Doctrine` row with `patron: null`** — same
