@@ -105,8 +105,9 @@ export function ForumChatSidecar({
 }: ForumChatSidecarProps): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
   const frames = useStore((s) => s.frames);
-  // The forum bar's server-authoritative scope (display-only). "Talk here"
-  // sets it by sending `cockpit scope chat <handle>` from the forum bar.
+  // The forum line's server-authoritative prefix (display-only). "Talk
+  // here" sets it by sending `cockpit cli --prefix "chat <handle>"` from
+  // the forum command line.
   const forumMode = useStore((s) => {
     const modes = s.clientState["cockpit.inputModes"] as
       | Record<string, string>
@@ -137,11 +138,13 @@ export function ForumChatSidecar({
           $active={active}
           onClick={() =>
             onSendCommand(
-              active ? "cockpit scope off" : `cockpit scope ${prefix}`,
+              active
+                ? "cockpit cli --clear"
+                : `cockpit cli --prefix "${prefix}"`,
               FORUM_BAR_ID,
             )
           }
-          title="Scope the command bar to this channel"
+          title="Prefix the command line with this channel"
         >
           {active ? "Talking…" : "Talk here"}
         </TalkButton>

@@ -76,10 +76,10 @@ describe('the cockpit verb', () => {
 
   it('declares the absorbed controls as subcommands, each with a controller', () => {
     expect(cockpit!.getSubcommandNames().sort()).toEqual([
+      'cli',
       'layout',
       'mode',
       'pane',
-      'scope',
       'style',
     ]);
     expect(cockpit!.controllerForSubcommand('pane')).toBe(
@@ -91,8 +91,8 @@ describe('the cockpit verb', () => {
     expect(cockpit!.controllerForSubcommand('layout')).toBe(
       '/obj/command/shell/LayoutController'
     );
-    expect(cockpit!.controllerForSubcommand('scope')).toBe(
-      '/obj/command/shell/ModeController'
+    expect(cockpit!.controllerForSubcommand('cli')).toBe(
+      '/obj/command/shell/CliController'
     );
     expect(cockpit!.controllerForSubcommand('style')).toBe(
       '/obj/command/shell/StyleController'
@@ -205,17 +205,31 @@ describe('the cockpit verb', () => {
       expect(bind('cockpit style').styleSub).toBeUndefined();
     });
 
-    it('binds cockpit scope, greedily, and honours --bar', () => {
-      const scoped = bind('cockpit scope chat gossip');
-      expect(scoped.subcommand).toBe('scope');
-      expect(scoped.prefix).toBe('chat gossip');
+    /*
+     * ⚠ `cockpit cli` is the INVERTED shape, and the inversion is the
+     * point: the prefix is an option (it is free text, and free text
+     * as a greedy positional is what made `off` a magic word), while
+     * the line being configured is the positional.
+     */
+    it('binds cockpit cli — prefix is an option, the line is positional', () => {
+      const set = bind('cockpit cli --prefix "chat gossip"');
+      expect(set.subcommand).toBe('cli');
+      expect(set.prefix).toBe('chat gossip');
+      expect(set.cli).toBeUndefined();
 
-      expect(bind('cockpit scope off').prefix).toBe('off');
-      expect(bind('cockpit scope').prefix).toBeUndefined();
+      // `off` is an ordinary prefix now, not a reserved word.
+      expect(bind('cockpit cli --prefix off').prefix).toBe('off');
 
-      // The un-scoped affordance path: a button names its target bar.
-      const named = bind('cockpit scope chat --bar stream-chat');
-      expect(named.bar).toBe('stream-chat');
+      // Bare is a REPORT — no prefix bound, nothing cleared.
+      const bare = bind('cockpit cli');
+      expect(bare.prefix).toBeUndefined();
+      expect(bare.clear).toBeUndefined();
+
+      expect(bind('cockpit cli --clear').clear).toBe(true);
+
+      // The un-prefixed affordance path: a button names its target line.
+      const named = bind('cockpit cli stream-chat --prefix chat');
+      expect(named.cli).toBe('stream-chat');
       expect(named.prefix).toBe('chat');
     });
   });

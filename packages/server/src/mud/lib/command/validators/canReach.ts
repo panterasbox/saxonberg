@@ -33,8 +33,8 @@
 
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
-import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
+import { PerceptionApi } from '../../../api/perception';
 
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
@@ -42,36 +42,20 @@ const validator: FieldValidator = (value, field, context) => {
   if (stuffs.length === 0) return undefined;
 
   const giver = context.commandGiver;
-  const location = context.location;
-
-  const inventoryIds = MixinApi.isContainer(giver)
-    ? new Set(giver.getContents().map((s) => s.stuffId))
-    : new Set<string>();
-  // A locationless giver can still reach things it carries (inventory);
-  // it just has no room contents or exits to reach through.
-  const locationIds = new Set(
-    (location ? location.getContents() : []).map(
-      (s) => s.stuffId,
-    ),
-  );
-  const exitDoorIds = new Set<string>();
-  if (location && MixinApi.isExitable(location)) {
-    for (const exit of location.getObviousExits()) {
-      const door = exit.getDoor();
-      if (door) exitDoorIds.add(door.stuffId);
-    }
-  }
-
-  const via = isViaShape(value) ? value.via : undefined;
+  const viaExit = isViaShape(value) ? Boolean(value.via?.exit) : false;
 
   for (const stuff of stuffs) {
-    const id = (stuff as Stuff).stuffId;
-    if (id === giver.stuffId) continue; // the actor themselves
-    if (location && id === location.stuffId && via?.exit) continue; // door-via-direction
-    if (inventoryIds.has(id)) continue;
-    if (locationIds.has(id)) continue;
-    if (exitDoorIds.has(id)) continue;
-    return `you can't reach ${stuff.getPresentation()}`;
+    // ⭐ One definition of reach, shared with the pane holds. This
+    // validator used to hand-roll it; so did the hold evaluator, and
+    // they disagreed about doors.
+    if (
+      !PerceptionApi.canReach(giver as Stuff, stuff as Stuff, {
+        location: context.location ?? null,
+        viaExit,
+      })
+    ) {
+      return `you can't reach ${stuff.getPresentation()}`;
+    }
   }
   return undefined;
 };

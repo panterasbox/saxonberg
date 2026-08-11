@@ -108,44 +108,56 @@ subcommands:
         type: string
         required: false
 
-  scope:
-    controller: /obj/command/shell/ModeController
-    description: "Scope a command bar: type bare lines as `<prefix> …` until you turn it off."
+  cli:
+    controller: /obj/command/shell/CliController
+    description: "Prefix a command line: type bare lines as `<prefix> …` until you clear it."
     help: |
-      Put a command bar into a scope so everything you type there is
-      prefixed for you. `cockpit scope chat gossip` scopes this bar to
-      the gossip channel — then a bare `hello` is dispatched as `chat
-      hello`. Run a one-off raw command without leaving the scope by
-      starting it with a slash: `/look`. Turn it off with `cockpit
-      scope off` (or bare `cockpit scope`).
+      We run a command-line interface and we multiplex it, so you can
+      have several command lines open at once. This sets one line's
+      prefix, so everything you type there is prefixed for you.
+      `cockpit cli --prefix "chat gossip"` puts THIS line on the gossip
+      channel — then a bare `hello` dispatches as `chat gossip hello`.
+      Run a one-off raw command without clearing the prefix by starting
+      it with a slash: `/look`.
 
-      Scopes are per-bar: a layout with several terminals can have one
-      bar scoped to chat while another stays plain. The bar shows its
+      Prefixes are per-line: a layout with several terminals can have
+      one line on chat while another stays plain. The line shows its
       prefix inline as you type, so what you see is exactly what
       dispatches.
 
-      By default this targets the bar you typed it in. A UI control can
-      target a different bar with `--bar <id>` (e.g. a button that
-      scopes the stream-chat bar sends `cockpit scope chat --bar
-      stream-chat`) — this is how an affordance, which dispatches
-      un-scoped, names the bar it means.
+      The line you typed in is the default. Name another one
+      positionally — a UI control does this, because an affordance
+      dispatches un-prefixed and has to say which line it means.
+
+      ⚠ Nothing here is a *world* scope. `scope:` in a command spec is
+      an MQL search anchor and a sandbox scope is a jurisdiction; this
+      is a text prefix on one input, and it used to be called `cockpit
+      scope`, which made three unrelated things share a word.
     examples:
-      - cmd: cockpit scope chat gossip
-        note: Scope this bar to the gossip channel
-      - cmd: cockpit scope off
-        note: Clear this bar's scope
-      - cmd: cockpit scope chat --bar stream-chat
-        note: Scope a named bar (used by scope-setting buttons)
+      - cmd: cockpit cli --prefix "chat gossip"
+        note: Put this command line on the gossip channel
+      - cmd: cockpit cli --clear
+        note: Clear this line's prefix
+      - cmd: cockpit cli stream-chat --prefix chat
+        note: Set a named line (used by prefix-setting buttons)
+      - cmd: cockpit cli
+        note: Report this line's prefix
     options:
-      bar:
-        short: b
+      prefix:
+        short: p
         type: string
-        description: "Target a named command bar (default: the bar you typed in)."
+        description: "The prefix to prepend to bare input on this line."
+      clear:
+        short: c
+        type: boolean
+        description: "Clear this line's prefix."
     args:
-      - name: prefix
+      # Which command line. Defaults to the one you typed in; a UI
+      # control names another, because an affordance dispatches
+      # un-prefixed and has to say which line it means.
+      - name: cli
         type: string
         required: false
-        greedy: true
 
   pane:
     controller: /obj/command/shell/CockpitPaneController

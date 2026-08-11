@@ -1,5 +1,5 @@
 /**
- * ModeController tests — the server-authoritative per-bar input mode.
+ * CliController tests — the server-authoritative per-bar input mode.
  *
  * `mode <prefix>` / `mode off`, issued from a bar (`context.barId`),
  * set/clear that bar's entry in `cockpit.inputModes`. Mirrors the
@@ -8,7 +8,7 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import ModeController from '../ModeController';
+import CliController from '../CliController';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
@@ -35,7 +35,7 @@ class TestActor extends HasInteractiveMixin(
 
 function stubCommand(): CommandDefinition {
   return CommandDefinition.fromYaml(
-    `verbs: [cockpit]\ncontroller: ModeController\ndescription: stub\n`,
+    `verbs: [cockpit]\ncontroller: CliController\ndescription: stub\n`,
     '<test>',
   );
 }
@@ -48,7 +48,7 @@ function makeContext(
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
-    commandText: 'cockpit scope',
+    commandText: 'cockpit cli',
     executionId: 'test',
     commandId: 'test',
     verb: 'cockpit',
@@ -70,7 +70,7 @@ function modes(actor: TestActor): Record<string, string> {
   return actor.getClientState<Record<string, string>>('cockpit.inputModes');
 }
 
-describe('ModeController', () => {
+describe('CliController', () => {
   let actor: TestActor;
   let location: Location;
   let pushSpy: ReturnType<typeof vi.spyOn>;
@@ -87,7 +87,7 @@ describe('ModeController', () => {
   });
 
   it('sets a bar prefix and pushes the whole map', async () => {
-    const controller = makeStuff(() => new ModeController());
+    const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
     await controller.execute(makeModel({ prefix: 'chat gossip' }), ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat gossip' });
@@ -98,63 +98,83 @@ describe('ModeController', () => {
 
   it('modes are per-bar — a different bar is untouched', async () => {
     actor.setClientState('cockpit.inputModes', { main: 'chat gossip' });
-    const controller = makeStuff(() => new ModeController());
+    const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'chat');
     await controller.execute(makeModel({ prefix: 'tell bob' }), ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat gossip', chat: 'tell bob' });
   });
 
-  it('mode off clears only the submitting bar', async () => {
+  it('--clear clears only the submitting line', async () => {
     actor.setClientState('cockpit.inputModes', {
       main: 'chat gossip',
       chat: 'tell bob',
     });
-    const controller = makeStuff(() => new ModeController());
+    const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(makeModel({ prefix: 'off' }), ctx as never);
+    await controller.execute(makeModel({ clear: true }), ctx as never);
     expect(modes(actor)).toEqual({ chat: 'tell bob' });
   });
 
-  it('bare mode clears the submitting bar', async () => {
+  /*
+   * ⚠⚠ Report is NOT clear, and this is the regression that matters.
+   * The predecessor (`cockpit scope`) conflated them: a bare invocation
+   * cleared the prefix, so a player checking what was set destroyed it.
+   * `--clear` is now the only thing that clears.
+   */
+  it('bare `cockpit cli` REPORTS and leaves the prefix alone', async () => {
     actor.setClientState('cockpit.inputModes', { main: 'chat gossip' });
-    const controller = makeStuff(() => new ModeController());
+    const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
     await controller.execute(makeModel({}), ctx as never);
-    expect(modes(actor)).toEqual({});
+    expect(modes(actor)).toEqual({ main: 'chat gossip' });
   });
 
-  it('--bar names the target bar, ignoring the submitting barId', async () => {
-    // An un-moded affordance dispatches with no context.barId but names its
-    // target. Here the line is submitted from 'main' yet targets stream-chat.
-    const controller = makeStuff(() => new ModeController());
+  /*
+   * ⚠ `off` was the old magic prefix word. It is an ordinary prefix
+   * now — `cockpit cli --prefix off` sets the literal string, because a
+   * reserved word inside free text is a trap the grammar should not
+   * have.
+   */
+  it('`off` is an ordinary prefix, not a magic word', async () => {
+    const controller = makeStuff(() => new CliController());
+    const ctx = makeContext(actor, location, 'main');
+    await controller.execute(makeModel({ prefix: 'off' }), ctx as never);
+    expect(modes(actor)).toEqual({ main: 'off' });
+  });
+
+  it('the positional names the target line, ignoring the submitting barId', async () => {
+    // An un-prefixed affordance dispatches with no context.barId but names
+    // its target. Here the line is submitted from 'main' yet targets
+    // stream-chat.
+    const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
     await controller.execute(
-      makeModel({ prefix: 'chat', bar: 'stream-chat' }),
+      makeModel({ prefix: 'chat', cli: 'stream-chat' }),
       ctx as never,
     );
     expect(modes(actor)).toEqual({ 'stream-chat': 'chat' });
   });
 
-  it('--bar clears a named bar with `off`, leaving others', async () => {
+  it('clears a named line, leaving the others', async () => {
     actor.setClientState('cockpit.inputModes', {
       main: 'chat gossip',
       'stream-chat': 'twitch',
     });
-    const controller = makeStuff(() => new ModeController());
+    const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
     await controller.execute(
-      makeModel({ prefix: 'off', bar: 'stream-chat' }),
+      makeModel({ clear: true, cli: 'stream-chat' }),
       ctx as never,
     );
     expect(modes(actor)).toEqual({ main: 'chat gossip' });
   });
 
   it('defaults to the main bar when no barId is on the context', async () => {
-    const controller = makeStuff(() => new ModeController());
+    const controller = makeStuff(() => new CliController());
     const ctx = CommandApi.createCommandContext({
       commandGiver: actor as never,
       location: location as never,
-      commandText: 'cockpit scope',
+      commandText: 'cockpit cli',
       executionId: 'test',
       commandId: 'test',
       verb: 'cockpit',

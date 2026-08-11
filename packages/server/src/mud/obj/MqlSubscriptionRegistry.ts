@@ -39,6 +39,7 @@ import type {
   PaneReleaseReason,
 } from '@saxonberg/types';
 import { PromptApi } from '../api/prompt';
+import { PerceptionApi } from '../api/perception';
 import { Idea } from '../lib/stuff/Idea';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
@@ -213,6 +214,31 @@ function projectStuffInto(
   return out as RecordValue;
 }
 
+/**
+ * What each pane hold needs woken to be answerable — declared beside
+ * the vocabulary rather than inferred from it.
+ *
+ * `location`: the hold reads where things are relative to the viewer, so
+ * it must re-resolve when the viewer or a subject moves. The subscribe
+ * request's own `locationDependent` flag is the mechanism; a hold simply
+ * declares that it needs it too.
+ *
+ * ⚠ `unanswered` needs none of it: its subject is a pending PROMPT, not
+ * a position, and the prompt's own resolution is what wakes it.
+ *
+ * ⚠ A new hold that depends on something else — a fight ending, a shift
+ * ending — adds its axis here AND a flag the registry installs. Adding a
+ * row with no mechanism behind it is the failure this table exists to
+ * make visible.
+ */
+const HOLD_WAKES_ON: Readonly<Record<PaneHold, { location: boolean }>> = {
+  unanswered: { location: false },
+  here: { location: true },
+  present: { location: true },
+  inReach: { location: true },
+  carried: { location: true },
+};
+
 export default class MqlSubscriptionRegistry extends Idea {
 
   /**
@@ -276,27 +302,25 @@ export default class MqlSubscriptionRegistry extends Idea {
     /**
      * ⚠⚠ **A hold must install the dependency that lets it fire.**
      *
-     * Every pane hold is a question about *where things are relative to
-     * the viewer* — `here` compares the viewer's room to its anchor, and
-     * `present` / `inReach` / `carried` compare the subject's container
-     * to the viewer. All four are therefore only answerable when the
-     * subscription re-resolves, and a subscription only re-resolves when
-     * something marks it dirty.
+     * A hold is only evaluated when its subscription re-resolves, and a
+     * subscription only re-resolves when something marks it dirty.
+     * Without the dependency, a `here` pane is **immortal**: the viewer
+     * walks out, nothing wakes the subscription, the hold is never
+     * evaluated, and the pane sits there forever. Found by driving it
+     * live — the unit tests all called `refreshForInteractive` by hand,
+     * so none of them exercised the wake path at all.
      *
-     * Without this, a `here` pane is **immortal**: the viewer walks out,
-     * nothing wakes the subscription, the hold is never evaluated, and
-     * the pane sits there forever. Found by driving it live — the unit
-     * tests all called `refreshForInteractive` by hand and so never
-     * exercised the wake path at all.
-     *
-     * `unanswered` is excluded deliberately: its subject is a pending
-     * prompt, not a position, and the prompt's own resolution is what
-     * should wake it.
+     * ⭐ **Each hold DECLARES what wakes it** ({@link HOLD_WAKES_ON}),
+     * reusing the `locationDependent` flag the subscribe request
+     * already carries. The first cut INFERRED it —
+     * `req.hold !== 'unanswered'` — an expression a sixth hold would
+     * have had to know about and update. Declaring beside the predicate
+     * makes forgetting structurally impossible instead of merely
+     * fixed.
      */
-    const holdNeedsLocation =
-      req.hold !== undefined && req.hold !== 'unanswered';
     const locationDependent =
-      req.locationDependent === true || holdNeedsLocation;
+      req.locationDependent === true ||
+      (req.hold !== undefined && HOLD_WAKES_ON[req.hold].location);
 
     if (detailKey !== undefined && cardinality !== 'one') {
       this.emitError(
@@ -952,13 +976,16 @@ export default class MqlSubscriptionRegistry extends Idea {
           ? null
           : 'departed';
       case 'inReach':
-        // Same room or in hand. Carried counts as reachable — you can
-        // always act on what you are holding.
-        return this.anySubject(stuffList, viewer, (s) => {
-          const holder = containerIdOf(s);
-          if (holder === null) return false;
-          return holder === viewer.stuffId || holder === containerIdOf(viewer);
-        })
+        // ⭐ Asks the ONE definition of reach rather than re-deriving it.
+        // This used to compare container ids, which silently excluded
+        // doors — they are attached to exits and live in no container —
+        // so a pane on a door released `out-of-reach` while `open north`
+        // on that same door worked. The `canReach` validator had the
+        // door clause; this did not. Two hand-rolled definitions of one
+        // world concept, disagreeing.
+        return this.anySubject(stuffList, viewer, (s) =>
+          PerceptionApi.canReach(viewer, s),
+        )
           ? null
           : 'out-of-reach';
       case 'carried':
