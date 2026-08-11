@@ -39,7 +39,80 @@ that ledger is portable between instances — see
 accepting institution.** That is the model the business already knows how
 to run, pointed at a different network.
 
-## 2. The sharp form of the argument
+## 2. Issuer and destination — both, in that order
+
+The obvious question is whether Study is the *issuer* (players earn here
+and leave) or the *destination* (players stay). Study's current business
+answers it: high-stakes students arrive goal-directed, hit the goal, and
+leave. **That is the issuer shape, and it is the existing P&L.**
+
+But it is not exclusive of the other, because the two are **sequential,
+not simultaneous.** Today the post-goal student leaves because there is
+nothing else there. A destination business does not compete with the
+goal — it catches the exhaust.
+
+⭐ **There is nothing to cannibalize.** The post-goal population churns at
+100% today and is worth exactly zero. Same acquisition cost, same funnel,
+an additional act. That is a far easier internal case than any strategy
+asking someone to trade one revenue line against another.
+
+Two real costs, though, and they should be priced before saying "both"
+out loud.
+
+**a. The metrics are inverse — an org problem before a strategy problem.**
+Issuer optimizes **time-to-goal**; College Saver's promise is barrier
+removal, finish fast. Destination optimizes **time-in-world**. A student
+who lingers is a failure for one and a success for the other. Nobody
+steers on both, so "both" means two owners with two metrics — and the
+destination metric must not be carved out of the issuer's dashboard. The
+natural candidate is **post-goal retention**, which is currently zero and
+can therefore only go up. That is the politically cheapest kind of new
+metric to introduce.
+
+**b. ⚠ Assessment rigor vs. engagement is where "both" genuinely
+contradicts itself.** As issuer, the credential's worth depends on rigor;
+as destination, you want low friction and fun.
+[study-com-strategy.md](./study-com-strategy.md) already flags downward
+pressure on assessment rigor as a risk, and wearing both hats sharpens
+it — the engagement loop and the claim-minting assessment now live in one
+product.
+
+> **The constraint: the assessment that mints a claim must be separable
+> from the engagement loop.** The game may be the reason you studied; it
+> must not be the thing that grades you.
+
+Write that down now. It is nearly impossible to retrofit, and it is the
+single design commitment that keeps the issuer business intact while the
+destination business grows next to it.
+
+**The objection this raises in the room:** *doesn't portability reduce
+lock-in?* Yes — exactly the way credit transfer reduces lock-in for
+partner colleges and is nonetheless the reason a student picks Study in
+the first place. Portability is an **acquisition** argument. The record
+was never the moat (§6); trust and relationships are, and neither
+travels.
+
+**⭐ Recommendation: lead issuer, land destination. Not equal weight.**
+The issuer story maps to an existing P&L, org, and metric — it is what
+gets a pilot funded. The pilot then produces the post-goal retention data
+that argues the destination case better than any slide. A two-thesis
+pitch reads as unfocused; a one-thesis pitch with a visible second act
+reads as a plan.
+
+**⚠ The consequence of doing both:** Study becomes the first operator
+that *issues and accepts*, which requires an **acceptance policy** — a
+governance function it does not have today. And it cannot exempt itself.
+If Study accepts its own claims uncapped in its own world, the education
+instance becomes the pure grind path **inside its own product**, and the
+whole speedrun risk (§8) lands on them. **Even self-acceptance needs a
+cap.**
+
+*Framing hazard:* the destination business's real comparables are
+subscription communities, not ed-tech — better retention multiples, but
+it will be evaluated by people who do not have those comps in front of
+them.
+
+## 3. The sharp form of the argument
 
 > **An exclusive licensee of a transfer protocol owns a network with one
 > node.**
@@ -57,7 +130,7 @@ by someone else's motivations. Under exclusivity, Study has to fund every
 one of those nodes itself, forever, in verticals it has no business being
 in.
 
-## 3. The assumption is not load-bearing
+## 4. The assumption is not load-bearing
 
 The obvious objection: *this all assumes the platform succeeds in other
 sectors.* It does — but only for the **upside**, not for the **decision**.
@@ -77,7 +150,7 @@ forecast in a way "trust us, other verticals will come" does not.
 vision; lead with the option pricing. The vision is what they conclude
 themselves once they have accepted the pricing.
 
-## 4. The bootstrap doesn't need anyone else
+## 5. The bootstrap doesn't need anyone else
 
 The chicken-and-egg is real but shallow: **Study can be both sides at
 first.** Issue at the learning instance; accept at a play instance they
@@ -92,7 +165,7 @@ is a College Saver product experiment, not a platform bet — the same
 re-homing [study-com-strategy.md](./study-com-strategy.md) §GTM already
 argues for.
 
-## 5. Anticipate the real objection
+## 6. Anticipate the real objection
 
 They will not argue about network effects. They will ask: **if it's open,
 what stops a competitor forking us?**
@@ -127,7 +200,7 @@ ask. The
 clean answer if the adapter turns out to sit closer to the engine than
 this framing assumes.
 
-## 6. The copyleft protects Study's position, not just ours
+## 7. The copyleft protects Study's position, not just ours
 
 A second-order point worth making explicitly, because it inverts the usual
 reading of copyleft as a constraint:
@@ -141,11 +214,11 @@ network. The copyleft is the thing keeping the format common.
 An operator who wants a proprietary fork of a credential protocol wants
 the one outcome that makes their own credentials worthless.
 
-## 7. What is honestly weak
+## 8. What is honestly weak
 
 State these before they do:
 
-- **N=1 for a long time.** The bootstrap in §4 is real but it is
+- **N=1 for a long time.** The bootstrap in §5 is real but it is
   self-dealing; a network of two instances both run by Study proves
   engagement, not transferability. The transferability claim stays
   unproven until a third party accepts.
@@ -168,7 +241,7 @@ State these before they do:
   [study-com-platform-business-model.md](./study-com-platform-business-model.md)
   §2.
 
-## 8. The pleasant version
+## 9. The pleasant version
 
 Worth landing at the end of the pitch, not the start:
 
@@ -182,10 +255,12 @@ distribution mechanism attached, and it is the only version of
 
 ## Open questions ⚑
 
-1. **Does Study see itself as an issuer or a destination?** The whole
-   argument assumes issuer. If leadership's ambition is to *be* the world
-   players stay in, exclusivity looks better to them and this pitch is
-   aimed wrong.
+1. **Who would own post-goal retention?** §2 settles the strategy
+   question — issuer now, destination next, and the two do not
+   compete — but it leaves an org question. Time-to-goal has an owner
+   today; time-in-world does not. If nobody can hold the second metric,
+   "both" is a slide rather than a plan, and the pitch should stay
+   single-thesis until someone can.
 2. **Who owns transfer relationships internally** — is there an org that
    already thinks in articulation agreements and would recognize the
    shape immediately?
@@ -195,7 +270,7 @@ distribution mechanism attached, and it is the only version of
    [study-com-strategy.md](./study-com-strategy.md) already flags
    protecting the ACE relationship as a constraint.
 4. **Is there appetite for a second instance at all**, or does any pilot
-   have to live inside one deployment? §4's bootstrap needs two.
+   have to live inside one deployment? §5's bootstrap needs two.
 5. **What would they want exclusivity for**, concretely? If the answer is
    "brand safety" or "not competing with our own content," those have
    cheaper answers than a license.

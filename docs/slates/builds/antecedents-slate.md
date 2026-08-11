@@ -268,6 +268,12 @@ than being bolted on when someone speedruns a curriculum. Concretely:
 per-pack, per-Discipline, per-issuer ceilings, expressed as a **share of
 the band ladder** an import may carry you to.
 
+⚠ **An instance that both issues and accepts must cap its own claims
+too.** The tempting exemption — "our own attestations are trustworthy, so
+they ride uncapped here" — turns the issuing content into the pure grind
+path *inside the issuer's own world*. Self-acceptance is acceptance; the
+policy has no `self` case.
+
 The pleasant reading of the same risk: if the optimal way to advance a
 character is to actually learn the material, that is the
 [practicum thesis](./eternal-university-slate.md) arriving by a different
