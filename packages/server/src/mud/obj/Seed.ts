@@ -15,34 +15,25 @@
 
 import Thing from "../lib/stuff/Thing";
 import { DetailedMixin } from "../lib/description/Detailed";
+import { PlantableMixin } from "../lib/husbandry/Plantable";
 import type { FieldMeta } from "../lib/mixin";
 
-const SeedBase = DetailedMixin(Thing);
+// ⭐ `PlantableMixin` carries `growsIntoPath` and the plantable
+// capability. A seed is the first plantable thing, not the definition of
+// one — a cutting / tuber / bulb composes the same mixin rather than
+// extending this class. See lib/husbandry/Plantable.ts.
+const SeedBase = PlantableMixin(DetailedMixin(Thing));
 
 export default class Seed extends SeedBase {
   static fieldMeta: FieldMeta = {
-    growsIntoPath: { persistent: true, authorable: true, authorPicker: 'Template' },
     _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
   };
-
-  /**
-   * The `/obj/plant/…` template this seed mints when planted.
-   */
-  public growsIntoPath: string | null = null;
 
   /**
    * The species this seed belongs to — its own description's business,
    * distinct from the plant template it grows into.
    */
   public _speciesPath: string | null = null;
-
-  public getGrowsIntoPath(): string | null {
-    return this.growsIntoPath;
-  }
-
-  public setGrowsIntoPath(value: string | null): void {
-    this.growsIntoPath = value;
-  }
 
   public getSpeciesPath(): string | null {
     return this._speciesPath;

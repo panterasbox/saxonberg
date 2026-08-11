@@ -57,6 +57,9 @@ import mustBeMarked from '../mustBeMarked';
 import mustBeMountable from '../mustBeMountable';
 import mustBeDrivable from '../mustBeDrivable';
 import mustHaveBulkSlot from '../mustHaveBulkSlot';
+import mustBePlantable from '../mustBePlantable';
+import Seed from '../../../../obj/Seed';
+import { PlantableMixin } from '../../../husbandry/Plantable';
 
 /** A plain, mixin-less thing — the shape every one of these refuses. */
 class Plain extends NamedMixin(Idea) {
@@ -100,6 +103,7 @@ const CASES: {
   { name: 'mustBeMarked', validator: mustBeMarked, predicate: (s) => MixinApi.isMarked(s) },
   { name: 'mustBeMountable', validator: mustBeMountable, predicate: (s) => MixinApi.isMountable(s) },
   { name: 'mustBeDrivable', validator: mustBeDrivable, predicate: (s) => MixinApi.isDrivable(s) },
+  { name: 'mustBePlantable', validator: mustBePlantable, predicate: (s) => MixinApi.isPlantable(s) },
 ];
 
 describe('kind validators refuse exactly what their controller refuses', () => {
@@ -127,6 +131,50 @@ describe('kind validators refuse exactly what their controller refuses', () => {
       const verdict = validator(match(plain), 'target', undefined as never, undefined as never);
       expect(verdict).toBeTruthy();
       expect(String(verdict)).toContain('plain rock');
+    });
+  });
+
+  /*
+   * ⭐ The product complaint, pinned. Before this validator existed the
+   * menu offered **`plant` on a rock**: `seed` is the verb's first
+   * object-shaped slot, so any target bound to it, and the arg was
+   * declared `targetKind: any`. The controller refused — after the
+   * player had already been told they could.
+   *
+   * The other half matters as much: a real `Seed` must still pass, or
+   * the fix would have hidden a verb that works, which the sweep calls
+   * a build failure.
+   */
+  describe('plant', () => {
+    it('refuses a rock, and still accepts a seed', () => {
+      const rock = makeStuff(() => new Plain()) as unknown as Stuff;
+      (rock as unknown as { setName(n: string): void }).setName('a rock');
+      expect(
+        mustBePlantable(match(rock), 'seed', undefined as never, undefined as never),
+      ).toBeTruthy();
+
+      const seed = makeStuff(() => new Seed()) as unknown as Stuff;
+      expect(MixinApi.isPlantable(seed)).toBe(true);
+      expect(
+        mustBePlantable(match(seed), 'seed', undefined as never, undefined as never),
+      ).toBeUndefined();
+    });
+
+    /*
+     * ⚠ The capability is the mixin, not the class — so anything that
+     * composes `PlantableMixin` is plantable without extending `Seed`.
+     * That is the whole reason the refusal moved off `instanceof`:
+     * cuttings, tubers and bulbs should not need a class hierarchy.
+     */
+    it('accepts a non-Seed that composes the mixin', () => {
+      class Cutting extends PlantableMixin(NamedMixin(Idea)) {
+        static _mixinName = 'CuttingForValidatorTest';
+      }
+      const cutting = makeStuff(() => new Cutting()) as unknown as Stuff;
+      expect(cutting).not.toBeInstanceOf(Seed);
+      expect(
+        mustBePlantable(match(cutting), 'seed', undefined as never, undefined as never),
+      ).toBeUndefined();
     });
   });
 
