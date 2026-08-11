@@ -2177,6 +2177,22 @@ export interface ArrangementSpec {
 export const MAX_ARRANGEMENT_NAME_LENGTH = 32;
 
 /**
+ * Cap on how many arrangements one player may save **per mode**.
+ *
+ * ⚠ Saving writes a player-chosen KEY into a persisted map, so without
+ * a cap a player can grow their own stored document without bound. It
+ * is self-inflicted rather than an attack on anyone else — which is
+ * exactly why it is easy to leave uncapped and easy to regret: the cost
+ * lands on storage and on every read of that document, not on the
+ * player doing it.
+ *
+ * The number is deliberately generous. This is a guard against
+ * unbounded growth, not a design statement about how many layouts a
+ * person ought to want.
+ */
+export const MAX_SAVED_ARRANGEMENTS_PER_MODE = 32;
+
+/**
 /**
  * The per-viewer focal-embed target held as server-authoritative
  * `cockpit.watch` clientState (set by the `watch` verb, pushed to the

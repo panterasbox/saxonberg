@@ -31,6 +31,7 @@ import { ShadowApi } from '../../../../api/shadow';
 import { ContainmentApi } from '../../../../api/containment';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { ArrangementSpec } from '@saxonberg/types';
+import { MAX_SAVED_ARRANGEMENTS_PER_MODE } from '@saxonberg/types';
 
 class TestActor extends HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -230,5 +231,34 @@ describe('LayoutController', () => {
     await run({ name: 'save', target: 'wide' });
     expect(saved().chat?.wide).toBeDefined();
     expect(saved().play?.wide).toBeDefined();
+  });
+
+  /*
+   * ⚠ The COUNT is capped, not just the name. `save` writes a
+   * player-chosen key into a PERSISTED map, so uncapped it is unbounded
+   * growth of the player's own stored document — self-inflicted, which
+   * is exactly why it is easy to leave open and easy to regret.
+   *
+   * ⭐ Overwriting an existing name stays allowed at the cap, because
+   * it adds no key. A cap that blocked re-saving a layout you already
+   * have would be punishing the wrong act.
+   */
+  it('caps how many arrangements one mode can hold, but still allows overwrite', async () => {
+    for (let i = 0; i < MAX_SAVED_ARRANGEMENTS_PER_MODE; i += 1) {
+      await run({ name: 'save', target: `layout-${i}` });
+    }
+    expect(Object.keys(saved().play ?? {}).length).toBe(
+      MAX_SAVED_ARRANGEMENTS_PER_MODE,
+    );
+
+    await run({ name: 'save', target: 'one-too-many' });
+    expect(saved().play?.['one-too-many']).toBeUndefined();
+
+    // …but the one already there can still be re-saved.
+    await run({ name: 'save', target: 'layout-0' });
+    expect(saved().play?.['layout-0']).toBeDefined();
+    expect(Object.keys(saved().play ?? {}).length).toBe(
+      MAX_SAVED_ARRANGEMENTS_PER_MODE,
+    );
   });
 });

@@ -135,6 +135,19 @@ interface SubscriptionState {
    *
    * ⚠ Not a sixth hold condition — an override on the other five. A
    * pin that were merely another condition could not dismiss.
+   *
+   * ⚠⚠ **Session-scoped, and that is a DECISION rather than an
+   * oversight** — worth saying because saved arrangements sitting right
+   * beside it ARE persistent, so the asymmetry otherwise reads as a
+   * miss.
+   *
+   * A pin is about one pane and one subject: *keep the pane about Bob
+   * open even though Bob walked out.* Restoring that next week, when
+   * Bob is long gone and the subscription that framed him no longer
+   * exists, would be restoring an answer to a question nobody is
+   * asking. An ARRANGEMENT is durable because it names panes by
+   * catalogue id — a statement about a workspace. A pin is a statement
+   * about a moment, and it dies with the moment.
    */
   pinned: boolean | null;
 }
