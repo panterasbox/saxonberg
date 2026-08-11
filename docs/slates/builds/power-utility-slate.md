@@ -33,7 +33,7 @@ lamppost is locally Energized; its plate carries a **maker's mark +
 
 Not wires, not metering: a **supply reference**. An `Energized`
 fixture may declare its source — a resolve-on-read identity ref
-([ref-shapes.md](../../subsystems/ref-shapes.md)) to a substation —
+([ref-shapes.md](../../ref-shapes.md)) to a substation —
 and the source's state gates its dependents:
 
 - The substation goes down → Foundry Row's lamps go dark. The
@@ -85,6 +85,30 @@ Everything past the middle tier is polity + economy design:
   per-parcel service echoes the parcel registry
   ([parcel.md](../../subsystems/parcel.md) — service to titled
   property; the invoice-the-owners loop).
+
+  > ⭐⭐⭐ **CONSTRAINED 2026-08-11 — the recurring-charge call.** This slate
+  > predates the [stewardship doctrine](../../stewardship-doctrine.md) and
+  > was never checked against **Law 2**. It is now, and billing is bounded
+  > by three rules:
+  >
+  > 1. **Meter on USE, never on connection or ownership.** Per-unit
+  >    consumption ✅. A fixed **standing/connection charge** ⛔ — that is
+  >    *"rent on owned space"* with the serial numbers filed off. An
+  >    **ad-valorem holding tax** ⛔.
+  > 2. **Dischargeable without attendance** — capital or a standing order
+  >    must be able to pay it. *"The bill is paid in engagement + capital,
+  >    never in showing up."*
+  > 3. **Non-payment's ceiling is credit and comfort, never the asset**
+  >    ([credit-slate](./credit-slate.md)'s property floor). This is what
+  >    makes 1–2 safe.
+  >
+  > The framing that makes this natural rather than a restriction:
+  > **utilities are the compute meter's fictional twin.** A lit lamp burns
+  > supply the way a running zone burns compute and a torch burns fuel —
+  > so **an empty house draws nothing**, and Law 2's *"mere ownership and
+  > absence cost nothing"* is satisfied by the physics, not by an
+  > exemption. ⚠ The *"invoice-the-owners"* loop above must therefore
+  > invoice **consumption**, not **frontage**.
 - **Labor** — the utility as employer: positions, shifts, the
   maintenance rotation ([employment.md](../../subsystems/employment.md));
   the storm contract as the surge case over the standing round.

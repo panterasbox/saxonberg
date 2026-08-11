@@ -191,6 +191,76 @@ the real design risk of a stewardship pillar — not any single loop, but
 their aggregate load — and the exits (automation, asymptotic decay,
 paid mitigations) are what keep it on the right side.
 
+### ⭐⭐⭐ The recurring-charge call — utilities are the compute meter's fictional twin
+
+**(Called 2026-08-11.)** The four resolutions above cover *decay*. They say
+nothing about **money that recurs** — the power bill, the water rate, the
+parcel tax — and a home is where those land. The
+[power-utility slate](./slates/builds/power-utility-slate.md) predates this
+doctrine by nine days and was never checked against it, so the call was
+outstanding.
+
+**It does not need new doctrine.** Law 2 already made this exact ruling once,
+for the compute substrate, and the reasoning transfers whole:
+
+> Law 2's surface rule *"no rent on owned space"* was written for in-game
+> property and does not straitjacket a genuinely recurring real cost. The
+> narrower kernel that governs is **presence is never the meter**: metered by
+> **use** (*"the way a torch burns only while lit"*), and **the bill is paid
+> in engagement + capital, never in player attendance.**
+
+> ⭐⭐⭐ **So: utilities are the compute meter's fictional twin.** A lit lamp
+> burns supply the way a running zone burns compute and a torch burns fuel.
+> **An empty house draws nothing** — which is Law 2's *"mere ownership and
+> absence cost nothing"* satisfied by the physics rather than by an exemption.
+
+**Three rules, and the third is what makes the first two safe:**
+
+| # | Rule | Admits | Refuses |
+|---|---|---|---|
+| **1** | ⭐ **Meter on USE — never on connection, never on ownership** | per-unit consumption (kWh, litres); service fees at the point of a service rendered | a fixed **standing/connection charge** (rent on owned space with the serial numbers filed off); an **ad-valorem holding tax** |
+| **2** | ⭐⭐ **Dischargeable WITHOUT attendance** | capital, a standing order, an income stream that runs while you are away | any bill whose only antidote is logging in — the inviolable floor, restated for money |
+| **3** | ⭐⭐⭐ **Non-payment's ceiling is credit and comfort, NEVER the asset** | *"credit gets harder / you live worse"* | seizure, eviction-for-arrears, loss of the holding ([credit-slate](./slates/builds/credit-slate.md)'s property floor) |
+
+Rule 3 is the load-bearing one. Law 2's real fear is **loss you can only avert
+by showing up**; if non-payment can never take the thing, a recurring bill
+cannot produce the treadmill Law 2 was written to ban — even in the worst case
+of a long absence.
+
+#### ⚠ What this forecloses, deliberately: the land tax
+
+Rule 1 **bans an ad-valorem property tax**, and that is a real cost worth
+stating plainly rather than burying. Law 2's text is unambiguous — *"mere
+ownership and absence cost nothing," "no rent on owned space"* — and
+economy-slate's compute passage goes further: *"no holding-tax is ever
+needed; the rival resource self-rations through use."*
+
+So a locality's revenue must come from **consumption, transactions, and
+services rendered**, never from holding land. That is a genuine fiscal
+constraint (a polity that cannot tax land must tax flow), and it is
+*pedagogically richer* than the alternative rather than poorer — but it
+**forecloses a land-value tax**, which the land-use and smallholding designs
+might otherwise have reached for.
+
+> **Reopening LVT is an amendment to Law 2, not a design detail.** If the
+> civics/fiscal-cycle build wants it, that is the door — and it should be
+> walked through deliberately, with rules 2 and 3 as the non-negotiable
+> guardrails.
+
+#### The structural correction this forces
+
+⚠ [residence-ladder](./slates/builds/residence-ladder-design-pack.md)'s
+`propertyCondition` read took four inputs, the fourth being *"premises
+standing — utilities paid, tax current."* **That input is removed**, and not
+only for Law-2 reasons: it is a **category error**. Condition measures the
+state of the *holding*; standing measures the holder's relationship with
+creditors. A house is not dilapidated because you are behind on a bill.
+
+The ladder gate is already two-part — *money necessary, condition binding* —
+so premises standing simply belongs on the **money half**, where it always
+was. Nothing is lost, the Law-2 hole closes for free, and the condition read
+gets more honest.
+
 ---
 
 ## Part 4 — ⭐⭐ Name the pillar

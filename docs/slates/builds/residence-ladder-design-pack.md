@@ -15,7 +15,9 @@ cascade, the Stewardship Discipline) · [stewardship-doctrine](../../stewardship
 [residence](../../subsystems/residence.md) (the rungs) ·
 [parcel](../../subsystems/parcel.md) (title/tenure) ·
 [credit-slate](./credit-slate.md) (the property floor — never seized) ·
-[banking](../../subsystems/banking.md) (money gate, tax, utilities).
+[banking](../../subsystems/banking.md) (the money gate; metered utilities) ·
+[stewardship-doctrine § the recurring-charge
+call](../../stewardship-doctrine.md) (**what may and may not recur**).
 
 ---
 
@@ -54,19 +56,31 @@ propertyCondition(holding) = f(
     room condition,              // act-deposited: dirt, debris, tidiness  (freezes in absence)
     fixture Durable/Keen wear,   // act-driven: worn appliances, dull tools (freezes in absence)
     stored-food / stock state,   // continuous: spoilage                   (runs over absence)
-    premises standing            // utilities paid, tax current            (economic)
 )
 ```
 
+> ⚠ **Corrected 2026-08-11 — `premises standing` was a fourth input and is
+> REMOVED.** *"Utilities paid, tax current"* is not condition. Condition
+> measures the state of the **holding**; standing measures the holder's
+> relationship with **creditors**. A house is not dilapidated because you are
+> behind on a bill — that is a category error, and it also punched a hole in
+> the Law-2 claim below (a periodic charge accruing while you are away would
+> have degraded condition and blocked the ladder, which is presence as the
+> meter). The ladder gate is already two-part — **money necessary, condition
+> binding** — so premises standing belongs on the **money half**, where nothing
+> is lost by putting it. See
+> [stewardship-doctrine § The recurring-charge call](../../stewardship-doctrine.md).
+
 > ⭐⭐ **It is Law-2-clean by construction, and the room-condition build is what
-> makes that true.** Its two biggest inputs (room condition, Durable wear) are
-> **act-deposited and freeze in absence** — so **a home you leave does not fall
-> apart.** Property condition degrades because you *live badly* (mess you don't
-> clean, wear you don't repair), never because *time passed while you were away.*
-> The one continuous input (stored-food spoilage) is opt-in (you chose to keep
-> perishables) and defused by care (the fridge). So the ladder gate honors
-> *"presence is never the meter"*: you keep your rung by tending, not by
-> logging in.
+> makes that true.** **All three** inputs are now checked against absence, which
+> is what the original four-input version failed to do. The two biggest (room
+> condition, Durable wear) are **act-deposited and freeze in absence** — so **a
+> home you leave does not fall apart.** Property condition degrades because you
+> *live badly* (mess you don't clean, wear you don't repair), never because
+> *time passed while you were away.* The one continuous input (stored-food
+> spoilage) is opt-in (you chose to keep perishables) and defused by care (the
+> fridge). So the ladder gate honors *"presence is never the meter"*: you keep
+> your rung by tending, not by logging in.
 
 Derived on read, nothing stored, degrades on a **slope not a cliff** — the family
 shape. It is **visible** (the whole point — you and a prospective landlord can
@@ -113,10 +127,10 @@ mixin. The ladder is a **gated ascent action**, not an object.
 
 | | Work | State |
 |---|---|---|
-| ⭐ **`propertyCondition` derived read** | aggregate room condition + Durable wear + stock spoilage + premises standing over a holding's extent (an MQL walk over the parcel, no stored counter) | **new (derived)** |
+| ⭐ **`propertyCondition` derived read** | aggregate room condition + Durable wear + stock spoilage over a holding's extent (an MQL walk over the parcel, no stored counter) | **new (derived)** |
 | ⭐ **The ascent gate** | the "acquire next rung" flow checks money **and** `propertyCondition ≥ band` | **new (a flow + a predicate)** |
 | ✳ **Stewardship `Discipline`** | pure data (Part 4) — reads condition, buys precision/access | **new data** |
-| ✳ **Premises obligations** | utilities (power-utility), parcel tax, fixture upkeep — the money-side inputs | **rides designed slates** |
+| ✳ **Premises obligations** | ⚠ **the MONEY half, not a condition input** — metered utility consumption + fixture upkeep. **No parcel tax and no standing charge** (banned by the recurring-charge call) | **rides designed slates** |
 
 **4. Verbs & affordances.** The *care* verbs already belong to the producers
 (`clean`/`repair`/etc. — room-condition & crafting). The ladder adds an **acquire
@@ -126,10 +140,11 @@ core verb; the ascent is a content/economic action.
 **5. Persisted fields.** None new for condition (derived). The ladder's state is
 just *which rungs you hold* — already the parcel `grants[]` / title.
 
-**6. Seams & dependencies.** Inputs: room condition (near-term), Durable (ships),
-spoilage (the keystone), premises/utilities (power-utility, designed), tax
-(banking). The **city rungs** wait on region parcels + the allowance meter; the
-**frontier rungs** do not.
+**6. Seams & dependencies.** Condition inputs: room condition (near-term),
+Durable (ships), spoilage (the keystone). Money-half inputs (**not** condition):
+metered utility consumption (power-utility, designed) through banking. The
+**city rungs** wait on region parcels + the allowance meter; the **frontier
+rungs** do not.
 
 **7. Fault line.** The **frontier ladder + property-condition read + the ascent
 gate** is a near-term build once room-condition ships. The **city ladder** is a
@@ -213,8 +228,11 @@ anti-hoarding trade, computable).
   ladder).
 - **Parcel** — title/tenure is the ladder's state; `ownerOf`/`grants[]` already
   express lease-vs-own.
-- **Banking** — the money half of the gate, the parcel tax (a sink), utilities
-  (transfers). Never a mint.
+- **Banking** — the money half of the gate; metered utility consumption
+  (transfers). Never a mint. ⚠ **No parcel tax** — an ad-valorem holding tax is
+  banned by the [recurring-charge
+  call](../../stewardship-doctrine.md); a locality's revenue rides consumption,
+  transactions and services rendered instead.
 - **Credit-slate** — the property floor (never seized) makes the consequence ladder
   humane; and *"condition gates credit"* is a real underwriting input a lender
   reads.
@@ -259,12 +277,17 @@ which is the near-term slice.
 1. **The condition band that gates ascent** — one universal threshold, or per-rung
    (a manor demands `pristine`, an apartment `tidy`)? *Lean: per-rung, rising* — the
    higher you climb, the higher the bar, which is honest and self-limiting.
-2. **How the four inputs weight** into one `propertyCondition` read (a min, like
+2. **How the three inputs weight** into one `propertyCondition` read (a min, like
    husbandry's limiting factor? a weighted blend?). *Lean: a limiting-factor min* —
    one filthy room shouldn't hide behind spotless fixtures.
 3. **Does the mirror's real-property-condition drive the *ladder*, or only
    recognition?** The pay-to-win / two-tier line — real stewardship earns *standing*,
    but should it earn *rungs*? *Lean: recognition only* (mirror-slate's
    "different things, not more").
-4. **Numeric calibration** — bands, weights, the tax/utility magnitudes. Deferred
-   to a running game.
+4. **Numeric calibration** — bands, weights, utility rates. Deferred to a
+   running game.
+5. ⭐ **Where a locality's revenue comes from, now that holding tax is banned.**
+   Consumption, transactions and services rendered are the admitted bases (the
+   recurring-charge call). That is a real fiscal constraint — a polity that
+   cannot tax land must tax flow — and it lands on the civics/fiscal-cycle
+   build, not here.
