@@ -21,7 +21,7 @@ args:
     type: object
     required: true
     scope: "reachable"
-    requires: [VisibleMixin, GrowingMixin]
+    requires: [VisibleMixin, GrowingMixin, SlottableMixin, ContainableMixin]
   - name: pot
     type: object
     required: true

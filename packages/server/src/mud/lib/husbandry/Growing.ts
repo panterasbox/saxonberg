@@ -38,6 +38,10 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
+import type { Cultivable } from './Cultivable';
+import type { Slotted } from '../slot/Slotted';
+import type { Bulkable } from '../bulk/Bulkable';
+import type { Difficulty } from '../advancement/ActSignature';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -157,6 +161,41 @@ export interface Growing {
    */
   getWorstLimiting(): number;
   /**
+   * The `/obj/crop/…` template a harvest mints, mirroring the host's
+   * seed path exactly (the same instantiate-don't-resolve identity-ref
+   * variant). Null for an ornamental that yields nothing — a houseplant
+   * is not harvestable, and saying so costs one null.
+   */
+  getHarvestTemplatePath(): string | null;
+  setHarvestTemplatePath(value: string | null): void;
+  /**
+   * Percentage points of nitrogen this crop takes out of the bed when it
+   * is harvested — the export that makes an unfed bed yield worse each
+   * time. Authored per species; 0 for a plant that draws nothing.
+   */
+  getNutrientDraw(): number;
+  setNutrientDraw(value: number): void;
+  /**
+   * Whether this can be harvested right now: it must yield something, be
+   * mature, and be alive. Reconciles on read (through `getGrowthStage`),
+   * so an absence that ripened it counts.
+   */
+  isHarvestable(): boolean;
+  /**
+   * The ground this is rooted in — a pot or a garden bed — or null when
+   * unrooted. Speaks the `Cultivable` interface rather than a concrete
+   * class: *a pot is a bed with one slot*, and the plant has no business
+   * knowing which it is sitting in.
+   */
+  getBed(): (Stuff & Cultivable & Container & Bulkable & Slotted) | null;
+  /**
+   * How hard it is to move this to another pot — the `horticulture`
+   * difficulty the `repot` verb credits. Root disturbance scales with
+   * what there is to disturb, so a seedling is trivial and a grown plant
+   * is not.
+   */
+  transplantDifficulty(): Difficulty;
+  /**
    * Water the plant: reconcile, then credit the moisture reserve up to its
    * headroom. Returns the litres actually absorbed (0 when dead or when no
    * moisture reserve is authored).
@@ -275,6 +314,15 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       _lastLux: { persistent: true },
       _worstLimiting: { persistent: true },
       profile: { persistent: true },
+      // ⭐ Moved off the `Plant` CLASS. `harvest` and `repot` used to
+      // narrow with `instanceof Plant` while their specs declared
+      // `requires: GrowingMixin` — two predicates for one gate, the
+      // same split that let the menu offer `plant` on a rock. The
+      // capability is what the verbs actually need, so it lives with
+      // the capability. Hydration reflects by NAME, so authored
+      // content is untouched by the move.
+      harvestTemplatePath: { persistent: true, authorable: true },
+      nutrientDraw: { persistent: true, authorable: true },
     };
 
     /** Derived condition + cause lines appended to the long description. */
@@ -355,6 +403,74 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public getWorstLimiting(): number {
       if (!this._reconcilingGrowth) this.reconcileGrowth();
       return clamp01(this._worstLimiting);
+    }
+
+    /*
+     * ⭐ The harvest + rooting surface, moved here from the `Plant`
+     * class. `harvest` and `repot` narrowed with `instanceof Plant`
+     * while their specs declared `requires: GrowingMixin` — two
+     * predicates for one gate, which is the split that let the menu
+     * offer `plant` on a rock. Everything below is expressed purely in
+     * terms of what this mixin already owns, so the class was never
+     * the right home for it; `Plant` was simply the only composer.
+     */
+
+    /** The `/obj/…` template a harvest mints; null yields nothing. */
+    public harvestTemplatePath: string | null = null;
+
+    public getHarvestTemplatePath(): string | null {
+      return this.harvestTemplatePath;
+    }
+
+    public setHarvestTemplatePath(value: string | null): void {
+      this.harvestTemplatePath = value;
+    }
+
+    /** Nitrogen points a harvest exports from the bed. */
+    public nutrientDraw: number = 0;
+
+    public getNutrientDraw(): number {
+      return this.nutrientDraw;
+    }
+
+    public setNutrientDraw(value: number): void {
+      this.nutrientDraw = Math.max(0, value);
+    }
+
+    public isHarvestable(): boolean {
+      if (!this.harvestTemplatePath) return false;
+      if (this.getGrowthStage() !== 'mature') return false;
+      return this.getConditionBand() !== 'dead';
+    }
+
+    /*
+     * ⚠ `getOccupiedHost` belongs to `SlottableMixin`, which composes
+     * OUTSIDE this one on `Plant` — so it cannot be assumed on the
+     * base. Asking `MixinApi.isSlottable` is the project's own answer
+     * to that (narrow locally rather than demand composition order),
+     * and it makes an unslotted grower read `null` instead of throwing.
+     */
+    public getBed():
+      | (Stuff & Cultivable & Container & Bulkable & Slotted)
+      | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSlottable(self)) return null;
+      const host = self.getOccupiedHost();
+      if (!host) return null;
+      return MixinApi.isCultivable(host) ? host : null;
+    }
+
+    public transplantDifficulty(): Difficulty {
+      switch (this.getGrowthStage()) {
+        case 'seedling':
+          return 'trivial';
+        case 'young':
+          return 'easy';
+        case 'established':
+          return 'standard';
+        default:
+          return 'hard'; // `mature`
+      }
     }
 
     public getProfile(): GrowthProfileData | null {
