@@ -242,6 +242,17 @@ export class PerceptionApi {
    * unperceived (dark room) or perceived and unreachable (across a
    * chasm). Callers that need both ask both.
    *
+   * ⚠ **And it is not the `reachable` MQL seed either**, which the
+   * antipattern doc's "hand-rolled reachability walk" rule would
+   * otherwise point at. That seed emits a **candidate set for keyword
+   * SEARCH** — attention-scored, keyword-bearing, ordered
+   * on-person-first. This is a **membership predicate** on a Stuff
+   * that is already resolved, it counts attached doors and the
+   * via-exit binding (which the search pool has no reason to), and it
+   * runs per-arg on every dispatch and per-refresh on every pane.
+   * Answering it by resolving the whole room and testing for inclusion
+   * would be the wrong shape and the wrong cost.
+   *
    * @param opts.location defaults to the actor's own container.
    * @param opts.viaExit set when the binding carried a `via.exit`.
    */

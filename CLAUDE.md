@@ -107,7 +107,7 @@ behavior. Read the relevant doc before editing in its area.
   - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`make`
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
-  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column pane: two subscriptions, unified breadcrumb, cardinality-polymorphic body
+  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column pane: two SERVER-NAMED panes (the catalogue owns the query), unified breadcrumb, cardinality-polymorphic body
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName`, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance
