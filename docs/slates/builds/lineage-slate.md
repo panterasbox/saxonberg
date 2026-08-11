@@ -36,6 +36,33 @@ Two problems with that:
 
 ---
 
+## ⭐⭐ The story char-gen tells: your majority day
+
+Char-gen has never had a stated fiction. It should, because every piece
+of this design already assumes the same one:
+
+> **You are the child of a household in this world. Today you come of age
+> and leave it. What you know, you learned there. Who you are, you
+> learned there. What you carry, they gave you. Everything after this is
+> yours.**
+
+Look at how much it explains that would otherwise need explaining:
+
+| the mechanism | why it makes sense |
+|---|---|
+| the parent gallery | you have only just left them |
+| the antecedents budget | it is **childhood** — a bounded, explainable amount of history, not a whole adult life |
+| traits seeded as upbringing | the household you are walking out of |
+| starting capital | what your family gave you |
+| blood type `untested` | you are young and have never needed a clinic |
+| reroll priced against capital | your family's circumstances are what they are |
+
+It is also the platform's own thesis in miniature — **you arrive with a
+past you did not choose and a future you do** — and it makes the first
+session's implicit goal legible: *become someone.*
+
+---
+
 ## ⭐ The four kinds of value
 
 The platform has three and is missing one:
@@ -304,6 +331,112 @@ schedule. See [species-expansion-slate](../tails/species-expansion-slate.md).
 
 ---
 
+## Age, aging, and healthspan
+
+Entering on your majority day means the character **has an age**, which
+raises the question of what happens to it.
+
+### The slot exists and is inert
+
+`OrganismMixin` already carries `age: number`. `Species` already carries
+`lifespanMin` / `lifespanMax` (human 120, half-elf 180, dwarf 400, elf
+750). `vitals.md` says the vital profile *"reserves room for a later
+age-curve."*
+
+Nothing writes any of it — char-gen's fields are species, sex, name,
+pronouns, aspiration. **Age is a declared field that nothing sets and
+nothing reads.** Setting an entry age is mostly a matter of finally using
+what is there.
+
+### The birthday
+
+A majority day means a **recurring** date, and the world has a clock and
+a calendar. That buys a personal, zero-content occasion: a chronicle
+beat, an aging tick, and — best — **a reason for the people who know you
+to reach out.** *Your mother sent word.* A retention hook that is not a
+login bonus, for the price of one date field.
+
+⚠ Its entire value depends on **clock scale.** If a game year passes in a
+real week, birthdays are weekly and mean nothing; if a game year is a
+real month or more, it is an occasion. Settle the scale before building
+anything on the date.
+
+### ⚠⚠ Do not let lifespan bound the player
+
+The trap, and it arrives through a field that already exists and looks
+harmless:
+
+> **If aging is real *and* terminal, lifespan becomes the most rankable
+> stat in the game.**
+
+An elf gets 750 years of play; a human gets 120. Single scale, strictly
+ordered, and **no countervailing cost can exist** — you cannot make "more
+playtime" incomparable with "less playtime." It would be the cleanest
+violation of the [species slate](./species-slate.md)'s doctrine anywhere
+in the design.
+
+**So lifespan describes the world, not the player.** Keep it for NPC
+generations, family trees, and *elves remember the founding*. Never put a
+clock on a player character.
+
+### ⭐⭐ Healthspan, not lifespan
+
+The model that keeps everything and punishes nobody:
+
+- **Aging is real and brings decline** — the age curve `vitals.md`
+  already reserves room for
+- **Aging is never terminal for a player character.** You do not lose a
+  character to the calendar, ever
+- **Longevity work restores vigor, not existence**
+
+The stakes become *quality of life* rather than survival. A longevity
+industry still has demand, the distributional politics still bite, and a
+player who never touches magic or technology simply plays an **older**
+character rather than a deleted one.
+
+It is also the accurate framing: **healthspan vs lifespan is the real
+term of art in gerontology**, and life-extension research is
+overwhelmingly about the former. The reality-seeded choice and the
+player-friendly choice are the same one.
+
+⭐ **Check `reembody` first.** [mortality.md](../../subsystems/mortality.md)
+already ships the dying arc, the shade, and `reembody` over the `passage`
+floor, and `lifecycleStates: ["alive", "dead", "undead"]` is authored on
+the species rows. Death may already not be terminal — in which case
+"aged out, start over" was never the real failure mode, and the urgency
+behind any longevity exemption drops considerably.
+
+### The longevity industry — noted, not designed
+
+If aging brings decline, something sells the cure, and that is a build of
+its own spanning vitals, magic, crafting, and civics. Four things worth
+recording now so it is not designed by accident:
+
+- **⚠ Several independent routes, or the ranking just moves.** If
+  longevity is bought with magic competence alone, magic becomes the
+  meta-stat and everyone becomes a caster or declines. Arcane,
+  technological, medical, and institutional (a guild that keeps its
+  elders) — each with a different cost profile, none dominant.
+- **⭐ Clarke is right about the observer and wrong about the designer.**
+  Magic and technology reaching the same outcome should be **two price
+  lists for the same miracle**, not one route wearing two hats.
+  [arcane-science.md](../../arcane-science.md) gives magic a lawful cost
+  structure; technology has a supply chain. Rival economies for one
+  result is richer than equivalence.
+- **⭐ Maintained, not permanent.** Sell *not dying this year*, not
+  immortality. A recurring cost is an economic sink, is reversible, keeps
+  the immortal population small enough that *elves remember the founding*
+  still lands, and makes longevity **a relationship with an institution**
+  — which is content rather than a stat.
+- **⚠⚠ The distributional question is the point, not a bug.** A world
+  where the rich stay vigorous and the poor decline is loaded, live, and
+  exactly the political economy this platform teaches — the direct
+  sibling of [blood-slate](./blood-slate.md)'s allocation problem. It
+  should be designed **as a policy surface the Compact can legislate**,
+  not discovered later as an inequality nobody meant.
+
+---
+
 ## Friction — check the funnel first
 
 Auth happens **before** char-gen: signup creates zero avatars, and
@@ -350,6 +483,18 @@ expensive half; let the cheap half measure the appetite first.
    budget shaped by the parents is the natural link to
    [antecedents-slate](./antecedents-slate.md), but a childhood spent
    around a trade is not the same as practicing it.
+7. **What is the clock scale?** It decides whether a birthday is an
+   occasion or weekly noise, and nothing about the date should be built
+   before it is settled. ⚠ `setScale` is already known to rescale
+   metabolic rates, so this is not a free knob.
+8. **What does `reembody` actually cost?** If death is already
+   recoverable, the whole framing of aging as a catastrophe is wrong and
+   the age model gets simpler, not harder.
+9. **Does majority age vary by species?** An elf coming of age at 120
+   and a human at 16 is realistic and makes the *gallery* awkward —
+   parents and child would sit at wildly different life stages. Possibly
+   majority is cultural rather than biological, which is the same answer
+   the trait question got.
 
 ---
 
@@ -360,6 +505,15 @@ expensive half; let the cheap half measure the appetite first.
 - **Blood type mechanics** — [blood-slate](./blood-slate.md).
 - **Reproduction in play.** Inheritance here is *backward-looking* only:
   choosing where you came from, never producing children.
+- **The longevity industry.** Recorded above as constraints, designed
+  nowhere — it spans vitals, mortality, magic, crafting and civics and
+  wants its own cycle.
+- ⭐ **Generational play** — terminal aging, where your next character is
+  your *child* and the gallery becomes your own history rather than
+  procgen. It is the compelling road not taken: it makes lineage
+  load-bearing instead of decorative, but it needs reproduction in play
+  and it re-imports the lifespan-ranking problem with interest. Recorded
+  so the choice stays visible.
 - **The species roster itself** — which species exist is
   [species-expansion-slate](../tails/species-expansion-slate.md)'s
   question, not this one's.
@@ -388,3 +542,12 @@ expensive half; let the cheap half measure the appetite first.
   conservation chokepoint the capital sink draws from
 - [magic.md](../../subsystems/magic.md) — `facultyProfile`, mana as a
   `Reserve`, competence-is-access
+- [vitals.md](../../subsystems/vitals.md) — `OrganismMixin.age`, and the
+  age curve the profile reserves room for
+- [mortality.md](../../subsystems/mortality.md) — the dying arc, the
+  shade, and `reembody`; check what death already costs before designing
+  an escape from it
+- [time.md](../../subsystems/time.md) — the clock and calendar a birthday
+  rides, and the scale its meaning depends on
+- [arcane-science.md](../../arcane-science.md) — magic's lawful price
+  list, the other half of the two-price-lists framing
