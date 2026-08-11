@@ -65,7 +65,6 @@ import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
 import { RenownApi } from '../api/renown';
-import { AdvancementApi } from '../api/advancement';
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -217,8 +216,40 @@ export default class Avatar extends AvatarBase {
    */
   static fieldMeta: FieldMeta = {
     mortalArc: { persistent: true },
+    lastSeen: { persistent: true },
     startLocation: { instruction: true },
   };
+
+  /**
+   * Epoch ms of this character's last logout, or 0 for never-played.
+   *
+   * ⭐ The cheap field the character-select screen was starved for, and
+   * the prerequisite for the "since you left" digest — which is derived
+   * across the ledgers *since this instant*, so without it there is no
+   * window to derive over.
+   *
+   * Stamped on logout rather than continuously: "when did I last put
+   * this character down" is the question the roster asks, and a
+   * heartbeat-updated field would answer a different one while costing
+   * a write per tick.
+   *
+   * Public because the `Hydrator` reflects into persistent fields by
+   * name; other Stuff use `getLastSeen` / `markSeen`.
+   */
+  public lastSeen: number = 0;
+
+  /** Epoch ms of the last logout, or `undefined` if never played. */
+  public getLastSeen(): number | undefined {
+    return this.lastSeen > 0 ? this.lastSeen : undefined;
+  }
+
+  /**
+   * Stamp the logout instant. Called by the connection teardown, which
+   * is the one moment that means "this character was put down".
+   */
+  public markSeen(at: number): void {
+    this.lastSeen = at;
+  }
 
   /**
    * ⭐ **The live standing figures**, as subscribable data rather than
@@ -278,11 +309,21 @@ export default class Avatar extends AvatarBase {
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
     {
+      /**
+       * *Make* is an **account-level** stock (`STOCK_LEVEL`): it is
+       * something the person does, not the character.
+       *
+       * ⚠ Read through `standingForHost`, the shared seam — NOT through
+       * a local aggregation. The account arithmetic is deliberately
+       * unbuilt (see that method), so this is still a per-character
+       * figure today. Deriving one here would put a formula in a
+       * concrete class, which is where the previous attempt went wrong:
+       * it made the dashboard disagree with `standing` and `profile`.
+       */
       name: 'makeStanding',
       read: (stuff, viewer) => {
-        const key = standingSubject(stuff, viewer);
-        if (!key) return undefined;
-        return { band: InfluenceApi.bandOf(key, 'producer') };
+        if (!standingSubject(stuff, viewer)) return undefined;
+        return { band: InfluenceApi.standingForHost(stuff, 'producer').band };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -292,16 +333,6 @@ export default class Avatar extends AvatarBase {
         const key = standingSubject(stuff, viewer);
         if (!key) return undefined;
         return { value: RenownApi.renownOf(key) };
-      },
-      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
-    },
-    {
-      name: 'practisingCompetence',
-      read: (stuff, viewer) => {
-        if (!standingSubject(stuff, viewer)) return undefined;
-        const c = AdvancementApi.practisingCompetenceCached(stuff);
-        if (c === undefined) return undefined;
-        return c === null ? null : { discipline: c.discipline, band: c.band };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -1133,6 +1164,16 @@ export default class Avatar extends AvatarBase {
     // `PlayerLoggedOut` (the character left the game; a return is a fresh
     // login). A bare drop is a `PlayerDisconnected` (linkdead): the body
     // lingers and the next `enter()` will be a reconnect.
+    // ⭐ Stamp `lastSeen` on EITHER path. A network drop is still the
+    // last moment this character was in the world, and the roster's
+    // question ("when did I last play them") does not care whether the
+    // player meant to leave. Stamping only the deliberate path would
+    // leave every crashed session reading as never-played.
+    // Wall clock, not game time: "when did I last play them" is a
+    // real-world question the character-select screen asks before the
+    // world clock is even relevant to the reader.
+    this.markSeen(Date.now());
+
     if (this.leaveIntent) {
       this.leaveIntent = false;
       this.sessionActive = false;
@@ -1140,6 +1181,8 @@ export default class Avatar extends AvatarBase {
     } else {
       EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     }
+    // Persist the stamp; a save failure must not break teardown.
+    this.save().catch(() => undefined);
   }
 
   /* ── sandbox parking (Decision P) ──

@@ -577,7 +577,7 @@ value to every connected Interactive.
 - **Server → client on server-initiated mutation.**
   `{ type: 'client-state-update', payload: { key, value } }` —
   outbound push parallel to `client-state-write`. Server code
-  that mutates a key out-of-band (the `style` verb is the v1
+  that mutates a key out-of-band (the `cockpit` verb is the v1
   caller) calls `host.pushClientStateUpdate(key, value)` so the
   client re-renders without waiting on the next reconnect
   snapshot. The implementation is strategy-injected

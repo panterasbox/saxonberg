@@ -72,7 +72,7 @@ behavior. Read the relevant doc before editing in its area.
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
   - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: frame primitives, start screen, anonymous-guest path, reconnect machine
-  - [cockpit-layouts.md](./docs/subsystems/cockpit-layouts.md) — server-authoritative `cockpit.layout` + `cockpit.inputModes`; watch embed; ghost command line; summoned panes
+  - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; ghost command line
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
   - [media.md](./docs/subsystems/media.md) — `Visible.illustration` → `mediaUrl()`; MediaAsset provenance; image-generation pipeline
@@ -107,7 +107,7 @@ behavior. Read the relevant doc before editing in its area.
   - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`make`
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
-  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column pane: two subscriptions, unified breadcrumb, cardinality-polymorphic body
+  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column pane: two SERVER-NAMED panes (the catalogue owns the query), unified breadcrumb, cardinality-polymorphic body
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName`, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance

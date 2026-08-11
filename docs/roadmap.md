@@ -154,7 +154,7 @@ remains in the near-term Track A queue:
    shipped (cockpit-layouts build, 2026-06: server-authoritative `layout`
    axis + per-bar input mode + livestream-viewer + builder + the
    summoned-pane tier — see
-   [cockpit-layouts.md](./subsystems/cockpit-layouts.md)). What remains:
+   [cockpit.md](./subsystems/cockpit.md)). What remains:
    the education content surface (video + transcript), the study /
    classroom / tutor modes, and theming polish. Per
    [client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md);

@@ -683,7 +683,7 @@ or option named `subcommand` — caught at load time.
 ### Phase 3a — opt-in subcommand → flat-args fallthrough
 
 Most subcommanded verbs (`measure`, `alias`, `prompt`, `analyze`,
-`settings`, `style`, `var`) want unknown first tokens to surface
+`settings`, `cockpit`, `var`) want unknown first tokens to surface
 as `unknown-subcommand`. A small minority — `chat` is the
 canonical example — want unknown first tokens to fall through
 into a bare-form positional bind: `chat <channel> <msg>` is a
@@ -1468,29 +1468,143 @@ see [concealment.md](./concealment.md)).
    not advertise `recharge`. The viewer's own verbs survive: `look` is
    a fact about the viewer.
 
-### ⚠ Known limitation — the menu is only as good as the field validators
+### The candidate set is no longer purely syntactic — `requires:`
 
-The candidate set is **syntactic**: any verb declaring an object-shaped
-positional is offered for any target, and the validator chain is what
-decides. Where a verb's semantic check lives in its **controller**
-rather than in a field validator, the resolver cannot see it and reports
-the verb `enabled`.
+⚠ **This section previously recorded the gap as open. It is closed.**
 
-Driven live against the lounge, this is `attack`, `cast`, `assess`,
-`drink` and `destruct` — all of which carry only `mustBeVisible` on
-their target field, so "attack the lounge" resolves available. The
-refusal is real and immediate on dispatch; it just is not visible to a
-menu.
+The resolver's mechanism is still syntactic: it offers any verb
+declaring an object-shaped positional and lets the validator chain
+decide. What changed is the **specs** — every object-typed slot now
+states what it accepts, so the chain has something semantic to say.
 
-The fix is per-verb and belongs with the verbs: a field validator
-(`mustBeAgent`, `mustBeEdible`, …) where today there is a controller
-`if`. That is a content sweep, and this resolver is what makes the gap
-findable — before it, nothing ever asked a verb "would you accept this?"
-without also running it.
+> **Every `type: object` / `type: objects` field declares
+> `requires:`.** One field, one rule. Enforced by
+> `pnpm lint:arg-kinds --lint` in CI.
 
-⚠ Do **not** fix this by teaching the resolver a table of which verbs
-suit which targets. That is a second taxonomy describing what the first
-one already knows, and it would drift the moment a verb changed.
+`attack`, `drink` and `talk` on a room are closed. (`cast` is not, and
+deliberately — see below.)
+
+#### ⭐ A slot states what it accepts; it does not import a function that says no
+
+```yaml
+- name: target
+  type: object
+  requires: SealableMixin                     # must compose it
+- name: target
+  requires: [VisibleMixin, ContainableMixin]  # a list is AND
+- name: fuel
+  requires: CombustibleMixin|FurnaceMixin     # `|` inside an entry is OR
+- name: target
+  requires: any                               # deliberately unconstrained
+```
+
+The framework synthesises the check at spec-load
+(`CommandApi.resolveRequirement`) and **prepends** it to the slot's
+validator chain, so dispatch and the affordance resolver see an
+ordinary validator and know nothing about the declaration.
+
+**What this replaced, and why.** The predecessor was ~34 near-identical
+validator files — each one `MixinApi.isX` plus one sentence — alongside
+a bare `targetKind: any` marker. Neither said what the slot *accepted*:
+`'any'` was an author's unverifiable promise (review found **three of
+its fifty declarations were wrong**, and nothing could have caught
+them), and a rejective validator can never describe what *would*
+satisfy it. A mixin name resolves against the `Mixins` registry or the
+spec does not load — that is the whole difference.
+
+Three consequences worth naming:
+
+- **The door rule is the framework's now.** MQL lands on a door two ways
+  — by keyword (`open oak`) or by direction (`open north`), where the
+  door rides the match's `via.exit` and is *not* the matched Stuff.
+  Every `requires:` check resolves through `MqlApi.effectiveTarget`, so
+  every slot gets the direct-first / door-second walk. It used to be
+  copy-pasted into the six validators whose authors remembered it.
+- **The refusal sentence lives on the mixin** (`MixinRefusals` in
+  `lib/mixin.ts`), with `{}` standing for the target's presentation.
+  The phrase is a property of the capability, not the verb —
+  `SealableMixin` means the same to `open`, `close` and `knock`, and
+  `VisibleMixin` is declared at 34 sites.
+- **The lint script lost its private opinion.** It used to hold a
+  hand-maintained list of six validator names classifying kind from
+  relation. It reads one field now, and reports **two tiers** (see
+  below).
+
+#### ⚠⚠ Kind only — the three axes
+
+`requires:` is the **kind** axis: what the thing *is*, by composition.
+Two axes stay hand-written validators, because they are not properties
+of the target:
+
+- **relation** — `canReach`, `mustBeInInventory`, `mustBeHeld`: needs
+  the viewer, and is recomputed every resolve.
+- **state** — already open, currently lit, out of charge: changes
+  between one moment and the next, and a menu must not freeze it into a
+  greyed-out row.
+
+A slot may declare `requires:` **and** carry validators; that is the
+normal shape for anything with a condition beyond composition. `eat`
+declares `VisibleMixin` and keeps `mustBeEdible`, which asks a question
+composition cannot answer — the target's bulk **Material** must declare
+`edibility`. `drink` is the same shape with `mustHaveBulkSlot`: a thing
+can compose `BulkableMixin` and still expose no slot, so the refusal is
+`BulkableApi.slotFor(x) === null`, not the mixin.
+
+⚠ Composition, not **activation**. The check is `MixinApi.hasMixin`. A
+capability that must be *active* (augment-conferred — `isMaker` and
+friends) is a state question and keeps its validator.
+
+#### ⚠ The `class:` escape is closed
+
+One entry: `class:Agent`, the "is this a person" gate behind `whisper`,
+`dm`, `give`, `introduce` and sixteen more. It exists because the
+top-level Stuff types are the hierarchy itself rather than a capability
+bolted onto it, and `instanceof` is the sanctioned check for them.
+
+A second entry is a design conversation, not a map edit. The pull
+toward "just add the class" is the pull that made `plant` refuse with
+`instanceof Seed` — and the answer there was to extract
+`PlantableMixin`, because a cutting, a tuber and a bulb should not have
+to inherit from `Seed` to be plantable.
+
+#### ⚠ A wrong declaration is worse than a missing one
+
+Over-reporting offers a verb that then declines with a reason.
+**Under-reporting hides a verb that would have worked**, and the player
+has no way to discover it. So the sweep is conservative in one
+direction: where a controller's refusal cannot be expressed as a
+property of the target *alone*, the slot declares `any` and **says so**.
+
+`cast` is the standing example. `CastController` refuses on the
+**spell's** own target rule, which is not a property of the arg — so
+`cast`'s target declares `requires: any` and the spell keeps its
+refusal. Inventing a kind constraint to make the count look complete is
+precisely the failure this rule names.
+
+⚠ Never declare `any` on a field whose controller **does** refuse by
+kind. That is not an exemption; it is a lie in the one place a reviewer
+would go looking for the truth.
+
+#### The gate reports two tiers
+
+`pnpm lint:arg-kinds` separates two claims that used to hide in one
+number:
+
+| Tier | Scope | What a miss means |
+|---|---|---|
+| **menu** | verb-level object *positionals* (117) | a false figure on a player's screen |
+| **all** | every object-typed field (157) | dispatch hygiene — real, but nobody sees it |
+
+Options are excluded from the menu tier deliberately (`cd --mql` would
+otherwise put every shell verb in every object's menu) and subcommand
+args structurally (`CommandDefinition.args` is empty for a subcommanded
+verb). Both tiers gate; they are reported apart so a regression says
+which one it broke.
+
+⚠ Do **not** close any remaining gap by teaching the resolver a table of
+which verbs suit which targets. That is a second taxonomy describing
+what the specs already know, and it would drift the moment a verb
+changed. This project has refused that shape twice.
 
 ### What it is not
 
