@@ -107,24 +107,151 @@ authored-acquaintance gap in
 real edges in the belief store instead of introducing themselves to
 everyone.
 
-### What a card has to carry
+### ⭐ The parents are unrealized — a record, not an NPC
 
-Enough to be a person, not a stat bundle:
+**DECIDED: living or dead, the parents are never Stuff.** They are
+records: referenced by your chronicle, known to other people, holding an
+address, confirmable by a third party — and simulated by nobody.
 
-- name, species, **trade**, **place**
-- two or three pronounced traits — `TraitApi.pronouncedFor` already
-  returns exactly this shape
-- a sketch of what they know (their Disciplines)
-- their standing, where it is legible ("well-regarded in the dockside")
-- ⭐ **a hook** — a debt, a feud, a shop with their name on it
+That wants a **path-addressed `Document`**
+([document-store.md](../../subsystems/document-store.md)'s third tree):
+kind-tagged, durable identity, no residency, no lifecycle cost.
 
-The hook is what makes the gallery *characters* rather than sheets, and
-it is what a player will actually choose on.
+⭐ **The record is the identity; embodiment is optional.** If a parent is
+ever realized as an NPC, the Stuff points at the record — the record does
+not become the NPC. So "realize her later" is **additive, not a
+migration**, and the same person can be referenced by a chronicle entry,
+a contract, and a wiki article without any of them caring whether she is
+simulated.
+
+⭐⭐ **This generalizes past parents.** An *unrealized person record* is a
+primitive the world already needs — the dead, the absent, the historical,
+the merely mentioned — and none of them have anywhere to live today.
+Concretely: [chronicle.md](../../subsystems/chronicle.md)'s `who` field
+is *"entity `templatePath` refs — **inert in v1**,"* and can currently
+only point at things that exist as Stuff. **A person record is what makes
+`who` mean something.**
+
+### ⭐⭐ The consistency rule
+
+> **Char-gen must not be able to say anything the world cannot later
+> confirm.**
+
+The failure this prevents is the standard one for games with rich
+character creation: an elaborate creation screen, then you enter the
+world and none of it is addressable. Everything you were told was set
+dressing — which is worse than a thin char-gen, because it made a
+promise.
+
+⭐ And the useful half: **it bounds the schema.** If there is no in-world
+way to ask about a field, that field does not belong on the card. The
+record's contents are derived from what the world can answer, not from
+what char-gen would enjoy saying.
+
+**One record, many renderers, and none of them may invent:** the gallery
+grid (choosing), the detail view (committing), the in-game kin/background
+read (`chronicle` already renders bio + prologue + timeline; kin is the
+natural fourth band), an NPC referring to your family, and the
+author/CMS view. Different registers, one source.
+
+### ⭐ It is a form, rendered two ways
+
+The card is **structured underneath and presented above** — the same
+split the platform makes everywhere (θ stored / bands shown, evidence
+stored / position derived, genotype stored / phenotype expressed).
+
+⭐⭐ **The grid is primary.** The player is comparing a gallery they can
+reroll, so the surface must convey at a glance; nine paragraphs cannot be
+held in the head, nine rows can. **Oxygen Not Included doesn't give you a
+bio, it gives you a grid**, and for the same reason. Prose is for depth,
+grids are for *choosing*.
+
+That is not only a UI call — **it constrains the schema**: fixed columns,
+**every household fills every slot**, values short and comparable, and
+therefore a small field count (six to eight, not fifteen). Variable
+richness moves to the detail view where it costs nothing. A rich
+heterogeneous record would produce cards that cannot be compared at all.
+
+⭐⭐ **The grid compares outcomes; the detail tells you who they were.**
+This is what resolves the pair problem — two parents do not fit a row if
+the row is about *people*. What the player is actually comparing is
+**starting positions**, so the columns are the *child's* inheritance:
+
+| column | what it is |
+|---|---|
+| **Trade** | what you grew up around → shapes the antecedents budget |
+| **Place** | where you are from → where you start, who knows you |
+| **Disposition** | 2–3 pole labels → your equilibrium (`pronouncedFor`'s shape) |
+| **Knows** | a Discipline or two, banded |
+| **Standing** | how the household is regarded, one word |
+| **Means** | what they can give you — ⚠ a **type**, never an amount |
+| ⭐ **Hook** | typed: a debt, a feud, a shop, a name owed |
+| **Status** | living / gone — consequential either way |
+
+One row per household; the drill-in gives the two people, the
+deviation-descriptors, and the prose that makes you care once you have
+narrowed to two candidates. List-and-detail, because the grid serves the
+decision and the detail serves the commitment.
+
+⭐ **Closed vocabularies are why this is buildable.** ONI's grid works
+because its traits are a small icon set; ours would work for the same
+reason and we already have it — 17 disposition axes, a finite Discipline
+catalogue, a finite locality tree, and a hook vocabulary that has to be
+typed anyway. Nothing here needs a new vocabulary to render as icons.
+
+### ⚠ The hook must be typed, or it is decoration
+
+The hook is the field other systems are meant to consume. A debt is
+contract-shaped; a feud is a relationship between two person records; a
+shop is a place with an address.
+
+**Prose cannot be acted on** — and a hook the world can never act on is
+exactly the empty promise the consistency rule exists to prevent. Typed,
+it is a quest seed, a contract, a relationship edge, or a property claim,
+all of which already have machinery.
+
+### ⚠ Comparable means optimizable — and why that is survivable
+
+A grid is an invitation to solve. ONI players reroll for good duplicants;
+it is a known time sink.
+
+⭐ **The grid is safe precisely because the columns are incomparable.**
+Trade vs place vs disposition vs hook share no scale, so even with
+perfect information there is **no total order** — no best household, only
+ones that fit different intentions. In ONI traits carry plus and minus
+signs and players compute a score; if ours never can, the grid *informs*
+the choice without *solving* it. Rerolls being priced against starting
+capital does the rest.
+
+This is the incomparability doctrine finally doing load-bearing work
+rather than sitting in a design document.
+
+### Two constraints on generation
 
 ⚠ **The pair must read as a plausible household.** Two parents whose
 localities and trades make no sense together break immersion faster than
 any stat ever could. This is the real procgen constraint, and it is
 harder than generating either parent alone.
+
+**Sibling collisions are a procgen quality problem, not a design
+problem.** Two players landing the same household should be rare enough
+to be a curiosity; the answer is a large enough generative space, not a
+claiming mechanic. Cards are **not** consumed on selection — that would
+make the gallery a scarce resource and hand early players the good
+families.
+
+### ⚠ Truth vs belief — flagged, not built
+
+The card tells the *player* things. Whether the *character* knows them is
+a separate question: you know your own mother, but you do not know your
+blood type and you may be wrong about your father's standing or his
+debts.
+
+So the record has a **truth face and a belief face**, and the belief
+store already models exactly that divergence. It is a good story engine
+(*he was not who you thought*) and an excellent way to make char-gen feel
+like a bait-and-switch if handled carelessly. The seam exists; v1 should
+not build on it.
 
 ### Controls, so it is a search and not a slot machine
 
@@ -465,12 +592,14 @@ expensive half; let the cheap half measure the appetite first.
 
 ## Open questions
 
-1. **Are the parents *real*?** Alive, addressed, meetable. It is the
-   difference between a character sheet and a hometown — and a much
-   bigger build, since it means char-gen mints persistent NPCs.
-2. **Do siblings exist?** Free-ish if parents do, and the fastest route
-   to a populated world. Also: are two players who picked the same family
-   related?
+1. **Is the gallery a fresh roll or a persistent pool?** Records are
+   cheap either way, but a pool means households are finite and real —
+   which is what would eventually make siblings, a demography, and
+   *realizing* a parent as an NPC coherent rather than ad-hoc.
+2. **What is in the hook vocabulary?** It has to be typed, small enough
+   to render in a grid cell, and rich enough that every household has a
+   distinct one. That tension is the hardest single piece of the
+   generator.
 3. **What does the budget actually buy in units?** The slate argues for
    real units within a species-declared range; the ranges, and whether
    the species-typical center is the default, are unwritten.
@@ -495,6 +624,14 @@ expensive half; let the cheap half measure the appetite first.
    parents and child would sit at wildly different life stages. Possibly
    majority is cultural rather than biological, which is the same answer
    the trait question got.
+10. ⭐ **"Household" rather than "parents"?** *(proposed, not decided.)*
+    If every card is a mother and a father, that is a narrower fiction
+    than this platform usually commits to, and it forecloses an
+    orphanage, a guardian, a single parent, an aunt who raised you, a
+    workshop that took you in. **The mechanism is identical** — a record
+    is a record, and the grid row is already the household rather than
+    the pair — so the variety is free characterization. It also softens
+    question 9, since a guardian need not be a biological parent at all.
 
 ---
 
@@ -524,6 +661,12 @@ expensive half; let the cheap half measure the appetite first.
 
 - [char-gen.md](../../subsystems/char-gen.md) — the `enroll` draft
   machine this restructures
+- [document-store.md](../../subsystems/document-store.md) — the
+  path-addressed tree the person record lives in
+- [chronicle.md](../../subsystems/chronicle.md) — the prologue claims,
+  and the inert `who` field a person record would finally give meaning
+- [belief.md](../../subsystems/belief.md) — the truth-vs-belief seam, and
+  the relationships the gallery seeds
 - [race.md](../../subsystems/race.md) — `Species`, `Clade`, `BodyPlan`,
   `facultyProfile`
 - [species-slate](./species-slate.md) — costs-not-ranks, incomparability,

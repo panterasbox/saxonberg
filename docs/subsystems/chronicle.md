@@ -220,6 +220,20 @@ directly off `owner.getTemplatePath()` in the logic, exactly as
 `RecognitionApi.learnIdentity` reads `subject.getTemplatePath()`.
 `lib/chronicle/` holds only the `ChronicleEntry` Document.
 
+## `who` needs a referent for people who aren't Stuff
+
+`who` holds entity `templatePath` refs and is **inert in v1** — and it
+can only ever point at something that exists as `Stuff`. The dead, the
+absent, the historical and the merely mentioned have nowhere to live, so
+most of what a chronicle entry would want to name is unnameable.
+
+The proposed answer is an **unrealized person record** — a path-addressed
+`Document` carrying identity without embodiment, so a chronicle entry, a
+contract and a wiki article can all reference the same person whether or
+not anyone simulates her. See
+[lineage-slate](../slates/builds/lineage-slate.md) § *The parents are
+unrealized*, which needs the same primitive for a different reason.
+
 ## Deferred consumers
 
 Everything that *reads* the chronicle is deferred. **reputation**,
