@@ -27,6 +27,7 @@
  */
 
 import type {
+  PaneId,
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
   PaneHold,
@@ -180,8 +181,18 @@ export type SubscriptionCardinality = 'one' | 'many';
 export interface SubscribeRequest {
   interactive: Interactive;
   subscriptionId: string;
-  query: string;
-  cardinality: SubscriptionCardinality;
+  /**
+   * Open a **named** pane. When set, the server reads query,
+   * cardinality, fields, dependency flags and hold from its own
+   * catalogue (`lib/connection/Panes.ts`) and IGNORES whatever else the
+   * caller passed — a pane's shape is a server semantic, and the point
+   * of naming one is that the caller does not get to describe it.
+   */
+  pane?: PaneId;
+  /** Required UNLESS `pane` names one. */
+  query?: string;
+  /** Required UNLESS `pane` names one. */
+  cardinality?: SubscriptionCardinality;
   fields?: FieldSet | FieldAlias;
   detailKey?: string;
   focusDependent?: boolean;
@@ -362,7 +373,12 @@ export class MqlSubscriptionApi {
   /** The open panes for one interactive (subscriptions carrying a hold). */
   public static listPanes(
     interactive: Interactive,
-  ): { subscriptionId: string; hold: PaneHold; pinned: boolean | null }[] {
+  ): {
+    subscriptionId: string;
+    paneId?: PaneId;
+    hold?: PaneHold;
+    pinned: boolean | null;
+  }[] {
     return logic().listPanes(interactive);
   }
 
