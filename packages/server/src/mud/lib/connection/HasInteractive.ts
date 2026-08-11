@@ -40,6 +40,7 @@ import {
   LEGACY_LAYOUT_MIGRATION,
   LEGACY_LAYOUT_FOR,
   MAX_ARRANGEMENT_NAME_LENGTH,
+  MAX_SAVED_ARRANGEMENTS_PER_MODE,
   type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
@@ -720,6 +721,25 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       if (/\s/.test(name)) return 'an arrangement name cannot contain spaces';
       if (this.isShippedArrangement(mode, name)) {
         return `'${name}' is a shipped ${mode} arrangement and cannot be overwritten`;
+      }
+      /*
+       * ⚠ The COUNT, not just the name. A save writes a player-chosen
+       * key into a persisted map, so uncapped it is unbounded growth of
+       * the player's own stored document — self-inflicted, which is
+       * precisely why it is easy to leave open: the cost lands on
+       * storage and on every read of that document rather than on the
+       * player doing it. Overwriting an existing name is always allowed,
+       * because that adds no key.
+       */
+      const existing = this.savedArrangementsFor(mode);
+      if (
+        existing[name] === undefined &&
+        Object.keys(existing).length >= MAX_SAVED_ARRANGEMENTS_PER_MODE
+      ) {
+        return (
+          `you have ${MAX_SAVED_ARRANGEMENTS_PER_MODE} saved ${mode} ` +
+          `arrangements — forget one first`
+        );
       }
       return null;
     }

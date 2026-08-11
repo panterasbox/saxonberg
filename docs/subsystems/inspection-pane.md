@@ -2,13 +2,29 @@
 
 The persistent right-column cockpit surface that displays what the
 player is currently **focused** on. Sourced from two long-lived
-MQL subscriptions — a `$focus`-bearing query for the focused-thing
-body and a `here`-bearing query for the breadcrumb root — the
-pane composes a live-updated header (focus display name), a
+subscriptions opened **by name** — the `inspect` pane for the
+focused-thing body and the `location` pane for the breadcrumb root —
+the pane composes a live-updated header (focus display name), a
 paint/clear-gated body (detail when single-focus, list when
 multi-focus), a unified breadcrumb that combines the player's
 current location, past focus shifts, and any active detail drill,
 plus a Refresh button.
+
+⭐⭐ **The client names a pane; the server says what it is.** The
+catalogue (`lib/connection/Panes.ts`) owns each pane's query,
+cardinality, field set, dependency flags and hold, and the client sends
+`{ pane: "inspect" }` and nothing else. It used to send
+`query: "$focus", cardinality: "many", fields: "detail"` — MQL, in a
+`.tsx` file — which is the client holding a server semantic, the same
+category error as a client deciding its own affordances.
+
+⚠ The forcing reason was identity, not tidiness. A `subscriptionId` is a
+client-minted `nanoid` that dies on reconnect, so it could name a pane
+for one socket and nothing longer — which is why `cockpit layout save`
+could only ever write an empty pane list. **A pane is a NAMED
+subscription; a hold is an optional property of one.** Neither shipped
+pane carries a hold, and that is correct: paint/clear means a focus
+change clears the body rather than closing the pane.
 
 Pane policy is **paint/clear**: focus changes clear the body to a
 placeholder; an explicit `look` against the current focus paints
