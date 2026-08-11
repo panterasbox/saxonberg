@@ -1,7 +1,7 @@
 /**
  * WatchController — the `watch` verb writes the per-viewer `cockpit.watch`
  * embed target (transient clientState) and pushes it. Mirrors the
- * ModeController harness (a HasInteractive TestActor, spied push). Covers
+ * CliController harness (a HasInteractive TestActor, spied push). Covers
  * embed-shape resolution across platforms, `watch off`, the bare-YouTube-
  * handle deferral, and the parse rejections. The implied chat-tune is a
  * no-op here (the TestActor isn't an Avatar), keeping the embed logic

@@ -213,6 +213,46 @@ export class PerceptionApi {
     return logic().resolveAmbush(attacker, defender);
   }
 
+  /**
+   * **Can the actor physically reach the target right now?**
+   *
+   * ⭐ The one definition of reach. It used to exist twice — once
+   * hand-rolled inside the `canReach` validator, once again inside the
+   * pane-hold evaluator — and the two disagreed: the validator counted
+   * doors attached to the location's exits, the hold did not. So a pane
+   * held `inReach` on a door released as `out-of-reach` while `open
+   * north` on that same door still worked. Two hand-rolled definitions
+   * of one world concept is one too many; verbs, panes and anything
+   * later ask here.
+   *
+   * Reach is satisfied by any of:
+   *
+   *   - the target IS the actor;
+   *   - it is in the actor's own contents (inventory);
+   *   - it is in the actor's location's contents (peers, dropped
+   *     things, detached doors);
+   *   - it is a door attached to one of the location's obvious exits —
+   *     ⚠ attached doors live in NO container, so containment alone
+   *     never finds them;
+   *   - `viaExit` and the target IS the location — the
+   *     door-via-direction binding, where `open north` resolves to the
+   *     location and the controller reads the door off `via.exit`.
+   *
+   * ⚠ **Reach is not perception.** A thing can be reachable and
+   * unperceived (dark room) or perceived and unreachable (across a
+   * chasm). Callers that need both ask both.
+   *
+   * @param opts.location defaults to the actor's own container.
+   * @param opts.viaExit set when the binding carried a `via.exit`.
+   */
+  public static canReach(
+    actor: Stuff,
+    target: Stuff,
+    opts?: { location?: Stuff | null; viaExit?: boolean },
+  ): boolean {
+    return logic().canReach(actor, target, opts);
+  }
+
   public static perceives(
     viewer: Stuff,
     target: Stuff,

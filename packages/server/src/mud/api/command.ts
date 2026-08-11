@@ -72,7 +72,7 @@ export interface ExecuteCommandOpts {
    * Which input region (command bar) the command was submitted from.
    * Threaded from the inbound `command` message so the input-mode
    * prepend ({@link CommandApi.applyInputMode}) looks up *that bar's*
-   * prefix in `cockpit.inputModes`, and so `ModeController` knows which
+   * prefix in `cockpit.inputModes`, and so `CliController` knows which
    * bar a `mode` verb targets. Defaults to `'main'`; absent for
    * scripts / NPC / forced dispatch (no bar, no prefix applied).
    */
@@ -141,7 +141,7 @@ export interface CommandContext {
 
   /**
    * The input region (command bar) this command was submitted from,
-   * carried from {@link ExecuteCommandOpts.barId}. `ModeController`
+   * carried from {@link ExecuteCommandOpts.barId}. `CliController`
    * reads it to target the right bar's entry in `cockpit.inputModes`.
    * Defaults to `'main'`.
    */

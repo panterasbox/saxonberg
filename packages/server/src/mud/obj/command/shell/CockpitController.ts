@@ -7,7 +7,7 @@
  *
  *   - `cockpit mode <name>`     — the activity axis (CockpitModeController)
  *   - `cockpit layout <name>`   — the arrangement (LayoutController)
- *   - `cockpit scope <prefix…>` — per-bar input scoping (ModeController)
+ *   - `cockpit cli [id] --prefix …` — per-line input prefix (CliController)
  *   - `cockpit style <sub> …`   — appearance (StyleController)
  *
  * Each subcommand declares its own `controller:` (Option E), so this
