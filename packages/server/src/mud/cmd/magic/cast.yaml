@@ -28,7 +28,7 @@ args:
     scope: ["$focus", "reachable"]
     updates_focus: extend
     prepositions: [at, on]
-    targetKind: any
+    requires: any
 validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresCastingFaculty

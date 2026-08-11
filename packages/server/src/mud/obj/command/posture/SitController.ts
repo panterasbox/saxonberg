@@ -6,7 +6,7 @@
  *
  * Validation surface (from `cmd/sit.yaml`):
  *   - requiresAnimate, requiresPosed, requiresSlottable (verb-level)
- *   - mustBeVisible, mustBePostured (target-level)
+ *   - `requires: [VisibleMixin, PosturedMixin]` (target-level)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -43,7 +43,7 @@ export default class SitController extends CommandController<SitModel> {
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
-        `SitController: mustBePostured validator should have caught ${target.stuffId}`
+        `SitController: requires: PosturedMixin should have caught ${target.stuffId}`
       );
     }
     if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {

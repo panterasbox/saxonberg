@@ -5,7 +5,7 @@
  * slots are for activities, not storage" rule in
  * `docs/subsystems/embodiment.md`.
  *
- * The field-level `mustBeAgent` validator already gated the
+ * The field-level `requires: class:Agent` already gated the
  * recipient as an `Agent`. Agents in v1 (Character / Avatar)
  * compose Container, so the move target is well-formed without an
  * extra mixin probe. A future Agent that for some reason didn't
@@ -64,7 +64,7 @@ export default class GiveController extends CommandController<GiveModel> {
     }
 
     if (!MixinApi.isContainer(recipient)) {
-      // Defensive: the mustBeAgent validator passed, so the
+      // Defensive: the `class:Agent` check passed, so the
       // recipient is an Agent. Agents compose Container in v1; this
       // throw protects against future Agent subclasses that drop
       // the mixin without realizing they break `give`.

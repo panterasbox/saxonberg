@@ -11,35 +11,48 @@
  *
  * The client cannot filter these out. It is forbidden from re-deriving
  * semantics, so a wrong figure on the wire is a wrong figure on screen.
- * That makes an unvalidated object-typed arg a *correctness* problem,
+ * That makes an undeclared object-typed arg a *correctness* problem,
  * not a tidiness one.
  *
- * ## What counts
+ * ## The rule
  *
- * Every `type: object` / `type: objects` field — positional args and
- * options alike, at verb level and inside every subcommand — across
- * `cmd/**` and `domain/**`. Each is classified:
+ * **Every object-typed slot declares `requires:`.** One rule, one field.
  *
- *   - **validated** — carries at least one *kind* validator: one that
- *     constrains WHAT THE TARGET IS. `mustBeContainer` counts.
- *     `mustBeVisible` and `canReach` do NOT: they constrain the
- *     viewer's relationship to the target, and every object arg wants
- *     them, so counting them would mark the whole tree validated while
- *     changing nothing about which verbs are offered.
- *   - **declared** — carries `targetKind: any`, the marker for a
- *     genuinely unconstrained arg (a wizard's `destruct <anything>`).
- *     Declared at the site, the way `@hook` is, so the gate can tell
- *     *deliberately universal* from *forgotten*.
- *   - **unaccounted** — neither. The thing this gate exists to count.
+ * ⭐ This script used to hold a hand-maintained list of six validator
+ * names — its private opinion about which files constrained *what a
+ * target is* versus *the viewer's relationship to it* — and it accepted
+ * a bare `targetKind: any` marker as the alternative. Both are gone.
+ * The kind lives on the slot now, so the gate reads a declaration
+ * instead of guessing from filenames, and a mixin name **resolves or it
+ * does not**: the check below is against the live {@link Mixins}
+ * registry, which is what makes `requires:` verifiable where
+ * `targetKind: any` was an unfalsifiable promise. Three of that
+ * marker's fifty uses were wrong, and nothing could have caught them.
  *
- * ⭐ **The relational/kind split is the whole judgement in this script.**
- * Get it wrong in the permissive direction and the gate reports success
- * over an unchanged tree.
+ * ## Two tiers, reported separately
+ *
+ * The two claims hiding in one number, per the affordance & suggestion
+ * slate § 4 — the build that preceded this one justified the second
+ * with the first's argument:
+ *
+ *   - **menu** — verb-level object POSITIONALS. What the affordance
+ *     resolver can ever see: options are excluded deliberately (`cd
+ *     --mql` would otherwise put every shell verb in every object's
+ *     menu) and subcommand args structurally (`CommandDefinition.args`
+ *     is empty for a subcommanded verb). A wrong declaration here is a
+ *     **false figure on a player's screen**.
+ *   - **all** — every object-typed field anywhere. `scope:` is a search
+ *     hint, not a gate, so any arg reaching a controller should say
+ *     what it accepts. A wrong declaration here is dispatch hygiene:
+ *     real, but nobody sees it.
+ *
+ * Both gate. They are reported apart so a future regression says which
+ * of the two it broke.
  *
  * ## Usage
  *
  *   pnpm lint:arg-kinds            report (always exit 0)
- *   pnpm lint:arg-kinds --lint     CI gate (exit 1 on any unaccounted)
+ *   pnpm lint:arg-kinds --lint     CI gate (exit 1 on any undeclared)
  *   pnpm lint:arg-kinds --by-file  group the report by spec
  */
 
@@ -47,28 +60,26 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, relative } from "path";
 import { parse as parseYaml } from "yaml";
+import { Mixins, MixinRefusals } from "../src/mud/lib/mixin";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const MUD_ROOT = join(here, "..", "src", "mud");
 const ROOTS = [join(MUD_ROOT, "cmd"), join(MUD_ROOT, "domain")];
 
+/** Live mixin vocabulary — the thing a declaration is checked against. */
+const KNOWN_MIXINS = new Set<string>(Object.values(Mixins));
+
 /**
- * Validators that constrain the viewer's RELATIONSHIP to a target
- * rather than what the target IS.
+ * The `class:` escape, mirrored from `CommandLogic.CLASS_REQUIREMENTS`.
  *
- * ⚠ These deliberately do not count as kind validators. They are near-
- * universal on object args, so treating them as sufficient would mark
- * most of the tree "validated" while leaving every menu exactly as
- * wrong as it was.
+ * ⚠ Two copies of a closed one-entry list, and deliberately so: the
+ * gate must not import `CommandLogic`, which drags the whole command
+ * runtime into a lint script. A second entry appearing on one side and
+ * not the other fails loudly here (a spec naming an unknown class is
+ * reported) rather than silently — and adding one at all is a design
+ * conversation, per that map's own note.
  */
-const RELATIONAL_VALIDATORS = new Set([
-  "mustBeVisible",
-  "canReach",
-  "mustBeInLocation",
-  "mustBeInInventory",
-  "mustBeHeld",
-  "notEmpty",
-]);
+const SANCTIONED_CLASSES = new Set(["Agent"]);
 
 interface FieldRecord {
   file: string;
@@ -76,9 +87,14 @@ interface FieldRecord {
   scope: string;
   name: string;
   type: string;
-  kindValidators: string[];
-  relationalValidators: string[];
-  targetKindAny: boolean;
+  /** True when the slot is one the affordance resolver can ever see. */
+  menuVisible: boolean;
+  /** Raw declaration, or `undefined` when the slot declares nothing. */
+  requires: string | string[] | undefined;
+  /** Mixin names named by the declaration, alternations flattened. */
+  named: string[];
+  /** Names that are not in the registry. */
+  unknown: string[];
 }
 
 function yamlFiles(dir: string, out: string[] = []): string[] {
@@ -112,34 +128,36 @@ function recordField(
   scope: string,
   name: string,
   def: Record<string, unknown>,
+  menuVisible: boolean,
   out: FieldRecord[],
 ): void {
   const type = typeof def.type === "string" ? def.type : "";
   if (type !== "object" && type !== "objects") return;
 
-  const specs = Array.isArray(def.validators)
-    ? (def.validators as unknown[]).filter(
-        (v): v is string => typeof v === "string",
-      )
-    : [];
-  const kindValidators: string[] = [];
-  const relationalValidators: string[] = [];
-  for (const spec of specs) {
-    const leaf = leafName(spec);
-    if (RELATIONAL_VALIDATORS.has(leaf)) relationalValidators.push(leaf);
-    else kindValidators.push(leaf);
+  const raw = def.requires;
+  let requires: string | string[] | undefined;
+  if (typeof raw === "string") requires = raw;
+  else if (Array.isArray(raw)) {
+    requires = (raw as unknown[]).filter((v): v is string => typeof v === "string");
   }
 
-  out.push({
-    file,
-    verb,
-    scope,
-    name,
-    type,
-    kindValidators,
-    relationalValidators,
-    targetKindAny: def.targetKind === "any",
-  });
+  const named: string[] = [];
+  const unknown: string[] = [];
+  if (requires !== undefined && requires !== "any") {
+    const entries = Array.isArray(requires) ? requires : [requires];
+    for (const entry of entries) {
+      for (const n of entry.split("|").map((s) => s.trim()).filter(Boolean)) {
+        if (n.startsWith("class:")) {
+          if (!SANCTIONED_CLASSES.has(n.slice("class:".length))) unknown.push(n);
+          continue;
+        }
+        named.push(n);
+        if (!KNOWN_MIXINS.has(n)) unknown.push(n);
+      }
+    }
+  }
+
+  out.push({ file, verb, scope, name, type, menuVisible, requires, named, unknown });
 }
 
 /**
@@ -162,7 +180,7 @@ function collectFrom(file: string): FieldRecord[] {
   }
   if (!view || typeof view !== "object") return out;
 
-  const rel = relative(MUD_ROOT, file).split("\\").join("/");
+  const rel = rel0;
   const verbs = Array.isArray(view.verbs) ? (view.verbs as string[]) : [];
   const verb = verbs[0] ?? leafName(rel).replace(/\.yaml$/, "");
 
@@ -170,11 +188,13 @@ function collectFrom(file: string): FieldRecord[] {
     scope: string,
     args: unknown,
     options: unknown,
+    /** Verb-level positionals are the only menu-visible slots. */
+    menuScope: boolean,
   ): void => {
     if (Array.isArray(args)) {
       for (const a of args as Record<string, unknown>[]) {
         if (a && typeof a.name === "string") {
-          recordField(rel, verb, scope, a.name, a, out);
+          recordField(rel, verb, scope, a.name, a, menuScope, out);
         }
       }
     }
@@ -183,18 +203,18 @@ function collectFrom(file: string): FieldRecord[] {
         options as Record<string, Record<string, unknown>>,
       )) {
         if (def && typeof def === "object") {
-          recordField(rel, verb, scope, `--${name}`, def, out);
+          recordField(rel, verb, scope, `--${name}`, def, false, out);
         }
       }
     }
   };
 
-  scan("verb", view.args, view.options);
+  scan("verb", view.args, view.options, true);
   if (view.subcommands && typeof view.subcommands === "object") {
     for (const [sub, def] of Object.entries(
       view.subcommands as Record<string, Record<string, unknown>>,
     )) {
-      if (def && typeof def === "object") scan(sub, def.args, def.options);
+      if (def && typeof def === "object") scan(sub, def.args, def.options, false);
     }
   }
   return out;
@@ -209,19 +229,45 @@ function main(): void {
     for (const file of yamlFiles(root)) all.push(...collectFrom(file));
   }
 
-  const validated = all.filter((f) => f.kindValidators.length > 0);
-  const declared = all.filter(
-    (f) => f.kindValidators.length === 0 && f.targetKindAny,
+  const undeclared = all.filter((f) => f.requires === undefined);
+  const bogus = all.filter((f) => f.unknown.length > 0);
+  const anyDeclared = all.filter((f) => f.requires === "any");
+  const constrained = all.filter(
+    (f) => f.requires !== undefined && f.requires !== "any",
   );
-  const unaccounted = all.filter(
-    (f) => f.kindValidators.length === 0 && !f.targetKindAny,
-  );
+
+  const menu = all.filter((f) => f.menuVisible);
+  const menuUndeclared = menu.filter((f) => f.requires === undefined);
 
   console.log(
     `check-arg-kinds: ${all.length} object-typed args — ` +
-      `${validated.length} validated, ${declared.length} declared ` +
-      `targetKind:any, ${unaccounted.length} unaccounted`,
+      `${constrained.length} constrained by mixin, ${anyDeclared.length} ` +
+      `declared \`any\`, ${undeclared.length} undeclared`,
   );
+  console.log(
+    `  menu tier: ${menu.length} verb-level positionals — ` +
+      `${menuUndeclared.length} undeclared`,
+  );
+
+  /*
+   * ⚠ A named mixin with no authored refusal still works — it falls
+   * back to a generic sentence. That is worse copy, not a broken verb,
+   * so it WARNS and never gates: making it fatal would mean a mixin
+   * rename could not land without a copywriting pass.
+   */
+  const phraseless = new Set<string>();
+  for (const f of constrained) {
+    for (const n of f.named) {
+      if (KNOWN_MIXINS.has(n) && !(n in MixinRefusals)) phraseless.add(n);
+    }
+  }
+  if (phraseless.size > 0) {
+    console.log(
+      `\n⚠ ${phraseless.size} required mixin(s) have no phrase in ` +
+        `MixinRefusals — they refuse with the generic sentence:`,
+    );
+    for (const n of [...phraseless].sort()) console.log(`    ${n}`);
+  }
 
   if (unparsed.length > 0) {
     console.error(`\n⚠ ${unparsed.length} spec(s) DID NOT PARSE:`);
@@ -233,44 +279,50 @@ function main(): void {
     process.exit(1);
   }
 
-  if (unaccounted.length > 0) {
+  if (bogus.length > 0) {
+    console.error(`\n⚠ ${bogus.length} arg(s) name a mixin that does not exist:`);
+    for (const f of bogus) {
+      console.error(
+        `  ${f.file} ${f.scope}.${f.name} → ${f.unknown.join(", ")}`,
+      );
+    }
+  }
+
+  if (undeclared.length > 0) {
     if (byFile) {
       const groups = new Map<string, FieldRecord[]>();
-      for (const f of unaccounted) {
+      for (const f of undeclared) {
         const list = groups.get(f.file) ?? [];
         list.push(f);
         groups.set(f.file, list);
       }
-      console.log(`\nunaccounted, by spec (${groups.size} specs):`);
+      console.log(`\nundeclared, by spec (${groups.size} specs):`);
       for (const [file, fields] of [...groups].sort()) {
         console.log(`\n  ${file}`);
         for (const f of fields) {
-          const rel =
-            f.relationalValidators.length > 0
-              ? `  [relational: ${f.relationalValidators.join(", ")}]`
-              : "";
-          console.log(`    ${f.scope}.${f.name} (${f.type})${rel}`);
+          console.log(
+            `    ${f.scope}.${f.name} (${f.type})${f.menuVisible ? "  [menu]" : ""}`,
+          );
         }
       }
     } else {
-      // Category totals first — the sweep is planned per category, and
-      // a flat list of 88 is not a plan.
       const byCategory = new Map<string, number>();
-      for (const f of unaccounted) {
+      for (const f of undeclared) {
         const cat = f.file.split("/").slice(0, 2).join("/");
         byCategory.set(cat, (byCategory.get(cat) ?? 0) + 1);
       }
-      console.log(`\nunaccounted by category:`);
+      console.log(`\nundeclared by category:`);
       for (const [cat, n] of [...byCategory].sort((a, b) => b[1] - a[1])) {
         console.log(`  ${String(n).padStart(3)}  ${cat}`);
       }
     }
   }
 
-  if (lint && unaccounted.length > 0) {
+  if (lint && (undeclared.length > 0 || bogus.length > 0)) {
     console.error(
-      `\ncheck-arg-kinds: FAILED — ${unaccounted.length} object-typed ` +
-        `arg(s) neither carry a kind validator nor declare targetKind: any.`,
+      `\ncheck-arg-kinds: FAILED — ${undeclared.length} object-typed ` +
+        `arg(s) declare no \`requires:\`, ${bogus.length} name a mixin ` +
+        `that does not exist.`,
     );
     process.exit(1);
   }

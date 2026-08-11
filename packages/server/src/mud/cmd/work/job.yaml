@@ -36,8 +36,7 @@ subcommands:
         type: object
         required: true
         scope: "reachable"
-        validators:
-          - /lib/command/validators/mustBeContainable
+        requires: ContainableMixin
       - name: destination
         type: string
         required: true

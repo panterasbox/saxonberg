@@ -35,7 +35,7 @@ args:
     # multiple brass things) now ask which one instead of silently
     # picking the top match. Cancellation aborts the dispatch.
     onExcess: prompt
-    targetKind: any
+    requires: any
 options:
   peek:
     type: boolean

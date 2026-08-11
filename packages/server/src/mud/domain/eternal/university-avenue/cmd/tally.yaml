@@ -21,4 +21,4 @@ args:
     updates_focus: extend
     validators:
       - /lib/command/validators/canReach
-    targetKind: any
+    requires: any

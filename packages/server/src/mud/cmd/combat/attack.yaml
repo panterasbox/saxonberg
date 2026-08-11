@@ -34,6 +34,4 @@ args:
     required: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustHaveVitals
+    requires: [VisibleMixin, VitalsMixin]

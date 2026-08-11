@@ -20,4 +20,4 @@ options:
     type: object
     scope: [reachable]
     description: "MQL expression alternate to <target>"
-    targetKind: any
+    requires: any

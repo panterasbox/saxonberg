@@ -24,5 +24,4 @@ args:
     scope: ["$focus", "reachable"]
     prepositions: [to]
     onExcess: prompt
-    validators:
-      - /lib/command/validators/mustBeBehaved
+    requires: BehavedMixin

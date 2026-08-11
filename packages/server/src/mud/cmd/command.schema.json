@@ -177,7 +177,7 @@
       ],
       "additionalProperties": false,
       "properties": {
-        "targetKind": {"enum":["any"],"description":"Declares this object-typed field DELIBERATELY unconstrained by kind — a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind. The marker is the record, the way `@hook` is: it lets `lint:arg-kinds` tell *declared universal* from *forgotten*, which a central exemption list could not. Never put this on a field whose controller DOES refuse by kind — extract a validator instead."},
+        "requires": {"oneOf":[{"type":"string","minLength":1},{"type":"array","items":{"type":"string","minLength":1},"minItems":1}],"description":"What this object-typed slot ACCEPTS, by mixin composition. `any` = deliberately unconstrained (a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind). Otherwise a mixin name from the Mixins registry — `SealableMixin` — which the bound Stuff must compose; the framework synthesises the check and the refusal sentence. A LIST means ALL of them; `|` inside one entry means EITHER (`CombustibleMixin|FurnaceMixin`). An unknown name is a load-time error, which is the point: `targetKind: any`, its predecessor, was an unverifiable promise and three of its fifty uses were wrong. Kind only — relation (`canReach`) and state (already open, currently lit) stay in validators and controllers."},
         "name": {
           "type": "string",
           "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
@@ -298,7 +298,7 @@
       ],
       "additionalProperties": false,
       "properties": {
-        "targetKind": {"enum":["any"],"description":"Declares this object-typed field DELIBERATELY unconstrained by kind — a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind. The marker is the record, the way `@hook` is: it lets `lint:arg-kinds` tell *declared universal* from *forgotten*, which a central exemption list could not. Never put this on a field whose controller DOES refuse by kind — extract a validator instead."},
+        "requires": {"oneOf":[{"type":"string","minLength":1},{"type":"array","items":{"type":"string","minLength":1},"minItems":1}],"description":"What this object-typed slot ACCEPTS, by mixin composition. `any` = deliberately unconstrained (a wizard's `destruct <anything>`, an MQL selector, a perception verb that refuses nothing by kind). Otherwise a mixin name from the Mixins registry — `SealableMixin` — which the bound Stuff must compose; the framework synthesises the check and the refusal sentence. A LIST means ALL of them; `|` inside one entry means EITHER (`CombustibleMixin|FurnaceMixin`). An unknown name is a load-time error, which is the point: `targetKind: any`, its predecessor, was an unverifiable promise and three of its fifty uses were wrong. Kind only — relation (`canReach`) and state (already open, currently lit) stay in validators and controllers."},
         "short": {
           "type": "string",
           "minLength": 1,

@@ -5,7 +5,7 @@
  * pulls it. Graceful no-op decline when nothing is hitched.
  *
  * Validation surface (from `cmd/movement/unhitch.yaml`):
- *   - requiresAnimate (verb-level); mustBeVisible (target, optional)
+ *   - requiresAnimate (verb-level); `requires: VisibleMixin` (target, optional)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

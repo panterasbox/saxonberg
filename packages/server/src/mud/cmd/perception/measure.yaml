@@ -28,8 +28,7 @@ subcommands:
         required: false
         default: "here"
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeContainer
+        requires: ContainerMixin
   temperature:
     description: "Measure atmospheric temperature (Kelvin) at your immediate scope"
     help: |

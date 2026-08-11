@@ -21,14 +21,14 @@ args:
     type: object
     required: true
     scope: "reachable"
+    requires: VisibleMixin
     validators:
-      - /lib/command/validators/mustBeVisible
       - /lib/command/validators/mustHaveBulkSlot
   - name: source
     type: object
     required: true
     scope: "reachable"
     prepositions: [from]
+    requires: VisibleMixin
     validators:
-      - /lib/command/validators/mustBeVisible
       - /lib/command/validators/mustHaveBulkSlot

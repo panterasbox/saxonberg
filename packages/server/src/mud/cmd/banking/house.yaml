@@ -19,7 +19,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable", "online"]
-        targetKind: any
+        requires: any
       - name: amount
         type: string
         required: true

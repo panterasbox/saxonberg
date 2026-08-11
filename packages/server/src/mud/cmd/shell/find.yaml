@@ -21,4 +21,4 @@ args:
     # The absence of `updates_focus` is load-bearing — `find`
     # deliberately does not touch focus (defaults to `'none'`).
     scope: ["$focus", "reachable"]
-    targetKind: any
+    requires: any

@@ -457,3 +457,99 @@ export const Mixins = {
  * Type for mixin names.
  */
 export type MixinName = typeof Mixins[keyof typeof Mixins];
+
+/**
+ * How a mixin refuses, in the player's words.
+ *
+ * A command spec declares what a slot accepts with `requires:` (see
+ * `FieldDefinition.requires`), and the framework synthesises the check.
+ * The refusal sentence has to come from somewhere, and it belongs
+ * **here** rather than on the arg: the phrase is a property of the
+ * capability, not of the verb. `SealableMixin` means the same thing to
+ * `open`, `close` and `knock`, and `VisibleMixin` is declared at 34 arg
+ * sites — a per-arg phrase would be the same sentence copied 34 times,
+ * drifting one edit at a time.
+ *
+ * ⭐ `{}` is the target's `getPresentation()`. It is a placeholder, not
+ * a suffix rule, because the noun does not always land last: a thing
+ * that can't be sealed reads `"a rock doesn't open and close"`, while
+ * one with no visible face reads `"you can't see a rock"`. Both were
+ * hand-written sentences before this map existed and both survive it
+ * verbatim — the collapse was supposed to delete 34 files, not 34
+ * carefully-worded refusals.
+ *
+ * ⚠ **Only kind refusals live here.** "Is this the kind of thing that
+ * burns" belongs to the mixin; "is it currently alight", "is it within
+ * reach", "do you own it" do not — those are the state and relation
+ * axes, they change between one moment and the next, and they stay in
+ * validators and controllers where they can. See
+ * `docs/slates/builds/affordance-suggestion-slate.md` § 3.
+ *
+ * ⚠ A mixin with no entry can still be named by `requires:` — it just
+ * falls back to a generic sentence, which is worse copy but never a
+ * crash. The gate warns; it does not fail. Adding a phrase is always an
+ * improvement and never a migration.
+ */
+export const MixinRefusals: Partial<Record<MixinName, string>> = {
+  // Perception / substance — the two broadest, and the reason the
+  // phrases are templates: neither of these reads well as a suffix.
+  VisibleMixin: "you can't see {}",
+  TangibleMixin: "{} isn't tangible",
+
+  // Containment & placement.
+  ContainerMixin: "{} isn't a place",
+  ContainableMixin: "{} can't be carried",
+  SurfacedMixin: "{} isn't a surface you can put things on",
+
+  // Boundaries & mechanisms.
+  SealableMixin: "{} doesn't open and close",
+  LockableMixin: "{} doesn't lock",
+  SwitchableMixin: "{} doesn't switch on and off",
+  FoldableMixin: "{} doesn't fold",
+  HazardMixin: "{} isn't a trap",
+
+  // Fire & heat. ⚠ `CombustibleMixin`'s phrase carries the whole
+  // `CombustibleMixin|FurnaceMixin` alternation `ignite` declares — an
+  // alternation reports its FIRST member's phrase, and "won't burn" is
+  // the true sentence for both halves.
+  CombustibleMixin: "{} won't burn",
+  FurnaceMixin: "{} isn't a furnace",
+
+  // Bodies & behavior.
+  VitalsMixin: "{} isn't alive",
+  BehavedMixin: "{} has nothing to say",
+  PosturedMixin: "you can't change posture on {}",
+
+  // Growing things.
+  CultivableMixin: "{} isn't ground you can plant in",
+  GrowingMixin: "{} isn't growing",
+  PlantableMixin: "{} isn't something you can plant",
+
+  // Making & wear.
+  ManualBuildMixin: "{} isn't a vessel you can work in",
+  CraftedMixin: "{} wasn't crafted",
+  DurableMixin: "{} doesn't wear out",
+  KeenMixin: "{} doesn't take an edge",
+  WearableMixin: "{} isn't something you can wear",
+  WieldableMixin: "{} isn't something you can wield",
+
+  // Stacks, charges, marks, labels.
+  GlobbableMixin: "{} doesn't come in stacks",
+  ChargedMixin: "{} doesn't hold a charge",
+  MarkedMixin: "{} doesn't carry a mark",
+  LabelledMixin: "{} can't be labelled",
+
+  // Conveyance & haulage.
+  MountableMixin: "you can't ride {}",
+  DrivableMixin: "you can't drive {}",
+  HaulableMixin: "{} isn't something you can hitch",
+  HaulerMixin: "{} can't pull a cart",
+
+  // Storefronts.
+  AttendantMixin: "{} isn't serving anyone",
+
+  // Instruments — both of these sit on a slot that names the TOOL, not
+  // the subject, so the phrase reads from the actor's side.
+  ScryableMixin: "you can't scry with {}",
+  CredentialWalletMixin: "{} isn't a card",
+};

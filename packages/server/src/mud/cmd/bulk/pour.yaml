@@ -32,14 +32,14 @@ args:
     type: object
     required: true
     scope: "reachable"
+    requires: VisibleMixin
     validators:
-      - /lib/command/validators/mustBeVisible
       - /lib/command/validators/mustHaveBulkSlot
   - name: target
     type: object
     required: true
     scope: "reachable"
     prepositions: [into, in]
+    requires: VisibleMixin
     validators:
-      - /lib/command/validators/mustBeVisible
       - /lib/command/validators/mustHaveBulkSlot

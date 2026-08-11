@@ -17,6 +17,6 @@ args:
     type: object
     required: true
     scope: "inventory"
+    requires: WieldableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
-      - /lib/command/validators/mustBeWieldable

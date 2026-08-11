@@ -260,7 +260,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
   }
 
   /**
-   * The thrown object's real mass in kg. `mustBeTangible` guarantees the
+   * The thrown object's real mass in kg. `requires: TangibleMixin` guarantees the
    * mixin is there; a mass that will not read is 0, which lands the
    * arrival under the inert floor rather than inventing a weight.
    */

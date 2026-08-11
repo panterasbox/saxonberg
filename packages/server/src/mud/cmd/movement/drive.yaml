@@ -16,6 +16,6 @@ args:
     type: object
     scope: ["$focus", "reachable"]
     required: true
+    requires: DrivableMixin
     validators:
       - /lib/command/validators/canReach
-      - /lib/command/validators/mustBeDrivable

@@ -29,8 +29,7 @@ args:
     required: false
     scope: "online"
     prepositions: [to]
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
 options:
   group:
     type: string
