@@ -1061,6 +1061,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           command,
           commandSource: affordance.source,
           interactive: outer.interactive,
+          // ⚠⚠ The submitting command line. Without it a controller
+          // sees `context.barId === undefined` and falls back to
+          // `'main'`, while the input-mode reader above looks up the
+          // REAL barId — so `cockpit cli` wrote its prefix to one key
+          // and the prepend read another, and the feature was inert
+          // through any client that sends a barId other than `main`.
+          // Found by driving it: the browser sends `barId: "world"`.
+          barId: outer.barId,
         });
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;

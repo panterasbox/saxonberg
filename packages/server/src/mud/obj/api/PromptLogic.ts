@@ -519,6 +519,12 @@ export class PromptLogic extends ApiLogic {
     return count;
   }
 
+  /** See {@link PromptApi.isPending}. */
+  @CallSecurity(PromptApiCallers)
+  public isPending(interactive: Interactive, promptId: string): boolean {
+    return byInteractive.get(interactive)?.has(promptId) ?? false;
+  }
+
   /**
    * See {@link PromptApi._getResolverCountForTesting}. The
    * `assertTestOnly` caller-check runs on the face static (its stack

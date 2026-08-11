@@ -292,6 +292,21 @@ export class PromptApi {
     return logic().cancelAll(interactive, reason);
   }
 
+  /**
+   * Is `promptId` still awaiting an answer from `interactive`?
+   *
+   * The read behind the `unanswered` pane hold — *nothing that is still
+   * actionable ever leaves*. A prompt that has been answered, cancelled
+   * or timed out is gone from the interactive's bucket, so absence IS
+   * the answer; there is no separate "answered" flag to go stale.
+   */
+  public static isPending(
+    interactive: Interactive,
+    promptId: string,
+  ): boolean {
+    return logic().isPending(interactive, promptId);
+  }
+
   /* ────────────────── Test seams ────────────────── */
 
   public static _getResolverCountForTesting(): number {

@@ -801,15 +801,126 @@ export interface PromptEnvelope {
  * fields (e.g., a focus-pane query like `$focus` or a current-room
  * query like `here`).
  */
+/**
+ * A **pane** the server knows by name.
+ *
+ * ⭐⭐ **The server owns this vocabulary, and that is the whole point.**
+ * A subscription's `subscriptionId` is a client-minted `nanoid` — a
+ * transport handle that dies on reconnect — so it can name a pane for
+ * the length of one socket and nothing longer. Anything durable that
+ * refers to a pane (a saved arrangement, a pin, a future authored
+ * layout) needs an identity the server issues and can still recognise
+ * tomorrow. That is this.
+ *
+ * ⚠ **Naming a pane is not the same as describing one.** The client
+ * sends `pane: 'inspect'` and NOTHING else — the server supplies the
+ * query, the cardinality, the field set, the dependency flags and the
+ * hold. Before this, `InspectionPane.tsx` hardcoded `query: "$focus"`,
+ * which is the client holding a server semantic: the same category
+ * error as a client deciding its own affordances, and the reason a
+ * wrong figure on the wire becomes a wrong figure on screen.
+ *
+ * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
+ * It is not a menu of hypothetical panes — every entry here is one the
+ * client actually opens. The server-side definitions live in
+ * `lib/connection/Panes.ts`.
+ */
+export type PaneId = "inspect" | "location";
+
+/** Every {@link PaneId}. The server validates against this; the client picks from it. */
+export const PANE_IDS: readonly PaneId[] = ["inspect", "location"];
+
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
-  query: string;
-  cardinality: 'one' | 'many';
+  /**
+   * Open a **named** pane — the server supplies query, cardinality,
+   * fields, dependency flags and hold from its own catalogue, and every
+   * one of those fields below is ignored. See {@link PaneId}.
+   */
+  pane?: PaneId;
+  /** Required UNLESS `pane` names one, in which case the server owns it. */
+  query?: string;
+  /** Required UNLESS `pane` names one. */
+  cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
+  /**
+   * Optional lifetime rule. A subscription carrying a hold is a
+   * **pane**: it lives until its condition lapses, then is released
+   * with a reason. Absent = lives until unsubscribed, the classic
+   * shape.
+   */
+  hold?: PaneHold;
+  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  holdSubject?: string;
+}
+
+/**
+ * What keeps a pane open. Evaluated **server-side**, because these are
+ * facts about the world — a client guessing at them is the same
+ * category error as a client guessing at affordances.
+ *
+ * ⭐ `unanswered` is the one the design leans on: *nothing that is
+ * still actionable ever leaves*. It is also the odd one out — its
+ * subject is a pending **command**, not a Stuff — which is exactly why
+ * it must be built first. A shape derived from the four spatial holds
+ * would not fit it.
+ *
+ * | Hold | Held while | Released when |
+ * |---|---|---|
+ * | `unanswered` | it owes a reply | answered |
+ * | `here` | you are where you were | you left |
+ * | `present` | they are still in the room | they left |
+ * | `inReach` | in reach | out of reach |
+ * | `carried` | on you | not carried |
+ */
+export type PaneHold =
+  | "unanswered"
+  | "here"
+  | "present"
+  | "inReach"
+  | "carried";
+
+/** Every {@link PaneHold}. Server validator and client both read this. */
+export const PANE_HOLDS: readonly PaneHold[] = [
+  "unanswered",
+  "here",
+  "present",
+  "inReach",
+  "carried",
+];
+
+/**
+ * Why a pane went away. A pane that vanishes without a reason reads as
+ * a bug, so the reason is on the wire rather than inferred.
+ *
+ * `dismissed` and `kept` are the manual-pin outcomes: pinning is not a
+ * sixth hold, it is an override on the other five in **both**
+ * directions — keep a pane whose condition lapsed, drop one whose
+ * condition still holds.
+ */
+export type PaneReleaseReason =
+  | "answered"
+  | "left"
+  | "departed"
+  | "out-of-reach"
+  | "dropped"
+  | "dismissed";
+
+/**
+ * A pane's hold lapsed and the pane is gone. Distinct from
+ * {@link MqlSubscriptionErrorEnvelope}: nothing went wrong, the
+ * subscription simply reached the end of its stated lifetime.
+ */
+export interface MqlSubscriptionReleasedEnvelope {
+  type: 'mql-subscription-released';
+  frameId: number;
+  subscriptionId: string;
+  hold: PaneHold;
+  reason: PaneReleaseReason;
 }
 
 export interface MqlUnsubscribeMessage {
@@ -1424,6 +1535,7 @@ export type Envelope =
   | MqlSubscriptionResultEnvelope
   | MqlSubscriptionDeltaEnvelope
   | MqlSubscriptionErrorEnvelope
+  | MqlSubscriptionReleasedEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
   | ForumSubscriptionResultEnvelope
@@ -1447,6 +1559,7 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionReleasedEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
   | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
@@ -1925,6 +2038,159 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
   "streamer",
   "builder",
 ];
+
+/**
+ * The cockpit's **activity axis** — the front doors, answering *what am
+ * I here to do*. Held server-authoritative on the `cockpit.mode`
+ * clientState key and set by `cockpit mode <name>`.
+ *
+ * This is the axis that used to be conflated with {@link LayoutName}:
+ * the five old layout values were really a mode plus that mode's
+ * arrangement, flattened into one string (see
+ * {@link LEGACY_LAYOUT_MIGRATION}).
+ *
+ * ⚠ **A mode is a view, never a gate.** Everything runnable in `play`
+ * is runnable in `build`. A mode that forbade a verb would be a
+ * permission system wearing a UI costume, with its checks in the wrong
+ * layer entirely. A mode owns which arrangements ship, which one you
+ * land in, and which pane kinds may be summoned — nothing else.
+ *
+ * ⚠ `govern` ships as a peer of `build` rather than a tier inside it.
+ * The seeding slate writes the pair as "the Build / Govern ascent",
+ * which reads as one progression; they are two values here because a
+ * front door is a front door. If `govern` turns out to belong *within*
+ * `build`, that is a one-line edit to this list, not a redesign —
+ * flagged deliberately rather than silently resolved.
+ */
+export type CockpitMode =
+  /** Talking to people — channels, boards, the social surface. */
+  | "chat"
+  /** Living in the world. The default. */
+  | "play"
+  /** Watching a stream, as viewer or broadcaster. */
+  | "watch"
+  /** Making things — the content editor. */
+  | "build"
+  /** The offices and the polity. */
+  | "govern";
+
+/** Every {@link CockpitMode}, in menu order. The `cockpit mode`
+ *  validator and the client's mode registry both read this one list. */
+export const COCKPIT_MODES: readonly CockpitMode[] = [
+  "chat",
+  "play",
+  "watch",
+  "build",
+  "govern",
+];
+
+/** The mode a player lands in with nothing stored. */
+export const DEFAULT_COCKPIT_MODE: CockpitMode = "play";
+
+/**
+ * The **arrangement axis** — savable pane arrangements *inside* a mode.
+ * These are the shipped defaults; a player composes and names their own
+ * with `cockpit layout save <name>`, so this is a floor, not a closed
+ * vocabulary. The first entry of each list is that mode's default
+ * arrangement, the one you land in on entry.
+ *
+ * `watch` ships two because the two legacy livestream layouts are
+ * genuinely different arrangements of one activity — which is exactly
+ * why {@link LEGACY_LAYOUT_MIGRATION} is a mapping and not a rename.
+ */
+export const COCKPIT_ARRANGEMENTS: Readonly<
+  Record<CockpitMode, readonly string[]>
+> = {
+  chat: ["default"],
+  play: ["default"],
+  watch: ["viewer", "streamer"],
+  build: ["default"],
+  govern: ["default"],
+};
+
+/**
+ * Legacy `cockpit.layout` → the (mode, arrangement) pair it always
+ * really meant.
+ *
+ * ⚠ **A mapping, not a rename.** Every player who ever ran `layout
+ * builder` has that string persisted, and the read path resolves it
+ * through this table. `livestream-viewer` and `streamer` are the row
+ * that matters: two legacy values collapse into ONE mode carrying
+ * *different* arrangements, so the collapse is lossy in the mode column
+ * and only the arrangement column keeps them apart.
+ */
+export const LEGACY_LAYOUT_MIGRATION: Readonly<
+  Record<LayoutName, { mode: CockpitMode; arrangement: string }>
+> = {
+  world: { mode: "play", arrangement: "default" },
+  forum: { mode: "chat", arrangement: "default" },
+  "livestream-viewer": { mode: "watch", arrangement: "viewer" },
+  streamer: { mode: "watch", arrangement: "streamer" },
+  builder: { mode: "build", arrangement: "default" },
+};
+
+/**
+ * The inverse of {@link LEGACY_LAYOUT_MIGRATION}: (mode, arrangement)
+ * → the legacy {@link LayoutName} that best represents it.
+ *
+ * ⚠ **This is a compatibility projection, and it is meant to die.** The
+ * cockpit's real axes are now mode + arrangement, but the shipped
+ * client still swaps its whole frame off `cockpit.layout` keyed by
+ * `LayoutName`, and repainting the client is a separate cycle. So the
+ * server keeps `cockpit.layout` populated with the closest legacy name
+ * while the two real axes carry the truth. When the client reads mode +
+ * arrangement directly, this table and the `cockpit.layout` key go
+ * together.
+ *
+ * Not total, and cannot be: `govern` has no legacy layout at all, and a
+ * player-saved arrangement has no legacy name by construction. Both
+ * fall back to the mode's first entry here — see
+ * `legacyLayoutFor` on the server.
+ */
+export const LEGACY_LAYOUT_FOR: Readonly<
+  Record<CockpitMode, Readonly<Record<string, LayoutName>>>
+> = {
+  chat: { default: "forum" },
+  play: { default: "world" },
+  watch: { viewer: "livestream-viewer", streamer: "streamer" },
+  // No legacy layout ever meant "govern" — the builder frame is the
+  // closest thing the current client can paint for it.
+  build: { default: "builder" },
+  govern: { default: "builder" },
+};
+
+/**
+ * A saved pane arrangement. `panes` is the ordered list of pane kinds
+ * the arrangement opens with; it is empty until the pane set exists to
+ * capture, which is deliberate — naming an arrangement and populating
+ * it are separate acts.
+ */
+export interface ArrangementSpec {
+  panes: string[];
+}
+
+/**
+ * Cap on a player-supplied arrangement name. These are player INPUT
+ * that become keys in a persisted map and get rendered back, so they
+ * are bounded at the boundary rather than trusted.
+ */
+export const MAX_ARRANGEMENT_NAME_LENGTH = 32;
+
+/**
+ * Cap on how many arrangements one player may save **per mode**.
+ *
+ * ⚠ Saving writes a player-chosen KEY into a persisted map, so without
+ * a cap a player can grow their own stored document without bound. It
+ * is self-inflicted rather than an attack on anyone else — which is
+ * exactly why it is easy to leave uncapped and easy to regret: the cost
+ * lands on storage and on every read of that document, not on the
+ * player doing it.
+ *
+ * The number is deliberately generous. This is a guard against
+ * unbounded growth, not a design statement about how many layouts a
+ * person ought to want.
+ */
+export const MAX_SAVED_ARRANGEMENTS_PER_MODE = 32;
 
 /**
 /**

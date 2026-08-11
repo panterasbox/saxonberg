@@ -27,6 +27,7 @@
  */
 
 import type {
+  PaneId,
   ReleaseFeedFrame,
   CharGenRosterPayload,
   CharGenStatePayload,
@@ -63,8 +64,17 @@ type EnvelopeHandler = (envelope: Envelope) => void;
  * without the caller needing to remember the spec.
  */
 export interface MqlSubscribeSpec {
-  query: string;
-  cardinality: "one" | "many";
+  /**
+   * ⭐ Open a pane the server knows by name. The server supplies the
+   * query, cardinality, fields and dependency flags; NOTHING else in
+   * this spec is read when `pane` is set. A pane's query is a server
+   * semantic and the client is not allowed to hold one.
+   */
+  pane?: PaneId;
+  /** Required unless `pane` names one. */
+  query?: string;
+  /** Required unless `pane` names one. */
+  cardinality?: "one" | "many";
   fields?: string[] | "ref" | "detail";
   detailKey?: string;
   focusDependent?: boolean;

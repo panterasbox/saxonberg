@@ -1,8 +1,12 @@
 /**
- * StyleController tests — subcommand surface coverage. Acceptance
- * criteria #19, #20, #21, #23, #24, #25 ride here. #22 is the
- * client-side bucket-resolver test; #26 is the no-`console.*`-keys
- * grep test.
+ * StyleController tests — style-setting surface coverage, reached as
+ * `cockpit style …`.
+ *
+ * ⚠ The settings ride positional slots (`styleSub` / `a` / `b` / `c`),
+ * not command subcommands: `cockpit style` is already the subcommand
+ * and subcommands are one level deep framework-wide. These tests drive
+ * a bound model directly, so they skip the binder — the YAML-to-model
+ * mapping is covered by the cockpit spec test, not here.
  *
  * The controller mutates the host's `clientState['style.overlay']`
  * and would normally also call `host.save()` and
@@ -42,7 +46,7 @@ class TestActor extends HasInteractiveMixin(
 
 function stubCommand(): CommandDefinition {
   return CommandDefinition.fromYaml(
-    `verbs: [style]\ncontroller: StyleController\ndescription: stub\n`,
+    `verbs: [cockpit]\ncontroller: StyleController\ndescription: stub\n`,
     '<test>',
   );
 }
@@ -51,22 +55,16 @@ function makeContext(actor: TestActor, location: Location): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: actor as never,
     location: location as never,
-    commandText: 'style',
+    commandText: 'cockpit style',
     executionId: 'test',
     commandId: 'test',
-    verb: 'style',
+    verb: 'cockpit',
     command: stubCommand(),
   });
 }
 
 interface StyleModel extends ModelData {
-  subcommand?: string;
-  name?: string;
-  channelKey?: string;
-  action?: string;
-  value?: string;
-  target?: string;
-  state?: string;
+  styleSub?: string;
   a?: string;
   b?: string;
   c?: string;
@@ -103,7 +101,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'theme', name: 'high-contrast' }),
+        makeModel({ styleSub: 'theme', a: 'high-contrast' }),
         ctx as never,
       );
       expect(getOverlay(actor).theme).toBe('high-contrast');
@@ -115,7 +113,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'theme', name: 'rainbow' }),
+        makeModel({ styleSub: 'theme', a: 'rainbow' }),
         ctx as never,
       );
       expect(getOverlay(actor).theme).toBeUndefined();
@@ -130,10 +128,10 @@ describe('StyleController', () => {
       const ctx = makeContext(actor, location);
       await controller.execute(
         makeModel({
-          subcommand: 'channel',
-          channelKey: 'gossip',
-          action: 'color',
-          value: 'blue',
+          styleSub: 'channel',
+          a: 'gossip',
+          b: 'color',
+          c: 'blue',
         }),
         ctx as never,
       );
@@ -152,9 +150,9 @@ describe('StyleController', () => {
       const ctx = makeContext(actor, location);
       await controller.execute(
         makeModel({
-          subcommand: 'channel',
-          channelKey: 'gossip',
-          action: 'clear',
+          styleSub: 'channel',
+          a: 'gossip',
+          b: 'clear',
         }),
         ctx as never,
       );
@@ -169,7 +167,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'mention', target: 'self', state: 'off' }),
+        makeModel({ styleSub: 'mention', a: 'self', b: 'off' }),
         ctx as never,
       );
       expect(getOverlay(actor)['mention.self']).toBe(false);
@@ -179,7 +177,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'mention', target: 'others', state: 'off' }),
+        makeModel({ styleSub: 'mention', a: 'others', b: 'off' }),
         ctx as never,
       );
       expect(getOverlay(actor)['mention.self']).toBeUndefined();
@@ -194,7 +192,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'plain', a: 'on' }),
+        makeModel({ styleSub: 'plain', a: 'on' }),
         ctx as never,
       );
       expect(getOverlay(actor).plain).toBe(true);
@@ -205,7 +203,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'plain', a: 'off' }),
+        makeModel({ styleSub: 'plain', a: 'off' }),
         ctx as never,
       );
       expect(getOverlay(actor).plain).toBeUndefined();
@@ -215,7 +213,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'plain', a: 'channel', b: 'gossip', c: 'on' }),
+        makeModel({ styleSub: 'plain', a: 'channel', b: 'gossip', c: 'on' }),
         ctx as never,
       );
       expect(getOverlay(actor)['plain.channel.gossip']).toBe(true);
@@ -228,7 +226,7 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'reset' }),
+        makeModel({ styleSub: 'reset' }),
         ctx as never,
       );
       expect(getOverlay(actor)).toEqual({});
@@ -240,13 +238,41 @@ describe('StyleController', () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
       await controller.execute(
-        makeModel({ subcommand: 'show' }),
+        makeModel({ styleSub: 'show' }),
         ctx as never,
       );
       expect(ctx.getStatus()).toBe('ok');
       expect(
         ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
       ).toBe(false);
+    });
+  });
+
+  /*
+   * The settings ride positionals, so the matcher's `unknown-subcommand`
+   * refusal never fires for them — an unknown word reaches `execute`.
+   * Without the explicit default it would fall out of the switch and the
+   * command would silently succeed while doing nothing, which is a worse
+   * failure than an error. This test is the guard on that default.
+   */
+  describe('unknown setting', () => {
+    it('refuses an unknown style setting instead of silently doing nothing', async () => {
+      const controller = makeStuff(() => new StyleController());
+      const ctx = makeContext(actor, location);
+      await controller.execute(
+        makeModel({ styleSub: 'rainbow' }),
+        ctx as never,
+      );
+      expect(getOverlay(actor)).toEqual({});
+      expect(pushSpy).not.toHaveBeenCalled();
+      const notes = ctx.getNotes();
+      expect(
+        notes.some(
+          (n) =>
+            n.kind === 'controller-rejected' &&
+            n.reason === 'unknown-style-setting',
+        ),
+      ).toBe(true);
     });
   });
 });

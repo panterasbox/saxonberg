@@ -81,21 +81,25 @@ function paintBody(): void {
 
 /**
  * Pull the subscriptionId the pane registered with the wire client.
- * The pane mints a UUID; the test needs the exact id to address
- * delta envelopes at the same subscription. Pass the spec's `query`
- * to disambiguate between the focus and location subscriptions.
+ * The pane mints a UUID; the test needs the exact id to address delta
+ * envelopes at the same subscription. Pass the PANE NAME to disambiguate
+ * the two.
+ *
+ * ⚠ This used to key on `spec.query`, because the pane used to send MQL.
+ * It does not any more — the server owns what a named pane subscribes
+ * to — so the query is not something the client knows or should.
  */
-function currentSubscriptionId(query: string = "$focus"): string {
+function currentSubscriptionId(pane: string = "inspect"): string {
   const c = websocketClient as unknown as {
     mqlSubscriptions: Map<
       string,
-      { subscriptionId: string; spec: { query: string } }
+      { subscriptionId: string; spec: { pane?: string } }
     >;
   };
   for (const entry of c.mqlSubscriptions.values()) {
-    if (entry.spec.query === query) return entry.subscriptionId;
+    if (entry.spec.pane === pane) return entry.subscriptionId;
   }
-  throw new Error(`no subscription registered for query ${query}`);
+  throw new Error(`no subscription registered for pane ${pane}`);
 }
 
 describe("InspectionPane", () => {
@@ -124,14 +128,21 @@ describe("InspectionPane", () => {
       (m) => (m as { type?: string }).type === "mql-subscribe"
     );
     expect(subscribes).toHaveLength(2);
-    const queries = subscribes.map(
-      (m) =>
-        (m as { payload: { query: string } }).payload.query
+    const panes = subscribes.map(
+      (m) => (m as { payload: { pane?: string } }).payload.pane
     );
-    // Pane subscribes to `$focus` (the focus-pane body, focusDependent)
-    // and `here` (the breadcrumb root, locationDependent).
-    expect(queries).toContain("$focus");
-    expect(queries).toContain("here");
+    // ⭐ The pane opens `inspect` and `location` BY NAME. It sends no
+    // query, no cardinality, no field set and no dependency flags — the
+    // server owns every one of those. A client that named its own query
+    // here would be holding a server semantic.
+    expect(panes).toContain("inspect");
+    expect(panes).toContain("location");
+    for (const m of subscribes) {
+      const payload = (m as { payload: Record<string, unknown> }).payload;
+      expect(payload.query, "the client must not send MQL").toBeUndefined();
+      expect(payload.cardinality).toBeUndefined();
+      expect(payload.fields).toBeUndefined();
+    }
 
     mock.sent = [];
     unmount();
