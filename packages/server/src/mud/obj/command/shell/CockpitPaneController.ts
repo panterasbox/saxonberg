@@ -99,13 +99,31 @@ export default class CockpitPaneController extends CommandController<PaneModel> 
     }
     const lines = ['\npanes'];
     for (const p of panes) {
+      /*
+       * ⚠ Name it by its CATALOGUE id. The `subscriptionId` is a
+       * client-minted `nanoid` — showing it printed
+       * `X9aYf67qws_FobUqk6M6I` at the player, which is the transport
+       * handle the pane catalogue exists to stop being an identity.
+       * A pane opened by shape rather than by name has no durable id;
+       * it falls back to the handle, because that is genuinely all it
+       * has.
+       */
+      const name = p.paneId ?? p.subscriptionId;
+      /*
+       * ⚠ A pane need not have a hold — `inspect` and `location` do
+       * not, because paint/clear means a focus change clears the body
+       * rather than closing the pane. This branch rendered `held while
+       * undefined` until it was driven.
+       */
       const state =
         p.pinned === true
           ? 'pinned'
           : p.pinned === false
             ? 'dismissed'
-            : `held while ${p.hold}`;
-      lines.push(`  ${p.subscriptionId} (${state})`);
+            : p.hold
+              ? `held while ${p.hold}`
+              : 'open';
+      lines.push(`  ${name} (${state})`);
     }
     lines.push('');
     this.send(context, Mml.fromMarkup(Mml.escape(lines.join('\n'))));
