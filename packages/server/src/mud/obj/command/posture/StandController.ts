@@ -7,7 +7,7 @@
  *
  * Validation surface (from `cmd/stand.yaml`):
  *   - requiresAnimate, requiresPosed (verb-level)
- *   - mustBeVisible, mustBePostured (target-level — only with arg)
+ *   - `requires: [VisibleMixin, PosturedMixin]` (target-level — only with arg)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -40,7 +40,7 @@ export default class StandController extends CommandController<StandModel> {
     if (target) {
       if (!MixinApi.isPostured(target)) {
         throw new Error(
-          `StandController: mustBePostured validator should have caught ${target.stuffId}`
+          `StandController: requires: PosturedMixin should have caught ${target.stuffId}`
         );
       }
       if (!MixinApi.isSlottable(giver)) {

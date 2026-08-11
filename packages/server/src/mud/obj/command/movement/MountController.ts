@@ -9,7 +9,7 @@
  *
  * Validation surface (from `cmd/mount.yaml`):
  *   - requiresAnimate, requiresPosed, requiresSlottable (verb-level)
- *   - mustBeVisible, mustBeMountable (target-level)
+ *   - `requires: [VisibleMixin, MountableMixin]` (target-level)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

@@ -43,6 +43,7 @@ import {
   type MqlOne,
 } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
+import { Mixins, MixinRefusals, type MixinName } from '../../lib/mixin';
 import { PerceptionApi } from '../../api/perception';
 import { RecognitionApi } from '../../api/recognition';
 import { MessageApi } from '../../api/message';
@@ -77,6 +78,7 @@ import {
   type FieldValidator,
   type CommandValidator,
   type ValidatorPreloads,
+  type MixinRequirement,
   type CardinalitySpec,
   type OnExcessPolicy,
   type OnShortagePolicy,
@@ -506,6 +508,21 @@ export class CommandLogic extends ApiLogic {
       );
     }
     return fn as FieldValidator;
+  }
+
+  /** See {@link CommandApi.resolveValidators}. */
+  @CallSecurity(CommandApiCallers)
+  public resolveValidators(cmd: CommandDefinition): Promise<void> {
+    return resolveCommandValidators(cmd);
+  }
+
+  /** See {@link CommandApi.resolveRequirement}. */
+  @CallSecurity(CommandApiCallers)
+  public resolveRequirement(
+    requires: MixinRequirement,
+    where: string,
+  ): Promise<FieldValidator | null> {
+    return requirementValidator(requires, where);
   }
 
   /** See {@link CommandApi.resolveCommandValidator}. */
@@ -1321,7 +1338,7 @@ export class CommandLogic extends ApiLogic {
     // Verb-option validators. Options are optional unless the YAML
     // explicitly says otherwise; an absent option short-circuits its
     // validator chain so authors don't have to teach every field
-    // validator (e.g. `mustBeAgent`) to tolerate `null`.
+    // validator (e.g. a relational one) to tolerate `null`.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
       const fname = opt.field ?? name;
       const v = resolved[fname];
@@ -1669,11 +1686,12 @@ async function evaluateAffordance(
       | undefined;
 
     // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
-    // `put`'s `target` field carries `mustBeVisible` / `mustBePutTarget`,
-    // and with no container picked yet those run against `undefined` and
-    // fail — which would report `put` flatly unavailable on every object
-    // in the game. The only honest reading is "you have not chosen the
-    // other half yet."
+    // `put`'s `target` field declares `requires: [VisibleMixin,
+    // ContainerMixin|SurfacedMixin]`, and with no container picked yet
+    // the whole chain runs against `undefined` — which without this
+    // branch reports `put` flatly unavailable on every object in the
+    // game. The only honest reading is "you have not chosen the other
+    // half yet."
     if (note?.field && note.field !== bound && fields.includes(note.field)) {
       return {
         verb,
@@ -2327,32 +2345,260 @@ function collectActiveOptionDefs(
 }
 
 /**
+ * One term of a `requires:` declaration — a predicate the bound Stuff
+ * must satisfy, paired with the sentence to say when it doesn't.
+ */
+interface RequirementTerm {
+  test: (s: Stuff) => boolean;
+  refusal: string;
+}
+
+/**
+ * The `class:` escape, and the whole of it.
+ *
+ * ⚠⚠ **This map is closed on purpose.** Composition is the project's
+ * answer to "what kind of thing is this", and `requires:` speaks mixins
+ * for that reason. The exception is the handful of **top-level Stuff
+ * types** where `instanceof` is the sanctioned check — see CLAUDE.md's
+ * inter-stuff rules — because they are the type hierarchy itself rather
+ * than a capability bolted onto it.
+ *
+ * Exactly one is in use: `class:Agent`, the "is this a person" gate
+ * behind `whisper`, `dm`, `give`, `introduce` and sixteen more. A
+ * second entry is a design conversation, not a map edit — the pull
+ * toward "just add the class" is the pull that made `plant` refuse with
+ * `instanceof Seed`, and the answer there was a mixin.
+ *
+ * Loaded by **dynamic import at spec-load**, not a top-level import:
+ * `Agent` composes command mixins, so importing the class here would
+ * close a cycle through this very module. Load-time only, so it costs
+ * one import per boot and nothing per dispatch.
+ */
+const CLASS_REQUIREMENTS: Record<
+  string,
+  { module: string; export: string; refusal: string }
+> = {
+  Agent: {
+    module: '../../lib/stuff/Agent',
+    export: 'Agent',
+    refusal: "{} isn't a person",
+  },
+};
+
+/**
+ * Parse a `requires:` declaration into its AND-terms.
+ *
+ * The grammar is two characters wide: **the list is AND, `|` inside an
+ * entry is OR.** `[VisibleMixin, ContainableMixin]` means both;
+ * `CombustibleMixin|FurnaceMixin` means either. `'any'` parses to no
+ * terms at all, which is how "deliberately unconstrained" ends up
+ * costing nothing at dispatch.
+ *
+ * ⚠ Throws on a name that isn't in the {@link Mixins} registry. That
+ * throw is the point of the whole mechanism — it is what makes a
+ * declaration *checkable* where the `targetKind: 'any'` marker it
+ * replaced was only an assertion. It fires at spec-load, so a typo is a
+ * boot failure and a lint failure, never a validator that silently
+ * never fires.
+ *
+ * An alternation reports its FIRST member's phrase: the alternation
+ * exists because the members are the same idea from two directions
+ * (`ignite` takes a Combustible or a Furnace; "won't burn" is true of
+ * failing both), so listing every branch's sentence would be worse copy,
+ * not more information.
+ *
+ * One entry may instead be `class:<Name>` — see
+ * {@link CLASS_REQUIREMENTS}, which is closed and has one member.
+ */
+async function parseRequirement(
+  requires: MixinRequirement,
+  where: string,
+): Promise<RequirementTerm[]> {
+  if (requires === 'any') return [];
+  const entries = Array.isArray(requires) ? requires : [requires];
+  const known = new Set<string>(Object.values(Mixins));
+  const terms: RequirementTerm[] = [];
+  for (const entry of entries) {
+    const names = String(entry)
+      .split('|')
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+    if (names.length === 0) {
+      throw new Error(`${where}: empty \`requires\` entry`);
+    }
+
+    if (names.length === 1 && names[0]!.startsWith('class:')) {
+      const className = names[0]!.slice('class:'.length);
+      const spec = CLASS_REQUIREMENTS[className];
+      if (!spec) {
+        throw new Error(
+          `${where}: \`requires: class:${className}\` — not one of the ` +
+            `sanctioned top-level types (${Object.keys(CLASS_REQUIREMENTS).join(', ')}). ` +
+            `A capability wants a mixin, not a class.`,
+        );
+      }
+      const mod = (await import(spec.module)) as Record<string, unknown>;
+      const ctor = mod[spec.export] as (new (...a: never[]) => object) | undefined;
+      if (typeof ctor !== 'function') {
+        throw new Error(
+          `${where}: \`class:${className}\` resolved to no export ` +
+            `\`${spec.export}\` in ${spec.module}`,
+        );
+      }
+      terms.push({
+        test: (s) => s instanceof ctor,
+        refusal: spec.refusal,
+      });
+      continue;
+    }
+
+    for (const name of names) {
+      if (!known.has(name)) {
+        throw new Error(
+          `${where}: \`requires: ${name}\` is not a mixin — ` +
+            `no such entry in the Mixins registry (lib/mixin.ts)`,
+        );
+      }
+    }
+    const mixinNames = names as MixinName[];
+    const first = mixinNames[0]!;
+    terms.push({
+      test: (s) => mixinNames.some((n) => MixinApi.hasMixin(s, n)),
+      // The fallback is deliberately usable rather than a placeholder:
+      // a mixin with no authored phrase is worse copy, not a broken
+      // verb. `lint:arg-kinds` reports the gap.
+      refusal: MixinRefusals[first] ?? `{} isn't the right kind of thing`,
+    });
+  }
+  return terms;
+}
+
+/**
+ * Build the field validator a `requires:` declaration stands for.
+ *
+ * Returns `null` for `'any'` — nothing to check, and no function to
+ * call on every bind.
+ *
+ * ⚠ **The door rule is the framework's, not each validator's.** Single
+ * bindings go through `MqlApi.effectiveTarget`, whose direct-first /
+ * door-second walk is what makes `open north` work as well as
+ * `open oak`. That used to be copy-pasted into the six validators whose
+ * authors happened to remember it; declaring the kind gets it
+ * everywhere, including the twenty-odd slots that silently didn't have
+ * it.
+ *
+ * ⚠ Absent bindings pass. An optional positional that didn't bind, or
+ * an operand the player hasn't chosen yet, is not a wrong kind — the
+ * affordance resolver reads that distinction to report
+ * `pending-operand` rather than flatly refusing a two-operand verb on
+ * every object in the world.
+ */
+async function requirementValidator(
+  requires: MixinRequirement,
+  where: string,
+): Promise<FieldValidator | null> {
+  const terms = await parseRequirement(requires, where);
+  if (terms.length === 0) return null;
+
+  const fails = (s: Stuff, term: RequirementTerm): boolean => !term.test(s);
+
+  return (value, field) => {
+    if (value === undefined || value === null) return undefined;
+
+    // ⚠⚠ SINGULAR ONLY. `MqlOneResult` and `MqlManyResult` both carry a
+    // `stuff` key — the plural one holds an ARRAY — so the key's
+    // presence does not tell them apart, and `Array.isArray` is the
+    // whole discriminator. Without it every `type: objects` field hands
+    // an array to `effectiveTarget`, whose predicate answers a
+    // well-formed `false` for it; the refusal path then calls
+    // `getPresentation()` on the array and throws. Measured: `get`,
+    // `drop` and every other plural verb, on an EMPTY result too, since
+    // `[]` is truthy. Nothing in the shipped controller tests would have
+    // caught it — they bind their own models and skip the binder.
+    //
+    // `effectiveTarget` wants a type guard, and composition is not a
+    // TS-narrowable fact, so the guard asserts only `object` — the
+    // check itself is the `test` inside it.
+    const one = value as MqlOneResult;
+    if (
+      one &&
+      typeof one === 'object' &&
+      'stuff' in one &&
+      one.stuff &&
+      !Array.isArray(one.stuff)
+    ) {
+      for (const term of terms) {
+        const found = MqlApi.effectiveTarget(
+          one,
+          (s): s is Stuff & object => !fails(s, term),
+        );
+        if (!found) {
+          return term.refusal.replace('{}', one.stuff.getPresentation());
+        }
+      }
+      return undefined;
+    }
+
+    const stuffs = MqlApi.extractStuffs(value);
+    if (stuffs === null) return `${field} must be an object`;
+    for (const stuff of stuffs) {
+      for (const term of terms) {
+        if (fails(stuff as Stuff, term)) {
+          return term.refusal.replace('{}', stuff.getPresentation());
+        }
+      }
+    }
+    return undefined;
+  };
+}
+
+/**
  * Walk every `validators: [...]` block on a CommandDefinition and
  * resolve each spec into a live function via
  * `CommandApi.resolveValidator`. Stores the result on
  * `_resolvedValidators`. Idempotent — calling twice just re-resolves
  * (the JS module cache makes the second pass cheap).
+ *
+ * ⭐ Also the home of `requires:` synthesis. A declared kind becomes a
+ * validator here and is **prepended** to the slot's chain, so the rest
+ * of the engine — dispatch, the affordance resolver, the preload phase
+ * — needs to know nothing about the declaration. It sees a validator,
+ * which it already knows how to run. Prepended rather than appended
+ * because "that isn't the kind of thing you can do this to" is the
+ * cheapest and most informative refusal a slot has: a relational check
+ * reporting "you can't reach it" about a rock you were never going to
+ * seal is a worse sentence, arrived at more expensively.
  */
 async function resolveCommandValidators(
   cmd: CommandDefinition
 ): Promise<void> {
   const yamlPath = cmd.filePath;
   const resolveOne = async (
-    target: { validators?: string[]; _resolvedValidators?: FieldValidator[] }
+    target: {
+      validators?: string[];
+      requires?: MixinRequirement;
+      _resolvedValidators?: FieldValidator[];
+    },
+    where: string,
   ): Promise<void> => {
-    if (!target.validators || target.validators.length === 0) return;
     const fns: FieldValidator[] = [];
-    for (const spec of target.validators) {
+    if (target.requires !== undefined) {
+      const synthesized = await requirementValidator(target.requires, where);
+      if (synthesized) fns.push(synthesized);
+    }
+    for (const spec of target.validators ?? []) {
       fns.push(await CommandApi.resolveValidator(spec, yamlPath));
     }
-    target._resolvedValidators = fns;
+    if (fns.length > 0) target._resolvedValidators = fns;
   };
 
-  for (const a of cmd.args) await resolveOne(a);
-  for (const sub of Object.values(cmd.subcommands)) {
-    for (const a of sub.args ?? []) await resolveOne(a);
-    for (const opt of Object.values(sub.options ?? {})) {
-      await resolveOne(opt);
+  for (const a of cmd.args) await resolveOne(a, `${yamlPath} arg \`${a.name}\``);
+  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+    for (const a of sub.args ?? []) {
+      await resolveOne(a, `${yamlPath} ${subName} arg \`${a.name}\``);
+    }
+    for (const [optName, opt] of Object.entries(sub.options ?? {})) {
+      await resolveOne(opt, `${yamlPath} ${subName} option \`--${optName}\``);
     }
     // Subcommand-level validators — command-shaped (take `context`),
     // like verb-level, so they dispatch to `resolveCommandValidator`
@@ -2365,11 +2611,11 @@ async function resolveCommandValidators(
       sub._resolvedValidators = fns;
     }
   }
-  for (const opt of Object.values(cmd.verbOptions)) {
-    await resolveOne(opt);
+  for (const [optName, opt] of Object.entries(cmd.verbOptions)) {
+    await resolveOne(opt, `${yamlPath} option \`--${optName}\``);
   }
-  for (const opt of Object.values(cmd.payload)) {
-    await resolveOne(opt);
+  for (const [fieldName, opt] of Object.entries(cmd.payload)) {
+    await resolveOne(opt, `${yamlPath} payload \`${fieldName}\``);
   }
 
   // Verb-level (top-level) validators — different signature, so the

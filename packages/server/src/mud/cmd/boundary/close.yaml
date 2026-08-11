@@ -19,5 +19,6 @@ args:
     required: true
     scope: "reachable"
     updates_focus: extend
+    requires: SealableMixin
     validators:
       - /lib/command/validators/canReach

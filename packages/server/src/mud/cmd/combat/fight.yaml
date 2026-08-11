@@ -73,6 +73,7 @@ subcommands:
         type: object
         required: true
         scope: ["inventory", "reachable"]
+        requires: VitalsMixin
   draw:
     description: "Draw a sidearm fast — the answer to being disarmed"
     help: |

@@ -122,7 +122,48 @@ args:
   - name: target
     type: object
     validators:
-      - mustBeVisible
+      - mustBeInLocation
+`)
+    ).toThrow(/Schema validation failed/);
+  });
+
+  /*
+   * `requires:` — the slot's kind declaration. The schema accepts three
+   * SHAPES; whether the named mixin exists is decided at validator
+   * resolution (and by `lint:arg-kinds`), not here, because the schema
+   * has no way to know the Mixins registry.
+   */
+  it('accepts requires as a name, a list, or `any`', () => {
+    for (const decl of ['SealableMixin', 'any', '[VisibleMixin, ContainerMixin]']) {
+      expect(() =>
+        load(`
+verbs: [test]
+controller: TestController
+description: ok
+args:
+  - name: target
+    type: object
+    requires: ${decl}
+`)
+      ).not.toThrow();
+    }
+  });
+
+  /*
+   * ⚠ `targetKind` was the predecessor marker and is GONE. The schema
+   * seals the arg shape, so a spec still carrying it fails loudly
+   * rather than declaring something nothing reads.
+   */
+  it('rejects the retired targetKind marker', () => {
+    expect(() =>
+      load(`
+verbs: [test]
+controller: TestController
+description: ok
+args:
+  - name: target
+    type: object
+    targetKind: any
 `)
     ).toThrow(/Schema validation failed/);
   });
@@ -137,7 +178,7 @@ args:
   - name: target
     type: object
     validators:
-      - /lib/command/validators/mustBeVisible
+      - /lib/command/validators/mustBeInLocation
       - ./local
       - ../shared/foo
 `)

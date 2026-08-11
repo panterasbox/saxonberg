@@ -22,3 +22,4 @@ args:
     prepositions: [at]
     default: "$focus"
     onExcess: prompt
+    requires: any

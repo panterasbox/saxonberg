@@ -42,7 +42,6 @@ import { Grade, type GradeBand } from '../../../lib/craft/Grade';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Container } from '../../../lib/spatial/Container';
-import Plant from '../../Plant';
 
 const TOPIC = 'act.deed';
 
@@ -80,7 +79,13 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
-    if (!(named instanceof Plant)) {
+    // ⭐ The CAPABILITY, not the `Plant` class — the same predicate the
+    // spec declares (`requires: GrowingMixin`). It used to be
+    // `instanceof Plant` while the arg declared the mixin: two
+    // predicates for one gate, which is how `plant` came to be offered
+    // on a rock. A cutting, a vine or a fungus should not have to
+    // inherit `Plant` to be harvested.
+    if (!MixinApi.isGrowing(named)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.thing(named)} isn't a plant.`)

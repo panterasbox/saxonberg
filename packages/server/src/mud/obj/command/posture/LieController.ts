@@ -37,7 +37,7 @@ export default class LieController extends CommandController<LieModel> {
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
-        `LieController: mustBePostured validator should have caught ${target.stuffId}`
+        `LieController: requires: PosturedMixin should have caught ${target.stuffId}`
       );
     }
     if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {

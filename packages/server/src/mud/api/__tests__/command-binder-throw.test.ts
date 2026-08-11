@@ -53,7 +53,7 @@ class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestThing extends TangibleMixin(
   VisibleMixin(ContainableMixin(NamedMixin(PerceptibleMixin(Idea))))
 ) {}
-/** No mass — what `mustBeTangible` exists to turn away. */
+/** No mass — what `requires: TangibleMixin` exists to turn away. */
 class Weightless extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestGiver extends ContainerMixin(
   ContainableMixin(
@@ -74,16 +74,29 @@ function realThrow(itemScope?: string): CommandDefinition {
   return CommandDefinition.fromYaml(text, THROW_YAML);
 }
 
-/** Populate `_resolvedValidators` the way `preloadAll` would. */
+/**
+ * Populate `_resolvedValidators` the way `preloadAll` would.
+ *
+ * ⚠⚠ This used to walk `cmd.args` and resolve each `validators:` entry
+ * by hand, and that is precisely how it broke: when the kind gate moved
+ * from a validator file onto the slot as `requires: TangibleMixin`, the
+ * hand-rolled loop kept resolving the `validators:` list and silently
+ * installed **no kind check at all** — so "refuses something with no
+ * mass" passed a weightless wisp and reported `ok`. A fixture that
+ * reimplements a framework step only knows the steps that existed when
+ * it was written. Ask the framework.
+ */
 async function resolveFieldValidators(cmd: CommandDefinition): Promise<void> {
-  for (const arg of cmd.args) {
-    const specs = (arg as unknown as { validators?: string[] }).validators;
-    if (!specs) continue;
-    (arg as unknown as { _resolvedValidators?: unknown[] })._resolvedValidators =
-      await Promise.all(
-        specs.map((spec) => CommandApi.resolveValidator(spec, THROW_YAML))
-      );
-  }
+  await CommandApi.resolveValidators(cmd);
+  // ⚠ …then drop the VERB-level gates. This fixture is about the
+  // binder, and its `TestGiver` is a bare CommandGiver — no organism,
+  // no body — so `requiresAnimate` / `requiresEmbodied` would refuse
+  // every drive with "player can't do that" before an arg was ever
+  // examined. Dropping them explicitly beats never resolving them:
+  // this way the field gates come from the framework, whatever they
+  // grow into, and the one thing being skipped is named.
+  (cmd as unknown as { _resolvedValidators?: unknown })._resolvedValidators =
+    undefined;
 }
 
 type DriveResult =

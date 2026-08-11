@@ -37,7 +37,7 @@ export default class KneelController extends CommandController<KneelModel> {
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
-        `KneelController: mustBePostured validator should have caught ${target.stuffId}`
+        `KneelController: requires: PosturedMixin should have caught ${target.stuffId}`
       );
     }
     if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {

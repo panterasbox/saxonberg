@@ -12,7 +12,7 @@
  *
  * Validation surface (from `cmd/movement/hitch.yaml`):
  *   - requiresAnimate (verb-level)
- *   - mustBeVisible, mustBeHaulable (target); mustBeVisible, mustBeHauler
+ *   - `requires: [VisibleMixin, HaulableMixin]` (target); `[VisibleMixin, HaulerMixin]`
  *     (mount, optional)
  */
 

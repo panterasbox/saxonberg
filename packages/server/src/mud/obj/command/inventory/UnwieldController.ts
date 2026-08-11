@@ -3,7 +3,7 @@
  *
  * Validation surface (from `cmd/unwield.yaml`):
  *   - requiresAnimate, requiresSlotted (verb-level)
- *   - mustBeInInventory, mustBeWieldable (target-level)
+ *   - mustBeInInventory (target-level) + `requires: WieldableMixin`
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

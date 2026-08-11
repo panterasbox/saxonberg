@@ -128,6 +128,22 @@ lint:
     # content packs may add leaves, never a root, because a pack-minted
     # root breaks subtree muting for every player.
     - pnpm -C packages/server lint:topics
+    # Affordance honesty. Every object-typed slot declares `requires:` —
+    # a mixin name it must compose, or `any` for deliberately
+    # unconstrained. The resolver's candidate set is syntactic, so an
+    # undeclared arg makes the verb menu assert things the controller
+    # will refuse — `attack` on a chair. The client cannot filter those
+    # out; it is forbidden from re-deriving semantics, so a wrong figure
+    # on the wire is a wrong figure on screen.
+    #
+    # It also fails on a name that is not in the Mixins registry, which
+    # is the point of naming a mixin rather than asserting `any`: the
+    # predecessor marker could not be wrong, and three of its fifty uses
+    # were. Reports two tiers — menu-visible positionals vs every object
+    # field — so a regression says which claim it broke. Also fails on
+    # any spec it cannot PARSE: an unreadable spec silently shrinks
+    # every total and makes the gate look better.
+    - pnpm -C packages/server lint:arg-kinds --lint
     # The framework wiring is an explicit import, not a global setup
     # file. A test that touches the wired runtime must say so; this
     # keeps the two in sync. It fails only in the cheap direction (a

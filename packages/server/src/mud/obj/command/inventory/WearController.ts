@@ -5,7 +5,7 @@
  *
  * Validation surface (from `cmd/wear.yaml`):
  *   - requiresAnimate, requiresSlotted (verb-level)
- *   - mustBeInInventory, mustBeWearable (target-level)
+ *   - mustBeInInventory (target-level) + `requires: WearableMixin`
  *
  * The TypeScript narrows below throw if reached — meaning a validator
  * failed to do its job. They're not user-facing failure paths.

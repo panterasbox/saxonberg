@@ -19,14 +19,12 @@ options:
     scope: "online"
     field: audience
     description: "Address the introduction to a particular person (the whole room still hears, and everyone learns the name)."
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
     onExcess: prompt
 args:
   - name: subject
     type: object
     required: false
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
     onExcess: prompt
