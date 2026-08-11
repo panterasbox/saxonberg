@@ -22,14 +22,14 @@ noticing it.
 cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
 cockpit layout <name>         the pane arrangement inside that mode
-cockpit scope <prefix…>       scope a command bar's bare input
+cockpit cli [id] --prefix …   prefix one command line's bare input
 cockpit style <sub> …         appearance
 cockpit pane pin|dismiss …    override what holds a pane open
 ```
 
 `layout` and `style` are **removed** as standalone verbs, not kept as
 aliases: one name per thing, and two names for one thing is a cost that
-never stops being paid. `mode` is absorbed as **`cockpit scope`** — it
+never stops being paid. `mode` is absorbed as **`cockpit cli`** — it
 always wrote `cockpit.inputModes`, so it was a cockpit concern wearing a
 top-level verb, and its old word was needed for the activity axis.
 
@@ -112,6 +112,33 @@ reads as one progression; they are two values because a front door is a
 front door. If `govern` turns out to belong *within* `build`, that is a
 one-line edit to `COCKPIT_MODES`, not a redesign — flagged deliberately
 rather than silently resolved.
+
+### ⚠ What the arrangement axis ships, and what it does not
+
+**Storage and vocabulary — not behaviour.** `cockpit layout save`
+captures the panes that are open, by catalogue name; `recall` sets the
+active arrangement in `cockpit.arrangements`. **Nothing opens or closes
+a pane in response**, on either side of the wire: no client code reads
+`cockpit.arrangements` today.
+
+That is deliberate scoping rather than a gap to be patched. The consumer
+is the client rebuild, and inventing a restore path before that client
+exists is how the same feature gets built twice. But it is stated here
+because the surface *looks* complete: `save` reports a pane count,
+`list` shows names, `recall` succeeds, and none of it moves a pane.
+
+⭐ **The unstated half is who acts on a recall.** The server has no way
+to tell a client to open a subscription — the client always initiates —
+so either that mechanism gets invented, or the client reads the
+arrangement and opens the named panes itself. The second works with what
+exists and keeps the split the pane catalogue already established: the
+**client initiates, the server owns the vocabulary**.
+
+⚠ Saved arrangements are capped per mode
+(`MAX_SAVED_ARRANGEMENTS_PER_MODE`). A save writes a player-chosen key
+into a persisted map, so uncapped it is unbounded growth of the player's
+own document — self-inflicted, which is exactly why it is easy to leave
+open. Overwriting an existing name is always allowed: it adds no key.
 
 ### The arrangement axis — savable, not a frozen list
 
@@ -345,13 +372,13 @@ primacy made absolute.
   per-bar lookup is at the call site. The echo reflects the **dispatched**
   text.
 - **`mode` verb** (`cmd/shell/mode.yaml` + `ModeController`) edits one
-  bar's entry — `cockpit scope <prefix…>` sets, `cockpit scope off` / bare `cockpit scope` clears.
+  line's entry — `cockpit cli --prefix "…"` sets, `cockpit cli --clear` clears, and **bare `cockpit cli` REPORTS**. ⚠ The predecessor conflated report and clear: a bare invocation wiped the prefix, so checking what was set destroyed it.
   The target resolves `model.bar ?? context.barId ?? 'main'`: a typed
   `mode` defaults to the bar it was submitted from (`context.barId`), and
   the explicit **`--bar <id>`** option names a bar for an affordance —
   which dispatches *un-moded* (no wire `barId`, so preview == send) and so
   can't rely on `context.barId`. The target rides in the command text
-  (`cockpit scope chat --bar stream-chat`), keeping the ghost-line preview honest.
+  (`cockpit cli stream-chat --prefix chat`), keeping the ghost-line preview honest.
   Because modes are transient the commit is just **write→push** (no
   `save()`).
 
@@ -367,8 +394,8 @@ The client no longer wraps input. The `inputMode` store slice is gone.
   (read from `cockpit.inputModes[barId]`); it **hides when the input is
   exempt** (`/` or `mode`), so the bar always shows what dispatches.
   Closing the mode is a small `✕` at the bar's edge (+ Esc), both sending
-  `cockpit scope off` from that bar. The chat sidecar's "talk here" sends
-  `cockpit scope chat <handle>` from the forum bar.
+  `cockpit cli --clear` from that line. The chat sidecar's "talk here" sends
+  `cockpit cli --prefix "chat <handle>"` from the forum line.
 
 ### The ghost command line + click model
 
@@ -426,7 +453,7 @@ from the retired requirements/plan in four deliberate ways:
   `transient` clientState key (in-memory `_transientClientState`, never
   persisted, resets on fresh login); `ModeController` dropped its
   `save()`. `cockpit.layout` stays persisted.
-- **`cockpit scope --bar <id>`** (`4e82e740`) — explicit target so an un-moded
+- **`cockpit cli <id>`** (`4e82e740`) — explicit target so an un-prefixed
   affordance can scope a named bar.
 
 The `world` layout's right rail gained the **Inspect | Who's Online**
