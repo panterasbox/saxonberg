@@ -485,10 +485,25 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * validators and controllers where they can. See
  * `docs/slates/builds/affordance-suggestion-slate.md` § 3.
  *
- * ⚠ A mixin with no entry can still be named by `requires:` — it just
- * falls back to a generic sentence, which is worse copy but never a
- * crash. The gate warns; it does not fail. Adding a phrase is always an
- * improvement and never a migration.
+ * ⚠⚠ **This map is PARTIAL, and that is the hole `lint:arg-kinds`
+ * closes.** Most of the 200-odd mixins will never be named by a
+ * `requires:`, so a total `Record` would be absurd — which means
+ * nothing in the type system says *"you added a constraint but no words
+ * for it"*. A spec author can name any mixin at all.
+ *
+ * So the two halves are split deliberately:
+ *
+ *   - **at runtime**, a missing phrase falls back to a generic
+ *     sentence. Worse copy, never a broken verb.
+ *   - **at build**, `pnpm lint:arg-kinds --lint` FAILS on any mixin a
+ *     spec requires without a phrase here, and prints the line to add.
+ *     A `requires:` is a refusal players will hit, and a refusal they
+ *     cannot act on is a dead end — so shipping the generic sentence is
+ *     shipping a dead end.
+ *
+ * The gate also *reports* the reverse — a phrase nothing requires — but
+ * does not fail on it: dead copy is harmless, and it may be sitting
+ * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Perception / substance — the two broadest, and the reason the
@@ -528,7 +543,6 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Making & wear.
   ManualBuildMixin: "{} isn't a vessel you can work in",
-  CraftedMixin: "{} wasn't crafted",
   DurableMixin: "{} doesn't wear out",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
@@ -547,7 +561,6 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HaulerMixin: "{} can't pull a cart",
 
   // Storefronts.
-  AttendantMixin: "{} isn't serving anyone",
   PricedOfferMixin: "{} isn't something with a price list",
 
   // Instruments — both of these sit on a slot that names the TOOL, not

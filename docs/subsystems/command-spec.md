@@ -560,6 +560,14 @@ The framework synthesises the check at spec-load and prepends it to the
 slot's validator chain; the refusal sentence comes from `MixinRefusals`
 in the same file, where `{}` stands for the target's presentation.
 
+⚠⚠ **If you name a mixin with no phrase, the build fails and tells you
+the line to add.** `MixinRefusals` is partial — most mixins are never
+required by a spec — so nothing in the type system catches "constraint
+added, words not". `lint:arg-kinds --lint` does. At runtime a missing
+phrase would degrade to a generic sentence rather than break the verb;
+at build it is refused, because a `requires:` is a refusal players hit,
+and one they cannot act on is a dead end.
+
 This exists because the affordance resolver offers a verb whenever its
 operand binds and its field validators pass. A verb whose real refusal
 lives in its **controller** therefore advertises itself against targets

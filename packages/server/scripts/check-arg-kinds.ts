@@ -250,10 +250,25 @@ function main(): void {
   );
 
   /*
-   * ⚠ A named mixin with no authored refusal still works — it falls
-   * back to a generic sentence. That is worse copy, not a broken verb,
-   * so it WARNS and never gates: making it fatal would mean a mixin
-   * rename could not land without a copywriting pass.
+   * ⚠⚠ **A required mixin MUST have a refusal phrase, and this gates.**
+   *
+   * `MixinRefusals` is deliberately PARTIAL — most of the 200-odd
+   * mixins will never be named by a `requires:` — so nothing in the
+   * type system says "you added a constraint but no words for it". A
+   * spec author can name any mixin at all, and the runtime happily
+   * falls back to `{} isn't the right kind of thing`.
+   *
+   * That fallback is right at RUNTIME (a missing phrase should be worse
+   * copy, never a broken verb) and wrong at BUILD. A `requires:` is a
+   * refusal players will actually hit, and this project's own rule is
+   * that a refusal the player cannot act on is a dead end. Shipping
+   * "isn't the right kind of thing" is shipping a dead end.
+   *
+   * ⚠ This used to WARN — to `console.log`, not even stderr — on the
+   * reasoning that gating would stop a mixin rename landing without a
+   * copywriting pass. That was wrong twice over: the phrase moves in
+   * the same one-line edit as the rename, and a warning inside a
+   * passing CI job is a thing nobody ever reads.
    */
   const phraseless = new Set<string>();
   for (const f of constrained) {
@@ -262,11 +277,36 @@ function main(): void {
     }
   }
   if (phraseless.size > 0) {
-    console.log(
+    console.error(
       `\n⚠ ${phraseless.size} required mixin(s) have no phrase in ` +
-        `MixinRefusals — they refuse with the generic sentence:`,
+        `MixinRefusals (lib/mixin.ts) — they would refuse with the ` +
+        `generic sentence:`,
     );
-    for (const n of [...phraseless].sort()) console.log(`    ${n}`);
+    for (const n of [...phraseless].sort()) console.error(`    ${n}`);
+    console.error(
+      `\n  Add one line each. \`{}\` is the target's presentation:\n` +
+        [...phraseless]
+          .sort()
+          .map((n) => `    ${n}: "{} …",`)
+          .join('\n'),
+    );
+  }
+
+  /*
+   * The other direction, reported and NOT gated: a phrase for a mixin
+   * nothing requires is dead copy. Harmless, and deleting it is a
+   * judgement call — a phrase may be sitting there for a constraint
+   * about to be written — so this informs rather than refuses.
+   */
+  const usedMixins = new Set(constrained.flatMap((f) => f.named));
+  const unusedPhrases = Object.keys(MixinRefusals).filter(
+    (n) => !usedMixins.has(n),
+  );
+  if (unusedPhrases.length > 0) {
+    console.log(
+      `\nnote: ${unusedPhrases.length} refusal phrase(s) for mixins no ` +
+        `spec currently requires: ${unusedPhrases.sort().join(', ')}`,
+    );
   }
 
   if (unparsed.length > 0) {
@@ -318,11 +358,15 @@ function main(): void {
     }
   }
 
-  if (lint && (undeclared.length > 0 || bogus.length > 0)) {
+  if (
+    lint &&
+    (undeclared.length > 0 || bogus.length > 0 || phraseless.size > 0)
+  ) {
     console.error(
       `\ncheck-arg-kinds: FAILED — ${undeclared.length} object-typed ` +
         `arg(s) declare no \`requires:\`, ${bogus.length} name a mixin ` +
-        `that does not exist.`,
+        `that does not exist, ${phraseless.size} name one with no ` +
+        `refusal phrase.`,
     );
     process.exit(1);
   }
