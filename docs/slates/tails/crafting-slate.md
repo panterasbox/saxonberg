@@ -20,7 +20,7 @@ businesses, and the skill system all point at.
 
 See also:
 
-- [docs/slates/builds/economy-slate.md](./economy-slate.md) — **the
+- [docs/slates/builds/economy-slate.md](../builds/economy-slate.md) — **the
   parent.** Crafting is its transformation stage. That doc owns the
   load-bearing philosophy this slate inherits and must not contradict:
   *value lives in transformation*; *quality is a verdict, not a property*
@@ -28,12 +28,12 @@ See also:
   math); *the skill seam* (skill = control, one lookup, the economy
   doesn't define the skill system); *recipes are knowledge*; *provenance
   carries worth* (maker's marks, reputation attaches to the maker).
-- [docs/slates/builds/economy-slate.md](./economy-slate.md) §
+- [docs/slates/builds/economy-slate.md](../builds/economy-slate.md) §
   *Employment & economic engagement* — the **venue + employment**
   crystallization: the crafting-venue four-tuple, place-based crafting,
   buy-vs-DIY, NPC-floor/player-apex, and Dave's Bar as the unit cell.
   This slate generalizes that hook into the actual crafting subsystem.
-- [docs/slates/builds/daves-bar-slate.md](./daves-bar-slate.md) — **the
+- [docs/slates/builds/daves-bar-slate.md](../builds/daves-bar-slate.md) — **the
   integrating exemplar.** Dave's Bar as the end-to-end vertical where
   crafting meets skills, employment, the economy, engaged activity, and the
   social/trait layer — the experience design this slate's mechanics serve.
@@ -242,7 +242,7 @@ concrete realization: **make-it-once-to-bank-it** — reading a recipe is a
 `claim`, *making* it the `deed` that banks it (knowing→doing), and the banked
 recipe **is a command-script** — the gentlest first consumer of the
 [scripting language](./scripting-slate.md). See
-[daves-bar-slate](./daves-bar-slate.md) § *Verbs & the recipe-learning loop*.) But a fourth vector *isn't* deferred:
+[daves-bar-slate](../builds/daves-bar-slate.md) § *Verbs & the recipe-learning loop*.) But a fourth vector *isn't* deferred:
 **authoring.** New recipes enter the world by being **authored** (CMS) —
 recipe-creation is the author tier of the making-spectrum, credits-gated to
 instantiate. So **authoring creates recipes; teach/do/discover spread
@@ -324,7 +324,7 @@ fixtures: a **fixed cycling pool** (serve → use → **bus** → wash → reuse
 object count bounded by the pool, not the use-count), with a small
 **breakage/walk-off leak** the venue **restocks** (the recurring sink), and the
 live count **transient** (persisted nowhere). See
-[daves-bar-slate](./daves-bar-slate.md) § *Glassware & venue durables*.
+[daves-bar-slate](../builds/daves-bar-slate.md) § *Glassware & venue durables*.
 
 ### Tools are craftables → a parallel tech tree
 
@@ -515,7 +515,7 @@ other). Two topologies, both worth having:
 Caution (the anti-treadmill rule): each tier must carry a real
 decision/value-add, not click-busywork. The repetitive **bottom tier** (raw
 gathering) is absorbed by the **idle / employment** automation layer (see
-[cooperative-slate](./cooperative-slate.md) § Employment) — an idle trickle
+[cooperative-slate](../builds/cooperative-slate.md) § Employment) — an idle trickle
 solo, hired NPC labor at scale — so depth doesn't become grind.
 
 ## The making spectrum — utility vs personalization, two costs
@@ -548,8 +548,8 @@ and a **commons-meter.** Credits are **in-world, never real-money-
 purchasable** (the no-pay-to-win membrane — you can't buy your way to
 flooding the commons with content), best framed as a **governed
 commons-expansion budget** the polity can meter and grant as content
-bounties. (Authoring economy: [scoped-authoring](./scoped-authoring-slate.md);
-credits-as-governed-sink: [cooperative-slate](./cooperative-slate.md).)
+bounties. (Authoring economy: [scoped-authoring](../builds/scoped-authoring-slate.md);
+credits-as-governed-sink: [cooperative-slate](../builds/cooperative-slate.md).)
 
 ---
 
@@ -642,7 +642,7 @@ sketched:
   Still open: how the per-domain property bundle is *modeled* and how the skill
   lookup scatters/tightens it (with the skill system).
 - **Crafting actions / verbs — first surface settled at Dave's Bar** (see
-  [daves-bar-slate](./daves-bar-slate.md) § *Verbs & the recipe-learning loop*:
+  [daves-bar-slate](../builds/daves-bar-slate.md) § *Verbs & the recipe-learning loop*:
   the recipe shorthand over the manual build; served vs DIY; recipes as
   command-scripts). The general per-domain verb vocabulary remains.
 - **Defects & failure.** Novice scatter and brittle outputs as **diegetic
@@ -703,7 +703,7 @@ advancement layer).
   macro tuning, deferred to a running economy.
 - **The credits / authoring economy.** How instantiation credits are
   priced, earned, and governed (the commons-expansion budget): a real design
-  piece spanning this slate, [scoped-authoring](./scoped-authoring-slate.md),
+  piece spanning this slate, [scoped-authoring](../builds/scoped-authoring-slate.md),
   and the cooperative slate's reserve/governance. Distinct from crafting's
   material cost.
 - **A full crafting design doc.** This slate is the design surface; once a

@@ -169,6 +169,181 @@ screens it wants from this — it never asks the server "what step am I
 on?" A `CharGenOption` carries `value`/`label`/`description`/`image` and,
 for species, a `SpeciesDossier` (below).
 
+## ⭐ Forward compatibility — read this before rebuilding the client
+
+Char-gen is scheduled to be **replaced** by the lineage model (pick a
+household from a gallery; species and aspiration demote from *fields* to
+*filters*; a point budget appears) — see
+[lineage-slate](../slates/builds/lineage-slate.md). That work is
+**deferred behind the client rebuild**, so the question for anyone
+building char-gen now is narrow: *what makes the replacement cheap
+later?*
+
+This section is the answer. It is written for the client-build agent.
+
+### What is already right — do not regress it
+
+The architecture is **server-authoritative and layout-agnostic**, and
+that is precisely why lineage can be mostly a server change:
+
+- every pick is a real command (`enroll <field> <value>`), dispatched
+  through `executeCommand` like any other verb — **no bespoke char-gen
+  protocol**;
+- the server re-emits the **whole state** after every change;
+- there is **no notion of a current step** — flow and layout are entirely
+  client-side;
+- `missing[]` drives completion gating, so the client never encodes which
+  fields exist or in what order they are required.
+
+⭐ Any new client must keep all four. A client that tracks its own step
+index, or that knows the field order, re-couples the flow and makes
+lineage a rewrite.
+
+### ⚠ What will break — the payload is not actually generic
+
+Despite being called layout-agnostic, the payload **names every field
+twice**:
+
+- `CharGenField` is a **closed union of five** (`species | sex | name |
+  pronouns | aspiration`);
+- `CharGenStatePayload` carries **one option array per field**
+  (`speciesOptions`, `sexOptions`, `pronounOptions`,
+  `aspirationOptions`), and `CharGenPicks` one key per field.
+
+So **every new char-gen concept is a `types` change plus a client
+change** — which is exactly the cost lineage would pay, repeatedly.
+`CharGenStage.tsx` already carries the smell: an `optionsFor(field)`
+switch, a `FIELD_HEADING` record keyed on the union, and an
+`ILLUSTRATED_FIELDS` set. The component is *already* written as
+"iterate fields, render each"; the switch exists only to adapt a payload
+that should have handed it a list.
+
+### ⭐⭐ The one change worth making now
+
+Generalize the payload to a **field list with a renderer discriminator**:
+
+```
+interface CharGenFieldState {
+  field: string;              // no longer a closed union
+  kind: 'choose-one' | 'text' | …;   // which renderer to dispatch to
+  label: string;
+  applicable: boolean;        // replaces "sexOptions is empty ⇒ N/A"
+  options?: CharGenOption[];
+  value?: unknown;
+}
+
+interface CharGenStatePayload {
+  fields: CharGenFieldState[];
+  missing: string[];
+  …
+}
+```
+
+This is **justified by the rebuild on its own terms** — it deletes the
+adapter switch, the heading record, and the illustrated-fields set, and
+is strictly less client code than five bespoke pickers. It needs **no
+lineage design decisions**, so it can land now without waiting on
+anything.
+
+The payoff is that lineage's new surfaces become *additive*: a new
+`kind`, a new renderer, no change to the shell.
+
+### The three interaction kinds lineage needs and this model lacks
+
+Today char-gen can express exactly one interaction: **choose one of a
+closed list**. Lineage needs three more, and they are the reason `kind`
+matters more than the field list does:
+
+| interaction | what it needs |
+|---|---|
+| **the gallery grid** | multi-column comparable rows, not `label` + `description` — the player compares households at a glance ([lineage-slate](../slates/builds/lineage-slate.md) § *It is a form, rendered two ways*) |
+| **filters / query** | re-requesting the option set (species, trade, locality, aspiration-as-query) rather than picking from a fixed one |
+| **budget allocation** | a constrained numeric allocator with a shared pool — not a pick at all |
+| **reroll** | an *action with a cost*, which has no representation today |
+
+⭐ **`SpeciesDossier` is the good precedent to copy.** It is a generic
+`{heading, rows:[{label,value}]}` structure explicitly so "the client
+renders them generically without knowing the field taxonomy." The
+gallery card wants exactly that shape one level up — **structured rows
+the client renders without knowing what a household is.** Build the grid
+renderer generically and it will survive the schema settling later.
+
+### ⚠ The dossier's in-world read path — checked 2026-08-11
+
+The lineage slate adopts a rule that applies retroactively:
+
+> **Char-gen must not be able to say anything the world cannot later
+> confirm.**
+
+**Designed: yes.** The wiki is the intended home.
+`SubjectKind = 'template' | 'mixin' | 'command'` and a species *is* a
+template, [wiki.md](./wiki.md) names species among the encyclopedia's
+nouns, and its reveal table carries an explicit `Species` row whose
+*left open* column — *"the natural history a field guide prints — diet,
+lifespan, circadian band, vision, scent, reproduction, sentience"* —
+is almost exactly the dossier's **Biology** section.
+
+**Built: no.** `SpeciesApi.buildDossier` has exactly **one caller**,
+`EnrollController`. No verb reads it, nothing bridges it to the wiki, and
+the seeded wiki content is lore / snippet / guide / main — **no species
+pages**. The wiki is community-maintained, so today the in-world path
+exists as a schema and is empty of content.
+
+⚠ So the rule is not *violated* (the data has a designed home) but it is
+not *satisfied* either. The cheap fix, whenever the wiki or a `species`
+lookup gets attention, is to let the same `buildDossier` output render
+into a wiki template page — one caller becomes two and the promise is
+kept.
+
+### ⚠ The dossier drops the reveal level on the wire
+
+`buildDossier`'s **Composition** section prints `Density` and `Edible`,
+both of which carry `spoiler: 1`.
+
+⚠ **This is not a leak, and it matters to say why.** The contract is
+declared on `fieldMeta` in `lib/mixin.ts`, not by the wiki, and level 1
+means **collapsed by default, not forbidden**:
+
+> *"level 1 is collapsed by default rather than forbidden, so tagging a
+> measurement costs a reader one click instead of locking them out."*
+
+The doc is explicit that reclassifying density and hardness to level 1
+was only coherent **because** that reader rung exists. So any player can
+open these; the dossier is not showing secret data.
+
+**The real gap is structural.** `spoiler` is declared on the field
+precisely so it travels *"wherever it surfaces — a wiki panel, the
+Studio, help, a future codex."* But `DossierSection.rows` is
+`{ label, value }` — **no level.** The reveal level is dropped at the
+char-gen boundary, so a client *cannot* collapse a level-1 row even if it
+wanted to, and char-gen renders expanded what every other surface renders
+collapsed.
+
+⭐ **The fix is a wire-type change, not a content decision:** carry the
+level on the row (`{ label, value, spoiler? }`) and let the renderer
+collapse. That is cheap, it is the same generalization the rest of this
+section argues for, and it puts char-gen back inside the model rather
+than beside it.
+
+The Biology, Classification and Anatomy sections are all level 0.
+
+### ⚠ What is genuinely unfinished: reveal answers appetite, not epistemics
+
+Worth recording so it is not rediscovered as a bug. The reveal model
+answers *"does this reader want to be spoiled"* — an **appetite** axis,
+resolved by a click. It does not answer *"does this character know
+this"*, which is an **epistemic** question and has no substrate.
+
+The deferred [identification-slate](../slates/tails/identification-slate.md)
+(`analyze X with Y`, real Material chemistry, partial identification,
+misidentification) is the other half — knowledge as something *earned*,
+per-viewer, rather than revealed by preference. The two can coexist, but
+only if it stays clear which is which: a collapse toggle is not a lock,
+and a lock is not a collapse toggle.
+
+Until that lands, char-gen showing material properties is a *presentation*
+inconsistency and nothing more.
+
 ## Commit + spawn
 
 `commit` (`EnrollController.ts:620`) is the only step that persists. The

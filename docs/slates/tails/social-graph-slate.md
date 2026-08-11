@@ -97,7 +97,7 @@ spend on.
 > you see the world* (verbosity, notifications), never another
 > player's standing. Renown aggregates only over **objective
 > `Group`s** (`GroupApi`), not contacts. See
-> [reputation-slate](./reputation-slate.md).
+> [reputation-slate](../builds/reputation-slate.md).
 
 ---
 

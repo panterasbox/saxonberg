@@ -437,7 +437,9 @@ chronicle deed · the accountability death row from every driver · the
 
 The slate's open questions were closed during ideation on 2026-07-31 and
 live with their reasoning in
-[../../requirements/mortality-requirements.md](../../requirements/mortality-requirements.md):
+[../../subsystems/mortality.md](../../subsystems/mortality.md) (the
+requirements doc was retired at the pre-merge sweep; its reasoning
+graduated into the subsystem doc):
 corpse custody (no chattel row on the body; only the goods on it), looting
 (the chattel chain-of-title already *is* the record — no accountability
 kind), decay end-state (staged evidence degradation → stops vetoing

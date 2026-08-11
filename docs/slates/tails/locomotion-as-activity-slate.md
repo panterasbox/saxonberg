@@ -1,5 +1,31 @@
 # Locomotion as activity (working slate)
 
+> **⚠ AUDIT 2026-08-08 — partial delivery.** Checked against the tree when
+> GitLab #10 was closed here.
+>
+> - ✅ **The sneak mode shipped** — `seeds/obj/LocomotionMode/sneak.yaml`,
+>   alongside walk, run, climb, swim, fly, ride, drive, aerial, wheeled and
+>   sailed. It arrived via the **concealment build**
+>   ([stealth.md](../../subsystems/stealth.md),
+>   [concealment.md](../../subsystems/concealment.md)) with `sneak`/`run`
+>   as pace verbs under movement — not via this slate.
+> - ❌ **`crawl` did not ship.** No `crawl.yaml`, no crawl mode anywhere.
+>   **Open question before anyone builds it:** is it still wanted, given
+>   `sneak` plus [posture.md](../../subsystems/posture.md) may cover
+>   between them what it was for?
+> - ❌ **The durative promotion did not happen.** `engageAround` is live at
+>   `api/locomotion.ts:299` and `traverseWithDefault` is referenced at
+>   :124 — and note that **both are still the *recommended* API in
+>   `CLAUDE.md`'s antipattern table.** So the three retirements this slate
+>   proposes are a change to *documented guidance* as well as to code, and
+>   whoever does it owns that edit too.
+>
+> Remaining scope: the durative `TraverseActivity` promotion, the
+> sync/async split, the duration model, the `engagedMode` storage
+> migration, the three retirements, and `crawl` if still wanted. The
+> framework now has live consumers to copy — see
+> [host-slot-activities-slate](./host-slot-activities-slate.md)'s audit.
+
 Working slate for promoting movement verbs (walk, run, sneak,
 crawl, climb, swim, fly, ride) from synchronous instant-commit
 controllers into durative engagements on the activity framework.

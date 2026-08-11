@@ -124,7 +124,7 @@ tone (cheerful conveyor) and routes the player toward the real obstacle: Vance.
 - Carves: [medical-examiner.md](./medical-examiner.md) (Vance — his foil; the two
   ways to be fine with the conveyor).
 - Species/allegory:
-  [species-expansion-slate.md](../../../slates/builds/species-expansion-slate.md).
+  [species-expansion-slate.md](../../../slates/tails/species-expansion-slate.md).
 - Engine: [trait.md](../../../subsystems/trait.md),
   [behavior.md](../../../subsystems/behavior.md),
   [belief.md](../../../subsystems/belief.md) (regard).

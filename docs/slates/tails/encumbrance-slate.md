@@ -14,7 +14,7 @@
 > refinement (a frame pack beating the worn floor), augment-conferred
 > capacity, environmental (gravity) margins, tissue-derived mass, and
 > numeric tuning. Endurance *recovery* is **not** an encumbrance tail — it lives
-> in the [metabolism-slate](../builds/metabolism-slate.md) (coupled
+> in the [metabolism-slate](./metabolism-slate.md) (coupled
 > recovery closes the one-way drain this build shipped). This slate stays
 > until those are absorbed.
 
@@ -324,7 +324,7 @@ mule is just a Creature with a small capacity. **There is no
 
 The porter who sets the crate down and refuses the last hill is a
 **brain** deciding to drop load — pure behavior, **out of scope** here
-(rides [npc-behavior](./npc-behavior-slate.md)). The only genuinely-new
+(rides [npc-behavior](../builds/npc-behavior-slate.md)). The only genuinely-new
 sliver is the **handoff** — moving load from your gauge onto another
 creature's — and even that splits: the *transfer* is just containment
 onto the other bearer (an existing primitive), the *come along* is

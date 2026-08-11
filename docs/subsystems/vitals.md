@@ -326,7 +326,7 @@ loop / playstyle, the tissue-vulnerability term, other channels
 - [activity.md](./activity.md) — `ScheduleApi.recurring` cadence
 - [lifecycle.md](./lifecycle.md) — death ≠ destruction
 - [docs/architecture.md](../architecture.md) — the `Creature` hierarchy
-- [docs/slates/builds/vitals-slate.md](../slates/builds/vitals-slate.md) —
+- [docs/slates/builds/vitals-slate.md](../slates/tails/vitals-slate.md) —
   the seeding slate
 - [capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)
   — physical attributes + mana ride this substrate

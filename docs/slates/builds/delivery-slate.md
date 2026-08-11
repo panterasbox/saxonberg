@@ -35,7 +35,7 @@ See also:
   `GroupApi` facade every Layer-2 comms **surface** binds to (membership/roles
   read-only via the facade; a managed `Group` Document backs curated subjects,
   but a projected ref — guild/MQL/contacts — has no Document and still works).
-- [wiki-slate.md](./wiki-slate.md) — the **reference** half of Layer 2:
+- [wiki-slate.md](../tails/wiki-slate.md) — the **reference** half of Layer 2:
   out-of-fiction, **not** comms, **not** aether (own-not-external); the forum
   subject-tree borrows its `FolderZone` + `AccessApi` namespace pattern.
 - [reactions-slate.md](../tails/reactions-slate.md) — **threading** + the gutter

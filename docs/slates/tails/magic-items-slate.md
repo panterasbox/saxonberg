@@ -37,13 +37,13 @@
 > walk.
 
 See also:
-⭐ **[discovery-slate](./discovery-slate.md) (2026-08-02) — HOW THESE GET
+⭐ **[discovery-slate](../builds/discovery-slate.md) (2026-08-02) — HOW THESE GET
 INTO THE WORLD**: the distribution algorithm (stock = accumulation −
 withdrawal), *authors describe / the world weighs*, **rarity derives from
 the grid cell via the arcane price list**, effect-tags vs material-tags,
 concealment-as-a-vector, and the almanac as the readable face. Read it
 before spec'ing the catalog — **it decides what an item must declare.** ·
-[pharma-slate](./pharma-slate.md) (**potions and scrolls are pharma's
+[pharma-slate](../builds/pharma-slate.md) (**potions and scrolls are pharma's
 product line**; the credence-good thesis covers the whole consumable
 category) ·
 [identification-slate](../tails/identification-slate.md) (**the sibling
@@ -242,7 +242,7 @@ oversell enforcement.
     system folds it into the global table and **renormalizes** — a weighted
     overlay, not a hard override that loses global coherence.
   - **BUC only needs the seam, not the whole thing built.** → its own
-    [spawn-distribution-slate](./spawn-distribution-slate.md).
+    [spawn-distribution-slate](../builds/spawn-distribution-slate.md).
 - **Laundering** (remove-curse, holy water, becoming-cursed in play) is **not**
   part of the distribution system — those are just *items*, spec'd in the
   catalog walk below.
@@ -301,7 +301,7 @@ agent state** — not "undead" (too narrow/genre), not alignment (wrong layer,
 undetectable). It sits adjacent to `getConsciousness` (vitals), the
 Agent/Creature split, and belief's very *person↔thing line*, but nothing models
 *the hollow*. This is the **literal physical shadow of the cosmology** → its own
-[presence-hollowing-slate](./presence-hollowing-slate.md); consecrated items are
+[presence-hollowing-slate](../builds/presence-hollowing-slate.md); consecrated items are
 its first consumer.
 
 ## Polymorph — the body-swap (cheaper than it looks)
@@ -462,7 +462,7 @@ effects are conferred capabilities or pull-modifier conditions, both supported.
 
 > **Design pass 2026-08-02**, resolving the item model against
 > [arcane-science.md](../../arcane-science.md) and the *"a wand is stored
-> labour"* thesis in [discovery-slate.md](./discovery-slate.md) Part 2.
+> labour"* thesis in [discovery-slate.md](../builds/discovery-slate.md) Part 2.
 > This section settles **what an item physically is**, and answers the
 > question the roster cannot dodge: *consumables self-limit, but
 > non-consumables accumulate forever — what stops that?*
@@ -677,14 +677,14 @@ consumer). You have more than it looked.
 **Tier 3 — bigger / own-pass / shared with other builds** *(both spun out
 2026-07 into their own slates):*
 8. **Presence-vs-hollowing agent-state** (sanctity + ESP) — the deepest, the
-   cosmology's physical shadow. → **[presence-hollowing-slate](./presence-hollowing-slate.md)**.
+   cosmology's physical shadow. → **[presence-hollowing-slate](../builds/presence-hollowing-slate.md)**.
    Shared with alignment.
 9. **Spawn-distribution substrate** (BUC-state distribution + create-monster) — one
    weighted populate, two output kinds (items + NPCs). →
-   **[spawn-distribution-slate](./spawn-distribution-slate.md)**. Shared world-wide.
+   **[spawn-distribution-slate](../builds/spawn-distribution-slate.md)**. Shared world-wide.
 10. **Procgen-NPC generator** (create-monster) — reusable species+traits+name+behavior
     mint (reuses char-gen/`NameBank`/`mintRandomGuestAvatar`). Folded into
-    [spawn-distribution-slate](./spawn-distribution-slate.md) (the creature-output half).
+    [spawn-distribution-slate](../builds/spawn-distribution-slate.md) (the creature-output half).
 11. **Polymorph choreography** — mostly reconciliations over existing seams (capacity
     reprofile #6, recognition-break=disguise, driver re-stamp=move fan-out); one new
     sub-gap: **slot-eviction on bodyplan change**.
@@ -765,9 +765,9 @@ cursed = stuck. Resistances are mostly *existing drivers*, not combat.
 
 ## Deferred / own-slate
 
-- **[spawn-distribution-slate](./spawn-distribution-slate.md)** — the weighted-table
+- **[spawn-distribution-slate](../builds/spawn-distribution-slate.md)** — the weighted-table
   populate substrate (items + procgen-NPCs). *Spun out 2026-07.*
-- **[presence-hollowing-slate](./presence-hollowing-slate.md)** — the
+- **[presence-hollowing-slate](../builds/presence-hollowing-slate.md)** — the
   presence-vs-hollowing agent-state (sanctity + ESP consumers). *Spun out 2026-07.*
 - **combat items** — bucket E's combat half + resistances' shock leg.
 - **the blessing economy** beyond v1 (altars, sacrifice-to-convert, holy-water

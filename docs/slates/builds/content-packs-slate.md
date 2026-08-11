@@ -686,7 +686,7 @@ Which is the argument for *skip and warn* over *merge* everywhere the CAS
 token is missing.
 
 ⚠ **A wiki pack is therefore its own contribution kind**, and a good
-early one — it is the [wiki-as-course-commons](./wiki-slate.md) surface,
+early one — it is the [wiki-as-course-commons](../tails/wiki-slate.md) surface,
 its contributors are writers rather than programmers, and the conflict
 story is already built.
 

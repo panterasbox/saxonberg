@@ -1,5 +1,33 @@
 # Host-slot activities (working slate)
 
+> **⚠ AUDIT 2026-08-08 — two corrections.** Checked against the tree when
+> GitLab #9 was closed here.
+>
+> 1. **The framework is no longer inert.** This slate (and its issue) said
+>    the activity framework had shipped but *no verb registered an
+>    engagement yet*. That is now false — live consumers exist:
+>    `lib/attendant/AttendanceEngagement.ts` (storefront attention),
+>    `lib/npc/DialogueConversation.ts` (the `talk` tree),
+>    `lib/respiration/RespirationDrain.ts` (the asphyxiation crisis
+>    drain), plus combat sessions and hazard resolution. The pattern has
+>    been exercised in anger and there are working examples to copy. What
+>    it hasn't reached is the **host-slot** verbs specifically — verified
+>    that nothing under `obj/command/posture/` or the mount/drive
+>    controllers registers one.
+> 2. **`Readable` + `read` are struck from scope — both shipped**, as
+>    `MarkedMixin` (`lib/description/Marked.ts`) and
+>    `cmd/perception/read.yaml`. The co-ownership negotiation this slate
+>    and [language-slate](./language-slate.md) both flagged for
+>    requirements time is **moot**; `Marked` owns the mixin.
+>
+> **What remains** is narrower and better-posed than the original bundle:
+> should sit / lie / mount / drive / read become interruptible durative
+> engagements, and does `SlotApi` need `claimPending`. Worth answering
+> **per-verb** rather than as a block — sitting on a chair and reading a
+> spellbook have quite different interruption semantics, and `read` now
+> has a perceive/decode split that may make "durative" mean something
+> specific to the decode half only.
+
 Working slate for the second consumer wave of the activity
 framework: non-self-locomotion activities that claim a slot on a
 host Stuff (mount on a horse, sit on a chair, lie on a bed,
