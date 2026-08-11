@@ -592,7 +592,7 @@ Ordered so each ships independently. The handoff's build order is a good
 | Wave | What | Depends on |
 |---|---|---|
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
-| **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). Mechanical, touches everything. | 0 (facets, for the filter surface) |
+| **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). **Cut into three builds — see § 7.1.** | 0 (facets, for the filter surface) |
 | **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
 | **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
@@ -600,6 +600,77 @@ Ordered so each ships independently. The handoff's build order is a good
 | **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |
 | **7** | **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
 | ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
+
+### 7.1 Wave 1 cut into three builds — sized 2026-08-11
+
+Wave 1 is three build sessions, not one. The boundaries are where they
+are for reasons worth keeping:
+
+| Build | Ships | Requirements |
+|---|---|---|
+| **A — civic ground** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | `docs/requirements/civic-ground-requirements.md` |
+| **B — honest chrome** | desktop top bar (shelf, read-only mode indicator), status bar + `GhostCommandLine` relocation, and the server work: `self` pane entry, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf` | not yet written |
+| **C — chrome on a phone** | the mobile *inversion* — no status bar, shelf leaves the bar for a pull-down with one glance-line slot, command sheet, dropped connection claims the first row, safe areas | not yet written |
+
+⭐ **The token sweep is nearly free, and "mechanical, touches everything"
+was wrong.** 1468 `tokens.*` reference sites over only **44 distinct
+token paths**, and every use is CSS-valued — interpolated into a
+styled-components template or passed as a `$tint`/`$tone` prop into one
+(audited: no inline `style={{}}`, no SVG `fill=`, no comparison, no colour
+math). So the tokens keep their names and become `var(--sx-*)` strings and
+**zero call sites change**. ⚠ The cost is a new silent-failure mode — a
+missing custom property drops the CSS declaration with no type error — so
+a test asserting every referenced `--sx-*` is defined by every theme is
+load-bearing, not hygiene.
+
+⭐⭐ **Marble is not a nice-to-have; it is the only thing that tests the
+mechanism.** A theme-aware colour layer with one theme is untested by
+construction — nothing distinguishes resolve-at-render-time from
+read-a-constant-at-import. Which is also why it cannot be "added later
+once we're sure": being sure is what it provides.
+
+⚠ **The honest-state primitives are a prerequisite for Wave 2, not a
+companion to the chrome** — character select renders per-character
+figures (MR C shipped `lastSeen`, play standing, last location, practice
+per roster entry), so Arrival needs live/empty/not-wired to exist. That
+is why they sit in A rather than B, and the accepted cost is that A ships
+them with no consumer; B is their first.
+
+⚠ **Wave 1 is not client-only.** The theme vocabulary is server-owned
+(`StyleController.KNOWN_THEMES`), pinning must be a real command or § 3.5's
+axiom lapses on the chrome that advertises it, and the shelf needs a pane
+catalogue entry.
+
+⭐ **One pane entry feeds the whole shelf, not one per figure** — every
+shelf figure is a field on the viewer's own Avatar. `self` joins `PaneId`;
+`PaneDefinition.fields` widens from `'ref' | 'detail'` to `FieldSet |
+FieldAlias`, because neither alias carries standing (`REF_FIELDS` /
+`DETAIL_FIELDS` are object-description fields) while the subscribe path
+already accepts an explicit name list.
+
+⚠ **Three standing figures are live, not four.**
+`Avatar.subscribableFields` ships `playStanding`, `makeStanding` and
+`renown` — no `fundStanding`, no competence digest. So most of
+`Global Chrome.dc.html`'s shelf catalogue hatches, which is what makes the
+shelf the right first consumer of the honesty convention. The shelf is
+also the **first client consumer of S1's wire at all**: `packages/client`
+has two subscription call sites today, both `InspectionPane` panes, and
+nothing reads a standing field.
+
+⚠⚠ **`makeStanding` is a *level* collision, not a missing figure.** Its
+own comment records that the account arithmetic is deliberately unbuilt,
+so it reads per-character while § 6 / CONVENTIONS #4 call Make
+account-level. Labelling it account-level in the shelf would render a
+claim the server cannot back — the honesty rule applied to a level rather
+than a value.
+
+⚠ **Open question 5 (fonts) is closed by precedent, not decided.**
+`GlobalFonts.ts` already self-hosts subset OFL woff2 from `public/fonts/`
+and `globalFonts.test.ts` asserts the `src` URLs are relative, so the
+handoff's Google Fonts `<link>` would be a regression. Build A generates
+four subsets.
+
+---
 
 Deferred, designed but not scheduled: output logging / clips /
 attestation (§ 4.3); engagement patterns beyond the practice record;
