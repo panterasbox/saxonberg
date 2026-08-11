@@ -526,11 +526,20 @@ work, so the cycle is server-first.
   rather than ninety paths, and the live standing figures over a direct
   `durableKey` witness → [../subsystems/messaging.md](../subsystems/messaging.md),
   [topics.md](../subsystems/topics.md),
-  [mql-subscription.md](../subsystems/mql-subscription.md). Remaining:
-  **S2** affordance resolution, **S3** the topic renames (breaking),
-  **Track D** the modes/panes wire contract (design first), then the
-  client waves themselves. ⚠ Carries the ruling that the handoff's
-  pinnable **trait widget must not be built** — it would foreclose the
+  [mql-subscription.md](../subsystems/mql-subscription.md).
+  **S2 shipped** (MRs !173/!174) — the topic taxonomy + the affordance
+  resolver. **S3 / Track D shipped** (MRs !177/!178/!179) — the one
+  `cockpit` verb, the mode × arrangement axes, `requires:` on every
+  object slot, and a **server-owned pane catalogue**. ⭐ Its open
+  question — *does a mode switch stay a real command on the wire?* — is
+  **answered yes**, verified by driving a browser, so the axiom holds.
+  ⚠ Remaining is the CLIENT itself: waves 1 (foundation) · 2 (arrival) ·
+  4 (play surface) · 6 (social) · 7 (authoring), and two things a build
+  must decide rather than discover — **who acts on an arrangement
+  recall** (nothing does today, on either side), and that the pane
+  catalogue ships **two entries**, so every new pane is a one-line
+  server addition. ⚠ Carries the ruling that the handoff's pinnable
+  **trait widget must not be built** — it would foreclose the
   psychology vocation.
 - [affordance-suggestion-slate](./builds/affordance-suggestion-slate.md)
   — **NEW 2026-08-10.** *"Given everything we know about this player
