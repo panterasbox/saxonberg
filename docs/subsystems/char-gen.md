@@ -169,6 +169,118 @@ screens it wants from this — it never asks the server "what step am I
 on?" A `CharGenOption` carries `value`/`label`/`description`/`image` and,
 for species, a `SpeciesDossier` (below).
 
+## ⭐ Forward compatibility — read this before rebuilding the client
+
+Char-gen is scheduled to be **replaced** by the lineage model (pick a
+household from a gallery; species and aspiration demote from *fields* to
+*filters*; a point budget appears) — see
+[lineage-slate](../slates/builds/lineage-slate.md). That work is
+**deferred behind the client rebuild**, so the question for anyone
+building char-gen now is narrow: *what makes the replacement cheap
+later?*
+
+This section is the answer. It is written for the client-build agent.
+
+### What is already right — do not regress it
+
+The architecture is **server-authoritative and layout-agnostic**, and
+that is precisely why lineage can be mostly a server change:
+
+- every pick is a real command (`enroll <field> <value>`), dispatched
+  through `executeCommand` like any other verb — **no bespoke char-gen
+  protocol**;
+- the server re-emits the **whole state** after every change;
+- there is **no notion of a current step** — flow and layout are entirely
+  client-side;
+- `missing[]` drives completion gating, so the client never encodes which
+  fields exist or in what order they are required.
+
+⭐ Any new client must keep all four. A client that tracks its own step
+index, or that knows the field order, re-couples the flow and makes
+lineage a rewrite.
+
+### ⚠ What will break — the payload is not actually generic
+
+Despite being called layout-agnostic, the payload **names every field
+twice**:
+
+- `CharGenField` is a **closed union of five** (`species | sex | name |
+  pronouns | aspiration`);
+- `CharGenStatePayload` carries **one option array per field**
+  (`speciesOptions`, `sexOptions`, `pronounOptions`,
+  `aspirationOptions`), and `CharGenPicks` one key per field.
+
+So **every new char-gen concept is a `types` change plus a client
+change** — which is exactly the cost lineage would pay, repeatedly.
+`CharGenStage.tsx` already carries the smell: an `optionsFor(field)`
+switch, a `FIELD_HEADING` record keyed on the union, and an
+`ILLUSTRATED_FIELDS` set. The component is *already* written as
+"iterate fields, render each"; the switch exists only to adapt a payload
+that should have handed it a list.
+
+### ⭐⭐ The one change worth making now
+
+Generalize the payload to a **field list with a renderer discriminator**:
+
+```
+interface CharGenFieldState {
+  field: string;              // no longer a closed union
+  kind: 'choose-one' | 'text' | …;   // which renderer to dispatch to
+  label: string;
+  applicable: boolean;        // replaces "sexOptions is empty ⇒ N/A"
+  options?: CharGenOption[];
+  value?: unknown;
+}
+
+interface CharGenStatePayload {
+  fields: CharGenFieldState[];
+  missing: string[];
+  …
+}
+```
+
+This is **justified by the rebuild on its own terms** — it deletes the
+adapter switch, the heading record, and the illustrated-fields set, and
+is strictly less client code than five bespoke pickers. It needs **no
+lineage design decisions**, so it can land now without waiting on
+anything.
+
+The payoff is that lineage's new surfaces become *additive*: a new
+`kind`, a new renderer, no change to the shell.
+
+### The three interaction kinds lineage needs and this model lacks
+
+Today char-gen can express exactly one interaction: **choose one of a
+closed list**. Lineage needs three more, and they are the reason `kind`
+matters more than the field list does:
+
+| interaction | what it needs |
+|---|---|
+| **the gallery grid** | multi-column comparable rows, not `label` + `description` — the player compares households at a glance ([lineage-slate](../slates/builds/lineage-slate.md) § *It is a form, rendered two ways*) |
+| **filters / query** | re-requesting the option set (species, trade, locality, aspiration-as-query) rather than picking from a fixed one |
+| **budget allocation** | a constrained numeric allocator with a shared pool — not a pick at all |
+| **reroll** | an *action with a cost*, which has no representation today |
+
+⭐ **`SpeciesDossier` is the good precedent to copy.** It is a generic
+`{heading, rows:[{label,value}]}` structure explicitly so "the client
+renders them generically without knowing the field taxonomy." The
+gallery card wants exactly that shape one level up — **structured rows
+the client renders without knowing what a household is.** Build the grid
+renderer generically and it will survive the schema settling later.
+
+### ⚠ One consistency check worth doing while you are in here
+
+The lineage slate adopts a rule that applies retroactively:
+
+> **Char-gen must not be able to say anything the world cannot later
+> confirm.**
+
+`SpeciesDossier` is char-gen-only today. If there is no in-world way to
+read the same taxonomy/biology (an `examine`, a wiki subject, a `help`
+topic), that is the rule already being broken in miniature — a player is
+shown depth at creation that becomes unreachable the moment they enter
+the world. Worth confirming a read path exists, or noting the gap.
+
 ## Commit + spawn
 
 `commit` (`EnrollController.ts:620`) is the only step that persists. The

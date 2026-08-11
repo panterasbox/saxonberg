@@ -660,7 +660,10 @@ expensive half; let the cheap half measure the appetite first.
 ## Cross-references
 
 - [char-gen.md](../../subsystems/char-gen.md) — the `enroll` draft
-  machine this restructures
+  machine this restructures, and its **§ Forward compatibility** section:
+  what the client rebuild should do *now* so this lands cheaply later
+  (keep server-authoritative whole-state re-emit; generalize the
+  per-field option arrays into a field list with a renderer `kind`)
 - [document-store.md](../../subsystems/document-store.md) — the
   path-addressed tree the person record lives in
 - [chronicle.md](../../subsystems/chronicle.md) — the prologue claims,
