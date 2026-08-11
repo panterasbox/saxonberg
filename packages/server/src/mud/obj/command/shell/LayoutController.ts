@@ -37,7 +37,8 @@ import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import Avatar from '../../Avatar';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
-import type { ArrangementSpec, CockpitMode } from '@saxonberg/types';
+import type { ArrangementSpec, CockpitMode, PaneId } from '@saxonberg/types';
+import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 
 const LAYOUT_KEY = 'cockpit.layout';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
@@ -127,10 +128,34 @@ export default class LayoutController extends CommandController<LayoutModel> {
     const saved = this.cloneSaved(host);
     const forMode: Record<string, ArrangementSpec> = { ...(saved[mode] ?? {}) };
     const existed = forMode[name] !== undefined;
-    // The pane set is what fills `panes`; naming an arrangement and
-    // populating it are separate acts, so a fresh save starts empty
-    // rather than inventing a shape.
-    forMode[name] = { panes: forMode[name]?.panes ?? [] };
+
+    /*
+     * ⭐ Capture the panes that are actually open, by their CATALOGUE
+     * name.
+     *
+     * ⚠ This used to write `panes: []` and say "saved", which made the
+     * whole feature a naming feature: the name appeared in `list`,
+     * recalling it restored nothing, and no code path anywhere ever
+     * filled the array. That was not laziness — it was the only honest
+     * thing to write, because the only id a pane HAD was the
+     * client-minted `subscriptionId`, a `nanoid` that dies on
+     * reconnect. Saving those would have produced an arrangement that
+     * decayed to garbage the moment the socket dropped.
+     *
+     * ⚠ A held subscription opened by SHAPE rather than by name has no
+     * `paneId` and is skipped — there is nothing durable to record. It
+     * is dropped silently on purpose: the alternative is refusing the
+     * save over a pane the player never asked for by name.
+     */
+    const open = context.interactive
+      ? MqlSubscriptionApi.listPanes(context.interactive)
+      : [];
+    const panes = [
+      ...new Set(
+        open.map((p) => p.paneId).filter((id): id is PaneId => id !== undefined),
+      ),
+    ];
+    forMode[name] = { panes };
     saved[mode] = forMode;
     host.setClientState(SAVED_KEY, saved);
 
@@ -139,7 +164,8 @@ export default class LayoutController extends CommandController<LayoutModel> {
       context,
       Mml.fromMarkup(
         Mml.escape(
-          `\n${existed ? 'updated' : 'saved'} ${mode} arrangement '${name}'\n`,
+          `\n${existed ? 'updated' : 'saved'} ${mode} arrangement ` +
+            `'${name}' — ${panes.length} pane${panes.length === 1 ? '' : 's'}\n`,
         ),
       ),
     );

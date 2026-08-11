@@ -423,25 +423,14 @@ export function InspectionPane({
   const paneDoorContext = useStore((s) => s.paneDoorContext);
 
   useEffect(() => {
-    // Focused-thing pane body — `$focus` is the synthetic var the
-    // server expands per-resolve to the holder's current focus
-    // fragment. `focusDependent` wakes the subscription on
-    // `setFocus` / `clearFocus`.
-    const focusId = websocketClient.subscribeMql({
-      query: "$focus",
-      cardinality: "many",
-      fields: "detail",
-      focusDependent: true,
-    });
-    // Breadcrumb root — `here` is the built-in MQL pronoun that
-    // resolves to the command-giver's container.
-    // `locationDependent` wakes the subscription on movement.
-    const locationId = websocketClient.subscribeMql({
-      query: "here",
-      cardinality: "one",
-      fields: "ref",
-      locationDependent: true,
-    });
+    // ⭐ Panes are opened BY NAME. The server owns what each one
+    // subscribes to — the query, the cardinality, the field set, the
+    // dependency flags. This used to send `query: "$focus"` and
+    // `query: "here"` from here, which put MQL, a server semantic, in a
+    // .tsx file; the client is not allowed to re-derive semantics, and
+    // a pane's query is one.
+    const focusId = websocketClient.subscribeMql({ pane: "inspect" });
+    const locationId = websocketClient.subscribeMql({ pane: "location" });
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;

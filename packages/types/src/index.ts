@@ -801,11 +801,48 @@ export interface PromptEnvelope {
  * fields (e.g., a focus-pane query like `$focus` or a current-room
  * query like `here`).
  */
+/**
+ * A **pane** the server knows by name.
+ *
+ * ⭐⭐ **The server owns this vocabulary, and that is the whole point.**
+ * A subscription's `subscriptionId` is a client-minted `nanoid` — a
+ * transport handle that dies on reconnect — so it can name a pane for
+ * the length of one socket and nothing longer. Anything durable that
+ * refers to a pane (a saved arrangement, a pin, a future authored
+ * layout) needs an identity the server issues and can still recognise
+ * tomorrow. That is this.
+ *
+ * ⚠ **Naming a pane is not the same as describing one.** The client
+ * sends `pane: 'inspect'` and NOTHING else — the server supplies the
+ * query, the cardinality, the field set, the dependency flags and the
+ * hold. Before this, `InspectionPane.tsx` hardcoded `query: "$focus"`,
+ * which is the client holding a server semantic: the same category
+ * error as a client deciding its own affordances, and the reason a
+ * wrong figure on the wire becomes a wrong figure on screen.
+ *
+ * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
+ * It is not a menu of hypothetical panes — every entry here is one the
+ * client actually opens. The server-side definitions live in
+ * `lib/connection/Panes.ts`.
+ */
+export type PaneId = "inspect" | "location";
+
+/** Every {@link PaneId}. The server validates against this; the client picks from it. */
+export const PANE_IDS: readonly PaneId[] = ["inspect", "location"];
+
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
-  query: string;
-  cardinality: 'one' | 'many';
+  /**
+   * Open a **named** pane — the server supplies query, cardinality,
+   * fields, dependency flags and hold from its own catalogue, and every
+   * one of those fields below is ignored. See {@link PaneId}.
+   */
+  pane?: PaneId;
+  /** Required UNLESS `pane` names one, in which case the server owns it. */
+  query?: string;
+  /** Required UNLESS `pane` names one. */
+  cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
   focusDependent?: boolean;

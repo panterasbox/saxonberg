@@ -13,7 +13,7 @@
  */
 
 import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
-import { PANE_HOLDS } from '@saxonberg/types';
+import { PANE_HOLDS, PANE_IDS } from '@saxonberg/types';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
@@ -24,15 +24,23 @@ import type { InboundHandler } from './index';
 export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlSubscribeMessage | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
+  // ⚠ A NAMED pane needs neither: the server supplies both from its
+  // catalogue. Requiring them here would make the whole point of naming
+  // a pane — that the client stops describing one — impossible to use.
+  const named =
+    typeof payload.pane === 'string' &&
+    (PANE_IDS as readonly string[]).includes(payload.pane);
   if (
-    typeof payload.query !== 'string' ||
-    (payload.cardinality !== 'one' && payload.cardinality !== 'many')
+    !named &&
+    (typeof payload.query !== 'string' ||
+      (payload.cardinality !== 'one' && payload.cardinality !== 'many'))
   ) {
     return;
   }
   MqlSubscriptionApi.handleSubscribe({
     interactive: ctx.interactive,
     subscriptionId: payload.subscriptionId,
+    pane: named ? payload.pane : undefined,
     query: payload.query,
     cardinality: payload.cardinality,
     fields: payload.fields,
@@ -67,6 +75,9 @@ export const handleMqlUnsubscribe: InboundHandler = (ctx, message) => {
 export const handleMqlQuery: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlQueryMessage | undefined;
   if (!payload || typeof payload.queryId !== 'string') return;
+  // ⚠ NOT pane-aware, deliberately. A one-shot query is not a pane: it
+  // has no lifetime, nothing durable refers to it, and giving it a
+  // catalogue name would imply a persistence it does not have.
   if (
     typeof payload.query !== 'string' ||
     (payload.cardinality !== 'one' && payload.cardinality !== 'many')

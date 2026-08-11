@@ -14,7 +14,7 @@ import type {
   QueryRequest,
   SubscribeRequest,
 } from '../../api/mql-subscription';
-import type { PaneHold } from '@saxonberg/types';
+import type { PaneHold, PaneId } from '@saxonberg/types';
 
 const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
 );
@@ -157,7 +157,12 @@ export class MqlSubscriptionLogic extends ApiLogic {
   @CallSecurity(MqlSubscriptionApiCallers)
   public listPanes(
     interactive: Interactive
-  ): { subscriptionId: string; hold: PaneHold; pinned: boolean | null }[] {
+  ): {
+    subscriptionId: string;
+    paneId?: PaneId;
+    hold?: PaneHold;
+    pinned: boolean | null;
+  }[] {
     return resolveRegistry().listPanes(interactive);
   }
 

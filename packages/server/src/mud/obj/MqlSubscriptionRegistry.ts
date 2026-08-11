@@ -36,10 +36,12 @@ import type {
   MqlQueryErrorEnvelope,
   MqlSubscriptionReleasedEnvelope,
   PaneHold,
+  PaneId,
   PaneReleaseReason,
 } from '@saxonberg/types';
 import { PromptApi } from '../api/prompt';
 import { PerceptionApi } from '../api/perception';
+import { PANES_BY_NAME } from '../lib/connection/Panes';
 import { Idea } from '../lib/stuff/Idea';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
@@ -99,6 +101,8 @@ interface SubscriptionState {
   fields: FieldSet;
   detailKey?: string;
   focusDependent: boolean;
+  /** The catalogue name this pane was opened by, when it was named. */
+  paneId?: PaneId;
   locationDependent: boolean;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
@@ -281,11 +285,36 @@ export default class MqlSubscriptionRegistry extends Idea {
       return;
     }
 
-    if (typeof req.query !== 'string') {
+    /*
+     * ⭐⭐ A NAMED pane is described by the server, not by the caller.
+     * Everything below comes from the catalogue and the request's own
+     * query / cardinality / fields / hold are ignored — that is the
+     * difference between naming a pane and describing one, and it is
+     * what makes a stored arrangement mean anything a session later.
+     *
+     * ⚠ An unknown name is an ERROR, not a fallback to the caller's
+     * fields. Falling back would let a client open an arbitrary
+     * subscription by misspelling a pane, which is exactly the
+     * client-supplies-semantics hole the catalogue closes.
+     */
+    const pane = req.pane === undefined ? undefined : PANES_BY_NAME[req.pane];
+    if (req.pane !== undefined && !pane) {
+      this.emitError(
+        interactive,
+        subscriptionId,
+        'parse',
+        `unknown pane '${req.pane}'`,
+      );
+      return;
+    }
+
+    const rawQuery = pane ? pane.query : req.query;
+    const rawCardinality = pane ? pane.cardinality : req.cardinality;
+    if (typeof rawQuery !== 'string') {
       this.emitError(interactive, subscriptionId, 'parse', 'query required');
       return;
     }
-    if (req.cardinality !== 'one' && req.cardinality !== 'many') {
+    if (rawCardinality !== 'one' && rawCardinality !== 'many') {
       this.emitError(
         interactive,
         subscriptionId,
@@ -294,11 +323,10 @@ export default class MqlSubscriptionRegistry extends Idea {
       );
       return;
     }
-    const query = req.query;
-    const cardinality = req.cardinality;
-    const fields = resolveFieldSet(req.fields);
+    const query = rawQuery;
+    const cardinality = rawCardinality;
+    const fields = resolveFieldSet(pane ? pane.fields : req.fields);
     const detailKey = req.detailKey;
-    const focusDependent = req.focusDependent === true;
     /**
      * ⚠⚠ **A hold must install the dependency that lets it fire.**
      *
@@ -318,9 +346,13 @@ export default class MqlSubscriptionRegistry extends Idea {
      * makes forgetting structurally impossible instead of merely
      * fixed.
      */
+    const hold = pane ? pane.hold : req.hold;
+    const focusDependent = pane
+      ? pane.focusDependent === true
+      : req.focusDependent === true;
     const locationDependent =
-      req.locationDependent === true ||
-      (req.hold !== undefined && HOLD_WAKES_ON[req.hold].location);
+      (pane ? pane.locationDependent === true : req.locationDependent === true) ||
+      (hold !== undefined && HOLD_WAKES_ON[hold].location);
 
     if (detailKey !== undefined && cardinality !== 'one') {
       this.emitError(
@@ -396,12 +428,13 @@ export default class MqlSubscriptionRegistry extends Idea {
       lastResult,
       dependencyHandles: [],
       birthScope: registrantScope === OMNI_SCOPE ? null : registrantScope,
-      hold: req.hold,
+      paneId: req.pane,
+      hold,
       holdSubject: req.holdSubject,
       // `here` means "where I was when this opened", so the anchor is
       // captured now — the pane's own subject cannot supply it.
       holdAnchor:
-        req.hold === 'here' ? (containerIdOf(viewer) ?? undefined) : undefined,
+        hold === 'here' ? (containerIdOf(viewer) ?? undefined) : undefined,
       pinned: null,
     };
 
@@ -1061,18 +1094,37 @@ export default class MqlSubscriptionRegistry extends Idea {
   @CallSecurity(MqlSubscriptionApiCallers)
   public listPanes(
     interactive: Interactive,
-  ): { subscriptionId: string; hold: PaneHold; pinned: boolean | null }[] {
+  ): {
+    subscriptionId: string;
+    paneId?: PaneId;
+    hold?: PaneHold;
+    pinned: boolean | null;
+  }[] {
     const bucket = this.registry.get(interactive);
     if (!bucket) return [];
     const out: {
       subscriptionId: string;
-      hold: PaneHold;
+      paneId?: PaneId;
+      hold?: PaneHold;
       pinned: boolean | null;
     }[] = [];
+    /*
+     * ⚠ A pane is a NAMED subscription; a hold is an optional property
+     * of one. Filtering on `hold` alone conflated the two and made
+     * `inspect` and `location` invisible here — they are catalogue
+     * panes that deliberately carry no lifetime, because the pane
+     * policy is paint/clear: a focus change clears the body, it does
+     * not close the pane. An arrangement that could not see them could
+     * not save them.
+     */
     for (const sub of bucket.values()) {
-      if (!sub.hold) continue;
+      if (!sub.hold && sub.paneId === undefined) continue;
       out.push({
         subscriptionId: sub.subscriptionId,
+        // ⚠ Absent for a hand-rolled held subscription — a pane opened
+        // by shape rather than by name. Those cannot be saved into an
+        // arrangement, because there is nothing durable to save.
+        paneId: sub.paneId,
         hold: sub.hold,
         pinned: sub.pinned,
       });
