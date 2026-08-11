@@ -24,7 +24,6 @@ import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
 import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
-import Plant from '../../Plant';
 
 const TOPIC = 'act.deed';
 
@@ -64,7 +63,21 @@ export default class RepotController extends CommandController<RepotModel> {
       return;
     }
 
-    if (!(subject instanceof Plant)) {
+    /*
+     * ⭐ The capabilities, not the class — see HarvestController.
+     *
+     * ⚠ Repotting needs THREE, and the spec declares the same three:
+     * the thing must grow (`Growing`), must sit in a slot so it can be
+     * lifted out of one bed and set in another (`Slottable`), and must
+     * be movable at all (`Containable`). `instanceof Plant` bundled all
+     * three behind one class and said none of them — which is exactly
+     * why the arg's declaration and the controller's guard could drift.
+     */
+    if (
+      !MixinApi.isGrowing(subject) ||
+      !MixinApi.isSlottable(subject) ||
+      !MixinApi.isContainable(subject)
+    ) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.thing(subject)} isn't a plant.`)

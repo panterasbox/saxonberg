@@ -521,6 +521,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   PosturedMixin: "you can't change posture on {}",
 
   // Growing things.
+  SlottableMixin: "{} doesn't sit in anything",
   CultivableMixin: "{} isn't ground you can plant in",
   GrowingMixin: "{} isn't growing",
   PlantableMixin: "{} isn't something you can plant",
@@ -547,6 +548,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Storefronts.
   AttendantMixin: "{} isn't serving anyone",
+  PricedOfferMixin: "{} isn't something with a price list",
 
   // Instruments — both of these sit on a slot that names the TOOL, not
   // the subject, so the phrase reads from the actor's side.

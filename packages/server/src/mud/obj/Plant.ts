@@ -46,9 +46,7 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Container } from "../lib/spatial/Container";
 import type { Containable } from "../lib/spatial/Containable";
 import type { Slotted } from "../lib/slot/Slotted";
-import type { Bulkable } from "../lib/bulk/Bulkable";
 import type { Difficulty } from "../lib/advancement/ActSignature";
-import type { Cultivable } from "../lib/husbandry/Cultivable";
 import type { FieldMeta } from "../lib/mixin";
 
 // PersistableMixin OUTERMOST — the documented host rule.
@@ -65,8 +63,6 @@ const PlantBase = PersistableMixin(
 export default class Plant extends PlantBase {
   static fieldMeta: FieldMeta = {
     seedTemplatePath: { persistent: true, authorable: true },
-    harvestTemplatePath: { persistent: true, authorable: true },
-    nutrientDraw: { persistent: true, authorable: true },
   };
 
   /**
@@ -81,63 +77,6 @@ export default class Plant extends PlantBase {
 
   public setSeedTemplatePath(value: string | null): void {
     this.seedTemplatePath = value;
-  }
-
-  /**
-   * The `/obj/crop/…` template a harvest mints, mirroring
-   * {@link Plant.seedTemplatePath} exactly (the same
-   * instantiate-don't-resolve identity-ref variant). Null for an ornamental
-   * that yields nothing — a houseplant is not harvestable, and saying so
-   * costs one null.
-   */
-  public harvestTemplatePath: string | null = null;
-
-  public getHarvestTemplatePath(): string | null {
-    return this.harvestTemplatePath;
-  }
-
-  public setHarvestTemplatePath(value: string | null): void {
-    this.harvestTemplatePath = value;
-  }
-
-  /**
-   * Percentage points of nitrogen this crop takes out of the bed when it
-   * is harvested — the export that makes an unfed bed yield worse each
-   * time. Authored per species; 0 for a plant that draws nothing.
-   */
-  public nutrientDraw: number = 0;
-
-  public getNutrientDraw(): number {
-    return this.nutrientDraw;
-  }
-
-  public setNutrientDraw(value: number): void {
-    this.nutrientDraw = Math.max(0, value);
-  }
-
-  /**
-   * Whether this plant can be harvested right now: it must yield
-   * something, be mature, and be alive. Reconciles on read (through
-   * `getGrowthStage`), so an absence that ripened it counts.
-   */
-  public isHarvestable(): boolean {
-    if (!this.harvestTemplatePath) return false;
-    if (this.getGrowthStage() !== "mature") return false;
-    return this.getConditionBand() !== "dead";
-  }
-
-  /**
-   * The ground this plant is rooted in — a pot or a garden bed — or null
-   * when unrooted. Speaks the {@link Cultivable} interface rather than a
-   * concrete class: *a pot is a bed with one slot*, and the plant has no
-   * business knowing which it is sitting in.
-   */
-  public getBed():
-    | (Stuff & Cultivable & Container & Bulkable & Slotted)
-    | null {
-    const host = this.getOccupiedHost();
-    if (!host) return null;
-    return MixinApi.isCultivable(host) ? host : null;
   }
 
   /**
@@ -164,24 +103,6 @@ export default class Plant extends PlantBase {
         // `failing` — a rescue. (`dead` never reaches here: `waterPlant`
         // absorbs nothing, so the verb credits nothing.)
         return "hard";
-    }
-  }
-
-  /**
-   * How hard it is to move this plant to another pot — the `horticulture`
-   * difficulty the `repot` verb credits. Root disturbance scales with what
-   * there is to disturb, so a seedling is trivial and a grown plant is not.
-   */
-  public transplantDifficulty(): Difficulty {
-    switch (this.getGrowthStage()) {
-      case "seedling":
-        return "trivial";
-      case "young":
-        return "easy";
-      case "established":
-        return "standard";
-      default:
-        return "hard"; // `mature`
     }
   }
 
