@@ -12,7 +12,7 @@
  * composing BOTH (a desk-with-drawer) is ambiguous — the
  * controller rejects with a `put it in or on X?` prompt.
  *
- * The field-level `mustBePutTarget` validator already gated the
+ * The field-level `requires: ContainerMixin|SurfacedMixin` already gated the
  * target as Container OR Surfaced, so the `wrong-preposition`
  * branch fires only when the typed preposition contradicts the
  * target's actual shape.

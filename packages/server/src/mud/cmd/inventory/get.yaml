@@ -19,7 +19,6 @@ args:
     required: true
     greedy: true
     scope: "peers"
+    requires: [VisibleMixin, ContainableMixin]
     validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeContainable
       - /lib/command/validators/mustBeInLocation

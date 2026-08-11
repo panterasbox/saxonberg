@@ -30,14 +30,12 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeCultivable
+    requires: [VisibleMixin, CultivableMixin]
   - name: source
     type: object
     required: false
     scope: "reachable"
     prepositions: [with, from]
+    requires: VisibleMixin
     validators:
-      - /lib/command/validators/mustBeVisible
       - /lib/command/validators/mustHaveBulkSlot

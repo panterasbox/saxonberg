@@ -308,7 +308,7 @@ export default class LookController extends CommandController<LookModel> {
     // Non-Visible targets fall through to a polite refusal rather
     // than rendering "You see nothing special." against the target's
     // name. The `look.yaml` validator stack used to enforce this via
-    // `mustBeVisible`, but excluding non-Visible targets at the
+    // `requires: VisibleMixin`, but excluding non-Visible targets at the
     // validator level also rejected `look` against a non-Visible
     // location (the void case), so the check moved here where it
     // can differentiate "looking at a thing" from "looking at the

@@ -20,6 +20,4 @@ args:
     required: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    validators:
-      - /lib/command/validators/mustBeVisible
-    targetKind: any
+    requires: VisibleMixin

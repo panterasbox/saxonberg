@@ -3,7 +3,7 @@
  *
  * Validation surface (from `cmd/remove.yaml`):
  *   - requiresAnimate, requiresSlotted (verb-level)
- *   - mustBeInInventory, mustBeWearable (target-level)
+ *   - mustBeInInventory (target-level) + `requires: WearableMixin`
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

@@ -19,9 +19,9 @@ args:
     required: true
     scope: "reachable"
     updates_focus: extend
+    requires: SwitchableMixin
     validators:
       - /lib/command/validators/canReach
-      - /lib/command/validators/mustBeSwitchable
   - name: state
     type: string
     required: false

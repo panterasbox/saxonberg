@@ -35,7 +35,7 @@ options:
     scope: online
     field: toPerson
     description: "React to this person's most-recent reactable act."
-    targetKind: any
+    requires: any
   msg:
     short: m
     type: string

@@ -41,6 +41,4 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
-    targetKind: any
+    requires: VisibleMixin

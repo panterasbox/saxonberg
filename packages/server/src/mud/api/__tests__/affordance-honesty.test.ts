@@ -2,7 +2,7 @@
  * Affordance honesty, end to end through the real resolver.
  *
  * ⚠⚠ **Acceptance criterion 22: no verb loses availability it had.**
- * The sweep put a kind validator on ~106 object-typed args, and the
+ * The sweep declared `requires:` on 157 object-typed args, and the
  * dangerous direction is *under-reporting*: a validator that refuses
  * more than its controller does makes a working verb vanish from every
  * menu, and a verb nobody is offered is a verb nobody can discover.
@@ -216,7 +216,7 @@ describe('the verb menu stops lying', () => {
   });
 
   /*
-   * The perception family is the sweep's largest `targetKind: any`
+   * The perception family is the sweep's largest `requires: any`
    * group, declared universal because those controllers refuse nothing
    * by kind. An invented constraint would show up here.
    */
@@ -231,8 +231,8 @@ describe('the verb menu stops lying', () => {
    * ⭐ The fourth recorded case, recorded rather than closed.
    *
    * `CastController` refuses on the SPELL's own target rule, which is
-   * not a property of the arg — so `cast`'s target carries
-   * `targetKind: any` and the spell keeps its refusal. Inventing a kind
+   * not a property of the arg — so `cast`'s target declares
+   * `requires: any` and the spell keeps its refusal. Inventing a kind
    * constraint to make the count look complete is exactly the "a wrong
    * validator is worse than a missing one" failure the requirements
    * name. This pins the decision so a later sweep cannot quietly
@@ -241,6 +241,6 @@ describe('the verb menu stops lying', () => {
   it('leaves cast kind-unconstrained, deliberately', () => {
     const cast = CommandApi.getCommand('magic/cast.yaml');
     const target = cast?.args.find((a) => a.name === 'target');
-    expect(target?.targetKind).toBe('any');
+    expect(target?.requires).toBe('any');
   });
 });

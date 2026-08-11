@@ -15,5 +15,4 @@ args:
     type: object
     required: false
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeBuildVessel
+    requires: ManualBuildMixin

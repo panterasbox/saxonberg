@@ -5,6 +5,16 @@ Working artifact for
 5–6. **Retire at sweep time**; the durable statement of the rule belongs
 in `command-routing.md` / `command-spec.md`.
 
+⚠⚠ **The mechanism this table describes was replaced during MR review.**
+The per-arg *kind validator files* it assigns are gone: a slot now
+declares `requires: SealableMixin` and the framework synthesises the
+check. The table survives as the **record of what each controller
+actually refuses** — which is the part that took the work and the part
+that mapped one-to-one onto the declarations — but read every
+"Validator" cell as the mixin that validator checked, and every
+`targetKind: any` as `requires: any`. See
+[command-spec.md](../subsystems/command-spec.md) for the live rule.
+
 Produced by `pnpm lint:arg-kinds --by-file`, then **every controller
 read** to record what it actually refuses. The plan is emphatic that
 this step cannot be skipped, and it is right: three of the entries below

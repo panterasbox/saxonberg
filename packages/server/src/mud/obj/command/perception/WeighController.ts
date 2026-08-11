@@ -2,7 +2,7 @@
  * WeighController — handler for `weigh <target>`.
  *
  * Reads `target.getMass()` and emits a single self-frame with a
- * canonical kg readout. The mustBeTangible validator gates non-
+ * canonical kg readout. The `requires: TangibleMixin` declaration gates non-
  * Tangible targets at the command-frame layer.
  */
 

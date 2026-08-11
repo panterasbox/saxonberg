@@ -31,8 +31,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeDurable
+        requires: DurableMixin
   weapon:
     description: "Preview a weapon's derived playstyle — reach, guard, balance, handedness, delivery (bands/pips)"
     help: |
@@ -54,8 +53,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeDurable
+        requires: DurableMixin
   electrical:
     description: "Read a thing's electrical character — conductivity / resistance / path-to-ground bands, and the raw V/A/Ω on measurement (the multimeter)"
     help: |
@@ -75,8 +73,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeTangible
+        requires: TangibleMixin
   light:
     description: "Analyze light at a location with source breakdown"
     help: |
@@ -93,8 +90,7 @@ subcommands:
         required: false
         default: "here"
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeContainer
+        requires: ContainerMixin
   chemistry:
     description: "Analyze the chemistry of a target"
     help: |
@@ -107,8 +103,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeTangible
+        requires: TangibleMixin
   atmosphere:
     description: "Dump the resolved atmospheric state at your immediate scope with full provenance"
     help: |
@@ -147,8 +142,7 @@ subcommands:
         required: false
         default: "here"
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeContainer
+        requires: ContainerMixin
   address:
     description: "Resolve the addressing namespace at a place: declared/inherited address, provenance, and the covering Locality (longest-prefix chain)"
     help: |
@@ -162,8 +156,7 @@ subcommands:
         required: false
         default: "here"
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeContainer
+        requires: ContainerMixin
   weather:
     description: "Report the current weather type, per-field deviations, the covering Locality, and a short forecast"
     help: |
@@ -177,5 +170,4 @@ subcommands:
         required: false
         default: "here"
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeContainer
+        requires: ContainerMixin

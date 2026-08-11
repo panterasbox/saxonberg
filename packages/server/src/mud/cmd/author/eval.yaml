@@ -30,7 +30,7 @@ options:
     type: objects
     scope: [reachable]
     description: "MQL expression for the target(s) to bind `this` to"
-    targetKind: any
+    requires: any
   all:
     type: boolean
     description: "When --on matches multiple, iterate across each"

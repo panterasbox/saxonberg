@@ -12,6 +12,4 @@ args:
     type: object
     required: false
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeAttendant
+    requires: [VisibleMixin, AttendantMixin]

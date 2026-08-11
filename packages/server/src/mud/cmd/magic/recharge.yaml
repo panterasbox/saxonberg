@@ -33,9 +33,7 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeCharged
+    requires: [VisibleMixin, ChargedMixin]
   - name: amount
     type: number
     required: false

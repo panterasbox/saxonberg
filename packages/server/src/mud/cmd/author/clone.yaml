@@ -27,12 +27,12 @@ options:
     type: object
     scope: [reachable]
     description: "MQL expression alternate to <template>"
-    targetKind: any
+    requires: any
   into:
     type: object
     scope: [reachable]
     description: "Container to land the clone in (overrides default)"
-    targetKind: any
+    requires: any
   here:
     type: boolean
     description: "Land the clone in your current environment (sugar for --into here)"

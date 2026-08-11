@@ -18,6 +18,6 @@ args:
     type: object
     required: true
     scope: "inventory"
+    requires: WearableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
-      - /lib/command/validators/mustBeWearable

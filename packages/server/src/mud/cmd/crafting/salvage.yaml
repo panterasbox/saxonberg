@@ -15,5 +15,4 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeCrafted
+    requires: CraftedMixin

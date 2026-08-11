@@ -15,4 +15,4 @@ args:
     type: object
     required: false
     scope: "reachable"
-    targetKind: any
+    requires: any

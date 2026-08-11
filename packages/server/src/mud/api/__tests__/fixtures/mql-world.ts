@@ -30,7 +30,7 @@ import type { Focused } from '../../../lib/command/Focused';
 // VisibleMixin is composed on TestLocation and TestThing so the
 // shared fixture matches the typical real-world Stuff shape — every
 // production location / thing players can examine has a description
-// surface. Validators like `mustBeVisible` rely on it.
+// surface. A `requires: VisibleMixin` declaration relies on it.
 class TestLocation extends ContainerMixin(
   DetailedMixin(VisibleMixin(NamedMixin(PerceptibleMixin(Idea))))
 ) {}

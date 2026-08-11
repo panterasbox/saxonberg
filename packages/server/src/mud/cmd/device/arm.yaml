@@ -28,6 +28,6 @@ args:
     required: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
+    requires: HazardMixin
     validators:
       - /lib/command/validators/canReach
-      - /lib/command/validators/mustBeHazard

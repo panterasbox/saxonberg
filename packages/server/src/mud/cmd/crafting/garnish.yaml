@@ -13,11 +13,10 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeBuildVessel
+    requires: ManualBuildMixin
   - name: garnish
     type: object
     required: true
     scope: "reachable"
     prepositions: [with]
-    targetKind: any
+    requires: any

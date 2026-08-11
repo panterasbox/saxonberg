@@ -24,12 +24,10 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeCharged
+    requires: [VisibleMixin, ChargedMixin]
   - name: target
     type: object
     required: false
     scope: "reachable"
     prepositions: [at, on]
-    targetKind: any
+    requires: any

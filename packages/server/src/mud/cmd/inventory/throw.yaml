@@ -36,9 +36,9 @@ args:
     # `inventory` silently deletes the teaching refusal; pinned by
     # `api/__tests__/command-binder-throw.test.ts`.
     scope: "reachable"
+    # Mass is what makes a thing throwable — and it is the ½mv² input.
+    requires: TangibleMixin
     validators:
-      # Mass is what makes a thing throwable — and it is the ½mv² input.
-      - /lib/command/validators/mustBeTangible
       # …but you must be HOLDING it. Picking a rock up is a public act,
       # and that tell is worth making somebody pay for.
       - /lib/command/validators/mustBeHeld
@@ -52,6 +52,4 @@ args:
     # binder entirely.
     scope: "reachable"
     prepositions: [at]
-    validators:
-      - /lib/command/validators/mustBeVisible
-    targetKind: any
+    requires: VisibleMixin
