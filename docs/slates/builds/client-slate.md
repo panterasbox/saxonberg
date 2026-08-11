@@ -438,6 +438,44 @@ executed.** It is also the one that decides whether the shipped axiom
 survives: *the client owns zero command semantics.* A mode switch is a
 real command on the wire, or the axiom is gone.
 
+### ✅ SHIPPED as S3 — and the axiom held
+
+MRs !177 / !178 / !179. What landed, and the four things a client build
+should know:
+
+- **One `cockpit` verb** with subcommands (`mode` / `layout` / `cli` /
+  `pane` / `style`); `layout` / `style` / `mode` were absorbed and
+  **deleted**. `applyInputMode`'s exemption moved from the literal
+  `'mode'` to `'cockpit'`, which lets it finally state its rule:
+  *interface control is not world input.*
+- ⭐⭐ **The server owns the pane vocabulary AND what a pane IS.** A
+  client sends `{ pane: "inspect" }` and nothing else — the catalogue
+  (`lib/connection/Panes.ts`) supplies query, cardinality, field set,
+  dependency flags and hold. `InspectionPane.tsx` used to send
+  `query: "$focus"`, which was the client holding a server semantic.
+  ⚠ **The catalogue ships TWO entries.** Every pane the 23 screens want
+  needs one — a one-line server addition, but a real per-pane
+  dependency to plan around rather than discover.
+- ⚠⚠ **Arrangements ship storage and vocabulary, NOT behaviour.**
+  `save` captures the open panes by durable name, `recall` sets the
+  active arrangement — and nothing opens or closes a pane in response,
+  on either side. ⭐ The undecided half: the server cannot tell a client
+  to open a subscription (the client always initiates), so either that
+  mechanism gets invented or **the client reads the arrangement and
+  opens the named panes itself** — which works with what exists and
+  preserves *client initiates, server owns the vocabulary*. **Decide
+  this before the pane feed is built.**
+- **`cockpit.layout` survives as a compatibility projection** painted
+  from (mode, arrangement) so the SHIPPED client keeps working. The
+  rebuild does not read it; it dies with the old client.
+
+⚠ The hold conditions are five and closed (`unanswered` · `here` ·
+`present` · `inReach` · `carried`), each declaring what wakes it. A
+sixth — "while the fight lasts", "while you are on shift" — is a design
+conversation, not a map edit: see
+[affordance-suggestion-slate](./affordance-suggestion-slate.md) and the
+attention question it opens.
+
 ---
 
 ## 5 · What in `packages/client` is superseded
@@ -450,17 +488,41 @@ orthogonal to the restyle; dragging it through a rewrite buys nothing.
 |---|---|
 | `styles/faces.ts` — Source Serif / Sans / Code Pro | Faces change to Spectral / Public Sans / Newsreader / Plex Mono. The three-voice model is **kept** and extended to four. Request Newsreader **without** the `opsz` axis — with it the face silently fails to load and falls back to Times. |
 | The VS Code dark palette | Replaced wholesale by the civic tokens. Mechanical, touches everything, which is why it is step 1. |
-| `GhostCommandLine.tsx` | Hover preview moves to the global status bar (§ 3.5). |
-| `InspectionPane.tsx` | Becomes the pane feed (§ 3.4). |
-| `layouts/` (`LAYOUT_REGISTRY`) | Layouts demote under modes (§ 3.3, § 4.4). Components map over; the registry's *level* changes. |
+| `GhostCommandLine.tsx` | Hover preview moves to the global status bar (§ 3.5). ⚠ Note the input-prefix surface it sits beside is now `cockpit cli` (not `cockpit scope`), bare invocation REPORTS rather than clears, and prefixes are genuinely per-command-line — verified with two lines prefixed independently. |
+| `InspectionPane.tsx` | Becomes the pane feed (§ 3.4). ⚠ Already **half-moved**: it opens `pane: "inspect"` / `pane: "location"` by name rather than sending MQL, so the subscription half is done and the N-pane feed is what remains. |
+| `layouts/` (`LAYOUT_REGISTRY`) | Layouts demote under modes (§ 3.3, § 4.4) — **done server-side**; the client still swaps its whole frame off the `cockpit.layout` compatibility key. Components map over; the registry's *level* changes. |
 
-Worth verifying first, per the handoff's own list: whether `TabStrip`
-filter tabs already read topic facets or hardcode topic strings (they
-must run on facets, or "quiet" is a sixty-path list that drifts);
-whether the client has any notion of *account* separate from *character*
-(character select assumes one account owns many); whether
-`prompt.format` is already rendered client-side (the design treats it as
-a Liquid template the player owns).
+### ✅ The three "verify first" items — answered 2026-08-11
+
+Checked against the tree so a build does not have to rediscover them.
+
+1. **Facets vs topic strings — better than either option this slate
+   offered.** The S2 facets ARE plumbed into the client: the store
+   resolves `address` / `actor` / `weight` / `audience` / `durable` /
+   `affordance` per topic, with the *same* ancestor inheritance and the
+   same conservative `FACET_FLOOR` the server's `TopicCatalogue` uses —
+   and a comment saying why ("the two resolvers must agree or the client
+   renders a frame the server classified differently").
+
+   ⚠ But the **filter SURFACE does not use them**. `FilterDrawer` toggles
+   per-leaf and per-family **topic paths**, so "quiet" really is a
+   path list that drifts. `TabStrip` does not touch topics at all — its
+   tabs are user-named client-side filters.
+
+   ⭐ So this is a **UI change, not a plumbing change**: the data a facet
+   rule needs is already in the store. That is a materially smaller job
+   than the slate assumed.
+
+2. **No account/character split client-side.** `accountId` does not
+   exist in the client; the only "account" references are the account
+   *menu*. Character select currently assumes the session, not an
+   account that owns many characters. ⚠ MR C's roster work is the
+   server half of this (`lastSeen`, play standing, last location,
+   practice per entry) — the client half is unbuilt, and Wave 2 owns it.
+
+3. **`prompt.format` is not rendered client-side.** No reference
+   anywhere in `packages/client`. The design treats it as a Liquid
+   template the player owns, so this is net-new in Wave 4.
 
 ---
 
@@ -533,8 +595,8 @@ Ordered so each ships independently. The handoff's build order is a good
 | **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). Mechanical, touches everything. | 0 (facets, for the filter surface) |
 | **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
-| **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and Track D designed |
-| **5** | Track D — modes axis, layout demotion, pane subscription set. **Design before scheduling.** | 4's requirements |
+| **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
+| ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned pane catalogue**: the client opens a pane BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a pane on recall, on either side. | done |
 | **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |
 | **7** | **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
 | ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
@@ -553,10 +615,12 @@ everything that happened.
 1. **Per-player frame store — yes or no?** (§ 4.3). Product decision.
    Everything about search scope, a second device, and "your backlog is
    bigger than the server's copy" falls out of it.
-2. **Does a mode switch stay a real command on the wire?** (§ 4.4). If
-   yes, Track D is a verb + a `clientState` axis and the axiom holds. If
-   no, the axiom is gone and that should be said out loud rather than
-   discovered.
+2. ~~**Does a mode switch stay a real command on the wire?**~~ (§ 4.4)
+   **ANSWERED: yes** — and verified by driving a browser, not just by
+   test. `cockpit mode watch streamer` is an ordinary command; the whole
+   frame switches on it. Track D is a verb plus a `clientState` axis,
+   and **the axiom holds**: every clickable still previews exactly what
+   it sends.
 3. **`item` / `object` — portable-vs-fixed, or historical?** Decides
    keep-or-collapse in Track A/B, and the spec's own answer (collapse to
    `thing`, because portability is *state*, not kind) depends on the
