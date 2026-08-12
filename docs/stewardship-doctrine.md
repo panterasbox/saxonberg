@@ -313,6 +313,7 @@ measures the doing.
 | **The hearth (room ambient)** | **1** | 🔲 **designed** ([hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | ⭐ **unblocked**; scoped by thermal's non-goals to one room, no airflow |
 | **Compost** | **2** | 🔲 **designed** (same pack) | ⭐ its **consumer already ships** (`feed` + `COMPOST_TAG`); only the producer is missing |
 | ⭐ **Patina — the improving axis** | **1** | 🔲 **designed** ([patina pack](./slates/builds/patina-design-pack.md)) | ⭐⭐ **unblocked, and the only loop in the family where care makes a thing BETTER rather than merely un-worse** |
+| **Tenancy — holding what you don't own** | — | 🔲 **designed** ([tenancy pack](./slates/builds/tenancy-design-pack.md)) | closed a hole *inside* the ladder's own rented rungs; ⭐ nearly free, because room-condition's attribution constraint **is** the mechanism |
 
 **The verdict on the deferrals** (your instinct, confirmed): each was
 locally reasonable *at the time* — every build shipped its slice and punted
