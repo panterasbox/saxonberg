@@ -23,12 +23,12 @@ The Wave 1 cut:
 | **C — chrome on a phone** | the mobile inversion | after B |
 
 ⭐ **B is where the honesty convention stops being a primitive and
-becomes a posture.** Of the reference art's shelf catalogue, **two rows
-have a live server read and seven do not** — so the shelf is mostly
+becomes a posture.** Of the reference art's shelf catalogue, **three
+rows have a live server read and six do not** — so the shelf is mostly
 hatched by construction. That is not a shortfall to apologise for; it is
 the convention working. A shelf that showed nine confident numbers would
-be lying about seven of them, and the whole claim of this product is
-that its figures are real.
+be lying about six of them, and the whole claim of this product is that
+its figures are real.
 
 ## Goals
 
@@ -47,13 +47,10 @@ that its figures are real.
 - **A global status bar** that previews, browser-style, the command a
   hovered affordance would send. `GhostCommandLine` relocates into it,
   and the command bar is left showing only what you are composing.
-- **A read-only mode indicator** — when the session is the livestream
-  broadcast principal, the chrome says so, because a viewer who cannot
-  act should not be given an interface that implies they can.
-- **One server pane entry feeds the whole shelf.** `self` joins the pane
-  catalogue and `PaneDefinition.fields` widens to carry an explicit
-  field list, because every shelf figure is a field on the viewer's own
-  Avatar.
+- **One server pane entry feeds the shelf's self-scoped rows.** `self`
+  joins the pane catalogue and `PaneDefinition.fields` widens to carry
+  an explicit field list, because the shelf's live figures are all
+  fields on the viewer's own Avatar.
 
 ## Non-goals
 
@@ -71,14 +68,18 @@ that its figures are real.
   in that surface is whatever the receiver *said* they wanted, not
   everything that happened. The bell in the reference art is not built,
   not hatched, and not placeholdered.
-- **New subscribable fields.** B wires what S1 already put on the wire
-  and hatches the rest. Adding `coin` / `clock` / `online` reads would
-  push three new fields onto the wire that nothing else has asked for,
-  and would trade the convention's first real demonstration for three
-  numbers.
+- **New subscribable fields.** B wires what is already on the wire and
+  hatches the rest. Adding a `coin` or `status` read would push fields
+  onto the wire that nothing else has asked for, and would trade the
+  convention's first real demonstration for two numbers. (`TIME` /
+  `ONLINE` / `DOCKET` could not be fixed this way in any case — they are
+  not self-scoped; see Surface decisions.)
 - **Measuring connection health.** Round-trip and frames-behind are not
   measured anywhere today and this build does not add the measurement
   (see Surface decisions).
+- **The read-only mode indicator.** Cut during planning — it has no
+  source (see Surface decisions). A read-only React session would be a
+  real feature with server work and wants its own requirements.
 - **The mode switcher, and migrating the frame off `cockpit.layout`.**
   Wave 4. The S3 compatibility projection keeps working untouched.
 - **The pane feed, hold policy, N-pane subscription set**, and the
@@ -89,7 +90,16 @@ that its figures are real.
 
 ## Surface decisions
 
-### The shelf ships nine rows, two live and seven hatched
+### The shelf ships nine rows, three live and six hatched
+
+⚠ **Corrected after planning-phase investigation.** An earlier revision
+of this section said two live and seven hatched, on the claim that
+"`Avatar.subscribableFields` has exactly three names". That was wrong:
+`Avatar`'s own static declares three, but **`subscribableFields` is
+contributed by mixins too**, and sixteen classes across the tree declare
+one. `Avatar` composes `AdvancementMixin` (via `Character`), which
+declares `practisingCompetence` — *"the competence you are practising"*,
+which is the art's `SKILL` row exactly. The field was there all along.
 
 The catalogue, and the state each row is in on the day this ships:
 
@@ -97,13 +107,13 @@ The catalogue, and the state each row is in on the day this ships:
 |---|---|---|
 | `PLAY` | **live** | — |
 | `RENOWN` | **live** | — |
+| `SKILL` | **live** | — |
 | `MAKE` | hatched | account arithmetic unbuilt |
 | `COIN` | hatched | no subscribable field yet |
-| `TIME` | hatched | no subscribable field yet |
-| `ONLINE` | hatched | no subscribable field yet |
 | `STATUS` | hatched | no subscribable field yet |
-| `SKILL` | hatched | no subscribable field yet |
-| `DOCKET` | hatched | no subscribable field yet |
+| `TIME` | hatched | not a figure about you |
+| `ONLINE` | hatched | not a figure about you |
+| `DOCKET` | hatched | not a figure about you |
 | ~~`TRAIT`~~ | **not built** | see Non-goals — permanent |
 
 Preference order #1 from `CONVENTIONS.md` governs: *ship the surface,
@@ -111,10 +121,29 @@ hatch the value.* The layout, the copy and the pin affordance are all
 judgeable without the numbers, and wiring each later is a one-line
 change rather than a redesign.
 
-⚠ The hatched reasons are **two distinct claims** and must not be
-collapsed into one. "No subscribable field yet" says the server was
-never asked. "Account arithmetic unbuilt" says something else entirely —
-see below.
+⚠ The hatched reasons are **three distinct claims** and must not be
+collapsed into one:
+
+1. **"account arithmetic unbuilt"** (`MAKE`) — the value exists and its
+   *level* is wrong. See below.
+2. **"no subscribable field yet"** (`COIN`, `STATUS`) — genuinely
+   figures about you, simply not exposed on the wire. A one-field
+   addition unhatches each.
+3. ⭐ **"not a figure about you"** (`TIME`, `ONLINE`, `DOCKET`) — these
+   are **world** figures, not self fields, so the `self` pane
+   *structurally cannot carry them* no matter what is added to
+   `Avatar`. They need a different source (a world-scoped pane, or a
+   different subscription entirely) and that is a design conversation,
+   not a field addition. Recording the distinction is the point: a
+   reason that said "no subscribable field yet" would send the next
+   builder looking in the wrong place.
+
+⚠ Also found while correcting this: `LoadBearingMixin` contributes
+`borneBurden` / `carryCapacity` / `loadRatio` — three **live** self
+fields the reference art's catalogue does not list. They are **not**
+added here (the catalogue is the art's, and widening it is a design
+decision), but the fact is worth recording: the shelf's live set is
+limited by the catalogue, not by the wire.
 
 ### `MAKE` is hatched, even though the server returns a number
 
@@ -195,15 +224,46 @@ positional slots inside the `shelf` subcommand exactly as
 `cockpit style theme ink` does — the framework does not nest
 subcommands two deep, and `StyleController` is the exemplar.
 
+### ⚠ The read-only mode indicator is CUT — it has no source
+
+Dropped from this build's goals, having been listed in the slate's
+Build B line without a server concept behind it.
+
+Investigation: the only read-only principal in the system is the
+**livestream broadcast feed**, and
+[livestream.md](../subsystems/livestream.md) records that the broadcast
+connection *"has no `Interactive` at all"*. It is an out-of-band socket
+for overlays — **not a state the React client's session can be in**.
+`packages/client` accordingly has no reference to it. Nor is there a
+read-only `CockpitMode`: `watch` is a mode, but a watching player holds
+a full `Interactive` and can act.
+
+So the indicator would have had nothing to indicate. Building one would
+have meant inventing a read-only session state to justify a chip — the
+interface leading the model, which is how a surface ends up asserting
+something the server cannot back. That is the same failure the honesty
+convention exists to prevent, one level up: not a fake *figure* but a
+fake *state*.
+
+⚠ **Flagged, not silently dropped.** If a read-only React session is
+genuinely wanted — a spectator link, a shared-screen mode, a suspended
+account that can read but not act — that is a real feature with server
+work, and it wants its own requirements. Recorded here so the slate's
+Build B line is not read later as an unmet promise.
+
 ### The shelf reads one pane, not one subscription per figure
 
-Every shelf figure is a field on the viewer's own Avatar, so the whole
-shelf is one subscription. `self` joins `PaneId` and the `PANES`
+The shelf's live figures are all fields on the viewer's own Avatar, so
+they are one subscription. `self` joins `PaneId` and the `PANES`
 catalogue; `PaneDefinition.fields` widens from `'ref' | 'detail'` to
 accept an explicit field-name list, because **neither alias carries
 standing** — `REF_FIELDS` and `DETAIL_FIELDS` are object-description
 sets (`displayName`, `shortDescription`, `contents`, …) and the
 subscribe path already accepts an explicit list.
+
+⚠ This covers the self-scoped rows only. `TIME`, `ONLINE` and `DOCKET`
+are world figures and are hatched precisely because no self-scoped pane
+can reach them (above).
 
 This is also the client's **first consumer of S1's wire at all**:
 `packages/client` has two subscription call sites today, both
@@ -257,10 +317,15 @@ would send is worse than none, because they can disagree.
 
 - The shelf renders nine rows; `TRAIT` is absent, and a test asserts its
   absence by name so a future catalogue edit cannot reintroduce it.
-- `PLAY` and `RENOWN` render live values from a real subscription.
-- The other seven render the not-wired state — `╌╌`, hatched ground,
+- `PLAY`, `RENOWN` and `SKILL` render live values from a real
+  subscription.
+- The other six render the not-wired state — `╌╌`, hatched ground,
   dashed border — **each with its reason**, and a test asserts no digit
   appears in any of them.
+- ⭐ A test asserts the three hatch reasons are **distinct** — the
+  account-level gap, the missing-field gap and the not-about-you gap say
+  different things, and a single generic string would erase the
+  difference that tells the next builder where to look.
 - ⭐ A test asserts `MAKE` is hatched **and** that its reason names the
   account-arithmetic gap, not a generic "not wired". The distinction is
   the decision; an untested reason string would decay into the generic
@@ -295,8 +360,6 @@ would send is worse than none, because they can disagree.
   true at a glance.
 - The connection popover shows a live session duration and hatches
   round-trip and frames-behind with reasons.
-- The read-only mode indicator appears for a broadcast-feed principal
-  and not otherwise.
 - ⚠ The reconnect machine's tests pass **unmodified**.
 
 **Docs**
