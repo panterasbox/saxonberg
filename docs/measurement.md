@@ -351,6 +351,7 @@ process for changing them.
 | A13 | **Transformation never creates matter.** Σ output ≤ input; short debits throw | [crafting.md](./subsystems/crafting.md) — *"lossless would break conservation"* |
 | A14 | **The sandbox boundary is symmetric.** Nothing crosses into or out of a circle | the Layer-4 boundary; `pnpm lint:boundary` |
 | A15 | ⚠ **The evidence firewall.** Kernel omniscience never becomes diegetic evidence | [enforcement-slate](./slates/builds/enforcement-slate.md) — *judgment call, see the audit* |
+| A16 | ⭐ **Every reconcile-on-read consumer tolerates a backward clock** — re-stamp, integrate nothing | convention only; see *the clock finding* below. **Game time is NOT monotonic**, and this row is what makes that survivable |
 
 ⭐ Note what these have in common: **each is the reason some claim the
 platform makes is believable at all.** Drop A1 and a fortune means
@@ -386,12 +387,48 @@ holds the wizard bit, and the fiduciary duty they owe
 | anti-grief lease / quota | policy (Tier C) |
 | residency / self-eviction | operational; no claim depends on it |
 
-⚠ **One possible gap, unverified: monotonic game time.** Every
-reconcile-on-read subsystem assumes `now ≥ stamp`. If game time could run
-backwards, growth, thermal, metabolism and respiration would all produce
-garbage — which *is* a lie to a player. I could not find this enforced
-anywhere as an invariant. **Either it is guaranteed somewhere I did not
-look, or it is a missing A-row.** Worth an hour of somebody's time.
+### ⭐ The clock finding — checked 2026-08-11
+
+The previous draft flagged *monotonic game time* as a possible missing
+A-row. **Checked in code. It is not an invariant — game time genuinely
+runs backwards — and it does not need to be one, because every consumer
+already guards.**
+
+**Where it rewinds:**
+
+| Case | Behaviour |
+|---|---|
+| within a run | `anchor + realElapsed × scale`, with `reanchor()` before every `setScale`/`pause`/`resume` — no jump. ⚠ but the real source is `Date.now`, so an **NTP step backwards moves it backwards** |
+| graceful restart (SIGTERM/SIGINT) | full snapshot written; resumes exactly. No rewind |
+| ungraceful (crash, `kill -9`, `uncaughtException`) | **rewinds** to the last 5-minute backstop snapshot — documented and intended ([time.md](./subsystems/time.md)) |
+| fresh or cleared DB | `loadOrSeed` seeds a **zero** clock while persisted stamps hold large values — the largest rewind of all |
+
+**Why nothing breaks:** every reconcile-on-read host takes
+`elapsed = now − stamp`, and on `elapsed <= 0` **re-stamps to `now` and
+returns**, integrating nothing. Verified in all ten `*ClockStamp` hosts —
+`Wet`, `Combustible`, `Furnace`, `Respiration`, `Metabolic`, `Thermal`,
+`Growing`, `Cultivable`, `Charged`, `Caster` — plus `Vitals` at three
+sites. The dying clock, which deliberately skips the linkdead *and*
+far-past guards, still keeps this one, with the comment saying exactly
+why:
+
+```ts
+if (dyingElapsed <= 0) continue; // clock ran backwards only
+```
+
+The worst case is therefore **lost accrual, never corruption**: an object
+persisted after the last clock snapshot comes back with a future stamp,
+forfeits that sliver of integration, and resumes.
+
+> ⚠⚠ **But A16 is enforced by convention alone.** There is no base class,
+> no shared helper, and no lint. A new reconcile-on-read mixin that omits
+> the guard would produce silent garbage on the next crash recovery —
+> a corpse warming up, a plant un-growing — and nothing would catch it.
+>
+> ⭐ **This is a cheap lint in the house style** (`lint:gates`,
+> `lint:boundary`, `lint:instanceable`, `check-does-nothing` are all this
+> shape): *any file declaring a `*ClockStamp` field must contain an
+> `elapsed <= 0` guard.* Recommended, not built.
 
 ### ⚠⚠ What Tier A does not protect
 
@@ -502,11 +539,12 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
 2. ~~What is the enumeration of layer 3?~~ **Answered in Part 10**, and
    it corrected Part 1: impositions are enumerable but **not uniformly
    amendable**. ~~Is Tier A complete?~~ **Audited 2026-08-11** — it was
-   not; A8–A15 were added and one entry re-tiered. One live residue:
-   ⚠ **monotonic game time** may be a missing A-row, unverified. And
-   **Tier C's last row** — moving the measurement vocabulary from a
-   wizard's YAML into the governed layer — remains the single largest
-   open decision in this document.
+   not; A8–A16 were added and one entry re-tiered. The monotonic-clock
+   question was **checked in code and resolved** — time is not monotonic,
+   every consumer guards, and the guard became A16. Its residue is a
+   recommended lint, not a design question. **Tier C's last row** —
+   moving the measurement vocabulary from a wizard's YAML into the
+   governed layer — remains the single largest open decision here.
 3. **How is "cheap exit" verified?** Part 8 makes it non-negotiable
    without saying how a build demonstrates it.
 4. **Does the reading rule survive contact with the client?** A cockpit
