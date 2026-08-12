@@ -41,10 +41,13 @@ interviewing the resident insider.
   transferred to 1,500–2,000 institutions. Structure: subject →
   course → chapter → lesson, with chapter tests + a final exam.
   **As of 2025, lessons and quizzes are optional** — only chapter
-  tests + final are required — and **proctoring was removed**:
-  finals are open-book, with identity verified by TypingDNA
-  (typing-pattern) and Veriff (ID + selfie) instead of live
-  supervision.
+  tests + final are required — and the final's proctoring **moved from
+  live supervision to automated identity verification**, TypingDNA
+  (typing-pattern) + Veriff (ID + selfie). *(Corrected 2026-08-07: this
+  bullet previously said "proctoring was removed" and "finals are
+  open-book." `Proctored_Exam` is alive and CX credit rides it —
+  [platform-reality §6](./study-com-platform-reality.md); "open-book" is
+  unverified. Say "identity-verified proctored final.")*
 - **Test prep** — SAT/ACT/AP, GED, HESI, ASVAB, real-estate
   licensure, TOEFL (new AI-tutoring experience), and **teacher
   certification for every state** (Praxis, FTCE, CBEST…). Claimed
@@ -63,6 +66,23 @@ interviewing the resident insider.
   Adrian Ridner.
 
 ### The finding that matters most
+
+> **⚠ CORRECTED 2026-08-07 — the premise of this section is too strong.**
+> [platform-reality §6](./study-com-platform-reality.md) verified against
+> the stage DB that **`Proctored_Exam` is alive**, with
+> `Typing_Dna_Result_For_Proctored_Exam` and
+> `Veriff_Result_For_Proctored_Exam` beside it, and that **CX earns credit
+> through it**. So proctoring was **not removed** — its *mode* changed,
+> from live human supervision to **automated identity verification**
+> (typing cadence + ID/selfie). "Open-book" is not verified either way and
+> should not be asserted. **What survives** of the argument below: point 1
+> (completion is their central product problem) is independently
+> confirmed, and point 2's *conclusion* is right for a better reason —
+> the seam should grade **assessment provenance** rather than assume it,
+> because issuers differ and modes change, not because their final is
+> weak. **What dies:** "identity-verified, *not* proctored," and any read
+> that treats their strongest signal as a lowered bar. The correct
+> phrasing everywhere is **"identity-verified proctored final."**
 
 **They removed proctoring to fight completion anxiety.** Their own
 product motion is to *lower the rigor cost* of finishing, because
