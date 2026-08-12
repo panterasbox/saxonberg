@@ -38,6 +38,8 @@ Settled with the owner, 2026-08-11:
 | **3** | **Mana is EXTRACTIVE, not manufactured** — found in places, never produced from inputs |
 | **4** | **Only some substances hold it** — a new field on the existing closed Material set, not a new material |
 | **5** | ⭐ **Some sources need refinement** before they are practically usable (Part 4) |
+| **6** | ⭐⭐ **Nonlocality is ENERGY-ONLY.** The postulate moves energy, never mana; **mana moves by contact and conduction**, like charge. Adds *mana conductivity* as a second material field (Part 2) |
+| **7** | ⭐ **Mana PARTITIONS on separation**, with a volatility loss to ambient each pass — refining is a skilled trade, not a boil (Part 4) |
 
 ---
 
@@ -123,6 +125,59 @@ analysis survives intact.
 **the actual mechanism**: the coupling is where mana becomes joules, and its
 losses go where losses go — waste heat.
 
+### ⭐⭐ Decision 6 — nonlocality is ENERGY-ONLY
+
+The postulate grants relocating **energy** between a caster's body and a
+chosen point. It says nothing about relocating *mana*, and **extending it to
+mana would be a second exemption** — which the discipline clause forbids.
+
+> **Nonlocality is energy-only. Mana moves by CONTACT and CONDUCTION, the way
+> charge does.**
+
+This is not a restriction bolted on; it is the postulate read honestly. And it
+preserves everything shipped:
+
+- ✅ **`ConduitMixin` is unchanged.** Pushing your own mana into a wand you are
+  *holding* is conduction through contact — no postulate required, the way
+  touching a wire needs no postulate.
+- ⛔ **Ruled out:** pulling mana out of ore across the room, drawing from a
+  flask you are not touching, or separating mana from its medium by will.
+
+So materials carry **two** fields, not one:
+
+| Field | Answers |
+|---|---|
+| **mana density** | how much this substance *holds* — the store |
+| ⭐ **mana conductivity** | whether it *passes* mana on contact — what makes a conduit a conduit |
+
+Both are fields on the existing closed Material set (decision 4), so neither
+mints a material.
+
+### ⭐⭐⭐ The corollary law: magic is good at ONCE and terrible at HELD
+
+Kell's Partition already says every magical act is an **impulse** (a delivery,
+after which the world takes over) or a **binding** (a state held away from
+equilibrium, continuously topped up). Voss Decay already says why a binding
+costs. **Nobody has drawn the economic conclusion**, and it is the sharpest
+thing in this pack:
+
+> ⭐⭐⭐⭐ **Magic writes initial and boundary conditions, never laws — so it
+> is excellent at what happens ONCE and terrible at what must be HELD.
+> Structure beats sustained assertion, always.**
+
+A concrete dam is a one-time capital cost and then gravity works for free; a
+magic dam is an operating cost that never ends. The same verdict falls out
+every time: iron lock over magic lock, lamp over glowlight for permanent
+light, furnace over firebolt for sustained heat.
+
+Which hands magic its **actual comparative advantage**, cleanly and without
+special pleading: **impulse, portability, and places you cannot build.** A
+cave, a battlefield, a moment of need.
+
+⚠ This is a **third independent reason magic never industrialized** — and the
+most durable one, because it is structural rather than a matter of scale. It
+belongs in `arcane-science.md` beside Kell's Partition (Part 8).
+
 ---
 
 ## Part 3 — Where mana comes from, and what a caster is now
@@ -136,6 +191,43 @@ losses go where losses go — waste heat.
    surroundings. This is the caster's innate reserve: small, slow, **free**,
    and it keeps a broke player able to cast. A magic system where poverty
    means powerlessness is a worse game and a worse politics.
+3. **Ingestion** — eating or drinking something that carries mana (below).
+
+### ⭐⭐ The banana question: no, and it is scale that behaves like compatibility
+
+**Ordinary food cannot become mana.** One-way coupling means a banana is
+440 kJ of chemical energy and nothing else; eating does not refill the
+reserve.
+
+But no separately-invented "magic banana" is needed either. Mana density is a
+**material property**, and living things absorb ambient mana — so a crop grown
+in mana-rich ground **accumulates** it, exactly the way plants accumulate
+selenium or iodine from soil. An ordinary potato has some selenium; a Brazil
+nut has a thousand times more.
+
+> ⭐ **It is a scale difference spanning enough orders of magnitude to behave
+> like a compatibility difference** — which is the honest version of both
+> intuitions, and it needs no new rule.
+
+Three consequences, and two are nearly free on shipped substrate:
+
+- ⭐⭐ **Mana in soil is just another soil reserve.**
+  [Smallholding](../../subsystems/smallholding.md) already carries `moisture`
+  and `nitrogen` as depleting reserves with a reconcile. Mana is a third of the
+  same shape — **and crops draw it down**, so *farming a deposit depletes it*
+  with no new depletion model to write.
+- ⭐⭐⭐ **Which makes husbandry an extraction industry.** Growing crops on a
+  deposit is slow mining, with the plant as the concentrator. That is
+  **phytomining** — real technology, used to pull nickel out of soil with
+  hyperaccumulator plants.
+- **Ingestion is one more meal tag.**
+  [Metabolism](../../subsystems/metabolism.md) already fans multi-tag meals to
+  several reserves (`water`→hydration, `carb`→fast satiation, `fat`→slow). A
+  `mana` tag routing to the mana reserve rides the same seam.
+
+⚠ **The anti-chug guard already ships:** metabolism's **digestion buffer**
+releases a meal over time rather than instantly, so mana potions cannot be
+spammed mid-fight. No new rate limit needed.
 
 > ⚠ **Recovery rate now depends on WHERE YOU ARE** — ambient mana density is
 > a property of place. That is a new and good mechanic (it gives geography
@@ -195,9 +287,64 @@ the family's weakest-link and limiting-factor patterns apply unchanged, and a
 spell or a charged item can demand a minimum purity the way it already demands
 a band.
 
+### ⭐ Decision 7 — mana PARTITIONS, and leaks a little every pass
+
+When you evaporate mana-bearing water, does the mana stay with the residue or
+leave with the vapour? Three answers were available; the third is the one that
+makes refining a **trade** rather than a boil:
+
+| | Consequence |
+|---|---|
+| stays with the residue | distillation concentrates it — refining is trivial |
+| leaves with the vapour | collect the condensate — trivial, inverted |
+| ⭐ **partitions between both** | **fractional separation, multiple passes, a purity ladder** |
+
+**Partitioning is the decision**, plus a small **volatility loss to ambient on
+every pass**. That single pair buys four things at once: raw sources deplete
+when disturbed, purity is genuinely expensive, a skilled refiner is worth
+paying, and the [assayer](../../vocations.md) has something invisible to
+measure. It is petroleum fractionation and isotope enrichment, which are
+exactly the right real analogues to be teaching.
+
+### ⭐⭐⭐ Who can do the work — and the 2×2 collapses
+
+The natural question is whether magic material needs magic processing. Two
+rules already in hand answer **every cell**:
+
+| | ordinary process | magic process |
+|---|---|---|
+| **ordinary material** | ✅ ordinary industry | ⛔ **worse** — the binding law (Part 2): a furnace beats a caster, permanently |
+| **magic material** | ✅ **the only way** | ⛔ **impossible** — the postulate moves energy, not mana (decision 6) |
+
+> **Magic oil does not need a magic refinery, and cannot have one.** Refining
+> is physical separation, and an ordinary still does it perfectly well.
+
 ---
 
 ## Part 5 — The economy: two utilities, and bottled before piped
+
+### ⭐⭐⭐ The consequence that shapes everything: the mana industry is MUNDANE
+
+Decision 6 plus the 2×2 above means prospectors, miners, refiners, teamsters
+and assayers **need not be casters — and could not use magic for the job even
+if they were.**
+
+> **Mana is a commodity that ordinary industry produces and extraordinary
+> people consume. Mages are CUSTOMERS, not producers.**
+
+That is the spice model, and it is where the politics lives: the people with
+power **structurally depend** on people without it, and cannot cut them out —
+not by law or custom, but because the physics will not permit it. Nobody has
+to *design* the dependency; it is forced.
+
+⭐ **What is broader than melange**, and worth naming because it is the part
+that pays off: spice is one substance from one planet — a macguffin. This is a
+**class** of substances with density, conductivity and purity as continuous
+properties. That yields a materials science rather than a plot device: grades,
+blends, substitutes, an assay trade, and the real possibility of somebody
+discovering a better feedstock.
+
+### Two utilities, not one
 
 Under the old identity, electricity and mana were **perfect substitutes** —
 one price, one market, and the cheaper input wins everywhere. That is why the
@@ -228,6 +375,42 @@ can come later or never.
 unchanged** if piped mana is ever built: meter on use, dischargeable without
 attendance, and non-payment never takes the asset.
 
+### ⭐⭐⭐ The arbitrage floor — asymmetric physics makes asymmetric prices
+
+Mana → energy works; energy → mana never does. So:
+
+> **Mana has a price FLOOR at its energy content.** Anyone can convert at rate
+> `k`, so mana can never trade below the electricity it would yield. Expensive
+> electricity drags mana up; expensive mana never touches electricity.
+
+Asymmetric physical coupling producing **asymmetric price coupling** is a real
+financial structure, and it falls out of decision 2 with nothing added.
+
+⚠ **And the guard that keeps it from eating the design:** the coupling is
+lossy and mana is extractive-scarce, so **burning mana for electricity is
+always uneconomic** — the same reason nobody burns banknotes. The floor exists
+and is **never binding in practice**, which is exactly how a price floor
+should behave.
+
+### ⭐⭐ The dam and the refinery are rivals for FLOW
+
+A turbine extracts **gravitational potential energy** and does not couple to
+mana at all, so water leaves the far side carrying every bit of mana it
+arrived with. Hydro and refining want entirely different things from the same
+river.
+
+But refining is concentration *by removing the medium* — so a refinery
+upstream takes water **out** of the river that the turbine downstream never
+sees.
+
+> **They compete for the flow, not for the energy and not for the mana.**
+
+That is a water-rights problem — prior appropriation, riparian doctrine,
+senior and junior claims — one of the richest bodies of real property law
+there is, and the [parcel](../../subsystems/parcel.md) title, land-use and
+[governance](../../subsystems/governance.md) machinery to adjudicate it
+already ships.
+
 ---
 
 ## Part 6 — ⭐ Three vocations fall out, and two are already listed as GAPs
@@ -257,6 +440,10 @@ such a trade would use.
 | | Work | State |
 |---|---|---|
 | ⭐ **Mana density on materials** | one new field on the existing closed Material set | **new (a field, not a material)** |
+| ⭐ **Mana conductivity on materials** | the second field — what makes a conduit a conduit (decision 6) | **new (a field, not a material)** |
+| ⭐⭐ **Soil mana reserve** | a third soil reserve beside `moisture` + `nitrogen`; crops draw it down | **rides [smallholding](../../subsystems/smallholding.md) — same shape as nitrogen** |
+| ✳ **`mana` meal tag** | ingestion routes to the mana reserve; the digestion buffer rate-limits it | **rides [metabolism](../../subsystems/metabolism.md) — one more tag** |
+| ✳ **Partition + volatility on refining** | fractional passes, a purity ladder, ambient loss (decision 7) | **rides crafting** |
 | ⭐ **Magic water / mana crystal** | a bulk material + a solid, with density + `Grade` purity | **new content on shipped substrates** |
 | ⭐⭐ **The coupling** | mana → energy at k, one-way, lossy | **`ConduitMixin` already IS this** |
 | ✳ **Ambient mana density of place** | drives innate recovery | **new (derived, per place)** |
@@ -286,14 +473,15 @@ Listed so the edit is scoped rather than exploratory. **Not done here.**
 
 | Section | Change |
 |---|---|
-| **The Postulate** | add the second quantity; the locality break is unchanged |
+| **The Postulate** | add the second quantity; the locality break is unchanged; ⭐ state explicitly that **nonlocality is energy-only** — mana moves by contact (decision 6) |
+| ⭐⭐⭐ **Kell's Partition** | **ADD the economic corollary** — magic is excellent at ONCE and terrible at HELD; structure beats sustained assertion; magic's comparative advantage is impulse, portability, and places you cannot build (Part 2) |
 | ⭐ **Halloway Equivalence** | **reinterpret, do not delete** — `E = η·k·M`; the basin still measures; add the over-reading and why it survived (Part 1) |
 | **Units and quantities** | τ is its own unit; k = 1 kJ/τ; ⚠ **no number changes** |
 | **The caster's budget** | the reserve is ambient-sourced, not glycogen; recovery depends on place |
 | ⚠ **"The power level, and why it is canon"** | **the industrialization argument must be replaced** — deposit-not-plant (Part 5) |
 | **The price list** | costs stay; the payment path is now through the coupling |
 | **Conjure-water** | ✅ survives unchanged — still collection, still real work, still heat-limited |
-| **Kell's Partition, Voss Decay, the Reeve Line, Tarn's Rule** | ✅ untouched — they are about coupling and dissipation |
+| **Voss Decay, the Reeve Line, Tarn's Rule** | ✅ untouched — they are about coupling and dissipation |
 | **The audit log** | re-run it; the doc asks for this before new numbers land |
 
 ---
@@ -337,6 +525,19 @@ their physics differs — exactly as power, gas and water do.
   design taught as a story.
 - **Concentration vs creation** — ore beneficiation, distillation, tailings
   losses. Why refining costs energy and why purity is graded.
+- ⭐⭐ **Fractional separation**, taught by doing it: partitioning means
+  multiple passes and a purity ladder, which is petroleum fractionation and
+  isotope enrichment with the serial numbers filed off.
+- ⭐⭐⭐ **Resource-dependency politics.** The powerful structurally depend on
+  an industry they cannot enter (Part 5). That is oil, that is spice, and it is
+  a far better vehicle for the argument than any lecture — because here the
+  dependency is enforced by physics rather than asserted by a plot.
+- **Bioaccumulation** — crops concentrating a soil constituent is real
+  (selenium, iodine, hyperaccumulator phytomining), and it makes soil chemistry
+  matter to something a player wants.
+- ⭐ **Price floors and arbitrage bounds** — a one-way conversion sets a floor
+  that is real but never binding. Most students meet arbitrage as a trick;
+  here it is a physical fact with a price consequence.
 
 ---
 
@@ -350,9 +551,10 @@ their physics differs — exactly as power, gas and water do.
 2. **Is ambient absorption capped by the caster's own reserve, or can a mage
    hold more with a vessel?** *Lean: body caps at the band; vessels extend* —
    which is exactly what makes bottled mana worth buying.
-3. **Does a deposit deplete?** Extractive commodities usually do. *Lean: yes,
-   slowly, with regeneration* — the supply pack's finite-but-regenerating
-   depth tier, and the rivalry axis it was written for.
+3. ✅ **Does a deposit deplete? — ANSWERED.** Yes, and the model already
+   ships: soil mana is a reserve of nitrogen's shape and crops draw it down
+   (Part 3). Regeneration rate is the remaining dial — the supply pack's
+   finite-but-regenerating depth tier, and the rivalry axis it was written for.
 4. **What is mana's "second law"?** Energy has exergy degradation; the
    coupling's η < 1 is the obvious analogue, but whether mana itself degrades
    (a stored flask going flat) is unanswered. *Lean: yes and slowly* — it
@@ -362,3 +564,18 @@ their physics differs — exactly as power, gas and water do.
    brute fact of the postulate?** *Lean: brute fact* — the postulate is
    already one impossible thing, and asking why it is one-way is like asking
    why charge is conserved.
+6. ⭐ **Can a deposit be exhausted permanently, or only drawn down?** Decision
+   3 makes mana unmanufacturable, so a *dead* deposit is dead forever — which
+   is real (aquifers, oil fields) and gives prospecting genuine stakes, but it
+   also means a griefer or a careless neighbour can destroy a shared asset
+   irreversibly. *Lean: drawn-down-not-destroyed for shared sources*, with the
+   common-pool quota doing the work; permanent exhaustion reserved for
+   authored content beats.
+7. **Does mana conductivity correlate with electrical conductivity?** Making
+   them independent is more interesting (a superb electrical conductor that
+   blocks mana is a *shield*, and vice versa) and costs nothing, since both
+   are already separate authored fields. *Lean: independent.*
+8. ⭐ **Which way does mana partition, and how much leaks?** Decision 7 fixes
+   the *shape* (it partitions, with ambient loss); the coefficients are the
+   content dial, and they set how many passes a purity ladder needs. Deferred
+   to a running game.
