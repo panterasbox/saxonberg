@@ -1,9 +1,11 @@
 /**
  * Shared font-register tables for the shipped themes.
  *
- * Both `default` and `high-contrast` use the **same** register
- * mapping and the same face stacks — typography register is orthogonal
- * to the contrast axis, so the tables are factored here to avoid drift.
+ * All three themes (`ink`, `marble`, `high-contrast`) use the **same**
+ * register mapping and the same face stacks — typography register is
+ * orthogonal to both the ground and the contrast axis, so the tables are
+ * factored here to avoid drift. `themes/__tests__/themes.test.ts`
+ * asserts the identity across all three.
  *
  * - `BASE_REGISTERS` — the explicit topic-prefix → register map
  *   (the requirements' classification table). Resolved by the same
@@ -18,10 +20,13 @@ import type { FontRole } from '../types';
 import { FACE_STACKS } from '../../../styles/faces';
 
 /**
- * Topic-prefix → register. The three-voice model — serif = the world
- * speaks, mono = you + the machine. `chrome` (sans) is the client-shell
- * frame voice and is intentionally NOT mapped to any transcript topic;
- * it lives in the role table for completeness and future use.
+ * Topic-prefix → register. The four-voice model — `narrative` = the
+ * world speaks, `command` = you + the machine. `chrome` and `display`
+ * are the client-shell frame voices and are intentionally NOT mapped to
+ * any transcript topic; they live in the role table because that table
+ * is the single face source. A topic can only ever acquire a voice by
+ * appearing here, which is what keeps an unclassified future topic
+ * falling back to `command` rather than silently picking one up.
  *
  * ⭐ Keyed on **roots**, which is the whole payoff of a tree that
  * carries subject matter. The voice a frame speaks in is a property of
@@ -46,14 +51,17 @@ export const BASE_REGISTERS: Record<string, FontRole> = {
 
 /**
  * Register role → CSS font-family stack. Re-skinning a register is a
- * one-line change here (plus the matching `@font-face`). The default
- * theme ships the Source superfamily — one harmonized OFL family so the
- * registers share metrics by construction (the cheap fix for the
- * rhythm-jolt risk). Narrative may later upgrade to Literata by editing
- * only the `narrative` line.
+ * one-line change here (plus the matching `@font-face`). All four roles
+ * resolve through the single face source in `styles/faces`, so no theme
+ * can diverge on a voice.
+ *
+ * ⚠ The civic four are unrelated families and do **not** share metrics
+ * the way the retired Source superfamily did — see `GlobalFonts.ts` for
+ * why `font-display: swap` is kept anyway.
  */
 export const BASE_FONT_ROLES: Record<FontRole, string> = {
-  narrative: FACE_STACKS.serif,
-  chrome: FACE_STACKS.sans,
-  command: FACE_STACKS.mono,
+  narrative: FACE_STACKS.narrative,
+  chrome: FACE_STACKS.chrome,
+  command: FACE_STACKS.command,
+  display: FACE_STACKS.display,
 };

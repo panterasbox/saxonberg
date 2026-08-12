@@ -24,17 +24,24 @@ export interface BucketResolver {
 }
 
 /**
- * Font register roles — the three-voice typography model:
- * **serif = the world speaks · sans = the app chrome · mono = you +
- * the machine.** A register is resolved from a frame's `topic` (via
- * the same longest-prefix cascade as topic treatments) and then mapped
- * to a CSS font-family stack through {@link Theme.fontRoles}.
+ * Font register roles — the four-voice typography model:
+ * **narrative = the world speaks · chrome = the app · command = you +
+ * the machine · display = the engraved civic frame.** A register is
+ * resolved from a frame's `topic` (via the same longest-prefix cascade
+ * as topic treatments) and then mapped to a CSS font-family stack
+ * through {@link Theme.fontRoles}.
  *
- * This is client-presentation only — it is NOT a wire type. The server
- * never names a register; classification lives entirely in the
- * client `Theme.registers` table keyed off the existing `Frame.topic`.
+ * `display` is chrome-only — section labels, headings, the wordmark,
+ * binomials — and like `chrome` it maps to **no transcript topic**. It
+ * lives in the role table because that table is the single face source;
+ * unmapped topics keep defaulting to `command`.
+ *
+ * This is client-presentation only — it is NOT a wire type.
+ * `StyleTreatment` has no `font` key, so the server never names a
+ * register; classification lives entirely in the client
+ * `Theme.registers` table keyed off the existing `Frame.topic`.
  */
-export type FontRole = 'narrative' | 'chrome' | 'command';
+export type FontRole = 'narrative' | 'chrome' | 'command' | 'display';
 
 /**
  * A theme is a stylesheet bundle — default treatments across every

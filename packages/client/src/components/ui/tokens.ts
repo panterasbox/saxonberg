@@ -62,19 +62,33 @@ export const tokens = {
     xl: "1rem",
   },
   font: {
-    // `family` is the app-chrome default voice — sans (Source Sans 3).
-    // Every chrome component (`tokens.font.family`) reads sans; the
-    // command register (CommandBar input/echo, `<pre>`/`<code>`) opts
-    // into `mono` explicitly. The three stacks come from the single
-    // face-stack source so a swap is one edit in `styles/faces`.
-    family: FACE_STACKS.sans,
-    sans: FACE_STACKS.sans,
-    serif: FACE_STACKS.serif,
-    mono: FACE_STACKS.mono,
+    // ── Faces. `family` is the app-chrome default voice (Public Sans).
+    // Every chrome component (`tokens.font.family`) reads it; the command
+    // register (CommandBar input/echo, `<pre>`/`<code>`) opts into `mono`
+    // explicitly, and the engraved display voice into `engraved`. All
+    // four stacks come from the single face-stack source so a swap is one
+    // edit in `styles/faces`. `sans`/`serif`/`mono` are the pre-civic
+    // alias names, kept so no call site moved.
+    //
+    // ⚠ The face is `engraved`, not `display` — `display` is the 22px
+    // step in the size scale below. DESIGN-SYSTEM names the role
+    // "Engraved capitals, display"; the two halves of that phrase are the
+    // two keys.
+    family: FACE_STACKS.chrome,
+    sans: FACE_STACKS.chrome,
+    serif: FACE_STACKS.narrative,
+    mono: FACE_STACKS.command,
+    engraved: FACE_STACKS.display,
+    // ── Sizes. The DESIGN-SYSTEM § Scale type ramp: 10px engraved labels
+    // · 11.5–12.5px secondary · 13–14px body chrome · 15–17px world prose
+    // · 19–26px display.
+    label: "10px",
+    micro: "11.5px",
+    small: "12.5px",
     body: "13px",
-    small: "12px",
-    micro: "11px",
     title: "14px",
+    prose: "16px",
+    display: "22px",
   },
   radius: {
     sm: "2px",

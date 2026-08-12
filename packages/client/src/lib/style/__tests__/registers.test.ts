@@ -18,7 +18,8 @@ import { Stylesheet } from '../Stylesheet';
 import { DEFAULT_THEME } from '../themes/default';
 import { HIGH_CONTRAST_THEME } from '../themes/highContrast';
 import { NEUTRAL_BUCKET_RESOLVER } from '../BucketResolver';
-import type { StyleOverlay, Theme } from '../types';
+import { BASE_REGISTERS, BASE_FONT_ROLES } from '../themes/registers';
+import type { StyleOverlay, Theme, FontRole } from '../types';
 
 function sheet(theme: Theme, overlay: StyleOverlay = {}): Stylesheet {
   return new Stylesheet(theme, overlay, {
@@ -27,8 +28,8 @@ function sheet(theme: Theme, overlay: StyleOverlay = {}): Stylesheet {
   });
 }
 
-const SERIF = 'Source Serif 4';
-const MONO = 'Source Code Pro';
+const SERIF = 'Newsreader';
+const MONO = 'IBM Plex Mono';
 
 describe('register classification — explicit topic→register table', () => {
   const ss = sheet(DEFAULT_THEME);
@@ -62,6 +63,37 @@ describe('register classification — explicit topic→register table', () => {
     const hc = sheet(HIGH_CONTRAST_THEME);
     expect(hc.fontFamilyForTopic('speech.vocal')).toContain(SERIF);
     expect(hc.fontFamilyForTopic('shell.result')).toContain(MONO);
+  });
+});
+
+describe('the four voices — one face source, no topic for chrome/display', () => {
+  it('all four roles resolve to a non-empty, pairwise-distinct stack', () => {
+    const roles: FontRole[] = [
+      'narrative',
+      'chrome',
+      'command',
+      'display',
+    ];
+    const stacks = roles.map((r) => BASE_FONT_ROLES[r]);
+    for (const stack of stacks) expect(stack.length).toBeGreaterThan(0);
+    expect(new Set(stacks).size).toBe(roles.length);
+    expect(Object.keys(BASE_FONT_ROLES).sort()).toEqual([...roles].sort());
+  });
+
+  it('display maps to no transcript topic, exactly as chrome does', () => {
+    // Chrome and display are the client-shell frame voices. A topic can
+    // only acquire a voice by appearing in the register table, which is
+    // what keeps an unclassified future topic on `command`.
+    const mapped = Object.values(BASE_REGISTERS);
+    expect(mapped).not.toContain('display');
+    expect(mapped).not.toContain('chrome');
+  });
+
+  it('an unmapped topic still resolves to the display-free default', () => {
+    const ss = sheet(DEFAULT_THEME);
+    expect(ss.fontFamilyForTopic('some.new.root')).toBe(
+      BASE_FONT_ROLES.command,
+    );
   });
 });
 
