@@ -320,6 +320,29 @@ interface StoreState extends CmsSlice, StudioSlice {
   flashGhost: (message: string) => void;
 
   /**
+   * The command sheet — the command a tapped affordance WILL send,
+   * awaiting the player's confirmation, or `null` when no sheet is up.
+   *
+   * ⚠⚠ **Deliberately NOT `ghostPreview`, and the separation is the
+   * point.** A guard asserts exactly one module reads `ghostPreview`;
+   * a sheet reading it would trip that guard *and* would be conflating
+   * two different facts — *"what a hover would send"* is a question
+   * with a before, and *"what this tap will send, pending
+   * confirmation"* is a commitment already begun. Desktop hover has a
+   * moment before you commit; **on a phone a tap IS the commit**, so
+   * the sheet is not a preview surface at all. The guard catching a
+   * reuse would be correct behaviour, not a false positive.
+   *
+   * ⚠ ONE command, because that is what an affordance affords today:
+   * `commandFor(node)` returns a single string. A sheet offering
+   * several would be an interface promising a resolution the renderer
+   * does not perform.
+   */
+  commandSheet: string | null;
+  openCommandSheet: (command: string) => void;
+  closeCommandSheet: () => void;
+
+  /**
    * The widget shelf's figures — the latest record from the `self`
    * pane, or `null` before the first delivery.
    *
@@ -1088,6 +1111,10 @@ export const useStore = create<StoreState>((set, get) => ({
   ghostFlash: null,
   setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
   flashGhost: (message) => set(() => ({ ghostFlash: message })),
+
+  commandSheet: null,
+  openCommandSheet: (command) => set(() => ({ commandSheet: command })),
+  closeCommandSheet: () => set(() => ({ commandSheet: null })),
 
   // The widget shelf's `self`-pane record.
   shelfFigures: null,

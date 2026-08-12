@@ -21,6 +21,7 @@ import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
 import { MobileFrame } from "./components/frame/MobileFrame";
+import { CommandSheet } from "./components/frame/CommandSheet";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
 import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
 import { StartScreen } from "./components/StartScreen";
@@ -529,8 +530,30 @@ function App() {
    * carry no `barId`, so the interpreter never prepends a bar's mode —
    * preview equals send. Flash the ghost line so the just-sent command
    * stays briefly visible.
+   *
+   * ⭐⭐ **Below the breakpoint this opens the sheet instead of
+   * sending**, and doing it HERE is the whole design. Every affordance
+   * in the tree — transcript tags, shelf menu entries, the Views menu,
+   * the pull-down, future panes — routes through this one handler. So
+   * the phone's confirm step is **one interception point for the entire
+   * app** rather than a `isCompact` prop threaded into every renderer.
+   * `MmlRenderer`, `EntityName` and `Shelf` need no changes at all, and
+   * an affordance added next year gets the behaviour for free.
    */
   const handleCommandClick = (command: string) => {
+    if (isCompact) {
+      useStore.getState().openCommandSheet(command);
+      return;
+    }
+    sendDirect(command);
+  };
+
+  /**
+   * The send path both the desktop click and the sheet's confirm take —
+   * one function, so "what the sheet showed" and "what got sent" cannot
+   * become two strings that agree today.
+   */
+  const sendDirect = (command: string) => {
     sendCommand(command);
     useStore.getState().flashGhost(`› ${command}`);
   };
@@ -691,6 +714,11 @@ function App() {
               is the command sheet — the tap that names its command
               before it sends. */}
           {isCompact ? null : <StatusBar />}
+          {/* The command sheet — the phone's replacement for hover.
+              Rendered unconditionally: it paints only when the store
+              holds a command, and only the compact branch of
+              `handleCommandClick` ever puts one there. */}
+          <CommandSheet onSend={sendDirect} />
         </AppContainer>
       );
     }

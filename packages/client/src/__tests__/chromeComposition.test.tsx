@@ -16,9 +16,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from '../App';
 import { useStore } from '../store/index';
+
+/** Every command that reached the wire this test. */
+const sent: Array<{ text: string }> = [];
 
 vi.mock('../services/websocket', () => ({
   websocketClient: {
@@ -30,7 +33,7 @@ vi.mock('../services/websocket', () => ({
     offEnvelope: () => {},
     subscribeMql: () => 'sub-1',
     unsubscribe: () => {},
-    sendCommand: () => {},
+    sendCommand: (text: string) => sent.push({ text }),
     reconnectNow: () => {},
   },
 }));
@@ -83,6 +86,8 @@ function inWorld(): void {
 }
 
 beforeEach(() => {
+  sent.length = 0;
+  useStore.setState({ commandSheet: null, ghostPreview: null });
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({
@@ -133,5 +138,73 @@ describe('the in-world chrome, by viewport', () => {
     setViewport(false);
     render(<App />);
     expect(screen.getAllByTestId('status-bar')).toHaveLength(1);
+  });
+});
+
+/**
+ * ⭐⭐ **The interception, asserted where it happens.**
+ *
+ * The sheet's own test proves it shows and sends the same string. What
+ * only `App` can prove is that the interception is at the ONE handler
+ * every affordance routes through — so a tap anywhere in the tree gets
+ * the confirm step, and no renderer had to be taught about viewports.
+ * The affordance driven below is a shelf-menu entry precisely because
+ * it is not the sheet's own surface: it is ordinary chrome that knows
+ * nothing about phones.
+ */
+describe('the command sheet, intercepting at App', () => {
+  function tapAnAffordance(): string {
+    // The Views menu is the shortest path to a real affordance in both
+    // compositions; its command string is built by `ViewsMenu`, not by
+    // this test.
+    fireEvent.click(screen.getByText('Bartleby'));
+    const item = screen.getByTestId('views-item-world');
+    const label = item.textContent ?? '';
+    fireEvent.click(item);
+    return label;
+  }
+
+  it('⭐ below the breakpoint a tap OPENS the sheet and sends nothing', () => {
+    setViewport(true);
+    render(<App />);
+    tapAnAffordance();
+
+    expect(screen.getByTestId('command-sheet')).toBeTruthy();
+    expect(sent).toEqual([]);
+  });
+
+  it('⭐ confirming sends the verbatim string the sheet showed', () => {
+    setViewport(true);
+    render(<App />);
+    tapAnAffordance();
+
+    const shown = screen.getByTestId('command-sheet-command').textContent;
+    fireEvent.click(screen.getByTestId('command-sheet-send'));
+
+    expect(sent.map((s) => s.text)).toEqual([shown]);
+    expect(screen.queryByTestId('command-sheet')).toBeNull();
+  });
+
+  it('dismissing sends nothing', () => {
+    setViewport(true);
+    render(<App />);
+    tapAnAffordance();
+    fireEvent.click(screen.getByText('Cancel'));
+    expect(sent).toEqual([]);
+  });
+
+  /*
+   * ⚠ And the desktop path is unchanged: a click still sends directly,
+   * with no sheet in the way. This build adds a step on a phone; it must
+   * not have added one anywhere else.
+   */
+  it('⚠ above the breakpoint the click sends directly, with no sheet', () => {
+    setViewport(false);
+    render(<App />);
+    fireEvent.click(screen.getByLabelText('Open the Views menu'));
+    fireEvent.click(screen.getByTestId('views-item-world'));
+
+    expect(sent).toHaveLength(1);
+    expect(screen.queryByTestId('command-sheet')).toBeNull();
   });
 });
