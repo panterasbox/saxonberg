@@ -2701,6 +2701,28 @@ export interface ConnectionState {
   socketId: string | null;
   sessionId: string | null;
   error: string | null;
+  /**
+   * Epoch ms this socket was established — what the connection
+   * popover's live duration row is derived from.
+   *
+   * ⚠ **Optional, and the optionality is load-bearing twice over.**
+   * Practically: `store/__tests__/connectionLink.test.ts` builds a
+   * complete `ConnectionState` literal, and the client's `tsc` includes
+   * its tests, so a REQUIRED field would break a frozen reconnect test
+   * under `build:types` while still passing `vitest` (esbuild strips
+   * types without checking them) — the worst possible failure shape.
+   * Honestly: before the first connection and after a drop there is no
+   * duration to report, and a `0` or `null` sentinel would be a value
+   * standing in for an absence.
+   *
+   * ⭐ It measures THIS CONNECTION, not the session: a successful
+   * reconnect issues a fresh `connection-established` and the timestamp
+   * resets. The popover's label says "this connection" rather than
+   * papering over that with a fake continuous session clock — the same
+   * move as hatching `MAKE`, where the honest fix for a figure at the
+   * wrong level is to correct the claim rather than the number.
+   */
+  connectedAt?: number;
 }
 
 // ============================================================================

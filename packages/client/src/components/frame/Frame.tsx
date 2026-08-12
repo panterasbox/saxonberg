@@ -1,24 +1,53 @@
 /**
- * Frame — the single in-world top bar. One row holding all the always-on
- * chrome: bus-health indicator + identity on the left, the "Views" layout
- * switcher beside them, and the settings affordance pinned right. Folding
- * the layout switcher + settings into this one bar (they used to sit on a
- * second `ChromeBar` row) keeps the chrome to a single strip — the content
- * area gets the reclaimed vertical space.
+ * `Frame` — the civic top bar. One row, every mode, rebuilt from the
+ * reference art rather than restyled.
  *
- * The layout-switcher + settings props are optional so the bar still
- * renders as bare identity chrome in pre-world phases that have no layout.
+ *     [seal] [ConnectionChip] │ [AccountMenu] │ [──── Shelf ────] [Views] [Settings]
  *
- * Reserved seams (rendered as nothing until their own cycles): a
- * mode-status region (game vitals), a mode indicator, and search.
+ * ## What sits where, and why
+ *
+ * **Identity and connection are anchored LEFT, together.** They are
+ * *the two things that must be true at a glance whatever else was
+ * removed* — you are logged in as somebody, and the bus is alive. The
+ * shelf is everything else, and everything else is negotiable.
+ *
+ * ⚠ The requirements also say "the account menu at the right", and the
+ * art puts the `who` chip at the left. `AccountMenu` is ONE component
+ * that is both the identity chip and its dropdown, so it cannot be in
+ * two places; the left reading wins on the requirements' own stronger
+ * sentence. If a split was intended — identity chip left, account
+ * actions right — that is two components and a second identity
+ * rendering, and it is a design call rather than an implementation one.
+ *
+ * **`ViewsMenu` and Settings survive.** Neither is mentioned in the
+ * requirements, and migrating the frame off `cockpit.layout` is an
+ * explicit Wave 4 non-goal — so a "full rebuild" that dropped them
+ * would regress two shipped surfaces. They hold the right-hand cluster
+ * the art gives to a notification bell, which is **not built, not
+ * hatched, and not placeholdered**: what belongs in that tray is
+ * whatever the receiver SAID they wanted, which wants `NotifyPolicy`
+ * read first. A stub would be an interface promising a model that does
+ * not exist.
+ *
+ * ⭐ **Identity and connection cannot be unpinned** — not because a
+ * rule protects them, but because they are not shelf rows at all.
+ * `cockpit shelf unpin identity` refuses with "unknown shelf row",
+ * which is a stronger guarantee than a rule somebody could edit.
+ *
+ * The seal is white-on-red with a red border — `--sx-red` and
+ * `--sx-white`, the two official colours. `red` is exempt from the
+ * contrast floor for exactly this reason: it is reserved for the seal,
+ * the flag rule and the single committing action per screen, all of
+ * which carry white separation.
  */
 
 import React from "react";
 import styled from "styled-components";
 import type { LayoutName } from "@saxonberg/types";
 import { tokens } from "../ui";
-import { ConnectionIndicator } from "./ConnectionIndicator";
+import { ConnectionChip } from "./ConnectionChip";
 import { AccountMenu } from "./AccountMenu";
+import { Shelf } from "./Shelf";
 import { ViewsMenu } from "../ViewsMenu";
 
 const Bar = styled.div`
@@ -31,11 +60,36 @@ const Bar = styled.div`
   flex: none;
 `;
 
-const Spacer = styled.div`
-  flex: 1;
+/**
+ * The seal. White on red with a red border — the two official colours,
+ * carrying the white separation the flag rule requires.
+ */
+const Seal = styled.div`
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: ${tokens.radius.sm};
+  background: ${tokens.color.seal};
+  border: 1px solid ${tokens.color.seal};
+  color: ${tokens.color.sealInk};
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.05em;
+`;
+
+const Divider = styled.span`
+  flex: none;
+  width: 1px;
+  align-self: stretch;
+  background: ${tokens.color.borderMuted};
+  margin: 0 ${tokens.space.xs};
 `;
 
 const SettingsButton = styled.button<{ $active: boolean }>`
+  flex: none;
   background: ${(p) =>
     p.$active ? tokens.color.surfaceMuted : "transparent"};
   border: 1px solid ${tokens.color.border};
@@ -56,7 +110,7 @@ interface FrameProps {
   layout?: LayoutName;
   /** Click-to-send a command (command-bus primacy). */
   onCommandClick?: (command: string) => void;
-  /** Hover-preview a command in the ghost line (`null` = stop). */
+  /** Hover-preview a command in the status bar (`null` = stop). */
   onCommandPreview?: (command: string | null) => void;
   /** Whether the settings pane is currently open. */
   settingsActive?: boolean;
@@ -71,9 +125,16 @@ export const Frame: React.FC<FrameProps> = ({
   settingsActive,
   onToggleSettings,
 }) => (
-  <Bar>
-    <ConnectionIndicator />
+  <Bar data-testid="top-bar">
+    <Seal aria-label="Saxonberg">S</Seal>
+    <ConnectionChip />
+    <Divider aria-hidden="true" />
     <AccountMenu />
+    <Divider aria-hidden="true" />
+    <Shelf
+      {...(onCommandClick ? { onCommandClick } : {})}
+      {...(onCommandPreview ? { onCommandPreview } : {})}
+    />
     {layout && onCommandClick && onCommandPreview ? (
       <ViewsMenu
         current={layout}
@@ -81,7 +142,6 @@ export const Frame: React.FC<FrameProps> = ({
         onCommandPreview={onCommandPreview}
       />
     ) : null}
-    <Spacer />
     {onToggleSettings ? (
       <SettingsButton
         $active={settingsActive ?? false}

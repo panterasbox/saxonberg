@@ -83,6 +83,19 @@ export const tokens = {
     accentWash: SX["accent-wash"],
     /** Foreground on a saturated field (buttons, the blue canton). */
     onField: SX.white,
+    /**
+     * ⭐ Old Glory Red as the **official colour**, distinct from the
+     * `bad` semantic role — reserved for the seal, the flag rule and
+     * the single committing action per screen. Every one of those
+     * carries white separation, which is what makes it usable at 2.66:1
+     * where `bad` as text would not be; `color.danger` resolves to
+     * `ember` for alerts and always will.
+     *
+     * ⚠ A background/border colour only. Never put text in this.
+     */
+    seal: SX.red,
+    /** The white that separates the seal from what it sits on. */
+    sealInk: SX.white,
     /** Drop shadow under a raised surface. */
     shadow: SX.shadow,
     /** Full-surface dim behind a modal or a disabled region. */

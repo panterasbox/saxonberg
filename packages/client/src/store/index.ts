@@ -1267,6 +1267,11 @@ export const useStore = create<StoreState>((set, get) => ({
         socketId: payload.socketId,
         sessionId: payload.sessionId,
         error: null,
+        // ⚠ Stamped here, not on the socket open: this is the frame
+        // that says the connection is USABLE. A reconnect re-issues it,
+        // so the clock restarts — which is why the popover's row is
+        // labelled "this connection" rather than "session".
+        connectedAt: Date.now(),
       },
       // An established frame always carries an Avatar (avatarStuffId),
       // so it is unconditionally the in-world flip — regardless of
@@ -1320,6 +1325,9 @@ export const useStore = create<StoreState>((set, get) => ({
           socketId: null,
           sessionId: null,
           error: error || null,
+          // ⚠ `connectedAt` is deliberately NOT carried over. There is
+          // no live connection to have a duration, and reporting the
+          // dead one's age would be a figure about nothing.
         },
         selfInteractiveId: null,
         selfAvatarId: null,

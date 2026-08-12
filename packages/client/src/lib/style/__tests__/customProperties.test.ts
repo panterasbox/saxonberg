@@ -153,21 +153,26 @@ describe('4 — reverse: every role is consumed, or reserved on purpose', () => 
    * deleted by someone tidying up.
    */
   const RESERVED: Record<string, string> = {
-    // ⭐ Old Glory Red as the *official colour*, distinct from the `bad`
-    // semantic role. Reserved for the seal, the flag rule and the single
-    // committing action per screen — surfaces that carry white
-    // separation, none of which exist yet. It is exact in every ground
-    // and must stay unconsumed until something can honour "red never
-    // touches blue"; `tokens.color.danger` resolves to `ember` instead.
-    // (`bad` IS consumed — high-contrast's `bucket.foe`, where the role
-    // takes a legible #ff4d4d rather than the 2.66:1 official red.)
-    red: 'the official colour; awaits a surface that can carry white separation',
-    // ⭐ `fg-dim` graduated out of this table in Build B, exactly as its
-    // reservation predicted: the chrome hierarchy (top bar / status bar
-    // / shelf) is the first surface with three levels of text to
-    // separate, and `tokens.color.fgDim` now references it. A
-    // reservation whose named consumer arrives is supposed to leave —
-    // that is what distinguishes it from dead vocabulary.
+    // ⭐⭐ **This table is now empty, and that is the intended end
+    // state.** Both of its entries named a future surface as their
+    // consumer, and Build B is that surface:
+    //
+    //   - `red` — Old Glory Red as the *official colour*, distinct from
+    //     the `bad` semantic role. It awaited "a surface that can carry
+    //     white separation", which is the top bar's SEAL: white glyph
+    //     on red with a red border, read through `tokens.color.seal` /
+    //     `sealInk`. It stays a background/border colour and never
+    //     text — `tokens.color.danger` still resolves to `ember`, so
+    //     "red never touches blue" holds.
+    //   - `fg-dim` — the published middle foreground step. The chrome
+    //     hierarchy (top bar / status bar / shelf) is the first surface
+    //     with three levels of text to separate, and
+    //     `tokens.color.fgDim` now references it.
+    //
+    // ⚠ A reservation whose named consumer ARRIVES is supposed to
+    // leave; that is exactly what distinguishes it from dead
+    // vocabulary. Adding a new entry here is fine — with its reason,
+    // and with the surface that will retire it named.
   };
 
   it('the consumed set plus the reserved set is the whole vocabulary', () => {
