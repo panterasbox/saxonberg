@@ -420,33 +420,52 @@ The worst case is therefore **lost accrual, never corruption**: an object
 persisted after the last clock snapshot comes back with a future stamp,
 forfeits that sliver of integration, and resumes.
 
-> ⚠⚠ **A16 was enforced by convention alone** — no base class, no shared
+> ⚠⚠ **A16 is enforced by convention alone** — no base class, no shared
 > helper, no check. A new reconcile-on-read mixin omitting the guard
-> would produce silent garbage on the next crash recovery (a corpse
-> warming up, a plant un-growing) and nothing would catch it.
->
-> ✅ **Now enforced:** `pnpm lint:clock-guards`
-> (`scripts/check-clock-guards.ts`, CI-gating). Parses the TS AST for any
-> interval bound by subtracting a stamp from a now, and requires a
-> non-positive guard in the same file. Currently **21 bindings across 17
-> files, all guarded**, with 3 reviewed exemptions.
+> produces silent garbage on the next crash recovery (a corpse warming
+> up, a plant un-growing) and nothing catches it.
 
-Two things the check surfaced that the manual audit had missed:
+### ⏳ The check — designed, prototyped, **not shipped**
 
-- ⚠ **`SchedulerRegistry.fireEmission`** binds a game-time `elapsed` and
-  hands it to **authored emission consumers** as a payload field. It
+A `lint:clock-guards` script was written and run against the tree on
+2026-08-11, then **backed out** to respect the client-phase build freeze.
+It is recorded here rather than kept as code, because what it *found* is
+worth more than the script was.
+
+**The rule.** Parse the TS AST for any interval bound by subtracting a
+stamp from a now — a `VariableDeclaration` whose name matches
+`elapsed`/`age`/`idle` and whose initializer subtracts an operand
+matching `ClockStamp|Stamp|tickedAt|startedAt|lastTouched|.when|.last` —
+and require a non-positive guard on the bound name **somewhere in the
+same file**: a zero comparison in either direction, or `Math.max(0, x)`.
+
+⭐ **The guard must not have to be adjacent.** `TraitPosition` clamps one
+frame down inside `decayFactor`; a stricter rule false-positives on
+correct code.
+
+Two properties borrowed from `check-boundary-exemptions`, both worth more
+than the core check:
+
+1. **Fail if it matches zero bindings.** The naming vocabulary is the
+   thing most likely to drift, and *a lint that silently matches nothing
+   is worse than no lint.*
+2. **Every exemption must still resolve to a real site**, so a rename
+   cannot leave one quietly excusing something that moved.
+
+**Result when run:** 21 interval bindings across 17 files. **All guarded
+but two**, and a negative test (reverting one guard in `Wet.ts`)
+confirmed it fires on exactly that line.
+
+### ⚠ The two findings — these outlive the script
+
+- ⚠ **`SchedulerRegistry.fireEmission`** binds a **game-time** `elapsed`
+  and hands it to **authored emission consumers** as a payload field. It
   integrates nothing itself, so a rewind cannot corrupt engine state —
-  but content code may integrate over it. **Exempted for review with a
-  recommended fix** (`Math.max(0, …)` at the binding), not blessed.
-- **`StreamRelay.consume`** is a `Date.now` token bucket — off the game
-  clock entirely, so an NTP step over-debits one speaker's rate limit
-  until it refills. Self-healing; exempted with that reason.
-
-⭐ The check also **fails if it matches zero bindings**, and verifies every
-exemption still resolves to a real site. Both are the
-`check-boundary-exemptions` lesson: *a lint that silently matches nothing
-is worse than no lint*, and a rename must not leave an exemption quietly
-excusing something that moved.
+  but content code may integrate over it. **Recommended fix: clamp with
+  `Math.max(0, …)` at the binding.** Unfixed.
+- **`StreamRelay.consume`** is a `Date.now` token bucket, off the game
+  clock entirely — an NTP step backwards over-debits one speaker's rate
+  limit until it refills. Self-healing; no action.
 
 ### ⚠⚠ What Tier A does not protect
 
