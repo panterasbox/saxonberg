@@ -305,11 +305,12 @@ are **deleted** — all view-switching lives in the one server axis.
 - `LayoutProps` is the bundle `App` threads to the active layout (frame
   buffer, command-send/preview/click handlers, prompt handlers). Each
   command bar owns its own local input draft and submits its `barId`;
-  preview/flash live in the ghost line, not in a bar.
+  preview/flash live in the status bar, not in a bar.
 - The **"Views" menu** (`components/ViewsMenu.tsx`) previews/sends
   `cockpit mode <mode> <arrangement>` per the click model and marks the current layout. It +
   the Settings affordance live in the **single top `Frame` bar**
-  (`components/frame/Frame.tsx`) alongside bus-health + identity — one
+  (`components/frame/Frame.tsx`) alongside the connection chip, identity
+  and the widget shelf — one
   fixed chrome row, not two (the separate `ChromeBar` row was folded into
   `Frame` so the content area reclaims the vertical space).
 - An **always-on minimum** (the Frame bar, a command bar) renders in
@@ -344,7 +345,7 @@ community prompts, broadcast state) plus a small live readout (viewers,
 uptime). The deck is the *frame* for that — a live strip + grouped cards
 of command shortcuts. The streamer command set isn't built yet, so the
 chips are an **honest scaffold**: each previews the command it *would*
-run in the ghost line on hover (the same learn-the-CLI affordance) but is
+run in the status bar on hover (the same learn-the-CLI affordance) but is
 dimmed and doesn't send until its verb ships. Per the through-line the
 client still owns zero command semantics — every chip is just a
 command-bus affordance.
@@ -427,7 +428,7 @@ primacy made absolute.
   the explicit **`--bar <id>`** option names a bar for an affordance —
   which dispatches *un-moded* (no wire `barId`, so preview == send) and so
   can't rely on `context.barId`. The target rides in the command text
-  (`cockpit cli stream-chat --prefix chat`), keeping the ghost-line preview honest.
+  (`cockpit cli stream-chat --prefix chat`), keeping the status-bar preview honest.
   Because modes are transient the commit is just **write→push** (no
   `save()`).
 
@@ -446,16 +447,22 @@ The client no longer wraps input. The `inputMode` store slice is gone.
   `cockpit cli --clear` from that line. The chat sidecar's "talk here" sends
   `cockpit cli --prefix "chat <handle>"` from the forum line.
 
-### The ghost command line + click model
+### The preview surface + click model
 
 Under per-bar mode, preview cannot live *in* a bar (a moded bar would
 prepend its prefix, so the preview would lie). It lives in the always-on
-**ghost command line** (`components/GhostCommandLine.tsx`, store-backed
-`ghostPreview`/`ghostFlash`) beside the primary bar. Hover → the exact
-command; **click → run it un-moded** (no `barId`, so preview equals
-send); **shift-click / right-click → copy** to the clipboard (the
+**status bar** (`components/frame/StatusBar.tsx`, store-backed
+`ghostPreview`/`ghostFlash`) along the bottom of the window. Hover → the
+exact command; **click → run it un-moded** (no `barId`, so preview
+equals send); **shift-click / right-click → copy** to the clipboard (the
 explicit "make it mine" path, replacing shift-click-loads-a-bar, which
 has no honest target under N bars).
+
+⚠ **`GhostCommandLine.tsx` is retired** — it had two render sites, and
+two surfaces showing what a click would send can disagree, which
+discredits the axiom rather than merely looking wrong. There is now
+exactly ONE preview surface, guarded by a source scan. See
+[client-shell.md § The status bar](./client-shell.md).
 
 ## The summoned-pane tier
 

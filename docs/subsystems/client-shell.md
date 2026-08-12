@@ -52,12 +52,40 @@ The components:
   named in the honest-chrome requirements, and migrating the frame off
   `cockpit.layout` is an explicit Wave 4 non-goal, so a "full rebuild"
   that dropped them would have regressed two shipped surfaces.
-- **The seal** — white on red with a red border, through
-  `tokens.color.seal` / `sealInk`. This is the surface `--sx-red` was
-  reserved for: the official colour is usable at its 2.66:1 *because*
-  it carries white separation, and it stays background/border only, so
-  "red never touches blue" holds and `tokens.color.danger` still
-  resolves to `ember`.
+- **The seal** (`components/frame/Seal.tsx`) — the real Saxonberg mark,
+  **applied**: a white rim, a struck red field with two inset rules, and
+  the three Borromean rings. Source of truth is `docs/brand/` (⚠ which
+  currently lives on the `design/balance-machine` branch, not master);
+  the artwork is inlined, which is what the brand README says to do.
+
+  ⚠⚠ **The rim is the flag rule, not decoration.** *Red never touches
+  blue; white is the separator*, and this bar's ground is navy. This is
+  the surface `--sx-red` was reserved for — the official colour is
+  usable at its 2.66:1 **because** it carries white separation, so it
+  has to actually carry it. A first cut drew a red block with a red
+  border straight onto the navy, which is precisely what the rule
+  forbids; `Seal.test.tsx` now asserts the rim exists, spans the full
+  radius, and is painted beneath an inset field. `tokens.color.danger`
+  still resolves to `ember`, so red stays out of the alert vocabulary.
+
+  ⚠ **The source SVG does not carry the rim** — both its white rules are
+  inset, leaving bare red at the outer edge. A white disc is added with
+  the artwork scaled to `0.949` inside it, matching what
+  panterasbox-web's `Marks.js` does. If the source file grows its own
+  rim, drop the disc and the scale.
+
+  ⭐ **The casing is structural.** Each ring carries a field-coloured
+  stroke beneath its ink stroke; that is what interrupts the ring
+  passing underneath. Drop it and three same-coloured rings stack, no
+  crossing reads, and the Borromean claim — no two linked, yet all three
+  hold — becomes false. Editing the paths means keeping both crossings
+  of a given pair the same way round.
+
+  ⚠ Colour reaches the mark through **CSS rules on classes**, never SVG
+  presentation attributes: `tokens.color.*` are `var(--sx-…)` strings,
+  and a `var()` in `fill="…"` does not resolve — it silently paints
+  nothing. This is the hazard `tokens.ts` warns about, in the one place
+  it actually bites.
 
 ⚠ **The notification bell in the reference art is not built, not
 hatched, and not placeholdered**, and `Frame.test.tsx` asserts its

@@ -2891,3 +2891,69 @@ could disagree about the same object in the same room and nobody could
 tell. **Giving a tag meaning is what makes its misuse findable** — the
 divergence surfaced within minutes of a live drive once the tags said
 something.
+
+---
+
+## A display surface reading a ledger's neutral-zero accessor
+
+**Don't** render a figure from a read that collapses *measured and found
+neutral* into *never measured*. A `?? 0` at the bottom of a cached read
+is right for the caller about to do arithmetic and a fabricated answer
+for the caller about to show the number.
+
+### BAD
+
+```ts
+// Avatar's `renown` subscribable field.
+read: (stuff, viewer) => {
+  const key = standingSubject(stuff, viewer);
+  if (!key) return undefined;
+  // `renownOf` ends in `cached().get(key) ?? 0`, so a character whose
+  // standing was NEVER COMPUTED is indistinguishable on the wire from
+  // one measured at exactly zero. The client shows a confident `0`
+  // for a figure nobody ever derived.
+  return { value: RenownApi.renownOf(key) };
+},
+```
+
+### GOOD
+
+```ts
+read: (stuff, viewer) => {
+  const key = standingSubject(stuff, viewer);
+  if (!key) return undefined;
+  const value = RenownApi.measuredRenownOf(key);
+  // `undefined` -> `projectFields` omits the key entirely, and the
+  // client renders the honest not-measured state with a reason. A
+  // `{value: 0}` that DOES arrive now genuinely means zero.
+  if (value === undefined) return undefined;
+  return { value };
+},
+```
+
+**The rule: the scoring read and the display read are two methods.**
+`renownOf` for arithmetic (a missing scope contributing nothing really
+is zero); `measuredRenownOf` for anything a player will look at.
+
+⭐ **Add the absence-preserving companion; do not change the existing
+accessor.** All five of `renownOf`'s callers genuinely want a number
+(`Band.fromScalar`, a `Math.max(0, …)` clamp, a report), so pushing the
+`undefined` outward would only reproduce the same `?? 0` collapse in
+each of them, further from the data. The companion is additive and the
+existing contract is untouched.
+
+⚠ The tell that this is worth fixing at the source rather than at the
+consumer: **the information already exists and is being discarded one
+line before it leaves.** `DerivedStandingCache.get()` returns
+`undefined` on a miss and every other folded figure honours that —
+`projectFields` omits an `undefined` field precisely so a client shows
+*no value* rather than a zero. A consumer-side policy ("render 0 as
+empty") would have been picking which of two meanings to be wrong
+about, and would have made a genuinely-zero standing unrenderable
+forever.
+
+Generalizes past renown: any `cached().get(k) ?? <neutral>` accessor
+with a display consumer wants the same split. See
+[renown.md](./subsystems/renown.md) and
+[mql-subscription.md](./subsystems/mql-subscription.md) § Ledger-derived
+fields.

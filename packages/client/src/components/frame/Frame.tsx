@@ -34,17 +34,22 @@
  * `cockpit shelf unpin identity` refuses with "unknown shelf row",
  * which is a stronger guarantee than a rule somebody could edit.
  *
- * The seal is white-on-red with a red border — `--sx-red` and
- * `--sx-white`, the two official colours. `red` is exempt from the
- * contrast floor for exactly this reason: it is reserved for the seal,
- * the flag rule and the single committing action per screen, all of
- * which carry white separation.
+ * The seal is the real Saxonberg mark (`components/frame/Seal.tsx`),
+ * applied — a white rim, a struck red field, and the three Borromean
+ * rings. ⚠ **The rim is the flag rule, not decoration**: *red never
+ * touches blue*, white is the separator, and the bar's ground is navy.
+ * A first cut here drew a red block with a red border straight onto
+ * that navy, which is the one thing the system forbids. `--sx-red` is
+ * exempt from the contrast floor precisely because it is reserved for
+ * surfaces that carry white separation — so it has to actually carry
+ * it.
  */
 
 import React from "react";
 import styled from "styled-components";
 import type { LayoutName } from "@saxonberg/types";
 import { tokens } from "../ui";
+import { Seal } from "./Seal";
 import { ConnectionChip } from "./ConnectionChip";
 import { AccountMenu } from "./AccountMenu";
 import { Shelf } from "./Shelf";
@@ -58,26 +63,6 @@ const Bar = styled.div`
   background: ${tokens.color.surface};
   border-bottom: 1px solid ${tokens.color.borderMuted};
   flex: none;
-`;
-
-/**
- * The seal. White on red with a red border — the two official colours,
- * carrying the white separation the flag rule requires.
- */
-const Seal = styled.div`
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: ${tokens.radius.sm};
-  background: ${tokens.color.seal};
-  border: 1px solid ${tokens.color.seal};
-  color: ${tokens.color.sealInk};
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.05em;
 `;
 
 const Divider = styled.span`
@@ -126,7 +111,7 @@ export const Frame: React.FC<FrameProps> = ({
   onToggleSettings,
 }) => (
   <Bar data-testid="top-bar">
-    <Seal aria-label="Saxonberg">S</Seal>
+    <Seal size={22} title="Saxonberg" />
     <ConnectionChip />
     <Divider aria-hidden="true" />
     <AccountMenu />
