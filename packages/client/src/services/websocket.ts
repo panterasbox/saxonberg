@@ -139,6 +139,23 @@ class WebSocketClient {
    */
   private forumSubscriptions: Map<string, ForumSubscriptionScope> = new Map();
 
+  /**
+   * The round-trip heartbeat's timer, or `null` when no socket is up.
+   *
+   * ⭐ **The service owns this, not a component.** A popover-owned ping
+   * would only measure while somebody had the popover open — so the
+   * mobile bar, which shows the figure at rest, would have nothing, and
+   * the desktop popover would show a number that existed only because
+   * you were looking at it. A socket owns its own health.
+   *
+   * ⚠ 30s, and one immediately on connect so the first figure lands
+   * without a thirty-second hole. The cadence is a real cost decision:
+   * this is a cosmetic reading multiplied by every connected client, and
+   * a tighter loop buys precision nobody is reading.
+   */
+  private heartbeat: ReturnType<typeof setInterval> | null = null;
+  private static readonly HEARTBEAT_MS = 30_000;
+
   constructor() {
     this.registerBuiltinHandlers();
   }
@@ -266,6 +283,7 @@ class WebSocketClient {
       this.ws.onclose = () => {
         console.info("WebSocketClient: Connection closed");
         this.ws = null;
+        this.stopHeartbeat();
 
         // Intentional teardown (logout / leave-world): the caller has
         // already driven the phase. Don't auto-reconnect, don't flip to
@@ -298,6 +316,7 @@ class WebSocketClient {
 
       this.ws.onerror = (error) => {
         console.error("WebSocketClient: Error:", error);
+        this.stopHeartbeat();
         useStore.getState().setDisconnected("WebSocket error", "reconnecting");
       };
     } catch (error) {
@@ -320,6 +339,10 @@ class WebSocketClient {
    */
   public reconnectNow(): void {
     this.reconnectAttempts = 0;
+    // ⚠ Explicitly, because the teardown below DETACHES `onclose` — the
+    // handler that normally stops the heartbeat never runs on this
+    // path, and a leaked timer would outlive its socket.
+    this.stopHeartbeat();
     const old = this.ws;
     this.ws = null;
     if (old) {
@@ -346,6 +369,7 @@ class WebSocketClient {
    */
   public disconnect(): void {
     this.intentionalDisconnect = true;
+    this.stopHeartbeat();
     if (this.ws) {
       // Close with the intentional-leave code so the server reads this as
       // a deliberate departure (→ a `loggedOut` presence frame for
@@ -373,6 +397,34 @@ class WebSocketClient {
       type: "ping",
       payload: { timestamp: Date.now() },
     });
+  }
+
+  /**
+   * Start the round-trip heartbeat. Fires one ping immediately — the
+   * figure should not be blank for the first half-minute of a session —
+   * then every `HEARTBEAT_MS`.
+   *
+   * Idempotent: a second `connection-established` on the same socket
+   * (which a reconnect legitimately produces) must not leave two timers
+   * pinging in parallel.
+   */
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.sendPing();
+    this.heartbeat = setInterval(() => {
+      // Guard rather than assume: `onclose` clears the timer, but a
+      // socket can be mid-close when the tick lands, and `send()`
+      // logging an error every 30s for a dead link would be noise
+      // standing in for a fact the store already has.
+      if (this.isConnected()) this.sendPing();
+    }, WebSocketClient.HEARTBEAT_MS);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeat !== null) {
+      clearInterval(this.heartbeat);
+      this.heartbeat = null;
+    }
   }
 
   /**
@@ -497,6 +549,23 @@ class WebSocketClient {
         return;
       }
 
+      // The heartbeat's reply. Like `client-state-update` this is
+      // substrate plumbing with no `frameId` and no topic, so it needs
+      // its own branch above the envelope discriminator — without one
+      // it falls through to the catch-all as a topic-less MessageFrame
+      // and is silently ignored, which is exactly what "nothing handles
+      // the pong" meant.
+      if (
+        typeof frame === "object" &&
+        frame !== null &&
+        (frame as { type?: unknown }).type === "pong"
+      ) {
+        this.handlePong(
+          (frame as { payload?: { clientTimestamp?: unknown } }).payload,
+        );
+        return;
+      }
+
       // Envelope frames carry `type` + numeric `frameId`; MessageFrames
       // carry `topic`. Two channels, two shapes — discriminate
       // structurally.
@@ -573,11 +642,37 @@ class WebSocketClient {
     }
   }
 
+  /**
+   * A completed round trip: `now − the stamp we sent`, using ONE clock
+   * throughout.
+   *
+   * ⚠ The stamp is the client's own, echoed home by the server — never
+   * the server's `timestamp` field, which is a different machine's
+   * clock and would report skew rather than latency. A pong without one
+   * (an older server) leaves the figure absent, which is the honest
+   * reading: nothing measured it.
+   */
+  private handlePong(payload: { clientTimestamp?: unknown } | undefined): void {
+    const sent = payload?.clientTimestamp;
+    if (typeof sent !== "number") return;
+    const rtt = Date.now() - sent;
+    // A negative round trip means the clock moved under us (a sleep, an
+    // NTP step). Dropping it beats reporting a number that cannot be
+    // true; the next beat is 30s away.
+    if (rtt < 0) return;
+    useStore.getState().setConnection({ roundTripMs: rtt });
+  }
+
   private handleConnectionEstablished(
     payload: ConnectionEstablishedPayload,
   ): void {
     console.info("WebSocketClient: Connection established:", payload);
     useStore.getState().setConnected(payload);
+    // ⚠ Here, not on the socket's `onopen`: this is the frame that says
+    // the connection is USABLE, and it is the same seam `connectedAt`
+    // is stamped from. Pinging a socket the server has not finished
+    // admitting would measure a handshake, not a round trip.
+    this.startHeartbeat();
 
     // Re-issue every active MQL subscription on every
     // connection-established event. The server re-instantiates the
@@ -919,6 +1014,14 @@ class WebSocketClient {
     console.warn(
       `WebSocketClient: Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,
     );
+    // ⭐ The delay is now REPORTED as well as slept on. It used to go
+    // straight into the timer and nowhere else, so the store learned
+    // only `link: 'reconnecting'` and every surface could say "we are
+    // retrying" while none could say *when*. The schedule itself is
+    // untouched — this is the same number, told to somebody.
+    useStore
+      .getState()
+      .setDisconnected(undefined, "reconnecting", Date.now() + delay);
     setTimeout(() => {
       this.connect(this.url);
     }, delay);

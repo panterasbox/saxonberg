@@ -2738,6 +2738,40 @@ export interface ConnectionState {
    * wrong level is to correct the claim rather than the number.
    */
   connectedAt?: number;
+  /**
+   * Round-trip milliseconds from the last completed ping/pong.
+   *
+   * ⭐ **Measured, not estimated.** `WebSocketClient` runs a heartbeat
+   * and `backend/inbound/ping.ts` echoes the client's own send stamp
+   * back, so this is a real observation of this socket. It was hatched
+   * in the honest-chrome build with the reason *"needs a ping/pong"* —
+   * which was inaccurate: the protocol existed end to end and nothing
+   * called it.
+   *
+   * ⚠ Absent until the first pong lands, and cleared on a drop. There
+   * is no round trip before one has completed, and a `0` would be a
+   * fabricated figure standing in for an absence — the same rule
+   * `connectedAt` follows, and the same reason its optionality is
+   * load-bearing (`connectionLink.test.ts` builds a complete literal).
+   */
+  roundTripMs?: number;
+  /**
+   * Epoch ms at which the next automatic reconnect attempt fires.
+   *
+   * ⭐ **Exposed, not invented.** `attemptReconnect()` already computes
+   * an exponential backoff (1·2·4·8·16·30·30s) and then discards it
+   * into a bare `setTimeout` — the store only ever learned
+   * `link: 'reconnecting'`. This is the same shape as the renown
+   * measurement: the information exists and is thrown away one line
+   * before it leaves. Surfacing it is not new measurement, and the
+   * backoff schedule itself is unchanged.
+   *
+   * ⚠ Absent while connected, and after the final attempt — there is no
+   * *next* attempt to count down to once the machine has given up, and
+   * a countdown still ticking against a link that will never retry
+   * would be the most misleading figure on the screen.
+   */
+  retryAt?: number;
 }
 
 // ============================================================================

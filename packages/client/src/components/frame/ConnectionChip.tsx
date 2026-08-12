@@ -24,23 +24,43 @@
  * its tests needs to change, that is the signal that behaviour moved
  * where only presentation should have.
  *
- * ## The popover: one live row, two hatched
+ * ## The popover: two live rows, one hatched
  *
- * The chip expands to three readings, and only one of them has a
+ * The chip expands to three readings, and two of them now have a
  * source:
  *
  * | row | state | why |
  * |---|---|---|
  * | this connection | **live** | derivable from a connect timestamp |
- * | round trip | hatched | nothing measures it; needs a ping/pong |
- * | frames behind | hatched | nothing measures it; needs a sequence number |
+ * | round trip | **live** | measured by the heartbeat |
+ * | frames behind | hatched | needs a server sequence number |
  *
- * ⚠ Adding a ping/pong and a frame sequence is real protocol work with
- * its own failure modes, and it belongs in its own build rather than
- * smuggled into a chrome pass. The popover's own copy is what earns it
- * a place: a dropped socket in a MUD costs you whatever you were
- * mid-way through, and the honest version of that surface says which of
- * its three readings it can actually stand behind.
+ * ⭐⭐ **Round trip was hatched here, and its stated reason — that
+ * nothing measured it and a ping/pong would have to be written — was
+ * WRONG.** The protocol existed end to end the whole time:
+ * `websocketClient.sendPing()` sent a client timestamp and
+ * `backend/inbound/ping.ts` replied. What was missing was only that
+ * nothing *called* one and nothing *handled* the other. So the hatch
+ * was sending the next builder to write something already written —
+ * precisely the failure the three-category hatch doctrine exists to
+ * prevent: **a reason that sends you looking in the wrong place is
+ * worse than no reason at all**, because it is confidently actionable
+ * and wrong.
+ *
+ * The wrong claim is deleted rather than edited around, and this
+ * comment deliberately paraphrases it rather than reproducing it:
+ * `__tests__/roundTripReason.test.ts` greps the client source for the
+ * exact string and fails if it survives anywhere, so quoting it here
+ * would defeat the guard that keeps it gone.
+ *
+ * ⚠ Frames-behind stays hatched, and its reason is now the *only*
+ * unmeasured claim here: there is no server sequence number, which is
+ * genuinely missing rather than merely uncalled.
+ *
+ * The popover's own copy is what earns it a place: a dropped socket in
+ * a MUD costs you whatever you were mid-way through, and the honest
+ * version of that surface says which of its readings it can stand
+ * behind.
  *
  * ⭐ The duration row says **"this connection"**, not "session". A
  * successful reconnect issues a fresh `connection-established`, so the
@@ -123,9 +143,25 @@ export function formatDuration(ms: number): string {
   return `${total}s`;
 }
 
+/**
+ * The round-trip reading, shared by the popover and the mobile bar so
+ * the two surfaces cannot drift into disagreeing about the same
+ * measurement.
+ *
+ * ⚠ `empty` with a reason before the first pong lands — **never `0`**.
+ * A zero-millisecond round trip is not a thing that happens, so
+ * printing one would be a fabricated figure claiming a perfect link.
+ */
+export function roundTripFigure(roundTripMs: number | undefined): FigureState {
+  return roundTripMs === undefined
+    ? { state: "empty", reason: "no round trip completed yet" }
+    : { state: "live", value: `${roundTripMs} ms` };
+}
+
 export const ConnectionChip: React.FC = () => {
   const link = useStore((s) => s.connection.link);
   const connectedAt = useStore((s) => s.connection.connectedAt);
+  const roundTripMs = useStore((s) => s.connection.roundTripMs);
   const [open, setOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -180,17 +216,14 @@ export const ConnectionChip: React.FC = () => {
         <Popover role="dialog" aria-label="Connection detail" data-testid="connection-popover">
           <Justification>
             A dropped socket in a MUD costs you whatever you were mid-way
-            through. Two of these three readings have nothing measuring
-            them yet, and say so.
+            through. One of these three readings has nothing measuring it
+            yet, and says so.
           </Justification>
           <Figure variant="row" label="this connection" figure={duration} />
           <Figure
             variant="row"
             label="round trip"
-            figure={{
-              state: "unwired",
-              reason: "nothing measures it — needs a ping/pong",
-            }}
+            figure={roundTripFigure(roundTripMs)}
           />
           <Figure
             variant="row"

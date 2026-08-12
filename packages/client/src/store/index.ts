@@ -274,7 +274,20 @@ interface StoreState extends CmsSlice, StudioSlice {
   selfAvatarId: string | null;
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
-  setDisconnected: (error?: string, link?: "reconnecting" | "dropped") => void;
+  /**
+   * ⚠ `retryAt` is a THIRD OPTIONAL param rather than a separate action,
+   * and both halves of that matter. Optional: every existing call site
+   * — including the frozen reconnect test's 0-, 1- and 2-arg calls —
+   * compiles and behaves identically. One action: a second action would
+   * split one transition across two calls, and a caller that forgot the
+   * second would leave a stale countdown ticking against a link that is
+   * already back.
+   */
+  setDisconnected: (
+    error?: string,
+    link?: "reconnecting" | "dropped",
+    retryAt?: number,
+  ) => void;
 
   // Connection-phase slice — the mutually-exclusive top-level screen.
   /**
@@ -1272,6 +1285,12 @@ export const useStore = create<StoreState>((set, get) => ({
         // so the clock restarts — which is why the popover's row is
         // labelled "this connection" rather than "session".
         connectedAt: Date.now(),
+        // ⭐ `roundTripMs` and `retryAt` are absent here by
+        // CONSTRUCTION — this is a whole-object replacement, not a
+        // merge, so a stale trip measured on the dead socket and a
+        // countdown to an attempt that has already succeeded both
+        // vanish without anyone having to remember to clear them. The
+        // heartbeat's first ping repopulates the trip within a beat.
       },
       // An established frame always carries an Avatar (avatarStuffId),
       // so it is unconditionally the in-world flip — regardless of
@@ -1308,7 +1327,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }));
   },
 
-  setDisconnected: (error, link = "reconnecting") =>
+  setDisconnected: (error, link = "reconnecting", retryAt) =>
     set((state) => {
       // A dropped guest can't resume — the server reaped the avatar on
       // disconnect — so route them to the start screen (their throwaway
@@ -1328,6 +1347,17 @@ export const useStore = create<StoreState>((set, get) => ({
           // ⚠ `connectedAt` is deliberately NOT carried over. There is
           // no live connection to have a duration, and reporting the
           // dead one's age would be a figure about nothing.
+          //
+          // ⚠ Nor is `roundTripMs`, for the same reason and more
+          // sharply: the last measured trip belongs to a socket that no
+          // longer exists, so keeping it would leave a confident
+          // latency reading sitting beside the word "dropped".
+          //
+          // `retryAt` is present only when the caller has one — the
+          // backoff loop knows its next attempt, the give-up path and
+          // the manual reconnect do not, and an omitted field is how a
+          // countdown says it has nothing to count.
+          ...(retryAt !== undefined ? { retryAt } : {}),
         },
         selfInteractiveId: null,
         selfAvatarId: null,
