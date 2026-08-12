@@ -68,6 +68,30 @@ conduction walk ever traverse the ref (probably not — it's a
 logical dependency, not a physical conductor); who may flip a
 substation (access/governance gate).
 
+## ⭐ Generation — DECIDED: Terminus runs on hydro
+
+**(Recorded 2026-08-11. Decided in conversation earlier and never written
+down; everything below and in the
+[mana pack](./mana-economy-design-pack.md) Part 5b leans on it.)**
+
+> **Terminus generates its power from HYDRO, because it sits on the rivers.**
+
+The geography already carries it — [terminus-city](../../staging/terminus-city.md)
+puts two rivers meeting at the **Confluence** at the north head, the combined
+river running south between the banks, with **Wharfside** as the riverfront.
+Generation is a site fact, not a policy choice: the city is where it is
+*because* of the water.
+
+⭐⭐ **And it is load-bearing beyond lighting.** Refining mana costs energy
+(the [mana pack](./mana-economy-design-pack.md)), so cheap hydro is what lets
+**Terminus refine mana it does not produce** — raw material in from the
+frontier, refined mana out. That is the aluminium relationship (smelters
+locate at cheap hydro and import their ore), and it turns a lighting decision
+into the city's industrial identity.
+
+⚠ **Note what this does NOT settle:** who *owns* the generation, who is billed
+and how. Those stay open below. Generation is geography; ownership is politics.
+
 ## The municipal layer (the real fork — owner's call)
 
 Everything past the middle tier is polity + economy design:
@@ -85,6 +109,30 @@ Everything past the middle tier is polity + economy design:
   per-parcel service echoes the parcel registry
   ([parcel.md](../../subsystems/parcel.md) — service to titled
   property; the invoice-the-owners loop).
+
+  > ⭐⭐⭐ **CONSTRAINED 2026-08-11 — the recurring-charge call.** This slate
+  > predates the [stewardship doctrine](../../stewardship-doctrine.md) and
+  > was never checked against **Law 2**. It is now, and billing is bounded
+  > by three rules:
+  >
+  > 1. **Meter on USE, never on connection or ownership.** Per-unit
+  >    consumption ✅. A fixed **standing/connection charge** ⛔ — that is
+  >    *"rent on owned space"* with the serial numbers filed off. An
+  >    **ad-valorem holding tax** ⛔.
+  > 2. **Dischargeable without attendance** — capital or a standing order
+  >    must be able to pay it. *"The bill is paid in engagement + capital,
+  >    never in showing up."*
+  > 3. **Non-payment's ceiling is credit and comfort, never the asset**
+  >    ([credit-slate](./credit-slate.md)'s property floor). This is what
+  >    makes 1–2 safe.
+  >
+  > The framing that makes this natural rather than a restriction:
+  > **utilities are the compute meter's fictional twin.** A lit lamp burns
+  > supply the way a running zone burns compute and a torch burns fuel —
+  > so **an empty house draws nothing**, and Law 2's *"mere ownership and
+  > absence cost nothing"* is satisfied by the physics, not by an
+  > exemption. ⚠ The *"invoice-the-owners"* loop above must therefore
+  > invoice **consumption**, not **frontage**.
 - **Labor** — the utility as employer: positions, shifts, the
   maintenance rotation ([employment.md](../../subsystems/employment.md));
   the storm contract as the surge case over the standing round.
