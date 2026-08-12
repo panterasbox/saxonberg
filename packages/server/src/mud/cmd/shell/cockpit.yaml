@@ -31,8 +31,8 @@ examples:
     note: Open the forum board view
   - cmd: cockpit scope chat gossip
     note: Scope this bar to the gossip channel
-  - cmd: cockpit style theme high-contrast
-    note: Switch to the high-contrast theme
+  - cmd: cockpit style theme marble
+    note: Switch to the Marble (light) ground
 subcommands:
   mode:
     controller: /obj/command/shell/CockpitModeController
@@ -204,7 +204,7 @@ subcommands:
       Each preference has its own form:
 
         cockpit style show                       print the current overlay
-        cockpit style theme <default|high-contrast>
+        cockpit style theme <ink|marble|high-contrast>
         cockpit style channel <key> color <value>
         cockpit style channel <key> clear
         cockpit style mention self <on|off>
@@ -218,8 +218,8 @@ subcommands:
     examples:
       - cmd: cockpit style show
         note: Print every style choice currently in effect
-      - cmd: cockpit style theme high-contrast
-        note: Switch to the high-contrast theme
+      - cmd: cockpit style theme marble
+        note: Switch to the Marble (light) ground
       - cmd: cockpit style channel gossip color blue
         note: Tint the gossip channel blue
       - cmd: cockpit style plain channel gossip on

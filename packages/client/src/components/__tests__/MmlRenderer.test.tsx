@@ -268,8 +268,14 @@ describe("MmlRenderer", () => {
         '<player color="amber">Alice</player>'
       );
       const span = screen.getByText("Alice");
-      // amber → tokens.palette.amber = #d7ba7d = rgb(215, 186, 125).
-      expect(window.getComputedStyle(span).color).toBe("rgb(215, 186, 125)");
+      // amber → tokens.palette.amber → var(--sx-tint-amber).
+      // ⚠ jsdom does NOT substitute var(): getComputedStyle returns the
+      // unresolved reference string, not a resolved rgb() triple. That
+      // is a jsdom limitation, not a bug here — a real browser resolves
+      // it, and e2e/tests/theme.spec.ts asserts the resolved value.
+      expect(window.getComputedStyle(span).color).toBe(
+        "var(--sx-tint-amber)",
+      );
       // Click behavior preserved — falls back to `look <label>` with no
       // registry hit.
       fireEvent.click(span);
@@ -282,8 +288,11 @@ describe("MmlRenderer", () => {
         '<highlight color="rose">danger</highlight>'
       );
       const span = screen.getByText("danger");
-      // rose → tokens.palette.rose = #f48771 = rgb(244, 135, 113).
-      expect(window.getComputedStyle(span).color).toBe("rgb(244, 135, 113)");
+      // rose → tokens.palette.rose → var(--sx-tint-rose). See the
+      // jsdom note on the amber case above.
+      expect(window.getComputedStyle(span).color).toBe(
+        "var(--sx-tint-rose)",
+      );
       // Not clickable — a styling wrapper only.
       expect(onCommandPreview).not.toHaveBeenCalled();
     });

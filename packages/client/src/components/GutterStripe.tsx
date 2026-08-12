@@ -101,9 +101,23 @@ const PopoverButton = styled.button`
 `;
 
 /**
- * FNV-1a 24-bit hash of the family path → hue. Fixed S/L (65/50)
- * so every leaf in a family shares a hue cluster while staying
- * legible on the dark terminal background.
+ * FNV-1a 24-bit hash of the family path → hue, so every leaf in a
+ * family shares a hue cluster.
+ *
+ * ⭐ The **only computed colour in the client**, and the one place a
+ * colour is not simply a token read. The hue must stay computed — it is
+ * derived from the topic string and there is no table that could hold
+ * 360 of them — but the saturation and lightness are a *calibration*,
+ * hand-tuned so the result is legible against the ground. Those two
+ * numbers were therefore theme-blind: tuned for the dark terminal and
+ * silently wrong on a light one.
+ *
+ * The fix is to compose with `var()` rather than resolve it. The
+ * space-separated HSL form takes custom properties directly, so the
+ * hue stays computed here and the calibration comes from the active
+ * ground's `--sx-stripe-s` / `--sx-stripe-l`. This is why
+ * `noHexLiterals.test.ts` permits a colour function whose arguments
+ * include a `var(` — a pattern permission, not a file allowlist.
  */
 export function colorForTopic(family: string): string {
   let h = 2166136261 >>> 0;
@@ -112,7 +126,7 @@ export function colorForTopic(family: string): string {
     h = Math.imul(h, 16777619) >>> 0;
   }
   const hue = h % 360;
-  return `hsl(${hue}, 65%, 50%)`;
+  return `hsl(${hue} var(--sx-stripe-s) var(--sx-stripe-l))`;
 }
 
 interface GutterStripeProps {

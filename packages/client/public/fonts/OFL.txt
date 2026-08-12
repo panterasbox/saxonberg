@@ -1,8 +1,32 @@
-Copyright 2014 - 2023 Adobe (http://www.adobe.com/), with Reserved Font Name ‘Source’. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.
+The four faces self-hosted here are each licensed under the SIL Open Font
+License, Version 1.1. Their copyright notices travel with the fonts, as the
+license requires; the license text itself is identical for all four and is
+reproduced once below.
 
-This Font Software is licensed under the SIL Open Font License, Version 1.1.
+Spectral      (spectral-latin.woff2, spectral-500-latin.woff2)
+  Copyright 2017 The Spectral Project Authors
+  (https://github.com/productiontype/Spectral)
 
-This license is copied below, and is also available with a FAQ at: http://scripts.sil.org/OFL
+Public Sans   (public-sans-latin.woff2)
+  Copyright 2015 The Public Sans Project Authors
+  (https://github.com/uswds/public-sans)
+
+Newsreader    (newsreader-latin.woff2, newsreader-italic-latin.woff2)
+  Copyright 2020 The Newsreader Project Authors
+  (http://github.com/productiontype/Newsreader)
+
+IBM Plex Mono (plex-mono-latin.woff2)
+  Copyright (c) 2017 IBM Corp. with Reserved Font Name "Plex"
+
+Each file is the upstream `latin` unicode-range subset as served by Google
+Fonts -- a build-time fetch, not a runtime dependency. The subsetting
+procedure is recorded in docs/subsystems/message-rendering.md
+(section "Font-by-register typography").
+
+This license is copied below, and is also available with a FAQ at:
+https://openfontlicense.org
+
+
 
 
 -----------------------------------------------------------

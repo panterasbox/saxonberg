@@ -25,7 +25,7 @@ type Variant = "primary" | "action" | "ghost";
 
 const primary = css`
   background: ${tokens.color.primary};
-  color: white;
+  color: ${tokens.color.onField};
   border: none;
   padding: ${tokens.space.sm} ${tokens.space.lg};
   font-size: ${tokens.font.small};

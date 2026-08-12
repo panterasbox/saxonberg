@@ -40,7 +40,7 @@ const Stage = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: ${tokens.color.surfaceSunken};
 `;
 
 const Screen = styled.div`

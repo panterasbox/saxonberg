@@ -5,7 +5,7 @@
  * Reached as `cockpit style …` (the `style` subcommand of `cockpit`
  * declares this controller). Settings, per `cmd/shell/cockpit.yaml`:
  *   - `show`         — print current overlay as readable JSON
- *   - `theme <name>` — `default` | `high-contrast`
+ *   - `theme <name>` — `ink` | `marble` | `high-contrast`
  *   - `channel <key> color <value>` — set per-channel chip color
  *   - `channel <key> clear`         — drop all overlay rules for the channel
  *   - `mention self on|off`         — own-name highlight toggle
@@ -44,7 +44,18 @@ import type {
 } from '@saxonberg/types';
 
 const STYLE_KEY = 'style.overlay';
-const KNOWN_THEMES = new Set(['default', 'high-contrast']);
+/**
+ * The shipped theme vocabulary. **This set is the authority** — the
+ * client's `ThemeName` type tracks it, not the other way round, because a
+ * client-only rename leaves the verb refusing a theme the client has.
+ *
+ * ⚠ `default` is retired and NOT aliased. It stopped naming anything the
+ * moment there were two grounds (the dark one is Ink), and an alias keeps
+ * a dead vocabulary alive for nobody — the demo wipes nightly and there
+ * is no playerbase to protect. So `cockpit style theme default` refuses
+ * here, and `pickTheme('default')` falls through client-side.
+ */
+const KNOWN_THEMES = new Set(['ink', 'marble', 'high-contrast']);
 
 type StyleHost = Stuff & HasInteractive;
 
@@ -117,17 +128,21 @@ export default class StyleController extends CommandController<StyleModel> {
     context: CommandContext,
   ): void {
     if (!name) {
-      return this.fail(context, 'usage: cockpit style theme <default|high-contrast>', 'missing-arg');
+      return this.fail(
+        context,
+        'usage: cockpit style theme <ink|marble|high-contrast>',
+        'missing-arg',
+      );
     }
     if (!KNOWN_THEMES.has(name)) {
       return this.fail(
         context,
-        `unknown theme '${name}' (known: default, high-contrast)`,
+        `unknown theme '${name}' (known: ink, marble, high-contrast)`,
         'unknown-theme',
       );
     }
     const next = this.cloneOverlay(host);
-    next.theme = name as 'default' | 'high-contrast';
+    next.theme = name as 'ink' | 'marble' | 'high-contrast';
     this.commit(host, next);
     this.send(context, Mml.fromMarkup(`\ntheme set to ${Mml.escape(name)}\n`));
   }

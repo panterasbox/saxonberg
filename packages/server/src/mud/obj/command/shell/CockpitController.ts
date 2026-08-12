@@ -80,7 +80,11 @@ export default class CockpitController extends CommandController<CommandModel> {
   /** Theme plus a count of the remaining overlay rules. */
   private describeStyle(host: CockpitHost): string {
     const overlay = host.getClientState<StyleOverlay>(STYLE_KEY) ?? {};
-    const theme = typeof overlay.theme === 'string' ? overlay.theme : 'default';
+    // ⚠ The fallback must be a theme `cockpit style theme` ACCEPTS. It
+    // read 'default' until the civic rename, which meant `cockpit`
+    // reported a theme name the verb refuses — the report and the verb
+    // have to agree on the vocabulary or the round trip is a lie.
+    const theme = typeof overlay.theme === 'string' ? overlay.theme : 'ink';
     const others = Object.keys(overlay).filter((k) => k !== 'theme').length;
     return others === 0
       ? `theme ${theme}`

@@ -2,7 +2,7 @@
 
 > **Status: Wave 1 shipped (2026-06).** Substrate lives in
 > [docs/subsystems/message-rendering.md](../../subsystems/message-rendering.md):
-> nested-aware client renderer, stylesheet engine + two themes,
+> nested-aware client renderer, stylesheet engine + three themes,
 > per-message-type templates (chat / say / tell / emote / default),
 > Discord-dialect markdown → MML, custom URI scheme links, mentions,
 > `style` verb on a per-Avatar overlay, `AetherMixin` for non-acoustic

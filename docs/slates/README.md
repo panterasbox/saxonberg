@@ -648,7 +648,15 @@ work, so the cycle is server-first.
   object slot, and a **server-owned pane catalogue**. ⭐ Its open
   question — *does a mode switch stay a real command on the wire?* — is
   **answered yes**, verified by driving a browser, so the axiom holds.
-  ⚠ Remaining is the CLIENT itself: waves 1 (foundation) · 2 (arrival) ·
+  **Wave 1 Build A shipped** (MR !182) — the civic ground: a 44-role
+  `--sx-*` custom-property colour layer, Ink + Marble + a re-based
+  `high-contrast`, four self-hosted voices, the `ink`/`marble` rename,
+  and the honest-state primitives. ⭐ **Open question 5 (fonts) is
+  CLOSED** — self-hosted, the handoff's Google Fonts `<link>` declined,
+  and the subsetting procedure recorded in `message-rendering.md` rather
+  than left as tribal knowledge.
+  ⚠ Remaining is the CLIENT itself: wave 1 **Builds B and C** (honest
+  chrome; chrome on a phone) · waves 2 (arrival) ·
   4 (play surface) · 6 (social) · 7 (authoring), and two things a build
   must decide rather than discover — **who acts on an arrangement
   recall** (nothing does today, on either side), and that the pane

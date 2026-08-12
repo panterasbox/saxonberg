@@ -28,6 +28,7 @@ import { CharGenStage } from "./components/CharGenStage";
 import { GhostCommandLine } from "./components/GhostCommandLine";
 import { SettingsPane } from "./components/settings/SettingsPane";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
+import { useGround } from "./lib/style/useGround";
 import { tokens } from "./components/ui";
 import type {
   ConsoleTab,
@@ -236,6 +237,14 @@ function formatResponseEcho(promptId: string, response: string): string | null {
  * App component.
  */
 function App() {
+  // ⚠ First line, above the phase switch. The switch early-returns per
+  // phase, so a ground applied inside one case would leave the other
+  // four (start screen, splash, character select, char-gen) painting on
+  // whatever `main.tsx` pre-applied and never repainting on a theme
+  // change. The chrome resolves its theme through the same `pickTheme`
+  // as the transcript's `useStylesheet` — see `lib/style/useGround`.
+  useGround();
+
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);

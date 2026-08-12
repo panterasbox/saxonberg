@@ -32,7 +32,7 @@ const Reconnect = styled.button`
   background: ${tokens.color.primary};
   border: none;
   border-radius: ${tokens.radius.md};
-  color: #fff;
+  color: ${tokens.color.onField};
   font-family: inherit;
   font-size: ${tokens.font.small};
   padding: ${tokens.space.xs} ${tokens.space.md};

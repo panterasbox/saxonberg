@@ -86,7 +86,7 @@ behavior. Read the relevant doc before editing in its area.
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
-  - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: frame primitives, start screen, anonymous-guest path, reconnect machine
+  - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: frame primitives, start screen, anonymous-guest path, reconnect machine, the honest-state primitives
   - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; ghost command line
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
