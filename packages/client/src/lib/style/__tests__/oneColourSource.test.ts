@@ -92,7 +92,9 @@ describe.each(Object.keys(THEMES))(
     });
 
     it('every treatment fg/bg is a ground reference', () => {
-      const treatments: Array<[string, { fg?: string; bg?: string }]> = [
+      const treatments: ReadonlyArray<
+        readonly [string, { fg?: string; bg?: string }]
+      > = [
         ...Object.entries(theme.topic).map(
           ([k, t]) => [`topic.${k}`, t] as const,
         ),
@@ -102,8 +104,8 @@ describe.each(Object.keys(THEMES))(
         ...Object.entries(theme.bucket).map(
           ([k, t]) => [`bucket.${k}`, t] as const,
         ),
-        ['mention.match', theme.mention.match],
-        ['mention.other', theme.mention.other],
+        ['mention.match', theme.mention.match] as const,
+        ['mention.other', theme.mention.other] as const,
       ];
       for (const [label, t] of treatments) {
         if (t.fg !== undefined) {
