@@ -50,6 +50,14 @@ Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
 `docket`. Persists to **`cockpit.shelf`**; the surface it drives is
 documented in [client-shell.md § The widget shelf](./client-shell.md).
 
+⭐ **The default pins only `play`, `renown`, `skill`** — the three that
+are actually wired. *Never default-pin a widget that does not do
+anything yet*: the other six render their honest not-wired state, and a
+new player's first impression should not be six dead boxes. They are one
+`cockpit shelf pin` away, and `cockpit shelf list` is how a player
+discovers them — which is why `list` prints the whole catalogue rather
+than only what is pinned.
+
 Mirrors `cockpit pane` in every respect — `list` / verb / `<id>`, two
 positional slots (`action`, `row`) dispatched in the controller, and a
 refusal in the machine voice naming the known set. Four artifacts: a

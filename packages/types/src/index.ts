@@ -886,14 +886,29 @@ export const SHELF_ROW_IDS: readonly ShelfRowId[] = [
 
 /**
  * What `cockpit.shelf` holds for a player who has never touched it:
- * **all nine rows**.
+ * **the rows that are actually wired**, and nothing else.
  *
- * ⭐ Not the reference art's five. The build's claim is that the shelf
- * is mostly hatched *by construction*, and that this is the honesty
- * convention working rather than a shortfall — a claim that is
- * invisible on first login if six of the nine are unpinned by default.
+ * ⭐ **Never default-pin a widget that does not do anything yet.** An
+ * earlier cut defaulted to all nine, reasoning that the shelf being
+ * mostly hatched *is* the honesty convention working and should
+ * therefore be visible on first login. That mistook a principle for a
+ * product: a new player's first impression should not be six dead
+ * boxes, however truthfully each one explains itself.
+ *
+ * The convention is not lost by this — it moves to where it is
+ * actually useful. The `＋ widget` menu lists the whole catalogue with
+ * every row's reason in visible text, which is the moment a player is
+ * asking "why can't I have COIN?" A reason shown at the point of the
+ * question beats a reason shown on a bar nobody asked about.
+ *
+ * ⚠ So the nine-row assertion is about the **catalogue**, not the
+ * default shelf. A row joins this list when it starts answering.
  */
-export const DEFAULT_SHELF: readonly ShelfRowId[] = SHELF_ROW_IDS;
+export const DEFAULT_SHELF: readonly ShelfRowId[] = [
+  "play",
+  "renown",
+  "skill",
+];
 
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';

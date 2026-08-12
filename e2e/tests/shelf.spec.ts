@@ -8,6 +8,12 @@ import { openWorldAs, reenterWorld, runCommand } from './helpers';
  * > *`cockpit shelf pin <row>` / `unpin <row>` persist to
  * > `cockpit.shelf` and survive a reconnect.*
  *
+ * ⚠ **The nine is the CATALOGUE, not the default shelf.** The AC was
+ * written against a nine-row default, which was reversed on review:
+ * never default-pin a widget that does not do anything yet. So these
+ * specs pin the hatched six explicitly where they need them — which is
+ * also the path a real player takes.
+ *
  * ⭐ This spec exists because the unit suite **structurally cannot**
  * check two of the things that matter most.
  *
@@ -38,11 +44,19 @@ test('the shelf is honest, and its rows are hatched for real', async ({
       timeout: 20_000,
     });
     const groups = shelfGroups(page);
-    await expect(groups).toHaveCount(9, { timeout: 20_000 });
+    // ⭐ The DEFAULT is the three wired rows — never a bar of dead
+    // widgets on first login. The hatched six live in the widget menu
+    // until a player pins one.
+    await expect(groups).toHaveCount(3, { timeout: 20_000 });
+    await expect(
+      page.locator('[data-testid="shelf"] [data-figure-state="unwired"]'),
+    ).toHaveCount(0);
 
-    // The three live rows and the six hatched ones. ⚠ Not "at least
-    // three" — a shelf that quietly started painting a fourth would be
-    // painting something the server did not send.
+    // Pin the hatched six and they behave exactly as documented.
+    for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
+      await runCommand(page, `cockpit shelf pin ${row}`);
+    }
+    await expect(groups).toHaveCount(9, { timeout: 20_000 });
     await expect(
       page.locator('[data-testid="shelf"] [data-figure-state="unwired"]'),
     ).toHaveCount(6);
@@ -94,13 +108,13 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
       timeout: 20_000,
     });
     const groups = shelfGroups(page);
-    await expect(groups).toHaveCount(9, { timeout: 20_000 });
+    await expect(groups).toHaveCount(3, { timeout: 20_000 });
 
-    // ⚠ Through the real binder: `cockpit shelf unpin coin` has to
+    // ⚠ Through the real binder: `cockpit shelf unpin renown` has to
     // tokenize into two positional slots and reach the controller. A
     // controller test cannot catch a YAML/controller slot mismatch.
-    await runCommand(page, 'cockpit shelf unpin coin');
-    await expect(groups).toHaveCount(8, { timeout: 10_000 });
+    await runCommand(page, 'cockpit shelf unpin renown');
+    await expect(groups).toHaveCount(2, { timeout: 10_000 });
 
     // ⭐ THE assertion. A reload discards every scrap of client state —
     // a new socket, a fresh store, no memory of the command — and asks
@@ -111,10 +125,10 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
     await expect(page.getByTestId('terminal')).toBeVisible({
       timeout: 20_000,
     });
-    await expect(groups).toHaveCount(8, { timeout: 20_000 });
+    await expect(groups).toHaveCount(2, { timeout: 20_000 });
 
-    await runCommand(page, 'cockpit shelf pin coin');
-    await expect(groups).toHaveCount(9, { timeout: 10_000 });
+    await runCommand(page, 'cockpit shelf pin renown');
+    await expect(groups).toHaveCount(3, { timeout: 10_000 });
 
     // An unknown row refuses in the machine voice, NAMING the known set
     // — a refusal that says only "no" leaves a closed vocabulary a
@@ -126,7 +140,7 @@ test('pinning is a real command, and the SERVER owns the answer', async ({
     });
     await expect(transcript).toContainText('docket', { timeout: 10_000 });
     // …and nothing changed.
-    await expect(groups).toHaveCount(9);
+    await expect(groups).toHaveCount(3);
 
     // ⭐ Identity and connection cannot be unpinned, from the direction
     // a player would actually attack it: they are not rows at all.
@@ -154,6 +168,11 @@ test('the shelf WRAPS rather than scrolling at a narrow width', async ({
     await expect(page.getByTestId('terminal')).toBeVisible({
       timeout: 20_000,
     });
+    // Pin everything — wrapping only matters with a full shelf, and the
+    // default three fit on one row at any width worth testing.
+    for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
+      await runCommand(page, `cockpit shelf pin ${row}`);
+    }
     await expect(shelfGroups(page)).toHaveCount(9, { timeout: 20_000 });
 
     await page.setViewportSize({ width: 900, height: 800 });
@@ -207,7 +226,7 @@ test('the ＋ widget menu stays inside the viewport at both widths', async ({
     await expect(page.getByTestId('terminal')).toBeVisible({
       timeout: 20_000,
     });
-    await expect(shelfGroups(page)).toHaveCount(9, { timeout: 20_000 });
+    await expect(shelfGroups(page)).toHaveCount(3, { timeout: 20_000 });
 
     for (const width of [1440, 900]) {
       await page.setViewportSize({ width, height: 800 });

@@ -47,13 +47,44 @@ function groupFor(label: string): HTMLElement {
   return found;
 }
 
+/**
+ * Pin every row — the state a player reaches by adding the six hatched
+ * ones. NOT the default: see the ⭐ default test below.
+ */
+function pinAll(): void {
+  useStore.setState({ clientState: { 'cockpit.shelf': [...SHELF_ROW_IDS] } });
+}
+
 describe('Shelf', () => {
   beforeEach(() => {
     useStore.setState({ shelfFigures: null, clientState: {} });
   });
 
   describe('the catalogue', () => {
-    it('renders nine rows', () => {
+    /*
+     * ⭐ **Never default-pin a widget that does not do anything yet.**
+     * The catalogue is nine; the DEFAULT SHELF is the three that are
+     * actually wired. A new player's first impression should not be six
+     * dead boxes, however truthfully each one explains itself — the
+     * honesty convention lands in the widget menu instead, which is
+     * where a player is actually asking what a row would show.
+     */
+    it('⭐ defaults to the WIRED rows only', () => {
+      render(<Shelf />);
+      expect(groups()).toHaveLength(3);
+      for (const label of ['PLAY', 'RENOWN', 'SKILL']) {
+        expect(groupFor(label)).toBeTruthy();
+      }
+      for (const label of ['MAKE', 'COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
+        expect(
+          screen.queryByLabelText(new RegExp(`^${label}:`)),
+          `${label} was default-pinned`,
+        ).toBeNull();
+      }
+    });
+
+    it('renders all nine once they are pinned', () => {
+      pinAll();
       render(<Shelf />);
       expect(groups()).toHaveLength(9);
     });
@@ -67,6 +98,7 @@ describe('Shelf', () => {
      * vocabulary too — the client-side twin of the server's guard.
      */
     it('⭐ TRAIT is absent, by name and by vocabulary', () => {
+      pinAll();
       render(<Shelf />);
       expect(screen.queryByText(/TRAIT/)).toBeNull();
       for (const id of SHELF_ROW_IDS) {
@@ -79,6 +111,7 @@ describe('Shelf', () => {
     });
 
     it('renders every row through Figure — no value escapes it', () => {
+      pinAll();
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
       const shelf = screen.getByTestId('shelf');
@@ -158,6 +191,7 @@ describe('Shelf', () => {
 
   describe('the six hatched rows', () => {
     it('render unwired, with NO digit anywhere in them', () => {
+      pinAll();
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
       for (const label of ['MAKE', 'COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
@@ -177,6 +211,7 @@ describe('Shelf', () => {
      * time somebody copies a neighbouring line.
      */
     it("⭐ MAKE's reason names the ACCOUNT gap, not a generic 'not wired'", () => {
+      pinAll();
       render(<Shelf />);
       const make = groupFor('MAKE');
       const reason = make.getAttribute('aria-label') ?? '';
@@ -221,6 +256,7 @@ describe('Shelf', () => {
      * us — unlike a resolved `var()` colour.
      */
     it('wraps rather than scrolling', () => {
+      pinAll();
       render(<Shelf />);
       const style = getComputedStyle(screen.getByTestId('shelf'));
       expect(style.flexWrap).toBe('wrap');
@@ -240,25 +276,26 @@ describe('Shelf', () => {
       const onCommandClick = vi.fn();
       render(<Shelf onCommandClick={onCommandClick} />);
       const menu = openMenu();
-      // `coin` is pinned by default, so its affordance unpins.
+      // `coin` is NOT default-pinned, so its affordance PINS it — the
+      // real path now that the hatched six start off the bar.
       fireEvent.click(
         within(menu).getByText('COIN').closest('button') as HTMLElement,
       );
-      expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf unpin coin');
+      expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf pin coin');
       // ⚠ And nothing moved client-side. The server owns the shelf; a
       // local mutation would falsify the axiom the status bar makes.
       expect(useStore.getState().clientState['cockpit.shelf']).toBeUndefined();
     });
 
-    it('sends a PIN for a row that is not on the shelf', () => {
+    it('sends an UNPIN for a row that IS on the shelf', () => {
       const onCommandClick = vi.fn();
-      useStore.setState({ clientState: { 'cockpit.shelf': ['play'] } });
+      pinAll();
       render(<Shelf onCommandClick={onCommandClick} />);
       const menu = openMenu();
       fireEvent.click(
         within(menu).getByText('COIN').closest('button') as HTMLElement,
       );
-      expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf pin coin');
+      expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf unpin coin');
     });
 
     /*
@@ -287,7 +324,7 @@ describe('Shelf', () => {
       const sent = onCommandClick.mock.calls[0]?.[0];
 
       expect(previewed).toBe(sent);
-      expect(sent).toBe('cockpit shelf unpin coin');
+      expect(sent).toBe('cockpit shelf pin coin');
     });
 
     it('mouse-leave stops the preview', () => {
@@ -307,7 +344,10 @@ describe('Shelf', () => {
      * chip carries it in `title` and the accessible name, which is the
      * compact face of the same fact and never the only place it lives.
      */
-    it('the widget menu shows every row with its reason in words', () => {
+    it('⭐ the widget menu shows every row with its reason in words', () => {
+      // ⚠ This matters MORE now that the hatched six do not start on the
+      // bar: the menu is the only place a player meets them, so it is
+      // where the honesty convention has to do its work.
       render(<Shelf />);
       const menu = openMenu();
       for (const row of SHELF_CATALOGUE) {

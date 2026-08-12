@@ -640,6 +640,13 @@ distinct reasons (the account-level gap, the missing-field gap, the
 not-about-you gap). A shelf showing nine confident numbers would be
 lying about six of them.
 
+⚠ **But the DEFAULT pins only the three wired rows** — corrected on
+review. *Never default-pin a widget that does not do anything yet.* A
+principle is not a product: six dead boxes on first login is bad even
+when each one explains itself honestly. The convention moved to the
+`＋ widget` menu, which carries every reason in visible text at the
+moment a player is actually asking.
+
 ⭐ **The token sweep is nearly free, and "mechanical, touches everything"
 was wrong.** 1468 `tokens.*` reference sites over only **44 distinct
 token paths**, and every use is CSS-valued — interpolated into a

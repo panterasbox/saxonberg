@@ -114,19 +114,35 @@ describe('CockpitShelfController', () => {
   }
 
   /*
-   * ⭐ The default is all nine, not the reference art's five: the build's
-   * claim is that the shelf is mostly hatched BY CONSTRUCTION and that
-   * this is the convention working — a claim that is invisible on first
-   * login if six of the nine start unpinned.
+   * ⭐ **Never default-pin a widget that does not do anything yet.** The
+   * default is the three WIRED rows, not all nine — a new player's first
+   * impression should not be six dead boxes, however truthfully each one
+   * explains itself. The honesty convention still lands, in the widget
+   * menu, where a player is actually asking what a row would show.
    */
-  it('starts with every row pinned', () => {
+  it('⭐ starts with only the wired rows pinned', () => {
     expect(shelf()).toEqual([...DEFAULT_SHELF]);
-    expect(shelf()).toHaveLength(9);
+    expect(shelf()).toEqual(['play', 'renown', 'skill']);
+    // The catalogue is still nine; the DEFAULT is three.
+    expect(SHELF_ROW_IDS).toHaveLength(9);
+  });
+
+  /*
+   * ⚠ And the hatched six are absent from the default, by name. A
+   * regression here would put a dead widget in front of every new
+   * player, which is exactly what this default exists to prevent.
+   */
+  it('⚠ default-pins no hatched row', () => {
+    for (const row of ['make', 'coin', 'status', 'time', 'online', 'docket']) {
+      expect(shelf(), `${row} was default-pinned`).not.toContain(row);
+    }
   });
 
   describe('pin', () => {
-    it('adds a row back, at the end, and pushes the update', async () => {
-      await run({ action: 'unpin', row: 'coin' });
+    it('adds a hatched row, at the end, and pushes the update', async () => {
+      // `coin` is NOT default-pinned (it is one of the hatched six), so
+      // this is the real path a player takes to add one.
+      expect(shelf()).not.toContain('coin');
       pushSpy.mockClear();
 
       const ctx = await run({ action: 'pin', row: 'coin' });
@@ -153,16 +169,18 @@ describe('CockpitShelfController', () => {
 
   describe('unpin', () => {
     it('removes the row and leaves the rest in order', async () => {
-      await run({ action: 'unpin', row: 'coin' });
-      expect(shelf()).not.toContain('coin');
-      expect(shelf()).toHaveLength(8);
+      // A DEFAULT-pinned row, since those are the ones a player has to
+      // remove rather than add.
+      await run({ action: 'unpin', row: 'renown' });
+      expect(shelf()).not.toContain('renown');
+      expect(shelf()).toHaveLength(DEFAULT_SHELF.length - 1);
       expect(shelf()).toEqual(
-        [...DEFAULT_SHELF].filter((r) => r !== 'coin'),
+        [...DEFAULT_SHELF].filter((r) => r !== 'renown'),
       );
     });
 
     it('unpinning what is not there is a no-op, not a corruption', async () => {
-      await run({ action: 'unpin', row: 'coin' });
+      // `coin` starts unpinned, so this is the no-op path directly.
       const before = [...shelf()];
       await run({ action: 'unpin', row: 'coin' });
       expect(shelf()).toEqual(before);
@@ -220,7 +238,6 @@ describe('CockpitShelfController', () => {
      * — marked as absent rather than omitted.
      */
     it('prints all nine rows with their pinned-ness', async () => {
-      await run({ action: 'unpin', row: 'coin' });
       actor.received.length = 0;
       const ctx = await run({ action: 'list' });
 
@@ -228,7 +245,10 @@ describe('CockpitShelfController', () => {
       for (const row of SHELF_ROW_IDS) {
         expect(body, `${row} missing from the catalogue`).toContain(row);
       }
-      expect(body).toContain('8 of 9 pinned');
+      // ⚠ Three of nine by default — `list` is how a player DISCOVERS
+      // the six that are not on their bar, which matters more now that
+      // they no longer start there.
+      expect(body).toContain('3 of 9 pinned');
       expect(ctx.getStatus()).toBe('ok');
     });
 

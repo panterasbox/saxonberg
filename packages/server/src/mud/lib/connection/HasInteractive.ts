@@ -465,11 +465,13 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         description:
           'The widget shelf — which figures are pinned to the top bar, ' +
           'in order. An array of ShelfRowId. Edited by `cockpit shelf ' +
-          'pin|unpin`; defaults to all nine rows, most of which render ' +
-          'their honest not-wired state rather than a number. ' +
-          'Server-authoritative on purpose: a pin affordance that ' +
-          'mutated local state would falsify the claim the status bar ' +
-          'makes, that every click sends a command.',
+          'pin|unpin`; defaults to the rows that are actually wired ' +
+          '(play, renown, skill), never to a bar of dead widgets. The ' +
+          'other six are one `cockpit shelf pin` away and explain ' +
+          'themselves in the widget menu. Server-authoritative on ' +
+          'purpose: a pin affordance that mutated local state would ' +
+          'falsify the claim the status bar makes, that every click ' +
+          'sends a command.',
         // Shape: an array of known row ids, no duplicates. The id
         // vocabulary is `SHELF_ROW_IDS` in `@saxonberg/types` — one
         // list, shared, so the server's validation and the client's

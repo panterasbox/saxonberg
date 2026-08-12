@@ -86,23 +86,38 @@ single cross-surface `Frame` wrapper is deferred until a third surface
 `components/frame/Shelf.tsx`. The player-pinned row of figures across
 the top bar, and **the first consumer of the honest-state primitives**.
 
-⭐⭐ **Three of the nine rows have a live server read and six do not, so
-the shelf is mostly hatched by construction.** That is not a shortfall
-to apologise for — it is the convention working. A shelf showing nine
-confident numbers would be lying about six of them.
+⭐⭐ **Three of the nine rows have a live server read and six do not.**
+A shelf showing nine confident numbers would be lying about six of them,
+so the six say what they are instead.
 
-| Row | State | Category |
-|---|---|---|
-| `PLAY` | **live** | `playStanding` |
-| `RENOWN` | **live** | `renown` |
-| `SKILL` | **live** | `practisingCompetence` |
-| `MAKE` | hatched | `level` |
-| `COIN` | hatched | `unexposed` |
-| `STATUS` | hatched | `unexposed` |
-| `TIME` | hatched | `not-self` |
-| `ONLINE` | hatched | `not-self` |
-| `DOCKET` | hatched | `not-self` |
-| ~~`TRAIT`~~ | **never** | see below |
+⭐ **But the default shelf pins only the three that are wired.** An
+earlier cut defaulted to all nine, reasoning that the shelf being mostly
+hatched *is* the convention working and should be visible on first
+login. That mistook a principle for a product: a new player's first
+impression should not be six dead boxes, however truthfully each one
+explains itself. **Never default-pin a widget that does not do anything
+yet.**
+
+The convention is not lost — it moves to where it is useful. The
+`＋ widget` menu carries the whole catalogue with every reason in
+visible text, which is exactly the moment a player is asking *why can't
+I have COIN?* A reason shown at the point of the question beats a reason
+shown on a bar nobody asked about. So the **nine is the catalogue**; the
+**three is the default**, and a row joins the default when it starts
+answering.
+
+| Row | State | Default-pinned | Category |
+|---|---|---|---|
+| `PLAY` | **live** | ✅ | `playStanding` |
+| `RENOWN` | **live** | ✅ | `renown` |
+| `SKILL` | **live** | ✅ | `practisingCompetence` |
+| `MAKE` | hatched | — | `level` |
+| `COIN` | hatched | — | `unexposed` |
+| `STATUS` | hatched | — | `unexposed` |
+| `TIME` | hatched | — | `not-self` |
+| `ONLINE` | hatched | — | `not-self` |
+| `DOCKET` | hatched | — | `not-self` |
+| ~~`TRAIT`~~ | **never** | — | see below |
 
 ### ⭐ The three hatch categories, and why they are three
 
@@ -168,6 +183,13 @@ The 30px chip has no room for a visible reason line, so the reason rides
 &lt;reason&gt;"*, in words, so a screen reader gets it). The `＋ widget`
 menu is where every row's reason is **visible text** — the chip is the
 compact face of the same fact, never the only place it appears.
+
+⚠ The menu carries more weight than it looks like it should, because
+the hatched six **do not start on the bar**: it is the only place a
+player meets them, so it is where the honesty convention does its work.
+It is anchored to the RIGHT of its button — left-anchored it overflowed
+the viewport and made the whole page scroll sideways, which only a real
+browser could see.
 
 The shelf takes `flex: 1; flex-wrap: wrap` — **wraps, never scrolls**.
 Nothing pinned may be out of sight; a horizontally scrolling shelf hides
